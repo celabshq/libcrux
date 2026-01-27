@@ -18,7 +18,7 @@ concurrency:
 jobs:
   fmt:
     if: ${{ github.event_name != 'merge_group' }}
-    runs-on: ubuntu-latest
+    runs-on: linux
 
     steps:
       - uses: actions/checkout@v6
@@ -29,7 +29,7 @@ jobs:
   fmt-status:
     if: ${{ always() }}
     needs: [fmt]
-    runs-on: ubuntu-latest
+    runs-on: linux
     steps:
       - name: Successful
         if: ${{ !(contains(needs.*.result, 'failure')) }} 

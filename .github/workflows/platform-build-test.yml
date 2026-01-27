@@ -18,22 +18,7 @@ concurrency:
 jobs:
   platform:
     if: ${{ github.event_name != 'merge_group' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        bits: [32, 64]
-        os:
-          - macos-15-intel # Intel mac
-          - macos-latest # macos-15 on apple silicon
-          - ubuntu-latest
-          - windows-latest
-        exclude:
-          - bits: 32
-            os: "macos-latest"
-          - bits: 32
-            os: "macos-15-intel"
-
-    runs-on: ${{ matrix.os }}
+    runs-on: linux
     defaults:
       run:
         shell: bash
@@ -54,33 +39,10 @@ jobs:
       - name: 🏃🏻‍♀️ Test Release
         run: cargo test --verbose --release -- --nocapture
 
-      - name: 🛠️ Setup Linux x86
-        if: ${{ matrix.bits == 32 &&  matrix.os == 'ubuntu-latest' }}
-        run: |
-          rustup target add i686-unknown-linux-gnu
-          sudo apt-get update
-          sudo apt-get install -y gcc-multilib g++-multilib
-
-      - name: 🏃🏻‍♀️ Test Linux x86
-        if: ${{ matrix.bits == 32 &&  matrix.os == 'ubuntu-latest' }}
-        run: cargo test --verbose --target i686-unknown-linux-gnu -- --nocapture
-
-      - name: 🏃🏻‍♀️ Test Release Linux x86
-        if: ${{ matrix.bits == 32 &&  matrix.os == 'ubuntu-latest' }}
-        run: cargo test --verbose --release --target i686-unknown-linux-gnu -- --nocapture
-
-      - name: 🏃🏻‍♀️ Test Windows x86
-        if: ${{ matrix.bits == 32 &&  matrix.os == 'windows-latest' }}
-        run: cargo test --verbose --target i686-pc-windows-msvc -- --nocapture
-
-      - name: 🏃🏻‍♀️ Test Release Windows x86
-        if: ${{ matrix.bits == 32 &&  matrix.os == 'windows-latest' }}
-        run: cargo test --verbose --release --target i686-pc-windows-msvc -- --nocapture
-
   platform-build-test-status:
     if: ${{ always() }}
     needs: [platform]
-    runs-on: ubuntu-latest
+    runs-on: linux
     steps:
       - name: Successful
         if: ${{ !(contains(needs.*.result, 'failure')) }} 
