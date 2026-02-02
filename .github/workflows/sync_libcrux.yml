@@ -43,6 +43,11 @@ jobs:
           git remote add upstream https://github.com/cryspen/libcrux.git || true
           git fetch upstream
 
+      - name: Add libcrux-evit as origin
+        run: |
+          git remote add origin https://github.com/cryspen/libcrux-evit.git || true
+          git fetch origin
+          
       - name: Create and update sync branch
         run: |
           git checkout -B merge-public-libcrux upstream/main
