@@ -2,15 +2,15 @@
 
 use core::array::from_fn;
 
-use super::AesCtrContext;
+use super::{AesCtrContext, AES_GCM_CTR_LEN};
 use crate::{aes::*, aes_gcm_256::KEY_LEN, platform::AESState, NONCE_LEN};
 
 pub(crate) const NUM_KEYS: usize = 15;
 
 /// Type alias for the AES 256 ctr context.
-pub(crate) type Aes256CtrContext<T> = AesCtrContext<T, NUM_KEYS>;
+pub(crate) type AesGcm256CtrContext<T> = AesCtrContext<T, NUM_KEYS, AES_GCM_CTR_LEN, 0>;
 
-impl<T: AESState> Aes256CtrContext<T> {
+impl<T: AESState> AesGcm256CtrContext<T> {
     #[inline]
     pub(crate) fn init(key: &[u8], nonce: &[u8]) -> Self {
         debug_assert!(nonce.len() == NONCE_LEN);

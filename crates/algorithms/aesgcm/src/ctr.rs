@@ -18,20 +18,36 @@ pub(crate) use aes256_ctr::*;
 
 /// The ctr nonce length. This is different from the AES nonce length
 /// [`crate::NONCE_LEN`].
-const NONCE_LEN: usize = 16;
+const CTR_NONCE_LEN: usize = 16;
+
+pub(crate) const AES_GCM_CTR_LEN: usize = 4;
+pub(crate) const AES_CCM_CTR_LEN: usize = 3;
+pub(crate) const AES_GCM_NONCE_START: usize = 0;
+pub(crate) const AES_CCM_NONCE_START: usize = 1;
 
 /// Generic AES CTR context.
-pub(crate) struct AesCtrContext<T: AESState, const NUM_KEYS: usize> {
+///
+/// - `NUM_KEYS` is the number of sub-keys that are expanded in `extended_key`, i.e. 11 for AES-128, 15 for AES-256.
+/// - `CTR_LEN` is how many bytes at the end of `ctr_nonce` are used for the counter
+/// - `NONCE_START` is the index in `ctr_nonce`, where the AEAD nonce begins, i.e. 0 in AES-GCM and 1 in AES-CCM (because the first byte is for flags CCM)
+pub(crate) struct AesCtrContext<
+    T: AESState,
+    const NUM_KEYS: usize,
+    const CTR_LEN: usize,
+    const NONCE_START: usize,
+> {
     pub(crate) extended_key: ExtendedKey<T, NUM_KEYS>,
-    pub(crate) ctr_nonce: [u8; NONCE_LEN],
+    pub(crate) ctr_nonce: [u8; CTR_NONCE_LEN],
 }
 
-impl<T: AESState, const NUM_KEYS: usize> AesCtrContext<T, NUM_KEYS> {
+impl<T: AESState, const NUM_KEYS: usize, const CTR_LEN: usize, const NONCE_START: usize>
+    AesCtrContext<T, NUM_KEYS, CTR_LEN, NONCE_START>
+{
     #[inline]
     fn aes_ctr_set_nonce(&mut self, nonce: &[u8]) {
         debug_assert!(nonce.len() == crate::NONCE_LEN);
 
-        self.ctr_nonce[0..crate::NONCE_LEN].copy_from_slice(nonce);
+        self.ctr_nonce[NONCE_START..crate::NONCE_LEN + NONCE_START].copy_from_slice(nonce);
     }
 
     #[inline]
@@ -39,7 +55,7 @@ impl<T: AESState, const NUM_KEYS: usize> AesCtrContext<T, NUM_KEYS> {
         debug_assert!(out.len() == AES_BLOCK_LEN);
 
         let mut st_init = self.ctr_nonce;
-        st_init[12..16].copy_from_slice(&ctr.to_be_bytes());
+        st_init[CTR_NONCE_LEN - CTR_LEN..].copy_from_slice(&ctr.to_be_bytes()[4 - CTR_LEN..]);
         let mut st = T::new();
 
         st.load_block(&st_init);
@@ -54,7 +70,7 @@ impl<T: AESState, const NUM_KEYS: usize> AesCtrContext<T, NUM_KEYS> {
         debug_assert!(input.len() == out.len() && input.len() <= AES_BLOCK_LEN);
 
         let mut st_init = self.ctr_nonce;
-        st_init[12..16].copy_from_slice(&ctr.to_be_bytes());
+        st_init[CTR_NONCE_LEN - CTR_LEN..].copy_from_slice(&ctr.to_be_bytes()[4 - CTR_LEN..]);
         let mut st = T::new();
         st.load_block(&st_init);
 

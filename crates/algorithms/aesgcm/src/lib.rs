@@ -38,18 +38,21 @@
 //!
 //!
 
-#![no_std]
+// #![no_std]
 #![deny(unsafe_code)]
-#[cfg(feature = "std")]
-extern crate std;
+// #[cfg(feature = "std")]
+// extern crate std;
 
 mod aes;
+// mod ccm;
 mod ctr;
 mod gf128;
 mod platform;
 
 mod traits_api;
 
+mod aes_ccm;
+pub mod aes_ccm_128;
 mod aes_gcm;
 
 /// Implementations of AES-GCM 128
@@ -390,8 +393,17 @@ macro_rules! pub_crate_mod {
     };
 }
 
+pub mod aes_ccm_128_external {
+    pub use crate::portable::aes_ccm_128::*;
+}
+
 pub(crate) mod portable {
     pub_crate_mod!(r"AES-GCM 128 ", aes_gcm_128, crate::aes_gcm_128::State<platform::portable::State, platform::portable::FieldElement>);
+    pub_crate_mod!(
+        r"AES-CCM 128 ",
+        aes_ccm_128,
+        crate::aes_ccm_128::AesCcm128State<platform::portable::State>
+    );
     pub_crate_mod!(r"AES-GCM 256 ", aes_gcm_256, crate::aes_gcm_256::State<platform::portable::State, platform::portable::FieldElement>);
 }
 

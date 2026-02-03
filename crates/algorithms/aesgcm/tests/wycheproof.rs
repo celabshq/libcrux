@@ -28,6 +28,57 @@ fn run<Cipher: libcrux_aesgcm::Aead>(test: &Test, cipher: Cipher) {
     }
 }
 
+fn ccm_run(test: &Test) {
+    let mut ciphertext = vec![0u8; test.pt.len()];
+    let mut plaintext = vec![0u8; test.pt.len()];
+    let mut tag_bytes = [0u8; 16];
+
+    println!("Key: {:?}", &test.key.as_ref());
+    println!("Nonce: {:?}", &test.nonce.as_ref());
+    println!("Plaintext: {:?}", &test.pt.as_ref());
+    println!("AAD: {:?}", &test.aad.as_ref());
+
+    libcrux_aesgcm::aes_ccm_128_external::encrypt(
+        &test.key,
+        &test.nonce,
+        &test.aad,
+        &test.pt,
+        &mut ciphertext,
+        &mut tag_bytes,
+    )
+    .unwrap();
+
+    if test.result == TestResult::Valid {
+        assert_eq!(tag_bytes.as_ref(), test.tag.as_slice());
+        assert_eq!(&ciphertext, test.ct.as_slice());
+
+        libcrux_aesgcm::aes_ccm_128_external::decrypt(
+            &test.key,
+            &test.nonce,
+            &test.aad,
+            &test.ct,
+            &test.tag,
+            &mut plaintext,
+        )
+        .unwrap();
+
+        assert_eq!(&plaintext, test.pt.as_slice());
+        println!("Successful encryption");
+        println!("Ciphertext: {:?}\n", &ciphertext);
+    } else {
+        assert!(libcrux_aesgcm::aes_ccm_128_external::decrypt(
+            &test.key,
+            &test.nonce,
+            &test.aad,
+            &test.ct,
+            &test.tag,
+            &mut plaintext,
+        )
+        .is_err());
+        println!("Successfully rejected invalid ciphertext");
+    }
+}
+
 fn test_variant(cipher: impl libcrux_aesgcm::Aead) {
     let test_set = wycheproof::aead::TestSet::load(wycheproof::aead::TestName::AesGcm).unwrap();
 
@@ -48,6 +99,35 @@ fn test_variant(cipher: impl libcrux_aesgcm::Aead) {
         if test_group.key_size / 8 == cipher.key_len() {
             for test in test_group.tests {
                 run(&test, cipher);
+                tested = true;
+            }
+        }
+    }
+
+    assert!(tested, "No tests were run.")
+}
+
+#[test]
+fn ccm() {
+    let test_set = wycheproof::aead::TestSet::load(wycheproof::aead::TestName::AesCcm).unwrap();
+
+    // Ensure we ran some tests.
+    let mut tested = false;
+
+    for test_group in test_set.test_groups {
+        println!(
+            "* Group key size:{} tag size:{} nonce size:{}",
+            test_group.key_size, test_group.tag_size, test_group.nonce_size,
+        );
+
+        if test_group.nonce_size != 96 || test_group.tag_size != 128 {
+            println!("  Skipping unsupported nonce size");
+            continue;
+        }
+
+        if test_group.key_size / 8 == 16 {
+            for test in test_group.tests {
+                ccm_run(&test);
                 tested = true;
             }
         }
