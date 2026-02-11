@@ -227,65 +227,64 @@ macro_rules! api {
     };
 }
 
-#[cfg(feature = "simd128")]
-use crate::implementations::NeonAesGcm128;
-#[cfg(not(feature = "simd128"))]
-use crate::implementations::PortableAesGcm128 as NeonAesGcm128;
+macro_rules! cfg {
+    ($feature:literal $($it:item)*) => {
+        $(
+        #[cfg(feature = $feature)]
+            $it
+        )*
+    }
+}
 
-#[cfg(not(feature = "simd256"))]
-use crate::implementations::PortableAesGcm128 as X64AesGcm128;
-#[cfg(feature = "simd256")]
-use crate::implementations::X64AesGcm128;
+macro_rules! not_cfg {
+    ($feature:literal $($it:item)*) => {
+        $(
+        #[cfg(not(feature = $feature))]
+            $it
+        )*
+    }
+}
 
-#[cfg(feature = "simd128")]
-use crate::implementations::NeonAesGcm256;
-#[cfg(not(feature = "simd128"))]
-use crate::implementations::PortableAesGcm256 as NeonAesGcm256;
+cfg!(
+    "simd128"
+    use crate::implementations::NeonAesGcm128;
+    use crate::implementations::NeonAesGcm256;
+    use crate::implementations::NeonAesCcm128;
+    use crate::implementations::NeonAesCcm256;
+    use crate::implementations::NeonAesCcm256ShortTag;
+    use crate::implementations::NeonAesCcm128ShortTag;
+);
 
-#[cfg(not(feature = "simd256"))]
-use crate::implementations::PortableAesGcm256 as X64AesGcm256;
-#[cfg(feature = "simd256")]
-use crate::implementations::X64AesGcm256;
+cfg!(
+    "simd256"
+    use crate::implementations::X64AesGcm128;
+    use crate::implementations::X64AesGcm256;
+    use crate::implementations::X64AesCcm128;
+    use crate::implementations::X64AesCcm256;
+    use crate::implementations::X64AesCcm128ShortTag;
+    use crate::implementations::X64AesCcm256ShortTag;
+);
 
-#[cfg(feature = "simd128")]
-use crate::implementations::NeonAesCcm128;
-#[cfg(not(feature = "simd128"))]
-use crate::implementations::PortableAesCcm128 as NeonAesCcm128;
+// If SIMD implementations are not available, fall back to portable.
+not_cfg!(
+    "simd128"
+    use crate::implementations::PortableAesGcm128 as NeonAesGcm128;
+    use crate::implementations::PortableAesGcm256 as NeonAesGcm256;
+    use crate::implementations::PortableAesCcm128 as NeonAesCcm128;
+    use crate::implementations::PortableAesCcm256 as NeonAesCcm256;
+    use crate::implementations::PortableAesCcm128ShortTag as NeonAesCcm128ShortTag;
+    use crate::implementations::PortableAesCcm256ShortTag as NeonAesCcm256ShortTag;
+);
 
-#[cfg(not(feature = "simd256"))]
-use crate::implementations::PortableAesCcm128 as X64AesCcm128;
-#[cfg(feature = "simd256")]
-use crate::implementations::X64AesCcm128;
-
-#[cfg(feature = "simd128")]
-use crate::implementations::NeonAesCcm256;
-#[cfg(not(feature = "simd128"))]
-use crate::implementations::PortableAesCcm256 as NeonAesCcm256;
-
-#[cfg(not(feature = "simd256"))]
-use crate::implementations::PortableAesCcm256 as X64AesCcm256;
-#[cfg(feature = "simd256")]
-use crate::implementations::X64AesCcm256;
-
-#[cfg(feature = "simd128")]
-use crate::implementations::NeonAesCcm128ShortTag;
-#[cfg(not(feature = "simd128"))]
-use crate::implementations::PortableAesCcm128ShortTag as NeonAesCcm128ShortTag;
-
-#[cfg(not(feature = "simd256"))]
-use crate::implementations::PortableAesCcm128ShortTag as X64AesCcm128ShortTag;
-#[cfg(feature = "simd256")]
-use crate::implementations::X64AesCcm128ShortTag;
-
-#[cfg(feature = "simd128")]
-use crate::implementations::NeonAesCcm256ShortTag;
-#[cfg(not(feature = "simd128"))]
-use crate::implementations::PortableAesCcm256ShortTag as NeonAesCcm256ShortTag;
-
-#[cfg(not(feature = "simd256"))]
-use crate::implementations::PortableAesCcm256ShortTag as X64AesCcm256ShortTag;
-#[cfg(feature = "simd256")]
-use crate::implementations::X64AesCcm256ShortTag;
+not_cfg!(
+    "simd256"
+    use crate::implementations::PortableAesGcn128 as X64AesGcm128;
+    use crate::implementations::PortableAesGcm256 as X64AesGcm256;
+    use crate::implementations::PortableAesCcm128 as X64AesCcm128;
+    use crate::implementations::PortableAesCcm256 as X64AesCcm256;
+    use crate::implementations::PortableAesCcm128ShortTag as X64AesCcm128ShortTag;
+    use crate::implementations::PortableAesCcm256ShortTag as X64AesCcm256ShortTag;
+);
 
 api!(
     aes128gcm,
