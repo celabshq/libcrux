@@ -70,7 +70,6 @@
 extern crate std;
 
 mod aes;
-// mod ccm;
 mod ctr;
 mod gf128;
 mod platform;
@@ -294,7 +293,7 @@ pub mod aes_ccm_128 {
     /// # Portable implementation of AES-CCM 128
     ///
     /// To use the portable implementation, `Key`, `Nonce`, and `Tag` types
-    /// must be explicitely parameterized by the portable implementation.
+    /// must be explicitly parameterized by the portable implementation.
     ///
     /// Example:
     /// ```rust
@@ -324,7 +323,7 @@ pub mod aes_ccm_128 {
     /// ARM NEON-optimized implementation of AES-CCM 128
     ///
     /// To use the NEON-optimized implementation, `Key`, `Nonce`, and `Tag` types
-    /// must be explicitely parameterized by the NEON implementation.
+    /// must be explicitly parameterized by the NEON implementation.
     ///
     /// Example:
     /// ```rust
@@ -354,7 +353,7 @@ pub mod aes_ccm_128 {
     /// AES-NI-optimized implementation of AES-CCM 128
     ///
     /// To use the AES-NI-optimized implementation, `Key`, `Nonce`, and `Tag` types
-    /// must be explicitely parameterized by the AES-NI implementation.
+    /// must be explicitly parameterized by the AES-NI implementation.
     ///
     /// Example:
     /// ```rust
@@ -454,7 +453,7 @@ pub mod aes_ccm_128 {
         /// # Portable implementation of AES-CCM 128 (Short Tag)
         ///
         /// To use the portable implementation, `Key`, `Nonce`, and `Tag` types
-        /// must be explicitely parameterized by the portable implementation.
+        /// must be explicitly parameterized by the portable implementation.
         ///
         /// Example:
         /// ```rust
@@ -485,7 +484,7 @@ pub mod aes_ccm_128 {
         /// ARM NEON-optimized implementation of AES-CCM 128 (Short Tag)
         ///
         /// To use the NEON-optimized implementation, `Key`, `Nonce`, and `Tag` types
-        /// must be explicitely parameterized by the NEON implementation.
+        /// must be explicitly parameterized by the NEON implementation.
         ///
         /// Example:
         /// ```rust
@@ -515,7 +514,7 @@ pub mod aes_ccm_128 {
         /// AES-NI-optimized implementation of AES-CCM 128 (Short Tag)
         ///
         /// To use the AES-NI-optimized implementation, `Key`, `Nonce`, and `Tag` types
-        /// must be explicitely parameterized by the AES-NI implementation.
+        /// must be explicitly parameterized by the AES-NI implementation.
         ///
         /// Example:
         /// ```rust
@@ -619,7 +618,7 @@ pub mod aes_ccm_256 {
     /// # Portable implementation of AES-CCM 256
     ///
     /// To use the portable implementation, `Key`, `Nonce`, and `Tag` types
-    /// must be explicitely parameterized by the portable implementation.
+    /// must be explicitly parameterized by the portable implementation.
     ///
     /// Example:
     /// ```rust
@@ -649,7 +648,7 @@ pub mod aes_ccm_256 {
     /// ARM NEON-optimized implementation of AES-CCM 256
     ///
     /// To use the NEON-optimized implementation, `Key`, `Nonce`, and `Tag` types
-    /// must be explicitely parameterized by the NEON implementation.
+    /// must be explicitly parameterized by the NEON implementation.
     ///
     /// Example:
     /// ```rust
@@ -679,7 +678,7 @@ pub mod aes_ccm_256 {
     /// AES-NI-optimized implementation of AES-CCM 256
     ///
     /// To use the AES-NI-optimized implementation, `Key`, `Nonce`, and `Tag` types
-    /// must be explicitely parameterized by the AES-NI implementation.
+    /// must be explicitly parameterized by the AES-NI implementation.
     ///
     /// Example:
     /// ```rust
@@ -779,7 +778,7 @@ pub mod aes_ccm_256 {
         /// # Portable implementation of AES-CCM 256 (Short Tag)
         ///
         /// To use the portable implementation, `Key`, `Nonce`, and `Tag` types
-        /// must be explicitely parameterized by the portable implementation.
+        /// must be explicitly parameterized by the portable implementation.
         ///
         /// Example:
         /// ```rust
@@ -809,7 +808,7 @@ pub mod aes_ccm_256 {
         /// ARM NEON-optimized implementation of AES-CCM 256 (Short Tag)
         ///
         /// To use the NEON-optimized implementation, `Key`, `Nonce`, and `Tag` types
-        /// must be explicitely parameterized by the NEON implementation.
+        /// must be explicitly parameterized by the NEON implementation.
         ///
         /// Example:
         /// ```rust
@@ -839,7 +838,7 @@ pub mod aes_ccm_256 {
         /// AES-NI-optimized implementation of AES-CCM 256 (Short Tag)
         ///
         /// To use the AES-NI-optimized implementation, `Key`, `Nonce`, and `Tag` types
-        /// must be explicitely parameterized by the AES-NI implementation.
+        /// must be explicitly parameterized by the AES-NI implementation.
         ///
         /// Example:
         /// ```rust
