@@ -8,15 +8,17 @@ use crate::{
 };
 use core::ops::Range;
 
-/// Macro to instantiate the AES state.
 const TWO_BYTE_ENCODING_RANGE: Range<usize> = 0..(1 << 16) - (1 << 8);
 const SIX_BYTE_ENCODING_RANGE: Range<usize> = (1 << 16) - (1 << 8)..(1 << 32);
 const TEN_BYTE_ENCODING_RANGE: Range<usize> = (1 << 32)..usize::MAX;
+
+/// Macro to instantiate the AES-CCM state.
 /// This should really be replaced by using traits everywhere.
 macro_rules! aesccm {
     ($state:ty, $ctr_context:ident, $key_len:literal) => {
         impl<T: AESState> super::State for $state {
-            /// Initialize the state
+            /// Initialize the state, internally expanding subkeys for
+            /// AES block cipher.
             fn init(key: &[u8]) -> Self {
                 debug_assert!(key.len() == $key_len);
 
@@ -31,6 +33,8 @@ macro_rules! aesccm {
                 }
             }
 
+            /// Set the nonce for the AES-CTR and authentication
+            /// states.
             fn set_nonce(&mut self, nonce: &[u8]) {
                 debug_assert!(nonce.len() == NONCE_LEN);
 
@@ -38,6 +42,7 @@ macro_rules! aesccm {
                 self.accumulator[1..1 + NONCE_LEN].copy_from_slice(nonce);
             }
 
+            /// Encrypt and authenticate AAD and plaintext.
             fn encrypt(
                 &mut self,
                 aad: &[u8],
@@ -61,6 +66,8 @@ macro_rules! aesccm {
                 tag.copy_from_slice(&tag_block[..tag.len()]);
             }
 
+            /// Verify authentication tag, and if valid decrypt
+            /// plaintext from ciphertext.
             fn decrypt(
                 &mut self,
                 aad: &[u8],
@@ -70,15 +77,22 @@ macro_rules! aesccm {
             ) -> Result<(), DecryptError> {
                 let mut tag_block = [0u8; AES_BLOCK_LEN];
 
-                // Feed accumulator with AAD
+                // Feed accumulator with AAD.
                 self.ccm_update_aad(aad, ciphertext.len());
-                // Feed accumulator with ciphertext blocks
+                // Feed accumulator with ciphertext blocks.
+                //
+                // This decrypts ciphertext blocks on the fly
+                // internally to accumulate decrypted plaintext blocks
+                // into the candidate CBC-MAC without prematurely
+                // writing out an unauthenticated decryption to the
+                // output buffer.
                 self.ccm_update_ciphertext(ciphertext);
 
                 // xor first key block to CBC-MAC
                 self.aes_state.update(0, &self.accumulator, &mut tag_block);
 
-                // Check that recomputed tag in accumulator agrees with tag
+                // Check that recomputed tag in accumulator agrees
+                // with provided tag.
                 let mut eq_mask = 0u8;
                 for i in 0..tag.len() {
                     eq_mask |= (tag_block[i] ^ tag[i]);
@@ -88,7 +102,7 @@ macro_rules! aesccm {
                     return Err(DecryptError::InvalidTag);
                 }
 
-                // Decrypt and write out plaintext if tag was valid
+                // Decrypt and write out plaintext if tag was valid.
                 self.aes_state.update(1, ciphertext, plaintext);
                 Ok(())
             }
@@ -100,20 +114,29 @@ macro_rules! aesccm {
 const MSG_ENC_LEN: usize = 3;
 pub(crate) const AES_CCM_CTR_LEN: usize = 3;
 
-/// The AES-CCM 128 state
+/// The AES-CCM state.
 pub(crate) struct State<const TAG_LEN: usize, const NUM_KEYS: usize, T: AESState> {
-    // pub(crate) aes_state: AesCcm128CtrContext<T>,
+    /// Internal AES-CTR state for encryption/decryption.
     pub(crate) aes_state: AesCtrContext<T, NUM_KEYS, AES_CCM_CTR_LEN, 1>,
+    /// Internal state for accumulating the authentication tag from AAD and message.
     pub(crate) accumulator: [u8; AES_BLOCK_LEN],
 }
 
+/// Implements AES-CCM internals for a given AES-CCM state.
+///
+/// `num_keys` is the number of sub-keys derived for the internal AES
+/// state:
+/// - 11 for AES-128,
+/// - 15 for AES-256
 macro_rules! ccm_num_keys {
     ($num_keys:literal) => {
         impl<const TAG_LEN: usize, T: AESState> State<TAG_LEN, $num_keys, T> {
+            /// Update authentication state by accumulating AAD.
+            ///
+            /// The state needs to be initialized first to set the
+            /// correct nonce in the initial state of the accumulator.
             #[inline]
-            // Nonce must be set first
-            pub fn ccm_update_aad(&mut self, aad: &[u8], payload_len: usize) {
-                // First block
+            fn ccm_update_aad(&mut self, aad: &[u8], payload_len: usize) {
                 // We need this to get the right slices from the end
                 // of `x.len().to_be_bytes()` where `x` is a usize.
                 const USIZE_LEN: usize = core::mem::size_of::<usize>();
@@ -122,6 +145,8 @@ macro_rules! ccm_num_keys {
                 // case.
                 debug_assert!(MSG_ENC_LEN <= USIZE_LEN);
                 debug_assert!(MSG_ENC_LEN <= AES_BLOCK_LEN);
+
+                // First byte of initial accumulator value:
                 self.accumulator[0] = 64 * (!aad.is_empty() as u8)
                     + ((TAG_LEN as u8 - 2) / 2) * 8
                     + (MSG_ENC_LEN as u8)
@@ -196,7 +221,15 @@ macro_rules! ccm_num_keys {
                 }
             }
 
-            pub fn ccm_update_plaintext(&mut self, payload: &[u8]) {
+            /// Update authentication state by accumulating plaintext.
+            ///
+            /// This needs to be called after `ccm_update_aad`.
+            /// Afterwards, `self.accumulator` will contain the
+            /// block-length CBC-MAC of AAD and message plaintext,
+            /// which needs to be xor-ed with the first block of the
+            /// CTR key stream and truncated to the final
+            /// authentication tag length.
+            fn ccm_update_plaintext(&mut self, payload: &[u8]) {
                 let full_blocks = payload.len() / AES_BLOCK_LEN;
                 let remainder = payload.len() - full_blocks * AES_BLOCK_LEN;
 
@@ -210,6 +243,15 @@ macro_rules! ccm_num_keys {
                 }
             }
 
+            /// Update authentication state by accumulating ciphertext
+            /// blocks, decrypting on the fly.
+            ///
+            /// This needs to be called after `ccm_update_aad`.
+            /// Afterwards, `self.accumulator` will contain the
+            /// block-length CBC-MAC of AAD and message plaintext,
+            /// which needs to be xor-ed with the first block of the
+            /// CTR key stream and truncated to the final
+            /// authentication tag length.
             fn ccm_update_ciphertext(&mut self, ciphertext: &[u8]) {
                 let full_blocks = ciphertext.len() / AES_BLOCK_LEN;
                 let remainder = ciphertext.len() - full_blocks * AES_BLOCK_LEN;
@@ -238,6 +280,13 @@ macro_rules! ccm_num_keys {
                 }
             }
 
+            /// Accumulate an input of at most `AES_BLOCK_LEN` bytes
+            /// into the authentication state.
+            ///
+            /// The input is implicitly zero-padded to
+            /// `AES_BLOCK_LEN` bytes.
+            ///
+            /// self.accumulator = AES(self.accumulator ^ pad(input))
             fn accumulate(&mut self, input: &[u8]) {
                 debug_assert!(input.len() <= AES_BLOCK_LEN);
                 for j in 0..input.len() {
