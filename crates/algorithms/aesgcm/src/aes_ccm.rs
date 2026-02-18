@@ -15,7 +15,7 @@ const TEN_BYTE_ENCODING_RANGE: Range<usize> = (1 << 32)..usize::MAX;
 /// Macro to instantiate the AES-CCM state.
 /// This should really be replaced by using traits everywhere.
 macro_rules! aesccm {
-    ($state:ty, $ctr_context:ident, $key_len:literal) => {
+    ($state:ty, $ctr_context:ident, $key_len:literal, $tag_len: expr) => {
         impl<T: AESState> super::State for $state {
             /// Initialize the state, internally expanding subkeys for
             /// AES block cipher.
@@ -63,7 +63,7 @@ macro_rules! aesccm {
                 self.aes_state.update(1, plaintext, ciphertext);
 
                 // write out tag
-                tag.copy_from_slice(&tag_block[..tag.len()]);
+                tag.copy_from_slice(&tag_block[..$tag_len]);
             }
 
             /// Verify authentication tag, and if valid decrypt
@@ -94,7 +94,7 @@ macro_rules! aesccm {
                 // Check that recomputed tag in accumulator agrees
                 // with provided tag.
                 let mut eq_mask = 0u8;
-                for i in 0..tag.len() {
+                for i in 0..$tag_len {
                     eq_mask |= (tag_block[i] ^ tag[i]);
                 }
 
@@ -312,8 +312,23 @@ pub(crate) type AesCcm256State<T> = State<TAG_LEN, 15, T>;
 #[allow(non_camel_case_types)]
 pub(crate) type AesCcm256_8_State<T> = State<CCM_SHORT_TAG_LEN, 15, T>;
 
-aesccm!(AesCcm128State<T>, AesCcm128CtrContext, 16);
-aesccm!(AesCcm128_8_State<T>, AesCcm128CtrContext, 16);
+aesccm!(AesCcm128State<T>, AesCcm128CtrContext, 16, crate::TAG_LEN);
+aesccm!(
+    AesCcm128_8_State<T>,
+    AesCcm128CtrContext,
+    16,
+    crate::TAG_LEN
+);
 
-aesccm!(AesCcm256State<T>, AesCcm256CtrContext, 32);
-aesccm!(AesCcm256_8_State<T>, AesCcm256CtrContext, 32);
+aesccm!(
+    AesCcm256State<T>,
+    AesCcm256CtrContext,
+    32,
+    crate::CCM_SHORT_TAG_LEN
+);
+aesccm!(
+    AesCcm256_8_State<T>,
+    AesCcm256CtrContext,
+    32,
+    crate::CCM_SHORT_TAG_LEN
+);
