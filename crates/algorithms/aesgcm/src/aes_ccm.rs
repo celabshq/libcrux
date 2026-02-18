@@ -6,8 +6,12 @@ use crate::{
     platform::AESState,
     DecryptError, CCM_SHORT_TAG_LEN, NONCE_LEN, TAG_LEN,
 };
+use core::ops::Range;
 
 /// Macro to instantiate the AES state.
+const TWO_BYTE_ENCODING_RANGE: Range<usize> = 0..(1 << 16) - (1 << 8);
+const SIX_BYTE_ENCODING_RANGE: Range<usize> = (1 << 16) - (1 << 8)..(1 << 32);
+const TEN_BYTE_ENCODING_RANGE: Range<usize> = (1 << 32)..usize::MAX;
 /// This should really be replaced by using traits everywhere.
 macro_rules! aesccm {
     ($state:ty, $ctr_context:ident, $key_len:literal) => {
@@ -110,14 +114,21 @@ macro_rules! ccm_num_keys {
             // Nonce must be set first
             pub fn ccm_update_aad(&mut self, aad: &[u8], payload_len: usize) {
                 // First block
+                // We need this to get the right slices from the end
+                // of `x.len().to_be_bytes()` where `x` is a usize.
+                const USIZE_LEN: usize = core::mem::size_of::<usize>();
+
+                // `MSG_ENC_LEN` is 3, so this should always be the
+                // case.
+                debug_assert!(MSG_ENC_LEN <= USIZE_LEN);
+                debug_assert!(MSG_ENC_LEN <= AES_BLOCK_LEN);
                 self.accumulator[0] = 64 * (!aad.is_empty() as u8)
                     + ((TAG_LEN as u8 - 2) / 2) * 8
                     + (MSG_ENC_LEN as u8)
                     - 1;
 
                 self.accumulator[AES_BLOCK_LEN - MSG_ENC_LEN as usize..].copy_from_slice(
-                    &payload_len.to_be_bytes()
-                        [core::mem::size_of::<usize>() - MSG_ENC_LEN as usize..],
+                    &payload_len.to_be_bytes()[USIZE_LEN - MSG_ENC_LEN as usize..],
                 );
 
                 let mut st = T::new();
@@ -135,15 +146,19 @@ macro_rules! ccm_num_keys {
                 let mut current_block = [0u8; AES_BLOCK_LEN];
 
                 let mut aad_len_encoding_len = 2;
-                if aad_len < (1 << 16) - (1 << 8) {
-                    current_block[0..2].copy_from_slice(&aad_len.to_be_bytes()[6..]);
+                if TWO_BYTE_ENCODING_RANGE.contains(&aad_len) {
+                    current_block[0..2].copy_from_slice(
+                        &aad_len.to_be_bytes()[USIZE_LEN - aad_len_encoding_len..],
+                    );
                 }
-                if ((1 << 16) - (1 << 8)..(1 << 32)).contains(&aad_len) {
+                if SIX_BYTE_ENCODING_RANGE.contains(&aad_len) {
                     aad_len_encoding_len = 6;
                     current_block[0] = 0xff;
                     current_block[1] = 0xfe;
-                    current_block[2..4].copy_from_slice(&aad_len.to_be_bytes()[4..]);
-                } else if aad_len >= (1 << 32) {
+                    current_block[2..4].copy_from_slice(
+                        &aad_len.to_be_bytes()[USIZE_LEN - aad_len_encoding_len + 2..],
+                    );
+                } else if TEN_BYTE_ENCODING_RANGE.contains(&aad_len) {
                     aad_len_encoding_len = 10;
                     current_block[0] = 0xff;
                     current_block[1] = 0xfe;
