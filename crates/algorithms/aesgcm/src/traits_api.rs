@@ -417,7 +417,7 @@ const GCM_AAD_MAX_LEN: usize = (1 << 61) - 1;
 const GCM_PTXT_MAX_LEN: usize = (1 << 36) - 31;
 
 /// AES-CCM allows for AAD to be of size `usize::MAX - 10`.
-const CCM_AAD_MAX_LEN: usize = usize::MAX - 1;
+const CCM_AAD_MAX_LEN: usize = usize::MAX - 10;
 
 /// AES-CCM allows the plaintext to be 2^36 - 31 octets long. This is
 /// also the maximum length of the ciphertext for us, since we store
