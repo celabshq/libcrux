@@ -8,7 +8,11 @@ use crate::{
 use core::ops::Range;
 
 const TWO_BYTE_ENCODING_RANGE: Range<usize> = 0..(1 << 16) - (1 << 8);
+#[cfg(target_pointer_width = "64")]
 const SIX_BYTE_ENCODING_RANGE: Range<usize> = (1 << 16) - (1 << 8)..(1 << 32);
+#[cfg(target_pointer_width = "32")]
+const SIX_BYTE_ENCODING_RANGE: Range<usize> = (1 << 16) - (1 << 8)..usize::MAX;
+#[cfg(target_pointer_width = "64")]
 const TEN_BYTE_ENCODING_RANGE: Range<usize> = (1 << 32)..usize::MAX;
 
 /// Macro to instantiate the AES-CCM state.
@@ -174,15 +178,19 @@ macro_rules! ccm_num_keys {
                     current_block[0..2].copy_from_slice(
                         &aad_len.to_be_bytes()[USIZE_LEN - aad_len_encoding_len..],
                     );
-                }
-                if SIX_BYTE_ENCODING_RANGE.contains(&aad_len) {
+                } else if SIX_BYTE_ENCODING_RANGE.contains(&aad_len) {
                     aad_len_encoding_len = 6;
                     current_block[0] = 0xff;
                     current_block[1] = 0xfe;
                     current_block[2..4].copy_from_slice(
                         &aad_len.to_be_bytes()[USIZE_LEN - aad_len_encoding_len + 2..],
                     );
-                } else if TEN_BYTE_ENCODING_RANGE.contains(&aad_len) {
+                }
+
+                // The ten byte encoding range is larger than we can
+                // handle in 32-bits.
+                #[cfg(target_pointer_width = "64")]
+                if TEN_BYTE_ENCODING_RANGE.contains(&aad_len) {
                     aad_len_encoding_len = 10;
                     current_block[0] = 0xff;
                     current_block[1] = 0xfe;

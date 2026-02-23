@@ -46,7 +46,7 @@
 //! access them in submodules following the path scheme `aes_gcm_128::{portable, x64, neon}` and
 //! `aes_ccm_128::{portable, x64, neon}`.
 //!
-//! ## Supported Tag and Nonce Lengths
+//! ## Supported Lengths
 //!
 //! The crate supports the following values for authentication tag and
 //! nonce lengths:
@@ -63,6 +63,17 @@
 //! Short tag variants of AES-CCM as defined in [RFC
 //! 6655](https://datatracker.ietf.org/doc/html/rfc6655) can be found in
 //! the `short_tag` submodules of `aes_ccm_128` and `aes_ccm_256`.
+//!
+//! For plaintext, ciphertext and AAD lengths, we have the following
+//! limitations:
+//!
+//! | Algorithm                 | Plain-/Ciphertext Length | AAD Length      |
+//! |---------------------------|--------------------------|-----------------|
+//! | AES-GCM on 64-bit systems | 2^36 - 32 bytes           | 2^61 - 1 bytes  |
+//! | AES-CCM on 64-bit systems | 2^24 - 1 bytes           | 2^64 - 10 bytes |
+//! | AES-GCM on 32-bit systems | 2^32 - 1 bytes           | 2^32 - 1 bytes  |
+//! | AES-CCM on 32-bit systems | 2^24 - 1 bytes           | 2^32 - 6 bytes  |
+//!
 
 #![no_std]
 #![deny(unsafe_code)]

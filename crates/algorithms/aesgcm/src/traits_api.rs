@@ -66,8 +66,14 @@ macro_rules! api {
                         aad: &[u8],
                         plaintext: &[u8],
                     ) -> Result<(), EncryptError> {
-                        // plaintext length check, the first bound is a requirement of AES-CTR, the second is given by the AEAD mode
-                        if plaintext.len() / crate::aes::AES_BLOCK_LEN >= (u32::MAX - 1) as usize || plaintext.len() > $ptxt_limit {
+                        // plaintext length check
+                        // AES-CTR has an internal bound of
+                        //
+                        // (2^32 - 1) * 128,
+                        //
+                        // but that is higher than either of the limits for of GCM (2^36 - 32) or
+                        // CCM (2^24 - 1).
+                        if plaintext.len() > $ptxt_limit {
                             return Err(EncryptError::PlaintextTooLong);
                         }
 
@@ -102,8 +108,14 @@ macro_rules! api {
                         ciphertext: &[u8],
                         tag: &Tag,
                     ) -> Result<(), DecryptError> {
-                        // ciphertext length check, the first bound is a requirement of AES-CTR, the second is given by the AEAD mode
-                        if ciphertext.len() / crate::aes::AES_BLOCK_LEN >= (u32::MAX - 1) as usize || plaintext.len() > $ptxt_limit {
+                        // ciphertext/plaintext length check
+                        // AES-CTR has an internal bound of
+                        //
+                        // (2^32 - 1) * 128,
+                        //
+                        // but that is higher than either of the limits for of GCM (2^36 - 32) or
+                        // CCM (2^24 - 1).
+                        if plaintext.len() > $ptxt_limit {
                             return Err(DecryptError::PlaintextTooLong);
                         }
 
@@ -156,8 +168,14 @@ macro_rules! api {
                         aad: &[u8],
                         plaintext: &[u8],
                     ) -> Result<(), EncryptError> {
-                        // plaintext length check, the first bound is a requirement of AES-CTR, the second is given by the AEAD mode
-                        if plaintext.len() / crate::aes::AES_BLOCK_LEN >= (u32::MAX - 1) as usize || plaintext.len() > $ptxt_limit {
+                        // plaintext length check
+                        // AES-CTR has an internal bound of
+                        //
+                        // (2^32 - 1) * 128,
+                        //
+                        // but that is higher than either of the limits for of GCM (2^36 - 32) or
+                        // CCM (2^24 - 1).
+                        if plaintext.len() > $ptxt_limit {
                             return Err(EncryptError::PlaintextTooLong);
                         }
 
@@ -182,8 +200,14 @@ macro_rules! api {
                         ciphertext: &[u8],
                         tag: &Tag,
                     ) -> Result<(), DecryptError> {
-                        // ciphertext length check, the first bound is a requirement of AES-CTR, the second is given by the AEAD mode
-                        if ciphertext.len() / crate::aes::AES_BLOCK_LEN >= (u32::MAX - 1) as usize || plaintext.len() > $ptxt_limit {
+                        // ciphertext/plaintext length check
+                        // AES-CTR has an internal bound of
+                        //
+                        // (2^32 - 1) * 128,
+                        //
+                        // but that is higher than either of the limits for of GCM (2^36 - 32) or
+                        // CCM (2^24 - 1).
+                        if plaintext.len() > $ptxt_limit {
                             return Err(DecryptError::PlaintextTooLong);
                         }
 
@@ -227,8 +251,14 @@ macro_rules! api {
                         aad: &[u8],
                         plaintext: &[u8],
                     ) -> Result<(), EncryptError> {
-                        // plaintext length check, the first bound is a requirement of AES-CTR, the second is given by the AEAD mode
-                        if plaintext.len() / crate::aes::AES_BLOCK_LEN >= (u32::MAX - 1) as usize || plaintext.len() > $ptxt_limit {
+                        // plaintext length check
+                        // AES-CTR has an internal bound of
+                        //
+                        // (2^32 - 1) * 128,
+                        //
+                        // but that is higher than either of the limits for of GCM (2^36 - 32) or
+                        // CCM (2^24 - 1).
+                        if plaintext.len() > $ptxt_limit {
                             return Err(EncryptError::PlaintextTooLong);
                         }
 
@@ -253,8 +283,14 @@ macro_rules! api {
                         ciphertext: &[u8],
                         tag: &Tag,
                     ) -> Result<(), DecryptError> {
-                        // ciphertext length check, the first bound is a requirement of AES-CTR, the second is given by the AEAD mode
-                        if ciphertext.len() / crate::aes::AES_BLOCK_LEN >= (u32::MAX - 1) as usize || plaintext.len() > $ptxt_limit {
+                        // ciphertext/plaintext length check
+                        // AES-CTR has an internal bound of
+                        //
+                        // (2^32 - 1) * 128,
+                        //
+                        // but that is higher than either of the limits for of GCM (2^36 - 32) or
+                        // CCM (2^24 - 1).
+                        if plaintext.len() > $ptxt_limit {
                             return Err(DecryptError::PlaintextTooLong);
                         }
 
@@ -298,8 +334,14 @@ macro_rules! api {
                         aad: &[u8],
                         plaintext: &[u8],
                     ) -> Result<(), EncryptError> {
-                        // plaintext length check, the first bound is a requirement of AES-CTR, the second is given by the AEAD mode
-                        if plaintext.len() / crate::aes::AES_BLOCK_LEN >= (u32::MAX - 1) as usize || plaintext.len() > $ptxt_limit {
+                        // plaintext length check
+                        // AES-CTR has an internal bound of
+                        //
+                        // (2^32 - 1) * 128,
+                        //
+                        // but that is higher than either of the limits for of GCM (2^36 - 32) or
+                        // CCM (2^24 - 1).
+                        if plaintext.len() > $ptxt_limit {
                             return Err(EncryptError::PlaintextTooLong);
                         }
 
@@ -324,8 +366,14 @@ macro_rules! api {
                         ciphertext: &[u8],
                         tag: &Tag,
                     ) -> Result<(), DecryptError> {
-                        // ciphertext length check, the first bound is a requirement of AES-CTR, the second is given by the AEAD mode
-                        if ciphertext.len() / crate::aes::AES_BLOCK_LEN >= (u32::MAX - 1) as usize || plaintext.len() > $ptxt_limit {
+                        // ciphertext/plaintext length check
+                        // AES-CTR has an internal bound of
+                        //
+                        // (2^32 - 1) * 128,
+                        //
+                        // but that is higher than either of the limits for of GCM (2^36 - 32) or
+                        // CCM (2^24 - 1).
+                        if plaintext.len() > $ptxt_limit {
                             return Err(DecryptError::PlaintextTooLong);
                         }
 
@@ -408,21 +456,50 @@ not_cfg!(
 
 // The following values are taken from RFC 5116.
 
-/// AES-GCM allows for AAD to be 2^61 - 1 octets long.
-const GCM_AAD_MAX_LEN: usize = (1 << 61) - 1;
+#[cfg(target_pointer_width = "64")]
+/// AAD and plain/ciphertext size limits for 64-bit systems.
+mod limits {
+    /// AES-GCM allows for AAD to be 2^61 - 1 octets long.
+    pub(super) const GCM_AAD_MAX_LEN: usize = (1 << 61) - 1;
 
-/// AES-GCM allows the plaintext to be 2^36 - 31 octets long. This is
-/// also the maximum length of the ciphertext for us, since we store
-/// the tag separately.
-const GCM_PTXT_MAX_LEN: usize = (1 << 36) - 31;
+    /// AES-GCM allows the plaintext to be 2^36 - 32 octets long. This
+    /// is also the maximum length of the ciphertext for us, since we
+    /// store the tag separately.
+    pub(super) const GCM_PTXT_MAX_LEN: usize = (1 << 36) - 32;
 
-/// AES-CCM allows for AAD to be of size `usize::MAX - 10`.
-const CCM_AAD_MAX_LEN: usize = usize::MAX - 10;
+    /// AES-CCM allows for AAD to be of size `usize::MAX - 10`.
+    pub(super) const CCM_AAD_MAX_LEN: usize = usize::MAX - 10;
 
-/// AES-CCM allows the plaintext to be 2^36 - 31 octets long. This is
-/// also the maximum length of the ciphertext for us, since we store
-/// the tag separately.
-const CCM_PTXT_MAX_LEN: usize = (1 << 24) - 1;
+    /// AES-CCM allows the plaintext to be 2^24 - 1 octets long, since
+    /// the length has to be encoded in three bytes. This is also the
+    /// maximum length of the ciphertext for us, since we store the
+    /// tag separately.
+    pub(super) const CCM_PTXT_MAX_LEN: usize = (1 << 24) - 1;
+}
+
+#[cfg(target_pointer_width = "32")]
+/// AAD and plain/ciphertext size limits for 32-bit systems.
+mod limits {
+    /// AES-GCM allows for AAD to be 2^61 - 1 octets long, but on
+    /// 32-bit systems our limit is 2^32 - 1.
+    pub(super) const GCM_AAD_MAX_LEN: usize = usize::MAX;
+
+    /// AES-GCM allows the plaintext to be 2^36 - 32 octets long, but
+    /// on 32-bit systems our limit is 2^32 - 1.This is also the
+    /// maximum length of the ciphertext for us, since we store the
+    /// tag separately.
+    pub(super) const GCM_PTXT_MAX_LEN: usize = usize::MAX;
+
+    /// AES-CCM allows for AAD to be of size `usize::MAX - 6` octets
+    /// on 32-bit systems.
+    pub(super) const CCM_AAD_MAX_LEN: usize = usize::MAX - 6;
+
+    /// AES-CCM allows the plaintext to be 2^24 - 1 octets long, since
+    /// the length has to be encoded in three bytes. This is also the
+    /// maximum length of the ciphertext for us, since we store the
+    /// tag separately.
+    pub(super) const CCM_PTXT_MAX_LEN: usize = (1 << 24) - 1;
+}
 
 api!(
     aes128gcm,
@@ -433,8 +510,8 @@ api!(
     X64AesGcm128,
     crate::aes::AES_128_KEY_LEN,
     crate::TAG_LEN,
-    GCM_AAD_MAX_LEN,
-    GCM_PTXT_MAX_LEN
+    limits::GCM_AAD_MAX_LEN,
+    limits::GCM_PTXT_MAX_LEN
 );
 
 api!(
@@ -446,8 +523,8 @@ api!(
     X64AesGcm256,
     crate::aes::AES_256_KEY_LEN,
     crate::TAG_LEN,
-    GCM_AAD_MAX_LEN,
-    GCM_PTXT_MAX_LEN
+    limits::GCM_AAD_MAX_LEN,
+    limits::GCM_PTXT_MAX_LEN
 );
 
 api!(
@@ -459,8 +536,8 @@ api!(
     X64AesCcm128,
     crate::aes::AES_128_KEY_LEN,
     crate::TAG_LEN,
-    CCM_AAD_MAX_LEN,
-    CCM_PTXT_MAX_LEN
+    limits::CCM_AAD_MAX_LEN,
+    limits::CCM_PTXT_MAX_LEN
 );
 
 api!(
@@ -472,8 +549,8 @@ api!(
     X64AesCcm256,
     crate::aes::AES_256_KEY_LEN,
     crate::TAG_LEN,
-    CCM_AAD_MAX_LEN,
-    CCM_PTXT_MAX_LEN
+    limits::CCM_AAD_MAX_LEN,
+    limits::CCM_PTXT_MAX_LEN
 );
 
 api!(
@@ -485,8 +562,8 @@ api!(
     X64AesCcm128ShortTag,
     crate::aes::AES_128_KEY_LEN,
     crate::CCM_SHORT_TAG_LEN,
-    CCM_AAD_MAX_LEN,
-    CCM_PTXT_MAX_LEN
+    limits::CCM_AAD_MAX_LEN,
+    limits::CCM_PTXT_MAX_LEN
 );
 
 api!(
@@ -498,6 +575,6 @@ api!(
     X64AesCcm256ShortTag,
     crate::aes::AES_256_KEY_LEN,
     crate::CCM_SHORT_TAG_LEN,
-    CCM_AAD_MAX_LEN,
-    CCM_PTXT_MAX_LEN
+    limits::CCM_AAD_MAX_LEN,
+    limits::CCM_PTXT_MAX_LEN
 );
