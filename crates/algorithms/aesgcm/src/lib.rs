@@ -9,20 +9,24 @@
 //! - AES-CCM 128
 //! - AES-CCM 256
 //!
-//! The crate provides optimized implementations for ARM and x86_64 platforms with support
-//! for AES hardware acceleration, as well as a bit-sliced portable
-//! implementation.
+//! The crate provides optimized implementations for ARM and x86_64
+//! platforms with support for AES hardware acceleration, as well as a
+//! bit-sliced portable implementation.
 //!
 //! For general use, we provide a platform-multiplexing API via the
-//! [`AesGcm128Key`], [`AesGcm256Key`], [`AesCcm128Key`] and [`AesCcm256Key`] structs, which select the most
-//! performant implementation at runtime.
+//! [`AesGcm128Key`], [`AesGcm256Key`], [`AesCcm128Key`] and
+//! [`AesCcm256Key`] structs, which select the most performant
+//! implementation at runtime.
 //!
 //! Usage example for AES-GCM 128:
 //!
 //! ```rust
 //! // Multiplexed owned API
 //! use libcrux_aesgcm::AeadConsts as _;
-//! use libcrux_aesgcm::{AesGcm128, AesGcm128Key, AesGcm128Nonce, AesGcm128Tag, NONCE_LEN, TAG_LEN};
+//! use libcrux_aesgcm::{
+//!     AesGcm128, AesGcm128Key, AesGcm128Nonce,
+//!     AesGcm128Tag, NONCE_LEN, TAG_LEN
+//! };
 //!
 //! let k: AesGcm128Key = [0; AesGcm128::KEY_LEN].into();
 //! let nonce: AesGcm128Nonce = [0; NONCE_LEN].into();
@@ -43,8 +47,9 @@
 //! and [`AesCcm256`] structs.
 //!
 //! Users who want to use a platform-specific implementation directly can
-//! access them in submodules following the path scheme `aes_gcm_128::{portable, x64, neon}` and
-//! `aes_ccm_128::{portable, x64, neon}`.
+//! access them in submodules following the path scheme
+//! `aes_gcm_128::{portable, x64, neon}` and `aes_ccm_128::{portable, x64,
+//! neon}`.
 //!
 //! ## Supported Lengths
 //!
@@ -94,8 +99,8 @@ mod aes_gcm;
 ///
 /// This module contains implementations of AES-GCM 128:
 /// - [`AesGcm128`]: A platform-multiplexing implementation, which will at
-/// runtime select the most performant implementation among the following for the given
-/// architecture at runtime.
+/// runtime select the most performant implementation among the following
+/// for the given architecture at runtime.
 #[cfg_attr(
     feature = "simd256",
     doc = "- [`aes_gcm_128::x64::X64AesGcm128`]: An implementation optimized for x86_64 AES-NI instruction sets."
@@ -111,7 +116,8 @@ mod aes_gcm;
 /// [`KeyGenError`](libcrux_traits::aead::arrayref::DecryptError) for
 /// errors.
 ///
-/// The [`libcrux_traits`](libcrux_traits) crate provides two typed APIs for AEADs:
+/// The [`libcrux_traits`](libcrux_traits) crate provides two typed APIs
+/// for AEADs:
 ///
 /// ## Owned key-centric API
 /// This API operates on owned arrays for keys, nonces and tags:
@@ -163,8 +169,8 @@ pub mod aes_gcm_128;
 ///
 /// This module contains implementations of AES-GCM 256:
 /// - [`AesGcm256`]: A platform-multiplexing implementation, which will at
-/// runtime select the most performant implementation among the following for the given
-/// architecture at runtime.
+/// runtime select the most performant implementation among the following
+/// for the given architecture at runtime.
 #[cfg_attr(
     feature = "simd256",
     doc = "- [`aes_gcm_256::x64::X64AesGcm256`]: An implementation optimized for x86_64 AES-NI instruction sets."
@@ -173,14 +179,16 @@ pub mod aes_gcm_128;
     feature = "simd128",
     doc = "- [`aes_gcm_256::neon::NeonAesGcm256`]: An implementation optimized for ARM NEON instruction sets."
 )]
-/// - [`aes_gcm_256::portable::PortableAesGcm256`]: A portable, bit-sliced implementation.
+/// - [`aes_gcm_256::portable::PortableAesGcm256`]: A portable, bit-sliced
+///   implementation.
 ///
 /// See [`EncryptError`],
 /// [`DecryptError`](libcrux_traits::aead::arrayref::DecryptError) and
 /// [`KeyGenError`](libcrux_traits::aead::arrayref::DecryptError) for
 /// errors.
 ///
-/// The [`libcrux_traits`](libcrux_traits) crate provides two typed APIs for AEADs:
+/// The [`libcrux_traits`](libcrux_traits) crate provides two typed APIs
+/// for AEADs:
 ///
 /// ## Owned key-centric API
 /// This API operates on owned arrays for keys, nonces and tags:
@@ -232,8 +240,8 @@ pub mod aes_gcm_256;
 ///
 /// This module contains implementations of AES-CCM 128:
 /// - [`AesCcm128`]: A platform-multiplexing implementation, which will at
-/// runtime select the most performant implementation among the following for the given
-/// architecture at runtime.
+/// runtime select the most performant implementation among the following
+/// for the given architecture at runtime.
 #[cfg_attr(
     feature = "simd256",
     doc = "- [`x64::X64AesCcm128`](aes_ccm_128::x64::X64AesCcm128): An implementation optimized for x86_64 AES-NI instruction sets."
@@ -242,16 +250,20 @@ pub mod aes_gcm_256;
     feature = "simd128",
     doc = "- [`neon::NeonAesCcm128`](aes_ccm_128::neon::NeonAesCcm128): An implementation optimized for ARM NEON instruction sets."
 )]
-/// - [`portable::PortableAesCcm128`](aes_ccm_128::portable::PortableAesCcm128): A portable, bit-sliced implementation.
+/// - [`portable::PortableAesCcm128`](aes_ccm_128::portable::PortableAesCcm128):
+///   A portable, bit-sliced implementation.
 ///
-/// The [`short_tag`](crate::aes_ccm_128::short_tag) module provides implementations for AES-CCM 128 with reduced tag length as defined in [RFC 6655](https://datatracker.ietf.org/doc/html/rfc6655).
+/// The [`short_tag`](crate::aes_ccm_128::short_tag) module provides
+/// implementations for AES-CCM 128 with reduced tag length as defined in
+/// [RFC 6655](https://datatracker.ietf.org/doc/html/rfc6655).
 ///
 /// See [`EncryptError`],
 /// [`DecryptError`](libcrux_traits::aead::arrayref::DecryptError) and
 /// [`KeyGenError`](libcrux_traits::aead::arrayref::DecryptError) for
 /// errors.
 ///
-/// The [`libcrux_traits`](libcrux_traits) crate provides two typed APIs for AEADs:
+/// The [`libcrux_traits`](libcrux_traits) crate provides two typed APIs
+/// for AEADs:
 ///
 /// ## Owned key-centric API
 /// This API operates on owned arrays for keys, nonces and tags:
@@ -392,9 +404,12 @@ pub mod aes_ccm_128 {
 
     /// Implementations of AES-CCM 128 ([RFC 6655](https://datatracker.ietf.org/doc/html/rfc6655) Short Tag)
     ///
-    /// This module contains implementations of AES-CCM 128 with short 8 byte tag as defined by [RFC 6655](https://datatracker.ietf.org/doc/html/rfc6655):
-    /// - [`AesCcm128ShortTag`](crate::aes_ccm_128::short_tag::AesCcm128ShortTag): A platform-multiplexing implementation, which will at
-    /// runtime select the most performant implementation among the following for the given
+    /// This module contains implementations of AES-CCM 128 with short 8 byte
+    /// tag as defined by [RFC
+    /// 6655](https://datatracker.ietf.org/doc/html/rfc6655):
+    /// - [`AesCcm128ShortTag`](crate::aes_ccm_128::short_tag::AesCcm128ShortTag):
+    /// A platform-multiplexing implementation, which will at runtime select
+    /// the most performant implementation among the following for the given
     /// architecture at runtime.
     #[cfg_attr(
         feature = "simd256",
@@ -404,14 +419,16 @@ pub mod aes_ccm_128 {
         feature = "simd128",
         doc = "- [`neon::NeonAesCcm128ShortTag`](crate::aes_ccm_128::short_tag::neon::NeonAesCcm128ShortTag): An implementation optimized for ARM NEON instruction sets."
     )]
-    /// - [`portable::PortableAesCcm128ShortTag`](crate::aes_ccm_128::short_tag::portable::PortableAesCcm128ShortTag): A portable, bit-sliced implementation.
+    /// - [`portable::PortableAesCcm128ShortTag`](crate::aes_ccm_128::short_tag::portable::PortableAesCcm128ShortTag):
+    ///   A portable, bit-sliced implementation.
     ///
     /// See [`EncryptError`](`crate::EncryptError`),
     /// [`DecryptError`](libcrux_traits::aead::arrayref::DecryptError) and
     /// [`KeyGenError`](libcrux_traits::aead::arrayref::DecryptError) for
     /// errors.
     ///
-    /// The [`libcrux_traits`](libcrux_traits) crate provides two typed APIs for AEADs:
+    /// The [`libcrux_traits`](libcrux_traits) crate provides two typed APIs
+    /// for AEADs:
     ///
     /// ## Owned key-centric API
     /// This API operates on owned arrays for keys, nonces and tags:
@@ -494,8 +511,8 @@ pub mod aes_ccm_128 {
 
         /// ARM NEON-optimized implementation of AES-CCM 128 (Short Tag)
         ///
-        /// To use the NEON-optimized implementation, `Key`, `Nonce`, and `Tag` types
-        /// must be explicitly parameterized by the NEON implementation.
+        /// To use the NEON-optimized implementation, `Key`, `Nonce`, and `Tag`
+        /// types must be explicitly parameterized by the NEON implementation.
         ///
         /// Example:
         /// ```rust
@@ -524,8 +541,8 @@ pub mod aes_ccm_128 {
         #[cfg(feature = "simd256")]
         /// AES-NI-optimized implementation of AES-CCM 128 (Short Tag)
         ///
-        /// To use the AES-NI-optimized implementation, `Key`, `Nonce`, and `Tag` types
-        /// must be explicitly parameterized by the AES-NI implementation.
+        /// To use the AES-NI-optimized implementation, `Key`, `Nonce`, and `Tag`
+        /// types must be explicitly parameterized by the AES-NI implementation.
         ///
         /// Example:
         /// ```rust
@@ -557,8 +574,8 @@ pub mod aes_ccm_128 {
 ///
 /// This module contains implementations of AES-CCM 256:
 /// - [`AesCcm256`]: A platform-multiplexing implementation, which will at
-/// runtime select the most performant implementation among the following for the given
-/// architecture at runtime.
+/// runtime select the most performant implementation among the following
+/// for the given architecture at runtime.
 #[cfg_attr(
     feature = "simd256",
     doc = "- [`x64::X64AesCcm256`](aes_ccm_256::x64::X64AesCcm256): An implementation optimized for x86_64 AES-NI instruction sets."
@@ -567,9 +584,12 @@ pub mod aes_ccm_128 {
     feature = "simd128",
     doc = "- [`neon::NeonAesCcm256`](aes_ccm_256::neon::NeonAesCcm256): An implementation optimized for ARM NEON instruction sets."
 )]
-/// - [`portable::PortableAesCcm256`](aes_ccm_256::portable::PortableAesCcm256): A portable, bit-sliced implementation.
+/// - [`portable::PortableAesCcm256`](aes_ccm_256::portable::PortableAesCcm256):
+///   A portable, bit-sliced implementation.
 ///
-/// The [`short_tag`](crate::aes_ccm_256::short_tag) module provides implementations for AES-CCM 256 with reduced tag length as defined in [RFC 6655](https://datatracker.ietf.org/doc/html/rfc6655).
+/// The [`short_tag`](crate::aes_ccm_256::short_tag) module provides
+/// implementations for AES-CCM 256 with reduced tag length as defined in
+/// [RFC 6655](https://datatracker.ietf.org/doc/html/rfc6655).
 ///
 /// See [`EncryptError`],
 /// [`DecryptError`](libcrux_traits::aead::arrayref::DecryptError) and
@@ -658,8 +678,8 @@ pub mod aes_ccm_256 {
     #[cfg(feature = "simd128")]
     /// ARM NEON-optimized implementation of AES-CCM 256
     ///
-    /// To use the NEON-optimized implementation, `Key`, `Nonce`, and `Tag` types
-    /// must be explicitly parameterized by the NEON implementation.
+    /// To use the NEON-optimized implementation, `Key`, `Nonce`, and `Tag`
+    /// types must be explicitly parameterized by the NEON implementation.
     ///
     /// Example:
     /// ```rust
@@ -688,8 +708,8 @@ pub mod aes_ccm_256 {
     #[cfg(feature = "simd256")]
     /// AES-NI-optimized implementation of AES-CCM 256
     ///
-    /// To use the AES-NI-optimized implementation, `Key`, `Nonce`, and `Tag` types
-    /// must be explicitly parameterized by the AES-NI implementation.
+    /// To use the AES-NI-optimized implementation, `Key`, `Nonce`, and `Tag`
+    /// types must be explicitly parameterized by the AES-NI implementation.
     ///
     /// Example:
     /// ```rust
@@ -715,11 +735,15 @@ pub mod aes_ccm_256 {
         pub use libcrux_traits::aead::typed_refs::{KeyMut, KeyRef, NonceRef, TagMut, TagRef};
     }
 
-    /// Implementations of AES-CCM 256 ([RFC 6655](https://datatracker.ietf.org/doc/html/rfc6655) Short Tag)
+    /// Implementations of AES-CCM 256 ([RFC
+    /// 6655](https://datatracker.ietf.org/doc/html/rfc6655) Short Tag)
     ///
-    /// This module contains implementations of AES-CCM 256 with short 8 byte tag as defined by [RFC 6655](https://datatracker.ietf.org/doc/html/rfc6655):
-    /// - [`AesCcm256ShortTag`](crate::aes_ccm_256::short_tag::AesCcm256ShortTag): A platform-multiplexing implementation, which will at
-    /// runtime select the most performant implementation among the following for the given
+    /// This module contains implementations of AES-CCM 256 with short 8 byte
+    /// tag as defined by [RFC
+    /// 6655](https://datatracker.ietf.org/doc/html/rfc6655):
+    /// - [`AesCcm256ShortTag`](crate::aes_ccm_256::short_tag::AesCcm256ShortTag):
+    /// A platform-multiplexing implementation, which will at runtime select
+    /// the most performant implementation among the following for the given
     /// architecture at runtime.
     #[cfg_attr(
         feature = "simd256",
@@ -795,7 +819,11 @@ pub mod aes_ccm_256 {
         /// ```rust
         /// // Using the portable implementation.
         /// use libcrux_aesgcm::AeadConsts as _;
-        /// use libcrux_aesgcm::{NONCE_LEN, CCM_SHORT_TAG_LEN, aes_ccm_256::short_tag::portable::{PortableAesCcm256ShortTag, Key, Tag, Nonce}};
+        /// use libcrux_aesgcm::{NONCE_LEN,
+        ///     CCM_SHORT_TAG_LEN,
+        ///     aes_ccm_256::short_tag::portable::{PortableAesCcm256ShortTag, Key,
+        ///         Tag, Nonce}
+        /// };
         ///
         /// let k: Key<PortableAesCcm256ShortTag> = [0; PortableAesCcm256ShortTag::KEY_LEN].into();
         /// let nonce: Nonce<PortableAesCcm256ShortTag> = [0; NONCE_LEN].into();
@@ -897,7 +925,8 @@ pub(crate) mod implementations {
     #[cfg(doc)]
     use super::{aes_gcm_128, aes_gcm_256};
 
-    /// Access to [lower-level AEAD APIs](libcrux_traits::aead) for platform-multiplexed AES-GCM 128.
+    /// Access to [lower-level AEAD APIs](libcrux_traits::aead) for
+    /// platform-multiplexed AES-GCM 128.
     ///
     /// The implementation used is determined automatically at runtime.
     /// - `x64`
@@ -908,7 +937,8 @@ pub(crate) mod implementations {
     #[derive(Clone, Copy, PartialEq, Eq)]
     pub struct AesGcm128;
 
-    /// Access to [lower-level AEAD APIs](libcrux_traits::aead) for portable AES-GCM 128.
+    /// Access to [lower-level AEAD APIs](libcrux_traits::aead) for portable
+    /// AES-GCM 128.
     ///
     /// For more information on usage, see [`aes_gcm_128`].
     #[derive(Clone, Copy, PartialEq, Eq)]
@@ -916,7 +946,8 @@ pub(crate) mod implementations {
 
     #[cfg(feature = "simd128")]
     #[derive(Clone, Copy, PartialEq, Eq)]
-    /// Access to [lower-level AEAD APIs](libcrux_traits::aead) for ARM Neon optimized AES-GCM 128.
+    /// Access to [lower-level AEAD APIs](libcrux_traits::aead) for ARM Neon
+    /// optimized AES-GCM 128.
     ///
     /// Should only be used directly after performing runtime checks for the necessary CPU
     /// features.
@@ -924,28 +955,31 @@ pub(crate) mod implementations {
     /// For more information on usage, see [`aes_gcm_128`].
     pub struct NeonAesGcm128;
 
-    /// Access to [lower-level AEAD APIs](libcrux_traits::aead) for x86_64 AES-NI optimized AES-GCM 128.
+    /// Access to [lower-level AEAD APIs](libcrux_traits::aead) for x86_64
+    /// AES-NI optimized AES-GCM 128.
     ///
-    /// Should only be used directly after performing runtime checks for the necessary CPU
-    /// features.
+    /// Should only be used directly after performing runtime checks for the
+    /// necessary CPU features.
     ///
     /// For more information on usage, see [`aes_gcm_128`].
     #[cfg(feature = "simd256")]
     #[derive(Clone, Copy, PartialEq, Eq)]
     pub struct X64AesGcm128;
 
-    /// Access to [lower-level AEAD APIs](libcrux_traits::aead) for platform-multiplexed AES-CCM 128.
+    /// Access to [lower-level AEAD APIs](libcrux_traits::aead) for
+    /// platform-multiplexed AES-CCM 128.
     ///
     /// The implementation used is determined automatically at runtime.
     /// - `x64`
     /// - `neon`
     /// - `portable`
     ///
-    /// For more information on usage, see [`aes_ccm_128`](crate::aes_ccm_128)..
+    /// For more information on usage, see [`aes_ccm_128`](crate::aes_ccm_128).
     #[derive(Clone, Copy, PartialEq, Eq)]
     pub struct AesCcm128;
 
-    /// Access to [lower-level AEAD APIs](libcrux_traits::aead) for portable AES-CCM 128.
+    /// Access to [lower-level AEAD APIs](libcrux_traits::aead) for portable
+    /// AES-CCM 128.
     ///
     /// For more information on usage, see [`aes_ccm_128`](crate::aes_ccm_128).
     #[derive(Clone, Copy, PartialEq, Eq)]
@@ -953,10 +987,11 @@ pub(crate) mod implementations {
 
     #[cfg(feature = "simd128")]
     #[derive(Clone, Copy, PartialEq, Eq)]
-    /// Access to [lower-level AEAD APIs](libcrux_traits::aead) for ARM Neon optimized AES-CCM 128.
+    /// Access to [lower-level AEAD APIs](libcrux_traits::aead) for ARM Neon
+    /// optimized AES-CCM 128.
     ///
-    /// Should only be used directly after performing runtime checks for the necessary CPU
-    /// features.
+    /// Should only be used directly after performing runtime checks for the
+    /// necessary CPU features.
     ///
     /// For more information on usage, see [`aes_ccm_128`](crate::aes_ccm_128).
     pub struct NeonAesCcm128;
@@ -971,14 +1006,16 @@ pub(crate) mod implementations {
     #[derive(Clone, Copy, PartialEq, Eq)]
     pub struct X64AesCcm128;
 
-    /// Access to [lower-level AEAD APIs](libcrux_traits::aead) for platform-multiplexed AES-CCM 128.
+    /// Access to [lower-level AEAD APIs](libcrux_traits::aead) for
+    /// platform-multiplexed AES-CCM 128.
     ///
     /// The implementation used is determined automatically at runtime.
     /// - `x64`
     /// - `neon`
     /// - `portable`
     ///
-    /// For more information on usage, see [`aes_ccm_128::short_tag`](crate::aes_ccm_128::short_tag).
+    /// For more information on usage, see
+    /// [`aes_ccm_128::short_tag`](crate::aes_ccm_128::short_tag).
     #[derive(Clone, Copy, PartialEq, Eq)]
     pub struct AesCcm128ShortTag;
 
@@ -990,25 +1027,30 @@ pub(crate) mod implementations {
 
     #[cfg(feature = "simd128")]
     #[derive(Clone, Copy, PartialEq, Eq)]
-    /// Access to [lower-level AEAD APIs](libcrux_traits::aead) for ARM Neon optimized AES-CCM 128 (Short Tag).
+    /// Access to [lower-level AEAD APIs](libcrux_traits::aead) for ARM Neon
+    /// optimized AES-CCM 128 (Short Tag).
     ///
-    /// Should only be used directly after performing runtime checks for the necessary CPU
-    /// features.
+    /// Should only be used directly after performing runtime checks for the
+    /// necessary CPU features.
     ///
-    /// For more information on usage, see [`aes_ccm_128::short_tag`](crate::aes_ccm_128::short_tag).
+    /// For more information on usage, see
+    /// [`aes_ccm_128::short_tag`](crate::aes_ccm_128::short_tag).
     pub struct NeonAesCcm128ShortTag;
 
-    /// Access to [lower-level AEAD APIs](libcrux_traits::aead) for x86_64 AES-NI optimized AES-CCM 128 (Short Tag).
+    /// Access to [lower-level AEAD APIs](libcrux_traits::aead) for x86_64
+    /// AES-NI optimized AES-CCM 128 (Short Tag).
     ///
-    /// Should only be used directly after performing runtime checks for the necessary CPU
-    /// features.
+    /// Should only be used directly after performing runtime checks for the
+    /// necessary CPU features.
     ///
-    /// For more information on usage, see [`aes_ccm_128::short_tag`](crate::aes_ccm_128::short_tag).
+    /// For more information on usage, see
+    /// [`aes_ccm_128::short_tag`](crate::aes_ccm_128::short_tag).
     #[cfg(feature = "simd256")]
     #[derive(Clone, Copy, PartialEq, Eq)]
     pub struct X64AesCcm128ShortTag;
 
-    /// Access to [lower-level AEAD APIs](libcrux_traits::aead) for platform-multiplexed AES-GCM 256.
+    /// Access to [lower-level AEAD APIs](libcrux_traits::aead) for
+    /// platform-multiplexed AES-GCM 256.
     ///
     /// The implementation used is determined automatically at runtime.
     /// - `x64`
@@ -1019,13 +1061,15 @@ pub(crate) mod implementations {
     #[derive(Clone, Copy, PartialEq, Eq)]
     pub struct AesGcm256;
 
-    /// Access to [lower-level AEAD APIs](libcrux_traits::aead) for portable AES-GCM 256.
+    /// Access to [lower-level AEAD APIs](libcrux_traits::aead) for portable
+    /// AES-GCM 256.
     ///
     /// For more information on usage, see [`aes_gcm_256`].
     #[derive(Clone, Copy, PartialEq, Eq)]
     pub struct PortableAesGcm256;
 
-    /// Access to [lower-level AEAD APIs](libcrux_traits::aead) for ARM Neon optimized AES-GCM 256.
+    /// Access to [lower-level AEAD APIs](libcrux_traits::aead) for ARM Neon
+    /// optimized AES-GCM 256.
     ///
     /// For more information on usage, see [`aes_gcm_256`].
     #[cfg(feature = "simd128")]
