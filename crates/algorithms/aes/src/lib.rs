@@ -22,8 +22,8 @@
 //!
 //! ```rust
 //! // Multiplexed owned API
-//! use libcrux_aesgcm::AeadConsts as _;
-//! use libcrux_aesgcm::{
+//! use libcrux_aes::AeadConsts as _;
+//! use libcrux_aes::{
 //!     AesGcm128, AesGcm128Key, AesGcm128Nonce,
 //!     AesGcm128Tag, NONCE_LEN, TAG_LEN
 //! };
@@ -123,8 +123,8 @@ mod aes_gcm;
 /// This API operates on owned arrays for keys, nonces and tags:
 /// ```rust
 /// // Using the multiplexed implementation.
-/// use libcrux_aesgcm::AeadConsts as _;
-/// use libcrux_aesgcm::{NONCE_LEN, TAG_LEN, aes_gcm_128::{AesGcm128, Key, Tag, Nonce}};
+/// use libcrux_aes::AeadConsts as _;
+/// use libcrux_aes::{NONCE_LEN, TAG_LEN, aes_gcm_128::{AesGcm128, Key, Tag, Nonce}};
 ///
 /// let k: Key = [0; AesGcm128::KEY_LEN].into();
 /// let nonce: Nonce = [0; NONCE_LEN].into();
@@ -143,8 +143,8 @@ mod aes_gcm;
 /// This API operates on array references for keys, nonces and tags:
 /// ```rust
 /// // Using the multiplexed API
-/// use libcrux_aesgcm::{AeadConsts as _, Aead as _};
-/// use libcrux_aesgcm::{NONCE_LEN, TAG_LEN, aes_gcm_128::{AesGcm128}};
+/// use libcrux_aes::{AeadConsts as _, Aead as _};
+/// use libcrux_aes::{NONCE_LEN, TAG_LEN, aes_gcm_128::{AesGcm128}};
 ///
 /// let algo = AesGcm128;
 ///
@@ -194,8 +194,8 @@ pub mod aes_gcm_128;
 /// This API operates on owned arrays for keys, nonces and tags:
 /// ```rust
 /// // Using the multiplexed implementation.
-/// use libcrux_aesgcm::AeadConsts as _;
-/// use libcrux_aesgcm::{NONCE_LEN, TAG_LEN, aes_gcm_256::{AesGcm256, Key, Tag, Nonce}};
+/// use libcrux_aes::AeadConsts as _;
+/// use libcrux_aes::{NONCE_LEN, TAG_LEN, aes_gcm_256::{AesGcm256, Key, Tag, Nonce}};
 ///
 /// let k: Key = [0; AesGcm256::KEY_LEN].into();
 /// let nonce: Nonce = [0; NONCE_LEN].into();
@@ -214,8 +214,8 @@ pub mod aes_gcm_128;
 /// This API operates on array references for keys, nonces and tags:
 /// ```rust
 /// // Using the multiplexed API
-/// use libcrux_aesgcm::{AeadConsts as _, Aead as _};
-/// use libcrux_aesgcm::{NONCE_LEN, TAG_LEN, aes_gcm_256::{AesGcm256}};
+/// use libcrux_aes::{AeadConsts as _, Aead as _};
+/// use libcrux_aes::{NONCE_LEN, TAG_LEN, aes_gcm_256::{AesGcm256}};
 ///
 /// let algo = AesGcm256;
 ///
@@ -269,8 +269,8 @@ pub mod aes_gcm_256;
 /// This API operates on owned arrays for keys, nonces and tags:
 /// ```rust
 /// // Using the multiplexed implementation.
-/// use libcrux_aesgcm::AeadConsts as _;
-/// use libcrux_aesgcm::{NONCE_LEN, TAG_LEN, aes_ccm_128::{AesCcm128, Key, Tag, Nonce}};
+/// use libcrux_aes::AeadConsts as _;
+/// use libcrux_aes::{NONCE_LEN, TAG_LEN, aes_ccm_128::{AesCcm128, Key, Tag, Nonce}};
 ///
 /// let k: Key = [0; AesCcm128::KEY_LEN].into();
 /// let nonce: Nonce = [0; NONCE_LEN].into();
@@ -289,8 +289,8 @@ pub mod aes_gcm_256;
 /// This API operates on array references for keys, nonces and tags:
 /// ```rust
 /// // Using the multiplexed API
-/// use libcrux_aesgcm::{AeadConsts as _, Aead as _};
-/// use libcrux_aesgcm::{NONCE_LEN, TAG_LEN, aes_ccm_128::{AesCcm128}};
+/// use libcrux_aes::{AeadConsts as _, Aead as _};
+/// use libcrux_aes::{NONCE_LEN, TAG_LEN, aes_ccm_128::{AesCcm128}};
 ///
 /// let algo = AesCcm128;
 ///
@@ -321,8 +321,8 @@ pub mod aes_ccm_128 {
     /// Example:
     /// ```rust
     /// // Using the portable implementation.
-    /// use libcrux_aesgcm::AeadConsts as _;
-    /// use libcrux_aesgcm::{NONCE_LEN, TAG_LEN, aes_ccm_128::portable::{PortableAesCcm128, Key, Tag, Nonce}};
+    /// use libcrux_aes::AeadConsts as _;
+    /// use libcrux_aes::{NONCE_LEN, TAG_LEN, aes_ccm_128::portable::{PortableAesCcm128, Key, Tag, Nonce}};
     ///
     /// let k: Key<PortableAesCcm128> = [0; PortableAesCcm128::KEY_LEN].into();
     /// let nonce: Nonce<PortableAesCcm128> = [0; NONCE_LEN].into();
@@ -351,8 +351,8 @@ pub mod aes_ccm_128 {
     /// Example:
     /// ```rust
     /// // Using the NEON implementation.
-    /// use libcrux_aesgcm::AeadConsts as _;
-    /// use libcrux_aesgcm::{NONCE_LEN, TAG_LEN, aes_ccm_128::neon::{NeonAesCcm128, Key, Tag, Nonce}};
+    /// use libcrux_aes::AeadConsts as _;
+    /// use libcrux_aes::{NONCE_LEN, TAG_LEN, aes_ccm_128::neon::{NeonAesCcm128, Key, Tag, Nonce}};
     ///
     /// let k: Key<NeonAesCcm128> = [0; NeonAesCcm128::KEY_LEN].into();
     /// let nonce: Nonce<NeonAesCcm128> = [0; NONCE_LEN].into();
@@ -381,8 +381,8 @@ pub mod aes_ccm_128 {
     /// Example:
     /// ```rust
     /// // Using the AES-NI implementation.
-    /// use libcrux_aesgcm::AeadConsts as _;
-    /// use libcrux_aesgcm::{NONCE_LEN, TAG_LEN, aes_ccm_128::x64::{X64AesCcm128, Key, Tag, Nonce}};
+    /// use libcrux_aes::AeadConsts as _;
+    /// use libcrux_aes::{NONCE_LEN, TAG_LEN, aes_ccm_128::x64::{X64AesCcm128, Key, Tag, Nonce}};
     ///
     /// let k: Key<X64AesCcm128> = [0; X64AesCcm128::KEY_LEN].into();
     /// let nonce: Nonce<X64AesCcm128> = [0; NONCE_LEN].into();
@@ -434,8 +434,8 @@ pub mod aes_ccm_128 {
     /// This API operates on owned arrays for keys, nonces and tags:
     /// ```rust
     /// // Using the multiplexed implementation.
-    /// use libcrux_aesgcm::AeadConsts as _;
-    /// use libcrux_aesgcm::{NONCE_LEN, CCM_SHORT_TAG_LEN, aes_ccm_128::short_tag::{AesCcm128ShortTag, Key, Tag, Nonce}};
+    /// use libcrux_aes::AeadConsts as _;
+    /// use libcrux_aes::{NONCE_LEN, CCM_SHORT_TAG_LEN, aes_ccm_128::short_tag::{AesCcm128ShortTag, Key, Tag, Nonce}};
     ///
     /// let k: Key = [0; AesCcm128ShortTag::KEY_LEN].into();
     /// let nonce: Nonce = [0; NONCE_LEN].into();
@@ -454,8 +454,8 @@ pub mod aes_ccm_128 {
     /// This API operates on array references for keys, nonces and tags:
     /// ```rust
     /// // Using the multiplexed API
-    /// use libcrux_aesgcm::{AeadConsts as _, Aead as _};
-    /// use libcrux_aesgcm::{NONCE_LEN, CCM_SHORT_TAG_LEN, aes_ccm_128::short_tag::{AesCcm128ShortTag}};
+    /// use libcrux_aes::{AeadConsts as _, Aead as _};
+    /// use libcrux_aes::{NONCE_LEN, CCM_SHORT_TAG_LEN, aes_ccm_128::short_tag::{AesCcm128ShortTag}};
     ///
     /// let algo = AesCcm128ShortTag;
     ///
@@ -486,8 +486,8 @@ pub mod aes_ccm_128 {
         /// Example:
         /// ```rust
         /// // Using the portable implementation.
-        /// use libcrux_aesgcm::AeadConsts as _;
-        /// use libcrux_aesgcm::{NONCE_LEN, CCM_SHORT_TAG_LEN, aes_ccm_128::short_tag::portable::{PortableAesCcm128ShortTag, Key, Tag, Nonce}};
+        /// use libcrux_aes::AeadConsts as _;
+        /// use libcrux_aes::{NONCE_LEN, CCM_SHORT_TAG_LEN, aes_ccm_128::short_tag::portable::{PortableAesCcm128ShortTag, Key, Tag, Nonce}};
         ///
         /// let k: Key<PortableAesCcm128ShortTag> = [0; PortableAesCcm128ShortTag::KEY_LEN].into();
         /// let nonce: Nonce<PortableAesCcm128ShortTag> = [0; NONCE_LEN].into();
@@ -517,8 +517,8 @@ pub mod aes_ccm_128 {
         /// Example:
         /// ```rust
         /// // Using the NEON implementation.
-        /// use libcrux_aesgcm::AeadConsts as _;
-        /// use libcrux_aesgcm::{NONCE_LEN, CCM_SHORT_TAG_LEN, aes_ccm_128::short_tag::neon::{NeonAesCcm128ShortTag, Key, Tag, Nonce}};
+        /// use libcrux_aes::AeadConsts as _;
+        /// use libcrux_aes::{NONCE_LEN, CCM_SHORT_TAG_LEN, aes_ccm_128::short_tag::neon::{NeonAesCcm128ShortTag, Key, Tag, Nonce}};
         ///
         /// let k: Key<NeonAesCcm128ShortTag> = [0; NeonAesCcm128ShortTag::KEY_LEN].into();
         /// let nonce: Nonce<NeonAesCcm128ShortTag> = [0; NONCE_LEN].into();
@@ -547,8 +547,8 @@ pub mod aes_ccm_128 {
         /// Example:
         /// ```rust
         /// // Using the AES-NI implementation.
-        /// use libcrux_aesgcm::AeadConsts as _;
-        /// use libcrux_aesgcm::{NONCE_LEN, CCM_SHORT_TAG_LEN, aes_ccm_128::short_tag::x64::{X64AesCcm128ShortTag, Key, Tag, Nonce}};
+        /// use libcrux_aes::AeadConsts as _;
+        /// use libcrux_aes::{NONCE_LEN, CCM_SHORT_TAG_LEN, aes_ccm_128::short_tag::x64::{X64AesCcm128ShortTag, Key, Tag, Nonce}};
         ///
         /// let k: Key<X64AesCcm128ShortTag> = [0; X64AesCcm128ShortTag::KEY_LEN].into();
         /// let nonce: Nonce<X64AesCcm128ShortTag> = [0; NONCE_LEN].into();
@@ -602,8 +602,8 @@ pub mod aes_ccm_128 {
 /// This API operates on owned arrays for keys, nonces and tags:
 /// ```rust
 /// // Using the multiplexed implementation.
-/// use libcrux_aesgcm::AeadConsts as _;
-/// use libcrux_aesgcm::{NONCE_LEN, TAG_LEN, aes_ccm_256::{AesCcm256, Key, Tag, Nonce}};
+/// use libcrux_aes::AeadConsts as _;
+/// use libcrux_aes::{NONCE_LEN, TAG_LEN, aes_ccm_256::{AesCcm256, Key, Tag, Nonce}};
 ///
 /// let k: Key = [0; AesCcm256::KEY_LEN].into();
 /// let nonce: Nonce = [0; NONCE_LEN].into();
@@ -622,8 +622,8 @@ pub mod aes_ccm_128 {
 /// This API operates on array references for keys, nonces and tags:
 /// ```rust
 /// // Using the multiplexed API
-/// use libcrux_aesgcm::{AeadConsts as _, Aead as _};
-/// use libcrux_aesgcm::{NONCE_LEN, TAG_LEN, aes_ccm_256::{AesCcm256}};
+/// use libcrux_aes::{AeadConsts as _, Aead as _};
+/// use libcrux_aes::{NONCE_LEN, TAG_LEN, aes_ccm_256::{AesCcm256}};
 ///
 /// let algo = AesCcm256;
 ///
@@ -654,8 +654,8 @@ pub mod aes_ccm_256 {
     /// Example:
     /// ```rust
     /// // Using the portable implementation.
-    /// use libcrux_aesgcm::AeadConsts as _;
-    /// use libcrux_aesgcm::{NONCE_LEN, TAG_LEN, aes_ccm_256::portable::{PortableAesCcm256, Key, Tag, Nonce}};
+    /// use libcrux_aes::AeadConsts as _;
+    /// use libcrux_aes::{NONCE_LEN, TAG_LEN, aes_ccm_256::portable::{PortableAesCcm256, Key, Tag, Nonce}};
     ///
     /// let k: Key<PortableAesCcm256> = [0; PortableAesCcm256::KEY_LEN].into();
     /// let nonce: Nonce<PortableAesCcm256> = [0; NONCE_LEN].into();
@@ -684,8 +684,8 @@ pub mod aes_ccm_256 {
     /// Example:
     /// ```rust
     /// // Using the NEON implementation.
-    /// use libcrux_aesgcm::AeadConsts as _;
-    /// use libcrux_aesgcm::{NONCE_LEN, TAG_LEN, aes_ccm_256::neon::{NeonAesCcm256, Key, Tag, Nonce}};
+    /// use libcrux_aes::AeadConsts as _;
+    /// use libcrux_aes::{NONCE_LEN, TAG_LEN, aes_ccm_256::neon::{NeonAesCcm256, Key, Tag, Nonce}};
     ///
     /// let k: Key<NeonAesCcm256> = [0; NeonAesCcm256::KEY_LEN].into();
     /// let nonce: Nonce<NeonAesCcm256> = [0; NONCE_LEN].into();
@@ -714,8 +714,8 @@ pub mod aes_ccm_256 {
     /// Example:
     /// ```rust
     /// // Using the AES-NI implementation.
-    /// use libcrux_aesgcm::AeadConsts as _;
-    /// use libcrux_aesgcm::{NONCE_LEN, TAG_LEN, aes_ccm_256::x64::{X64AesCcm256, Key, Tag, Nonce}};
+    /// use libcrux_aes::AeadConsts as _;
+    /// use libcrux_aes::{NONCE_LEN, TAG_LEN, aes_ccm_256::x64::{X64AesCcm256, Key, Tag, Nonce}};
     ///
     /// let k: Key<X64AesCcm256> = [0; X64AesCcm256::KEY_LEN].into();
     /// let nonce: Nonce<X64AesCcm256> = [0; NONCE_LEN].into();
@@ -766,8 +766,8 @@ pub mod aes_ccm_256 {
     /// This API operates on owned arrays for keys, nonces and tags:
     /// ```rust
     /// // Using the multiplexed implementation.
-    /// use libcrux_aesgcm::AeadConsts as _;
-    /// use libcrux_aesgcm::{NONCE_LEN, CCM_SHORT_TAG_LEN, aes_ccm_256::short_tag::{AesCcm256ShortTag, Key, Tag, Nonce}};
+    /// use libcrux_aes::AeadConsts as _;
+    /// use libcrux_aes::{NONCE_LEN, CCM_SHORT_TAG_LEN, aes_ccm_256::short_tag::{AesCcm256ShortTag, Key, Tag, Nonce}};
     ///
     /// let k: Key = [0; AesCcm256ShortTag::KEY_LEN].into();
     /// let nonce: Nonce = [0; NONCE_LEN].into();
@@ -786,8 +786,8 @@ pub mod aes_ccm_256 {
     /// This API operates on array references for keys, nonces and tags:
     /// ```rust
     /// // Using the multiplexed API
-    /// use libcrux_aesgcm::{AeadConsts as _, Aead as _};
-    /// use libcrux_aesgcm::{NONCE_LEN, CCM_SHORT_TAG_LEN, aes_ccm_256::short_tag::{AesCcm256ShortTag}};
+    /// use libcrux_aes::{AeadConsts as _, Aead as _};
+    /// use libcrux_aes::{NONCE_LEN, CCM_SHORT_TAG_LEN, aes_ccm_256::short_tag::{AesCcm256ShortTag}};
     ///
     /// let algo = AesCcm256ShortTag;
     ///
@@ -818,8 +818,8 @@ pub mod aes_ccm_256 {
         /// Example:
         /// ```rust
         /// // Using the portable implementation.
-        /// use libcrux_aesgcm::AeadConsts as _;
-        /// use libcrux_aesgcm::{NONCE_LEN,
+        /// use libcrux_aes::AeadConsts as _;
+        /// use libcrux_aes::{NONCE_LEN,
         ///     CCM_SHORT_TAG_LEN,
         ///     aes_ccm_256::short_tag::portable::{PortableAesCcm256ShortTag, Key,
         ///         Tag, Nonce}
@@ -852,8 +852,8 @@ pub mod aes_ccm_256 {
         /// Example:
         /// ```rust
         /// // Using the NEON implementation.
-        /// use libcrux_aesgcm::AeadConsts as _;
-        /// use libcrux_aesgcm::{NONCE_LEN, CCM_SHORT_TAG_LEN, aes_ccm_256::short_tag::neon::{NeonAesCcm256ShortTag, Key, Tag, Nonce}};
+        /// use libcrux_aes::AeadConsts as _;
+        /// use libcrux_aes::{NONCE_LEN, CCM_SHORT_TAG_LEN, aes_ccm_256::short_tag::neon::{NeonAesCcm256ShortTag, Key, Tag, Nonce}};
         ///
         /// let k: Key<NeonAesCcm256ShortTag> = [0; NeonAesCcm256ShortTag::KEY_LEN].into();
         /// let nonce: Nonce<NeonAesCcm256ShortTag> = [0; NONCE_LEN].into();
@@ -882,8 +882,8 @@ pub mod aes_ccm_256 {
         /// Example:
         /// ```rust
         /// // Using the AES-NI implementation.
-        /// use libcrux_aesgcm::AeadConsts as _;
-        /// use libcrux_aesgcm::{NONCE_LEN, CCM_SHORT_TAG_LEN, aes_ccm_256::short_tag::x64::{X64AesCcm256ShortTag, Key, Tag, Nonce}};
+        /// use libcrux_aes::AeadConsts as _;
+        /// use libcrux_aes::{NONCE_LEN, CCM_SHORT_TAG_LEN, aes_ccm_256::short_tag::x64::{X64AesCcm256ShortTag, Key, Tag, Nonce}};
         ///
         /// let k: Key<X64AesCcm256ShortTag> = [0; X64AesCcm256ShortTag::KEY_LEN].into();
         /// let nonce: Nonce<X64AesCcm256ShortTag> = [0; NONCE_LEN].into();

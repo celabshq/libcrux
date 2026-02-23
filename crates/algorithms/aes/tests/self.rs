@@ -1,4 +1,4 @@
-use libcrux_aesgcm::{
+use libcrux_aes::{
     aes_gcm_128::{Key, Nonce, Tag},
     AesGcm128,
 };
@@ -6,7 +6,7 @@ use libcrux_aesgcm::{
 // tests that an error is returned if ptxt.len() != ctxt.len()
 #[test]
 fn non_matching_lengths() {
-    use libcrux_aesgcm::AeadConsts as _;
+    use libcrux_aes::AeadConsts as _;
 
     let k: Key = [0; AesGcm128::KEY_LEN].into();
     let nonce: Nonce = [0; AesGcm128::NONCE_LEN].into();
@@ -23,7 +23,7 @@ fn non_matching_lengths() {
 #[test]
 #[cfg(target_pointer_width = "64")]
 fn ptxt_too_long() {
-    use libcrux_aesgcm::AeadConsts as _;
+    use libcrux_aes::AeadConsts as _;
     use libcrux_traits::aead::arrayref::{DecryptError, EncryptError};
 
     let k: Key = [0; AesGcm128::KEY_LEN].into();

@@ -102,7 +102,7 @@ class extractAction(argparse.Action):
         # Extract libcrux-aesgcm
         includes = [
             "+**",
-            "-libcrux_aesgcm::traits_api::**",
+            "-libcrux_aes::traits_api::**",
         ]
         include_str = " ".join(includes)
         interface_include = "+**"

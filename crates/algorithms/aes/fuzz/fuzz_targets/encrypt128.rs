@@ -1,6 +1,6 @@
 #![no_main]
 
-use libcrux_aesgcm::aes_gcm_128::portable::PortableAesGcm128;
+use libcrux_aes::aes_gcm_128::portable::PortableAesGcm128;
 use libcrux_traits::aead::slice::Aead;
 use libfuzzer_sys::fuzz_target;
 

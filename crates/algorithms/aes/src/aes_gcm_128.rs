@@ -32,8 +32,8 @@ type_aliases!(AesGcm128, "AES-GCM 128");
 /// Example:
 /// ```rust
 /// // Using the portable implementation.
-/// use libcrux_aesgcm::AeadConsts as _;
-/// use libcrux_aesgcm::{NONCE_LEN, TAG_LEN, aes_gcm_128::portable::{PortableAesGcm128, Key, Tag, Nonce}};
+/// use libcrux_aes::AeadConsts as _;
+/// use libcrux_aes::{NONCE_LEN, TAG_LEN, aes_gcm_128::portable::{PortableAesGcm128, Key, Tag, Nonce}};
 ///
 /// let k: Key<PortableAesGcm128> = [0; PortableAesGcm128::KEY_LEN].into();
 /// let nonce: Nonce<PortableAesGcm128> = [0; NONCE_LEN].into();
@@ -61,8 +61,8 @@ pub mod portable {
 /// Example:
 /// ```rust
 /// // Using the NEON implementation.
-/// use libcrux_aesgcm::AeadConsts as _;
-/// use libcrux_aesgcm::{NONCE_LEN, TAG_LEN, aes_gcm_128::neon::{NeonAesGcm128, Key, Tag, Nonce}};
+/// use libcrux_aes::AeadConsts as _;
+/// use libcrux_aes::{NONCE_LEN, TAG_LEN, aes_gcm_128::neon::{NeonAesGcm128, Key, Tag, Nonce}};
 ///
 /// let k: Key<NeonAesGcm128> = [0; NeonAesGcm128::KEY_LEN].into();
 /// let nonce: Nonce<NeonAesGcm128> = [0; NONCE_LEN].into();
@@ -91,8 +91,8 @@ pub mod neon {
 /// Example:
 /// ```rust
 /// // Using the AES-NI implementation.
-/// use libcrux_aesgcm::AeadConsts as _;
-/// use libcrux_aesgcm::{NONCE_LEN, TAG_LEN, aes_gcm_128::x64::{X64AesGcm128, Key, Tag, Nonce}};
+/// use libcrux_aes::AeadConsts as _;
+/// use libcrux_aes::{NONCE_LEN, TAG_LEN, aes_gcm_128::x64::{X64AesGcm128, Key, Tag, Nonce}};
 ///
 /// let k: Key<X64AesGcm128> = [0; X64AesGcm128::KEY_LEN].into();
 /// let nonce: Nonce<X64AesGcm128> = [0; NONCE_LEN].into();

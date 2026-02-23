@@ -1,11 +1,11 @@
-use libcrux_aesgcm::{
+use libcrux_aes::{
     aes_gcm_128::{Key, Nonce, Tag},
     AesGcm128,
 };
 
 #[test]
 fn test_key_centric_owned() {
-    use libcrux_aesgcm::AeadConsts as _;
+    use libcrux_aes::AeadConsts as _;
 
     let k: Key = [0; AesGcm128::KEY_LEN].into();
     let nonce: Nonce = [0; AesGcm128::NONCE_LEN].into();
@@ -22,7 +22,7 @@ fn test_key_centric_owned() {
 
 #[test]
 fn test_key_centric_refs() {
-    use libcrux_aesgcm::{Aead as _, AeadConsts as _};
+    use libcrux_aes::{Aead as _, AeadConsts as _};
 
     let algo = AesGcm128;
 

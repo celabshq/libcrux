@@ -1,11 +1,11 @@
 [package]
 authors.workspace = true
-description = "Libcrux AES-GCM implementation"
+description = "Libcrux AES-based AEAD implementations"
 edition.workspace = true
 exclude = []
 homepage.workspace = true
 license.workspace = true
-name = "libcrux-aesgcm"
+name = "libcrux-aes"
 readme = "README.md"
 repository.workspace = true
 version = "0.0.6"

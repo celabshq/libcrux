@@ -1,8 +1,8 @@
-# AES-GCM
+# AES-based AEADs
 
 ![pre-verification]
 
-This crate implements AES-GCM 128 and 256
+This crate implements AES-GCM 128 and 256, as well as AES-CCM 128 and 256.
 
 It provides 
 - a portable, bit-sliced implementation
