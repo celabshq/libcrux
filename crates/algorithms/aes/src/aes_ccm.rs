@@ -53,6 +53,7 @@ macro_rules! aesccm {
                 ciphertext: &mut [u8],
                 tag: &mut [u8],
             ) {
+                debug_assert_eq!(tag.len(), $tag_len);
                 let mut tag_block = [0u8; AES_BLOCK_LEN];
 
                 // fill accumulator with CBC-MAC of AAD and plaintext
@@ -78,6 +79,7 @@ macro_rules! aesccm {
                 tag: &[u8],
                 plaintext: &mut [u8],
             ) -> Result<(), DecryptError> {
+                debug_assert_eq!(tag.len(), $tag_len);
                 let mut tag_block = [0u8; AES_BLOCK_LEN];
 
                 // Feed accumulator with AAD.
