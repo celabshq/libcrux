@@ -446,7 +446,7 @@ not_cfg!(
 
 not_cfg!(
     "simd256"
-    use crate::implementations::PortableAesGcn128 as X64AesGcm128;
+    use crate::implementations::PortableAesGcm128 as X64AesGcm128;
     use crate::implementations::PortableAesGcm256 as X64AesGcm256;
     use crate::implementations::PortableAesCcm128 as X64AesCcm128;
     use crate::implementations::PortableAesCcm256 as X64AesCcm256;
