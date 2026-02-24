@@ -175,28 +175,36 @@ macro_rules! ccm_num_keys {
 
                 let mut current_block = [0u8; AES_BLOCK_LEN];
 
+                // The AAD length encoding can be two, six, or ten
+                // bytes long, depending on which range `len(AAD)`
+                // falls into.
                 let mut aad_len_encoding_len = 2;
+
                 if TWO_BYTE_ENCODING_RANGE.contains(&aad_len) {
-                    current_block[0..2].copy_from_slice(
-                        &aad_len.to_be_bytes()[USIZE_LEN - aad_len_encoding_len..],
-                    );
+                    // If 0 < len(AAD) < 2^16 - 2^8, len(AAD) is encoded
+                    // in two bytes.
+                    current_block[0..2].copy_from_slice(&aad_len.to_be_bytes()[USIZE_LEN - 2..]);
                 } else if SIX_BYTE_ENCODING_RANGE.contains(&aad_len) {
+                    // If 2^16 - 2^8 <= len(AAD) < 2^32, len(AAD) is
+                    // encoded in four bytes and prefixed by the two
+                    // bytes 0xff, 0xfe.
                     aad_len_encoding_len = 6;
                     current_block[0] = 0xff;
                     current_block[1] = 0xfe;
-                    current_block[2..4].copy_from_slice(
-                        &aad_len.to_be_bytes()[USIZE_LEN - aad_len_encoding_len + 2..],
-                    );
+                    current_block[2..7].copy_from_slice(&aad_len.to_be_bytes()[USIZE_LEN - 4..]);
                 }
 
                 // The ten byte encoding range is larger than we can
                 // handle in 32-bits.
                 #[cfg(target_pointer_width = "64")]
                 if TEN_BYTE_ENCODING_RANGE.contains(&aad_len) {
+                    // If 2^32 <= len(AAD) < 2^64, len(AAD) is
+                    // encoded in 8 bytes and prefixed by the two
+                    // bytes 0xff, 0xff.
                     aad_len_encoding_len = 10;
                     current_block[0] = 0xff;
-                    current_block[1] = 0xfe;
-                    current_block[2..8].copy_from_slice(&aad_len.to_be_bytes());
+                    current_block[1] = 0xff;
+                    current_block[2..11].copy_from_slice(&aad_len.to_be_bytes());
                 }
 
                 // We have checked in the traits API that the AAD
