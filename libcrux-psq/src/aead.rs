@@ -199,15 +199,8 @@ impl AEADKeyNonce {
                     .map_err(|_| AEADError::CryptoError)?;
             }
             AEADKey::AesGcm128(key) => {
-                libcrux_aes::AesGcm128::decrypt(
-                    plaintext,
-                    key,
-                    &self.nonce,
-                    aad,
-                    ciphertext,
-                    tag,
-                )
-                .unwrap();
+                libcrux_aes::AesGcm128::decrypt(plaintext, key, &self.nonce, aad, ciphertext, tag)
+                    .unwrap();
                 // .map_err(|_| AEADError::CryptoError)?;
             }
         }
