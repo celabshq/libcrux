@@ -1,5 +1,6 @@
 use libcrux_aes::{
-    aes_gcm_128::{Key, Nonce, Tag},
+    aes_ccm_128::{Key as Ccm128Key, Nonce as Ccm128Nonce, Tag as Ccm128Tag},
+    aes_gcm_128::{Key as Gcm128Key, Nonce as Gcm128Nonce, Tag as Gcm128Tag},
     AesGcm128,
 };
 
@@ -8,9 +9,9 @@ use libcrux_aes::{
 fn non_matching_lengths() {
     use libcrux_aes::AeadConsts as _;
 
-    let k: Key = [0; AesGcm128::KEY_LEN].into();
-    let nonce: Nonce = [0; AesGcm128::NONCE_LEN].into();
-    let mut tag: Tag = [0; AesGcm128::TAG_LEN].into();
+    let k: Gcm128Key = [0; AesGcm128::KEY_LEN].into();
+    let nonce: Gcm128Nonce = [0; AesGcm128::NONCE_LEN].into();
+    let mut tag: Gcm128Tag = [0; AesGcm128::TAG_LEN].into();
 
     let pt = vec![0; 12];
 
@@ -26,9 +27,9 @@ fn ptxt_too_long() {
     use libcrux_aes::AeadConsts as _;
     use libcrux_traits::aead::arrayref::{DecryptError, EncryptError};
 
-    let k: Key = [0; AesGcm128::KEY_LEN].into();
-    let nonce: Nonce = [0; AesGcm128::NONCE_LEN].into();
-    let mut tag: Tag = [0; AesGcm128::TAG_LEN].into();
+    let k: Gcm128Key = [0; AesGcm128::KEY_LEN].into();
+    let nonce: Gcm128Nonce = [0; AesGcm128::NONCE_LEN].into();
+    let mut tag: Gcm128Tag = [0; AesGcm128::TAG_LEN].into();
 
     // unsafely create a slice that is too long
     let pt: &mut [u8] =
@@ -47,9 +48,9 @@ fn ptxt_too_long() {
 fn ccm_two_byte_aad_len_encoding() {
     use libcrux_aes::{AeadConsts as _, AesCcm128};
 
-    let k: Key = [0; AesCcm128::KEY_LEN].into();
-    let nonce: Nonce = [0; AesCcm128::NONCE_LEN].into();
-    let mut tag: Tag = [0; AesCcm128::TAG_LEN].into();
+    let k: Ccm128Key = [0; AesCcm128::KEY_LEN].into();
+    let nonce: Ccm128Nonce = [0; AesCcm128::NONCE_LEN].into();
+    let mut tag: Ccm128Tag = [0; AesCcm128::TAG_LEN].into();
 
     // unsafely create a slice that is too long
     let aad = vec![8; 512];
@@ -66,12 +67,13 @@ fn ccm_two_byte_aad_len_encoding() {
 }
 
 #[test]
+#[ignore] // This is a really slow test, we ignore it on CI.
 fn ccm_six_byte_aad_len_encoding() {
     use libcrux_aes::{AeadConsts as _, AesCcm128};
 
-    let k: Key = [0; AesCcm128::KEY_LEN].into();
-    let nonce: Nonce = [0; AesCcm128::NONCE_LEN].into();
-    let mut tag: Tag = [0; AesCcm128::TAG_LEN].into();
+    let k: Ccm128Key = [0; AesCcm128::KEY_LEN].into();
+    let nonce: Ccm128Nonce = [0; AesCcm128::NONCE_LEN].into();
+    let mut tag: Ccm128Tag = [0; AesCcm128::TAG_LEN].into();
 
     // 2^16 - 2^8 - 1 = 65279
     let aad = vec![8; 65279];
@@ -88,13 +90,14 @@ fn ccm_six_byte_aad_len_encoding() {
 }
 
 #[test]
+#[ignore] // This is a really slow test, we ignore it on CI.
 #[cfg(target_pointer_width = "64")]
 fn ccm_ten_byte_aad_len_encoding() {
     use libcrux_aes::{AeadConsts as _, AesCcm128};
 
-    let k: Key = [0; AesCcm128::KEY_LEN].into();
-    let nonce: Nonce = [0; AesCcm128::NONCE_LEN].into();
-    let mut tag: Tag = [0; AesCcm128::TAG_LEN].into();
+    let k: Ccm128Key = [0; AesCcm128::KEY_LEN].into();
+    let nonce: Ccm128Nonce = [0; AesCcm128::NONCE_LEN].into();
+    let mut tag: Ccm128Tag = [0; AesCcm128::TAG_LEN].into();
 
     let aad = vec![8; u32::MAX as usize + 1];
 
