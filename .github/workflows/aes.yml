@@ -1,11 +1,11 @@
-name: AES-GCM
+name: AES-AEADs
 
 on:
   merge_group:
   pull_request:
     branches: ["main", "dev", "*"]
     paths:
-      - "crates/algorithms/aesgcm/**"
+      - "crates/algorithms/aes/**"
   workflow_dispatch:
 
 env:
@@ -21,7 +21,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: crates/algorithms/aesgcm
+        working-directory: crates/algorithms/aes
 
     steps:
       - uses: actions/checkout@v6
@@ -66,7 +66,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: crates/algorithms/aesgcm
+        working-directory: crates/algorithms/aes
 
     steps:
       - uses: actions/checkout@v6

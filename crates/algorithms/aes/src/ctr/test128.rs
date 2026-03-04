@@ -1,12 +1,12 @@
 use crate::{
     aes_gcm_128::GCM_KEY_LEN,
-    ctr::Aes128CtrContext,
+    ctr::AesGcm128CtrContext,
     platform::{self, AESState},
     NONCE_LEN,
 };
 
 pub(crate) fn aes128_ctr_xor_block<T: AESState>(
-    ctx: &Aes128CtrContext<T>,
+    ctx: &AesGcm128CtrContext<T>,
     ctr: u32,
     inp: &[u8],
     out: &mut [u8],
@@ -25,7 +25,7 @@ pub(crate) fn aes128_ctr_encrypt<T: AESState>(
     debug_assert!(nonce.len() == NONCE_LEN);
     debug_assert!(key.len() == GCM_KEY_LEN);
     debug_assert!(inp.len() == out.len());
-    let ctx = Aes128CtrContext::<T>::init(key, nonce);
+    let ctx = AesGcm128CtrContext::<T>::init(key, nonce);
     ctx.update(ctr, inp, out);
 }
 
@@ -47,7 +47,7 @@ const EXPECTED: [u8; 32] = [
 #[test]
 fn test_ctr_block() {
     let mut computed: [u8; 32] = [0u8; 32];
-    let ctx = Aes128CtrContext::<platform::portable::State>::init(&KEY, &NONCE);
+    let ctx = AesGcm128CtrContext::<platform::portable::State>::init(&KEY, &NONCE);
     aes128_ctr_xor_block(&ctx, 1, &INPUT[0..16], &mut computed[0..16]);
     aes128_ctr_xor_block(&ctx, 2, &INPUT[16..32], &mut computed[16..32]);
     for i in 0..32 {
@@ -68,7 +68,7 @@ fn test_ctr_block() {
 #[test]
 fn test_ctr_block_neon() {
     let mut computed: [u8; 32] = [0u8; 32];
-    let ctx = Aes128CtrContext::<platform::neon::State>::init(&KEY, &NONCE);
+    let ctx = AesGcm128CtrContext::<platform::neon::State>::init(&KEY, &NONCE);
     aes128_ctr_xor_block(&ctx, 1, &INPUT[0..16], &mut computed[0..16]);
     aes128_ctr_xor_block(&ctx, 2, &INPUT[16..32], &mut computed[16..32]);
     for i in 0..32 {

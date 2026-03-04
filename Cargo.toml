@@ -35,8 +35,8 @@ members = [
     "crates/primitives/aead",
     "crates/primitives/digest",
     "crates/testing/kats",
-    "crates/algorithms/aesgcm",
-    "crates/algorithms/aesgcm/fuzz",
+    "crates/algorithms/aes",
+    "crates/algorithms/aes/fuzz",
     "crates/utils/hacl-rs",
 ]
 
@@ -55,7 +55,7 @@ allow-branch = ["main"]
 [workspace.dependencies]
 hax-lib = { version = "=0.3.6" }
 libcrux-intrinsics = { version = "=0.0.5", path = "crates/utils/intrinsics" }
-libcrux-aesgcm = { version = "=0.0.6", path = "crates/algorithms/aesgcm" }
+libcrux-aes = { version = "=0.0.6", path = "crates/algorithms/aes" }
 libcrux-chacha20poly1305 = { version = "=0.0.5", path = "crates/algorithms/chacha20poly1305" }
 libcrux-traits = { version = "=0.0.5", path = "traits" }
 libcrux-hacl-rs = { version = "=0.0.4", path = "crates/utils/hacl-rs" }

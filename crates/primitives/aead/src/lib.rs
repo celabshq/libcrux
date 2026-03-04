@@ -185,8 +185,8 @@ pub mod xchacha20poly1305 {
 
 #[cfg(feature = "aesgcm128")]
 pub mod aesgcm128 {
-    pub use libcrux_aesgcm::aes_gcm_128::{KeyRef, NonceRef, TagMut, TagRef, KEY_LEN};
-    pub use libcrux_aesgcm::{
+    pub use libcrux_aes::aes_gcm_128::{KeyRef, NonceRef, TagMut, TagRef, KEY_LEN};
+    pub use libcrux_aes::{
         AesGcm128, AesGcm128Key as Key, AesGcm128Nonce as Nonce, AesGcm128Tag as Tag, NONCE_LEN,
         TAG_LEN,
     };
@@ -194,8 +194,8 @@ pub mod aesgcm128 {
 
 #[cfg(feature = "aesgcm256")]
 pub mod aesgcm256 {
-    pub use libcrux_aesgcm::aes_gcm_256::{KeyRef, NonceRef, TagMut, TagRef, KEY_LEN};
-    pub use libcrux_aesgcm::{
+    pub use libcrux_aes::aes_gcm_256::{KeyRef, NonceRef, TagMut, TagRef, KEY_LEN};
+    pub use libcrux_aes::{
         AesGcm256, AesGcm256Key as Key, AesGcm256Nonce as Nonce, AesGcm256Tag as Tag, NONCE_LEN,
         TAG_LEN,
     };

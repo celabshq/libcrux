@@ -6,7 +6,7 @@ use tls_codec::{
     TlsSize,
 };
 
-use libcrux_aesgcm::AESGCM128_KEY_LEN as KEY_LEN_AES;
+use libcrux_aes::AESGCM128_KEY_LEN as KEY_LEN_AES;
 
 const NONCE_LEN: usize = 12;
 const NONCE_MAX: [u8; NONCE_LEN] = [0xff; NONCE_LEN];
@@ -123,7 +123,7 @@ impl AEADKeyNonce {
                     .map_err(|_| AEADError::CryptoError)?;
             }
             AEADKey::AesGcm128(key) => {
-                libcrux_aesgcm::AesGcm128::encrypt(
+                libcrux_aes::AesGcm128::encrypt(
                     ciphertext,
                     &mut tag,
                     key,
@@ -168,7 +168,7 @@ impl AEADKeyNonce {
                     .map_err(|_| AEADError::CryptoError)?;
             }
             AEADKey::AesGcm128(key) => {
-                libcrux_aesgcm::AesGcm128::decrypt(
+                libcrux_aes::AesGcm128::decrypt(
                     &mut plaintext,
                     key,
                     &self.nonce,
@@ -199,15 +199,8 @@ impl AEADKeyNonce {
                     .map_err(|_| AEADError::CryptoError)?;
             }
             AEADKey::AesGcm128(key) => {
-                libcrux_aesgcm::AesGcm128::decrypt(
-                    plaintext,
-                    key,
-                    &self.nonce,
-                    aad,
-                    ciphertext,
-                    tag,
-                )
-                .unwrap();
+                libcrux_aes::AesGcm128::decrypt(plaintext, key, &self.nonce, aad, ciphertext, tag)
+                    .unwrap();
                 // .map_err(|_| AEADError::CryptoError)?;
             }
         }

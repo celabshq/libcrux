@@ -99,10 +99,10 @@ class extractAction(argparse.Action):
             env=hax_env,
         )
 
-        # Extract ml-kem
+        # Extract libcrux-aes
         includes = [
             "+**",
-            "-libcrux_aesgcm::traits_api::**",
+            "-libcrux_aes::traits_api::**",
         ]
         include_str = " ".join(includes)
         interface_include = "+**"

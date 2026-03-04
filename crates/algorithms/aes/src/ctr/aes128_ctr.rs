@@ -2,22 +2,38 @@
 
 use core::array::from_fn;
 
-use super::AesCtrContext;
-use crate::{aes::*, aes_gcm_128::GCM_KEY_LEN, platform::AESState, NONCE_LEN};
+use super::{AesCtrContext, AES_CCM_CTR_LEN, AES_GCM_CTR_LEN};
+use crate::{
+    aes::*,
+    aes_gcm_128::GCM_KEY_LEN,
+    ctr::{AES_CCM_NONCE_START, AES_GCM_NONCE_START},
+    platform::AESState,
+    NONCE_LEN,
+};
 
 pub(super) const NUM_KEYS: usize = 11;
 
 /// Type alias for the AES 128 ctr context.
-pub(crate) type Aes128CtrContext<T> = AesCtrContext<T, NUM_KEYS>;
+pub(crate) type AesGcm128CtrContext<T> =
+    AesCtrContext<T, NUM_KEYS, AES_GCM_CTR_LEN, AES_GCM_NONCE_START>;
+pub(crate) type AesCcm128CtrContext<T> =
+    AesCtrContext<T, NUM_KEYS, AES_CCM_CTR_LEN, AES_CCM_NONCE_START>;
 
-impl<T: AESState> Aes128CtrContext<T> {
+impl<T: AESState, const CTR_LEN: usize, const NONCE_START: usize>
+    AesCtrContext<T, NUM_KEYS, CTR_LEN, NONCE_START>
+{
     #[inline]
     pub(crate) fn init(key: &[u8], nonce: &[u8]) -> Self {
-        debug_assert!(nonce.len() == NONCE_LEN);
-        debug_assert!(key.len() == GCM_KEY_LEN);
+        debug_assert_eq!(nonce.len(), NONCE_LEN);
+        debug_assert_eq!(key.len(), GCM_KEY_LEN);
+        debug_assert!(CTR_LEN <= 8 && CTR_LEN > 1);
 
         let mut ctr_nonce = [0u8; 16];
-        ctr_nonce[0..12].copy_from_slice(nonce);
+        if NONCE_START == 1 {
+            // write flags into the first byte
+            ctr_nonce[0] = (CTR_LEN - 1) as u8;
+        }
+        ctr_nonce[NONCE_START..NONCE_START + NONCE_LEN].copy_from_slice(nonce);
 
         Self {
             extended_key: key_expansion(key),

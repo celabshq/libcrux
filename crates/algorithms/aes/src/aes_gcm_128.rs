@@ -1,7 +1,7 @@
 use crate::{
     aes::AES_BLOCK_LEN,
     aes_gcm::aesgcm,
-    ctr::Aes128CtrContext,
+    ctr::AesGcm128CtrContext,
     gf128::GF128State,
     platform::{AESState, GF128FieldElement},
     DecryptError, NONCE_LEN, TAG_LEN,
@@ -13,12 +13,12 @@ pub(crate) const GCM_KEY_LEN: usize = 16;
 
 /// The AES-GCM 128 state
 pub(crate) struct State<T: AESState, U: GF128FieldElement> {
-    pub(crate) aes_state: Aes128CtrContext<T>,
+    pub(crate) aes_state: AesGcm128CtrContext<T>,
     pub(crate) gcm_state: GF128State<U>,
     pub(crate) tag_mix: [u8; TAG_LEN],
 }
 
-aesgcm!(State<T, U>, Aes128CtrContext);
+aesgcm!(State<T, U>, AesGcm128CtrContext);
 
 use super::aes_gcm::type_aliases;
 
@@ -32,8 +32,8 @@ type_aliases!(AesGcm128, "AES-GCM 128");
 /// Example:
 /// ```rust
 /// // Using the portable implementation.
-/// use libcrux_aesgcm::AeadConsts as _;
-/// use libcrux_aesgcm::{NONCE_LEN, TAG_LEN, aes_gcm_128::portable::{PortableAesGcm128, Key, Tag, Nonce}};
+/// use libcrux_aes::AeadConsts as _;
+/// use libcrux_aes::{NONCE_LEN, TAG_LEN, aes_gcm_128::portable::{PortableAesGcm128, Key, Tag, Nonce}};
 ///
 /// let k: Key<PortableAesGcm128> = [0; PortableAesGcm128::KEY_LEN].into();
 /// let nonce: Nonce<PortableAesGcm128> = [0; NONCE_LEN].into();
@@ -61,8 +61,8 @@ pub mod portable {
 /// Example:
 /// ```rust
 /// // Using the NEON implementation.
-/// use libcrux_aesgcm::AeadConsts as _;
-/// use libcrux_aesgcm::{NONCE_LEN, TAG_LEN, aes_gcm_128::neon::{NeonAesGcm128, Key, Tag, Nonce}};
+/// use libcrux_aes::AeadConsts as _;
+/// use libcrux_aes::{NONCE_LEN, TAG_LEN, aes_gcm_128::neon::{NeonAesGcm128, Key, Tag, Nonce}};
 ///
 /// let k: Key<NeonAesGcm128> = [0; NeonAesGcm128::KEY_LEN].into();
 /// let nonce: Nonce<NeonAesGcm128> = [0; NONCE_LEN].into();
@@ -91,8 +91,8 @@ pub mod neon {
 /// Example:
 /// ```rust
 /// // Using the AES-NI implementation.
-/// use libcrux_aesgcm::AeadConsts as _;
-/// use libcrux_aesgcm::{NONCE_LEN, TAG_LEN, aes_gcm_128::x64::{X64AesGcm128, Key, Tag, Nonce}};
+/// use libcrux_aes::AeadConsts as _;
+/// use libcrux_aes::{NONCE_LEN, TAG_LEN, aes_gcm_128::x64::{X64AesGcm128, Key, Tag, Nonce}};
 ///
 /// let k: Key<X64AesGcm128> = [0; X64AesGcm128::KEY_LEN].into();
 /// let nonce: Nonce<X64AesGcm128> = [0; NONCE_LEN].into();
