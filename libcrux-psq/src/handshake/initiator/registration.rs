@@ -124,7 +124,7 @@ impl<'a, Rng: CryptoRng> Channel<Error> for RegistrationInitiator<'a, Rng> {
 
                 let inner_payload = InitiatorInnerPayloadOut(VLByteSlice(payload));
                 let (inner_ciphertext, inner_tag) =
-                    k1.serialize_encrypt(&inner_payload, self.inner_aad)?;
+                    k1.handshake_encrypt(&inner_payload, self.inner_aad)?;
 
                 let outer_payload = InitiatorOuterPayloadOut::Registration(InnerMessageOut {
                     auth: AuthMessageOut::Dh(&dhkey_pair.pk),
@@ -134,7 +134,7 @@ impl<'a, Rng: CryptoRng> Channel<Error> for RegistrationInitiator<'a, Rng> {
                     pq_encapsulation: VLByteSlice(&pq_encapsulation_serialized),
                 });
                 let (outer_ciphertext, outer_tag) =
-                    state.k0.serialize_encrypt(&outer_payload, self.outer_aad)?;
+                    state.k0.handshake_encrypt(&outer_payload, self.outer_aad)?;
 
                 (k1, outer_ciphertext, outer_tag)
             }
@@ -143,18 +143,18 @@ impl<'a, Rng: CryptoRng> Channel<Error> for RegistrationInitiator<'a, Rng> {
                     &state.k0,
                     pq_shared_secret,
                     &tx1,
-                    signature.as_ref().unwrap(),
+                    signature.as_ref().expect("signature based initiator authentication produces a signature, or propagates the signing error before"),
                     self.ciphersuite.aead_type(),
                 )?;
 
                 let inner_payload = InitiatorInnerPayloadOut(VLByteSlice(payload));
                 let (inner_ciphertext, inner_tag) =
-                    k1.serialize_encrypt(&inner_payload, self.inner_aad)?;
+                    k1.handshake_encrypt(&inner_payload, self.inner_aad)?;
 
                 let outer_payload = InitiatorOuterPayloadOut::Registration(InnerMessageOut {
                     auth: AuthMessageOut::Sig {
                         vk: &sig_auth.into(),
-                        signature: signature.as_ref().unwrap(),
+                        signature: signature.as_ref().expect("signature based initiator authentication produces a signature, or propagates the signing error before"),
                     },
                     ciphertext: VLByteSlice(&inner_ciphertext),
                     tag: inner_tag,
@@ -162,7 +162,7 @@ impl<'a, Rng: CryptoRng> Channel<Error> for RegistrationInitiator<'a, Rng> {
                     pq_encapsulation: VLByteSlice(&pq_encapsulation_serialized),
                 });
                 let (outer_ciphertext, outer_tag) =
-                    state.k0.serialize_encrypt(&outer_payload, self.outer_aad)?;
+                    state.k0.handshake_encrypt(&outer_payload, self.outer_aad)?;
                 (k1, outer_ciphertext, outer_tag)
             }
         };
@@ -231,7 +231,7 @@ impl<'a, Rng: CryptoRng> Channel<Error> for RegistrationInitiator<'a, Rng> {
         };
 
         // Decrypt Payload
-        let registration_response: ResponderRegistrationPayload = k2.decrypt_deserialize(
+        let registration_response: ResponderRegistrationPayload = k2.handshake_decrypt(
             responder_msg.ciphertext.as_slice(),
             &responder_msg.tag,
             responder_msg.aad.as_slice(),

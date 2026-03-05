@@ -178,7 +178,7 @@ impl<'a, Rng: CryptoRng> Responder<'a, Rng> {
             self.ciphersuite.aead_type(),
         )?;
 
-        let initiator_payload: InitiatorOuterPayload = k0.decrypt_deserialize(
+        let initiator_payload: InitiatorOuterPayload = k0.handshake_decrypt(
             initiator_outer_message.ciphertext.as_slice(),
             &initiator_outer_message.tag,
             initiator_outer_message.aad.as_slice(),
@@ -244,7 +244,7 @@ impl<'a, Rng: CryptoRng> Responder<'a, Rng> {
             ),
         }?;
 
-        let inner_payload: InitiatorInnerPayload = k1.decrypt_deserialize(
+        let inner_payload: InitiatorInnerPayload = k1.handshake_decrypt(
             initiator_inner_message.ciphertext.as_slice(),
             &initiator_inner_message.tag,
             initiator_inner_message.aad.as_slice(),
@@ -257,101 +257,6 @@ impl<'a, Rng: CryptoRng> Responder<'a, Rng> {
             authenticator,
             pq_encapsulation_deserialized.is_some(),
         ))
-
-        // match initiator_inner_message.auth {
-        //     InnerMessage::DHAuth(pk) => {
-        //         // Whether we attempt to do a decapsulation is decided by the working ciphersuite.
-        //         let pq_encapsulation_deserialized = working_ciphersuite
-        //             .deserialize_encapsulation(initiator_inner_message.pq_encapsulation.as_ref())?;
-
-        //         let tx1 = tx1_dh(
-        //             tx0,
-        //             pk,
-        //             if pq_encapsulation_deserialized.is_some() {
-        //                 self.ciphersuite.pq.encapsulation_key()
-        //             } else {
-        //                 None
-        //             },
-        //             pq_encapsulation.as_slice(),
-        //         )?;
-
-        //         let pq_shared_secret = pq_encapsulation_deserialized
-        //             .as_ref()
-        //             .as_ref()
-        //             .map(|enc| self.ciphersuite.pq_decapsulate(enc))
-        //             .transpose()?;
-
-        //         let mut k1 = derive_k1_dh(
-        //             k0,
-        //             &self.ciphersuite.kex.sk,
-        //             pk,
-        //             pq_shared_secret,
-        //             &tx1,
-        //             self.ciphersuite.aead_type(),
-        //         )?;
-
-        //         let inner_payload: InitiatorInnerPayload =
-        //             k1.decrypt_deserialize(ciphertext.as_slice(), tag, aad.as_slice())?;
-
-        //         Ok((
-        //             inner_payload,
-        //             tx1,
-        //             k1,
-        //             Authenticator::Dh(pk.clone()),
-        //             pq_encapsulation_deserialized.is_some(),
-        //         ))
-        //     }
-        //     InnerMessage::SigAuth {
-        //         vk,
-        //         signature,
-        //         ciphertext,
-        //         tag,
-        //         aad,
-        //         pq_encapsulation,
-        //     } => {
-        //         // Whether we attempt to do a decapsulation is decided by the working ciphersuite.
-        //         let pq_encapsulation_deserialized =
-        //             working_ciphersuite.deserialize_encapsulation(pq_encapsulation.as_ref())?;
-
-        //         let tx1 = tx1_sig(
-        //             tx0,
-        //             vk,
-        //             if pq_encapsulation_deserialized.is_some() {
-        //                 self.ciphersuite.pq.encapsulation_key()
-        //             } else {
-        //                 None
-        //             },
-        //             pq_encapsulation.as_slice(),
-        //         )?;
-
-        //         self.ciphersuite.verify(vk, &tx1, signature)?;
-
-        //         let pq_shared_secret = pq_encapsulation_deserialized
-        //             .as_ref()
-        //             .as_ref()
-        //             .map(|enc| self.ciphersuite.pq_decapsulate(enc))
-        //             .transpose()?;
-
-        //         let mut k1 = derive_k1_sig(
-        //             k0,
-        //             pq_shared_secret,
-        //             &tx1,
-        //             signature,
-        //             self.ciphersuite.aead_type(),
-        //         )?;
-
-        //         let inner_payload: InitiatorInnerPayload =
-        //             k1.decrypt_deserialize(ciphertext.as_slice(), tag, aad.as_slice())?;
-
-        //         Ok((
-        //             inner_payload,
-        //             tx1,
-        //             k1,
-        //             Authenticator::Sig(vk.clone()),
-        //             pq_encapsulation_deserialized.is_some(),
-        //         ))
-        //     }
-        // }
     }
 
     fn registration(
@@ -382,7 +287,7 @@ impl<'a, Rng: CryptoRng> Responder<'a, Rng> {
         };
 
         let outer_payload = ResponderRegistrationPayloadOut(VLByteSlice(payload));
-        let (ciphertext, tag) = k2.serialize_encrypt(&outer_payload, self.aad)?;
+        let (ciphertext, tag) = k2.handshake_encrypt(&outer_payload, self.aad)?;
 
         let Some(working_ciphersuite) = self.working_ciphersuite else {
             return Err(Error::ResponderState);
@@ -430,7 +335,7 @@ impl<'a, Rng: CryptoRng> Responder<'a, Rng> {
         )?;
 
         let outer_payload = ResponderQueryPayloadOut(VLByteSlice(payload));
-        let (ciphertext, tag) = k2.serialize_encrypt(&outer_payload, self.aad)?;
+        let (ciphertext, tag) = k2.handshake_encrypt(&outer_payload, self.aad)?;
 
         let out_msg = HandshakeMessageOut {
             pk: &responder_ephemeral_ecdh_pk,
@@ -517,8 +422,7 @@ impl<'a, Rng: CryptoRng> Channel<Error> for Responder<'a, Rng> {
             if self.recent_keys.len() == self.recent_keys_upper_bound {
                 self.recent_keys.pop_back();
             }
-            self.recent_keys
-                .push_front(initiator_outer_message.pk.clone());
+            self.recent_keys.push_front(initiator_outer_message.pk);
         }
 
         // Decrypt the outer message payload.

@@ -133,11 +133,6 @@ pub fn generate_key_pair(
             continue;
         }
 
-        // We clamp the key already to make sure it can't be misused.
-        sk[0] &= 248u8;
-        sk[31] &= 127u8;
-        sk[31] |= 64u8;
-
         break;
     }
 

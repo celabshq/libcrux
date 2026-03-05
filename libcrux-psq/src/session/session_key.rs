@@ -55,7 +55,9 @@ pub(super) fn derive_session_key(
     }
 
     const SESSION_KEY_LABEL: &[u8] = b"session key";
-    let key = AEADKeyNonce::new(
+    // The main session key is immediately expired since it
+    // should not be used for transport encryption directly.
+    let key = AEADKeyNonce::new_expired(
         &k2,
         &SessionKeyInfo {
             domain_separator: SESSION_KEY_LABEL,
@@ -85,7 +87,9 @@ pub(super) fn derive_import_key(
     }
 
     const SESSION_IMPORT_LABEL: &[u8] = b"secret import";
-    AEADKeyNonce::new(
+    // The main session key is immediately expired since it
+    // should not be used for transport encryption directly.
+    AEADKeyNonce::new_expired(
         &SessionImportIkm {
             old_session_key: &k2,
             psk,

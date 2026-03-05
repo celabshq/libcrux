@@ -171,8 +171,8 @@ pub(crate) fn generate_keypair(
     let secret_key_serialized = vector_encode_12(secret_as_ntt);
 
     Ok(KeyPair::new(
-        secret_key_serialized.into_array(),
-        public_key_serialized.into_array(),
+        secret_key_serialized.into_len_array(),
+        public_key_serialized.into_len_array(),
     ))
 }
 
@@ -397,5 +397,5 @@ pub(crate) fn decrypt(
     // m ← ByteEncode₁(Compress₁(w))
     // return m
     // FIXME: remove conversion
-    byte_encode(1, compress(message, 1)).as_array()
+    byte_encode(1, compress(message, 1)).as_len_array()
 }

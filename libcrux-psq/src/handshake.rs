@@ -56,6 +56,7 @@ impl From<AEADError> for HandshakeError {
             AEADError::CryptoError => HandshakeError::CryptoError,
             AEADError::Serialize(error) => HandshakeError::Serialize(error),
             AEADError::Deserialize(error) => HandshakeError::Deserialize(error),
+            AEADError::KeyExpired => unreachable!("Attempt to re-use an expired key during handshake. This indicates a fatal bug in the handshake protocol, please submit a bug report at https://github.com/cryspen/libcrux/."), // this really should not happen and indicates a fatal bug in the handshake protocol
         }
     }
 }

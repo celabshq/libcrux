@@ -401,7 +401,7 @@ pub(crate) mod generic {
         // We use if-else branches because early returns will not go through hax.
         if vector_infinity_norm_exceeds::<SIMDUnit>(
             &deserialized_signer_response,
-            (2 << GAMMA1_EXPONENT) - BETA,
+            (1 << GAMMA1_EXPONENT) - BETA,
         ) {
             return Err(VerificationError::SignerResponseExceedsBoundError);
         }

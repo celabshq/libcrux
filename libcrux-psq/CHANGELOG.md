@@ -7,9 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- [#1301](https://github.com/cryspen/libcrux/pull/1301): Fix broken clamping check for imported X25519 secret keys
+### Added 
+
+- [#1339](https://github.com/cryspen/libcrux/pull/1339): Expose `Transport` struct and add external nonce-control feature
+
+### Changed
+
+- [#1339](https://github.com/cryspen/libcrux/pull/1339): Leave receiver nonce unchanged on decryption failure
+
+## [0.0.7] (2026-02-12)
+
+### Added
+
 - [#1307](https://github.com/cryspen/libcrux/pull/1307): Expose additional functionalities on the DHKEM (https://github.com/jstuczyn)
 - [#1298](https://github.com/cryspen/libcrux/pull/1298): Propagate import/export functions from CMC crate (https://github.com/georgio)
+
+### Fixed
+
+- [#1319](https://github.com/cryspen/libcrux/pull/1319): Propagate AEADError instead of panicking
+- [#1301](https://github.com/cryspen/libcrux/pull/1301): Fix broken clamping check for imported X25519 secret keys
+
+### Changed
+
+- [#1324](https://github.com/cryspen/libcrux/pull/1324): Update dependencies: `libcrux-traits`, `libcrux-ecdh`, `libcrux-ml-kem`, `libcrux-ed25519`, `libcrux-kem`, `libcrux-chacha20poly1305`, `libcrux-aesgcm`, `libcrux-sha2`, `libcrux-hmac` `libcrux-ml-dsa`, `libcrux-hkdf`
 
 ## [0.0.6] (2026-01-22)
 

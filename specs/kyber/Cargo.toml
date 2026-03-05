@@ -8,7 +8,7 @@ libcrux = { version = "=0.0.2", path = "../../" }
 hacspec-lib = { version = "0.0.1", path = "../hacspec-lib" }
 
 [dev-dependencies]
-libcrux-kem = { version = "=0.0.5", path = "../../libcrux-kem", features = [
+libcrux-kem = { version = "=0.0.6", path = "../../libcrux-kem", features = [
     "tests",
 ] }
 hex = { version = "0.4.3", features = ["serde"] }

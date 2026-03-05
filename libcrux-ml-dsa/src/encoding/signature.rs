@@ -85,14 +85,15 @@ pub(crate) fn deserialize<SIMDUnit: Operations>(
     // allow only one such encoding, to ensure strong unforgeability.
     let mut previous_true_hints_seen = 0usize;
 
-    // XXX: We would like to use early returns below, but doing so triggers a bug in Eurdice leads to a bad extraction.
+    // XXX: We would like to use early returns below, but doing so triggers a bug in
+    // Eurdice leads to a bad extraction.
     let mut malformed_hint = false;
 
     for i in 0..rows_in_a {
         let current_true_hints_seen = hint_serialized[max_ones_in_hint + i] as usize;
 
         if (current_true_hints_seen < previous_true_hints_seen)
-            || (previous_true_hints_seen > max_ones_in_hint)
+            || (current_true_hints_seen > max_ones_in_hint)
         {
             // the true hints seen should be increasing
             // return Err(VerificationError::MalformedHintError);

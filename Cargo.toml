@@ -54,26 +54,32 @@ allow-branch = ["main"]
 
 [workspace.dependencies]
 hax-lib = { version = "=0.3.6" }
-libcrux-intrinsics = { version = "=0.0.5", path = "crates/utils/intrinsics" }
-libcrux-aes = { version = "=0.0.6", path = "crates/algorithms/aes" }
-libcrux-chacha20poly1305 = { version = "=0.0.5", path = "crates/algorithms/chacha20poly1305" }
-libcrux-traits = { version = "=0.0.5", path = "traits" }
+libcrux-intrinsics = { version = "=0.0.6", path = "crates/utils/intrinsics" }
+libcrux-aes = { version = "=0.0.7", path = "crates/algorithms/aes" }
+libcrux-chacha20poly1305 = { version = "=0.0.6", path = "crates/algorithms/chacha20poly1305" }
+libcrux-traits = { version = "=0.0.6", path = "traits" }
 libcrux-hacl-rs = { version = "=0.0.4", path = "crates/utils/hacl-rs" }
 libcrux-macros  = { version = "=0.0.3", path = "crates/utils/macros" }
 libcrux-hacl = { version = "=0.0.2", path = "crates/sys/hacl" }
 libcrux-platform = { version = "=0.0.3", path = "crates/sys/platform" }
-libcrux-hkdf = { version = "=0.0.5", path = "crates/algorithms/hkdf" }
-libcrux-hmac = { version = "=0.0.5", path = "crates/algorithms/hmac" }
-libcrux-sha2 = { version = "=0.0.5", path = "crates/algorithms/sha2" }
-libcrux-ed25519 = { version = "=0.0.5", path = "crates/algorithms/ed25519" }
-libcrux-ecdh = { version = "=0.0.5", path = "libcrux-ecdh" }
-libcrux-ml-kem = { version = "=0.0.6", path = "libcrux-ml-kem" }
-libcrux-sha3 = { version = "=0.0.6", path = "crates/algorithms/sha3" }
-libcrux-kem = { version = "=0.0.5", path = "libcrux-kem" }
+libcrux-hkdf = { version = "=0.0.6", path = "crates/algorithms/hkdf" }
+libcrux-hmac = { version = "=0.0.6", path = "crates/algorithms/hmac" }
+libcrux-sha2 = { version = "=0.0.6", path = "crates/algorithms/sha2" }
+libcrux-ed25519 = { version = "=0.0.6", path = "crates/algorithms/ed25519" }
+libcrux-ml-dsa = { version = "=0.0.7", path = "libcrux-ml-dsa" }
+libcrux-sha3 = { version = "=0.0.7", path = "crates/algorithms/sha3" }
+libcrux-kem = { version = "=0.0.6", path = "libcrux-kem" }
 libcrux-secrets = { version = "=0.0.5", path = "crates/utils/secrets" }
-libcrux-aead = { version = "=0.0.5", path = "crates/primitives/aead" }
-libcrux-blake2 = { version = "=0.0.5", path = "crates/algorithms/blake2" }
-libcrux-p256 = { version = "=0.0.5", path = "crates/algorithms/p256" }
+libcrux-aead = { version = "=0.0.6", path = "crates/primitives/aead" }
+libcrux-blake2 = { version = "=0.0.6", path = "crates/algorithms/blake2" }
+
+# For the crates below it is necessary to set `default-features = true`
+# in workspace crates that depend on the default feature set.
+libcrux-ecdh = { version = "=0.0.6", path = "libcrux-ecdh", default-features = false }
+libcrux-ml-kem = { version = "=0.0.7", path = "libcrux-ml-kem", default-features =  false }
+libcrux-p256 = { version = "=0.0.6", path = "crates/algorithms/p256", default-features = false }
+libcrux-curve25519 = { version = "=0.0.6", path = "crates/algorithms/curve25519", default-features = false}
+
 
 [package]
 name = "libcrux"

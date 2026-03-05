@@ -85,7 +85,7 @@ impl<'a> QueryInitiator<'a> {
             &tx2,
         )?;
 
-        k2.decrypt_deserialize::<ResponderQueryPayload>(
+        k2.handshake_decrypt::<ResponderQueryPayload>(
             responder_msg.ciphertext.as_slice(),
             &responder_msg.tag,
             responder_msg.aad.as_slice(),
@@ -97,7 +97,7 @@ impl<'a> QueryInitiator<'a> {
 impl<'a> Channel<Error> for QueryInitiator<'a> {
     fn write_message(&mut self, payload: &[u8], out: &mut [u8]) -> Result<usize, Error> {
         let outer_payload = InitiatorOuterPayloadOut::Query(VLByteSlice(payload));
-        let (ciphertext, tag) = self.k0.serialize_encrypt(&outer_payload, self.outer_aad)?;
+        let (ciphertext, tag) = self.k0.handshake_encrypt(&outer_payload, self.outer_aad)?;
 
         let msg = HandshakeMessageOut {
             pk: &self.initiator_ephemeral_keys.pk,

@@ -1,6 +1,6 @@
 [package]
 name = "libcrux-kem"
-version = "0.0.5"
+version = "0.0.6"
 description = "Libcrux KEM implementation"
 readme = "README.md"
 
@@ -15,14 +15,13 @@ exclude = ["/tests"]
 path = "src/kem.rs"
 
 [dependencies]
-# XXX: We can't use the workspace dependency here because of https://github.com/rust-lang/cargo/issues/12162
-libcrux-ml-kem = { version = "=0.0.6", path = "../libcrux-ml-kem", default-features = false, features = [
+libcrux-ml-kem = { workspace = true, features = [
     "default-no-std",
 ] }
 libcrux-sha3.workspace = true
-libcrux-ecdh = { version = "=0.0.5", path = "../libcrux-ecdh", default-features = false }
-libcrux-curve25519 = { version = "=0.0.5", path = "../crates/algorithms/curve25519", default-features = false }
-libcrux-p256 = { version = "=0.0.5", path = "../crates/algorithms/p256", default-features = false }
+libcrux-ecdh.workspace = true
+libcrux-curve25519.workspace = true
+libcrux-p256.workspace = true
 libcrux-traits.workspace = true
 rand = { version = "0.9", default-features = false }
 tls_codec = { version = "0.4.2", features = [

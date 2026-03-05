@@ -1,7 +1,7 @@
 [package]
 name = "libcrux-curve25519"
 description = "Formally verified curve25519 ECDH library"
-version = "0.0.5"
+version = "0.0.6"
 readme = "Readme.md"
 
 authors.workspace = true

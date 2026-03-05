@@ -39,7 +39,7 @@ pub struct DHPublicKey([u8; 32]);
 
 impl ProvideAuthenticator for DHPublicKey {
     fn authenticator(&self) -> super::types::Authenticator {
-        Authenticator::Dh(self.clone())
+        Authenticator::Dh(*self)
     }
 }
 
@@ -69,8 +69,7 @@ impl DHSharedSecret {
     /// Derive a shared secret, DH-KEM style.
     pub(crate) fn derive(sk: &DHPrivateKey, pk: &DHPublicKey) -> Result<DHSharedSecret, Error> {
         Ok(DHSharedSecret(
-            libcrux_ecdh::derive(Algorithm::X25519, &pk.0, &sk.0)
-                .map_err(|_| Error::CryptoError)?,
+            libcrux_ecdh::derive(Algorithm::X25519, pk.0, &sk.0).map_err(|_| Error::CryptoError)?,
         ))
     }
 }
@@ -97,7 +96,7 @@ impl DHPrivateKey {
     /// Import a Diffie-Hellman private key from raw bytes.
     pub fn from_bytes(value: &[u8; 32]) -> Result<Self, Error> {
         // Test whether the key is already clamped to make sure it can't be misused.
-        if !libcrux_ecdh::validate_scalar(libcrux_ecdh::Algorithm::X25519, value).is_ok() {
+        if libcrux_ecdh::validate_scalar(libcrux_ecdh::Algorithm::X25519, value).is_err() {
             Err(Error::InvalidDHSecret)
         } else {
             Ok(Self(Vec::from(value)))

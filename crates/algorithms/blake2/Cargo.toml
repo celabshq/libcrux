@@ -1,7 +1,7 @@
 [package]
 name = "libcrux-blake2"
 description = "Formally verified blake2 hash library"
-version = "0.0.5"
+version = "0.0.6"
 readme = "Readme.md"
 
 authors.workspace = true

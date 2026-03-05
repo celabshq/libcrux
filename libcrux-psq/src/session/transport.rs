@@ -6,6 +6,8 @@ use tls_codec::{
     TlsSize, VLByteSlice, VLBytes,
 };
 
+#[cfg(feature = "nonce-control")]
+use crate::aead::NONCE_LEN;
 use crate::{aead::AEADKeyNonce, traits::Channel};
 
 use super::{Session, SessionError as Error};
@@ -40,6 +42,11 @@ struct TransportMessage {
 ///
 /// Receiving a `TransportMessage` without matching channel identifier
 /// results in an error.
+///
+/// To prevent de-syncing of states between sender and receiver a
+/// failed decryption (e.g. due to transmission errors) will leave the
+/// receiver nonce unchanged, meaning the decrypting party can ask for
+/// retransmission of the faulty ciphertext and re-attempt decryption.
 pub struct Transport {
     /// Key used for AEAD-encrypting messages to be sent
     send_key: AEADKeyNonce,
@@ -74,6 +81,30 @@ impl Transport {
     /// Returns the channel identifier.
     pub fn identifier(&self) -> u64 {
         self.channel_identifier
+    }
+
+    /// Set the nonce used for encrypting outgoing messages.
+    #[cfg(feature = "nonce-control")]
+    pub fn set_sender_nonce(&mut self, nonce: &[u8; NONCE_LEN]) {
+        self.send_key.set_nonce(nonce);
+    }
+
+    /// Set the nonce used for decrypting incoming messages.
+    #[cfg(feature = "nonce-control")]
+    pub fn set_receiver_nonce(&mut self, nonce: &[u8; NONCE_LEN]) {
+        self.recv_key.set_nonce(nonce);
+    }
+
+    /// Get the current nonce used for encrypting outgoing messages.
+    #[cfg(feature = "nonce-control")]
+    pub fn sender_nonce(&self) -> &[u8; NONCE_LEN] {
+        self.send_key.nonce()
+    }
+
+    /// Get the current nonce used for decrypting incoming messages.
+    #[cfg(feature = "nonce-control")]
+    pub fn receiver_nonce(&self) -> &[u8; NONCE_LEN] {
+        self.send_key.nonce()
     }
 }
 

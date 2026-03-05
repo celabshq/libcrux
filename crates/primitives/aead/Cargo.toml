@@ -2,7 +2,7 @@
 description = "Formally verified AEAD library"
 name = "libcrux-aead"
 readme = "Readme.md"
-version = "0.0.5"
+version = "0.0.6"
 
 authors.workspace = true
 edition.workspace = true

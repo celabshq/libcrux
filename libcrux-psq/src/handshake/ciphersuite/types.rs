@@ -48,7 +48,7 @@ impl ProvideAuthenticator for MLDSA65VerificationKey {
 impl From<Auth<'_>> for Authenticator {
     fn from(value: Auth<'_>) -> Self {
         match value {
-            Auth::DH(dhkey_pair) => Authenticator::Dh(dhkey_pair.pk.clone()),
+            Auth::DH(dhkey_pair) => Authenticator::Dh(dhkey_pair.pk),
             Auth::Sig(sig_auth) => Authenticator::Sig(sig_auth.into()),
         }
     }

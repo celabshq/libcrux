@@ -1,7 +1,7 @@
 [package]
 name = "libcrux-sha2"
 description = "Formally verified SHA2 hash library"
-version = "0.0.5"
+version = "0.0.6"
 readme = "Readme.md"
 
 authors.workspace = true

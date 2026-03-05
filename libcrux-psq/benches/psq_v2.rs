@@ -54,9 +54,9 @@ impl CommonSetup {
 
 fn query<const PQ: bool>(c: &mut Criterion) {
     let ciphersuite = if PQ {
-        CiphersuiteName::X25519_NONE_CHACHA20POLY1305_HKDFSHA256
+        CiphersuiteName::X25519_NONE_X25519_CHACHA20POLY1305_HKDFSHA256
     } else {
-        CiphersuiteName::X25519_MLKEM768_CHACHA20POLY1305_HKDFSHA256
+        CiphersuiteName::X25519_MLKEM768_X25519_CHACHA20POLY1305_HKDFSHA256
     };
     let ctx = b"Test Context";
     let aad_initiator = b"Test Data I";
@@ -645,7 +645,7 @@ fn build_responder<'a>(
     // Setup responder
     #[allow(unused_mut)] // we need it mutable for the CMC case
     let mut responder_cbuilder = CiphersuiteBuilder::new(ciphersuite_id)
-        .longterm_ecdh_keys(&setup.responder_ecdh_keys)
+        .longterm_x25519_keys(&setup.responder_ecdh_keys)
         .longterm_mlkem_encapsulation_key(setup.responder_mlkem_keys.public_key())
         .longterm_mlkem_decapsulation_key(setup.responder_mlkem_keys.private_key());
 
@@ -689,8 +689,8 @@ fn registration_initiator<'a>(
 ) -> RegistrationInitiator<'a, impl CryptoRng> {
     #[allow(unused_mut)] // we need it mutable for the CMC case
     let mut initiator_cbuilder = CiphersuiteBuilder::new(ciphersuite_id)
-        .longterm_ecdh_keys(&setup.initiator_ecdh_keys)
-        .peer_longterm_ecdh_pk(&setup.responder_ecdh_keys.pk)
+        .longterm_x25519_keys(&setup.initiator_ecdh_keys)
+        .peer_longterm_x25519_pk(&setup.responder_ecdh_keys.pk)
         .peer_longterm_mlkem_pk(setup.responder_mlkem_keys.public_key());
 
     #[cfg(feature = "classic-mceliece")]
@@ -714,30 +714,30 @@ pub fn protocol(c: &mut Criterion) {
     // PSQv2 registration protocol
     registration(
         c,
-        CiphersuiteName::X25519_NONE_CHACHA20POLY1305_HKDFSHA256,
-        CiphersuiteName::X25519_NONE_CHACHA20POLY1305_HKDFSHA256,
+        CiphersuiteName::X25519_NONE_X25519_CHACHA20POLY1305_HKDFSHA256,
+        CiphersuiteName::X25519_NONE_X25519_CHACHA20POLY1305_HKDFSHA256,
     );
     registration(
         c,
-        CiphersuiteName::X25519_NONE_CHACHA20POLY1305_HKDFSHA256,
-        CiphersuiteName::X25519_MLKEM768_CHACHA20POLY1305_HKDFSHA256,
+        CiphersuiteName::X25519_NONE_X25519_CHACHA20POLY1305_HKDFSHA256,
+        CiphersuiteName::X25519_MLKEM768_X25519_CHACHA20POLY1305_HKDFSHA256,
     );
     registration(
         c,
-        CiphersuiteName::X25519_MLKEM768_CHACHA20POLY1305_HKDFSHA256,
-        CiphersuiteName::X25519_MLKEM768_CHACHA20POLY1305_HKDFSHA256,
-    );
-    #[cfg(feature = "classic-mceliece")]
-    registration(
-        c,
-        CiphersuiteName::X25519_NONE_CHACHA20POLY1305_HKDFSHA256,
-        CiphersuiteName::X25519_CLASSICMCELIECE_CHACHA20POLY1305_HKDFSHA256,
+        CiphersuiteName::X25519_MLKEM768_X25519_CHACHA20POLY1305_HKDFSHA256,
+        CiphersuiteName::X25519_MLKEM768_X25519_CHACHA20POLY1305_HKDFSHA256,
     );
     #[cfg(feature = "classic-mceliece")]
     registration(
         c,
-        CiphersuiteName::X25519_CLASSICMCELIECE_CHACHA20POLY1305_HKDFSHA256,
-        CiphersuiteName::X25519_CLASSICMCELIECE_CHACHA20POLY1305_HKDFSHA256,
+        CiphersuiteName::X25519_NONE_X25519_CHACHA20POLY1305_HKDFSHA256,
+        CiphersuiteName::X25519_CLASSICMCELIECE_X25519_CHACHA20POLY1305_HKDFSHA256,
+    );
+    #[cfg(feature = "classic-mceliece")]
+    registration(
+        c,
+        CiphersuiteName::X25519_CLASSICMCELIECE_X25519_CHACHA20POLY1305_HKDFSHA256,
+        CiphersuiteName::X25519_CLASSICMCELIECE_X25519_CHACHA20POLY1305_HKDFSHA256,
     );
 }
 

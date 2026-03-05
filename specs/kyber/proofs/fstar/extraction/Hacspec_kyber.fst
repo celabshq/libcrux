@@ -79,7 +79,7 @@ let decapsulate (ciphertext: t_Array u8 (sz 1088)) (secret_key: t_Array u8 (sz 2
     Core.Slice.impl__split_at secret_key Hacspec_kyber.Parameters.Hash_functions.v_H_DIGEST_SIZE
   in
   let decrypted:t_Array u8 (sz 32) =
-    Hacspec_kyber.Ind_cpa.decrypt (Hacspec_lib.f_as_array (sz 1152) ind_cpa_secret_key
+    Hacspec_kyber.Ind_cpa.decrypt (Hacspec_lib.f_as_len_array (sz 1152) ind_cpa_secret_key
         <:
         t_Array u8 (sz 1152))
       ciphertext
@@ -105,16 +105,16 @@ let decapsulate (ciphertext: t_Array u8 (sz 1088)) (secret_key: t_Array u8 (sz 2
   in
   let reencrypted_ciphertext:Core.Result.t_Result (t_Array u8 (sz 1088))
     t_BadRejectionSamplingRandomnessError =
-    Hacspec_kyber.Ind_cpa.encrypt (Hacspec_lib.f_as_array (sz 1184) ind_cpa_public_key
+    Hacspec_kyber.Ind_cpa.encrypt (Hacspec_lib.f_as_len_array (sz 1184) ind_cpa_public_key
         <:
         t_Array u8 (sz 1184))
       decrypted
-      (Hacspec_lib.f_as_array (sz 32) pseudorandomness <: t_Array u8 (sz 32))
+      (Hacspec_lib.f_as_len_array (sz 32) pseudorandomness <: t_Array u8 (sz 32))
   in
   match reencrypted_ciphertext with
   | Core.Result.Result_Ok reencrypted ->
     if ciphertext =. reencrypted
-    then Hacspec_lib.f_as_array (sz 32) success_shared_secret
+    then Hacspec_lib.f_as_len_array (sz 32) success_shared_secret
     else rejection_shared_secret
   | _ -> rejection_shared_secret
 
@@ -152,7 +152,7 @@ let encapsulate (public_key: t_Array u8 (sz 1184)) (randomness: t_Array u8 (sz 3
         match
           Core.Ops.Try_trait.f_branch (Hacspec_kyber.Ind_cpa.encrypt public_key
                 randomness
-                (Hacspec_lib.f_as_array (sz 32) pseudorandomness <: t_Array u8 (sz 32))
+                (Hacspec_lib.f_as_len_array (sz 32) pseudorandomness <: t_Array u8 (sz 32))
               <:
               Core.Result.t_Result (t_Array u8 (sz 1088)) t_BadRejectionSamplingRandomnessError)
         with
@@ -177,7 +177,7 @@ let encapsulate (public_key: t_Array u8 (sz 1184)) (randomness: t_Array u8 (sz 3
       in
       Core.Ops.Control_flow.ControlFlow_Continue
       (Core.Result.Result_Ok
-        (ciphertext, Hacspec_lib.f_as_array (sz 32) shared_secret
+        (ciphertext, Hacspec_lib.f_as_len_array (sz 32) shared_secret
           <:
           (t_Array u8 (sz 1088) & t_Array u8 (sz 32)))
         <:
@@ -209,7 +209,7 @@ let generate_keypair (randomness: t_Array u8 (sz 64))
       in
       let* ind_cpa_key_pair:Hacspec_kyber.Ind_cpa.t_KeyPair =
         match
-          Core.Ops.Try_trait.f_branch (Hacspec_kyber.Ind_cpa.generate_keypair (Hacspec_lib.f_as_array
+          Core.Ops.Try_trait.f_branch (Hacspec_kyber.Ind_cpa.generate_keypair (Hacspec_lib.f_as_len_array
                     (sz 32)
                     ind_cpa_keypair_randomness
                   <:
@@ -239,7 +239,7 @@ let generate_keypair (randomness: t_Array u8 (sz 64))
       Core.Ops.Control_flow.ControlFlow_Continue
       (let secret_key_serialized:t_Array u8 (sz 2400) =
           Hacspec_kyber.Ind_cpa.impl__KeyPair__serialize_secret_key ind_cpa_key_pair
-            (Hacspec_lib.f_as_array (sz 32) implicit_rejection_value <: t_Array u8 (sz 32))
+            (Hacspec_lib.f_as_len_array (sz 32) implicit_rejection_value <: t_Array u8 (sz 32))
         in
         let key_pair:t_KeyPair =
           impl__KeyPair__new (Hacspec_kyber.Ind_cpa.impl__KeyPair__pk ind_cpa_key_pair

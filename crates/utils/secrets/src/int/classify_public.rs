@@ -2,11 +2,7 @@
 //! We give definitions for all conversions so that they can be tested.
 //! We define no-ops here and force inlining, to ensure that these are free.
 
-#[cfg(not(hax))]
 use crate::traits::*;
-
-#[cfg(hax)]
-use crate::traits::{ClassifyRef, DeclassifyRef, Scalar};
 
 // TODO: Remove hax exemptions once this is supported.
 //       See https://github.com/cryspen/hax/issues/1674.
@@ -30,7 +26,7 @@ impl<'a, T: Scalar> DeclassifyRef for &'a [T] {
 }
 
 // Classify any mutable reference (identity)
-#[cfg(not(hax))]
+#[hax_lib::exclude]
 impl<'a, T> ClassifyRefMut for &'a mut T {
     type ClassifiedRefMut = &'a mut T;
     #[inline(always)]
@@ -40,7 +36,7 @@ impl<'a, T> ClassifyRefMut for &'a mut T {
 }
 
 // Declassify any mutable reference (identity)
-#[cfg(not(hax))]
+#[hax_lib::exclude]
 impl<'a, T> DeclassifyRefMut for &'a mut T {
     type DeclassifiedRefMut = &'a mut T;
     #[inline(always)]

@@ -6456,7 +6456,7 @@ libcrux_ml_dsa_encoding_signature_deserialize_64(
         hint_serialized, max_ones_in_hint + i1, uint8_t);
     if (current_true_hints_seen < previous_true_hints_seen) {
       malformed_hint = true;
-    } else if (previous_true_hints_seen > max_ones_in_hint) {
+    } else if (current_true_hints_seen > max_ones_in_hint) {
       malformed_hint = true;
     } else {
       for (size_t i = previous_true_hints_seen; i < current_true_hints_seen;
@@ -6700,7 +6700,7 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_verify_internal_07(
   if (uu____1.tag == Ok) {
     if (libcrux_ml_dsa_arithmetic_vector_infinity_norm_exceeds_64(
             Eurydice_array_to_slice_shared_713(&deserialized_signer_response),
-            ((int32_t)2 << (uint32_t)
+            ((int32_t)1 << (uint32_t)
                  LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_GAMMA1_EXPONENT) -
                 LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_65_BETA)) {
       uu____2 = (Result_41{

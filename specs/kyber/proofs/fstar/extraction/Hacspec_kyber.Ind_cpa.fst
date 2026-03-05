@@ -161,7 +161,7 @@ let decrypt (secret_key: t_Array u8 (sz 1152)) (ciphertext: t_Array u8 (sz 1088)
       Hacspec_lib.Ring.t_PolynomialRingElement (Hacspec_lib.Field.t_PrimeFieldElement 3329us)
         (sz 256))
   in
-  Hacspec_lib.f_as_array (sz 32)
+  Hacspec_lib.f_as_len_array (sz 32)
     (Hacspec_kyber.Serialize.byte_encode (sz 1)
         (Hacspec_kyber.Compress.compress message (sz 1)
           <:
@@ -943,11 +943,11 @@ let generate_keypair (key_generation_seed: t_Array u8 (sz 32))
     Hacspec_kyber.Serialize.vector_encode_12_ secret_as_ntt
   in
   Core.Result.Result_Ok
-  (impl__KeyPair__new (Hacspec_lib.f_into_array (sz 1152)
+  (impl__KeyPair__new (Hacspec_lib.f_into_len_array (sz 1152)
           (Rust_primitives.unsize secret_key_serialized <: t_Slice u8)
         <:
         t_Array u8 (sz 1152))
-      (Hacspec_lib.f_into_array (sz 1184)
+      (Hacspec_lib.f_into_len_array (sz 1184)
           (Rust_primitives.unsize public_key_serialized <: t_Slice u8)
         <:
         t_Array u8 (sz 1184)))

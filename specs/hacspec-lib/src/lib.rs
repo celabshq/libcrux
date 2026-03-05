@@ -24,17 +24,17 @@ impl PanickingIntegerCasts for usize {
 }
 
 pub trait ArrayConversion<const LEN: usize> {
-    fn as_array(&self) -> [u8; LEN];
-    fn into_array(self) -> [u8; LEN];
+    fn as_len_array(&self) -> [u8; LEN];
+    fn into_len_array(self) -> [u8; LEN];
     fn into_padded_array(&self) -> [u8; LEN];
 }
 
 impl<const LEN: usize> ArrayConversion<LEN> for Vec<u8> {
-    fn as_array(&self) -> [u8; LEN] {
+    fn as_len_array(&self) -> [u8; LEN] {
         self.clone().try_into().unwrap()
     }
 
-    fn into_array(self) -> [u8; LEN] {
+    fn into_len_array(self) -> [u8; LEN] {
         self.try_into().unwrap()
     }
 
@@ -47,11 +47,11 @@ impl<const LEN: usize> ArrayConversion<LEN> for Vec<u8> {
 }
 
 impl<const LEN: usize> ArrayConversion<LEN> for &[u8] {
-    fn as_array(&self) -> [u8; LEN] {
+    fn as_len_array(&self) -> [u8; LEN] {
         self.to_vec().try_into().unwrap()
     }
 
-    fn into_array(self) -> [u8; LEN] {
+    fn into_len_array(self) -> [u8; LEN] {
         self.try_into().unwrap()
     }
 

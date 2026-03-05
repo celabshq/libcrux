@@ -5,8 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.0.7] (2026-02-12)
 
+### Changed
+
+- [#1324](https://github.com/cryspen/libcrux/pull/1324): Update dependencies: `libcrux-sha3`, `libcrux-traits`, `libcrux-intrinsics`
 - [#1242](https://github.com/cryspen/libcrux/pull/1242): In tests, use the latest versions of ACVP KATs exported by `libcrux-kats`.
 
 ## [0.0.6] (2026-01-22)

@@ -14,7 +14,7 @@ impl<const LEN: usize, F: FieldElement, const COEFFICIENTS: usize> Vector<F, COE
         LEN
     }
 
-    pub fn iter(&self) -> std::slice::Iter<PolynomialRingElement<F, COEFFICIENTS>> {
+    pub fn iter(&self) -> std::slice::Iter<'_, PolynomialRingElement<F, COEFFICIENTS>> {
         self.values.iter()
     }
 

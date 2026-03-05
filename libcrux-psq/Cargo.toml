@@ -1,7 +1,7 @@
 [package]
 name = "libcrux-psq"
 description = "Libcrux Pre-Shared post-Quantum key establishement protocol"
-version = "0.0.6"
+version = "0.0.7"
 readme = "README.md"
 
 authors.workspace = true
@@ -19,8 +19,8 @@ libcrux-traits.workspace = true
 libcrux-kem = { workspace = true, features = [
     "codec",
 ] }
-libcrux-chacha20poly1305 = { version = "0.0.5", path = "../crates/algorithms/chacha20poly1305" }
-libcrux-hkdf = { version = "=0.0.5", path = "../crates/algorithms/hkdf" }
+libcrux-chacha20poly1305.workspace = true
+libcrux-hkdf.workspace = true
 libcrux-hmac.workspace = true
 libcrux-sha2.workspace = true
 classic-mceliece-rust = { version = "3.1.0", features = [
@@ -29,18 +29,18 @@ classic-mceliece-rust = { version = "3.1.0", features = [
 ], optional = true }
 rand = { version = "0.9" }
 rand_old = { version = "0.8", package = "rand", optional = true }
-libcrux-ecdh = { version = "0.0.5", path = "../libcrux-ecdh" }
-libcrux-ml-kem = { workspace = true, features = [
+libcrux-ecdh = { workspace = true, default-features = true }
+libcrux-ml-kem = { workspace = true, default-features = true, features = [
     "codec",
     "rand",
 ] }
-libcrux-ed25519 = { version = "0.0.5", path = "../crates/algorithms/ed25519", features = [
+libcrux-ed25519 = { workspace = true, features = [
     "rand",
     "codec",
 ] }
 tls_codec = { version = "0.4.2", features = ["derive"] }
-libcrux-ml-dsa = { version = "0.0.6", path = "../libcrux-ml-dsa", features = ["codec"] }
-libcrux-aes = { version = "0.0.6", path = "../crates/algorithms/aes"}
+libcrux-ml-dsa = { workspace = true, features = ["codec"] }
+libcrux-aes.workspace = true
 
 [dev-dependencies]
 libcrux-psq = { path = ".", features = ["test-utils"] }
@@ -52,6 +52,11 @@ pretty_env_logger = "0.5.0"
 [features]
 v1 = []
 classic-mceliece = ["dep:classic-mceliece-rust", "rand_old"]
+
+# Allows external control over the AEAD nonces of transport channels.
+# ⚠️ CAUTION! Enabling this makes it the responsibility of the application to avoid nonce re-use.
+nonce-control = []
+
 # DO NOT USE: This feature enables implementations backed
 # by non-post-quantum KEMs and should only be used for
 # testing purposes and benchmark baselines.

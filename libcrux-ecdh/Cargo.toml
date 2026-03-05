@@ -1,6 +1,6 @@
 [package]
 name = "libcrux-ecdh"
-version = "0.0.5"
+version = "0.0.6"
 description = "Libcrux ECDH implementation"
 readme = "Readme.md"
 
@@ -15,8 +15,8 @@ path = "src/ecdh.rs"
 
 [dependencies]
 rand = { version = "0.9", default-features = false }
-libcrux-curve25519 = { version = "=0.0.5", path = "../crates/algorithms/curve25519" }
-libcrux-p256 = { version = "=0.0.5", path = "../crates/algorithms/p256", features = [
+libcrux-curve25519 = { workspace = true, default-features = true }
+libcrux-p256 = { workspace = true, default-features = true, features = [
     "expose-hacl",
 ] }
 tls_codec = { version = "0.4.2", features = [

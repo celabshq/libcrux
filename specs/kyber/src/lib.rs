@@ -91,11 +91,11 @@ pub fn generate_keypair(
     let implicit_rejection_value = &randomness[parameters::CPA_PKE_KEY_GENERATION_SEED_SIZE..];
 
     // (ekₚₖₑ, dkₚₖₑ) ← K-PKE.KeyGen()
-    let ind_cpa_key_pair = ind_cpa::generate_keypair(&ind_cpa_keypair_randomness.as_array())?;
+    let ind_cpa_key_pair = ind_cpa::generate_keypair(&ind_cpa_keypair_randomness.as_len_array())?;
 
     // dk ← (dkₚₖₑ ‖ ek ‖ H(ek) ‖ z)
     let secret_key_serialized =
-        ind_cpa_key_pair.serialize_secret_key(&implicit_rejection_value.as_array());
+        ind_cpa_key_pair.serialize_secret_key(&implicit_rejection_value.as_len_array());
 
     // return (ek, dk)
     let key_pair = KeyPair::new(ind_cpa_key_pair.pk(), secret_key_serialized);
@@ -155,10 +155,10 @@ pub fn encapsulate(
     let (shared_secret, pseudorandomness) = hashed.split_at(KYBER768_SHARED_SECRET_SIZE);
 
     // c ← K-PKE.Encrypt(ek, m, r)
-    let ciphertext = ind_cpa::encrypt(&public_key, randomness, &pseudorandomness.as_array())?;
+    let ciphertext = ind_cpa::encrypt(&public_key, randomness, &pseudorandomness.as_len_array())?;
 
     // return(K,c)
-    Ok((ciphertext, shared_secret.as_array()))
+    Ok((ciphertext, shared_secret.as_len_array()))
 }
 
 /// This function implements <strong>Algorithm 17</strong> of the
@@ -214,7 +214,7 @@ pub fn decapsulate(
     let (ind_cpa_public_key_hash, implicit_rejection_value) = secret_key.split_at(H_DIGEST_SIZE);
 
     // m′ ← K-PKE.Decrypt(dkₚₖₑ,c)
-    let decrypted = ind_cpa::decrypt(&ind_cpa_secret_key.as_array(), &ciphertext);
+    let decrypted = ind_cpa::decrypt(&ind_cpa_secret_key.as_len_array(), &ciphertext);
 
     // (K′,r′) ← G(m′ ‖ h)
     let to_hash: [u8; CPA_PKE_MESSAGE_SIZE + H_DIGEST_SIZE] =
@@ -229,9 +229,9 @@ pub fn decapsulate(
 
     // c′ ← K-PKE.Encrypt(ekₚₖₑ, m′, r′)
     let reencrypted_ciphertext = ind_cpa::encrypt(
-        &ind_cpa_public_key.as_array(),
+        &ind_cpa_public_key.as_len_array(),
         decrypted,
-        &pseudorandomness.as_array(),
+        &pseudorandomness.as_len_array(),
     );
 
     // if c ≠ c′ then
@@ -240,7 +240,7 @@ pub fn decapsulate(
     // return K′
     if let Ok(reencrypted) = reencrypted_ciphertext {
         if ciphertext == reencrypted {
-            success_shared_secret.as_array()
+            success_shared_secret.as_len_array()
         } else {
             rejection_shared_secret
         }
