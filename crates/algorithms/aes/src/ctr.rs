@@ -85,6 +85,8 @@ impl<T: AESState, const NUM_KEYS: usize, const CTR_LEN: usize, const NONCE_START
         // If input.len() / AES_BLOCK_LEN == u32::MAX - 1 and we start with
         // ctr == 2 then we'll wrap to 0 below and we'll repeat the initial key
         // block
+        // Note that every entry point checks for the input length. Hence we
+        // only have a debug assert here.
         debug_assert!(input.len() / AES_BLOCK_LEN < (u32::MAX - 1) as usize);
 
         let blocks = input.len() / AES_BLOCK_LEN;

@@ -207,7 +207,7 @@ macro_rules! ccm_num_keys {
                     aad_len_encoding_len = 6;
                     current_block[0] = 0xff;
                     current_block[1] = 0xfe;
-                    current_block[2..7].copy_from_slice(&aad_len.to_be_bytes()[USIZE_LEN - 4..]);
+                    current_block[2..6].copy_from_slice(&aad_len.to_be_bytes()[USIZE_LEN - 4..]);
                 }
 
                 // The ten byte encoding range is larger than we can
