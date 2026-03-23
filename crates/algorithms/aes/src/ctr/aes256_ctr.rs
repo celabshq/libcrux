@@ -13,12 +13,6 @@ use crate::{
 
 pub(crate) const NUM_KEYS: usize = 15;
 
-/// Type alias for the AES 256 ctr context.
-pub(crate) type AesGcm256CtrContext<T> =
-    AesCtrContext<T, NUM_KEYS, AES_GCM_CTR_LEN, AES_GCM_NONCE_START>;
-pub(crate) type AesCcm256CtrContext<T> =
-    AesCtrContext<T, NUM_KEYS, AES_CCM_CTR_LEN, AES_CCM_NONCE_START>;
-
 impl<T: AESState, const CTR_LEN: usize, const NONCE_START: usize>
     AesCtrContext<T, NUM_KEYS, CTR_LEN, NONCE_START>
 {
@@ -40,23 +34,21 @@ impl<T: AESState, const CTR_LEN: usize, const NONCE_START: usize>
             ctr_nonce,
         }
     }
+}
 
-    #[inline]
-    pub(crate) fn set_nonce(&mut self, nonce: &[u8]) {
-        debug_assert!(nonce.len() == NONCE_LEN);
-        self.aes_ctr_set_nonce(nonce);
+impl<T: AESState> super::CcmInit
+    for AesCtrContext<T, NUM_KEYS, AES_CCM_CTR_LEN, AES_CCM_NONCE_START>
+{
+    fn ccm_init(key: &[u8]) -> Self {
+        Self::init(key, &[0u8; NONCE_LEN])
     }
+}
 
-    #[inline]
-    pub(crate) fn key_block(&self, ctr: u32, out: &mut [u8]) {
-        debug_assert!(out.len() == AES_BLOCK_LEN, "out.len() = {}", out.len());
-        self.aes_ctr_key_block(ctr, out);
-    }
-
-    #[inline]
-    pub(crate) fn update(&self, ctr: u32, input: &[u8], out: &mut [u8]) {
-        debug_assert!(input.len() == out.len());
-        self.aes_ctr_update(ctr, input, out);
+impl<T: AESState> super::GcmInit
+    for AesCtrContext<T, NUM_KEYS, AES_GCM_CTR_LEN, AES_GCM_NONCE_START>
+{
+    fn gcm_init(key: &[u8]) -> Self {
+        Self::init(key, &[0u8; NONCE_LEN])
     }
 }
 

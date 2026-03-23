@@ -1,7 +1,7 @@
 use libcrux_aes::{
     aes_ccm_128::{Key as Ccm128Key, Nonce as Ccm128Nonce, Tag as Ccm128Tag},
     aes_gcm_128::{Key as Gcm128Key, Nonce as Gcm128Nonce, Tag as Gcm128Tag},
-    Aead, AeadConsts, AesGcm128,
+    AeadConsts, AesGcm128,
 };
 
 // tests that an error is returned if ptxt.len() != ctxt.len()
@@ -67,16 +67,15 @@ fn ccm_two_byte_aad_len_encoding() {
 }
 
 #[test]
-#[ignore] // This is a really slow test, we ignore it on CI.
-fn ccm_six_byte_aad_len_encoding() {
+fn ccm_two_byte_aad_len_encoding_upper_boundary() {
+    // AAD length 65279 = 2^16 - 2^8 - 1: last value in the two-byte encoding range.
     use libcrux_aes::{AeadConsts as _, AesCcm128};
 
     let k: Ccm128Key = [0; AesCcm128::KEY_LEN].into();
     let nonce: Ccm128Nonce = [0; AesCcm128::NONCE_LEN].into();
     let mut tag: Ccm128Tag = [0; AesCcm128::TAG_LEN].into();
 
-    // 2^16 - 2^8 - 1 = 65279
-    let aad = vec![8; 65279];
+    let aad = vec![0xabu8; 65279];
 
     let pt = [42u8; 1];
     let mut ct = [0u8; 1];
@@ -87,6 +86,149 @@ fn ccm_six_byte_aad_len_encoding() {
         .unwrap();
 
     assert_eq!(pt, pt_decrypted);
+}
+
+#[test]
+fn ccm_six_byte_aad_len_encoding() {
+    // AAD length 65280 = 2^16 - 2^8: first value in the six-byte encoding range.
+    use libcrux_aes::{AeadConsts as _, AesCcm128};
+
+    let k: Ccm128Key = [0; AesCcm128::KEY_LEN].into();
+    let nonce: Ccm128Nonce = [0; AesCcm128::NONCE_LEN].into();
+    let mut tag: Ccm128Tag = [0; AesCcm128::TAG_LEN].into();
+
+    let aad = vec![8u8; 65280];
+
+    let pt = [42u8; 1];
+    let mut ct = [0u8; 1];
+    k.encrypt(&mut ct, &mut tag, &nonce, &aad, &pt).unwrap();
+
+    let mut pt_decrypted = [0u8; 1];
+    k.decrypt(&mut pt_decrypted, &nonce, &aad, &ct, &tag)
+        .unwrap();
+
+    assert_eq!(pt, pt_decrypted);
+}
+
+#[test]
+fn ccm_six_byte_aad_len_encoding_second_value() {
+    // AAD length 65281: second value in the six-byte encoding range.
+    use libcrux_aes::{AeadConsts as _, AesCcm128};
+
+    let k: Ccm128Key = [0; AesCcm128::KEY_LEN].into();
+    let nonce: Ccm128Nonce = [0; AesCcm128::NONCE_LEN].into();
+    let mut tag: Ccm128Tag = [0; AesCcm128::TAG_LEN].into();
+
+    let aad = vec![0x5au8; 65281];
+
+    let pt = [42u8; 1];
+    let mut ct = [0u8; 1];
+    k.encrypt(&mut ct, &mut tag, &nonce, &aad, &pt).unwrap();
+
+    let mut pt_decrypted = [0u8; 1];
+    k.decrypt(&mut pt_decrypted, &nonce, &aad, &ct, &tag)
+        .unwrap();
+
+    assert_eq!(pt, pt_decrypted);
+}
+
+#[test]
+fn ccm_six_byte_aad_len_encoding_multi_block_plaintext() {
+    // Six-byte AAD encoding with a multi-block plaintext.
+    use libcrux_aes::{AeadConsts as _, AesCcm128};
+
+    let k: Ccm128Key = [0xddu8; AesCcm128::KEY_LEN].into();
+    let nonce: Ccm128Nonce = [0x11u8; AesCcm128::NONCE_LEN].into();
+    let mut tag: Ccm128Tag = [0; AesCcm128::TAG_LEN].into();
+
+    // 70000 is well within the six-byte encoding range (65280..2^32)
+    let aad = vec![0x33u8; 70000];
+
+    let pt = vec![0xbbu8; 64]; // four AES blocks
+    let mut ct = vec![0u8; 64];
+    k.encrypt(&mut ct, &mut tag, &nonce, &aad, &pt).unwrap();
+
+    let mut pt_decrypted = vec![0u8; 64];
+    k.decrypt(&mut pt_decrypted, &nonce, &aad, &ct, &tag)
+        .unwrap();
+
+    assert_eq!(pt, pt_decrypted);
+}
+
+#[test]
+fn ccm_six_byte_aad_len_encoding_rejects_tampered_ciphertext() {
+    // Decryption must fail when the ciphertext is tampered, even with large AAD.
+    use libcrux_aes::{AeadConsts as _, AesCcm128};
+    use libcrux_traits::aead::arrayref::DecryptError;
+
+    let k: Ccm128Key = [0; AesCcm128::KEY_LEN].into();
+    let nonce: Ccm128Nonce = [0; AesCcm128::NONCE_LEN].into();
+    let mut tag: Ccm128Tag = [0; AesCcm128::TAG_LEN].into();
+
+    let aad = vec![0u8; 65280];
+
+    let pt = [42u8; 16];
+    let mut ct = [0u8; 16];
+    k.encrypt(&mut ct, &mut tag, &nonce, &aad, &pt).unwrap();
+
+    ct[0] ^= 1; // flip one bit
+
+    let mut pt_decrypted = [0u8; 16];
+    let err = k
+        .decrypt(&mut pt_decrypted, &nonce, &aad, &ct, &tag)
+        .unwrap_err();
+    assert_eq!(err, DecryptError::InvalidTag);
+}
+
+#[test]
+fn ccm_six_byte_aad_len_encoding_rejects_tampered_tag() {
+    // Decryption must fail when the tag is tampered, even with large AAD.
+    use libcrux_aes::{AeadConsts as _, AesCcm128};
+    use libcrux_traits::aead::arrayref::DecryptError;
+
+    let k: Ccm128Key = [0; AesCcm128::KEY_LEN].into();
+    let nonce: Ccm128Nonce = [0; AesCcm128::NONCE_LEN].into();
+    let mut tag: Ccm128Tag = [0; AesCcm128::TAG_LEN].into();
+
+    let aad = vec![0u8; 65280];
+
+    let pt = [42u8; 1];
+    let mut ct = [0u8; 1];
+    k.encrypt(&mut ct, &mut tag, &nonce, &aad, &pt).unwrap();
+
+    tag.as_mut()[0] ^= 1; // flip one bit in the tag
+
+    let mut pt_decrypted = [0u8; 1];
+    let err = k
+        .decrypt(&mut pt_decrypted, &nonce, &aad, &ct, &tag)
+        .unwrap_err();
+    assert_eq!(err, DecryptError::InvalidTag);
+}
+
+#[test]
+fn ccm_six_byte_aad_len_encoding_aad_affects_tag() {
+    // The tag must change when the AAD changes, even with six-byte encoding.
+    use libcrux_aes::{AeadConsts as _, AesCcm128};
+
+    let k: Ccm128Key = [0; AesCcm128::KEY_LEN].into();
+    let nonce: Ccm128Nonce = [0; AesCcm128::NONCE_LEN].into();
+    let mut tag1: Ccm128Tag = [0; AesCcm128::TAG_LEN].into();
+    let mut tag2: Ccm128Tag = [0; AesCcm128::TAG_LEN].into();
+
+    let aad1 = vec![0xaau8; 65280];
+    let mut aad2 = aad1.clone();
+    aad2[0] ^= 1; // differ by one bit
+
+    let pt = [42u8; 1];
+    let mut ct1 = [0u8; 1];
+    let mut ct2 = [0u8; 1];
+    k.encrypt(&mut ct1, &mut tag1, &nonce, &aad1, &pt).unwrap();
+    k.encrypt(&mut ct2, &mut tag2, &nonce, &aad2, &pt).unwrap();
+
+    // Same plaintext, same key, same nonce → same ciphertext (CCM is CTR-based),
+    // but tags must differ because AAD differed.
+    assert_eq!(ct1, ct2);
+    assert_ne!(tag1.as_ref(), tag2.as_ref());
 }
 
 #[test]
