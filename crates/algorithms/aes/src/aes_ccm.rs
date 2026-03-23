@@ -3,7 +3,7 @@ use core::ops::Range;
 
 use crate::{
     aes::{block_cipher, AES_BLOCK_LEN},
-    ctr::{AesCtrContext, CcmInit},
+    ctr::{AesCtrContext, CcmInit, AES_CCM_CTR_LEN, AES_CCM_NONCE_START},
     platform::AESState,
     DecryptError, CCM_SHORT_TAG_LEN, NONCE_LEN, TAG_LEN,
 };
@@ -19,12 +19,7 @@ const TEN_BYTE_ENCODING_RANGE: Range<usize> = (1 << 32)..usize::MAX;
 impl<const TAG_LEN: usize, const NUM_KEYS: usize, T: AESState> super::State
     for State<TAG_LEN, NUM_KEYS, T>
 where
-    AesCtrContext<
-        T,
-        NUM_KEYS,
-        { crate::ctr::AES_CCM_CTR_LEN },
-        { crate::ctr::AES_CCM_NONCE_START },
-    >: CcmInit,
+    AesCtrContext<T, NUM_KEYS, AES_CCM_CTR_LEN, AES_CCM_NONCE_START>: CcmInit,
 {
     /// Initialize the state, internally expanding subkeys for
     /// AES block cipher.
@@ -112,7 +107,6 @@ where
 
 // Length in bytes of the field encoding the message length in bytes.
 const MSG_ENC_LEN: usize = 3;
-pub(crate) const AES_CCM_CTR_LEN: usize = 3;
 
 /// The AES-CCM state.
 pub(crate) struct State<const TAG_LEN: usize, const NUM_KEYS: usize, T: AESState> {
