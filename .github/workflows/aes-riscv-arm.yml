@@ -1,0 +1,53 @@
+name: AES-AEADs (RISC-V & ARM targets)
+
+on:
+  merge_group:
+  pull_request:
+    branches: ["main", "dev", "*"]
+    paths:
+      - "crates/algorithms/aes/**"
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: linux
+    defaults:
+      run:
+        shell: bash
+        working-directory: crates/algorithms/aes
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Update dependencies
+        run: cargo update
+
+      # This action should install the cargo cross binary instead of building from source
+      - uses: taiki-e/install-action@v2
+        name: Install cargo cross
+        with:
+            tool: cross
+      
+      # Test ...
+      - name: 🏃🏻‍♀️ Test (RISC-V)
+        run: |
+          cross test --target riscv64gc-unknown-linux-gnu --verbose
+
+      - name: 🏃🏻‍♀️ Test Release (RISC-V)
+        run: |
+          cross test --target riscv64gc-unknown-linux-gnu --verbose --release
+
+      - name: 🏃🏻‍♀️ Test (armv7)
+        run: |
+          cross test --target armv7-unknown-linux-gnueabihf --verbose
+
+      - name: 🏃🏻‍♀️ Test Release (armv7)
+        run: |
+          cross test --target armv7-unknown-linux-gnueabihf --verbose --release
