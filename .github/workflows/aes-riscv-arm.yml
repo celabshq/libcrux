@@ -1,0 +1,48 @@
+name: Build AES-AEADs (RISC-V & ARM targets)
+
+on:
+  merge_group:
+  pull_request:
+    branches: ["main", "dev", "*"]
+    paths:
+      - "crates/algorithms/aes/**"
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: linux
+    strategy:
+        matrix:
+            target: [thumbv7em-none-eabihf, thumbv7em-none-eabi, thumbv8m.main-none-eabihf, riscv64gc-unknown-none-elf]
+    defaults:
+      run:
+        shell: bash
+        working-directory: crates/algorithms/aes
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Update dependencies
+        run: cargo update
+
+      # Install rust toolchain
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+            targets: ${{ matrix.target }}
+        name: Install target Rust toolchain
+      
+      # Build
+      - name: Build
+        run: |
+          cargo build --target ${{ matrix.target }}
+
+      - name: Build Release
+        run: |
+          cargo build --release --target ${{ matrix.target }}
