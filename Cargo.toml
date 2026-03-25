@@ -138,7 +138,7 @@ all = ["all_algorithms", "all_primitives", "all_protocols"]
 
 # Algorithms
 all_algorithms = [
-    "aes_gcm",
+    "aes_aead",
     "blake2",
     "chacha20_poly1305",
     "curve25519",
@@ -154,7 +154,7 @@ all_algorithms = [
     "rsapss",
     "poly1305"
 ]
-aes_gcm = []
+aes_aead = []
 blake2 = []
 chacha20_poly1305 = []
 curve25519 = []
