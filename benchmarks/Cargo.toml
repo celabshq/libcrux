@@ -1,13 +1,13 @@
 [package]
-name = "benchmarks"
-version.workspace = true
 authors.workspace = true
-license.workspace = true
-homepage.workspace = true
 edition.workspace = true
-repository.workspace = true
-readme.workspace = true
+homepage.workspace = true
+license.workspace = true
+name = "benchmarks"
 publish = false
+readme.workspace = true
+repository.workspace = true
+version.workspace = true
 
 [lib]
 bench = false # so libtest doesn't eat the arguments for criterion
@@ -19,30 +19,30 @@ rand = { version = "0.9" }
 libcrux = { path = "../", features = ["rand", "tests"] }
 libcrux-chacha20poly1305 = { path = "../crates/algorithms/chacha20poly1305" }
 libcrux-ecdh = { path = "../libcrux-ecdh" }
+libcrux-ecdsa = { path = "../crates/algorithms/ecdsa" }
 libcrux-ed25519 = { path = "../crates/algorithms/ed25519" }
 libcrux-kem = { path = "../libcrux-kem", features = ["tests"] }
 libcrux-ml-kem = { path = "../libcrux-ml-kem" }
-libcrux-sha2 = { path = "../crates/algorithms/sha2" }
-libcrux-ecdsa = { path = "../crates/algorithms/ecdsa" }
 libcrux-rsa = { path = "../crates/algorithms/rsa" }
+libcrux-sha2 = { path = "../crates/algorithms/sha2" }
 
 rand_core = { version = "0.9" }
 rand_core_old = { version = "0.6", package = "rand_core" }
 
 # Benchmarking "RustCrypto"
 chacha20poly1305 = "0.10"
-sha2 = "0.10"
 ed25519-dalek = { version = "2.1.1", features = ["rand_core"] }
-x25519-dalek-ng = "1.1"
-sha3 = "0.10"
 p256 = { version = "0.13", features = ["ecdh"] }
+sha2 = "0.10"
+sha3 = "0.10"
+x25519-dalek-ng = "1.1"
 
 # Benchmarking "Ring"
 ring = "0.17"
 
 # For inputs to `ring` ed25519 verification
-untrusted = "0.9.0"
 rsa = { version = "0.9.7", features = ["sha2"] }
+untrusted = "0.9.0"
 
 # Benchmarking "Dalek X25519"
 x25519-dalek = "2.0.1"
@@ -53,7 +53,6 @@ curve25519-dalek = "4.1.2"
 # helpers needed for key conversion
 der = "0.8"
 pkcs1 = "0.7.5"
-
 
 # We always link this on linux, even if it may not be built.
 # We check that in the build instead.
@@ -72,51 +71,43 @@ pqcrypto-kyber = { version = "0.8.0" }
 openssl = "0.10"
 
 [target.'cfg(all(not(target_os = "windows"), target_arch = "x86_64"))'.dev-dependencies]
-libjade-sys = { version = "=0.0.2", path = "../crates/sys/libjade" }
+libjade-sys = { version = "=0.0.3", path = "../crates/sys/libjade" }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(crypto_lib25519)'] }
 
 [[bench]]
+harness = false
 name = "sha2"
-harness = false
 
 [[bench]]
+harness = false
 name = "sha3"
-harness = false
 
 [[bench]]
+harness = false
 name = "x25519"
-harness = false
 
 [[bench]]
+harness = false
 name = "p256"
-harness = false
 
 [[bench]]
+harness = false
 name = "chacha20poly1305"
-harness = false
 
 [[bench]]
+harness = false
 name = "ed25519"
-harness = false
 
 [[bench]]
-name = "hpke"
 harness = false
+name = "mlkem768"
 
 [[bench]]
-name = "drbg"
 harness = false
-
-[[bench]]
-name = "kyber768"
-harness = false
-
-[[bench]]
 name = "rsa"
-harness = false
 
 [[bench]]
-name = "ecdsa_p256"
 harness = false
+name = "ecdsa_p256"

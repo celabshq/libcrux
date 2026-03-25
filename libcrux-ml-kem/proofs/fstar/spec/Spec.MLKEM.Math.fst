@@ -97,7 +97,7 @@ let poly_ntt_step (a:field_element) (b:field_element) (i:nat{i < 128}) =
 #push-options "--split_queries always"
 let poly_ntt_layer (p:polynomial) (l:nat{l > 0 /\ l < 8}) : polynomial =
   let len = pow2 l in
-  let k = (128 / len) - 1 in
+  let k = 128 / len in
   Rust_primitives.Arrays.createi (sz 256) (fun i ->
     let round = v i / (2 * len) in
     let idx = v i % (2 * len) in
@@ -136,6 +136,10 @@ let poly_inv_ntt_layer (p:polynomial) (l:nat{l > 0 /\ l < 8}) : polynomial =
     if idx < len then a_ntt else b_ntt)
 #pop-options
 
+let poly_inv_ntt_scale (p:polynomial) : polynomial =
+  let inv128 : field_element = 3303 in (* 128^{-1} mod 3329 *)
+  map_array (field_mul inv128) p
+
 val poly_inv_ntt: polynomial -> polynomial
 let poly_inv_ntt p =
   let p = poly_inv_ntt_layer p 1 in
@@ -145,7 +149,7 @@ let poly_inv_ntt p =
   let p = poly_inv_ntt_layer p 5 in
   let p = poly_inv_ntt_layer p 6 in
   let p = poly_inv_ntt_layer p 7 in
-  p
+  poly_inv_ntt_scale p
 
 let poly_base_case_multiply (a0 a1 b0 b1 zeta:field_element) =
   let c0 = field_add (field_mul a0 b0) (field_mul (field_mul a1 b1) zeta) in
@@ -235,7 +239,7 @@ let compress_d (d: dT {d <> 12}) (x: field_element): field_element_d d
     if r = pow2 d then 0 else r
 
 let decompress_d (d: dT {d <> 12}) (x: field_element_d d): field_element
-  = let r = (x * v v_FIELD_MODULUS + 1664) / pow2 d in
+  = let r = (x * v v_FIELD_MODULUS + pow2 (d - 1)) / pow2 d in
     r
     
 [@ "opaque_to_smt"]

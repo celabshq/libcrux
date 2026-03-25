@@ -26,4 +26,12 @@ EXTRA_HELPMESSAGE += printf "Libcrux specifics:\n";
 EXTRA_HELPMESSAGE += target SLOW_MODULES 'a list of modules to verify fully only when `VERIFY_SLOW_MODULES` is set to `yes`. When `VERIFY_SLOW_MODULES`, those modules are admitted.';
 EXTRA_HELPMESSAGE += target VERIFY_SLOW_MODULES '`yes` or `no`, defaults to `no`';
 
+# Add the missing hax proof-lib paths that FINDLIBS doesn't discover
+HAX_PROOF_LIBS := $(shell cargo metadata --format-version 1 2>/dev/null | jq -r '.packages | .[] | select(.name == "hax-lib") | .manifest_path | split("/") | .[:-1] | join("/")')
+ifneq ($(HAX_PROOF_LIBS),)
+FSTAR_INCLUDE_DIRS_EXTRA += \
+	      $(HAX_PROOF_LIBS)/proof-libs/fstar-secret-integers/core \
+	      $(HAX_PROOF_LIBS)/proofs/fstar/extraction
+endif
+
 include $(shell git rev-parse --show-toplevel)/fstar-helpers/Makefile.generic

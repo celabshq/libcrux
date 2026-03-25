@@ -1,6 +1,6 @@
 [package]
 name = "libcrux-sha3"
-version = "0.0.7"
+version = "0.0.8"
 authors.workspace = true
 license.workspace = true
 homepage.workspace = true
@@ -31,7 +31,7 @@ harness = false
 criterion = "0.8.0"
 hex = "0.4.3"
 rand = "0.9"
-cavp = { version = "0.0.2", path = "../../../cavp" }
+cavp = { path = "../../../cavp" }
 pretty_env_logger = "0.5.0"
 clap = { version = "4.5.39", features = ["derive"] }
 

@@ -5,19 +5,6 @@ use tls_codec::{
     Deserialize, Serialize, Size, TlsDeserialize, TlsSerialize, TlsSize, VLByteSlice, VLBytes,
 };
 
-use crate::{
-    aead::{AEADKeyNonce, AeadType},
-    handshake::{
-        ciphersuite::{responder::ResponderCiphersuite, CiphersuiteName},
-        derive_k1_sig,
-        transcript::verify_tx1,
-        types::Authenticator,
-        InnerMessage, K2IkmRegistrationSig,
-    },
-    session::{Session, SessionBinding, SessionError},
-    traits::{Channel, IntoSession},
-};
-
 use super::{
     derive_k0, derive_k1_dh,
     dhkem::{DHPrivateKey, DHPublicKey, DHSharedSecret},
@@ -26,6 +13,25 @@ use super::{
     write_output, HandshakeError as Error, HandshakeMessage, HandshakeMessageOut, K2IkmQuery,
     K2IkmRegistrationDh, ToTransportState,
 };
+use crate::{
+    aead::{AEADKeyNonce, AeadType},
+    handshake::{
+        ciphersuite::{responder::ResponderCiphersuite, CiphersuiteName},
+        derive_k1_sig,
+        dhkem::DHKeyPair,
+        transcript::verify_tx1,
+        types::Authenticator,
+        InnerMessage, K2IkmRegistrationSig,
+    },
+    session::{Session, SessionBinding, SessionError},
+    traits::{Channel, IntoSession},
+};
+
+struct MessageCiphertext {
+    ciphertext: Vec<u8>,
+    tag: [u8; 16],
+    ciphersuite: CiphersuiteName,
+}
 
 #[derive(TlsDeserialize, TlsSize)]
 #[repr(u8)]
@@ -68,7 +74,6 @@ pub struct Responder<'a, Rng: CryptoRng> {
     context: &'a [u8],
     aad: &'a [u8],
     rng: Rng,
-    error_on_ciphersuite_mismatch: bool,
 }
 
 #[derive(TlsDeserialize, TlsSize)]
@@ -84,7 +89,8 @@ pub struct ResponderRegistrationPayload(pub VLBytes);
 pub struct ResponderRegistrationPayloadOut<'a>(VLByteSlice<'a>);
 
 impl<'a, Rng: CryptoRng> Responder<'a, Rng> {
-    /// Returns the most recent initiator authenticator for out-of-band verification, if any.
+    /// Returns the most recent initiator authenticator for out-of-band
+    /// verification, if any.
     ///
     /// A responder in it's initial state or a responder that has processed an
     /// initiator query message returns `None`, as it does not have an
@@ -95,13 +101,14 @@ impl<'a, Rng: CryptoRng> Responder<'a, Rng> {
     /// the initiator:
     ///
     /// - For DH-based authentication, this will be the long-term ECDH public
-    ///   key `pk_I` provided by the initiator. If the authenticator continues the
-    ///   handshake, `pk_I` will be part of the session key derivation.
-    /// - For signature-based authentication, this will be the signature verification
-    ///   key `vk_I` provided by the initiator. At this point of the handshake the
-    ///   initiator has provided a valid signature of the running handshake
-    ///   transcript (`tx1`) under `vk_I`. If the authenticator continues the
-    ///   handshake, `vk_I` will be part of the session key derivation.
+    ///   key `pk_I` provided by the initiator. If the authenticator continues
+    ///   the handshake, `pk_I` will be part of the session key derivation.
+    /// - For signature-based authentication, this will be the signature
+    ///   verification key `vk_I` provided by the initiator. At this point of
+    ///   the handshake the initiator has provided a valid signature of the
+    ///   running handshake transcript (`tx1`) under `vk_I`. If the
+    ///   authenticator continues the handshake, `vk_I` will be part of the
+    ///   session key derivation.
     pub fn initiator_authenticator(&self) -> Option<Authenticator> {
         match &self.state {
             ResponderState::InProgress
@@ -128,7 +135,6 @@ impl<'a, Rng: CryptoRng> Responder<'a, Rng> {
         context: &'a [u8],
         aad: &'a [u8],
         recent_keys_upper_bound: usize,
-        error_on_ciphersuite_mismatch: bool,
         rng: Rng,
     ) -> Self {
         Self {
@@ -140,7 +146,6 @@ impl<'a, Rng: CryptoRng> Responder<'a, Rng> {
             rng,
             recent_keys: VecDeque::with_capacity(recent_keys_upper_bound),
             recent_keys_upper_bound,
-            error_on_ciphersuite_mismatch,
         }
     }
 
@@ -259,29 +264,28 @@ impl<'a, Rng: CryptoRng> Responder<'a, Rng> {
         ))
     }
 
+    /// Compute registration response and set state to `ToTransport`.
     fn registration(
         &mut self,
         payload: &[u8],
-        out: &mut [u8],
-        responder_ephemeral_ecdh_sk: DHPrivateKey,
-        responder_ephemeral_ecdh_pk: DHPublicKey,
+        responder_ephemeral_ecdh_keys: &DHKeyPair,
         state: RespondRegistrationState,
-    ) -> Result<usize, Error> {
-        let tx2 = tx2(&state.tx1, &responder_ephemeral_ecdh_pk)?;
+    ) -> Result<MessageCiphertext, Error> {
+        let tx2 = tx2(&state.tx1, &responder_ephemeral_ecdh_keys.pk)?;
         let mut k2 = match &state.initiator_authenticator {
             Authenticator::Dh(dhpublic_key) => derive_k2_registration_responder_dh(
                 &state.k1,
                 &tx2,
                 dhpublic_key,
                 &state.initiator_ephemeral_ecdh_pk,
-                &responder_ephemeral_ecdh_sk,
+                &responder_ephemeral_ecdh_keys.sk,
                 self.ciphersuite.aead_type(),
             )?,
             Authenticator::Sig(_) => derive_k2_registration_responder_sig(
                 &state.k1,
                 &tx2,
                 &state.initiator_ephemeral_ecdh_pk,
-                &responder_ephemeral_ecdh_sk,
+                &responder_ephemeral_ecdh_keys.sk,
                 self.ciphersuite.aead_type(),
             )?,
         };
@@ -293,18 +297,6 @@ impl<'a, Rng: CryptoRng> Responder<'a, Rng> {
             return Err(Error::ResponderState);
         };
 
-        let out_msg = HandshakeMessageOut {
-            pk: &responder_ephemeral_ecdh_pk,
-            ciphertext: VLByteSlice(&ciphertext),
-            tag,
-            aad: VLByteSlice(self.aad),
-            ciphersuite: working_ciphersuite,
-        };
-
-        let out_len = out_msg
-            .tls_serialize(&mut &mut out[..])
-            .map_err(Error::Serialize)?;
-
         self.state = ResponderState::ToTransport(
             ToTransportState {
                 tx2,
@@ -315,115 +307,93 @@ impl<'a, Rng: CryptoRng> Responder<'a, Rng> {
             .into(),
         );
 
-        Ok(out_len)
+        Ok(MessageCiphertext {
+            ciphertext,
+            tag,
+            ciphersuite: working_ciphersuite,
+        })
     }
 
+    /// Compute query response and reset state to `Initial`.
     fn query(
         &mut self,
         payload: &[u8],
-        out: &mut [u8],
-        responder_ephemeral_ecdh_sk: DHPrivateKey,
-        responder_ephemeral_ecdh_pk: DHPublicKey,
+        responder_ephemeral_ecdh_keys: &DHKeyPair,
         state: RespondQueryState,
-    ) -> Result<usize, Error> {
+    ) -> Result<MessageCiphertext, Error> {
         let (_tx2, mut k2) = self.derive_query_key(
             &state.tx0,
             &state.k0,
-            &responder_ephemeral_ecdh_pk,
-            &responder_ephemeral_ecdh_sk,
+            &responder_ephemeral_ecdh_keys.pk,
+            &responder_ephemeral_ecdh_keys.sk,
             &state.initiator_ephemeral_ecdh_pk,
         )?;
 
         let outer_payload = ResponderQueryPayloadOut(VLByteSlice(payload));
         let (ciphertext, tag) = k2.handshake_encrypt(&outer_payload, self.aad)?;
 
-        let out_msg = HandshakeMessageOut {
-            pk: &responder_ephemeral_ecdh_pk,
-            ciphertext: VLByteSlice(&ciphertext),
-            tag,
-            aad: VLByteSlice(self.aad),
-            ciphersuite: CiphersuiteName::query_ciphersuite(),
-        };
-
-        out_msg
-            .tls_serialize(&mut &mut out[..])
-            .map_err(Error::Serialize)?;
         self.state = ResponderState::Initial;
 
-        Ok(out_msg.tls_serialized_len())
+        Ok(MessageCiphertext {
+            ciphertext,
+            tag,
+            ciphersuite: CiphersuiteName::query_ciphersuite(),
+        })
     }
 
-    /// Error or reset responder
-    fn ciphersuite_mismatch(&mut self, bytes_deserialized: usize) -> Result<(usize, usize), Error> {
-        if self.error_on_ciphersuite_mismatch {
-            Err(Error::UnsupportedCiphersuite)
-        } else {
-            self.state = ResponderState::Initial;
-            Ok((bytes_deserialized, 0))
-        }
-    }
-}
-
-impl<'a, Rng: CryptoRng> Channel<Error> for Responder<'a, Rng> {
-    fn write_message(&mut self, payload: &[u8], out: &mut [u8]) -> Result<usize, Error> {
-        let mut out_bytes_written = 0;
-        let responder_ephemeral_ecdh_sk = DHPrivateKey::new(&mut self.rng);
-        let responder_ephemeral_ecdh_pk = responder_ephemeral_ecdh_sk.to_public();
-
-        let state = take(&mut self.state);
-        if let ResponderState::RespondQuery(state) = state {
-            out_bytes_written = self.query(
-                payload,
-                out,
-                responder_ephemeral_ecdh_sk,
-                responder_ephemeral_ecdh_pk,
-                *state,
-            )?;
-        } else if let ResponderState::RespondRegistration(state) = state {
-            out_bytes_written = self.registration(
-                payload,
-                out,
-                responder_ephemeral_ecdh_sk,
-                responder_ephemeral_ecdh_pk,
-                *state,
-            )?;
-        }
-
-        Ok(out_bytes_written)
-    }
-
-    fn read_message(
+    /// Compute response message elements and update responder state.
+    fn prepare_message_contents(
         &mut self,
-        message_bytes: &[u8],
-        out: &mut [u8],
-    ) -> Result<(usize, usize), Error> {
-        if !matches!(self.state, ResponderState::Initial) {
-            return Ok((0, 0));
-        }
+        payload: &[u8],
+    ) -> Result<(DHPublicKey, MessageCiphertext), Error> {
+        let state = take(&mut self.state);
+        let responder_ephemeral_ecdh_keys = DHKeyPair::new(&mut self.rng);
 
-        // Deserialize the outer message.
-        let initiator_outer_message =
-            HandshakeMessage::tls_deserialize(&mut Cursor::new(&message_bytes))
-                .map_err(Error::Deserialize)?;
-        let bytes_deserialized = initiator_outer_message.tls_serialized_len();
+        let message_contents = match state {
+            ResponderState::RespondQuery(respond_query_state) => self.query(
+                payload,
+                &responder_ephemeral_ecdh_keys,
+                *respond_query_state,
+            )?,
+            ResponderState::RespondRegistration(respond_registration_state) => self.registration(
+                payload,
+                &responder_ephemeral_ecdh_keys,
+                *respond_registration_state,
+            )?,
+            _ => return Err(Error::ResponderState),
+        };
 
-        // Set the working ciphersuite for this handshake.
-        self.working_ciphersuite = initiator_outer_message
-            .ciphersuite
-            .coerce_compatible(&self.ciphersuite);
-        if self.working_ciphersuite.is_none() {
-            return self.ciphersuite_mismatch(bytes_deserialized);
-        }
+        Ok((responder_ephemeral_ecdh_keys.pk, message_contents))
+    }
 
-        // Check that the ephemeral key was not in the most recent keys.
-        if self.recent_keys.contains(&initiator_outer_message.pk) {
-            return Ok((bytes_deserialized, 0));
+    /// Check whether `pk` is contained in the set of most recently
+    /// seen public keys.
+    fn check_rate_limit(&mut self, pk: &DHPublicKey) -> Result<(), Error> {
+        if self.recent_keys.contains(pk) {
+            return Err(Error::RateLimit);
         } else {
             if self.recent_keys.len() == self.recent_keys_upper_bound {
                 self.recent_keys.pop_back();
             }
-            self.recent_keys.push_front(initiator_outer_message.pk);
+            self.recent_keys.push_front(pk.clone());
         }
+        Ok(())
+    }
+
+    /// Read message payload and update responder state.
+    fn read_message_contents(
+        &mut self,
+        initiator_outer_message: &HandshakeMessage,
+    ) -> Result<Vec<u8>, Error> {
+        // Check that the ephemeral key was not in the most recent keys.
+        self.check_rate_limit(&initiator_outer_message.pk)?;
+
+        // Set the working ciphersuite for this handshake.
+        self.working_ciphersuite = Some(
+            initiator_outer_message
+                .ciphersuite
+                .coerce_compatible(&self.ciphersuite)?,
+        );
 
         // Decrypt the outer message payload.
         let (initiator_outer_payload, tx0, k0) =
@@ -440,8 +410,7 @@ impl<'a, Rng: CryptoRng> Channel<Error> for Responder<'a, Rng> {
                     }
                     .into(),
                 );
-                let out_bytes_written = write_output(initiator_query_payload.as_slice(), out)?;
-                Ok((bytes_deserialized, out_bytes_written))
+                Ok(initiator_query_payload.into())
             }
 
             InitiatorOuterPayload::Registration(initiator_inner_message) => {
@@ -459,17 +428,80 @@ impl<'a, Rng: CryptoRng> Channel<Error> for Responder<'a, Rng> {
                             }
                             .into(),
                         );
-                        let out_bytes_written =
-                            write_output(initiator_inner_payload.0.as_slice(), out)?;
-                        Ok((bytes_deserialized, out_bytes_written))
-                    }
-                    Err(Error::UnsupportedCiphersuite) => {
-                        self.ciphersuite_mismatch(bytes_deserialized)
+                        Ok(initiator_inner_payload.0.into())
                     }
                     Err(e) => Err(e),
                 }
             }
         }
+    }
+}
+
+impl<'a, Rng: CryptoRng> Channel<Error, HandshakeMessage> for Responder<'a, Rng> {
+    fn write_message(&mut self, payload: &[u8], out: &mut [u8]) -> Result<usize, Error> {
+        let (responder_ephemeral_ecdh_pk, message_contents) =
+            self.prepare_message_contents(payload)?;
+
+        let out_msg = HandshakeMessageOut {
+            pk: &responder_ephemeral_ecdh_pk,
+            ciphertext: VLByteSlice(&message_contents.ciphertext),
+            tag: message_contents.tag,
+            aad: VLByteSlice(self.aad),
+            ciphersuite: message_contents.ciphersuite,
+        };
+
+        let bytes_serialized = out_msg
+            .tls_serialize(&mut &mut out[..])
+            .map_err(Error::Serialize)?;
+
+        Ok(bytes_serialized)
+    }
+
+    fn read_message(
+        &mut self,
+        message_bytes: &[u8],
+        out: &mut [u8],
+    ) -> Result<(usize, usize), Error> {
+        if !matches!(self.state, ResponderState::Initial) {
+            return Err(Error::ResponderState);
+        }
+
+        // Deserialize the outer message.
+        let initiator_outer_message =
+            HandshakeMessage::tls_deserialize(&mut Cursor::new(&message_bytes))
+                .map_err(Error::Deserialize)?;
+        let bytes_deserialized = initiator_outer_message.tls_serialized_len();
+
+        let inner_message_payload = self.read_message_contents(&initiator_outer_message)?;
+        let out_bytes_written = write_output(&inner_message_payload, out)?;
+        Ok((bytes_deserialized, out_bytes_written))
+    }
+
+    fn write_message_external_encoding(
+        &mut self,
+        payload: &[u8],
+    ) -> Result<HandshakeMessage, Error> {
+        let (responder_ephemeral_ecdh_pk, message_contents) =
+            self.prepare_message_contents(payload)?;
+
+        Ok(HandshakeMessage {
+            pk: responder_ephemeral_ecdh_pk,
+            ciphertext: message_contents.ciphertext,
+            tag: message_contents.tag,
+            aad: self.aad.to_vec(),
+            ciphersuite: message_contents.ciphersuite,
+        })
+    }
+
+    fn read_message_external_encoding(
+        &mut self,
+        message: &HandshakeMessage,
+    ) -> Result<Vec<u8>, Error> {
+        if !matches!(self.state, ResponderState::Initial) {
+            return Err(Error::ResponderState);
+        }
+
+        self.read_message_contents(message)
     }
 }
 

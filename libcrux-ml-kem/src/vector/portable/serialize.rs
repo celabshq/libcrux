@@ -688,7 +688,7 @@ let deserialize_12_bit_vec_lemma (v: t_Array u8 (sz 24))
 let deserialize_12_bit_vec_lemma_bounded (v: t_Array u8 (sz 24))
   : squash (
     let result = ${deserialize_12} v in
-    (forall (i: nat {i < 16}). Rust_primitives.bounded (Seq.index result.f_elements i) 1)
+    (forall (i: nat {i < 16}). Rust_primitives.bounded (Seq.index result.f_elements i) 12)
   ) =
  _ by (Tactics.GetBit.prove_bit_vector_equality' ())
 

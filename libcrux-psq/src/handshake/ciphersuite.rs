@@ -25,23 +25,22 @@ pub mod types;
 /// ```
 ///
 /// where
-/// - `OUTER` is the elliptic curve Diffie-Hellman key exchange used for
-///   the outer messsage layer. Supported curves at this point are:
-///   `X25519`
-/// - `PQKEM` is the PQ-KEM used in the inner message. Supported PQ-KEMs
-///   at this point are: `MLKEM768`, `CLASSICMCELIECE` (using feature
+/// - `OUTER` is the elliptic curve Diffie-Hellman key exchange used for the
+///   outer messsage layer. Supported curves at this point are: `X25519`
+/// - `PQKEM` is the PQ-KEM used in the inner message. Supported PQ-KEMs at this
+///   point are: `MLKEM768`, `CLASSICMCELIECE` (using feature
 ///   `classic-mceliece`) and `NONE` (indicating no PQ-KEM will be used)
 /// - `AUTH` is the method of initiator authentication used in the inner
-///   message. Supported authentication methods at this point are
-///   authentication via the initiator's long-term `X25519` public key, or
-///   authentication via a signature under the initiator's long-term
-///   signing key. Supported signature schemes at this point are:
-///   `MLDSA65` and `ED25519`. Initiator long term public and signing keys
-///   are assumed to be available to responder out-of-band.
-/// - `AEAD` is the AEAD used for encrypting message payloads. Supported
-///   AEADs at this point are: `CHACHA20POLY1305` and `AESGCM128`.
-/// - `KDF` is the key derivation function used to derive AEAD
-///   keys. Supported KDFs at this point are `HKDFSHA256`.
+///   message. Supported authentication methods at this point are authentication
+///   via the initiator's long-term `X25519` public key, or authentication via a
+///   signature under the initiator's long-term signing key. Supported signature
+///   schemes at this point are: `MLDSA65` and `ED25519`. Initiator long term
+///   public and signing keys are assumed to be available to responder
+///   out-of-band.
+/// - `AEAD` is the AEAD used for encrypting message payloads. Supported AEADs
+///   at this point are: `CHACHA20POLY1305` and `AESGCM128`.
+/// - `KDF` is the key derivation function used to derive AEAD keys. Supported
+///   KDFs at this point are `HKDFSHA256`.
 pub enum CiphersuiteName {
     /// Use X25519 for the outer key exchange, no PQ-KEM, X25519 for
     /// DH-based initiator autentication, Chacha20Poly1305 as payload
@@ -151,29 +150,29 @@ impl CiphersuiteName {
     pub(crate) fn coerce_compatible(
         &self,
         responder_ciphersuite: &ResponderCiphersuite,
-    ) -> Option<CiphersuiteName> {
+    ) -> Result<CiphersuiteName, HandshakeError> {
         match (self, responder_ciphersuite.name()) {
             (CiphersuiteName::X25519_NONE_X25519_CHACHA20POLY1305_HKDFSHA256, _) => {
-                Some(CiphersuiteName::X25519_NONE_X25519_CHACHA20POLY1305_HKDFSHA256)
+                Ok(CiphersuiteName::X25519_NONE_X25519_CHACHA20POLY1305_HKDFSHA256)
             }
             (CiphersuiteName::X25519_NONE_ED25519_CHACHA20POLY1305_HKDFSHA256, _) => {
-                Some(CiphersuiteName::X25519_NONE_ED25519_CHACHA20POLY1305_HKDFSHA256)
+                Ok(CiphersuiteName::X25519_NONE_ED25519_CHACHA20POLY1305_HKDFSHA256)
             }
             (CiphersuiteName::X25519_NONE_MLDSA65_CHACHA20POLY1305_HKDFSHA256, _) => {
-                Some(CiphersuiteName::X25519_NONE_MLDSA65_CHACHA20POLY1305_HKDFSHA256)
+                Ok(CiphersuiteName::X25519_NONE_MLDSA65_CHACHA20POLY1305_HKDFSHA256)
             }
             (CiphersuiteName::X25519_NONE_X25519_AESGCM128_HKDFSHA256, _) => {
-                Some(CiphersuiteName::X25519_NONE_X25519_AESGCM128_HKDFSHA256)
+                Ok(CiphersuiteName::X25519_NONE_X25519_AESGCM128_HKDFSHA256)
             }
             (CiphersuiteName::X25519_NONE_ED25519_AESGCM128_HKDFSHA256, _) => {
-                Some(CiphersuiteName::X25519_NONE_ED25519_AESGCM128_HKDFSHA256)
+                Ok(CiphersuiteName::X25519_NONE_ED25519_AESGCM128_HKDFSHA256)
             }
             (CiphersuiteName::X25519_NONE_MLDSA65_AESGCM128_HKDFSHA256, _) => {
-                Some(CiphersuiteName::X25519_NONE_MLDSA65_AESGCM128_HKDFSHA256)
+                Ok(CiphersuiteName::X25519_NONE_MLDSA65_AESGCM128_HKDFSHA256)
             }
 
-            (x, y) if *x == y => Some(y),
-            _ => None,
+            (x, y) if *x == y => Ok(y).into(),
+            _ => Err(HandshakeError::UnsupportedCiphersuite),
         }
     }
 

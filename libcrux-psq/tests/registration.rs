@@ -220,6 +220,176 @@ impl CommonSetup {
     }
 }
 
+fn registration_no_encoding(
+    setup: &CommonSetup,
+    initiator_ciphersuite_id: CiphersuiteName,
+    responder_ciphersuite_id: CiphersuiteName,
+) -> Result<(), TestError> {
+    let ctx = b"Test Context";
+    let aad_initiator_outer = b"Test Data I Outer";
+    let aad_initiator_inner = b"Test Data I Inner";
+    let aad_responder = b"Test Data R";
+
+    // Setup initiator
+    // We add everything here to construct any ciphersuite.
+    #[allow(unused_mut)] // we need it mutable for the CMC case
+    let mut initiator_cbuilder = CiphersuiteBuilder::new(initiator_ciphersuite_id)
+        .longterm_x25519_keys(&setup.initiator_x25519_keys)
+        .peer_longterm_x25519_pk(&setup.responder_x25519_keys.pk)
+        .peer_longterm_mlkem_pk(setup.responder_mlkem_keys.public_key());
+
+    if let Some(signature_key_pair) = setup.initiator_signature_keys(initiator_ciphersuite_id) {
+        initiator_cbuilder = initiator_cbuilder.longterm_signing_keys(signature_key_pair);
+    }
+
+    #[cfg(feature = "classic-mceliece")]
+    {
+        initiator_cbuilder = initiator_cbuilder.peer_longterm_cmc_pk(&setup.responder_cmc_keys.pk);
+    }
+    let initiator_ciphersuite = initiator_cbuilder.build_initiator_ciphersuite().unwrap();
+
+    let mut initiator = PrincipalBuilder::new(rand::rng())
+        .outer_aad(aad_initiator_outer)
+        .inner_aad(aad_initiator_inner)
+        .context(ctx)
+        .build_registration_initiator(initiator_ciphersuite)
+        .unwrap();
+
+    // Setup responder
+    #[allow(unused_mut)] // we need it mutable for the CMC case
+    let mut responder_cbuilder = CiphersuiteBuilder::new(responder_ciphersuite_id)
+        .longterm_x25519_keys(&setup.responder_x25519_keys)
+        .longterm_mlkem_encapsulation_key(setup.responder_mlkem_keys.public_key())
+        .longterm_mlkem_decapsulation_key(setup.responder_mlkem_keys.private_key());
+
+    #[cfg(feature = "classic-mceliece")]
+    {
+        responder_cbuilder = responder_cbuilder
+            .longterm_cmc_encapsulation_key(&setup.responder_cmc_keys.pk)
+            .longterm_cmc_decapsulation_key(&setup.responder_cmc_keys.sk);
+    }
+    let responder_ciphersuite = responder_cbuilder.build_responder_ciphersuite().unwrap();
+
+    let mut responder = PrincipalBuilder::new(rand::rng())
+        .context(ctx)
+        .outer_aad(aad_responder)
+        .recent_keys_upper_bound(30)
+        .build_responder(responder_ciphersuite)
+        .unwrap();
+
+    // Send first message
+    let registration_payload_initiator = b"Registration_init";
+    let sent_intiator_message = initiator
+        .write_message_external_encoding(registration_payload_initiator)
+        .unwrap();
+
+    // Read first message
+    let received_initiator_message = responder
+        .read_message_external_encoding(&sent_intiator_message)
+        .unwrap();
+
+    assert_eq!(
+        registration_payload_initiator.to_vec(),
+        received_initiator_message
+    );
+
+    // Get the authenticator out here, so we can deserialize the session later.
+    let Some(initiator_authenticator) = responder.initiator_authenticator() else {
+        panic!("No initiator authenticator found")
+    };
+
+    // Respond
+    let registration_payload_responder = b"Registration_respond";
+    let sent_response = responder
+        .write_message_external_encoding(registration_payload_responder)
+        .unwrap();
+
+    // Finalize on registration initiator
+    let received_response = initiator
+        .read_message_external_encoding(&sent_response)
+        .unwrap();
+
+    assert_eq!(registration_payload_responder.to_vec(), received_response);
+
+    // Ready for transport mode
+    assert!(initiator.is_handshake_finished());
+    assert!(responder.is_handshake_finished());
+
+    let i_transport = initiator.into_session().unwrap();
+    let r_transport = responder.into_session().unwrap();
+
+    // test serialization, deserialization
+    let mut session_storage = vec![0u8; 4096];
+    i_transport
+        .serialize(
+            &mut session_storage,
+            SessionBinding {
+                initiator_authenticator: &setup.initiator_authenticator(initiator_ciphersuite_id),
+                responder_ecdh_pk: &setup.responder_x25519_keys.pk,
+                responder_pq_pk: setup.pq_encapsulation_key(initiator_ciphersuite_id),
+            },
+        )
+        .unwrap();
+    let mut i_transport = Session::deserialize(
+        &session_storage,
+        SessionBinding {
+            initiator_authenticator: &setup.initiator_authenticator(initiator_ciphersuite_id),
+            responder_ecdh_pk: &setup.responder_x25519_keys.pk,
+            responder_pq_pk: setup.pq_encapsulation_key(initiator_ciphersuite_id),
+        },
+    )
+    .unwrap();
+
+    r_transport
+        .serialize(
+            &mut session_storage,
+            SessionBinding {
+                initiator_authenticator: &initiator_authenticator,
+                responder_ecdh_pk: &setup.responder_x25519_keys.pk,
+                responder_pq_pk: setup.pq_encapsulation_key(initiator_ciphersuite_id),
+            },
+        )
+        .unwrap();
+    let mut r_transport = Session::deserialize(
+        &session_storage,
+        SessionBinding {
+            initiator_authenticator: &initiator_authenticator,
+            responder_ecdh_pk: &setup.responder_x25519_keys.pk,
+            responder_pq_pk: setup.pq_encapsulation_key(initiator_ciphersuite_id),
+        },
+    )
+    .unwrap();
+
+    let mut channel_i = i_transport.transport_channel().unwrap();
+    let mut channel_r = r_transport.transport_channel().unwrap();
+
+    assert_eq!(channel_i.identifier(), channel_r.identifier());
+
+    let app_data_i = b"Derived session hey".as_slice();
+    let app_data_r = b"Derived session ho".as_slice();
+
+    let sent_message = channel_i
+        .write_message_external_encoding(app_data_i)
+        .unwrap();
+
+    let received_message = channel_r
+        .read_message_external_encoding(&sent_message)
+        .unwrap();
+
+    assert_eq!(app_data_i.to_vec(), received_message);
+
+    let sent_message = channel_r
+        .write_message_external_encoding(app_data_r)
+        .unwrap();
+
+    let received_message = channel_i
+        .read_message_external_encoding(&sent_message)
+        .unwrap();
+    assert_eq!(app_data_r.to_vec(), received_message);
+
+    Ok(())
+}
+
 fn registration(
     setup: &CommonSetup,
     initiator_ciphersuite_id: CiphersuiteName,
@@ -416,10 +586,12 @@ fn compatibility_matching_ciphersuites() {
         ($suite:expr) => {
             eprintln!("Testing {} against itself", stringify!($suite));
             assert!(registration(&*SETUP, $suite, $suite,).is_ok());
+            assert!(registration_no_encoding(&*SETUP, $suite, $suite,).is_ok());
         };
         ($suite:expr, $($other_suite:expr),*) => {
             eprintln!("Testing {} against itself", stringify!($suite));
             assert!(registration(&*SETUP, $suite, $suite).is_ok());
+            assert!(registration_no_encoding(&*SETUP, $suite, $suite).is_ok());
 
             symmetric_compat!($($other_suite),+);
         };
@@ -457,19 +629,23 @@ fn compatible_ciphersuites_asymmetric_mlkem() {
         (($suite_none:expr, $suite_mlkem:expr, $suite_cmc:expr)) => {
             eprintln!("Testing {} against {} (ML-KEM)", stringify!($suite_none), stringify!($suite_mlkem));
             assert!(registration(&*SETUP, $suite_none, $suite_mlkem).is_ok());
+            assert!(registration_no_encoding(&*SETUP, $suite_none, $suite_mlkem).is_ok());
             #[cfg(feature = "classic-mceliece")]
             {
                 eprintln!("Testing {} against {} (CLASSIC-MCELIECE)", stringify!($suite_none), stringify!($suite_cmc));
                 assert!(registration(&*SETUP, $suite_none, $suite_cmc).is_ok());
+                assert!(registration_no_encoding(&*SETUP, $suite_none, $suite_cmc).is_ok());
             }
         };
         (($suite_none:expr, $suite_mlkem:expr, $suite_cmc:expr), $(($other_suite_none:expr, $other_suite_mlkem:expr, $other_suite_cmc:expr)),*) => {
             eprintln!("Testing {} against {} (ML-KEM)", stringify!($suite_none), stringify!($suite_mlkem));
             assert!(registration(&*SETUP, $suite_none, $suite_mlkem).is_ok());
+            assert!(registration_no_encoding(&*SETUP, $suite_none, $suite_mlkem).is_ok());
             #[cfg(feature = "classic-mceliece")]
             {
                 eprintln!("Testing {} against {} (CLASSIC-MCELIECE)", stringify!($suite_none), stringify!($suite_cmc));
                 assert!(registration(&*SETUP, $suite_none, $suite_cmc).is_ok());
+                assert!(registration_no_encoding(&*SETUP, $suite_none, $suite_cmc).is_ok());
             }
 
             asymmetric_compat!($(($other_suite_none, $other_suite_mlkem, $other_suite_cmc)),+);
@@ -548,6 +724,67 @@ fn unsupported_classic_mceliece() {
         CiphersuiteName::X25519_CLASSICMCELIECE_MLDSA65_CHACHA20POLY1305_HKDFSHA256,
         CiphersuiteName::X25519_CLASSICMCELIECE_MLDSA65_AESGCM128_HKDFSHA256
     );
+}
+
+fn query_no_encoding(setup: &CommonSetup, responder_ciphersuite_id: CiphersuiteName) {
+    let ctx = b"Test Context";
+    let aad_initiator = b"Test Data I";
+    let aad_responder = b"Test Data R";
+
+    // Setup initiator
+    let mut initiator = PrincipalBuilder::new(rand::rng())
+        .outer_aad(aad_initiator)
+        .context(ctx)
+        .build_query_initiator(&setup.responder_x25519_keys.pk)
+        .unwrap();
+
+    // Setup responder
+    #[allow(unused_mut)] // we need it mutable for the CMC case
+    let mut responder_cbuilder = CiphersuiteBuilder::new(responder_ciphersuite_id)
+        .longterm_x25519_keys(&setup.responder_x25519_keys)
+        .longterm_mlkem_encapsulation_key(setup.responder_mlkem_keys.public_key())
+        .longterm_mlkem_decapsulation_key(setup.responder_mlkem_keys.private_key());
+
+    #[cfg(feature = "classic-mceliece")]
+    {
+        responder_cbuilder = responder_cbuilder
+            .longterm_cmc_encapsulation_key(&setup.responder_cmc_keys.pk)
+            .longterm_cmc_decapsulation_key(&setup.responder_cmc_keys.sk);
+    }
+    let responder_ciphersuite = responder_cbuilder.build_responder_ciphersuite().unwrap();
+
+    let mut responder = PrincipalBuilder::new(rand::rng())
+        .context(ctx)
+        .outer_aad(aad_responder)
+        .recent_keys_upper_bound(30)
+        .build_responder(responder_ciphersuite)
+        .unwrap();
+
+    // Send first message
+    let query_payload_initiator = b"Query_init";
+    let sent_initiator_message = initiator
+        .write_message_external_encoding(query_payload_initiator)
+        .unwrap();
+
+    // Read first message
+    let received_initiator_message = responder
+        .read_message_external_encoding(&sent_initiator_message)
+        .unwrap();
+
+    assert_eq!(received_initiator_message, query_payload_initiator.to_vec());
+
+    // Respond
+    let query_payload_responder = b"Query_respond";
+    let sent_response = responder
+        .write_message_external_encoding(query_payload_responder)
+        .unwrap();
+
+    // Finalize on query initiator
+    let received_response = initiator
+        .read_message_external_encoding(&sent_response)
+        .unwrap();
+
+    assert_eq!(received_response, query_payload_responder.to_vec());
 }
 
 fn query(setup: &CommonSetup, responder_ciphersuite_id: CiphersuiteName) {
@@ -639,6 +876,19 @@ fn compatibility_query() {
     );
     #[cfg(feature = "classic-mceliece")]
     query(
+        &*SETUP,
+        CiphersuiteName::X25519_CLASSICMCELIECE_X25519_CHACHA20POLY1305_HKDFSHA256,
+    );
+    query_no_encoding(
+        &*SETUP,
+        CiphersuiteName::X25519_NONE_X25519_CHACHA20POLY1305_HKDFSHA256,
+    );
+    query_no_encoding(
+        &*SETUP,
+        CiphersuiteName::X25519_MLKEM768_X25519_CHACHA20POLY1305_HKDFSHA256,
+    );
+    #[cfg(feature = "classic-mceliece")]
+    query_no_encoding(
         &*SETUP,
         CiphersuiteName::X25519_CLASSICMCELIECE_X25519_CHACHA20POLY1305_HKDFSHA256,
     );

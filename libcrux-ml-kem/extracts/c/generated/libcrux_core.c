@@ -8,7 +8,7 @@
  * Eurydice: cdf02f9d8ed0d73f88c0a495c5b79359a51398fc
  * Karamel: 8e7262955105599e91f3a99c9ab3d3387f7046f2
  * F*: 89901492c020c74b82d811d27f3149c222d9b8b5
- * Libcrux: 8da0286d845669ce55a7f5aa405ba3ecbf4c11c7
+ * Libcrux: 4faeb5fdd7bdf29c1f30136c8f32fe24c06cfab0
  */
 
 #include "internal/libcrux_core.h"
@@ -342,7 +342,7 @@ with types uint8_t, core_ops_range_RangeTo size_t, Eurydice_derefed_slice
 uint8_t with const generics
 - N= 1568
 */
-Eurydice_borrow_slice_u8 Eurydice_array_to_subslice_to_shared_6e0(
+Eurydice_borrow_slice_u8 Eurydice_array_to_subslice_to_shared_6e1(
     const Eurydice_arr_00 *a, size_t r) {
   Eurydice_borrow_slice_u8 lit;
   lit.ptr = a->data;
@@ -356,7 +356,7 @@ with types uint8_t, core_ops_range_Range size_t, Eurydice_derefed_slice uint8_t
 with const generics
 - N= 3168
 */
-Eurydice_borrow_slice_u8 Eurydice_array_to_subslice_shared_367(
+Eurydice_borrow_slice_u8 Eurydice_array_to_subslice_shared_366(
     const Eurydice_arr_17 *a, core_ops_range_Range_08 r) {
   return (KRML_CLITERAL(Eurydice_borrow_slice_u8){.ptr = a->data + r.start,
                                                   .meta = r.end - r.start});
@@ -651,7 +651,7 @@ with types uint8_t, core_ops_range_Range size_t, Eurydice_derefed_slice uint8_t
 with const generics
 - N= 1568
 */
-Eurydice_borrow_slice_u8 Eurydice_array_to_subslice_shared_366(
+Eurydice_borrow_slice_u8 Eurydice_array_to_subslice_shared_365(
     const Eurydice_arr_00 *a, core_ops_range_Range_08 r) {
   return (KRML_CLITERAL(Eurydice_borrow_slice_u8){.ptr = a->data + r.start,
                                                   .meta = r.end - r.start});
@@ -771,7 +771,7 @@ with types uint8_t, core_ops_range_RangeTo size_t, Eurydice_derefed_slice
 uint8_t with const generics
 - N= 1184
 */
-Eurydice_borrow_slice_u8 Eurydice_array_to_subslice_to_shared_6e(
+Eurydice_borrow_slice_u8 Eurydice_array_to_subslice_to_shared_6e0(
     const Eurydice_arr_74 *a, size_t r) {
   Eurydice_borrow_slice_u8 lit;
   lit.ptr = a->data;
@@ -785,7 +785,7 @@ with types uint8_t, core_ops_range_Range size_t, Eurydice_derefed_slice uint8_t
 with const generics
 - N= 2400
 */
-Eurydice_borrow_slice_u8 Eurydice_array_to_subslice_shared_365(
+Eurydice_borrow_slice_u8 Eurydice_array_to_subslice_shared_364(
     const Eurydice_arr_ea *a, core_ops_range_Range_08 r) {
   return (KRML_CLITERAL(Eurydice_borrow_slice_u8){.ptr = a->data + r.start,
                                                   .meta = r.end - r.start});
@@ -974,7 +974,7 @@ with types uint8_t, core_ops_range_Range size_t, Eurydice_derefed_slice uint8_t
 with const generics
 - N= 64
 */
-Eurydice_borrow_slice_u8 Eurydice_array_to_subslice_shared_364(
+Eurydice_borrow_slice_u8 Eurydice_array_to_subslice_shared_363(
     const Eurydice_arr_06 *a, core_ops_range_Range_08 r) {
   return (KRML_CLITERAL(Eurydice_borrow_slice_u8){.ptr = a->data + r.start,
                                                   .meta = r.end - r.start});
@@ -1065,7 +1065,7 @@ with types uint8_t, core_ops_range_Range size_t, Eurydice_derefed_slice uint8_t
 with const generics
 - N= 32
 */
-Eurydice_borrow_slice_u8 Eurydice_array_to_subslice_shared_363(
+Eurydice_borrow_slice_u8 Eurydice_array_to_subslice_shared_362(
     const Eurydice_arr_60 *a, core_ops_range_Range_08 r) {
   return (KRML_CLITERAL(Eurydice_borrow_slice_u8){.ptr = a->data + r.start,
                                                   .meta = r.end - r.start});
@@ -1290,7 +1290,7 @@ with types uint8_t, core_ops_range_Range size_t, Eurydice_derefed_slice uint8_t
 with const generics
 - N= 168
 */
-Eurydice_borrow_slice_u8 Eurydice_array_to_subslice_shared_362(
+Eurydice_borrow_slice_u8 Eurydice_array_to_subslice_shared_361(
     const Eurydice_arr_27 *a, core_ops_range_Range_08 r) {
   return (KRML_CLITERAL(Eurydice_borrow_slice_u8){.ptr = a->data + r.start,
                                                   .meta = r.end - r.start});
@@ -1328,7 +1328,7 @@ with types uint8_t, core_ops_range_Range size_t, Eurydice_derefed_slice uint8_t
 with const generics
 - N= 504
 */
-Eurydice_borrow_slice_u8 Eurydice_array_to_subslice_shared_361(
+Eurydice_borrow_slice_u8 Eurydice_array_to_subslice_shared_360(
     const Eurydice_arr_b0 *a, core_ops_range_Range_08 r) {
   return (KRML_CLITERAL(Eurydice_borrow_slice_u8){.ptr = a->data + r.start,
                                                   .meta = r.end - r.start});
@@ -1577,7 +1577,7 @@ with types uint8_t, core_ops_range_Range size_t, Eurydice_derefed_slice uint8_t
 with const generics
 - N= 1088
 */
-Eurydice_borrow_slice_u8 Eurydice_array_to_subslice_shared_360(
+Eurydice_borrow_slice_u8 Eurydice_array_to_subslice_shared_36(
     const Eurydice_arr_2c *a, core_ops_range_Range_08 r) {
   return (KRML_CLITERAL(Eurydice_borrow_slice_u8){.ptr = a->data + r.start,
                                                   .meta = r.end - r.start});
@@ -1985,15 +1985,17 @@ Eurydice_mut_borrow_slice_u8 Eurydice_array_to_subslice_mut_360(
 }
 
 /**
-A monomorphic instance of Eurydice.array_to_subslice_shared
-with types uint8_t, core_ops_range_Range size_t, Eurydice_derefed_slice uint8_t
-with const generics
+A monomorphic instance of Eurydice.array_to_subslice_to_shared
+with types uint8_t, core_ops_range_RangeTo size_t, Eurydice_derefed_slice
+uint8_t with const generics
 - N= 8
 */
-Eurydice_borrow_slice_u8 Eurydice_array_to_subslice_shared_36(
-    const Eurydice_array_u8x8 *a, core_ops_range_Range_08 r) {
-  return (KRML_CLITERAL(Eurydice_borrow_slice_u8){.ptr = a->data + r.start,
-                                                  .meta = r.end - r.start});
+Eurydice_borrow_slice_u8 Eurydice_array_to_subslice_to_shared_6e(
+    const Eurydice_array_u8x8 *a, size_t r) {
+  Eurydice_borrow_slice_u8 lit;
+  lit.ptr = a->data;
+  lit.meta = r;
+  return lit;
 }
 
 /**

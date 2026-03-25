@@ -1,7 +1,7 @@
 [package]
 name = "libcrux-ml-dsa"
 description = "Libcrux ML-DSA implementation"
-version = "0.0.7"
+version = "0.0.8"
 readme = "README.md"
 
 authors.workspace = true
@@ -10,7 +10,15 @@ homepage.workspace = true
 edition.workspace = true
 repository.workspace = true
 
-exclude = [ "boring.sh", "/cg", "*.sh", "*.yaml", "/proofs", "tests/nistkats.rs", "tests/kats"]
+exclude = [
+    "boring.sh",
+    "/cg",
+    "*.sh",
+    "*.yaml",
+    "/proofs",
+    "tests/nistkats.rs",
+    "tests/kats",
+]
 
 [lib]
 bench = false # so libtest doesn't eat the arguments to criterion
@@ -20,8 +28,8 @@ bench = false # so libtest doesn't eat the arguments to criterion
 [dependencies]
 libcrux-sha3.workspace = true
 libcrux-intrinsics.workspace = true
-libcrux-platform = { version = "0.0.3", path = "../crates/sys/platform" }
-libcrux-macros = { version = "=0.0.3",  path = "../crates/utils/macros" }
+libcrux-platform.workspace = true
+libcrux-macros.workspace = true
 hax-lib.workspace = true
 tls_codec = { version = "0.4.2", features = [
     "derive",
@@ -33,9 +41,7 @@ hex = { version = "0.4.3", features = ["serde"] }
 serde_json = { version = "1.0" }
 serde = { version = "1.0", features = ["derive"] }
 criterion = "0.8"
-libcrux-kats = { path = "../crates/testing/kats", features = [
-    "mldsa"
-] }
+libcrux-kats = { workspace = true, features = ["mldsa"] }
 
 
 # This doesn't build on intel macos.

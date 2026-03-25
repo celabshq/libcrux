@@ -1,20 +1,18 @@
 use rand::CryptoRng;
 
-use crate::handshake::{
-    ciphersuite::{initiator::InitiatorCiphersuite, responder::ResponderCiphersuite},
-    dhkem::DHPublicKey,
-    initiator::query::QueryInitiator,
-};
-
 use super::{
     builders::BuilderError as Error,
     initiator::registration::RegistrationInitiator,
     // pqkem::{PQKeyPair, PQPublicKey},
     responder::Responder,
 };
+use crate::handshake::{
+    ciphersuite::{initiator::InitiatorCiphersuite, responder::ResponderCiphersuite},
+    dhkem::DHPublicKey,
+    initiator::query::QueryInitiator,
+};
 
 const RECENT_KEYS_DEFAULT_BOUND: usize = 100;
-const ERROR_ON_CIPHERSUITE_MISMATCH: bool = true;
 
 pub struct PrincipalBuilder<'a, Rng: CryptoRng> {
     rng: Rng,
@@ -22,7 +20,6 @@ pub struct PrincipalBuilder<'a, Rng: CryptoRng> {
     inner_aad: &'a [u8],
     outer_aad: &'a [u8],
     responder_recent_keys_upper_bound: usize,
-    responder_error_on_ciphersuite_mismatch: bool,
 }
 
 impl<'a, Rng: CryptoRng> PrincipalBuilder<'a, Rng> {
@@ -34,7 +31,6 @@ impl<'a, Rng: CryptoRng> PrincipalBuilder<'a, Rng> {
             inner_aad: &[],
             outer_aad: &[],
             responder_recent_keys_upper_bound: RECENT_KEYS_DEFAULT_BOUND,
-            responder_error_on_ciphersuite_mismatch: ERROR_ON_CIPHERSUITE_MISMATCH,
         }
     }
 
@@ -62,11 +58,6 @@ impl<'a, Rng: CryptoRng> PrincipalBuilder<'a, Rng> {
         self.responder_recent_keys_upper_bound = recent_keys_upper_bound;
         self
     } // builders
-
-    pub fn error_on_ciphersuite_mismatch(mut self, error_on_ciphersuite_mismatch: bool) -> Self {
-        self.responder_error_on_ciphersuite_mismatch = error_on_ciphersuite_mismatch;
-        self
-    }
 
     /// Build a new [`QueryInitiator`].
     ///
@@ -107,8 +98,9 @@ impl<'a, Rng: CryptoRng> PrincipalBuilder<'a, Rng> {
 
     /// Build a new [`Responder`].
     ///
-    /// This requires that a `longterm_ecdh_keys`, and `recent_keys_upper_bound` is set.
-    /// It also uses the `context`, `outer_aad`, and `longterm_pq_keys`.
+    /// This requires that a `longterm_ecdh_keys`, and `recent_keys_upper_bound`
+    /// is set. It also uses the `context`, `outer_aad`, and
+    /// `longterm_pq_keys`.
     pub fn build_responder(
         self,
         ciphersuite: ResponderCiphersuite<'a>,
@@ -118,7 +110,6 @@ impl<'a, Rng: CryptoRng> PrincipalBuilder<'a, Rng> {
             self.context,
             self.outer_aad,
             self.responder_recent_keys_upper_bound,
-            self.responder_error_on_ciphersuite_mismatch,
             self.rng,
         ))
     }

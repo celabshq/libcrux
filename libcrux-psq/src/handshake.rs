@@ -2,14 +2,14 @@
 //!
 //! The PSQ handshake consists of one message from the initiator to the
 //! responder, and one response from the responder. It supports two modes:
-//! - Query mode: A stateless, classically secure protocol which allows
-//!   the initiator to send one query payload to the responder, which in
-//!   turn sends one query response payload to the initiator.
+//! - Query mode: A stateless, classically secure protocol which allows the
+//!   initiator to send one query payload to the responder, which in turn sends
+//!   one query response payload to the initiator.
 //! - Registration mode: An (optionally) HNDL-secure protocol, which allows the
 //!   initiator to register its long-term classical public key with the
-//!   responder in a long-term session. The initiator's long-term public
-//!   key is transmitted encrypted under the responders long-term public
-//!   key, and thus not revealed to an eavesdropping attacker.
+//!   responder in a long-term session. The initiator's long-term public key is
+//!   transmitted encrypted under the responders long-term public key, and thus
+//!   not revealed to an eavesdropping attacker.
 
 #![allow(missing_docs)]
 
@@ -25,6 +25,7 @@ pub enum HandshakeError {
     PayloadTooLong,
     ChannelError,
     UnsupportedCiphersuite,
+    RateLimit,
     Storage,
     OtherError,
     IdentifierMismatch,
@@ -93,15 +94,15 @@ pub(crate) struct ToTransportState {
 
 #[derive(TlsDeserialize, TlsSize)]
 /// A PSQ handshake message.
-pub(crate) struct HandshakeMessage {
+pub struct HandshakeMessage {
     /// A Diffie-Hellman KEM public key
     pk: DHPublicKey,
     /// The AEAD-encrypted message payload
-    ciphertext: VLBytes,
+    ciphertext: Vec<u8>,
     /// AEAD tag authenticating the ciphertext and any AAD
     tag: [u8; 16],
     /// Associated data, covered by the AEAD message authentication tag
-    aad: VLBytes,
+    aad: Vec<u8>,
     /// The handshake ciphersuite for this message
     ciphersuite: CiphersuiteName,
 }
@@ -298,22 +299,19 @@ pub mod builders {
     pub use crate::handshake::builder::PrincipalBuilder;
     #[doc(inline)]
     pub use crate::handshake::ciphersuite::builder::CiphersuiteBuilder;
-
     #[doc(inline)]
     pub use crate::handshake::ciphersuite::initiator::InitiatorCiphersuite;
-
     #[doc(inline)]
     pub use crate::handshake::ciphersuite::responder::ResponderCiphersuite;
 }
 
 pub mod types {
     #[doc(inline)]
+    pub use crate::handshake::ciphersuite::initiator::SigningKeyPair;
+    #[doc(inline)]
     pub use crate::handshake::ciphersuite::types::*;
     #[doc(inline)]
     pub use crate::handshake::dhkem::{DHKeyPair, DHPrivateKey, DHPublicKey};
-
-    #[doc(inline)]
-    pub use crate::handshake::ciphersuite::initiator::SigningKeyPair;
 }
 
 pub mod ciphersuites {
@@ -323,9 +321,7 @@ pub mod ciphersuites {
 
 #[doc(inline)]
 pub use initiator::query::QueryInitiator;
-
 #[doc(inline)]
 pub use initiator::registration::RegistrationInitiator;
-
 #[doc(inline)]
 pub use responder::Responder;

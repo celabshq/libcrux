@@ -14,7 +14,14 @@ pub trait IntoSession {
 
 /// A common interface for writing and reading messsages to and from a
 /// peer.
-pub trait Channel<Error> {
+pub trait Channel<Error, Message> {
+    /// Prepare the next message to be sent, leaving wire serialization to the
+    /// caller.
+    fn write_message_external_encoding(&mut self, payload: &[u8]) -> Result<Message, Error>;
+
+    /// Process the next message, deserialized from the wire by the caller.
+    fn read_message_external_encoding(&mut self, message: &Message) -> Result<Vec<u8>, Error>;
+
     /// Write a message to `out`.
     ///
     /// The message may include a `payload`. Returns the number of

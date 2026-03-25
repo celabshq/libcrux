@@ -1,5 +1,5 @@
 //! # AEAD API
-use libcrux_aes::AESGCM128_KEY_LEN as KEY_LEN_AES;
+use libcrux_aes::AES_128_KEY_LEN as KEY_LEN_AES;
 use libcrux_chacha20poly1305::{decrypt_detached, encrypt_detached, KEY_LEN as KEY_LEN_CHACHA};
 use libcrux_traits::aead::arrayref::Aead;
 use tls_codec::{

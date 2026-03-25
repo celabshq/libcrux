@@ -101,7 +101,7 @@ export FINDLIBS
 
 FSTAR_INCLUDE_DIRS_EXTRA ?=
 FINDLIBS_OUTPUT ?= $(shell bash -c '${FINDLIBS}')
-FSTAR_INCLUDE_DIRS = $(FSTAR_INCLUDE_DIRS_EXTRA) $(FINDLIBS_OUTPUT)
+FSTAR_INCLUDE_DIRS = $(shell echo $(FSTAR_INCLUDE_DIRS_EXTRA) $(FINDLIBS_OUTPUT) | tr ' ' '\n' | sort -u | tr '\n' ' ')
 
 # Make sure FSTAR_INCLUDE_DIRS has the `proof-libs`, print hints and
 # an error message otherwise

@@ -1,7 +1,7 @@
 #![no_std]
 
-/// The length of ChaCha20-Poly1305 keys.
-pub const KEY_LEN: usize = 16;
+/// The length of Poly1305 keys (r: 16 bytes + s: 16 bytes).
+pub const KEY_LEN: usize = 32;
 
 /// The length of Poly1305 MAC tags.
 pub const TAG_LEN: usize = 16;

@@ -1,6 +1,6 @@
 [package]
 name = "libcrux-kem"
-version = "0.0.6"
+version = "0.0.7"
 description = "Libcrux KEM implementation"
 readme = "README.md"
 
@@ -23,10 +23,9 @@ libcrux-ecdh.workspace = true
 libcrux-curve25519.workspace = true
 libcrux-p256.workspace = true
 libcrux-traits.workspace = true
+
 rand = { version = "0.9", default-features = false }
-tls_codec = { version = "0.4.2", features = [
-    "derive",
-],  optional = true }
+tls_codec = { version = "0.4.2", features = ["derive"], optional = true }
 
 [features]
 default = ["std"]
@@ -34,7 +33,7 @@ std = ["rand/std", "libcrux-ecdh/std", "libcrux-ml-kem/std"]
 tests = []                                                   # Expose functions for testing.
 pre-verification = []
 # Encoding and decoding with TLSCodec
-codec = ["dep:tls_codec","libcrux-ml-kem/codec", "libcrux-ecdh/codec"]
+codec = ["dep:tls_codec", "libcrux-ml-kem/codec", "libcrux-ecdh/codec"]
 
 [dev-dependencies]
 libcrux-kem = { path = "./", features = ["tests"] }

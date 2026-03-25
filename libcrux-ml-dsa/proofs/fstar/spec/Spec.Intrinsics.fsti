@@ -12,12 +12,12 @@ let logand_lemma_forall #t:
   FStar.Classical.forall_intro (fun a -> logand_lemma #t a a)
 
 let logand_mask_lemma_forall #t:
-  Lemma (forall a m. 
+  Lemma (forall a m.
               m < bits t ==>
               (pow2 m < maxint t /\
                logand a (sub #t (mk_int #t (pow2 m)) (mk_int #t 1)) ==
-               mk_int (v a % pow2 m))) = admit()
-
+               mk_int (v a % pow2 m))) =
+  admit()
 
 let logxor_lemma_forall #t:
   Lemma (forall a. 
@@ -94,7 +94,7 @@ let eq_pointwise_to_eq #n (a b: Libcrux_core_models.Abstractions.Bitvec.t_BitVec
     FStar.FunctionalExtensionality.extensionality _ _ a b
 
 [@@ "opaque_to_smt"]
-let i16_mul_32extended (x y: i16): i32 = (cast x <: i32) *! (cast x <: i32)
+let i16_mul_32extended (x y: i16): i32 = (cast x <: i32) *! (cast y <: i32)
 [@@ "opaque_to_smt"]
 let i16_mul_32extended_i16 (x y: i16): i16 = cast (i16_mul_32extended x y)
 
@@ -153,7 +153,7 @@ val mm256_extracti128_si256_bv_lemma (control: i32) vec i
           [SMTPat (I.mm256_extracti128_si256 control vec).(i)]
 
 val mm256_extracti128_si256_lemma (control: i32) vec (i: _{v i < 4})
-  : Lemma (to_i32x4 (I.mm256_extracti128_si256 control vec) i == to_i32x8 vec (i +! mk_int 4))
+  : Lemma (to_i32x4 (I.mm256_extracti128_si256 control vec) i == to_i32x8 vec (i +! mk_int (if v control = 0 then 0 else 4)))
           [SMTPat (to_i32x4 (I.mm256_extracti128_si256 control vec) i)]
 
 val mm256_and_si256 lhs rhs i

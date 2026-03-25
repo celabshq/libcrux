@@ -83,3 +83,38 @@ macro_rules! shake_vo_test {
 }
 shake_vo_test!(SHAKE128VariableOut, shake128_ema);
 shake_vo_test!(SHAKE256VariableOut, shake256_ema);
+
+macro_rules! shake_vo_test_incremental {
+    ($name:ident, $file:ident, $shake:ty) => {
+        #[test]
+        #[allow(non_snake_case)]
+        fn $name() {
+            use libcrux_sha3::portable::incremental::Xof;
+            let _ = pretty_env_logger::try_init();
+            let file = "tests/tv/".to_string();
+            let file = file + stringify!($file) + ".rsp";
+            let tv: TestVector<cavp::ShakeVariableOut> = read_file(&file).unwrap();
+
+            let mut c = 0;
+            for test in &tv.tests {
+                eprintln!("test {c}");
+                c += 1;
+                let mut my_digest = vec![0u8; test.digest.len()];
+                let mut shake = <$shake>::new();
+                shake.absorb_final(&test.msg[0..tv.header.input_length / 8]);
+                shake.squeeze(&mut my_digest);
+                assert_eq!(&my_digest, &test.digest[..]);
+            }
+        }
+    };
+}
+shake_vo_test_incremental!(
+    SHAKE128VariableOut_incremental,
+    SHAKE128VariableOut,
+    libcrux_sha3::portable::incremental::Shake128Xof
+);
+shake_vo_test_incremental!(
+    SHAKE256VariableOut_incremental,
+    SHAKE256VariableOut,
+    libcrux_sha3::portable::incremental::Shake256Xof
+);

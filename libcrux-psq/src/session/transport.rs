@@ -3,14 +3,13 @@ use std::io::Cursor;
 
 use tls_codec::{
     Deserialize, Serialize, SerializeBytes, Size, TlsDeserialize, TlsSerialize, TlsSerializeBytes,
-    TlsSize, VLByteSlice, VLBytes,
+    TlsSize, VLByteSlice,
 };
 
+use super::{Session, SessionError as Error};
 #[cfg(feature = "nonce-control")]
 use crate::aead::NONCE_LEN;
 use crate::{aead::AEADKeyNonce, traits::Channel};
-
-use super::{Session, SessionError as Error};
 
 #[derive(TlsSerialize, TlsSize)]
 /// A message to be sent on the transport channel. (Serialization helper)
@@ -25,11 +24,11 @@ struct TransportMessageOut<'a> {
 
 #[derive(TlsDeserialize, TlsSize)]
 /// A message to be sent on the transport channel.
-struct TransportMessage {
+pub struct TransportMessage {
     /// The channel identifier
     channel_identifier: u64,
     /// AEAD ciphertext containing the message payload
-    ciphertext: VLBytes,
+    ciphertext: Vec<u8>,
     /// AEAD message authentication tag over the cipertext.
     tag: [u8; 16],
 }
@@ -104,18 +103,44 @@ impl Transport {
     /// Get the current nonce used for decrypting incoming messages.
     #[cfg(feature = "nonce-control")]
     pub fn receiver_nonce(&self) -> &[u8; NONCE_LEN] {
-        self.send_key.nonce()
+        self.recv_key.nonce()
     }
-}
 
-impl Channel<Error> for Transport {
-    fn write_message(&mut self, payload: &[u8], out: &mut [u8]) -> Result<usize, Error> {
+    fn prepare_message_contents(&mut self, payload: &[u8]) -> Result<(Vec<u8>, [u8; 16]), Error> {
         // We match the maximum payload length of Noise.
         if payload.len() > 65535 {
             return Err(Error::PayloadTooLong(payload.len()));
         }
         let mut ciphertext = vec![0u8; payload.len()];
         let tag = self.send_key.encrypt(payload, &[], &mut ciphertext)?;
+
+        Ok((ciphertext, tag))
+    }
+
+    fn process_message(&mut self, message: &TransportMessage, out: &mut [u8]) -> Result<(), Error> {
+        if self.channel_identifier != message.channel_identifier {
+            return Err(Error::IdentifierMismatch);
+        }
+
+        if out.len() < message.ciphertext.as_slice().len() {
+            return Err(Error::OutputBufferShort);
+        }
+
+        self.recv_key.decrypt_out(
+            message.ciphertext.as_slice(),
+            &message.tag,
+            &[],
+            &mut out[..message.ciphertext.as_slice().len()],
+        )?;
+
+        Ok(())
+    }
+}
+
+impl Channel<Error, TransportMessage> for Transport {
+    fn write_message(&mut self, payload: &[u8], out: &mut [u8]) -> Result<usize, Error> {
+        let (ciphertext, tag) = self.prepare_message_contents(payload)?;
+
         let message = TransportMessageOut {
             channel_identifier: self.channel_identifier,
             ciphertext: VLByteSlice(ciphertext.as_ref()),
@@ -131,26 +156,35 @@ impl Channel<Error> for Transport {
         let message = TransportMessage::tls_deserialize(&mut Cursor::new(message))
             .map_err(Error::Deserialize)?;
 
-        if self.channel_identifier != message.channel_identifier {
-            return Err(Error::IdentifierMismatch);
-        }
-
-        if out.len() < message.ciphertext.as_slice().len() {
-            return Err(Error::OutputBufferShort);
-        }
-
         let bytes_deserialized = message.tls_serialized_len();
 
-        self.recv_key.decrypt_out(
-            message.ciphertext.as_slice(),
-            &message.tag,
-            &[],
-            &mut out[..message.ciphertext.as_slice().len()],
-        )?;
+        self.process_message(&message, out)?;
 
         let out_bytes_written = message.ciphertext.as_slice().len();
 
         Ok((bytes_deserialized, out_bytes_written))
+    }
+
+    fn write_message_external_encoding(
+        &mut self,
+        payload: &[u8],
+    ) -> Result<TransportMessage, Error> {
+        let (ciphertext, tag) = self.prepare_message_contents(payload)?;
+
+        Ok(TransportMessage {
+            channel_identifier: self.channel_identifier,
+            ciphertext,
+            tag,
+        })
+    }
+
+    fn read_message_external_encoding(
+        &mut self,
+        message: &TransportMessage,
+    ) -> Result<Vec<u8>, Error> {
+        let mut out = vec![0; message.ciphertext.len()];
+        self.process_message(&message, &mut out)?;
+        Ok(out)
     }
 }
 

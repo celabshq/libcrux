@@ -15,9 +15,12 @@ mod impl_digest_trait;
 #[cfg(not(any(hax, eurydice)))]
 pub use impl_digest_trait::*;
 
+#[cfg(hax)]
+use hax_lib::int::*;
+
 mod traits;
 
-/// Size in bytes of a SHA3 244 digest.
+/// Size in bytes of a SHA3 224 digest.
 pub const SHA3_224_DIGEST_SIZE: usize = 28;
 /// Size in bytes of a SHA3 256 digest.
 pub const SHA3_256_DIGEST_SIZE: usize = 32;
@@ -25,6 +28,10 @@ pub const SHA3_256_DIGEST_SIZE: usize = 32;
 pub const SHA3_384_DIGEST_SIZE: usize = 48;
 /// Size in bytes of a SHA3 512 digest.
 pub const SHA3_512_DIGEST_SIZE: usize = 64;
+
+/// F* verification helper
+#[cfg(hax)]
+pub(crate) mod proof_utils;
 
 /// The Digest Algorithm.
 #[cfg_attr(not(eurydice), derive(Clone, Copy, Debug, PartialEq))]
@@ -43,16 +50,16 @@ pub enum Algorithm {
     Sha512 = 4,
 }
 
-#[hax_lib::attributes]
+// Verification fails because of the panic
+#[cfg(not(any(hax, eurydice)))]
 impl From<u32> for Algorithm {
-    #[hax_lib::requires(v <= 4)]
     fn from(v: u32) -> Algorithm {
         match v {
             1 => Algorithm::Sha224,
             2 => Algorithm::Sha256,
             3 => Algorithm::Sha384,
             4 => Algorithm::Sha512,
-            _ => panic!(),
+            _ => panic!("Invalid SHA3 Algorithm code"),
         }
     }
 }
@@ -79,6 +86,8 @@ pub const fn digest_size(mode: Algorithm) -> usize {
 }
 
 /// SHA3
+#[hax_lib::fstar::options("--split_queries always")]
+#[hax_lib::requires(payload.len().to_int() <= u32::MAX.to_int())]
 pub fn hash<const LEN: usize>(algorithm: Algorithm, payload: &[u8]) -> [u8; LEN] {
     #[cfg(not(eurydice))]
     debug_assert!(payload.len() <= u32::MAX as usize);
@@ -98,8 +107,11 @@ pub use hash as sha3;
 
 /// SHA3 224
 #[cfg_attr(not(eurydice), inline(always))]
+#[hax_lib::requires(
+    data.len().to_int() <= u32::MAX.to_int()
+)]
 pub fn sha224(data: &[u8]) -> [u8; SHA3_224_DIGEST_SIZE] {
-    let mut out = [0u8; 28];
+    let mut out = [0u8; SHA3_224_DIGEST_SIZE];
     sha224_ema(&mut out, data);
     out
 }
@@ -109,6 +121,10 @@ pub fn sha224(data: &[u8]) -> [u8; SHA3_224_DIGEST_SIZE] {
 /// Preconditions:
 /// - `digest.len() == 28`
 #[cfg_attr(not(eurydice), inline(always))]
+#[hax_lib::requires(
+    payload.len().to_int() <= u32::MAX.to_int() &&
+    digest.len().to_int() == int!(28)
+)]
 pub fn sha224_ema(digest: &mut [u8], payload: &[u8]) {
     debug_assert!(payload.len() <= u32::MAX as usize);
     debug_assert!(digest.len() == 28);
@@ -118,14 +134,21 @@ pub fn sha224_ema(digest: &mut [u8], payload: &[u8]) {
 
 /// SHA3 256
 #[cfg_attr(not(eurydice), inline(always))]
+#[hax_lib::requires(
+    data.len().to_int() <= u32::MAX.to_int()
+)]
 pub fn sha256(data: &[u8]) -> [u8; SHA3_256_DIGEST_SIZE] {
-    let mut out = [0u8; 32];
+    let mut out = [0u8; SHA3_256_DIGEST_SIZE];
     sha256_ema(&mut out, data);
     out
 }
 
 /// SHA3 256
 #[cfg_attr(not(eurydice), inline(always))]
+#[hax_lib::requires(
+    payload.len().to_int() <= u32::MAX.to_int() &&
+    digest.len().to_int() == int!(32)
+)]
 pub fn sha256_ema(digest: &mut [u8], payload: &[u8]) {
     debug_assert!(payload.len() <= u32::MAX as usize);
     debug_assert!(digest.len() == 32);
@@ -135,14 +158,21 @@ pub fn sha256_ema(digest: &mut [u8], payload: &[u8]) {
 
 /// SHA3 384
 #[cfg_attr(not(eurydice), inline(always))]
+#[hax_lib::requires(
+    data.len().to_int() <= u32::MAX.to_int()
+)]
 pub fn sha384(data: &[u8]) -> [u8; SHA3_384_DIGEST_SIZE] {
-    let mut out = [0u8; 48];
+    let mut out = [0u8; SHA3_384_DIGEST_SIZE];
     sha384_ema(&mut out, data);
     out
 }
 
 /// SHA3 384
 #[cfg_attr(not(eurydice), inline(always))]
+#[hax_lib::requires(
+    payload.len().to_int() <= u32::MAX.to_int() &&
+    digest.len().to_int() == int!(48)
+)]
 pub fn sha384_ema(digest: &mut [u8], payload: &[u8]) {
     debug_assert!(payload.len() <= u32::MAX as usize);
     debug_assert!(digest.len() == 48);
@@ -152,14 +182,21 @@ pub fn sha384_ema(digest: &mut [u8], payload: &[u8]) {
 
 /// SHA3 512
 #[cfg_attr(not(eurydice), inline(always))]
+#[hax_lib::requires(
+    data.len().to_int() <= u32::MAX.to_int()
+)]
 pub fn sha512(data: &[u8]) -> [u8; SHA3_512_DIGEST_SIZE] {
-    let mut out = [0u8; 64];
+    let mut out = [0u8; SHA3_512_DIGEST_SIZE];
     sha512_ema(&mut out, data);
     out
 }
 
 /// SHA3 512
 #[cfg_attr(not(eurydice), inline(always))]
+#[hax_lib::requires(
+    payload.len().to_int() <= u32::MAX.to_int() &&
+    digest.len().to_int() == int!(64)
+)]
 pub fn sha512_ema(digest: &mut [u8], payload: &[u8]) {
     debug_assert!(payload.len() <= u32::MAX as usize);
     debug_assert!(digest.len() == 64);

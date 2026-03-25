@@ -35,7 +35,7 @@ fn openssl_keygen(bits: u32) -> (Vec<u8>, openssl::rsa::Rsa<openssl::pkey::Priva
     (der, k)
 }
 
-fn parse_der_libcrux(sk_der: &[u8], _bits: usize) -> libcrux_rsa::VarLenPrivateKey {
+fn parse_der_libcrux(sk_der: &[u8], _bits: usize) -> libcrux_rsa::VarLenPrivateKey<'_> {
     let mut decoder = der::SliceReader::new(sk_der).unwrap();
     let rsa_priv_key = pkcs1::RsaPrivateKey::decode(&mut decoder).unwrap();
 

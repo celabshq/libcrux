@@ -236,3 +236,60 @@ fn sha3_shake256_absorb() {
     state.squeeze(&mut digest);
     assert_eq!(hex::encode(digest), expected);
 }
+
+// === Regression tests ===
+
+/// Regression test for XOF squeeze bug: when squeeze is called with a buffer
+/// larger than RATE bytes, the first output block was skipped due to an extra
+/// keccakf1600() call before the first extraction. This test requests 200 bytes
+/// (> SHAKE128 RATE of 168) in a single squeeze call and compares against the
+/// known one-shot output.
+#[test]
+fn bug1_xof_squeeze_skips_first_block_shake128() {
+    // One-shot: known correct output
+    let mut expected = [0u8; 200];
+    shake128(&mut expected, test_vectors::HELLO);
+
+    // Streaming XOF: was buggy when out_len > RATE (168 for SHAKE128)
+    let mut state = incremental::Shake128Xof::new();
+    state.absorb_final(test_vectors::HELLO);
+    let mut actual = [0u8; 200];
+    state.squeeze(&mut actual);
+
+    assert_eq!(actual, expected);
+}
+
+/// Same regression test for SHAKE256 (RATE = 136).
+#[test]
+fn bug1_xof_squeeze_skips_first_block_shake256() {
+    let mut expected = [0u8; 200];
+    shake256(&mut expected, test_vectors::HELLO);
+
+    let mut state = incremental::Shake256Xof::new();
+    state.absorb_final(test_vectors::HELLO);
+    let mut actual = [0u8; 200];
+    state.squeeze(&mut actual);
+
+    assert_eq!(actual, expected);
+}
+
+/// Regression test: multiple squeeze calls should produce the same output as
+/// a single large squeeze (i.e., streaming squeeze is consistent).
+#[test]
+fn bug1_xof_squeeze_multi_call_consistency() {
+    // Single large squeeze
+    let mut state1 = incremental::Shake128Xof::new();
+    state1.absorb_final(test_vectors::HELLO);
+    let mut single = [0u8; 504]; // 3 * RATE(168)
+    state1.squeeze(&mut single);
+
+    // Multiple small squeezes
+    let mut state2 = incremental::Shake128Xof::new();
+    state2.absorb_final(test_vectors::HELLO);
+    let mut multi = [0u8; 504];
+    state2.squeeze(&mut multi[0..168]);
+    state2.squeeze(&mut multi[168..336]);
+    state2.squeeze(&mut multi[336..504]);
+
+    assert_eq!(single, multi);
+}

@@ -145,7 +145,7 @@ pub(crate) fn serialize_vector<const K: usize, Vector: Operations>(
     cloop! {
         for (i, re) in key.into_iter().enumerate() {
             hax_lib::loop_invariant!(|i: usize| {
-                fstar!(r#"${out.len()} == Spec.MLKEM.v_CPA_PUBLIC_KEY_SIZE $K /\
+                fstar!(r#"${out.len()} == Spec.MLKEM.v_RANKED_BYTES_PER_RING_ELEMENT $K /\
                     (v $i < v $K ==>
                     Libcrux_ml_kem.Polynomial.is_bounded_poly 3328 (Seq.index $key (v $i))) /\
                     (forall (j: nat). j < v $i ==>

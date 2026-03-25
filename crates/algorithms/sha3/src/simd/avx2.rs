@@ -1,5 +1,6 @@
-use crate::{generic_keccak::KeccakState, traits::*};
 use libcrux_intrinsics::avx2::*;
+
+use crate::{generic_keccak::KeccakState, traits::*};
 
 #[inline(always)]
 fn rotate_left<const LEFT: i32, const RIGHT: i32>(x: Vec256) -> Vec256 {
@@ -188,10 +189,10 @@ pub(crate) fn store_block<const RATE: usize>(
             let i = (4 * chunks + chunks8) / 5;
             let j = (4 * chunks + chunks8) % 5;
             mm256_storeu_si256_u8(&mut u8s, *get_ij(s, i, j));
-            out0[start + len - rem8..start + len].copy_from_slice(&u8s[0..rem]);
-            out1[start + len - rem8..start + len].copy_from_slice(&u8s[8..8 + rem]);
-            out2[start + len - rem8..start + len].copy_from_slice(&u8s[16..16 + rem]);
-            out3[start + len - rem8..start + len].copy_from_slice(&u8s[24..24 + rem]);
+            out0[start + len - rem8..start + len].copy_from_slice(&u8s[0..rem8]);
+            out1[start + len - rem8..start + len].copy_from_slice(&u8s[8..8 + rem8]);
+            out2[start + len - rem8..start + len].copy_from_slice(&u8s[16..16 + rem8]);
+            out3[start + len - rem8..start + len].copy_from_slice(&u8s[24..24 + rem8]);
         }
     }
 }

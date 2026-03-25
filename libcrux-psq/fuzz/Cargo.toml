@@ -1,0 +1,56 @@
+[package]
+name = "libcrux-psq-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+rand = "0.9"
+libcrux-ml-kem = { workspace = true, default-features = true, features = ["rand"] }
+
+[dependencies.libcrux-psq]
+path = ".."
+
+[[bin]]
+name = "responder_read_message"
+path = "fuzz_targets/responder_read_message.rs"
+test = false
+doc = false
+bench = false
+harness = false
+
+[[bin]]
+name = "query_initiator_read_response"
+path = "fuzz_targets/query_initiator_read_response.rs"
+test = false
+doc = false
+bench = false
+harness = false
+
+[[bin]]
+name = "registration_initiator_read_response"
+path = "fuzz_targets/registration_initiator_read_response.rs"
+test = false
+doc = false
+bench = false
+harness = false
+
+[[bin]]
+name = "session_deserialize"
+path = "fuzz_targets/session_deserialize.rs"
+test = false
+doc = false
+bench = false
+harness = false
+
+[[bin]]
+name = "transport_read_message"
+path = "fuzz_targets/transport_read_message.rs"
+test = false
+doc = false
+bench = false
+harness = false

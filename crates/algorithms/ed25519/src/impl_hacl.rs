@@ -124,6 +124,7 @@ pub fn generate_key_pair(
     let mut sk = [0u8; 32];
     let mut pk = [0u8; 32];
 
+    let mut found = false;
     for _ in 0..LIMIT {
         rng.try_fill_bytes(&mut sk).map_err(|_| Error::KeyGen)?;
 
@@ -133,7 +134,12 @@ pub fn generate_key_pair(
             continue;
         }
 
+        found = true;
         break;
+    }
+
+    if !found {
+        return Err(Error::KeyGen);
     }
 
     secret_to_public(&mut pk, &sk);

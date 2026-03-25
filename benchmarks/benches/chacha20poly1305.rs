@@ -1,22 +1,23 @@
 use chacha20poly1305::{AeadCore, AeadInPlace, KeyInit};
 use criterion::{criterion_group, criterion_main, BatchSize, BenchmarkId, Criterion, Throughput};
-use libcrux::{digest, drbg};
 
 use libcrux_chacha20poly1305::*;
 
 use benchmarks::util::*;
+use rand::RngCore;
 use ring::aead::UnboundKey;
 
-fn randbuf<const LEN: usize>(drbg: &mut drbg::Drbg) -> Result<[u8; LEN], drbg::Error> {
+fn randbuf<const LEN: usize>(drbg: &mut impl RngCore) -> [u8; LEN] {
     let mut buf = [0; LEN];
-    drbg.generate(&mut buf).map(|_| buf)
+    drbg.fill_bytes(&mut buf);
+    buf
 }
 
 // Comparing libcrux performance for different payload sizes and other implementations.
 fn comparisons_encrypt(c: &mut Criterion) {
     const PAYLOAD_SIZES: [usize; 1] = [1024 * 1024 * 10];
 
-    let mut drbg = drbg::Drbg::new(digest::Algorithm::Sha256).unwrap();
+    let mut drbg = rand::rng(); // not a crypto rng
     let mut group = c.benchmark_group("ChaCha20Poly1305 Encrypt");
 
     for payload_size in PAYLOAD_SIZES.iter() {
@@ -28,8 +29,8 @@ fn comparisons_encrypt(c: &mut Criterion) {
             |b, payload_size| {
                 b.iter_batched(
                     || {
-                        let key = randbuf(&mut drbg).unwrap();
-                        let nonce = randbuf(&mut drbg).unwrap();
+                        let key = randbuf(&mut drbg);
+                        let nonce = randbuf(&mut drbg);
                         let ptxt = randombytes(*payload_size);
                         let ctxt = vec![0; *payload_size];
                         let aad = randombytes(1_000);
@@ -112,8 +113,7 @@ fn comparisons_encrypt(c: &mut Criterion) {
                     |(data, cipher, key, nonce, aad)| {
                         let mut tag = [0u8; 16];
                         let _ciphertext =
-                            encrypt_aead(cipher, &key, Some(&nonce), &aad, &data, &mut tag)
-                                .unwrap();
+                            encrypt_aead(cipher, &key, Some(&nonce), &aad, &data, &mut tag);
                     },
                     BatchSize::SmallInput,
                 )
@@ -126,7 +126,7 @@ fn comparisons_encrypt(c: &mut Criterion) {
 fn comparisons_decrypt(c: &mut Criterion) {
     const PAYLOAD_SIZES: [usize; 1] = [1024 * 1024 * 10];
 
-    let mut drbg = drbg::Drbg::new(digest::Algorithm::Sha256).unwrap();
+    let mut drbg = rand::rng(); // not a crypto rng
     let mut group = c.benchmark_group("ChaCha20Poly1305 Decrypt");
 
     for payload_size in PAYLOAD_SIZES.iter() {
@@ -140,8 +140,8 @@ fn comparisons_decrypt(c: &mut Criterion) {
 
                 b.iter_batched(
                     || {
-                        let key = randbuf(&mut drbg).unwrap();
-                        let nonce_enc = randbuf(&mut drbg).unwrap();
+                        let key = randbuf(&mut drbg);
+                        let nonce_enc = randbuf(&mut drbg);
                         let nonce = nonce_enc;
                         let ptxt = randombytes(payload_size);
                         let mut ctxt = vec![0; payload_size + TAG_LEN];
@@ -155,7 +155,7 @@ fn comparisons_decrypt(c: &mut Criterion) {
                         (key, nonce, ptxt, ctxt, aad)
                     },
                     |(key, nonce, mut ptxt, ctxt, aad)| {
-                        decrypt(&key, &mut ptxt, &ctxt, &aad, &nonce).unwrap();
+                        let _r = decrypt(&key, &mut ptxt, &ctxt, &aad, &nonce);
                     },
                     BatchSize::SmallInput,
                 )

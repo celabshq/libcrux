@@ -1,6 +1,6 @@
 [package]
 name = "libcrux-ml-kem"
-version = "0.0.7"
+version = "0.0.8"
 authors.workspace = true
 license.workspace = true
 homepage.workspace = true
@@ -15,7 +15,7 @@ exclude = [
     "/proofs",
     "/hax.py",
     "C-CODE.md",
-    "TOOLS.md"
+    "TOOLS.md",
 ]
 
 [lib]
@@ -23,7 +23,7 @@ bench = false # so libtest doesn't eat the arguments to criterion
 
 [dependencies]
 rand = { version = "0.9", optional = true, default-features = false }
-libcrux-platform = { version = "0.0.3", path = "../crates/sys/platform" }
+libcrux-platform.workspace = true
 libcrux-sha3.workspace = true
 libcrux-intrinsics.workspace = true
 libcrux-secrets.workspace = true
@@ -83,10 +83,8 @@ hex = { version = "0.4.3", features = ["serde"] }
 criterion = "0.8"
 libcrux-traits = { workspace = true, features = [
     "generic-tests",
-]}
-libcrux-kats = { path = "../crates/testing/kats", features = [
-    "mlkem",
 ] }
+libcrux-kats = { path = "../crates/testing/kats", features = ["mlkem"] }
 
 [[bench]]
 name = "ml-kem"

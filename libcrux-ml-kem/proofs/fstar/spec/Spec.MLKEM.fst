@@ -137,8 +137,8 @@ let sample_polynomial_ntt seed =
 
 let sample_polynomial_ntt_at_index (seed:t_Array u8 (sz 32)) (i j: (x:usize{v x <= 4})) : polynomial & bool =
     let seed34 = Seq.append seed (Seq.create 2 (mk_u8 0)) in
-    let seed34 = Rust_primitives.Hax.update_at seed34 (sz 32) (mk_int #u8_inttype (v i)) in
-    let seed34 = Rust_primitives.Hax.update_at seed34 (sz 33) (mk_int #u8_inttype (v j)) in
+    let seed34 = Rust_primitives.Hax.update_at seed34 (sz 32) (mk_int #u8_inttype (v j)) in
+    let seed34 = Rust_primitives.Hax.update_at seed34 (sz 33) (mk_int #u8_inttype (v i)) in
     sample_polynomial_ntt seed34
 
 val sample_matrix_A_ntt: #r:rank -> seed:t_Array u8 (sz 32) -> (matrix r & bool)
@@ -274,7 +274,7 @@ let ind_cpa_encrypt_unpacked r message randomness t_as_ntt matrix_A_as_ntt =
     let error_2 = sample_poly_cbd2 #r randomness (r +! r) in
     let u = vector_add (vector_inv_ntt (matrix_vector_mul_ntt matrix_A_as_ntt r_as_ntt)) error_1 in
     let mu = decode_then_decompress_message message in
-    let v = poly_add (poly_add (vector_dot_product_ntt t_as_ntt r_as_ntt) error_2) mu in  
+    let v = poly_add (poly_add (poly_inv_ntt (vector_dot_product_ntt t_as_ntt r_as_ntt)) error_2) mu in
     let c1 = compress_then_encode_u #r u in
     let c2 = compress_then_encode_v #r v in
     concat c1 c2

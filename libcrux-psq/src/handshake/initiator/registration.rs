@@ -3,6 +3,7 @@ use std::{io::Cursor, mem::take};
 use rand::CryptoRng;
 use tls_codec::{Deserialize, Serialize, Size, VLByteSlice};
 
+use super::{InitiatorInnerPayloadOut, InitiatorOuterPayloadOut};
 use crate::{
     aead::{AEADKeyNonce, AeadType},
     handshake::{
@@ -18,8 +19,6 @@ use crate::{
     session::{Session, SessionBinding, SessionError},
     traits::{Channel, IntoSession},
 };
-
-use super::{InitiatorInnerPayloadOut, InitiatorOuterPayloadOut};
 
 pub struct RegistrationInitiator<'a, Rng: CryptoRng> {
     ciphersuite: InitiatorCiphersuite<'a>,
@@ -87,22 +86,82 @@ impl<'a, Rng: CryptoRng> RegistrationInitiator<'a, Rng> {
             state,
         })
     }
-}
 
-impl<'a, Rng: CryptoRng> Channel<Error> for RegistrationInitiator<'a, Rng> {
-    fn write_message(&mut self, payload: &[u8], out: &mut [u8]) -> Result<usize, Error> {
-        let RegistrationInitiatorState::Initial(mut state) = take(&mut self.state) else {
-            // If we're not in the initial state, we write nothing
-            return Ok(0);
+    fn read_decoded_message(
+        &mut self,
+        responder_msg: &HandshakeMessage,
+        state: Box<WaitingState>,
+    ) -> Result<Vec<u8>, Error> {
+        // Derive K2
+        let tx2 = tx2(&state.tx1, &responder_msg.pk)?;
+        let mut k2 = match self.ciphersuite.auth {
+            crate::handshake::ciphersuite::initiator::Auth::DH(dhkey_pair) => {
+                derive_k2_registration_initiator_dh(
+                    &state.k1,
+                    &tx2,
+                    &dhkey_pair.sk,
+                    &state.initiator_ephemeral_ecdh_sk,
+                    &responder_msg.pk,
+                    self.ciphersuite.aead_type,
+                )?
+            }
+            crate::handshake::ciphersuite::initiator::Auth::Sig(_) => {
+                derive_k2_registration_initiator_sig(
+                    &state.k1,
+                    &tx2,
+                    &state.initiator_ephemeral_ecdh_sk,
+                    &responder_msg.pk,
+                    self.ciphersuite.aead_type,
+                )?
+            }
         };
 
+        // Decrypt Payload
+        let registration_response: ResponderRegistrationPayload = k2.handshake_decrypt(
+            responder_msg.ciphertext.as_slice(),
+            &responder_msg.tag,
+            responder_msg.aad.as_slice(),
+        )?;
+
+        self.state = RegistrationInitiatorState::ToTransport(
+            ToTransportState {
+                tx2,
+                k2,
+                initiator_authenticator: None,
+                pq: self.ciphersuite.is_pq(),
+            }
+            .into(),
+        );
+
+        Ok(registration_response.0.into())
+    }
+
+    fn read_state(&mut self) -> Result<Box<WaitingState>, Error> {
+        if let RegistrationInitiatorState::Waiting(state) = take(&mut self.state) {
+            Ok(state)
+        } else {
+            Err(Error::InitiatorState)
+        }
+    }
+
+    fn write_state(&mut self) -> Result<Box<InitialState>, Error> {
+        if let RegistrationInitiatorState::Initial(state) = take(&mut self.state) {
+            Ok(state)
+        } else {
+            Err(Error::InitiatorState)
+        }
+    }
+
+    fn prepare_message_contents(
+        &mut self,
+        payload: &[u8],
+        state: &mut Box<InitialState>,
+    ) -> Result<(Transcript, AEADKeyNonce, Vec<u8>, [u8; 16]), Error> {
         let (pq_encapsulation, pq_shared_secret) =
             self.ciphersuite.pq_encapsulate(&mut self.rng)?;
-
         let pq_encapsulation_serialized = pq_encapsulation
             .tls_serialize_detached()
             .map_err(|_e| Error::OutputBufferShort)?;
-
         let (signature, tx1) = sign_tx1(
             &state.tx0,
             self.ciphersuite.auth,
@@ -110,7 +169,6 @@ impl<'a, Rng: CryptoRng> Channel<Error> for RegistrationInitiator<'a, Rng> {
             &pq_encapsulation_serialized,
             &mut self.rng,
         )?;
-
         let (k1, outer_ciphertext, outer_tag) = match self.ciphersuite.auth {
             crate::handshake::ciphersuite::initiator::Auth::DH(dhkey_pair) => {
                 let mut k1 = derive_k1_dh(
@@ -143,7 +201,10 @@ impl<'a, Rng: CryptoRng> Channel<Error> for RegistrationInitiator<'a, Rng> {
                     &state.k0,
                     pq_shared_secret,
                     &tx1,
-                    signature.as_ref().expect("signature based initiator authentication produces a signature, or propagates the signing error before"),
+                    signature.as_ref().expect(
+                        "signature based initiator authentication produces a signature, or \
+                         propagates the signing error before",
+                    ),
                     self.ciphersuite.aead_type(),
                 )?;
 
@@ -154,7 +215,10 @@ impl<'a, Rng: CryptoRng> Channel<Error> for RegistrationInitiator<'a, Rng> {
                 let outer_payload = InitiatorOuterPayloadOut::Registration(InnerMessageOut {
                     auth: AuthMessageOut::Sig {
                         vk: &sig_auth.into(),
-                        signature: signature.as_ref().expect("signature based initiator authentication produces a signature, or propagates the signing error before"),
+                        signature: signature.as_ref().expect(
+                            "signature based initiator authentication produces a signature, or \
+                             propagates the signing error before",
+                        ),
                     },
                     ciphertext: VLByteSlice(&inner_ciphertext),
                     tag: inner_tag,
@@ -166,9 +230,19 @@ impl<'a, Rng: CryptoRng> Channel<Error> for RegistrationInitiator<'a, Rng> {
                 (k1, outer_ciphertext, outer_tag)
             }
         };
+        Ok((tx1, k1, outer_ciphertext, outer_tag))
+    }
+}
+
+impl<'a, Rng: CryptoRng> Channel<Error, HandshakeMessage> for RegistrationInitiator<'a, Rng> {
+    fn write_message(&mut self, payload: &[u8], out: &mut [u8]) -> Result<usize, Error> {
+        let mut old_state = self.write_state()?;
+
+        let (tx1, k1, outer_ciphertext, outer_tag) =
+            self.prepare_message_contents(payload, &mut old_state)?;
 
         let msg = HandshakeMessageOut {
-            pk: &state.initiator_ephemeral_keys.pk,
+            pk: &old_state.initiator_ephemeral_keys.pk,
             ciphertext: VLByteSlice(&outer_ciphertext),
             tag: outer_tag,
             aad: VLByteSlice(self.outer_aad),
@@ -181,7 +255,7 @@ impl<'a, Rng: CryptoRng> Channel<Error> for RegistrationInitiator<'a, Rng> {
 
         self.state = RegistrationInitiatorState::Waiting(
             WaitingState {
-                initiator_ephemeral_ecdh_sk: state.initiator_ephemeral_keys.sk,
+                initiator_ephemeral_ecdh_sk: old_state.initiator_ephemeral_keys.sk,
                 tx1,
                 k1,
             }
@@ -196,60 +270,55 @@ impl<'a, Rng: CryptoRng> Channel<Error> for RegistrationInitiator<'a, Rng> {
         message_bytes: &[u8],
         out: &mut [u8],
     ) -> Result<(usize, usize), Error> {
-        let RegistrationInitiatorState::Waiting(state) = take(&mut self.state) else {
-            // If we're not in the waiting state, we do nothing.
-            return Ok((0, 0));
-        };
+        let old_state = self.read_state()?;
 
         // Deserialize the message.
         let responder_msg = HandshakeMessage::tls_deserialize(&mut Cursor::new(&message_bytes))
             .map_err(Error::Deserialize)?;
         let bytes_deserialized = responder_msg.tls_serialized_len();
 
-        // Derive K2
-        let tx2 = tx2(&state.tx1, &responder_msg.pk)?;
-        let mut k2 = match self.ciphersuite.auth {
-            crate::handshake::ciphersuite::initiator::Auth::DH(dhkey_pair) => {
-                derive_k2_registration_initiator_dh(
-                    &state.k1,
-                    &tx2,
-                    &dhkey_pair.sk,
-                    &state.initiator_ephemeral_ecdh_sk,
-                    &responder_msg.pk,
-                    self.ciphersuite.aead_type,
-                )?
-            }
-            crate::handshake::ciphersuite::initiator::Auth::Sig(_) => {
-                derive_k2_registration_initiator_sig(
-                    &state.k1,
-                    &tx2,
-                    &state.initiator_ephemeral_ecdh_sk,
-                    &responder_msg.pk,
-                    self.ciphersuite.aead_type,
-                )?
-            }
+        let registration_response = self.read_decoded_message(&responder_msg, old_state)?;
+
+        let out_bytes_written = write_output(&registration_response, out)?;
+
+        Ok((bytes_deserialized, out_bytes_written))
+    }
+
+    fn write_message_external_encoding(
+        &mut self,
+        payload: &[u8],
+    ) -> Result<HandshakeMessage, Error> {
+        let mut old_state = self.write_state()?;
+
+        let (tx1, k1, outer_ciphertext, outer_tag) =
+            self.prepare_message_contents(payload, &mut old_state)?;
+
+        let message = HandshakeMessage {
+            pk: old_state.initiator_ephemeral_keys.pk,
+            ciphertext: outer_ciphertext,
+            tag: outer_tag,
+            aad: self.outer_aad.to_vec(),
+            ciphersuite: self.ciphersuite.name(),
         };
 
-        // Decrypt Payload
-        let registration_response: ResponderRegistrationPayload = k2.handshake_decrypt(
-            responder_msg.ciphertext.as_slice(),
-            &responder_msg.tag,
-            responder_msg.aad.as_slice(),
-        )?;
-
-        let out_bytes_written = write_output(registration_response.0.as_slice(), out)?;
-
-        self.state = RegistrationInitiatorState::ToTransport(
-            ToTransportState {
-                tx2,
-                k2,
-                initiator_authenticator: None,
-                pq: self.ciphersuite.is_pq(),
+        self.state = RegistrationInitiatorState::Waiting(
+            WaitingState {
+                initiator_ephemeral_ecdh_sk: old_state.initiator_ephemeral_keys.sk,
+                tx1,
+                k1,
             }
             .into(),
         );
 
-        Ok((bytes_deserialized, out_bytes_written))
+        Ok(message)
+    }
+
+    fn read_message_external_encoding(
+        &mut self,
+        responder_msg: &HandshakeMessage,
+    ) -> Result<Vec<u8>, Error> {
+        let old_state = self.read_state()?;
+        self.read_decoded_message(responder_msg, old_state)
     }
 }
 
