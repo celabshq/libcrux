@@ -35,9 +35,9 @@ exclude = [
 members = [
     "benchmarks",
     "cavp",
-    "crates/algorithms/aesgcm",
+    "crates/algorithms/aes",
     "crates/algorithms/blake2",
-    "crates/algorithms/aesgcm/fuzz",
+    "crates/algorithms/aes/fuzz",
     "crates/algorithms/chacha20poly1305",
     "crates/algorithms/curve25519",
     "crates/algorithms/ecdsa",
@@ -89,7 +89,7 @@ allow-branch = ["main"]
 [workspace.dependencies]
 hax-lib = { version = "=0.3.6" }
 libcrux-aead = { version = "=0.0.7", path = "crates/primitives/aead" }
-libcrux-aesgcm = { version = "=0.0.7", path = "crates/algorithms/aesgcm" }
+libcrux-aes = { version = "=0.0.7", path = "crates/algorithms/aes" }
 libcrux-blake2 = { version = "=0.0.6", path = "crates/algorithms/blake2" }
 libcrux-chacha20poly1305 = { version = "=0.0.7", path = "crates/algorithms/chacha20poly1305" }
 libcrux-poly1305 = { version = "=0.0.5", path = "crates/algorithms/poly1305" }
@@ -196,7 +196,7 @@ libcrux-digest.workspace = true
 libcrux-kem.workspace = true
 
 # Algorithms
-libcrux-aesgcm.workspace = true
+libcrux-aes.workspace = true
 libcrux-blake2.workspace = true
 libcrux-chacha20poly1305.workspace = true
 libcrux-poly1305.workspace = true

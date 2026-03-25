@@ -1,12 +1,11 @@
 //! # AEAD API
+use libcrux_aes::AES_128_KEY_LEN as KEY_LEN_AES;
 use libcrux_chacha20poly1305::{decrypt_detached, encrypt_detached, KEY_LEN as KEY_LEN_CHACHA};
 use libcrux_traits::aead::arrayref::Aead;
 use tls_codec::{
     Deserialize, Serialize, SerializeBytes, TlsDeserialize, TlsSerialize, TlsSerializeBytes,
     TlsSize,
 };
-
-use libcrux_aesgcm::AESGCM128_KEY_LEN as KEY_LEN_AES;
 
 /// Length of an AEAD nonce in bytes.
 pub const NONCE_LEN: usize = 12;
@@ -185,7 +184,7 @@ impl AEADKeyNonce {
                     .map_err(|_| AEADError::CryptoError)?;
             }
             AEADKey::AesGcm128(key) => {
-                libcrux_aesgcm::AesGcm128::encrypt(
+                libcrux_aes::AesGcm128::encrypt(
                     ciphertext,
                     &mut tag,
                     key,
@@ -253,7 +252,7 @@ impl AEADKeyNonce {
                 }
             }
             AEADKey::AesGcm128(key) => {
-                if libcrux_aesgcm::AesGcm128::decrypt(
+                if libcrux_aes::AesGcm128::decrypt(
                     &mut plaintext,
                     key,
                     &self.nonce,
@@ -299,7 +298,7 @@ impl AEADKeyNonce {
                 }
             }
             AEADKey::AesGcm128(key) => {
-                if libcrux_aesgcm::AesGcm128::decrypt(
+                if libcrux_aes::AesGcm128::decrypt(
                     plaintext,
                     key,
                     &self.nonce,

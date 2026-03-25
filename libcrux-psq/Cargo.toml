@@ -40,7 +40,7 @@ libcrux-ed25519 = { workspace = true, features = [
 ] }
 tls_codec = { version = "0.4.2", features = ["derive"] }
 libcrux-ml-dsa = { workspace = true, features = ["codec"] }
-libcrux-aesgcm.workspace = true
+libcrux-aes.workspace = true
 
 [dev-dependencies]
 libcrux-psq = { path = ".", features = ["test-utils"] }

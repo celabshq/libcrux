@@ -1,0 +1,99 @@
+[package]
+edition = "2021"
+name = "libcrux-aes-fuzz"
+publish = false
+version = "0.0.0"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libcrux-traits.workspace = true
+libfuzzer-sys = "0.4"
+
+[dependencies.libcrux-aes]
+path = ".."
+
+[[bin]]
+bench = false
+doc = false
+name = "encrypt128"
+path = "fuzz_targets/encrypt128.rs"
+test = false
+
+[[bin]]
+bench = false
+doc = false
+name = "encrypt256"
+path = "fuzz_targets/encrypt256.rs"
+test = false
+
+[[bin]]
+bench = false
+doc = false
+name = "encrypt_ccm256"
+path = "fuzz_targets/encrypt_ccm256.rs"
+test = false
+
+[[bin]]
+bench = false
+doc = false
+name = "encrypt_ccm128"
+path = "fuzz_targets/encrypt_ccm128.rs"
+test = false
+
+[[bin]]
+bench = false
+doc = false
+name = "encrypt_ccm256_short_tag"
+path = "fuzz_targets/encrypt_ccm256_short_tag.rs"
+test = false
+
+[[bin]]
+bench = false
+doc = false
+name = "encrypt_ccm128_short_tag"
+path = "fuzz_targets/encrypt_ccm128_short_tag.rs"
+test = false
+
+[[bin]]
+bench = false
+doc = false
+name = "decrypt128"
+path = "fuzz_targets/decrypt128.rs"
+test = false
+
+[[bin]]
+bench = false
+doc = false
+name = "decrypt256"
+path = "fuzz_targets/decrypt256.rs"
+test = false
+
+[[bin]]
+bench = false
+doc = false
+name = "decrypt_ccm128"
+path = "fuzz_targets/decrypt_ccm128.rs"
+test = false
+
+[[bin]]
+bench = false
+doc = false
+name = "decrypt_ccm256"
+path = "fuzz_targets/decrypt_ccm256.rs"
+test = false
+
+[[bin]]
+bench = false
+doc = false
+name = "decrypt_ccm128_short_tag"
+path = "fuzz_targets/decrypt_ccm128_short_tag.rs"
+test = false
+
+[[bin]]
+bench = false
+doc = false
+name = "decrypt_ccm256_short_tag"
+path = "fuzz_targets/decrypt_ccm256_short_tag.rs"
+test = false
