@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-nostd:
     runs-on: linux
     strategy:
         matrix:
