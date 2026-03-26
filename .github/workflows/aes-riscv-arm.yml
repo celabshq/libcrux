@@ -47,7 +47,11 @@ jobs:
         run: |
           cargo build --release --target ${{ matrix.target }}
 
-  test-riscv64gc:
+  test:
+    strategy:
+        fail-fast: false
+        matrix:
+            targets: [riscv64gc-unknown-linux-gnu, armv7-unknown-linux-gnueabihf]
     runs-on: linux
     defaults:
       run:
@@ -62,43 +66,13 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
         with:
-            targets: riscv64gc-unknown-linux-gnu
+            targets: ${{ matrix.target }}
         name: Install target Rust toolchain
 
-      # Test
-      - name: Test (RISC-V)
+      - name: Test
         run: |
-          nix-shell --run "cargo test --verbose --target riscv64gc-unknown-linux-gnu"
+          nix-shell --run "cargo test --verbose --target ${{ matrix.target }}"
 
-      # Test Release (RISC-V)
-      - name: Test Release (RISC-V)
+      - name: Test Release
         run: |
-          nix-shell --run "cargo test --verbose --target riscv64gc-unknown-linux-gnu --release"
-
-  test-armv7:
-    runs-on: linux
-    defaults:
-      run:
-        shell: bash
-        working-directory: crates/algorithms/aes
-
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Update dependencies
-        run: cargo update
-
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-            targets: armv7-unknown-linux-gnueabihf
-        name: Install target Rust toolchain
-
-      # Test
-      - name: Test (ARMv7)
-        run: |
-          nix-shell --run "cargo test --verbose --target armv7-unknown-linux-gnueabihf"
-
-      # Test Release (RISC-V)
-      - name: Test Release (ARMv7)
-        run: |
-          nix-shell --run "cargo test --verbose --target armv7-unknown-linux-gnueabihf --release"
+          nix-shell --run "cargo test --verbose --target ${{ matrix.target }} --release"
