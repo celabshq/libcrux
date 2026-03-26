@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-nostd:
     runs-on: linux
     strategy:
         matrix:
@@ -37,7 +37,7 @@ jobs:
         with:
             targets: ${{ matrix.target }}
         name: Install target Rust toolchain
-      
+
       # Build
       - name: Build
         run: |
@@ -46,3 +46,31 @@ jobs:
       - name: Build Release
         run: |
           cargo build --release --target ${{ matrix.target }}
+
+  test-riscv64gc:
+    runs-on: linux
+    defaults:
+      run:
+        shell: bash
+        working-directory: crates/algorithms/aes
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Update dependencies
+        run: cargo update
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+            targets: riscv64gc-unknown-linux-gnu
+        name: Install target Rust toolchain
+
+      # Test
+      - name: Test (RISC-V)
+        run: |
+          nix-shell --run "cargo test --verbose --target riscv64gc-unknown-linux-gnu"
+
+      # Test Release (RISC-V)
+      - name: Test (RISC-V)
+        run: |
+          nix-shell --run "cargo test --verbose --target riscv64gc-unknown-linux-gnu --release"
