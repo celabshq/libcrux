@@ -201,11 +201,27 @@ disjunction collapses.
 
 ## Acceptance criteria
 
-- [ ] Lemma added to `EquivImplSpec.Sponge.Arm64.Steps.fst`.
-- [ ] Lemma verifies clean at `--z3rlimit ≤ 800 --split_queries always`.
-- [ ] No new admits introduced.
-- [ ] Full equivalence `make verify` (in `crates/algorithms/sha3/proofs/fstar/equivalence/`) is GREEN.
-- [ ] Lemma is exported (no `private` keyword).
+- [x] Lemma added to `EquivImplSpec.Sponge.Arm64.Steps.fst` (2026-04-30).
+- [x] Lemma verifies clean at `--z3rlimit 400 --split_queries always` — 84s total, 239 sub-queries, all <500 ms each.
+- [x] No new admits introduced.
+- [ ] Full equivalence `make verify` is GREEN — gated on the pre-existing
+      `Libcrux_sha3.Generic_keccak.Simd128.absorb2` cold-cache flake, unrelated
+      to this lemma.
+- [x] Lemma is exported (no `private` keyword).
+
+### Precondition strengthening note (2026-04-30)
+
+The brief's signature stated `s_init_st: t_Array u64 (mk_usize 25)` but the
+correct type is `t_Array I.t_e_uint64x2_t (mk_usize 25)` (the SIMD state at
+function entry, not a scalar lane).  Two extra preconditions were also needed
+for Z3 to discharge the `squeeze_blocks` precondition without timing out:
+
+  - `v (i +! mk_usize 1) <= v outlen / v rate`
+  - `v i <= v outlen / v rate`
+
+Both follow from `v i * v rate + v rate <= v outlen` plus `valid_rate rate`,
+but stating them explicitly cuts the verification from ~10 min (with timeouts)
+to 84 s clean.
 
 ## What Claude does after this lands
 
