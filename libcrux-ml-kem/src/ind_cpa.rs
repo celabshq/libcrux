@@ -639,17 +639,24 @@ pub(crate) fn serialize_unpacked_secret_key<
 /// Call [`compress_then_serialize_ring_element_u`] on each ring element.
 #[hax_lib::fstar::verification_status(lax)]
 #[hax_lib::fstar::options("--z3rlimit 800 --ext context_pruning")]
-#[hax_lib::requires(fstar!(r#"Spec.MLKEM.is_rank $K /\
-    $OUT_LEN == Spec.MLKEM.v_C1_SIZE $K /\
-    $COMPRESSION_FACTOR == Spec.MLKEM.v_VECTOR_U_COMPRESSION_FACTOR $K /\
-    $BLOCK_LEN == Spec.MLKEM.v_C1_BLOCK_SIZE $K /\
-    ${out.len()} == $OUT_LEN /\
-    (forall (i:nat). i < v $K ==>
-        Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3328) (Seq.index $input i))"#))]
-#[hax_lib::ensures(|_|
-    fstar!(r#"$out_future == Spec.MLKEM.compress_then_encode_u #$K
-               (Libcrux_ml_kem.Vector.to_spec_vector_t #$K #$:Vector $input)"#)
+#[hax_lib::requires(
+    (hacspec_ml_kem::parameters::is_rank(K)
+        && OUT_LEN == hacspec_ml_kem::parameters::c1_size(K)
+        && COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_u_compression_factor(K)
+        && BLOCK_LEN == hacspec_ml_kem::parameters::c1_block_size(K)
+        && out.len() == OUT_LEN).to_prop()
+    & crate::polynomial::spec::is_bounded_polynomial_vector(3328, &input)
 )]
+#[hax_lib::ensures(|()| {
+    let mut expected = [0u8; 1408]; // max K=4, du=11: 4 * 256 * 11 / 8
+    let len = (K * 256 * COMPRESSION_FACTOR) / 8;
+    hacspec_ml_kem::serialize::compress_then_serialize_u_into::<K>(
+        &crate::vector::spec::vector_to_spec(&input),
+        COMPRESSION_FACTOR,
+        &mut expected[..len],
+    );
+    future(out)[..] == expected[..len]
+})]
 #[inline(always)]
 fn compress_then_serialize_u<
     const K: usize,
@@ -1101,12 +1108,13 @@ fn deserialize_then_decompress_u<
 #[hax_lib::fstar::verification_status(lax)]
 #[inline(always)]
 #[hax_lib::fstar::options("--z3rlimit 800 --ext context_pruning")]
-#[hax_lib::requires(fstar!(r#"Spec.MLKEM.is_rank $K /\
-    length $secret_key == Spec.MLKEM.v_CPA_PRIVATE_KEY_SIZE $K /\
-    v (${secret_key.len()}) / v $BYTES_PER_RING_ELEMENT <= v $K"#))]
+#[hax_lib::requires(
+    hacspec_ml_kem::parameters::is_rank(K)
+    && secret_key.len() == hacspec_ml_kem::parameters::cpa_private_key_size(K)
+)]
 #[hax_lib::ensures(|()|
-    fstar!(r#"Libcrux_ml_kem.Vector.to_spec_vector_t #$K #$:Vector $secret_as_ntt ==
-         Spec.MLKEM.vector_decode_12 #$K $secret_key"#)
+    crate::vector::spec::vector_to_spec(future(secret_as_ntt)) ==
+    hacspec_ml_kem::serialize::vector_decode_12::<K>(secret_key)
 )]
 pub(crate) fn deserialize_vector<const K: usize, Vector: Operations>(
     secret_key: &[u8],
