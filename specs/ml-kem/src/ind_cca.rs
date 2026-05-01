@@ -1,6 +1,8 @@
+use crate::matrix::transpose;
 use crate::parameters::hash_functions::*;
 use crate::parameters::*;
 use crate::sampling::BadRejectionSamplingRandomnessError;
+use crate::serialize::serialize_public_key;
 use crate::{ind_cpa, serialize};
 
 /// Algorithm 16: ML-KEM.KeyGen_internal
@@ -344,6 +346,184 @@ pub fn decapsulate<
     decaps_internal::<RANK, EK_SIZE, DK_SIZE, DK_PKE_SIZE, U_SIZE, V_SIZE, CT_SIZE, J_INPUT_SIZE>(
         params, dk, c,
     )
+}
+
+// ── Unpacked-API CCA helpers (P5) ────────────────────────────────────
+//
+// Convention: `m_A` is in **libcrux convention** (transposed form,
+// `A_transposed[j][i] = sampled(i, j)`), matching the `A` field on
+// `IndCpaPublicKeyUnpacked` in the libcrux impl.  The helpers transpose
+// internally before delegating to the raw-form `ind_cpa::*_unpacked`
+// helpers.
+
+/// Tuple returned by `ind_cca_unpack_generate_keypair`.  Components in
+/// libcrux-impl order:
+/// `(secret_as_ntt, t_as_ntt, m_A_transposed, seed_for_A, public_key_hash, implicit_rejection_value)`.
+pub type IndCcaUnpackedKeyPair<const RANK: usize> = (
+    Vector<RANK>,
+    Vector<RANK>,
+    Matrix<RANK>,
+    [u8; 32],
+    [u8; 32],
+    [u8; 32],
+);
+
+/// ML-KEM.KeyGen — unpacked variant.  Returns the components used by
+/// `MlKemKeyPairUnpacked` in the libcrux impl, instead of the
+/// serialized `(ek, dk)` pair.
+#[allow(non_snake_case)]
+#[hax_lib::fstar::options("--z3rlimit 1500")]
+#[hax_lib::requires(
+    RANK <= 4 && params.rank == RANK
+    && EK_SIZE == RANK * BYTES_PER_RING_ELEMENT + 32
+    && (params.eta1 == 2 || params.eta1 == 3)
+)]
+pub fn ind_cca_unpack_generate_keypair<const RANK: usize, const EK_SIZE: usize>(
+    params: &MlKemParams,
+    randomness: &[u8; 64],
+) -> Result<IndCcaUnpackedKeyPair<RANK>, BadRejectionSamplingRandomnessError> {
+    hax_lib::debug_assert!(EK_SIZE == RANK * BYTES_PER_RING_ELEMENT + 32);
+
+    let d: &[u8; 32] = randomness[..32].try_into().unwrap();
+    let z: &[u8; 32] = randomness[32..].try_into().unwrap();
+
+    let (secret_as_ntt, t_as_ntt, A_as_ntt, seed_for_A) =
+        ind_cpa::generate_keypair_unpacked::<RANK>(params, d)?;
+
+    // Libcrux stores A in transposed form on `IndCpaPublicKeyUnpacked.A`.
+    let m_A: Matrix<RANK> = transpose(&A_as_ntt);
+
+    // public_key_hash = H(serialize_public_key(t_as_ntt, seed_for_A))
+    let ek: [u8; EK_SIZE] = serialize_public_key::<RANK, EK_SIZE>(&t_as_ntt, &seed_for_A);
+    let public_key_hash: [u8; 32] = H(&ek);
+
+    let mut implicit_rejection_value = [0u8; 32];
+    implicit_rejection_value.copy_from_slice(z);
+
+    Ok((
+        secret_as_ntt,
+        t_as_ntt,
+        m_A,
+        seed_for_A,
+        public_key_hash,
+        implicit_rejection_value,
+    ))
+}
+
+/// ML-KEM.Encaps — unpacked variant.  Skips the `H(ek)` and
+/// `ByteDecode₁₂(ek)` decoding steps; consumes the precomputed
+/// `public_key_hash`, `t_as_ntt`, and `m_A` (libcrux-transposed form)
+/// directly.
+#[allow(non_snake_case)]
+#[hax_lib::fstar::options("--z3rlimit 1500")]
+#[hax_lib::requires(
+    RANK <= 4 && params.rank == RANK
+    && U_SIZE == (RANK * COEFFICIENTS_IN_RING_ELEMENT * params.du) / 8
+    && V_SIZE == (COEFFICIENTS_IN_RING_ELEMENT * params.dv) / 8
+    && CT_SIZE == U_SIZE + V_SIZE
+    && (params.eta1 == 2 || params.eta1 == 3)
+    && (params.eta2 == 2 || params.eta2 == 3)
+)]
+pub fn ind_cca_unpack_encapsulate<
+    const RANK: usize,
+    const U_SIZE: usize,
+    const V_SIZE: usize,
+    const CT_SIZE: usize,
+>(
+    params: &MlKemParams,
+    public_key_hash: &[u8; 32],
+    t_as_ntt: &Vector<RANK>,
+    m_A: &Matrix<RANK>,
+    randomness: &[u8; 32],
+) -> Result<([u8; 32], [u8; CT_SIZE]), BadRejectionSamplingRandomnessError> {
+    // (K, r) ← G(m ‖ H(ek))
+    let mut to_hash = [0u8; 64];
+    to_hash[..32].copy_from_slice(randomness);
+    to_hash[32..].copy_from_slice(public_key_hash);
+    let hashed = G(&to_hash);
+    let (shared_secret, pseudorandomness) = hashed.split_at(32);
+
+    // Un-transpose to raw form for ind_cpa::encrypt_unpacked.
+    let A_as_ntt: Matrix<RANK> = transpose(m_A);
+
+    let c = ind_cpa::encrypt_unpacked::<RANK, U_SIZE, V_SIZE, CT_SIZE>(
+        params,
+        t_as_ntt,
+        &A_as_ntt,
+        randomness,
+        pseudorandomness,
+    )?;
+
+    let mut k = [0u8; 32];
+    k.copy_from_slice(shared_secret);
+    Ok((k, c))
+}
+
+/// ML-KEM.Decaps — unpacked variant.  Skips the `dk` deconstruction
+/// (`dkₚₖₑ`, `ekₚₖₑ`, `h`, `z`) and the `ByteDecode₁₂(dkₚₖₑ)` step;
+/// consumes the components precomputed by `ind_cca_unpack_generate_keypair`
+/// directly.  Re-encrypts via `ind_cpa::encrypt_unpacked` to check the
+/// FO transform's c == c′ condition.
+#[allow(non_snake_case)]
+#[hax_lib::fstar::options("--z3rlimit 1500")]
+#[hax_lib::requires(
+    RANK <= 4 && params.rank == RANK
+    && U_SIZE == (RANK * COEFFICIENTS_IN_RING_ELEMENT * params.du) / 8
+    && V_SIZE == (COEFFICIENTS_IN_RING_ELEMENT * params.dv) / 8
+    && CT_SIZE == U_SIZE + V_SIZE
+    && J_INPUT_SIZE == 32 + CT_SIZE
+    && (params.eta1 == 2 || params.eta1 == 3)
+    && (params.eta2 == 2 || params.eta2 == 3)
+)]
+pub fn ind_cca_unpack_decapsulate<
+    const RANK: usize,
+    const U_SIZE: usize,
+    const V_SIZE: usize,
+    const CT_SIZE: usize,
+    const J_INPUT_SIZE: usize,
+>(
+    params: &MlKemParams,
+    public_key_hash: &[u8; 32],
+    implicit_rejection_value: &[u8; 32],
+    ciphertext: &[u8; CT_SIZE],
+    secret_as_ntt: &Vector<RANK>,
+    t_as_ntt: &Vector<RANK>,
+    m_A: &Matrix<RANK>,
+) -> Result<[u8; 32], BadRejectionSamplingRandomnessError> {
+    // m′ ← K-PKE.Decrypt(secret_as_ntt, c)
+    let m_prime = ind_cpa::decrypt_unpacked::<RANK>(params, secret_as_ntt, ciphertext);
+
+    // (K′, r′) ← G(m′ ‖ h)
+    let mut to_hash = [0u8; 64];
+    to_hash[..32].copy_from_slice(&m_prime);
+    to_hash[32..].copy_from_slice(public_key_hash);
+    let hashed = G(&to_hash);
+    let (success_shared_secret, pseudorandomness) = hashed.split_at(32);
+
+    // K̃ ← J(z ‖ c)
+    let mut j_input = [0u8; J_INPUT_SIZE];
+    j_input[..32].copy_from_slice(implicit_rejection_value);
+    j_input[32..].copy_from_slice(ciphertext);
+    let rejection_shared_secret: [u8; 32] = J(&j_input);
+
+    // c′ ← K-PKE.Encrypt_unpacked(t_as_ntt, A, m′, r′)
+    let A_as_ntt: Matrix<RANK> = transpose(m_A);
+    let c_prime = ind_cpa::encrypt_unpacked::<RANK, U_SIZE, V_SIZE, CT_SIZE>(
+        params,
+        t_as_ntt,
+        &A_as_ntt,
+        &m_prime,
+        pseudorandomness,
+    )?;
+
+    // if c ≠ c′ then K′ ← K̃
+    if ciphertext[..] == c_prime[..] {
+        let mut k = [0u8; 32];
+        k.copy_from_slice(success_shared_secret);
+        Ok(k)
+    } else {
+        Ok(rejection_shared_secret)
+    }
 }
 
 #[cfg(test)]
