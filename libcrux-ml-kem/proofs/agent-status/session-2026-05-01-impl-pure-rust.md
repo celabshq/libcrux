@@ -543,3 +543,124 @@ this lane's five-function scope.
     `Spec.MLKEM.*` → `Hacspec_ml_kem.*`.
   - `encrypt_c1`/`encrypt_c2` migration — internal-only functions,
     audit recommends leave-as-is.
+
+---
+
+## Lane D push — `to_spec_*_t` antiquote sweep (2026-05-01, fresh agent session)
+
+This push completes the `to_spec_*_t` literal-reference sweep that
+commit `60af8d332` left half-done.  The prior session's prep commits
+(`c5636496a`, `7d286a401`, `e2cae3b2d`) handled `ntt.rs`,
+`invert_ntt.rs`, and `sampling.rs`; this session did the four
+remaining files.
+
+### Sites swept
+
+| File | sites swept | substitution forms used |
+|---|---|---|
+| `src/ind_cca.rs` | 8  | 5× vector + 3× matrix, all `fstar!()` macro form (`#$K #$:Vector` → `(mk_usize $K)`) |
+| `src/serialize.rs` | 9  | 8× poly + 1× vector, all `fstar!()` macro form |
+| `src/ind_cpa.rs` | 28 | 14× poly + 11× vector + 3× matrix.  22 in `fstar!()` blocks (antiquote), 6 in `hax_lib::fstar::before(r#"..."#)` raw-F* helper-lemma blocks (direct rename to `Libcrux_ml_kem.Vector.Spec.{poly,vector,matrix}_to_spec`).  1 special-case at line 525 (`to_spec_matrix_t public_key.f_A` with no implicits). |
+| `src/polynomial.rs` | 0 | The "1 site" the prompt mentioned was actually a `///` doc comment (line 1120), not a live `fstar!` ref.  Skipped. |
+
+**Total: 45 live sites swept this session.**  Combined with the prior
+session's 37 sites (zetas_N + mont_i16_to_spec_array + sampling
+poly_to_spec), the full `60af8d332` rename cleanup is **complete**:
+
+```
+Live `to_spec_*_t` literals remaining in libcrux-ml-kem/src:  0
+```
+
+### Per-file `.fsti.checked` rebuild status (post-sweep)
+
+| File | Status | Notes |
+|---|---|---|
+| `Libcrux_ml_kem.Ind_cca.Unpacked.fsti` | **blocked-on-Spec.MLKEM** | Error at line 62 (`Spec.MLKEM.ind_cca_unpack_public_key`) — different lane (R11-extension sprint). |
+| `Libcrux_ml_kem.Serialize.fsti` | **blocked-on-Spec.MLKEM** | Error at line 37 — same lane. |
+| `Libcrux_ml_kem.Ind_cpa.fsti` | **clean (16.3s rebuild)** | The R11 lane already cleaned `Spec.MLKEM` from this surface; the to_spec_*_t fix unblocked the remaining name resolution failures. |
+| `Libcrux_ml_kem.Ind_cpa.Unpacked.fsti` | **clean (1.7s rebuild)** | Same as above. |
+| `Libcrux_ml_kem.Sampling.fsti` | **blocked-on-Spec.MLKEM** | Error at line 186 (separate lane, cited in next-session prompt). |
+
+### Full-`.fst.checked` rebuild attempt
+
+`Libcrux_ml_kem.Ind_cpa.fst.checked` rebuild **fails** at the
+expected next layer: transitive dependency on
+`Libcrux_ml_kem.Sampling.fsti` errors at line 186 with
+`Module name Spec.MLKEM could not be resolved`.  This is the
+`Spec.MLKEM → Hacspec_ml_kem` extension lane the prompt scopes
+out as a separate multi-session sprint.  The to_spec_*_t name
+resolution is NO LONGER a blocker for any `.fst` or `.fsti` in
+the libcrux-ml-kem crate.
+
+### Commit chain (this session, in order)
+
+```
+4493b43fb agent-mlkem: ind_cca.rs — antiquote to_spec_*_t references
+2b41d8f37 agent-mlkem: serialize.rs — antiquote to_spec_*_t references
+08f1f68b3 agent-mlkem: ind_cpa.rs — antiquote to_spec_*_t references (28 sites)
+```
+
+3 commits, all `agent-mlkem:` prefix, on branch
+`libcrux-ml-kem-proofs`.  Tip: `08f1f68b3`.  26 commits ahead of
+`origin/libcrux-ml-kem-proofs`.  Not pushed.
+
+### Self-audit (R1 – R11)
+
+  - **R1** (branch / no force-push / no PR without auth) — clean.
+    Commits on `libcrux-ml-kem-proofs`, no push, no PR.
+  - **R2** (no new admits) — clean.  No new `admit()`, `lax`,
+    `--admit_smt_queries`, or `ADMIT_MODULES` entries.  The 8
+    target functions stay `lax` per the prompt's explicit deferral
+    of the `lax → panic_free` flip.
+  - **R3** (no new axioms) — clean.
+  - **R4** (z3rlimit ≤ 800) — N/A.  No proof annotations were
+    added/changed; only literal F* paths inside `fstar!`/`fstar::before`
+    blocks were rewritten.
+  - **R5** (inner edit-check ≤ 20 min/attempt) — clean.  Per-file
+    `make .fsti.checked` runs were ≤ 20 s each.
+  - **R6** (touch unchanged `.checked`) — N/A.  The full-rebuild
+    cascade was not run (only targeted `.fsti.checked` builds).
+  - **R7** (trait FROZEN — no edits to `src/vector/traits.rs`'s
+    `Operations`/`Repr`) — clean.  `vector::traits.rs` not touched.
+  - **R8** (no `fstar-mcp`) — clean.
+  - **R9** (commit prefix `agent-mlkem:`, per-file commits) — clean.
+    3 commits, one per source file, all prefixed.
+  - **R10** (no wrappers / no namespace squat / no new top-level
+    `Hacspec_ml_kem.*`) — clean.  The sweep added zero new symbols
+    F*-side; only re-routed existing references via Rust antiquote
+    or direct path rename.
+  - **R11** (no new `fstar!` ensures escape in CPA/CCA;
+    body-tactic edits constrained to targeted substitution) —
+    clean.  Verified by re-reading each modified `fstar!` /
+    `fstar::before` block: only the `to_spec_*_t` token sequence
+    was rewritten.  No `Spec.MLKEM` cites added or removed.  No
+    body proof shape altered (no new asserts, no new lemma calls,
+    no `eq_intro` moved or duplicated).
+
+  - **No wrappers, no helper modules, no axioms, no admits** — clean.
+  - **No edits to `src/vector/traits.rs` or `vector/spec/*`** —
+    clean.  The sweep is purely a rename of references; the
+    `vector::spec::{poly,vector,matrix}_to_spec` Rust functions
+    introduced in `60af8d332` continue to be the canonical
+    definitions.
+
+### Strategic state for the next session
+
+Two lanes remain before the 8 unpacked-API functions in
+`ind_cpa.rs` / `ind_cca.rs` can flip from `verification_status(lax)`
+to `verification_status(panic_free)`:
+
+1. **`Spec.MLKEM` → `Hacspec_ml_kem` extension sweep** (~395 cites
+   crate-wide, multi-session).  Concretely blocks:
+   `Sampling.fsti:186`, `Serialize.fsti:37`,
+   `Ind_cca.Unpacked.fsti:62`, plus body-tactic cites in `.fst`
+   files.  This is the bigger remaining task.
+2. **`lax → panic_free` flip** for the 8 unpacked-API functions.
+   Trivial annotation change, but must wait until lane 1 unblocks
+   the dependent `.fsti.checked`/`.fst.checked` rebuilds.
+
+The user's choice during this session ("stay scoped — option 1") was
+the right call: the to_spec_*_t sweep is mechanical and surgical,
+while the Spec.MLKEM sweep needs per-symbol Hacspec replacement
+decisions that benefit from concentrated focus in their own session.
+
