@@ -106,7 +106,7 @@ let ntt_at_layer_1_
                     #v_Vector
                     (Seq.index e_re_init j)))
             (mk_usize 2)
-            (Rust_primitives.unsize (Libcrux_ml_kem.Vector.Traits.Spec.zetas_4 (Libcrux_ml_kem.Polynomial.zeta
+            (Rust_primitives.unsize (Libcrux_ml_kem.Vector.Traits.Spec.zetas_4_ (Libcrux_ml_kem.Polynomial.zeta
                         (mk_usize 64 +! mk_usize 4 *! sz j))
                     (Libcrux_ml_kem.Polynomial.zeta (mk_usize 65 +! mk_usize 4 *! sz j))
                     (Libcrux_ml_kem.Polynomial.zeta (mk_usize 66 +! mk_usize 4 *! sz j))
@@ -220,7 +220,7 @@ let ntt_at_layer_2_
                     #v_Vector
                     (Seq.index e_re_init j)))
             (mk_usize 4)
-            (Rust_primitives.unsize (Libcrux_ml_kem.Vector.Traits.Spec.zetas_2 (Libcrux_ml_kem.Polynomial.zeta
+            (Rust_primitives.unsize (Libcrux_ml_kem.Vector.Traits.Spec.zetas_2_ (Libcrux_ml_kem.Polynomial.zeta
                         (mk_usize 32 +! mk_usize 2 *! sz j))
                     (Libcrux_ml_kem.Polynomial.zeta (mk_usize 33 +! mk_usize 2 *! sz j))))) =
       if j < 16
@@ -324,7 +324,7 @@ let ntt_at_layer_3_
                     #v_Vector
                     (Seq.index e_re_init j)))
             (mk_usize 8)
-            (Rust_primitives.unsize (Libcrux_ml_kem.Vector.Traits.Spec.zetas_1 (Libcrux_ml_kem.Polynomial.zeta
+            (Rust_primitives.unsize (Libcrux_ml_kem.Vector.Traits.Spec.zetas_1_ (Libcrux_ml_kem.Polynomial.zeta
                         (mk_usize 16 +! sz j))))) =
       if j < 16
       then

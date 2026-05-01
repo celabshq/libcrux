@@ -13,6 +13,10 @@ use hax_lib::prop::ToProp;
 #[cfg(hax)]
 use crate::polynomial::spec;
 
+#[cfg(hax)]
+#[allow(unused_imports)]
+use crate::vector::traits::spec::{zetas_1, zetas_2, zetas_4};
+
 #[inline(always)]
 #[hax_lib::fstar::options("--z3rlimit 800 --ext context_pruning --split_queries always")]
 #[hax_lib::requires(spec::is_bounded_poly(_initial_coefficient_bound, re) & (*zeta_i == 63 && _initial_coefficient_bound == 7 * 3328))]
@@ -30,7 +34,7 @@ use crate::polynomial::spec;
                 (Seq.index ${re}.f_coefficients (v i))))
             (mk_usize 2)
             (Rust_primitives.unsize
-              (Libcrux_ml_kem.Vector.Traits.Spec.zetas_4
+              (${zetas_4}
                 (Libcrux_ml_kem.Polynomial.zeta (mk_usize 64 +! mk_usize 4 *! i))
                 (Libcrux_ml_kem.Polynomial.zeta (mk_usize 65 +! mk_usize 4 *! i))
                 (Libcrux_ml_kem.Polynomial.zeta (mk_usize 66 +! mk_usize 4 *! i))
@@ -121,7 +125,7 @@ pub(crate) fn ntt_at_layer_1<Vector: Operations>(
                   (Seq.index ${_re_init} j)))
               (mk_usize 2)
               (Rust_primitives.unsize
-                (Libcrux_ml_kem.Vector.Traits.Spec.zetas_4
+                (${zetas_4}
                   (Libcrux_ml_kem.Polynomial.zeta (mk_usize 64 +! mk_usize 4 *! sz j))
                   (Libcrux_ml_kem.Polynomial.zeta (mk_usize 65 +! mk_usize 4 *! sz j))
                   (Libcrux_ml_kem.Polynomial.zeta (mk_usize 66 +! mk_usize 4 *! sz j))
@@ -161,7 +165,7 @@ pub(crate) fn ntt_at_layer_1<Vector: Operations>(
                 (Seq.index ${re}.f_coefficients (v i))))
             (mk_usize 4)
             (Rust_primitives.unsize
-              (Libcrux_ml_kem.Vector.Traits.Spec.zetas_2
+              (${zetas_2}
                 (Libcrux_ml_kem.Polynomial.zeta (mk_usize 32 +! mk_usize 2 *! i))
                 (Libcrux_ml_kem.Polynomial.zeta (mk_usize 33 +! mk_usize 2 *! i))))
       "#))]
@@ -238,7 +242,7 @@ pub(crate) fn ntt_at_layer_2<Vector: Operations>(
                   (Seq.index ${_re_init} j)))
               (mk_usize 4)
               (Rust_primitives.unsize
-                (Libcrux_ml_kem.Vector.Traits.Spec.zetas_2
+                (${zetas_2}
                   (Libcrux_ml_kem.Polynomial.zeta (mk_usize 32 +! mk_usize 2 *! sz j))
                   (Libcrux_ml_kem.Polynomial.zeta (mk_usize 33 +! mk_usize 2 *! sz j)))))
           = if j < 16 then begin
@@ -274,7 +278,7 @@ pub(crate) fn ntt_at_layer_2<Vector: Operations>(
                 (Seq.index ${re}.f_coefficients (v i))))
             (mk_usize 8)
             (Rust_primitives.unsize
-              (Libcrux_ml_kem.Vector.Traits.Spec.zetas_1
+              (${zetas_1}
                 (Libcrux_ml_kem.Polynomial.zeta (mk_usize 16 +! i))))
       "#))]
 pub(crate) fn ntt_at_layer_3<Vector: Operations>(
@@ -345,7 +349,7 @@ pub(crate) fn ntt_at_layer_3<Vector: Operations>(
                   (Seq.index ${_re_init} j)))
               (mk_usize 8)
               (Rust_primitives.unsize
-                (Libcrux_ml_kem.Vector.Traits.Spec.zetas_1
+                (${zetas_1}
                   (Libcrux_ml_kem.Polynomial.zeta (mk_usize 16 +! sz j)))))
           = if j < 16 then begin
               reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
