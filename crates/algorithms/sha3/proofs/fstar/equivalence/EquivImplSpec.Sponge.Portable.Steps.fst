@@ -242,3 +242,123 @@ let lemma_squeeze_last_portable
    (Note C in proof_milestones.md).  Was a sugar for the recursive
    [squeeze_blocks] / [squeeze_last] composition; consumers now cite
    [Hacspec_sha3.Sponge.squeeze] (byteform) directly. *)
+
+
+(* ================================================================
+   Per-iteration step lemma for the byteform-shaped Portable.squeeze
+   loop.  Captures one (keccakf1600 ; f_squeeze at offset i*rate) step.
+
+   Pre-step invariant at iteration [i]:
+     - ks_pre.f_st == iterate_keccak_f (v i - 1) s_init_st
+     - output_pre[k] == squeeze[k]            for k < v i * v rate
+     - output_pre[k] == output_initial[k]     for v i * v rate <= k
+
+   Step:
+     - ks_post = keccakf1600 ks_pre
+     - output_post = f_squeeze rate ks_post output_pre (i*!rate) rate
+
+   Post-step invariant at iteration [i+1]:
+     - ks_post.f_st == iterate_keccak_f (v i) s_init_st
+     - output_post[k] == squeeze[k]           for k < (v i + 1) * v rate
+     - output_post[k] == output_initial[k]    for (v i + 1) * v rate <= k
+
+   Same shape as the Arm64 byteform step lemma at N=2; this is N=1.
+   ================================================================ *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 400 --split_queries always"
+let lemma_squeeze_one_step_portable
+      (rate: usize{Libcrux_sha3.Proof_utils.valid_rate rate})
+      (s_init_st: t_Array u64 (mk_usize 25))
+      (ks_pre: Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64)
+      (output_pre: t_Slice u8)
+      (output_initial: t_Array u8 (Core_models.Slice.impl__len #u8 output_pre))
+      (i: usize)
+  : Lemma
+      (requires (
+        let outlen = Core_models.Slice.impl__len #u8 output_pre in
+        v i >= 1 /\
+        v i * v rate + v rate <= v outlen /\
+        v outlen < v Core_models.Num.impl_usize__MAX - 200 /\
+        v (i +! mk_usize 1) <= v outlen / v rate /\
+        v i <= v outlen / v rate /\
+        ks_pre.Libcrux_sha3.Generic_keccak.f_st ==
+          Hacspec_sha3.Sponge.iterate_keccak_f (v i - 1) s_init_st /\
+        (forall (k: nat). k < v i * v rate /\ k < v outlen ==>
+          Seq.index (output_pre <: Seq.seq u8) k ==
+          Seq.index
+            (Hacspec_sha3.Sponge.squeeze outlen s_init_st rate <: Seq.seq u8) k) /\
+        (forall (k: nat). v i * v rate <= k /\ k < v outlen ==>
+          Seq.index (output_pre <: Seq.seq u8) k ==
+          Seq.index (output_initial <: Seq.seq u8) k)))
+      (ensures (
+        let outlen = Core_models.Slice.impl__len #u8 output_pre in
+        let ks_post =
+          Libcrux_sha3.Generic_keccak.impl_2__keccakf1600
+            (mk_usize 1) #u64 ks_pre in
+        let output_post =
+          Libcrux_sha3.Traits.f_squeeze
+            #(Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64)
+            #u64 #FStar.Tactics.Typeclasses.solve
+            rate ks_post output_pre (i *! rate) rate in
+        Core_models.Slice.impl__len #u8 output_post =. outlen /\
+        ks_post.Libcrux_sha3.Generic_keccak.f_st ==
+          Hacspec_sha3.Sponge.iterate_keccak_f (v i) s_init_st /\
+        (forall (k: nat). k < (v i + 1) * v rate /\ k < v outlen ==>
+          Seq.index (output_post <: Seq.seq u8) k ==
+          Seq.index
+            (Hacspec_sha3.Sponge.squeeze outlen s_init_st rate <: Seq.seq u8) k) /\
+        (forall (k: nat). (v i + 1) * v rate <= k /\ k < v outlen ==>
+          Seq.index (output_post <: Seq.seq u8) k ==
+          Seq.index (output_initial <: Seq.seq u8) k)))
+  = let outlen = Core_models.Slice.impl__len #u8 output_pre in
+    KP.lemma_keccakf1600_portable ks_pre;
+    let ks_post =
+      Libcrux_sha3.Generic_keccak.impl_2__keccakf1600
+        (mk_usize 1) #u64 ks_pre in
+    let output_post =
+      Libcrux_sha3.Traits.f_squeeze
+        #(Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64)
+        #u64 #FStar.Tactics.Typeclasses.solve
+        rate ks_post output_pre (i *! rate) rate in
+    FStar.Math.Lemmas.distributivity_add_left (v i) 1 (v rate);
+    let aux_write_step (k: nat{k < v outlen})
+      : Lemma
+          (k < (v i + 1) * v rate ==>
+            Seq.index (output_post <: Seq.seq u8) k ==
+            Seq.index
+              (Hacspec_sha3.Sponge.squeeze outlen s_init_st rate <: Seq.seq u8) k) =
+      if k < (v i + 1) * v rate then begin
+        let kk : usize = mk_usize k in
+        assert (v kk == k);
+        if k < v i * v rate then ()
+        else begin
+          assert (v i * v rate <= k);
+          assert ((v i + 1) * v rate == v i * v rate + v rate);
+          assert (k - v i * v rate < v rate);
+          assert ((k - v i * v rate) / 8 < 25);
+          FStar.Math.Lemmas.small_div (k - v i * v rate) (v rate);
+          FStar.Math.Lemmas.lemma_div_plus
+            (k - v i * v rate) (v i) (v rate);
+          let b : usize = kk /! rate in
+          assert (v b == v i);
+          let j : usize = kk -! (b *! rate) in
+          assert (v j == k - v i * v rate);
+          assert (v j / 8 < 25);
+          ()
+        end
+      end
+    in
+    let aux_tail_step (k: nat{k < v outlen})
+      : Lemma
+          ((v i + 1) * v rate <= k ==>
+            Seq.index (output_post <: Seq.seq u8) k ==
+            Seq.index (output_initial <: Seq.seq u8) k) =
+      if (v i + 1) * v rate <= k then begin
+        let kk : usize = mk_usize k in
+        assert (v kk == k);
+        assert ((v i + 1) * v rate == v i * v rate + v rate);
+        assert (v i * v rate + v rate <= k)
+      end
+    in
+    FStar.Classical.forall_intro aux_write_step;
+    FStar.Classical.forall_intro aux_tail_step
+#pop-options
