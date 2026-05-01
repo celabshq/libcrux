@@ -184,6 +184,7 @@ pub fn generate_keypair<const RANK: usize, const EK_SIZE: usize, const DK_PKE_SI
     && ek.len() == RANK * BYTES_PER_RING_ELEMENT + 32
     && (params.eta1 == 2 || params.eta1 == 3)
     && (params.eta2 == 2 || params.eta2 == 3)
+    && randomness.len() == 32
 )]
 pub fn encrypt<
     const RANK: usize,
@@ -194,13 +195,20 @@ pub fn encrypt<
     params: &MlKemParams,
     ek: &[u8],
     message: &[u8; 32],
-    randomness: &[u8; 32],
+    randomness: &[u8],
 ) -> Result<[u8; CT_SIZE], BadRejectionSamplingRandomnessError> {
+    // Blocker B fix (2026-05-01): the prior signature took `&[u8; 32]`, forcing
+    // libcrux callers (which pass `&[u8]`) to bridge via `try_into().unwrap()`
+    // inside `hax_lib::ensures` annotations.  We now accept `&[u8]` with a
+    // `len() == 32` requires; the body still reads only the first 32 bytes so
+    // the spec semantics are unchanged.  Mirrors the relaxation applied to
+    // `ind_cpa::generate_keypair` in commit `e63973e54`.
     hax_lib::debug_assert!(
         U_SIZE == (RANK * COEFFICIENTS_IN_RING_ELEMENT * params.du) / 8
             && V_SIZE == (COEFFICIENTS_IN_RING_ELEMENT * params.dv) / 8
             && CT_SIZE == U_SIZE + V_SIZE
             && ek.len() == RANK * BYTES_PER_RING_ELEMENT + 32
+            && randomness.len() == 32
     );
 
     let t_encoded_size = params.t_as_ntt_encoded_size();
@@ -218,13 +226,15 @@ pub fn encrypt<
 
     // r[i] ← SamplePolyCBD_{η₁}(PRF_{η₁}(r,N))
     let r = createi(|i| {
-        let prf_input: [u8; 33] = concat_byte(randomness.try_into().unwrap(), i as u8);
+        let prf_input: [u8; 33] =
+            concat_byte::<32, 33>(randomness.try_into().unwrap(), i as u8);
         sample_secret(params.eta1, &prf_input)
     });
 
     // e₁[i] ← SamplePolyCBD_{η₂}(PRF_{η₂}(r,N))
     let error_1 = createi(|i| {
-        let prf_input: [u8; 33] = concat_byte(randomness.try_into().unwrap(), (RANK + i) as u8);
+        let prf_input: [u8; 33] =
+            concat_byte::<32, 33>(randomness.try_into().unwrap(), (RANK + i) as u8);
         sample_secret(params.eta2, &prf_input)
     });
 
