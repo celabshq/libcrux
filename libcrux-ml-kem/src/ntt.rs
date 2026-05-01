@@ -15,7 +15,7 @@ use crate::polynomial::spec;
 
 #[cfg(hax)]
 #[allow(unused_imports)]
-use crate::vector::traits::spec::{zetas_1, zetas_2, zetas_4};
+use crate::vector::traits::spec::{mont_i16_to_spec_array, zetas_1, zetas_2, zetas_4};
 
 #[inline(always)]
 #[hax_lib::fstar::options("--z3rlimit 800 --ext context_pruning --split_queries always")]
@@ -25,11 +25,11 @@ use crate::vector::traits::spec::{zetas_1, zetas_2, zetas_4};
     & (*future(zeta_i) == 127)
     & fstar!(r#"
         forall (i: usize). i <. mk_usize 16 ==>
-          Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_array
+          ${mont_i16_to_spec_array::<16>} (mk_usize 16)
             (Libcrux_ml_kem.Vector.Traits.f_repr #$:Vector
               (Seq.index ${re}_future.f_coefficients (v i))) ==
           Hacspec_ml_kem.Ntt.ntt_layer_n (mk_usize 16)
-            (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_array
+            (${mont_i16_to_spec_array::<16>} (mk_usize 16)
               (Libcrux_ml_kem.Vector.Traits.f_repr #$:Vector
                 (Seq.index ${re}.f_coefficients (v i))))
             (mk_usize 2)
@@ -116,11 +116,11 @@ pub(crate) fn ntt_at_layer_1<Vector: Operations>(
     // equation to the spec function-form equation.
     hax_lib::fstar!(r#"
         let aux (j: nat) : Lemma (j < 16 ==>
-            Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_array
+            ${mont_i16_to_spec_array::<16>} (mk_usize 16)
               (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector
                 (Seq.index re.f_coefficients j)) ==
             Hacspec_ml_kem.Ntt.ntt_layer_n (mk_usize 16)
-              (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_array
+              (${mont_i16_to_spec_array::<16>} (mk_usize 16)
                 (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector
                   (Seq.index ${_re_init} j)))
               (mk_usize 2)
@@ -156,11 +156,11 @@ pub(crate) fn ntt_at_layer_1<Vector: Operations>(
     & (*future(zeta_i) == 63)
     & fstar!(r#"
         forall (i: usize). i <. mk_usize 16 ==>
-          Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_array
+          ${mont_i16_to_spec_array::<16>} (mk_usize 16)
             (Libcrux_ml_kem.Vector.Traits.f_repr #$:Vector
               (Seq.index ${re}_future.f_coefficients (v i))) ==
           Hacspec_ml_kem.Ntt.ntt_layer_n (mk_usize 16)
-            (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_array
+            (${mont_i16_to_spec_array::<16>} (mk_usize 16)
               (Libcrux_ml_kem.Vector.Traits.f_repr #$:Vector
                 (Seq.index ${re}.f_coefficients (v i))))
             (mk_usize 4)
@@ -233,11 +233,11 @@ pub(crate) fn ntt_at_layer_2<Vector: Operations>(
     // over the bridge lemma `lemma_ntt_layer_2_step_to_hacspec`.
     hax_lib::fstar!(r#"
         let aux (j: nat) : Lemma (j < 16 ==>
-            Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_array
+            ${mont_i16_to_spec_array::<16>} (mk_usize 16)
               (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector
                 (Seq.index re.f_coefficients j)) ==
             Hacspec_ml_kem.Ntt.ntt_layer_n (mk_usize 16)
-              (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_array
+              (${mont_i16_to_spec_array::<16>} (mk_usize 16)
                 (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector
                   (Seq.index ${_re_init} j)))
               (mk_usize 4)
@@ -269,11 +269,11 @@ pub(crate) fn ntt_at_layer_2<Vector: Operations>(
     & (*future(zeta_i) == 31)
     & fstar!(r#"
         forall (i: usize). i <. mk_usize 16 ==>
-          Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_array
+          ${mont_i16_to_spec_array::<16>} (mk_usize 16)
             (Libcrux_ml_kem.Vector.Traits.f_repr #$:Vector
               (Seq.index ${re}_future.f_coefficients (v i))) ==
           Hacspec_ml_kem.Ntt.ntt_layer_n (mk_usize 16)
-            (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_array
+            (${mont_i16_to_spec_array::<16>} (mk_usize 16)
               (Libcrux_ml_kem.Vector.Traits.f_repr #$:Vector
                 (Seq.index ${re}.f_coefficients (v i))))
             (mk_usize 8)
@@ -340,11 +340,11 @@ pub(crate) fn ntt_at_layer_3<Vector: Operations>(
     // over the bridge lemma `lemma_ntt_layer_3_step_to_hacspec`.
     hax_lib::fstar!(r#"
         let aux (j: nat) : Lemma (j < 16 ==>
-            Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_array
+            ${mont_i16_to_spec_array::<16>} (mk_usize 16)
               (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector
                 (Seq.index re.f_coefficients j)) ==
             Hacspec_ml_kem.Ntt.ntt_layer_n (mk_usize 16)
-              (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_array
+              (${mont_i16_to_spec_array::<16>} (mk_usize 16)
                 (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector
                   (Seq.index ${_re_init} j)))
               (mk_usize 8)

@@ -98,13 +98,11 @@ let ntt_at_layer_1_
     let aux (j: nat)
         : Lemma
         (j < 16 ==>
-          Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_array (Libcrux_ml_kem.Vector.Traits.f_repr
-                #v_Vector
-                (Seq.index re.f_coefficients j)) ==
+          Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_array (mk_usize 16)
+            (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector (Seq.index re.f_coefficients j)) ==
           Hacspec_ml_kem.Ntt.ntt_layer_n (mk_usize 16)
-            (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_array (Libcrux_ml_kem.Vector.Traits.f_repr
-                    #v_Vector
-                    (Seq.index e_re_init j)))
+            (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_array (mk_usize 16)
+                (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector (Seq.index e_re_init j)))
             (mk_usize 2)
             (Rust_primitives.unsize (Libcrux_ml_kem.Vector.Traits.Spec.zetas_4_ (Libcrux_ml_kem.Polynomial.zeta
                         (mk_usize 64 +! mk_usize 4 *! sz j))
@@ -212,13 +210,11 @@ let ntt_at_layer_2_
     let aux (j: nat)
         : Lemma
         (j < 16 ==>
-          Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_array (Libcrux_ml_kem.Vector.Traits.f_repr
-                #v_Vector
-                (Seq.index re.f_coefficients j)) ==
+          Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_array (mk_usize 16)
+            (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector (Seq.index re.f_coefficients j)) ==
           Hacspec_ml_kem.Ntt.ntt_layer_n (mk_usize 16)
-            (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_array (Libcrux_ml_kem.Vector.Traits.f_repr
-                    #v_Vector
-                    (Seq.index e_re_init j)))
+            (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_array (mk_usize 16)
+                (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector (Seq.index e_re_init j)))
             (mk_usize 4)
             (Rust_primitives.unsize (Libcrux_ml_kem.Vector.Traits.Spec.zetas_2_ (Libcrux_ml_kem.Polynomial.zeta
                         (mk_usize 32 +! mk_usize 2 *! sz j))
@@ -316,13 +312,11 @@ let ntt_at_layer_3_
     let aux (j: nat)
         : Lemma
         (j < 16 ==>
-          Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_array (Libcrux_ml_kem.Vector.Traits.f_repr
-                #v_Vector
-                (Seq.index re.f_coefficients j)) ==
+          Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_array (mk_usize 16)
+            (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector (Seq.index re.f_coefficients j)) ==
           Hacspec_ml_kem.Ntt.ntt_layer_n (mk_usize 16)
-            (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_array (Libcrux_ml_kem.Vector.Traits.f_repr
-                    #v_Vector
-                    (Seq.index e_re_init j)))
+            (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_array (mk_usize 16)
+                (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector (Seq.index e_re_init j)))
             (mk_usize 8)
             (Rust_primitives.unsize (Libcrux_ml_kem.Vector.Traits.Spec.zetas_1_ (Libcrux_ml_kem.Polynomial.zeta
                         (mk_usize 16 +! sz j))))) =
