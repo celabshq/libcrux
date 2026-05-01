@@ -265,14 +265,12 @@ pub(crate) fn serialize_vector<const K: usize, Vector: Operations>(
         && (domain_separator as usize) < 2 * K
         && (domain_separator as usize) + K < 256).to_prop()
 )]
-// Functional spec dropped at R11 migration (2026-05-01): the prior
-// `Spec.MLKEM.sample_vector_cbd2` cite has no public Hacspec analogue
-// (the CBD samplers are spec-internal helpers).  Function is `lax` so
-// the functional cite was admitted in any consumer; the ensures kept
-// here are the bound + domain-separator increment.
 #[hax_lib::ensures(|ds|
     (ds == domain_separator + (K as u8)).to_prop()
     & crate::polynomial::spec::is_bounded_polynomial_vector(7, future(error_1))
+    & (crate::vector::spec::vector_to_spec(future(error_1)) ==
+        hacspec_ml_kem::ind_cpa::sample_vector_cbd::<K>(
+            ETA2, &prf_input[..32], domain_separator)).to_prop()
 )]
 fn sample_ring_element_cbd<
     const K: usize,
@@ -385,14 +383,12 @@ fn sample_ring_element_cbd<
         && (domain_separator as usize) < 2 * K
         && (domain_separator as usize) + K < 256).to_prop()
 )]
-// Functional spec dropped at R11 migration (2026-05-01): the prior
-// `Spec.MLKEM.sample_vector_cbd_then_ntt` cite has no public Hacspec
-// analogue (CBD-then-NTT composition is spec-internal).  Function is
-// `lax` so the functional cite was admitted in any consumer; the
-// ensures kept here are the bound + domain-separator increment.
 #[hax_lib::ensures(|ds|
     (ds == domain_separator + (K as u8)).to_prop()
     & crate::polynomial::spec::is_bounded_polynomial_vector(3328, future(re_as_ntt))
+    & (crate::vector::spec::vector_to_spec(future(re_as_ntt)) ==
+        hacspec_ml_kem::ind_cpa::sample_vector_cbd_then_ntt::<K>(
+            ETA, &prf_input[..32], domain_separator)).to_prop()
 )]
 fn sample_vector_cbd_then_ntt<
     const K: usize,
