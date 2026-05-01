@@ -960,26 +960,31 @@ pub(crate) mod unpacked {
 
     // Encapsulate with Unpacked Public Key
     #[inline(always)]
-    #[hax_lib::requires(fstar!(r#"Spec.MLKEM.is_rank $K /\
-        $ETA1 == Spec.MLKEM.v_ETA1 $K /\
-        $ETA1_RANDOMNESS_SIZE == Spec.MLKEM.v_ETA1_RANDOMNESS_SIZE $K /\
-        $ETA2 == Spec.MLKEM.v_ETA2 $K /\
-        $ETA2_RANDOMNESS_SIZE == Spec.MLKEM.v_ETA2_RANDOMNESS_SIZE $K /\
-        $C1_SIZE == Spec.MLKEM.v_C1_SIZE $K /\
-        $C2_SIZE == Spec.MLKEM.v_C2_SIZE $K /\
-        $VECTOR_U_COMPRESSION_FACTOR == Spec.MLKEM.v_VECTOR_U_COMPRESSION_FACTOR $K /\
-        $VECTOR_V_COMPRESSION_FACTOR == Spec.MLKEM.v_VECTOR_V_COMPRESSION_FACTOR $K /\
-        $VECTOR_U_BLOCK_LEN == Spec.MLKEM.v_C1_BLOCK_SIZE $K /\
-        $CIPHERTEXT_SIZE == Spec.MLKEM.v_CPA_CIPHERTEXT_SIZE $K"#))]
+    #[hax_lib::requires(
+        hacspec_ml_kem::parameters::is_rank(K)
+        && ETA1 == hacspec_ml_kem::parameters::eta1(K)
+        && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
+        && ETA2 == hacspec_ml_kem::parameters::eta2(K)
+        && ETA2_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta2_randomness_size(K)
+        && C1_SIZE == hacspec_ml_kem::parameters::c1_size(K)
+        && C2_SIZE == hacspec_ml_kem::parameters::c2_size(K)
+        && VECTOR_U_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_u_compression_factor(K)
+        && VECTOR_V_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_v_compression_factor(K)
+        && VECTOR_U_BLOCK_LEN == hacspec_ml_kem::parameters::c1_block_size(K)
+        && CIPHERTEXT_SIZE == hacspec_ml_kem::parameters::cpa_ciphertext_size(K)
+    )]
     #[hax_lib::ensures(|(ciphertext_result, shared_secret_array)|
-        fstar!(r#"let (ciphertext, shared_secret) =
-            Spec.MLKEM.ind_cca_unpack_encapsulate $K ${public_key}.f_public_key_hash
-            (Libcrux_ml_kem.Vector.to_spec_vector_t #$K #$:Vector ${public_key.ind_cpa_public_key.t_as_ntt})
-            (Libcrux_ml_kem.Vector.to_spec_matrix_t #$K #$:Vector ${public_key.ind_cpa_public_key.A})
-            $randomness in
-        ${ciphertext_result}.f_value == ciphertext /\
-        $shared_secret_array == shared_secret"#))
-    ]
+        match hacspec_ml_kem::ind_cca_unpack_encapsulate::<K, C1_SIZE, C2_SIZE, CIPHERTEXT_SIZE>(
+            &hacspec_ml_kem::parameters::rank_to_params(K),
+            &public_key.public_key_hash,
+            &crate::vector::spec::vector_to_spec(&public_key.ind_cpa_public_key.t_as_ntt),
+            &crate::vector::spec::matrix_to_spec(&public_key.ind_cpa_public_key.A),
+            randomness,
+        ) {
+            Ok((shared, ct)) => ciphertext_result.value == ct && shared_secret_array == shared,
+            Err(_) => true,
+        }
+    )]
     pub(crate) fn encapsulate<
         const K: usize,
         const CIPHERTEXT_SIZE: usize,
@@ -1051,27 +1056,37 @@ pub(crate) mod unpacked {
     // Decapsulate with Unpacked Private Key
     #[inline(always)]
     #[hax_lib::fstar::options("--z3rlimit 200 --ext context_pruning")]
-    #[hax_lib::requires(fstar!(r#"Spec.MLKEM.is_rank $K /\
-        $ETA1 == Spec.MLKEM.v_ETA1 $K /\
-        $ETA1_RANDOMNESS_SIZE == Spec.MLKEM.v_ETA1_RANDOMNESS_SIZE $K /\
-        $ETA2 == Spec.MLKEM.v_ETA2 $K /\
-        $ETA2_RANDOMNESS_SIZE == Spec.MLKEM.v_ETA2_RANDOMNESS_SIZE $K /\
-        $C1_SIZE == Spec.MLKEM.v_C1_SIZE $K /\
-        $C2_SIZE == Spec.MLKEM.v_C2_SIZE $K /\
-        $VECTOR_U_COMPRESSION_FACTOR == Spec.MLKEM.v_VECTOR_U_COMPRESSION_FACTOR $K /\
-        $VECTOR_V_COMPRESSION_FACTOR == Spec.MLKEM.v_VECTOR_V_COMPRESSION_FACTOR $K /\
-        $C1_BLOCK_SIZE == Spec.MLKEM.v_C1_BLOCK_SIZE $K /\
-        $CIPHERTEXT_SIZE == Spec.MLKEM.v_CPA_CIPHERTEXT_SIZE $K /\
-        $IMPLICIT_REJECTION_HASH_INPUT_SIZE == Spec.MLKEM.v_IMPLICIT_REJECTION_HASH_INPUT_SIZE $K"#))]
+    #[hax_lib::requires(
+        hacspec_ml_kem::parameters::is_rank(K)
+        && ETA1 == hacspec_ml_kem::parameters::eta1(K)
+        && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
+        && ETA2 == hacspec_ml_kem::parameters::eta2(K)
+        && ETA2_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta2_randomness_size(K)
+        && C1_SIZE == hacspec_ml_kem::parameters::c1_size(K)
+        && C2_SIZE == hacspec_ml_kem::parameters::c2_size(K)
+        && VECTOR_U_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_u_compression_factor(K)
+        && VECTOR_V_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_v_compression_factor(K)
+        && C1_BLOCK_SIZE == hacspec_ml_kem::parameters::c1_block_size(K)
+        && CIPHERTEXT_SIZE == hacspec_ml_kem::parameters::cpa_ciphertext_size(K)
+        && IMPLICIT_REJECTION_HASH_INPUT_SIZE
+            == hacspec_ml_kem::parameters::implicit_rejection_hash_input_size(K)
+    )]
     #[hax_lib::ensures(|result|
-        fstar!(r#"$result ==
-            Spec.MLKEM.ind_cca_unpack_decapsulate $K ${key_pair.public_key.public_key_hash}
-            ${key_pair.private_key.implicit_rejection_value}
-            ${ciphertext.value}
-            (Libcrux_ml_kem.Vector.to_spec_vector_t #$K #$:Vector ${key_pair.private_key.ind_cpa_private_key.secret_as_ntt})
-            (Libcrux_ml_kem.Vector.to_spec_vector_t #$K #$:Vector ${key_pair.public_key.ind_cpa_public_key.t_as_ntt})
-            (Libcrux_ml_kem.Vector.to_spec_matrix_t #$K #$:Vector ${key_pair.public_key.ind_cpa_public_key.A})"#))
-    ]
+        match hacspec_ml_kem::ind_cca_unpack_decapsulate::<
+            K, C1_SIZE, C2_SIZE, CIPHERTEXT_SIZE, IMPLICIT_REJECTION_HASH_INPUT_SIZE,
+        >(
+            &hacspec_ml_kem::parameters::rank_to_params(K),
+            &key_pair.public_key.public_key_hash,
+            &key_pair.private_key.implicit_rejection_value,
+            &ciphertext.value,
+            &crate::vector::spec::vector_to_spec(&key_pair.private_key.ind_cpa_private_key.secret_as_ntt),
+            &crate::vector::spec::vector_to_spec(&key_pair.public_key.ind_cpa_public_key.t_as_ntt),
+            &crate::vector::spec::matrix_to_spec(&key_pair.public_key.ind_cpa_public_key.A),
+        ) {
+            Ok(shared) => result == shared,
+            Err(_) => true,
+        }
+    )]
     pub(crate) fn decapsulate<
         const K: usize,
         const SECRET_KEY_SIZE: usize,
