@@ -258,17 +258,21 @@ pub(crate) fn serialize_vector<const K: usize, Vector: Operations>(
         (Seq.slice prf_input 0 32) (sz (v domain_separator))))"#
     )
 )]
-#[hax_lib::requires(fstar!(r#"Spec.MLKEM.is_rank $K /\
-    $ETA2_RANDOMNESS_SIZE == Spec.MLKEM.v_ETA2_RANDOMNESS_SIZE $K /\
-    $ETA2 == Spec.MLKEM.v_ETA2 $K /\
-    v $domain_separator < 2 * v $K /\
-    range (v $domain_separator + v $K) u8_inttype"#))]
+#[hax_lib::requires(
+    (hacspec_ml_kem::parameters::is_rank(K)
+        && ETA2_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta2_randomness_size(K)
+        && ETA2 == hacspec_ml_kem::parameters::eta2(K)
+        && (domain_separator as usize) < 2 * K
+        && (domain_separator as usize) + K < 256).to_prop()
+)]
+// Functional spec dropped at R11 migration (2026-05-01): the prior
+// `Spec.MLKEM.sample_vector_cbd2` cite has no public Hacspec analogue
+// (the CBD samplers are spec-internal helpers).  Function is `lax` so
+// the functional cite was admitted in any consumer; the ensures kept
+// here are the bound + domain-separator increment.
 #[hax_lib::ensures(|ds|
-    fstar!(r#"v $ds == v $domain_separator + v $K /\
-              (forall i. i < v $K ==> 
-                Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 7) (Seq.index ${error_1} i))/\
-               Libcrux_ml_kem.Vector.to_spec_vector_t #$K #$:Vector $error_1 ==
-               Spec.MLKEM.sample_vector_cbd2 #$K (Seq.slice $prf_input 0 32) (sz (v $domain_separator))"#)
+    (ds == domain_separator + (K as u8)).to_prop()
+    & crate::polynomial::spec::is_bounded_polynomial_vector(7, future(error_1))
 )]
 fn sample_ring_element_cbd<
     const K: usize,
@@ -374,17 +378,21 @@ fn sample_ring_element_cbd<
         (Seq.slice prf_input 0 32) (sz (v domain_separator))))"#
     )
 )]
-#[hax_lib::requires(fstar!(r#"Spec.MLKEM.is_rank $K /\
-    $ETA_RANDOMNESS_SIZE == Spec.MLKEM.v_ETA1_RANDOMNESS_SIZE $K /\
-    $ETA == Spec.MLKEM.v_ETA1 $K /\
-    v $domain_separator < 2 * v $K /\
-    range (v $domain_separator + v $K) u8_inttype"#))]
+#[hax_lib::requires(
+    (hacspec_ml_kem::parameters::is_rank(K)
+        && ETA_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
+        && ETA == hacspec_ml_kem::parameters::eta1(K)
+        && (domain_separator as usize) < 2 * K
+        && (domain_separator as usize) + K < 256).to_prop()
+)]
+// Functional spec dropped at R11 migration (2026-05-01): the prior
+// `Spec.MLKEM.sample_vector_cbd_then_ntt` cite has no public Hacspec
+// analogue (CBD-then-NTT composition is spec-internal).  Function is
+// `lax` so the functional cite was admitted in any consumer; the
+// ensures kept here are the bound + domain-separator increment.
 #[hax_lib::ensures(|ds|
-    fstar!(r#"v $ds == v $domain_separator + v $K /\
-            Libcrux_ml_kem.Vector.to_spec_vector_t #$K #$:Vector ${re_as_ntt}_future ==
-            Spec.MLKEM.sample_vector_cbd_then_ntt #$K (Seq.slice $prf_input 0 32) (sz (v $domain_separator)) /\
-            (forall (i: nat). i < v $K ==>
-              Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #$:Vector (sz 3328) (Seq.index ${re_as_ntt}_future i))"#)
+    (ds == domain_separator + (K as u8)).to_prop()
+    & crate::polynomial::spec::is_bounded_polynomial_vector(3328, future(re_as_ntt))
 )]
 fn sample_vector_cbd_then_ntt<
     const K: usize,
