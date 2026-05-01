@@ -9,22 +9,24 @@ when the three sprints complete and will overwrite the relevant
 sections. Numbers below are reproducible by re-running the documented
 commands.
 
-## Lineage
+## Lineage (corrected 2026-05-01)
 
 ```
 main 70effe9c7 (2026-03-24)
   ├── trait-poststrengthen (235 commits, 2026-03-24 → 2026-04-27)
-  │     ├── trait-opacify (current ml-kem branch, 399 commits, 2026-03-31 → 2026-05-01, 31 days)
-  │     └── ml-dsa-proofs (current ml-dsa branch, 404 commits, 2026-03-31 → 2026-05-01, 31 days)
+  │     ├── trait-opacify (current ml-kem branch; 399 commits ahead of main; 31 days)
+  │     │     ↖ merged in: proofs-cleanup (~177), proofs-cleanup-backup, ...
+  │     └── ml-dsa-proofs (current ml-dsa branch; 404 commits ahead; 31 days)
+  │           ↖ merged in: ml-dsa-above-trait (~334), agent-aa244240-above-trait,
+  │              agent-ab0453d4-above-trait (✅ fully), proofs-cleanup, ...
   │
-  └── sha3-byteform-migration (current sha-3 branch, 46 commits, 2026-04-24 → 2026-05-01, 7 days)
-        └── (sha3-proofs-focused: sibling, 45 commits, did not merge into byteform-migration via fast-forward; cousin)
+  └── sha3-byteform-migration (current sha-3 branch; 46 commits ahead; 7 days)
+        ↖ merged in: sha3-proofs-focused (✅ fully)
 
-Sibling branches (NOT merged into any current branch — counted separately):
-  rust-spec, proofs-cleanup, proofs-cleanup-backup, ml-dsa-above-trait,
-  agent-aa244240-above-trait, agent-ab0453d4-above-trait, franziskus/sha3-cleanup,
-  protz/cleanup, alex/rust-spec-aeneas, alex/rust-spec-quick-hax, Ind-cca-spec,
-  dev-add-serialize-specs-trait
+Genuinely unmerged sibling work (~30 commits total):
+  rust-spec (27 commits, pre-fork) — only substantially-unmerged effort
+  ml-dsa-above-trait, agent-aa244240-above-trait, proofs-cleanup,
+    proofs-cleanup-backup — each has 1-2 unmerged tip commits
 ```
 
 ## Spec source convention (uniform across crates — corrected 2026-05-01)
@@ -152,24 +154,41 @@ below are based on the closed milestones I'm aware of.
 | **E3 Wall + spike** | ~3 | USER-13 (SD4 discovery); sha3 keccakf1600 AVX2/Neon backends; ml-dsa Encoding.Verification_key body discharge |
 | **E4 Spec design** | ~2 | initial `Hacspec_ml_kem.Commute.{Bridges, Chunk}` design (predates the 31-day window); sha3 EquivImplSpec.* layer (8,701 LOC of equivalence proofs in 7 days — the major sha3 outcome) |
 
-## Sibling-branch addendum
+## Sibling-branch addendum (CORRECTED 2026-05-01 after re-check)
 
-These branches contain proof work that was NOT merged into the
-current three. They're separate proof projects and should be reported
-separately if the goal is "all proof work since fork":
+I previously over-counted sibling-branch work — the metric I used
+(commits ahead of `main`) doesn't account for branches whose work
+was SUBSEQUENTLY merged into the current three branches. The correct
+metric is **commits ahead of the relevant canonical branch**.
 
-| Branch | Commits ahead of main | Span | Notes |
-|---|---:|---|---|
-| `proofs-cleanup` | 179 | 2026-03-24 → 2026-04-24 | Independent proof-cleanup effort; never merged. |
-| `rust-spec` | 27 | 2026-03-10 → 2026-03-23 | Pre-fork proof effort; spec scaffolding. |
-| `ml-dsa-above-trait` | 336 | 2026-03-24 → 2026-04-29 | Parallel ml-dsa proof effort; never merged into `ml-dsa-proofs`. |
-| `sha3-proofs-focused` | 45 | (sha3-byteform-migration's older cousin) | Most work likely shared; needs cherry-pick attribution. |
-| `trait-poststrengthen` | 235 | 2026-03-24 → 2026-04-27 | Common ancestor of `trait-opacify` + `ml-dsa-proofs` — already counted in their numbers above. |
+After re-checking with `git rev-list --count <merge-base>..<sibling>`
+against each canonical branch:
 
-The 336 commits on `ml-dsa-above-trait` are the most striking — a
-parallel proof effort that didn't make it into the merged branch. A
-final retrospective should reconcile: which fns/proofs are unique to
-that branch vs. duplicated/superseded by `ml-dsa-proofs`.
+| Sibling branch | vs `trait-opacify` | vs `ml-dsa-proofs` | vs `sha3-byteform-migration` | Status |
+|---|---:|---:|---:|---|
+| `trait-poststrengthen` | ✅ fully merged | ✅ fully merged | 235 unique | Common ancestor of trait-opacify + ml-dsa-proofs — already counted. |
+| `ml-dsa-above-trait` | 94 unique | **2 unique** | 336 unique | Almost fully merged into ml-dsa-proofs (was 334 commits, only 2 are unmerged at the tip). |
+| `agent-aa244240-above-trait` | 82 unique | 1 unique | 324 unique | Same — fully merged into ml-dsa-proofs except 1 tip commit. |
+| `agent-ab0453d4-above-trait` | 83 unique | ✅ fully merged | 325 unique | Fully merged into ml-dsa-proofs. |
+| `sha3-proofs-focused` | 45 unique | 45 unique | ✅ fully merged | Fully merged into sha3-byteform-migration (subsumed). |
+| `proofs-cleanup` | 2 unique | 2 unique | 179 unique | Almost fully merged into trait-opacify + ml-dsa-proofs. |
+| `proofs-cleanup-backup` | 1 unique | 1 unique | 8 unique | Almost fully merged. |
+| `rust-spec` | 27 unique | 27 unique | 27 unique | Genuinely unmerged proof effort (27 commits). |
+
+**Real unmerged sibling work**: ~30 commits in total scattered across
+6 branches (mostly the 27 from `rust-spec`, plus 1-2 unmerged tip
+commits each on the above-trait variants). This is the only work
+that is NOT counted in the headline numbers above.
+
+The `git diff main..HEAD` for each canonical branch (and therefore
+the W1-W4 numbers above) ALREADY captures all the merged sibling
+work — including the 234 commits from `trait-poststrengthen`, the
+334 commits from `ml-dsa-above-trait`, and the 177 commits from
+`proofs-cleanup` that landed via merges.
+
+Net effect: the headline numbers ARE the right answer for
+"all proof work since fork that landed in the current branches".
+Sibling branches add ~30 commits of unique proof work on top.
 
 ## Limitations of this snapshot
 
