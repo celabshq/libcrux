@@ -38,6 +38,48 @@ fn concat_byte<const N: usize, const N1: usize>(a: &[u8; N], b: u8) -> [u8; N1] 
     result
 }
 
+/// FIPS 203 inner loop: sample `RANK` polynomials from CBD_η using
+/// PRF_η(seed ‖ domain_separator + i) for i ∈ {0, …, RANK-1}.
+///
+/// Captures the "for i ∈ {0, …, k-1}: v[i] ← SamplePolyCBD_η(PRF_η(seed, N))"
+/// pattern that appears in K-PKE.KeyGen (Alg. 13) for s/e and in
+/// K-PKE.Encrypt (Alg. 14) for r/e₁.
+#[hax_lib::requires(
+    seed.len() == 32
+    && (eta == 2 || eta == 3)
+    && RANK <= 4
+    && (domain_separator as usize) + RANK < 256
+)]
+pub fn sample_vector_cbd<const RANK: usize>(
+    eta: usize,
+    seed: &[u8],
+    domain_separator: u8,
+) -> Vector<RANK> {
+    createi(|i| {
+        let prf_input: [u8; 33] = concat_byte::<32, 33>(
+            seed.try_into().unwrap(),
+            domain_separator + i as u8,
+        );
+        sample_secret(eta, &prf_input)
+    })
+}
+
+/// `sample_vector_cbd` followed by NTT.  Captures the "ŝ ← NTT(s)" /
+/// "ê ← NTT(e)" / "r̂ ← NTT(r)" steps in K-PKE.{KeyGen,Encrypt}.
+#[hax_lib::requires(
+    seed.len() == 32
+    && (eta == 2 || eta == 3)
+    && RANK <= 4
+    && (domain_separator as usize) + RANK < 256
+)]
+pub fn sample_vector_cbd_then_ntt<const RANK: usize>(
+    eta: usize,
+    seed: &[u8],
+    domain_separator: u8,
+) -> Vector<RANK> {
+    vector_ntt(sample_vector_cbd::<RANK>(eta, seed, domain_separator))
+}
+
 /// Algorithm 13: K-PKE.KeyGen
 ///
 /// Generates an encryption key and a corresponding decryption key.
@@ -102,27 +144,13 @@ pub fn generate_keypair<const RANK: usize, const EK_SIZE: usize, const DK_PKE_SI
     // Â[i,j] ← SampleNTT(XOF(ρ, i, j))
     let A_as_ntt: Matrix<RANK> = sample_matrix_A(seed_for_A, false)?;
 
-    // s[i] ← SamplePolyCBD_{η₁}(PRF_{η₁}(σ,N))
-    let secret = createi(|i| {
-        let prf_input =
-            concat_byte::<32, 33>(seed_for_secret_and_error.try_into().unwrap(), i as u8);
-        sample_secret(params.eta1, &prf_input)
-    });
+    // s[i] ← SamplePolyCBD_{η₁}(PRF_{η₁}(σ,N)) ; ŝ ← NTT(s)
+    let secret_as_ntt =
+        sample_vector_cbd_then_ntt::<RANK>(params.eta1, seed_for_secret_and_error, 0);
 
-    // e[i] ← SamplePolyCBD_{η₁}(PRF_{η₁}(σ,N))
-    let error = createi(|i| {
-        let prf_input: [u8; 33] = concat_byte::<32, 33>(
-            seed_for_secret_and_error.try_into().unwrap(),
-            (RANK + i) as u8,
-        );
-        sample_secret(params.eta1, &prf_input)
-    });
-
-    // ŝ ← NTT(s)
-    let secret_as_ntt = vector_ntt(secret);
-
-    // ê ← NTT(e)
-    let error_as_ntt = vector_ntt(error);
+    // e[i] ← SamplePolyCBD_{η₁}(PRF_{η₁}(σ,N)) ; ê ← NTT(e)
+    let error_as_ntt =
+        sample_vector_cbd_then_ntt::<RANK>(params.eta1, seed_for_secret_and_error, RANK as u8);
 
     // t̂ ← Â◦ŝ + ê  (uses compute_As_plus_e matching the implementation)
     let t_as_ntt = compute_As_plus_e(&A_as_ntt, &secret_as_ntt, &error_as_ntt);
@@ -224,28 +252,17 @@ pub fn encrypt<
     // when accessed as A_as_ntt[i][j].
     let A_as_ntt: Matrix<RANK> = sample_matrix_A(seed_for_A, false)?;
 
-    // r[i] ← SamplePolyCBD_{η₁}(PRF_{η₁}(r,N))
-    let r = createi(|i| {
-        let prf_input: [u8; 33] =
-            concat_byte::<32, 33>(randomness.try_into().unwrap(), i as u8);
-        sample_secret(params.eta1, &prf_input)
-    });
+    // r[i] ← SamplePolyCBD_{η₁}(PRF_{η₁}(r,N)) ; r̂ ← NTT(r)
+    let r_as_ntt = sample_vector_cbd_then_ntt::<RANK>(params.eta1, randomness, 0);
 
     // e₁[i] ← SamplePolyCBD_{η₂}(PRF_{η₂}(r,N))
-    let error_1 = createi(|i| {
-        let prf_input: [u8; 33] =
-            concat_byte::<32, 33>(randomness.try_into().unwrap(), (RANK + i) as u8);
-        sample_secret(params.eta2, &prf_input)
-    });
+    let error_1 = sample_vector_cbd::<RANK>(params.eta2, randomness, RANK as u8);
 
     // e₂ ← SamplePolyCBD_{η₂}(PRF_{η₂}(r,N))
     let mut prf_input = [0u8; 33];
     prf_input[..32].copy_from_slice(randomness);
     prf_input[32] = (RANK * 2) as u8;
     let error_2 = sample_secret(params.eta2, &prf_input);
-
-    // r̂ ← NTT(r)
-    let r_as_ntt = vector_ntt(r);
 
     // u ← NTT⁻¹(Âᵀ ◦ r̂) + e₁  (uses compute_vector_u matching the implementation)
     let u = compute_vector_u(&A_as_ntt, &r_as_ntt, &error_1);
