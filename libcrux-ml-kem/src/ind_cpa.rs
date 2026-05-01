@@ -993,15 +993,24 @@ pub(crate) fn encrypt<
 
 #[hax_lib::fstar::verification_status(lax)]
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"Spec.MLKEM.is_rank $K /\
-    $T_AS_NTT_ENCODED_SIZE == Spec.MLKEM.v_T_AS_NTT_ENCODED_SIZE $K /\
-    length $public_key == Spec.MLKEM.v_CPA_PUBLIC_KEY_SIZE $K"#))]
-#[hax_lib::ensures(|result| fstar!(r#"
-    let (t_as_ntt_bytes, seed_for_A) = split public_key $T_AS_NTT_ENCODED_SIZE in
-    let t_as_ntt = Spec.MLKEM.vector_decode_12 #$K t_as_ntt_bytes in
-    let matrix_A_as_ntt, valid = Spec.MLKEM.sample_matrix_A_ntt #$K seed_for_A in
-    (Libcrux_ml_kem.Vector.to_spec_vector_t #$K #$:Vector ${result.t_as_ntt} == t_as_ntt /\
-     valid ==> Libcrux_ml_kem.Vector.to_spec_matrix_t #$K #$:Vector ${result.A} == Spec.MLKEM.matrix_transpose matrix_A_as_ntt)"#))]
+#[hax_lib::requires(
+    hacspec_ml_kem::parameters::is_rank(K)
+    && T_AS_NTT_ENCODED_SIZE == hacspec_ml_kem::parameters::t_as_ntt_encoded_size(K)
+    && public_key.len() == hacspec_ml_kem::parameters::cpa_public_key_size(K)
+)]
+#[hax_lib::ensures(|result| {
+    crate::vector::spec::vector_to_spec(&result.t_as_ntt)
+        == hacspec_ml_kem::serialize::vector_decode_12::<K>(
+            &public_key[..T_AS_NTT_ENCODED_SIZE],
+        )
+    && match hacspec_ml_kem::matrix::sample_matrix_A::<K>(
+        &public_key[T_AS_NTT_ENCODED_SIZE..],
+        false,
+    ) {
+        Ok(A_as_ntt) => crate::vector::spec::matrix_to_spec(&result.A) == A_as_ntt,
+        Err(_) => true,
+    }
+})]
 fn build_unpacked_public_key<
     const K: usize,
     const T_AS_NTT_ENCODED_SIZE: usize,
@@ -1019,17 +1028,24 @@ fn build_unpacked_public_key<
 }
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"Spec.MLKEM.is_rank $K /\
-    $T_AS_NTT_ENCODED_SIZE == Spec.MLKEM.v_T_AS_NTT_ENCODED_SIZE $K /\
-    length $public_key == Spec.MLKEM.v_CPA_PUBLIC_KEY_SIZE $K"#))]
-#[hax_lib::ensures(|_| {
-    let unpacked_public_key_future = future(unpacked_public_key);
-    {fstar!(r#"
-    let (t_as_ntt_bytes, seed_for_A) = split public_key $T_AS_NTT_ENCODED_SIZE in
-    let t_as_ntt = Spec.MLKEM.vector_decode_12 #$K t_as_ntt_bytes in 
-    let matrix_A_as_ntt, valid = Spec.MLKEM.sample_matrix_A_ntt #$K seed_for_A in
-    (Libcrux_ml_kem.Vector.to_spec_vector_t #$K #$:Vector ${unpacked_public_key_future.t_as_ntt} == t_as_ntt /\
-    valid ==> Libcrux_ml_kem.Vector.to_spec_matrix_t #$K #$:Vector ${unpacked_public_key_future.A} == Spec.MLKEM.matrix_transpose matrix_A_as_ntt)"#)}})]
+#[hax_lib::requires(
+    hacspec_ml_kem::parameters::is_rank(K)
+    && T_AS_NTT_ENCODED_SIZE == hacspec_ml_kem::parameters::t_as_ntt_encoded_size(K)
+    && public_key.len() == hacspec_ml_kem::parameters::cpa_public_key_size(K)
+)]
+#[hax_lib::ensures(|()| {
+    crate::vector::spec::vector_to_spec(&future(unpacked_public_key).t_as_ntt)
+        == hacspec_ml_kem::serialize::vector_decode_12::<K>(
+            &public_key[..T_AS_NTT_ENCODED_SIZE],
+        )
+    && match hacspec_ml_kem::matrix::sample_matrix_A::<K>(
+        &public_key[T_AS_NTT_ENCODED_SIZE..],
+        false,
+    ) {
+        Ok(A_as_ntt) => crate::vector::spec::matrix_to_spec(&future(unpacked_public_key).A) == A_as_ntt,
+        Err(_) => true,
+    }
+})]
 #[hax_lib::fstar::verification_status(lax)]
 pub(crate) fn build_unpacked_public_key_mut<
     const K: usize,
@@ -1069,12 +1085,17 @@ pub(crate) fn build_unpacked_public_key_mut<
 #[hax_lib::fstar::verification_status(lax)]
 #[inline(always)]
 #[hax_lib::fstar::options("--z3rlimit 800 --ext context_pruning")]
-#[hax_lib::requires(fstar!(r#"Spec.MLKEM.is_rank $K /\
-    $CIPHERTEXT_SIZE == Spec.MLKEM.v_CPA_CIPHERTEXT_SIZE $K /\
-    $U_COMPRESSION_FACTOR == Spec.MLKEM.v_VECTOR_U_COMPRESSION_FACTOR $K"#))]
+#[hax_lib::requires(
+    hacspec_ml_kem::parameters::is_rank(K)
+    && CIPHERTEXT_SIZE == hacspec_ml_kem::parameters::cpa_ciphertext_size(K)
+    && U_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_u_compression_factor(K)
+)]
 #[hax_lib::ensures(|res|
-    fstar!(r#"Libcrux_ml_kem.Vector.to_spec_vector_t #$K #$:Vector $res ==
-        Spec.MLKEM.(vector_ntt (decode_then_decompress_u #$K (Seq.slice $ciphertext 0 (v (Spec.MLKEM.v_C1_SIZE $K)))))"#)
+    crate::vector::spec::vector_to_spec(&res)
+        == hacspec_ml_kem::serialize::deserialize_then_decompress_u_then_ntt::<K>(
+            &ciphertext[..hacspec_ml_kem::parameters::c1_size(K)],
+            U_COMPRESSION_FACTOR,
+        )
 )]
 fn deserialize_then_decompress_u<
     const K: usize,
