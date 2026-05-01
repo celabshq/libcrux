@@ -257,21 +257,31 @@ pub(crate) fn generate_keypair<
 }
 
 #[hax_lib::fstar::options("--z3rlimit 300")]
-#[hax_lib::requires(fstar!(r#"Spec.MLKEM.is_rank $K /\
-    $CIPHERTEXT_SIZE == Spec.MLKEM.v_CPA_CIPHERTEXT_SIZE $K /\
-    $PUBLIC_KEY_SIZE == Spec.MLKEM.v_CPA_PUBLIC_KEY_SIZE $K /\
-    $T_AS_NTT_ENCODED_SIZE == Spec.MLKEM.v_T_AS_NTT_ENCODED_SIZE $K /\
-    $C1_SIZE == Spec.MLKEM.v_C1_SIZE $K /\
-    $C2_SIZE == Spec.MLKEM.v_C2_SIZE $K /\
-    $VECTOR_U_COMPRESSION_FACTOR == Spec.MLKEM.v_VECTOR_U_COMPRESSION_FACTOR  $K /\
-    $VECTOR_V_COMPRESSION_FACTOR == Spec.MLKEM.v_VECTOR_V_COMPRESSION_FACTOR  $K /\
-    $C1_BLOCK_SIZE == Spec.MLKEM.v_C1_BLOCK_SIZE $K /\
-    $ETA1 == Spec.MLKEM.v_ETA1 $K /\
-    $ETA1_RANDOMNESS_SIZE == Spec.MLKEM.v_ETA1_RANDOMNESS_SIZE $K /\
-    $ETA2 == Spec.MLKEM.v_ETA2 $K /\
-    $ETA2_RANDOMNESS_SIZE == Spec.MLKEM.v_ETA2_RANDOMNESS_SIZE $K"#))]
-#[hax_lib::ensures(|result| fstar!(r#"let (expected, valid) = Spec.MLKEM.ind_cca_encapsulate $K ${public_key}.f_value $randomness in
-                                    valid ==> (${result}._1.f_value, ${result}._2) == expected"#))]
+#[hax_lib::requires(
+    hacspec_ml_kem::parameters::is_rank(K)
+    && CIPHERTEXT_SIZE == hacspec_ml_kem::parameters::cpa_ciphertext_size(K)
+    && PUBLIC_KEY_SIZE == hacspec_ml_kem::parameters::cpa_public_key_size(K)
+    && T_AS_NTT_ENCODED_SIZE == hacspec_ml_kem::parameters::t_as_ntt_encoded_size(K)
+    && C1_SIZE == hacspec_ml_kem::parameters::c1_size(K)
+    && C2_SIZE == hacspec_ml_kem::parameters::c2_size(K)
+    && VECTOR_U_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_u_compression_factor(K)
+    && VECTOR_V_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_v_compression_factor(K)
+    && C1_BLOCK_SIZE == hacspec_ml_kem::parameters::c1_block_size(K)
+    && ETA1 == hacspec_ml_kem::parameters::eta1(K)
+    && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
+    && ETA2 == hacspec_ml_kem::parameters::eta2(K)
+    && ETA2_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta2_randomness_size(K)
+)]
+#[hax_lib::ensures(|result|
+    match hacspec_ml_kem::encapsulate::<K, PUBLIC_KEY_SIZE, C1_SIZE, C2_SIZE, CIPHERTEXT_SIZE>(
+        &hacspec_ml_kem::parameters::rank_to_params(K),
+        &public_key.value,
+        randomness,
+    ) {
+        Ok((shared, ciphertext)) => result.0.value == ciphertext && result.1 == shared,
+        Err(_) => true,
+    }
+)]
 #[inline(always)]
 pub(crate) fn encapsulate<
     const K: usize,
@@ -334,24 +344,34 @@ pub(crate) fn encapsulate<
 /// This code verifies on some machines, runs out of memory on others
 #[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::fstar::options("--z3rlimit 500")]
-#[hax_lib::requires(fstar!(r#"Spec.MLKEM.is_rank $K /\
-    $SECRET_KEY_SIZE == Spec.MLKEM.v_CCA_PRIVATE_KEY_SIZE $K /\
-    $CPA_SECRET_KEY_SIZE == Spec.MLKEM.v_CPA_PRIVATE_KEY_SIZE $K /\
-    $PUBLIC_KEY_SIZE == Spec.MLKEM.v_CPA_PUBLIC_KEY_SIZE $K /\
-    $CIPHERTEXT_SIZE == Spec.MLKEM.v_CPA_CIPHERTEXT_SIZE $K /\
-    $T_AS_NTT_ENCODED_SIZE == Spec.MLKEM.v_T_AS_NTT_ENCODED_SIZE $K /\
-    $C1_SIZE == Spec.MLKEM.v_C1_SIZE $K /\
-    $C2_SIZE == Spec.MLKEM.v_C2_SIZE $K /\
-    $VECTOR_U_COMPRESSION_FACTOR == Spec.MLKEM.v_VECTOR_U_COMPRESSION_FACTOR  $K /\
-    $VECTOR_V_COMPRESSION_FACTOR == Spec.MLKEM.v_VECTOR_V_COMPRESSION_FACTOR  $K /\
-    $C1_BLOCK_SIZE == Spec.MLKEM.v_C1_BLOCK_SIZE $K /\
-    $ETA1 == Spec.MLKEM.v_ETA1 $K /\
-    $ETA1_RANDOMNESS_SIZE == Spec.MLKEM.v_ETA1_RANDOMNESS_SIZE $K /\
-    $ETA2 == Spec.MLKEM.v_ETA2 $K /\
-    $ETA2_RANDOMNESS_SIZE == Spec.MLKEM.v_ETA2_RANDOMNESS_SIZE $K /\
-    $IMPLICIT_REJECTION_HASH_INPUT_SIZE == Spec.MLKEM.v_IMPLICIT_REJECTION_HASH_INPUT_SIZE $K"#))]
-#[hax_lib::ensures(|result| fstar!(r#"let (expected, valid) = Spec.MLKEM.ind_cca_decapsulate $K ${private_key}.f_value ${ciphertext}.f_value in
-                                    valid ==> $result == expected"#))]
+#[hax_lib::requires(
+    hacspec_ml_kem::parameters::is_rank(K)
+    && SECRET_KEY_SIZE == hacspec_ml_kem::parameters::cca_private_key_size(K)
+    && CPA_SECRET_KEY_SIZE == hacspec_ml_kem::parameters::cpa_private_key_size(K)
+    && PUBLIC_KEY_SIZE == hacspec_ml_kem::parameters::cpa_public_key_size(K)
+    && CIPHERTEXT_SIZE == hacspec_ml_kem::parameters::cpa_ciphertext_size(K)
+    && T_AS_NTT_ENCODED_SIZE == hacspec_ml_kem::parameters::t_as_ntt_encoded_size(K)
+    && C1_SIZE == hacspec_ml_kem::parameters::c1_size(K)
+    && C2_SIZE == hacspec_ml_kem::parameters::c2_size(K)
+    && VECTOR_U_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_u_compression_factor(K)
+    && VECTOR_V_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_v_compression_factor(K)
+    && C1_BLOCK_SIZE == hacspec_ml_kem::parameters::c1_block_size(K)
+    && ETA1 == hacspec_ml_kem::parameters::eta1(K)
+    && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
+    && ETA2 == hacspec_ml_kem::parameters::eta2(K)
+    && ETA2_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta2_randomness_size(K)
+    && IMPLICIT_REJECTION_HASH_INPUT_SIZE == hacspec_ml_kem::parameters::implicit_rejection_hash_input_size(K)
+)]
+#[hax_lib::ensures(|result|
+    match hacspec_ml_kem::decapsulate::<K, PUBLIC_KEY_SIZE, SECRET_KEY_SIZE, CPA_SECRET_KEY_SIZE, C1_SIZE, C2_SIZE, CIPHERTEXT_SIZE, IMPLICIT_REJECTION_HASH_INPUT_SIZE>(
+        &hacspec_ml_kem::parameters::rank_to_params(K),
+        &private_key.value,
+        &ciphertext.value,
+    ) {
+        Ok(expected) => result == expected,
+        Err(_) => true,
+    }
+)]
 #[inline(always)]
 pub(crate) fn decapsulate<
     const K: usize,
