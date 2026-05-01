@@ -80,6 +80,60 @@ pub fn sample_vector_cbd_then_ntt<const RANK: usize>(
     vector_ntt(sample_vector_cbd::<RANK>(eta, seed, domain_separator))
 }
 
+/// Unpacked output of `generate_keypair_unpacked`.  Each tuple slot
+/// matches the corresponding field on the libcrux `IndCpa{Public,Private}KeyUnpacked`:
+/// `(secret_as_ntt, t_as_ntt, A_as_ntt, seed_for_A)`.
+///
+/// `A_as_ntt` is the raw sample-matrix output (`sample_matrix_A(seed, false)`);
+/// callers that want the libcrux-impl convention `A[j][i] = sampled(i,j)` apply
+/// `matrix::transpose` after.
+pub type IndCpaKeypairUnpacked<const RANK: usize> =
+    (Vector<RANK>, Vector<RANK>, Matrix<RANK>, [u8; 32]);
+
+/// Algorithm 13: K-PKE.KeyGen — unpacked variant.  Returns the four
+/// components separately instead of the serialized `(ek, dk)` byte
+/// pair.  The packed `generate_keypair` is a thin serialization
+/// wrapper around this function.
+#[allow(non_snake_case)]
+#[hax_lib::fstar::options("--z3rlimit 150")]
+#[hax_lib::requires(
+    RANK <= 4 && params.rank == RANK
+    && (params.eta1 == 2 || params.eta1 == 3)
+    && key_generation_seed.len() == 32
+)]
+pub fn generate_keypair_unpacked<const RANK: usize>(
+    params: &MlKemParams,
+    key_generation_seed: &[u8],
+) -> Result<IndCpaKeypairUnpacked<RANK>, BadRejectionSamplingRandomnessError> {
+    hax_lib::debug_assert!(key_generation_seed.len() == 32);
+
+    // (ρ,σ) ← G(d ‖ k)
+    let mut g_input = [0u8; 33];
+    g_input[..32].copy_from_slice(key_generation_seed);
+    g_input[32] = RANK as u8;
+    let hashed = G(&g_input);
+    let (seed_for_A_slice, seed_for_secret_and_error) = hashed.split_at(32);
+
+    // Â[i,j] ← SampleNTT(XOF(ρ, i, j))
+    let A_as_ntt: Matrix<RANK> = sample_matrix_A(seed_for_A_slice, false)?;
+
+    // s[i] ← SamplePolyCBD_{η₁}(PRF_{η₁}(σ,N)) ; ŝ ← NTT(s)
+    let secret_as_ntt =
+        sample_vector_cbd_then_ntt::<RANK>(params.eta1, seed_for_secret_and_error, 0);
+
+    // e[i] ← SamplePolyCBD_{η₁}(PRF_{η₁}(σ,N)) ; ê ← NTT(e)
+    let error_as_ntt =
+        sample_vector_cbd_then_ntt::<RANK>(params.eta1, seed_for_secret_and_error, RANK as u8);
+
+    // t̂ ← Â◦ŝ + ê
+    let t_as_ntt = compute_As_plus_e(&A_as_ntt, &secret_as_ntt, &error_as_ntt);
+
+    let mut seed_for_A = [0u8; 32];
+    seed_for_A.copy_from_slice(seed_for_A_slice);
+
+    Ok((secret_as_ntt, t_as_ntt, A_as_ntt, seed_for_A))
+}
+
 /// Algorithm 13: K-PKE.KeyGen
 ///
 /// Generates an encryption key and a corresponding decryption key.
@@ -123,43 +177,20 @@ pub fn generate_keypair<const RANK: usize, const EK_SIZE: usize, const DK_PKE_SI
     params: &MlKemParams,
     key_generation_seed: &[u8],
 ) -> Result<([u8; EK_SIZE], [u8; DK_PKE_SIZE]), BadRejectionSamplingRandomnessError> {
-    // Blocker B fix (2026-05-01): the prior signature took `&[u8; 32]`, forcing
-    // libcrux callers (which pass `&[u8]`) to bridge via `try_into().unwrap()`
-    // inside `hax_lib::ensures` annotations — a pattern with no precedent.
-    // We now accept `&[u8]` with a `len() == 32` requires; the body still
-    // copies into a fixed-size 33-byte buffer so the spec semantics are
-    // unchanged.
     hax_lib::debug_assert!(
         EK_SIZE == RANK * BYTES_PER_RING_ELEMENT + 32
             && DK_PKE_SIZE == RANK * BYTES_PER_RING_ELEMENT
             && key_generation_seed.len() == 32
     );
-    // (ρ,σ) ← G(d ‖ k)
-    let mut g_input = [0u8; 33];
-    g_input[..32].copy_from_slice(key_generation_seed);
-    g_input[32] = RANK as u8;
-    let hashed = G(&g_input);
-    let (seed_for_A, seed_for_secret_and_error) = hashed.split_at(32);
 
-    // Â[i,j] ← SampleNTT(XOF(ρ, i, j))
-    let A_as_ntt: Matrix<RANK> = sample_matrix_A(seed_for_A, false)?;
-
-    // s[i] ← SamplePolyCBD_{η₁}(PRF_{η₁}(σ,N)) ; ŝ ← NTT(s)
-    let secret_as_ntt =
-        sample_vector_cbd_then_ntt::<RANK>(params.eta1, seed_for_secret_and_error, 0);
-
-    // e[i] ← SamplePolyCBD_{η₁}(PRF_{η₁}(σ,N)) ; ê ← NTT(e)
-    let error_as_ntt =
-        sample_vector_cbd_then_ntt::<RANK>(params.eta1, seed_for_secret_and_error, RANK as u8);
-
-    // t̂ ← Â◦ŝ + ê  (uses compute_As_plus_e matching the implementation)
-    let t_as_ntt = compute_As_plus_e(&A_as_ntt, &secret_as_ntt, &error_as_ntt);
+    let (secret_as_ntt, t_as_ntt, _A_as_ntt, seed_for_A) =
+        generate_keypair_unpacked::<RANK>(params, key_generation_seed)?;
 
     // ekₚₖₑ ← ByteEncode₁₂(t̂) ‖ ρ
     let t_encoded: [u8; DK_PKE_SIZE] = serialize_secret_key::<RANK, DK_PKE_SIZE>(&t_as_ntt);
     let mut ek = [0u8; EK_SIZE];
     ek[..DK_PKE_SIZE].copy_from_slice(&t_encoded);
-    ek[DK_PKE_SIZE..].copy_from_slice(seed_for_A);
+    ek[DK_PKE_SIZE..].copy_from_slice(&seed_for_A);
 
     // dkₚₖₑ ← ByteEncode₁₂(ŝ)
     let dk: [u8; DK_PKE_SIZE] = serialize_secret_key::<RANK, DK_PKE_SIZE>(&secret_as_ntt);
@@ -225,12 +256,6 @@ pub fn encrypt<
     message: &[u8; 32],
     randomness: &[u8],
 ) -> Result<[u8; CT_SIZE], BadRejectionSamplingRandomnessError> {
-    // Blocker B fix (2026-05-01): the prior signature took `&[u8; 32]`, forcing
-    // libcrux callers (which pass `&[u8]`) to bridge via `try_into().unwrap()`
-    // inside `hax_lib::ensures` annotations.  We now accept `&[u8]` with a
-    // `len() == 32` requires; the body still reads only the first 32 bytes so
-    // the spec semantics are unchanged.  Mirrors the relaxation applied to
-    // `ind_cpa::generate_keypair` in commit `e63973e54`.
     hax_lib::debug_assert!(
         U_SIZE == (RANK * COEFFICIENTS_IN_RING_ELEMENT * params.du) / 8
             && V_SIZE == (COEFFICIENTS_IN_RING_ELEMENT * params.dv) / 8
@@ -248,9 +273,50 @@ pub fn encrypt<
     let seed_for_A = &ek[t_encoded_size..];
 
     // Â[i,j] ← SampleNTT(XOF(ρ, j, i))
-    // Note: We sample with transpose=true so A_as_ntt already represents Âᵀ
-    // when accessed as A_as_ntt[i][j].
     let A_as_ntt: Matrix<RANK> = sample_matrix_A(seed_for_A, false)?;
+
+    encrypt_unpacked::<RANK, U_SIZE, V_SIZE, CT_SIZE>(
+        params,
+        &t_as_ntt,
+        &A_as_ntt,
+        message,
+        randomness,
+    )
+}
+
+/// K-PKE.Encrypt — unpacked variant.  Skips the
+/// `ByteDecode₁₂(ek)` / `sample_matrix_A(seed_for_A)` decoding step
+/// and consumes the already-decoded `t_as_ntt` and `A_as_ntt`
+/// directly.  The packed `encrypt` is a thin decoding wrapper.
+#[allow(non_snake_case)]
+#[hax_lib::fstar::options("--z3rlimit 150")]
+#[hax_lib::requires(
+    RANK <= 4 && params.rank == RANK
+    && U_SIZE == (RANK * COEFFICIENTS_IN_RING_ELEMENT * params.du) / 8
+    && V_SIZE == (COEFFICIENTS_IN_RING_ELEMENT * params.dv) / 8
+    && CT_SIZE == U_SIZE + V_SIZE
+    && (params.eta1 == 2 || params.eta1 == 3)
+    && (params.eta2 == 2 || params.eta2 == 3)
+    && randomness.len() == 32
+)]
+pub fn encrypt_unpacked<
+    const RANK: usize,
+    const U_SIZE: usize,
+    const V_SIZE: usize,
+    const CT_SIZE: usize,
+>(
+    params: &MlKemParams,
+    t_as_ntt: &Vector<RANK>,
+    A_as_ntt: &Matrix<RANK>,
+    message: &[u8; 32],
+    randomness: &[u8],
+) -> Result<[u8; CT_SIZE], BadRejectionSamplingRandomnessError> {
+    hax_lib::debug_assert!(
+        U_SIZE == (RANK * COEFFICIENTS_IN_RING_ELEMENT * params.du) / 8
+            && V_SIZE == (COEFFICIENTS_IN_RING_ELEMENT * params.dv) / 8
+            && CT_SIZE == U_SIZE + V_SIZE
+            && randomness.len() == 32
+    );
 
     // r[i] ← SamplePolyCBD_{η₁}(PRF_{η₁}(r,N)) ; r̂ ← NTT(r)
     let r_as_ntt = sample_vector_cbd_then_ntt::<RANK>(params.eta1, randomness, 0);
@@ -264,14 +330,14 @@ pub fn encrypt<
     prf_input[32] = (RANK * 2) as u8;
     let error_2 = sample_secret(params.eta2, &prf_input);
 
-    // u ← NTT⁻¹(Âᵀ ◦ r̂) + e₁  (uses compute_vector_u matching the implementation)
-    let u = compute_vector_u(&A_as_ntt, &r_as_ntt, &error_1);
+    // u ← NTT⁻¹(Âᵀ ◦ r̂) + e₁
+    let u = compute_vector_u(A_as_ntt, &r_as_ntt, &error_1);
 
     // μ ← Decompress₁(ByteDecode₁(m))
     let message_as_ring_element = deserialize_then_decompress_message(message);
 
-    // v ← NTT⁻¹(t̂ᵀ ◦ r̂) + e₂ + μ  (uses compute_ring_element_v matching the implementation)
-    let v = compute_ring_element_v(&t_as_ntt, &r_as_ntt, &error_2, &message_as_ring_element);
+    // v ← NTT⁻¹(t̂ᵀ ◦ r̂) + e₂ + μ
+    let v = compute_ring_element_v(t_as_ntt, &r_as_ntt, &error_2, &message_as_ring_element);
 
     // c₁ ← ByteEncode_{dᵤ}(Compress_{dᵤ}(u))
     let c1: [u8; U_SIZE] = compress_then_serialize_u::<RANK, U_SIZE>(&u, params.du);
@@ -320,6 +386,34 @@ pub fn decrypt<const RANK: usize>(params: &MlKemParams, dk: &[u8], ciphertext: &
                     + COEFFICIENTS_IN_RING_ELEMENT * params.dv)
                     / 8
     );
+
+    // ŝ ← ByteDecode₁₂(dkₚₖₑ)
+    let secret_as_ntt: Vector<RANK> = deserialize_ring_elements_reduced::<RANK>(dk);
+
+    decrypt_unpacked::<RANK>(params, &secret_as_ntt, ciphertext)
+}
+
+/// K-PKE.Decrypt — unpacked variant.  Skips the
+/// `ByteDecode₁₂(dk)` decoding step and consumes the already-decoded
+/// `secret_as_ntt` directly.  The packed `decrypt` is a thin
+/// decoding wrapper.
+#[allow(non_snake_case)]
+#[hax_lib::fstar::options("--z3rlimit 150")]
+#[hax_lib::requires(
+    RANK <= 4 && params.rank == RANK
+    && ciphertext.len() == (RANK * COEFFICIENTS_IN_RING_ELEMENT * params.du + COEFFICIENTS_IN_RING_ELEMENT * params.dv) / 8
+)]
+pub fn decrypt_unpacked<const RANK: usize>(
+    params: &MlKemParams,
+    secret_as_ntt: &Vector<RANK>,
+    ciphertext: &[u8],
+) -> [u8; 32] {
+    hax_lib::debug_assert!(
+        ciphertext.len()
+            == (RANK * COEFFICIENTS_IN_RING_ELEMENT * params.du
+                + COEFFICIENTS_IN_RING_ELEMENT * params.dv)
+                / 8
+    );
     let u_encoded_size = params.u_encoded_size();
 
     // u ← Decompress_{dᵤ}(ByteDecode_{dᵤ}(c₁))
@@ -329,12 +423,9 @@ pub fn decrypt<const RANK: usize>(params: &MlKemParams, dk: &[u8], ciphertext: &
     // v ← Decompress_{dᵥ}(ByteDecode_{dᵥ}(c₂))
     let v = deserialize_then_decompress_v(&ciphertext[u_encoded_size..], params.dv);
 
-    // ŝ ← ByteDecode₁₂(dkₚₖₑ)
-    let secret_as_ntt: Vector<RANK> = deserialize_ring_elements_reduced::<RANK>(dk);
-
-    // w ← v - NTT⁻¹(ŝᵀ ◦ NTT(u))  (uses compute_message matching the implementation)
+    // w ← v - NTT⁻¹(ŝᵀ ◦ NTT(u))
     let u_as_ntt = vector_ntt(u);
-    let w = compute_message(&v, &secret_as_ntt, &u_as_ntt);
+    let w = compute_message(&v, secret_as_ntt, &u_as_ntt);
 
     // m ← ByteEncode₁(Compress₁(w))
     compress_then_serialize_message(w)
