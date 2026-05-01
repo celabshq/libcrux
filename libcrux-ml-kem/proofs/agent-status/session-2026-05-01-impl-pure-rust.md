@@ -343,3 +343,203 @@ Functions in `Ind_cpa.fsti` still carrying `Spec.MLKEM`:
     composition).
   - **Internal**: `encrypt_c1`, `encrypt_c2` (per-step internals,
     audit recommends leave-as-is).
+
+## Lane C push — Pattern C scaling (×5) + Ind_cpa.fsti mop-up (×3)
+
+A fourth push on the same day, after Lane B, to scale the validated
+Pattern C across the remaining unpacked-API functions and to mop up
+the last `Spec.MLKEM` cites in `Libcrux_ml_kem.Ind_cpa.fsti`.
+
+### Spec-side commits
+
+  - `7502cba24` — `specs/ml-kem`: add
+    `serialize::deserialize_then_decompress_u_then_ntt<RANK>(ciphertext, du)`
+    composing the existing `deserialize_then_decompress_u` with
+    `ntt::vector_ntt`.  Lifted to the spec module so the libcrux
+    ensures stay one-function-deep (vs. an inline composition).
+
+### Impl-side commits
+
+  - `62d48c071` — libcrux: Pattern C scaling for the five
+    unpacked-API functions (3 in `ind_cpa.rs`, 2 in `ind_cca.rs`):
+      * `ind_cpa::generate_keypair_unpacked` (line 493)
+      * `ind_cpa::encrypt_unpacked` (line 772)
+      * `ind_cpa::decrypt_unpacked` (line 1191)
+      * `ind_cca::unpacked::encapsulate` (line 983)
+      * `ind_cca::unpacked::decapsulate` (line 1080)
+    All cite the P5 helpers added in `ba0832a30`/`86f880bdc`/`7502cba24`.
+  - `6bbec798d` — libcrux: mop-up for the three remaining
+    `Spec.MLKEM` cites in `Ind_cpa.fsti`:
+      * `build_unpacked_public_key` (line 1005)
+      * `build_unpacked_public_key_mut` (line 1034)
+      * `deserialize_then_decompress_u` (line 1079) — uses the
+        new `deserialize_then_decompress_u_then_ntt` helper.
+
+### A-matrix transpose convention — clarified
+
+Two libcrux call sites for `sample_matrix_A` use **opposite**
+`transpose: bool` flags, and therefore store A in opposite forms on
+`IndCpaPublicKeyUnpacked.A`:
+
+  - `generate_keypair_unpacked`: `sample_matrix_A(_, _, true)` →
+    libcrux-transposed form `A[j][i] = sampled(i, j)`.  Spec helper
+    returns raw form, so projection: `matrix_to_spec(future(A)) ==
+    transpose(A_as_ntt)`.
+  - `build_unpacked_public_key{,_mut}`: `sample_matrix_A(_, _, false)`
+    → raw form `A[i][j] = sampled(i, j)`.  Direct projection:
+    `matrix_to_spec(future(A)) == raw_A_as_ntt` (no transpose).
+
+This contradicts the next-session prompt's blanket "libcrux impl
+stores A in transposed form" claim — the convention is **per call
+site** depending on the bool flag.  The prior-session F* ensures
+already encoded this distinction (one cited `matrix_A_as_ntt`
+directly, the other cited `matrix_transpose matrix_A_as_ntt`); the
+new pure-Rust ensures preserve it via explicit
+`hacspec_ml_kem::matrix::transpose` calls when needed.
+
+### F* verification
+
+  - `Libcrux_ml_kem.Ind_cpa.fsti.checked` ✅ — verifies clean in
+    ~22s after a stale-hint flush.  **Now 0 `Spec.MLKEM` cites**
+    (down from 34 at session start).
+  - `Libcrux_ml_kem.Ind_cca.fsti.checked` ✅ — unchanged from prior
+    session, still 0 cites.
+  - `Libcrux_ml_kem.Ind_cca.Unpacked.fsti.checked` ❌ — still 25
+    `Spec.MLKEM` cites for out-of-scope functions
+    (`unpack_public_key`, `impl_3__serialized{,_mut}`,
+    `impl_4__*serialized*`, `keys_from_private_key`,
+    `transpose_a`).  These are byte-encode/decode wrappers and
+    accessor methods around the unpacked struct, not part of the
+    five Pattern C lane targets.  Build still fails on the first
+    cite (line 62, `unpack_public_key`).
+  - `Hacspec_ml_kem.Serialize.fst.checked` re-verifies clean in
+    ~7s with the new `deserialize_then_decompress_u_then_ntt`.
+  - `Hacspec_ml_kem.Ind_cpa.fst.checked` and
+    `Hacspec_ml_kem.Ind_cca.fst.checked` re-verify clean.
+
+### Stale-hint flush — gotcha to remember
+
+Building `Libcrux_ml_kem.Ind_cpa.fsti.checked` after the
+spec-module rebuild initially failed at the *prior-session*
+`serialize_vector` requires (line 26), with a `--z3rlimit 80`
+timeout and "incomplete quantifiers (with hint)".  Root cause:
+the cached hint file
+(`hints/Libcrux_ml_kem.Ind_cpa.fsti.hints`) referenced symbols
+under the old `Hacspec_ml_kem.Parameters.Sizes.*` namespace,
+which has since been refactored away.  Z3 couldn't locate the
+referenced facts, fell back to non-hint mode, and timed out.
+
+**Fix**: `rm hints/Libcrux_ml_kem.Ind_cpa.fsti.hints` then
+rebuild.  F* re-records a fresh hint that matches the
+current `Hacspec_ml_kem.Parameters.*` symbols.  Total rebuild
+time post-flush: ~22s including hint regeneration.
+
+Lesson for future R11 sessions: **after large spec-side
+refactors, the libcrux-side `.fsti.hints` files become stale
+in a way that masks as a Z3 timeout**.  Default reaction
+should be to `rm` the stale hint and retry, before bumping
+rlimit.
+
+### Pattern C — finalized
+
+Pattern C scales cleanly across all five unpacked-API
+functions.  Form template:
+
+```rust
+#[hax_lib::ensures(|res|  // or |()| or |(a,b)|
+    match hacspec_ml_kem::<helper>::<...>(<args>) {
+        Ok((field0, field1, ..., fieldN)) =>
+              <projection_0> == field0
+           && <projection_1> == field1
+           && ...
+        Err(_) => true,
+    }
+)]
+```
+
+Where `<projection_N>` is either:
+  - `vector_to_spec(&future(out)...field)` for a vector field
+  - `matrix_to_spec(&future(out)...field)` (possibly with `transpose`
+    wrap) for a matrix field
+  - `future(out)...field` for a `[u8; N]` byte-array field
+  - `result == ...` for a value-returning function
+
+No new spec helpers needed beyond the P5 trio (`generate_keypair_unpacked`,
+`encrypt_unpacked`, `decrypt_unpacked` + the `ind_cca_unpack_*`
+wrappers that handle the libcrux-transpose convention).
+
+### R compliance self-audit (this push)
+
+  - **R1 (branch)**: All commits on `libcrux-ml-kem-proofs`.  Not
+    pushed.
+  - **R2 (no new admits)**: Confirmed.  All five Pattern C
+    functions remain `lax` (carryover from pre-session); no new
+    admits introduced.
+  - **R3 (no new axioms)**: Confirmed.
+  - **R4 (rlimit ≤ 800)**: Confirmed.  All migrated functions kept
+    their existing `--z3rlimit` settings (200/300/500/800).
+  - **R5 (iteration cap 20 min)**: All migrations completed within
+    cap.  The longest single iteration was the spec-rebuild +
+    stale-hint diagnosis (~10 min).
+  - **R6 (snapshot/touch)**: `python3 hax.py extract` re-ran cleanly;
+    only modified files (Serialize.fst, Ind_cpa.fst, Ind_cca.fst,
+    Ind_cca.Unpacked.fsti, Ind_cpa.fsti) were re-extracted.  After
+    rebuild, cleared 3 corrupt 0-byte spec `.checked` files and
+    rebuilt them from source — single-target deletes, not bulk-nuke.
+  - **R7 (trait FROZEN)**: `src/vector/traits.rs` not edited.
+  - **R8 (no fstar-mcp)**: Used `make` only; no fstar-mcp.
+  - **R9 (commit prefix `agent-mlkem:`)**: All 3 commits this push
+    use the prefix.  Spec-side and libcrux-side commits separated.
+  - **R10 (no wrappers)**: Confirmed.  The new spec helper
+    `deserialize_then_decompress_u_then_ntt` is a real definition
+    (composition of two existing functions), not an alias.  No new
+    `Hacspec_ml_kem.<TopLevel>.fst` files; the helper extends
+    `Hacspec_ml_kem.Serialize`.  No `unfold let` aliases over
+    `Spec.MLKEM`.
+  - **R11 (no `fstar!` escape in ind_cpa/ind_cca annotations)**:
+    Confirmed for all 8 functions migrated this push.  The
+    `[@ "opaque_to_smt"]` and `--z3rlimit ...` `fstar::before` /
+    `fstar::options` annotations remain (these are F* directives,
+    not requires/ensures escapes; allowed under R11).
+
+### Final commit SHAs (this push)
+
+```
+6bbec798d agent-mlkem: ind_cpa::{build_unpacked_public_key,deserialize_then_decompress_u} — pure-Rust ensures
+62d48c071 agent-mlkem: ind_cpa+ind_cca::*_unpacked — pure-Rust ensures (Pattern C ×5)
+7502cba24 agent-mlkem: specs/ml-kem — add deserialize_then_decompress_u_then_ntt
+```
+
+Tip: `6bbec798d`.  Branch 20 ahead of `origin/libcrux-ml-kem-proofs`.
+
+### Counts (R11 progress, full session)
+
+| File | `Spec.MLKEM` cites in `.fsti` (session start / now) |
+|---|---|
+| `Libcrux_ml_kem.Ind_cca.fsti` | 0 / **0** (DONE in earlier push) |
+| `Libcrux_ml_kem.Ind_cpa.fsti` | 34 / **0** (DONE this push) |
+| `Libcrux_ml_kem.Ind_cca.Unpacked.fsti` | 46 / **25** |
+
+Both `Ind_cpa.fsti` and `Ind_cca.fsti` are now fully R11-compatible
+at the annotation surface.  `Ind_cca.Unpacked.fsti` retains 25 cites
+in byte-encode/decode wrappers and accessors that were not part of
+this lane's five-function scope.
+
+### Out-of-scope (next sessions)
+
+  - `Libcrux_ml_kem.Ind_cca.Unpacked.fsti` mop-up: 25 cites across
+    `unpack_public_key`, `impl_3__serialized*`, `impl_4__*serialized*`,
+    `keys_from_private_key`, `transpose_a`.  These are
+    byte-encode/decode wrappers around the unpacked struct, mostly
+    citing `Spec.MLKEM.vector_encode_12` and
+    `Spec.MLKEM.v_CCA_PRIVATE_KEY_SIZE`.  Mechanical migration
+    using the existing `hacspec_ml_kem::serialize::*` helpers.
+  - **Lane 2 — body-tactic Spec.MLKEM elimination**: the eight
+    functions migrated this push still carry `hax_lib::fstar!(...)`
+    body tactics that cite `Spec.MLKEM.*` for `eq_intro`,
+    `Classical.forall_intro`, `assert (... == ...)`.  R11
+    explicitly targets the annotation surface; bodies need their
+    own sprint with bridge lemmas relating
+    `Spec.MLKEM.*` → `Hacspec_ml_kem.*`.
+  - `encrypt_c1`/`encrypt_c2` migration — internal-only functions,
+    audit recommends leave-as-is.
