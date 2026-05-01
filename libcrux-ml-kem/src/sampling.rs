@@ -7,6 +7,10 @@ use crate::{
 use crate::polynomial::spec;
 
 #[cfg(hax)]
+#[allow(unused_imports)]
+use crate::vector::spec::{matrix_to_spec, poly_to_spec, vector_to_spec};
+
+#[cfg(hax)]
 use hax_lib::prop::ToProp;
 
 /// If `bytes` contains a set of uniformly random bytes, this function
@@ -323,7 +327,7 @@ fn sample_from_binomial_distribution_3<Vector: Operations>(
 #[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::requires((ETA == 2 || ETA == 3) && randomness.len() == ETA * 64)]
 #[hax_lib::ensures(|result| fstar!(r#"Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 7) ${result} /\
-    Libcrux_ml_kem.Vector.to_spec_poly_t #$:Vector $result ==
+    ${poly_to_spec::<Vector>} $result ==
         Spec.MLKEM.sample_poly_cbd $ETA $randomness"#))]
 /// CBD sampling.  Output lanes are in **plain** form (`v c ≡ α mod q`)
 /// where α is a small CBD-distributed integer (η ∈ {2, 3}).  No Montgomery
