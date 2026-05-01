@@ -707,10 +707,9 @@ let generate_keypair
     let (((_, _), matrix_A_as_ntt), _), sufficient_randomness =
       Spec.MLKEM.ind_cpa_generate_keypair_unpacked v_K ind_cpa_keypair_randomness
     in
-    let m_v_A = Libcrux_ml_kem.Vector.to_spec_matrix_t #v_K #v_Vector v_A in
+    let m_v_A = Libcrux_ml_kem.Vector.Spec.matrix_to_spec (mk_usize v_K) v_A in
     let m_f_A =
-      Libcrux_ml_kem.Vector.to_spec_matrix_t #v_K
-        #v_Vector
+      Libcrux_ml_kem.Vector.Spec.matrix_to_spec (mk_usize v_K)
         out.f_public_key.f_ind_cpa_public_key.f_A
     in
     let m_A:Spec.MLKEM.matrix v_K = createi v_K (Spec.MLKEM.matrix_A_as_ntt_i matrix_A_as_ntt) in

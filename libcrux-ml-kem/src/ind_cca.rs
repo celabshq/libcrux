@@ -13,6 +13,10 @@ use crate::{
     vector::Operations,
 };
 
+#[cfg(hax)]
+#[allow(unused_imports)]
+use crate::vector::spec::{matrix_to_spec, poly_to_spec, vector_to_spec};
+
 /// Seed size for key generation
 pub const KEY_GENERATION_SEED_SIZE: usize = CPA_PKE_KEY_GENERATION_SEED_SIZE + SHARED_SECRET_SIZE;
 
@@ -533,8 +537,8 @@ pub(crate) mod unpacked {
         let unpacked_public_key_future = future(unpacked_public_key);
         {fstar!(r#"let (public_key_hash, (seed, (deserialized_pk, (matrix_A, valid)))) =
             Spec.MLKEM.ind_cca_unpack_public_key $K ${public_key}.f_value in (valid ==>
-            Libcrux_ml_kem.Vector.to_spec_matrix_t #$K #$:Vector ${unpacked_public_key_future.ind_cpa_public_key.A} == matrix_A) /\
-        Libcrux_ml_kem.Vector.to_spec_vector_t #$K #$:Vector ${unpacked_public_key_future.ind_cpa_public_key.t_as_ntt} == deserialized_pk /\
+            ${matrix_to_spec::<K, Vector>} (mk_usize $K) ${unpacked_public_key_future.ind_cpa_public_key.A} == matrix_A) /\
+        ${vector_to_spec::<K, Vector>} (mk_usize $K) ${unpacked_public_key_future.ind_cpa_public_key.t_as_ntt} == deserialized_pk /\
         ${unpacked_public_key_future.ind_cpa_public_key.seed_for_A} == seed /\
         ${unpacked_public_key_future.public_key_hash} == public_key_hash"#)}})
     ]
@@ -580,9 +584,9 @@ pub(crate) mod unpacked {
                     ${self_.ind_cpa_public_key.t_as_ntt} i))"#))]
         #[ensures(|_|
             fstar!(r#"let ${self_} = self in            
-            ${serialized}_future.f_value == 
+            ${serialized}_future.f_value ==
                 Seq.append (Spec.MLKEM.vector_encode_12 #$K
-                    (Libcrux_ml_kem.Vector.to_spec_vector_t #$K #$:Vector
+                    (${vector_to_spec::<K, Vector>} (mk_usize $K)
                         ${self_.ind_cpa_public_key.t_as_ntt}))
                 ${self_.ind_cpa_public_key.seed_for_A})"#)
         )]
@@ -608,7 +612,7 @@ pub(crate) mod unpacked {
         #[ensures(|res|
             fstar!(r#"let ${self_} = self in
             ${res.value} == Seq.append (Spec.MLKEM.vector_encode_12 #$K
-                            (Libcrux_ml_kem.Vector.to_spec_vector_t #$K #$:Vector
+                            (${vector_to_spec::<K, Vector>} (mk_usize $K)
                                 ${self_.ind_cpa_public_key.t_as_ntt}))
                         ${self_.ind_cpa_public_key.seed_for_A})"#)
         )]
@@ -723,9 +727,9 @@ pub(crate) mod unpacked {
                     ${self_.public_key.ind_cpa_public_key.t_as_ntt} i))"#))]
         #[ensures(|_|
             fstar!(r#"let ${self_} = self in
-            ${serialized}_future.f_value == 
+            ${serialized}_future.f_value ==
                 Seq.append (Spec.MLKEM.vector_encode_12 #$K
-                    (Libcrux_ml_kem.Vector.to_spec_vector_t #$K #$:Vector
+                    (${vector_to_spec::<K, Vector>} (mk_usize $K)
                         ${self_.public_key.ind_cpa_public_key.t_as_ntt}))
                 ${self_.public_key.ind_cpa_public_key.seed_for_A})"#)
         )]
@@ -748,7 +752,7 @@ pub(crate) mod unpacked {
         #[ensures(|res|
             fstar!(r#"let ${self_} = self in
             ${res}.f_value == Seq.append (Spec.MLKEM.vector_encode_12 #$K
-                            (Libcrux_ml_kem.Vector.to_spec_vector_t #$K #$:Vector
+                            (${vector_to_spec::<K, Vector>} (mk_usize $K)
                                 ${self_.public_key.ind_cpa_public_key.t_as_ntt}))
                         ${self_.public_key.ind_cpa_public_key.seed_for_A})"#)
         )]
@@ -932,8 +936,8 @@ pub(crate) mod unpacked {
             r#"let (ind_cpa_keypair_randomness, _) = split $randomness Spec.MLKEM.v_CPA_KEY_GENERATION_SEED_SIZE in
         let ((((_, _), matrix_A_as_ntt), _), sufficient_randomness) =
             Spec.MLKEM.ind_cpa_generate_keypair_unpacked $K ind_cpa_keypair_randomness in
-        let m_v_A = Libcrux_ml_kem.Vector.to_spec_matrix_t #$K #$:Vector $A in
-        let m_f_A = Libcrux_ml_kem.Vector.to_spec_matrix_t #$K #$:Vector out.f_public_key.f_ind_cpa_public_key.f_A in
+        let m_v_A = ${matrix_to_spec::<K, Vector>} (mk_usize $K) $A in
+        let m_f_A = ${matrix_to_spec::<K, Vector>} (mk_usize $K) out.f_public_key.f_ind_cpa_public_key.f_A in
         let m_A:Spec.MLKEM.matrix $K = createi $K (Spec.MLKEM.matrix_A_as_ntt_i matrix_A_as_ntt) in
         assert (forall (i: nat). i < v $K ==>
             (forall (j: nat). j < v $K ==>
