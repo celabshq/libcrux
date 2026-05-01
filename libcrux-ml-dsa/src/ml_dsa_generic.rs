@@ -51,17 +51,18 @@ pub(crate) mod generic {
     );
 
     #[inline(always)]
-    #[hax_lib::ensures(|_| fstar!(r#"
-        Seq.length ${signing_key}_future == Seq.length ${signing_key} /\
-        Seq.length ${verification_key}_future == Seq.length ${verification_key} /\
-        (let pk_spec, sk_spec =
-           Hacspec_ml_dsa.Ml_dsa.keygen_internal
-              v_HACSPEC_PARAMS.Hacspec_ml_dsa.Parameters.f_k
-              v_HACSPEC_PARAMS.Hacspec_ml_dsa.Parameters.f_l
-              v_VERIFICATION_KEY_SIZE v_SIGNING_KEY_SIZE
-              ${randomness} v_HACSPEC_PARAMS in
-         Seq.equal ${signing_key}_future sk_spec /\
-         Seq.equal ${verification_key}_future pk_spec)"#))]
+    #[cfg_attr(hax, hax_lib::ensures(|_| {
+        let (pk_spec, sk_spec) = hacspec_ml_dsa::keygen_internal::<
+            { HACSPEC_PARAMS.k },
+            { HACSPEC_PARAMS.l },
+            VERIFICATION_KEY_SIZE,
+            SIGNING_KEY_SIZE,
+        >(&randomness, &HACSPEC_PARAMS);
+        future(signing_key).len() == signing_key.len()
+            && future(verification_key).len() == verification_key.len()
+            && future(signing_key) == &sk_spec[..]
+            && future(verification_key) == &pk_spec[..]
+    }))]
     pub(crate) fn generate_key_pair<
         SIMDUnit: Operations,
         Sampler: X4Sampler,
@@ -602,20 +603,27 @@ pub(crate) mod generic {
     }
 
     #[inline(always)]
-    #[hax_lib::ensures(|result| fstar!(r#"
-        Core_models.Slice.impl__len #u8 ${context} <=. mk_usize 255 ==>
-        Core_models.Slice.impl__len #u8 ${message} <=. mk_usize 8192 ==>
-        Core_models.Slice.impl__len #u8 ${signing_key} >=. v_SIGNING_KEY_SIZE ==>
-        (let spec_result =
-           Hacspec_ml_dsa.Ml_dsa.sign
-              v_HACSPEC_PARAMS.Hacspec_ml_dsa.Parameters.f_k
-              v_HACSPEC_PARAMS.Hacspec_ml_dsa.Parameters.f_l
-              v_SIGNATURE_SIZE v_COMMITMENT_VECTOR_SIZE
-              (v_HACSPEC_PARAMS.Hacspec_ml_dsa.Parameters.f_lambda /! mk_usize 4)
-              ${signing_key} ${message} ${context} ${randomness}
-              v_HACSPEC_PARAMS in
-         Core_models.Result.impl__is_ok ${result} ==
-         Core_models.Result.impl__is_ok spec_result)"#))]
+    #[cfg_attr(hax, hax_lib::ensures(|result| {
+        hax_lib::implies(
+            context.len() <= 255
+                && message.len() <= 8192
+                && signing_key.len() >= SIGNING_KEY_SIZE,
+            result.is_ok()
+                == hacspec_ml_dsa::sign::<
+                    { HACSPEC_PARAMS.k },
+                    { HACSPEC_PARAMS.l },
+                    SIGNATURE_SIZE,
+                    COMMITMENT_VECTOR_SIZE,
+                    { HACSPEC_PARAMS.lambda / 4 },
+                >(
+                    signing_key,
+                    message,
+                    context,
+                    &randomness,
+                    &HACSPEC_PARAMS,
+                ).is_ok(),
+        )
+    }))]
     pub(crate) fn sign<
         SIMDUnit: Operations,
         Sampler: X4Sampler,
@@ -647,19 +655,24 @@ pub(crate) mod generic {
     }
 
     #[inline(always)]
-    #[hax_lib::ensures(|result| fstar!(r#"
-        Core_models.Slice.impl__len #u8 ${context} <=. mk_usize 255 ==>
-        Core_models.Slice.impl__len #u8 ${message} <=. mk_usize 8192 ==>
-        (let spec_result =
-           Hacspec_ml_dsa.Ml_dsa.verify
-              v_HACSPEC_PARAMS.Hacspec_ml_dsa.Parameters.f_k
-              v_HACSPEC_PARAMS.Hacspec_ml_dsa.Parameters.f_l
-              (v_HACSPEC_PARAMS.Hacspec_ml_dsa.Parameters.f_lambda /! mk_usize 4)
-              v_COMMITMENT_VECTOR_SIZE
-              ${verification_key_serialized} ${message} ${signature_serialized} ${context}
-              v_HACSPEC_PARAMS in
-         Core_models.Result.impl__is_ok ${result} ==
-         Core_models.Result.impl__is_ok spec_result)"#))]
+    #[cfg_attr(hax, hax_lib::ensures(|result| {
+        hax_lib::implies(
+            context.len() <= 255 && message.len() <= 8192,
+            result.is_ok()
+                == hacspec_ml_dsa::verify::<
+                    { HACSPEC_PARAMS.k },
+                    { HACSPEC_PARAMS.l },
+                    { HACSPEC_PARAMS.lambda / 4 },
+                    COMMITMENT_VECTOR_SIZE,
+                >(
+                    verification_key_serialized,
+                    message,
+                    signature_serialized,
+                    context,
+                    &HACSPEC_PARAMS,
+                ).is_ok(),
+        )
+    }))]
     pub(crate) fn verify<
         SIMDUnit: Operations,
         Sampler: X4Sampler,
