@@ -3,12 +3,14 @@
 **Date:** 2026-05-01
 **Branch:** `libcrux-ml-kem-proofs`
 **Tip on entry:** `b0714370f` (next-session prompt)
-**Tip on exit:** `64709113c`
+**Tip on exit:** `4671a63d6`
 **Scope:** R11 — convert `fstar!(...)` requires/ensures in
 `libcrux-ml-kem/src/{ind_cpa,ind_cca}.rs` to **pure-Rust** citing
 `hacspec_ml_kem::*`.
 
-## Functions migrated (6)
+## Functions migrated (13)
+
+### First push — pattern validation (6)
 
 | # | Function | Pattern | Commit | Notes |
 |---|---|---|---|---|
@@ -18,6 +20,28 @@
 | 4 | `ind_cpa::serialize_public_key_mut` (`ind_cpa.rs:96`) | A | `f27f08d20` | `*future(serialized) == ...`. |
 | 5 | `ind_cca::encapsulate` (`ind_cca.rs:251`) | A | `64709113c` | `match ... { Ok((shared, ct)) => result.0.value == ct && result.1 == shared, Err(_) => true }`.  Note Hacspec returns `(shared, ct)` order vs. libcrux `(ct, shared)`. |
 | 6 | `ind_cca::decapsulate` (`ind_cca.rs:326`) | A | `64709113c` | `match ... { Ok(expected) => result == expected, Err(_) => true }`. |
+
+### Second push — Lane 1 (Ind_cpa.fsti scrub) (7)
+
+After confirming Pattern A/B held, drove `Libcrux_ml_kem.Ind_cpa.fsti`
+toward `Spec.MLKEM`-free.
+
+| # | Function | Pattern | Commit | Notes |
+|---|---|---|---|---|
+| 7 | `ind_cpa::generate_keypair` (`ind_cpa.rs:561`) | A | `d4f813b2e` | Hacspec returns `Ok((ek, dk))` (ek first); libcrux returns `(dk, ek)`. Match arm: `result.0 == dk && result.1 == ek`. Cites new `parameters::CPA_KEY_GENERATION_SEED_SIZE`. |
+| 8 | `ind_cpa::encrypt` (`ind_cpa.rs:893`) | A | `d4f813b2e` | Required spec-side relax of `randomness: &[u8; 32]` → `&[u8]` (commit `97d5f9746`).  Cites `hacspec_ml_kem::ind_cpa::encrypt::<K, C1_LEN, C2_LEN, CIPHERTEXT_SIZE>`. |
+| 9 | `ind_cpa::decrypt` (`ind_cpa.rs:1184`) | A | `d4f813b2e` | Cleanest of the lane: Hacspec `decrypt<RANK>(params, dk, ct) -> [u8; 32]` matches libcrux on a single rank generic. |
+| 10 | `ind_cpa::sample_ring_element_cbd` (`ind_cpa.rs:273`) | weakened | `b63ce8d0d` | No public Hacspec analogue for `sample_vector_cbd2`.  Drops the functional cite, retains bound (`is_bounded_polynomial_vector(7, future(error_1))`) + domain-separator increment.  Function is `lax`. |
+| 11 | `ind_cpa::sample_vector_cbd_then_ntt` (`ind_cpa.rs:389`) | weakened | `b63ce8d0d` | Same regression rationale as #10.  Bound (3328) + ds increment. |
+| 12 | `ind_cpa::compress_then_serialize_u` (`ind_cpa.rs:654`) | B | `4671a63d6` | Auxiliary buffer `[0u8; 1408]` (max K=4, du=11). |
+| 13 | `ind_cpa::deserialize_vector` (`ind_cpa.rs:1118`) | A | `4671a63d6` | Cites `vector_decode_12`; lifts `secret_as_ntt: &mut [...; K]` via `vector_to_spec(future(...))`. |
+
+### Spec-side commits (1)
+
+  - `97d5f9746` — `specs/ml-kem` — relax `ind_cpa::encrypt`'s
+    `randomness: &[u8; 32]` → `&[u8]` (Blocker B fix mirroring P3).
+    `Hacspec_ml_kem.Ind_cpa.fst.checked` and `Hacspec_ml_kem.Ind_cca.fst.checked`
+    re-verify clean in 9s.
 
 ## Spec-side additions
 
@@ -231,21 +255,44 @@ remaining `Spec.MLKEM` from `Ind_cpa.fsti`.
 ## Final commit SHAs
 
 ```
+4671a63d6 agent-mlkem: ind_cpa::{compress_then_serialize_u,deserialize_vector} — pure-Rust ensures
+b63ce8d0d agent-mlkem: ind_cpa::sample_{ring_element_cbd,vector_cbd_then_ntt} — pure-Rust ensures (weakened)
+d4f813b2e agent-mlkem: ind_cpa::{generate_keypair,encrypt,decrypt} — pure-Rust ensures (Pattern A)
+97d5f9746 agent-mlkem: specs/ml-kem — relax ind_cpa::encrypt randomness to slice
+3ea073332 agent-mlkem: session report — impl-side pure-Rust migration (R11) 2026-05-01
 64709113c agent-mlkem: ind_cca::{encapsulate,decapsulate} — pure-Rust ensures (Pattern A)
 f27f08d20 agent-mlkem: ind_cpa::serialize_public_key{,_mut} — pure-Rust ensures (Pattern A)
 f6ef6a5ce agent-mlkem: ind_cpa::serialize_vector — pure-Rust ensures (Pattern B)
 a2480b070 agent-mlkem: ind_cca::generate_keypair — pure-Rust ensures (Pattern A)
 ```
 
-Tip: `64709113c`.  Branch 4 ahead of `origin/libcrux-ml-kem-proofs`.
+Tip: `4671a63d6`.  Branch 9 ahead of `origin/libcrux-ml-kem-proofs`.
 
 ## Counts (R11 progress)
 
-| File | `Spec.MLKEM` cites in `.fsti` (before / after) | `Hacspec_ml_kem.*` cites in `.fsti` (after) |
-|---|---|---|
-| `Libcrux_ml_kem.Ind_cca.fsti` | ~14 / **0** | 64 |
-| `Libcrux_ml_kem.Ind_cpa.fsti` | ~80 / 69 | 12 |
+| File | `Spec.MLKEM` cites in `.fsti` (before / after) |
+|---|---|
+| `Libcrux_ml_kem.Ind_cca.fsti` | ~14 / **0** |
+| `Libcrux_ml_kem.Ind_cpa.fsti` | ~80 / **34** |
 
-(Approximate before counts; exact tracking shows `Ind_cca.fsti` is now
-**fully** migrated at the packed-API level and clears its prior
-`Spec.MLKEM not resolved` blocker.)
+`Ind_cca.fsti` is fully migrated at the packed-API level and clears
+its prior `Spec.MLKEM not resolved` blocker (verifies in 48s).
+`Ind_cpa.fsti` is ~58% migrated; remaining cites are concentrated in
+unpacked-API functions (P5 spec helpers needed) and a few
+mechanical compositions.
+
+## Lane 1 remaining work (after this session)
+
+Functions in `Ind_cpa.fsti` still carrying `Spec.MLKEM`:
+
+  - **Unpacked-API (P5 deferred — needs spec helpers)**:
+    `generate_keypair_unpacked`, `encrypt_unpacked`, `decrypt_unpacked`.
+  - **Compositions / mechanical**: `serialize_unpacked_secret_key`
+    (no annotations currently — already R11-compatible),
+    `build_unpacked_public_key{,_mut}` (cites `Spec.MLKEM.sample_matrix_A_ntt`,
+    has Hacspec `matrix::sample_matrix_A` analogue — straightforward
+    next-session migration), `deserialize_then_decompress_u` (audit
+    row 16 — needs new spec helper for the NTT-then-decompress
+    composition).
+  - **Internal**: `encrypt_c1`, `encrypt_c2` (per-step internals,
+    audit recommends leave-as-is).
