@@ -884,18 +884,25 @@ pub(crate) mod unpacked {
     /// Generate Unpacked Keys
     #[inline(always)]
     #[hax_lib::fstar::options("--z3rlimit 300 --ext context_pruning --split_queries always")]
-    #[hax_lib::requires(fstar!(r#"Spec.MLKEM.is_rank $K /\
-        $ETA1_RANDOMNESS_SIZE == Spec.MLKEM.v_ETA1_RANDOMNESS_SIZE $K /\
-        $ETA1 == Spec.MLKEM.v_ETA1 $K /\
-        $PUBLIC_KEY_SIZE == Spec.MLKEM.v_CPA_PUBLIC_KEY_SIZE $K"#))]
-    #[hax_lib::ensures(|result|
-        fstar!(r#"let ((m_A, public_key_hash), implicit_rejection_value), valid =
-            Spec.MLKEM.ind_cca_unpack_generate_keypair $K $randomness in
-        valid ==> Libcrux_ml_kem.Vector.to_spec_matrix_t #$K #$:Vector
-            ${out}_future.f_public_key.f_ind_cpa_public_key.f_A == m_A /\
-        ${out}_future.f_public_key.f_public_key_hash == public_key_hash /\
-        ${out}_future.f_private_key.f_implicit_rejection_value == implicit_rejection_value"#))
-    ]
+    #[hax_lib::requires(
+        hacspec_ml_kem::parameters::is_rank(K)
+        && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
+        && ETA1 == hacspec_ml_kem::parameters::eta1(K)
+        && PUBLIC_KEY_SIZE == hacspec_ml_kem::parameters::cpa_public_key_size(K)
+    )]
+    #[hax_lib::ensures(|()|
+        match hacspec_ml_kem::ind_cca_unpack_generate_keypair::<K, PUBLIC_KEY_SIZE>(
+            &hacspec_ml_kem::parameters::rank_to_params(K),
+            &randomness,
+        ) {
+            Ok((_secret_as_ntt, _t_as_ntt, m_A, _seed_for_A, public_key_hash, implicit_rejection_value)) => {
+                crate::vector::spec::matrix_to_spec(&future(out).public_key.ind_cpa_public_key.A) == m_A
+                && future(out).public_key.public_key_hash == public_key_hash
+                && future(out).private_key.implicit_rejection_value == implicit_rejection_value
+            }
+            Err(_) => true,
+        }
+    )]
     pub(crate) fn generate_keypair<
         const K: usize,
         const CPA_PRIVATE_KEY_SIZE: usize,

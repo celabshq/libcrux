@@ -27,4 +27,8 @@ pub use parameters::{
 };
 pub use sampling::BadRejectionSamplingRandomnessError;
 
-pub use ind_cca::{decapsulate, encapsulate, generate_keypair, public_key_modulus_check};
+pub use ind_cca::{
+    decapsulate, encapsulate, generate_keypair, ind_cca_unpack_decapsulate,
+    ind_cca_unpack_encapsulate, ind_cca_unpack_generate_keypair, public_key_modulus_check,
+    IndCcaUnpackedKeyPair,
+};
