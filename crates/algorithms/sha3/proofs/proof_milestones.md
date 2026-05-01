@@ -79,6 +79,77 @@ The sponge construction is the strongest-verified layer in the crate.
 | 21 | `Neon::*` correct | `src/neon.rs` | partial — script shows 1 hacspec in Neon; check coverage | review |
 | 22 | `digest::Digest` trait impl correct | `src/impl_digest_trait.rs` | ❌ unverified — `#[cfg(not(any(hax, eurydice)))]` gate keeps it out of extraction | not on the F\*-verification path; intentional |
 
+## Note C — ByteForm spec experiment (2026-05-01)
+
+**Goal**: validate whether replacing the recursive
+`Hacspec_sha3.Sponge.squeeze` (which delegates to `squeeze_blocks` +
+`squeeze_last` + the `lemma_squeeze_blocks_unfold/_tail/_base` chain)
+with a denotational byte-map spec collapses the Z3 cost of the
+per-lane squeeze proofs.
+
+**Sandbox**: `EquivImplSpec.Sponge.ByteForm.fst`.  Two definitions
+plus an admitted bridge:
+
+  - `iterate_keccak_f n state` — n keccak_f applications.  Right-add
+    recursion so `iterate_keccak_f (n+1) state == keccak_f
+    (iterate_keccak_f n state)` is by definitional unfold (fuel 1).
+  - `squeeze_byteform outlen state_init rate` — `Hacspec_sha3.createi`
+    over `outlen`, where byte `k` uses
+    `iterate_keccak_f (k/rate) state_init`'s lane `(k%rate)/8`
+    byte `(k%rate)%8`.  No recursion bridge needed; per-byte
+    equality with the impl side is one direct equation.
+  - `assume val lemma_squeeze_eq_byteform` — the bridge to the
+    existing `Hacspec_sha3.Sponge.squeeze`.  ADMITTED pending the
+    full migration (see below).
+
+**Comparison**: the per-iteration step lemma (Arm64, N=2):
+
+| Metric              | Old-spec (`lemma_squeeze_one_step_arm64` in `Arm64.Steps.fst`) | ByteForm (`lemma_squeeze_one_step_arm64_byteform` in `ByteForm.fst`) |
+|---------------------|----------------------------------------------------------------|----------------------------------------------------------------------|
+| Cold-cache wall     | 84 s                                                           | **26 s**                                                              |
+| Sub-queries         | 239                                                            | **117**                                                               |
+| Source lines        | ~150                                                           | **~80**                                                               |
+| Invariant clauses   | 4 (state, write, tail, arith bound)                            | **2 (state, write)**                                                  |
+| `--z3rlimit`        | 400 (split_queries always)                                     | 400 (split_queries always)                                            |
+
+ByteForm is **3.2× faster, ~half the source, ~half the sub-queries**.
+The win comes from:
+
+  1. No `lemma_squeeze_blocks_tail` call (right-extension for free).
+  2. No `output_initial`/`spec_out_pre` threading — the byteform's
+     value at byte `k` depends only on `(state_init, rate, k)`.
+  3. No tail-preservation forall — bytes outside the write range
+     are unconstrained until written; consumers re-establish via
+     byteform indexing, no separate clause needed.
+  4. Per-byte aux body collapses from 4-branch case-split to 2-branch
+     (just "by IH" vs "by f_squeeze post + byteform index").
+
+**Migration plan** (next sprint, ~1 session per backend):
+
+  - **Step M1**: discharge `lemma_squeeze_eq_byteform`.  Induction
+    on `output_blocks = outlen / rate`, peel one block at a time
+    using `lemma_squeeze_blocks_unfold`.  ~50 lines, one-time.
+  - **Step M2**: rewrite `Hacspec_sha3.Sponge.squeeze` to be
+    `squeeze_byteform` directly (or move `squeeze_byteform` into
+    `Hacspec_sha3.Sponge` and delete the old recursive form +
+    `squeeze_blocks` + `squeeze_last` + the
+    `lemma_squeeze_blocks_*` lemmas in `Hacspec_sha3.Sponge.Lemmas`).
+  - **Step M3**: rewrite Portable squeeze proofs against byteform
+    (drop `Generic_keccak.Portable.squeeze`'s inline
+    `squeeze_blocks_*` invariant; replace with byteform-shaped
+    invariant).  Closes USER-2 (the cold-cache stability admit on
+    Portable.squeeze) cleanly — the per-byte forall_intro cascade
+    that made q227 take 162 s collapses under byteform.
+  - **Step M4**: rewrite Arm64 `lemma_squeeze2_arm64` Driver-side
+    proof against byteform using the new step lemma.  Closes the
+    Arm64 driver admit.
+  - **Step M5**: port to Avx2 `lemma_squeeze4_avx2` (currently
+    blocked by the dirty Avx2 effort on `Libcrux_sha3.Simd.Avx2.fst`,
+    so step-step can be done in parallel).
+
+Estimated total: ~1 sprint (3-5 sessions).  Replaces the old spec
+wholesale — no bridges-over-bridges retained per user mandate.
+
 ## Note A — verification status (2026-04-30, updated)
 
 Sprint added function-level hacspec ensures to keccak1 + 18 layer-3
@@ -221,6 +292,13 @@ Remaining bottleneck: the two `squeeze{2,4}` driver-lemma admits on
 the SIMD backends, and the structural fix to `lemma_theta_rho_to_spec`.
 
 ## Next-priority order
+
+0. **Migrate to `squeeze_byteform` spec** (Note C, 2026-05-01) —
+   experimentally validated 3.2× faster, ~half the source.  Replaces
+   the recursive `squeeze_blocks` + `squeeze_last` + bridge lemmas
+   wholesale.  Closes USER-2 stability admit, both Arm64 and Avx2
+   driver-level squeeze admits, in one consistent sweep.  Estimated
+   ~1 sprint (3-5 sessions, see Note C migration steps M1-M5).
 
 1. **Stabilize `lemma_theta_rho_to_spec` properly** (Note A) —
    replace the USER-1 admit (added 2026-04-30 to unblock the chain)
