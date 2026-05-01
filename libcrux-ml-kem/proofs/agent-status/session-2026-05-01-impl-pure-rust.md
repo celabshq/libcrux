@@ -3,7 +3,7 @@
 **Date:** 2026-05-01
 **Branch:** `libcrux-ml-kem-proofs`
 **Tip on entry:** `b0714370f` (next-session prompt)
-**Tip on exit:** `4671a63d6`
+**Tip on exit:** `c5f16b76b`
 **Scope:** R11 — convert `fstar!(...)` requires/ensures in
 `libcrux-ml-kem/src/{ind_cpa,ind_cca}.rs` to **pure-Rust** citing
 `hacspec_ml_kem::*`.
@@ -280,6 +280,53 @@ its prior `Spec.MLKEM not resolved` blocker (verifies in 48s).
 `Ind_cpa.fsti` is ~58% migrated; remaining cites are concentrated in
 unpacked-API functions (P5 spec helpers needed) and a few
 mechanical compositions.
+
+## Lane B push — P5 unpacked-shape helpers + Pattern C validation
+
+A third push, after Lane 1, to land the deferred P5 spec helpers and
+validate Pattern C.
+
+### Spec-side commits
+
+  - `c8b54c62b` — `specs/ml-kem`: factor the FIPS-203 inner sampling
+    loop into `sample_vector_cbd<RANK>(eta, seed, ds)` and
+    `sample_vector_cbd_then_ntt<RANK>(eta, seed, ds)`.  Used to
+    restore the functional spec on the two CBD samplers (commit
+    `260430b06`) — replaces the `b63ce8d0d` weakening.
+  - `260430b06` — libcrux: tighten `sample_ring_element_cbd` /
+    `sample_vector_cbd_then_ntt` ensures to cite the new helpers,
+    closing the regression from `b63ce8d0d`.
+  - `ba0832a30` — `specs/ml-kem`: add
+    `ind_cpa::{generate_keypair_unpacked, encrypt_unpacked, decrypt_unpacked}`.
+    The packed `generate_keypair`/`encrypt`/`decrypt` become thin
+    (de)serialization wrappers around the unpacked variants.
+  - `86f880bdc` — `specs/ml-kem`: add
+    `ind_cca::ind_cca_unpack_{generate_keypair, encapsulate, decapsulate}`.
+    Each delegates to the corresponding `ind_cpa::*_unpacked` helper
+    after handling the libcrux-vs-Hacspec matrix-transpose convention.
+
+### Impl-side commits
+
+  - `c5f16b76b` — libcrux: validate Pattern C on
+    `ind_cca::unpacked::generate_keypair`.  Uses field-projection
+    ensures against the new `ind_cca_unpack_generate_keypair` tuple.
+
+### Pattern C — VALIDATED
+
+Field-projection ensures on the libcrux unpacked struct against the
+P5 helper's tuple compose cleanly.  No new spec helpers needed
+beyond the P5 trio.  Body proof tactics still cite `Spec.MLKEM` for
+the un-projected fields (will be cleaned up if/when Lane 2 runs).
+
+Remaining Pattern C migrations now unblocked:
+
+  - `libcrux::ind_cpa::generate_keypair_unpacked` (line 463)
+  - `libcrux::ind_cpa::encrypt_unpacked` (line 728)
+  - `libcrux::ind_cpa::decrypt_unpacked` (line 1153)
+  - `libcrux::ind_cca::unpacked::encapsulate` (line 948)
+  - `libcrux::ind_cca::unpacked::decapsulate` (line 1040)
+
+Each is mechanical now that the P5 helpers exist.
 
 ## Lane 1 remaining work (after this session)
 
