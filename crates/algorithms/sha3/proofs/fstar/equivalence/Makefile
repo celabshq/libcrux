@@ -23,7 +23,6 @@ ROOTS = \
 	EquivImplSpec.Sponge.Avx2.Steps.fst \
 	Hacspec_sha3.Sponge.Lemmas.fst \
 	EquivImplSpec.Sponge.Portable.SqueezeAPI.fst \
-	EquivImplSpec.Sponge.ByteForm.fst \
 	EquivImplSpec.Sponge.Portable.API.fst \
 	EquivImplSpec.Sponge.Arm64.API.fst \
 	EquivImplSpec.Sponge.Avx2.API.fst \

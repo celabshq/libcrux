@@ -232,32 +232,14 @@ let absorb_final
 
 #pop-options
 
-/// Final partial-block step of [squeeze]: if `output_rem != 0`, apply
-/// one Keccak-f permutation and extract the trailing `output_rem`
-/// bytes; otherwise a no-op.  Factored out so the libcrux impl\'s
-/// corresponding helper can have a matching shape, keeping the
-/// equivalence proof\'s final reconciliation local.
-let squeeze_last
-      (v_OUTPUT_LEN: usize)
-      (state: t_Array u64 (mk_usize 25))
-      (output: t_Array u8 v_OUTPUT_LEN)
-      (rate output_rem: usize)
-    : Prims.Pure (t_Array u64 (mk_usize 25) & t_Array u8 v_OUTPUT_LEN)
-      (requires
-        rate >. mk_usize 0 && rate <=. mk_usize 200 && (rate %! mk_usize 8 <: usize) =. mk_usize 0 &&
-        output_rem <. rate &&
-        output_rem <=. v_OUTPUT_LEN &&
-        v_OUTPUT_LEN <. (Core_models.Num.impl_usize__MAX -! mk_usize 200 <: usize))
-      (fun _ -> Prims.l_True) =
-  let _:usize = rate in
-  if output_rem <>. mk_usize 0
-  then
-    let state:t_Array u64 (mk_usize 25) = Hacspec_sha3.Keccak_f.keccak_f state in
-    let output:t_Array u8 v_OUTPUT_LEN =
-      squeeze_state v_OUTPUT_LEN state output (v_OUTPUT_LEN -! output_rem <: usize) output_rem
-    in
-    state, output <: (t_Array u64 (mk_usize 25) & t_Array u8 v_OUTPUT_LEN)
-  else state, output <: (t_Array u64 (mk_usize 25) & t_Array u8 v_OUTPUT_LEN)
+/// Apply Keccak-f to `state` exactly `n` times.  Right-add recursion
+/// so [iterate_keccak_f (n+1) state == keccak_f (iterate_keccak_f n state)]
+/// is by definitional unfold at fuel 1 — consumers don't need a
+/// separate lemma to peel one round off the right.
+let rec iterate_keccak_f (n: nat) (state: t_Array u64 (mk_usize 25))
+  : Tot (t_Array u64 (mk_usize 25)) (decreases n)
+  = if n = 0 then state
+    else Hacspec_sha3.Keccak_f.keccak_f (iterate_keccak_f (n - 1) state)
 
 /// Recursively absorb the remaining bytes of `message`: peel off one full
 /// `rate`-byte block, XOR it into the state, apply Keccak-f, then recurse on
@@ -347,42 +329,6 @@ let rec absorb_blocks
 
 #pop-options
 
-#push-options "--z3rlimit 300"
-
-/// Recursive middle-loop of [squeeze]: for each block index `i ∈ [i, output_blocks)`,
-/// apply `keccak_f` and then extract `rate` bytes at `i * rate`. Returns the state
-/// after the final `keccak_f`.
-/// Shape chosen to mirror `absorb_rec`, so the F* equivalence proof can line up
-/// the libcrux impl\'s `fold_range 1 output_blocks` step-by-step against this
-/// recursion via `lemma_fold_range_step`, the same pattern used for absorb.
-let rec squeeze_blocks
-      (v_OUTPUT_LEN: usize)
-      (state: t_Array u64 (mk_usize 25))
-      (rate i output_blocks: usize)
-      (output: t_Array u8 v_OUTPUT_LEN)
-    : Prims.Pure (t_Array u64 (mk_usize 25) & t_Array u8 v_OUTPUT_LEN)
-      (requires
-        rate >. mk_usize 0 && rate <=. mk_usize 200 && (rate %! mk_usize 8 <: usize) =. mk_usize 0 &&
-        i <=. output_blocks &&
-        output_blocks <=.
-        ((Core_models.Slice.impl__len #u8 (output <: t_Slice u8) <: usize) /! rate <: usize))
-      (fun _ -> Prims.l_True)
-      (decreases
-        ((Rust_primitives.Hax.Int.from_machine output_blocks <: Hax_lib.Int.t_Int) -
-          (Rust_primitives.Hax.Int.from_machine i <: Hax_lib.Int.t_Int)
-          <:
-          Hax_lib.Int.t_Int)) =
-  if i <. output_blocks
-  then
-    let state:t_Array u64 (mk_usize 25) = Hacspec_sha3.Keccak_f.keccak_f state in
-    let output:t_Array u8 v_OUTPUT_LEN =
-      squeeze_state v_OUTPUT_LEN state output (i *! rate <: usize) rate
-    in
-    squeeze_blocks v_OUTPUT_LEN state rate (i +! mk_usize 1 <: usize) output_blocks output
-  else state, output <: (t_Array u64 (mk_usize 25) & t_Array u8 v_OUTPUT_LEN)
-
-#pop-options
-
 #push-options "--z3rlimit 200"
 
 /// Absorb phase of the Keccak sponge (FIPS 202, Algorithm 8, step 6 combined
@@ -408,39 +354,28 @@ let absorb (rate: usize) (delim: u8) (message: t_Slice u8)
 /// Squeeze phase of the Keccak sponge (FIPS 202, Algorithm 8, steps 8–9).
 /// Extracts `OUTPUT_LEN` bytes from `state`, applying Keccak-f between each
 /// `rate`-byte block of output.
-/// Structure chosen to mirror the libcrux impl (`keccak1` in
-/// `crates/algorithms/sha3/src/generic_keccak/portable.rs`) so the F*
-/// equivalence proof can line the two sides up iteration-for-iteration.
+/// Byteform definition: byte at position `k` lives in block
+/// `b = k / rate` (or the trailing partial block if
+/// `b == OUTPUT_LEN / rate`); within a block the offset is
+/// `j = k mod rate`; the value is the `(j mod 8)`-th little-endian
+/// byte of `iterate_keccak_f b state`'s lane `(j / 8)`.
+/// Equivalent to FIPS-202 Algorithm 8: for each full block apply
+/// keccak_f and extract `rate` bytes; trailing partial block uses one
+/// more keccak_f before extracting `OUTPUT_LEN mod rate` bytes.
 let squeeze (v_OUTPUT_LEN: usize) (state: t_Array u64 (mk_usize 25)) (rate: usize)
     : Prims.Pure (t_Array u8 v_OUTPUT_LEN)
       (requires
         rate >. mk_usize 0 && rate <=. mk_usize 200 && (rate %! mk_usize 8 <: usize) =. mk_usize 0 &&
         v_OUTPUT_LEN <. (Core_models.Num.impl_usize__MAX -! mk_usize 200 <: usize))
       (fun _ -> Prims.l_True) =
-  let output:t_Array u8 v_OUTPUT_LEN = Rust_primitives.Hax.repeat (mk_u8 0) v_OUTPUT_LEN in
-  let output_blocks:usize = v_OUTPUT_LEN /! rate in
-  let output_rem:usize = v_OUTPUT_LEN %! rate in
-  let output:t_Array u8 v_OUTPUT_LEN =
-    if output_blocks =. mk_usize 0
-    then
-      let output:t_Array u8 v_OUTPUT_LEN =
-        squeeze_state v_OUTPUT_LEN state output (mk_usize 0) v_OUTPUT_LEN
-      in
-      output
-    else
-      let output:t_Array u8 v_OUTPUT_LEN =
-        squeeze_state v_OUTPUT_LEN state output (mk_usize 0) rate
-      in
-      let (state: t_Array u64 (mk_usize 25)), (out: t_Array u8 v_OUTPUT_LEN) =
-        squeeze_blocks v_OUTPUT_LEN state rate (mk_usize 1) output_blocks output
-      in
-      let (_: t_Array u64 (mk_usize 25)), (out: t_Array u8 v_OUTPUT_LEN) =
-        squeeze_last v_OUTPUT_LEN state out rate output_rem
-      in
-      let output:t_Array u8 v_OUTPUT_LEN = out in
-      output
-  in
-  output
+  Hacspec_sha3.createi #u8 v_OUTPUT_LEN #(usize -> u8)
+    (fun k ->
+      let b : usize = k /! rate in
+      let j : usize = k -! (b *! rate) in
+      let state_b = iterate_keccak_f (v b) state in
+      (Core_models.Num.impl_u64__to_le_bytes
+         (state_b.[j /! mk_usize 8] <: u64) <: t_Array u8 (mk_usize 8))
+         .[j %! mk_usize 8])
 
 #pop-options
 

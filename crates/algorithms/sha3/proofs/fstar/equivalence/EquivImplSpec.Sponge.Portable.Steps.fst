@@ -238,61 +238,7 @@ let lemma_squeeze_last_portable
     KP.lemma_extract_lane_portable_identity state'
 
 
-(* ================================================================
-   Expected output of [Libcrux_sha3.Generic_keccak.Portable.squeeze]
-   as a composition of impl primitives ([f_squeeze], [keccakf1600])
-   and the spec's middle-loop helper [Hacspec_sha3.Sponge.squeeze_blocks].
-
-   Factored out of the Rust function's ensures clause so that Z3 has a
-   smaller VC to discharge: the inline postcondition becomes a direct
-   equality against this definition, and unfolding happens step-by-step
-   as Z3 follows the function's own branch structure.
-
-   Layout:
-     * [output_blocks == 0]: a single [f_squeeze] of [output_len] bytes.
-     * [output_blocks > 0]:
-         let [output1 = f_squeeze RATE ks output 0 RATE]
-         let [(st_mid, out_mid) = squeeze_blocks output_len ks.st RATE
-                                                1 output_blocks output1]
-         if [output_rem == 0]: [out_mid]
-         else: [f_squeeze RATE (keccakf1600 {f_st = st_mid}) out_mid
-                  (output_len - output_rem) output_rem]
-   ================================================================ *)
-unfold let portable_squeeze_composed
-      (rate: usize)
-      (ks: Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64)
-      (output: t_Slice u8)
-  : Prims.Pure (t_Slice u8)
-      (requires
-        Libcrux_sha3.Proof_utils.valid_rate rate /\
-        Seq.length #u8 output < v Core_models.Num.impl_usize__MAX - 200)
-      (fun _ -> True)
-  = let output_len : usize = Core_models.Slice.impl__len #u8 output in
-    let output_blocks : usize = output_len /! rate in
-    let output_rem : usize = output_len %! rate in
-    if output_blocks =. mk_usize 0 then
-      Libcrux_sha3.Traits.f_squeeze
-        #(Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64)
-        #u64 #FStar.Tactics.Typeclasses.solve
-        rate ks output (mk_usize 0) output_len
-    else
-      let output1 : t_Slice u8 =
-        Libcrux_sha3.Traits.f_squeeze
-          #(Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64)
-          #u64 #FStar.Tactics.Typeclasses.solve
-          rate ks output (mk_usize 0) rate in
-      let out1_arr : t_Array u8 output_len = output1 in
-      let (st_mid, out_mid) =
-        Hacspec_sha3.Sponge.squeeze_blocks output_len
-          ks.Libcrux_sha3.Generic_keccak.f_st rate
-          (mk_usize 1) output_blocks out1_arr in
-      if output_rem =. mk_usize 0 then (out_mid <: t_Slice u8)
-      else
-        let s_mid : Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64 =
-          { Libcrux_sha3.Generic_keccak.f_st = st_mid } in
-        let s_after = Libcrux_sha3.Generic_keccak.impl_2__keccakf1600
-                        (mk_usize 1) #u64 s_mid in
-        Libcrux_sha3.Traits.f_squeeze
-          #(Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64)
-          #u64 #FStar.Tactics.Typeclasses.solve
-          rate s_after out_mid (output_len -! output_rem) output_rem
+(* [portable_squeeze_composed] — DELETED with the byteform migration
+   (Note C in proof_milestones.md).  Was a sugar for the recursive
+   [squeeze_blocks] / [squeeze_last] composition; consumers now cite
+   [Hacspec_sha3.Sponge.squeeze] (byteform) directly. *)
