@@ -7,20 +7,29 @@ use crate::{
     simd::traits::Operations,
 };
 
+#[cfg(hax)]
+use crate::simd::traits::specs::*;
+
 /// The x4 sampling implementation that is selected during multiplexing.
 //
 // `requires(true)` matches the `hash_functions` trait pattern: refines
 // the extracted `f_matrix_flat_pre` to `Type0{true ==> pred}` so panic-
-// free callers can discharge it.  The length-preserving ensures lets
-// callers bind the (mutated-via-&mut, returned-by-value-in-F*) `matrix`
-// back to the same fixed-size `[T; ROWS_IN_A * COLUMNS_IN_A]`.
-// TODO: tighten with a coefficient-bound ensures when the NTT-bound
-// chain is closed (Class B sprint).
+// free callers can discharge it.  The ensures combine length-preservation
+// (so callers can rebind the mutated-via-&mut, returned-by-value-in-F*
+// `matrix` back to a fixed-size array) with a per-coefficient FIELD_MAX
+// bound (so `compute_as1_plus_s2`'s `a_as_ntt` precondition discharges
+// from the trait method's post).  Class B Chain 1B (NTT-bound chain).
 #[hax_lib::attributes]
 pub(crate) trait X4Sampler {
     /// Sample the matrix A using platform specific implementation.
     #[requires(true)]
-    #[ensures(|_| future(matrix).len() == matrix.len())]
+    #[ensures(|_| fstar!(r#"
+        Seq.length ${matrix}_future == Seq.length $matrix /\
+        (forall (k:nat). k < Seq.length ${matrix}_future ==>
+            (forall (j:nat). j < 32 ==>
+                Spec.Utils.is_i32b_array_opaque (v ${FIELD_MAX})
+                    (i1._super_i2.f_repr (Seq.index (Seq.index ${matrix}_future k).f_simd_units j))))
+    "#))]
     fn matrix_flat<SIMDUnit: Operations>(
         columns: usize,
         seed: &[u8],
@@ -28,7 +37,20 @@ pub(crate) trait X4Sampler {
     );
 }
 
+// Free-fn matrix_flat (called by every X4Sampler impl).  Body chains
+// from `sample_up_to_four_ring_elements_flat`'s Class B Chain 1A ensures:
+// each iteration writes 1-4 ring elements with all coefficients
+// `is_i32b_array_opaque FIELD_MAX`.  Loop invariant tracks bound on the
+// entire `matrix` slice (initial zero-fill is FIELD_MAX-bounded; each
+// iteration's postulate covers the full slice).
 #[inline(always)]
+#[hax_lib::ensures(|_| fstar!(r#"
+    Seq.length ${matrix}_future == Seq.length $matrix /\
+    (forall (k:nat). k < Seq.length ${matrix}_future ==>
+        (forall (j:nat). j < 32 ==>
+            Spec.Utils.is_i32b_array_opaque (v ${FIELD_MAX})
+                (i0._super_i2.f_repr (Seq.index (Seq.index ${matrix}_future k).f_simd_units j))))
+"#))]
 pub(crate) fn matrix_flat<SIMDUnit: Operations, Shake128: shake128::XofX4>(
     columns: usize,
     seed: &[u8],
@@ -130,11 +152,24 @@ pub(crate) mod avx2 {
 
 // Not inling this causes a 10x slow-down
 #[inline(always)]
-// Length-preserving ensures so callers can rebind the mutated slice
-// back to a fixed-size array.  TODO: extend with a coefficient-bound
-// ensures (`forall i j. abs(s1_s2[i].coefs[j]) <= eta`) when the
-// NTT-bound chain is closed.
-#[hax_lib::ensures(|_| future(s1_s2).len() == s1_s2.len())]
+// Length-preserving + per-coefficient `is_pos_array_opaque eta` ensures
+// (Class B Chain 1B).  Body chains from `sample_four_error_ring_elements`'s
+// Class B Chain 1A postulate: each call's post says the entire `s1_s2`
+// slice is `is_pos eta` (the function only writes 4 elements but the
+// initial zero-fill keeps unwritten indices in [0, 2*eta] = `is_pos eta`).
+// Consumed downstream by `signing_key::generate_serialized` (which
+// requires `is_pos eta` on `s1_2`) — option (a) per the strict-polarity
+// audit, no `Spec.Utils` bridge lemma needed.
+#[hax_lib::ensures(|_| fstar!(r#"
+    Seq.length ${s1_s2}_future == Seq.length $s1_s2 /\
+    (forall (k:nat). k < Seq.length ${s1_s2}_future ==>
+        (forall (j:nat). j < 32 ==>
+            Libcrux_ml_dsa.Simd.Traits.Specs.is_pos_array_opaque
+                (match $eta with
+                 | Libcrux_ml_dsa.Constants.Eta_Two -> 2
+                 | Libcrux_ml_dsa.Constants.Eta_Four -> 4)
+                (i0._super_i2.f_repr (Seq.index (Seq.index ${s1_s2}_future k).f_simd_units j))))
+"#))]
 pub(crate) fn sample_s1_and_s2<SIMDUnit: Operations, Shake256X4: shake256::XofX4>(
     eta: Eta,
     seed: &[u8],
