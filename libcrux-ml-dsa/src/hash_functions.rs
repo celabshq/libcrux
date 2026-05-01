@@ -7,21 +7,38 @@ pub(crate) mod shake256 {
     /// An ML-DSA specific Xof trait
     /// This trait is not actually a full Xof implementation but opererates only
     /// on multiple of blocks. The only real Xof API for SHAKE256 is [`Xof`].
+    //
+    // Each method below carries `requires(true)` rather than no-requires so
+    // the trait extracts to F* with a refined `f_*_pre: ... -> Type0{true ==> pred}`
+    // discharge-able from `True` at any call site.  Without it, the
+    // generated `f_*_pre: ... -> Type0` is opaque and panic-free callers
+    // can't progress past a trait-method invocation.  The audit of the
+    // portable / avx2 / neon impls in this file confirms each method
+    // body is a pass-through to `libcrux_sha3::*` with no panic site
+    // visible at the trait layer.  TODO: tighten if a downstream lemma
+    // needs a real precondition (e.g., on `OUTPUT_LENGTH > 0`).
     #[hax_lib::attributes]
     pub(crate) trait DsaXof {
+        #[requires(true)]
         #[ensures(|_| fstar!(r#"Seq.length ${out}_future == v $OUTPUT_LENGTH"#))]
         fn shake256<const OUTPUT_LENGTH: usize>(input: &[u8], out: &mut [u8; OUTPUT_LENGTH]);
+        #[requires(true)]
         fn init_absorb_final(input: &[u8]) -> Self;
         // TODO: There should only be a `squeeze_block`
+        #[requires(true)]
         #[ensures(|out| fstar!(r#"Seq.length $out == 136"#))]
         fn squeeze_first_block(&mut self) -> [u8; BLOCK_SIZE];
+        #[requires(true)]
         #[ensures(|out| fstar!(r#"Seq.length $out == 136"#))]
         fn squeeze_next_block(&mut self) -> [u8; BLOCK_SIZE];
     }
 
+    // See the `DsaXof` doc comment above for the rationale of `requires(true)`.
     #[hax_lib::attributes]
     pub(crate) trait XofX4 {
+        #[requires(true)]
         fn init_absorb_x4(input0: &[u8], input1: &[u8], input2: &[u8], input3: &[u8]) -> Self;
+        #[requires(true)]
         #[ensures(|out| fstar!(r#"
             Seq.length (out._1 <: t_Array u8 (mk_usize 136)) == 136 /\
             Seq.length (out._2 <: t_Array u8 (mk_usize 136)) == 136 /\
@@ -35,6 +52,7 @@ pub(crate) mod shake256 {
             [u8; BLOCK_SIZE],
             [u8; BLOCK_SIZE],
         );
+        #[requires(true)]
         #[ensures(|out| fstar!(r#"
             Seq.length (out._1 <: t_Array u8 (mk_usize 136)) == 136 /\
             Seq.length (out._2 <: t_Array u8 (mk_usize 136)) == 136 /\
@@ -48,6 +66,7 @@ pub(crate) mod shake256 {
             [u8; BLOCK_SIZE],
             [u8; BLOCK_SIZE],
         );
+        #[requires(true)]
         #[ensures(|_| fstar!(r#"
             Seq.length ${out0}_future == v $OUT_LEN /\
             Seq.length ${out1}_future == v $OUT_LEN /\
@@ -66,18 +85,23 @@ pub(crate) mod shake256 {
     }
 
     /// A generic Xof trait
+    // See the `DsaXof` doc comment above for the rationale of `requires(true)`.
     #[hax_lib::attributes]
     pub(crate) trait Xof {
         /// Initialize the state
+        #[requires(true)]
         fn init() -> Self;
 
         /// Absorb
+        #[requires(true)]
         fn absorb(&mut self, input: &[u8]);
 
         /// Absorb final input
+        #[requires(true)]
         fn absorb_final(&mut self, input: &[u8]);
 
         /// Squeeze output bytes
+        #[requires(true)]
         #[ensures(|_| future(out).len() == out.len())]
         fn squeeze(&mut self, out: &mut [u8]);
     }
@@ -97,9 +121,12 @@ pub(crate) mod shake128 {
 
     /// When sampling matrix A we always want to do 4 absorb/squeeze calls in
     /// parallel.
+    // See the `shake256::DsaXof` doc comment for the rationale of `requires(true)`.
     #[hax_lib::attributes]
     pub(crate) trait XofX4 {
+        #[requires(true)]
         fn init_absorb(input0: &[u8], input1: &[u8], input2: &[u8], input3: &[u8]) -> Self;
+        #[requires(true)]
         #[ensures(|_| fstar!(r#"
             Seq.length ${out0}_future == 840 /\
             Seq.length ${out1}_future == 840 /\
@@ -112,6 +139,7 @@ pub(crate) mod shake128 {
             out2: &mut [u8; FIVE_BLOCKS_SIZE],
             out3: &mut [u8; FIVE_BLOCKS_SIZE],
         );
+        #[requires(true)]
         #[ensures(|out| fstar!(r#"
             Seq.length (out._1 <: t_Array u8 (mk_usize 168)) == 168 /\
             Seq.length (out._2 <: t_Array u8 (mk_usize 168)) == 168 /\
