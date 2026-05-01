@@ -559,14 +559,23 @@ pub(crate) fn generate_keypair_unpacked<
 }
 
 #[allow(non_snake_case)]
-#[hax_lib::requires(fstar!(r#"Spec.MLKEM.is_rank $K /\
-    $PRIVATE_KEY_SIZE == Spec.MLKEM.v_CPA_PRIVATE_KEY_SIZE $K /\
-    $PUBLIC_KEY_SIZE == Spec.MLKEM.v_CPA_PUBLIC_KEY_SIZE $K /\
-    $ETA1 == Spec.MLKEM.v_ETA1 $K /\
-    $ETA1_RANDOMNESS_SIZE == Spec.MLKEM.v_ETA1_RANDOMNESS_SIZE $K /\
-    length $key_generation_seed == Spec.MLKEM.v_CPA_KEY_GENERATION_SEED_SIZE"#))]
-#[hax_lib::ensures(|result| fstar!(r#"let (expected, valid) = Spec.MLKEM.ind_cpa_generate_keypair $K $key_generation_seed in 
-                                    valid ==> $result == expected"#))]
+#[hax_lib::requires(
+    hacspec_ml_kem::parameters::is_rank(K)
+    && PRIVATE_KEY_SIZE == hacspec_ml_kem::parameters::cpa_private_key_size(K)
+    && PUBLIC_KEY_SIZE == hacspec_ml_kem::parameters::cpa_public_key_size(K)
+    && ETA1 == hacspec_ml_kem::parameters::eta1(K)
+    && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
+    && key_generation_seed.len() == hacspec_ml_kem::parameters::CPA_KEY_GENERATION_SEED_SIZE
+)]
+#[hax_lib::ensures(|result|
+    match hacspec_ml_kem::ind_cpa::generate_keypair::<K, PUBLIC_KEY_SIZE, PRIVATE_KEY_SIZE>(
+        &hacspec_ml_kem::parameters::rank_to_params(K),
+        key_generation_seed,
+    ) {
+        Ok((ek, dk)) => result.0 == dk && result.1 == ek,
+        Err(_) => true,
+    }
+)]
 #[inline(always)]
 pub(crate) fn generate_keypair<
     const K: usize,
@@ -888,23 +897,32 @@ pub(crate) fn encrypt_c2<
 #[allow(non_snake_case)]
 #[hax_lib::fstar::verification_status(lax)]
 #[hax_lib::fstar::options("--z3rlimit 500 --ext context_pruning")]
-#[hax_lib::requires(fstar!(r#"Spec.MLKEM.is_rank $K /\
-    $ETA1 = Spec.MLKEM.v_ETA1 $K /\
-    $ETA1_RANDOMNESS_SIZE = Spec.MLKEM.v_ETA1_RANDOMNESS_SIZE $K /\
-    $ETA2 = Spec.MLKEM.v_ETA2 $K /\
-    $BLOCK_LEN == Spec.MLKEM.v_C1_BLOCK_SIZE $K /\
-    $ETA2_RANDOMNESS_SIZE = Spec.MLKEM.v_ETA2_RANDOMNESS_SIZE $K /\
-    $U_COMPRESSION_FACTOR == Spec.MLKEM.v_VECTOR_U_COMPRESSION_FACTOR $K /\
-    $V_COMPRESSION_FACTOR == Spec.MLKEM.v_VECTOR_V_COMPRESSION_FACTOR $K /\
-    length $public_key == Spec.MLKEM.v_CPA_PUBLIC_KEY_SIZE $K /\
-    length $randomness == Spec.MLKEM.v_SHARED_SECRET_SIZE /\
-    $CIPHERTEXT_SIZE == Spec.MLKEM.v_CPA_CIPHERTEXT_SIZE $K /\
-    $T_AS_NTT_ENCODED_SIZE == Spec.MLKEM.v_T_AS_NTT_ENCODED_SIZE $K /\
-    $C1_LEN == Spec.MLKEM.v_C1_SIZE $K /\
-    $C2_LEN == Spec.MLKEM.v_C2_SIZE $K"#))]
+#[hax_lib::requires(
+    hacspec_ml_kem::parameters::is_rank(K)
+    && ETA1 == hacspec_ml_kem::parameters::eta1(K)
+    && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
+    && ETA2 == hacspec_ml_kem::parameters::eta2(K)
+    && BLOCK_LEN == hacspec_ml_kem::parameters::c1_block_size(K)
+    && ETA2_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta2_randomness_size(K)
+    && U_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_u_compression_factor(K)
+    && V_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_v_compression_factor(K)
+    && public_key.len() == hacspec_ml_kem::parameters::cpa_public_key_size(K)
+    && randomness.len() == hacspec_ml_kem::parameters::SHARED_SECRET_SIZE
+    && CIPHERTEXT_SIZE == hacspec_ml_kem::parameters::cpa_ciphertext_size(K)
+    && T_AS_NTT_ENCODED_SIZE == hacspec_ml_kem::parameters::t_as_ntt_encoded_size(K)
+    && C1_LEN == hacspec_ml_kem::parameters::c1_size(K)
+    && C2_LEN == hacspec_ml_kem::parameters::c2_size(K)
+)]
 #[hax_lib::ensures(|result|
-    fstar!(r#"let (expected, valid) = Spec.MLKEM.ind_cpa_encrypt $K $public_key $message $randomness in
-            valid ==> $result == expected"#)
+    match hacspec_ml_kem::ind_cpa::encrypt::<K, C1_LEN, C2_LEN, CIPHERTEXT_SIZE>(
+        &hacspec_ml_kem::parameters::rank_to_params(K),
+        public_key,
+        message,
+        randomness,
+    ) {
+        Ok(expected) => result == expected,
+        Err(_) => true,
+    }
 )]
 #[inline(always)]
 pub(crate) fn encrypt<
@@ -1172,14 +1190,20 @@ pub(crate) fn decrypt_unpacked<
 }
 
 #[allow(non_snake_case)]
-#[hax_lib::requires(fstar!(r#"Spec.MLKEM.is_rank $K /\
-    length $secret_key == Spec.MLKEM.v_CPA_PRIVATE_KEY_SIZE $K /\ 
-    $CIPHERTEXT_SIZE == Spec.MLKEM.v_CPA_CIPHERTEXT_SIZE $K /\
-    $VECTOR_U_ENCODED_SIZE == Spec.MLKEM.v_C1_SIZE $K /\
-    $U_COMPRESSION_FACTOR == Spec.MLKEM.v_VECTOR_U_COMPRESSION_FACTOR $K /\
-    $V_COMPRESSION_FACTOR == Spec.MLKEM.v_VECTOR_V_COMPRESSION_FACTOR $K"#))]
+#[hax_lib::requires(
+    hacspec_ml_kem::parameters::is_rank(K)
+    && secret_key.len() == hacspec_ml_kem::parameters::cpa_private_key_size(K)
+    && CIPHERTEXT_SIZE == hacspec_ml_kem::parameters::cpa_ciphertext_size(K)
+    && VECTOR_U_ENCODED_SIZE == hacspec_ml_kem::parameters::c1_size(K)
+    && U_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_u_compression_factor(K)
+    && V_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_v_compression_factor(K)
+)]
 #[hax_lib::ensures(|result|
-    fstar!(r#"$result == Spec.MLKEM.ind_cpa_decrypt $K $secret_key $ciphertext"#)
+    result == hacspec_ml_kem::ind_cpa::decrypt::<K>(
+        &hacspec_ml_kem::parameters::rank_to_params(K),
+        secret_key,
+        ciphertext,
+    )
 )]
 #[hax_lib::fstar::verification_status(lax)]
 #[inline(always)]
