@@ -27,18 +27,19 @@ Sibling branches (NOT merged into any current branch — counted separately):
   dev-add-serialize-specs-trait
 ```
 
-## Spec-source asymmetry across crates
+## Spec source convention (uniform across crates — corrected 2026-05-01)
 
-**ml-kem and ml-dsa** use `specs/<crate>/src/*.rs` as the authoritative
-spec, hax-extracted to `Hacspec_<crate>.*.fst` (gitignored, regenerated
-on every `python3 hax.py extract`).
+All three crates write the authoritative Hacspec in **Rust** under
+`specs/<crate>/src/*.rs` and hax-extract it to `Hacspec_<crate>.*.fst`.
 
-**sha-3** writes Hacspec directly in F\* (`Hacspec_sha3.*.fst` files
-are git-tracked under `specs/sha3/proofs/fstar/extraction/`).
+Build-system asymmetry only: ml-kem and ml-dsa **gitignore** their
+extracted `Hacspec_<crate>.*.fst` (regenerated on every
+`python3 hax.py extract`); sha-3 **commits** them. The proof work is
+the same — the Rust spec source is what gets written by hand.
 
-This asymmetry matters for the W1 measurement: ml-kem/ml-dsa "spec
-lines" are Rust `.rs` lines; sha-3 "spec lines" include F\* `.fst`
-lines.
+For W1 measurement, count Rust lines only at `specs/<crate>/src/`.
+Counting the committed F\* extraction in sha-3 would double-count the
+same source.
 
 ## Headline numbers
 
@@ -47,7 +48,7 @@ lines.
 | Calendar span | 31 days | 31 days | 7 days |
 | Total commits | 399 | 404 | 46 |
 | Claude-coauthored | 334 (84%) | 360 (89%) | 38 (83%) |
-| **W1 Specs added (lines)** | 3,341 (in `specs/ml-kem/src/`, hax-source) | 1,854 (in `specs/ml-dsa/src/`, hax-source) | 656 Rust + 687 F\* = 1,343 |
+| **W1 Specs added (lines)** | 3,341 (`specs/ml-kem/src/`) | 1,854 (`specs/ml-dsa/src/`) | 656 (`specs/sha3/src/`) |
 | **W2a Commute bridges (lines)** | 4,490 (in `specs/ml-kem/proofs/fstar/commute/`) | 884 (in `specs/ml-dsa/proofs/fstar/commute/`) | (none — uses equivalence/ instead) |
 | **W2b EquivImplSpec proofs (sha3)** | n/a | n/a | 8,701 (`crates/algorithms/sha3/proofs/fstar/equivalence/`) |
 | **W2c Total proof lines (W2a + W2b)** | 4,490 | 884 | 8,701 |
@@ -79,9 +80,10 @@ ml-dsa has 1,854 spec lines and corresponds to the 4,318 LOC
 extracted spec layer noted in the ml-dsa milestones doc — confirming
 the cross-audit's "spec already exists" correction.
 
-sha-3 has only 656 spec-Rust lines + 687 hand-written F\* spec lines —
-a small spec module by design, because the FIPS 202 spec is concise
-(`keccak_f`, `sponge.{absorb,squeeze}`, top-level digest fns).
+sha-3 has 656 spec-Rust lines (4 files: `lib.rs`, `keccak_f.rs`,
+`sponge.rs`, `sha3.rs`) — a small spec module by design, because
+the FIPS 202 spec is concise (`keccak_f`, `sponge.{absorb,squeeze}`,
+top-level digest fns).
 
 ### Proofs (W2)
 

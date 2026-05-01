@@ -64,21 +64,16 @@ parentheses as a Rust-source overlap.
 
 ### W1 — Specs commands
 
+All three crates write the spec in **Rust** at `specs/<crate>/src/`
+and hax-extract to `Hacspec_<crate>.*.fst`. The Rust source IS the
+spec; counting the extracted F\* would double-count the same work.
+
+(Build-system asymmetry: ml-kem and ml-dsa gitignore the extracted
+F\*; sha-3 commits it. This affects D1a totals but not W1.)
+
 ```bash
-# ml-kem (cd ~/libcrux-trait-opacify):
-git diff --shortstat main..HEAD -- \
-  'specs/ml-kem/proofs/fstar/extraction/Hacspec_ml_kem.*.fst' \
-  'specs/ml-kem/proofs/fstar/extraction/Hacspec_ml_kem.*.fsti'
-
-# ml-dsa (cd ~/libcrux-ml-dsa-proofs):
-git diff --shortstat main..HEAD -- \
-  'specs/ml-dsa/proofs/fstar/extraction/Hacspec_ml_dsa.*.fst' \
-  'specs/ml-dsa/proofs/fstar/extraction/Hacspec_ml_dsa.*.fsti'
-
-# sha-3 (cd ~/libcrux-sha3-focused):
-git diff --shortstat main..HEAD -- \
-  'specs/sha3/proofs/fstar/extraction/Hacspec_sha3.*.fst' \
-  'specs/sha3/proofs/fstar/extraction/Hacspec_sha3.*.fsti'
+cd <branch worktree>
+git diff --shortstat main..HEAD -- 'specs/<crate>/src/'   # <crate> ∈ {ml-kem, ml-dsa, sha3}
 ```
 
 ### W2 — Proofs commands
