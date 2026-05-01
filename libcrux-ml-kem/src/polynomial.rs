@@ -52,6 +52,22 @@ pub(crate) mod spec {
         )
     }
 
+    pub(crate) fn is_bounded_polynomial_vector<const RANK: usize, Vector: Operations>(
+        b: usize,
+        v: &[PolynomialRingElement<Vector>; RANK],
+    ) -> hax_lib::Prop {
+        hax_lib::forall(|i: usize| hax_lib::implies(i < RANK, is_bounded_poly(b, &v[i])))
+    }
+
+    pub(crate) fn is_bounded_polynomial_matrix<const RANK: usize, Vector: Operations>(
+        b: usize,
+        m: &[[PolynomialRingElement<Vector>; RANK]; RANK],
+    ) -> hax_lib::Prop {
+        hax_lib::forall(|i: usize| {
+            hax_lib::implies(i < RANK, is_bounded_polynomial_vector(b, &m[i]))
+        })
+    }
+
     #[hax_lib::requires(is_bounded_vector(b1, vec) & (b1 <= b2))]
     #[hax_lib::ensures(|_| is_bounded_vector(b2, vec))]
     pub(crate) fn is_bounded_vector_higher<Vector: Operations>(vec: &Vector, b1: usize, b2: usize) {

@@ -1,5 +1,8 @@
 use core::array::from_fn;
 
+#[cfg(hax)]
+use hax_lib::prop::ToProp;
+
 use crate::{
     constants::{
         ranked_bytes_per_ring_element, BYTES_PER_RING_ELEMENT, COEFFICIENTS_IN_RING_ELEMENT,
@@ -129,14 +132,20 @@ pub(crate) fn serialize_public_key_mut<
 #[inline(always)]
 #[hax_lib::fstar::verification_status(lax)]
 #[hax_lib::fstar::options("--z3rlimit 800 --ext context_pruning")]
-#[hax_lib::requires(fstar!(r#"Spec.MLKEM.is_rank $K /\
-    ${out.len()} == Spec.MLKEM.v_RANKED_BYTES_PER_RING_ELEMENT $K /\
-    (forall (i:nat). i < v $K ==>
-        Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3328) (Seq.index $key i))"#))]
-#[hax_lib::ensures(|()|
-    fstar!(r#"${out}_future == Spec.MLKEM.vector_encode_12 #$K
-            (Libcrux_ml_kem.Vector.to_spec_vector_t #$K #$:Vector $key)"#)
+#[hax_lib::requires(
+    (hacspec_ml_kem::parameters::is_rank(K)
+        && out.len() == hacspec_ml_kem::parameters::ranked_bytes_per_ring_element(K)).to_prop()
+    & crate::polynomial::spec::is_bounded_polynomial_vector(3328, key)
 )]
+#[hax_lib::ensures(|()| {
+    let mut expected = [0u8; 4 * BYTES_PER_RING_ELEMENT];
+    let len = K * BYTES_PER_RING_ELEMENT;
+    hacspec_ml_kem::serialize::serialize_secret_key_into::<K>(
+        &crate::vector::spec::vector_to_spec(key),
+        &mut expected[..len],
+    );
+    future(out)[..] == expected[..len]
+})]
 pub(crate) fn serialize_vector<const K: usize, Vector: Operations>(
     key: &[PolynomialRingElement<Vector>; K],
     out: &mut [u8],
