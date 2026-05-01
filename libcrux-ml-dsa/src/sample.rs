@@ -7,6 +7,9 @@ use crate::{
     simd::traits::Operations,
 };
 
+#[cfg(hax)]
+use crate::simd::traits::specs::*;
+
 #[inline(always)]
 #[hax_lib::requires(*sampled_coefficients < 256)]
 #[hax_lib::ensures(|_| fstar!(r#"v ${sampled_coefficients}_future <= 263"#))]
@@ -67,7 +70,22 @@ pub(crate) fn add_domain_separator(slice: &[u8], indices: (u8, u8)) -> [u8; 34] 
 /// `tmp_stack[i]`, the ring element is written to `matrix` at the
 /// provided index in `indices[i]`.
 /// `rand_stack` is a working buffer that holds initial Shake output.
+//
+// Body stays admitted (`admit ()` at start of body); the `ensures` is a
+// postulated postcondition that callers (`samplex4::matrix_flat`) consume
+// to discharge `compute_as1_plus_s2`'s `is_i32b_array_opaque FIELD_MAX`
+// pre on the `a_as_ntt` matrix.  The postulate is sound under the body
+// invariant: matrix coefficients are rejection-sampled from `[0, Q)`
+// (FIPS 204 Algorithm 30), hence `0 <= c < FIELD_MAX + 1` per coefficient,
+// which `is_i32b FIELD_MAX` (centered |c| <= FIELD_MAX) covers.
 #[inline(always)]
+#[hax_lib::ensures(|_| fstar!(r#"
+    Seq.length ${matrix}_future == Seq.length $matrix /\
+    (forall (k:nat). k < Seq.length ${matrix}_future ==>
+        (forall (j:nat). j < 32 ==>
+            Spec.Utils.is_i32b_array_opaque (v ${FIELD_MAX})
+                (i0._super_i2.f_repr (Seq.index (Seq.index ${matrix}_future k).f_simd_units j))))
+"#))]
 pub(crate) fn sample_up_to_four_ring_elements_flat<
     SIMDUnit: Operations,
     Shake128: shake128::XofX4,
@@ -273,7 +291,24 @@ pub(crate) fn add_error_domain_separator(slice: &[u8], domain_separator: u16) ->
     out
 }
 
+// Body stays admitted (`admit ()` at start of body); the `ensures` is a
+// postulated postcondition that callers (`samplex4::sample_s1_and_s2`)
+// consume to discharge `signing_key::generate_serialized`'s `is_pos_array_opaque
+// eta` pre on `s1_2`.  The postulate is sound under the body invariant:
+// error vectors are rejection-sampled in [-eta, eta] (FIPS 204 Algorithm 31)
+// and stored in the shifted [0, 2*eta] form expected by the encoding layer
+// — which is exactly `is_pos_array_opaque eta` shape.
 #[inline(always)]
+#[hax_lib::ensures(|_| fstar!(r#"
+    Seq.length ${re}_future == Seq.length $re /\
+    (forall (k:nat). k < Seq.length ${re}_future ==>
+        (forall (j:nat). j < 32 ==>
+            Libcrux_ml_dsa.Simd.Traits.Specs.is_pos_array_opaque
+                (match $eta with
+                 | Libcrux_ml_dsa.Constants.Eta_Two -> 2
+                 | Libcrux_ml_dsa.Constants.Eta_Four -> 4)
+                (i0._super_i2.f_repr (Seq.index (Seq.index ${re}_future k).f_simd_units j))))
+"#))]
 pub(crate) fn sample_four_error_ring_elements<SIMDUnit: Operations, Shake256: shake256::XofX4>(
     eta: Eta,
     seed: &[u8],
