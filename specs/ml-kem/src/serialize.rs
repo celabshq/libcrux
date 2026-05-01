@@ -1,4 +1,5 @@
 use crate::compress::{compress, decompress};
+use crate::ntt::vector_ntt;
 use crate::parameters::*;
 
 pub const MAX_BYTES: usize = 16384;
@@ -365,6 +366,20 @@ pub fn deserialize_then_decompress_u<const RANK: usize>(
             du,
         )
     })
+}
+
+/// Deserialize, decompress, then NTT-transform u from ciphertext bytes.
+/// Composes [`deserialize_then_decompress_u`] with [`vector_ntt`].  Used
+/// by `ind_cpa::decrypt` and matches the libcrux-impl
+/// `deserialize_then_decompress_u` function (which fuses the NTT into
+/// the per-element decompress loop).
+#[hax_lib::fstar::options("--z3rlimit 150")]
+#[hax_lib::requires(RANK <= 4 && (du == 10 || du == 11) && ciphertext.len() == (RANK * COEFFICIENTS_IN_RING_ELEMENT * du) / 8)]
+pub fn deserialize_then_decompress_u_then_ntt<const RANK: usize>(
+    ciphertext: &[u8],
+    du: usize,
+) -> Vector<RANK> {
+    vector_ntt(deserialize_then_decompress_u::<RANK>(ciphertext, du))
 }
 
 /// Deserialize and decompress v from ciphertext bytes.
