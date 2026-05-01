@@ -66,15 +66,17 @@ use unpacked::*;
 
 /// Concatenate `t` and `ρ` into the public key.
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"Spec.MLKEM.is_rank $K /\
-    $PUBLIC_KEY_SIZE == Spec.MLKEM.v_CPA_PUBLIC_KEY_SIZE $K /\
-    length $seed_for_a == sz 32 /\
-    (forall (i:nat). i < v $K ==>
-        Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3328) (Seq.index $t_as_ntt i))"#))]
+#[hax_lib::requires(
+    (hacspec_ml_kem::parameters::is_rank(K)
+        && PUBLIC_KEY_SIZE == hacspec_ml_kem::parameters::cpa_public_key_size(K)
+        && seed_for_a.len() == 32).to_prop()
+    & crate::polynomial::spec::is_bounded_polynomial_vector(3328, t_as_ntt)
+)]
 #[hax_lib::ensures(|res|
-    fstar!(r#"$res == Seq.append (Spec.MLKEM.vector_encode_12 #$K
-                            (Libcrux_ml_kem.Vector.to_spec_vector_t #$K #$:Vector $t_as_ntt))
-                        $seed_for_a)"#)
+    res == hacspec_ml_kem::serialize::serialize_public_key::<K, PUBLIC_KEY_SIZE>(
+        &crate::vector::spec::vector_to_spec(t_as_ntt),
+        seed_for_a,
+    )
 )]
 pub(crate) fn serialize_public_key<
     const K: usize,
@@ -95,16 +97,17 @@ pub(crate) fn serialize_public_key<
 
 /// Concatenate `t` and `ρ` into the public key.
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"Spec.MLKEM.is_rank $K /\
-    $PUBLIC_KEY_SIZE == Spec.MLKEM.v_CPA_PUBLIC_KEY_SIZE $K /\
-    length $seed_for_a == sz 32 /\
-    (forall (i:nat). i < v $K ==>
-        Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3328) (Seq.index $t_as_ntt i))"#))]
-#[hax_lib::ensures(|res|
-    fstar!(r#"${serialized}_future == 
-                        Seq.append (Spec.MLKEM.vector_encode_12 #$K
-                            (Libcrux_ml_kem.Vector.to_spec_vector_t #$K #$:Vector $t_as_ntt))
-                        $seed_for_a)"#)
+#[hax_lib::requires(
+    (hacspec_ml_kem::parameters::is_rank(K)
+        && PUBLIC_KEY_SIZE == hacspec_ml_kem::parameters::cpa_public_key_size(K)
+        && seed_for_a.len() == 32).to_prop()
+    & crate::polynomial::spec::is_bounded_polynomial_vector(3328, t_as_ntt)
+)]
+#[hax_lib::ensures(|()|
+    *future(serialized) == hacspec_ml_kem::serialize::serialize_public_key::<K, PUBLIC_KEY_SIZE>(
+        &crate::vector::spec::vector_to_spec(t_as_ntt),
+        seed_for_a,
+    )
 )]
 pub(crate) fn serialize_public_key_mut<
     const K: usize,
