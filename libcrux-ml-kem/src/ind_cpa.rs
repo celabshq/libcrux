@@ -69,9 +69,8 @@ pub(crate) mod unpacked {
 use unpacked::*;
 
 /// Concatenate `t` and `ρ` into the public key.
-// FOLLOW-UP (Phase C): downstream of serialize_public_key_mut — same
-// bridge issue.  Marked lax pending the Hacspec_ml_kem.Serialize bridge
-// lemma (see comment on serialize_public_key_mut).
+// FOLLOW-UP (Phase C): cascade-lax from serialize_public_key_mut — see
+// the bridge-lemma plan documented there.
 #[hax_lib::fstar::verification_status(lax)]
 #[inline(always)]
 #[hax_lib::requires(
@@ -112,15 +111,17 @@ pub(crate) fn serialize_public_key<
     & crate::polynomial::spec::is_bounded_polynomial_vector(3328, t_as_ntt)
 )]
 // FOLLOW-UP (Phase C): bridge to Hacspec_ml_kem.Serialize.serialize_public_key
-// requires an extensional-equality lemma that the impl loop+seed-copy
-// produces the same byte sequence as the spec's fold-of-byte_encode + seed
-// suffix.  The previous Spec.MLKEM.vector_encode_12 + Seq.append form had
-// such a bridge implicit in Spec.MLKEM's lemma library, but Spec.MLKEM is
-// no longer in the F* include path (commit 967b6b0f2).  Recognising this
-// as pre-existing broken state — Ind_cpa.fst.checked has not built
-// post-967b6b0f2 (per session-2026-05-01-impl-pure-rust.md "Ind_cpa.fst |
-// absent | absent | downstream of Sampling.fsti").  Marking lax so
-// Ind_cpa.fst.checked can rebuild green; bridge lemma is Phase C work.
+// requires three layered admitted-or-real lemmas:
+//   1. chunk-decomposition of serialize_secret_key — per-index byte_encode
+//      equals Seq.slice (serialize_secret_key K T_SIZE v) (j*384) ((j+1)*384);
+//   2. serialize_secret_key_into v out == serialize_secret_key K T_SIZE v
+//      whenever len out == T_SIZE (the in-place form ignores out's content);
+//   3. serialize_public_key K EK_SIZE v seed
+//      == Seq.append (serialize_secret_key K (K*!384) v) seed.
+// Marked lax so Ind_cpa.fst.checked rebuilds green.  A scaffolding bridge
+// (just #3) was tried and removed — landing only #3 was insufficient
+// to remove any lax marker (verified empirically 2026-05-02), so the
+// whole stack must be discharged together when this fn is restored.
 #[hax_lib::fstar::verification_status(lax)]
 pub(crate) fn serialize_public_key_mut<
     const K: usize,
@@ -436,9 +437,9 @@ pub(crate) fn generate_keypair_unpacked<
         Err(_) => true,
     }
 )]
-// FOLLOW-UP (Phase C): cascade-lax from serialize_public_key_mut bridge gap
-// (see comment there).  The body calls lax fns whose unverified ensures
-// can't be used to discharge this fn's strong postcondition.
+// FOLLOW-UP (Phase C): cascade-lax — body calls serialize_unpacked_secret_key
+// (lax) which calls the lax serialize_public_key chain.  See the bridge-lemma
+// plan on serialize_public_key_mut.
 #[hax_lib::fstar::verification_status(lax)]
 #[inline(always)]
 pub(crate) fn generate_keypair<

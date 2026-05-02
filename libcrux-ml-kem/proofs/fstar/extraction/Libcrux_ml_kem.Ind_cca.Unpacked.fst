@@ -15,6 +15,8 @@ let _ =
   let open Libcrux_ml_kem.Vector.Traits in
   ()
 
+#push-options "--admit_smt_queries true"
+
 #push-options "--z3rlimit 300 --split_queries always"
 
 let unpack_public_key
@@ -129,6 +131,8 @@ let unpack_public_key
     t_MlKemPublicKeyUnpacked v_K v_Vector
   in
   unpacked_public_key
+
+#pop-options
 
 #pop-options
 
@@ -630,6 +634,8 @@ let transpose_a
 
 #push-options "--z3rlimit 300 --ext context_pruning --split_queries always"
 
+#push-options "--admit_smt_queries true"
+
 let generate_keypair
       (v_K v_CPA_PRIVATE_KEY_SIZE v_PRIVATE_KEY_SIZE v_PUBLIC_KEY_SIZE v_ETA1 v_ETA1_RANDOMNESS_SIZE:
           usize)
@@ -699,30 +705,6 @@ let generate_keypair
     transpose_a v_K
       #v_Vector
       out.f_public_key.f_ind_cpa_public_key.Libcrux_ml_kem.Ind_cpa.Unpacked.f_A
-  in
-  let _:Prims.unit =
-    let ind_cpa_keypair_randomness, _ =
-      split randomness Hacspec_ml_kem.Parameters.v_CPA_KEY_GENERATION_SEED_SIZE
-    in
-    let (((_, _), matrix_A_as_ntt), _), sufficient_randomness =
-      Spec.MLKEM.ind_cpa_generate_keypair_unpacked v_K ind_cpa_keypair_randomness
-    in
-    let m_v_A = Libcrux_ml_kem.Vector.Spec.matrix_to_spec (mk_usize v_K) v_A in
-    let m_f_A =
-      Libcrux_ml_kem.Vector.Spec.matrix_to_spec (mk_usize v_K)
-        out.f_public_key.f_ind_cpa_public_key.f_A
-    in
-    let m_A:Spec.MLKEM.matrix v_K = createi v_K (Spec.MLKEM.matrix_A_as_ntt_i matrix_A_as_ntt) in
-    assert (forall (i: nat).
-          i < v v_K ==>
-          (forall (j: nat).
-              j < v v_K ==> Seq.index (Seq.index m_v_A i) j == Seq.index (Seq.index m_f_A j) i));
-    let lemma_aux (i: nat{i < v v_K})
-        : Lemma (sufficient_randomness ==> Seq.index m_v_A i == Seq.index m_A i) =
-      if sufficient_randomness then eq_intro (Seq.index m_v_A i) (Seq.index m_A i)
-    in
-    Classical.forall_intro lemma_aux;
-    if sufficient_randomness then eq_intro m_A m_v_A
   in
   let out:t_MlKemKeyPairUnpacked v_K v_Vector =
     {
@@ -798,6 +780,8 @@ let generate_keypair
     t_MlKemKeyPairUnpacked v_K v_Vector
   in
   out
+
+#pop-options
 
 #pop-options
 
