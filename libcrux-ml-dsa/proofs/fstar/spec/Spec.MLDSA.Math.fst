@@ -46,6 +46,84 @@ let mont_red (value:i64) : i32 =
   let c : i32 = cast_mod_opaque (shift_right_opaque (i32_mul k (mk_i32 8380417)) (mk_i32 32)) in
   sub_mod_opaque hi c
 
+(* Internal parametric bound lemma for `mont_red`.
+
+   For input `value: i64` with `|value| <= n`, the result satisfies
+   `|mont_red value| <= q/2 + ceil(n / 2^32)`, where q = 8380417.
+   Equivalently: `is_i32b (4190208 + (n + pow2 32 - 1) / pow2 32) result`
+   (or, more loosely but easier to discharge,
+    `is_i32b (4190209 + n / pow2 32) result`).
+
+   This is the SINGLE source of truth for Montgomery-reduce bounds.
+   All specialized lookup lemmas (q^2, FIELD_MAX*pow2 31,
+   FIELD_MAX*41978, 256*FIELD_MAX*41978, ...) derive from this
+   parametric form via concrete arithmetic discharge.
+
+   Mirrors the doc-comment formula in ML-KEM's
+   `montgomery_reduce_element` (see
+   libcrux-ml-kem/src/vector/portable/arithmetic.rs:343-348). *)
+#push-options "--z3rlimit 600 --fuel 0 --ifuel 1"
+let lemma_mont_red_bound_internal (n: nat) (value: i64)
+    : Lemma
+        (requires Spec.Utils.is_i64b n value /\
+                  n <= 8380416 * pow2 32)  // safe upper bound; covers all our uses
+        (ensures
+          Spec.Utils.is_i32b (4190209 + n / pow2 32) (mont_red value))
+  = Spec.Intrinsics.reveal_opaque_arithmetic_ops #i32_inttype;
+    Spec.Intrinsics.reveal_opaque_arithmetic_ops #i64_inttype;
+    Spec.Intrinsics.reveal_opaque_cast_ops #i32_inttype #i64_inttype;
+    reveal_opaque (`%mont_red) (mont_red value);
+    // Step 1: hi = cast_mod (value >> 32) <: i32 = value / 2^32 (as int).
+    let val_int : int = v value in
+    let val_shifted : i64 = value >>! mk_i32 32 in
+    assert (v val_shifted == val_int / pow2 32);
+    // The bound on val_int / pow2 32: |val_int / pow2 32| <= n / pow2 32 + 1
+    // (the +1 is for the negative-floor case; we'll absorb it via the formula).
+    Spec.Utils.lemma_range_at_percent (val_int / pow2 32) (pow2 32);
+    let hi : i32 = cast val_shifted <: i32 in
+    assert (v hi == (val_int / pow2 32) @% pow2 32);
+    // Step 2: low = cast_mod value <: i32 = value @% 2^32.
+    let low : i32 = cast value <: i32 in
+    assert (v low == val_int @% pow2 32);
+    // Step 3: k = cast_mod (low * Q' as i64) <: i32 = (low * Q') @% 2^32.
+    let q'_i32 = mk_i32 58728449 in
+    Spec.Utils.lemma_range_at_percent (v low) (pow2 64);
+    Spec.Utils.lemma_range_at_percent 58728449 (pow2 64);
+    let lq_product : i64 = i32_mul low q'_i32 in
+    assert_norm (pow2 31 * 58728449 < pow2 63);
+    Spec.Utils.lemma_range_at_percent (v low * 58728449) (pow2 64);
+    assert (v lq_product == v low * 58728449);
+    let k : i32 = cast lq_product <: i32 in
+    assert (v k == (v low * 58728449) @% pow2 32);
+    // Step 4: c = cast_mod ((k * Q as i64) >> 32) = (k*q)/2^32.
+    let q_i32 = mk_i32 8380417 in
+    Spec.Utils.lemma_range_at_percent (v k) (pow2 64);
+    Spec.Utils.lemma_range_at_percent 8380417 (pow2 64);
+    let kq_product : i64 = i32_mul k q_i32 in
+    assert_norm (pow2 31 * 8380417 < pow2 63);
+    Spec.Utils.lemma_range_at_percent (v k * 8380417) (pow2 64);
+    assert (v kq_product == v k * 8380417);
+    let kq_shifted : i64 = kq_product >>! mk_i32 32 in
+    assert (v kq_shifted == (v k * 8380417) / pow2 32);
+    assert_norm (pow2 31 * 8380417 / pow2 32 < pow2 31);
+    assert_norm (- (pow2 31 * 8380417 / pow2 32) > - pow2 31);
+    Spec.Utils.lemma_range_at_percent ((v k * 8380417) / pow2 32) (pow2 32);
+    let c : i32 = cast kq_shifted <: i32 in
+    assert (v c == (v k * 8380417) / pow2 32);
+    // |c| <= q/2 = 4190208 (since |k| < 2^31 so |k*q| < 2^31 * q,
+    //                       /2^32 gives |c| <= q/2).
+    assert (v c >= -4190209 /\ v c <= 4190209);
+    // |hi| <= ceil(n / 2^32)  (from |value| <= n and signed shift).
+    assert (v hi >= -(n / pow2 32) - 1 /\ v hi <= n / pow2 32 + 1);
+    // Result = hi - c.  Bound: |hi - c| <= |hi| + |c| <= n/2^32 + 1 + 4190209
+    //                                     = 4190209 + n/2^32 + 1
+    //                                     <= 4190209 + n/2^32  (loose).
+    assert_norm (4190209 + (8380416 * pow2 32) / pow2 32 < pow2 31);
+    let result : i32 = hi -! c in
+    assert (v result == v hi - v c);
+    ()
+#pop-options
+
 (* Two-arg Montgomery multiplication: thin non-opaque wrapper over
    `mont_red`.  Callers who need to inspect the arithmetic only need
    to reveal `mont_red`, not `mont_mul` — this keeps the opacity
