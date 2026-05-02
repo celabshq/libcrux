@@ -466,8 +466,13 @@ pub fn validate_private_key(
 #[cfg(not(eurydice))]
 #[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::ensures(|res|
-    fstar!(r#"let ((secret_key, public_key), valid) = Spec.MLKEM.Instances.mlkem512_generate_keypair $randomness in
-        valid ==> (${res}.f_sk.f_value == secret_key /\ ${res}.f_pk.f_value == public_key)"#)
+    match hacspec_ml_kem::generate_keypair::<RANK, CPA_PKE_PUBLIC_KEY_SIZE, SECRET_KEY_SIZE, CPA_PKE_SECRET_KEY_SIZE>(
+        &hacspec_ml_kem::parameters::rank_to_params(RANK),
+        &randomness,
+    ) {
+        Ok((ek, dk)) => res.sk.value == dk && res.pk.value == ek,
+        Err(_) => true,
+    }
 )]
 pub fn generate_key_pair(randomness: [u8; KEY_GENERATION_SEED_SIZE]) -> MlKem512KeyPair {
     multiplexing::generate_keypair::<
@@ -488,9 +493,14 @@ pub fn generate_key_pair(randomness: [u8; KEY_GENERATION_SEED_SIZE]) -> MlKem512
 #[cfg(not(eurydice))]
 #[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::ensures(|res|
-    fstar!(r#"let ((ciphertext, shared_secret), valid) = Spec.MLKEM.Instances.mlkem512_encapsulate ${public_key}.f_value $randomness in
-        let (res_ciphertext, res_shared_secret) = $res in
-        valid ==> (res_ciphertext.f_value == ciphertext /\ res_shared_secret == shared_secret)"#)
+    match hacspec_ml_kem::encapsulate::<RANK, CPA_PKE_PUBLIC_KEY_SIZE, C1_SIZE, C2_SIZE, CPA_PKE_CIPHERTEXT_SIZE>(
+        &hacspec_ml_kem::parameters::rank_to_params(RANK),
+        &public_key.value,
+        &randomness,
+    ) {
+        Ok((shared, ciphertext)) => res.0.value == ciphertext && res.1 == shared,
+        Err(_) => true,
+    }
 )]
 pub fn encapsulate(
     public_key: &MlKem512PublicKey,
@@ -520,8 +530,14 @@ pub fn encapsulate(
 #[cfg(not(eurydice))]
 #[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::ensures(|res|
-    fstar!(r#"let (shared_secret, valid) = Spec.MLKEM.Instances.mlkem512_decapsulate ${private_key}.f_value ${ciphertext}.f_value in
-        valid ==> $res == shared_secret"#)
+    match hacspec_ml_kem::decapsulate::<RANK, CPA_PKE_PUBLIC_KEY_SIZE, SECRET_KEY_SIZE, CPA_PKE_SECRET_KEY_SIZE, C1_SIZE, C2_SIZE, CPA_PKE_CIPHERTEXT_SIZE, IMPLICIT_REJECTION_HASH_INPUT_SIZE>(
+        &hacspec_ml_kem::parameters::rank_to_params(RANK),
+        &private_key.value,
+        &ciphertext.value,
+    ) {
+        Ok(expected) => res == expected,
+        Err(_) => true,
+    }
 )]
 pub fn decapsulate(
     private_key: &MlKem512PrivateKey,
