@@ -394,6 +394,16 @@ fn op_decompress_ciphertext_coefficient<const COEFFICIENT_BITS: i32>(a: Portable
            in
            Classical.forall_intro aux"#
     );
+    // Strengthened post (2026-05-02): expose the i16 result bound
+    // `bounded_i16_array (mk_i16 0) (mk_i16 3328) result.f_elements`
+    // (= [0, FIELD_MODULUS - 1]).  The inner `decompress_ciphertext_coefficient`'s
+    // ensures already gives `forall i. 0 <= v result.f_elements[i] < FIELD_MODULUS`;
+    // we just intro that into the opaque `bounded_i16_array` form.
+    hax_lib::fstar!(
+        r#"Libcrux_ml_kem.Vector.Traits.Spec.lemma_bounded_i16_array_intro
+             (mk_i16 0) (mk_i16 3328)
+             ${result}.f_elements"#
+    );
     result
 }
 

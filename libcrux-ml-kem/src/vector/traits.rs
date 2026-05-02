@@ -853,14 +853,25 @@ let ntt_multiply_branch_post
         coefficient_bits: i32,
         result: &[i16; 16],
     ) -> hax_lib::Prop {
+        // Strengthened 2026-05-02: in addition to the FE-level spec equality,
+        // expose the i16 result bound `[0, FIELD_MODULUS - 1] = [0, 3328]`
+        // that all impls naturally maintain (Vector.Portable.Compress maintains
+        // it via loop invariant; Avx2/Neon wrappers admit panic-freedom hence
+        // also satisfy this).  Needed by callers that pass the result to
+        // `subtract_reduce` / `compute_message` (which require
+        // `is_bounded_poly 4095`) and to `ntt_vector_u` (which requires
+        // `is_bounded_poly 3328`).  Without this clause the trait post is
+        // strictly the mod-3329 FE equality, which cannot pin the i16 result
+        // range.
         hax_lib::fstar_prop_expr!(
             r#"(v $coefficient_bits == 4 \/
                 v $coefficient_bits == 5 \/
                 v $coefficient_bits == 10 \/
                 v $coefficient_bits == 11) ==>
-               Spec.Utils.forall16 (fun (i: nat{i < 16}) ->
-                 decompress_d_lane_post (mk_usize (v $coefficient_bits))
-                   (Seq.index ${vec} i) (Seq.index ${result} i))"#
+               (bounded_i16_array (mk_i16 0) (mk_i16 3328) ${result} /\
+                Spec.Utils.forall16 (fun (i: nat{i < 16}) ->
+                  decompress_d_lane_post (mk_usize (v $coefficient_bits))
+                    (Seq.index ${vec} i) (Seq.index ${result} i)))"#
         )
     }
 

@@ -1112,44 +1112,37 @@ pub(crate) fn deserialize_vector<const K: usize, Vector: Operations>(
         ciphertext,
     )
 )]
-// FOLLOW-UP (Phase E cont 2026-05-02): slice-length precondition for
-// deserialize_then_decompress_ring_element_v solved via assert_norm body
-// block (cpa_ciphertext_size - c1_size == 32 * vector_v_compression_factor
-// for is_rank K).  Remaining blocker: Matrix.compute_message requires
-// is_bounded_poly 4095 on v and is_bounded_poly 3328 on each
-// secret_as_ntt[i] / u_as_ntt[i].
+// FOLLOW-UP (Phase E cont 2026-05-02, R5 carve-out — partial progress):
+//   DONE this session:
+//     * Trait post `decompress_ciphertext_coefficient_post` strengthened
+//       (src/vector/traits.rs:851-877) to additionally carry
+//       `bounded_i16_array (mk_i16 0) (mk_i16 3328) result`.  Verified:
+//       Portable wrapper `op_decompress_ciphertext_coefficient`
+//       (src/vector/portable.rs:367-411) discharges the new clause via
+//       `lemma_bounded_i16_array_intro`; Vector.Portable.fst.checked
+//       rebuilds green in 73s.  Avx2 + Neon impls auto-admit through
+//       their existing body-admits (Avx2 wrapper has
+//       `admit () (* Panic freedom *)`; Neon module is in ADMIT_MODULES).
+//   REMAINING (next session):
+//     * Propagate `is_bounded_poly 4095` ensures up through
+//       `deserialize_then_decompress_4` / `_5` / `..._ring_element_v` in
+//       src/serialize.rs.  First attempt got `is_bounded_poly_higher`
+//       discharging the initial-state lift cleanly (Rust-syntax form
+//       `spec::is_bounded_poly_higher(&re, 0, 4095)`), but the post-loop
+//       fold post still failed with "incomplete quantifiers" at
+//       Serialize.fst:920 — need a per-lane bound assertion inside the
+//       loop body or a stronger SMTPat connecting the trait post's
+//       `bounded_i16_array 0 3328` to per-coefficient `is_bounded_vector
+//       4095`.
+//   AFTER PROPAGATION LANDS:
+//     * Chain `is_bounded_poly_higher` here to lift 3328 → 4095 for
+//       `compute_message`'s `v` requires; add
+//       `is_bounded_polynomial_vector 3328 secret_as_ntt` requires to
+//       `decrypt_unpacked` (caller-established via lax-admitted
+//       `deserialize_vector` ensures).  Then flip lax → panic_free.
 //
-// Architectural root cause (R5-blocked): the trait post for
-// `decompress_ciphertext_coefficient` is
-//   decompress_ciphertext_coefficient_post := forall16 (fun i ->
-//     decompress_d_lane_post d input[i] result[i])
-// where decompress_d_lane_post asserts only the FE-level spec equality
-//   i16_to_spec_fe result == decompress_d (i16_to_spec_fe input) d.
-// `i16_to_spec_fe x` reduces to `(v x) % 3329` (Vector.Traits.Spec line 25-31).
-// The mod-3329 equality cannot pin the i16 result to [0, 3328]: any
-// `result + 3329 * k` satisfies it.  Compare with `compress_post` (line
-// 684-688 in Vector.Traits.Spec) which DOES carry `bounded_pos_i16_array
-// (v coefficient_bits) result`; the decompress trait post deliberately
-// drops the analogous `bounded_pos_i16_array (v FIELD_MODULUS) result`.
-// The Portable impl satisfies the bound internally (Vector.Portable.Compress
-// line 336-341 maintains `0 <= elem < FIELD_MODULUS = 3329`), but the
-// trait dispatch hides this.
-//
-// Fix path: add `bounded_pos_i16_array (v FIELD_MODULUS) result` (or
-// equivalently `is_i16b 3328 result` after sign normalization) to
-// `decompress_ciphertext_coefficient_post` in `src/vector/traits.rs`.
-// Blocked by R5 (trait FROZEN this sprint).  R2 (no new admits) + R9
-// (no admit shuffling) preclude lax-admitting bound ensures on the
-// panic_free `deserialize_then_decompress_ring_element_v`, so we cannot
-// route around the block via wrapper-side admits.
-//
-// Per-fn recoveries downstream once R5 lifts: chain
-// `is_bounded_poly_higher` to lift 3328 → 4095 for the `compute_message`
-// `v` requires; add `is_bounded_polynomial_vector 3328 secret_as_ntt`
-// requires to `decrypt_unpacked` (caller-established invariant via
-// `deserialize_vector` ensures).
-//
-// Stays lax.
+// Stays lax this session; the R5 trait-post unlock unblocks the next
+// session's propagation work.
 #[hax_lib::fstar::verification_status(lax)]
 #[inline(always)]
 pub(crate) fn decrypt_unpacked<

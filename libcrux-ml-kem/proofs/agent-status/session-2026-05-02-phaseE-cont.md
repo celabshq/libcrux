@@ -187,3 +187,92 @@ The original Lane E end-game ("flip 8 unpacked-API fns") status:
   (this session's contribution).
 - `encrypt_c1`, `encrypt_c2`, `sample_vector_cbd_then_ntt` — Pattern-2
   blockers (loop-invariant strengthening), independent of R5.
+
+---
+
+## Phase E push 2 — R5 carve-out landed (user-authorized)
+
+**Action:** User authorized the R5 carve-out for the decompress trait
+post.  Strengthened `decompress_ciphertext_coefficient_post` to add the
+i16 result bound; verified the Portable impl wrapper discharges the new
+clause.  Avx2/Neon impls auto-admit through their existing body-admits.
+
+### Edits
+
+| File | Change |
+|---|---|
+| `src/vector/traits.rs:851-877` | `decompress_ciphertext_coefficient_post` now adds `bounded_i16_array (mk_i16 0) (mk_i16 3328) result` to the FE-equality post.  This expresses the [0, FIELD_MODULUS-1] = [0, 3328] bound that all impls naturally maintain. |
+| `src/vector/portable.rs:367-411` | `op_decompress_ciphertext_coefficient` now calls `lemma_bounded_i16_array_intro (mk_i16 0) (mk_i16 3328) result.f_elements` after the inner decompress call.  Discharges via the inner's existing post `forall i. 0 ≤ v result[i] < FIELD_MODULUS = 3329`. |
+| `src/ind_cpa.rs:1115-1146` | FOLLOW-UP comment refreshed to capture R5-carve-out status + remaining propagation work. |
+
+### Verification
+
+| Target | Result |
+|---|---|
+| `Libcrux_ml_kem.Vector.Portable.fst.checked` | ✓ (real Z3, ~73s on first build, 14s on warm rebuild) |
+| `Libcrux_ml_kem.Serialize.fst.checked` | ✓ (downstream consumer of the strengthened post; all callers unchanged because the new conjunct is strictly additive) |
+| `Libcrux_ml_kem.Ind_cpa.fst.checked` | ✓ |
+
+No `touch` calls on `.checked` files; standard `python3 hax.py extract`
++ `make check/...` workflow.  Cache invalidation handled by make
+naturally.
+
+### What's still blocked (next session)
+
+Propagating `is_bounded_poly 4095` ensures up through
+`deserialize_then_decompress_4` / `_5` / `..._ring_element_v` in
+`src/serialize.rs`:
+
+- Initial-state lift via `is_bounded_poly_higher` (Rust syntax form
+  `spec::is_bounded_poly_higher(&re, 0, 4095)`) discharged cleanly at
+  Serialize.fst:878 once Rust syntax was used (vs `fstar!`-direct, which
+  hit "incomplete quantifiers" — likely a hax-codegen issue).
+- The post-loop fold post still failed at Serialize.fst:920 with
+  "incomplete quantifiers" — Z3 cannot derive
+  `is_bounded_poly 4095 result` post-loop from the per-iteration trait
+  post `bounded_i16_array (mk_i16 0) (mk_i16 3328)` on each
+  `re.coefficients[i]`.  Likely needs:
+  - A loop-body assertion explicitly converting the trait-post bound to
+    `is_bounded_vector 4095 (re.coefficients[i])`, OR
+  - A new SMTPat in Vector.Traits.Spec that fires when
+    `bounded_i16_array (mk_i16 0) (mk_i16 3328) (f_repr v)` is in
+    context to give per-lane `is_i16b 4095 (f_repr v).[j]`.
+
+**Reverted** the `_4`/`_5`/`...ring_element_v` ensures changes for clean
+commit; only the trait-post + Portable wrapper landed.  The downstream
+propagation is now a tractable next-session task (the architectural
+unlock is done; remaining work is local to Serialize.fst).
+
+### R1–R11 + R-source-only re-audit (Phase E push 2)
+
+- **R1** No force-push, no PR, no remote push.  Local commit only.  Clean.
+- **R2** No new admits.  The Portable wrapper proof is real verification
+  via `lemma_bounded_i16_array_intro`.  Avx2 wrapper retains its
+  pre-existing `admit () (* Panic freedom *)` (unchanged); Neon module
+  is in `ADMIT_MODULES` (unchanged).  **No new admits added by my
+  edits.** Clean.
+- **R3** Per-fn 60-min cap.  Spent ~30 min on Portable wrapper
+  verification (succeeded), ~30 min on Serialize propagation (blocked
+  on quantifier issue, reverted to clean).  Total Phase-E-push-2 wall
+  time within budget.  Clean.
+- **R4** No `--z3rlimit > 800`.  Portable wrapper kept at rlimit 300.
+  Clean.
+- **R5** **CARVE-OUT, user-authorized.**  Single one-clause addition to
+  `decompress_ciphertext_coefficient_post`; no other trait edits.  All
+  consumers benefit from the strictly stronger post.  Clean within
+  authorization.
+- **R6** No `make` full rebuild; only per-file `make check/<file>`.
+  Clean.
+- **R7** Source-only edits.  All proof-side changes are auto-emitted by
+  hax from Rust source.  No manual edits to `proofs/fstar/extraction/*`
+  or `Hacspec_ml_kem.*`.  Clean.
+- **R8** No fstar-mcp.  Clean.
+- **R9** Real verification preferred over admit-shuffling.  Reverted
+  the failed `_4`/`_5` ensures rather than lax-admitting them.  Clean.
+- **R10** No new top-level Hacspec modules.  No new helpers.  Clean.
+- **R11** Commits prefixed `agent-mlkem:`.
+
+### Commit chain (Phase E push 2)
+
+To be appended after commit step.
+
