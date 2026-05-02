@@ -518,7 +518,7 @@ pub(crate) fn ntt_at_layer_7<Vector: Operations>(re: &mut PolynomialRingElement<
 #[hax_lib::ensures(|result| spec::is_bounded_poly(3328, future(re)))]
 // #[hax_lib::ensures(|_| fstar!(r#"
 //     Libcrux_ml_kem.Polynomial.to_spec_poly_t #$:Vector ${re}_future ==
-//     Spec.MLKEM.poly_ntt (Libcrux_ml_kem.Polynomial.to_spec_poly_t #$:Vector $re) /\
+//     Hacspec_ml_kem.Ntt.ntt (Libcrux_ml_kem.Polynomial.to_spec_poly_t #$:Vector $re) /\
 //     Libcrux_ml_kem.Polynomial.is_bounded_poly #$:Vector 3328 ${re}_future"#)]
 pub(crate) fn ntt_binomially_sampled_ring_element<Vector: Operations>(
     re: &mut PolynomialRingElement<Vector>,
@@ -558,7 +558,7 @@ pub(crate) fn ntt_binomially_sampled_ring_element<Vector: Operations>(
 #[hax_lib::requires(spec::is_bounded_poly(3328, re))]
 #[hax_lib::ensures(|result| spec::is_bounded_poly(3328, future(re)))]
 // #[hax_lib::ensures(|_| fstar!(r#"Libcrux_ml_kem.Polynomial.to_spec_poly_t #$:Vector ${re}_future ==
-//     Spec.MLKEM.poly_ntt (Libcrux_ml_kem.Polynomial.to_spec_poly_t #$:Vector $re)"#))]
+//     Hacspec_ml_kem.Ntt.ntt (Libcrux_ml_kem.Polynomial.to_spec_poly_t #$:Vector $re)"#))]
 pub(crate) fn ntt_vector_u<const VECTOR_U_COMPRESSION_FACTOR: usize, Vector: Operations>(
     re: &mut PolynomialRingElement<Vector>,
 ) {
