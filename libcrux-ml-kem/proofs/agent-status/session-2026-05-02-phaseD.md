@@ -116,7 +116,7 @@ Net +32 lines, dominated by the per-fn FOLLOW-UP comments on the 10 fns that sta
 ## Final commit chain (Phase D)
 
 ```
-<filled in by commit step>  agent-mlkem: Lane E Phase D — 6 lax→panic_free flips in ind_cpa.rs (10 stay lax, FOLLOW-UP notes added)
+7de927869  agent-mlkem: Lane E Phase D — 6 lax→panic_free flips in ind_cpa.rs
 ```
 
 1 commit, `agent-mlkem:` prefixed.  Branch `libcrux-ml-kem-proofs` is **44 commits ahead of `origin/libcrux-ml-kem-proofs`**.  **Not pushed.**
