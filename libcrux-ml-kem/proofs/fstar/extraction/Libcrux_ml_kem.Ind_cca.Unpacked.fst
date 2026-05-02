@@ -56,7 +56,7 @@ let unpack_public_key
     t_MlKemPublicKeyUnpacked v_K v_Vector
   in
   let _:Prims.unit =
-    let _, seed = split public_key.f_value (Spec.MLKEM.v_T_AS_NTT_ENCODED_SIZE v_K) in
+    let _, seed = split public_key.f_value (Hacspec_ml_kem.Parameters.tt_as_ntt_encoded_size v_K) in
     eq_intro (Libcrux_ml_kem.Utils.into_padded_array (sz 32) seed) seed;
     eq_intro (Seq.slice (Libcrux_ml_kem.Utils.into_padded_array (sz 34) seed) 0 32) seed
   in
@@ -702,7 +702,7 @@ let generate_keypair
   in
   let _:Prims.unit =
     let ind_cpa_keypair_randomness, _ =
-      split randomness Spec.MLKEM.v_CPA_KEY_GENERATION_SEED_SIZE
+      split randomness Hacspec_ml_kem.Parameters.v_CPA_KEY_GENERATION_SEED_SIZE
     in
     let (((_, _), matrix_A_as_ntt), _), sufficient_randomness =
       Spec.MLKEM.ind_cpa_generate_keypair_unpacked v_K ind_cpa_keypair_randomness
@@ -896,13 +896,16 @@ let decapsulate
       (ciphertext: Libcrux_ml_kem.Types.t_MlKemCiphertext v_CIPHERTEXT_SIZE)
      =
   let _:Prims.unit =
-    assert (v v_IMPLICIT_REJECTION_HASH_INPUT_SIZE == 32 + v (Spec.MLKEM.v_CPA_CIPHERTEXT_SIZE v_K));
-    assert (v (Spec.MLKEM.v_C1_SIZE v_K +! Spec.MLKEM.v_C2_SIZE v_K) ==
-        v (Spec.MLKEM.v_C1_SIZE v_K) + v (Spec.MLKEM.v_C2_SIZE v_K));
-    assert (v (Spec.MLKEM.v_C1_SIZE v_K) == v (Spec.MLKEM.v_C1_BLOCK_SIZE v_K) * v v_K);
-    assert (v (Spec.MLKEM.v_C1_BLOCK_SIZE v_K) ==
-        32 * v (Spec.MLKEM.v_VECTOR_U_COMPRESSION_FACTOR v_K));
-    assert (v (Spec.MLKEM.v_C2_SIZE v_K) == 32 * v (Spec.MLKEM.v_VECTOR_V_COMPRESSION_FACTOR v_K))
+    assert (v v_IMPLICIT_REJECTION_HASH_INPUT_SIZE ==
+        32 + v (Hacspec_ml_kem.Parameters.cpa_ciphertext_size v_K));
+    assert (v (Hacspec_ml_kem.Parameters.c1_size v_K +! Hacspec_ml_kem.Parameters.c2_size v_K) ==
+        v (Hacspec_ml_kem.Parameters.c1_size v_K) + v (Hacspec_ml_kem.Parameters.c2_size v_K));
+    assert (v (Hacspec_ml_kem.Parameters.c1_size v_K) ==
+        v (Hacspec_ml_kem.Parameters.c1_block_size v_K) * v v_K);
+    assert (v (Hacspec_ml_kem.Parameters.c1_block_size v_K) ==
+        32 * v (Hacspec_ml_kem.Parameters.vector_u_compression_factor v_K));
+    assert (v (Hacspec_ml_kem.Parameters.c2_size v_K) ==
+        32 * v (Hacspec_ml_kem.Parameters.vector_v_compression_factor v_K))
   in
   let decrypted:t_Array u8 (mk_usize 32) =
     Libcrux_ml_kem.Ind_cpa.decrypt_unpacked v_K
