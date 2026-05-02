@@ -1112,9 +1112,14 @@ pub(crate) fn deserialize_vector<const K: usize, Vector: Operations>(
         ciphertext,
     )
 )]
-// FOLLOW-UP (Phase D): body fails panic_free precondition checks on
-// deserialize_then_decompress_ring_element_v (slice bound) and
-// Matrix.compute_message (input bounds). Stays lax.
+// FOLLOW-UP (Phase E): slice-length precondition for
+// deserialize_then_decompress_ring_element_v solved via assert_norm body
+// block (cpa_ciphertext_size - c1_size == 32 * vector_v_compression_factor
+// for is_rank K).  Remaining blocker: Matrix.compute_message requires
+// is_bounded_poly 4095 on v and is_bounded_poly 3328 on each
+// secret_as_ntt[i] / u_as_ntt[i].  Need stronger ensures on
+// deserialize_then_decompress_ring_element_v + deserialize_then_decompress_u
+// (real spec property — decompress output is in [0, q-1]).  Stays lax.
 #[hax_lib::fstar::verification_status(lax)]
 #[inline(always)]
 pub(crate) fn decrypt_unpacked<
@@ -1128,6 +1133,17 @@ pub(crate) fn decrypt_unpacked<
     secret_key: &IndCpaPrivateKeyUnpacked<K, Vector>,
     ciphertext: &[u8; CIPHERTEXT_SIZE],
 ) -> [u8; SHARED_SECRET_SIZE] {
+    hax_lib::fstar!(
+        r#"assert_norm (v (Hacspec_ml_kem.Parameters.cpa_ciphertext_size (mk_usize 2)) -
+                       v (Hacspec_ml_kem.Parameters.c1_size (mk_usize 2)) ==
+                       32 * v (Hacspec_ml_kem.Parameters.vector_v_compression_factor (mk_usize 2)));
+           assert_norm (v (Hacspec_ml_kem.Parameters.cpa_ciphertext_size (mk_usize 3)) -
+                       v (Hacspec_ml_kem.Parameters.c1_size (mk_usize 3)) ==
+                       32 * v (Hacspec_ml_kem.Parameters.vector_v_compression_factor (mk_usize 3)));
+           assert_norm (v (Hacspec_ml_kem.Parameters.cpa_ciphertext_size (mk_usize 4)) -
+                       v (Hacspec_ml_kem.Parameters.c1_size (mk_usize 4)) ==
+                       32 * v (Hacspec_ml_kem.Parameters.vector_v_compression_factor (mk_usize 4)))"#
+    );
     // u := Decompress_q(Decode_{d_u}(c), d_u)
     let u_as_ntt = deserialize_then_decompress_u::<K, CIPHERTEXT_SIZE, U_COMPRESSION_FACTOR, Vector>(
         ciphertext,
