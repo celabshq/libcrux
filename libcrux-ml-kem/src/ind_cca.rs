@@ -536,7 +536,9 @@ pub(crate) mod unpacked {
     // ind_cca_unpack_public_key spec-form (returning a (value, valid) pair),
     // which is unmapped in Hacspec — the Hacspec analogue returns Result, so
     // the spec-equality shape differs structurally.  Weakened to bound-only
-    // ensures + marked lax pending a Hacspec-form rewrite.
+    // ensures + marked lax pending a Hacspec-form rewrite.  Phase D note: this
+    // fn lives in `Libcrux_ml_kem.Ind_cca.Unpacked.fst`, which is in
+    // ADMIT_MODULES — flipping to panic_free has no proof effect.
     #[hax_lib::fstar::verification_status(lax)]
     #[hax_lib::fstar::options("--z3rlimit 300 --split_queries always")]
     #[hax_lib::requires(

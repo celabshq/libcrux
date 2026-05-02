@@ -142,6 +142,9 @@ pub(crate) fn serialize_public_key_mut<
 
 /// Call [`serialize_uncompressed_ring_element`] for each ring element.
 #[inline(always)]
+// FOLLOW-UP (Phase D): body has eq_intro spec-equality assertion that fails
+// to discharge under panic_free at rlimit 800 (Z3 'incomplete quantifiers').
+// Stays lax pending body-proof restructure or rlimit cap relaxation.
 #[hax_lib::fstar::verification_status(lax)]
 #[hax_lib::fstar::options("--z3rlimit 800 --ext context_pruning")]
 #[hax_lib::requires(
@@ -200,7 +203,7 @@ pub(crate) fn serialize_vector<const K: usize, Vector: Operations>(
 
 /// Sample a vector of ring elements from a centered binomial distribution.
 #[inline(always)]
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::fstar::options(
     "--max_fuel 15 --z3rlimit 400 --ext context_pruning --split_queries always"
 )]
@@ -253,6 +256,9 @@ fn sample_ring_element_cbd<
 /// Sample a vector of ring elements from a centered binomial distribution and
 /// convert them into their NTT representations.
 #[inline(always)]
+// FOLLOW-UP (Phase D): body fails panic_free precondition check on
+// ntt_binomially_sampled_ring_element call (line 352 in extracted F*) — needs
+// loop-invariant strengthening of bounds on accumulator. Stays lax.
 #[hax_lib::fstar::verification_status(lax)]
 #[hax_lib::fstar::options(
     "--max_fuel 25 --z3rlimit 400 --ext context_pruning --split_queries always"
@@ -341,7 +347,7 @@ fn sample_vector_cbd_then_ntt<
 /// The NIST FIPS 203 standard can be found at
 /// <https://csrc.nist.gov/pubs/fips/203/ipd>.
 #[allow(non_snake_case)]
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::fstar::before(r#"[@ "opaque_to_smt"]"#)]
 #[hax_lib::fstar::options("--z3rlimit 500 --ext context_pruning")]
 #[hax_lib::requires(
@@ -470,6 +476,9 @@ pub(crate) fn generate_keypair<
 }
 
 /// Serialize the secret key from the unpacked key pair generation.
+// FOLLOW-UP (Phase D): cascade-lax — body composes lax serialize_public_key
+// and serialize_vector; spec equality with hacspec serialize_secret_key tuple
+// needs the Phase C bridge stack first. Stays lax.
 #[hax_lib::fstar::verification_status(lax)]
 pub(crate) fn serialize_unpacked_secret_key<
     const K: usize,
@@ -494,6 +503,9 @@ pub(crate) fn serialize_unpacked_secret_key<
 }
 
 /// Call [`compress_then_serialize_ring_element_u`] on each ring element.
+// FOLLOW-UP (Phase D): body has eq_intro spec-equality assertion that fails
+// to discharge under panic_free at rlimit 800 (same pattern as serialize_vector).
+// Stays lax.
 #[hax_lib::fstar::verification_status(lax)]
 #[hax_lib::fstar::options("--z3rlimit 800 --ext context_pruning")]
 #[hax_lib::requires(
@@ -610,6 +622,9 @@ fn compress_then_serialize_u<
 /// The NIST FIPS 203 standard can be found at
 /// <https://csrc.nist.gov/pubs/fips/203/ipd>.
 #[allow(non_snake_case)]
+// FOLLOW-UP (Phase D): body fails panic_free precondition checks on
+// update_at_range calls — slice-bound checks on c1/c2 partition not propagated
+// from C1_LEN+C2_LEN==CIPHERTEXT_SIZE. Stays lax.
 #[hax_lib::fstar::verification_status(lax)]
 #[hax_lib::fstar::options("--z3rlimit 800 --ext context_pruning")]
 #[hax_lib::requires(
@@ -685,6 +700,8 @@ pub(crate) fn encrypt_unpacked<
     ciphertext
 }
 
+// FOLLOW-UP (Phase D): body fails panic_free precondition check on
+// into_padded_array call — randomness slice bound not propagated. Stays lax.
 #[hax_lib::fstar::verification_status(lax)]
 #[inline(always)]
 pub(crate) fn encrypt_c1<
@@ -754,6 +771,8 @@ pub(crate) fn encrypt_c1<
     (r_as_ntt, error_2)
 }
 
+// FOLLOW-UP (Phase D): body fails panic_free precondition check on
+// Matrix.compute_ring_element_v call — bounds on inputs not propagated. Stays lax.
 #[hax_lib::fstar::verification_status(lax)]
 #[inline(always)]
 pub(crate) fn encrypt_c2<
@@ -780,7 +799,7 @@ pub(crate) fn encrypt_c2<
 }
 
 #[allow(non_snake_case)]
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::fstar::options("--z3rlimit 500 --ext context_pruning")]
 #[hax_lib::requires(
     hacspec_ml_kem::parameters::is_rank(K)
@@ -852,7 +871,7 @@ pub(crate) fn encrypt<
     >(&unpacked_public_key, message, randomness)
 }
 
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::fstar::verification_status(panic_free)]
 #[inline(always)]
 #[hax_lib::requires(
     hacspec_ml_kem::parameters::is_rank(K)
@@ -907,7 +926,7 @@ fn build_unpacked_public_key<
         Err(_) => true,
     }
 })]
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::fstar::verification_status(panic_free)]
 pub(crate) fn build_unpacked_public_key_mut<
     const K: usize,
     const T_AS_NTT_ENCODED_SIZE: usize,
@@ -943,6 +962,9 @@ pub(crate) fn build_unpacked_public_key_mut<
 
 /// Call [`deserialize_then_decompress_ring_element_u`] on each ring element
 /// in the `ciphertext`.
+// FOLLOW-UP (Phase D): body has eq_intro spec-equality assertion that fails
+// to discharge under panic_free at rlimit 800 (same pattern as serialize_vector).
+// Stays lax.
 #[hax_lib::fstar::verification_status(lax)]
 #[inline(always)]
 #[hax_lib::fstar::options("--z3rlimit 800 --ext context_pruning")]
@@ -1001,6 +1023,9 @@ fn deserialize_then_decompress_u<
 }
 
 /// Call [`deserialize_to_uncompressed_ring_element`] for each ring element.
+// FOLLOW-UP (Phase D): body has eq_intro spec-equality assertion that fails
+// to discharge under panic_free at rlimit 800 (same pattern as serialize_vector).
+// Stays lax.
 #[hax_lib::fstar::verification_status(lax)]
 #[inline(always)]
 #[hax_lib::fstar::options("--z3rlimit 800 --ext context_pruning")]
@@ -1077,6 +1102,9 @@ pub(crate) fn deserialize_vector<const K: usize, Vector: Operations>(
         ciphertext,
     )
 )]
+// FOLLOW-UP (Phase D): body fails panic_free precondition checks on
+// deserialize_then_decompress_ring_element_v (slice bound) and
+// Matrix.compute_message (input bounds). Stays lax.
 #[hax_lib::fstar::verification_status(lax)]
 #[inline(always)]
 pub(crate) fn decrypt_unpacked<
@@ -1121,7 +1149,7 @@ pub(crate) fn decrypt_unpacked<
         ciphertext,
     )
 )]
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::fstar::verification_status(panic_free)]
 #[inline(always)]
 pub(crate) fn decrypt<
     const K: usize,
