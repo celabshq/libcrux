@@ -411,8 +411,8 @@ pub(crate) fn decapsulate<
         r#"assert ($ind_cpa_secret_key == slice ${private_key}.f_value (sz 0) $CPA_SECRET_KEY_SIZE);
         assert ($ind_cpa_public_key == slice ${private_key}.f_value $CPA_SECRET_KEY_SIZE ($CPA_SECRET_KEY_SIZE +! $PUBLIC_KEY_SIZE));
         assert ($ind_cpa_public_key_hash == slice ${private_key}.f_value ($CPA_SECRET_KEY_SIZE +! $PUBLIC_KEY_SIZE)
-            ($CPA_SECRET_KEY_SIZE +! $PUBLIC_KEY_SIZE +! Spec.MLKEM.v_H_DIGEST_SIZE));
-        assert ($implicit_rejection_value == slice ${private_key}.f_value ($CPA_SECRET_KEY_SIZE +! $PUBLIC_KEY_SIZE +! Spec.MLKEM.v_H_DIGEST_SIZE)
+            ($CPA_SECRET_KEY_SIZE +! $PUBLIC_KEY_SIZE +! Hacspec_ml_kem.Parameters.Hash_functions.v_H_DIGEST_SIZE));
+        assert ($implicit_rejection_value == slice ${private_key}.f_value ($CPA_SECRET_KEY_SIZE +! $PUBLIC_KEY_SIZE +! Hacspec_ml_kem.Parameters.Hash_functions.v_H_DIGEST_SIZE)
             (length ${private_key}.f_value))"#
     );
     let decrypted = crate::ind_cpa::decrypt::<
@@ -439,8 +439,8 @@ pub(crate) fn decapsulate<
     hax_lib::fstar!(
         r#"assert (($shared_secret , $pseudorandomness) == split $hashed $SHARED_SECRET_SIZE);
         assert (length $implicit_rejection_value = $SECRET_KEY_SIZE -! $CPA_SECRET_KEY_SIZE -! $PUBLIC_KEY_SIZE -! $H_DIGEST_SIZE);
-        assert (length $implicit_rejection_value = Spec.MLKEM.v_SHARED_SECRET_SIZE);
-        assert (Spec.MLKEM.v_SHARED_SECRET_SIZE <=. Spec.MLKEM.v_IMPLICIT_REJECTION_HASH_INPUT_SIZE $K)"#
+        assert (length $implicit_rejection_value = Hacspec_ml_kem.Parameters.v_SHARED_SECRET_SIZE);
+        assert (Hacspec_ml_kem.Parameters.v_SHARED_SECRET_SIZE <=. Hacspec_ml_kem.Parameters.implicit_rejection_hash_input_size $K)"#
     );
     let mut to_hash: [u8; IMPLICIT_REJECTION_HASH_INPUT_SIZE] =
         into_padded_array(implicit_rejection_value);
@@ -529,9 +529,9 @@ pub(crate) mod unpacked {
     /// Generate an unpacked key from a serialized key.
     #[hax_lib::fstar::options("--z3rlimit 300 --split_queries always")]
     #[hax_lib::requires(
-        fstar!(r#"Spec.MLKEM.is_rank $K /\
-        $PUBLIC_KEY_SIZE == Spec.MLKEM.v_CPA_PUBLIC_KEY_SIZE $K /\
-        $T_AS_NTT_ENCODED_SIZE == Spec.MLKEM.v_T_AS_NTT_ENCODED_SIZE $K"#)
+        fstar!(r#"Hacspec_ml_kem.Parameters.is_rank $K /\
+        $PUBLIC_KEY_SIZE == Hacspec_ml_kem.Parameters.cpa_public_key_size $K /\
+        $T_AS_NTT_ENCODED_SIZE == Hacspec_ml_kem.Parameters.tt_as_ntt_encoded_size $K"#)
     )]
     #[hax_lib::ensures(|result| {
         let unpacked_public_key_future = future(unpacked_public_key);
@@ -558,7 +558,7 @@ pub(crate) mod unpacked {
             &mut unpacked_public_key.ind_cpa_public_key.t_as_ntt,
         );
         hax_lib::fstar!(
-            r#"let (_, seed) = split ${public_key}.f_value (Spec.MLKEM.v_T_AS_NTT_ENCODED_SIZE $K) in
+            r#"let (_, seed) = split ${public_key}.f_value (Hacspec_ml_kem.Parameters.tt_as_ntt_encoded_size $K) in
             eq_intro (Libcrux_ml_kem.Utils.into_padded_array (sz 32) seed) seed;
             eq_intro (Seq.slice (Libcrux_ml_kem.Utils.into_padded_array (sz 34) seed) 0 32) seed"#
         );
@@ -577,8 +577,8 @@ pub(crate) mod unpacked {
         /// Get the serialized public key.
         #[inline(always)]
         #[requires(fstar!(r#"let ${self_} = self in
-        Spec.MLKEM.is_rank $K /\
-            $PUBLIC_KEY_SIZE == Spec.MLKEM.v_CPA_PUBLIC_KEY_SIZE $K /\
+        Hacspec_ml_kem.Parameters.is_rank $K /\
+            $PUBLIC_KEY_SIZE == Hacspec_ml_kem.Parameters.cpa_public_key_size $K /\
             (forall (i:nat). i < v $K ==>
                 Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3328) (Seq.index 
                     ${self_.ind_cpa_public_key.t_as_ntt} i))"#))]
@@ -604,8 +604,8 @@ pub(crate) mod unpacked {
         /// Get the serialized public key.
         #[inline(always)]
         #[requires(fstar!(r#"let ${self_} = self in
-        Spec.MLKEM.is_rank $K /\
-            $PUBLIC_KEY_SIZE == Spec.MLKEM.v_CPA_PUBLIC_KEY_SIZE $K /\
+        Hacspec_ml_kem.Parameters.is_rank $K /\
+            $PUBLIC_KEY_SIZE == Hacspec_ml_kem.Parameters.cpa_public_key_size $K /\
             (forall (i:nat). i < v $K ==>
                 Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3328) (Seq.index
                     ${self_.ind_cpa_public_key.t_as_ntt} i))"#))]
@@ -636,11 +636,11 @@ pub(crate) mod unpacked {
 
     /// Take a serialized private key and generate an unpacked key pair from it.
     #[inline(always)]
-    #[hax_lib::requires(fstar!(r#"Spec.MLKEM.is_rank $K /\
-           v_SECRET_KEY_SIZE == Spec.MLKEM.v_CCA_PRIVATE_KEY_SIZE v_K /\
-           v_CPA_SECRET_KEY_SIZE == Spec.MLKEM.v_CPA_PRIVATE_KEY_SIZE v_K /\
-           v_PUBLIC_KEY_SIZE == Spec.MLKEM.v_CPA_PUBLIC_KEY_SIZE v_K /\
-           v_T_AS_NTT_ENCODED_SIZE == Spec.MLKEM.v_T_AS_NTT_ENCODED_SIZE v_K"#))]
+    #[hax_lib::requires(fstar!(r#"Hacspec_ml_kem.Parameters.is_rank $K /\
+           v_SECRET_KEY_SIZE == Hacspec_ml_kem.Parameters.cca_private_key_size v_K /\
+           v_CPA_SECRET_KEY_SIZE == Hacspec_ml_kem.Parameters.cpa_private_key_size v_K /\
+           v_PUBLIC_KEY_SIZE == Hacspec_ml_kem.Parameters.cpa_public_key_size v_K /\
+           v_T_AS_NTT_ENCODED_SIZE == Hacspec_ml_kem.Parameters.tt_as_ntt_encoded_size v_K"#))]
     pub fn keys_from_private_key<
         const K: usize,
         const SECRET_KEY_SIZE: usize,
@@ -692,11 +692,11 @@ pub(crate) mod unpacked {
 
         /// Take a serialized private key and generate an unpacked key pair from it.
         #[inline(always)]
-        #[requires(fstar!(r#"Spec.MLKEM.is_rank $K /\
-           v_SECRET_KEY_SIZE == Spec.MLKEM.v_CCA_PRIVATE_KEY_SIZE v_K /\
-           v_CPA_SECRET_KEY_SIZE == Spec.MLKEM.v_CPA_PRIVATE_KEY_SIZE v_K /\
-           v_PUBLIC_KEY_SIZE == Spec.MLKEM.v_CPA_PUBLIC_KEY_SIZE v_K /\
-           v_T_AS_NTT_ENCODED_SIZE == Spec.MLKEM.v_T_AS_NTT_ENCODED_SIZE v_K)"#))]
+        #[requires(fstar!(r#"Hacspec_ml_kem.Parameters.is_rank $K /\
+           v_SECRET_KEY_SIZE == Hacspec_ml_kem.Parameters.cca_private_key_size v_K /\
+           v_CPA_SECRET_KEY_SIZE == Hacspec_ml_kem.Parameters.cpa_private_key_size v_K /\
+           v_PUBLIC_KEY_SIZE == Hacspec_ml_kem.Parameters.cpa_public_key_size v_K /\
+           v_T_AS_NTT_ENCODED_SIZE == Hacspec_ml_kem.Parameters.tt_as_ntt_encoded_size v_K)"#))]
         pub fn from_private_key<
             const SECRET_KEY_SIZE: usize,
             const CPA_SECRET_KEY_SIZE: usize,
@@ -720,8 +720,8 @@ pub(crate) mod unpacked {
         /// Get the serialized public key.
         #[inline(always)]
         #[requires(fstar!(r#"let ${self_} = self in
-        Spec.MLKEM.is_rank $K /\
-            $PUBLIC_KEY_SIZE == Spec.MLKEM.v_CPA_PUBLIC_KEY_SIZE $K /\
+        Hacspec_ml_kem.Parameters.is_rank $K /\
+            $PUBLIC_KEY_SIZE == Hacspec_ml_kem.Parameters.cpa_public_key_size $K /\
             (forall (i:nat). i < v $K ==>
                 Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3328) (Seq.index 
                     ${self_.public_key.ind_cpa_public_key.t_as_ntt} i))"#))]
@@ -744,8 +744,8 @@ pub(crate) mod unpacked {
         /// Get the serialized public key.
         #[inline(always)]
         #[requires(fstar!(r#"let ${self_} = self in
-        Spec.MLKEM.is_rank $K /\
-            $PUBLIC_KEY_SIZE == Spec.MLKEM.v_CPA_PUBLIC_KEY_SIZE $K /\
+        Hacspec_ml_kem.Parameters.is_rank $K /\
+            $PUBLIC_KEY_SIZE == Hacspec_ml_kem.Parameters.cpa_public_key_size $K /\
             (forall (i:nat). i < v $K ==>
                 Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3328) (Seq.index
                     ${self_.public_key.ind_cpa_public_key.t_as_ntt} i))"#))]
@@ -776,10 +776,10 @@ pub(crate) mod unpacked {
 
         /// Get the serialized private key.
         #[inline(always)]
-        #[hax_lib::requires(fstar!(r#"Spec.MLKEM.is_rank $K /\
-            $PRIVATE_KEY_SIZE == Spec.MLKEM.v_CCA_PRIVATE_KEY_SIZE $K /\
-            $CPA_PRIVATE_KEY_SIZE == Spec.MLKEM.v_CPA_PRIVATE_KEY_SIZE $K /\
-            $PUBLIC_KEY_SIZE == Spec.MLKEM.v_CPA_PUBLIC_KEY_SIZE $K"#))]
+        #[hax_lib::requires(fstar!(r#"Hacspec_ml_kem.Parameters.is_rank $K /\
+            $PRIVATE_KEY_SIZE == Hacspec_ml_kem.Parameters.cca_private_key_size $K /\
+            $CPA_PRIVATE_KEY_SIZE == Hacspec_ml_kem.Parameters.cpa_private_key_size $K /\
+            $PUBLIC_KEY_SIZE == Hacspec_ml_kem.Parameters.cpa_public_key_size $K"#))]
         pub fn serialized_private_key_mut<
             const CPA_PRIVATE_KEY_SIZE: usize,
             const PRIVATE_KEY_SIZE: usize,
@@ -808,10 +808,10 @@ pub(crate) mod unpacked {
 
         /// Get the serialized private key.
         #[inline(always)]
-        #[hax_lib::requires(fstar!(r#"Spec.MLKEM.is_rank $K /\
-            $PRIVATE_KEY_SIZE == Spec.MLKEM.v_CCA_PRIVATE_KEY_SIZE $K /\
-            $CPA_PRIVATE_KEY_SIZE == Spec.MLKEM.v_CPA_PRIVATE_KEY_SIZE $K /\
-            $PUBLIC_KEY_SIZE == Spec.MLKEM.v_CPA_PUBLIC_KEY_SIZE $K"#))]
+        #[hax_lib::requires(fstar!(r#"Hacspec_ml_kem.Parameters.is_rank $K /\
+            $PRIVATE_KEY_SIZE == Hacspec_ml_kem.Parameters.cca_private_key_size $K /\
+            $CPA_PRIVATE_KEY_SIZE == Hacspec_ml_kem.Parameters.cpa_private_key_size $K /\
+            $PUBLIC_KEY_SIZE == Hacspec_ml_kem.Parameters.cpa_public_key_size $K"#))]
         pub fn serialized_private_key<
             const CPA_PRIVATE_KEY_SIZE: usize,
             const PRIVATE_KEY_SIZE: usize,
@@ -933,7 +933,7 @@ pub(crate) mod unpacked {
         #[allow(non_snake_case)]
         let A = transpose_a::<K, Vector>(out.public_key.ind_cpa_public_key.A);
         hax_lib::fstar!(
-            r#"let (ind_cpa_keypair_randomness, _) = split $randomness Spec.MLKEM.v_CPA_KEY_GENERATION_SEED_SIZE in
+            r#"let (ind_cpa_keypair_randomness, _) = split $randomness Hacspec_ml_kem.Parameters.v_CPA_KEY_GENERATION_SEED_SIZE in
         let ((((_, _), matrix_A_as_ntt), _), sufficient_randomness) =
             Spec.MLKEM.ind_cpa_generate_keypair_unpacked $K ind_cpa_keypair_randomness in
         let m_v_A = ${matrix_to_spec::<K, Vector>} (mk_usize $K) $A in
@@ -1115,11 +1115,11 @@ pub(crate) mod unpacked {
         ciphertext: &MlKemCiphertext<CIPHERTEXT_SIZE>,
     ) -> MlKemSharedSecret {
         hax_lib::fstar!(
-            r#"assert (v $IMPLICIT_REJECTION_HASH_INPUT_SIZE == 32 + v (Spec.MLKEM.v_CPA_CIPHERTEXT_SIZE $K));
-        assert (v (Spec.MLKEM.v_C1_SIZE $K +! Spec.MLKEM.v_C2_SIZE $K) == v (Spec.MLKEM.v_C1_SIZE $K) + v (Spec.MLKEM.v_C2_SIZE $K));
-        assert (v (Spec.MLKEM.v_C1_SIZE $K) == v (Spec.MLKEM.v_C1_BLOCK_SIZE $K) * v $K);
-        assert (v (Spec.MLKEM.v_C1_BLOCK_SIZE $K)  == 32 * v (Spec.MLKEM.v_VECTOR_U_COMPRESSION_FACTOR $K));
-        assert (v (Spec.MLKEM.v_C2_SIZE $K) == 32 * v (Spec.MLKEM.v_VECTOR_V_COMPRESSION_FACTOR $K))"#
+            r#"assert (v $IMPLICIT_REJECTION_HASH_INPUT_SIZE == 32 + v (Hacspec_ml_kem.Parameters.cpa_ciphertext_size $K));
+        assert (v (Hacspec_ml_kem.Parameters.c1_size $K +! Hacspec_ml_kem.Parameters.c2_size $K) == v (Hacspec_ml_kem.Parameters.c1_size $K) + v (Hacspec_ml_kem.Parameters.c2_size $K));
+        assert (v (Hacspec_ml_kem.Parameters.c1_size $K) == v (Hacspec_ml_kem.Parameters.c1_block_size $K) * v $K);
+        assert (v (Hacspec_ml_kem.Parameters.c1_block_size $K)  == 32 * v (Hacspec_ml_kem.Parameters.vector_u_compression_factor $K));
+        assert (v (Hacspec_ml_kem.Parameters.c2_size $K) == 32 * v (Hacspec_ml_kem.Parameters.vector_v_compression_factor $K))"#
         );
         let decrypted = ind_cpa::decrypt_unpacked::<
             K,
