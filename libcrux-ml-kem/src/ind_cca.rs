@@ -961,10 +961,6 @@ pub(crate) mod unpacked {
             Err(_) => true,
         }
     )]
-    // FOLLOW-UP (Phase C): cascade-lax — body calls ind_cpa::encrypt_unpacked
-    // (lax cascade), so this fn's strong postcondition can't be discharged
-    // from the unverified callee.
-    #[hax_lib::fstar::verification_status(lax)]
     pub(crate) fn encapsulate<
         const K: usize,
         const CIPHERTEXT_SIZE: usize,
@@ -1067,10 +1063,6 @@ pub(crate) mod unpacked {
             Err(_) => true,
         }
     )]
-    // FOLLOW-UP (Phase C): cascade-lax — body calls ind_cpa::decrypt_unpacked
-    // (lax cascade), so this fn's strong postcondition can't be discharged
-    // from the unverified callee.
-    #[hax_lib::fstar::verification_status(lax)]
     pub(crate) fn decapsulate<
         const K: usize,
         const SECRET_KEY_SIZE: usize,
