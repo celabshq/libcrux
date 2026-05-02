@@ -162,7 +162,7 @@ pub(crate) fn serialize_vector<const K: usize, Vector: Operations>(
     cloop! {
         for (i, re) in key.into_iter().enumerate() {
             hax_lib::loop_invariant!(|i: usize| {
-                fstar!(r#"${out.len()} == Spec.MLKEM.v_RANKED_BYTES_PER_RING_ELEMENT $K /\
+                fstar!(r#"${out.len()} == Hacspec_ml_kem.Parameters.ranked_bytes_per_ring_element $K /\
                     (v $i < v $K ==>
                     Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3328) (Seq.index $key (v $i))) /\
                     (forall (j: nat). j < v $i ==>
@@ -215,8 +215,8 @@ pub(crate) fn serialize_vector<const K: usize, Vector: Operations>(
       (error_1: t_Array (Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector) v_K)
       (prf_input: t_Array u8 (sz 33))
       (domain_separator: u8) : Lemma
-        (requires Spec.MLKEM.is_rank v_K /\ v_ETA2 == Spec.MLKEM.v_ETA2 v_K /\
-          v_ETA2_RANDOMNESS_SIZE == Spec.MLKEM.v_ETA2_RANDOMNESS_SIZE v_K /\
+        (requires Hacspec_ml_kem.Parameters.is_rank v_K /\ v_ETA2 == Hacspec_ml_kem.Parameters.eta2 v_K /\
+          v_ETA2_RANDOMNESS_SIZE == Hacspec_ml_kem.Parameters.eta2_randomness_size v_K /\
           v domain_separator < 2 * v v_K /\ 
           (let prf_outputs = Spec.MLKEM.v_PRFxN v_K v_ETA2_RANDOMNESS_SIZE
             (createi v_K (Spec.MLKEM.sample_vector_cbd2_prf_input #v_K
@@ -241,7 +241,7 @@ pub(crate) fn serialize_vector<const K: usize, Vector: Operations>(
       (prf_inputs: t_Array (t_Array u8 (sz 33)) v_K)
       (prf_input: t_Array u8 (sz 33))
       (domain_separator: u8) : Lemma 
-        (requires Spec.MLKEM.is_rank v_K /\ v domain_separator < 2 * v v_K /\
+        (requires Hacspec_ml_kem.Parameters.is_rank v_K /\ v domain_separator < 2 * v v_K /\
           (forall (i: nat). i < v v_K ==>
             v (Seq.index (Seq.index prf_inputs i) 32) == v domain_separator + i /\
             Seq.slice (Seq.index prf_inputs i) 0 32 == Seq.slice prf_input 0 32))
@@ -333,8 +333,8 @@ fn sample_ring_element_cbd<
       (re_as_ntt: t_Array (Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector) v_K)
       (prf_input: t_Array u8 (sz 33))
       (domain_separator: u8) : Lemma
-        (requires Spec.MLKEM.is_rank v_K /\ v_ETA == Spec.MLKEM.v_ETA1 v_K /\
-          v_ETA_RANDOMNESS_SIZE == Spec.MLKEM.v_ETA1_RANDOMNESS_SIZE v_K /\
+        (requires Hacspec_ml_kem.Parameters.is_rank v_K /\ v_ETA == Hacspec_ml_kem.Parameters.eta1 v_K /\
+          v_ETA_RANDOMNESS_SIZE == Hacspec_ml_kem.Parameters.eta1_randomness_size v_K /\
           v domain_separator < 2 * v v_K /\ 
           (let prf_outputs = Spec.MLKEM.v_PRFxN v_K v_ETA_RANDOMNESS_SIZE
             (createi v_K (Spec.MLKEM.sample_vector_cbd1_prf_input #v_K
@@ -359,7 +359,7 @@ fn sample_ring_element_cbd<
       (prf_inputs: t_Array (t_Array u8 (sz 33)) v_K)
       (prf_input: t_Array u8 (sz 33))
       (domain_separator: u8) : Lemma 
-        (requires Spec.MLKEM.is_rank v_K /\ v domain_separator < 2 * v v_K /\
+        (requires Hacspec_ml_kem.Parameters.is_rank v_K /\ v domain_separator < 2 * v v_K /\
           (forall (i: nat). i < v v_K ==>
             v (Seq.index (Seq.index prf_inputs i) 32) == v domain_separator + i /\
             Seq.slice (Seq.index prf_inputs i) 0 32 == Seq.slice prf_input 0 32))
@@ -914,7 +914,7 @@ pub(crate) fn encrypt_c2<
     // v := NTT^{−1}(tˆT ◦ rˆ) + e_2 + Decompress_q(Decode_1(m),1)
     let message_as_ring_element = deserialize_then_decompress_message(message);
     let v = compute_ring_element_v(t_as_ntt, r_as_ntt, error_2, &message_as_ring_element);
-    hax_lib::fstar!("assert ($C2_LEN = Spec.MLKEM.v_C2_SIZE v_K)");
+    hax_lib::fstar!("assert ($C2_LEN = Hacspec_ml_kem.Parameters.c2_size v_K)");
 
     // c_2 := Encode_{dv}(Compress_q(v,d_v))
     compress_then_serialize_ring_element_v::<K, V_COMPRESSION_FACTOR, C2_LEN, Vector>(
@@ -1111,7 +1111,7 @@ fn deserialize_then_decompress_u<
 ) -> [PolynomialRingElement<Vector>; K] {
     hax_lib::fstar!(
         "assert (v (($COEFFICIENTS_IN_RING_ELEMENT *! $U_COMPRESSION_FACTOR ) /!
-        sz 8) == v (Spec.MLKEM.v_C1_BLOCK_SIZE $K))"
+        sz 8) == v (Hacspec_ml_kem.Parameters.c1_block_size $K))"
     );
     let mut u_as_ntt = from_fn(|_| PolynomialRingElement::<Vector>::ZERO());
     cloop! {
@@ -1120,11 +1120,11 @@ fn deserialize_then_decompress_u<
             .enumerate()
         {
             hax_lib::loop_invariant!(|i: usize| { fstar!(r#"forall (j: nat). j < v $i ==>
-              j * v (Spec.MLKEM.v_C1_BLOCK_SIZE $K) + v (Spec.MLKEM.v_C1_BLOCK_SIZE $K) <= v $CIPHERTEXT_SIZE /\
+              j * v (Hacspec_ml_kem.Parameters.c1_block_size $K) + v (Hacspec_ml_kem.Parameters.c1_block_size $K) <= v $CIPHERTEXT_SIZE /\
               ${poly_to_spec::<Vector>} (Seq.index $u_as_ntt j) ==
                 Spec.MLKEM.poly_ntt (Spec.MLKEM.byte_decode_then_decompress (v $U_COMPRESSION_FACTOR)
-                  (Seq.slice $ciphertext (j * v (Spec.MLKEM.v_C1_BLOCK_SIZE $K))
-                    (j * v (Spec.MLKEM.v_C1_BLOCK_SIZE $K) + v (Spec.MLKEM.v_C1_BLOCK_SIZE $K))))"#) });
+                  (Seq.slice $ciphertext (j * v (Hacspec_ml_kem.Parameters.c1_block_size $K))
+                    (j * v (Hacspec_ml_kem.Parameters.c1_block_size $K) + v (Hacspec_ml_kem.Parameters.c1_block_size $K))))"#) });
             u_as_ntt[i]  = deserialize_then_decompress_ring_element_u::<U_COMPRESSION_FACTOR, Vector>(u_bytes);
             ntt_vector_u::<U_COMPRESSION_FACTOR, Vector>(&mut u_as_ntt[i]);
         }
@@ -1133,7 +1133,7 @@ fn deserialize_then_decompress_u<
         "eq_intro
         (${vector_to_spec::<K, Vector>} (mk_usize $K) $u_as_ntt)
         (Spec.MLKEM.(vector_ntt (decode_then_decompress_u #$K
-        (Seq.slice $ciphertext 0 (v (Spec.MLKEM.v_C1_SIZE $K))))))"
+        (Seq.slice $ciphertext 0 (v (Hacspec_ml_kem.Parameters.c1_size $K))))))"
     );
     u_as_ntt
 }
@@ -1161,7 +1161,7 @@ pub(crate) fn deserialize_vector<const K: usize, Vector: Operations>(
             fstar!(
                 r#"forall (j: nat). j < v $i ==>
                 j * v $BYTES_PER_RING_ELEMENT + v $BYTES_PER_RING_ELEMENT <=
-                    v (Spec.MLKEM.v_CPA_PRIVATE_KEY_SIZE $K) /\
+                    v (Hacspec_ml_kem.Parameters.cpa_private_key_size $K) /\
                 ${poly_to_spec::<Vector>} (Seq.index $secret_as_ntt j) ==
                     Spec.MLKEM.byte_decode 12 (Seq.slice $secret_key
                         (j * v $BYTES_PER_RING_ELEMENT)
