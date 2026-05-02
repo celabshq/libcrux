@@ -281,7 +281,7 @@ let lemma_squeeze_one_step_portable
         v (i +! mk_usize 1) <= v outlen / v rate /\
         v i <= v outlen / v rate /\
         ks_pre.Libcrux_sha3.Generic_keccak.f_st ==
-          Hacspec_sha3.Sponge.iterate_keccak_f (v i - 1) s_init_st /\
+          Hacspec_sha3.Sponge.iterate_keccak_f (i -! mk_usize 1) s_init_st /\
         (forall (k: nat). k < v i * v rate /\ k < v outlen ==>
           Seq.index (output_pre <: Seq.seq u8) k ==
           Seq.index
@@ -301,7 +301,7 @@ let lemma_squeeze_one_step_portable
             rate ks_post output_pre (i *! rate) rate in
         Core_models.Slice.impl__len #u8 output_post =. outlen /\
         ks_post.Libcrux_sha3.Generic_keccak.f_st ==
-          Hacspec_sha3.Sponge.iterate_keccak_f (v i) s_init_st /\
+          Hacspec_sha3.Sponge.iterate_keccak_f i s_init_st /\
         (forall (k: nat). k < (v i + 1) * v rate /\ k < v outlen ==>
           Seq.index (output_post <: Seq.seq u8) k ==
           Seq.index

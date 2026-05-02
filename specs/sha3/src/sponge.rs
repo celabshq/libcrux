@@ -167,6 +167,19 @@ pub fn absorb(rate: usize, delim: u8, message: &[u8]) -> State {
     absorb_rec([0u64; 25], rate, delim, message)
 }
 
+/// Apply Keccak-f to `state` exactly `n` times.  Right-add recursion
+/// so `iterate_keccak_f(n+1, state) == keccak_f(iterate_keccak_f(n, state))`
+/// is by definitional unfold at fuel 1 — consumers don't need a
+/// separate lemma to peel one round off the right.
+#[hax_lib::decreases(n.to_int())]
+pub fn iterate_keccak_f(n: usize, state: State) -> State {
+    if n == 0 {
+        state
+    } else {
+        keccak_f(iterate_keccak_f(n - 1, state))
+    }
+}
+
 /// Recursive middle-loop of [squeeze]: for each block index `i ∈ [i, output_blocks)`,
 /// apply `keccak_f` and then extract `rate` bytes at `i * rate`. Returns the state
 /// after the final `keccak_f`.
@@ -225,24 +238,23 @@ pub fn squeeze_last<const OUTPUT_LEN: usize>(
 /// Extracts `OUTPUT_LEN` bytes from `state`, applying Keccak-f between each
 /// `rate`-byte block of output.
 ///
-/// Structure chosen to mirror the libcrux impl (`keccak1` in
-/// `crates/algorithms/sha3/src/generic_keccak/portable.rs`) so the F*
-/// equivalence proof can line the two sides up iteration-for-iteration.
+/// Byteform definition: byte at position `k` lives in block `b = k / rate`
+/// (or the trailing partial block if `b == OUTPUT_LEN / rate`); within a
+/// block the offset is `j = k - b * rate`; the value is the `(j mod 8)`-th
+/// little-endian byte of `iterate_keccak_f(b, state)`'s lane `(j / 8)`.
+///
+/// Equivalent to FIPS-202 Algorithm 8: for each full block apply keccak_f
+/// and extract `rate` bytes; the trailing partial block uses one more
+/// keccak_f before extracting `OUTPUT_LEN mod rate` bytes.
 #[hax_lib::fstar::options("--z3rlimit 500")]
 #[hax_lib::requires(rate > 0 && rate <= 200 && rate % 8 == 0 && OUTPUT_LEN < usize::MAX - 200)]
 pub fn squeeze<const OUTPUT_LEN: usize>(state: State, rate: usize) -> [u8; OUTPUT_LEN] {
-    let mut output = [0u8; OUTPUT_LEN];
-    let output_blocks = OUTPUT_LEN / rate;
-    let output_rem = OUTPUT_LEN % rate;
-    if output_blocks == 0 {
-        output = squeeze_state(&state, output, 0, OUTPUT_LEN);
-    } else {
-        output = squeeze_state(&state, output, 0, rate);
-        let (state, out) = squeeze_blocks(state, rate, 1, output_blocks, output);
-        let (_, out) = squeeze_last(state, out, rate, output_rem);
-        output = out;
-    }
-    output
+    createi(|k| {
+        let b = k / rate;
+        let j = k - b * rate;
+        let state_b = iterate_keccak_f(b, state);
+        state_b[j / 8].to_le_bytes()[j % 8]
+    })
 }
 
 /// Keccak sponge — FIPS 202, Algorithm 8 combined with pad10*1 (Algorithm 9).

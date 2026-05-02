@@ -258,7 +258,7 @@ let lemma_squeeze_one_step_arm64
             G.extract_lane (mk_usize 2) KA.lc_arm64 s_init_st l in
          G.extract_lane (mk_usize 2) KA.lc_arm64
            ks_pre.Libcrux_sha3.Generic_keccak.f_st l
-         == Hacspec_sha3.Sponge.iterate_keccak_f (v i - 1) lane_st_init /\
+         == Hacspec_sha3.Sponge.iterate_keccak_f (i -! mk_usize 1) lane_st_init /\
          (forall (k: nat). k < v i * v rate /\ k < v outlen ==>
             Seq.index (outputs_pre.[ mk_usize l ] <: Seq.seq u8) k ==
             Seq.index
@@ -275,7 +275,7 @@ let lemma_squeeze_one_step_arm64
             G.extract_lane (mk_usize 2) KA.lc_arm64 s_init_st l in
         G.extract_lane (mk_usize 2) KA.lc_arm64
           ks_post.Libcrux_sha3.Generic_keccak.f_st l
-        == Hacspec_sha3.Sponge.iterate_keccak_f (v i) lane_st_init /\
+        == Hacspec_sha3.Sponge.iterate_keccak_f i lane_st_init /\
         (forall (k: nat). k < (v i + 1) * v rate /\ k < v outlen ==>
             Seq.index (outX' <: Seq.seq u8) k ==
             Seq.index
