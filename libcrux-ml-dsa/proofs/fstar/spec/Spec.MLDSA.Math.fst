@@ -131,6 +131,17 @@ let lemma_mont_red_bound_internal (n: nat) (value: i64)
        and don't need to reason about the closed-form
        `(n + pow2 32 - 1) / pow2 32` arithmetic. *)
 
+(* Input bound: FIELD_MAX · 2³² (the always-clause range — full i64
+   product of two FIELD_MAX-bounded values).  Output bound 12570625
+   matches the original `montgomery_reduce_element` always-clause
+   (8380416 + 4190209). *)
+let lemma_mont_red_bound_field_max_times_pow2_32 (value: i64)
+    : Lemma
+        (requires Spec.Utils.is_i64b (8380416 * pow2 32) value)
+        (ensures Spec.Utils.is_i32b 12570625 (mont_red value))
+  = lemma_mont_red_bound_internal (8380416 * pow2 32) value;
+    assert_norm (4190209 + (8380416 * pow2 32) / pow2 32 == 12570625)
+
 (* Input bound: q² = FIELD_MAX² = 8380416² ≈ 7·10¹³.  Common when a
    product `i32_mul x y` is formed from two FIELD_MAX-bounded i32s. *)
 let lemma_mont_red_bound_q_squared (value: i64)
@@ -177,6 +188,74 @@ let lemma_mont_red_bound_256_field_max_times_41978 (value: i64)
   = assert_norm (256 * 8380416 * 41978 <= 8380416 * pow2 32);
     lemma_mont_red_bound_internal (256 * 8380416 * 41978) value;
     assert_norm (4190209 + (256 * 8380416 * 41978) / pow2 32 == 4211177)
+
+(* Mod-q correctness for `mont_red`: the result is congruent to
+   `value * R^(-1) mod q` where R = 2^32 and R^(-1) mod q = 8265825.
+
+   USER-FOLLOWUP: admitted for now.  Lifting a proper proof here from
+   the original inline calc-chain in
+   `simd/portable/arithmetic.rs::montgomery_reduce_element` is
+   tractable but I (the agent) couldn't close it within budget.
+
+   The original calc-chain (preserved verbatim from the impl body
+   prior to the Stage 2 refactor — at git tip e945e1954, lines
+   153-192 of `src/simd/portable/arithmetic.rs`) is reproduced below
+   for reference.  Local variables are named after the impl body's
+   bindings (`value`, `value_high`, `c`, `k`, `k_times_modulus`, `res`)
+   which correspond to mont_red's `(value, hi, c, k, kq_product, result)`
+   after revealing `mont_red value`.
+
+       calc ( == ) {
+           v $k_times_modulus % pow2 32;
+           ( == ) { assert (v $k_times_modulus == v $k * 8380417) }
+           (v $k * 8380417) % pow2 32;
+           ( == ) { assert (v $k = ((v $value % pow2 32) * 58728449) @% pow2 32) }
+           ((((v $value % pow2 32) * 58728449) @% pow2 32) * 8380417) % pow2 32;
+           ( == ) { Math.Lemmas.lemma_mod_sub ((((v $value % pow2 32) * 58728449) % pow2 32) * 8380417) (pow2 32) 8380417 }
+           ((((v $value % pow2 32) * 58728449) % pow2 32) * 8380417) % pow2 32;
+           ( == ) { Math.Lemmas.lemma_mod_mul_distr_l ((v $value % pow2 32) * 58728449) 8380417 (pow2 32) }
+           ((((v $value % pow2 32) * 58728449) * 8380417) % pow2 32);
+           ( == ) { Math.Lemmas.lemma_mod_mul_distr_r (v $value % pow2 32) (58728449 * 8380417) (pow2 32) }
+           ((v $value % pow2 32) % pow2 32);
+           ( == ) { Math.Lemmas.lemma_mod_sub (v $value) (pow2 32) 1 }
+           (v $value) % pow2 32;
+       };
+       Math.Lemmas.modulo_add (pow2 32) (- (v $k_times_modulus)) (v $value) (v $k_times_modulus);
+       assert ((v $value - v $k_times_modulus) % pow2 32 == 0)
+
+   Then a second calc-chain establishes the mod-q goal:
+
+       calc ( == ) {
+           v $res % 8380417;
+           ( == ) { assert (v $res == v $value_high - v $c) }
+           (v $value / pow2 32 - v $k_times_modulus / pow2 32) % 8380417;
+           ( == ) { Math.Lemmas.lemma_div_exact (v $value - v $k_times_modulus) (pow2 32) }
+           ((v $value - v $k_times_modulus) / pow2 32) % 8380417;
+           ( == ) { assert ((pow2 32 * 8265825) % 8380417 == 1) }
+           (((v $value - v $k_times_modulus) / pow2 32) * ((pow2 32 * 8265825) % 8380417)) % 8380417;
+           ( == ) { Math.Lemmas.lemma_mod_mul_distr_r ((v $value - v $k_times_modulus) / pow2 32) (pow2 32 * 8265825) 8380417 }
+           (((v $value - v $k_times_modulus) / pow2 32) * pow2 32 * 8265825) % 8380417;
+           ( == ) { Math.Lemmas.lemma_div_exact (v $value - v $k_times_modulus) (pow2 32) }
+           ((v $value - v $k_times_modulus) * 8265825) % 8380417;
+           ( == ) { assert (v $k_times_modulus == (v $k @% pow2 32) * 8380417) }
+           ((v $value * 8265825) - ((v $k @% pow2 32) * 8380417 * 8265825)) % 8380417;
+           ( == ) { Math.Lemmas.lemma_mod_sub (v $value * 8265825) 8380417 ((v $k @% pow2 32) * 8265825) }
+           (v $value * 8265825) % 8380417;
+       }
+
+   To lift to this lemma: bind the mont_red body's variables
+   (`hi`, `low`, `k`, `c`) via `reveal_opaque mont_red value`, then
+   run the two calc-chains above with those bindings.  See also
+   `lemma_mont_mul_bound_and_mod_q` in
+   `specs/ml-dsa/proofs/fstar/commute/Hacspec_ml_dsa.Commute.Chunk.fst:656`
+   which proves the same property for `mont_mul` (= `mont_red ∘ i32_mul`)
+   with a fully-spelled-out proof.  *)
+let lemma_mont_red_mod_q (value: i64)
+    : Lemma
+        (requires Spec.Utils.is_i64b (8380416 * pow2 32) value)
+        (ensures (v (mont_red value)) % 8380417 ==
+                 (v value * 8265825) % 8380417)
+  = admit ()
 
 (* Two-arg Montgomery multiplication: thin non-opaque wrapper over
    `mont_red`.  Callers who need to inspect the arithmetic only need

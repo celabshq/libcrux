@@ -133,7 +133,10 @@ pub(crate) trait Operations: Copy + Clone + Repr {
           Libcrux_ml_dsa.Simd.Traits.Specs.montgomery_multiply_lane_post
             (Seq.index (${lhs.repr()}) i)
             (Seq.index (${rhs.repr()}) i)
-            (Seq.index (f_repr ${lhs}_future) i))"#))]
+            (Seq.index (f_repr ${lhs}_future) i)) /\
+        (forall (i:nat). i < 8 ==>
+          Seq.index (f_repr ${lhs}_future) i ==
+          Spec.MLDSA.Math.mont_mul (Seq.index (${lhs.repr()}) i) (Seq.index (${rhs.repr()}) i))"#))]
     fn montgomery_multiply(lhs: &mut Self, rhs: &Self);
 
     // 261631 is the largest x such that x * pow2 13 <= 2143289343 (the barrett reduce input bound)

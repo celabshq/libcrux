@@ -63,7 +63,10 @@ pub(crate) fn infinity_norm_exceeds_with_proof(simd_unit: &Coefficients, bound: 
       Libcrux_ml_dsa.Simd.Traits.Specs.montgomery_multiply_lane_post
         (Seq.index (${lhs.repr()}) i)
         (Seq.index (${rhs.repr()}) i)
-        (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${lhs}_future) i))"#))]
+        (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${lhs}_future) i)) /\
+    (forall (i:nat). i < 8 ==>
+      Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${lhs}_future) i ==
+      Spec.MLDSA.Math.mont_mul (Seq.index (${lhs.repr()}) i) (Seq.index (${rhs.repr()}) i))"#))]
 pub(crate) fn montgomery_multiply_with_proof(lhs: &mut Coefficients, rhs: &Coefficients) {
     #[cfg(hax)]
     let _orig_lhs = lhs.clone();
@@ -478,7 +481,10 @@ impl Operations for Coefficients {
           Libcrux_ml_dsa.Simd.Traits.Specs.montgomery_multiply_lane_post
             (Seq.index (${lhs.repr()}) i)
             (Seq.index (${rhs.repr()}) i)
-            (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${lhs}_future) i))"#))]
+            (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${lhs}_future) i)) /\
+        (forall (i:nat). i < 8 ==>
+          Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${lhs}_future) i ==
+          Spec.MLDSA.Math.mont_mul (Seq.index (${lhs.repr()}) i) (Seq.index (${rhs.repr()}) i))"#))]
     fn montgomery_multiply(lhs: &mut Coefficients, rhs: &Coefficients) {
         montgomery_multiply_with_proof(lhs, rhs)
     }

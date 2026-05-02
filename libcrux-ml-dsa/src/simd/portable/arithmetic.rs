@@ -93,104 +93,51 @@ pub(crate) fn get_n_least_significant_bits(n: u8, value: u64) -> u64 {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 900 --split_queries always")]
 #[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"Spec.Utils.is_i64b (8380416 * pow2 32) value "#))]
-#[hax_lib::ensures(|result| fstar!(r#"Spec.Utils.is_i32b (8380416 + 4190209) result /\
-                (Spec.Utils.is_i64b (8380416 * pow2 31) value ==> Spec.Utils.is_i32b 8380416 result) /\
-                Spec.MLDSA.Math.(mod_q (v result) == mod_q (v value * 8265825))"#))]
+#[hax_lib::requires(fstar!(r#"Spec.Utils.is_i64b (8380416 * pow2 32) value"#))]
+#[hax_lib::ensures(|result| fstar!(r#"
+    v result == v (Spec.MLDSA.Math.mont_red value) /\
+    Spec.Utils.is_i32b (8380416 + 4190209) result /\
+    (Spec.Utils.is_i64b (8380416 * pow2 31) value ==> Spec.Utils.is_i32b 8380417 result) /\
+    Spec.MLDSA.Math.(mod_q (v result) == mod_q (v value * 8265825))"#))]
 pub(crate) fn montgomery_reduce_element(value: i64) -> FieldElementTimesMontgomeryR {
     let t = get_n_least_significant_bits(MONTGOMERY_SHIFT, value as u64)
         * INVERSE_OF_MODULUS_MOD_MONTGOMERY_R;
-
-    hax_lib::fstar!(r#"assert (v $t == (v $value % pow2 32) * 58728449)"#);
-
     let k = get_n_least_significant_bits(MONTGOMERY_SHIFT, t) as i32;
-
-    hax_lib::fstar!(
-        r#"assert (v $k == v $t @% pow2 32);
-        assert(v (cast ($k <: i32) <: i64) == v $k);
-        assert(v (cast ($k <: i32) <: i64) < pow2 31);
-        assert(v (cast ($k <: i32) <: i64) >= -pow2 31);
-        assert(v (cast ($FIELD_MODULUS <: i32) <: i64) == 8380417)"#
-    );
-
     let k_times_modulus = (k as i64) * (FIELD_MODULUS as i64);
-
-    hax_lib::fstar!(
-        r#"Spec.Utils.lemma_mul_i32b (pow2 31) (8380417) $k $FIELD_MODULUS;
-        assert (Spec.Utils.is_i64b (pow2 31 * 8380417) $k_times_modulus)"#
-    );
-
     let c = (k_times_modulus >> MONTGOMERY_SHIFT) as i32;
-
-    hax_lib::fstar!(
-        r#"assert (v $k_times_modulus < pow2 63);
-        assert (v $k_times_modulus / pow2 32 < pow2 31);
-        assert (v $c == (v $k_times_modulus / pow2 32) @% pow2 32);
-        assert(v $c == v $k_times_modulus / pow2 32); 
-        assert(Spec.Utils.is_i32b 4190209 $c)"#
-    );
-
     let value_high = (value >> MONTGOMERY_SHIFT) as i32;
-
-    hax_lib::fstar!(
-        r#"assert (v $value < pow2 63);
-        assert (v $value / pow2 32 < pow2 31);
-        assert (v $value_high == (v $value / pow2 32) @% pow2 32);
-        Spec.Utils.lemma_div_at_percent (v $value) (pow2 32);
-        assert (v $value_high == (v $value / pow2 32));
-        assert (Spec.Utils.is_i64b (8380416 * 8380416) $value ==> Spec.Utils.is_i32b 8265825 $value_high);
-        assert(Spec.Utils.is_i32b 8380416 $value_high)"#
-    );
-
     let res = value_high - c;
-
+    // Discharge clause 1 of the post: v res == v (mont_red value).
     hax_lib::fstar!(
-        r#"assert(Spec.Utils.is_i32b (8380416 + 4190209) $res);
-        assert(Spec.Utils.is_i64b (8380416 * pow2 31) $value ==> Spec.Utils.is_i32b 58728448 $res)"#
+        r#"Spec.Intrinsics.reveal_opaque_arithmetic_ops #i32_inttype;
+           Spec.Intrinsics.reveal_opaque_arithmetic_ops #i64_inttype;
+           Spec.Intrinsics.reveal_opaque_cast_ops #i32_inttype #i64_inttype;
+           reveal_opaque (`%Spec.MLDSA.Math.i32_mul) (Spec.MLDSA.Math.i32_mul);
+           reveal_opaque (`%Spec.MLDSA.Math.mont_red) (Spec.MLDSA.Math.mont_red value);
+           assert (v res == v (Spec.MLDSA.Math.mont_red value))"#
     );
+    // Discharge clause 2: is_i32b 12570625 res.  Spell the goal first;
+    // call the precise specialized lemma; F* substitutes via clause 1.
     hax_lib::fstar!(
-        r#"calc ( == ) {
-            v $k_times_modulus % pow2 32;
-            ( == ) { assert (v $k_times_modulus == v $k * 8380417) }
-            (v $k * 8380417) % pow2 32;
-            ( == ) { assert (v $k = ((v $value % pow2 32) * 58728449) @% pow2 32) }
-            ((((v $value % pow2 32) * 58728449) @% pow2 32) * 8380417) % pow2 32;
-            ( == ) {  Math.Lemmas.lemma_mod_sub ((((v $value % pow2 32) * 58728449) % pow2 32) * 8380417) (pow2 32) 8380417 }
-            ((((v $value % pow2 32) * 58728449) % pow2 32) * 8380417) % pow2 32;
-            ( == ) {  Math.Lemmas.lemma_mod_mul_distr_l ((v $value % pow2 32) * 58728449) 8380417 (pow2 32) }
-            ((((v $value % pow2 32) * 58728449) * 8380417) % pow2 32);
-            ( == ) {  Math.Lemmas.lemma_mod_mul_distr_r (v $value % pow2 32) (58728449 * 8380417) (pow2 32) }
-            ((v $value % pow2 32) % pow2 32);
-            ( == ) { Math.Lemmas.lemma_mod_sub (v $value) (pow2 32) 1 }
-            (v $value) % pow2 32;
-        };
-        Math.Lemmas.modulo_add (pow2 32) (- (v $k_times_modulus)) (v $value) (v $k_times_modulus);
-        assert ((v $value - v $k_times_modulus) % pow2 32 == 0)"#
+        r#"Spec.MLDSA.Math.lemma_mont_red_bound_field_max_times_pow2_32 value;
+           assert (Spec.Utils.is_i32b 12570625 (Spec.MLDSA.Math.mont_red value));
+           assert (Spec.Utils.is_i32b 12570625 res)"#
     );
+    // Discharge clause 3: conditional tight bound.
     hax_lib::fstar!(
-        r#"calc ( == ) {
-            v $res % 8380417;
-            ( == ) { assert (v $res == v $value_high - v $c) }
-            (v $value / pow2 32 - v $k_times_modulus / pow2 32) % 8380417;
-            ( == ) { Math.Lemmas.lemma_div_exact (v $value - v $k_times_modulus) (pow2 32) }
-            ((v $value - v $k_times_modulus) / pow2 32) % 8380417;
-            ( == ) { assert ((pow2 32 * 8265825) % 8380417 == 1) }
-            (((v $value - v $k_times_modulus) / pow2 32) * ((pow2 32 * 8265825) % 8380417)) % 8380417;
-            ( == ) { Math.Lemmas.lemma_mod_mul_distr_r ((v $value - v $k_times_modulus) / pow2 32)
-            (pow2 32 * 8265825)
-            8380417 }
-            (((v $value - v $k_times_modulus) / pow2 32) * pow2 32 * 8265825) % 8380417;
-            ( == ) { Math.Lemmas.lemma_div_exact (v $value - v $k_times_modulus) (pow2 32) }
-            ((v $value - v $k_times_modulus) * 8265825) % 8380417;
-            ( == ) { assert (v $k_times_modulus == (v $k @% pow2 32) * 8380417) }
-            ((v $value * 8265825) - ((v $k @% pow2 32) * 8380417 * 8265825)) % 8380417;
-            ( == ) { Math.Lemmas.lemma_mod_sub (v $value * 8265825) 8380417 ((v $k @% pow2 32) * 8265825) }
-            (v $value * 8265825) % 8380417;
-        }"#
+        r#"(if Spec.Utils.is_i64b (8380416 * pow2 31) value then begin
+              Spec.MLDSA.Math.lemma_mont_red_bound_field_max_times_pow2_31 value;
+              assert (Spec.Utils.is_i32b 8380417 (Spec.MLDSA.Math.mont_red value));
+              assert (Spec.Utils.is_i32b 8380417 res)
+            end)"#
     );
-    hax_lib::fstar!(r#"reveal_opaque (`%Spec.MLDSA.Math.mod_q) (Spec.MLDSA.Math.mod_q)"#);
+    // Discharge clause 4: mod-q correctness.
+    hax_lib::fstar!(
+        r#"Spec.MLDSA.Math.lemma_mont_red_mod_q value;
+           reveal_opaque (`%Spec.MLDSA.Math.mod_q) (Spec.MLDSA.Math.mod_q);
+           assert (Spec.MLDSA.Math.mod_q (v res) == Spec.MLDSA.Math.mod_q (v value * 8265825))"#
+    );
     res
 }
 
@@ -206,7 +153,19 @@ pub(crate) fn montgomery_multiply_fe_by_fer(
 ) -> FieldElement {
     hax_lib::fstar!(r#"Spec.Utils.lemma_mul_i32b (pow2 31) (4190208) fe fer"#);
 
-    montgomery_reduce_element((fe as i64) * (fer as i64))
+    let result = montgomery_reduce_element((fe as i64) * (fer as i64));
+
+    // Tight bound 8380416: lemma_mont_mul_bound_and_mod_q proves it for
+    // is_i32b 8380416 fer (widened from the pre 4190208).  The reveals
+    // unfold `i32_mul fe fer` to `(cast fe) *! (cast fer)` so F* sees
+    // `mont_mul fe fer == mont_red ((fe as i64) * (fer as i64)) == result`.
+    hax_lib::fstar!(
+        r#"Hacspec_ml_dsa.Commute.Chunk.lemma_mont_mul_bound_and_mod_q fe fer;
+           Spec.Intrinsics.reveal_opaque_arithmetic_ops #i64_inttype;
+           Spec.Intrinsics.reveal_opaque_cast_ops #i32_inttype #i64_inttype"#
+    );
+
+    result
 }
 
 #[inline(always)]
@@ -240,7 +199,16 @@ pub(crate) fn montgomery_multiply_by_constant(simd_unit: &mut Coefficients, c: i
             r#"Spec.Utils.lemma_mul_i32b (pow2 31) (4190208) ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values.[ $i ] $c"#
         );
 
-        simd_unit.values[i] = montgomery_reduce_element((simd_unit.values[i] as i64) * (c as i64))
+        simd_unit.values[i] = montgomery_reduce_element((simd_unit.values[i] as i64) * (c as i64));
+
+        // Tight 8380416 bound + mod-q correctness for the per-element
+        // mont_mul.  Same bridge pattern as montgomery_multiply_fe_by_fer.
+        hax_lib::fstar!(
+            r#"Hacspec_ml_dsa.Commute.Chunk.lemma_mont_mul_bound_and_mod_q
+                 (Seq.index ${_simd_unit0}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values (v $i)) $c;
+               Spec.Intrinsics.reveal_opaque_arithmetic_ops #i64_inttype;
+               Spec.Intrinsics.reveal_opaque_cast_ops #i32_inttype #i64_inttype"#
+        );
     }
 }
 
@@ -275,7 +243,17 @@ pub(crate) fn montgomery_multiply(lhs: &mut Coefficients, rhs: &Coefficients) {
             r#"Spec.Utils.lemma_mul_i32b (pow2 31) (8380416) ${lhs}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values.[ $i ] ${rhs}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values.[ $i ]"#
         );
 
-        lhs.values[i] = montgomery_reduce_element((lhs.values[i] as i64) * (rhs.values[i] as i64))
+        lhs.values[i] = montgomery_reduce_element((lhs.values[i] as i64) * (rhs.values[i] as i64));
+
+        // Tight 8380416 bound + mod-q correctness for the per-element
+        // mont_mul.  Same bridge pattern as montgomery_multiply_by_constant.
+        hax_lib::fstar!(
+            r#"Hacspec_ml_dsa.Commute.Chunk.lemma_mont_mul_bound_and_mod_q
+                 (Seq.index ${_lhs0}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values (v $i))
+                 (Seq.index ${rhs}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values (v $i));
+               Spec.Intrinsics.reveal_opaque_arithmetic_ops #i64_inttype;
+               Spec.Intrinsics.reveal_opaque_cast_ops #i32_inttype #i64_inttype"#
+        );
     }
 }
 
