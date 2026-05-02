@@ -53,6 +53,7 @@ Per-file `src/` distribution (Lane E sweep target):
 | `Spec.MLKEM.v_T_AS_NTT_ENCODED_SIZE K` | `Hacspec_ml_kem.Parameters.tt_as_ntt_encoded_size K` | rank-arg positional |
 | `Spec.MLKEM.v_RANKED_BYTES_PER_RING_ELEMENT K` | `Hacspec_ml_kem.Parameters.ranked_bytes_per_ring_element K` | rank-arg positional |
 | `Spec.MLKEM.v_CPA_PUBLIC_KEY_SIZE K` | `Hacspec_ml_kem.Parameters.cpa_public_key_size K` | rank-arg positional |
+| `Spec.MLKEM.v_CCA_PUBLIC_KEY_SIZE K` | `Hacspec_ml_kem.Parameters.cpa_public_key_size K` | **CCA pubkey == CPA pubkey** (FIPS 203 §7); both = K*384+32. Hacspec exposes one symbol. |
 | `Spec.MLKEM.v_CPA_PRIVATE_KEY_SIZE K` | `Hacspec_ml_kem.Parameters.cpa_private_key_size K` | rank-arg positional |
 | `Spec.MLKEM.v_CPA_CIPHERTEXT_SIZE K` | `Hacspec_ml_kem.Parameters.cpa_ciphertext_size K` | rank-arg positional |
 | `Spec.MLKEM.v_CCA_PRIVATE_KEY_SIZE K` | `Hacspec_ml_kem.Parameters.cca_private_key_size K` | rank-arg positional |
