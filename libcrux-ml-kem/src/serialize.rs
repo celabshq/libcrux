@@ -174,8 +174,8 @@ fn deserialize_to_reduced_ring_element<Vector: Operations>(
 #[inline(always)]
 #[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::requires(
-    fstar!(r#"Spec.MLKEM.is_rank v_K /\ 
-            Seq.length public_key == v (Spec.MLKEM.v_T_AS_NTT_ENCODED_SIZE v_K)"#)
+    fstar!(r#"Hacspec_ml_kem.Parameters.is_rank v_K /\ 
+            Seq.length public_key == v (Hacspec_ml_kem.Parameters.tt_as_ntt_encoded_size v_K)"#)
 )]
 #[hax_lib::ensures(|result|
     fstar!(r#"forall (i:nat). i < v $K ==>
@@ -193,8 +193,8 @@ pub(super) fn deserialize_ring_elements_reduced_out<const K: usize, Vector: Oper
 #[inline(always)]
 #[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::requires(
-    fstar!(r#"Spec.MLKEM.is_rank v_K /\ 
-            Seq.length public_key == v (Spec.MLKEM.v_T_AS_NTT_ENCODED_SIZE v_K)"#)
+    fstar!(r#"Hacspec_ml_kem.Parameters.is_rank v_K /\ 
+            Seq.length public_key == v (Hacspec_ml_kem.Parameters.tt_as_ntt_encoded_size v_K)"#)
 )]
 #[hax_lib::ensures(|_|
     fstar!(r#"${vector_to_spec::<K, Vector>} (mk_usize $K) ${deserialized_pk}_future == 
@@ -350,8 +350,8 @@ fn compress_then_serialize_5<Vector: Operations>(
 
 #[inline(always)]
 #[hax_lib::fstar::verification_status(panic_free)]
-#[hax_lib::requires(fstar!(r#"Spec.MLKEM.is_rank v_K /\ 
-    $COMPRESSION_FACTOR == Spec.MLKEM.v_VECTOR_V_COMPRESSION_FACTOR v_K /\
+#[hax_lib::requires(fstar!(r#"Hacspec_ml_kem.Parameters.is_rank v_K /\ 
+    $COMPRESSION_FACTOR == Hacspec_ml_kem.Parameters.vector_v_compression_factor v_K /\
     Seq.length $out == v $OUT_LEN /\ v $OUT_LEN == 32 * v $COMPRESSION_FACTOR /\
     Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3328) $re"#))]
 #[hax_lib::ensures(|_|
@@ -517,8 +517,8 @@ fn deserialize_then_decompress_5<Vector: Operations>(
 
 #[inline(always)]
 #[hax_lib::fstar::verification_status(panic_free)]
-#[hax_lib::requires(fstar!(r#"Spec.MLKEM.is_rank $K /\ 
-    $COMPRESSION_FACTOR == Spec.MLKEM.v_VECTOR_V_COMPRESSION_FACTOR $K /\
+#[hax_lib::requires(fstar!(r#"Hacspec_ml_kem.Parameters.is_rank $K /\ 
+    $COMPRESSION_FACTOR == Hacspec_ml_kem.Parameters.vector_v_compression_factor $K /\
     Seq.length $serialized == 32 * v $COMPRESSION_FACTOR"#)
 )]
 #[hax_lib::ensures(|result|
