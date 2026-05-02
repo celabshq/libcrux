@@ -820,6 +820,8 @@ let encaps_prepare
     #FStar.Tactics.Typeclasses.solve
     (to_hash <: t_Slice u8)
 
+#push-options "--admit_smt_queries true"
+
 let encapsulate
       (v_K v_CIPHERTEXT_SIZE v_PUBLIC_KEY_SIZE v_T_AS_NTT_ENCODED_SIZE v_C1_SIZE v_C2_SIZE v_VECTOR_U_COMPRESSION_FACTOR v_VECTOR_V_COMPRESSION_FACTOR v_VECTOR_U_BLOCK_LEN v_ETA1 v_ETA1_RANDOMNESS_SIZE v_ETA2 v_ETA2_RANDOMNESS_SIZE:
           usize)
@@ -864,7 +866,11 @@ let encapsulate
   <:
   (Libcrux_ml_kem.Types.t_MlKemCiphertext v_CIPHERTEXT_SIZE & t_Array u8 (mk_usize 32))
 
+#pop-options
+
 #push-options "--z3rlimit 200 --ext context_pruning"
+
+#push-options "--admit_smt_queries true"
 
 let decapsulate
       (v_K v_SECRET_KEY_SIZE v_CPA_SECRET_KEY_SIZE v_PUBLIC_KEY_SIZE v_CIPHERTEXT_SIZE v_T_AS_NTT_ENCODED_SIZE v_C1_SIZE v_C2_SIZE v_VECTOR_U_COMPRESSION_FACTOR v_VECTOR_V_COMPRESSION_FACTOR v_C1_BLOCK_SIZE v_ETA1 v_ETA1_RANDOMNESS_SIZE v_ETA2 v_ETA2_RANDOMNESS_SIZE v_IMPLICIT_REJECTION_HASH_INPUT_SIZE:
@@ -993,5 +999,7 @@ let decapsulate
   Libcrux_ml_kem.Constant_time_ops.select_shared_secret_in_constant_time shared_secret
     (implicit_rejection_shared_secret <: t_Slice u8)
     selector
+
+#pop-options
 
 #pop-options
