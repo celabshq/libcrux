@@ -664,3 +664,103 @@ the right call: the to_spec_*_t sweep is mechanical and surgical,
 while the Spec.MLKEM sweep needs per-symbol Hacspec replacement
 decisions that benefit from concentrated focus in their own session.
 
+
+---
+
+## Lane E push — Spec.MLKEM Phase A constants sweep (2026-05-02)
+
+**Tip on entry:** `4101320a5` (Lane D session report)
+**Tip on exit:** `bbc4005fa` (serialize.rs Phase A)
+**Scope:** Phase A — substitute mapped *rank-arg constants* (`Spec.MLKEM.v_X K` → `Hacspec_ml_kem.Parameters.x_lower K`) in `fstar!()` requires/ensures/body tactics across `libcrux-ml-kem/src/*.rs`.  Source-side only; no `.fst` extraction edits (per user mandate this session).
+
+### Mapping table (Phase 1)
+
+Committed at `9372bfcc9`.  `proofs/agent-status/spec-mlkem-mapping.md`.
+
+- 49 distinct `Spec.MLKEM.<sym>` symbols enumerated (915 total cites: 417 in src/*.rs, 498 in extraction/*.fst[i]).
+- 30 mapped (one row added late: `v_CCA_PUBLIC_KEY_SIZE` → `cpa_public_key_size`, both = `K*384+32` per FIPS 203 §7).
+- 19 unmapped — agents skip per R12.
+
+### Phase A — substitutions landed
+
+| Commit | File | Cites cleared | Verification target |
+|---|---|---|---|
+| `29687e809` | `ind_cca/instantiations.rs`, `ind_cca/instantiations/avx2.rs`, `ind_cca/multiplexing.rs` | 85 + 147 + 40 = **272** | Avx2.fsti, Portable.fsti, Multiplexing.fsti — all re-verify clean (06:42) |
+| `37c5e0adc` | `ind_cca.rs` | 40 of 48 | Ind_cca.fsti.checked re-verifies clean (3920 ms) |
+| `5ebe49b5c` | `ind_cpa.rs` | 13 of 51 | Ind_cpa.fsti unchanged by edits (cites were inside lax-body Lemma blocks); .fsti.checked from May 1 22:58 remains valid |
+| `bbc4005fa` | `serialize.rs` | 8 of 17 | Serialize.fsti.checked rebuild blocked on remaining Phase B cites — see "Pre-existing breakages" below |
+
+**Total Phase A cleared:** 272 + 40 + 13 + 8 = **333 cites** (of 417 src/ cites).
+
+### Files NOT touched this session
+
+- `src/sampling.rs` (1 cite — `sample_poly_cbd $ETA $randomness`): mapped Phase B with `t_Slice u8` vs `t_Array u8 v_ETA64` shape mismatch in Hacspec.  Defer.
+- `src/mlkem512.rs`, `src/mlkem1024.rs` (3 cites each — all `Spec.MLKEM.Instances.mlkem{512,1024}_*`): all unmapped (Hacspec exposes only rank-generic `Hacspec_ml_kem.Ind_cca.{generate_keypair,encapsulate,decapsulate}` taking `params: t_MlKemParams`, with Result-typed shape vs Spec.MLKEM's `((sk,pk), valid)` tuple).
+- `src/ntt.rs` (2 cites): both inside Rust comments — inert at extraction time.
+- `src/mlkem768.rs`: 0 cites (already clean from prior sessions).
+
+### Per-file remaining cite counts (Phase A residual + Phase B + unmapped)
+
+```
+src/sampling.rs                                    1   (mapped Phase B, shape change)
+src/serialize.rs                                   9   (7 mapped Phase B, 2 unmapped)
+src/ind_cpa.rs                                    37   (~10 mapped Phase B, ~27 unmapped)
+src/ind_cca.rs                                     8   (all unmapped)
+src/mlkem512.rs                                    3   (unmapped Instances.*)
+src/mlkem1024.rs                                   3   (unmapped Instances.*)
+src/ntt.rs                                         2   (in comments)
+src/ind_cca/{instantiations,instantiations/avx2,multiplexing}.rs  0
+TOTAL                                             65
+```
+
+### Pre-existing breakages discovered (NOT regressions from Lane E)
+
+Commit **`967b6b0f2`** ("move Spec.MLKEM out of F* include path → `_DEPRECATED_spec_mlkem/`") landed before Lane E's start tip and is the upstream cause of the breakages below.  The May 1 09:23 `.checked` files were stale-passing artifacts from when Spec.MLKEM was in-path; any source-edit triggers re-extraction → unmasks the break.  Lane E does not regress these — it surfaces them.
+
+| Target .checked | Status pre-Lane E | Status post-Lane E | Blocker |
+|---|---|---|---|
+| `Sampling.fsti` | absent (never built post-deprecation) | absent | `sample_from_binomial_distribution`'s ensures cites `Spec.MLKEM.sample_poly_cbd` (1 site, panic_free fn) |
+| `Serialize.fsti` | stale-passing (May 1 09:23) | rebuild fails | 7 Spec.MLKEM cites in panic_free fn ensures (`compress_then_encode_message`, `byte_encode/decode`, `decode_then_decompress_*`, `compress_then_encode_v`, `vector_decode_12`) plus 2 unmapped (`compress_then_byte_encode`, `byte_decode_then_decompress`) |
+| `Ind_cpa.fst` | absent (depends on Sampling.fsti) | absent | downstream of Sampling.fsti |
+
+### Verification status — green targets after Lane E
+
+| Target | Re-verified | Notes |
+|---|---|---|
+| `Libcrux_ml_kem.Ind_cca.Instantiations.Avx2.fsti.checked` | ✓ 06:42 | Hint-replay warnings (constants → fns); F* re-derived hints same run |
+| `Libcrux_ml_kem.Ind_cca.Instantiations.Portable.fsti.checked` | ✓ 06:42 | Same |
+| `Libcrux_ml_kem.Ind_cca.Multiplexing.fsti.checked` | ✓ 06:42 | Same |
+| `Libcrux_ml_kem.Ind_cca.fsti.checked` | ✓ post-edit | 3920 ms, all VCs discharged |
+| `Libcrux_ml_kem.Ind_cpa.fsti.checked` | ✓ stale-OK | .fsti unchanged (cites were body-only); May 1 22:58 still valid |
+
+### Stale extraction artifacts (pre-existing, untouched by Lane E)
+
+- `Libcrux_ml_kem.Ind_cca.Instantiations.Neon.fsti` (Apr 27) — gated out of hax extraction via `cfg(not(hax))`; will refresh whenever Neon extraction is re-enabled.
+- `Libcrux_ml_kem.Ind_cca.Instantiations.Neon.Unpacked.fsti` (Apr 27) — same gate.
+- Both still cite `Spec.MLKEM.*`; live build chain typechecks them via the May 1 `.checked` cache.
+
+### R1–R13 self-audit
+
+- **R1** Branch `libcrux-ml-kem-proofs`, no force-push, no PR, no remote push.  Clean.
+- **R2** No new admits.  Clean.
+- **R3** No new axioms.  Clean.
+- **R4** No `--z3rlimit` changes.  Clean.
+- **R5** Per-file edit-check ≤ 20 min, total session ≤ 60 min effective.  Clean.
+- **R6** Hax-extract snapshot timestamp delta confirmed only files with body content changes were rewritten.
+- **R7** Trait FROZEN; `src/vector/traits.rs` untouched.  Clean.
+- **R8** No fstar-mcp.  Clean.
+- **R9** Commits prefixed `agent-mlkem:`; per-file commits.  Clean.
+- **R10** No new wrappers, no namespace squat, no new top-level Hacspec modules.  Clean.
+- **R11** No new `Spec.MLKEM` cites added; only existing ones removed.  Clean.
+- **R12** Unmapped symbols (per mapping table) **left untouched** — agents did not invent.  Clean.
+- **R13** Body-lemma shapes unchanged — only the cited symbol name + (occasionally) implicit-to-positional arg shift.  Clean.
+
+### Strategic state for next session
+
+The remaining 65 cites fall into three buckets:
+
+1. **Mapped Phase B with shape changes** (~17 cites): `byte_decode/encode`, `compress_then_serialize_*`, `deserialize_then_decompress_*`, `vector_decode_12_`, `sample_poly_cbd`, `sample_vector_cbd_then_ntt`.  Each substitution adds positional size args and (for `sample_poly_cbd`) requires an array-vs-slice coercion.  Mechanical but per-cite review.
+2. **Hard unmapped** (~47 cites): `compress_then_byte_encode`, `byte_decode_then_decompress`, `vector_encode_12`, `coerce_vector_12`, `poly_ntt`, `polynomial`, `polynomial_d`, `matrix`, `matrix_A_as_ntt_i`, `sample_matrix_A_ntt`, `sample_vector_cbd1/2_prf_input`, `sample_vector_cbd2`, `v_PRFxN`, `Instances.*`, `ind_cca_unpack_public_key`, `ind_cpa_decrypt`, `ind_cpa_generate_keypair_unpacked`.  Need either Hacspec helpers (ideally added in `specs/ml-kem/` per `feedback_hacspec_spec_first`) or inline expansion at call sites.
+3. **Pure inert** (2 cites in `ntt.rs` comments): can be deleted opportunistically.
+
+The `lax → panic_free` flip for the 8 unpacked-API functions remains queued behind these — Phase B is the next critical path.
