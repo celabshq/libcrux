@@ -622,10 +622,7 @@ fn compress_then_serialize_u<
 /// The NIST FIPS 203 standard can be found at
 /// <https://csrc.nist.gov/pubs/fips/203/ipd>.
 #[allow(non_snake_case)]
-// FOLLOW-UP (Phase D): body fails panic_free precondition checks on
-// update_at_range calls — slice-bound checks on c1/c2 partition not propagated
-// from C1_LEN+C2_LEN==CIPHERTEXT_SIZE. Stays lax.
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::fstar::options("--z3rlimit 800 --ext context_pruning")]
 #[hax_lib::requires(
     hacspec_ml_kem::parameters::is_rank(K)
@@ -674,6 +671,17 @@ pub(crate) fn encrypt_unpacked<
     message: &[u8; SHARED_SECRET_SIZE],
     randomness: &[u8],
 ) -> [u8; CIPHERTEXT_SIZE] {
+    hax_lib::fstar!(
+        r#"assert_norm (v (Hacspec_ml_kem.Parameters.c1_size (mk_usize 2)) +
+                       v (Hacspec_ml_kem.Parameters.c2_size (mk_usize 2)) ==
+                       v (Hacspec_ml_kem.Parameters.cpa_ciphertext_size (mk_usize 2)));
+           assert_norm (v (Hacspec_ml_kem.Parameters.c1_size (mk_usize 3)) +
+                       v (Hacspec_ml_kem.Parameters.c2_size (mk_usize 3)) ==
+                       v (Hacspec_ml_kem.Parameters.cpa_ciphertext_size (mk_usize 3)));
+           assert_norm (v (Hacspec_ml_kem.Parameters.c1_size (mk_usize 4)) +
+                       v (Hacspec_ml_kem.Parameters.c2_size (mk_usize 4)) ==
+                       v (Hacspec_ml_kem.Parameters.cpa_ciphertext_size (mk_usize 4)))"#
+    );
     let mut ciphertext = [0u8; CIPHERTEXT_SIZE];
 
     let (r_as_ntt, error_2) = encrypt_c1::<
@@ -703,6 +711,7 @@ pub(crate) fn encrypt_unpacked<
 // FOLLOW-UP (Phase D): body fails panic_free precondition check on
 // into_padded_array call — randomness slice bound not propagated. Stays lax.
 #[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::ensures(|(ciphertext_out, _)| ciphertext_out.len() == ciphertext.len())]
 #[inline(always)]
 pub(crate) fn encrypt_c1<
     const K: usize,
@@ -774,6 +783,7 @@ pub(crate) fn encrypt_c1<
 // FOLLOW-UP (Phase D): body fails panic_free precondition check on
 // Matrix.compute_ring_element_v call — bounds on inputs not propagated. Stays lax.
 #[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::ensures(|()| future(ciphertext).len() == ciphertext.len())]
 #[inline(always)]
 pub(crate) fn encrypt_c2<
     const K: usize,
