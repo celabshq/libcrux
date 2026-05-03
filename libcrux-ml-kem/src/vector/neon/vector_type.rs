@@ -3,7 +3,6 @@ use libcrux_intrinsics::arm64::*;
 #[hax_lib::fstar::before(interface, "noeq")]
 #[hax_lib::fstar::after(interface, "val repr (x:t_SIMD128Vector) : t_Array i16 (sz 16)")]
 #[hax_lib::fstar::after("let repr (x:t_SIMD128Vector) = admit()")]
-#[hax_lib::fstar::before(interface, "noeq")]
 pub struct SIMD128Vector {
     pub low: _int16x8_t,
     pub high: _int16x8_t,
