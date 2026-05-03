@@ -23,7 +23,7 @@ pub(crate) fn ntt<SIMDUnit: Operations>(re: &mut PolynomialRingElement<SIMDUnit>
             (i0._super_i2.f_repr (Seq.index re.f_simd_units i)))"#))]
 #[hax_lib::ensures(|_| fstar!(r#"
     (forall (i:nat). i < 32 ==>
-        Spec.Utils.is_i32b_array_opaque (v ${FIELD_MAX})
+        Spec.Utils.is_i32b_array_opaque 4211177
             (i0._super_i2.f_repr (Seq.index ${re}_future.f_simd_units i)))"#))]
 pub(crate) fn invert_ntt_montgomery<SIMDUnit: Operations>(
     re: &mut PolynomialRingElement<SIMDUnit>,

@@ -331,12 +331,22 @@ pub(crate) trait Operations: Copy + Clone + Repr {
     fn ntt(simd_units: &mut [Self; SIMD_UNITS_IN_RING_ELEMENT]);
 
     // invert NTT and convert to standard domain
+    //
+    // Tight output bound 4_211_177 = q/2 + ⌈256·FIELD_MAX·41978 / 2³²⌉.
+    // Justification: after the inverse-NTT layer functions each lane holds a
+    // value bounded by 256·FIELD_MAX; the final per-vector Montgomery-multiply
+    // by 41978 reduces it via `mont_red`, and
+    // `Spec.MLDSA.Math.lemma_mont_red_bound_256_field_max_times_41978`
+    // proves `is_i32b 4_211_177` on the per-lane result.  Surfacing the
+    // tight bound here unblocks `compute_as1_plus_s2`'s body proof (the
+    // headline Sprint 2 payoff: 4_211_177 + 4 (eta) ≪ FIELD_MAX so the
+    // subsequent `+ s2` step stays comfortably bounded).
     #[hax_lib::requires(fstar!(r#"
-        (forall (i:nat). i < 32 ==> Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX}) 
+        (forall (i:nat). i < 32 ==> Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX})
             (f_repr (Seq.index ${simd_units} i)))
     "#))]
     #[hax_lib::ensures(|_| fstar!(r#"
-        (forall (i:nat). i < 32 ==> Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX}) 
+        (forall (i:nat). i < 32 ==> Spec.Utils.is_i32b_array_opaque 4211177
             (f_repr (Seq.index ${simd_units}_future i)))
     "#))]
     fn invert_ntt_montgomery(simd_units: &mut [Self; SIMD_UNITS_IN_RING_ELEMENT]);

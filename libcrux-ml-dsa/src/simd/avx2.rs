@@ -826,7 +826,7 @@ impl Operations for AVX2SIMDUnit {
             (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index ${simd_units} i)))
     "#))]
     #[ensures(|_| fstar!(r#"
-        (forall (i:nat). i < 32 ==> Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX})
+        (forall (i:nat). i < 32 ==> Spec.Utils.is_i32b_array_opaque 4211177
             (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index ${simd_units}_future i)))
     "#))]
     fn invert_ntt_montgomery(simd_units: &mut AVX2RingElement) {
