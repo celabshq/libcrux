@@ -850,6 +850,8 @@ let op_inv_ntt_layer_3_step
 
 #pop-options
 
+#push-options "--z3rlimit 200 --split_queries always"
+
 let op_ntt_multiply
       (lhs rhs: Libcrux_ml_kem.Vector.Portable.Vector_type.t_PortableVector)
       (zeta0 zeta1 zeta2 zeta3: i16)
@@ -861,8 +863,60 @@ let op_ntt_multiply
   let result:Libcrux_ml_kem.Vector.Portable.Vector_type.t_PortableVector =
     Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply lhs rhs zeta0 zeta1 zeta2 zeta3
   in
-  let _:Prims.unit = admit () (* Panic freedom *) in
+  let _:Prims.unit =
+    let nzeta0:i16 = mk_i16 0 -! zeta0 in
+    let nzeta1:i16 = mk_i16 0 -! zeta1 in
+    let nzeta2:i16 = mk_i16 0 -! zeta2 in
+    let nzeta3:i16 = mk_i16 0 -! zeta3 in
+    reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
+      (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque 3328);
+    (* Targeted reveals: ground equalities (no quantifier overhead) *)
+    reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.ntt_multiply_branch_post)
+      (Libcrux_ml_kem.Vector.Traits.Spec.ntt_multiply_branch_post 0
+          lhs.f_elements rhs.f_elements zeta0 zeta1 zeta2 zeta3 result.f_elements);
+    reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.ntt_multiply_branch_post)
+      (Libcrux_ml_kem.Vector.Traits.Spec.ntt_multiply_branch_post 1
+          lhs.f_elements rhs.f_elements zeta0 zeta1 zeta2 zeta3 result.f_elements);
+    reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.ntt_multiply_branch_post)
+      (Libcrux_ml_kem.Vector.Traits.Spec.ntt_multiply_branch_post 2
+          lhs.f_elements rhs.f_elements zeta0 zeta1 zeta2 zeta3 result.f_elements);
+    reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.ntt_multiply_branch_post)
+      (Libcrux_ml_kem.Vector.Traits.Spec.ntt_multiply_branch_post 3
+          lhs.f_elements rhs.f_elements zeta0 zeta1 zeta2 zeta3 result.f_elements);
+    (* Single targeted reveal of butterfly_post gives all 8 ntt_multiply_spec
+       residues as ground equalities (no Seq.index-of-list overhead) *)
+    reveal_opaque (`%Spec.Utils.ntt_multiply_butterfly_post)
+      (Spec.Utils.ntt_multiply_butterfly_post lhs.f_elements rhs.f_elements
+          result.f_elements zeta0 zeta1 zeta2 zeta3);
+    (* Bridge each binomial residue pair to FE equalities *)
+    Hacspec_ml_kem.Commute.Chunk.lemma_base_case_mult_pair_commute
+      lhs.f_elements rhs.f_elements result.f_elements zeta0 0;
+    Hacspec_ml_kem.Commute.Chunk.lemma_base_case_mult_pair_commute
+      lhs.f_elements rhs.f_elements result.f_elements nzeta0 1;
+    Hacspec_ml_kem.Commute.Chunk.lemma_base_case_mult_pair_commute
+      lhs.f_elements rhs.f_elements result.f_elements zeta1 2;
+    Hacspec_ml_kem.Commute.Chunk.lemma_base_case_mult_pair_commute
+      lhs.f_elements rhs.f_elements result.f_elements nzeta1 3;
+    Hacspec_ml_kem.Commute.Chunk.lemma_base_case_mult_pair_commute
+      lhs.f_elements rhs.f_elements result.f_elements zeta2 4;
+    Hacspec_ml_kem.Commute.Chunk.lemma_base_case_mult_pair_commute
+      lhs.f_elements rhs.f_elements result.f_elements nzeta2 5;
+    Hacspec_ml_kem.Commute.Chunk.lemma_base_case_mult_pair_commute
+      lhs.f_elements rhs.f_elements result.f_elements zeta3 6;
+    Hacspec_ml_kem.Commute.Chunk.lemma_base_case_mult_pair_commute
+      lhs.f_elements rhs.f_elements result.f_elements nzeta3 7;
+    assert (Libcrux_ml_kem.Vector.Traits.Spec.ntt_multiply_branch_post 0
+        lhs.f_elements rhs.f_elements zeta0 zeta1 zeta2 zeta3 result.f_elements);
+    assert (Libcrux_ml_kem.Vector.Traits.Spec.ntt_multiply_branch_post 1
+        lhs.f_elements rhs.f_elements zeta0 zeta1 zeta2 zeta3 result.f_elements);
+    assert (Libcrux_ml_kem.Vector.Traits.Spec.ntt_multiply_branch_post 2
+        lhs.f_elements rhs.f_elements zeta0 zeta1 zeta2 zeta3 result.f_elements);
+    assert (Libcrux_ml_kem.Vector.Traits.Spec.ntt_multiply_branch_post 3
+        lhs.f_elements rhs.f_elements zeta0 zeta1 zeta2 zeta3 result.f_elements)
+  in
   result
+
+#pop-options
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 let impl_1: Libcrux_ml_kem.Vector.Traits.t_Operations
