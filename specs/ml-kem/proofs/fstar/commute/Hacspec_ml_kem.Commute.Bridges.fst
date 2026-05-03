@@ -1206,3 +1206,34 @@ let lemma_inv_ntt_layer_int_vec_step_reduce_to_hacspec
    Same pattern: 4 per-branch helper lemmas at concrete `b` to collapse
    the nested if-ladder in the trait branch_post, plus a per-vector
    composition via `Classical.forall_intro` + `Seq.lemma_eq_intro`. *)
+
+(*** poly_to_spec = to_spec_poly_plain bridge
+     Connects the extraction-side `Vector.Spec.poly_to_spec` (builds a flat
+     i16 array via `f_to_i16_array` then lifts via `i16_to_spec_array`) to the
+     commute-side `to_spec_poly_plain` (lifts directly via `f_repr` + `i16_to_spec_fe`).
+     Both compute `createi 256 (fun j -> i16_to_spec_fe (f_repr(p.coeffs[j/16])[j%16]))`.
+     Used by `deserialize_then_decompress_u` loop invariant maintenance:
+     the invariant is stated with `poly_to_spec` but `ntt_vector_u` postcondition
+     uses `to_spec_poly_plain`. ***)
+
+module VS = Libcrux_ml_kem.Vector.Spec
+module VV = Libcrux_ml_kem.Vector
+
+(* Bridge: poly_to_spec and to_spec_poly_plain compute the same lift.
+   Proof: per-lane, VS.poly_to_spec_index gives lhs[j] and poly_lane_plain
+   gives rhs[j]; both equal i16_to_spec_fe (f_repr(p.coeffs[j/16])[j%16]). *)
+#push-options "--z3rlimit 200 --fuel 0 --ifuel 1"
+let poly_to_spec_eq_to_spec_poly_plain
+    (#vV: Type0) {| i0: T.t_Operations vV |}
+    (p: VV.t_PolynomialRingElement vV)
+  : Lemma
+    (VS.poly_to_spec #vV p == to_spec_poly_plain #vV p)
+  = let lhs = VS.poly_to_spec #vV p in
+    let rhs = to_spec_poly_plain #vV p in
+    let aux (j: nat {j < 256}) : Lemma (Seq.index lhs j == Seq.index rhs j) =
+      VS.poly_to_spec_index #vV p j;  (* lhs[j] = i16_to_spec_fe (f_repr(p.coeffs[j/16])[j%16]) *)
+      poly_lane_plain #vV #i0 p j     (* rhs[j] = same *)
+    in
+    Classical.forall_intro aux;
+    Seq.lemma_eq_intro lhs rhs
+#pop-options
