@@ -975,9 +975,17 @@ pub(crate) fn build_unpacked_public_key_mut<
 
 /// Call [`deserialize_then_decompress_ring_element_u`] on each ring element
 /// in the `ciphertext`.
-// FOLLOW-UP (Phase D): body has eq_intro spec-equality assertion that fails
-// to discharge under panic_free at rlimit 800 (same pattern as serialize_vector).
-// Stays lax.
+// FOLLOW-UP (Phase F Stream 2): tried the lemma_post + Classical.move_requires
+// + Seq.slice-of-slice eq_intro pattern (matches lighthouse deserialize_vector).
+// Proof body discharged the eq_intro under panic_free at rlimit 800, but the
+// body's loop-invariant maintenance cannot be re-established because
+// `ntt_vector_u` lacks a functional ensures of the form
+//   poly_to_spec(future(re)) == Hacspec_ml_kem.Ntt.ntt(poly_to_spec(re))
+// (the ensures is commented out in src/ntt.rs).  Without it, after
+// `ntt_vector_u(&mut u_as_ntt[i])` the loop invariant cannot be maintained
+// under panic_free.  Stays lax pending strengthening of ntt_vector_u's
+// ensures (out of this Stream's scope; would touch src/ntt.rs and
+// require establishing the ntt body proof).
 #[hax_lib::fstar::verification_status(lax)]
 #[inline(always)]
 #[hax_lib::fstar::options("--z3rlimit 800 --ext context_pruning")]
@@ -1037,10 +1045,7 @@ fn deserialize_then_decompress_u<
 }
 
 /// Call [`deserialize_to_uncompressed_ring_element`] for each ring element.
-// FOLLOW-UP (Phase D): body has eq_intro spec-equality assertion that fails
-// to discharge under panic_free at rlimit 800 (same pattern as serialize_vector).
-// Stays lax.
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::fstar::verification_status(panic_free)]
 #[inline(always)]
 #[hax_lib::fstar::options("--z3rlimit 800 --ext context_pruning")]
 #[hax_lib::requires(
@@ -1074,7 +1079,24 @@ pub(crate) fn deserialize_vector<const K: usize, Vector: Operations>(
         );
     }
     hax_lib::fstar!(
-        r#"eq_intro
+        r#"let lemma_post (j: nat) : Lemma
+            (requires j < v $K)
+            (ensures
+              Seq.index (${vector_to_spec::<K, Vector>} $K $secret_as_ntt) j ==
+              Seq.index (Hacspec_ml_kem.Serialize.vector_decode_12_ $K $secret_key) j) =
+          let slice = Seq.slice $secret_key
+              (j * v $BYTES_PER_RING_ELEMENT)
+              (j * v $BYTES_PER_RING_ELEMENT + v $BYTES_PER_RING_ELEMENT) in
+          let chunk:t_Array u8 (mk_usize 384) =
+            Core_models.Result.impl__unwrap #(t_Array u8 (mk_usize 384))
+              #Core_models.Array.t_TryFromSliceError
+              (Core_models.Convert.f_try_into #(t_Slice u8)
+                  #(t_Array u8 (mk_usize 384))
+                  #FStar.Tactics.Typeclasses.solve
+                  slice) in
+          eq_intro (chunk <: Seq.seq u8) slice
+        in Classical.forall_intro (Classical.move_requires lemma_post);
+        eq_intro
         (${vector_to_spec::<K, Vector>} $K $secret_as_ntt)
         (Hacspec_ml_kem.Serialize.vector_decode_12_ $K $secret_key)"#
     );
