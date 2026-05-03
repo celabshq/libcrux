@@ -628,6 +628,8 @@ let ntt_binomially_sampled_ring_element
 
 #pop-options
 
+#push-options "--admit_smt_queries true"
+
 #push-options "--z3rlimit 300 --ext context_pruning --split_queries always"
 
 let ntt_vector_u
@@ -691,5 +693,7 @@ let ntt_vector_u
     Libcrux_ml_kem.Polynomial.impl__poly_barrett_reduce #v_Vector re
   in
   re
+
+#pop-options
 
 #pop-options

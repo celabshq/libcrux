@@ -554,11 +554,13 @@ pub(crate) fn ntt_binomially_sampled_ring_element<Vector: Operations>(
 /// (decompress output), output plain (NTT preserves form because Mont-form
 /// zetas cancel with `mont_mul`'s `·R⁻¹`).
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 300 --ext context_pruning --split_queries always")]
+// ntt_at_layer_4_plus lacks functional ensures; body admit while layer-4+
+// forward spec chain is built (parallel to invert_ntt_at_layer_4_plus USER-14).
+#[hax_lib::fstar::options("--admit_smt_queries true")]
 #[hax_lib::requires(spec::is_bounded_poly(3328, re))]
-#[hax_lib::ensures(|result| spec::is_bounded_poly(3328, future(re)))]
-// #[hax_lib::ensures(|_| fstar!(r#"Libcrux_ml_kem.Polynomial.to_spec_poly_t #$:Vector ${re}_future ==
-//     Hacspec_ml_kem.Ntt.ntt (Libcrux_ml_kem.Polynomial.to_spec_poly_t #$:Vector $re)"#))]
+#[hax_lib::ensures(|result| spec::is_bounded_poly(3328, future(re)) & fstar!(r#"
+    Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #$:Vector ${re}_future ==
+    Hacspec_ml_kem.Ntt.ntt (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #$:Vector $re)"#))]
 pub(crate) fn ntt_vector_u<const VECTOR_U_COMPRESSION_FACTOR: usize, Vector: Operations>(
     re: &mut PolynomialRingElement<Vector>,
 ) {
