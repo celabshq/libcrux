@@ -210,6 +210,7 @@ let impl
       t_MlKemPublicKeyUnpacked v_K v_Vector
   }
 
+#push-options "--admit_smt_queries true"
 let keys_from_private_key
       (v_K v_SECRET_KEY_SIZE v_CPA_SECRET_KEY_SIZE v_PUBLIC_KEY_SIZE v_T_AS_NTT_ENCODED_SIZE: usize)
       (#v_Vector: Type0)
@@ -347,6 +348,7 @@ let keys_from_private_key
     t_MlKemKeyPairUnpacked v_K v_Vector
   in
   key_pair
+#pop-options
 
 let impl_4__public_key
       (v_K: usize)
