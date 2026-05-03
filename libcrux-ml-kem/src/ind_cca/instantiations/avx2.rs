@@ -842,7 +842,9 @@ pub(crate) mod unpacked {
         $VECTOR_V_COMPRESSION_FACTOR == Hacspec_ml_kem.Parameters.vector_v_compression_factor $K /\
         $C1_BLOCK_SIZE == Hacspec_ml_kem.Parameters.c1_block_size $K /\
         $CIPHERTEXT_SIZE == Hacspec_ml_kem.Parameters.cpa_ciphertext_size $K /\
-        $IMPLICIT_REJECTION_HASH_INPUT_SIZE == Hacspec_ml_kem.Parameters.implicit_rejection_hash_input_size $K"#))]
+        $IMPLICIT_REJECTION_HASH_INPUT_SIZE == Hacspec_ml_kem.Parameters.implicit_rejection_hash_input_size $K /\
+        Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector $K (mk_usize 3328)
+            ${key_pair}.f_private_key.f_ind_cpa_private_key.f_secret_as_ntt"#))]
     unsafe fn decapsulate_avx2<
         const K: usize,
         const SECRET_KEY_SIZE: usize,
@@ -899,7 +901,9 @@ pub(crate) mod unpacked {
         $VECTOR_V_COMPRESSION_FACTOR == Hacspec_ml_kem.Parameters.vector_v_compression_factor $K /\
         $C1_BLOCK_SIZE == Hacspec_ml_kem.Parameters.c1_block_size $K /\
         $CIPHERTEXT_SIZE == Hacspec_ml_kem.Parameters.cpa_ciphertext_size $K /\
-        $IMPLICIT_REJECTION_HASH_INPUT_SIZE == Hacspec_ml_kem.Parameters.implicit_rejection_hash_input_size $K"#))]
+        $IMPLICIT_REJECTION_HASH_INPUT_SIZE == Hacspec_ml_kem.Parameters.implicit_rejection_hash_input_size $K /\
+        Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector $K (mk_usize 3328)
+            ${key_pair}.f_private_key.f_ind_cpa_private_key.f_secret_as_ntt"#))]
     pub(crate) fn decapsulate<
         const K: usize,
         const SECRET_KEY_SIZE: usize,

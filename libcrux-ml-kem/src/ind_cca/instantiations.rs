@@ -468,7 +468,9 @@ macro_rules! instantiate {
                     $ETA1_RANDOMNESS_SIZE == Hacspec_ml_kem.Parameters.eta1_randomness_size $K /\
                     $ETA2 == Hacspec_ml_kem.Parameters.eta2 $K /\
                     $ETA2_RANDOMNESS_SIZE == Hacspec_ml_kem.Parameters.eta2_randomness_size $K /\
-                    $IMPLICIT_REJECTION_HASH_INPUT_SIZE == Hacspec_ml_kem.Parameters.implicit_rejection_hash_input_size $K"#))]
+                    $IMPLICIT_REJECTION_HASH_INPUT_SIZE == Hacspec_ml_kem.Parameters.implicit_rejection_hash_input_size $K /\
+                    Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector $K (mk_usize 3328)
+                        ${key_pair}.f_private_key.f_ind_cpa_private_key.f_secret_as_ntt"#))]
                 #[inline(always)]
                 pub(crate) fn decapsulate<
                     const K: usize,

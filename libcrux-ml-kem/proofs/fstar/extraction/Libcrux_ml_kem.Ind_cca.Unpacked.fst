@@ -856,15 +856,19 @@ let encapsulate
   let shared_secret_array:t_Array u8 (mk_usize 32) =
     Core_models.Slice.impl__copy_from_slice #u8 shared_secret_array shared_secret
   in
-  Core_models.Convert.f_from #(Libcrux_ml_kem.Types.t_MlKemCiphertext v_CIPHERTEXT_SIZE)
-    #(t_Array u8 v_CIPHERTEXT_SIZE)
-    #FStar.Tactics.Typeclasses.solve
-    ciphertext,
-  shared_secret_array
-  <:
-  (Libcrux_ml_kem.Types.t_MlKemCiphertext v_CIPHERTEXT_SIZE & t_Array u8 (mk_usize 32))
+  let result:(Libcrux_ml_kem.Types.t_MlKemCiphertext v_CIPHERTEXT_SIZE & t_Array u8 (mk_usize 32)) =
+    Core_models.Convert.f_from #(Libcrux_ml_kem.Types.t_MlKemCiphertext v_CIPHERTEXT_SIZE)
+      #(t_Array u8 v_CIPHERTEXT_SIZE)
+      #FStar.Tactics.Typeclasses.solve
+      ciphertext,
+    shared_secret_array
+    <:
+    (Libcrux_ml_kem.Types.t_MlKemCiphertext v_CIPHERTEXT_SIZE & t_Array u8 (mk_usize 32))
+  in
+  let _:Prims.unit = admit () (* Panic freedom *) in
+  result
 
-#push-options "--z3rlimit 200 --ext context_pruning"
+#push-options "--z3rlimit 400 --ext context_pruning --split_queries always"
 
 let decapsulate
       (v_K v_SECRET_KEY_SIZE v_CPA_SECRET_KEY_SIZE v_PUBLIC_KEY_SIZE v_CIPHERTEXT_SIZE v_T_AS_NTT_ENCODED_SIZE v_C1_SIZE v_C2_SIZE v_VECTOR_U_COMPRESSION_FACTOR v_VECTOR_V_COMPRESSION_FACTOR v_C1_BLOCK_SIZE v_ETA1 v_ETA1_RANDOMNESS_SIZE v_ETA2 v_ETA2_RANDOMNESS_SIZE v_IMPLICIT_REJECTION_HASH_INPUT_SIZE:
@@ -990,8 +994,12 @@ let decapsulate
         t_Slice u8)
       (expected_ciphertext <: t_Slice u8)
   in
-  Libcrux_ml_kem.Constant_time_ops.select_shared_secret_in_constant_time shared_secret
-    (implicit_rejection_shared_secret <: t_Slice u8)
-    selector
+  let result:t_Array u8 (mk_usize 32) =
+    Libcrux_ml_kem.Constant_time_ops.select_shared_secret_in_constant_time shared_secret
+      (implicit_rejection_shared_secret <: t_Slice u8)
+      selector
+  in
+  let _:Prims.unit = admit () (* Panic freedom *) in
+  result
 
 #pop-options

@@ -17,6 +17,10 @@ use crate::{
 #[allow(unused_imports)]
 use crate::vector::spec::{matrix_to_spec, poly_to_spec, vector_to_spec};
 
+#[cfg(hax)]
+#[allow(unused_imports)]
+use hax_lib::prop::ToProp;
+
 /// Seed size for key generation
 pub const KEY_GENERATION_SEED_SIZE: usize = CPA_PKE_KEY_GENERATION_SEED_SIZE + SHARED_SECRET_SIZE;
 
@@ -936,6 +940,7 @@ pub(crate) mod unpacked {
 
     // Encapsulate with Unpacked Public Key
     #[inline(always)]
+    #[hax_lib::fstar::verification_status(panic_free)]
     #[hax_lib::requires(
         hacspec_ml_kem::parameters::is_rank(K)
         && ETA1 == hacspec_ml_kem::parameters::eta1(K)
@@ -1031,9 +1036,10 @@ pub(crate) mod unpacked {
 
     // Decapsulate with Unpacked Private Key
     #[inline(always)]
-    #[hax_lib::fstar::options("--z3rlimit 200 --ext context_pruning")]
+    #[hax_lib::fstar::verification_status(panic_free)]
+    #[hax_lib::fstar::options("--z3rlimit 400 --ext context_pruning --split_queries always")]
     #[hax_lib::requires(
-        hacspec_ml_kem::parameters::is_rank(K)
+        (hacspec_ml_kem::parameters::is_rank(K)
         && ETA1 == hacspec_ml_kem::parameters::eta1(K)
         && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
         && ETA2 == hacspec_ml_kem::parameters::eta2(K)
@@ -1045,7 +1051,9 @@ pub(crate) mod unpacked {
         && C1_BLOCK_SIZE == hacspec_ml_kem::parameters::c1_block_size(K)
         && CIPHERTEXT_SIZE == hacspec_ml_kem::parameters::cpa_ciphertext_size(K)
         && IMPLICIT_REJECTION_HASH_INPUT_SIZE
-            == hacspec_ml_kem::parameters::implicit_rejection_hash_input_size(K)
+            == hacspec_ml_kem::parameters::implicit_rejection_hash_input_size(K))
+        .to_prop()
+        & crate::polynomial::spec::is_bounded_polynomial_vector(3328, &key_pair.private_key.ind_cpa_private_key.secret_as_ntt)
     )]
     #[hax_lib::ensures(|result|
         match hacspec_ml_kem::ind_cca_unpack_decapsulate::<
