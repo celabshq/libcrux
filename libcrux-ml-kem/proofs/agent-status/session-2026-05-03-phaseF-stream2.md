@@ -121,9 +121,11 @@ deserialize_vector, 2   succeeded   202 ms   rlimit 1.273 / 800
 
 ## Commit chain
 
-* `<TBD>` agent-mlkem: Phase F Stream 2 — deserialize_vector lax→panic_free + dt_decompress_u FOLLOW-UP
+* `be51b4b79` agent-mlkem: Phase F Stream 2 — deserialize_vector lax→panic_free
 
-(Single commit; other 3 fns left as-is with updated FOLLOW-UP for dt_decompress_u and unchanged FOLLOW-UPs for serialize_vector/compress_then_serialize_u.)
+(Single commit; other 3 fns left as-is with updated FOLLOW-UP for
+deserialize_then_decompress_u and unchanged FOLLOW-UPs for
+serialize_vector/compress_then_serialize_u.)
 
 ## Pattern reusability
 
