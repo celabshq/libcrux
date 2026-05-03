@@ -398,6 +398,8 @@ macro_rules! instantiate {
                 /// Generates an [`MlKemSharedSecret`].
                 /// The input is a reference to an unpacked key pair of type [`MlKem512KeyPairUnpacked`]
                 /// and an [`MlKem512Ciphertext`].
+                #[hax_lib::requires(fstar!(r#"Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector (mk_usize 2) (mk_usize 3328)
+                    ${private_key}.f_private_key.f_ind_cpa_private_key.f_secret_as_ntt"#))]
                 pub fn decapsulate(
                     private_key: &MlKem512KeyPairUnpacked,
                     ciphertext: &MlKem512Ciphertext,
