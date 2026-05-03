@@ -1186,26 +1186,10 @@ let lemma_inv_ntt_layer_1_butterfly_to_fe
 
 #pop-options
 
-(* Per-branch wrappers `lemma_ntt_layer_1_branch_{0..3}` (and the inv
-   mirror) were attempted here (Phase 6 follow-up agent A2) but Z3 still
-   hangs even with `b` literal: revealing
-   `ntt_layer_1_step_branch_post` exposes the if-ladder
-   `let z = if b = 0 then zeta0 else if b = 1 then ...`, and Z3
-   case-splits even when the outer `b` is a literal.  Tried at
-   - rlimit 200 + split_queries always: 16 sub-queries succeed in
-     7-130 ms each, then a single sub-query (#17) hangs > 60 s.
-   - rlimit 400 + no split: full timeout.
-   The two helper lemmas above (which DO verify, ~25 ms each) provide
-   the FE-form bridge from `ntt_spec` residues for one zeta-pair group,
-   useful for whatever next-step refactor lands the layer-1 wrappers.
-   Closing the wrappers requires either:
-   - rewriting `ntt_layer_1_step_branch_post` so the zeta is selected
-     by the caller and passed in as an `i16` (eliminates the in-body
-     if-ladder); or
-   - a tactic-based normalize step (`assert_norm` / `Tactics.compute`)
-     to eagerly reduce the if-ladder before SMT.
-   For now `op_ntt_layer_1_step` and `op_inv_ntt_layer_1_step` retain
-   `--admit_smt_queries true`. *)
+(* `ntt_layer_1_step_branch_post` is NON-opaque (no opaque_to_smt), so
+   `op_ntt_layer_1_step` in `Libcrux_ml_kem.Vector.Portable` proves the
+   layer-1 post directly via 8 `lemma_butterfly_pair_commute` calls plus
+   a local predicate matching the unfolded branch_post body. *)
 
 (* The trait post of `f_ntt_layer_1_step` is exactly this predicate —
    4 groups of 4 FE equalities, wrapped in `Spec.Utils.forall4`.  The
