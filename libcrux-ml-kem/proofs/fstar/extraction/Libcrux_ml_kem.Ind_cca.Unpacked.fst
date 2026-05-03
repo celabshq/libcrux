@@ -210,7 +210,7 @@ let impl
       t_MlKemPublicKeyUnpacked v_K v_Vector
   }
 
-#push-options "--admit_smt_queries true"
+#push-options "--z3rlimit 200"
 let keys_from_private_key
       (v_K v_SECRET_KEY_SIZE v_CPA_SECRET_KEY_SIZE v_PUBLIC_KEY_SIZE v_T_AS_NTT_ENCODED_SIZE: usize)
       (#v_Vector: Type0)
@@ -229,6 +229,19 @@ let keys_from_private_key
       v_PUBLIC_KEY_SIZE
       (private_key.Libcrux_ml_kem.Types.f_value <: t_Slice u8)
   in
+  let secret_as_ntt_fresh:t_Array (Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector) v_K =
+    Libcrux_ml_kem.Ind_cpa.deserialize_vector v_K
+      #v_Vector
+      ind_cpa_secret_key
+      key_pair.f_private_key.f_ind_cpa_private_key
+        .Libcrux_ml_kem.Ind_cpa.Unpacked.f_secret_as_ntt
+  in
+  let _:Prims.unit =
+    assert (Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector v_K
+        #v_Vector
+        (mk_usize 3328)
+        secret_as_ntt_fresh)
+  in
   let key_pair:t_MlKemKeyPairUnpacked v_K v_Vector =
     {
       key_pair with
@@ -242,11 +255,7 @@ let keys_from_private_key
           key_pair.f_private_key.f_ind_cpa_private_key with
           Libcrux_ml_kem.Ind_cpa.Unpacked.f_secret_as_ntt
           =
-          Libcrux_ml_kem.Ind_cpa.deserialize_vector v_K
-            #v_Vector
-            ind_cpa_secret_key
-            key_pair.f_private_key.f_ind_cpa_private_key
-              .Libcrux_ml_kem.Ind_cpa.Unpacked.f_secret_as_ntt
+          secret_as_ntt_fresh
         }
         <:
         Libcrux_ml_kem.Ind_cpa.Unpacked.t_IndCpaPrivateKeyUnpacked v_K v_Vector
@@ -256,6 +265,13 @@ let keys_from_private_key
     }
     <:
     t_MlKemKeyPairUnpacked v_K v_Vector
+  in
+  let _:Prims.unit =
+    assert (Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector v_K
+        #v_Vector
+        (mk_usize 3328)
+        key_pair.f_private_key.f_ind_cpa_private_key
+          .Libcrux_ml_kem.Ind_cpa.Unpacked.f_secret_as_ntt)
   in
   let key_pair:t_MlKemKeyPairUnpacked v_K v_Vector =
     {
@@ -317,6 +333,13 @@ let keys_from_private_key
     <:
     t_MlKemKeyPairUnpacked v_K v_Vector
   in
+  let _:Prims.unit =
+    assert (Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector v_K
+        #v_Vector
+        (mk_usize 3328)
+        key_pair.f_private_key.f_ind_cpa_private_key
+          .Libcrux_ml_kem.Ind_cpa.Unpacked.f_secret_as_ntt)
+  in
   let key_pair:t_MlKemKeyPairUnpacked v_K v_Vector =
     {
       key_pair with
@@ -346,6 +369,13 @@ let keys_from_private_key
     }
     <:
     t_MlKemKeyPairUnpacked v_K v_Vector
+  in
+  let _:Prims.unit =
+    assert (Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector v_K
+        #v_Vector
+        (mk_usize 3328)
+        key_pair.f_private_key.f_ind_cpa_private_key
+          .Libcrux_ml_kem.Ind_cpa.Unpacked.f_secret_as_ntt)
   in
   key_pair
 #pop-options
