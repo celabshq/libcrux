@@ -30,6 +30,9 @@ use crate::{
 #[allow(unused_imports)]
 use crate::vector::spec::{matrix_to_spec, poly_to_spec, vector_to_spec};
 
+#[cfg(hax)]
+use crate::polynomial::spec;
+
 /// Types for the unpacked API.
 #[allow(non_snake_case)]
 pub(crate) mod unpacked {
@@ -984,11 +987,12 @@ pub(crate) fn build_unpacked_public_key_mut<
     && U_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_u_compression_factor(K)
 )]
 #[hax_lib::ensures(|res|
-    crate::vector::spec::vector_to_spec(&res)
+    spec::is_bounded_polynomial_vector(3328, &res)
+    & (crate::vector::spec::vector_to_spec(&res)
         == hacspec_ml_kem::serialize::deserialize_then_decompress_u_then_ntt::<K>(
             &ciphertext[..hacspec_ml_kem::parameters::c1_size(K)],
             U_COMPRESSION_FACTOR,
-        )
+        ))
 )]
 fn deserialize_then_decompress_u<
     const K: usize,
@@ -1044,8 +1048,9 @@ fn deserialize_then_decompress_u<
     && secret_key.len() == hacspec_ml_kem::parameters::cpa_private_key_size(K)
 )]
 #[hax_lib::ensures(|()|
-    crate::vector::spec::vector_to_spec(future(secret_as_ntt)) ==
-    hacspec_ml_kem::serialize::vector_decode_12::<K>(secret_key)
+    spec::is_bounded_polynomial_vector(3328, future(secret_as_ntt))
+    & (crate::vector::spec::vector_to_spec(future(secret_as_ntt)) ==
+       hacspec_ml_kem::serialize::vector_decode_12::<K>(secret_key))
 )]
 pub(crate) fn deserialize_vector<const K: usize, Vector: Operations>(
     secret_key: &[u8],
@@ -1098,12 +1103,14 @@ pub(crate) fn deserialize_vector<const K: usize, Vector: Operations>(
 /// The NIST FIPS 203 standard can be found at
 /// <https://csrc.nist.gov/pubs/fips/203/ipd>.
 #[allow(non_snake_case)]
+#[hax_lib::fstar::options("--z3rlimit 400 --ext context_pruning")]
 #[hax_lib::requires(
-    hacspec_ml_kem::parameters::is_rank(K)
-    && CIPHERTEXT_SIZE == hacspec_ml_kem::parameters::cpa_ciphertext_size(K)
-    && U_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_u_compression_factor(K)
-    && V_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_v_compression_factor(K)
-    && VECTOR_U_ENCODED_SIZE == hacspec_ml_kem::parameters::c1_size(K)
+    (hacspec_ml_kem::parameters::is_rank(K)
+        && CIPHERTEXT_SIZE == hacspec_ml_kem::parameters::cpa_ciphertext_size(K)
+        && U_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_u_compression_factor(K)
+        && V_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_v_compression_factor(K)
+        && VECTOR_U_ENCODED_SIZE == hacspec_ml_kem::parameters::c1_size(K)).to_prop()
+    & spec::is_bounded_polynomial_vector(3328, &secret_key.secret_as_ntt)
 )]
 #[hax_lib::ensures(|result|
     result == hacspec_ml_kem::ind_cpa::decrypt_unpacked::<K>(
@@ -1112,38 +1119,7 @@ pub(crate) fn deserialize_vector<const K: usize, Vector: Operations>(
         ciphertext,
     )
 )]
-// FOLLOW-UP (Phase E cont 2026-05-02, R5 carve-out — partial progress):
-//   DONE this session:
-//     * Trait post `decompress_ciphertext_coefficient_post` strengthened
-//       (src/vector/traits.rs:851-877) to additionally carry
-//       `bounded_i16_array (mk_i16 0) (mk_i16 3328) result`.  Verified:
-//       Portable wrapper `op_decompress_ciphertext_coefficient`
-//       (src/vector/portable.rs:367-411) discharges the new clause via
-//       `lemma_bounded_i16_array_intro`; Vector.Portable.fst.checked
-//       rebuilds green in 73s.  Avx2 + Neon impls auto-admit through
-//       their existing body-admits (Avx2 wrapper has
-//       `admit () (* Panic freedom *)`; Neon module is in ADMIT_MODULES).
-//   REMAINING (next session):
-//     * Propagate `is_bounded_poly 4095` ensures up through
-//       `deserialize_then_decompress_4` / `_5` / `..._ring_element_v` in
-//       src/serialize.rs.  First attempt got `is_bounded_poly_higher`
-//       discharging the initial-state lift cleanly (Rust-syntax form
-//       `spec::is_bounded_poly_higher(&re, 0, 4095)`), but the post-loop
-//       fold post still failed with "incomplete quantifiers" at
-//       Serialize.fst:920 — need a per-lane bound assertion inside the
-//       loop body or a stronger SMTPat connecting the trait post's
-//       `bounded_i16_array 0 3328` to per-coefficient `is_bounded_vector
-//       4095`.
-//   AFTER PROPAGATION LANDS:
-//     * Chain `is_bounded_poly_higher` here to lift 3328 → 4095 for
-//       `compute_message`'s `v` requires; add
-//       `is_bounded_polynomial_vector 3328 secret_as_ntt` requires to
-//       `decrypt_unpacked` (caller-established via lax-admitted
-//       `deserialize_vector` ensures).  Then flip lax → panic_free.
-//
-// Stays lax this session; the R5 trait-post unlock unblocks the next
-// session's propagation work.
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::fstar::verification_status(panic_free)]
 #[inline(always)]
 pub(crate) fn decrypt_unpacked<
     const K: usize,

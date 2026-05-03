@@ -87,6 +87,31 @@ pub(crate) mod spec {
             r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)"#
         );
     }
+
+    /// Conversion lemma: from the strengthened decompress trait post
+    /// `bounded_i16_array (mk_i16 0) (mk_i16 3328) (f_repr v)` derive
+    /// `is_bounded_vector b v` for any b >= 3328 (b given as parameter
+    /// to allow callers like `deserialize_then_decompress_4`/`_5` to
+    /// expose the loose `is_bounded_poly 4095` bound that
+    /// `Matrix.compute_message`'s `subtract_reduce` requires).
+    #[hax_lib::requires(fstar!(r#"
+        Libcrux_ml_kem.Vector.Traits.Spec.bounded_i16_array (mk_i16 0) (mk_i16 3328)
+            (Libcrux_ml_kem.Vector.Traits.f_repr $vec) /\ v $b >= 3328 /\ v $b < 32768
+    "#))]
+    #[hax_lib::ensures(|_| is_bounded_vector(b, vec))]
+    pub(crate) fn lemma_decompress_post_to_is_bounded_vector<Vector: Operations>(
+        vec: &Vector,
+        b: usize,
+    ) {
+        hax_lib::fstar!(
+            r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
+                              (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque);
+               // Trigger the typeclass post for f_to_i16_array on `vec` so
+               // Z3 sees `f_to_i16_array vec == f_repr vec`.
+               let _ = Libcrux_ml_kem.Vector.Traits.f_to_i16_array $vec in
+               ()"#
+        );
+    }
 }
 
 #[inline(always)]

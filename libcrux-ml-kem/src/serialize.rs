@@ -9,6 +9,9 @@ use crate::{
 #[allow(unused_imports)]
 use crate::vector::spec::{matrix_to_spec, poly_to_spec, vector_to_spec};
 
+#[cfg(hax)]
+use crate::polynomial::spec;
+
 #[inline(always)]
 #[hax_lib::requires(fstar!(r#"Libcrux_ml_kem.Polynomial.Spec.is_bounded_vector (sz 3328) $a"#))]
 #[hax_lib::ensures(|result| fstar!(r#"forall (i:nat). i < 16 ==>
@@ -468,9 +471,11 @@ pub(super) fn deserialize_then_decompress_ring_element_u<
 }
 
 #[inline(always)]
+#[hax_lib::fstar::options("--z3rlimit 400 --ext context_pruning --split_queries always")]
 #[hax_lib::requires(
     serialized.len() == 128
 )]
+#[hax_lib::ensures(|result| spec::is_bounded_poly(4095, &result))]
 fn deserialize_then_decompress_4<Vector: Operations>(
     serialized: &[u8],
 ) -> PolynomialRingElement<Vector> {
@@ -478,9 +483,16 @@ fn deserialize_then_decompress_4<Vector: Operations>(
         r#"assert (v ((${crate::constants::COEFFICIENTS_IN_RING_ELEMENT} *! sz 4) /! sz 8) == 128)"#
     );
     let mut re = PolynomialRingElement::<Vector>::ZERO();
+    // Lift `is_bounded_poly 0 re` (from ZERO ensures) to
+    // `is_bounded_poly 4095 re` so the loop invariant holds on entry.
+    #[cfg(hax)]
+    spec::is_bounded_poly_higher(&re, 0, 4095);
 
     cloop! {
         for (i, bytes) in serialized.chunks_exact(8).enumerate() {
+            hax_lib::loop_invariant!(|_i: usize| {
+                spec::is_bounded_poly(4095, &re)
+            });
             let coefficient = Vector::deserialize_4(bytes);
             // Intro: deserialize_4 post `forall j. bounded c[j] 4` -> trait pre
             // `bounded_pos_i16_array 4` (= `bounded_i16_array 0 15`).
@@ -491,6 +503,12 @@ fn deserialize_then_decompress_4<Vector: Operations>(
                      (Libcrux_ml_kem.Vector.Traits.f_repr ${coefficient})"#
             );
             re.coefficients[i] = Vector::decompress_ciphertext_coefficient::<4>(coefficient);
+            // Lift the strengthened trait post `bounded_i16_array 0 3328
+            // (f_repr re.coefficients[i])` to `is_bounded_vector 4095
+            // (re.coefficients[i])` so the loop invariant on `re` is
+            // preserved by this iteration.
+            #[cfg(hax)]
+            spec::lemma_decompress_post_to_is_bounded_vector(&re.coefficients[i], 4095);
         }
     }
     re
@@ -501,6 +519,7 @@ fn deserialize_then_decompress_4<Vector: Operations>(
 #[hax_lib::requires(
     serialized.len() == 160
 )]
+#[hax_lib::ensures(|result| spec::is_bounded_poly(4095, &result))]
 fn deserialize_then_decompress_5<Vector: Operations>(
     serialized: &[u8],
 ) -> PolynomialRingElement<Vector> {
@@ -525,7 +544,8 @@ fn deserialize_then_decompress_5<Vector: Operations>(
     Seq.length $serialized == 32 * v $COMPRESSION_FACTOR"#)
 )]
 #[hax_lib::ensures(|result|
-    fstar!(r#"${poly_to_spec::<Vector>} $result ==
+    spec::is_bounded_poly(4095, &result)
+    & fstar!(r#"${poly_to_spec::<Vector>} $result ==
         Hacspec_ml_kem.Serialize.deserialize_then_decompress_v $serialized $COMPRESSION_FACTOR"#)
 )]
 /// Decompress + decode the ciphertext-v ring element.  Output lanes are
