@@ -416,25 +416,23 @@ pub fn serialize_secret_key<const RANK: usize, const T_SIZE: usize>(
 /// Serialize a public key: encode the NTT vector t̂ concatenated with the seed ρ.
 /// Corresponds to `serialize_public_key` in the implementation's `ind_cpa.rs`.
 ///
-/// Note (Blocker A fix, 2026-05-01): the prior signature carried a redundant
-/// `T_SIZE` const-generic equal to `EK_SIZE - 32 = RANK * BYTES_PER_RING_ELEMENT`.
-/// Instantiating that generic from a libcrux call site required nightly
-/// `generic_const_exprs`; the body now writes per-ring-element chunks directly
-/// into `ek`, dropping the generic.
-#[hax_lib::fstar::options("--z3rlimit 150")]
+/// Layout: bytes [0, RANK*384) hold byte_encode(t_as_ntt[i], 12) per polynomial,
+/// bytes [RANK*384, EK_SIZE) hold seed_for_A[0..32].
 #[hax_lib::requires(RANK <= 4 && EK_SIZE == RANK * BYTES_PER_RING_ELEMENT + 32 && seed_for_A.len() >= 32)]
 pub fn serialize_public_key<const RANK: usize, const EK_SIZE: usize>(
     t_as_ntt: &Vector<RANK>,
     seed_for_A: &[u8],
 ) -> [u8; EK_SIZE] {
-    let mut ek = [0u8; EK_SIZE];
-    for i in 0..RANK {
-        let encoded = byte_encode::<{ 32 * 12 }, { 256 * 12 }>(t_as_ntt[i], 12);
-        ek[i * BYTES_PER_RING_ELEMENT..(i + 1) * BYTES_PER_RING_ELEMENT]
-            .copy_from_slice(&encoded);
-    }
-    ek[RANK * BYTES_PER_RING_ELEMENT..].copy_from_slice(&seed_for_A[..32]);
-    ek
+    createi(|k| {
+        if k < RANK * BYTES_PER_RING_ELEMENT {
+            let i = k / BYTES_PER_RING_ELEMENT;
+            let j = k % BYTES_PER_RING_ELEMENT;
+            let encoded = byte_encode::<{ 32 * 12 }, { 256 * 12 }>(t_as_ntt[i], 12);
+            encoded[j]
+        } else {
+            seed_for_A[k - RANK * BYTES_PER_RING_ELEMENT]
+        }
+    })
 }
 
 
