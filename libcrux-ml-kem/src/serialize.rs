@@ -201,7 +201,9 @@ pub(super) fn deserialize_ring_elements_reduced_out<const K: usize, Vector: Oper
 )]
 #[hax_lib::ensures(|_|
     fstar!(r#"${vector_to_spec::<K, Vector>} $K ${deserialized_pk}_future ==
-        Hacspec_ml_kem.Serialize.vector_decode_12_ $K $public_key"#)
+        Hacspec_ml_kem.Serialize.vector_decode_12_ $K $public_key /\
+        (forall (i:nat). i < v $K ==>
+            Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3328) (Seq.index ${deserialized_pk}_future i))"#)
 )]
 pub(super) fn deserialize_ring_elements_reduced<const K: usize, Vector: Operations>(
     public_key: &[u8],
@@ -443,7 +445,8 @@ fn deserialize_then_decompress_11<Vector: Operations>(
     serialized.len() == 32 * COMPRESSION_FACTOR
 )]
 #[hax_lib::ensures(|result|
-    fstar!(r#"${poly_to_spec::<Vector>} $result ==
+    spec::is_bounded_poly(3328, &result)
+    & fstar!(r#"${poly_to_spec::<Vector>} $result ==
         Hacspec_ml_kem.Compress.decompress
             (Hacspec_ml_kem.Serialize.byte_decode_dyn $serialized $COMPRESSION_FACTOR)
             $COMPRESSION_FACTOR"#)

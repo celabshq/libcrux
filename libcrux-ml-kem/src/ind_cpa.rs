@@ -335,6 +335,7 @@ fn sample_vector_cbd_then_ntt<
 #[hax_lib::ensures(|()|
     crate::polynomial::spec::is_bounded_polynomial_vector(3328, &future(public_key).t_as_ntt)
     & crate::polynomial::spec::is_bounded_polynomial_vector(3328, &future(private_key).secret_as_ntt)
+    & crate::polynomial::spec::is_bounded_polynomial_matrix(3328, &future(public_key).A)
     & (match hacspec_ml_kem::ind_cpa::generate_keypair_unpacked::<K>(
         &hacspec_ml_kem::parameters::rank_to_params(K),
         key_generation_seed,
@@ -679,13 +680,26 @@ pub(crate) fn encrypt_unpacked<
     ciphertext
 }
 
-// FOLLOW-UP (Phase D): body needs is_bounded_poly(3328, matrix[i][j]) for the
-// compute_vector_u call. That bound is not carried by IndCpaPublicKeyUnpacked.A's
-// type, and encrypt_unpacked (the only caller) does not assert it either. To
-// flip, sample_matrix_A's ensures must thread the bound up through
-// generate_keypair_unpacked into the public-key struct, then propagate
-// through transpose_a and into encrypt_unpacked's preconditions on
-// public_key.A. Multi-step cascade — out of scope for single-flip.
+// FOLLOW-UP (Phase D, 2026-05-07a retry): cascade infrastructure landed —
+// matrix bound now exported by sample_matrix_A → generate_keypair_unpacked →
+// transpose_a → build_unpacked_public_key_mut. To flip THIS fn:
+//   1. Add `requires is_bounded_polynomial_matrix(3328, &matrix)` here AND in
+//      encrypt_unpacked (its only caller). Then thread up through ind_cca's
+//      encapsulate/decapsulate (panic_free) — both must require bounds on
+//      public_key.ind_cpa_public_key.{A,t_as_ntt}; cascade through
+//      ind_cca::instantiations (3 backends) and mlkem{512,768,1024} unpacked
+//      encapsulate wrappers.
+//   2. Body verification then hits 3 hard SMT walls at rlimit 400 + split_queries:
+//      - line 734 (sample_ring_element_cbd's `domain_separator + K < 256`
+//        requires) — needs explicit `assert (v K <= 4)` hint.
+//      - line 751 (existing `Seq.equal $prf_input ...` assert) — bound predicates
+//        in requires inflate Z3 context, killing previously-tractable seq query.
+//        May need `Seq.lemma_eq_refl` style or split into smaller asserts.
+//      - line 767 (compute_vector_u call) — needs `is_bounded_poly_higher`
+//        widening error_1's bound 3→7, plus matrix bound discharge (should
+//        follow trivially from new requires once Z3 sees it).
+//   3. Each Z3 timeout is ~70s; iterate carefully. Prior attempts at rlimit
+//      400 with split_queries still failed 70s+ on each.
 #[hax_lib::fstar::verification_status(lax)]
 #[hax_lib::ensures(|(ciphertext_out, _)| ciphertext_out.len() == ciphertext.len())]
 #[inline(always)]
@@ -756,11 +770,14 @@ pub(crate) fn encrypt_c1<
     (r_as_ntt, error_2)
 }
 
-// FOLLOW-UP (Phase D): body needs is_bounded_poly(3328, t_as_ntt[i]) for
-// compute_ring_element_v. Same upstream cascade as encrypt_c1: the
-// IndCpaPublicKeyUnpacked.t_as_ntt bound must be threaded from
-// generate_keypair_unpacked / deserialize ring-element callers. Out of scope
-// for single-flip.
+// FOLLOW-UP (Phase D, 2026-05-07a retry): same cascade as encrypt_c1. Producer
+// bound `is_bounded_polynomial_vector(3328, t_as_ntt)` now flows from
+// compute_As_plus_e (existing) and deserialize_ring_elements_reduced (added
+// 2026-05-07a). r_as_ntt + error_2 must come from encrypt_c1's strengthened
+// ensures: `is_bounded_polynomial_vector(3328, r_as_ntt) & is_bounded_poly(3328,
+// error_2)`. Body needs `is_bounded_poly_higher` to widen error_2's sampler
+// bound (3) to compute_ring_element_v's needed bound (3328). Couple flip with
+// encrypt_c1.
 #[hax_lib::fstar::verification_status(lax)]
 #[hax_lib::ensures(|()| future(ciphertext).len() == ciphertext.len())]
 #[inline(always)]
@@ -903,7 +920,9 @@ fn build_unpacked_public_key<
     && public_key.len() == hacspec_ml_kem::parameters::cpa_public_key_size(K)
 )]
 #[hax_lib::ensures(|()| {
-    crate::vector::spec::vector_to_spec(&future(unpacked_public_key).t_as_ntt)
+    crate::polynomial::spec::is_bounded_polynomial_vector(3328, &future(unpacked_public_key).t_as_ntt)
+    & crate::polynomial::spec::is_bounded_polynomial_matrix(3328, &future(unpacked_public_key).A)
+    & (crate::vector::spec::vector_to_spec(&future(unpacked_public_key).t_as_ntt)
         == hacspec_ml_kem::serialize::vector_decode_12::<K>(
             &public_key[..T_AS_NTT_ENCODED_SIZE],
         )
@@ -913,7 +932,7 @@ fn build_unpacked_public_key<
     ) {
         Ok(A_as_ntt) => crate::vector::spec::matrix_to_spec(&future(unpacked_public_key).A) == A_as_ntt,
         Err(_) => true,
-    }
+    }).to_prop()
 })]
 #[hax_lib::fstar::verification_status(panic_free)]
 pub(crate) fn build_unpacked_public_key_mut<
