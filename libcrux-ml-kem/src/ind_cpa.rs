@@ -455,10 +455,14 @@ pub(crate) fn generate_keypair<
 }
 
 /// Serialize the secret key from the unpacked key pair generation.
-// FOLLOW-UP (Phase D): cascade-lax — body composes lax serialize_public_key
-// and serialize_vector; spec equality with hacspec serialize_secret_key tuple
-// needs the Phase C bridge stack first. Stays lax.
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::requires(
+    (hacspec_ml_kem::parameters::is_rank(K)
+        && PUBLIC_KEY_SIZE == hacspec_ml_kem::parameters::cpa_public_key_size(K)
+        && PRIVATE_KEY_SIZE == hacspec_ml_kem::parameters::ranked_bytes_per_ring_element(K)).to_prop()
+    & crate::polynomial::spec::is_bounded_polynomial_vector(3328, &public_key.t_as_ntt)
+    & crate::polynomial::spec::is_bounded_polynomial_vector(3328, &private_key.secret_as_ntt)
+)]
 pub(crate) fn serialize_unpacked_secret_key<
     const K: usize,
     const PRIVATE_KEY_SIZE: usize,
