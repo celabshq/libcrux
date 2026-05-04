@@ -326,7 +326,7 @@ fn sample_from_binomial_distribution_3<Vector: Operations>(
 #[inline(always)]
 #[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::requires((ETA == 2 || ETA == 3) && randomness.len() == ETA * 64)]
-#[hax_lib::ensures(|result| fstar!(r#"Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 7) ${result} /\
+#[hax_lib::ensures(|result| fstar!(r#"Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3) ${result} /\
     ${poly_to_spec::<Vector>} $result ==
         Hacspec_ml_kem.Sampling.sample_poly_cbd ($ETA *! sz 64) ($ETA *! sz 512) $ETA $randomness"#))]
 /// CBD sampling.  Output lanes are in **plain** form (`v c ≡ α mod q`)

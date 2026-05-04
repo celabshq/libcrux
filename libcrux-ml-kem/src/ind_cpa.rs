@@ -193,7 +193,7 @@ pub(crate) fn serialize_vector<const K: usize, Vector: Operations>(
 )]
 #[hax_lib::ensures(|ds|
     (ds == domain_separator + (K as u8)).to_prop()
-    & crate::polynomial::spec::is_bounded_polynomial_vector(7, future(error_1))
+    & crate::polynomial::spec::is_bounded_polynomial_vector(3, future(error_1))
     & (crate::vector::spec::vector_to_spec(future(error_1)) ==
         hacspec_ml_kem::ind_cpa::sample_vector_cbd::<K>(
             ETA2, &prf_input[..32], domain_separator)).to_prop()
@@ -221,7 +221,7 @@ fn sample_ring_element_cbd<
             fstar!(
                 r#"
                 forall (j:nat). j < v $i ==>
-                    Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 7) (Seq.index ${error_1} j)"#
+                    Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3) (Seq.index ${error_1} j)"#
             )
         });
         error_1[i] = sample_from_binomial_distribution::<ETA2, Vector>(&prf_outputs[i]);
@@ -233,12 +233,7 @@ fn sample_ring_element_cbd<
 /// Sample a vector of ring elements from a centered binomial distribution and
 /// convert them into their NTT representations.
 #[inline(always)]
-// FOLLOW-UP (Phase D): body calls ntt_binomially_sampled_ring_element which
-// requires is_bounded_poly(3,·) on its input, but sample_from_binomial_distribution
-// only provides is_bounded_poly(7,·). Tightening sample_from_binomial_distribution's
-// ensures to bounded ETA (real bound is η ∈ {2,3}) is a sampling-spec change
-// out of scope for this sprint.
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::fstar::options(
     "--max_fuel 25 --z3rlimit 400 --ext context_pruning --split_queries always"
 )]
