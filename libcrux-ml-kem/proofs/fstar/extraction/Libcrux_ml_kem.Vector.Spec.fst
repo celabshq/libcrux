@@ -29,6 +29,44 @@ let poly_to_spec
   in
   Libcrux_ml_kem.Vector.Traits.Spec.i16_to_spec_array (mk_usize 256) flat
 
+#push-options "--z3rlimit 200"
+let poly_to_spec_index
+      (#v_V: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_V)
+      (p: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_V)
+      (j: nat)
+    =
+  let flat_fun : (i: usize{i <. mk_usize 256}) -> i16 =
+    fun i ->
+      let chunk : t_Array i16 (mk_usize 16) =
+        Libcrux_ml_kem.Vector.Traits.f_to_i16_array #v_V
+          #FStar.Tactics.Typeclasses.solve
+          (p.Libcrux_ml_kem.Vector.f_coefficients.[ i /! mk_usize 16 <: usize ] <: v_V)
+      in
+      chunk.[ i %! mk_usize 16 <: usize ]
+  in
+  let flat : t_Array i16 (mk_usize 256) =
+    Hacspec_ml_kem.Parameters.createi #i16 (mk_usize 256) #(usize -> i16) flat_fun
+  in
+  Hacspec_ml_kem.Parameters.createi_lemma
+    #Hacspec_ml_kem.Parameters.t_FieldElement
+    (mk_usize 256)
+    #(usize -> Hacspec_ml_kem.Parameters.t_FieldElement)
+    (fun i ->
+        (Libcrux_ml_kem.Vector.Traits.Spec.i16_to_spec_fe (flat.[ i ] <: i16)
+         <: Hacspec_ml_kem.Parameters.t_FieldElement))
+    (mk_usize j);
+  Hacspec_ml_kem.Parameters.createi_lemma #i16 (mk_usize 256) #(usize -> i16) flat_fun (mk_usize j);
+  let chunk_j : t_Array i16 (mk_usize 16) =
+    Libcrux_ml_kem.Vector.Traits.f_to_i16_array #v_V
+      #FStar.Tactics.Typeclasses.solve
+      (p.Libcrux_ml_kem.Vector.f_coefficients.[ mk_usize (j / 16) ] <: v_V)
+  in
+  assert (chunk_j ==
+    Libcrux_ml_kem.Vector.Traits.f_repr #v_V
+      (Seq.index p.Libcrux_ml_kem.Vector.f_coefficients (j / 16)))
+#pop-options
+
 let vector_to_spec
       (v_RANK: usize)
       (#v_V: Type0)
