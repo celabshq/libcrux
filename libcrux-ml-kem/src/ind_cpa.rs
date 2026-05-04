@@ -610,6 +610,7 @@ fn compress_then_serialize_u<
         && CIPHERTEXT_SIZE == hacspec_ml_kem::parameters::cpa_ciphertext_size(K)
         && randomness.len() == hacspec_ml_kem::parameters::SHARED_SECRET_SIZE).to_prop()
     & crate::polynomial::spec::is_bounded_polynomial_matrix(3328, &public_key.A)
+    & crate::polynomial::spec::is_bounded_polynomial_vector(3328, &public_key.t_as_ntt)
 )]
 #[hax_lib::ensures(|result|
     match hacspec_ml_kem::ind_cpa::encrypt_unpacked::<K, C1_LEN, C2_LEN, CIPHERTEXT_SIZE>(
@@ -785,21 +786,17 @@ pub(crate) fn encrypt_c1<
     (r_as_ntt, error_2)
 }
 
-// FOLLOW-UP (2026-05-04 opaque-bounds spike): infrastructure to flip this fn
-// is in place — opacity + SMTPat'd elim_nat + lemma_is_bounded_polynomial_vector_higher
-// + requires triple (is_bounded_polynomial_vector(3328, t_as_ntt) /\
-// is_bounded_polynomial_vector(3328, r_as_ntt) /\ is_bounded_poly(3328, error_2))
-// would suffice, EXCEPT compute_ring_element_v ALSO requires
-// `is_bounded_poly(3328, message_as_ring_element)`, which is NOT exported by
-// deserialize_then_decompress_message's current ensures (only spec equivalence
-// `poly_to_spec result == hacspec deserialize_then_decompress_message`).
-//
-// Next session: strengthen serialize.rs::deserialize_then_decompress_message's
-// ensures to add `is_bounded_poly(3328, result)` (the values are 0 or 1664 by
-// construction, so 1664 ≤ 3328 is sound).  Then re-apply the encrypt_c2 flip
-// + the body's Classical.forall_intro of elim_nat for t_as_ntt and r_as_ntt
-// (see git diff between this comment's commit and HEAD~1 for the body shape).
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::fstar::options("--z3rlimit 400 --ext context_pruning --split_queries always")]
+#[hax_lib::requires(
+    hacspec_ml_kem::parameters::is_rank(K).to_prop()
+    & (V_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_v_compression_factor(K)
+        && C2_LEN == hacspec_ml_kem::parameters::c2_size(K)
+        && ciphertext.len() == hacspec_ml_kem::parameters::c2_size(K)).to_prop()
+    & crate::polynomial::spec::is_bounded_polynomial_vector(3328, t_as_ntt)
+    & crate::polynomial::spec::is_bounded_polynomial_vector(3328, r_as_ntt)
+    & crate::polynomial::spec::is_bounded_poly(3328, error_2)
+)]
 #[hax_lib::ensures(|()| future(ciphertext).len() == ciphertext.len())]
 #[inline(always)]
 pub(crate) fn encrypt_c2<
