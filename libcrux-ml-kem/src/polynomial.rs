@@ -133,6 +133,7 @@ pub(crate) mod spec {
         );
     }
 
+
     /// Conversion lemma: from the strengthened decompress trait post
     /// `bounded_i16_array (mk_i16 0) (mk_i16 3328) (f_repr v)` derive
     /// `is_bounded_vector b v` for any b >= 3328 (b given as parameter
@@ -151,6 +152,11 @@ pub(crate) mod spec {
    E-graph — instead of dumping every per-index bound whenever the predicate
    appears.  Same idiom as `Vector.Traits.Spec.lemma_bounded_i16_array_lookup`. *)
 
+(* The elim lemmas take a `usize` index (matching the underlying body's
+   `forall (i: usize)`).  We provide BOTH a `usize`-indexed and a `nat`-
+   indexed form so consumers using either index type fire automatically.
+   The nat form delegates to the usize form via `mk_int` rebox. *)
+
 let lemma_is_bounded_polynomial_vector_elim
       (v_RANK: usize)
       (#v_Vector: Type0)
@@ -163,8 +169,7 @@ let lemma_is_bounded_polynomial_vector_elim
     : Lemma
         (requires is_bounded_polynomial_vector v_RANK #v_Vector b arr /\
                   v i < v v_RANK)
-        (ensures is_bounded_poly #v_Vector b
-                   (arr.[ i ] <: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector))
+        (ensures is_bounded_poly #v_Vector b (Seq.index arr (v i)))
         [SMTPat (Seq.index arr (v i));
          SMTPat (is_bounded_polynomial_vector v_RANK #v_Vector b arr)] =
   reveal_opaque (`%is_bounded_polynomial_vector)
@@ -182,12 +187,84 @@ let lemma_is_bounded_polynomial_matrix_elim
     : Lemma
         (requires is_bounded_polynomial_matrix v_RANK #v_Vector b m /\
                   v i < v v_RANK)
-        (ensures is_bounded_polynomial_vector v_RANK #v_Vector b
-                   (m.[ i ] <: t_Array (Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector) v_RANK))
+        (ensures is_bounded_polynomial_vector v_RANK #v_Vector b (Seq.index m (v i)))
         [SMTPat (Seq.index m (v i));
          SMTPat (is_bounded_polynomial_matrix v_RANK #v_Vector b m)] =
   reveal_opaque (`%is_bounded_polynomial_matrix)
                  (is_bounded_polynomial_matrix v_RANK #v_Vector b m)
+
+(* Nat-indexed convenience trigger: fires when consumer code accesses
+   `Seq.index arr i` directly (e.g. in lemma_aux contexts where i: nat). *)
+
+let lemma_is_bounded_polynomial_vector_elim_nat
+      (v_RANK: usize)
+      (#v_Vector: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()]
+          i0:
+          Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+      (b: usize)
+      (arr: t_Array (Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector) v_RANK)
+      (i: nat)
+    : Lemma
+        (requires is_bounded_polynomial_vector v_RANK #v_Vector b arr /\
+                  i < v v_RANK)
+        (ensures is_bounded_poly #v_Vector b (Seq.index arr i))
+        [SMTPat (Seq.index arr i);
+         SMTPat (is_bounded_polynomial_vector v_RANK #v_Vector b arr)] =
+  reveal_opaque (`%is_bounded_polynomial_vector)
+                 (is_bounded_polynomial_vector v_RANK #v_Vector b arr);
+  (* Instantiate the body's `forall (i_u: usize)` at the usize whose v-cast
+     equals our nat i. *)
+  assert (v (mk_int #usize_inttype i) == i)
+
+let lemma_is_bounded_polynomial_matrix_elim_nat
+      (v_RANK: usize)
+      (#v_Vector: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()]
+          i0:
+          Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+      (b: usize)
+      (m: t_Array (t_Array (Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector) v_RANK) v_RANK)
+      (i: nat)
+    : Lemma
+        (requires is_bounded_polynomial_matrix v_RANK #v_Vector b m /\
+                  i < v v_RANK)
+        (ensures is_bounded_polynomial_vector v_RANK #v_Vector b (Seq.index m i))
+        [SMTPat (Seq.index m i);
+         SMTPat (is_bounded_polynomial_matrix v_RANK #v_Vector b m)] =
+  reveal_opaque (`%is_bounded_polynomial_matrix)
+                 (is_bounded_polynomial_matrix v_RANK #v_Vector b m);
+  assert (v (mk_int #usize_inttype i) == i)
+
+(* HIGHER (vector): widen the per-element bound on an opaque
+   `is_bounded_polynomial_vector` atom from b1 to b2 (b1 <= b2).
+   Strategy: instantiate the SMTPat'd elim lemma at every i, then call
+   the per-poly higher widening, then re-fold via the intro reveal. *)
+
+#push-options "--z3rlimit 400 --ext context_pruning --split_queries always"
+let lemma_is_bounded_polynomial_vector_higher
+      (v_RANK: usize)
+      (#v_Vector: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()]
+          i0:
+          Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+      (arr: t_Array (Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector) v_RANK)
+      (b1 b2: usize)
+    : Lemma (requires is_bounded_polynomial_vector v_RANK #v_Vector b1 arr /\
+                      v b1 <= v b2)
+            (ensures is_bounded_polynomial_vector v_RANK #v_Vector b2 arr) =
+  assert (Seq.length arr == v v_RANK);
+  let aux (i: nat{i < Seq.length arr})
+      : Lemma (i < v v_RANK ==>
+               is_bounded_poly #v_Vector b2 (Seq.index arr i)) =
+    if i < v v_RANK then begin
+      lemma_is_bounded_polynomial_vector_elim_nat v_RANK #v_Vector b1 arr i;
+      is_bounded_poly_higher #v_Vector (Seq.index arr i) b1 b2
+    end
+  in
+  Classical.forall_intro aux;
+  lemma_is_bounded_polynomial_vector_intro v_RANK #v_Vector arr b2
+#pop-options
 "#))]
     pub(crate) fn lemma_decompress_post_to_is_bounded_vector<Vector: Operations>(
         vec: &Vector,
