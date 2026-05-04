@@ -52,6 +52,7 @@ pub(crate) mod spec {
         )
     }
 
+    #[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
     pub(crate) fn is_bounded_polynomial_vector<const RANK: usize, Vector: Operations>(
         b: usize,
         v: &[PolynomialRingElement<Vector>; RANK],
@@ -59,6 +60,7 @@ pub(crate) mod spec {
         hax_lib::forall(|i: usize| hax_lib::implies(i < RANK, is_bounded_poly(b, &v[i])))
     }
 
+    #[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
     pub(crate) fn is_bounded_polynomial_matrix<const RANK: usize, Vector: Operations>(
         b: usize,
         m: &[[PolynomialRingElement<Vector>; RANK]; RANK],
@@ -66,6 +68,49 @@ pub(crate) mod spec {
         hax_lib::forall(|i: usize| {
             hax_lib::implies(i < RANK, is_bounded_polynomial_vector(b, &m[i]))
         })
+    }
+
+    /// INTRO (vector): from a per-element bound forall, fold into the opaque
+    /// `is_bounded_polynomial_vector` atom.  No SMTPat — call explicitly at
+    /// producer sites.
+    #[hax_lib::requires(fstar!(r#"
+        forall (i:usize). v i < v $RANK ==>
+            is_bounded_poly $b (arr.[ i ] <:
+                Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
+    "#))]
+    #[hax_lib::ensures(|_| is_bounded_polynomial_vector(b, arr))]
+    pub(crate) fn lemma_is_bounded_polynomial_vector_intro<
+        const RANK: usize,
+        Vector: Operations,
+    >(
+        arr: &[PolynomialRingElement<Vector>; RANK],
+        b: usize,
+    ) {
+        hax_lib::fstar!(
+            r#"reveal_opaque (`%is_bounded_polynomial_vector)
+                              (is_bounded_polynomial_vector v_RANK #v_Vector $b $arr)"#
+        );
+    }
+
+    /// INTRO (matrix): from a per-element bound forall (nested), fold into the
+    /// opaque `is_bounded_polynomial_matrix` atom.  No SMTPat.
+    #[hax_lib::requires(fstar!(r#"
+        forall (i:usize). v i < v $RANK ==>
+            is_bounded_polynomial_vector v_RANK $b (m.[ i ] <:
+                t_Array (Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector) v_RANK)
+    "#))]
+    #[hax_lib::ensures(|_| is_bounded_polynomial_matrix(b, m))]
+    pub(crate) fn lemma_is_bounded_polynomial_matrix_intro<
+        const RANK: usize,
+        Vector: Operations,
+    >(
+        m: &[[PolynomialRingElement<Vector>; RANK]; RANK],
+        b: usize,
+    ) {
+        hax_lib::fstar!(
+            r#"reveal_opaque (`%is_bounded_polynomial_matrix)
+                              (is_bounded_polynomial_matrix v_RANK #v_Vector $b $m)"#
+        );
     }
 
     #[hax_lib::requires(is_bounded_vector(b1, vec) & (b1 <= b2))]
@@ -99,6 +144,51 @@ pub(crate) mod spec {
             (Libcrux_ml_kem.Vector.Traits.f_repr $vec) /\ v $b >= 3328 /\ v $b < 32768
     "#))]
     #[hax_lib::ensures(|_| is_bounded_vector(b, vec))]
+    #[cfg_attr(hax, hax_lib::fstar::after(r#"
+(* SMTPat'd elim lemmas (consume direction).  The dual-trigger multi-pattern
+   `[SMTPat (Seq.index arr i); SMTPat (is_bounded_polynomial_vector ...)]`
+   only fires when Z3 has BOTH the indexed access AND the opaque atom in its
+   E-graph — instead of dumping every per-index bound whenever the predicate
+   appears.  Same idiom as `Vector.Traits.Spec.lemma_bounded_i16_array_lookup`. *)
+
+let lemma_is_bounded_polynomial_vector_elim
+      (v_RANK: usize)
+      (#v_Vector: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()]
+          i0:
+          Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+      (b: usize)
+      (arr: t_Array (Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector) v_RANK)
+      (i: usize)
+    : Lemma
+        (requires is_bounded_polynomial_vector v_RANK #v_Vector b arr /\
+                  v i < v v_RANK)
+        (ensures is_bounded_poly #v_Vector b
+                   (arr.[ i ] <: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector))
+        [SMTPat (Seq.index arr (v i));
+         SMTPat (is_bounded_polynomial_vector v_RANK #v_Vector b arr)] =
+  reveal_opaque (`%is_bounded_polynomial_vector)
+                 (is_bounded_polynomial_vector v_RANK #v_Vector b arr)
+
+let lemma_is_bounded_polynomial_matrix_elim
+      (v_RANK: usize)
+      (#v_Vector: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()]
+          i0:
+          Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+      (b: usize)
+      (m: t_Array (t_Array (Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector) v_RANK) v_RANK)
+      (i: usize)
+    : Lemma
+        (requires is_bounded_polynomial_matrix v_RANK #v_Vector b m /\
+                  v i < v v_RANK)
+        (ensures is_bounded_polynomial_vector v_RANK #v_Vector b
+                   (m.[ i ] <: t_Array (Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector) v_RANK))
+        [SMTPat (Seq.index m (v i));
+         SMTPat (is_bounded_polynomial_matrix v_RANK #v_Vector b m)] =
+  reveal_opaque (`%is_bounded_polynomial_matrix)
+                 (is_bounded_polynomial_matrix v_RANK #v_Vector b m)
+"#))]
     pub(crate) fn lemma_decompress_post_to_is_bounded_vector<Vector: Operations>(
         vec: &Vector,
         b: usize,
