@@ -401,15 +401,16 @@ pub fn deserialize_ring_elements_reduced<const RANK: usize>(encoded: &[u8]) -> V
 
 /// Serialize a vector of polynomials with 12-bit coefficients.
 /// Corresponds to `serialize_secret_key` / `serialize_vector` in the implementation.
-/// Thin allocating wrapper around [`serialize_secret_key_into`].
-#[hax_lib::fstar::options("--z3rlimit 150")]
 #[hax_lib::requires(RANK <= 4 && T_SIZE == RANK * BYTES_PER_RING_ELEMENT)]
 pub fn serialize_secret_key<const RANK: usize, const T_SIZE: usize>(
     vector: &Vector<RANK>,
 ) -> [u8; T_SIZE] {
-    let mut out = [0u8; T_SIZE];
-    serialize_secret_key_into::<RANK>(vector, &mut out);
-    out
+    createi(|k| {
+        let i = k / BYTES_PER_RING_ELEMENT;
+        let j = k % BYTES_PER_RING_ELEMENT;
+        let encoded = byte_encode::<{ 32 * 12 }, { 256 * 12 }>(vector[i], 12);
+        encoded[j]
+    })
 }
 
 /// Serialize a public key: encode the NTT vector t̂ concatenated with the seed ρ.
