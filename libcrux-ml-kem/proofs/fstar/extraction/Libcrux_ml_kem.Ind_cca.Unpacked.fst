@@ -15,8 +15,6 @@ let _ =
   let open Libcrux_ml_kem.Vector.Traits in
   ()
 
-#push-options "--admit_smt_queries true"
-
 #push-options "--z3rlimit 300 --split_queries always"
 
 let unpack_public_key
@@ -130,9 +128,8 @@ let unpack_public_key
     <:
     t_MlKemPublicKeyUnpacked v_K v_Vector
   in
+  let _:Prims.unit = admit () (* Panic freedom *) in
   unpacked_public_key
-
-#pop-options
 
 #pop-options
 
