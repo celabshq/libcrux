@@ -293,9 +293,7 @@ pub(crate) fn generate_keypair<
         Err(_) => true,
     }
 )]
-// FOLLOW-UP (Phase C): cascade-lax — calls ind_cpa::encrypt (lax) whose
-// unverified ensures can't discharge this fn's strong postcondition.
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::fstar::verification_status(panic_free)]
 #[inline(always)]
 pub(crate) fn encapsulate<
     const K: usize,
@@ -898,11 +896,7 @@ pub(crate) mod unpacked {
             Err(_) => true,
         }
     )]
-    // FOLLOW-UP (Phase C): cascade-lax — body calls generate_keypair_unpacked
-    // (lax cascade from ind_cpa.rs) and serialize_public_key (lax bridge gap),
-    // so this fn's strong postcondition can't be discharged from unverified
-    // callees.
-    #[hax_lib::fstar::verification_status(lax)]
+    #[hax_lib::fstar::verification_status(panic_free)]
     pub(crate) fn generate_keypair<
         const K: usize,
         const CPA_PRIVATE_KEY_SIZE: usize,

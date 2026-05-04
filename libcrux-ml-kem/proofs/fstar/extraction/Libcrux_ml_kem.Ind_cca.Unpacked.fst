@@ -634,8 +634,6 @@ let transpose_a
 
 #push-options "--z3rlimit 300 --ext context_pruning --split_queries always"
 
-#push-options "--admit_smt_queries true"
-
 let generate_keypair
       (v_K v_CPA_PRIVATE_KEY_SIZE v_PRIVATE_KEY_SIZE v_PUBLIC_KEY_SIZE v_ETA1 v_ETA1_RANDOMNESS_SIZE:
           usize)
@@ -779,9 +777,8 @@ let generate_keypair
     <:
     t_MlKemKeyPairUnpacked v_K v_Vector
   in
+  let _:Prims.unit = admit () (* Panic freedom *) in
   out
-
-#pop-options
 
 #pop-options
 
