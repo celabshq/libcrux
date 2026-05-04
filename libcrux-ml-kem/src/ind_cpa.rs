@@ -353,11 +353,13 @@ fn sample_vector_cbd_then_ntt<
 #[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::fstar::before(r#"[@ "opaque_to_smt"]"#)]
 #[hax_lib::fstar::options("--z3rlimit 500 --ext context_pruning")]
+// Use .to_prop() & to create logical (l_and) conjunction so F* can propagate
+// is_rank(K) as a hypothesis when type-checking eta1_randomness_size(K)'s precondition.
 #[hax_lib::requires(
-    hacspec_ml_kem::parameters::is_rank(K)
-    && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
-    && ETA1 == hacspec_ml_kem::parameters::eta1(K)
-    && key_generation_seed.len() == hacspec_ml_kem::parameters::CPA_KEY_GENERATION_SEED_SIZE
+    hacspec_ml_kem::parameters::is_rank(K).to_prop()
+    & (ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
+        && ETA1 == hacspec_ml_kem::parameters::eta1(K)
+        && key_generation_seed.len() == hacspec_ml_kem::parameters::CPA_KEY_GENERATION_SEED_SIZE).to_prop()
 )]
 #[hax_lib::ensures(|()|
     match hacspec_ml_kem::ind_cpa::generate_keypair_unpacked::<K>(
@@ -628,18 +630,18 @@ fn compress_then_serialize_u<
 #[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::fstar::options("--z3rlimit 800 --ext context_pruning")]
 #[hax_lib::requires(
-    hacspec_ml_kem::parameters::is_rank(K)
-    && ETA1 == hacspec_ml_kem::parameters::eta1(K)
-    && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
-    && ETA2 == hacspec_ml_kem::parameters::eta2(K)
-    && ETA2_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta2_randomness_size(K)
-    && C1_LEN == hacspec_ml_kem::parameters::c1_size(K)
-    && C2_LEN == hacspec_ml_kem::parameters::c2_size(K)
-    && U_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_u_compression_factor(K)
-    && V_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_v_compression_factor(K)
-    && BLOCK_LEN == hacspec_ml_kem::parameters::c1_block_size(K)
-    && CIPHERTEXT_SIZE == hacspec_ml_kem::parameters::cpa_ciphertext_size(K)
-    && randomness.len() == hacspec_ml_kem::parameters::SHARED_SECRET_SIZE
+    hacspec_ml_kem::parameters::is_rank(K).to_prop()
+    & (ETA1 == hacspec_ml_kem::parameters::eta1(K)
+        && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
+        && ETA2 == hacspec_ml_kem::parameters::eta2(K)
+        && ETA2_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta2_randomness_size(K)
+        && C1_LEN == hacspec_ml_kem::parameters::c1_size(K)
+        && C2_LEN == hacspec_ml_kem::parameters::c2_size(K)
+        && U_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_u_compression_factor(K)
+        && V_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_v_compression_factor(K)
+        && BLOCK_LEN == hacspec_ml_kem::parameters::c1_block_size(K)
+        && CIPHERTEXT_SIZE == hacspec_ml_kem::parameters::cpa_ciphertext_size(K)
+        && randomness.len() == hacspec_ml_kem::parameters::SHARED_SECRET_SIZE).to_prop()
 )]
 #[hax_lib::ensures(|result|
     match hacspec_ml_kem::ind_cpa::encrypt_unpacked::<K, C1_LEN, C2_LEN, CIPHERTEXT_SIZE>(
@@ -815,20 +817,20 @@ pub(crate) fn encrypt_c2<
 #[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::fstar::options("--z3rlimit 500 --ext context_pruning")]
 #[hax_lib::requires(
-    hacspec_ml_kem::parameters::is_rank(K)
-    && ETA1 == hacspec_ml_kem::parameters::eta1(K)
-    && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
-    && ETA2 == hacspec_ml_kem::parameters::eta2(K)
-    && BLOCK_LEN == hacspec_ml_kem::parameters::c1_block_size(K)
-    && ETA2_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta2_randomness_size(K)
-    && U_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_u_compression_factor(K)
-    && V_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_v_compression_factor(K)
-    && public_key.len() == hacspec_ml_kem::parameters::cpa_public_key_size(K)
-    && randomness.len() == hacspec_ml_kem::parameters::SHARED_SECRET_SIZE
-    && CIPHERTEXT_SIZE == hacspec_ml_kem::parameters::cpa_ciphertext_size(K)
-    && T_AS_NTT_ENCODED_SIZE == hacspec_ml_kem::parameters::t_as_ntt_encoded_size(K)
-    && C1_LEN == hacspec_ml_kem::parameters::c1_size(K)
-    && C2_LEN == hacspec_ml_kem::parameters::c2_size(K)
+    hacspec_ml_kem::parameters::is_rank(K).to_prop()
+    & (ETA1 == hacspec_ml_kem::parameters::eta1(K)
+        && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
+        && ETA2 == hacspec_ml_kem::parameters::eta2(K)
+        && BLOCK_LEN == hacspec_ml_kem::parameters::c1_block_size(K)
+        && ETA2_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta2_randomness_size(K)
+        && U_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_u_compression_factor(K)
+        && V_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_v_compression_factor(K)
+        && public_key.len() == hacspec_ml_kem::parameters::cpa_public_key_size(K)
+        && randomness.len() == hacspec_ml_kem::parameters::SHARED_SECRET_SIZE
+        && CIPHERTEXT_SIZE == hacspec_ml_kem::parameters::cpa_ciphertext_size(K)
+        && T_AS_NTT_ENCODED_SIZE == hacspec_ml_kem::parameters::t_as_ntt_encoded_size(K)
+        && C1_LEN == hacspec_ml_kem::parameters::c1_size(K)
+        && C2_LEN == hacspec_ml_kem::parameters::c2_size(K)).to_prop()
 )]
 #[hax_lib::ensures(|result|
     match hacspec_ml_kem::ind_cpa::encrypt::<K, C1_LEN, C2_LEN, CIPHERTEXT_SIZE>(
