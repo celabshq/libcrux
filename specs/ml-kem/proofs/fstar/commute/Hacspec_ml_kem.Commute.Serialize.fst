@@ -1,7 +1,8 @@
 module Hacspec_ml_kem.Commute.Serialize
-/// Phase C bridge lemmas connecting `Hacspec_ml_kem.Serialize.serialize_secret_key`
-/// to per-element `byte_encode` calls.  These unblock `serialize_vector` and
-/// `compress_then_serialize_u` in `Libcrux_ml_kem.Ind_cpa`.
+/// Bridge lemmas connecting the Hacspec serializers to their createi structure.
+///
+/// serialize_secret_key: chunk equality (per polynomial) and all-chunks forall.
+/// serialize_public_key: vector part == serialize_secret_key; seed part == seed[0..32].
 ///
 /// Strategy: `serialize_secret_key` is defined as a direct `createi` call in the
 /// extraction (not a fold_range loop).  Z3 unfolds the transparent definition,
@@ -79,6 +80,7 @@ let serialize_secret_key_chunk_eq
 #pop-options
 
 /// Forall-quantified version for use in loop-invariant closures.
+#push-options "--z3rlimit 80"
 let serialize_secret_key_all_chunks_eq
       (v_K: usize)
       (spec_vec: t_Array (t_Array P.t_FieldElement (mk_usize 256)) v_K)
@@ -108,3 +110,93 @@ let serialize_secret_key_all_chunks_eq
     then serialize_secret_key_chunk_eq v_K spec_vec (mk_usize j)
   in
   FStar.Classical.forall_intro aux
+#pop-options
+
+(* ------------------------------------------------------------------ *)
+(* serialize_public_key bridge                                          *)
+(* ------------------------------------------------------------------ *)
+
+/// The first RANK*384 bytes of serialize_public_key equal serialize_secret_key.
+/// Both are createi-based; the SMTPat fires for each side and Z3 closes by
+/// the if-branch condition (m < RANK*384) and matching arithmetic.
+#push-options "--z3rlimit 300"
+let serialize_public_key_vector_eq
+      (v_K: usize)
+      (tt_as_ntt: t_Array (t_Array P.t_FieldElement (mk_usize 256)) v_K)
+      (seed: t_Slice u8)
+    : Lemma
+      (requires
+        v v_K <= 4 /\
+        (Core_models.Slice.impl__len #u8 seed <: usize) >=. mk_usize 32)
+      (ensures
+        (let v_EK_SIZE = v_K *! P.v_BYTES_PER_RING_ELEMENT +! mk_usize 32 in
+         Seq.slice
+           (S.serialize_public_key v_K v_EK_SIZE tt_as_ntt seed)
+           0
+           (v v_K * v P.v_BYTES_PER_RING_ELEMENT)
+         == S.serialize_secret_key v_K (v_K *! P.v_BYTES_PER_RING_ELEMENT) tt_as_ntt))
+    =
+  let v_EK_SIZE = v_K *! P.v_BYTES_PER_RING_ELEMENT +! mk_usize 32 in
+  let pk = S.serialize_public_key v_K v_EK_SIZE tt_as_ntt seed in
+  let sk = S.serialize_secret_key v_K (v_K *! P.v_BYTES_PER_RING_ELEMENT) tt_as_ntt in
+  let n = v v_K * v P.v_BYTES_PER_RING_ELEMENT in
+  let aux (m: nat{m < n})
+    : Lemma (Seq.index (Seq.slice pk 0 n) m == Seq.index sk m) =
+    // Bridge slice to full-array index
+    FStar.Seq.Base.lemma_index_slice pk 0 n m;
+    // nat→usize so createi_lemma SMTPat fires on both pk[m] and sk[m]
+    let km = mk_usize m in
+    assert (m == v km);
+    // m < n = RANK*384: the if-branch fires in f_pk(km), giving byte_encode(...)[km%384]
+    // sk[m] = f_sk(km) = byte_encode(...)[km%384] — same result
+    ()
+  in
+  let aux' (m: nat)
+    : Lemma (m < n ==> Seq.index (Seq.slice pk 0 n) m == Seq.index sk m) =
+    if m < n then aux m
+  in
+  FStar.Classical.forall_intro aux';
+  FStar.Seq.lemma_eq_intro (Seq.slice pk 0 n) sk
+#pop-options
+
+/// The trailing 32 bytes of serialize_public_key equal Seq.slice seed 0 32.
+/// The else-branch in f_pk fires for k >= RANK*384, giving seed[k - RANK*384].
+#push-options "--z3rlimit 300"
+let serialize_public_key_seed_eq
+      (v_K: usize)
+      (tt_as_ntt: t_Array (t_Array P.t_FieldElement (mk_usize 256)) v_K)
+      (seed: t_Slice u8)
+    : Lemma
+      (requires
+        v v_K <= 4 /\
+        (Core_models.Slice.impl__len #u8 seed <: usize) >=. mk_usize 32)
+      (ensures
+        (let v_EK_SIZE = v_K *! P.v_BYTES_PER_RING_ELEMENT +! mk_usize 32 in
+         let b = v v_K * v P.v_BYTES_PER_RING_ELEMENT in
+         Seq.slice
+           (S.serialize_public_key v_K v_EK_SIZE tt_as_ntt seed)
+           b
+           (b + 32)
+         == Seq.slice seed 0 32))
+    =
+  let v_EK_SIZE = v_K *! P.v_BYTES_PER_RING_ELEMENT +! mk_usize 32 in
+  let pk = S.serialize_public_key v_K v_EK_SIZE tt_as_ntt seed in
+  let b = v v_K * v P.v_BYTES_PER_RING_ELEMENT in
+  let aux (m: nat{m < 32})
+    : Lemma (Seq.index (Seq.slice pk b (b + 32)) m == Seq.index (Seq.slice seed 0 32) m) =
+    FStar.Seq.Base.lemma_index_slice pk b (b + 32) m;
+    FStar.Seq.Base.lemma_index_slice seed 0 32 m;
+    // nat→usize hint: pk[b+m] = f_pk(mk_usize(b+m))
+    let km = mk_usize (b + m) in
+    assert (b + m == v km);
+    // else-branch: km >=. (v_K *! v_BYTES_PER_RING_ELEMENT) so seed[km - b_usize] fires
+    // seed[(b+m) - b] = seed[m] = (Seq.slice seed 0 32)[m]
+    ()
+  in
+  let aux' (m: nat)
+    : Lemma (m < 32 ==> Seq.index (Seq.slice pk b (b + 32)) m == Seq.index (Seq.slice seed 0 32) m) =
+    if m < 32 then aux m
+  in
+  FStar.Classical.forall_intro aux';
+  FStar.Seq.lemma_eq_intro (Seq.slice pk b (b + 32)) (Seq.slice seed 0 32)
+#pop-options
