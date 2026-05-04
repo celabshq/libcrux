@@ -72,9 +72,6 @@ pub(crate) mod unpacked {
 use unpacked::*;
 
 /// Concatenate `t` and `ρ` into the public key.
-// FOLLOW-UP (Phase C): cascade-lax from serialize_public_key_mut — see
-// the bridge-lemma plan documented there.
-#[hax_lib::fstar::verification_status(lax)]
 #[inline(always)]
 #[hax_lib::requires(
     (hacspec_ml_kem::parameters::is_rank(K)
@@ -107,25 +104,17 @@ pub(crate) fn serialize_public_key<
 
 /// Concatenate `t` and `ρ` into the public key.
 #[inline(always)]
+#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::requires(
     (hacspec_ml_kem::parameters::is_rank(K)
         && PUBLIC_KEY_SIZE == hacspec_ml_kem::parameters::cpa_public_key_size(K)
         && seed_for_a.len() == 32).to_prop()
     & crate::polynomial::spec::is_bounded_polynomial_vector(3328, t_as_ntt)
 )]
-// FOLLOW-UP (Phase C): bridge to Hacspec_ml_kem.Serialize.serialize_public_key
-// requires three layered admitted-or-real lemmas:
-//   1. chunk-decomposition of serialize_secret_key — per-index byte_encode
-//      equals Seq.slice (serialize_secret_key K T_SIZE v) (j*384) ((j+1)*384);
-//   2. serialize_secret_key_into v out == serialize_secret_key K T_SIZE v
-//      whenever len out == T_SIZE (the in-place form ignores out's content);
-//   3. serialize_public_key K EK_SIZE v seed
-//      == Seq.append (serialize_secret_key K (K*!384) v) seed.
-// Marked lax so Ind_cpa.fst.checked rebuilds green.  A scaffolding bridge
-// (just #3) was tried and removed — landing only #3 was insufficient
-// to remove any lax marker (verified empirically 2026-05-02), so the
-// whole stack must be discharged together when this fn is restored.
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::ensures(|()| fstar!(r#"${serialized}_future ==
+    Hacspec_ml_kem.Serialize.serialize_public_key $K $PUBLIC_KEY_SIZE
+      (${vector_to_spec::<K, Vector>} $K $t_as_ntt)
+      $seed_for_a"#))]
 pub(crate) fn serialize_public_key_mut<
     const K: usize,
     const PUBLIC_KEY_SIZE: usize,
@@ -145,25 +134,16 @@ pub(crate) fn serialize_public_key_mut<
 
 /// Call [`serialize_uncompressed_ring_element`] for each ring element.
 #[inline(always)]
-// FOLLOW-UP (Phase D): body has eq_intro spec-equality assertion that fails
-// to discharge under panic_free at rlimit 800 (Z3 'incomplete quantifiers').
-// Stays lax pending body-proof restructure or rlimit cap relaxation.
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::fstar::options("--z3rlimit 800 --ext context_pruning")]
 #[hax_lib::requires(
     (hacspec_ml_kem::parameters::is_rank(K)
         && out.len() == hacspec_ml_kem::parameters::ranked_bytes_per_ring_element(K)).to_prop()
     & crate::polynomial::spec::is_bounded_polynomial_vector(3328, key)
 )]
-#[hax_lib::ensures(|()| {
-    let mut expected = [0u8; 4 * BYTES_PER_RING_ELEMENT];
-    let len = K * BYTES_PER_RING_ELEMENT;
-    hacspec_ml_kem::serialize::serialize_secret_key_into::<K>(
-        &crate::vector::spec::vector_to_spec(key),
-        &mut expected[..len],
-    );
-    future(out)[..] == expected[..len]
-})]
+#[hax_lib::ensures(|()| fstar!(r#"${out}_future ==
+    Hacspec_ml_kem.Serialize.serialize_secret_key $K ($K *! sz 384)
+      (${vector_to_spec::<K, Vector>} $K $key)"#))]
 pub(crate) fn serialize_vector<const K: usize, Vector: Operations>(
     key: &[PolynomialRingElement<Vector>; K],
     out: &mut [u8],
@@ -196,12 +176,6 @@ pub(crate) fn serialize_vector<const K: usize, Vector: Operations>(
             );
         }
     }
-
-    hax_lib::fstar!(
-        r#"eq_intro $out
-          (Hacspec_ml_kem.Serialize.serialize_secret_key $K ($K *! sz 384)
-            (${vector_to_spec::<K, Vector>} $K $key))"#
-    );
 }
 
 /// Sample a vector of ring elements from a centered binomial distribution.
