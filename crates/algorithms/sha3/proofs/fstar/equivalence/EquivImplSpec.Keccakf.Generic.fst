@@ -1283,30 +1283,162 @@ let lemma_rho_thru_4_extract_lane
     (spec-side 25-position result with matching offsets), the goal reduces to
     pointwise equality + [eq_intro]. *)
 
-(* USER-1 — STABILITY ADMIT, NOT A SOUNDNESS ADMIT.
+(* Theta+Rho commutativity (2026-05-04: factored as 5 row-helpers + a dispatcher).
 
-   The proof body below is sound — direct user evidence:
-   replacing the final [eq_intro] with 25 literal-index asserts
-   ([assert (lhs.[mk_usize K] == rhs.[mk_usize K])] for K=0..24)
-   discharges 293 of 294 split sub-queries in <300 ms each. Each
-   asserts matches a specific conjunct of [lemma_rho_thru_4_extract_lane]
-   and [lemma_rho_theta_spec] literally. The remaining sub-query is
-   the [eq_intro]'s forall-precondition consolidation, which Z3
-   cannot lift from 25 specific facts to a forall under [--ifuel 1]
-   without explicit [forall_intro] scaffolding. (See agent-sha3
-   commit 80e03e0a5 / proof_milestones.md Note A for the three
-   reverted stabilization attempts.)
+   The cumulative [lemma_rho_thru_4_extract_lane] supplies all 25 impl-side
+   per-index equalities; [lemma_rho_theta_spec] supplies the matching 25
+   spec-side ones; [lemma_theta_extract_lane] bridges the two via
+   [d_matches_spec]. The remaining work is just lifting 25 in-scope
+   pointwise equalities to a forall for [eq_intro].
 
-   The structural fix is to factor this lemma into 5 row-helpers
-   (one per row of 5 indices) using the existing
-   [lemma_rho_thru_K_extract_lane] partials, then assemble.
-   Estimated ~1 sprint of careful work; deferred to a dedicated
-   stabilization session.
+   Prior attempts that fed all 25 asserts to a single [eq_intro] timed out
+   on the forall-precondition consolidation (see proof_milestones.md
+   Note A). The fix is to split the post into 5 row-shaped 5-conjunct
+   sub-goals (each closes monolithically) and assemble with a 5-way
+   case-split on [i / 5]. *)
 
-   Admitting here unblocks the entire SHA-3 sponge / keccak
-   verification chain (which is otherwise sound and has been
-   verified in the past — Apr 26 cache). *)
-#push-options "--admit_smt_queries true"
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 400"
+let lemma_theta_rho_row_0_to_spec
+      (v_N: usize) (#v_T: Type0)
+      {| inst: Libcrux_sha3.Traits.t_KeccakItem v_T v_N |}
+      (lc: lane_correctness v_N #v_T)
+      (ks: Libcrux_sha3.Generic_keccak.t_KeccakState v_N v_T)
+      (l: nat{l < v v_N})
+  : Lemma
+      (let s = ks.Libcrux_sha3.Generic_keccak.f_st in
+       let ks', d = Libcrux_sha3.Generic_keccak.impl_2__theta v_N #v_T ks in
+       let ks'' = Libcrux_sha3.Generic_keccak.impl_2__rho v_N #v_T ks' d in
+       let lhs = extract_lane v_N lc ks''.Libcrux_sha3.Generic_keccak.f_st l in
+       let rhs = Hacspec_sha3.Keccak_f.rho
+                   (Hacspec_sha3.Keccak_f.theta (extract_lane v_N lc s l)) in
+       lhs.[mk_usize 0] == rhs.[mk_usize 0] /\
+       lhs.[mk_usize 1] == rhs.[mk_usize 1] /\
+       lhs.[mk_usize 2] == rhs.[mk_usize 2] /\
+       lhs.[mk_usize 3] == rhs.[mk_usize 3] /\
+       lhs.[mk_usize 4] == rhs.[mk_usize 4])
+  = let open Libcrux_sha3.Generic_keccak in
+    let s = ks.f_st in
+    let ks', d = impl_2__theta v_N #v_T ks in
+    let state = extract_lane v_N lc s l in
+    lemma_theta_extract_lane v_N lc ks l;
+    lemma_rho_thru_4_extract_lane v_N lc ks' d l;
+    lemma_rho_theta_spec state;
+    Lemmas.lemma_rotate_left_zero (state.[mk_usize 0] ^. spec_d state (mk_usize 0))
+#pop-options
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 400"
+let lemma_theta_rho_row_1_to_spec
+      (v_N: usize) (#v_T: Type0)
+      {| inst: Libcrux_sha3.Traits.t_KeccakItem v_T v_N |}
+      (lc: lane_correctness v_N #v_T)
+      (ks: Libcrux_sha3.Generic_keccak.t_KeccakState v_N v_T)
+      (l: nat{l < v v_N})
+  : Lemma
+      (let s = ks.Libcrux_sha3.Generic_keccak.f_st in
+       let ks', d = Libcrux_sha3.Generic_keccak.impl_2__theta v_N #v_T ks in
+       let ks'' = Libcrux_sha3.Generic_keccak.impl_2__rho v_N #v_T ks' d in
+       let lhs = extract_lane v_N lc ks''.Libcrux_sha3.Generic_keccak.f_st l in
+       let rhs = Hacspec_sha3.Keccak_f.rho
+                   (Hacspec_sha3.Keccak_f.theta (extract_lane v_N lc s l)) in
+       lhs.[mk_usize 5] == rhs.[mk_usize 5] /\
+       lhs.[mk_usize 6] == rhs.[mk_usize 6] /\
+       lhs.[mk_usize 7] == rhs.[mk_usize 7] /\
+       lhs.[mk_usize 8] == rhs.[mk_usize 8] /\
+       lhs.[mk_usize 9] == rhs.[mk_usize 9])
+  = let open Libcrux_sha3.Generic_keccak in
+    let s = ks.f_st in
+    let ks', d = impl_2__theta v_N #v_T ks in
+    let state = extract_lane v_N lc s l in
+    lemma_theta_extract_lane v_N lc ks l;
+    lemma_rho_thru_4_extract_lane v_N lc ks' d l;
+    lemma_rho_theta_spec state
+#pop-options
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 400"
+let lemma_theta_rho_row_2_to_spec
+      (v_N: usize) (#v_T: Type0)
+      {| inst: Libcrux_sha3.Traits.t_KeccakItem v_T v_N |}
+      (lc: lane_correctness v_N #v_T)
+      (ks: Libcrux_sha3.Generic_keccak.t_KeccakState v_N v_T)
+      (l: nat{l < v v_N})
+  : Lemma
+      (let s = ks.Libcrux_sha3.Generic_keccak.f_st in
+       let ks', d = Libcrux_sha3.Generic_keccak.impl_2__theta v_N #v_T ks in
+       let ks'' = Libcrux_sha3.Generic_keccak.impl_2__rho v_N #v_T ks' d in
+       let lhs = extract_lane v_N lc ks''.Libcrux_sha3.Generic_keccak.f_st l in
+       let rhs = Hacspec_sha3.Keccak_f.rho
+                   (Hacspec_sha3.Keccak_f.theta (extract_lane v_N lc s l)) in
+       lhs.[mk_usize 10] == rhs.[mk_usize 10] /\
+       lhs.[mk_usize 11] == rhs.[mk_usize 11] /\
+       lhs.[mk_usize 12] == rhs.[mk_usize 12] /\
+       lhs.[mk_usize 13] == rhs.[mk_usize 13] /\
+       lhs.[mk_usize 14] == rhs.[mk_usize 14])
+  = let open Libcrux_sha3.Generic_keccak in
+    let s = ks.f_st in
+    let ks', d = impl_2__theta v_N #v_T ks in
+    let state = extract_lane v_N lc s l in
+    lemma_theta_extract_lane v_N lc ks l;
+    lemma_rho_thru_4_extract_lane v_N lc ks' d l;
+    lemma_rho_theta_spec state
+#pop-options
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 400"
+let lemma_theta_rho_row_3_to_spec
+      (v_N: usize) (#v_T: Type0)
+      {| inst: Libcrux_sha3.Traits.t_KeccakItem v_T v_N |}
+      (lc: lane_correctness v_N #v_T)
+      (ks: Libcrux_sha3.Generic_keccak.t_KeccakState v_N v_T)
+      (l: nat{l < v v_N})
+  : Lemma
+      (let s = ks.Libcrux_sha3.Generic_keccak.f_st in
+       let ks', d = Libcrux_sha3.Generic_keccak.impl_2__theta v_N #v_T ks in
+       let ks'' = Libcrux_sha3.Generic_keccak.impl_2__rho v_N #v_T ks' d in
+       let lhs = extract_lane v_N lc ks''.Libcrux_sha3.Generic_keccak.f_st l in
+       let rhs = Hacspec_sha3.Keccak_f.rho
+                   (Hacspec_sha3.Keccak_f.theta (extract_lane v_N lc s l)) in
+       lhs.[mk_usize 15] == rhs.[mk_usize 15] /\
+       lhs.[mk_usize 16] == rhs.[mk_usize 16] /\
+       lhs.[mk_usize 17] == rhs.[mk_usize 17] /\
+       lhs.[mk_usize 18] == rhs.[mk_usize 18] /\
+       lhs.[mk_usize 19] == rhs.[mk_usize 19])
+  = let open Libcrux_sha3.Generic_keccak in
+    let s = ks.f_st in
+    let ks', d = impl_2__theta v_N #v_T ks in
+    let state = extract_lane v_N lc s l in
+    lemma_theta_extract_lane v_N lc ks l;
+    lemma_rho_thru_4_extract_lane v_N lc ks' d l;
+    lemma_rho_theta_spec state
+#pop-options
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 400"
+let lemma_theta_rho_row_4_to_spec
+      (v_N: usize) (#v_T: Type0)
+      {| inst: Libcrux_sha3.Traits.t_KeccakItem v_T v_N |}
+      (lc: lane_correctness v_N #v_T)
+      (ks: Libcrux_sha3.Generic_keccak.t_KeccakState v_N v_T)
+      (l: nat{l < v v_N})
+  : Lemma
+      (let s = ks.Libcrux_sha3.Generic_keccak.f_st in
+       let ks', d = Libcrux_sha3.Generic_keccak.impl_2__theta v_N #v_T ks in
+       let ks'' = Libcrux_sha3.Generic_keccak.impl_2__rho v_N #v_T ks' d in
+       let lhs = extract_lane v_N lc ks''.Libcrux_sha3.Generic_keccak.f_st l in
+       let rhs = Hacspec_sha3.Keccak_f.rho
+                   (Hacspec_sha3.Keccak_f.theta (extract_lane v_N lc s l)) in
+       lhs.[mk_usize 20] == rhs.[mk_usize 20] /\
+       lhs.[mk_usize 21] == rhs.[mk_usize 21] /\
+       lhs.[mk_usize 22] == rhs.[mk_usize 22] /\
+       lhs.[mk_usize 23] == rhs.[mk_usize 23] /\
+       lhs.[mk_usize 24] == rhs.[mk_usize 24])
+  = let open Libcrux_sha3.Generic_keccak in
+    let s = ks.f_st in
+    let ks', d = impl_2__theta v_N #v_T ks in
+    let state = extract_lane v_N lc s l in
+    lemma_theta_extract_lane v_N lc ks l;
+    lemma_rho_thru_4_extract_lane v_N lc ks' d l;
+    lemma_rho_theta_spec state
+#pop-options
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 400"
 let lemma_theta_rho_to_spec
       (v_N: usize) (#v_T: Type0)
       {| inst: Libcrux_sha3.Traits.t_KeccakItem v_T v_N |}
@@ -1323,13 +1455,20 @@ let lemma_theta_rho_to_spec
     let s = ks.f_st in
     let ks', d = impl_2__theta v_N #v_T ks in
     let state = extract_lane v_N lc s l in
-    lemma_theta_extract_lane v_N lc ks l;
-    (* ks'.f_st == s, so extract_lane ks'.f_st l == state. *)
-    lemma_rho_thru_4_extract_lane v_N lc ks' d l;
-    lemma_rho_theta_spec state;
-    Lemmas.lemma_rotate_left_zero (state.[mk_usize 0] ^. spec_d state (mk_usize 0));
     let lhs = extract_lane v_N lc (impl_2__rho v_N #v_T ks' d).f_st l in
     let rhs = Hacspec_sha3.Keccak_f.rho (Hacspec_sha3.Keccak_f.theta state) in
+    lemma_theta_rho_row_0_to_spec v_N lc ks l;
+    lemma_theta_rho_row_1_to_spec v_N lc ks l;
+    lemma_theta_rho_row_2_to_spec v_N lc ks l;
+    lemma_theta_rho_row_3_to_spec v_N lc ks l;
+    lemma_theta_rho_row_4_to_spec v_N lc ks l;
+    introduce forall (i: nat{i < 25}). lhs.[mk_usize i] == rhs.[mk_usize i]
+    with (let y = i / 5 in
+          if y = 0 then ()
+          else if y = 1 then ()
+          else if y = 2 then ()
+          else if y = 3 then ()
+          else ());
     Rust_primitives.Arrays.eq_intro lhs rhs
 #pop-options
 
