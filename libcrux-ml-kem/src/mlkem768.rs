@@ -274,35 +274,40 @@ macro_rules! instantiate {
                 }
 
                 /// Get the serialized public key.
-                #[hax_lib::requires(fstar!(r#"forall (i:nat). i < 3 ==>
-                    Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3328) (Seq.index 
-                        ${public_key.ind_cpa_public_key.t_as_ntt} i)"#))]
+                #[hax_lib::requires(fstar!(r#"Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector
+                    (sz 3) (sz 3328) ${public_key.ind_cpa_public_key.t_as_ntt}"#))]
                 pub fn serialized_public_key(public_key: &MlKem768PublicKeyUnpacked, serialized : &mut MlKem768PublicKey) {
                     public_key.serialized_mut::<CPA_PKE_PUBLIC_KEY_SIZE>(serialized);
                 }
 
                 /// Get the serialized private key.
+                #[hax_lib::requires(fstar!(r#"Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector
+                    (sz 3) (sz 3328) ${key_pair.public_key.ind_cpa_public_key.t_as_ntt} /\
+                    Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector
+                    (sz 3) (sz 3328) ${key_pair.private_key.ind_cpa_private_key.secret_as_ntt}"#))]
                 pub fn key_pair_serialized_private_key(key_pair: &MlKem768KeyPairUnpacked) -> MlKem768PrivateKey {
                     key_pair.serialized_private_key::<CPA_PKE_SECRET_KEY_SIZE, SECRET_KEY_SIZE, CPA_PKE_PUBLIC_KEY_SIZE>()
                 }
 
                 /// Get the serialized private key.
+                #[hax_lib::requires(fstar!(r#"Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector
+                    (sz 3) (sz 3328) ${key_pair.public_key.ind_cpa_public_key.t_as_ntt} /\
+                    Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector
+                    (sz 3) (sz 3328) ${key_pair.private_key.ind_cpa_private_key.secret_as_ntt}"#))]
                 pub fn key_pair_serialized_private_key_mut(key_pair: &MlKem768KeyPairUnpacked, serialized: &mut MlKem768PrivateKey) {
                     key_pair.serialized_private_key_mut::<CPA_PKE_SECRET_KEY_SIZE, SECRET_KEY_SIZE, CPA_PKE_PUBLIC_KEY_SIZE>(serialized);
                 }
 
                 /// Get the serialized public key.
-                #[hax_lib::requires(fstar!(r#"(forall (i:nat). i < 3 ==>
-                        Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3328) (Seq.index 
-                            ${key_pair.public_key.ind_cpa_public_key.t_as_ntt} i))"#))]
+                #[hax_lib::requires(fstar!(r#"Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector
+                    (sz 3) (sz 3328) ${key_pair.public_key.ind_cpa_public_key.t_as_ntt}"#))]
                 pub fn key_pair_serialized_public_key_mut(key_pair: &MlKem768KeyPairUnpacked, serialized: &mut MlKem768PublicKey) {
                     key_pair.serialized_public_key_mut::<CPA_PKE_PUBLIC_KEY_SIZE>(serialized);
                 }
 
                 /// Get the serialized public key.
-                #[hax_lib::requires(fstar!(r#"forall (i:nat). i < 3 ==>
-                    Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3328) (Seq.index 
-                        ${key_pair.public_key.ind_cpa_public_key.t_as_ntt} i)"#))]
+                #[hax_lib::requires(fstar!(r#"Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector
+                    (sz 3) (sz 3328) ${key_pair.public_key.ind_cpa_public_key.t_as_ntt}"#))]
                 pub fn key_pair_serialized_public_key(key_pair: &MlKem768KeyPairUnpacked) ->MlKem768PublicKey {
                     key_pair.serialized_public_key::<CPA_PKE_PUBLIC_KEY_SIZE>()
                 }
@@ -371,6 +376,10 @@ macro_rules! instantiate {
                 ()"
                     )
                 )]
+                #[hax_lib::requires(fstar!(r#"Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_matrix
+                    (sz 3) (sz 3328) ${public_key.ind_cpa_public_key.A} /\
+                    Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector
+                    (sz 3) (sz 3328) ${public_key.ind_cpa_public_key.t_as_ntt}"#))]
                 pub fn encapsulate(
                     public_key: &MlKem768PublicKeyUnpacked,
                     randomness: [u8; SHARED_SECRET_SIZE],
@@ -398,7 +407,11 @@ macro_rules! instantiate {
                 /// The input is a reference to an unpacked key pair of type [`MlKem768KeyPairUnpacked`]
                 /// and an [`MlKem768Ciphertext`].
                 #[hax_lib::requires(fstar!(r#"Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector (mk_usize 3) (mk_usize 3328)
-                    ${private_key}.f_private_key.f_ind_cpa_private_key.f_secret_as_ntt"#))]
+                    ${private_key}.f_private_key.f_ind_cpa_private_key.f_secret_as_ntt /\
+                    Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_matrix (mk_usize 3) (mk_usize 3328)
+                    ${private_key}.f_public_key.f_ind_cpa_public_key.f_A /\
+                    Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector (mk_usize 3) (mk_usize 3328)
+                    ${private_key}.f_public_key.f_ind_cpa_public_key.f_tt_as_ntt"#))]
                 pub fn decapsulate(
                     private_key: &MlKem768KeyPairUnpacked,
                     ciphertext: &MlKem768Ciphertext,

@@ -182,8 +182,9 @@ fn deserialize_to_reduced_ring_element<Vector: Operations>(
             Seq.length public_key == v (Hacspec_ml_kem.Parameters.tt_as_ntt_encoded_size v_K)"#)
 )]
 #[hax_lib::ensures(|result|
-    fstar!(r#"forall (i:nat). i < v $K ==>
-        Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3328) (Seq.index $result i)"#)
+    fstar!(r#"(forall (i:nat). i < v $K ==>
+        Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3328) (Seq.index $result i)) /\
+        Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector $K #$:Vector (sz 3328) $result"#)
 )]
 pub(super) fn deserialize_ring_elements_reduced_out<const K: usize, Vector: Operations>(
     public_key: &[u8],

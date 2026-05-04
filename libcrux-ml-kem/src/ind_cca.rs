@@ -587,9 +587,8 @@ pub(crate) mod unpacked {
         #[requires(fstar!(r#"let ${self_} = self in
         Hacspec_ml_kem.Parameters.is_rank $K /\
             $PUBLIC_KEY_SIZE == Hacspec_ml_kem.Parameters.cpa_public_key_size $K /\
-            (forall (i:nat). i < v $K ==>
-                Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3328) (Seq.index
-                    ${self_.ind_cpa_public_key.t_as_ntt} i))"#))]
+            Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector $K #$:Vector
+                (sz 3328) ${self_.ind_cpa_public_key.t_as_ntt}"#))]
         pub fn serialized_mut<const PUBLIC_KEY_SIZE: usize>(
             &self,
             serialized: &mut MlKemPublicKey<PUBLIC_KEY_SIZE>,
@@ -608,9 +607,8 @@ pub(crate) mod unpacked {
         #[requires(fstar!(r#"let ${self_} = self in
         Hacspec_ml_kem.Parameters.is_rank $K /\
             $PUBLIC_KEY_SIZE == Hacspec_ml_kem.Parameters.cpa_public_key_size $K /\
-            (forall (i:nat). i < v $K ==>
-                Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3328) (Seq.index
-                    ${self_.ind_cpa_public_key.t_as_ntt} i))"#))]
+            Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector $K #$:Vector
+                (sz 3328) ${self_.ind_cpa_public_key.t_as_ntt}"#))]
         pub fn serialized<const PUBLIC_KEY_SIZE: usize>(&self) -> MlKemPublicKey<PUBLIC_KEY_SIZE> {
             MlKemPublicKey::from(serialize_public_key::<K, PUBLIC_KEY_SIZE, Vector>(
                 &self.ind_cpa_public_key.t_as_ntt,
@@ -719,9 +717,8 @@ pub(crate) mod unpacked {
         #[requires(fstar!(r#"let ${self_} = self in
         Hacspec_ml_kem.Parameters.is_rank $K /\
             $PUBLIC_KEY_SIZE == Hacspec_ml_kem.Parameters.cpa_public_key_size $K /\
-            (forall (i:nat). i < v $K ==>
-                Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3328) (Seq.index
-                    ${self_.public_key.ind_cpa_public_key.t_as_ntt} i))"#))]
+            Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector $K #$:Vector
+                (sz 3328) ${self_.public_key.ind_cpa_public_key.t_as_ntt}"#))]
         pub fn serialized_public_key_mut<const PUBLIC_KEY_SIZE: usize>(
             &self,
             serialized: &mut MlKemPublicKey<PUBLIC_KEY_SIZE>,
@@ -737,9 +734,8 @@ pub(crate) mod unpacked {
         #[requires(fstar!(r#"let ${self_} = self in
         Hacspec_ml_kem.Parameters.is_rank $K /\
             $PUBLIC_KEY_SIZE == Hacspec_ml_kem.Parameters.cpa_public_key_size $K /\
-            (forall (i:nat). i < v $K ==>
-                Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3328) (Seq.index
-                    ${self_.public_key.ind_cpa_public_key.t_as_ntt} i))"#))]
+            Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector $K #$:Vector
+                (sz 3328) ${self_.public_key.ind_cpa_public_key.t_as_ntt}"#))]
         pub fn serialized_public_key<const PUBLIC_KEY_SIZE: usize>(
             &self,
         ) -> MlKemPublicKey<PUBLIC_KEY_SIZE> {
@@ -760,10 +756,15 @@ pub(crate) mod unpacked {
 
         /// Get the serialized private key.
         #[inline(always)]
-        #[hax_lib::requires(fstar!(r#"Hacspec_ml_kem.Parameters.is_rank $K /\
+        #[hax_lib::requires(fstar!(r#"let ${self_} = self in
+        Hacspec_ml_kem.Parameters.is_rank $K /\
             $PRIVATE_KEY_SIZE == Hacspec_ml_kem.Parameters.cca_private_key_size $K /\
             $CPA_PRIVATE_KEY_SIZE == Hacspec_ml_kem.Parameters.cpa_private_key_size $K /\
-            $PUBLIC_KEY_SIZE == Hacspec_ml_kem.Parameters.cpa_public_key_size $K"#))]
+            $PUBLIC_KEY_SIZE == Hacspec_ml_kem.Parameters.cpa_public_key_size $K /\
+            Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector $K #$:Vector
+                (sz 3328) ${self_.public_key.ind_cpa_public_key.t_as_ntt} /\
+            Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector $K #$:Vector
+                (sz 3328) ${self_.private_key.ind_cpa_private_key.secret_as_ntt}"#))]
         pub fn serialized_private_key_mut<
             const CPA_PRIVATE_KEY_SIZE: usize,
             const PRIVATE_KEY_SIZE: usize,
@@ -792,10 +793,15 @@ pub(crate) mod unpacked {
 
         /// Get the serialized private key.
         #[inline(always)]
-        #[hax_lib::requires(fstar!(r#"Hacspec_ml_kem.Parameters.is_rank $K /\
+        #[hax_lib::requires(fstar!(r#"let ${self_} = self in
+        Hacspec_ml_kem.Parameters.is_rank $K /\
             $PRIVATE_KEY_SIZE == Hacspec_ml_kem.Parameters.cca_private_key_size $K /\
             $CPA_PRIVATE_KEY_SIZE == Hacspec_ml_kem.Parameters.cpa_private_key_size $K /\
-            $PUBLIC_KEY_SIZE == Hacspec_ml_kem.Parameters.cpa_public_key_size $K"#))]
+            $PUBLIC_KEY_SIZE == Hacspec_ml_kem.Parameters.cpa_public_key_size $K /\
+            Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector $K #$:Vector
+                (sz 3328) ${self_.public_key.ind_cpa_public_key.t_as_ntt} /\
+            Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector $K #$:Vector
+                (sz 3328) ${self_.private_key.ind_cpa_private_key.secret_as_ntt}"#))]
         pub fn serialized_private_key<
             const CPA_PRIVATE_KEY_SIZE: usize,
             const PRIVATE_KEY_SIZE: usize,
@@ -931,17 +937,19 @@ pub(crate) mod unpacked {
     #[inline(always)]
     #[hax_lib::fstar::verification_status(panic_free)]
     #[hax_lib::requires(
-        hacspec_ml_kem::parameters::is_rank(K)
-        && ETA1 == hacspec_ml_kem::parameters::eta1(K)
-        && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
-        && ETA2 == hacspec_ml_kem::parameters::eta2(K)
-        && ETA2_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta2_randomness_size(K)
-        && C1_SIZE == hacspec_ml_kem::parameters::c1_size(K)
-        && C2_SIZE == hacspec_ml_kem::parameters::c2_size(K)
-        && VECTOR_U_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_u_compression_factor(K)
-        && VECTOR_V_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_v_compression_factor(K)
-        && VECTOR_U_BLOCK_LEN == hacspec_ml_kem::parameters::c1_block_size(K)
-        && CIPHERTEXT_SIZE == hacspec_ml_kem::parameters::cpa_ciphertext_size(K)
+        hacspec_ml_kem::parameters::is_rank(K).to_prop()
+        & (ETA1 == hacspec_ml_kem::parameters::eta1(K)
+            && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
+            && ETA2 == hacspec_ml_kem::parameters::eta2(K)
+            && ETA2_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta2_randomness_size(K)
+            && C1_SIZE == hacspec_ml_kem::parameters::c1_size(K)
+            && C2_SIZE == hacspec_ml_kem::parameters::c2_size(K)
+            && VECTOR_U_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_u_compression_factor(K)
+            && VECTOR_V_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_v_compression_factor(K)
+            && VECTOR_U_BLOCK_LEN == hacspec_ml_kem::parameters::c1_block_size(K)
+            && CIPHERTEXT_SIZE == hacspec_ml_kem::parameters::cpa_ciphertext_size(K)).to_prop()
+        & crate::polynomial::spec::is_bounded_polynomial_matrix(3328, &public_key.ind_cpa_public_key.A)
+        & crate::polynomial::spec::is_bounded_polynomial_vector(3328, &public_key.ind_cpa_public_key.t_as_ntt)
     )]
     #[hax_lib::ensures(|(ciphertext_result, shared_secret_array)|
         match hacspec_ml_kem::ind_cca_unpack_encapsulate::<K, C1_SIZE, C2_SIZE, CIPHERTEXT_SIZE>(
@@ -1043,6 +1051,8 @@ pub(crate) mod unpacked {
             == hacspec_ml_kem::parameters::implicit_rejection_hash_input_size(K))
         .to_prop()
         & crate::polynomial::spec::is_bounded_polynomial_vector(3328, &key_pair.private_key.ind_cpa_private_key.secret_as_ntt)
+        & crate::polynomial::spec::is_bounded_polynomial_matrix(3328, &key_pair.public_key.ind_cpa_public_key.A)
+        & crate::polynomial::spec::is_bounded_polynomial_vector(3328, &key_pair.public_key.ind_cpa_public_key.t_as_ntt)
     )]
     #[hax_lib::ensures(|result|
         match hacspec_ml_kem::ind_cca_unpack_decapsulate::<

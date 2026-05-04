@@ -413,7 +413,11 @@ macro_rules! instantiate {
                     $ETA1 == Hacspec_ml_kem.Parameters.eta1 $K /\
                     $ETA1_RANDOMNESS_SIZE == Hacspec_ml_kem.Parameters.eta1_randomness_size $K /\
                     $ETA2 == Hacspec_ml_kem.Parameters.eta2 $K /\
-                    $ETA2_RANDOMNESS_SIZE == Hacspec_ml_kem.Parameters.eta2_randomness_size $K"#))]
+                    $ETA2_RANDOMNESS_SIZE == Hacspec_ml_kem.Parameters.eta2_randomness_size $K /\
+                    Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_matrix $K (sz 3328)
+                        ${public_key.ind_cpa_public_key.A} /\
+                    Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector $K (sz 3328)
+                        ${public_key.ind_cpa_public_key.t_as_ntt}"#))]
                 #[inline(always)]
                 pub(crate) fn encapsulate<
                     const K: usize,
@@ -470,7 +474,11 @@ macro_rules! instantiate {
                     $ETA2_RANDOMNESS_SIZE == Hacspec_ml_kem.Parameters.eta2_randomness_size $K /\
                     $IMPLICIT_REJECTION_HASH_INPUT_SIZE == Hacspec_ml_kem.Parameters.implicit_rejection_hash_input_size $K /\
                     Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector $K (mk_usize 3328)
-                        ${key_pair}.f_private_key.f_ind_cpa_private_key.f_secret_as_ntt"#))]
+                        ${key_pair}.f_private_key.f_ind_cpa_private_key.f_secret_as_ntt /\
+                    Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_matrix $K (mk_usize 3328)
+                        ${key_pair}.f_public_key.f_ind_cpa_public_key.f_A /\
+                    Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector $K (mk_usize 3328)
+                        ${key_pair}.f_public_key.f_ind_cpa_public_key.f_tt_as_ntt"#))]
                 #[inline(always)]
                 pub(crate) fn decapsulate<
                     const K: usize,
