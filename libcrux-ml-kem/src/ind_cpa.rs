@@ -233,9 +233,11 @@ fn sample_ring_element_cbd<
 /// Sample a vector of ring elements from a centered binomial distribution and
 /// convert them into their NTT representations.
 #[inline(always)]
-// FOLLOW-UP (Phase D): body fails panic_free precondition check on
-// ntt_binomially_sampled_ring_element call (line 352 in extracted F*) — needs
-// loop-invariant strengthening of bounds on accumulator. Stays lax.
+// FOLLOW-UP (Phase D): body calls ntt_binomially_sampled_ring_element which
+// requires is_bounded_poly(3,·) on its input, but sample_from_binomial_distribution
+// only provides is_bounded_poly(7,·). Tightening sample_from_binomial_distribution's
+// ensures to bounded ETA (real bound is η ∈ {2,3}) is a sampling-spec change
+// out of scope for this sprint.
 #[hax_lib::fstar::verification_status(lax)]
 #[hax_lib::fstar::options(
     "--max_fuel 25 --z3rlimit 400 --ext context_pruning --split_queries always"
@@ -485,10 +487,7 @@ pub(crate) fn serialize_unpacked_secret_key<
 }
 
 /// Call [`compress_then_serialize_ring_element_u`] on each ring element.
-// FOLLOW-UP (Phase D): body has eq_intro spec-equality assertion that fails
-// to discharge under panic_free at rlimit 800 (same pattern as serialize_vector).
-// Stays lax.
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::fstar::options("--z3rlimit 800 --ext context_pruning")]
 #[hax_lib::requires(
     (hacspec_ml_kem::parameters::is_rank(K)
@@ -557,11 +556,6 @@ fn compress_then_serialize_u<
             Classical.forall_intro lemma_aux"#);
         }
     };
-    hax_lib::fstar!(
-        r#"eq_intro out
-        (Hacspec_ml_kem.Serialize.compress_then_serialize_u $K $OUT_LEN
-            (${vector_to_spec::<K, Vector>} $K $input) $COMPRESSION_FACTOR)"#
-    )
 }
 
 /// This function implements <strong>Algorithm 13</strong> of the
@@ -690,8 +684,13 @@ pub(crate) fn encrypt_unpacked<
     ciphertext
 }
 
-// FOLLOW-UP (Phase D): body fails panic_free precondition check on
-// into_padded_array call — randomness slice bound not propagated. Stays lax.
+// FOLLOW-UP (Phase D): body needs is_bounded_poly(3328, matrix[i][j]) for the
+// compute_vector_u call. That bound is not carried by IndCpaPublicKeyUnpacked.A's
+// type, and encrypt_unpacked (the only caller) does not assert it either. To
+// flip, sample_matrix_A's ensures must thread the bound up through
+// generate_keypair_unpacked into the public-key struct, then propagate
+// through transpose_a and into encrypt_unpacked's preconditions on
+// public_key.A. Multi-step cascade — out of scope for single-flip.
 #[hax_lib::fstar::verification_status(lax)]
 #[hax_lib::ensures(|(ciphertext_out, _)| ciphertext_out.len() == ciphertext.len())]
 #[inline(always)]
@@ -762,8 +761,11 @@ pub(crate) fn encrypt_c1<
     (r_as_ntt, error_2)
 }
 
-// FOLLOW-UP (Phase D): body fails panic_free precondition check on
-// Matrix.compute_ring_element_v call — bounds on inputs not propagated. Stays lax.
+// FOLLOW-UP (Phase D): body needs is_bounded_poly(3328, t_as_ntt[i]) for
+// compute_ring_element_v. Same upstream cascade as encrypt_c1: the
+// IndCpaPublicKeyUnpacked.t_as_ntt bound must be threaded from
+// generate_keypair_unpacked / deserialize ring-element callers. Out of scope
+// for single-flip.
 #[hax_lib::fstar::verification_status(lax)]
 #[hax_lib::ensures(|()| future(ciphertext).len() == ciphertext.len())]
 #[inline(always)]
