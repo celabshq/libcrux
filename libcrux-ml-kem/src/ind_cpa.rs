@@ -609,6 +609,7 @@ fn compress_then_serialize_u<
         && BLOCK_LEN == hacspec_ml_kem::parameters::c1_block_size(K)
         && CIPHERTEXT_SIZE == hacspec_ml_kem::parameters::cpa_ciphertext_size(K)
         && randomness.len() == hacspec_ml_kem::parameters::SHARED_SECRET_SIZE).to_prop()
+    & crate::polynomial::spec::is_bounded_polynomial_matrix(3328, &public_key.A)
 )]
 #[hax_lib::ensures(|result|
     match hacspec_ml_kem::ind_cpa::encrypt_unpacked::<K, C1_LEN, C2_LEN, CIPHERTEXT_SIZE>(
@@ -680,28 +681,26 @@ pub(crate) fn encrypt_unpacked<
     ciphertext
 }
 
-// FOLLOW-UP (Phase D, 2026-05-07a retry): cascade infrastructure landed —
-// matrix bound now exported by sample_matrix_A → generate_keypair_unpacked →
-// transpose_a → build_unpacked_public_key_mut. To flip THIS fn:
-//   1. Add `requires is_bounded_polynomial_matrix(3328, &matrix)` here AND in
-//      encrypt_unpacked (its only caller). Then thread up through ind_cca's
-//      encapsulate/decapsulate (panic_free) — both must require bounds on
-//      public_key.ind_cpa_public_key.{A,t_as_ntt}; cascade through
-//      ind_cca::instantiations (3 backends) and mlkem{512,768,1024} unpacked
-//      encapsulate wrappers.
-//   2. Body verification then hits 3 hard SMT walls at rlimit 400 + split_queries:
-//      - line 734 (sample_ring_element_cbd's `domain_separator + K < 256`
-//        requires) — needs explicit `assert (v K <= 4)` hint.
-//      - line 751 (existing `Seq.equal $prf_input ...` assert) — bound predicates
-//        in requires inflate Z3 context, killing previously-tractable seq query.
-//        May need `Seq.lemma_eq_refl` style or split into smaller asserts.
-//      - line 767 (compute_vector_u call) — needs `is_bounded_poly_higher`
-//        widening error_1's bound 3→7, plus matrix bound discharge (should
-//        follow trivially from new requires once Z3 sees it).
-//   3. Each Z3 timeout is ~70s; iterate carefully. Prior attempts at rlimit
-//      400 with split_queries still failed 70s+ on each.
-#[hax_lib::fstar::verification_status(lax)]
-#[hax_lib::ensures(|(ciphertext_out, _)| ciphertext_out.len() == ciphertext.len())]
+#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::fstar::options("--z3rlimit 400 --ext context_pruning --split_queries always")]
+#[hax_lib::requires(
+    hacspec_ml_kem::parameters::is_rank(K).to_prop()
+    & (ETA1 == hacspec_ml_kem::parameters::eta1(K)
+        && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
+        && ETA2 == hacspec_ml_kem::parameters::eta2(K)
+        && ETA2_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta2_randomness_size(K)
+        && BLOCK_LEN == hacspec_ml_kem::parameters::c1_block_size(K)
+        && C1_LEN == hacspec_ml_kem::parameters::c1_size(K)
+        && U_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_u_compression_factor(K)
+        && randomness.len() == hacspec_ml_kem::parameters::SHARED_SECRET_SIZE
+        && ciphertext.len() == hacspec_ml_kem::parameters::c1_size(K)).to_prop()
+    & crate::polynomial::spec::is_bounded_polynomial_matrix(3328, matrix)
+)]
+#[hax_lib::ensures(|(r_as_ntt_out, error_2_out)|
+    (future(ciphertext).len() == ciphertext.len()).to_prop()
+    & crate::polynomial::spec::is_bounded_polynomial_vector(3328, &r_as_ntt_out)
+    & crate::polynomial::spec::is_bounded_poly(3328, &error_2_out)
+)]
 #[inline(always)]
 pub(crate) fn encrypt_c1<
     const K: usize,
@@ -762,7 +761,23 @@ pub(crate) fn encrypt_c1<
     let error_2 = sample_from_binomial_distribution::<ETA2, Vector>(&prf_output);
 
     // u := NTT^{-1}(AˆT ◦ rˆ) + e_1
+    // Widen error_1's per-element bound from 3 (sampler post) to 7
+    // (compute_vector_u pre).  The matrix bound on `matrix` chains through
+    // the SMTPat'd `lemma_is_bounded_polynomial_{matrix,vector}_elim`
+    // automatically, so only the eta1→7 widening on error_1 is explicit.
+    hax_lib::fstar!(
+        r#"Libcrux_ml_kem.Polynomial.Spec.lemma_is_bounded_polynomial_vector_higher
+            $K #$:Vector $error_1 (sz 3) (sz 7)"#
+    );
     let u = compute_vector_u(matrix, &r_as_ntt, &error_1);
+
+    // Fold compute_vector_u's per-element forall ensures into the opaque
+    // `is_bounded_polynomial_vector 3328 u` atom required by
+    // compress_then_serialize_u.
+    hax_lib::fstar!(
+        r#"Libcrux_ml_kem.Polynomial.Spec.lemma_is_bounded_polynomial_vector_intro
+            $K #$:Vector $u (sz 3328)"#
+    );
 
     // c_1 := Encode_{du}(Compress_q(u,d_u))
     compress_then_serialize_u::<K, C1_LEN, U_COMPRESSION_FACTOR, BLOCK_LEN, Vector>(u, ciphertext);
@@ -770,14 +785,20 @@ pub(crate) fn encrypt_c1<
     (r_as_ntt, error_2)
 }
 
-// FOLLOW-UP (Phase D, 2026-05-07a retry): same cascade as encrypt_c1. Producer
-// bound `is_bounded_polynomial_vector(3328, t_as_ntt)` now flows from
-// compute_As_plus_e (existing) and deserialize_ring_elements_reduced (added
-// 2026-05-07a). r_as_ntt + error_2 must come from encrypt_c1's strengthened
-// ensures: `is_bounded_polynomial_vector(3328, r_as_ntt) & is_bounded_poly(3328,
-// error_2)`. Body needs `is_bounded_poly_higher` to widen error_2's sampler
-// bound (3) to compute_ring_element_v's needed bound (3328). Couple flip with
-// encrypt_c1.
+// FOLLOW-UP (2026-05-04 opaque-bounds spike): infrastructure to flip this fn
+// is in place — opacity + SMTPat'd elim_nat + lemma_is_bounded_polynomial_vector_higher
+// + requires triple (is_bounded_polynomial_vector(3328, t_as_ntt) /\
+// is_bounded_polynomial_vector(3328, r_as_ntt) /\ is_bounded_poly(3328, error_2))
+// would suffice, EXCEPT compute_ring_element_v ALSO requires
+// `is_bounded_poly(3328, message_as_ring_element)`, which is NOT exported by
+// deserialize_then_decompress_message's current ensures (only spec equivalence
+// `poly_to_spec result == hacspec deserialize_then_decompress_message`).
+//
+// Next session: strengthen serialize.rs::deserialize_then_decompress_message's
+// ensures to add `is_bounded_poly(3328, result)` (the values are 0 or 1664 by
+// construction, so 1664 ≤ 3328 is sound).  Then re-apply the encrypt_c2 flip
+// + the body's Classical.forall_intro of elim_nat for t_as_ntt and r_as_ntt
+// (see git diff between this comment's commit and HEAD~1 for the body shape).
 #[hax_lib::fstar::verification_status(lax)]
 #[hax_lib::ensures(|()| future(ciphertext).len() == ciphertext.len())]
 #[inline(always)]
