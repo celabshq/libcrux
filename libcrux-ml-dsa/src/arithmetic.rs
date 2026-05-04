@@ -86,6 +86,9 @@ pub(crate) fn power2round_vector<SIMDUnit: Operations>(
     t0: &mut [PolynomialRingElement<SIMDUnit>],
     t1: &mut [PolynomialRingElement<SIMDUnit>],
 ) {
+    // ADMIT: hax cannot extract simultaneous &mut t0[i] / &mut t1[i] borrows in a
+    // loop body in a way that supports a loop invariant. Body proof deferred until
+    // hax upstream supports this pattern.
     hax_lib::fstar!("admit ()");
     for i in 0..t0.len() {
         power2round_one_ring_element::<SIMDUnit>(&mut t0[i], &mut t1[i]);

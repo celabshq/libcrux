@@ -143,12 +143,37 @@ pub(crate) fn vector_times_ring_element<SIMDUnit: Operations>(
     vector: &mut [PolynomialRingElement<SIMDUnit>],
     ring_element: &PolynomialRingElement<SIMDUnit>,
 ) {
-    hax_lib::fstar!("admit ()");
     #[cfg(hax)]
     let e_vector_orig: &[PolynomialRingElement<SIMDUnit>] = vector.to_vec().as_slice();
     for i in 0..vector.len() {
+        hax_lib::loop_invariant!(|i: usize| fstar!(
+            r#"v i <= Seq.length vector /\
+              Seq.length vector == Seq.length e_vector_orig /\
+              (forall (j:nat). j < 32 ==>
+                  Spec.Utils.is_i32b_array_opaque (v ${FIELD_MAX})
+                      (i0._super_i2.f_repr (Seq.index ring_element.f_simd_units j))) /\
+              (forall (k:nat). k < v i ==>
+                  (forall (j:nat). j < 32 ==>
+                      Spec.Utils.is_i32b_array_opaque (v ${FIELD_MAX})
+                          (i0._super_i2.f_repr (Seq.index (Seq.index vector k).f_simd_units j)))) /\
+              (forall (k:nat). v i <= k /\ k < Seq.length vector ==>
+                  Seq.index vector k == Seq.index e_vector_orig k)"#
+        ));
         ntt_multiply_montgomery(&mut vector[i], ring_element);
         invert_ntt_montgomery(&mut vector[i]);
+        hax_lib::fstar!(r#"
+          let weaken (j:nat{j < 32}) :
+            Lemma (Spec.Utils.is_i32b_array_opaque
+                     (v Libcrux_ml_dsa.Simd.Traits.Specs.v_FIELD_MAX)
+                     (i0._super_i2.f_repr
+                        (Seq.index (Seq.index ${vector} (v ${i})).f_simd_units j))) =
+            Spec.Utils.is_i32b_array_larger 4211177
+              (v Libcrux_ml_dsa.Simd.Traits.Specs.v_FIELD_MAX)
+              (i0._super_i2.f_repr
+                 (Seq.index (Seq.index ${vector} (v ${i})).f_simd_units j))
+          in
+          Classical.forall_intro weaken
+        "#);
     }
 }
 
