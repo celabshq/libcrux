@@ -956,17 +956,22 @@ pub(crate) fn build_unpacked_public_key_mut<
 
 /// Call [`deserialize_then_decompress_ring_element_u`] on each ring element
 /// in the `ciphertext`.
-// FOLLOW-UP (Phase F Stream 2): tried the lemma_post + Classical.move_requires
-// + Seq.slice-of-slice eq_intro pattern (matches lighthouse deserialize_vector).
-// Proof body discharged the eq_intro under panic_free at rlimit 800, but the
-// body's loop-invariant maintenance cannot be re-established because
-// `ntt_vector_u` lacks a functional ensures of the form
-//   poly_to_spec(future(re)) == Hacspec_ml_kem.Ntt.ntt(poly_to_spec(re))
-// (the ensures is commented out in src/ntt.rs).  Without it, after
-// `ntt_vector_u(&mut u_as_ntt[i])` the loop invariant cannot be maintained
-// under panic_free.  Stays lax pending strengthening of ntt_vector_u's
-// ensures (out of this Stream's scope; would touch src/ntt.rs and
-// require establishing the ntt body proof).
+// FOLLOW-UP (Phase F Stream 2 retry 2026-05-06): ntt_vector_u now has the
+// functional ensures (src/ntt.rs line 561-563), so the original blocker is
+// gone. New blockers (~10 errors at extracted Ind_cpa.fst:1050-1106 under
+// panic_free):
+//   1. deserialize_then_decompress_ring_element_u's ensures
+//      (`poly_to_spec result == decompress(byte_decode_dyn ...)`) lacks the
+//      `is_bounded_poly(3328, result)` conjunct that ntt_vector_u requires.
+//      Decompress's spec output is in [0, q-1], but the impl-level bound
+//      doesn't propagate from poly_to_spec.
+//   2. The loop invariant uses `poly_to_spec` while ntt_vector_u uses
+//      `to_spec_poly_plain`. Bridge lemma `poly_to_spec_eq_to_spec_poly_plain`
+//      exists in Hacspec_ml_kem.Commute.Bridges but must be applied each
+//      iteration to convert.
+//   3. The functional ensures requires loop-invariant maintenance through
+//      both deserialize_then_decompress_ring_element_u AND ntt_vector_u
+//      composing correctly. 60+ min dedicated session.
 #[hax_lib::fstar::verification_status(lax)]
 #[inline(always)]
 #[hax_lib::fstar::options("--z3rlimit 800 --ext context_pruning")]
