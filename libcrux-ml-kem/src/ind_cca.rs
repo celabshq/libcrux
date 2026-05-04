@@ -225,9 +225,7 @@ pub(crate) fn validate_private_key_only<
         Err(_) => true,
     }
 )]
-// FOLLOW-UP (Phase C): cascade-lax — calls ind_cpa::generate_keypair (lax)
-// whose unverified ensures can't discharge this fn's strong postcondition.
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::fstar::verification_status(panic_free)]
 #[inline(always)]
 pub(crate) fn generate_keypair<
     const K: usize,

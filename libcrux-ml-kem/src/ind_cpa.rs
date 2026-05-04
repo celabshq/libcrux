@@ -336,7 +336,9 @@ fn sample_vector_cbd_then_ntt<
         && key_generation_seed.len() == hacspec_ml_kem::parameters::CPA_KEY_GENERATION_SEED_SIZE).to_prop()
 )]
 #[hax_lib::ensures(|()|
-    match hacspec_ml_kem::ind_cpa::generate_keypair_unpacked::<K>(
+    crate::polynomial::spec::is_bounded_polynomial_vector(3328, &future(public_key).t_as_ntt)
+    & crate::polynomial::spec::is_bounded_polynomial_vector(3328, &future(private_key).secret_as_ntt)
+    & (match hacspec_ml_kem::ind_cpa::generate_keypair_unpacked::<K>(
         &hacspec_ml_kem::parameters::rank_to_params(K),
         key_generation_seed,
     ) {
@@ -348,7 +350,7 @@ fn sample_vector_cbd_then_ntt<
             && crate::vector::spec::vector_to_spec(&future(private_key).secret_as_ntt) == secret_as_ntt
         }
         Err(_) => true,
-    }
+    }).to_prop()
 )]
 #[inline(always)]
 pub(crate) fn generate_keypair_unpacked<
@@ -422,10 +424,7 @@ pub(crate) fn generate_keypair_unpacked<
         Err(_) => true,
     }
 )]
-// FOLLOW-UP (Phase C): cascade-lax — body calls serialize_unpacked_secret_key
-// (lax) which calls the lax serialize_public_key chain.  See the bridge-lemma
-// plan on serialize_public_key_mut.
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::fstar::verification_status(panic_free)]
 #[inline(always)]
 pub(crate) fn generate_keypair<
     const K: usize,
