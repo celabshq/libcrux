@@ -8,5 +8,6 @@ FSTAR_INCLUDE_DIRS_EXTRA += \
 # These are hax-generated modules; they typecheck but carry no proof obligations.
 
 FSTAR_EXT_FLAGS = --ext context_pruning
+ENABLE_HINTS = --use_hints --record_hints
 
 include $(shell git rev-parse --show-toplevel)/fstar-helpers/Makefile.base

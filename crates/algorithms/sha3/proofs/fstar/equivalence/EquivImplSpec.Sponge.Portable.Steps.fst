@@ -282,13 +282,10 @@ let lemma_squeeze_one_step_portable
         v i <= v outlen / v rate /\
         ks_pre.Libcrux_sha3.Generic_keccak.f_st ==
           Hacspec_sha3.Sponge.iterate_keccak_f (i -! mk_usize 1) s_init_st /\
-        (forall (k: nat). k < v i * v rate /\ k < v outlen ==>
+        (forall (k: nat). k < v i * v rate ==>
           Seq.index (output_pre <: Seq.seq u8) k ==
           Seq.index
-            (Hacspec_sha3.Sponge.squeeze outlen s_init_st rate <: Seq.seq u8) k) /\
-        (forall (k: nat). v i * v rate <= k /\ k < v outlen ==>
-          Seq.index (output_pre <: Seq.seq u8) k ==
-          Seq.index (output_initial <: Seq.seq u8) k)))
+            (Hacspec_sha3.Sponge.squeeze outlen s_init_st rate <: Seq.seq u8) k)))
       (ensures (
         let outlen = Core_models.Slice.impl__len #u8 output_pre in
         let ks_post =
@@ -299,16 +296,14 @@ let lemma_squeeze_one_step_portable
             #(Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64)
             #u64 #FStar.Tactics.Typeclasses.solve
             rate ks_post output_pre (i *! rate) rate in
+        v i * v rate + v rate <= v outlen /\
         Core_models.Slice.impl__len #u8 output_post =. outlen /\
         ks_post.Libcrux_sha3.Generic_keccak.f_st ==
           Hacspec_sha3.Sponge.iterate_keccak_f i s_init_st /\
-        (forall (k: nat). k < (v i + 1) * v rate /\ k < v outlen ==>
+        (forall (k: nat). k < v i * v rate + v rate ==>
           Seq.index (output_post <: Seq.seq u8) k ==
           Seq.index
-            (Hacspec_sha3.Sponge.squeeze outlen s_init_st rate <: Seq.seq u8) k) /\
-        (forall (k: nat). (v i + 1) * v rate <= k /\ k < v outlen ==>
-          Seq.index (output_post <: Seq.seq u8) k ==
-          Seq.index (output_initial <: Seq.seq u8) k)))
+            (Hacspec_sha3.Sponge.squeeze outlen s_init_st rate <: Seq.seq u8) k)))
   = let outlen = Core_models.Slice.impl__len #u8 output_pre in
     KP.lemma_keccakf1600_portable ks_pre;
     let ks_post =
@@ -347,18 +342,101 @@ let lemma_squeeze_one_step_portable
         end
       end
     in
-    let aux_tail_step (k: nat{k < v outlen})
-      : Lemma
-          ((v i + 1) * v rate <= k ==>
-            Seq.index (output_post <: Seq.seq u8) k ==
-            Seq.index (output_initial <: Seq.seq u8) k) =
-      if (v i + 1) * v rate <= k then begin
-        let kk : usize = mk_usize k in
-        assert (v kk == k);
-        assert ((v i + 1) * v rate == v i * v rate + v rate);
-        assert (v i * v rate + v rate <= k)
-      end
-    in
-    FStar.Classical.forall_intro aux_write_step;
-    FStar.Classical.forall_intro aux_tail_step
+    FStar.Classical.forall_intro aux_write_step
 #pop-options
+
+
+(* ================================================================
+   Compose squeeze_blocks (full-blocks per-byte byteform equality)
+   with impl__squeeze_last (byteform-style trailing ensures) into
+   the full byteform equality on the squeeze output.
+
+   This lemma is purely a per-byte composition: it does not unfold
+   any spec function bodies.  It takes the post-conditions of the
+   two helpers as hypotheses and proves the conjunction of per-byte
+   equalities with [Hacspec_sha3.Sponge.squeeze].
+   ================================================================ *)
+
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 300"
+
+let lemma_squeeze_trailing_byteform_portable
+      (rate: usize{Libcrux_sha3.Proof_utils.valid_rate rate})
+      (s_init: t_Array u64 (mk_usize 25))
+      (s_final: t_Array u64 (mk_usize 25))
+      (output_final: t_Slice u8)
+      (output_blocks: usize)
+      (output_rem: usize)
+      (i: nat)
+  : Lemma
+      (requires (
+        let outlen = Core_models.Slice.impl__len #u8 output_final in
+        v output_blocks >= 1 /\
+        v output_rem > 0 /\
+        v output_rem < v rate /\
+        v output_rem <= v outlen /\
+        v outlen == v output_blocks * v rate + v output_rem /\
+        v outlen < v Core_models.Num.impl_usize__MAX - 200 /\
+        s_final == Hacspec_sha3.Sponge.iterate_keccak_f output_blocks s_init /\
+        v outlen - v output_rem <= i /\ i < v outlen /\
+        (let j_us : usize = mk_usize (i - (v outlen - v output_rem)) in
+         Seq.index (output_final <: Seq.seq u8) i ==
+         ((Core_models.Num.impl_u64__to_le_bytes
+             (s_final.[ j_us /! mk_usize 8 <: usize ] <: u64)
+           <: t_Array u8 (mk_usize 8)).[ j_us %! mk_usize 8 <: usize ] <: u8))))
+      (ensures (
+        let outlen = Core_models.Slice.impl__len #u8 output_final in
+        Seq.index (output_final <: Seq.seq u8) i ==
+        Seq.index
+          (Hacspec_sha3.Sponge.squeeze outlen s_init rate <: Seq.seq u8) i))
+  = let outlen = Core_models.Slice.impl__len #u8 output_final in
+    let v_prefix : nat = v outlen - v output_rem in
+    assert (v_prefix == v output_blocks * v rate);
+    let r : nat = i - v_prefix in
+    assert (r < v output_rem);
+    assert (r < v rate);
+    FStar.Math.Lemmas.small_div r (v rate);
+    FStar.Math.Lemmas.lemma_div_plus r (v output_blocks) (v rate);
+    assert (i / v rate == v output_blocks);
+    let i_us : usize = mk_usize i in
+    assert (v i_us == i);
+    let b : usize = i_us /! rate in
+    assert (v b == v output_blocks);
+    assert (b == output_blocks);
+    let j : usize = i_us -! (b *! rate <: usize) in
+    assert (v j == r);
+    let j_us : usize = mk_usize r in
+    assert (j == j_us);
+    assert (Hacspec_sha3.Sponge.iterate_keccak_f b s_init == s_final);
+    ()
+
+#pop-options
+
+
+let lemma_squeeze_prefix_preserved_portable
+      (rate: usize{Libcrux_sha3.Proof_utils.valid_rate rate})
+      (s_init: t_Array u64 (mk_usize 25))
+      (output_after_blocks: t_Slice u8)
+      (output_final: t_Slice u8)
+      (output_blocks: usize)
+      (output_rem: usize)
+      (i: nat)
+  : Lemma
+      (requires (
+        let outlen = Core_models.Slice.impl__len #u8 output_final in
+        v output_blocks >= 1 /\
+        v output_rem < v rate /\
+        v outlen == v output_blocks * v rate + v output_rem /\
+        v outlen < v Core_models.Num.impl_usize__MAX - 200 /\
+        Core_models.Slice.impl__len #u8 output_after_blocks == outlen /\
+        i < v output_blocks * v rate /\
+        Seq.index (output_after_blocks <: Seq.seq u8) i ==
+          Seq.index
+            (Hacspec_sha3.Sponge.squeeze outlen s_init rate <: Seq.seq u8) i /\
+        Seq.index (output_final <: Seq.seq u8) i ==
+          Seq.index (output_after_blocks <: Seq.seq u8) i))
+      (ensures (
+        let outlen = Core_models.Slice.impl__len #u8 output_final in
+        Seq.index (output_final <: Seq.seq u8) i ==
+        Seq.index
+          (Hacspec_sha3.Sponge.squeeze outlen s_init rate <: Seq.seq u8) i))
+  = ()

@@ -32,7 +32,9 @@ let sha224 (digest data: t_Slice u8)
             bool) /\
           (digest_future <: t_Slice u8) ==
           (Hacspec_sha3.Sponge.keccak (Core_models.Slice.impl__len #u8 digest)
-              (mk_usize 144) (mk_u8 6) data
+              (mk_usize 144)
+              (mk_u8 6)
+              data
             <:
             t_Slice u8)) =
   let digest:t_Slice u8 =
@@ -56,7 +58,9 @@ let sha256 (digest data: t_Slice u8)
             bool) /\
           (digest_future <: t_Slice u8) ==
           (Hacspec_sha3.Sponge.keccak (Core_models.Slice.impl__len #u8 digest)
-              (mk_usize 136) (mk_u8 6) data
+              (mk_usize 136)
+              (mk_u8 6)
+              data
             <:
             t_Slice u8)) =
   let digest:t_Slice u8 =
@@ -80,7 +84,9 @@ let sha384 (digest data: t_Slice u8)
             bool) /\
           (digest_future <: t_Slice u8) ==
           (Hacspec_sha3.Sponge.keccak (Core_models.Slice.impl__len #u8 digest)
-              (mk_usize 104) (mk_u8 6) data
+              (mk_usize 104)
+              (mk_u8 6)
+              data
             <:
             t_Slice u8)) =
   let digest:t_Slice u8 =
@@ -104,7 +110,9 @@ let sha512 (digest data: t_Slice u8)
             bool) /\
           (digest_future <: t_Slice u8) ==
           (Hacspec_sha3.Sponge.keccak (Core_models.Slice.impl__len #u8 digest)
-              (mk_usize 72) (mk_u8 6) data
+              (mk_usize 72)
+              (mk_u8 6)
+              data
             <:
             t_Slice u8)) =
   let digest:t_Slice u8 =
@@ -128,7 +136,9 @@ let shake128 (digest data: t_Slice u8)
             bool) /\
           (digest_future <: t_Slice u8) ==
           (Hacspec_sha3.Sponge.keccak (Core_models.Slice.impl__len #u8 digest)
-              (mk_usize 168) (mk_u8 31) data
+              (mk_usize 168)
+              (mk_u8 31)
+              data
             <:
             t_Slice u8)) =
   let digest:t_Slice u8 =
@@ -152,7 +162,9 @@ let shake256 (digest data: t_Slice u8)
             bool) /\
           (digest_future <: t_Slice u8) ==
           (Hacspec_sha3.Sponge.keccak (Core_models.Slice.impl__len #u8 digest)
-              (mk_usize 136) (mk_u8 31) data
+              (mk_usize 136)
+              (mk_u8 31)
+              data
             <:
             t_Slice u8)) =
   let digest:t_Slice u8 =

@@ -17,6 +17,8 @@ pub use impl_digest_trait::*;
 
 #[cfg(hax)]
 use hax_lib::int::*;
+#[cfg(hax)]
+use hax_lib::prop::*;
 
 mod traits;
 

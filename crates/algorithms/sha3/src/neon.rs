@@ -1,6 +1,9 @@
 use crate::generic_keccak::simd128::keccak2;
 use hax_lib;
 
+#[cfg(hax)]
+use hax_lib::prop::*;
+
 /// A SHA3 224 implementation.
 #[allow(unused_variables)]
 #[inline(always)]

@@ -358,9 +358,14 @@ let squeeze2
 #pop-options
 
 /// Two-lane Keccak driver.  The function-level ensures keep only the
-/// bounds (length-preservation); the per-lane functional spec is
-/// proved at the Neon-wrapper level using
-/// `EquivImplSpec.Sponge.Arm64.API.lemma_keccak2_arm64`.
+/// bounds (length-preservation) here; the per-lane functional spec is
+/// proved at the Neon-wrapper level (in `src/neon.rs`) using
+/// `EquivImplSpec.Sponge.Arm64.API.lemma_keccak2_arm64`, which composes
+/// `lemma_absorb2_arm64` + `lemma_squeeze2_arm64`.  Wiring the
+/// per-lane functional spec here would create a circular dependency:
+/// `EquivImplSpec.Sponge.Arm64.API` depends on this module\'s
+/// `absorb2`, `squeeze2`, `keccak2`, so it cannot itself be cited
+/// from this module\'s body.
 let keccak2
       (v_RATE: usize)
       (v_DELIM: u8)

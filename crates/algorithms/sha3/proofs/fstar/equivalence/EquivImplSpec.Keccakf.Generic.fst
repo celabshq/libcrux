@@ -809,32 +809,32 @@ let lemma_pi_spec (state: spec_state)
        p.[mk_usize 22] == state.[mk_usize 14] /\
        p.[mk_usize 23] == state.[mk_usize 15] /\
        p.[mk_usize 24] == state.[mk_usize 21])
-  = let p = Hacspec_sha3.Keccak_f.pi state in
-    assert (p.[mk_usize 0] == state.[mk_usize 0]);
-    assert (p.[mk_usize 1] == state.[mk_usize 6]);
-    assert (p.[mk_usize 2] == state.[mk_usize 12]);
-    assert (p.[mk_usize 3] == state.[mk_usize 18]);
-    assert (p.[mk_usize 4] == state.[mk_usize 24]);
-    assert (p.[mk_usize 5] == state.[mk_usize 3]);
-    assert (p.[mk_usize 6] == state.[mk_usize 9]);
-    assert (p.[mk_usize 7] == state.[mk_usize 10]);
-    assert (p.[mk_usize 8] == state.[mk_usize 16]);
-    assert (p.[mk_usize 9] == state.[mk_usize 22]);
-    assert (p.[mk_usize 10] == state.[mk_usize 1]);
-    assert (p.[mk_usize 11] == state.[mk_usize 7]);
-    assert (p.[mk_usize 12] == state.[mk_usize 13]);
-    assert (p.[mk_usize 13] == state.[mk_usize 19]);
-    assert (p.[mk_usize 14] == state.[mk_usize 20]);
-    assert (p.[mk_usize 15] == state.[mk_usize 4]);
-    assert (p.[mk_usize 16] == state.[mk_usize 5]);
-    assert (p.[mk_usize 17] == state.[mk_usize 11]);
-    assert (p.[mk_usize 18] == state.[mk_usize 17]);
-    assert (p.[mk_usize 19] == state.[mk_usize 23]);
-    assert (p.[mk_usize 20] == state.[mk_usize 2]);
-    assert (p.[mk_usize 21] == state.[mk_usize 8]);
-    assert (p.[mk_usize 22] == state.[mk_usize 14]);
-    assert (p.[mk_usize 23] == state.[mk_usize 15]);
-    assert (p.[mk_usize 24] == state.[mk_usize 21])
+  = let p = normalize_term (Hacspec_sha3.Keccak_f.pi state) in
+    assert_norm (p.[mk_usize 0] == state.[mk_usize 0]);
+    assert_norm (p.[mk_usize 1] == state.[mk_usize 6]);
+    assert_norm (p.[mk_usize 2] == state.[mk_usize 12]);
+    assert_norm (p.[mk_usize 3] == state.[mk_usize 18]);
+    assert_norm (p.[mk_usize 4] == state.[mk_usize 24]);
+    assert_norm (p.[mk_usize 5] == state.[mk_usize 3]);
+    assert_norm (p.[mk_usize 6] == state.[mk_usize 9]);
+    assert_norm (p.[mk_usize 7] == state.[mk_usize 10]);
+    assert_norm (p.[mk_usize 8] == state.[mk_usize 16]);
+    assert_norm (p.[mk_usize 9] == state.[mk_usize 22]);
+    assert_norm (p.[mk_usize 10] == state.[mk_usize 1]);
+    assert_norm (p.[mk_usize 11] == state.[mk_usize 7]);
+    assert_norm (p.[mk_usize 12] == state.[mk_usize 13]);
+    assert_norm (p.[mk_usize 13] == state.[mk_usize 19]);
+    assert_norm (p.[mk_usize 14] == state.[mk_usize 20]);
+    assert_norm (p.[mk_usize 15] == state.[mk_usize 4]);
+    assert_norm (p.[mk_usize 16] == state.[mk_usize 5]);
+    assert_norm (p.[mk_usize 17] == state.[mk_usize 11]);
+    assert_norm (p.[mk_usize 18] == state.[mk_usize 17]);
+    assert_norm (p.[mk_usize 19] == state.[mk_usize 23]);
+    assert_norm (p.[mk_usize 20] == state.[mk_usize 2]);
+    assert_norm (p.[mk_usize 21] == state.[mk_usize 8]);
+    assert_norm (p.[mk_usize 22] == state.[mk_usize 14]);
+    assert_norm (p.[mk_usize 23] == state.[mk_usize 15]);
+    assert_norm (p.[mk_usize 24] == state.[mk_usize 21])
 #pop-options
 
 (* ================================================================
@@ -1438,7 +1438,15 @@ let lemma_theta_rho_row_4_to_spec
     lemma_rho_theta_spec state
 #pop-options
 
-#push-options "--fuel 0 --ifuel 1 --z3rlimit 400"
+let forall25 (p:(i:nat{i < 25} -> Type0)):
+  Lemma (requires (p 0 /\ p 1 /\ p 2 /\ p 3 /\ p 4 /\
+                   p 5 /\ p 6 /\ p 7 /\ p 8 /\ p 9 /\
+                   p 10 /\ p 11 /\ p 12 /\ p 13 /\ p 14 /\
+                   p 15 /\ p 16 /\ p 17 /\ p 18 /\ p 19 /\
+                   p 20 /\ p 21 /\ p 22 /\ p 23 /\ p 24))
+        (ensures (forall (i:nat{i < 25}). p i)) = ()
+        
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200 --split_queries always"
 let lemma_theta_rho_to_spec
       (v_N: usize) (#v_T: Type0)
       {| inst: Libcrux_sha3.Traits.t_KeccakItem v_T v_N |}
@@ -1451,25 +1459,18 @@ let lemma_theta_rho_to_spec
        let ks'' = Libcrux_sha3.Generic_keccak.impl_2__rho v_N #v_T ks' d in
        extract_lane v_N lc ks''.Libcrux_sha3.Generic_keccak.f_st l ==
        Hacspec_sha3.Keccak_f.rho (Hacspec_sha3.Keccak_f.theta (extract_lane v_N lc s l)))
-  = let open Libcrux_sha3.Generic_keccak in
-    let s = ks.f_st in
-    let ks', d = impl_2__theta v_N #v_T ks in
-    let state = extract_lane v_N lc s l in
-    let lhs = extract_lane v_N lc (impl_2__rho v_N #v_T ks' d).f_st l in
-    let rhs = Hacspec_sha3.Keccak_f.rho (Hacspec_sha3.Keccak_f.theta state) in
-    lemma_theta_rho_row_0_to_spec v_N lc ks l;
+  = lemma_theta_rho_row_0_to_spec v_N lc ks l;
     lemma_theta_rho_row_1_to_spec v_N lc ks l;
     lemma_theta_rho_row_2_to_spec v_N lc ks l;
     lemma_theta_rho_row_3_to_spec v_N lc ks l;
     lemma_theta_rho_row_4_to_spec v_N lc ks l;
-    introduce forall (i: nat{i < 25}). lhs.[mk_usize i] == rhs.[mk_usize i]
-    with (let y = i / 5 in
-          if y = 0 then ()
-          else if y = 1 then ()
-          else if y = 2 then ()
-          else if y = 3 then ()
-          else ());
-    Rust_primitives.Arrays.eq_intro lhs rhs
+    let s = ks.Libcrux_sha3.Generic_keccak.f_st in
+    let ks', d = Libcrux_sha3.Generic_keccak.impl_2__theta v_N #v_T ks in
+    let ks'' = Libcrux_sha3.Generic_keccak.impl_2__rho v_N #v_T ks' d in
+    let lhs = extract_lane v_N lc ks''.Libcrux_sha3.Generic_keccak.f_st l in
+    let rhs = Hacspec_sha3.Keccak_f.rho (Hacspec_sha3.Keccak_f.theta (extract_lane v_N lc s l)) in
+    forall25 (fun i -> Seq.index lhs i == Seq.index rhs i);
+    eq_intro lhs rhs
 #pop-options
 
 (** Pi extract_lane: states all 25 indices of pi result at u64 level.
@@ -1550,9 +1551,10 @@ let lemma_pi_to_spec
     lemma_pi_extract_lane v_N lc ks l;
     let state = extract_lane v_N lc ks.f_st l in
     lemma_pi_spec state;
-    Rust_primitives.Arrays.eq_intro
-      (extract_lane v_N lc (impl_2__pi v_N #v_T ks).f_st l)
-      (Hacspec_sha3.Keccak_f.pi state)
+    let lhs = extract_lane v_N lc (impl_2__pi v_N #v_T ks).f_st l in
+    let rhs = Hacspec_sha3.Keccak_f.pi state in
+    forall25 (fun i -> Seq.index lhs i == Seq.index rhs i);
+    Rust_primitives.Arrays.eq_intro lhs rhs
 #pop-options
 
 (** Chi extract_lane: states all 25 indices of chi result at u64 level.

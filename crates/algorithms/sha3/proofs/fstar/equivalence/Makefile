@@ -18,6 +18,8 @@ ROOTS = \
 	EquivImplSpec.Sponge.Portable.fst \
 	EquivImplSpec.Sponge.Arm64.fst \
 	EquivImplSpec.Sponge.Avx2.fst \
+	EquivImplSpec.Sponge.SqueezeFrame.fst \
+	EquivImplSpec.Sponge.Portable.SqueezeBytes.fst \
 	EquivImplSpec.Sponge.Portable.Steps.fst \
 	EquivImplSpec.Sponge.Arm64.Steps.fst \
 	EquivImplSpec.Sponge.Avx2.Steps.fst \

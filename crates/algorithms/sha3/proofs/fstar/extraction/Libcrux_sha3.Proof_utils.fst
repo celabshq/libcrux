@@ -14,7 +14,7 @@ let slices_same_len (v_N: usize) (slices: t_Array (t_Slice u8) v_N) : Hax_lib.Pr
       bool)
 
 let valid_rate (rate: usize) : bool =
-  rate <>. mk_usize 0 && rate <=. mk_usize 200 && (rate %! mk_usize 8 <: usize) =. mk_usize 0 &&
+  rate >. mk_usize 32 && rate <. mk_usize 200 && (rate %! mk_usize 8 <: usize) =. mk_usize 0 &&
   ((rate %! mk_usize 32 <: usize) =. mk_usize 8 || (rate %! mk_usize 32 <: usize) =. mk_usize 16)
 
 /// XOF state invariant: validates that buffer length and rate are valid.

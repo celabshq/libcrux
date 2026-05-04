@@ -82,7 +82,6 @@ fn load_lane_u64(
 /// `(4*i + idx)`th u64 from each block in lane `lane`, then XORs
 /// with the corresponding state inputs `inK`.
 #[inline(always)]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
 #[hax_lib::fstar::options("--z3rlimit 400 --split_queries always")]
 #[hax_lib::requires(i < 6
         && blocks[0].len() == blocks[1].len()
@@ -107,6 +106,7 @@ fn load_lane_u64(
     && get_lane_u64(r3, 2) == load_lane_u64(blocks, offset, 4*i + 3, in3, 2)
     && get_lane_u64(r3, 3) == load_lane_u64(blocks, offset, 4*i + 3, in3, 3)
 )]
+#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]    
 fn load_u64x4x4(
     blocks: &[&[u8]; 4],
     offset: usize,
@@ -144,7 +144,6 @@ fn load_u64x4x4(
 /// Loads 8 bytes from each of the 4 blocks at `offset + 8*i`,
 /// gathers them into a Vec256, and XORs with `statei`.
 #[inline(always)]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
 #[hax_lib::requires(i < 25
         && blocks[0].len() == blocks[1].len()
         && blocks[0].len() == blocks[2].len()
@@ -156,6 +155,7 @@ fn load_u64x4x4(
     && get_lane_u64(result, 2) == load_lane_u64(blocks, offset, i, statei, 2)
     && get_lane_u64(result, 3) == load_lane_u64(blocks, offset, i, statei, 3)
 )]
+#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
 fn load_u64x4(blocks: &[&[u8]; 4], offset: usize, i: usize, statei: Vec256) -> Vec256 {
     let v0 = u64::from_le_bytes(
         blocks[0][offset + 8 * i..offset + 8 * i + 8]
@@ -181,8 +181,18 @@ fn load_u64x4(blocks: &[&[u8]; 4], offset: usize, i: usize, statei: Vec256) -> V
     mm256_xor_si256(statei, u)
 }
 
+#[cfg(hax)]
+#[hax_lib::requires(valid_rate(rate))]
+#[hax_lib::ensures(|_|
+    (rate % 32 == 8 || rate % 32 == 16) &&
+    if rate % 32 == 16 {
+        rate / 8 == 4 * (rate/32) + 2
+    } else {rate / 8 == 4 * (rate/32) + 1})]
+fn lemma_rate_mod(rate: usize) {
+}
+
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 800 --split_queries always")]
+#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always")]
 #[hax_lib::requires(valid_rate(RATE)
             && blocks[0].len() == blocks[1].len()
             && blocks[0].len() == blocks[2].len()
@@ -210,7 +220,8 @@ pub(crate) fn load_block<const RATE: usize>(
     offset: usize,
 ) {
     #[cfg(not(eurydice))]
-    debug_assert!(RATE <= blocks[0].len() && RATE % 8 == 0 && (RATE % 32 == 8 || RATE % 32 == 16));
+    debug_assert!(RATE <= blocks[0].len() && RATE / 32 <= 6 && 32 * (RATE/32 - 1) + 32 <= RATE && 
+                  RATE % 8 == 0 && (RATE % 32 == 8 || RATE % 32 == 16));
     #[cfg(hax)]
     let old_state = *state;
     for i in 0..RATE / 32 {
@@ -238,6 +249,16 @@ pub(crate) fn load_block<const RATE: usize>(
         let j2 = (4 * i + 2) % 5;
         let i3 = (4 * i + 3) / 5;
         let j3 = (4 * i + 3) % 5;
+        hax_lib::fstar!(r#"
+          assert(v $RATE / 32 > 0);
+          assert (v $i <= v $RATE / 32 - 1);
+          assert (v $i < 6);
+          assert (v $i + 1 <= v $RATE / 32);
+          assert ((v $RATE / 32) * 32 <= v $RATE);
+          assert (32 * (v $i + 1) <= v $RATE);
+          assert (32 * v $i + 32 <= v $RATE);
+          assert (sz 32 *! $i +! sz 32 <=. $RATE)
+        "#);
         let (g0, g1, g2, g3) = load_u64x4x4(
             blocks,
             offset,
@@ -251,8 +272,24 @@ pub(crate) fn load_block<const RATE: usize>(
         set_ij(state, i1, j1, g1);
         set_ij(state, i2, j2, g2);
         set_ij(state, i3, j3, g3);
+        hax_lib::assert!(get_lane_u64(state[4*i], 0) == load_lane_u64(blocks, offset, 4*i, old_state[4*i], 0)
+                        && get_lane_u64(state[4*i], 1) == load_lane_u64(blocks, offset, 4*i, old_state[4*i], 1)
+                        && get_lane_u64(state[4*i], 2) == load_lane_u64(blocks, offset, 4*i, old_state[4*i], 2)
+                        && get_lane_u64(state[4*i], 3) == load_lane_u64(blocks, offset, 4*i, old_state[4*i], 3));
+        hax_lib::assert!(get_lane_u64(state[4*i+1], 0) == load_lane_u64(blocks, offset, 4*i+1, old_state[4*i+1], 0)
+                        && get_lane_u64(state[4*i+1], 1) == load_lane_u64(blocks, offset, 4*i+1, old_state[4*i+1], 1)
+                        && get_lane_u64(state[4*i+1], 2) == load_lane_u64(blocks, offset, 4*i+1, old_state[4*i+1], 2)
+                        && get_lane_u64(state[4*i+1], 3) == load_lane_u64(blocks, offset, 4*i+1, old_state[4*i+1], 3));
+        hax_lib::assert!(get_lane_u64(state[4*i+2], 0) == load_lane_u64(blocks, offset, 4*i+2, old_state[4*i+2], 0)
+                        && get_lane_u64(state[4*i+2], 1) == load_lane_u64(blocks, offset, 4*i+2, old_state[4*i+2], 1)
+                        && get_lane_u64(state[4*i+2], 2) == load_lane_u64(blocks, offset, 4*i+2, old_state[4*i+2], 2)
+                        && get_lane_u64(state[4*i+2], 3) == load_lane_u64(blocks, offset, 4*i+2, old_state[4*i+2], 3));
+        hax_lib::assert!(get_lane_u64(state[4*i+3], 0) == load_lane_u64(blocks, offset, 4*i+3, old_state[4*i+3], 0)
+                        && get_lane_u64(state[4*i+3], 1) == load_lane_u64(blocks, offset, 4*i+3, old_state[4*i+3], 1)
+                        && get_lane_u64(state[4*i+3], 2) == load_lane_u64(blocks, offset, 4*i+3, old_state[4*i+3], 2)
+                        && get_lane_u64(state[4*i+3], 3) == load_lane_u64(blocks, offset, 4*i+3, old_state[4*i+3], 3));
     }
-
+    lemma_rate_mod(RATE);
     let rem = RATE % 32; // has to be 8 or 16
     let i = 4 * (RATE / 32);
     let result = load_u64x4(blocks, offset, i, *get_ij(state, i / 5, i % 5));

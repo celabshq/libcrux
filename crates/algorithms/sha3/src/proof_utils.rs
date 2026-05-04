@@ -9,7 +9,7 @@ pub(crate) fn valid_rate(rate: usize) -> bool {
     // This is could be changed to checking against the specific valid rates
     // corresponding to: SHA3-512, SHA3-384, SHA3-256/SHAKE256, SHA3-224, SHAKE128
     // rate == 72 || rate == 104 || rate == 136 || rate == 144 || rate == 168
-    rate != 0 && rate <= 200 && rate % 8 == 0 && (rate % 32 == 8 || rate % 32 == 16)
+    rate > 32 && rate < 200 && rate % 8 == 0 && (rate % 32 == 8 || rate % 32 == 16)
 }
 
 /// XOF state invariant: validates that buffer length and rate are valid.

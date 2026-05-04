@@ -161,7 +161,33 @@ let impl__squeeze_last
           ((Core_models.Slice.impl__len #u8 out_future <: usize) =.
             (Core_models.Slice.impl__len #u8 out <: usize)
             <:
-            bool)) =
+            bool) /\
+          (let out_len = Core_models.Slice.impl__len #u8 out in
+            let prefix_len:usize = out_len -! output_rem in
+            ((output_rem =. mk_usize 0) ==>
+              self_e_future.Libcrux_sha3.Generic_keccak.f_st ==
+              self.Libcrux_sha3.Generic_keccak.f_st) /\
+            ((output_rem <>. mk_usize 0) ==>
+              self_e_future.Libcrux_sha3.Generic_keccak.f_st ==
+              Hacspec_sha3.Keccak_f.keccak_f self.Libcrux_sha3.Generic_keccak.f_st) /\
+            (forall (k: nat).
+                k < v prefix_len ==>
+                Seq.index (out_future <: Seq.seq u8) k == Seq.index (out <: Seq.seq u8) k) /\
+            (forall (k: nat).
+                v prefix_len <= k /\ k < v out_len ==>
+                Seq.index (out_future <: Seq.seq u8) k ==
+                ((Core_models.Num.impl_u64__to_le_bytes (self_e_future
+                          .Libcrux_sha3.Generic_keccak.f_st.[ (mk_usize (k - v prefix_len) /!
+                            mk_usize 8)
+                          <:
+                          usize ]
+                        <:
+                        u64)
+                    <:
+                    t_Array u8 (mk_usize 8)).[ (mk_usize (k - v prefix_len) %! mk_usize 8) <: usize
+                  ]
+                  <:
+                  u8)))) =
   let out_original:Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global = Alloc.Slice.impl__to_vec #u8 out in
   let self_original_st:t_Array u64 (mk_usize 25) = self.Libcrux_sha3.Generic_keccak.f_st in
   let (out: t_Slice u8), (self: Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64) =
@@ -184,56 +210,40 @@ let impl__squeeze_last
       let _:Prims.unit =
         let out_len = Core_models.Slice.impl__len #u8 out in
         let offset = out_len -! output_rem in
-        let out_orig_arr:t_Array u8 out_len =
-          Alloc.Vec.impl_1__as_slice out_original <: t_Slice _
-        in
+        let out_orig_slice:t_Slice u8 = Alloc.Vec.impl_1__as_slice out_original in
         let new_state = Hacspec_sha3.Keccak_f.keccak_f self_original_st in
         assert (v v_RATE <= 200);
         assert (self.Libcrux_sha3.Generic_keccak.f_st == new_state);
-        let aux (k: nat{k < v out_len})
-            : Lemma
-            (Seq.index (out <: Seq.seq u8) k ==
-              Seq.index ((Hacspec_sha3.Sponge.squeeze_state out_len
-                      new_state
-                      out_orig_arr
-                      offset
-                      output_rem)
-                  <:
-                  Seq.seq u8)
-                k) =
+        let aux_prefix (k: nat{k < v offset})
+            : Lemma (Seq.index (out <: Seq.seq u8) k == Seq.index (out_orig_slice <: Seq.seq u8) k)
+        =
           let i:usize = mk_usize k in
-          assert (v i == k);
-          if k < v offset
-          then ()
-          else
-            (assert (v i - v offset < v output_rem);
-              assert ((v i - v offset) / 8 < 25))
+          assert (v i < v offset)
         in
-        FStar.Classical.forall_intro aux;
-        Seq.lemma_eq_intro (out <: Seq.seq u8)
-          ((Hacspec_sha3.Sponge.squeeze_state out_len new_state out_orig_arr offset output_rem)
-            <:
-            Seq.seq u8)
+        FStar.Classical.forall_intro aux_prefix;
+        let aux_tail (k: nat{v offset <= k /\ k < v out_len})
+            : Lemma
+            (let j:usize = mk_usize (k - v offset) in
+              Seq.index (out <: Seq.seq u8) k ==
+              ((Core_models.Num.impl_u64__to_le_bytes (new_state.[ j /! mk_usize 8 <: usize ] <: u64
+                    )
+                  <:
+                  t_Array u8 (mk_usize 8)).[ j %! mk_usize 8 <: usize ]
+                <:
+                u8)) =
+          let i:usize = mk_usize k in
+          let j:usize = mk_usize (k - v offset) in
+          assert (v i - v offset < v output_rem);
+          assert ((v i - v offset) / 8 < 25);
+          assert (v j == v i - v offset)
+        in
+        FStar.Classical.forall_intro aux_tail
       in
       out, self <: (t_Slice u8 & Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64)
     else out, self <: (t_Slice u8 & Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64)
   in
   self, out <: (Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64 & t_Slice u8)
 
-(* Stability fix (cold-cache profile, 2026-04-30 — see /tmp/sha3-coldprof
-   build.log + parse.py output).  Without `--split_queries always` the
-   monolithic q1 of `impl__squeeze_first_five_blocks` timed out at
-   173,468 ms hitting the full rlimit 800 budget, then F* auto-split into
-   46 sub-queries that each succeeded in 16-160 ms (~5 s of useful work
-   buried under 173 s of wasted Z3 time).  Adding `--split_queries always`
-   here skips the wasted monolithic attempt and goes straight to the split
-   that actually works.  Class A (bounds-only ensures); no functional
-   admit involved.  Same fix can be applied to the other linear
-   impl__squeeze_*_block(s) wrappers if they show similar instability.
-   Per the rlimit policy (memory: feedback_rlimit_cap_800), --split_queries
-   is paired with --z3rlimit 400 (down from inherited 800); cold profile
-   showed each split sub-query used max 8.687 rlimit, so 400 is plenty. *)
-#push-options "--split_queries always --z3rlimit 400"
 let impl__squeeze_first_five_blocks
       (v_RATE: usize)
       (self: Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64)
@@ -314,7 +324,6 @@ let impl__squeeze_first_five_blocks
       v_RATE
   in
   self, out <: (Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64 & t_Slice u8)
-#pop-options
 
 #push-options "--fuel 1 --ifuel 1 --z3rlimit 800 --split_queries always"
 
@@ -428,58 +437,153 @@ let absorb (v_RATE: usize) (v_DELIM: u8) (input: t_Slice u8)
 
 #pop-options
 
-#push-options "--fuel 1 --ifuel 1 --z3rlimit 800 --split_queries always"
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 400 --split_queries always"
+
+let squeeze_blocks
+      (v_RATE: usize)
+      (s: Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64)
+      (output: t_Slice u8)
+      (output_blocks: usize)
+    : Prims.Pure (Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64 & t_Slice u8)
+      (requires
+        Libcrux_sha3.Proof_utils.valid_rate v_RATE && output_blocks >. mk_usize 0 &&
+        output_blocks =. ((Core_models.Slice.impl__len #u8 output <: usize) /! v_RATE <: usize) &&
+        (Core_models.Slice.impl__len #u8 output <: usize) <.
+        (Core_models.Num.impl_usize__MAX -! mk_usize 200 <: usize))
+      (ensures
+        fun temp_0_ ->
+          let
+          (s_future: Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64),
+          (output_future: t_Slice u8) =
+            temp_0_
+          in
+          b2t
+          ((Core_models.Slice.impl__len #u8 output_future <: usize) =.
+            (Core_models.Slice.impl__len #u8 output <: usize)
+            <:
+            bool) /\
+          (let spec_out:t_Slice u8 =
+              Hacspec_sha3.Sponge.squeeze (Core_models.Slice.impl__len #u8 output)
+                s.Libcrux_sha3.Generic_keccak.f_st
+                v_RATE
+            in
+            s_future.f_st == Hacspec_sha3.Sponge.iterate_keccak_f (output_blocks -! sz 1) s.f_st /\
+            (forall (k: nat).
+                (k < v output_blocks * v v_RATE) ==>
+                Seq.index output_future k == Seq.index spec_out k))) =
+  let output_len:usize = Core_models.Slice.impl__len #u8 output in
+  let s_init_st:t_Array u64 (mk_usize 25) = s.Libcrux_sha3.Generic_keccak.f_st in
+  let output_initial:t_Slice u8 =
+    Alloc.Vec.impl_1__as_slice #u8
+      #Alloc.Alloc.t_Global
+      (Alloc.Slice.impl__to_vec #u8 output <: Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
+  in
+  let output:t_Slice u8 =
+    Libcrux_sha3.Traits.f_squeeze #(Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64)
+      #u64
+      #FStar.Tactics.Typeclasses.solve
+      v_RATE
+      s
+      output
+      (mk_usize 0)
+      v_RATE
+  in
+  let _:Prims.unit =
+    let spec_out:t_Slice u8 = Hacspec_sha3.Sponge.squeeze output_len s_init_st v_RATE in
+    assert (v output_blocks >= 1);
+    assert (v v_RATE <= 200);
+    assert (s_init_st == Hacspec_sha3.Sponge.iterate_keccak_f (mk_usize 0) s_init_st);
+    let aux (k: nat{k < v v_RATE})
+        : Lemma (Seq.index (output <: Seq.seq u8) k == Seq.index (spec_out <: Seq.seq u8) k) =
+      let i:usize = mk_usize k in
+      assert (v i == k);
+      assert (v i / 8 < 25);
+      FStar.Math.Lemmas.small_div k (v v_RATE);
+      assert (v i / v v_RATE = 0)
+    in
+    FStar.Classical.forall_intro aux
+  in
+  let (output: t_Slice u8), (s: Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64) =
+    Rust_primitives.Hax.Folds.fold_range (mk_usize 1)
+      output_blocks
+      (fun temp_0_ i ->
+          let (output: t_Slice u8), (s: Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64)
+          =
+            temp_0_
+          in
+          let i:usize = i in
+          b2t ((Core_models.Slice.impl__len #u8 output <: usize) =. output_len <: bool) /\
+          (let spec_out:t_Slice u8 = Hacspec_sha3.Sponge.squeeze output_len s_init_st v_RATE in
+            v i >= 1 /\ v i <= v output_blocks /\ v i * v v_RATE <= v output_len /\
+            s.Libcrux_sha3.Generic_keccak.f_st ==
+            Hacspec_sha3.Sponge.iterate_keccak_f (i -! mk_usize 1) s_init_st /\
+            (forall (k: nat).
+                (k < v i * v v_RATE) ==>
+                Seq.index (output <: Seq.seq u8) k == Seq.index (spec_out <: Seq.seq u8) k)))
+      (output, s <: (t_Slice u8 & Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64))
+      (fun temp_0_ i ->
+          let (output: t_Slice u8), (s: Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64)
+          =
+            temp_0_
+          in
+          let i:usize = i in
+          let _:Prims.unit =
+            Libcrux_sha3.Proof_utils.Lemmas.lemma_mul_succ_le i output_blocks v_RATE
+          in
+          let _:Prims.unit =
+            Libcrux_sha3.Proof_utils.Lemmas.lemma_div_mul_mod output_len v_RATE;
+            assert (v i * v v_RATE + v v_RATE <= v output_len);
+            assert (v output_blocks == v output_len / v v_RATE);
+            assert (v v_RATE >= 1);
+            assert (v i * v v_RATE <= v output_len);
+            Math.Lemmas.nat_times_nat_is_nat (v i) (v v_RATE);
+            assert (v output_len < v Core_models.Num.impl_usize__MAX);
+            assert (v i * v v_RATE < v Core_models.Num.impl_usize__MAX);
+            EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable v_RATE
+              s_init_st
+              s
+              output
+              output_initial
+              i
+          in
+          let s:Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64 =
+            Libcrux_sha3.Generic_keccak.impl_2__keccakf1600 (mk_usize 1) #u64 s
+          in
+          let _:Prims.unit = assert (s.f_st == Hacspec_sha3.Sponge.iterate_keccak_f i s_init_st) in
+          let output:t_Slice u8 =
+            Libcrux_sha3.Traits.f_squeeze #(Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1)
+                  u64)
+              #u64
+              #FStar.Tactics.Typeclasses.solve
+              v_RATE
+              s
+              output
+              (i *! v_RATE <: usize)
+              v_RATE
+          in
+          let _:Prims.unit =
+            assert (v i * v v_RATE + v v_RATE <= v output_len);
+            Math.Lemmas.distributivity_add_left (v i) 1 (v v_RATE)
+          in
+          output, s <: (t_Slice u8 & Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64))
+  in
+  s, output <: (Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64 & t_Slice u8)
+
+#pop-options
+
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 400"
 
 /// Squeeze phase of `keccak1`: extract `output.len()` bytes from `s`,
 /// applying Keccak-f between each full rate-byte block of output.
-/// The ensures clause asserts direct equality with the spec function
-/// `Hacspec_sha3.Sponge.squeeze`.  Buffer-independence is proved
-/// *inline* through the loop invariant: at iteration `i`, the impl\'s
-/// output agrees with the spec\'s run (anchored on a zeros buffer) on
-/// the already-written prefix `[0, i*RATE)` and preserves the initial
-/// input buffer on the tail `[i*RATE, output_len)`.  The per-byte
-/// ensures clause of `f_squeeze` (bytes inside the write range are
-/// determined by state, bytes outside are preserved) makes the
-/// block-by-block step go through without needing a separate
-/// buffer-independence lemma.
-
-(* USER-2 — STABILITY ADMIT, NOT A SOUNDNESS ADMIT.
-
-   Cold-cache profile (2026-04-30, /tmp/sha3-coldprof/build.log + parse.py)
-   measured this function at 347,634 ms total SMT (371 sub-queries under
-   `--split_queries always`).  The single worst sub-query
-   `squeeze, q227` succeeded in 162,194 ms but used 689/800 rlimit —
-   above the user policy's 150 s threshold for stability admits and
-   already at 86% of the available rlimit budget, so any future
-   variation in machine load would flake the proof.
-
-   The proof IS sound.  Direct consumer evidence at the time of writing:
-   `Libcrux_sha3.Portable.fst` (.checked timestamp Apr 30 19:28) and
-   `Libcrux_sha3.fst` (.checked timestamp Apr 30 19:28) both verified
-   warm-cached against this function's ensures, with the full top-level
-   chain (`keccak1` -> `sha224`/`sha256`/.../`shake256` and the
-   `*_ema` variants) reporting "All verification conditions discharged
-   successfully" in 8,322 ms wall on 2026-04-30 18:36 UTC.  The spec
-   contract `output_future == Hacspec_sha3.Sponge.squeeze ...` is
-   therefore well-formed and consumed by 18 layer-3 wrappers.
-
-   Local-stabilization class: B+C+D mixed.  The function nests four
-   `forall_intro` calls on per-byte aux lemmas (`aux_write`, `aux_tail`,
-   `aux_write_step`, `aux_tail_step`), each composed inside a
-   `fold_range` loop body whose 4-clause invariant cites
-   `Hacspec_sha3.Sponge.squeeze_blocks` and `squeeze_state`.  Z3 is
-   asked to compose the per-byte forall with the loop invariant's
-   block-indexed forall in one sub-query — q227 corresponds to one
-   of those compositions and it crosses the 150 s line.
-
-   Structural fix (~1 sprint, deferred): factor each per-byte aux into
-   a top-level `lemma_squeeze_*_byte_*` lemma proven once, and replace
-   the in-body `forall_intro aux` cascade with explicit instantiations
-   tied to the loop iteration index `i`.  Each per-byte lemma should
-   discharge in <500 ms standalone (mirrors the per-index pattern that
-   already works for `lemma_rho_thru_K_extract_lane`); the loop body
-   then cites them by name without quantifier composition. *)
-#push-options "--admit_smt_queries true"
+/// The ensures clause pins the result to the byteform spec
+/// `Hacspec_sha3.Sponge.squeeze` (per-byte: byte k uses
+/// `iterate_keccak_f(k/RATE, s_init)`\'s lane).  Body proof:
+///   - establish the byteform invariant after the first block
+///   - cite `lemma_squeeze_one_step_portable` per loop iteration to
+///     advance the invariant from i to i+1
+///   - reconcile the trailing partial block (via `squeeze_last`) with
+///     the byteform\'s last block.
+///
 let squeeze
       (v_RATE: usize)
       (s: Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64)
@@ -506,6 +610,7 @@ let squeeze
   let output_len:usize = Core_models.Slice.impl__len #u8 output in
   let output_blocks:usize = output_len /! v_RATE in
   let output_rem:usize = output_len %! v_RATE in
+  let s_init_st:t_Array u64 (mk_usize 25) = s.Libcrux_sha3.Generic_keccak.f_st in
   let (output: t_Slice u8), (s: Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64) =
     if output_blocks =. mk_usize 0
     then
@@ -519,67 +624,76 @@ let squeeze
           (mk_usize 0)
           output_len
       in
+      let _:Prims.unit =
+        let spec_out:t_Slice u8 = Hacspec_sha3.Sponge.squeeze output_len s_init_st v_RATE in
+        assert (v output_len < v v_RATE);
+        assert (v v_RATE <= 200);
+        let aux (k: nat{k < v output_len})
+            : Lemma (Seq.index (output <: Seq.seq u8) k == Seq.index (spec_out <: Seq.seq u8) k) =
+          let i:usize = mk_usize k in
+          assert (v i == k);
+          assert (v i / 8 < 25);
+          FStar.Math.Lemmas.small_div k (v v_RATE);
+          assert (v i / v v_RATE = 0)
+        in
+        FStar.Classical.forall_intro aux;
+        Seq.lemma_eq_intro (output <: Seq.seq u8) (spec_out <: Seq.seq u8)
+      in
       output, s <: (t_Slice u8 & Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64)
     else
-      let output:t_Slice u8 =
-        Libcrux_sha3.Traits.f_squeeze #(Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64)
-          #u64
-          #FStar.Tactics.Typeclasses.solve
-          v_RATE
-          s
-          output
-          (mk_usize 0)
-          v_RATE
+      let (tmp0: Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64), (tmp1: t_Slice u8) =
+        squeeze_blocks v_RATE s output output_blocks
       in
-      let (output: t_Slice u8), (s: Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64) =
-        Rust_primitives.Hax.Folds.fold_range (mk_usize 1)
-          output_blocks
-          (fun temp_0_ i ->
-              let
-              (output: t_Slice u8), (s: Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64)
-              =
-                temp_0_
-              in
-              let _:usize = i in
-              b2t ((Core_models.Slice.impl__len #u8 output <: usize) =. output_len <: bool) /\
-              (let _ = s in True))
-          (output, s <: (t_Slice u8 & Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64))
-          (fun temp_0_ i ->
-              let
-              (output: t_Slice u8), (s: Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64)
-              =
-                temp_0_
-              in
-              let i:usize = i in
-              let _:Prims.unit =
-                Libcrux_sha3.Proof_utils.Lemmas.lemma_mul_succ_le i output_blocks v_RATE
-              in
-              let s:Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64 =
-                Libcrux_sha3.Generic_keccak.impl_2__keccakf1600 (mk_usize 1) #u64 s
-              in
-              let output:t_Slice u8 =
-                Libcrux_sha3.Traits.f_squeeze #(Libcrux_sha3.Generic_keccak.t_KeccakState
-                      (mk_usize 1) u64)
-                  #u64
-                  #FStar.Tactics.Typeclasses.solve
-                  v_RATE
-                  s
-                  output
-                  (i *! v_RATE <: usize)
-                  v_RATE
-              in
-              output, s <: (t_Slice u8 & Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64)
-          )
+      let s:Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64 = tmp0 in
+      let output:t_Slice u8 = tmp1 in
+      let _:Prims.unit = () in
+      let output_after_blocks:Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global =
+        Alloc.Slice.impl__to_vec #u8 output
       in
       let (tmp0: Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64), (tmp1: t_Slice u8) =
         impl__squeeze_last v_RATE s output output_rem
       in
       let s:Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64 = tmp0 in
       let output:t_Slice u8 = tmp1 in
+      let _:Prims.unit = () in
+      let _:Prims.unit =
+        Math.Lemmas.lemma_div_mod (v output_len) (v v_RATE);
+        let spec_out:t_Slice u8 = Hacspec_sha3.Sponge.squeeze output_len s_init_st v_RATE in
+        assert (v output_blocks >= 1);
+        assert (Hacspec_sha3.Sponge.iterate_keccak_f output_blocks s_init_st ==
+            Hacspec_sha3.Keccak_f.keccak_f (Hacspec_sha3.Sponge.iterate_keccak_f (output_blocks -!
+                    mk_usize 1)
+                  s_init_st));
+        let output_after_blocks_slice:t_Slice u8 = Alloc.Vec.impl_1__as_slice output_after_blocks in
+        let aux (k: nat{k < v output_len})
+            : Lemma (Seq.index (output <: Seq.seq u8) k == Seq.index (spec_out <: Seq.seq u8) k) =
+          if k < v output_len - v output_rem
+          then
+            EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_prefix_preserved_portable v_RATE
+              s_init_st
+              output_after_blocks_slice
+              output
+              output_blocks
+              output_rem
+              k
+          else
+            (assert (v output_rem > 0);
+              assert (s.Libcrux_sha3.Generic_keccak.f_st ==
+                  Hacspec_sha3.Sponge.iterate_keccak_f output_blocks s_init_st);
+              EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_trailing_byteform_portable v_RATE
+                s_init_st
+                s.Libcrux_sha3.Generic_keccak.f_st
+                output
+                output_blocks
+                output_rem
+                k)
+        in
+        FStar.Classical.forall_intro aux;
+        Seq.lemma_eq_intro (output <: Seq.seq u8) (spec_out <: Seq.seq u8)
+      in
       output, s <: (t_Slice u8 & Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64)
   in
   output
-#pop-options
 
 #pop-options
 
@@ -600,14 +714,11 @@ let keccak1 (v_RATE: usize) (v_DELIM: u8) (input output: t_Slice u8)
             <:
             bool) /\
           (output_future <: t_Slice u8) ==
-          (Hacspec_sha3.Sponge.keccak (Core_models.Slice.impl__len #u8 output)
-              v_RATE v_DELIM input
+          (Hacspec_sha3.Sponge.keccak (Core_models.Slice.impl__len #u8 output) v_RATE v_DELIM input
             <:
             t_Slice u8)) =
   let s:Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 1) u64 = absorb v_RATE v_DELIM input in
   let output:t_Slice u8 = squeeze v_RATE s output in
   output
-
-#pop-options
 
 #pop-options

@@ -246,6 +246,7 @@ strip = true
 
 [patch.crates-io]
 hax-lib = { git = "https://github.com/cryspen/hax", branch = "integer-lemmas" }
+#hax-lib = { git = "https://github.com/cryspen/hax" }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = [

@@ -149,9 +149,7 @@ let sha224_ema (digest payload: t_Slice u8)
             <:
             bool) /\
           (digest_future <: t_Slice u8) ==
-          (Hacspec_sha3.Sponge.keccak (mk_usize 28) (mk_usize 144) (mk_u8 6) payload
-            <:
-            t_Slice u8)) =
+          (Hacspec_sha3.Sponge.keccak (mk_usize 28) (mk_usize 144) (mk_u8 6) payload <: t_Slice u8)) =
   let _:Prims.unit =
     if true
     then
@@ -212,9 +210,7 @@ let sha256_ema (digest payload: t_Slice u8)
             <:
             bool) /\
           (digest_future <: t_Slice u8) ==
-          (Hacspec_sha3.Sponge.keccak (mk_usize 32) (mk_usize 136) (mk_u8 6) payload
-            <:
-            t_Slice u8)) =
+          (Hacspec_sha3.Sponge.keccak (mk_usize 32) (mk_usize 136) (mk_u8 6) payload <: t_Slice u8)) =
   let _:Prims.unit =
     if true
     then
@@ -275,9 +271,7 @@ let sha384_ema (digest payload: t_Slice u8)
             <:
             bool) /\
           (digest_future <: t_Slice u8) ==
-          (Hacspec_sha3.Sponge.keccak (mk_usize 48) (mk_usize 104) (mk_u8 6) payload
-            <:
-            t_Slice u8)) =
+          (Hacspec_sha3.Sponge.keccak (mk_usize 48) (mk_usize 104) (mk_u8 6) payload <: t_Slice u8)) =
   let _:Prims.unit =
     if true
     then
@@ -338,9 +332,7 @@ let sha512_ema (digest payload: t_Slice u8)
             <:
             bool) /\
           (digest_future <: t_Slice u8) ==
-          (Hacspec_sha3.Sponge.keccak (mk_usize 64) (mk_usize 72) (mk_u8 6) payload
-            <:
-            t_Slice u8)) =
+          (Hacspec_sha3.Sponge.keccak (mk_usize 64) (mk_usize 72) (mk_u8 6) payload <: t_Slice u8)) =
   let _:Prims.unit =
     if true
     then
@@ -412,7 +404,9 @@ let shake128_ema (out data: t_Slice u8)
             bool) /\
           (out_future <: t_Slice u8) ==
           (Hacspec_sha3.Sponge.keccak (Core_models.Slice.impl__len #u8 out)
-              (mk_usize 168) (mk_u8 31) data
+              (mk_usize 168)
+              (mk_u8 31)
+              data
             <:
             t_Slice u8)) =
   let out:t_Slice u8 = Libcrux_sha3.Portable.shake128 out data in
@@ -450,7 +444,9 @@ let shake256_ema (out data: t_Slice u8)
             bool) /\
           (out_future <: t_Slice u8) ==
           (Hacspec_sha3.Sponge.keccak (Core_models.Slice.impl__len #u8 out)
-              (mk_usize 136) (mk_u8 31) data
+              (mk_usize 136)
+              (mk_u8 31)
+              data
             <:
             t_Slice u8)) =
   let out:t_Slice u8 = Libcrux_sha3.Portable.shake256 out data in

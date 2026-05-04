@@ -3,6 +3,8 @@ use hax_lib;
 
 #[cfg(hax)]
 use hax_lib::int::*;
+#[cfg(hax)]
+use hax_lib::prop::*;
 
 use generic_keccak::KeccakState as GenericState;
 

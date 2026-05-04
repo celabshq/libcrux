@@ -73,11 +73,24 @@ impl KeccakState<1, u64> {
     #[hax_lib::ensures(|_| (future(out).len() == out.len()).to_prop() & {
         fstar!(r#"
             let out_len = Core_models.Slice.impl__len #u8 $out in
-            let (st_spec, out_spec) =
-                Hacspec_sha3.Sponge.squeeze_last out_len $self_.st $out
-                    $RATE $output_rem in
-            self_e_future.Libcrux_sha3.Generic_keccak.f_st == st_spec /\
-            (out_future <: Seq.seq u8) == (out_spec <: Seq.seq u8)
+            let prefix_len : usize = out_len -! $output_rem in
+            (($output_rem =. mk_usize 0) ==>
+                self_e_future.Libcrux_sha3.Generic_keccak.f_st ==
+                    $self_.st) /\
+            (($output_rem <>. mk_usize 0) ==>
+                self_e_future.Libcrux_sha3.Generic_keccak.f_st ==
+                    Hacspec_sha3.Keccak_f.keccak_f $self_.st) /\
+            (forall (k: nat). k < v prefix_len ==>
+                Seq.index (out_future <: Seq.seq u8) k ==
+                Seq.index ($out <: Seq.seq u8) k) /\
+            (forall (k: nat). v prefix_len <= k /\ k < v out_len ==>
+                Seq.index (out_future <: Seq.seq u8) k ==
+                ((Core_models.Num.impl_u64__to_le_bytes
+                    (self_e_future.Libcrux_sha3.Generic_keccak.f_st.[
+                       (mk_usize (k - v prefix_len) /! mk_usize 8) <: usize ]
+                     <: u64)
+                  <: t_Array u8 (mk_usize 8)).[
+                    (mk_usize (k - v prefix_len) %! mk_usize 8) <: usize ] <: u8))
         "#)
     })]
     pub(crate) fn squeeze_last<const RATE: usize>(&mut self, out: &mut [u8], output_rem: usize) {
@@ -92,29 +105,36 @@ impl KeccakState<1, u64> {
             hax_lib::fstar!(
                 r#"let out_len = Core_models.Slice.impl__len #u8 $out in
                    let offset = out_len -! $output_rem in
-                   let out_orig_arr : t_Array u8 out_len =
-                     Alloc.Vec.impl_1__as_slice $out_original <: t_Slice _ in
+                   let out_orig_slice : t_Slice u8 =
+                     Alloc.Vec.impl_1__as_slice $out_original in
                    let new_state = Hacspec_sha3.Keccak_f.keccak_f $self_original_st in
                    assert (v $RATE <= 200);
                    assert ($self.st == new_state);
-                   let aux (k: nat{k < v out_len})
+                   (* Prefix preservation: f_squeeze leaves out[k] unchanged
+                      for k < offset, so out[k] == input out at k. *)
+                   let aux_prefix (k: nat{k < v offset})
                      : Lemma (Seq.index ($out <: Seq.seq u8) k ==
-                              Seq.index ((Hacspec_sha3.Sponge.squeeze_state out_len
-                                 new_state
-                                 out_orig_arr offset $output_rem) <: Seq.seq u8) k)
-                     = let i : usize = mk_usize k in
-                       assert (v i == k);
-                       if k < v offset then ()
-                       else begin
-                         assert (v i - v offset < v $output_rem);
-                         assert ((v i - v offset) / 8 < 25)
-                       end
+                              Seq.index (out_orig_slice <: Seq.seq u8) k) =
+                     let i : usize = mk_usize k in
+                     assert (v i < v offset)
                    in
-                   FStar.Classical.forall_intro aux;
-                   Seq.lemma_eq_intro ($out <: Seq.seq u8)
-                     ((Hacspec_sha3.Sponge.squeeze_state out_len
-                        new_state
-                        out_orig_arr offset $output_rem) <: Seq.seq u8)"#
+                   FStar.Classical.forall_intro aux_prefix;
+                   (* Trailing bytes: f_squeeze writes the lane-formula byte
+                      from new_state == $self.st at indices in [offset, out_len). *)
+                   let aux_tail (k: nat{v offset <= k /\ k < v out_len})
+                     : Lemma (let j : usize = mk_usize (k - v offset) in
+                              Seq.index ($out <: Seq.seq u8) k ==
+                              ((Core_models.Num.impl_u64__to_le_bytes
+                                  (new_state.[ j /! mk_usize 8 <: usize ] <: u64)
+                                <: t_Array u8 (mk_usize 8)).[ j %! mk_usize 8 <: usize ]
+                               <: u8)) =
+                     let i : usize = mk_usize k in
+                     let j : usize = mk_usize (k - v offset) in
+                     assert (v i - v offset < v $output_rem);
+                     assert ((v i - v offset) / 8 < 25);
+                     assert (v j == v i - v offset)
+                   in
+                   FStar.Classical.forall_intro aux_tail"#
             );
         }
     }
@@ -216,19 +236,110 @@ pub(crate) fn absorb<const RATE: usize, const DELIM: u8>(input: &[u8]) -> Keccak
     s
 }
 
+
+#[hax_lib::requires(
+    valid_rate(RATE) &&
+    output_blocks > 0 &&
+    output_blocks == output.len() / RATE &&
+    output.len() < usize::MAX - 200
+)]
+#[hax_lib::ensures(|_| (future(output).len() == output.len()).to_prop() & {
+    fstar!(r#"
+    let spec_out : t_Slice u8 =
+                       Hacspec_sha3.Sponge.squeeze (${output.len()}) ${s.st} $RATE in
+    s_future.f_st == Hacspec_sha3.Sponge.iterate_keccak_f (output_blocks -! sz 1) s.f_st /\
+    (forall (k: nat). 
+        (k < v output_blocks * v v_RATE) ==>
+            Seq.index output_future k == Seq.index spec_out k)        
+    "#)})]
+#[hax_lib::fstar::options("--fuel 1 --ifuel 1 --z3rlimit 400 --split_queries always")]
+fn squeeze_blocks<const RATE: usize>(s: &mut KeccakState<1, u64>, output: &mut [u8], output_blocks: usize) {
+    #[cfg(hax)]
+    let output_len = output.len();
+    #[cfg(hax)]
+    let s_init_st = s.st;
+    #[cfg(hax)]
+    let output_initial = output.to_vec().as_slice();
+
+    s.squeeze::<RATE>(output, 0, RATE);
+
+    hax_lib::fstar!(
+            r#"let spec_out : t_Slice u8 =
+                   Hacspec_sha3.Sponge.squeeze $output_len $s_init_st $RATE in
+               assert (v $output_blocks >= 1);
+               assert (v $RATE <= 200);
+               assert (s_init_st == Hacspec_sha3.Sponge.iterate_keccak_f (mk_usize 0) s_init_st);
+               let aux (k: nat{k < v $RATE })
+                 : Lemma (Seq.index ($output <: Seq.seq u8) k ==
+                          Seq.index (spec_out <: Seq.seq u8) k)
+                 = let i : usize = mk_usize k in
+                   assert (v i == k);
+                   assert (v i / 8 < 25);
+                   FStar.Math.Lemmas.small_div k (v $RATE);
+                   assert (v i / v $RATE = 0)
+               in
+               FStar.Classical.forall_intro aux"#
+        );
+        
+    for i in 1..output_blocks {
+        hax_lib::loop_invariant!(|i: usize| (output.len() == output_len).to_prop() & {
+            fstar!(
+                r#"let spec_out : t_Slice u8 =
+                       Hacspec_sha3.Sponge.squeeze $output_len $s_init_st $RATE in
+                   v $i >= 1 /\ v $i <= v $output_blocks /\
+                   v $i * v $RATE <= v $output_len /\
+                   $s.st ==
+                     Hacspec_sha3.Sponge.iterate_keccak_f
+                       ($i -! mk_usize 1) $s_init_st /\
+                   (forall (k: nat). (k < v $i * v $RATE) ==>
+                      Seq.index ($output <: Seq.seq u8) k ==
+                      Seq.index (spec_out <: Seq.seq u8) k)"#
+            )
+        });
+
+        #[cfg(hax)]
+        lemma_mul_succ_le(i, output_blocks, RATE);
+
+        hax_lib::fstar!(
+            r#"Libcrux_sha3.Proof_utils.Lemmas.lemma_div_mul_mod $output_len $RATE;
+               assert (v $i * v $RATE + v $RATE <= v $output_len);
+               assert (v $output_blocks == v $output_len / v $RATE);
+               assert (v $RATE >= 1);
+               assert (v $i * v $RATE <= v $output_len);
+               Math.Lemmas.nat_times_nat_is_nat (v i) (v $RATE);
+               assert (v $output_len < v Core_models.Num.impl_usize__MAX);
+               assert (v $i * v $RATE < v Core_models.Num.impl_usize__MAX);
+               EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable
+                   $RATE $s_init_st $s $output output_initial $i"#
+        );
+
+        s.keccakf1600();
+
+        hax_lib::fstar!(r#"
+            assert (s.f_st == Hacspec_sha3.Sponge.iterate_keccak_f i s_init_st)
+        "#);
+
+        s.squeeze::<RATE>(output, i * RATE, RATE);
+
+        hax_lib::fstar!(r#"
+            assert (v i * v v_RATE + v v_RATE <= v output_len);
+            Math.Lemmas.distributivity_add_left (v i) 1 (v v_RATE)
+        "#);
+    }
+}
+
 /// Squeeze phase of `keccak1`: extract `output.len()` bytes from `s`,
 /// applying Keccak-f between each full rate-byte block of output.
 ///
-/// The ensures clause asserts direct equality with the spec function
-/// `Hacspec_sha3.Sponge.squeeze`.  Buffer-independence is proved
-/// *inline* through the loop invariant: at iteration `i`, the impl's
-/// output agrees with the spec's run (anchored on a zeros buffer) on
-/// the already-written prefix `[0, i*RATE)` and preserves the initial
-/// input buffer on the tail `[i*RATE, output_len)`.  The per-byte
-/// ensures clause of `f_squeeze` (bytes inside the write range are
-/// determined by state, bytes outside are preserved) makes the
-/// block-by-block step go through without needing a separate
-/// buffer-independence lemma.
+/// The ensures clause pins the result to the byteform spec
+/// `Hacspec_sha3.Sponge.squeeze` (per-byte: byte k uses
+/// `iterate_keccak_f(k/RATE, s_init)`'s lane).  Body proof:
+///   - establish the byteform invariant after the first block
+///   - cite `lemma_squeeze_one_step_portable` per loop iteration to
+///     advance the invariant from i to i+1
+///   - reconcile the trailing partial block (via `squeeze_last`) with
+///     the byteform's last block.
+/// 
 #[hax_lib::requires(
     valid_rate(RATE) &&
     output.len() < usize::MAX - 200
@@ -240,7 +351,7 @@ pub(crate) fn absorb<const RATE: usize, const DELIM: u8>(input: &[u8]) -> Keccak
                  $s.st
                  $RATE <: t_Slice u8)"#)
 })]
-#[hax_lib::fstar::options("--fuel 1 --ifuel 1 --z3rlimit 800 --split_queries always")]
+#[hax_lib::fstar::options("--fuel 1 --ifuel 1 --z3rlimit 400")]
 #[inline]
 pub(crate) fn squeeze<const RATE: usize>(mut s: KeccakState<1, u64>, output: &mut [u8]) {
     let output_len = output.len();
@@ -249,17 +360,12 @@ pub(crate) fn squeeze<const RATE: usize>(mut s: KeccakState<1, u64>, output: &mu
 
     #[cfg(hax)]
     let s_init_st = s.st;
-    #[cfg(hax)]
-    let output_initial = output.to_vec();
 
     if output_blocks == 0 {
         s.squeeze::<RATE>(output, 0, output_len);
         hax_lib::fstar!(
-            r#"let zeros : t_Array u8 $output_len =
-                   Rust_primitives.Hax.repeat (mk_u8 0) $output_len in
-               let spec_out : t_Array u8 $output_len =
-                   Hacspec_sha3.Sponge.squeeze_state $output_len $s_init_st
-                       zeros (mk_usize 0) $output_len in
+            r#"let spec_out : t_Slice u8 =
+                   Hacspec_sha3.Sponge.squeeze $output_len $s_init_st $RATE in
                assert (v $output_len < v $RATE);
                assert (v $RATE <= 200);
                let aux (k: nat{k < v $output_len })
@@ -267,174 +373,53 @@ pub(crate) fn squeeze<const RATE: usize>(mut s: KeccakState<1, u64>, output: &mu
                           Seq.index (spec_out <: Seq.seq u8) k)
                  = let i : usize = mk_usize k in
                    assert (v i == k);
-                   assert (v i / 8 < 25)
+                   assert (v i / 8 < 25);
+                   FStar.Math.Lemmas.small_div k (v $RATE);
+                   assert (v i / v $RATE = 0)
                in
                FStar.Classical.forall_intro aux;
                Seq.lemma_eq_intro ($output <: Seq.seq u8) (spec_out <: Seq.seq u8)"#
         );
     } else {
-        s.squeeze::<RATE>(output, 0, RATE);
-
-        hax_lib::fstar!(
-            r#"let output_initial_arr : t_Array u8 $output_len =
-                   Alloc.Vec.impl_1__as_slice $output_initial <: t_Slice _ in
-               let zeros : t_Array u8 $output_len =
-                   Rust_primitives.Hax.repeat (mk_u8 0) $output_len in
-               let out0 = Hacspec_sha3.Sponge.squeeze_state $output_len
-                   $s_init_st zeros (mk_usize 0) $RATE in
-               Libcrux_sha3.Proof_utils.Lemmas.lemma_div_mul_mod $output_len $RATE;
-               Hacspec_sha3.Sponge.Lemmas.lemma_squeeze_blocks_base
-                   $output_len $s_init_st $RATE (mk_usize 1) out0;
-               assert (v $RATE <= 200);
-               let aux_write (k: nat)
-                 : Lemma
-                     (ensures
-                        (k < v $RATE /\ k < v $output_len ==>
-                           Seq.index ($output <: Seq.seq u8) k ==
-                           Seq.index (out0 <: Seq.seq u8) k))
-                 = if k < v $RATE && k < v $output_len then begin
-                     let i : usize = mk_usize k in
-                     assert (v i == k);
-                     assert (v i / 8 < 25)
-                   end
-               in
-               let aux_tail (k: nat)
-                 : Lemma
-                     (ensures
-                        (v $RATE <= k /\ k < v $output_len ==>
-                           Seq.index ($output <: Seq.seq u8) k ==
-                           Seq.index (output_initial_arr <: Seq.seq u8) k))
-                 = if v $RATE <= k && k < v $output_len then begin
-                     let i : usize = mk_usize k in
-                     assert (v i == k)
-                   end
-               in
-               FStar.Classical.forall_intro aux_write;
-               FStar.Classical.forall_intro aux_tail"#
-        );
-
-        for i in 1..output_blocks {
-            hax_lib::loop_invariant!(|i: usize| (output.len() == output_len).to_prop() & {
-                fstar!(
-                    r#"let output_initial_arr : t_Array u8 $output_len =
-                           Alloc.Vec.impl_1__as_slice $output_initial <: t_Slice _ in
-                       let zeros : t_Array u8 $output_len =
-                           Rust_primitives.Hax.repeat (mk_u8 0) $output_len in
-                       let out0 = Hacspec_sha3.Sponge.squeeze_state $output_len
-                           $s_init_st zeros (mk_usize 0) $RATE in
-                       let (spec_st, spec_out) =
-                           Hacspec_sha3.Sponge.squeeze_blocks $output_len $s_init_st
-                               $RATE (mk_usize 1) $i out0 in
-                       v $i >= 1 /\ v $i <= v $output_blocks /\
-                       v $i * v $RATE <= v $output_len /\
-                       $s.st == spec_st /\
-                       (forall (k: nat). k < v $i * v $RATE /\ k < v $output_len ==>
-                          Seq.index ($output <: Seq.seq u8) k ==
-                          Seq.index (spec_out <: Seq.seq u8) k) /\
-                       (forall (k: nat). v $i * v $RATE <= k /\ k < v $output_len ==>
-                          Seq.index ($output <: Seq.seq u8) k ==
-                          Seq.index (output_initial_arr <: Seq.seq u8) k)"#
-                )
-            });
-
-            #[cfg(hax)]
-            lemma_mul_succ_le(i, output_blocks, RATE);
-            hax_lib::fstar!(
-                r#"let output_initial_arr : t_Array u8 $output_len =
-                       Alloc.Vec.impl_1__as_slice $output_initial <: t_Slice _ in
-                   let zeros : t_Array u8 $output_len =
-                       Rust_primitives.Hax.repeat (mk_u8 0) $output_len in
-                   let out0 = Hacspec_sha3.Sponge.squeeze_state $output_len
-                       $s_init_st zeros (mk_usize 0) $RATE in
-                   Libcrux_sha3.Proof_utils.Lemmas.lemma_div_mul_mod $output_len $RATE;
-                   Libcrux_sha3.Proof_utils.Lemmas.lemma_mul_succ_le $i $output_blocks $RATE;
-                   assert (v $i * v $RATE + v $RATE <= v $output_len);
-                   Hacspec_sha3.Sponge.Lemmas.lemma_squeeze_blocks_tail $output_len
-                       $s_init_st $RATE (mk_usize 1) $i ($i +! mk_usize 1) out0;
-                   EquivImplSpec.Keccakf.Portable.lemma_keccakf1600_portable $s"#
-            );
-
-            s.keccakf1600();
-            s.squeeze::<RATE>(output, i * RATE, RATE);
-
-            hax_lib::fstar!(
-                r#"let output_initial_arr : t_Array u8 $output_len =
-                       Alloc.Vec.impl_1__as_slice $output_initial <: t_Slice _ in
-                   let zeros : t_Array u8 $output_len =
-                       Rust_primitives.Hax.repeat (mk_u8 0) $output_len in
-                   let out0 = Hacspec_sha3.Sponge.squeeze_state $output_len
-                       $s_init_st zeros (mk_usize 0) $RATE in
-                   FStar.Math.Lemmas.distributivity_add_left (v $i) 1 (v $RATE);
-                   let aux_write_step (k: nat{k < v $output_len })
-                       : Lemma
-                         (ensures
-                            (k < (v $i + 1) * v $RATE ==>
-                              (let (_, spec_out_new) =
-                                  Hacspec_sha3.Sponge.squeeze_blocks $output_len $s_init_st $RATE
-                                    (mk_usize 1) ($i +! mk_usize 1) out0
-                                in
-                                Seq.index ($output <: Seq.seq u8) k ==
-                                Seq.index (spec_out_new <: Seq.seq u8) k))) =
-                     if k < (v $i + 1) * v $RATE
-                     then
-                       let ii:usize = mk_usize k in
-                       assert (v ii == k);
-                       if k < v $i * v $RATE
-                       then ()
-                       else
-                         (assert (v $i * v $RATE <= k);
-                          assert ((v $i + 1) * v $RATE == v $i * v $RATE + v $RATE);
-                          assert (k - v $i * v $RATE < v $RATE);
-                          assert ((k - v $i * v $RATE) / 8 < 25))
-                   in
-                   let aux_tail_step (k: nat{k < v $output_len })
-                       : Lemma
-                         (ensures
-                            ((v $i + 1) * v $RATE <= k ==>
-                              Seq.index ($output <: Seq.seq u8) k ==
-                              Seq.index (output_initial_arr <: Seq.seq u8) k)) =
-                     if (v $i + 1) * v $RATE <= k
-                     then
-                       let ii:usize = mk_usize k in
-                       assert (v ii == k);
-                       assert ((v $i + 1) * v $RATE == v $i * v $RATE + v $RATE);
-                       assert (v $i * v $RATE + v $RATE <= k)
-                   in
-                   FStar.Classical.forall_intro aux_write_step;
-                   FStar.Classical.forall_intro aux_tail_step"#
-            );
-        }
-        hax_lib::fstar!(
-            r#"let out0 = Hacspec_sha3.Sponge.squeeze_state $output_len
-                   $s_init_st (Rust_primitives.Hax.repeat (mk_u8 0) $output_len)
-                   (mk_usize 0) $RATE in
-               let (spec_st, spec_out) =
-                   Hacspec_sha3.Sponge.squeeze_blocks $output_len $s_init_st
-                       $RATE (mk_usize 1) $output_blocks out0 in
-               Libcrux_sha3.Proof_utils.Lemmas.lemma_div_mul_mod $output_len $RATE;
-               Hacspec_sha3.Sponge.Lemmas.lemma_squeeze_last_extensional
-                   $output_len spec_st $output spec_out $RATE $output_rem"#
-        );
+        // Capture output state after squeeze_blocks for the prefix-preservation
+        // lemma below.  squeeze_blocks's ensures pin output to the byteform
+        // spec on full blocks; squeeze_last preserves the prefix and writes
+        // the trailing partial block via the byteform-shape ensures.
+        squeeze_blocks::<RATE>(&mut s, output, output_blocks);
+        #[cfg(hax)]
+        let output_after_blocks = output.to_vec();
         s.squeeze_last::<RATE>(output, output_rem);
-
-        hax_lib::fstar!(
-            r#"let out0 = Hacspec_sha3.Sponge.squeeze_state $output_len
-                   $s_init_st (Rust_primitives.Hax.repeat (mk_u8 0) $output_len)
-                   (mk_usize 0) $RATE in
-               let (spec_st, spec_out) =
-                   Hacspec_sha3.Sponge.squeeze_blocks $output_len $s_init_st
-                       $RATE (mk_usize 1) $output_blocks out0 in
-               let (_, final_spec) =
-                   Hacspec_sha3.Sponge.squeeze_last $output_len
-                       spec_st spec_out $RATE $output_rem in
-               Libcrux_sha3.Proof_utils.Lemmas.lemma_div_mul_mod $output_len $RATE;
-               Seq.lemma_eq_intro ($output <: Seq.seq u8) (final_spec <: Seq.seq u8);
-               Hacspec_sha3.Sponge.Lemmas.lemma_squeeze_unfold $output_len $s_init_st $RATE;
-               let spec_result : t_Array u8 $output_len =
-                   Hacspec_sha3.Sponge.squeeze $output_len $s_init_st $RATE in
-               Hacspec_sha3.Sponge.Lemmas.lemma_seq_trans #$output_len
-                   ($output <: Seq.seq u8) final_spec spec_result"#
-        );
+        hax_lib::fstar!(r#"
+            Math.Lemmas.lemma_div_mod (v $output_len) (v $RATE);
+            let spec_out : t_Slice u8 =
+                Hacspec_sha3.Sponge.squeeze $output_len $s_init_st $RATE in
+            assert (v $output_blocks >= 1);
+            (* iterate_keccak_f output_blocks s_init unfolds to keccak_f-of-prev. *)
+            assert (Hacspec_sha3.Sponge.iterate_keccak_f $output_blocks $s_init_st ==
+                    Hacspec_sha3.Keccak_f.keccak_f
+                      (Hacspec_sha3.Sponge.iterate_keccak_f
+                         ($output_blocks -! mk_usize 1) $s_init_st));
+            let output_after_blocks_slice : t_Slice u8 =
+                Alloc.Vec.impl_1__as_slice $output_after_blocks in
+            let aux (k: nat{k < v $output_len })
+                : Lemma (Seq.index ($output <: Seq.seq u8) k ==
+                         Seq.index (spec_out <: Seq.seq u8) k) =
+              if k < v $output_len - v $output_rem
+              then
+                EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_prefix_preserved_portable
+                  $RATE $s_init_st output_after_blocks_slice $output
+                  $output_blocks $output_rem k
+              else begin
+                assert (v $output_rem > 0);
+                assert ($s.st ==
+                        Hacspec_sha3.Sponge.iterate_keccak_f $output_blocks $s_init_st);
+                EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_trailing_byteform_portable
+                  $RATE $s_init_st $s.st $output $output_blocks $output_rem k
+              end
+            in
+            FStar.Classical.forall_intro aux;
+            Seq.lemma_eq_intro ($output <: Seq.seq u8) (spec_out <: Seq.seq u8)
+        "#);
     }
 }
 
