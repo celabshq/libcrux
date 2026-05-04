@@ -69,7 +69,8 @@ pub(super) fn compress_then_serialize_message<Vector: Operations>(
 #[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::ensures(|result|
     fstar!(r#"${poly_to_spec::<Vector>} $result ==
-        Hacspec_ml_kem.Serialize.deserialize_then_decompress_message $serialized"#)
+        Hacspec_ml_kem.Serialize.deserialize_then_decompress_message $serialized /\
+        Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3328) $result"#)
 )]
 pub(super) fn deserialize_then_decompress_message<Vector: Operations>(
     serialized: &[u8; SHARED_SECRET_SIZE],
