@@ -2,7 +2,7 @@ use super::*;
 use crate::vector::portable::PortableVector;
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::fstar::options("--ext context_pruning --compat_pre_core 0")]
 #[hax_lib::requires(fstar!(r#"forall i. i % 16 >= 1 ==> vector i == 0"#))]
 #[hax_lib::ensures(|result| fstar!(r#"forall i. bit_vec_of_int_t_array $result 8 i == $vector (i * 16)"#))]
@@ -448,7 +448,7 @@ fn mm256_si256_from_two_si128(lower: Vec128, upper: Vec128) -> Vec256 {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::requires(fstar!(r#"Seq.length bytes == 10"#))]
 #[hax_lib::ensures(|result| fstar!(r#"forall (i: nat{i < 256}).
   $result i = (if i % 16 >= 5 then 0
@@ -674,7 +674,7 @@ assert_norm(BitVec.Utils.forall256 (fun i ->
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::requires(fstar!(r#"forall (i: nat{i < 256}). i % 16 < 11 || vector i = 0"#))]
 #[hax_lib::ensures(|r| fstar!(r#"forall (i: nat{i < 176}). bit_vec_of_int_t_array r 8 i == vector ((i/11) * 16 + i%11)"#))]
 pub(crate) fn serialize_11(vector: Vec256) -> [u8; 22] {
@@ -685,7 +685,7 @@ pub(crate) fn serialize_11(vector: Vec256) -> [u8; 22] {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::requires(fstar!(r#"Seq.length bytes == 22"#))]
 #[hax_lib::ensures(|result| fstar!(r#"forall (i: nat{i < 256}).
   $result i = (if i % 16 >= 11 then 0
