@@ -58,7 +58,88 @@ fn _veorq_n_u64(a: Vec256, c: u64) -> Vec256 {
 
 /// Spec function (mirrors arm64::load_lane_u64 at N=4): per-lane
 /// semantics of "XOR state element with 8 bytes from input block".
+//
+// Made opaque-to-SMT to suppress body-unfolding cascades in
+// `load_block` proof. The functional dependence on `statei` (only
+// via `get_lane_u64 statei lane`) is exposed to Z3 via the SMTPat
+// extensionality lemma `load_lane_u64_lane_extensionality` injected
+// via `fstar::after`, which lets the loop_invariant's per-lane
+// equality (provided by `get_lane_u64`) bridge to per-`load_lane_u64`
+// equality without unfolding the body.
 #[cfg(hax)]
+#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
+#[hax_lib::fstar::after(
+    interface,
+    r#"
+val load_lane_u64_lane_extensionality
+      (blocks: t_Array (t_Slice u8) (mk_usize 4))
+      (offset i: usize)
+      (s1 s2: Libcrux_intrinsics.Avx2_extract.t_Vec256)
+      (lane: usize)
+  : Lemma
+    (requires
+      (i <. mk_usize 25 && lane <. mk_usize 4 &&
+       (((Rust_primitives.Hax.Int.from_machine offset <: Hax_lib.Int.t_Int) +
+           ((Rust_primitives.Hax.Int.from_machine (mk_i32 8) <: Hax_lib.Int.t_Int) *
+             (Rust_primitives.Hax.Int.from_machine i <: Hax_lib.Int.t_Int)
+             <:
+             Hax_lib.Int.t_Int)
+           <:
+           Hax_lib.Int.t_Int) +
+         (Rust_primitives.Hax.Int.from_machine (mk_i32 8) <: Hax_lib.Int.t_Int)
+         <:
+         Hax_lib.Int.t_Int) <=
+       (Rust_primitives.Hax.Int.from_machine (Core_models.Slice.impl__len #u8
+               (blocks.[ lane ] <: t_Slice u8)
+             <:
+             usize)
+         <:
+         Hax_lib.Int.t_Int)) /\
+      Libcrux_intrinsics.Avx2_extract.get_lane_u64 s1 lane ==
+      Libcrux_intrinsics.Avx2_extract.get_lane_u64 s2 lane)
+    (ensures
+      load_lane_u64 blocks offset i s1 lane ==
+      load_lane_u64 blocks offset i s2 lane)
+    [SMTPat (load_lane_u64 blocks offset i s1 lane);
+     SMTPat (load_lane_u64 blocks offset i s2 lane)]
+"#
+)]
+#[hax_lib::fstar::after(
+    r#"
+let load_lane_u64_lane_extensionality
+      (blocks: t_Array (t_Slice u8) (mk_usize 4))
+      (offset i: usize)
+      (s1 s2: Libcrux_intrinsics.Avx2_extract.t_Vec256)
+      (lane: usize)
+  : Lemma
+    (requires
+      (i <. mk_usize 25 && lane <. mk_usize 4 &&
+       (((Rust_primitives.Hax.Int.from_machine offset <: Hax_lib.Int.t_Int) +
+           ((Rust_primitives.Hax.Int.from_machine (mk_i32 8) <: Hax_lib.Int.t_Int) *
+             (Rust_primitives.Hax.Int.from_machine i <: Hax_lib.Int.t_Int)
+             <:
+             Hax_lib.Int.t_Int)
+           <:
+           Hax_lib.Int.t_Int) +
+         (Rust_primitives.Hax.Int.from_machine (mk_i32 8) <: Hax_lib.Int.t_Int)
+         <:
+         Hax_lib.Int.t_Int) <=
+       (Rust_primitives.Hax.Int.from_machine (Core_models.Slice.impl__len #u8
+               (blocks.[ lane ] <: t_Slice u8)
+             <:
+             usize)
+         <:
+         Hax_lib.Int.t_Int)) /\
+      Libcrux_intrinsics.Avx2_extract.get_lane_u64 s1 lane ==
+      Libcrux_intrinsics.Avx2_extract.get_lane_u64 s2 lane)
+    (ensures
+      load_lane_u64 blocks offset i s1 lane ==
+      load_lane_u64 blocks offset i s2 lane)
+    [SMTPat (load_lane_u64 blocks offset i s1 lane);
+     SMTPat (load_lane_u64 blocks offset i s2 lane)]
+  = reveal_opaque (`%load_lane_u64) load_lane_u64
+"#
+)]
 #[hax_lib::requires(i < 25 && lane < 4 &&
         offset.to_int() + (8.to_int() * i.to_int()) + 8.to_int() <= blocks[lane].len().to_int())]
 fn load_lane_u64(
@@ -116,6 +197,9 @@ fn load_u64x4x4(
     in2: Vec256,
     in3: Vec256,
 ) -> (Vec256, Vec256, Vec256, Vec256) {
+    // load_lane_u64 is opaque-to-SMT (to suppress cascade in load_block);
+    // reveal it here so this body can prove its ensures.
+    hax_lib::fstar!(r#"reveal_opaque (`%load_lane_u64) load_lane_u64"#);
     let start = offset + 32 * i;
     let v0 = mm256_loadu_si256_u8(&blocks[0][start..start + 32]);
     let v1 = mm256_loadu_si256_u8(&blocks[1][start..start + 32]);
@@ -157,6 +241,8 @@ fn load_u64x4x4(
 )]
 #[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
 fn load_u64x4(blocks: &[&[u8]; 4], offset: usize, i: usize, statei: Vec256) -> Vec256 {
+    // load_lane_u64 is opaque-to-SMT; reveal here so the body can prove its ensures.
+    hax_lib::fstar!(r#"reveal_opaque (`%load_lane_u64) load_lane_u64"#);
     let v0 = u64::from_le_bytes(
         blocks[0][offset + 8 * i..offset + 8 * i + 8]
             .try_into()
