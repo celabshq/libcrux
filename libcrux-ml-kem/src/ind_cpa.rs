@@ -595,7 +595,7 @@ fn compress_then_serialize_u<
 /// <https://csrc.nist.gov/pubs/fips/203/ipd>.
 #[allow(non_snake_case)]
 #[hax_lib::fstar::verification_status(panic_free)]
-#[hax_lib::fstar::options("--z3rlimit 800 --ext context_pruning")]
+#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always")]
 #[hax_lib::requires(
     hacspec_ml_kem::parameters::is_rank(K).to_prop()
     & (ETA1 == hacspec_ml_kem::parameters::eta1(K)
