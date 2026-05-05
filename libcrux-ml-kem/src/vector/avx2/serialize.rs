@@ -349,100 +349,83 @@ pub(crate) fn deserialize_4(bytes: &[u8]) -> Vec256 {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::fstar::options("--ext context_pruning --split_queries always --z3rlimit 400")]
 #[hax_lib::requires(fstar!(r#"forall (i: nat{i < 256}). i % 16 < 5 || vector i = 0"#))]
 #[hax_lib::ensures(|r| fstar!(r#"forall (i: nat{i < 80}). bit_vec_of_int_t_array r 8 i == vector ((i/5) * 16 + i%5)"#))]
 pub(crate) fn serialize_5(vector: Vec256) -> [u8; 10] {
+    #[inline(always)]
+    #[hax_lib::fstar::options("--ext context_pruning --split_queries always --z3rlimit 400")]
+    #[hax_lib::requires(fstar!(r#"forall (i: nat{i < 256}). i % 16 < 5 || vector i = 0"#))]
+    #[hax_lib::ensures(|(lower_8, upper_8)| fstar!(
+        r#"
+         forall (i: nat{i < 80}).
+           vector ((i/5) * 16 + i%5) == (if i < 40 then $lower_8 i else $upper_8 (i - 40))
+      )
+    "#
+    ))]
+    fn serialize_5_vec(vector: Vec256) -> (Vec128, Vec128) {
+        // If |vector| is laid out as follows (superscript number indicates the
+        // corresponding bit is duplicated that many times):
+        //
+        // 0¹¹a₄a₃a₂a₁a₀ 0¹¹b₄b₃b₂b₁b₀ 0¹¹c₄c₃c₂c₁c₀ 0¹¹d₄d₃d₂d₁d₀ | ↩
+        // 0¹¹e₄e₃e₂e₁e₀ 0¹¹f₄f₃f₂f₁f₀ 0¹¹g₄g₃g₂g₁g₀ 0¹¹h₄h₃h₂h₁h₀ | ↩
+        //
+        // |adjacent_2_combined| will be laid out as a series of 32-bit integers,
+        // as follows:
+        //
+        // 0²²b₄b₃b₂b₁b₀a₄a₃a₂a₁a₀ 0²²d₄d₃d₂d₁d₀c₄c₃c₂c₁c₀ | ↩
+        // 0²²f₄f₃f₂f₁f₀e₄e₃e₂e₁e₀ 0²²h₄h₃h₂h₁h₀g₄g₃g₂g₁g₀ | ↩
+        // ....
+        let adjacent_2_combined = mm256_concat_pairs_n(5, vector);
+
+        // Shifting up by 22, then back down by 22, viewing as 64-bit lanes,
+        // packs adjacent 2-combined into adjacent 4-combined.
+        let adjacent_4_combined = mm256_sllv_epi32(
+            adjacent_2_combined,
+            mm256_set_epi32(0, 22, 0, 22, 0, 22, 0, 22),
+        );
+        let adjacent_4_combined = mm256_srli_epi64::<22>(adjacent_4_combined);
+
+        // Shuffle to bring the bits into a contiguous form, then shift up
+        // by 12 in 32-bit lanes, view as 64-bit lanes, shift down by 12 to
+        // pack adjacent 4-combined into adjacent 8-combined.
+        // Equivalent to `mm256_shuffle_epi32::<0b00_00_10_00>` but expressed
+        // via `mm256_shuffle_epi8`, which has a `BitVec.Intrinsics` spec
+        // usable by `assert_norm`.  In each 128-bit half, places 32-bit
+        // lane 2 into lane 1; lanes 0/2/3 retain old lane 0 (will be
+        // masked off by the next sllv/srli pair).
+        let adjacent_8_combined = mm256_shuffle_epi8(
+            adjacent_4_combined,
+            mm256_set_epi8(
+                3, 2, 1, 0, 3, 2, 1, 0, 11, 10, 9, 8, 3, 2, 1, 0, 3, 2, 1, 0, 3, 2, 1, 0, 11, 10, 9,
+                8, 3, 2, 1, 0,
+            ),
+        );
+        let adjacent_8_combined = mm256_sllv_epi32(
+            adjacent_8_combined,
+            mm256_set_epi32(0, 0, 0, 12, 0, 0, 0, 12),
+        );
+        let adjacent_8_combined = mm256_srli_epi64::<12>(adjacent_8_combined);
+
+        // We now have 40 bits starting at position 0 in the lower 128-bit lane, ...
+        let lower_8 = mm256_castsi256_si128(adjacent_8_combined);
+        // ... and the second 40 bits at position 0 in the upper 128-bit lane
+        let upper_8 = mm256_extracti128_si256::<1>(adjacent_8_combined);
+
+        hax_lib::fstar!(
+            r#"
+    introduce forall (i:nat{i < 40}). lower_8_ i = vector ((i / 5) * 16 + i % 5)
+    with assert_norm (BitVec.Utils.forall_n 40 (fun i -> lower_8_ i = vector ((i / 5) * 16 + i % 5)));
+    introduce forall (i:nat{i < 40}). upper_8_ i = vector (128 + (i / 5) * 16 + i % 5)
+    with assert_norm (BitVec.Utils.forall_n 40 (fun i -> upper_8_ i = vector (128 + (i / 5) * 16 + i % 5)))
+    "#
+        );
+        (lower_8, upper_8)
+    }
+
     let mut serialized = [0u8; 32];
-
-    // If |vector| is laid out as follows (superscript number indicates the
-    // corresponding bit is duplicated that many times):
-    //
-    // 0¹¹a₄a₃a₂a₁a₀ 0¹¹b₄b₃b₂b₁b₀ 0¹¹c₄c₃c₂c₁c₀ 0¹¹d₄d₃d₂d₁d₀ | ↩
-    // 0¹¹e₄e₃e₂e₁e₀ 0¹¹f₄f₃f₂f₁f₀ 0¹¹g₄g₃g₂g₁g₀ 0¹¹h₄h₃h₂h₁h₀ | ↩
-    //
-    // |adjacent_2_combined| will be laid out as a series of 32-bit integers,
-    // as follows:
-    //
-    // 0²²b₄b₃b₂b₁b₀a₄a₃a₂a₁a₀ 0²²d₄d₃d₂d₁d₀c₄c₃c₂c₁c₀ | ↩
-    // 0²²f₄f₃f₂f₁f₀e₄e₃e₂e₁e₀ 0²²h₄h₃h₂h₁h₀g₄g₃g₂g₁g₀ | ↩
-    // ....
-    let adjacent_2_combined = mm256_madd_epi16(
-        vector,
-        mm256_set_epi16(
-            1 << 5,
-            1,
-            1 << 5,
-            1,
-            1 << 5,
-            1,
-            1 << 5,
-            1,
-            1 << 5,
-            1,
-            1 << 5,
-            1,
-            1 << 5,
-            1,
-            1 << 5,
-            1,
-        ),
-    );
-
-    // Recall that |adjacent_2_combined| is laid out as follows:
-    //
-    // 0²²b₄b₃b₂b₁b₀a₄a₃a₂a₁a₀ 0²²d₄d₃d₂d₁d₀c₄c₃c₂c₁c₀ | ↩
-    // 0²²f₄f₃f₂f₁f₀e₄e₃e₂e₁e₀ 0²²h₄h₃h₂h₁h₀g₄g₃g₂g₁g₀ | ↩
-    // ....
-    //
-    // This shift results in:
-    //
-    // b₄b₃b₂b₁b₀a₄a₃a₂a₁a₀0²² 0²²d₄d₃d₂d₁d₀c₄c₃c₂c₁c₀ | ↩
-    // f₄f₃f₂f₁f₀e₄e₃e₂e₁e₀0²² 0²²h₄h₃h₂h₁h₀g₄g₃g₂g₁g₀ | ↩
-    // ....
-    //
-    let adjacent_4_combined = mm256_sllv_epi32(
-        adjacent_2_combined,
-        mm256_set_epi32(0, 22, 0, 22, 0, 22, 0, 22),
-    );
-
-    // |adjacent_4_combined|, when viewed as 64-bit lanes, is:
-    //
-    // 0²²d₄d₃d₂d₁d₀c₄c₃c₂c₁c₀b₄b₃b₂b₁b₀a₄a₃a₂a₁a₀0²² | ↩
-    // 0²²h₄h₃h₂h₁h₀g₄g₃g₂g₁g₀f₄f₃f₂f₁f₀e₄e₃e₂e₁e₀0²² | ↩
-    // ...
-    //
-    // so we just shift down by 22 bits to remove the least significant 0 bits
-    // that aren't part of the bits we need.
-    let adjacent_4_combined = mm256_srli_epi64::<22>(adjacent_4_combined);
-
-    // |adjacent_4_combined|, when viewed as a set of 32-bit values, looks like:
-    //
-    // 0:0¹²d₄d₃d₂d₁d₀c₄c₃c₂c₁c₀b₄b₃b₂b₁b₀a₄a₃a₂a₁a₀ 1:0³² 2:0¹²h₄h₃h₂h₁h₀g₄g₃g₂g₁g₀f₄f₃f₂f₁f₀e₄e₃e₂e₁e₀ 3:0³² | ↩
-    //
-    // To be able to read out the bytes in one go, we need to shifts the bits in
-    // position 2 to position 1 in each 128-bit lane.
-    let adjacent_8_combined = mm256_shuffle_epi32::<0b00_00_10_00>(adjacent_4_combined);
-
-    // |adjacent_8_combined|, when viewed as a set of 32-bit values, now looks like:
-    //
-    // 0¹²d₄d₃d₂d₁d₀c₄c₃c₂c₁c₀b₄b₃b₂b₁b₀a₄a₃a₂a₁a₀ 0¹²h₄h₃h₂h₁h₀g₄g₃g₂g₁g₀f₄f₃f₂f₁f₀e₄e₃e₂e₁e₀ 0³² 0³² | ↩
-    //
-    // Once again, we line these bits up by shifting the up values at indices
-    // 0 and 5 by 12, viewing the resulting register as a set of 64-bit values,
-    // and then shifting down the 64-bit values by 12 bits.
-    let adjacent_8_combined = mm256_sllv_epi32(
-        adjacent_8_combined,
-        mm256_set_epi32(0, 0, 0, 12, 0, 0, 0, 12),
-    );
-    let adjacent_8_combined = mm256_srli_epi64::<12>(adjacent_8_combined);
-
-    // We now have 40 bits starting at position 0 in the lower 128-bit lane, ...
-    let lower_8 = mm256_castsi256_si128(adjacent_8_combined);
+    let (lower_8, upper_8) = serialize_5_vec(vector);
     mm_storeu_bytes_si128(&mut serialized[0..16], lower_8);
-
-    // ... and the second 40 bits at position 0 in the upper 128-bit lane
-    let upper_8 = mm256_extracti128_si256::<1>(adjacent_8_combined);
     mm_storeu_bytes_si128(&mut serialized[5..21], upper_8);
 
     serialized[0..10].try_into().unwrap()
