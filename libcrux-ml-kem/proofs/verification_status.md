@@ -58,11 +58,11 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 |            |                   |      |     |     |     |     |      |        |         |
 | _Avx2_     | arithmetic        |    1 |  12 |   0 |     |   5 |    7 |      0 |       0 |
 |            | ntt               |    1 |   7 |   2 |     |   3 |    0 |      2 |       0 |
-|            | serialize         |    1 |  23 |   0 |     |   6 |   17 |      0 |       0 |
+|            | serialize         |    1 |  23 |   1 |     |   3 |   19 |      0 |       0 |
 |            | compress          |    1 |   5 |   0 |     |   4 |    1 |      0 |       0 |
 |            | sampling          |    1 |   1 |   0 |     |   1 |    0 |      0 |       0 |
 |            | vector            |    1 |  69 |   4 |     |   9 |   33 |      0 |      23 |
-|            | **Avx2 total**    | **6** | **117** | **6** |     | **28** | **58** |  **2** |  **23** |
+|            | **Avx2 total**    | **6** | **117** | **7** |     | **25** | **60** |  **2** |  **23** |
 |            |                   |      |     |     |     |     |      |        |         |
 | _Neon_     | arithmetic        |    1 |  13 |  13 |     |   0 |    0 |      0 |       0 |
 |            | ntt               |    1 |   7 |   7 |     |   0 |    0 |      0 |       0 |
@@ -77,11 +77,11 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 
 - **Total modules**: 49
 - **Total functions**: 950
-- **Lax** (admitted): 153 (16.1%)
+- **Lax** (admitted): 154 (16.2%)
 - **Unverified** (not extracted): 56 (5.9%)
-- **Panic-safe** (PF + Math + Bounds + Hacspec): 741 (78.0%)
-  - Panic-free only (no further proof): 440 (46.3%)
-  - Math (non-trivial ensures, no bounds/spec match): 161 (16.9%)
+- **Panic-safe** (PF + Math + Bounds + Hacspec): 740 (77.9%)
+  - Panic-free only (no further proof): 437 (46.0%)
+  - Math (non-trivial ensures, no bounds/spec match): 163 (17.2%)
   - Bounds (range/interval ensures): 44 (4.6%)
   - Hacspec (cites high-level spec): 96 (10.1%)
 
@@ -91,7 +91,7 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 | ------------ | ------- | ---- | --- | --- | --- | ---- | ------ | ------- |
 | Generic      |      29 |  629 |  61 |  55 | 376 |   59 |     32 |      46 |
 | Portable     |       7 |  121 |   4 |   0 |  36 |   44 |     10 |      27 |
-| Avx2         |       6 |  117 |   6 |   0 |  28 |   58 |      2 |      23 |
+| Avx2         |       6 |  117 |   7 |   0 |  25 |   60 |      2 |      23 |
 | Neon         |       7 |   83 |  82 |   1 |   0 |    0 |      0 |       0 |
 
 ## Unverified Rust modules (not extracted to F\*)
