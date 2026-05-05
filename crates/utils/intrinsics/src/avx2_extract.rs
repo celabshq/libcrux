@@ -54,10 +54,34 @@ pub type Vec256 = u8;
 pub type Vec128 = u8;
 pub type Vec256Float = u8;
 
+// NB: the equality with `get_lane_u64x4` is exposed via a separate
+// SMTPat lemma instead of an ensures-refinement on the return type.
+// The refinement-interpretation of `Pure u64 (ensures result == ...)`
+// fires on every value of the refined type and was triggering a
+// quantifier cascade in load_block proofs (~1M instantiations).
+// SMTPat-trigger fires only when `get_lane_u64 vec lane` actually
+// appears in the goal — controlled instantiation, no cascade.
+// Trust footprint unchanged: the lemma body is `admit ()` because
+// `get_lane_u64` is `unimplemented!()` (axiomatic), same as before.
 #[inline(always)]
 #[hax_lib::lean::replace_body("sorry")]
 #[hax_lib::requires(lane < 4)]
-#[hax_lib::ensures(|result| fstar!("$result == get_lane_u64x4 $vec (v $lane)"))]
+#[hax_lib::fstar::after(
+    interface,
+    r#"
+val get_lane_u64_post (vec: t_Vec256) (lane: usize{v lane < 4})
+  : Lemma (get_lane_u64 vec lane == get_lane_u64x4 vec (v lane))
+    [SMTPat (get_lane_u64 vec lane)]
+"#
+)]
+#[hax_lib::fstar::after(
+    r#"
+let get_lane_u64_post (vec: t_Vec256) (lane: usize{v lane < 4})
+  : Lemma (get_lane_u64 vec lane == get_lane_u64x4 vec (v lane))
+    [SMTPat (get_lane_u64 vec lane)]
+  = admit ()
+"#
+)]
 pub fn get_lane_u64(vec: Vec256, lane: usize) -> u64 {
     unimplemented!()
 }
