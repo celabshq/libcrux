@@ -655,7 +655,8 @@ pub(crate) fn invert_ntt_at_layer_4_plus<Vector: Operations>(
 // being correct, since runtime tests in `src/ntt.rs`
 // (`ntt_matches_spec`, `full_ntt_multiply_chain_matches_spec`)
 // confirm the spec relationship empirically.
-#[hax_lib::fstar::options("--admit_smt_queries true")]
+#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::fstar::options("--z3rlimit 200 --ext context_pruning --split_queries always")]
 #[hax_lib::requires((K <= 4).to_prop() & (spec::is_bounded_poly(K * 3328, re)))]
 #[hax_lib::ensures(|result| spec::is_bounded_poly(3328, future(re))
     & fstar!(r#"
