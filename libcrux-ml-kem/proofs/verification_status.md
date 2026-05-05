@@ -30,22 +30,22 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 |            | lib               |    1 |   3 |   0 |   3 |   0 |    0 |      0 |       0 |
 |            | pqcp              |    1 |  16 |   0 |  16 |   0 |    0 |      0 |       0 |
 |            | hash_functions    |    1 |  49 |   0 |     |  21 |    0 |      0 |      28 |
-|            | ind_cpa           |    1 |  21 |  16 |     |   2 |    1 |      0 |       2 |
-|            | ind_cca           |    1 |  27 |   0 |     |  13 |    3 |      0 |      11 |
+|            | ind_cpa           |    1 |  21 |   0 |     |  20 |    1 |      0 |       0 |
+|            | ind_cca           |    1 |  27 |   0 |     |  23 |    1 |      0 |       3 |
 |            | instantiations    |    2 |  40 |   0 |     |  40 |    0 |      0 |       0 |
 |            | multiplexing      |    2 |  20 |  12 |     |   8 |    0 |      0 |       0 |
 |            | incremental       |    2 |  45 |  45 |     |   0 |    0 |      0 |       0 |
-|            | polynomial        |    1 |  49 |   0 |     |  25 |    2 |     18 |       4 |
-|            | invert_ntt        |    1 |   6 |   2 |     |   0 |    0 |      0 |       4 |
-|            | ntt               |    1 |  11 |   0 |     |   3 |    0 |      5 |       3 |
+|            | polynomial        |    1 |  54 |   0 |     |  27 |    2 |     21 |       4 |
+|            | invert_ntt        |    1 |   6 |   1 |     |   1 |    0 |      0 |       4 |
+|            | ntt               |    1 |  11 |   1 |     |   3 |    0 |      4 |       3 |
 |            | mlkem*            |    4 | 134 |   0 |  36 |  98 |    0 |      0 |       0 |
 |            | matrix            |    1 |   5 |   0 |     |   0 |    0 |      5 |       0 |
-|            | serialize         |    1 |  25 |   4 |     |  20 |    1 |      0 |       0 |
+|            | serialize         |    1 |  25 |   0 |     |  22 |    1 |      2 |       0 |
 |            | sampling          |    1 |   9 |   2 |     |   7 |    0 |      0 |       0 |
-|            | vector (top)      |    1 |   0 |   0 |     |   0 |    0 |      0 |       0 |
-|            | vector/traits     |    1 | 104 |   0 |     |  68 |   36 |      0 |       0 |
+|            | vector (top)      |    1 |   3 |   0 |     |   3 |    0 |      0 |       0 |
+|            | vector/traits     |    1 | 111 |   0 |     |  73 |   36 |      0 |       2 |
 |            | rej_sample_table  |    1 |   0 |   0 |     |   0 |    0 |      0 |       0 |
-|            | **Generic total** | **29** | **614** | **81** | **55** | **335** | **61** | **28** |  **54** |
+|            | **Generic total** | **29** | **629** | **61** | **55** | **376** | **59** | **32** |  **46** |
 |            |                   |      |     |     |     |     |      |        |         |
 | _Portable_ | arithmetic        |    1 |  13 |   0 |     |   6 |    7 |      0 |       0 |
 |            | ntt               |    1 |  10 |   0 |     |   0 |    0 |     10 |       0 |
@@ -76,20 +76,20 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 ## Summary
 
 - **Total modules**: 49
-- **Total functions**: 934
-- **Lax** (admitted): 178 (19.1%)
-- **Unverified** (not extracted): 56 (6.0%)
-- **Panic-safe** (PF + Math + Bounds + Hacspec): 700 (74.9%)
-  - Panic-free only (no further proof): 395 (42.3%)
-  - Math (non-trivial ensures, no bounds/spec match): 161 (17.2%)
-  - Bounds (range/interval ensures): 40 (4.3%)
-  - Hacspec (cites high-level spec): 104 (11.1%)
+- **Total functions**: 949
+- **Lax** (admitted): 158 (16.6%)
+- **Unverified** (not extracted): 56 (5.9%)
+- **Panic-safe** (PF + Math + Bounds + Hacspec): 735 (77.4%)
+  - Panic-free only (no further proof): 436 (45.9%)
+  - Math (non-trivial ensures, no bounds/spec match): 159 (16.8%)
+  - Bounds (range/interval ensures): 44 (4.6%)
+  - Hacspec (cites high-level spec): 96 (10.1%)
 
 ### Modules per category
 
 | Category     | Modules |  Fns | Lax | Unv |  PF | Math | Bounds | Hacspec |
 | ------------ | ------- | ---- | --- | --- | --- | ---- | ------ | ------- |
-| Generic      |      29 |  614 |  81 |  55 | 335 |   61 |     28 |      54 |
+| Generic      |      29 |  629 |  61 |  55 | 376 |   59 |     32 |      46 |
 | Portable     |       7 |  121 |   4 |   0 |  36 |   44 |     10 |      27 |
 | Avx2         |       6 |  116 |  11 |   0 |  24 |   56 |      2 |      23 |
 | Neon         |       7 |   83 |  82 |   1 |   0 |    0 |      0 |       0 |
@@ -111,11 +111,11 @@ Functions classified as lax due to `admit ()` (or `--admit_smt_queries true`) in
 
 | Module                    |  Line |
 | ------------------------- | ----- |
-| Generic/invert_ntt        |   548 |
-| Generic/invert_ntt        |   662 |
-| Portable/vector           |   435 |
-| Portable/vector           |   674 |
-| Portable/vector           |   962 |
-| Portable/vector           |   976 |
+| Generic/invert_ntt        |   552 |
+| Generic/ntt               |   564 |
+| Portable/vector           |   445 |
+| Portable/vector           |   684 |
+| Portable/vector           |   972 |
+| Portable/vector           |   986 |
 | Avx2/vector               |  1140 |
 | Avx2/vector               |  1153 |
