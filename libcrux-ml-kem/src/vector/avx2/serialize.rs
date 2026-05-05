@@ -2,17 +2,7 @@ use super::*;
 use crate::vector::portable::PortableVector;
 
 #[inline(always)]
-// FOLLOW-UP (sprint 2026-05-10): the `prove_forall_nat_pointwise` tactic
-// below at i=1 fails Z3 deterministically with "incomplete quantifiers"
-// (uses ~1.5 of 80 rlimit, then gives up).  Earlier verified runs on
-// this branch passed via hint replay; once those hints are invalidated
-// the proof doesn't go through from scratch.  Reverted to `lax` so the
-// rest of the module typechecks; restore to `panic_free` after the
-// tactic is stabilised (replace with explicit per-lane lemma, or split
-// the assertion into per-lane cases that don't need quantifier
-// instantiation).  Tracked in proofs/agent-status/sprint-2026-05-10-status.md.
-#[hax_lib::fstar::verification_status(lax)]
-#[hax_lib::fstar::options("--ext context_pruning --compat_pre_core 0")]
+#[hax_lib::fstar::options("--ext context_pruning --compat_pre_core 0 --split_queries always --z3rlimit 400")]
 #[hax_lib::requires(fstar!(r#"forall i. i % 16 >= 1 ==> vector i == 0"#))]
 #[hax_lib::ensures(|result| fstar!(r#"forall i. bit_vec_of_int_t_array $result 8 i == $vector (i * 16)"#))]
 pub(crate) fn serialize_1(vector: Vec256) -> [u8; 2] {
@@ -59,13 +49,26 @@ pub(crate) fn serialize_1(vector: Vec256) -> [u8; 2] {
     hax_lib::fstar!(
         r#"
 let bits_packed' = BitVec.Intrinsics.mm_movemask_epi8_bv msbs in
-  assert (forall (i: nat{i < 16}). bits_packed' i = $vector ((i / 1) * 16 + i % 1))
-      by (
-         Tactics.Utils.prove_forall_nat_pointwise (fun _ -> 
-           Tactics.compute ();
-           Tactics.smt_sync ()
-         )
-      )
+  introduce forall (i: nat{i < 16}). bits_packed' i = $vector (i * 16)
+  with (
+    match i with
+    | 0  -> assert_norm (bits_packed' 0  = $vector 0  )
+    | 1  -> assert_norm (bits_packed' 1  = $vector 16 )
+    | 2  -> assert_norm (bits_packed' 2  = $vector 32 )
+    | 3  -> assert_norm (bits_packed' 3  = $vector 48 )
+    | 4  -> assert_norm (bits_packed' 4  = $vector 64 )
+    | 5  -> assert_norm (bits_packed' 5  = $vector 80 )
+    | 6  -> assert_norm (bits_packed' 6  = $vector 96 )
+    | 7  -> assert_norm (bits_packed' 7  = $vector 112)
+    | 8  -> assert_norm (bits_packed' 8  = $vector 128)
+    | 9  -> assert_norm (bits_packed' 9  = $vector 144)
+    | 10 -> assert_norm (bits_packed' 10 = $vector 160)
+    | 11 -> assert_norm (bits_packed' 11 = $vector 176)
+    | 12 -> assert_norm (bits_packed' 12 = $vector 192)
+    | 13 -> assert_norm (bits_packed' 13 = $vector 208)
+    | 14 -> assert_norm (bits_packed' 14 = $vector 224)
+    | _  -> assert_norm (bits_packed' 15 = $vector 240)
+  )
 "#
     );
 
