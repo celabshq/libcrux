@@ -163,14 +163,17 @@ let mm256_mullo_epi16_specialized3 (a: bit_vec 256): bit_vec 256 =
     if nth_bit >= shift then a (i - shift) else 0
   )
 
-// For deserialize_5: per-lane shift cycle of period 8 = [0;5;2;7;4;9;6;11].
-// Equivalently: shift(k) = (k % 2) * 5 + ((k % 8) / 2) * 2.
+// For deserialize_5: per-lane shift cycle of period 8 = [11;6;9;4;7;2;5;0].
+// (Multiplier source `(1<<0,1<<5,1<<2,1<<7,1<<4,1<<9,1<<6,1<<11,...)` has
+// the FIRST arg corresponding to lane 15, so lane 0 receives `1<<11`,
+// i.e. shift=11; lane 7 receives `1<<0`, i.e. shift=0.)
+// Equivalently: shift(k) = 11 - ((k % 2) * 5 + ((k % 8) / 2) * 2).
 let mm256_mullo_epi16_specialized4 (a: bit_vec 256): bit_vec 256 =
   mk_bv (fun i ->
     let nth_bit = i % 16 in
     let nth_i16 = i / 16 in
     let k = nth_i16 % 8 in
-    let shift = (k % 2) * 5 + (k / 2) * 2 in
+    let shift = 11 - ((k % 2) * 5 + (k / 2) * 2) in
     if nth_bit >= shift then a (i - shift) else 0
   )
 

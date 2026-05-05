@@ -467,6 +467,75 @@ fn mm256_si256_from_two_si128(lower: Vec128, upper: Vec128) -> Vec256 {
                else let j = (i / 16) * 5 + i % 16 in
                      bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 j)"#))]
 pub(crate) fn deserialize_5(bytes: &[u8]) -> Vec256 {
+    // Inner helper takes a Vec128 directly (no Seq.index lookups in the closure),
+    // so the assert_norm inside reduces over a free Vec128 rather than the chain
+    // mm_set_epi8(bytes[i]…). Spec is keyed on c-bit positions; the byte-level
+    // bridge is at the outer level via mm_set_epi8's spec.
+    #[inline(always)]
+    #[hax_lib::fstar::options("--ext context_pruning --split_queries always --z3rlimit 400")]
+    #[hax_lib::fstar::before(r#"[@@"opaque_to_smt"]"#)]
+    #[hax_lib::ensures(|result| fstar!(r#"forall (i: nat{i < 256}).
+      $result i =
+        (if i % 16 >= 5 then 0
+         else let shift_inv = ((i / 16) % 2) * 5 + (((i / 16) % 8) / 2) * 2 in
+              let j = i + shift_inv in
+              let byte_pos = j / 8 in
+              let c_byte =
+                if byte_pos < 16
+                then (byte_pos / 4) * 2 + (byte_pos % 2)
+                else ((byte_pos - 16) / 4) * 2 + ((byte_pos - 16) % 2) + 8 in
+              $c (c_byte * 8 + j % 8))"#))]
+    fn deserialize_5_vec(c: Vec128) -> Vec256 {
+        let coefficients_loaded = mm256_si256_from_two_si128(c, c);
+
+        let coefficients = mm256_shuffle_epi8(
+            coefficients_loaded,
+            mm256_set_epi8(
+                15, 14, 15, 14, 13, 12, 13, 12, 11, 10, 11, 10, 9, 8, 9, 8, 7, 6, 7, 6, 5, 4, 5, 4,
+                3, 2, 3, 2, 1, 0, 1, 0,
+            ),
+        );
+
+        let coefficients = mm256_mullo_epi16(
+            coefficients,
+            mm256_set_epi16(
+                1 << 0,
+                1 << 5,
+                1 << 2,
+                1 << 7,
+                1 << 4,
+                1 << 9,
+                1 << 6,
+                1 << 11,
+                1 << 0,
+                1 << 5,
+                1 << 2,
+                1 << 7,
+                1 << 4,
+                1 << 9,
+                1 << 6,
+                1 << 11,
+            ),
+        );
+        let result = mm256_srli_epi16::<11>(coefficients);
+        hax_lib::fstar!(
+            r#"
+assert_norm (BitVec.Utils.forall256 (fun i ->
+      $result i =
+        (if i % 16 >= 5 then 0
+         else let shift_inv = ((i / 16) % 2) * 5 + (((i / 16) % 8) / 2) * 2 in
+              let j = i + shift_inv in
+              let byte_pos = j / 8 in
+              let c_byte =
+                if byte_pos < 16
+                then (byte_pos / 4) * 2 + (byte_pos % 2)
+                else ((byte_pos - 16) / 4) * 2 + ((byte_pos - 16) % 2) + 8 in
+              $c (c_byte * 8 + j % 8))))
+"#
+        );
+        result
+    }
+
     let coefficients = mm_set_epi8(
         bytes[9] as i8,
         bytes[8] as i8,
@@ -485,39 +554,7 @@ pub(crate) fn deserialize_5(bytes: &[u8]) -> Vec256 {
         bytes[1] as i8,
         bytes[0] as i8,
     );
-
-    let coefficients_loaded = mm256_si256_from_two_si128(coefficients, coefficients);
-
-    let coefficients = mm256_shuffle_epi8(
-        coefficients_loaded,
-        mm256_set_epi8(
-            15, 14, 15, 14, 13, 12, 13, 12, 11, 10, 11, 10, 9, 8, 9, 8, 7, 6, 7, 6, 5, 4, 5, 4, 3,
-            2, 3, 2, 1, 0, 1, 0,
-        ),
-    );
-
-    let coefficients = mm256_mullo_epi16(
-        coefficients,
-        mm256_set_epi16(
-            1 << 0,
-            1 << 5,
-            1 << 2,
-            1 << 7,
-            1 << 4,
-            1 << 9,
-            1 << 6,
-            1 << 11,
-            1 << 0,
-            1 << 5,
-            1 << 2,
-            1 << 7,
-            1 << 4,
-            1 << 9,
-            1 << 6,
-            1 << 11,
-        ),
-    );
-    mm256_srli_epi16::<11>(coefficients)
+    deserialize_5_vec(coefficients)
 }
 
 #[inline(always)]
