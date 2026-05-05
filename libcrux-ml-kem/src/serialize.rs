@@ -256,14 +256,29 @@ fn compress_then_serialize_10<const OUT_LEN: usize, Vector: Operations>(
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::requires(fstar!(r#"v $OUT_LEN == 352 /\ Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3328)  $re"#))]
 fn compress_then_serialize_11<const OUT_LEN: usize, Vector: Operations>(
     re: &PolynomialRingElement<Vector>,
 ) -> [u8; OUT_LEN] {
+    hax_lib::fstar!(r#"assert_norm (pow2 11 == 2048)"#);
     let mut serialized = [0u8; OUT_LEN];
     for i in 0..VECTORS_IN_RING_ELEMENT {
-        let coefficient =
-            Vector::compress::<11>(Vector::to_unsigned_representative(re.coefficients[i]));
+        hax_lib::loop_invariant!(|i: usize| {
+            fstar!(
+                r#"v $i >= 0 /\ v $i <= 16 /\
+            v $i < 16 ==> Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3328) $re"#
+            )
+        });
+        hax_lib::fstar!(r#"assert (22 * v $i + 22 <= 352)"#);
+        let unreduced = to_unsigned_field_modulus(re.coefficients[i]);
+        // Intro direction for compress::<11>'s pre.
+        hax_lib::fstar!(
+            r#"Libcrux_ml_kem.Vector.Traits.Spec.lemma_bounded_i16_array_intro
+                  (mk_i16 0) (mk_i16 3328)
+                  (Libcrux_ml_kem.Vector.Traits.f_repr ${unreduced})"#
+        );
+        let coefficient = Vector::compress::<11>(unreduced);
 
         let bytes = Vector::serialize_11(coefficient);
         serialized[22 * i..22 * i + 22].copy_from_slice(&bytes);
@@ -336,10 +351,9 @@ fn compress_then_serialize_4<Vector: Operations>(
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(lax)]
-#[hax_lib::requires(
-    serialized.len() == 160
-)]
+#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::requires(fstar!(r#"Seq.length $serialized == 160 /\
+    Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3328) $re"#))]
 #[hax_lib::ensures(|_|
     fstar!(r#"${serialized_future.len()} == ${serialized.len()}"#)
 )]
@@ -347,11 +361,25 @@ fn compress_then_serialize_5<Vector: Operations>(
     re: PolynomialRingElement<Vector>,
     serialized: &mut [u8],
 ) {
+    hax_lib::fstar!(r#"assert_norm (pow2 5 == 32)"#);
     for i in 0..VECTORS_IN_RING_ELEMENT {
-        let coefficients =
-            Vector::compress::<5>(Vector::to_unsigned_representative(re.coefficients[i]));
+        hax_lib::loop_invariant!(|i: usize| {
+            fstar!(
+                r#"v $i >= 0 /\ v $i <= 16 /\
+            v $i < 16 ==> (Seq.length serialized == 160 /\
+                           Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3328) $re)"#
+            )
+        });
+        hax_lib::fstar!(r#"assert (10 * v $i + 10 <= 160)"#);
+        let unreduced = to_unsigned_field_modulus(re.coefficients[i]);
+        hax_lib::fstar!(
+            r#"Libcrux_ml_kem.Vector.Traits.Spec.lemma_bounded_i16_array_intro
+                  (mk_i16 0) (mk_i16 3328)
+                  (Libcrux_ml_kem.Vector.Traits.f_repr ${unreduced})"#
+        );
+        let coefficient = Vector::compress::<5>(unreduced);
 
-        let bytes = Vector::serialize_5(coefficients);
+        let bytes = Vector::serialize_5(coefficient);
         serialized[10 * i..10 * i + 10].copy_from_slice(&bytes);
     }
 }
@@ -418,7 +446,6 @@ fn deserialize_then_decompress_10<Vector: Operations>(
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(lax)]
 #[hax_lib::requires(
     serialized.len() == 352
 )]
@@ -433,6 +460,14 @@ fn deserialize_then_decompress_11<Vector: Operations>(
     cloop! {
         for (i, bytes) in serialized.chunks_exact(22).enumerate() {
             let coefficient = Vector::deserialize_11(bytes);
+            // Intro: deserialize_11 post `forall j. bounded c[j] 11` -> trait pre
+            // `bounded_pos_i16_array 11` (= `bounded_i16_array 0 2047`).
+            hax_lib::fstar!(
+                r#"assert_norm (pow2 11 - 1 == 2047);
+                   Libcrux_ml_kem.Vector.Traits.Spec.lemma_bounded_i16_array_intro
+                     (mk_i16 0) (mk_i16 2047)
+                     (Libcrux_ml_kem.Vector.Traits.f_repr ${coefficient})"#
+            );
             re.coefficients[i] = Vector::decompress_ciphertext_coefficient::<11>(coefficient);
         }
     }
@@ -520,7 +555,7 @@ fn deserialize_then_decompress_4<Vector: Operations>(
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::fstar::options("--z3rlimit 400 --ext context_pruning --split_queries always")]
 #[hax_lib::requires(
     serialized.len() == 160
 )]
@@ -532,11 +567,32 @@ fn deserialize_then_decompress_5<Vector: Operations>(
         r#"assert (v ((${crate::constants::COEFFICIENTS_IN_RING_ELEMENT} *! sz 5) /! sz 8) == 160)"#
     );
     let mut re = PolynomialRingElement::<Vector>::ZERO();
+    // Lift `is_bounded_poly 0 re` (from ZERO ensures) to
+    // `is_bounded_poly 4095 re` so the loop invariant holds on entry.
+    #[cfg(hax)]
+    spec::is_bounded_poly_higher(&re, 0, 4095);
 
     cloop! {
         for (i, bytes) in serialized.chunks_exact(10).enumerate() {
-            re.coefficients[i] = Vector::deserialize_5(bytes);
-            re.coefficients[i] = Vector::decompress_ciphertext_coefficient::<5>(re.coefficients[i]);
+            hax_lib::loop_invariant!(|_i: usize| {
+                spec::is_bounded_poly(4095, &re)
+            });
+            let coefficient = Vector::deserialize_5(bytes);
+            // Intro: deserialize_5 post `forall j. bounded c[j] 5` -> trait pre
+            // `bounded_pos_i16_array 5` (= `bounded_i16_array 0 31`).
+            hax_lib::fstar!(
+                r#"assert_norm (pow2 5 - 1 == 31);
+                   Libcrux_ml_kem.Vector.Traits.Spec.lemma_bounded_i16_array_intro
+                     (mk_i16 0) (mk_i16 31)
+                     (Libcrux_ml_kem.Vector.Traits.f_repr ${coefficient})"#
+            );
+            re.coefficients[i] = Vector::decompress_ciphertext_coefficient::<5>(coefficient);
+            // Lift the strengthened trait post `bounded_i16_array 0 3328
+            // (f_repr re.coefficients[i])` to `is_bounded_vector 4095
+            // (re.coefficients[i])` so the loop invariant on `re` is
+            // preserved by this iteration.
+            #[cfg(hax)]
+            spec::lemma_decompress_post_to_is_bounded_vector(&re.coefficients[i], 4095);
         }
     }
     re
