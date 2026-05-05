@@ -44,9 +44,249 @@ fn add_to_ring_element<SIMDUnit: Operations>(
 
 // Not inlining this makes key generation 3x slower for avx2. Only `inline` this
 // function costs 30% performance too.
-/// Compute InvertNTT(Â ◦ ŝ₁) + s₂
+//
+// Split into two helpers to keep each F* function-level WP tractable:
+// `compute_as1_plus_s2` does the NTT-domain accumulation (mutates both
+// `a_as_ntt` and `result`, returns tuple at the F* level), and
+// `inv_ntt_and_add_s2` does the second pass (Barrett reduce → InvNTT →
+// add s2-half), single-mutable like `compute_matrix_x_mask`.
 #[inline(always)]
 #[hax_lib::fstar::options("--z3rlimit 400 --ext context_pruning --split_queries always")]
+#[hax_lib::requires(fstar!(r#"
+    Seq.length $a_as_ntt == v $rows_in_a * v $columns_in_a /\
+    Seq.length $s1_ntt == v $columns_in_a /\
+    Seq.length $result == v $rows_in_a /\
+    v $rows_in_a <= 8 /\
+    v $columns_in_a <= 7 /\
+    Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice (mk_usize 8380416) $a_as_ntt /\
+    Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice (mk_usize 8380416) $s1_ntt /\
+    Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice (mk_usize 0) $result
+"#))]
+#[hax_lib::ensures(|_| fstar!(r#"
+    Seq.length ${a_as_ntt}_future == Seq.length $a_as_ntt /\
+    Seq.length ${result}_future == Seq.length $result /\
+    Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice
+        ($columns_in_a *! mk_usize 8380416) ${result}_future
+"#))]
+fn ntt_dot_accumulate<SIMDUnit: Operations>(
+    rows_in_a: usize,
+    columns_in_a: usize,
+    a_as_ntt: &mut [PolynomialRingElement<SIMDUnit>],
+    s1_ntt: &[PolynomialRingElement<SIMDUnit>],
+    result: &mut [PolynomialRingElement<SIMDUnit>],
+) {
+    // Bootstrap outer-fold initial invariant from is_bounded_poly_slice 0
+    // precondition: lift to per-element via Classical.forall_intro of the
+    // slice lookup_lemma, then build the two range predicates.
+    hax_lib::fstar!(
+        r#"
+        let _:Prims.unit =
+          let aux (k: nat{k < Seq.length ${result}}) :
+            Lemma (Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly (mk_usize 0)
+                     (Seq.index $result k)) =
+            Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_slice_lookup
+              (mk_usize 0) $result k
+          in
+          Classical.forall_intro aux
+        in
+        Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_range_intro
+          (mk_usize 0) (mk_usize 0) $rows_in_a $result;
+        Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_range_intro
+          ($columns_in_a *! mk_usize 8380416)
+          (mk_usize 0) (mk_usize 0) $result"#
+    );
+    for i in 0..rows_in_a {
+        hax_lib::loop_invariant!(|i: usize| fstar!(
+            r#"v $i <= v $rows_in_a /\
+              Seq.length $a_as_ntt == v $rows_in_a * v $columns_in_a /\
+              Seq.length $s1_ntt == v $columns_in_a /\
+              Seq.length $result == v $rows_in_a /\
+              Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice (mk_usize 8380416) $a_as_ntt /\
+              Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice (mk_usize 8380416) $s1_ntt /\
+              Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_range
+                  ($columns_in_a *! mk_usize 8380416)
+                  (mk_usize 0) $i $result /\
+              Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_range
+                  (mk_usize 0) $i $rows_in_a $result"#
+        ));
+        // Bridge outer-inv frame [i, rows) at bound 0 into inner-fold initial
+        // state's needed [i+1, rows) frame.
+        hax_lib::fstar!(
+            r#"Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_range_intro
+                 (mk_usize 0) ($i +! mk_usize 1) $rows_in_a $result"#
+        );
+        for j in 0..columns_in_a {
+            hax_lib::loop_invariant!(|j: usize| fstar!(
+                r#"v $j <= v $columns_in_a /\
+                  v $i < v $rows_in_a /\
+                  Seq.length $a_as_ntt == v $rows_in_a * v $columns_in_a /\
+                  Seq.length $result == v $rows_in_a /\
+                  Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice (mk_usize 8380416) $a_as_ntt /\
+                  Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice (mk_usize 8380416) $s1_ntt /\
+                  Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_range
+                      ($columns_in_a *! mk_usize 8380416)
+                      (mk_usize 0) $i $result /\
+                  Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly
+                      ($j *! mk_usize 8380416)
+                      (Seq.index $result (v $i)) /\
+                  Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_range
+                      (mk_usize 0) ($i +! mk_usize 1) $rows_in_a $result"#
+            ));
+            ntt_multiply_montgomery::<SIMDUnit>(&mut a_as_ntt[i * columns_in_a + j], &s1_ntt[j]);
+            // Use the bound-aware wrapper so the per-lane add precondition is
+            // discharged inside add_to_ring_element rather than at the call site.
+            // Bound (j*FM) reflects the inner inv at iter j; post is ((j+1)*FM).
+            add_to_ring_element::<SIMDUnit>(
+                &mut result[i],
+                &a_as_ntt[i * columns_in_a + j],
+                j * 8380416,
+            );
+            // Re-establish is_bounded_poly_slice for a_as_ntt (one entry was
+            // updated by ntt_multiply, others unchanged) and frame the [0,i)
+            // and [i+1, rows) ranges of result that the inner body didn't touch.
+            hax_lib::fstar!(
+                r#"
+                let _:Prims.unit =
+                  let aux (k: nat{k < Seq.length ${a_as_ntt}}) :
+                    Lemma (Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly
+                             (mk_usize 8380416) (Seq.index $a_as_ntt k)) = () in
+                  Classical.forall_intro aux;
+                  Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_slice_intro
+                    (mk_usize 8380416) $a_as_ntt
+                in
+                Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_range_intro
+                  ($columns_in_a *! mk_usize 8380416)
+                  (mk_usize 0) $i $result;
+                Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_range_intro
+                  (mk_usize 0) ($i +! mk_usize 1) $rows_in_a $result"#
+            );
+        }
+        hax_lib::fstar!(
+            r#"Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_range_intro
+                 ($columns_in_a *! mk_usize 8380416)
+                 (mk_usize 0) ($i +! mk_usize 1) $result"#
+        );
+    }
+    // Bridge outer range to slice form for the post.
+    hax_lib::fstar!(
+        r#"
+        let _:Prims.unit =
+          let aux (k: nat{k < Seq.length ${result}}) :
+            Lemma (Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly
+                     ($columns_in_a *! mk_usize 8380416) (Seq.index $result k)) =
+            Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_range_lookup
+              ($columns_in_a *! mk_usize 8380416) (mk_usize 0) $rows_in_a $result k
+          in
+          Classical.forall_intro aux
+        in
+        Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_slice_intro
+          ($columns_in_a *! mk_usize 8380416) $result"#
+    );
+}
+
+/// Per-row Barrett reduce → InvNTT → add s2[i]. Mirrors
+/// `compute_matrix_x_mask`'s single-mutable shape.
+#[inline(always)]
+#[hax_lib::fstar::options("--z3rlimit 400 --ext context_pruning --split_queries always")]
+#[hax_lib::requires(fstar!(r#"
+    Seq.length $result == v $rows_in_a /\
+    Seq.length $s2 == v $rows_in_a /\
+    v $rows_in_a <= 8 /\
+    v $columns_in_a <= 7 /\
+    Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice (mk_usize 8380416) $s2 /\
+    Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice
+        ($columns_in_a *! mk_usize 8380416) $result
+"#))]
+#[hax_lib::ensures(|_| fstar!(r#"
+    Seq.length ${result}_future == Seq.length $result /\
+    Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice (mk_usize 16760832) ${result}_future
+"#))]
+fn inv_ntt_and_add_s2<SIMDUnit: Operations>(
+    rows_in_a: usize,
+    columns_in_a: usize,
+    s2: &[PolynomialRingElement<SIMDUnit>],
+    result: &mut [PolynomialRingElement<SIMDUnit>],
+) {
+    // Bootstrap initial invariant from is_bounded_poly_slice (cols*FM) result
+    // precondition: lift to per-element + build the two range predicates.
+    hax_lib::fstar!(
+        r#"
+        let _:Prims.unit =
+          let aux (k: nat{k < Seq.length ${result}}) :
+            Lemma (Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly
+                     ($columns_in_a *! mk_usize 8380416) (Seq.index $result k)) =
+            Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_slice_lookup
+              ($columns_in_a *! mk_usize 8380416) $result k
+          in
+          Classical.forall_intro aux
+        in
+        Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_range_intro
+          ($columns_in_a *! mk_usize 8380416) (mk_usize 0) $rows_in_a $result;
+        Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_range_intro
+          (mk_usize 16760832) (mk_usize 0) (mk_usize 0) $result"#
+    );
+    for i in 0..result.len() {
+        hax_lib::loop_invariant!(|i: usize| fstar!(
+            r#"v $i <= Seq.length $result /\
+              Seq.length $result == v $rows_in_a /\
+              Seq.length $s2 == v $rows_in_a /\
+              Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice (mk_usize 8380416) $s2 /\
+              Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_range
+                  (mk_usize 16760832) (mk_usize 0) $i $result /\
+              Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_range
+                  ($columns_in_a *! mk_usize 8380416)
+                  $i $rows_in_a $result"#
+        ));
+        // Lookup result[i] from inv's range, then weaken (cols*FM) → 2_143_289_343
+        // for reduce's pre.
+        hax_lib::fstar!(
+            r#"Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_range_lookup
+                 ($columns_in_a *! mk_usize 8380416)
+                 $i $rows_in_a $result (v $i);
+               Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_higher
+                 ($columns_in_a *! mk_usize 8380416) (mk_usize 2143289343)
+                 (Seq.index $result (v $i))"#
+        );
+        // We do a Barrett reduction here, since the absolute value of
+        // `columns_in_a` additions might be as large as `columns_in_a
+        // * FIELD_MODULUS`, and `invert_ntt_montgomery` expects
+        // coefficients of size at most `FIELD_MODULUS`.
+        reduce(&mut result[i]);
+        invert_ntt_montgomery::<SIMDUnit>(&mut result[i]);
+        // Bound-aware add: post is is_bounded_poly (4_211_177 + FM = 12_591_593).
+        add_to_ring_element::<SIMDUnit>(&mut result[i], &s2[i], 4_211_177);
+        // Lift 12_591_593 → 16_760_832 for the inv carryover; frame [i+1, rows)
+        // at bound (cols*FM) (untouched entries).
+        hax_lib::fstar!(
+            r#"Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_higher
+                 (mk_usize 4211177 +! mk_usize 8380416) (mk_usize 16760832)
+                 (Seq.index $result (v $i));
+               Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_range_intro
+                 (mk_usize 16760832) (mk_usize 0) ($i +! mk_usize 1) $result;
+               Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_range_intro
+                 ($columns_in_a *! mk_usize 8380416)
+                 ($i +! mk_usize 1) $rows_in_a $result"#
+        );
+    }
+    // Bridge outer range (16_760_832 over [0, rows)) to slice form for the post.
+    hax_lib::fstar!(
+        r#"
+        let _:Prims.unit =
+          let aux (k: nat{k < Seq.length ${result}}) :
+            Lemma (Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly (mk_usize 16760832)
+                     (Seq.index $result k)) =
+            Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_range_lookup
+              (mk_usize 16760832) (mk_usize 0) $rows_in_a $result k
+          in
+          Classical.forall_intro aux
+        in
+        Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_slice_intro
+          (mk_usize 16760832) $result"#
+    );
+}
+
+/// Compute InvertNTT(Â ◦ ŝ₁) + s₂
+#[inline(always)]
 #[hax_lib::requires(fstar!(r#"
     Seq.length $a_as_ntt == v $rows_in_a * v $columns_in_a /\
     Seq.length $s1_ntt == v $columns_in_a /\
@@ -56,7 +296,8 @@ fn add_to_ring_element<SIMDUnit: Operations>(
     v $columns_in_a <= 7 /\
     Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice (mk_usize 8380416) $a_as_ntt /\
     Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice (mk_usize 8380416) $s1_ntt /\
-    Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice (mk_usize 8380416) $s1_s2
+    Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice (mk_usize 8380416) $s1_s2 /\
+    Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice (mk_usize 0) $result
 "#))]
 #[hax_lib::ensures(|_| fstar!(r#"
     Seq.length ${a_as_ntt}_future == Seq.length $a_as_ntt /\
@@ -71,23 +312,26 @@ pub(crate) fn compute_as1_plus_s2<SIMDUnit: Operations>(
     s1_s2: &[PolynomialRingElement<SIMDUnit>],
     result: &mut [PolynomialRingElement<SIMDUnit>],
 ) {
-    hax_lib::fstar!("admit ()");
-    for i in 0..rows_in_a {
-        for j in 0..columns_in_a {
-            ntt_multiply_montgomery::<SIMDUnit>(&mut a_as_ntt[i * columns_in_a + j], &s1_ntt[j]);
-            PolynomialRingElement::add(&mut result[i], &mut a_as_ntt[i * columns_in_a + j]);
-        }
-    }
-
-    for i in 0..result.len() {
-        // We do a Barrett reduction here, since the absolute value of
-        // `columns_in_a` additions might be as large as `columns_in_a
-        // * FIELD_MODULUS`, and `invert_ntt_montgomery` expects
-        // coefficients of size at most `FIELD_MODULUS`.
-        reduce(&mut result[i]);
-        invert_ntt_montgomery::<SIMDUnit>(&mut result[i]);
-        PolynomialRingElement::add(&mut result[i], &s1_s2[columns_in_a + i]);
-    }
+    ntt_dot_accumulate::<SIMDUnit>(rows_in_a, columns_in_a, a_as_ntt, s1_ntt, result);
+    let s2 = &s1_s2[columns_in_a..];
+    // Slice-projection bridge: every entry of s2 is also an entry of s1_s2
+    // (at offset `columns_in_a + k`), so s2 inherits the FIELD_MAX bound.
+    hax_lib::fstar!(
+        r#"
+        let _:Prims.unit =
+          let aux (k: nat{k < Seq.length ${s2}}) :
+            Lemma (Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly (mk_usize 8380416)
+                     (Seq.index $s2 k)) =
+            assert (Seq.index $s2 k == Seq.index $s1_s2 (v $columns_in_a + k));
+            Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_slice_lookup
+              (mk_usize 8380416) $s1_s2 (v $columns_in_a + k)
+          in
+          Classical.forall_intro aux
+        in
+        Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_slice_intro
+          (mk_usize 8380416) $s2"#
+    );
+    inv_ntt_and_add_s2::<SIMDUnit>(rows_in_a, columns_in_a, s2, result);
 }
 
 /// Compute InvertNTT(Â ◦ ŷ)
