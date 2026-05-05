@@ -156,10 +156,21 @@ let mm256_mullo_epi16_specialized2 (a: bit_vec 256): bit_vec 256 =
 
 // This is a very specialized version of mm256_mullo_epi16
 let mm256_mullo_epi16_specialized3 (a: bit_vec 256): bit_vec 256 =
-  mk_bv (fun i -> 
+  mk_bv (fun i ->
     let nth_bit = i % 16 in
     let nth_i16 = i / 16 in
     let shift = 6 - (nth_i16 % 4) * 2 in
+    if nth_bit >= shift then a (i - shift) else 0
+  )
+
+// For deserialize_5: per-lane shift cycle of period 8 = [0;5;2;7;4;9;6;11].
+// Equivalently: shift(k) = (k % 2) * 5 + ((k % 8) / 2) * 2.
+let mm256_mullo_epi16_specialized4 (a: bit_vec 256): bit_vec 256 =
+  mk_bv (fun i ->
+    let nth_bit = i % 16 in
+    let nth_i16 = i / 16 in
+    let k = nth_i16 % 8 in
+    let shift = (k % 2) * 5 + (k / 2) * 2 in
     if nth_bit >= shift then a (i - shift) else 0
   )
 
@@ -195,8 +206,16 @@ let mm256_mullo_epi16
                 | Some [x] -> unquote x = (mk_i16 1)
                 | _ -> false
              then Tactics.exact (quote (mm256_mullo_epi16_specialized3 a))
-             else 
-               Tactics.exact (quote (mm256_mullo_epi16_no_semantics a count))
+             else
+               if match unify_app (quote count) (quote (fun x -> mm256_set_epi16 (x <<! (mk_i32 0) <: i16) ((mk_i16 1) <<! (mk_i32 5) <: i16)
+                                                                 ((mk_i16 1) <<! (mk_i32 2) <: i16) ((mk_i16 1) <<! (mk_i32 7) <: i16) ((mk_i16 1) <<! (mk_i32 4) <: i16) ((mk_i16 1) <<! (mk_i32 9) <: i16) ((mk_i16 1) <<! (mk_i32 6) <: i16)
+                                                                 ((mk_i16 1) <<! (mk_i32 11) <: i16) ((mk_i16 1) <<! (mk_i32 0) <: i16) ((mk_i16 1) <<! (mk_i32 5) <: i16) ((mk_i16 1) <<! (mk_i32 2) <: i16) ((mk_i16 1) <<! (mk_i32 7) <: i16)
+                                                                 ((mk_i16 1) <<! (mk_i32 4) <: i16) ((mk_i16 1) <<! (mk_i32 9) <: i16) ((mk_i16 1) <<! (mk_i32 6) <: i16) ((mk_i16 1) <<! (mk_i32 11) <: i16))) [] with
+                  | Some [x] -> unquote x = (mk_i16 1)
+                  | _ -> false
+               then Tactics.exact (quote (mm256_mullo_epi16_specialized4 a))
+               else
+                 Tactics.exact (quote (mm256_mullo_epi16_no_semantics a count))
     )]result: bit_vec 256): bit_vec 256 = result
 
 let madd_rhs (n: nat {n < 16}) = 
