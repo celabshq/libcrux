@@ -3,12 +3,113 @@
 **Branch:** `libcrux-ml-kem-proofs` (or fresh worktree, see Pre-session step 1)
 **Tip on entry:** `f2bb7c7ca` (or later — sprint 2026-05-09 rollup + 2026-05-10 prompt)
 
-This is a **user-driven collaborative session** — the user makes
-architectural calls, Claude executes mechanical proof work and surfaces
-F* feedback.  Not an autonomous agent task.  Goal is to close the
-highest-value *full hacspec* milestones in `proofs/proof_milestones.md`
-rows 1, 2, 6, 7, 8, 9 (forward NTT layers, top-level NTT, inverse NTT
-layer 4+, Montgomery driver, ntt_multiply).
+**Mostly autonomous, with user reserved for two specific calls.**  Goal
+is to close the highest-value *full hacspec* milestones in
+`proofs/proof_milestones.md` rows 1, 2, 6, 7, 8, 9 (forward NTT layers,
+top-level NTT, inverse NTT layer 4+, Montgomery driver, ntt_multiply).
+
+## Autonomy split + interleave plan
+
+The bridge infrastructure in
+`Hacspec_ml_kem.Commute.Bridges.fst` is far more complete than the
+2026-05-09 rollup suggested (see "What's already there" below).  Most
+of this work is mechanical integration; only a few pieces genuinely
+need the user.  Plan: **the agent runs the autonomous slice while
+parked on a user-required item, so the user's reply unblocks
+maximum-already-built work, not a fresh start.**
+
+### Agent-autonomous lanes — start these regardless of user availability
+
+**A. USER-15 unfold lemma in `Bridges.fst`** (~30-60 min, no
+dependencies).  Authoring `lemma_ntt_inverse_butterflies_unfold` (or
+named to fit the file's convention): a definitional Lemma stating that
+`IN.ntt_inverse_butterflies p == IN.ntt_inverse_layer (… (1)) (2)` for
+the 7-call chain.  Provable from the hacspec definition without any
+impl-side dependency.  Land independently of USER-14.
+
+**B. USER-15 close in `invert_ntt_montgomery`** (~30 min after lane A).
+With the unfold lemma proven, drop `verification_status(panic_free)`
+on `invert_ntt_montgomery`, add a `hax_lib::fstar!` block invoking the
+unfold lemma, and verify the body composes against the inherited
+admitted-ensures of `invert_ntt_at_layer_4_plus` (ensures already cite
+`IN.ntt_inverse_layer` even though the body is admitted — consumers
+treat this as a known fact).  This closes USER-15 *without waiting on
+USER-14 body discharge.*  Milestone row 7 → ✅.
+
+**C. `ntt_vector_u` panic-free + bound-only ensures** (~30-45 min).
+The 2026-05-09 attempt failed because explicit `panic_free` interfered
+with bound propagation through subsequent calls.  The fix: remove
+`verification_status(panic_free)`, drop the functional Hacspec ensures
+conjunct (keep only `is_bounded_poly(3328, future(re))`), use options
+`--z3rlimit 200` (no `context_pruning`, no `split_queries`).  This is
+exactly the proven sibling `ntt_binomially_sampled_ring_element`
+pattern.  Milestone row 1 partial improvement.
+
+**D. Wiring scaffold for forward `ntt_at_layer_4_plus` ensures** —
+*conditional on user input on `Hacspec_ml_kem.Ntt.ntt_layer_n` shape*
+(see lane E).  If the spec is already finalized, this becomes a
+pattern-port from inverse layer_4_plus and is autonomous.  Otherwise
+parked.
+
+### User-required lanes — ping and continue elsewhere
+
+**E. Forward NTT layer_4_plus spec citation** (per milestone row 1:
+"spec design needed").  Verify whether
+`Hacspec_ml_kem.Ntt.ntt_layer_n` (or equivalent multi-step forward
+layer spec) exists in `specs/ml-kem/src/ntt.rs` /
+`Hacspec_ml_kem.Ntt.fst`.  If yes, autonomous (lane D).  If no, ping
+user with the specific question:
+> "Forward layer_4_plus needs `Hacspec_ml_kem.Ntt.ntt_layer_n` (or
+> equivalent).  I see `IN.ntt_inverse_layer` for inverse — should I
+> mirror this name/shape for forward, or do you have a different spec
+> design in mind?"
+
+**F. USER-14 body discharge — when `panic_free` flip stalls.**  First
+attempt: drop `--admit_smt_queries true`, add
+`verification_status(panic_free)` + `--z3rlimit 400 --ext context_pruning
+--split_queries always`, integrate `lemma_inv_ntt_layer_int_vec_step_reduce_to_hacspec`
+into the inner-loop body.  This sprint already hit rlimit-400 cap at
+queries 188 and 204 (canceled at the cap).  When it stalls again, ping
+user with the specific question:
+> "USER-14 layer_4_plus inner-loop maintenance hit rlimit-400 cap
+> [again].  My default is to restructure into 4 concrete-`layer` fns
+> (`invert_ntt_at_layer_{4,5,6,7}` instead of one parameterized).
+> Approve, or want me to try a helper-with-`layer`-param first?"
+
+**G. `ntt_at_layer_7` novel design.**  Structurally distinct (single-
+zeta, between-chunk butterfly).  No `_lane_bridge` analog.  If reached
+this session, ping user with:
+> "ntt_at_layer_7 has no template — needs new bridge design.  Punt to
+> a separate session, or want me to draft a strawman design for
+> review?"
+
+**H. `ntt_multiply` spec citation.**  Verify
+`Hacspec_ml_kem.Ntt.multiply_ntts` exists.  If yes, lane is autonomous
+(define trait post + per-fn proof).  If no, ping user.
+
+### Recommended execution order (interleave-aware)
+
+1. **First 60 min:** lanes A + C in parallel (different files, no
+   conflict).  Both land cleanly.
+2. **Next 30 min:** lane B (uses lane A).  USER-15 → ✅.
+3. **Probe lane E** (does the forward spec exist?).  If yes → start
+   lane D.  If no → ping user, continue to step 4.
+4. **Attempt lane F** (USER-14 first attempt).  Expected to stall at
+   rlimit cap.  When it stalls, ping user, continue to step 5.
+5. **While parked on E and F:** check lane H spec citation, write up
+   the milestone-doc updates for the closed lanes (A, B, C), refresh
+   `proofs/agent-status/fstar-perf-top20.md`.
+6. **On user reply:** execute the chosen path immediately; the
+   prerequisite work is already done.
+
+### Defaults that DO NOT need user input
+
+- `_to_hacspec` lemma placement → `Bridges.fst`, mirror existing family.
+- Forward+inverse layer_4_plus pairing → close inverse first, then
+  pattern-port forward.  Don't ping for sequencing.
+- USER-15 unfold lemma placement → `Bridges.fst`.
+- Whether to land lanes A/B/C before USER-14 closes → yes, always;
+  they don't depend on USER-14 body.
 
 ## Branch hygiene — mandatory
 
@@ -247,24 +348,15 @@ refactor pattern in action).
    `lemma_inv_ntt_layer_2_step_to_hacspec` (line 702) demonstrates the
    4-way per-branch composition pattern.
 
-## Decision points the user should weigh in on
+## When to ping the user (consolidated from "Autonomy split")
 
-1. **USER-14 layer_4_plus:** restructure into 4 concrete-`layer`
-   functions (Order 2, option a) or keep one function with a helper
-   (option b)?  Recommend (a) for the first instance, then evaluate.
+The agent-autonomous lanes (A, B, C) require no user contact.  Ping
+only when blocked on user-required lanes (E, F, G, H above), and
+*always* keep an autonomous lane running while parked.
 
-2. **USER-15 unfold lemma placement:** `Bridges.fst` (reusable, mirrors
-   `_to_hacspec` family) or inline `hax_lib::fstar!` block in the impl
-   body (one-shot, faster but less reusable)?
-
-3. **Forward layer_4_plus parity with inverse:** close them as a pair
-   (more total time, cleaner architecture) or land inverse first to
-   unblock `invert_ntt_montgomery` and downstream consumers?  Recommend
-   pair if budget allows; else inverse first.
-
-4. **`ntt_at_layer_7`:** worth tackling this session or punt?  It's
-   structurally different (single-zeta, between-chunk).  Recommend
-   punt — separate session.
+If you find yourself needing to write a new `lemma_ntt_layer_n_16_<N>_lane`
+for a layer not already covered, that's a sign you've drifted off the
+recommended order — ping the user before adding new infrastructure.
 
 ## Stage acceptance + commit hygiene
 
@@ -300,17 +392,22 @@ Final session rollup:
 - [ ] Confirm full-tree build is at known baseline (1 pre-existing
       `Hash_functions.fst` Error 47 only) before starting.
 
-## Status reports (collaborative — for user review)
+## Status reports (per `feedback_agent_status_reports`)
 
-Each ~30 min checkpoint, post a 4-line update to user:
-- Current target (USER-N or specific lemma).
-- F* state (verifying / failing / new wall).
-- Decision needed from user (if any).
-- Next step Claude proposes.
+Every ~15 min, append a 4-line update to
+`proofs/agent-status/sprint-2026-05-11-status.md`:
+- Active lane (A/B/C/D/E/F/G/H from "Autonomy split").
+- F* state (verifying / failing / new wall / parked).
+- If parked: which user-required lane, what question is queued.
+- Next autonomous lane to pick up.
+
+When pinging the user: write the question to the status doc *and*
+output it to chat, then immediately switch to the next autonomous
+lane — do not idle waiting.
 
 End-of-session: write
 `proofs/agent-status/sprint-2026-05-11-rollup.md` summarizing each
-landed user-task with the closing commit, and updating
+landed lane + closing commits + open user pings.  Update
 `proofs/proof_milestones.md` row statuses.
 
 ## Out-of-scope / explicit non-goals
@@ -342,7 +439,10 @@ landed user-task with the closing commit, and updating
 
 ## Session vibe
 
-This is collaborative.  Claude proposes; user decides.  Use `fstar-mcp`
-typecheck for sub-second iteration during proof drafting; switch to
-full `make check/<Module>.fst` only at stage acceptance.  Pipe make
-output to `/tmp/*.log` and grep — never `Read` the full log.
+Mostly autonomous.  Run lanes A/B/C/D in parallel where independent;
+ping user only on lanes E/F/G/H per "When to ping the user".
+**Never idle while parked** — there is always another autonomous lane
+ready.  Use `fstar-mcp` typecheck for sub-second iteration during proof
+drafting; switch to full `make check/<Module>.fst` only at stage
+acceptance.  Pipe make output to `/tmp/*.log` and grep — never `Read`
+the full log.
