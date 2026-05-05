@@ -104,9 +104,8 @@ pub(crate) fn deserialize_to_vector_then_ntt<SIMDUnit: Operations>(
         let bytes =
             &serialized[i * RING_ELEMENT_OF_T0S_SIZE..(i + 1) * RING_ELEMENT_OF_T0S_SIZE];
         deserialize::<SIMDUnit>(bytes, &mut ring_elements[i]);
-        // Lift `pow2 12` to `NTT_BASE_BOUND` so `ntt`'s pre discharges.
-        // The strict_lower SMTPat gives `is_i32b_array_opaque (pow2 12)`; we
-        // then invoke `is_i32b_array_larger` per `j` to reach `NTT_BASE_BOUND`.
+        // Lift `pow2 12` per-lane → `NTT_BASE_BOUND = FIELD_MAX` per-lane,
+        // then to `is_bounded_poly FIELD_MAX` so `ntt`'s pre discharges.
         hax_lib::fstar!(
             r#"
             let lemma_lift (j:nat{j < 32}) :
@@ -119,7 +118,9 @@ pub(crate) fn deserialize_to_vector_then_ntt<SIMDUnit: Operations>(
                 (i0._super_i2.f_repr
                   (Seq.index (Seq.index ring_elements (v i)).f_simd_units j))
             in
-            Classical.forall_intro lemma_lift"#
+            Classical.forall_intro lemma_lift;
+            Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_intro
+              (mk_usize 8380416) (Seq.index ring_elements (v i))"#
         );
         ntt(&mut ring_elements[i]);
     }

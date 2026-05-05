@@ -89,6 +89,108 @@ let lemma_is_bounded_poly_higher
                   (i0._super_i2.f_repr (p.f_simd_units.[ sz i ]))"#
         )
     }
+
+    /// All entries of `arr` in the half-open index range `[lo, hi)` are
+    /// bounded by `b` at the polynomial level. Made `opaque_to_smt` to
+    /// stop quantifier cascades when this predicate appears in many
+    /// hypotheses (e.g. nested loop invariants in `compute_matrix_x_mask`,
+    /// `compute_as1_plus_s2`). The body conjoins `k < Seq.length arr`
+    /// with `k < v hi` so `Seq.index arr k` is well-typed without a
+    /// `requires` (avoiding `Pure` overhead at every use site).
+    #[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+    #[cfg_attr(
+        hax,
+        hax_lib::fstar::after(
+            r#"
+let lemma_is_bounded_poly_range_lookup
+      (#v_SIMDUnit: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()]
+          i0:
+          Libcrux_ml_dsa.Simd.Traits.t_Operations v_SIMDUnit)
+      (b lo hi: usize)
+      (arr: t_Slice (Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement v_SIMDUnit))
+      (k: nat)
+    : Lemma
+      (requires is_bounded_poly_range b lo hi arr /\
+                v lo <= k /\ k < v hi /\ k < Seq.length arr)
+      (ensures Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly b (Seq.index arr k))
+      [SMTPat (is_bounded_poly_range b lo hi arr); SMTPat (Seq.index arr k)]
+  = reveal_opaque (`%is_bounded_poly_range) (is_bounded_poly_range b lo hi arr)
+
+let lemma_is_bounded_poly_range_intro
+      (#v_SIMDUnit: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()]
+          i0:
+          Libcrux_ml_dsa.Simd.Traits.t_Operations v_SIMDUnit)
+      (b lo hi: usize)
+      (arr: t_Slice (Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement v_SIMDUnit))
+    : Lemma
+      (requires forall (k: nat). v lo <= k /\ k < v hi /\ k < Seq.length arr ==>
+        Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly b (Seq.index arr k))
+      (ensures is_bounded_poly_range b lo hi arr)
+  = reveal_opaque (`%is_bounded_poly_range) (is_bounded_poly_range b lo hi arr)
+"#
+        )
+    )]
+    pub(crate) fn is_bounded_poly_range<SIMDUnit: Operations>(
+        b: usize,
+        lo: usize,
+        hi: usize,
+        arr: &[PolynomialRingElement<SIMDUnit>],
+    ) -> hax_lib::Prop {
+        hax_lib::fstar_prop_expr!(
+            r#"forall (k:nat). v lo <= k /\ k < v hi /\ k < Seq.length arr ==>
+                  Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly b (Seq.index arr k)"#
+        )
+    }
+
+    /// All entries of `arr` are bounded by `b` at the polynomial level.
+    /// Made `opaque_to_smt` to stop quantifier cascades when this
+    /// predicate appears in many hypotheses (e.g. function preconditions
+    /// like `compute_as1_plus_s2`).
+    #[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+    #[cfg_attr(
+        hax,
+        hax_lib::fstar::after(
+            r#"
+let lemma_is_bounded_poly_slice_lookup
+      (#v_SIMDUnit: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()]
+          i0:
+          Libcrux_ml_dsa.Simd.Traits.t_Operations v_SIMDUnit)
+      (b: usize)
+      (arr: t_Slice (Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement v_SIMDUnit))
+      (k: nat)
+    : Lemma
+      (requires is_bounded_poly_slice b arr /\ k < Seq.length arr)
+      (ensures Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly b (Seq.index arr k))
+      [SMTPat (is_bounded_poly_slice b arr); SMTPat (Seq.index arr k)]
+  = reveal_opaque (`%is_bounded_poly_slice) (is_bounded_poly_slice b arr)
+
+let lemma_is_bounded_poly_slice_intro
+      (#v_SIMDUnit: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()]
+          i0:
+          Libcrux_ml_dsa.Simd.Traits.t_Operations v_SIMDUnit)
+      (b: usize)
+      (arr: t_Slice (Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement v_SIMDUnit))
+    : Lemma
+      (requires forall (k: nat). k < Seq.length arr ==>
+        Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly b (Seq.index arr k))
+      (ensures is_bounded_poly_slice b arr)
+  = reveal_opaque (`%is_bounded_poly_slice) (is_bounded_poly_slice b arr)
+"#
+        )
+    )]
+    pub(crate) fn is_bounded_poly_slice<SIMDUnit: Operations>(
+        b: usize,
+        arr: &[PolynomialRingElement<SIMDUnit>],
+    ) -> hax_lib::Prop {
+        hax_lib::fstar_prop_expr!(
+            r#"forall (k:nat). k < Seq.length arr ==>
+                  Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly b (Seq.index arr k)"#
+        )
+    }
 }
 
 #[hax_lib::attributes]
