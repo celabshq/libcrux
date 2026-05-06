@@ -474,7 +474,7 @@ let op_ntt_layer_1_step
 
 #pop-options
 
-#push-options "--z3rlimit 200 --split_queries always"
+#push-options "--z3rlimit 800 --fuel 1 --ifuel 1 --split_queries always"
 
 let op_ntt_layer_2_step
       (a: Libcrux_ml_kem.Vector.Portable.Vector_type.t_PortableVector)
@@ -557,7 +557,7 @@ let op_ntt_layer_2_step
 
 #pop-options
 
-#push-options "--z3rlimit 200 --split_queries always"
+#push-options "--z3rlimit 600 --fuel 1 --ifuel 1 --split_queries always"
 
 let op_ntt_layer_3_step (a: Libcrux_ml_kem.Vector.Portable.Vector_type.t_PortableVector) (zeta: i16) =
   let _:Prims.unit =
@@ -729,7 +729,7 @@ let op_inv_ntt_layer_1_step
 
 #pop-options
 
-#push-options "--z3rlimit 400 --split_queries always"
+#push-options "--z3rlimit 800 --fuel 1 --ifuel 1 --split_queries always"
 
 let op_inv_ntt_layer_2_step
       (a: Libcrux_ml_kem.Vector.Portable.Vector_type.t_PortableVector)
@@ -832,7 +832,7 @@ let op_inv_ntt_layer_2_step
 
 #pop-options
 
-#push-options "--z3rlimit 200 --split_queries always"
+#push-options "--z3rlimit 600 --fuel 1 --ifuel 1 --split_queries always"
 
 let op_inv_ntt_layer_3_step
       (a: Libcrux_ml_kem.Vector.Portable.Vector_type.t_PortableVector)
