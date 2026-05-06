@@ -6,7 +6,9 @@ open Core_models
 let _ =
   (* This module has implicit dependencies, here we make them explicit. *)
   (* The implicit dependencies arise from typeclasses instances. *)
-  let open Libcrux_sha3.Simd.Avx2 in
+  let open Libcrux_sha3.Simd.Avx2.Load in
+  let open Libcrux_sha3.Simd.Avx2.Store in
+  let open Libcrux_sha3.Simd.Avx2.Wrappers in
   let open Libcrux_sha3.Traits in
   ()
 

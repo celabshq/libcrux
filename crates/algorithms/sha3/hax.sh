@@ -123,12 +123,15 @@ function patch_fstar_extractions() {
 
     # hax omits the _super_i0 (KeccakItem superclass) field in the
     # Squeeze2 trait instance; insert it so F* can resolve the class.
+    # Post load/store-split (2026-05-06) the Squeeze2/Squeeze4 impls
+    # moved from the parent `Simd.Arm64`/`Simd.Avx2` into the
+    # `.Store` submodules.
     $SED -i '/f_squeeze2_pre/i\    _super_i0 = FStar.Tactics.Typeclasses.solve;' \
-        "$target_dir"/Libcrux_sha3.Simd.Arm64.fst
+        "$target_dir"/Libcrux_sha3.Simd.Arm64.Store.fst
 
     # Same omission in the AVX2 Squeeze4 trait instance.
     $SED -i '/f_squeeze4_pre/i\    _super_i0 = FStar.Tactics.Typeclasses.solve;' \
-        "$target_dir"/Libcrux_sha3.Simd.Avx2.fst
+        "$target_dir"/Libcrux_sha3.Simd.Avx2.Store.fst
 
     # The AVX2 X4.Incremental.t_KeccakState wraps an opaque Vec256 record
     # that has no decidable equality.  Mark the wrapper noeq.
