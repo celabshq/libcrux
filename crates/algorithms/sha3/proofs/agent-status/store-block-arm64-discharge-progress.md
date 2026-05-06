@@ -337,3 +337,100 @@ cliff suspected — the pattern composes).
 
 
 
+---
+
+## NEW SESSION — split-into-functions refactor
+
+## 2026-05-06, T+0:00 (kickoff, refactor session)
+
+- Sub-task: split monolithic `store_block` into `store_block_full`
+  (loop only) + `store_block_tail` (tail dispatch only) + thin
+  `store_block` (compose). Goal: eliminate the final `admit ()` by
+  replacing in-body Euclidean bridging with an opaque-call
+  composition.
+- Read context: prompt, prior progress doc (4 sessions, 7+ hours),
+  arm64.rs:143-251 (`load_block` / `load_last` template),
+  arm64.rs:624-743 (current monolithic store_block), commit
+  29424f593 (tail wrappers + admitted aggregation).
+- Plan first 30 min:
+  1. Sketch `store_block_full` ensures: loop body's invariant final
+     state, frame outside `[start, start+16q)`. Take `q: usize` not
+     `len`.
+  2. Sketch `store_block_tail` ensures: per-byte content over
+     `[start+16q, start+16q+remaining)`, plus frame. Body = if/else
+     dispatch to existing `store_tail_high`/`store_tail_low`.
+  3. Rewrite `store_block` to compute q,remaining and call both.
+  4. Re-extract, run make.
+- ETA: 2 hours total.
+
+## 2026-05-06, T+0:30 (refactor landed; first issue: `q` upper bound)
+
+- Refactor written: `store_block_full(s, out0, out1, start, q)`,
+  `store_block_tail(s, out0, out1, start, q, remaining)`, thin
+  `store_block`. Re-extracted.
+- First check (split_queries always, rlimit 400) on
+  `store_block_full`: 2 errors at `f_index_pre s i` for the
+  `s.[(j-start)/8]` access in loop invariant — Z3 couldn't prove
+  `(j-start)/8 < 25` because no upper bound on `q`. The original
+  `store_block` had `len <= RATE && valid_rate(RATE)` => `RATE < 200`
+  => `len < 200` => `len/16 ≤ 12`. New `store_block_full` lacked
+  this bound.
+- Fix: added `q <= 12` as a precondition to both `_full` and
+  `_tail`; in `store_block`, derive from `valid_rate(RATE) &&
+  len <= RATE` via explicit assert.
+- After fix: `store_block_full` 1 error remaining (one timed-out
+  sub-query 345 at fold_range usize range_t check).
+
+## 2026-05-06, T+1:00 (store_block_full verified; tail bridge typing issue)
+
+- Per the rlimit-cap rule (`feedback_rlimit_cap_800` says 800 mono
+  is OK), switched `store_block_full` options to
+  `--z3rlimit 800 --split_queries no` matching the prior commit
+  c14f94d2c's settings on store_block. **Verified clean** — one
+  monolithic query, 165s, 484/800 rlimit used.
+- Tail check: 6 errors in `store_block_tail`'s bridge asserts. My
+  initial bridge form was
+  `Seq.index s (2 * v q) == get_ij (sz 2) s ((2 * v q) / 5) ((2 * v q) % 5)`
+  but `(2 * v q) / 5` typechecks at `Prims.int`, while `get_ij`'s
+  arguments are `usize`.
+- Fix: rewrote the bridge to use `Seq.index s (5 * (k/5) + k%5)`
+  form (no `get_ij` call), so the only arithmetic is on integers
+  and the only sequence operation is plain `Seq.index`.
+
+## 2026-05-06, T+1:30 (tail q-bound issue)
+
+- Re-extracted with the new bridge. `store_block_tail` errors
+  collapsed to 2 (down from 6), now both at the function-level
+  ensures (line 1911 forall_j). Two `f_index_pre s i` failures
+  for `s.[(j-start)/8]`.
+- Diagnosis: `q <= 12` in tail's precondition is too loose. With
+  `q = 12 && remaining = 15`, `j-start` can be `16*12+14 = 206`,
+  giving `(j-start)/8 == 25` — out of bounds. Original
+  `store_block` had `len <= RATE && valid_rate(RATE)` => `len <
+  200`, which gave `(j-start)/8 < 25` directly.
+- Fix: added `16*q + remaining < 200` precondition to `_tail`.
+  Updated `store_block` body assert to derive it from
+  `valid_rate(RATE) && len <= RATE`. Switched `_tail` options to
+  `--z3rlimit 800 --split_queries no` (mono).
+- After: **all three functions verify clean.** Zero `admit ()`.
+- Refactor of `store_tail_high`/`store_tail_low` calls in `_tail`:
+  introduced `let s_2i = *get_ij(s, i0, j0)` named bindings so
+  the bridge's body can reference them by name; changed the
+  bridge from a `5*(k/5)+(k%5)` form to a more direct
+  `Math.Lemmas.lemma_div_mod` invocation followed by
+  `Seq.index s (2*q) == s_2i` that lets Z3 chain the two via
+  congruence.
+
+## 2026-05-06, T+2:00 (clean make check)
+
+- `make check/Libcrux_sha3.Simd.Arm64.fst` passes clean.
+- Per-function timings (cold cache, no hint replay):
+    * `store_block_full`: 1 mono query, 159.8 s, 484/800 rlimit.
+    * `store_block_tail`: 1 mono query, 1.1 s.
+    * `store_block` (composer): 84 sub-queries (split_queries
+      always), max 2.47 s, total 6.9 s.
+    * `store_u64x2x2`: re-verified, max ~250ms (with hint).
+    * `store_tail_high`: 275 sub-queries, max 434 ms.
+    * `store_tail_low`: 232 sub-queries, max 247 ms.
+- Total module time: 306 s cold; expect <60 s with hints.
+

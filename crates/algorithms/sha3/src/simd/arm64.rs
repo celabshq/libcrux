@@ -593,6 +593,219 @@ fn store_tail_low(
     );
 }
 
+/// Loop-only half of `store_block`. Iterates over `i in 0..q`, calling
+/// `store_u64x2x2` per iteration to fill `out0[start..start+16q]` and
+/// `out1[start..start+16q]` from state slots `s[2*i]` and `s[2*i+1]`.
+/// Frame: bytes outside `[start, start+16q)` are unchanged.
+///
+/// Factored out of `store_block` so its byte-level ensures composes
+/// additively with the tail (`store_block_tail`) without forcing
+/// in-body Euclidean div/mod bridging on the function ensures.
+///
+/// Verifies as a monolithic query (matching the prior verified shape
+/// of `store_block` at commit `c14f94d2c`); split_queries with rlimit
+/// 400 cliffs at the fold_range usize-range subtype check inside the
+/// per-iteration body. `--z3refresh` keeps the SMT context fresh
+/// across runs so that hint replay does not cause cliffs.
+#[inline(always)]
+#[hax_lib::fstar::options("--z3rlimit 800 --split_queries no --z3refresh --using_facts_from '* -Rust_primitives.Slice.array_from_fn -Core_models.Num.impl_u64__rem_euclid -Core_models.Num.impl_u32__rem_euclid'")]
+#[hax_lib::requires(
+    out0.len() == out1.len()
+    && q <= 12
+    && start.to_int() + (16.to_int() * q.to_int()) <= out0.len().to_int()
+)]
+#[hax_lib::ensures(|_| (future(out0).len() == out0.len()).to_prop()
+    & (future(out1).len() == out1.len()).to_prop()
+    & hax_lib::forall(|j: usize| if j < out0.len() {
+        if j < start {
+            out0[j] == future(out0)[j]
+        } else if j < start + 16 * q {
+            future(out0)[j] == get_lane_u64(s[(j - start) / 8], 0).to_le_bytes()[(j - start) % 8]
+        } else {
+            out0[j] == future(out0)[j]
+        }
+    } else {
+        true
+    })
+    & hax_lib::forall(|j: usize| if j < out1.len() {
+        if j < start {
+            out1[j] == future(out1)[j]
+        } else if j < start + 16 * q {
+            future(out1)[j] == get_lane_u64(s[(j - start) / 8], 1).to_le_bytes()[(j - start) % 8]
+        } else {
+            out1[j] == future(out1)[j]
+        }
+    } else {
+        true
+    })
+)]
+fn store_block_full(
+    s: &[uint64x2_t; 25],
+    out0: &mut [u8],
+    out1: &mut [u8],
+    start: usize,
+    q: usize,
+) {
+    #[cfg(hax)]
+    let old_out0 = out0.to_vec().as_slice(); // ghost variable
+    #[cfg(hax)]
+    let old_out1 = out1.to_vec().as_slice(); // ghost variable
+    hax_lib::fstar!(
+        r#"
+        assert_norm (
+          Alloc.Vec.impl_1__as_slice
+            (Alloc.Slice.impl__to_vec out0) == out0);
+        assert_norm (
+          Alloc.Vec.impl_1__as_slice
+            (Alloc.Slice.impl__to_vec out1) == out1);
+        assert (old_out0 == out0);
+        assert (old_out1 == out1)
+        "#
+    );
+
+    for i in 0..q {
+        hax_lib::loop_invariant!(|i: usize| (out0.len() == old_out0.len()).to_prop()
+            & (out1.len() == old_out1.len()).to_prop()
+            & hax_lib::forall(|j: usize| if j < out0.len() {
+                if j < start {
+                    out0[j] == old_out0[j]
+                } else if j < start + i * 16 {
+                    out0[j] == get_lane_u64(s[(j - start) / 8], 0).to_le_bytes()[(j - start) % 8]
+                } else {
+                    out0[j] == old_out0[j]
+                }
+            } else {
+                true
+            })
+            & hax_lib::forall(|j: usize| if j < out1.len() {
+                if j < start {
+                    out1[j] == old_out1[j]
+                } else if j < start + i * 16 {
+                    out1[j] == get_lane_u64(s[(j - start) / 8], 1).to_le_bytes()[(j - start) % 8]
+                } else {
+                    out1[j] == old_out1[j]
+                }
+            } else {
+                true
+            }));
+        let i0 = (2 * i) / 5;
+        let j0 = (2 * i) % 5;
+        let i1 = (2 * i + 1) / 5;
+        let j1 = (2 * i + 1) % 5;
+        store_u64x2x2(out0, out1, *get_ij(s, i0, j0), *get_ij(s, i1, j1), start, i);
+    }
+}
+
+/// Tail-only half of `store_block`. Dispatches to `store_tail_high`
+/// (when `remaining > 8`) or `store_tail_low` (when
+/// `0 < remaining <= 8`) to fill the partial window
+/// `out0[start+16q..start+16q+remaining]` (likewise `out1`). When
+/// `remaining == 0` the function is a no-op.
+///
+/// Frame: bytes outside `[start+16*q, start+16*q+remaining)` are
+/// unchanged.
+///
+/// Verifies as a monolithic query (matching `store_block_full`).
+/// `--z3refresh` keeps SMT context fresh across runs.
+#[inline(always)]
+#[hax_lib::fstar::options("--z3rlimit 800 --split_queries no --z3refresh --using_facts_from '* -Rust_primitives.Slice.array_from_fn -Core_models.Num.impl_u64__rem_euclid -Core_models.Num.impl_u32__rem_euclid'")]
+#[hax_lib::requires(
+    out0.len() == out1.len()
+    && q <= 12
+    && remaining < 16
+    && (16.to_int() * q.to_int()) + remaining.to_int() < 200.to_int()
+    && start.to_int() + (16.to_int() * q.to_int()) + remaining.to_int() <= out0.len().to_int()
+)]
+#[hax_lib::ensures(|_| (future(out0).len() == out0.len()).to_prop()
+    & (future(out1).len() == out1.len()).to_prop()
+    & hax_lib::forall(|j: usize| if j < out0.len() {
+        if j < start + 16 * q {
+            out0[j] == future(out0)[j]
+        } else if j < start + 16 * q + remaining {
+            future(out0)[j] == get_lane_u64(s[(j - start) / 8], 0).to_le_bytes()[(j - start) % 8]
+        } else {
+            out0[j] == future(out0)[j]
+        }
+    } else {
+        true
+    })
+    & hax_lib::forall(|j: usize| if j < out1.len() {
+        if j < start + 16 * q {
+            out1[j] == future(out1)[j]
+        } else if j < start + 16 * q + remaining {
+            future(out1)[j] == get_lane_u64(s[(j - start) / 8], 1).to_le_bytes()[(j - start) % 8]
+        } else {
+            out1[j] == future(out1)[j]
+        }
+    } else {
+        true
+    })
+)]
+fn store_block_tail(
+    s: &[uint64x2_t; 25],
+    out0: &mut [u8],
+    out1: &mut [u8],
+    start: usize,
+    q: usize,
+    remaining: usize,
+) {
+    #[cfg(hax)]
+    let old_out0 = out0.to_vec().as_slice(); // ghost variable
+    #[cfg(hax)]
+    let old_out1 = out1.to_vec().as_slice(); // ghost variable
+    hax_lib::fstar!(
+        r#"
+        assert_norm (
+          Alloc.Vec.impl_1__as_slice
+            (Alloc.Slice.impl__to_vec out0) == out0);
+        assert_norm (
+          Alloc.Vec.impl_1__as_slice
+            (Alloc.Slice.impl__to_vec out1) == out1);
+        assert (old_out0 == out0);
+        assert (old_out1 == out1)
+        "#
+    );
+    if remaining > 8 {
+        let i = 2 * q;
+        let i0 = i / 5;
+        let j0 = i % 5;
+        let i1 = (i + 1) / 5;
+        let j1 = (i + 1) % 5;
+        let s_2i = *get_ij(s, i0, j0);
+        let s_succ = *get_ij(s, i1, j1);
+        store_tail_high(out0, out1, s_2i, s_succ, start, q, remaining);
+        // Bridge: store_tail_high's post talks about `s_2i`/`s_succ`
+        // (the lane facts via `(j-start)/8 == 2*q` discriminator).
+        // Translate those into the `s[(j-start)/8]` form this
+        // function's ensures expects. The bridge unfolds get_ij and
+        // appeals to Euclidean div/mod (5*(k/5)+(k%5)=k).
+        hax_lib::fstar!(
+            r#"
+            FStar.Math.Lemmas.lemma_div_mod (2 * v q) 5;
+            FStar.Math.Lemmas.lemma_div_mod (2 * v q + 1) 5;
+            assert (5 * ((2 * v q) / 5) + (2 * v q) % 5 == 2 * v q);
+            assert (5 * ((2 * v q + 1) / 5) + (2 * v q + 1) % 5 == 2 * v q + 1);
+            assert (Seq.index s (2 * v q) == s_2i);
+            assert (Seq.index s (2 * v q + 1) == s_succ)
+            "#
+        );
+    } else if remaining > 0 {
+        let i = 2 * q;
+        let s_2q = *get_ij(s, i / 5, i % 5);
+        store_tail_low(out0, out1, s_2q, start, q, remaining);
+        // Bridge: store_tail_low writes `[start+16q, start+16q+remaining)`
+        // (with remaining <= 8) using only `s_2q`. Translate to
+        // `s[(j-start)/8]` form.
+        hax_lib::fstar!(
+            r#"
+            FStar.Math.Lemmas.lemma_div_mod (2 * v q) 5;
+            assert (5 * ((2 * v q) / 5) + (2 * v q) % 5 == 2 * v q);
+            assert (Seq.index s (2 * v q) == s_2q)
+            "#
+        );
+    }
+}
+
 #[inline(always)]
 #[hax_lib::fstar::options("--z3rlimit 400 --split_queries always --using_facts_from '* -Rust_primitives.Slice.array_from_fn -Core_models.Num.impl_u64__rem_euclid -Core_models.Num.impl_u32__rem_euclid'")]
 #[hax_lib::requires(valid_rate(RATE) && len <= RATE && start.to_int() + len.to_int() <= out0.len().to_int() && out0.len() == out1.len())]
@@ -631,101 +844,26 @@ pub(crate) fn store_block<const RATE: usize>(
     #[cfg(not(eurydice))]
     debug_assert!(len <= RATE && start + len <= out0.len() && out0.len() == out1.len());
 
-    #[cfg(hax)]
-    let old_out0 = out0.to_vec().as_slice(); // ghost variable
-    #[cfg(hax)]
-    let old_out1 = out1.to_vec().as_slice(); // ghost variable
-    hax_lib::fstar!(
-        r#"
-        assert_norm (
-          Alloc.Vec.impl_1__as_slice
-            (Alloc.Slice.impl__to_vec out0) == out0);
-        assert_norm (
-          Alloc.Vec.impl_1__as_slice
-            (Alloc.Slice.impl__to_vec out1) == out1);
-        assert (old_out0 == out0);
-        assert (old_out1 == out1)
-        "#
-    );
-
-    for i in 0..len / 16 {
-        hax_lib::loop_invariant!(|i: usize| (out0.len() == old_out0.len()).to_prop()
-            & (out1.len() == old_out1.len()).to_prop()
-            & hax_lib::forall(|j: usize| if j < out0.len() {
-                if j < start {
-                    out0[j] == old_out0[j]
-                } else if j < start + i * 16 {
-                    out0[j] == get_lane_u64(s[(j - start) / 8], 0).to_le_bytes()[(j - start) % 8]
-                } else {
-                    out0[j] == old_out0[j]
-                }
-            } else {
-                true
-            })
-            & hax_lib::forall(|j: usize| if j < out1.len() {
-                if j < start {
-                    out1[j] == old_out1[j]
-                } else if j < start + i * 16 {
-                    out1[j] == get_lane_u64(s[(j - start) / 8], 1).to_le_bytes()[(j - start) % 8]
-                } else {
-                    out1[j] == old_out1[j]
-                }
-            } else {
-                true
-            }));
-        let i0 = (2 * i) / 5;
-        let j0 = (2 * i) % 5;
-        let i1 = (2 * i + 1) / 5;
-        let j1 = (2 * i + 1) % 5;
-        store_u64x2x2(out0, out1, *get_ij(s, i0, j0), *get_ij(s, i1, j1), start, i);
-    }
     let q = len / 16;
     let remaining = len % 16;
-    // Bridge the Euclidean equation `len = 16*q + remaining` and
-    // `remaining < 16` so the tail wrappers' slice preconditions hold.
+    // Bridge the Euclidean equation `len = 16*q + remaining` so the
+    // two callees' preconditions hold and so their post-windows
+    // partition `[start, start+len)`.
     hax_lib::fstar!(
         r#"
         assert (v len == 16 * v q + v remaining);
         assert (v remaining < 16);
+        assert (v q <= 12);
+        assert (16 * v q + v remaining == v len);
+        assert (v len < 200);
         assert (v start + 16 * v q + v remaining == v start + v len);
+        assert (v start + 16 * v q <= v start + v len);
         assert (v start + v len <= Seq.length out0);
         assert (v start + v len <= Seq.length out1)
         "#
     );
-    if remaining > 8 {
-        let i = 2 * q;
-        let i0 = i / 5;
-        let j0 = i % 5;
-        let i1 = (i + 1) / 5;
-        let j1 = (i + 1) % 5;
-        store_tail_high(
-            out0,
-            out1,
-            *get_ij(s, i0, j0),
-            *get_ij(s, i1, j1),
-            start,
-            q,
-            remaining,
-        );
-    } else if remaining > 0 {
-        let i = 2 * q;
-        store_tail_low(out0, out1, *get_ij(s, i / 5, i % 5), start, q, remaining);
-    }
-    // Function-level ensures aggregation:
-    // The loop's final invariant gives the per-byte fact for `j` in
-    // `[start, start + 16*q)` (in `s[(j-start)/8]` form).  The tail
-    // wrapper post gives the per-byte fact for `j` in
-    // `[start + 16*q, start + 16*q + remaining)` (in `s_2i` /
-    // `s_succ` / `s_2q` form, with a discriminator on
-    // `(j-start)/8 == 2*q`).  Combining these two ranges into
-    // `[start, start+len)` (using `len = 16*q + remaining`) AND
-    // bridging the wrapper's `s_2i` / `s_succ` / `s_2q` form to the
-    // function ensures' `s[(j-start)/8]` form requires Euclidean
-    // div/mod normalization (`5*((2q)/5) + (2q)%5 = 2q`,
-    // `(16q + k)/8 = 2q + k/8`) which Z3 cannot discharge within
-    // rlimit budget under the `--using_facts_from` filter.  Discharge
-    // deferred — see `proofs/agent-status/store-block-arm64-discharge-progress.md`.
-    hax_lib::fstar!("admit ()");
+    store_block_full(s, out0, out1, start, q);
+    store_block_tail(s, out0, out1, start, q, remaining);
 }
 
 #[hax_lib::attributes]
