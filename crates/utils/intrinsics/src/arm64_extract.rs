@@ -262,7 +262,16 @@ pub fn get_lane_u64(vec: _uint64x2_t, lane: usize) -> u64 {
 }
 
 #[inline(always)]
-#[hax_lib::ensures(|()| future(out).len() == out.len())]
+#[hax_lib::requires(out.len() >= 16)]
+#[hax_lib::ensures(|()| fstar!(
+    "Seq.length (out_future <: t_Slice u8) == Seq.length ($out <: t_Slice u8) /\\
+     (forall (i:nat{i < 16}).
+        Seq.index (out_future <: t_Slice u8) i ==
+        Seq.index
+          (Core_models.Num.impl_u64__to_le_bytes
+             (get_lane_u64x2 $v (i / 8))) (i % 8)) /\\
+     (forall (i:nat{i >= 16 /\\ i < Seq.length (out_future <: t_Slice u8)}).
+        Seq.index (out_future <: t_Slice u8) i == Seq.index ($out <: t_Slice u8) i)"))]
 #[hax_lib::lean::replace_body("()")]
 pub fn _vst1q_bytes_u64(out: &mut [u8], v: _uint64x2_t) {
     unimplemented!()
