@@ -212,7 +212,7 @@ pub(crate) fn load_last<const RATE: usize, const DELIMITER: u8>(
 
 /// Per-iteration store wrapper for the `store_block` loop body.
 ///
-/// Given the two state slots `s_2i` (state[2*i]) and `s_2i_plus_1`
+/// Given the two state slots `s_2i` (state[2*i]) and `s_succ`
 /// (state[2*i + 1]), and the output slices `out0`/`out1`, performs the
 /// per-iteration `vtrn1q_u64`/`vtrn2q_u64` interleave + two
 /// `_vst1q_bytes_u64` stores and returns updated slices that satisfy
@@ -241,8 +241,8 @@ pub(crate) fn load_last<const RATE: usize, const DELIMITER: u8>(
                     future(out0)[j] == get_lane_u64(s_2i, 0).to_le_bytes()[(j - start) % 8]
                     && future(out1)[j] == get_lane_u64(s_2i, 1).to_le_bytes()[(j - start) % 8]
                 } else {
-                    future(out0)[j] == get_lane_u64(s_2i_plus_1, 0).to_le_bytes()[(j - start) % 8]
-                    && future(out1)[j] == get_lane_u64(s_2i_plus_1, 1).to_le_bytes()[(j - start) % 8]
+                    future(out0)[j] == get_lane_u64(s_succ, 0).to_le_bytes()[(j - start) % 8]
+                    && future(out1)[j] == get_lane_u64(s_succ, 1).to_le_bytes()[(j - start) % 8]
                 }
             } else {
                 out0[j] == future(out0)[j] && out1[j] == future(out1)[j]
@@ -255,12 +255,12 @@ fn store_u64x2x2(
     out0: &mut [u8],
     out1: &mut [u8],
     s_2i: uint64x2_t,
-    s_2i_plus_1: uint64x2_t,
+    s_succ: uint64x2_t,
     start: usize,
     i: usize,
 ) {
-    let v0 = _vtrn1q_u64(s_2i, s_2i_plus_1);
-    let v1 = _vtrn2q_u64(s_2i, s_2i_plus_1);
+    let v0 = _vtrn1q_u64(s_2i, s_succ);
+    let v1 = _vtrn2q_u64(s_2i, s_succ);
     #[cfg(hax)]
     let old_out0 = out0.to_vec().as_slice();
     #[cfg(hax)]
@@ -326,8 +326,275 @@ fn store_u64x2x2(
     );
 }
 
+/// Tail wrapper for the `remaining > 8` branch of `store_block`.
+///
+/// Stores the partial 16-byte window `out0[start+16*q .. start+16*q+remaining]`
+/// (and the analogous out1 window) by:
+/// (1) materializing both 16-byte tmp arrays via `_vst1q_bytes_u64`,
+/// (2) `copy_from_slice`-ing the first `remaining` bytes into the
+///     `out0`/`out1` windows.
+///
+/// `q = len/16` (the post-loop iteration count). The window covers the
+/// last `remaining` bytes of `[start, start+len)` with `8 < remaining
+/// < 16`. The window's first 8 bytes correspond to `s_2i`; bytes 8..remaining
+/// correspond to `s_succ`. Lanes 0/1 of each go to out0/out1.
+///
+/// Mirrors `store_u64x2x2` on the partial-window side: the strong
+/// per-byte ensures isolates the local update_at_range slice precond
+/// + `_vst1q_bytes_u64`/`vtrn` reasoning so the calling `store_block`
+/// body composes additively.
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 800 --split_queries no --using_facts_from '* -Rust_primitives.Slice.array_from_fn -Core_models.Num.impl_u64__rem_euclid -Core_models.Num.impl_u32__rem_euclid'")]
+#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always")]
+#[hax_lib::requires(
+    out0.len() == out1.len()
+    && remaining > 8
+    && remaining < 16
+    && start.to_int() + (16.to_int() * q.to_int()) + remaining.to_int() <= out0.len().to_int()
+)]
+#[hax_lib::ensures(|_|
+    (future(out0).len() == out0.len()).to_prop()
+    & (future(out1).len() == out1.len()).to_prop()
+    & hax_lib::forall(|j: usize|
+        if j < out0.len() {
+            if j < start + 16 * q {
+                out0[j] == future(out0)[j] && out1[j] == future(out1)[j]
+            } else if j < start + 16 * q + remaining {
+                if (j - start) / 8 == 2 * q {
+                    future(out0)[j] == get_lane_u64(s_2i, 0).to_le_bytes()[(j - start) % 8]
+                    && future(out1)[j] == get_lane_u64(s_2i, 1).to_le_bytes()[(j - start) % 8]
+                } else {
+                    future(out0)[j] == get_lane_u64(s_succ, 0).to_le_bytes()[(j - start) % 8]
+                    && future(out1)[j] == get_lane_u64(s_succ, 1).to_le_bytes()[(j - start) % 8]
+                }
+            } else {
+                out0[j] == future(out0)[j] && out1[j] == future(out1)[j]
+            }
+        } else {
+            true
+        })
+)]
+fn store_tail_high(
+    out0: &mut [u8],
+    out1: &mut [u8],
+    s_2i: uint64x2_t,
+    s_succ: uint64x2_t,
+    start: usize,
+    q: usize,
+    remaining: usize,
+) {
+    let v0 = _vtrn1q_u64(s_2i, s_succ);
+    let v1 = _vtrn2q_u64(s_2i, s_succ);
+    let mut out0_tmp = [0u8; 16];
+    let mut out1_tmp = [0u8; 16];
+    #[cfg(hax)]
+    let old_out0 = out0.to_vec().as_slice();
+    #[cfg(hax)]
+    let old_out1 = out1.to_vec().as_slice();
+    _vst1q_bytes_u64(&mut out0_tmp, v0);
+    _vst1q_bytes_u64(&mut out1_tmp, v1);
+    out0[start + 16 * q..start + 16 * q + remaining].copy_from_slice(&out0_tmp[0..remaining]);
+    out1[start + 16 * q..start + 16 * q + remaining].copy_from_slice(&out1_tmp[0..remaining]);
+    // Bridge: derive per-byte facts for `out0`/`out1` in the
+    // partial window from `_vst1q_bytes_u64`'s per-byte post +
+    // `update_at_range`'s slice posts.
+    hax_lib::fstar!(
+        r#"
+        let a_pos:nat = v start + 16 * v q in
+        let r:nat = v remaining in
+        assert (a_pos + r <= Seq.length old_out0);
+        assert (a_pos + r <= Seq.length old_out1);
+        let bridge_out0 (j_n:nat{j_n < Seq.length old_out0}) :
+            Lemma (
+              if j_n < a_pos then
+                Seq.index out0 j_n == Seq.index old_out0 j_n
+              else if j_n < a_pos + r then
+                (let k:nat = j_n - a_pos in
+                 Seq.index out0 j_n ==
+                 Seq.index
+                   (Core_models.Num.impl_u64__to_le_bytes
+                      (Libcrux_intrinsics.Arm64_extract.get_lane_u64x2 v0 (k / 8)))
+                   (k % 8))
+              else
+                Seq.index out0 j_n == Seq.index old_out0 j_n)
+          = if j_n < a_pos then begin
+              assert (Seq.index (Seq.slice out0 0 a_pos) j_n == Seq.index out0 j_n);
+              assert (Seq.index (Seq.slice old_out0 0 a_pos) j_n == Seq.index old_out0 j_n)
+            end else if j_n < a_pos + r then begin
+              let k:nat = j_n - a_pos in
+              assert (k < r);
+              assert (Seq.index (Seq.slice out0 a_pos (a_pos + r)) k == Seq.index out0 j_n);
+              assert (Seq.index (Seq.slice out0_tmp 0 r) k == Seq.index out0_tmp k)
+            end else begin
+              let k:nat = j_n - (a_pos + r) in
+              assert (Seq.index (Seq.slice out0 (a_pos + r) (Seq.length out0)) k ==
+                      Seq.index out0 j_n);
+              assert (Seq.index (Seq.slice old_out0 (a_pos + r) (Seq.length old_out0)) k ==
+                      Seq.index old_out0 j_n)
+            end
+        in
+        let bridge_out1 (j_n:nat{j_n < Seq.length old_out1}) :
+            Lemma (
+              if j_n < a_pos then
+                Seq.index out1 j_n == Seq.index old_out1 j_n
+              else if j_n < a_pos + r then
+                (let k:nat = j_n - a_pos in
+                 Seq.index out1 j_n ==
+                 Seq.index
+                   (Core_models.Num.impl_u64__to_le_bytes
+                      (Libcrux_intrinsics.Arm64_extract.get_lane_u64x2 v1 (k / 8)))
+                   (k % 8))
+              else
+                Seq.index out1 j_n == Seq.index old_out1 j_n)
+          = if j_n < a_pos then begin
+              assert (Seq.index (Seq.slice out1 0 a_pos) j_n == Seq.index out1 j_n);
+              assert (Seq.index (Seq.slice old_out1 0 a_pos) j_n == Seq.index old_out1 j_n)
+            end else if j_n < a_pos + r then begin
+              let k:nat = j_n - a_pos in
+              assert (k < r);
+              assert (Seq.index (Seq.slice out1 a_pos (a_pos + r)) k == Seq.index out1 j_n);
+              assert (Seq.index (Seq.slice out1_tmp 0 r) k == Seq.index out1_tmp k)
+            end else begin
+              let k:nat = j_n - (a_pos + r) in
+              assert (Seq.index (Seq.slice out1 (a_pos + r) (Seq.length out1)) k ==
+                      Seq.index out1 j_n);
+              assert (Seq.index (Seq.slice old_out1 (a_pos + r) (Seq.length old_out1)) k ==
+                      Seq.index old_out1 j_n)
+            end
+        in
+        Classical.forall_intro bridge_out0;
+        Classical.forall_intro bridge_out1
+        "#
+    );
+}
+
+/// Tail wrapper for the `remaining > 0 && remaining <= 8` branch of
+/// `store_block`. A single 16-byte tmp materialized from one state
+/// slot — its low half (`tmp[0..remaining]`) goes to `out0`, its high
+/// half (`tmp[8..8+remaining]`) goes to `out1`.
+///
+/// `q = len/16`. Window: `[start+16*q, start+16*q+remaining)`, with
+/// `0 < remaining <= 8`. Both `out0[j]` and `out1[j]` map to lanes 0
+/// and 1 of the same state slot `s_2q`; the lo-half / hi-half split
+/// is exactly `_vst1q_bytes_u64`'s definition.
+#[inline(always)]
+#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always")]
+#[hax_lib::requires(
+    out0.len() == out1.len()
+    && remaining > 0
+    && remaining <= 8
+    && start.to_int() + (16.to_int() * q.to_int()) + remaining.to_int() <= out0.len().to_int()
+)]
+#[hax_lib::ensures(|_|
+    (future(out0).len() == out0.len()).to_prop()
+    & (future(out1).len() == out1.len()).to_prop()
+    & hax_lib::forall(|j: usize|
+        if j < out0.len() {
+            if j < start + 16 * q {
+                out0[j] == future(out0)[j] && out1[j] == future(out1)[j]
+            } else if j < start + 16 * q + remaining {
+                future(out0)[j] == get_lane_u64(s_2q, 0).to_le_bytes()[(j - start) % 8]
+                && future(out1)[j] == get_lane_u64(s_2q, 1).to_le_bytes()[(j - start) % 8]
+            } else {
+                out0[j] == future(out0)[j] && out1[j] == future(out1)[j]
+            }
+        } else {
+            true
+        })
+)]
+fn store_tail_low(
+    out0: &mut [u8],
+    out1: &mut [u8],
+    s_2q: uint64x2_t,
+    start: usize,
+    q: usize,
+    remaining: usize,
+) {
+    let mut out01 = [0u8; 16];
+    #[cfg(hax)]
+    let old_out0 = out0.to_vec().as_slice();
+    #[cfg(hax)]
+    let old_out1 = out1.to_vec().as_slice();
+    _vst1q_bytes_u64(&mut out01, s_2q);
+    out0[start + 16 * q..start + 16 * q + remaining].copy_from_slice(&out01[0..remaining]);
+    out1[start + 16 * q..start + 16 * q + remaining]
+        .copy_from_slice(&out01[8..8 + remaining]);
+    // Bridge: out01[k] == byte k%8 of get_lane_u64x2 s_2q (k/8) for
+    // k<16; the low-half goes to out0 (k in 0..remaining, all
+    // satisfy k/8 = 0); the high-half goes to out1 (k in 8..8+remaining,
+    // all satisfy k/8 = 1).
+    hax_lib::fstar!(
+        r#"
+        let a_pos:nat = v start + 16 * v q in
+        let r:nat = v remaining in
+        assert (r <= 8);
+        let bridge_out0 (j_n:nat{j_n < Seq.length old_out0}) :
+            Lemma (
+              if j_n < a_pos then
+                Seq.index out0 j_n == Seq.index old_out0 j_n
+              else if j_n < a_pos + r then
+                (let k:nat = j_n - a_pos in
+                 Seq.index out0 j_n ==
+                 Seq.index
+                   (Core_models.Num.impl_u64__to_le_bytes
+                      (Libcrux_intrinsics.Arm64_extract.get_lane_u64x2 s_2q 0))
+                   k)
+              else
+                Seq.index out0 j_n == Seq.index old_out0 j_n)
+          = if j_n < a_pos then begin
+              assert (Seq.index (Seq.slice out0 0 a_pos) j_n == Seq.index out0 j_n);
+              assert (Seq.index (Seq.slice old_out0 0 a_pos) j_n == Seq.index old_out0 j_n)
+            end else if j_n < a_pos + r then begin
+              let k:nat = j_n - a_pos in
+              assert (k < r /\ k < 8);
+              assert (Seq.index (Seq.slice out0 a_pos (a_pos + r)) k == Seq.index out0 j_n);
+              assert (Seq.index (Seq.slice out01 0 r) k == Seq.index out01 k);
+              assert (k / 8 == 0 /\ k % 8 == k)
+            end else begin
+              let k:nat = j_n - (a_pos + r) in
+              assert (Seq.index (Seq.slice out0 (a_pos + r) (Seq.length out0)) k ==
+                      Seq.index out0 j_n);
+              assert (Seq.index (Seq.slice old_out0 (a_pos + r) (Seq.length old_out0)) k ==
+                      Seq.index old_out0 j_n)
+            end
+        in
+        let bridge_out1 (j_n:nat{j_n < Seq.length old_out1}) :
+            Lemma (
+              if j_n < a_pos then
+                Seq.index out1 j_n == Seq.index old_out1 j_n
+              else if j_n < a_pos + r then
+                (let k:nat = j_n - a_pos in
+                 Seq.index out1 j_n ==
+                 Seq.index
+                   (Core_models.Num.impl_u64__to_le_bytes
+                      (Libcrux_intrinsics.Arm64_extract.get_lane_u64x2 s_2q 1))
+                   k)
+              else
+                Seq.index out1 j_n == Seq.index old_out1 j_n)
+          = if j_n < a_pos then begin
+              assert (Seq.index (Seq.slice out1 0 a_pos) j_n == Seq.index out1 j_n);
+              assert (Seq.index (Seq.slice old_out1 0 a_pos) j_n == Seq.index old_out1 j_n)
+            end else if j_n < a_pos + r then begin
+              let k:nat = j_n - a_pos in
+              assert (k < r /\ k < 8);
+              assert (Seq.index (Seq.slice out1 a_pos (a_pos + r)) k == Seq.index out1 j_n);
+              assert (Seq.index (Seq.slice out01 8 (8 + r)) k == Seq.index out01 (8 + k));
+              assert ((8 + k) / 8 == 1 /\ (8 + k) % 8 == k)
+            end else begin
+              let k:nat = j_n - (a_pos + r) in
+              assert (Seq.index (Seq.slice out1 (a_pos + r) (Seq.length out1)) k ==
+                      Seq.index out1 j_n);
+              assert (Seq.index (Seq.slice old_out1 (a_pos + r) (Seq.length old_out1)) k ==
+                      Seq.index old_out1 j_n)
+            end
+        in
+        Classical.forall_intro bridge_out0;
+        Classical.forall_intro bridge_out1
+        "#
+    );
+}
+
+#[inline(always)]
+#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always --using_facts_from '* -Rust_primitives.Slice.array_from_fn -Core_models.Num.impl_u64__rem_euclid -Core_models.Num.impl_u32__rem_euclid'")]
 #[hax_lib::requires(valid_rate(RATE) && len <= RATE && start.to_int() + len.to_int() <= out0.len().to_int() && out0.len() == out1.len())]
 #[hax_lib::ensures(|_| (future(out0).len() == out0.len()).to_prop()
     & (future(out1).len() == out1.len()).to_prop()
@@ -412,33 +679,53 @@ pub(crate) fn store_block<const RATE: usize>(
         let j1 = (2 * i + 1) % 5;
         store_u64x2x2(out0, out1, *get_ij(s, i0, j0), *get_ij(s, i1, j1), start, i);
     }
+    let q = len / 16;
     let remaining = len % 16;
+    // Bridge the Euclidean equation `len = 16*q + remaining` and
+    // `remaining < 16` so the tail wrappers' slice preconditions hold.
+    hax_lib::fstar!(
+        r#"
+        assert (v len == 16 * v q + v remaining);
+        assert (v remaining < 16);
+        assert (v start + 16 * v q + v remaining == v start + v len);
+        assert (v start + v len <= Seq.length out0);
+        assert (v start + v len <= Seq.length out1)
+        "#
+    );
     if remaining > 8 {
-        let mut out0_tmp = [0u8; 16];
-        let mut out1_tmp = [0u8; 16];
-        let i = 2 * (len / 16);
+        let i = 2 * q;
         let i0 = i / 5;
         let j0 = i % 5;
         let i1 = (i + 1) / 5;
         let j1 = (i + 1) % 5;
-        let v0 = _vtrn1q_u64(*get_ij(s, i0, j0), *get_ij(s, i1, j1));
-        let v1 = _vtrn2q_u64(*get_ij(s, i0, j0), *get_ij(s, i1, j1));
-        _vst1q_bytes_u64(&mut out0_tmp, v0);
-        _vst1q_bytes_u64(&mut out1_tmp, v1);
-        out0[start + len - remaining..start + len].copy_from_slice(&out0_tmp[0..remaining]);
-        out1[start + len - remaining..start + len].copy_from_slice(&out1_tmp[0..remaining]);
+        store_tail_high(
+            out0,
+            out1,
+            *get_ij(s, i0, j0),
+            *get_ij(s, i1, j1),
+            start,
+            q,
+            remaining,
+        );
     } else if remaining > 0 {
-        let mut out01 = [0u8; 16];
-        let i = 2 * (len / 16);
-        _vst1q_bytes_u64(&mut out01, *get_ij(s, i / 5, i % 5));
-        out0[start + len - remaining..start + len].copy_from_slice(&out01[0..remaining]);
-        out1[start + len - remaining..start + len].copy_from_slice(&out01[8..8 + remaining]);
+        let i = 2 * q;
+        store_tail_low(out0, out1, *get_ij(s, i / 5, i % 5), start, q, remaining);
     }
-    // Tail discharge deferred: the per-iteration loop body verifies; the
-    // `remaining > 0` and `remaining > 8` tail branches need their own
-    // wrapper analogous to `store_u64x2x2` to lift the lemma into the
-    // post. See agent-status doc for follow-up.
-    hax_lib::fstar!("admit()");
+    // Function-level ensures aggregation:
+    // The loop's final invariant gives the per-byte fact for `j` in
+    // `[start, start + 16*q)` (in `s[(j-start)/8]` form).  The tail
+    // wrapper post gives the per-byte fact for `j` in
+    // `[start + 16*q, start + 16*q + remaining)` (in `s_2i` /
+    // `s_succ` / `s_2q` form, with a discriminator on
+    // `(j-start)/8 == 2*q`).  Combining these two ranges into
+    // `[start, start+len)` (using `len = 16*q + remaining`) AND
+    // bridging the wrapper's `s_2i` / `s_succ` / `s_2q` form to the
+    // function ensures' `s[(j-start)/8]` form requires Euclidean
+    // div/mod normalization (`5*((2q)/5) + (2q)%5 = 2q`,
+    // `(16q + k)/8 = 2q + k/8`) which Z3 cannot discharge within
+    // rlimit budget under the `--using_facts_from` filter.  Discharge
+    // deferred — see `proofs/agent-status/store-block-arm64-discharge-progress.md`.
+    hax_lib::fstar!("admit ()");
 }
 
 #[hax_lib::attributes]

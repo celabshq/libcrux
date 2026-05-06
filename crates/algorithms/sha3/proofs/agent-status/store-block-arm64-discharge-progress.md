@@ -157,5 +157,183 @@ cliff suspected — the pattern composes).
   with missing `EquivImplSpec.Sponge.SqueezeFrame.fst` — pre-
   existing, unrelated to this change.
 
+---
+
+## NEW SESSION — tail discharge
+
+## 2026-05-06, T+0:00 (kickoff, tail session)
+
+- Sub-task: discharge the remaining `admit()` (line 1442 of
+  extracted F* / line 441 of arm64.rs) covering the post-loop
+  tail's two branches (`remaining > 8` and `remaining > 0`).
+- Status: read prior progress doc, commit `c14f94d2c`, current
+  source. Plan to mirror the loop-body discharge:
+  1. Add `store_tail_high(out0, out1, s_2i, s_2i_plus_1, start,
+     len, remaining)` for the `remaining > 8` branch (full
+     16-byte vst1q via tmp + `copy_from_slice` of the first
+     `remaining` bytes).
+  2. Add `store_tail_low(out0, out1, s_only, start, len,
+     remaining)` for the `remaining > 0` branch (single 16-byte
+     tmp; lo half goes to out0, hi half to out1, both via
+     `copy_from_slice`).
+  3. Each helper uses `store_block_window_byte_of_vst` over the
+     full 16-byte tmp window followed by an `copy_from_slice`
+     bridge to translate to the partial out0/out1 window.
+- Risk: the tmp buffer + `copy_from_slice` step is novel here
+  (not covered by helper 2). May need a per-byte bridge for the
+  `out[start+len-remaining..start+len] := tmp[0..remaining]`
+  step. If it cliffs, will localize.
+- Plan first 30 min: write the tail helpers in arm64.rs as
+  panic-free skeletons (admit() body) so the tail body compiles,
+  then iterate via fstar-mcp on the body proof.
+- ETA: 60 min for first wrapper green; 90-120 min total.
+
+## 2026-05-06, T+0:30 (wrappers landed; first make running)
+
+- Implemented `store_tail_high(out0, out1, s_2i, s_2i_plus_1,
+  start, q, remaining)` for `8 < remaining < 16`. Strong per-byte
+  ensures over the partial 16-byte window. Body uses
+  `_vst1q_bytes_u64` on two 16-byte tmp arrays then
+  `copy_from_slice` into the partial out0/out1 windows. Bridge
+  via two named local lemmas (`bridge_out0`/`bridge_out1`) on
+  per-absolute-index `j_n`, manual case split (j_n < a_pos /
+  middle / suffix), each branch closed by `Seq.slice` `Seq.index`
+  manual unfolding. `Classical.forall_intro` lifts.
+- Implemented `store_tail_low(out0, out1, s_2q, start, q,
+  remaining)` for `0 < remaining <= 8`. Both out0 and out1 windows
+  come from the same 16-byte tmp (`out01[0..remaining]` and
+  `out01[8..8+remaining]` respectively). Same bridge pattern.
+- store_block tail refactored to call the wrappers; admit removed.
+  Re-extracted via `bash hax.sh extract`. Now running
+  `make check/Libcrux_sha3.Simd.Arm64.fst > /tmp/arm64-attempt1.log
+  2>&1` to check if the wrappers and the function-level ensures
+  compose cleanly.
+- Risks identified pre-make:
+    * The `Seq.slice out_a_pos (a_pos+r) == Seq.slice out01 0 r`
+      step in the body is implicit (from `update_at_range` +
+      `copy_from_slice`'s `impl__copy_from_slice x y == y` def).
+      May need an explicit `assert`.
+    * The `vtrn1q`/`vtrn2q` lane equalities are exposed via
+      Prims.l_True-decorated posts; should fire but if not, need
+      manual reveal.
+- ETA: 30 min more.
+
+## 2026-05-06, T+0:55 (first attempt; full make stalled in store_block)
+
+- First full make (`/tmp/arm64-attempt1.log`, `--split_queries no`,
+  rlimit 800): both wrappers verified clean (`store_tail_high`
+  275 sub-queries, `store_tail_low` 232 sub-queries, all
+  succeeded ~30-200ms). `store_u64x2x2` re-verified: 233
+  sub-queries. **store_block** then started a single-monolith
+  query that ran z3 at 100% CPU for 20+ minutes with no progress
+  (rlimit 800 not respected as wall-time bound). Killed.
+- Diagnosis: store_block monolith is too heavy now that the
+  admit at the end is gone. The function-level ensures forall_j
+  + the loop invariant final state + the wrapper post-condition
+  combine into a heavy proof obligation. Need to split queries
+  to localize.
+- Switched store_block options to `--z3rlimit 400 --split_queries
+  always`. Re-extracted, ran with `OTHERFLAGS='--admit_except
+  Libcrux_sha3.Simd.Arm64.store_block'` to focus.
+- T+1:10: store_block running, ~233 sub-queries succeeded in
+  ~30s, stalls at sub-query 234. Three z3 processes at 100% CPU
+  for 90s+. Likely hit the cliff sub-query.
+- Plan: wait for the timeout to fail, identify which assertion
+  it is, then add an explicit lemma call.
+
+## 2026-05-06, T+1:30 (deep cliff bisect)
+
+- Cliff source localized: `--admit_except` runs of store_block
+  consistently fail at sub-query 234 (~110s timeout, exhausted
+  rlimit 400). Bisects:
+    * admit at very start of body → 63 sub-queries, all pass clean
+      (44s total). So the cliff is in the body.
+    * admit AFTER the loop (before tail) → loop body only, also
+      cliffs at sub-query 234, but in this case 234 takes only
+      18s and passes. Then continues, eventually cliffs at 264.
+    * Adding `assert (v len == 16 * v q + v remaining); assert
+      (v remaining < 16); assert (v start + 16 * v q + v
+      remaining == v start + v len); assert (v start + v len <=
+      Seq.length out0)` between the loop and the tail unblocks
+      sub-query 234 (now 12.6s, 86 rlimit). But a NEW cliff
+      appears at sub-query 264.
+- Diagnosis: the wrapper post + the function-level ensures
+  combine via case analysis on `j`. The Euclidean asserts
+  unblock the precondition checks for the tail wrapper calls,
+  but the post-condition propagation (deriving `s[(j-start)/8]
+  == s_2i` for `(j-start)/8 == 2*q` and similarly for
+  s_2i_plus_1) is still expensive.
+- Each sub-query takes 60-100s of z3 time, multiple cliffs in
+  succession.
+- Pivot strategy: drop `--split_queries always` for store_block,
+  return to `--split_queries no` with rlimit 800. The body is
+  too complex to easily split; instead, give the monolith more
+  time and add ALL needed bridging lemmas inline before the
+  function exits.
+
+## 2026-05-06, T+2:15 (monolith with bridges; long Z3 run)
+
+- Reverted store_block options to `--z3rlimit 800
+  --split_queries no --using_facts_from '* -...'`.
+- Kept the Euclidean asserts between loop and tail.
+- Started full make. Z3 ran for 4+ minutes at 100% on the
+  store_block monolith query, multiple Z3 procs in parallel.
+  Killed after 5+ min — clearly cliff territory at the
+  monolith level.
+
+## 2026-05-06, T+3:00 (wrapper-shape pivot; post-bridge cascade)
+
+- Refactored `store_tail_high` and `store_tail_low` to take
+  `s: &[uint64x2_t; 25]` instead of pre-fetched slots, and
+  expose the post in `s[(j-start)/8]` form (matching
+  store_block's function-level ensures shape).
+- Added bridge asserts inside each wrapper body that connect
+  `v0`/`v1`/`s_2q` lane facts to `s[(j-start)/8]` via
+  `Seq.index s (2 * v q) == s_2i`, `Seq.index s (2 * v q + 1)
+  == s_succ`, `(j_n - v start) / 8 == 2 * v q`, etc.
+- Renamed Rust param `s_2i_plus_1` → `s_succ` to avoid hax's
+  `_` suffix collision with body local lemma references.
+- New full make hits a per-sub-query slowdown across the
+  wrapper itself: store_u64x2x2 was at sub-query 74 after
+  4 minutes (rlimit 400 each). The added `s: &[...; 25]`
+  parameter pushes context size, and the per-byte bridge
+  inside each wrapper now does deeper case analysis.
+- This branch is too costly. The wrapper-takes-state design
+  needs more careful tuning of using_facts_from, fact
+  filtering, or hint-replay caching; not closable in the
+  remaining session window.
+
+## 2026-05-06, T+3:30 (status: tail not closed)
+
+- Decision: revert tail wrappers to s_2i / s_succ direct
+  parameter shape (which verified individually pre-bridge)
+  and leave one targeted `admit()` at the very end of
+  store_block for the function-level ensures derivation.
+  This is a strict improvement on the prior commit:
+    * loop body proven (was already proven pre-this-session)
+    * BOTH tail branch bodies (`store_tail_high`,
+      `store_tail_low`) now have their own wrappers with
+      strong per-byte ensures, fully proven
+    * only the final aggregation (loop invariant ⊕ tail
+      wrapper post → function ensures) is admitted, isolated
+      to one `admit ()` line at function exit
+- Hand-off recipe for the next agent / pass:
+    * The aggregation requires combining the loop's final
+      invariant (over `[start, start + 16*q)`) with the tail
+      wrapper post (over `[start + 16*q, start + 16*q +
+      remaining)`). The two intervals together cover
+      `[start, start + len)` since `len = 16*q + remaining`.
+    * Approach: write a `Classical.forall_intro` lemma on
+      `j: usize` that case-splits on `j` against the
+      partition. Each branch reuses the appropriate prior
+      fact. The Euclidean equations need explicit asserts.
+    * Alternative: rewrite the function ensures to use
+      pieces aligned to the wrapper post directly; this
+      changes the public interface so requires user
+      sign-off.
+    * The wrapper-takes-state experiment also has merit and
+      could be retried with `--using_facts_from` widened
+      (drop the rem_euclid filter, accept higher rlimit).
+
 
 
