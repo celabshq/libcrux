@@ -129,6 +129,45 @@ let lemma_is_bounded_poly_range_intro
         Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly b (Seq.index arr k))
       (ensures is_bounded_poly_range b lo hi arr)
   = reveal_opaque (`%is_bounded_poly_range) (is_bounded_poly_range b lo hi arr)
+
+(* Extend an opaque is_bounded_poly_range carryover by one more index, given
+   the bound on the new entry and a frame from the prior arr.  Verified in
+   its own clean context so callers (e.g. `compute_w_approx`'s post-body
+   inv re-establishment) avoid the cascade pollution that would otherwise
+   trip Z3 on trivial assertions like `k = v i` under heavy ambient context. *)
+let lemma_is_bounded_poly_range_extend_after_update
+      (#v_SIMDUnit: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()]
+          i0:
+          Libcrux_ml_dsa.Simd.Traits.t_Operations v_SIMDUnit)
+      (b: usize)
+      (i: usize)
+      (arr_old arr_new:
+          t_Slice (Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement v_SIMDUnit))
+    : Lemma
+      (requires
+        Seq.length arr_new == Seq.length arr_old /\
+        v i < Seq.length arr_new /\
+        Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_range b (mk_usize 0) i arr_old /\
+        (forall (k:nat). k < Seq.length arr_new /\ k <> v i ==>
+          Seq.index arr_new k == Seq.index arr_old k) /\
+        Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly b (Seq.index arr_new (v i)))
+      (ensures
+        Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_range
+          b (mk_usize 0) (i +! mk_usize 1) arr_new)
+  = let aux (k: nat{k < v i + 1 /\ k < Seq.length arr_new}) :
+      Lemma (Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly b (Seq.index arr_new k)) =
+      if k < v i then begin
+        Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_range_lookup
+          b (mk_usize 0) i arr_old k;
+        assert (Seq.index arr_new k == Seq.index arr_old k)
+      end
+      else
+        assert (k == v i)
+    in
+    Classical.forall_intro aux;
+    Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_range_intro
+      b (mk_usize 0) (i +! mk_usize 1) arr_new
 "#
         )
     )]
@@ -189,6 +228,112 @@ let lemma_is_bounded_poly_slice_intro
         hax_lib::fstar_prop_expr!(
             r#"forall (k:nat). k < Seq.length arr ==>
                   Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly b (Seq.index arr k)"#
+        )
+    }
+
+    /// Per-poly predicate: every lane coefficient is in the inclusive
+    /// range `[lo, hi]`.  Asymmetric counterpart of `is_bounded_poly`
+    /// (which is `|x| < b`, symmetric around 0).  Used for things like
+    /// the T1-decoded polynomial entries (`lo = 0`, `hi = 261631`)
+    /// that `shift_left_then_reduce` requires on its input.  Made
+    /// `opaque_to_smt` so it appears as a single atom in pre/inv,
+    /// dropping the 2-deep `forall j m.` from quantifier search context.
+    #[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+    #[cfg_attr(
+        hax,
+        hax_lib::fstar::after(
+            r#"
+let lemma_is_lane_range_poly_lookup
+      (#v_SIMDUnit: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()]
+          i0:
+          Libcrux_ml_dsa.Simd.Traits.t_Operations v_SIMDUnit)
+      (lo hi: usize)
+      (p: Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement v_SIMDUnit)
+      (j: nat{j < 32}) (m: nat{m < 8})
+    : Lemma
+      (requires is_lane_range_poly lo hi p)
+      (ensures
+        v (Seq.index (i0._super_i2.f_repr (Seq.index p.f_simd_units j)) m) >= v lo /\
+        v (Seq.index (i0._super_i2.f_repr (Seq.index p.f_simd_units j)) m) <= v hi)
+      [SMTPat (is_lane_range_poly lo hi p);
+       SMTPat (Seq.index (i0._super_i2.f_repr (Seq.index p.f_simd_units j)) m)]
+  = reveal_opaque (`%is_lane_range_poly) (is_lane_range_poly lo hi p)
+
+let lemma_is_lane_range_poly_intro
+      (#v_SIMDUnit: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()]
+          i0:
+          Libcrux_ml_dsa.Simd.Traits.t_Operations v_SIMDUnit)
+      (lo hi: usize)
+      (p: Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement v_SIMDUnit)
+    : Lemma
+      (requires forall (j:nat). j < 32 ==>
+        (forall (m:nat). m < 8 ==>
+          v (Seq.index (i0._super_i2.f_repr (Seq.index p.f_simd_units j)) m) >= v lo /\
+          v (Seq.index (i0._super_i2.f_repr (Seq.index p.f_simd_units j)) m) <= v hi))
+      (ensures is_lane_range_poly lo hi p)
+  = reveal_opaque (`%is_lane_range_poly) (is_lane_range_poly lo hi p)
+"#
+        )
+    )]
+    pub(crate) fn is_lane_range_poly<SIMDUnit: Operations>(
+        lo: usize,
+        hi: usize,
+        p: &PolynomialRingElement<SIMDUnit>,
+    ) -> hax_lib::Prop {
+        hax_lib::fstar_prop_expr!(
+            r#"forall (j:nat). j < 32 ==>
+                (forall (m:nat). m < 8 ==>
+                  v (Seq.index (i0._super_i2.f_repr (Seq.index p.f_simd_units j)) m) >= v lo /\
+                  v (Seq.index (i0._super_i2.f_repr (Seq.index p.f_simd_units j)) m) <= v hi)"#
+        )
+    }
+
+    /// Slice version of `is_lane_range_poly`: every entry of `arr` has all
+    /// lane coefficients in `[lo, hi]`.  Made `opaque_to_smt`.
+    #[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+    #[cfg_attr(
+        hax,
+        hax_lib::fstar::after(
+            r#"
+let lemma_is_lane_range_poly_slice_lookup
+      (#v_SIMDUnit: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()]
+          i0:
+          Libcrux_ml_dsa.Simd.Traits.t_Operations v_SIMDUnit)
+      (lo hi: usize)
+      (arr: t_Slice (Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement v_SIMDUnit))
+      (k: nat)
+    : Lemma
+      (requires is_lane_range_poly_slice lo hi arr /\ k < Seq.length arr)
+      (ensures Libcrux_ml_dsa.Polynomial.Spec.is_lane_range_poly lo hi (Seq.index arr k))
+      [SMTPat (is_lane_range_poly_slice lo hi arr); SMTPat (Seq.index arr k)]
+  = reveal_opaque (`%is_lane_range_poly_slice) (is_lane_range_poly_slice lo hi arr)
+
+let lemma_is_lane_range_poly_slice_intro
+      (#v_SIMDUnit: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()]
+          i0:
+          Libcrux_ml_dsa.Simd.Traits.t_Operations v_SIMDUnit)
+      (lo hi: usize)
+      (arr: t_Slice (Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement v_SIMDUnit))
+    : Lemma
+      (requires forall (k: nat). k < Seq.length arr ==>
+        Libcrux_ml_dsa.Polynomial.Spec.is_lane_range_poly lo hi (Seq.index arr k))
+      (ensures is_lane_range_poly_slice lo hi arr)
+  = reveal_opaque (`%is_lane_range_poly_slice) (is_lane_range_poly_slice lo hi arr)
+"#
+        )
+    )]
+    pub(crate) fn is_lane_range_poly_slice<SIMDUnit: Operations>(
+        lo: usize,
+        hi: usize,
+        arr: &[PolynomialRingElement<SIMDUnit>],
+    ) -> hax_lib::Prop {
+        hax_lib::fstar_prop_expr!(
+            r#"forall (k:nat). k < Seq.length arr ==>
+                  Libcrux_ml_dsa.Polynomial.Spec.is_lane_range_poly lo hi (Seq.index arr k)"#
         )
     }
 }

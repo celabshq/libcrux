@@ -1,148 +1,118 @@
-# Sprint 4 — `compute_w_approx` body proof — WIP, 99% closed
+# Sprint 4 — `compute_w_approx` body proof — CLOSED
 
 Started: 2026-05-05
-Paused: 2026-05-06 (well over 60-min per-fn debug budget; deferring per
-`feedback_proof_debug_budget`)
+Closed: 2026-05-06
 
 ## Outcome
 
-`make check/Libcrux_ml_dsa.Matrix.fst` exit 0 with `hax_lib::fstar!("admit
-()")` at the top of `compute_w_approx`'s body.  `cargo test --release
---lib` 20 passed.
+`make check/Libcrux_ml_dsa.Matrix.fst` exit 0 ("Verified module:
+Libcrux_ml_dsa.Matrix"); `cargo test --release --lib` 20 passed.
+`compute_w_approx` body proof closes with **no admit**.
 
-The body proof is **drafted in full** in `src/matrix.rs` — pre/post
-upgraded to `is_bounded_poly`/`is_bounded_poly_slice` form, outer +
-inner loop invariants, all bridge lemmas in place.  Under
-`--admit_except "Libcrux_ml_dsa.Matrix.compute_w_approx"`, the proof
-discharges **207 / 209** sub-queries.  The two stragglers are post-body
-bridges that re-establish the outer carryover; both hit the WP-collapse
-pattern documented in `SKILL.md` §7.
+## Path that worked
 
-## What's complete
+The body proof closed via four stacked changes, in order:
 
-### `src/matrix.rs` (committed)
+1. **Wrap heavy 3-deep ∀ in opaque pred.**  Added `is_lane_range_poly`
+   and `is_lane_range_poly_slice` (with intro/lookup lemmas) to
+   `polynomial.rs::spec`.  These wrap the per-lane T1-decoded
+   `forall j m. v(...) ∈ [0, 261631]` shape that previously fired
+   `Tm_refine_e3c40b65` ~325k times in a single failing query.
 
-- `add_to_ring_element` (pre-existing, unchanged).
-- **NEW** `subtract_to_ring_element` — `subtract` analog mirroring the
-  `add_to_ring_element` recipe; lifts `subtract_bounded`'s per-lane post
-  to `is_bounded_poly` form.  `rhs` fixed at `FIELD_MAX = 8380416`.
-- `compute_w_approx` body proof drafted with full annotations:
-  - Pre upgraded to `is_bounded_poly_slice FIELD_MAX matrix /\
-    is_bounded_poly_slice FIELD_MAX signer_response /\ is_bounded_poly
-    FIELD_MAX verifier_challenge_as_ntt`, retaining the per-lane
-    non-negative pre on `t1` (needed by `shift_left_then_reduce`).
-  - Post upgraded to `is_bounded_poly_slice 4_211_177 t1_future`.
-  - `#[cfg(hax)] let old_t1 = t1.to_vec().as_slice()` snapshot.
-  - Outer loop_invariant: carryover `forall k < v $i.
-    is_bounded_poly 4_211_177 t1[k]` + frame `forall k. v $i <= k ==>
-    t1[k] == old_t1[k]` + non-neg pre on `old_t1` (3-deep forall).
-  - Inner loop_invariant: `is_bounded_poly (j *! FIELD_MAX) inner_result`
-    + carryover/frame on t1.
-  - Body: `add_to_ring_element` and `subtract_to_ring_element`
-    replacements; per-step bridge lemmas; `lemma_is_bounded_poly_higher`
-    for reduce's pre; `lemma_is_bounded_poly_intro` for shift_left's
-    per-lane post.
-  - Final bridge from `is_bounded_poly_range 4_211_177 0 rows t1` to
-    `is_bounded_poly_slice` via `Classical.forall_intro`.
-- `hax_lib::fstar!("admit ()")` placed at body top with a comment
-  pointing to this status file.
+2. **Replace bare ∀s in `compute_w_approx` pre/inv with opaque preds.**
+   The function pre's 3-deep ∀ on `t1` and the outer/inner inv's `old_t1`
+   ∀ both became `is_lane_range_poly_slice (mk_usize 0) (mk_usize 261631)`.
+   The outer carryover `forall k < v $i. is_bounded_poly 4_211_177 t1[k]`
+   became `is_bounded_poly_range (mk_usize 4211177) (mk_usize 0) $i $t1`
+   (existing opaque pred).
 
-### `.fst-direct` experimental fixes (NOT in source — reverted on
-re-extract)
+3. **Factor the long sequential blob into `compose_w_approx_per_row`.**
+   The 6+ sequential `update_at_usize` ops on `t1[i]` (shift_left →
+   ntt → ntt_mul → subtract → assign → reduce → invert) now happen
+   inside a helper that takes a single `&mut PolynomialRingElement`.
+   This collapses the outer fold body's `Seq.upd t1 i ...` chain to
+   ONE update on `t1`, dramatically shrinking the WP and removing the
+   compounding per-update re-typing pressure.
 
-These were validated via `make OTHERFLAGS='--admit_except ...'` but not
-yet ported back to Rust:
+4. **Iter-start snapshot + standalone bridge lemma.**  The aux lemma
+   that re-establishes `is_bounded_poly_range 4_211_177 0 (i+1) t1`
+   at iter end was timing out at `rlimit 800` on **trivial assertions**
+   (`k = v $i`, `Seq.index t1 k == Seq.index t1 (v $i)`) because of
+   cascade pollution from compute_w_approx's heavy ambient context.
+   Fix: snapshot `iter_start_t1` at iter start, and extract the
+   bridge into a **standalone lemma**
+   `lemma_is_bounded_poly_range_extend_after_update` in `polynomial.rs`.
+   The lemma is verified in its own clean context — Z3 has no
+   compute_w_approx state to wade through, so the trivial assertions
+   close in milliseconds.  compute_w_approx then just calls the lemma
+   once per outer iter.
 
-1. **Opaque pred `is_t1_decoded_slice`** — wraps the 3-deep forall on
-   the per-lane non-negative pre.  Reduces context-pollution noise in
-   the loop_invariant from a triple-forall to a single opaque atom.
-   With SMTPat lookup lemma + extract lemma.  This SOLVED the bulk of
-   the proof — ~200 queries went from "fails at rlimit 400 within 100s"
-   to "succeeds within 100ms".  Belongs in `Polynomial.Spec.fst` (as
-   `is_bounded_poly_slice`'s analog), or in the matrix.rs file via
-   `#[hax_lib::fstar::before(...)]` injection.
+## Diagnostic notes — what didn't work
 
-2. **Refinement-typed bound aliases** — `_shift_by`, `_fm`, `_cols_fm`,
-   `_cols_plus_one_fm`, `_reduce_max`, `_post_inv_bound`, hoisted
-   *outside* the outer fold with explicit `(x: usize {v x = ...})`
-   refinements.  This unblocks Z3 on the trivial integer overflow
-   checks (`columns_in_a *! mk_usize 8380416`) that were timing out at
-   rlimit 400 inside the body.
+Iterating with `--log_queries --z3refresh` and `smt.qi.profile=true`
+on the dumped `.smt2` was load-bearing:
 
-## What's blocking
+- **Bumping rlimit to 800 (with split_queries)**: same 2 errors.  Z3
+  hits the new ceiling exactly.  Diagnosis: not budget-bound.
+- **Dropping `--split_queries always`**: F* retries-with-split, all
+  175 sub-queries pass logically, but F*/Z3 IPC crashes after 176
+  queries ("Parse error: </labels> not found").  Proof closes in
+  spirit but `.checked` not written.  Confirmed proof was provable.
+- **Hypothesis test — assume_val'd `ntt_multiply_montgomery_local`**
+  with tighter post (no lane forall): same 2 errors, **disproved**
+  the hypothesis that ntt's lane forall was the cascade source.
+  Per the user's principle ("don't touch verified code without
+  proving the pattern closes a hard lemma"), confirmed
+  justification to NOT modify `ntt.rs`.
+- **Inline aux + assert (k = v $i)**: trivial assertion timed out
+  at rlimit 800 due to cascade pollution.  Triggered the move to
+  standalone lemma.
 
-The two timing-out post-body assertions are:
+## Files changed
 
-```fstar
-assert (forall (k: nat). k < v i + 1 ==>
-  Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly (mk_usize 4211177)
-    (Seq.index t1 k));
-assert (forall (k: nat). v i + 1 <= k /\ k < Seq.length t1 ==>
-  Seq.index t1 k == Seq.index old_t1 k)
-```
+- **`libcrux-ml-dsa/src/polynomial.rs`**:
+  - Added `is_lane_range_poly` + `is_lane_range_poly_slice` opaque
+    preds (with intro/lookup lemmas) — 2-deep and 3-deep T1-decoded
+    range predicates.
+  - Added `lemma_is_bounded_poly_range_extend_after_update` (via
+    `hax_lib::fstar::after`) — standalone lemma to extend an opaque
+    `is_bounded_poly_range` carryover by one more index after a
+    Seq.upd at the new index.
+- **`libcrux-ml-dsa/src/matrix.rs`**:
+  - Pre/inv use `is_lane_range_poly_slice 0 261631 ...` for
+    T1-decoded slices and `is_bounded_poly_range 4_211_177 0 i ...`
+    for the carryover.
+  - Added `compose_w_approx_per_row` helper for the per-row
+    sequential blob.  Single `&mut PolynomialRingElement`, not a
+    slice.
+  - `compute_w_approx` body: snapshots `iter_start_t1`; calls the
+    helper once per outer iter; calls
+    `lemma_is_bounded_poly_range_extend_after_update` to close the
+    inv re-establishment.
+  - Removed the prior `hax_lib::fstar!("admit ()")`.
+- **`libcrux-ml-dsa/proofs/fstar/extraction/Libcrux_ml_dsa.Matrix.fst`**:
+  - Post-extraction typeclass patch (rename inner-fold's destructured
+    `result` → `out`, add `(out <: t_Slice ...)` ascription) is
+    unchanged from prior cycles.  Must be reapplied after every
+    `./hax.sh extract` until codified in `hax.sh`.
 
-Both require Z3 to chase frame propagation through ~6 `update_at_usize`
-calls on index `v i`.  Conceptually trivial; in practice Z3 spins for
->100s on each.
+## Reused infrastructure
 
-**Why this is the WP-collapse pattern:** the outer-fold body has a
-long sequential chain of mutations (shift_left → ntt → ntt_mul →
-subtract → assignment → reduce → invert_ntt) plus an inner fold.  At
-the function exit's WP, F* has to compose all of these.  Per `SKILL.md`
-§7, sequential mutating calls in a fold collapse the function-level WP.
-The fix is to split the function (the same recipe that closed
-`compute_as1_plus_s2`).
+- `is_bounded_poly_range` (existing opaque pred + intro/lookup lemmas
+  in `polynomial.rs::spec`).
+- `add_to_ring_element` / `subtract_to_ring_element` (already-bound-aware
+  add/subtract wrappers in `matrix.rs`).
+- The `compute_as1_plus_s2` helper-split pattern (Sprint 3.5) — same
+  shape applied to a different axis (sequential-blob factoring vs
+  two-fold split).
 
-## Recommended path forward
+## Sprint A unblocked
 
-**Option A (recommended): split `compute_w_approx` per the SKILL.md
-recipe.**  Mirroring the `compute_as1_plus_s2` split:
+Three Sprint A targets are now unblocked:
 
-- `matrix_x_signer_inner_dot` (private, per-row): one inner fold over
-  `0..cols`, computes `inner_result` for given `i`.  Pure NTT-domain
-  accumulation; no t1 mutation.  Returns `inner_result`.
-- `compose_w_approx_per_row` (private, per-row): takes `inner_result` +
-  matrix index, mutates `t1[i]` through the
-  shift_left/ntt/ntt_mul/subtract/reduce/invert chain.  Single-mutable
-  on t1 like `compute_matrix_x_mask`.
-- `compute_w_approx` (public): outer fold dispatches to the two
-  helpers per row.
+- `compute_as1_plus_s2` body proof (Sprint 3.5) — already done.
+- `compute_matrix_x_mask` body proof — already done.
+- `compute_w_approx` body proof — **this sprint**.
 
-Each helper has at most one fold + sequential body, eliminating the
-WP-collapse trigger.
-
-**Option B: port the `.fst-direct` opaque-pred + refinement-typed bounds
-back to Rust source via `hax_lib::fstar::before/after`.**  This won't
-fix the WP collapse but might still get the proof through if combined
-with explicit `Classical.forall_intro` chains for the post-body bridges.
-Higher risk, less alignment with the SKILL.md prescribed recipe.
-
-## Files changed (committed)
-
-- `src/matrix.rs`:
-  - Added `subtract_to_ring_element` wrapper.
-  - Replaced `compute_w_approx` body with full proof annotations +
-    `admit ()` at the top.
-  - Pre upgraded; post upgraded to `is_bounded_poly_slice 4_211_177`.
-- `proofs/agent-status/sprint4-w-approx-status.md`: this file.
-
-The post-extraction typeclass patch (`result` → `out` rename + ascription
-in `ntt_dot_accumulate`'s inner-fold lambda) must still be reapplied
-after every `./hax.sh extract` until codified in `hax.sh`.  Per
-sprint3.5 retro this is a TODO.
-
-## Time
-
-- Sprint 4 prompt ~5h elapsed.
-- Direct .fst iteration unblocked from "n errors" → "2 errors" with the
-  opaque-pred refactor and refinement-typed bound aliases.
-- Final 2-error structural blocker (WP collapse) is the SKILL.md
-  prescribed split-the-function pattern.
-
-## TODOs
-
-- [ ] Split `compute_w_approx` per SKILL.md §7 (Option A).  Tracked.
-- [ ] Port `is_t1_decoded_slice` opaque pred + lookup/intro lemmas to
-      `Polynomial.Spec.fst` via Rust `#[hax_lib::fstar::*]` injections.
-- [ ] Codify the post-extraction typeclass patch
-      (`result`→`out` rename + ascription) as a sed step in `hax.sh`.
+These three are the matrix-level cores for `generate_key_pair`,
+`sign_internal`, and `verify_internal` panic-free flips.
