@@ -51,6 +51,12 @@ pub(crate) mod generic {
     );
 
     #[inline(always)]
+    #[cfg_attr(hax, hax_lib::fstar::verification_status(panic_free))]
+    #[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 400 --ext context_pruning --split_queries always"))]
+    #[cfg_attr(hax, hax_lib::requires(
+        signing_key.len() == SIGNING_KEY_SIZE
+            && verification_key.len() == VERIFICATION_KEY_SIZE
+    ))]
     #[cfg_attr(hax, hax_lib::ensures(|_| {
         let (pk_spec, sk_spec) = hacspec_ml_dsa::keygen_internal::<
             { HACSPEC_PARAMS.k },
@@ -75,7 +81,6 @@ pub(crate) mod generic {
         signing_key: &mut [u8],
         verification_key: &mut [u8],
     ) {
-        hax_lib::fstar!("admit ()");
         // Check key sizes
         #[cfg(not(eurydice))]
         debug_assert!(signing_key.len() == SIGNING_KEY_SIZE);
@@ -97,6 +102,46 @@ pub(crate) mod generic {
 
         let mut s1_s2 = [PolynomialRingElement::<SIMDUnit>::zero(); ROW_COLUMN];
         samplex4::sample_s1_and_s2::<SIMDUnit, Shake256X4>(ETA, seed_for_error_vectors, &mut s1_s2);
+
+        // Bridge `sample_s1_and_s2`'s post (per-lane `is_pos_array_opaque ETA`,
+        // ETA ∈ {2, 4}) to `is_bounded_poly_slice 4 s1_s2` for
+        // `compute_as1_plus_s2`'s pre.  ETA-bounded positive lanes [0, ETA] ⊂
+        // symmetric [-4, 4] = is_i32b 4.  Three-step lift: per-lane → per-poly
+        // → slice.
+        hax_lib::fstar!(
+            r#"
+            let _:Prims.unit =
+              let l : nat = match ${ETA} with
+                | Libcrux_ml_dsa.Constants.Eta_Two -> 2
+                | Libcrux_ml_dsa.Constants.Eta_Four -> 4
+              in
+              let aux_lane (k: nat{k < Seq.length ${s1_s2}}) (j: nat{j < 32}) :
+                Lemma (Spec.Utils.is_i32b_array_opaque 4
+                         (i0._super_i2.f_repr (Seq.index (Seq.index ${s1_s2} k).f_simd_units j))) =
+                let arr = i0._super_i2.f_repr (Seq.index (Seq.index ${s1_s2} k).f_simd_units j) in
+                let aux_l (i: nat{i < 8}) :
+                  Lemma (Spec.Utils.is_i32b 4 (Seq.index arr i)) =
+                  Libcrux_ml_dsa.Simd.Traits.Specs.lemma_is_pos_array_lookup l arr i
+                in
+                Classical.forall_intro aux_l;
+                reveal_opaque (`%Spec.Utils.is_i32b_array_opaque)
+                              (Spec.Utils.is_i32b_array_opaque 4 arr)
+              in
+              Classical.forall_intro_2 aux_lane
+            in
+            let _:Prims.unit =
+              let aux_poly (k: nat{k < Seq.length ${s1_s2}}) :
+                Lemma (Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly (mk_usize 4)
+                         (Seq.index ${s1_s2} k)) =
+                Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_intro
+                  (mk_usize 4) (Seq.index ${s1_s2} k)
+              in
+              Classical.forall_intro aux_poly
+            in
+            Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_slice_intro
+              (mk_usize 4) ${s1_s2}
+            "#
+        );
 
         let mut t0 = [PolynomialRingElement::<SIMDUnit>::zero(); ROWS_IN_A];
         {
