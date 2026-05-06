@@ -142,5 +142,20 @@ discharge — using the same `store_block_window_byte_of_vst` helper.
 Estimated ~30-45 min once the wrapper shape is right (no new SMT
 cliff suspected — the pattern composes).
 
+## 2026-05-06, T+2:00 (committed)
+
+- Commit: `c14f94d2c` on `store-block-arm64-discharge`.
+- One `admit ()` remains in `store_block` (line 1442 of extracted
+  .fst), localized to the post-loop tail. The function-entry admit
+  AND the loop-body's full byte-level invariant are both
+  discharged. The cascade source identified at T+0:50 (Z3
+  inheriting heavy invariant in slice precond checks) is fully
+  closed by the wrapper-pattern fix.
+- `make check/Libcrux_sha3.Simd.Arm64.fst` — clean (123 s total
+  module).
+- Equivalence build (`make` in `proofs/fstar/equivalence`) fails
+  with missing `EquivImplSpec.Sponge.SqueezeFrame.fst` — pre-
+  existing, unrelated to this change.
+
 
 
