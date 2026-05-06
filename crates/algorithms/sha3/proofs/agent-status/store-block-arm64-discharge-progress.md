@@ -434,3 +434,45 @@ cliff suspected — the pattern composes).
     * `store_tail_low`: 232 sub-queries, max 247 ms.
 - Total module time: 306 s cold; expect <60 s with hints.
 
+## 2026-05-06 — final: store_block sprint closed; load_block cliff documented
+
+- Sprint deliverable: `store_block` and the five supporting functions
+  (`store_block_full`, `store_block_tail`, `store_u64x2x2`,
+  `store_tail_high`, `store_tail_low`) verify clean. All
+  `hax_lib::fstar!("admit ()")` lines in `store_block` are gone.
+  Per-function check (`--admit_except` scoped to the six store fns):
+  31.7 s, all VCs discharged.
+- Module-wide make for `Libcrux_sha3.Simd.Arm64.fst` is gated on a
+  pre-existing cliff in `load_block`, query 301 (loop-body invariant
+  preservation, at line 1320-1470 of the extracted .fst). At rlimit
+  800 / split_queries always, the query passes some runs and times
+  out (~170 s, canceled) others.
+- **Bisection (2026-05-06):** the cliff is NOT a regression from
+  this sprint. Identical failure (173.6 s canceled) reproduces at
+  commit `3b9fc054c` on `sha3-proofs-focused` — i.e. the pre-sprint
+  HEAD, before the helpers, wrappers, or refactor existed. The
+  earlier "clean make (123 s)" reports at `c14f94d2c` (loop body
+  discharge) were lucky-Z3 runs on a cliff-edge, not a baseline we
+  then broke. The hypothesis that adding the
+  `Libcrux_sha3.Simd.Arm64.StoreBlockHelpers` open might have
+  pushed `load_block` over the edge is FALSIFIED — the cliff
+  manifests at parent without that module existing.
+- **qi.profile diagnosis (probe at 83d1a04c2):** dominant
+  quantifiers in load_block query 301:
+    * `refinement_interpretation_Tm_refine_8143...` — 1.42 M
+      instantiations; body cites
+      `Rust_primitives.Slice.array_from_fn`. Same source the AVX2
+      cascade closure filtered.
+    * Anonymous `k!61` — 1.97 M instantiations. Higher than
+      `array_from_fn`.
+    * Plus the usual F* boilerplate (BoxBool projections, Prims
+      pretyping) one rank below.
+- **Attempted fix:** added `--using_facts_from '* -Rust_primitives.Slice.array_from_fn -Core_models.Num.impl_u64__rem_euclid -Core_models.Num.impl_u32__rem_euclid'` to load_block's options + dropped rlimit to 400 (split_queries cap). Cliff shrank from 173 s/800 to 101 s/400 (proportional) but did NOT close. Other quantifiers (`k!61`) need separate treatment. Probe reverted; load_block options unchanged in the merged commit.
+- **Suggested next sprint:** structural split of `load_block` into
+  `load_block_full` (loop only) and either reuse `load_last`
+  (already present) or extend it. The pattern that closed
+  `store_block` (per-iter wrapper + full/tail split) is the
+  obvious template. The `array_from_fn` filter probably composes
+  with that and may suffice once the loop body is wrapped.
+- **Branch state:** `store-block-arm64-discharge` at 83d1a04c2 (refactor close) merged to `sha3-proofs-focused`.
+

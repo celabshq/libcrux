@@ -123,6 +123,18 @@ fn load_u64x2x2(
     )
 }
 
+// Known proof flakiness: query 301 of this function (the loop-body
+// invariant-preservation sub-query, near the inner `set_ij` calls)
+// sits on a Z3 cliff edge at rlimit 800 / split_queries always.  It
+// passes some runs and times out (~170 s, "canceled") others.  The
+// cliff is pre-existing — bisection on 2026-05-06 confirmed identical
+// failure at the pre-sprint commit 3b9fc054c.  qi.profile shows the
+// `Rust_primitives.Slice.array_from_fn` refinement (~1.4 M instances)
+// plus an anonymous `k!61` (~1.97 M instances) dominate; filtering
+// `array_from_fn` alone is not enough.  Likely fix: factor the loop
+// body into a per-iteration wrapper or split into load_block_full /
+// load_block_tail (mirror of store_block_full / store_block_tail).
+// Tracked in proofs/agent-status/store-block-arm64-discharge-progress.md.
 #[inline(always)]
 #[hax_lib::fstar::options("--z3rlimit 800 --split_queries always")]
 #[hax_lib::requires(valid_rate(RATE)
