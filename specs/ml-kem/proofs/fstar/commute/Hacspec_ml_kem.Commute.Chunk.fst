@@ -2256,6 +2256,8 @@ let lemma_ntt_layer_n_16_2_lane
 
 #pop-options
 
+#restart-solver
+
 #push-options "--z3rlimit 400 --fuel 0 --ifuel 1"
 
 (* Per-lane bridge for `f_ntt_layer_1_step`: produces the per-lane FE
