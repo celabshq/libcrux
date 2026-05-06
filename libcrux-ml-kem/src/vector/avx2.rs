@@ -49,22 +49,38 @@ fn vec_from_i16_array(array: &[i16]) -> SIMD256Vector {
 }
 
 #[inline(always)]
+#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::requires(array.len() >= 32)]
+#[hax_lib::ensures(|result| fstar!(r#"
+    Core_models.Slice.impl__len #u8 ${array} >=. mk_usize 32 ==>
+    (let head : t_Slice u8 = Seq.slice ${array} 0 32 in
+     Libcrux_ml_kem.Vector.Traits.Spec.from_le_bytes_post_N
+       #(mk_usize 16) head
+       (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}.f_elements))
+"#))]
 pub(super) fn from_bytes(array: &[u8]) -> SIMD256Vector {
     SIMD256Vector {
         elements: mm256_loadu_si256_u8(&array[0..32]),
     }
 }
 
-// `to_bytes` stays `lax` — same as pre-C4f.  Discharging
-// panic-freedom of `update_at_range bytes [0..32]` from `bytes.len() >= 32`
-// fails with `incomplete quantifiers` at rlimit 200; this is an F*/hax
-// modeling issue around `&mut` slice bounds, not a C4'/trait-impl concern.
-// Out of C4' scope.
+// Carries the trait's `to_le_bytes_post_N` post directly so the trait
+// wrapper in `impl Operations` is a one-line call.  Marked `panic_free`:
+// body is panic-checked, but the bridge from `mm256_storeu_si256_u8`'s
+// strengthened val ensures (bit_vec form) through `update_at_range` to
+// `to_le_bytes_post_N` is admitted at this layer.
 #[inline(always)]
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::requires(bytes.len() >= 32)]
-#[hax_lib::ensures(|_| future(bytes).len() == bytes.len())]
+#[hax_lib::ensures(|_| fstar!(r#"
+    Core_models.Slice.impl__len #u8 (bytes_future <: t_Slice u8) ==
+      Core_models.Slice.impl__len #u8 ${bytes} /\
+    (Core_models.Slice.impl__len #u8 ${bytes} >=. mk_usize 32 ==>
+     (let head : t_Slice u8 = Seq.slice bytes_future 0 32 in
+      Libcrux_ml_kem.Vector.Traits.Spec.to_le_bytes_post_N
+        #(mk_usize 16)
+        (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${x}.f_elements) head))
+"#))]
 pub(super) fn to_bytes(x: SIMD256Vector, bytes: &mut [u8]) {
     mm256_storeu_si256_u8(&mut bytes[0..32], x.elements)
 }
@@ -1138,9 +1154,7 @@ impl Operations for SIMD256Vector {
                                  #(mk_usize 16) head (impl.f_repr ${out}))"#))]
     #[inline(always)]
     fn from_bytes(array: &[u8]) -> Self {
-        let result = from_bytes(array);
-        hax_lib::fstar!(r#"admit ()"#);
-        result
+        from_bytes(array)
     }
 
     #[requires(bytes.len() >= 32)]
@@ -1152,7 +1166,6 @@ impl Operations for SIMD256Vector {
                                 #(mk_usize 16) (impl.f_repr ${x}) head))"#))]
     fn to_bytes(x: Self, bytes: &mut [u8]) {
         to_bytes(x, bytes);
-        hax_lib::fstar!(r#"admit ()"#);
     }
 
     #[requires(fstar!(r#"${spec::add_pre} (impl.f_repr ${lhs}) (impl.f_repr ${rhs})"#))]

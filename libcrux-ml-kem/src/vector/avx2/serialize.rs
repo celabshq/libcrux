@@ -689,36 +689,6 @@ assert_norm(BitVec.Utils.forall256 (fun i ->
 #[hax_lib::fstar::options("--ext context_pruning --z3rlimit 200")]
 #[hax_lib::fstar::before(
     r#"
-(* Axiom: `mm256_storeu_si256_i16 output vector` writes the 16 i16 lanes of
-   `vector` (per `vec256_as_i16x16`) into a length-16 output slice, returning
-   that slice.  The intrinsic's `val` in `Libcrux_intrinsics.Avx2_extract`
-   currently only states length preservation; this strengthening makes the
-   bit-level content of the result available for AVX2 ↔ portable bridging.
-   Local axiom for `Vector.Avx2.Serialize`; mirror in any other consumer.
-   No SMTPat — invoked manually in the body. *)
-let mm256_storeu_si256_i16_post_axiom
-      (output: t_Slice i16) (vector: Libcrux_intrinsics.Avx2_extract.t_Vec256)
-    : Lemma
-      (requires Core_models.Slice.impl__len #i16 output == mk_usize 16)
-      (ensures
-        (Libcrux_intrinsics.Avx2_extract.mm256_storeu_si256_i16 output vector
-         <: Seq.seq i16)
-        == (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 vector <: Seq.seq i16))
-  = admit ()
-
-(* Axiom: `mm256_loadu_si256_i16 input` from a length-16 i16 slice produces
-   the Vec256 whose `vec256_as_i16x16` decomposition equals the input.
-   No SMTPat — see comment above. *)
-let mm256_loadu_si256_i16_post_axiom (input: t_Slice i16)
-    : Lemma
-      (requires Core_models.Slice.impl__len #i16 input == mk_usize 16)
-      (ensures
-        (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16
-           (Libcrux_intrinsics.Avx2_extract.mm256_loadu_si256_i16 input)
-         <: Seq.seq i16)
-        == (input <: Seq.seq i16))
-  = admit ()
-
 (* Lane-bound bridge.  Same proof as `vector/avx2.rs`'s before-block helper;
    redefined locally because `Vector.Avx2.Serialize` is checked before
    `Vector.Avx2` and so cannot import it. *)
@@ -751,9 +721,6 @@ pub(crate) fn serialize_11(vector: Vec256) -> [u8; 22] {
     mm256_storeu_si256_i16(&mut array, vector);
     hax_lib::fstar!(
         r#"
-mm256_storeu_si256_i16_post_axiom
-  (Rust_primitives.Hax.repeat (mk_i16 0) (mk_usize 16) <: t_Slice i16)
-  ${vector};
 introduce forall (j: nat). j < 16 ==>
     Rust_primitives.BitVectors.bounded (Seq.index array j) 11
 with introduce j < 16 ==>
@@ -789,7 +756,6 @@ pub(crate) fn deserialize_11(bytes: &[u8]) -> Vec256 {
     let result = mm256_loadu_si256_i16(&array);
     hax_lib::fstar!(
         r#"
-mm256_loadu_si256_i16_post_axiom (array <: t_Slice i16);
 introduce forall (i: nat{i < 256}).
     result i =
       (if i % 16 >= 11 then 0

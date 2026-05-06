@@ -49,13 +49,28 @@ pub type Vec256 = u8;
 pub type Vec128 = u8;
 pub type Vec256Float = u8;
 
+#[hax_lib::ensures(|()| fstar!(r#"
+    Core_models.Slice.impl__len #u8 (output_future <: t_Slice u8) ==
+      Core_models.Slice.impl__len #u8 ${output} /\
+    (Core_models.Slice.impl__len #u8 ${output} == mk_usize 32 ==>
+     (let output_arr : t_Array u8 (sz 32) = (output_future <: t_Slice u8) in
+      BitVecEq.bit_vec_equal
+        (Rust_primitives.BitVectors.bit_vec_of_int_t_array output_arr 8)
+        ${vector}))
+"#))]
 #[inline(always)]
 pub fn mm256_storeu_si256_u8(output: &mut [u8], vector: Vec256) {
     debug_assert_eq!(output.len(), 32);
     unimplemented!()
 }
 
-#[hax_lib::ensures(|()| future(output).len() == output.len())]
+#[hax_lib::ensures(|()| fstar!(r#"
+    Core_models.Slice.impl__len #i16 (output_future <: t_Slice i16) ==
+      Core_models.Slice.impl__len #i16 ${output} /\
+    (Core_models.Slice.impl__len #i16 ${output} == mk_usize 16 ==>
+     ((output_future <: t_Slice i16) <: Seq.seq i16) ==
+     (vec256_as_i16x16 ${vector} <: Seq.seq i16))
+"#))]
 #[inline(always)]
 pub fn mm256_storeu_si256_i16(output: &mut [i16], vector: Vec256) {
     debug_assert_eq!(output.len(), 16);
@@ -96,12 +111,23 @@ pub fn mm_loadu_si128(input: &[u8]) -> Vec128 {
     unimplemented!()
 }
 
+#[hax_lib::ensures(|result| fstar!(r#"
+    Core_models.Slice.impl__len #u8 ${input} == mk_usize 32 ==>
+    (let input_arr : t_Array u8 (sz 32) = ${input} in
+     BitVecEq.bit_vec_equal
+       ${result}
+       (Rust_primitives.BitVectors.bit_vec_of_int_t_array input_arr 8))
+"#))]
 #[inline(always)]
 pub fn mm256_loadu_si256_u8(input: &[u8]) -> Vec256 {
     debug_assert_eq!(input.len(), 32);
     unimplemented!()
 }
 
+#[hax_lib::ensures(|result| fstar!(r#"
+    Core_models.Slice.impl__len #i16 ${input} == mk_usize 16 ==>
+    (vec256_as_i16x16 ${result} <: Seq.seq i16) == (${input} <: Seq.seq i16)
+"#))]
 #[inline(always)]
 pub fn mm256_loadu_si256_i16(input: &[i16]) -> Vec256 {
     debug_assert_eq!(input.len(), 16);
