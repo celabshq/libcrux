@@ -80,6 +80,8 @@ let lemma_ntt_inverse_layer_n_16_2_lane
 
 (*** Phase 7b — Forward NTT layer 1 hacspec bridge ***)
 
+#restart-solver
+
 #push-options "--z3rlimit 400 --fuel 0 --ifuel 1"
 
 (* Per-lane bridge for `f_ntt_layer_1_step`: produces the per-lane FE
