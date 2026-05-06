@@ -210,8 +210,124 @@ pub(crate) fn load_last<const RATE: usize, const DELIMITER: u8>(
     load_block::<RATE>(state, &[&buffer0, &buffer1], 0);
 }
 
+/// Per-iteration store wrapper for the `store_block` loop body.
+///
+/// Given the two state slots `s_2i` (state[2*i]) and `s_2i_plus_1`
+/// (state[2*i + 1]), and the output slices `out0`/`out1`, performs the
+/// per-iteration `vtrn1q_u64`/`vtrn2q_u64` interleave + two
+/// `_vst1q_bytes_u64` stores and returns updated slices that satisfy
+/// the byte-level loop invariant for the freshly-stored 16-byte
+/// window.
+///
+/// Factored out of `store_block` so its strong per-byte ensures
+/// isolates the `update_at_range`/slice precondition cliff from the
+/// outer loop's heavy invariant. Mirrors `load_u64x2x2` on the load
+/// side.
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 300")]
+#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always")]
+#[hax_lib::requires(
+    out0.len() == out1.len()
+    && start.to_int() + (16.to_int() * (i.to_int() + 1.to_int())) <= out0.len().to_int()
+)]
+#[hax_lib::ensures(|_|
+    (future(out0).len() == out0.len()).to_prop()
+    & (future(out1).len() == out1.len()).to_prop()
+    & hax_lib::forall(|j: usize|
+        if j < out0.len() {
+            if j < start + 16 * i {
+                out0[j] == future(out0)[j] && out1[j] == future(out1)[j]
+            } else if j < start + 16 * (i + 1) {
+                if (j - start) / 8 == 2 * i {
+                    future(out0)[j] == get_lane_u64(s_2i, 0).to_le_bytes()[(j - start) % 8]
+                    && future(out1)[j] == get_lane_u64(s_2i, 1).to_le_bytes()[(j - start) % 8]
+                } else {
+                    future(out0)[j] == get_lane_u64(s_2i_plus_1, 0).to_le_bytes()[(j - start) % 8]
+                    && future(out1)[j] == get_lane_u64(s_2i_plus_1, 1).to_le_bytes()[(j - start) % 8]
+                }
+            } else {
+                out0[j] == future(out0)[j] && out1[j] == future(out1)[j]
+            }
+        } else {
+            true
+        })
+)]
+fn store_u64x2x2(
+    out0: &mut [u8],
+    out1: &mut [u8],
+    s_2i: uint64x2_t,
+    s_2i_plus_1: uint64x2_t,
+    start: usize,
+    i: usize,
+) {
+    let v0 = _vtrn1q_u64(s_2i, s_2i_plus_1);
+    let v1 = _vtrn2q_u64(s_2i, s_2i_plus_1);
+    #[cfg(hax)]
+    let old_out0 = out0.to_vec().as_slice();
+    #[cfg(hax)]
+    let old_out1 = out1.to_vec().as_slice();
+    _vst1q_bytes_u64(&mut out0[start + 16 * i..start + 16 * (i + 1)], v0);
+    _vst1q_bytes_u64(&mut out1[start + 16 * i..start + 16 * (i + 1)], v1);
+    // Bridge the strengthened `e_vst1q_bytes_u64` per-byte post +
+    // `update_at_range` slice posts into the per-absolute-index byte
+    // facts the function-level ensures expects, then propagate via
+    // `forall_intro` over the abstract index `j`.
+    hax_lib::fstar!(
+        r#"
+        let a_pos:nat = v start + 16 * v i in
+        assert (a_pos + 16 <= Seq.length old_out0);
+        assert (a_pos + 16 <= Seq.length old_out1);
+        let bridge_out0 (j_n:nat{j_n < Seq.length old_out0}) :
+            Lemma (
+              if j_n < a_pos then
+                Seq.index out0 j_n == Seq.index old_out0 j_n
+              else if j_n < a_pos + 16 then
+                Seq.index out0 j_n ==
+                  Seq.index
+                    (Core_models.Num.impl_u64__to_le_bytes
+                       (Libcrux_intrinsics.Arm64_extract.get_lane_u64x2 v0 ((j_n - a_pos) / 8)))
+                    ((j_n - a_pos) % 8)
+              else
+                Seq.index out0 j_n == Seq.index old_out0 j_n)
+          = Libcrux_sha3.Simd.Arm64.StoreBlockHelpers.store_block_window_byte_of_vst
+              old_out0
+              out0
+              (Libcrux_intrinsics.Arm64_extract.e_vst1q_bytes_u64
+                 (Seq.slice old_out0 a_pos (a_pos + 16))
+                 v0)
+              v0
+              a_pos
+              j_n
+        in
+        let bridge_out1 (j_n:nat{j_n < Seq.length old_out1}) :
+            Lemma (
+              if j_n < a_pos then
+                Seq.index out1 j_n == Seq.index old_out1 j_n
+              else if j_n < a_pos + 16 then
+                Seq.index out1 j_n ==
+                  Seq.index
+                    (Core_models.Num.impl_u64__to_le_bytes
+                       (Libcrux_intrinsics.Arm64_extract.get_lane_u64x2 v1 ((j_n - a_pos) / 8)))
+                    ((j_n - a_pos) % 8)
+              else
+                Seq.index out1 j_n == Seq.index old_out1 j_n)
+          = Libcrux_sha3.Simd.Arm64.StoreBlockHelpers.store_block_window_byte_of_vst
+              old_out1
+              out1
+              (Libcrux_intrinsics.Arm64_extract.e_vst1q_bytes_u64
+                 (Seq.slice old_out1 a_pos (a_pos + 16))
+                 v1)
+              v1
+              a_pos
+              j_n
+        in
+        Classical.forall_intro bridge_out0;
+        Classical.forall_intro bridge_out1
+        "#
+    );
+}
+
+#[inline(always)]
+#[hax_lib::fstar::options("--z3rlimit 800 --split_queries no --using_facts_from '* -Rust_primitives.Slice.array_from_fn -Core_models.Num.impl_u64__rem_euclid -Core_models.Num.impl_u32__rem_euclid'")]
 #[hax_lib::requires(valid_rate(RATE) && len <= RATE && start.to_int() + len.to_int() <= out0.len().to_int() && out0.len() == out1.len())]
 #[hax_lib::ensures(|_| (future(out0).len() == out0.len()).to_prop()
     & (future(out1).len() == out1.len()).to_prop()
@@ -252,7 +368,18 @@ pub(crate) fn store_block<const RATE: usize>(
     let old_out0 = out0.to_vec().as_slice(); // ghost variable
     #[cfg(hax)]
     let old_out1 = out1.to_vec().as_slice(); // ghost variable
-    hax_lib::fstar!("admit()");
+    hax_lib::fstar!(
+        r#"
+        assert_norm (
+          Alloc.Vec.impl_1__as_slice
+            (Alloc.Slice.impl__to_vec out0) == out0);
+        assert_norm (
+          Alloc.Vec.impl_1__as_slice
+            (Alloc.Slice.impl__to_vec out1) == out1);
+        assert (old_out0 == out0);
+        assert (old_out1 == out1)
+        "#
+    );
 
     for i in 0..len / 16 {
         hax_lib::loop_invariant!(|i: usize| (out0.len() == old_out0.len()).to_prop()
@@ -283,10 +410,7 @@ pub(crate) fn store_block<const RATE: usize>(
         let j0 = (2 * i) % 5;
         let i1 = (2 * i + 1) / 5;
         let j1 = (2 * i + 1) % 5;
-        let v0 = _vtrn1q_u64(*get_ij(s, i0, j0), *get_ij(s, i1, j1));
-        let v1 = _vtrn2q_u64(*get_ij(s, i0, j0), *get_ij(s, i1, j1));
-        _vst1q_bytes_u64(&mut out0[start + 16 * i..start + 16 * (i + 1)], v0);
-        _vst1q_bytes_u64(&mut out1[start + 16 * i..start + 16 * (i + 1)], v1);
+        store_u64x2x2(out0, out1, *get_ij(s, i0, j0), *get_ij(s, i1, j1), start, i);
     }
     let remaining = len % 16;
     if remaining > 8 {
@@ -310,6 +434,11 @@ pub(crate) fn store_block<const RATE: usize>(
         out0[start + len - remaining..start + len].copy_from_slice(&out01[0..remaining]);
         out1[start + len - remaining..start + len].copy_from_slice(&out01[8..8 + remaining]);
     }
+    // Tail discharge deferred: the per-iteration loop body verifies; the
+    // `remaining > 0` and `remaining > 8` tail branches need their own
+    // wrapper analogous to `store_u64x2x2` to lift the lemma into the
+    // post. See agent-status doc for follow-up.
+    hax_lib::fstar!("admit()");
 }
 
 #[hax_lib::attributes]

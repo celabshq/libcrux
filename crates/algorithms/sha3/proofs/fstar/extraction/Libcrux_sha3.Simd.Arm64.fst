@@ -290,6 +290,250 @@ let load_u64x2x2
   (Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t & Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t
   )
 
+#push-options "--z3rlimit 400 --split_queries always"
+
+/// Per-iteration store wrapper for the `store_block` loop body.
+/// Given the two state slots `s_2i` (state[2*i]) and `s_2i_plus_1`
+/// (state[2*i + 1]), and the output slices `out0`/`out1`, performs the
+/// per-iteration `vtrn1q_u64`/`vtrn2q_u64` interleave + two
+/// `_vst1q_bytes_u64` stores and returns updated slices that satisfy
+/// the byte-level loop invariant for the freshly-stored 16-byte
+/// window.
+/// Factored out of `store_block` so its strong per-byte ensures
+/// isolates the `update_at_range`/slice precondition cliff from the
+/// outer loop\'s heavy invariant. Mirrors `load_u64x2x2` on the load
+/// side.
+let store_u64x2x2
+      (out0 out1: t_Slice u8)
+      (s_2i s_2i_plus_1_: Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t)
+      (start i: usize)
+    : Prims.Pure (t_Slice u8 & t_Slice u8)
+      (requires
+        (Core_models.Slice.impl__len #u8 out0 <: usize) =.
+        (Core_models.Slice.impl__len #u8 out1 <: usize) &&
+        ((Rust_primitives.Hax.Int.from_machine start <: Hax_lib.Int.t_Int) +
+          ((Rust_primitives.Hax.Int.from_machine (mk_i32 16) <: Hax_lib.Int.t_Int) *
+            ((Rust_primitives.Hax.Int.from_machine i <: Hax_lib.Int.t_Int) +
+              (Rust_primitives.Hax.Int.from_machine (mk_i32 1) <: Hax_lib.Int.t_Int)
+              <:
+              Hax_lib.Int.t_Int)
+            <:
+            Hax_lib.Int.t_Int)
+          <:
+          Hax_lib.Int.t_Int) <=
+        (Rust_primitives.Hax.Int.from_machine (Core_models.Slice.impl__len #u8 out0 <: usize)
+          <:
+          Hax_lib.Int.t_Int))
+      (ensures
+        fun temp_0_ ->
+          let (out0_future: t_Slice u8), (out1_future: t_Slice u8) = temp_0_ in
+          b2t
+          ((Core_models.Slice.impl__len #u8 out0_future <: usize) =.
+            (Core_models.Slice.impl__len #u8 out0 <: usize)
+            <:
+            bool) /\
+          b2t
+          ((Core_models.Slice.impl__len #u8 out1_future <: usize) =.
+            (Core_models.Slice.impl__len #u8 out1 <: usize)
+            <:
+            bool) /\
+          (forall (j: usize).
+              b2t
+              (if j <. (Core_models.Slice.impl__len #u8 out0 <: usize) <: bool
+                then
+                  if j <. (start +! (mk_usize 16 *! i <: usize) <: usize) <: bool
+                  then
+                    ((out0.[ j ] <: u8) =. (out0_future.[ j ] <: u8) <: bool) &&
+                    ((out1.[ j ] <: u8) =. (out1_future.[ j ] <: u8) <: bool)
+                  else
+                    if
+                      j <. (start +! (mk_usize 16 *! (i +! mk_usize 1 <: usize) <: usize) <: usize)
+                      <:
+                      bool
+                    then
+                      if
+                        ((j -! start <: usize) /! mk_usize 8 <: usize) =. (mk_usize 2 *! i <: usize)
+                        <:
+                        bool
+                      then
+                        ((out0_future.[ j ] <: u8) =.
+                          ((Core_models.Num.impl_u64__to_le_bytes (Libcrux_intrinsics.Arm64_extract.get_lane_u64
+                                    s_2i
+                                    (mk_usize 0)
+                                  <:
+                                  u64)
+                              <:
+                              t_Array u8 (mk_usize 8)).[ (j -! start <: usize) %! mk_usize 8
+                              <:
+                              usize ]
+                            <:
+                            u8)
+                          <:
+                          bool) &&
+                        ((out1_future.[ j ] <: u8) =.
+                          ((Core_models.Num.impl_u64__to_le_bytes (Libcrux_intrinsics.Arm64_extract.get_lane_u64
+                                    s_2i
+                                    (mk_usize 1)
+                                  <:
+                                  u64)
+                              <:
+                              t_Array u8 (mk_usize 8)).[ (j -! start <: usize) %! mk_usize 8
+                              <:
+                              usize ]
+                            <:
+                            u8)
+                          <:
+                          bool)
+                      else
+                        ((out0_future.[ j ] <: u8) =.
+                          ((Core_models.Num.impl_u64__to_le_bytes (Libcrux_intrinsics.Arm64_extract.get_lane_u64
+                                    s_2i_plus_1_
+                                    (mk_usize 0)
+                                  <:
+                                  u64)
+                              <:
+                              t_Array u8 (mk_usize 8)).[ (j -! start <: usize) %! mk_usize 8
+                              <:
+                              usize ]
+                            <:
+                            u8)
+                          <:
+                          bool) &&
+                        ((out1_future.[ j ] <: u8) =.
+                          ((Core_models.Num.impl_u64__to_le_bytes (Libcrux_intrinsics.Arm64_extract.get_lane_u64
+                                    s_2i_plus_1_
+                                    (mk_usize 1)
+                                  <:
+                                  u64)
+                              <:
+                              t_Array u8 (mk_usize 8)).[ (j -! start <: usize) %! mk_usize 8
+                              <:
+                              usize ]
+                            <:
+                            u8)
+                          <:
+                          bool)
+                    else
+                      ((out0.[ j ] <: u8) =. (out0_future.[ j ] <: u8) <: bool) &&
+                      ((out1.[ j ] <: u8) =. (out1_future.[ j ] <: u8) <: bool)
+                else true))) =
+  let v0:Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t =
+    Libcrux_intrinsics.Arm64_extract.e_vtrn1q_u64 s_2i s_2i_plus_1_
+  in
+  let v1:Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t =
+    Libcrux_intrinsics.Arm64_extract.e_vtrn2q_u64 s_2i s_2i_plus_1_
+  in
+  let old_out0:t_Slice u8 =
+    Alloc.Vec.impl_1__as_slice #u8
+      #Alloc.Alloc.t_Global
+      (Alloc.Slice.impl__to_vec #u8 out0 <: Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
+  in
+  let old_out1:t_Slice u8 =
+    Alloc.Vec.impl_1__as_slice #u8
+      #Alloc.Alloc.t_Global
+      (Alloc.Slice.impl__to_vec #u8 out1 <: Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
+  in
+  let out0:t_Slice u8 =
+    Rust_primitives.Hax.Monomorphized_update_at.update_at_range out0
+      ({
+          Core_models.Ops.Range.f_start = start +! (mk_usize 16 *! i <: usize) <: usize;
+          Core_models.Ops.Range.f_end
+          =
+          start +! (mk_usize 16 *! (i +! mk_usize 1 <: usize) <: usize) <: usize
+        }
+        <:
+        Core_models.Ops.Range.t_Range usize)
+      (Libcrux_intrinsics.Arm64_extract.e_vst1q_bytes_u64 (out0.[ {
+                Core_models.Ops.Range.f_start = start +! (mk_usize 16 *! i <: usize) <: usize;
+                Core_models.Ops.Range.f_end
+                =
+                start +! (mk_usize 16 *! (i +! mk_usize 1 <: usize) <: usize) <: usize
+              }
+              <:
+              Core_models.Ops.Range.t_Range usize ]
+            <:
+            t_Slice u8)
+          v0
+        <:
+        t_Slice u8)
+  in
+  let out1:t_Slice u8 =
+    Rust_primitives.Hax.Monomorphized_update_at.update_at_range out1
+      ({
+          Core_models.Ops.Range.f_start = start +! (mk_usize 16 *! i <: usize) <: usize;
+          Core_models.Ops.Range.f_end
+          =
+          start +! (mk_usize 16 *! (i +! mk_usize 1 <: usize) <: usize) <: usize
+        }
+        <:
+        Core_models.Ops.Range.t_Range usize)
+      (Libcrux_intrinsics.Arm64_extract.e_vst1q_bytes_u64 (out1.[ {
+                Core_models.Ops.Range.f_start = start +! (mk_usize 16 *! i <: usize) <: usize;
+                Core_models.Ops.Range.f_end
+                =
+                start +! (mk_usize 16 *! (i +! mk_usize 1 <: usize) <: usize) <: usize
+              }
+              <:
+              Core_models.Ops.Range.t_Range usize ]
+            <:
+            t_Slice u8)
+          v1
+        <:
+        t_Slice u8)
+  in
+  let _:Prims.unit =
+    let a_pos:nat = v start + 16 * v i in
+    assert (a_pos + 16 <= Seq.length old_out0);
+    assert (a_pos + 16 <= Seq.length old_out1);
+    let bridge_out0 (j_n: nat{j_n < Seq.length old_out0})
+        : Lemma
+        (if j_n < a_pos
+          then Seq.index out0 j_n == Seq.index old_out0 j_n
+          else
+            if j_n < a_pos + 16
+            then
+              Seq.index out0 j_n ==
+              Seq.index (Core_models.Num.impl_u64__to_le_bytes (Libcrux_intrinsics.Arm64_extract.get_lane_u64x2
+                        v0
+                        ((j_n - a_pos) / 8)))
+                ((j_n - a_pos) % 8)
+            else Seq.index out0 j_n == Seq.index old_out0 j_n) =
+      Libcrux_sha3.Simd.Arm64.StoreBlockHelpers.store_block_window_byte_of_vst old_out0
+        out0
+        (Libcrux_intrinsics.Arm64_extract.e_vst1q_bytes_u64 (Seq.slice old_out0 a_pos (a_pos + 16))
+            v0)
+        v0
+        a_pos
+        j_n
+    in
+    let bridge_out1 (j_n: nat{j_n < Seq.length old_out1})
+        : Lemma
+        (if j_n < a_pos
+          then Seq.index out1 j_n == Seq.index old_out1 j_n
+          else
+            if j_n < a_pos + 16
+            then
+              Seq.index out1 j_n ==
+              Seq.index (Core_models.Num.impl_u64__to_le_bytes (Libcrux_intrinsics.Arm64_extract.get_lane_u64x2
+                        v1
+                        ((j_n - a_pos) / 8)))
+                ((j_n - a_pos) % 8)
+            else Seq.index out1 j_n == Seq.index old_out1 j_n) =
+      Libcrux_sha3.Simd.Arm64.StoreBlockHelpers.store_block_window_byte_of_vst old_out1
+        out1
+        (Libcrux_intrinsics.Arm64_extract.e_vst1q_bytes_u64 (Seq.slice old_out1 a_pos (a_pos + 16))
+            v1)
+        v1
+        a_pos
+        j_n
+    in
+    Classical.forall_intro bridge_out0;
+    Classical.forall_intro bridge_out1
+  in
+  out0, out1 <: (t_Slice u8 & t_Slice u8)
+
+#pop-options
+
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 let impl: Libcrux_sha3.Traits.t_KeccakItem Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t
   (mk_usize 2) =
@@ -805,7 +1049,7 @@ let load_last
   in
   state
 
-#push-options "--z3rlimit 300"
+#push-options "--z3rlimit 800 --split_queries no --using_facts_from '* -Rust_primitives.Slice.array_from_fn -Core_models.Num.impl_u64__rem_euclid -Core_models.Num.impl_u32__rem_euclid'"
 
 let store_block
       (v_RATE: usize)
@@ -910,7 +1154,12 @@ let store_block
       #Alloc.Alloc.t_Global
       (Alloc.Slice.impl__to_vec #u8 out1 <: Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
   in
-  let _:Prims.unit = admit () in
+  let _:Prims.unit =
+    assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out0) == out0);
+    assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out1) == out1);
+    assert (old_out0 == out0);
+    assert (old_out1 == out1)
+  in
   let (out0: t_Slice u8), (out1: t_Slice u8) =
     Rust_primitives.Hax.Folds.fold_range (mk_usize 0)
       (len /! mk_usize 16 <: usize)
@@ -985,8 +1234,10 @@ let store_block
           let j0:usize = (mk_usize 2 *! i <: usize) %! mk_usize 5 in
           let i1:usize = ((mk_usize 2 *! i <: usize) +! mk_usize 1 <: usize) /! mk_usize 5 in
           let j1:usize = ((mk_usize 2 *! i <: usize) +! mk_usize 1 <: usize) %! mk_usize 5 in
-          let v0:Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t =
-            Libcrux_intrinsics.Arm64_extract.e_vtrn1q_u64 (Libcrux_sha3.Traits.get_ij (mk_usize 2)
+          let (tmp0: t_Slice u8), (tmp1: t_Slice u8) =
+            store_u64x2x2 out0
+              out1
+              (Libcrux_sha3.Traits.get_ij (mk_usize 2)
                   #Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t
                   s
                   i0
@@ -1000,75 +1251,12 @@ let store_block
                   j1
                 <:
                 Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t)
+              start
+              i
           in
-          let v1:Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t =
-            Libcrux_intrinsics.Arm64_extract.e_vtrn2q_u64 (Libcrux_sha3.Traits.get_ij (mk_usize 2)
-                  #Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t
-                  s
-                  i0
-                  j0
-                <:
-                Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t)
-              (Libcrux_sha3.Traits.get_ij (mk_usize 2)
-                  #Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t
-                  s
-                  i1
-                  j1
-                <:
-                Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t)
-          in
-          let out0:t_Slice u8 =
-            Rust_primitives.Hax.Monomorphized_update_at.update_at_range out0
-              ({
-                  Core_models.Ops.Range.f_start = start +! (mk_usize 16 *! i <: usize) <: usize;
-                  Core_models.Ops.Range.f_end
-                  =
-                  start +! (mk_usize 16 *! (i +! mk_usize 1 <: usize) <: usize) <: usize
-                }
-                <:
-                Core_models.Ops.Range.t_Range usize)
-              (Libcrux_intrinsics.Arm64_extract.e_vst1q_bytes_u64 (out0.[ {
-                        Core_models.Ops.Range.f_start
-                        =
-                        start +! (mk_usize 16 *! i <: usize) <: usize;
-                        Core_models.Ops.Range.f_end
-                        =
-                        start +! (mk_usize 16 *! (i +! mk_usize 1 <: usize) <: usize) <: usize
-                      }
-                      <:
-                      Core_models.Ops.Range.t_Range usize ]
-                    <:
-                    t_Slice u8)
-                  v0
-                <:
-                t_Slice u8)
-          in
-          let out1:t_Slice u8 =
-            Rust_primitives.Hax.Monomorphized_update_at.update_at_range out1
-              ({
-                  Core_models.Ops.Range.f_start = start +! (mk_usize 16 *! i <: usize) <: usize;
-                  Core_models.Ops.Range.f_end
-                  =
-                  start +! (mk_usize 16 *! (i +! mk_usize 1 <: usize) <: usize) <: usize
-                }
-                <:
-                Core_models.Ops.Range.t_Range usize)
-              (Libcrux_intrinsics.Arm64_extract.e_vst1q_bytes_u64 (out1.[ {
-                        Core_models.Ops.Range.f_start
-                        =
-                        start +! (mk_usize 16 *! i <: usize) <: usize;
-                        Core_models.Ops.Range.f_end
-                        =
-                        start +! (mk_usize 16 *! (i +! mk_usize 1 <: usize) <: usize) <: usize
-                      }
-                      <:
-                      Core_models.Ops.Range.t_Range usize ]
-                    <:
-                    t_Slice u8)
-                  v1
-                <:
-                t_Slice u8)
-          in
+          let out0:t_Slice u8 = tmp0 in
+          let out1:t_Slice u8 = tmp1 in
+          let _:Prims.unit = () in
           out0, out1 <: (t_Slice u8 & t_Slice u8))
   in
   let remaining:usize = len %! mk_usize 16 in
@@ -1251,6 +1439,7 @@ let store_block
         out0, out1 <: (t_Slice u8 & t_Slice u8)
       else out0, out1 <: (t_Slice u8 & t_Slice u8)
   in
+  let _:Prims.unit = admit () in
   out0, out1 <: (t_Slice u8 & t_Slice u8)
 
 #pop-options
