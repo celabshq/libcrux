@@ -10,6 +10,10 @@ let _ =
   let open Libcrux_sha3.Traits in
   ()
 
+[@@ "opaque_to_smt"]
+
+/// Spec function: per-lane semantics of \"XOR state element with 8
+/// bytes from input block\".
 let load_lane_u64
       (blocks: t_Array (t_Slice u8) (mk_usize 2))
       (offset i: usize)
@@ -60,6 +64,71 @@ let load_lane_u64
     <:
     u64)
 
+val load_lane_u64_lane_extensionality
+      (blocks: t_Array (t_Slice u8) (mk_usize 2))
+      (offset i: usize)
+      (s1 s2: Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t)
+      (lane: usize)
+  : Lemma
+    (requires
+      (i <. mk_usize 25 && lane <. mk_usize 2 &&
+       (((Rust_primitives.Hax.Int.from_machine offset <: Hax_lib.Int.t_Int) +
+           ((Rust_primitives.Hax.Int.from_machine (mk_i32 8) <: Hax_lib.Int.t_Int) *
+             (Rust_primitives.Hax.Int.from_machine i <: Hax_lib.Int.t_Int)
+             <:
+             Hax_lib.Int.t_Int)
+           <:
+           Hax_lib.Int.t_Int) +
+         (Rust_primitives.Hax.Int.from_machine (mk_i32 8) <: Hax_lib.Int.t_Int)
+         <:
+         Hax_lib.Int.t_Int) <=
+       (Rust_primitives.Hax.Int.from_machine (Core_models.Slice.impl__len #u8
+               (blocks.[ lane ] <: t_Slice u8)
+             <:
+             usize)
+         <:
+         Hax_lib.Int.t_Int)) /\
+      Libcrux_intrinsics.Arm64_extract.get_lane_u64 s1 lane ==
+      Libcrux_intrinsics.Arm64_extract.get_lane_u64 s2 lane)
+    (ensures
+      load_lane_u64 blocks offset i s1 lane ==
+      load_lane_u64 blocks offset i s2 lane)
+    [SMTPat (load_lane_u64 blocks offset i s1 lane);
+     SMTPat (load_lane_u64 blocks offset i s2 lane)]
+
+let load_lane_u64_lane_extensionality
+      (blocks: t_Array (t_Slice u8) (mk_usize 2))
+      (offset i: usize)
+      (s1 s2: Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t)
+      (lane: usize)
+  : Lemma
+    (requires
+      (i <. mk_usize 25 && lane <. mk_usize 2 &&
+       (((Rust_primitives.Hax.Int.from_machine offset <: Hax_lib.Int.t_Int) +
+           ((Rust_primitives.Hax.Int.from_machine (mk_i32 8) <: Hax_lib.Int.t_Int) *
+             (Rust_primitives.Hax.Int.from_machine i <: Hax_lib.Int.t_Int)
+             <:
+             Hax_lib.Int.t_Int)
+           <:
+           Hax_lib.Int.t_Int) +
+         (Rust_primitives.Hax.Int.from_machine (mk_i32 8) <: Hax_lib.Int.t_Int)
+         <:
+         Hax_lib.Int.t_Int) <=
+       (Rust_primitives.Hax.Int.from_machine (Core_models.Slice.impl__len #u8
+               (blocks.[ lane ] <: t_Slice u8)
+             <:
+             usize)
+         <:
+         Hax_lib.Int.t_Int)) /\
+      Libcrux_intrinsics.Arm64_extract.get_lane_u64 s1 lane ==
+      Libcrux_intrinsics.Arm64_extract.get_lane_u64 s2 lane)
+    (ensures
+      load_lane_u64 blocks offset i s1 lane ==
+      load_lane_u64 blocks offset i s2 lane)
+    [SMTPat (load_lane_u64 blocks offset i s1 lane);
+     SMTPat (load_lane_u64 blocks offset i s2 lane)]
+  = reveal_opaque (`%load_lane_u64) load_lane_u64
+
 let lemma_rate_mod (rate: usize)
     : Prims.Pure Prims.unit
       (requires Libcrux_sha3.Proof_utils.valid_rate rate)
@@ -73,6 +142,8 @@ let lemma_rate_mod (rate: usize)
           else
             (rate /! mk_usize 8 <: usize) =. (mk_usize 2 *! (rate /! mk_usize 16 <: usize) <: usize)
       ) = ()
+
+[@@ "opaque_to_smt"]
 
 let load_u64x2
       (blocks: t_Array (t_Slice u8) (mk_usize 2))
@@ -106,6 +177,7 @@ let load_u64x2
           (load_lane_u64 blocks offset i statei (mk_usize 0) <: u64) &&
           (Libcrux_intrinsics.Arm64_extract.get_lane_u64 result (mk_usize 1) <: u64) =.
           (load_lane_u64 blocks offset i statei (mk_usize 1) <: u64)) =
+  let _:Prims.unit = reveal_opaque (`%load_lane_u64) load_lane_u64 in
   let u:t_Array u64 (mk_usize 2) = Rust_primitives.Hax.repeat (mk_u64 0) (mk_usize 2) in
   let u:t_Array u64 (mk_usize 2) =
     Rust_primitives.Hax.Monomorphized_update_at.update_at_usize u
@@ -170,6 +242,10 @@ let load_u64x2
   in
   Libcrux_intrinsics.Arm64_extract.e_veorq_u64 statei uvec
 
+#push-options "--z3rlimit 400 --split_queries always"
+
+[@@ "opaque_to_smt"]
+
 let load_u64x2x2
       (blocks: t_Array (t_Slice u8) (mk_usize 2))
       (offset i: usize)
@@ -224,6 +300,7 @@ let load_u64x2x2
               (mk_usize 1)
             <:
             u64)) =
+  let _:Prims.unit = reveal_opaque (`%load_lane_u64) load_lane_u64 in
   let v0:Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t =
     Libcrux_intrinsics.Arm64_extract.e_vld1q_bytes_u64 ((blocks.[ mk_usize 0 ] <: t_Slice u8).[ {
             Core_models.Ops.Range.f_start = offset +! (mk_usize 16 *! i <: usize) <: usize;
@@ -260,7 +337,9 @@ let load_u64x2x2
   (Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t & Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t
   )
 
-#push-options "--z3rlimit 800 --split_queries always"
+#pop-options
+
+#push-options "--z3rlimit 400 --split_queries always --using_facts_from '* -Rust_primitives.Slice.array_from_fn -Core_models.Num.impl_u64__rem_euclid -Core_models.Num.impl_u32__rem_euclid'"
 
 let load_block
       (v_RATE: usize)

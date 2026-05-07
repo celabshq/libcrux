@@ -11,7 +11,91 @@ use crate::traits::{get_ij, set_ij, Absorb};
 
 use super::wrappers::uint64x2_t;
 
+/// Spec function: per-lane semantics of "XOR state element with 8
+/// bytes from input block".
+//
+// Made opaque-to-SMT to suppress body-unfolding cascades in
+// `load_block` proof. The functional dependence on `statei` (only via
+// `get_lane_u64 statei lane`) is exposed to Z3 via the SMTPat
+// extensionality lemma `load_lane_u64_lane_extensionality` injected
+// via `fstar::after`, which lets the loop_invariant's per-lane
+// equality (provided by `get_lane_u64`) bridge to per-`load_lane_u64`
+// equality without unfolding the body. Mirrors the AVX2 cascade
+// closure (commit 3b9fc054c).
 #[cfg(hax)]
+#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
+#[hax_lib::fstar::after(
+    interface,
+    r#"
+val load_lane_u64_lane_extensionality
+      (blocks: t_Array (t_Slice u8) (mk_usize 2))
+      (offset i: usize)
+      (s1 s2: Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t)
+      (lane: usize)
+  : Lemma
+    (requires
+      (i <. mk_usize 25 && lane <. mk_usize 2 &&
+       (((Rust_primitives.Hax.Int.from_machine offset <: Hax_lib.Int.t_Int) +
+           ((Rust_primitives.Hax.Int.from_machine (mk_i32 8) <: Hax_lib.Int.t_Int) *
+             (Rust_primitives.Hax.Int.from_machine i <: Hax_lib.Int.t_Int)
+             <:
+             Hax_lib.Int.t_Int)
+           <:
+           Hax_lib.Int.t_Int) +
+         (Rust_primitives.Hax.Int.from_machine (mk_i32 8) <: Hax_lib.Int.t_Int)
+         <:
+         Hax_lib.Int.t_Int) <=
+       (Rust_primitives.Hax.Int.from_machine (Core_models.Slice.impl__len #u8
+               (blocks.[ lane ] <: t_Slice u8)
+             <:
+             usize)
+         <:
+         Hax_lib.Int.t_Int)) /\
+      Libcrux_intrinsics.Arm64_extract.get_lane_u64 s1 lane ==
+      Libcrux_intrinsics.Arm64_extract.get_lane_u64 s2 lane)
+    (ensures
+      load_lane_u64 blocks offset i s1 lane ==
+      load_lane_u64 blocks offset i s2 lane)
+    [SMTPat (load_lane_u64 blocks offset i s1 lane);
+     SMTPat (load_lane_u64 blocks offset i s2 lane)]
+"#
+)]
+#[hax_lib::fstar::after(
+    r#"
+let load_lane_u64_lane_extensionality
+      (blocks: t_Array (t_Slice u8) (mk_usize 2))
+      (offset i: usize)
+      (s1 s2: Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t)
+      (lane: usize)
+  : Lemma
+    (requires
+      (i <. mk_usize 25 && lane <. mk_usize 2 &&
+       (((Rust_primitives.Hax.Int.from_machine offset <: Hax_lib.Int.t_Int) +
+           ((Rust_primitives.Hax.Int.from_machine (mk_i32 8) <: Hax_lib.Int.t_Int) *
+             (Rust_primitives.Hax.Int.from_machine i <: Hax_lib.Int.t_Int)
+             <:
+             Hax_lib.Int.t_Int)
+           <:
+           Hax_lib.Int.t_Int) +
+         (Rust_primitives.Hax.Int.from_machine (mk_i32 8) <: Hax_lib.Int.t_Int)
+         <:
+         Hax_lib.Int.t_Int) <=
+       (Rust_primitives.Hax.Int.from_machine (Core_models.Slice.impl__len #u8
+               (blocks.[ lane ] <: t_Slice u8)
+             <:
+             usize)
+         <:
+         Hax_lib.Int.t_Int)) /\
+      Libcrux_intrinsics.Arm64_extract.get_lane_u64 s1 lane ==
+      Libcrux_intrinsics.Arm64_extract.get_lane_u64 s2 lane)
+    (ensures
+      load_lane_u64 blocks offset i s1 lane ==
+      load_lane_u64 blocks offset i s2 lane)
+    [SMTPat (load_lane_u64 blocks offset i s1 lane);
+     SMTPat (load_lane_u64 blocks offset i s2 lane)]
+  = reveal_opaque (`%load_lane_u64) load_lane_u64
+"#
+)]
 #[hax_lib::requires(i < 25 && lane < 2 &&
         offset.to_int() + (8.to_int() * i.to_int()) + 8.to_int() <= blocks[lane].len().to_int())]
 fn load_lane_u64(
@@ -46,7 +130,10 @@ fn lemma_rate_mod(rate: usize) {
     get_lane_u64(result,0) == load_lane_u64(blocks, offset, i, statei, 0)
     && get_lane_u64(result,1) == load_lane_u64(blocks, offset, i, statei, 1)
 )]
+#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
 fn load_u64x2(blocks: &[&[u8]; 2], offset: usize, i: usize, statei: uint64x2_t) -> uint64x2_t {
+    // load_lane_u64 is opaque-to-SMT; reveal here so the body can prove its ensures.
+    hax_lib::fstar!(r#"reveal_opaque (`%load_lane_u64) load_lane_u64"#);
     let mut u = [0u64; 2];
     u[0] = u64::from_le_bytes(
         blocks[0][offset + 8 * i..offset + 8 * i + 8]
@@ -63,6 +150,7 @@ fn load_u64x2(blocks: &[&[u8]; 2], offset: usize, i: usize, statei: uint64x2_t) 
 }
 
 #[inline(always)]
+#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always")]
 #[hax_lib::requires(i < 12
         && blocks[0].len() == blocks[1].len()
         && offset.to_int() + (16.to_int() * i.to_int()) + 16.to_int() <= blocks[0].len().to_int())]
@@ -72,6 +160,7 @@ fn load_u64x2(blocks: &[&[u8]; 2], offset: usize, i: usize, statei: uint64x2_t) 
     && get_lane_u64(r1,0) == load_lane_u64(blocks, offset, 2*i + 1, in1, 0)
     && get_lane_u64(r1,1) == load_lane_u64(blocks, offset, 2*i + 1, in1, 1)
 )]
+#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
 fn load_u64x2x2(
     blocks: &[&[u8]; 2],
     offset: usize,
@@ -79,6 +168,8 @@ fn load_u64x2x2(
     in0: uint64x2_t,
     in1: uint64x2_t,
 ) -> (uint64x2_t, uint64x2_t) {
+    // load_lane_u64 is opaque-to-SMT; reveal here so the body can prove its ensures.
+    hax_lib::fstar!(r#"reveal_opaque (`%load_lane_u64) load_lane_u64"#);
     let v0 = _vld1q_bytes_u64(&blocks[0][offset + 16 * i..offset + 16 * i + 16]);
     let v1 = _vld1q_bytes_u64(&blocks[1][offset + 16 * i..offset + 16 * i + 16]);
     (
@@ -87,28 +178,13 @@ fn load_u64x2x2(
     )
 }
 
-// Known proof flakiness: query 301 of this function (the loop-body
-// invariant-preservation sub-query, near the inner `set_ij` calls)
-// sits on a Z3 cliff edge at rlimit 800 / split_queries always.  It
-// passes some runs and times out (~170 s, "canceled") others.  The
-// cliff is pre-existing — bisection on 2026-05-06 confirmed identical
-// failure at the pre-sprint commit 3b9fc054c.  qi.profile shows the
-// `Rust_primitives.Slice.array_from_fn` refinement (~1.4 M instances)
-// plus an anonymous `k!61` (~1.97 M instances) dominate; filtering
-// `array_from_fn` alone is not enough.
-//
-// 2026-05-06 update: the load/store module split (this commit) places
-// `load_block` in its own F* module (`Libcrux_sha3.Simd.Arm64.Load`)
-// with a much smaller import surface, but the cliff persists at query
-// 301 with the same ~155-170 s timeout — confirming the bottleneck is
-// intrinsic to `load_block`'s body, not the surrounding module size
-// or open-list pollution. Next step: factor the loop body into
-// `load_block_full` / `load_block_tail` (mirror of `store_block_full`
-// / `store_block_tail`) so the per-iteration sub-proof runs in a
-// smaller scope.
-// Tracked in proofs/agent-status/load-store-split-progress.md.
+// Cliff closure 2026-05-07: opacified `load_lane_u64` + `load_u64x2`
+// + `load_u64x2x2` and added `load_lane_u64_lane_extensionality`
+// SMTPat lemma. Mirrors the AVX2 cascade closure (commits 7bb581f8b
+// .. 3b9fc054c) which discharged the same `k!61` /
+// `Rust_primitives.Slice.array_from_fn` cascade at q301.
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 800 --split_queries always")]
+#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always --using_facts_from '* -Rust_primitives.Slice.array_from_fn -Core_models.Num.impl_u64__rem_euclid -Core_models.Num.impl_u32__rem_euclid'")]
 #[hax_lib::requires(valid_rate(RATE)
             && blocks[0].len() == blocks[1].len()
             && offset.to_int() + RATE.to_int() <= blocks[0].len().to_int()
