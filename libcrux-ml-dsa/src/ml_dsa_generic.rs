@@ -104,14 +104,23 @@ pub(crate) mod generic {
         samplex4::sample_s1_and_s2::<SIMDUnit, Shake256X4>(ETA, seed_for_error_vectors, &mut s1_s2);
 
         // Bridge `sample_s1_and_s2`'s post (asymmetric opaque atom
-        // `is_lane_range_poly_slice 0 eta_val s1_s2`) to the symmetric
-        // `is_bounded_poly_slice 4 s1_s2` form `compute_as1_plus_s2` wants.
-        // Soundness: lanes in [0, eta_val] ⊂ [-4, 4] since eta_val ≤ 4.
-        // One-shot via `lemma_lane_range_pos_to_bounded_poly_slice`.
+        // `is_lane_range_poly_slice 0 eta_val s1_s2`, with eta_val ∈ {2, 4})
+        // to the symmetric forms downstream consumers want:
+        //   - `is_bounded_poly_slice 4 s1_s2` for `compute_as1_plus_s2`'s pre
+        //     (Step 2's tight chain to power2round_vector)
+        //   - `is_bounded_poly_slice 8380416 s1_s2` for the per-element
+        //     `ntt` pre on `s1_ntt[i]` (after copy_from_slice from s1_s2)
+        // The bridge lemma handles both bridging (asymmetric → symmetric)
+        // and widening (b1 ≤ b2) in one call.
         hax_lib::fstar!(
             r#"
+            let eta_val : usize = match ${ETA} with
+                                   | Libcrux_ml_dsa.Constants.Eta_Two -> mk_usize 2
+                                   | Libcrux_ml_dsa.Constants.Eta_Four -> mk_usize 4 in
             Libcrux_ml_dsa.Polynomial.Spec.lemma_lane_range_pos_to_bounded_poly_slice
-              (mk_usize 4) ${s1_s2}
+              eta_val (mk_usize 4) ${s1_s2};
+            Libcrux_ml_dsa.Polynomial.Spec.lemma_lane_range_pos_to_bounded_poly_slice
+              eta_val (mk_usize 8380416) ${s1_s2}
             "#
         );
 

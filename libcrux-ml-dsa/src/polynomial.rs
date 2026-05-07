@@ -324,57 +324,61 @@ let lemma_is_lane_range_poly_slice_intro
       (ensures is_lane_range_poly_slice lo hi arr)
   = reveal_opaque (`%is_lane_range_poly_slice) (is_lane_range_poly_slice lo hi arr)
 
-(* Bridge: lanes in [0, b] (asymmetric) imply |lane| <= b (symmetric).
-   Collapses the lane-range -> bounded-poly conversion to one call so
-   callers don't expand three nested Classical.forall_intro chains.
-   No SMTPats — caller invokes once at the call site that needs the
-   symmetric form. *)
+(* Bridge + widen: lanes in [0, b1] (asymmetric, b1 <= b2) imply
+   |lane| <= b2 (symmetric, possibly looser).  Collapses the
+   lane-range -> bounded-poly conversion plus an upper-bound widening
+   into one call so callers don't expand three nested
+   Classical.forall_intro chains.  Used in keygen to bridge from
+   sample_s1_and_s2's `is_lane_range_poly_slice 0 eta_val` post to
+   downstream consumers wanting `is_bounded_poly_slice 4` (compute_as1)
+   or `is_bounded_poly_slice 8380416` (ntt).  No SMTPats — caller
+   invokes once per target bound. *)
 let lemma_lane_range_pos_to_bounded_poly
       (#v_SIMDUnit: Type0)
       (#[FStar.Tactics.Typeclasses.tcresolve ()]
           i0:
           Libcrux_ml_dsa.Simd.Traits.t_Operations v_SIMDUnit)
-      (b: usize)
+      (b1 b2: usize)
       (p: Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement v_SIMDUnit)
     : Lemma
       (requires Libcrux_ml_dsa.Polynomial.Spec.is_lane_range_poly
-                  (mk_usize 0) b p)
-      (ensures Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly b p)
+                  (mk_usize 0) b1 p /\ v b1 <= v b2)
+      (ensures Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly b2 p)
   = let lemma_lane (j: nat{j < 32})
-        : Lemma (Spec.Utils.is_i32b_array_opaque (v b)
+        : Lemma (Spec.Utils.is_i32b_array_opaque (v b2)
                    (i0._super_i2.f_repr (Seq.index p.f_simd_units j))) =
       let lane_arr = i0._super_i2.f_repr (Seq.index p.f_simd_units j) in
       let aux_m (m: nat{m < 8})
-          : Lemma (Spec.Utils.is_i32b (v b) (Seq.index lane_arr m)) =
+          : Lemma (Spec.Utils.is_i32b (v b2) (Seq.index lane_arr m)) =
         Libcrux_ml_dsa.Polynomial.Spec.lemma_is_lane_range_poly_lookup
-          (mk_usize 0) b p j m
+          (mk_usize 0) b1 p j m
       in
       Classical.forall_intro aux_m;
       reveal_opaque (`%Spec.Utils.is_i32b_array_opaque)
-                    (Spec.Utils.is_i32b_array_opaque (v b) lane_arr)
+                    (Spec.Utils.is_i32b_array_opaque (v b2) lane_arr)
     in
     Classical.forall_intro lemma_lane;
-    Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_intro b p
+    Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_intro b2 p
 
 let lemma_lane_range_pos_to_bounded_poly_slice
       (#v_SIMDUnit: Type0)
       (#[FStar.Tactics.Typeclasses.tcresolve ()]
           i0:
           Libcrux_ml_dsa.Simd.Traits.t_Operations v_SIMDUnit)
-      (b: usize)
+      (b1 b2: usize)
       (arr: t_Slice (Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement v_SIMDUnit))
     : Lemma
       (requires Libcrux_ml_dsa.Polynomial.Spec.is_lane_range_poly_slice
-                  (mk_usize 0) b arr)
-      (ensures Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice b arr)
+                  (mk_usize 0) b1 arr /\ v b1 <= v b2)
+      (ensures Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice b2 arr)
   = let aux (k: nat{k < Seq.length arr})
-        : Lemma (Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly b (Seq.index arr k)) =
+        : Lemma (Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly b2 (Seq.index arr k)) =
       Libcrux_ml_dsa.Polynomial.Spec.lemma_is_lane_range_poly_slice_lookup
-        (mk_usize 0) b arr k;
-      lemma_lane_range_pos_to_bounded_poly b (Seq.index arr k)
+        (mk_usize 0) b1 arr k;
+      lemma_lane_range_pos_to_bounded_poly b1 b2 (Seq.index arr k)
     in
     Classical.forall_intro aux;
-    Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_slice_intro b arr
+    Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_slice_intro b2 arr
 "#
         )
     )]
