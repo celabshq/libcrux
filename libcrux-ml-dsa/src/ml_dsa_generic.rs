@@ -147,6 +147,20 @@ pub(crate) mod generic {
         let mut t1 = [PolynomialRingElement::<SIMDUnit>::zero(); ROWS_IN_A];
         power2round_vector::<SIMDUnit>(&mut t0, &mut t1);
 
+        // Bridge `is_lane_range_poly_slice 0 eta_val s1_s2` (post of
+        // sample_s1_and_s2) to the bare `forall k j. is_pos_array_opaque
+        // (match eta with...) ...` form that signing_key's `s1_2` pre wants.
+        // One-shot via `lemma_lane_range_pos_to_pos_array_slice`.
+        hax_lib::fstar!(
+            r#"
+            let eta_val : usize = match ${ETA} with
+                                   | Libcrux_ml_dsa.Constants.Eta_Two -> mk_usize 2
+                                   | Libcrux_ml_dsa.Constants.Eta_Four -> mk_usize 4 in
+            Libcrux_ml_dsa.Polynomial.Spec.lemma_lane_range_pos_to_pos_array_slice
+              eta_val ${s1_s2}
+            "#
+        );
+
         // Write out the keys
         encoding::verification_key::generate_serialized::<SIMDUnit>(
             seed_for_a,

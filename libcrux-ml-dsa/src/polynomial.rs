@@ -379,6 +379,41 @@ let lemma_lane_range_pos_to_bounded_poly_slice
     in
     Classical.forall_intro aux;
     Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_slice_intro b2 arr
+
+(* Bridge: lanes in [0, b] (asymmetric opaque atom) imply per-simd-unit
+   `is_pos_array_opaque b` for every (k, j) — the bare-forall shape that
+   `signing_key::generate_serialized`'s `s1_2` pre wants.  Caller invokes
+   once just before the call site that needs the bare form. *)
+let lemma_lane_range_pos_to_pos_array_slice
+      (#v_SIMDUnit: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()]
+          i0:
+          Libcrux_ml_dsa.Simd.Traits.t_Operations v_SIMDUnit)
+      (b: usize)
+      (arr: t_Slice (Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement v_SIMDUnit))
+    : Lemma
+      (requires Libcrux_ml_dsa.Polynomial.Spec.is_lane_range_poly_slice
+                  (mk_usize 0) b arr)
+      (ensures forall (k: nat). k < Seq.length arr ==>
+                 (forall (j: nat). j < 32 ==>
+                    Libcrux_ml_dsa.Simd.Traits.Specs.is_pos_array_opaque (v b)
+                      (i0._super_i2.f_repr (Seq.index (Seq.index arr k).f_simd_units j))))
+  = let aux (k: nat{k < Seq.length arr}) (j: nat{j < 32})
+        : Lemma (Libcrux_ml_dsa.Simd.Traits.Specs.is_pos_array_opaque (v b)
+                   (i0._super_i2.f_repr (Seq.index (Seq.index arr k).f_simd_units j))) =
+      Libcrux_ml_dsa.Polynomial.Spec.lemma_is_lane_range_poly_slice_lookup
+        (mk_usize 0) b arr k;
+      let p = Seq.index arr k in
+      let lane_arr = i0._super_i2.f_repr (Seq.index p.f_simd_units j) in
+      let aux_m (m: nat{m < 8})
+          : Lemma (v (Seq.index lane_arr m) >= 0 /\ v (Seq.index lane_arr m) <= v b) =
+        Libcrux_ml_dsa.Polynomial.Spec.lemma_is_lane_range_poly_lookup
+          (mk_usize 0) b p j m
+      in
+      Classical.forall_intro aux_m;
+      Libcrux_ml_dsa.Simd.Traits.Specs.lemma_is_pos_array_intro (v b) lane_arr
+    in
+    Classical.forall_intro_2 aux
 "#
         )
     )]
