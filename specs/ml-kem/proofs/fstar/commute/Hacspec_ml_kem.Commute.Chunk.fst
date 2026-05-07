@@ -1,5 +1,5 @@
 module Hacspec_ml_kem.Commute.Chunk
-#set-options "--fuel 0 --ifuel 1 --z3rlimit 80"
+#set-options "--fuel 0 --ifuel 1 --z3rlimit 200"
 open FStar.Mul
 open Core_models
 open Libcrux_ml_kem.Vector.Traits.Spec
