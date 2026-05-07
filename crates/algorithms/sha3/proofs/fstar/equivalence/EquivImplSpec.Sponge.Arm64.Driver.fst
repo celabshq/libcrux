@@ -41,10 +41,20 @@ module EquivImplSpec.Sponge.Arm64.Driver
 
    [lemma_squeeze2_arm64] is ADMITTED ([assume val]) — Arm64 squeeze
    counterpart of [lemma_squeeze_portable], requiring reasoning over
-   the [fold_range] in [squeeze2] and the per-lane NEON bridges
-   [arm64_sc_load_block], [arm64_sc_load_last], [arm64_sc_store_block]
-   (the latter three are also admitted and constitute the "loop"
-   content).
+   the [fold_range] in [Generic_keccak.Simd128.squeeze2] (whose
+   current Rust-side ensures is bounds-only) plus the per-lane NEON
+   bridges.
+
+   Status of the per-lane NEON bridges [arm64_sc_load_block],
+   [arm64_sc_load_last], [arm64_sc_store_block]: these are now real
+   [let]s in [EquivImplSpec.Sponge.Arm64.fst] (lines 150, 386, 487
+   respectively), NOT admitted.  The remaining open work for
+   [lemma_squeeze2_arm64] is therefore the loop-shape part: porting
+   the Portable squeeze closure pattern (push the lockstep induction
+   into [squeeze2]'s Rust-side ensures, then reconcile via a one-line
+   driver wrapper) to N=2.  See [EquivImplSpec.Sponge.Arm64.Steps.
+   lemma_squeeze_one_step_arm64] (already proved) for the per-lane
+   per-iteration step lemma that supports the closure.
    ================================================================ *)
 
 #set-options "--fuel 0 --ifuel 1 --z3rlimit 100"
