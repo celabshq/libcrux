@@ -1005,16 +1005,12 @@ Libcrux_ml_kem.Vector.Portable.Vector_type.t_PortableVector =
     f_from_bytes
     =
     (fun (array: t_Slice u8) ->
-        let result:Libcrux_ml_kem.Vector.Portable.Vector_type.t_PortableVector =
-          Libcrux_ml_kem.Vector.Portable.Vector_type.from_bytes (Libcrux_secrets.Traits.f_classify_ref
-                #(t_Slice u8)
-                #FStar.Tactics.Typeclasses.solve
-                array
-              <:
-              t_Slice u8)
-        in
-        let _:Prims.unit = admit () in
-        result);
+        Libcrux_ml_kem.Vector.Portable.Vector_type.from_bytes (Libcrux_secrets.Traits.f_classify_ref
+              #(t_Slice u8)
+              #FStar.Tactics.Typeclasses.solve
+              array
+            <:
+            t_Slice u8));
     f_to_bytes_pre
     =
     (fun (x: Libcrux_ml_kem.Vector.Portable.Vector_type.t_PortableVector) (bytes: t_Slice u8) ->
@@ -1035,7 +1031,6 @@ Libcrux_ml_kem.Vector.Portable.Vector_type.t_PortableVector =
     =
     (fun (x: Libcrux_ml_kem.Vector.Portable.Vector_type.t_PortableVector) (bytes: t_Slice u8) ->
         let bytes:t_Slice u8 = Libcrux_ml_kem.Vector.Portable.Vector_type.to_bytes x bytes in
-        let _:Prims.unit = admit () in
         let _:Prims.unit = () in
         bytes);
     f_add_pre

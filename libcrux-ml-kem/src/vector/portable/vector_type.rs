@@ -38,7 +38,14 @@ pub fn from_i16_array(array: &[I16]) -> PortableVector {
 }
 
 #[inline(always)]
+#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::requires(array.len() >= 32)]
+#[hax_lib::ensures(|result| fstar!(r#"
+    Core_models.Slice.impl__len #u8 ${array} >=. mk_usize 32 ==>
+    (let head : t_Slice u8 = Seq.slice ${array} 0 32 in
+     Libcrux_ml_kem.Vector.Traits.Spec.from_le_bytes_post_N
+       #(mk_usize 16) head ${result}.f_elements)
+"#))]
 pub(super) fn from_bytes(array: &[U8]) -> PortableVector {
     let mut elements = [I16(0); FIELD_ELEMENTS_IN_VECTOR];
     for i in 0..FIELD_ELEMENTS_IN_VECTOR {
@@ -48,8 +55,16 @@ pub(super) fn from_bytes(array: &[U8]) -> PortableVector {
 }
 
 #[inline(always)]
+#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::requires(bytes.len() >= 32)]
-#[hax_lib::ensures(|_| future(bytes).len() == bytes.len())]
+#[hax_lib::ensures(|_| fstar!(r#"
+    Core_models.Slice.impl__len #u8 (bytes_future <: t_Slice u8) ==
+      Core_models.Slice.impl__len #u8 ${bytes} /\
+    (Core_models.Slice.impl__len #u8 ${bytes} >=. mk_usize 32 ==>
+     (let head : t_Slice u8 = Seq.slice bytes_future 0 32 in
+      Libcrux_ml_kem.Vector.Traits.Spec.to_le_bytes_post_N
+        #(mk_usize 16) ${x}.f_elements head))
+"#))]
 pub(super) fn to_bytes(x: PortableVector, bytes: &mut [U8]) {
     #[cfg(hax)]
     let _bytes_len = bytes.len();

@@ -68,11 +68,13 @@ let from_bytes (array: t_Slice u8) =
           <:
           t_Array i16 (mk_usize 16))
   in
-  { f_elements = elements } <: t_PortableVector
+  let result:t_PortableVector = { f_elements = elements } <: t_PortableVector in
+  let _:Prims.unit = admit () (* Panic freedom *) in
+  result
 
 let to_bytes (x: t_PortableVector) (bytes: t_Slice u8) =
   let e_bytes_len:usize = Core_models.Slice.impl__len #u8 bytes in
-  let bytes:t_Slice u8 =
+  let (bytes: t_Slice u8), (result: Prims.unit) =
     Rust_primitives.Hax.Folds.fold_range (mk_usize 0)
       Libcrux_ml_kem.Vector.Traits.v_FIELD_ELEMENTS_IN_VECTOR
       (fun bytes e_i ->
@@ -101,6 +103,11 @@ let to_bytes (x: t_PortableVector) (bytes: t_Slice u8) =
                 <:
                 u8)
           in
-          bytes)
+          bytes),
+    ()
+    <:
+    (t_Slice u8 & Prims.unit)
   in
+  let _:Prims.unit = admit () (* Panic freedom *) in
+  let _:Prims.unit = result in
   bytes

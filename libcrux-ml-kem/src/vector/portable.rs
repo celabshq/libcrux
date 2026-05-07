@@ -970,11 +970,7 @@ impl Operations for PortableVector {
                                Libcrux_ml_kem.Vector.Traits.Spec.from_le_bytes_post_N
                                  #(mk_usize 16) head (impl.f_repr ${out}))"#))]
     fn from_bytes(array: &[u8]) -> Self {
-        let result = from_bytes(array.classify_ref());
-        hax_lib::fstar!(
-            r#"admit ()"#
-        );
-        result
+        from_bytes(array.classify_ref())
     }
 
     #[requires(bytes.len() >= 32)]
@@ -991,9 +987,6 @@ impl Operations for PortableVector {
         #[cfg(hax)]
         {
             to_bytes(x, bytes);
-            hax_lib::fstar!(
-                r#"admit ()"#
-            );
         }
     }
 
