@@ -826,7 +826,10 @@ let lemma_montgomery_multiply_by_constant_chunk_commutes_mont_mont
             == P.impl_FieldElement__mul
                  (Seq.index (mont_i16_to_spec_array (sz 16) (T.f_repr vec)) j)
                  (mont_i16_to_spec_fe c)))
-  = let r = T.f_montgomery_multiply_by_constant vec c in
+  = (* Reveal the lane-form opaque so the per-lane `mod_q_eq` from the
+       trait post is in scope below. *)
+    reveal_opaque (`%TS.montgomery_multiply_lane_post) (TS.montgomery_multiply_lane_post);
+    let r = T.f_montgomery_multiply_by_constant vec c in
     let vec_arr = T.f_repr vec in
     let r_arr = T.f_repr r in
     let aux (j: nat) : Lemma (j < 16 ==>
@@ -854,7 +857,10 @@ let lemma_montgomery_multiply_by_constant_chunk_commutes_mont_plain
             == P.impl_FieldElement__mul
                  (Seq.index (mont_i16_to_spec_array (sz 16) (T.f_repr vec)) j)
                  (i16_to_spec_fe c)))
-  = let r = T.f_montgomery_multiply_by_constant vec c in
+  = (* Reveal the lane-form opaque so the per-lane `mod_q_eq` from the
+       trait post is in scope below. *)
+    reveal_opaque (`%TS.montgomery_multiply_lane_post) (TS.montgomery_multiply_lane_post);
+    let r = T.f_montgomery_multiply_by_constant vec c in
     let vec_arr = T.f_repr vec in
     let r_arr = T.f_repr r in
     let aux (j: nat) : Lemma (j < 16 ==>
@@ -883,7 +889,10 @@ let lemma_barrett_reduce_chunk_commutes
     (ensures
        (let r = T.f_barrett_reduce vec in
         i16_to_spec_array (sz 16) (T.f_repr r) == i16_to_spec_array (sz 16) (T.f_repr vec)))
-  = let r = T.f_barrett_reduce vec in
+  = (* Reveal the lane-form opaque so the per-lane `mod_q_eq` from the
+       trait post is in scope below. *)
+    reveal_opaque (`%TS.barrett_reduce_lane_post) (TS.barrett_reduce_lane_post);
+    let r = T.f_barrett_reduce vec in
     let vec_arr = T.f_repr vec in
     let r_arr = T.f_repr r in
     let aux (j: nat) : Lemma (j < 16 ==>
@@ -1395,7 +1404,10 @@ let lemma_poly_barrett_reduce_commute
     (ensures
        to_spec_poly_plain result
          == HP.poly_barrett_reduce (to_spec_poly_plain myself))
-  = let aux (j: nat) : Lemma (j < 256 ==>
+  = (* Reveal the lane-form opaque so the per-lane `mod_q_eq` extracted
+       from the trait post is in scope below. *)
+    reveal_opaque (`%TS.barrett_reduce_lane_post) (TS.barrett_reduce_lane_post);
+    let aux (j: nat) : Lemma (j < 256 ==>
         Seq.index (to_spec_poly_plain result) j
           == Seq.index (to_spec_poly_plain myself) j)
       = if j < 256 then begin
@@ -1404,7 +1416,8 @@ let lemma_poly_barrett_reduce_commute
           let m_arr = T.f_repr (Seq.index myself.V.f_coefficients k) in
           let r_arr = T.f_repr (Seq.index result.V.f_coefficients k) in
           (* From requires (instantiated at k): `barrett_reduce_post m_arr r_arr`,
-             which gives `v r_arr.[l] % 3329 == v m_arr.[l] % 3329`. *)
+             whose lane-form (revealed above) gives
+             `mod_q_eq (v r_arr.[l]) (v m_arr.[l])`. *)
           assert (TS.barrett_reduce_post m_arr r_arr);
           lemma_mod_q_eq_unfold (v (Seq.index r_arr l)) (v (Seq.index m_arr l));
           assert (v (Seq.index r_arr l) % 3329 == v (Seq.index m_arr l) % 3329);
@@ -1758,7 +1771,11 @@ let lemma_subtract_reduce_iter
         TS.barrett_reduce_post diff_chunk red_chunk)
       (ensures
         subtract_reduce_finalize_chunk myself_chunk red_chunk b_chunk_in)
-  = let aux (k: nat) : Lemma (k < 16 ==>
+  = (* Reveal the lane-form opaque atoms so the per-lane `mod_q_eq` facts
+       extracted from the trait posts are in scope below. *)
+    reveal_opaque (`%TS.montgomery_multiply_lane_post) (TS.montgomery_multiply_lane_post);
+    reveal_opaque (`%TS.barrett_reduce_lane_post) (TS.barrett_reduce_lane_post);
+    let aux (k: nat) : Lemma (k < 16 ==>
         i16_to_spec_fe (Seq.index red_chunk k) ==
           P.impl_FieldElement__sub
             (i16_to_spec_fe (Seq.index myself_chunk k))
