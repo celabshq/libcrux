@@ -333,6 +333,29 @@ let decompress_d_lane_post
   i16_to_spec_fe result ==
   Hacspec_ml_kem.Compress.decompress_d (i16_to_spec_fe input) d
 
+(* Per-lane atoms for L7 (`barrett_reduce_post`) and L8
+   (`montgomery_multiply_by_constant_post`).  Both wrap the underlying
+   `Hacspec_ml_kem.ModQ.mod_q_eq` invocation so that callers above the
+   trait never see the raw `(v _) % 3329` form (which would expose
+   non-linear arithmetic — `v vec[i] * v c * 169` for L8 — to Z3's NRA
+   decision procedure at every consumer that mentions the post).  The
+   `forall16` wrapper at each trait post stays transparent so callers
+   iterate per-lane as opaque atoms.
+
+   Reveal sites:
+     * impl methods (`Vector.{Avx2,Portable}`) — discharge per-lane
+       `mod_q_eq` first, then `reveal_opaque` to fold into the atom.
+     * `Hacspec_ml_kem.Commute.Chunk` lemmas — reveal when bridging the
+       trait post to per-lane FE equations. *)
+
+[@@ "opaque_to_smt"]
+let barrett_reduce_lane_post (vec_i result_i: i16) : prop =
+  Hacspec_ml_kem.ModQ.mod_q_eq (v result_i) (v vec_i)
+
+[@@ "opaque_to_smt"]
+let montgomery_multiply_lane_post (vec_i c result_i: i16) : prop =
+  Hacspec_ml_kem.ModQ.mod_q_eq (v result_i) (v vec_i * v c * 169)
+
 (* Per-branch FE-butterfly predicates for NTT / inverse-NTT layers and
    ntt_multiply.  Each branch covers the 4 lane equations sharing a single
    zeta (or no zeta, for layer 3).  Marked opaque so the FE-algebra
@@ -744,9 +767,8 @@ let ntt_multiply_branch_post
     pub(crate) fn barrett_reduce_post(vec: &[i16; 16], result: &[i16; 16]) -> hax_lib::Prop {
         hax_lib::fstar_prop_expr!(
             r#"is_i16b_array_opaque 3328 ${result} /\
-                (forall i. Hacspec_ml_kem.ModQ.mod_q_eq
-                             (v (Seq.index ${result} i))
-                             (v (Seq.index ${vec} i)))"#
+               Spec.Utils.forall16 (fun (i: nat{i < 16}) ->
+                 barrett_reduce_lane_post (Seq.index ${vec} i) (Seq.index ${result} i))"#
         )
     }
 
@@ -767,9 +789,8 @@ let ntt_multiply_branch_post
     ) -> hax_lib::Prop {
         hax_lib::fstar_prop_expr!(
             r#"is_i16b_array_opaque 3328 ${result} /\
-                (forall i. Hacspec_ml_kem.ModQ.mod_q_eq
-                             (v (Seq.index ${result} i))
-                             (v (Seq.index ${vec} i) * v ${c} * 169))"#
+               Spec.Utils.forall16 (fun (i: nat{i < 16}) ->
+                 montgomery_multiply_lane_post (Seq.index ${vec} i) ${c} (Seq.index ${result} i))"#
         )
     }
 
