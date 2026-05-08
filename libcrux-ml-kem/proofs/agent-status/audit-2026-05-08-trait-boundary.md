@@ -229,3 +229,90 @@ the most-invoked four primitive operations.
   `decompress_*_lane_post`, `ntt_*_branch_post` are out of scope: they
   *are* the hacspec contract that the trait is meant to expose. Keeping
   them opaque (which they already are) is the correct discipline.
+
+## Addendum 2026-05-09 — Impl-side wrapper discipline (orthogonal finding)
+
+While investigating `Vector.Avx2.impl_3` (28.1 s / 362 queries / 1
+saturated rlimit in the cold-baseline 2026-05-08), uncovered a separate
+pattern violation **inside the trait impl block** rather than in the
+spec layer:
+
+> Every `impl Operations for SIMD256Vector` method should be a
+> one-line *direct call* to a function whose signature is exactly
+> `Self → … → Self` — i.e., the wrapper takes/returns the wrapping
+> type, not the inner SIMD primitive.
+
+Most methods follow this:
+
+```rust
+fn cond_subtract_3329(vector: Self) -> Self { op_cond_subtract_3329(vector) }
+fn barrett_reduce(vector: Self) -> Self    { op_barrett_reduce(vector) }
+// … all op_* methods take/return SIMD256Vector
+```
+
+Three methods **violated** this: `add`, `sub`, `multiply_by_constant`
+called the inner-SIMD `arithmetic::*` primitives (which take/return
+`Vec256`) and reconstructed `SIMD256Vector` inline:
+
+```rust
+// BAD (pre-2026-05-09)
+fn add(lhs: Self, rhs: &Self) -> Self {
+    Self { elements: arithmetic::add(lhs.elements, rhs.elements) }
+}
+```
+
+**Effect on the typeclass record assembly check** (`impl_3`'s sub-query 1):
+F* must derive `f_repr (SIMD256Vector { elements: arithmetic::add … }) ==
+vec_to_i16_array …` for each violating field. Combined with the post
+clauses, the WP at the record-assembly site exceeded rlimit 80,
+forcing F* to split-fallback (each field re-checked individually =
+362 queries).
+
+**Fix (commit `93d164cba`):** add `op_add`, `op_sub`,
+`op_multiply_by_constant` `SIMD256Vector → … → SIMD256Vector` wrappers
+mirroring the existing `op_*` family, and make impl methods direct
+calls:
+
+```rust
+// GOOD
+fn add(lhs: Self, rhs: &Self) -> Self { op_add(lhs, rhs) }
+```
+
+**Empirical result:**
+
+| Metric | Before | After |
+|---|---|---|
+| `impl_3` sub-query 1 | 9200 ms FAILED at rlimit 80/80 (saturated) | 2612 ms succeeded at rlimit 24.67/80 |
+| Sub-queries total | 362 (split-fallback) | 1 |
+| Total wall | 28.1 s | ~2.6 s (~10× speedup) |
+
+### Generalisable lint
+
+> Any `impl <Trait> for <ConcreteType>` method whose body does inline
+> record reconstruction (`Self { field: <inner_op>(…) }`) instead of a
+> direct call to a `Self → … → Self` wrapper is a candidate for the
+> same refactor.
+
+`Vector.Portable` already follows the discipline (its
+`arithmetic::*` free functions operate on `PortableVector` directly), so
+no mirror was needed. Worth checking the Neon backend if/when it
+exits `ADMIT_MODULES` — same anti-pattern there would block the
+`impl Operations for SIMD128Vector` record assembly the same way.
+
+### Implication for future trait additions
+
+When adding new methods to `vector::traits::Operations`:
+
+1. The implementation primitive should take/return the **trait's
+   concrete impl type** (`SIMD256Vector`, `PortableVector`,
+   `SIMD128Vector`), not the inner SIMD type.
+2. If the natural primitive operates on the inner type, **always** add
+   a `Self → … → Self` wrapper (`op_<method>`) and have the impl method
+   delegate to it.
+3. The cost of NOT doing this is paid every time the typeclass record
+   is verified — once per consumer that resolves the typeclass
+   instance. This compounds across the codebase.
+
+This finding is **orthogonal to L1–L10**: even after the spec-layer
+boundary cleanup completes, a recurrence of this impl-side pattern
+would re-introduce the same impl_3 cost.
