@@ -619,3 +619,37 @@ Both are minor; flag for a quick follow-up sprint.
 - If profile confirms: do L8 (Montgomery), re-snapshot, expect items 9 +
   24 to drop. Then L7 (Barrett).
 - If profile reveals a different cascade: revise the cleanup plan.
+
+## Snapshot 2 — 2026-05-08 — `impl_3` split_queries test (Track B validation)
+
+**Source:** `/private/tmp/.../tasks/buohvkj2y.output` (worktree
+`libcrux-impl3-split-test`, parent tip `4118f74a4`).
+
+**Change tested:** added `#[cfg_attr(hax, hax_lib::fstar::options("--split_queries always"))]`
+on the `impl Operations for SIMD256Vector` block in
+`libcrux-ml-kem/src/vector/avx2.rs::1165`. No other edits.
+
+**Result:**
+| Metric | Value |
+|---|---|
+| extract_rc | 0 |
+| make_rc | 0 |
+| total queries | 363 |
+| failed | 0 |
+| saturated | 0 |
+| top-3 query ms | 202, 197, 174 |
+| total ms | 18 260 (≈18 s) |
+| max query ms | 202 |
+
+Every query stays well under the 400 ms-with-`split_queries` rlimit
+budget. Track B (`--split_queries always` on impl block) is validated
+as a general fix for one-line-dispatcher impl records.
+
+**Application plan** (deferred until L7+L8 agent's branch merges, since
+both files are touched by the agent):
+- `vector/avx2.rs::1165` `impl Operations for SIMD256Vector` — perf
+  cleanup; impl_3 currently a top-25 cold-time contributor.
+- `vector/portable.rs::950` `impl Operations for PortableVector` — also
+  expected to fix the `Vector.Portable.fst:1008` cold-baseline failure
+  (the `f_from_bytes` post check at the impl-record level is a
+  combined-WP issue that splits cleanly per-method).
