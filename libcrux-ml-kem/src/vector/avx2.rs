@@ -222,6 +222,12 @@ fn op_barrett_reduce(vector: SIMD256Vector) -> SIMD256Vector {
         Classical.forall_intro aux
         "#
     );
+    // Fold per-lane mod_q_eq facts into the opaque `barrett_reduce_lane_post`
+    // form expected by the `forall16` post.
+    hax_lib::fstar!(
+        r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.barrett_reduce_lane_post)
+                    (Libcrux_ml_kem.Vector.Traits.Spec.barrett_reduce_lane_post)"#
+    );
     result
 }
 
@@ -249,6 +255,12 @@ fn op_montgomery_multiply_by_constant(vector: SIMD256Vector, constant: i16) -> S
         in
         Classical.forall_intro aux
         "#
+    );
+    // Fold per-lane mod_q_eq facts into the opaque
+    // `montgomery_multiply_lane_post` form expected by the `forall16` post.
+    hax_lib::fstar!(
+        r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.montgomery_multiply_lane_post)
+                    (Libcrux_ml_kem.Vector.Traits.Spec.montgomery_multiply_lane_post)"#
     );
     result
 }

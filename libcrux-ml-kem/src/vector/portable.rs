@@ -169,11 +169,8 @@ fn op_cond_subtract_3329(vec: PortableVector) -> PortableVector {
     result
 }
 
-#[hax_lib::requires(fstar!(r#"Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque 28296 (impl.f_repr ${vector})"#))]
-#[hax_lib::ensures(|result| fstar!(r#"Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque 3328 (impl.f_repr ${result}) /\
-            (forall i. Hacspec_ml_kem.ModQ.mod_q_eq
-                         (v (Seq.index (impl.f_repr ${result}) i))
-                         (v (Seq.index (impl.f_repr ${vector}) i)))"#))]
+#[hax_lib::requires(spec::barrett_reduce_pre(&vector.repr()))]
+#[hax_lib::ensures(|result| spec::barrett_reduce_post(&vector.repr(), &result.repr()))]
 fn op_barrett_reduce(vector: PortableVector) -> PortableVector {
     hax_lib::fstar!(
         r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
@@ -198,15 +195,17 @@ fn op_barrett_reduce(vector: PortableVector) -> PortableVector {
         Classical.forall_intro aux
         "#
     );
+    // Fold per-lane mod_q_eq facts into the opaque `barrett_reduce_lane_post`
+    // form expected by the `forall16` post.
+    hax_lib::fstar!(
+        r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.barrett_reduce_lane_post)
+                    (Libcrux_ml_kem.Vector.Traits.Spec.barrett_reduce_lane_post)"#
+    );
     result
 }
 
-#[hax_lib::requires(fstar!(r#"Spec.Utils.is_i16b 1664 $constant"#))]
-#[hax_lib::ensures(|result| fstar!(r#"Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque 3328 (impl.f_repr ${result}) /\
-            (forall i. i < 16 ==>
-              Hacspec_ml_kem.ModQ.mod_q_eq
-                (v (Seq.index (impl.f_repr ${result}) i))
-                (v (Seq.index (impl.f_repr ${vector}) i) * v ${constant} * 169))"#))]
+#[hax_lib::requires(spec::montgomery_multiply_by_constant_pre(&vector.repr(), constant))]
+#[hax_lib::ensures(|result| spec::montgomery_multiply_by_constant_post(&vector.repr(), constant, &result.repr()))]
 fn op_montgomery_multiply_by_constant(vector: PortableVector, constant: i16) -> PortableVector {
     hax_lib::fstar!(
         r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
@@ -226,6 +225,12 @@ fn op_montgomery_multiply_by_constant(vector: PortableVector, constant: i16) -> 
         in
         Classical.forall_intro aux
         "#
+    );
+    // Fold per-lane mod_q_eq facts into the opaque
+    // `montgomery_multiply_lane_post` form expected by the `forall16` post.
+    hax_lib::fstar!(
+        r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.montgomery_multiply_lane_post)
+                    (Libcrux_ml_kem.Vector.Traits.Spec.montgomery_multiply_lane_post)"#
     );
     result
 }

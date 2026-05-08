@@ -177,6 +177,10 @@ let op_barrett_reduce (vector: Libcrux_ml_kem.Vector.Portable.Vector_type.t_Port
     in
     Classical.forall_intro aux
   in
+  let _:Prims.unit =
+    reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.barrett_reduce_lane_post)
+      (Libcrux_ml_kem.Vector.Traits.Spec.barrett_reduce_lane_post)
+  in
   result
 
 let op_montgomery_multiply_by_constant
@@ -203,6 +207,10 @@ let op_montgomery_multiply_by_constant
           (v (Seq.index (impl.f_repr vector) i) * v constant * 169)
     in
     Classical.forall_intro aux
+  in
+  let _:Prims.unit =
+    reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.montgomery_multiply_lane_post)
+      (Libcrux_ml_kem.Vector.Traits.Spec.montgomery_multiply_lane_post)
   in
   result
 
