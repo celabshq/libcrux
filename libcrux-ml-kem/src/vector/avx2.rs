@@ -126,6 +126,41 @@ impl crate::vector::traits::Repr for SIMD256Vector {}
 // in `proofs/commutativity-handoff.md` progress tracker row C4′.
 // =====================================================================
 
+// SIMD256Vector→SIMD256Vector wrappers for add/sub/multiply_by_constant.
+// The underlying `arithmetic::*` primitives operate on the inner Vec256
+// type; without these wrappers, the trait impl methods do an inline
+// `{ elements: arithmetic::add(lhs.elements, rhs.elements) }` record
+// reconstruction at every method, inflating impl_3's combined-query
+// check past rlimit 80 (cold-baseline saturation observed
+// 2026-05-08).  Hoisting the wrap into op_* keeps each impl method a
+// thin direct call.
+#[inline(always)]
+#[hax_lib::requires(fstar!(r#"${spec::add_pre} (impl.f_repr ${lhs}) (impl.f_repr ${rhs})"#))]
+#[hax_lib::ensures(|result| fstar!(r#"${spec::add_post} (impl.f_repr ${lhs}) (impl.f_repr ${rhs}) (impl.f_repr ${result})"#))]
+fn op_add(lhs: SIMD256Vector, rhs: &SIMD256Vector) -> SIMD256Vector {
+    SIMD256Vector {
+        elements: arithmetic::add(lhs.elements, rhs.elements),
+    }
+}
+
+#[inline(always)]
+#[hax_lib::requires(fstar!(r#"${spec::sub_pre} (impl.f_repr ${lhs}) (impl.f_repr ${rhs})"#))]
+#[hax_lib::ensures(|result| fstar!(r#"${spec::sub_post} (impl.f_repr ${lhs}) (impl.f_repr ${rhs}) (impl.f_repr ${result})"#))]
+fn op_sub(lhs: SIMD256Vector, rhs: &SIMD256Vector) -> SIMD256Vector {
+    SIMD256Vector {
+        elements: arithmetic::sub(lhs.elements, rhs.elements),
+    }
+}
+
+#[inline(always)]
+#[hax_lib::requires(fstar!(r#"${spec::multiply_by_constant_pre} (impl.f_repr ${vec}) c"#))]
+#[hax_lib::ensures(|result| fstar!(r#"${spec::multiply_by_constant_post} (impl.f_repr ${vec}) c (impl.f_repr ${result})"#))]
+fn op_multiply_by_constant(vec: SIMD256Vector, c: i16) -> SIMD256Vector {
+    SIMD256Vector {
+        elements: arithmetic::multiply_by_constant(vec.elements, c),
+    }
+}
+
 #[inline(always)]
 #[hax_lib::requires(spec::cond_subtract_3329_pre(&vector.repr()))]
 #[hax_lib::ensures(|out| spec::cond_subtract_3329_post(&vector.repr(), &out.repr()))]
@@ -1172,27 +1207,21 @@ impl Operations for SIMD256Vector {
     #[ensures(|result| fstar!(r#"${spec::add_post} (impl.f_repr ${lhs}) (impl.f_repr ${rhs}) (impl.f_repr ${result})"#))]
     #[inline(always)]
     fn add(lhs: Self, rhs: &Self) -> Self {
-        Self {
-            elements: arithmetic::add(lhs.elements, rhs.elements),
-        }
+        op_add(lhs, rhs)
     }
 
     #[requires(fstar!(r#"${spec::sub_pre} (impl.f_repr ${lhs}) (impl.f_repr ${rhs})"#))]
     #[ensures(|result| fstar!(r#"${spec::sub_post} (impl.f_repr ${lhs}) (impl.f_repr ${rhs}) (impl.f_repr ${result})"#))]
     #[inline(always)]
     fn sub(lhs: Self, rhs: &Self) -> Self {
-        Self {
-            elements: arithmetic::sub(lhs.elements, rhs.elements),
-        }
+        op_sub(lhs, rhs)
     }
 
     #[requires(fstar!(r#"${spec::multiply_by_constant_pre} (impl.f_repr ${vec}) c"#))]
     #[ensures(|result| fstar!(r#"${spec::multiply_by_constant_post} (impl.f_repr ${vec}) c (impl.f_repr ${result})"#))]
     #[inline(always)]
     fn multiply_by_constant(vec: Self, c: i16) -> Self {
-        Self {
-            elements: arithmetic::multiply_by_constant(vec.elements, c),
-        }
+        op_multiply_by_constant(vec, c)
     }
 
     #[requires(spec::cond_subtract_3329_pre(&vector.repr()))]
