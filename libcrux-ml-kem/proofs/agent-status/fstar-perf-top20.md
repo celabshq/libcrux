@@ -506,3 +506,116 @@ bodies or hot subtyping checks.  Findings:
 | LOW | `Hacspec_ml_kem.Commute.{Bridges,Chunk}.fst` | various | GLOBAL | Inside lemma proofs that DEFINE the unfolded form | By design.  Don't change. |
 
 **SD4 status: lane is now SD4-clean.**  No remaining GLOBAL `reveal_opaque (\`%P) (P)` form inside any loop body in `invert_ntt.rs` or other impl-side `*.rs`.  The MEDIUM cases use the targeted form correctly.  Future audits should track new occurrences during code review using the regex `reveal_opaque\s*\(\`%[\w.]+\)\s*\(\s*[\w.]+\s*\)` (no instance arguments) inside `hax_lib::fstar!` blocks.
+## Snapshot 2 — 2026-05-08 — cold-baseline at tip `c07306a5b` (post-deserialize_5 + audit)
+
+Source: `/tmp/cold_prove.log` from `make -k -j2 -C proofs/fstar/extraction/`
+after deleting all 177 ml-kem-related `.checked` files.  Quiet machine
+(load avg 3.4, 0 other fstar.exe at start).  Total Z3 wall time across
+all queries: **~22 min**.  Total modules attempted: 1525.
+
+`make rc=2` due to **2 cold-baseline failures** (latent — not addressed
+in this snapshot, see §Failures below).
+
+### Top 25 by total per-function time
+
+| # | Total (s) | Max query (ms) | N | Failed | rlimit-sat | Module | Function |
+|---|---|---|---|---|---|---|---|
+| 1 | 86.1 | 70891 | 57 | 0 | 0 | Libcrux_ml_kem.Vector.Portable | op_ntt_layer_2_step |
+| 2 | 83.9 | 71457 | 57 | 0 | 0 | Libcrux_ml_kem.Vector.Portable | op_inv_ntt_layer_2_step |
+| 3 | 75.6 | 73583 | 70 | 0 | 0 | Libcrux_ml_kem.Vector.Portable | op_inv_ntt_layer_3_step |
+| 4 | 55.3 | 51127 | 70 | 0 | 0 | Libcrux_ml_kem.Vector.Portable | op_ntt_layer_3_step |
+| 5 | 48.8 |   516 | 586 | 121 | 0 | Libcrux_ml_kem.Invert_ntt | invert_ntt_at_layer_1_ |
+| 6 | 46.7 |   201 | 553 | 92 | 0 | Libcrux_ml_kem.Ntt | ntt_at_layer_1_ |
+| 7 | 43.7 |  7553 | 285 | 116 | 0 | Libcrux_ml_kem.Ind_cca.Unpacked | decapsulate |
+| 8 | 35.4 |   288 | 397 | 54 | 0 | Libcrux_ml_kem.Ntt | ntt_at_layer_2_ |
+| 9 | 32.6 | 32600 | 1 | 0 | 0 | Hacspec_ml_kem.Commute.Chunk | lemma_base_case_mult_even_mod_core |
+| 10 | 28.2 |  1811 | 267 | 42 | 0 | Libcrux_ml_kem.Ntt | ntt_at_layer_4_plus |
+| 11 | 28.1 |  9200 | 362 | 1 | 1 | Libcrux_ml_kem.Vector.Avx2 | impl_3 |
+| 12 | 25.9 |   146 | 298 | 44 | 0 | Libcrux_ml_kem.Ntt | ntt_at_layer_3_ |
+| 13 | 19.5 |   551 | 219 | 32 | 0 | Libcrux_ml_kem.Vector.Portable.Ntt | ntt_multiply |
+| 14 | 11.9 |   157 | 104 | 5 | 0 | Libcrux_ml_kem.Vector.Avx2.Serialize | serialize_4_ |
+| 15 | 11.9 |   144 | 122 | 6 | 0 | Libcrux_ml_kem.Invert_ntt | inv_ntt_layer_int_vec_step_reduce |
+| 16 | 11.7 |   140 | 142 | 9 | 0 | Libcrux_ml_kem.Vector.Portable.Ntt | ntt_multiply_binomials |
+| 17 | 11.5 |   221 | 90 | 4 | 0 | Libcrux_ml_kem.Vector.Avx2.Serialize | serialize_1_ |
+| 18 | 10.8 |   153 | 91 | 0 | 0 | Libcrux_ml_kem.Vector.Avx2.Serialize | serialize_5___serialize_5_vec |
+| 19 | 10.7 |   151 | 109 | 1 | 0 | Libcrux_ml_kem.Ind_cpa | encrypt_c1 |
+| 20 | 10.7 |   302 | 109 | 0 | 0 | Libcrux_ml_kem.Ind_cpa | encrypt_unpacked |
+| 21 | 9.5 |   116 | 119 | 8 | 0 | Libcrux_ml_kem.Polynomial | subtract_reduce |
+| 22 | 9.2 |   143 | 78 | 2 | 0 | Libcrux_ml_kem.Vector.Avx2 | op_inv_ntt_layer_3_step |
+| 23 | 9.2 |   143 | 80 | 0 | 0 | Libcrux_ml_kem.Vector.Avx2.Serialize | serialize_12___serialize_12_vec |
+| 24 | 9.2 |  8996 | 3 | 0 | 0 | Libcrux_ml_kem.Vector.Portable.Arithmetic | montgomery_reduce_element |
+| 25 | 9.1 |   149 | 80 | 0 | 0 | Libcrux_ml_kem.Vector.Avx2.Serialize | serialize_10___serialize_10_vec |
+
+### Notable observations
+
+1. **Items 1–4 (Portable op_(inv_)ntt_layer_{2,3}_step) dominate**: each
+   has ONE 51–73 s query that takes most of its total. These are the
+   functions we just bumped to `rlimit 600/800 --fuel 1 --split_queries
+   always` in commits `7a206f303` and `f335c2a87`. The bump worked but
+   these proofs sit at the rlimit edge — the single-query max is 50–70 s
+   wall on a quiet machine. **High contention risk** (any parallel SHA-3
+   / ML-DSA work running can push these over).
+
+2. **Item 9: `lemma_base_case_mult_even_mod_core` (32.6 s, 1 query)** —
+   single Montgomery base-case lemma in `Hacspec_ml_kem.Commute.Chunk`.
+   This is a **prime qi.profile candidate** — single 32 s query is a clean
+   target for cascade-source identification. Likely cascading on the
+   `mod_q_eq` body's raw `% 3329` arithmetic, which is exactly what the
+   audit flagged as L7/L8 leakage. Closing L7+L8 should close or
+   significantly reduce this one.
+
+3. **Items 5, 6, 8, 12 (NTT/inverse-NTT layer_N_):** these are the
+   NTT-driving sprint's targets. High query count + medium-low max-query
+   means they're heavily split. Failed counts (54–121) are mostly "with
+   hint" retries that succeed (per `feedback_no_cache_nuke`).
+
+4. **Item 7: `Ind_cca.Unpacked.decapsulate` (43.7 s, max 7.5 s)** —
+   end-to-end IND-CCA composition. Heavy on integration over the trait
+   posts. Sensitive to trait-post sharpness.
+
+5. **Item 24: `Vector.Portable.Arithmetic.montgomery_reduce_element`
+   (9.2 s, 3 queries, max 9.0 s)** — the Montgomery reduce primitive
+   itself. Sub-query 1 takes ~9 s. **Direct relevance to L8** — this
+   is what `montgomery_multiply_by_constant_post` cites.
+
+6. **Item 11: `Vector.Avx2.impl_3` (28.1 s, max 9.2 s, 362 queries, 1
+   saturated rlimit)** — typeclass instance for AVX2's `t_Operations`.
+   The 1 saturated rlimit is a query at the edge.
+
+### Failures (cold-baseline, latent)
+
+Two `Error 19` failures that the parent worktree's hot cache hid:
+
+1. **`Libcrux_ml_kem.Types.Index_impls.fst:18`** — Subtyping check on
+   `Core_models.Ops.Index.f_index_pre self.f_value i`. rlimit=15
+   (default). "incomplete quantifiers". The `self.f_value.[ index ]`
+   call's pre is not deriving. Likely needs a small rlimit/fuel bump in
+   the source `types.rs` or per-impl pre strengthening.
+
+2. **`Libcrux_ml_kem.Vector.Portable.fst:1008`** — Could not prove
+   post-condition for `f_from_bytes` at rlimit=80 fuel=0. This is the
+   Sprint B trait wrapper we just discharged via `panic_free` + strong
+   ensures (commit `49e70d5d4`). The post fails at the impl
+   `f_from_bytes_post` field check — likely the trait subtype check is
+   re-doing the proof at lower rlimit than the body did. Either:
+   - bump the file-level rlimit in `vector/portable.rs::f_from_bytes`
+     impl block, OR
+   - add a `reveal_opaque` for the relevant lane atoms.
+
+Both are minor; flag for a quick follow-up sprint.
+
+### Implications for next-sprint planning
+
+| Concern | Cold-baseline signal | Next-sprint impact |
+|---|---|---|
+| Items 1–4 (Portable ntt-layer-step bumped at 600/800) | Single-query 50–73 s on a quiet machine | NTT-driving consumers will inherit this latency. Consider rerunning qi.profile on op_ntt_layer_2_step's slowest sub-query to find structural fix. |
+| Item 9 (`lemma_base_case_mult_even_mod_core` 32 s in 1 query) | Single heavy query in Montgomery base case | qi.profile this — likely directly addressed by L8 (Montgomery post opacification). |
+| Item 24 (`montgomery_reduce_element` 9 s in 3 queries) | Sub-query #1 dominates | L8 cleanup should reduce this |
+| 2 cold-baseline failures (Index_impls, Portable.f_from_bytes) | rlimit 15/80 — both at file default | Quick fix sprint (~30 min) — bump rlimit on the impl trait wrappers |
+
+**Recommendation for the L7+L8 sprint (~5 hours per audit estimate):**
+- Run qi.profile on item 9 (`lemma_base_case_mult_even_mod_core`) FIRST
+  to confirm the cascade source matches the audit's L7+L8 prediction.
+- If profile confirms: do L8 (Montgomery), re-snapshot, expect items 9 +
+  24 to drop. Then L7 (Barrett).
+- If profile reveals a different cascade: revise the cleanup plan.
