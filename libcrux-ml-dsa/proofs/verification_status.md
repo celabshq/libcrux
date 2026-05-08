@@ -28,10 +28,10 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 |            | helper            |    1 |   0 |   0 |     |   0 |    0 |      0 |       0 |
 |            | lib               |    1 |   0 |   0 |     |   0 |    0 |      0 |       0 |
 |            | specs             |    1 |   6 |   0 |     |   6 |    0 |      0 |       0 |
-|            | polynomial        |    1 |  11 |   0 |     |   6 |    2 |      3 |       0 |
-|            | ntt               |    1 |  10 |   0 |     |   6 |    0 |      4 |       0 |
+|            | polynomial        |    1 |  15 |   0 |     |  10 |    2 |      3 |       0 |
+|            | ntt               |    1 |  10 |   0 |     |   6 |    0 |      2 |       2 |
 |            | arithmetic        |    1 |   7 |   2 |     |   3 |    0 |      2 |       0 |
-|            | matrix            |    1 |   6 |   3 |     |   0 |    0 |      3 |       0 |
+|            | matrix            |    1 |  11 |   0 |     |   0 |    0 |     11 |       0 |
 |            | sample            |    1 |  21 |   5 |     |  11 |    5 |      0 |       0 |
 |            | samplex4          |    1 |   7 |   7 |     |   0 |    0 |      0 |       0 |
 |            | pre_hash          |    1 |   9 |   0 |     |   7 |    2 |      0 |       0 |
@@ -42,7 +42,7 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 |            | simd (top)        |    1 |   0 |   0 |     |   0 |    0 |      0 |       0 |
 |            | simd/traits       |    2 |  33 |   0 |     |   6 |   15 |      4 |       8 |
 |            | simd/tests        |    1 |   6 |   0 |   6 |   0 |    0 |      0 |       0 |
-|            | **Generic total** | **31** | **349** | **74** | **6** | **201** | **41** | **19** |   **8** |
+|            | **Generic total** | **31** | **358** | **71** | **6** | **205** | **41** | **25** |  **10** |
 |            |                   |      |     |     |     |     |      |        |         |
 | _Portable_ | vector_type       |    1 |   3 |   0 |     |   3 |    0 |      0 |       0 |
 |            | arithmetic        |    1 |  21 |   0 |     |   2 |    3 |      1 |      15 |
@@ -65,20 +65,20 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 ## Summary
 
 - **Total modules**: 58
-- **Total functions**: 578
-- **Lax** (admitted): 100 (17.3%)
+- **Total functions**: 587
+- **Lax** (admitted): 97 (16.5%)
 - **Unverified** (not extracted): 6 (1.0%)
-- **Panic-safe** (PF + Math + Bounds + Hacspec): 472 (81.7%)
-  - Panic-free only (no further proof): 228 (39.4%)
-  - Math (non-trivial ensures, no bounds/spec match): 131 (22.7%)
-  - Bounds (range/interval ensures): 60 (10.4%)
-  - Hacspec (cites high-level spec): 53 (9.2%)
+- **Panic-safe** (PF + Math + Bounds + Hacspec): 484 (82.5%)
+  - Panic-free only (no further proof): 232 (39.5%)
+  - Math (non-trivial ensures, no bounds/spec match): 131 (22.3%)
+  - Bounds (range/interval ensures): 66 (11.2%)
+  - Hacspec (cites high-level spec): 55 (9.4%)
 
 ### Modules per category
 
 | Category     | Modules |  Fns | Lax | Unv |  PF | Math | Bounds | Hacspec |
 | ------------ | ------- | ---- | --- | --- | --- | ---- | ------ | ------- |
-| Generic      |      31 |  349 |  74 |   6 | 201 |   41 |     19 |       8 |
+| Generic      |      31 |  358 |  71 |   6 | 205 |   41 |     25 |      10 |
 | Portable     |      12 |  118 |   5 |   0 |  10 |   37 |     38 |      28 |
 | Avx2         |      15 |  111 |  21 |   0 |  17 |   53 |      3 |      17 |
 
@@ -96,27 +96,24 @@ Functions classified as lax due to `admit ()` (or `--admit_smt_queries true`) in
 
 | Module                    |  Line |
 | ------------------------- | ----- |
-| Generic/arithmetic        |    85 |
-| Generic/arithmetic        |   240 |
-| Generic/matrix            |    44 |
-| Generic/matrix            |    94 |
-| Generic/matrix            |   278 |
-| Generic/sample            |    71 |
-| Generic/sample            |   277 |
-| Generic/sample            |   379 |
-| Generic/sample            |   401 |
-| Generic/sample            |   499 |
+| Generic/arithmetic        |    84 |
+| Generic/arithmetic        |   242 |
+| Generic/sample            |    87 |
+| Generic/sample            |   306 |
+| Generic/sample            |   408 |
+| Generic/sample            |   430 |
+| Generic/sample            |   528 |
 | Generic/encoding          |    69 |
-| Generic/ml_dsa_generic    |    57 |
-| Generic/ml_dsa_generic    |   134 |
-| Generic/ml_dsa_generic    |   364 |
-| Generic/ml_dsa_generic    |   487 |
-| Generic/ml_dsa_generic    |   524 |
-| Generic/ml_dsa_generic    |   568 |
-| Generic/ml_dsa_generic    |   597 |
-| Generic/ml_dsa_generic    |   628 |
-| Generic/ml_dsa_generic    |   655 |
-| Generic/ml_dsa_generic    |   707 |
+| Generic/ml_dsa_generic    |    75 |
+| Generic/ml_dsa_generic    |   220 |
+| Generic/ml_dsa_generic    |   450 |
+| Generic/ml_dsa_generic    |   573 |
+| Generic/ml_dsa_generic    |   610 |
+| Generic/ml_dsa_generic    |   654 |
+| Generic/ml_dsa_generic    |   704 |
+| Generic/ml_dsa_generic    |   753 |
+| Generic/ml_dsa_generic    |   780 |
+| Generic/ml_dsa_generic    |   832 |
 | Portable/simd (top)       |   528 |
 | Portable/simd (top)       |   540 |
 | Portable/simd (top)       |   552 |

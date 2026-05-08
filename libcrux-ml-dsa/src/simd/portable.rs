@@ -64,7 +64,7 @@ pub(crate) fn infinity_norm_exceeds_with_proof(simd_unit: &Coefficients, bound: 
         (Seq.index (${lhs.repr()}) i)
         (Seq.index (${rhs.repr()}) i)
         (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${lhs}_future) i)) /\
-    (forall (i:nat). i < 8 ==>
+    Spec.Utils.forall8 (fun (i: nat{i < 8}) ->
       Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${lhs}_future) i ==
       Spec.MLDSA.Math.mont_mul (Seq.index (${lhs.repr()}) i) (Seq.index (${rhs.repr()}) i))"#))]
 pub(crate) fn montgomery_multiply_with_proof(lhs: &mut Coefficients, rhs: &Coefficients) {
@@ -88,7 +88,8 @@ pub(crate) fn montgomery_multiply_with_proof(lhs: &mut Coefficients, rhs: &Coeff
 }
 
 #[hax_lib::requires(fstar!(r#"v $SHIFT_BY == 13 /\
-    (forall i. i < 8 ==> v (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${simd_unit}) i) >= 0 /\
+    Spec.Utils.forall8 (fun (i: nat{i < 8}) ->
+        v (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${simd_unit}) i) >= 0 /\
         v (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${simd_unit}) i) <= 261631)"#))]
 #[hax_lib::ensures(|_| fstar!(r#"
     Spec.Utils.forall8 (fun (i: nat{i < 8}) ->
@@ -176,12 +177,14 @@ pub(crate) fn power2round_with_proof(t0: &mut Coefficients, t1: &mut Coefficient
     );
 }
 
+// 2026-05-08: `--z3rlimit 200` (state (d)) — see Avx2 impl block comment.
+#[hax_lib::fstar::options("--z3rlimit 200")]
 #[hax_lib::requires(fstar!(r#"
-    (forall (i:nat). i < 32 ==>
+    Spec.Utils.forall32 (fun (i: nat{i < 32}) ->
         Spec.Utils.is_i32b_array_opaque 2143289343
             (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index ${simd_units} i)))"#))]
 #[hax_lib::ensures(|_| fstar!(r#"
-    (forall (j:nat). j < 32 ==>
+    Spec.Utils.forall32 (fun (j: nat{j < 32}) ->
       Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX})
         (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index ${simd_units}_future j)) /\
       Spec.Utils.forall8 (fun (i: nat{i < 8}) ->
@@ -233,6 +236,8 @@ pub(crate) fn reduce_with_proof(simd_units: &mut [Coefficients; SIMD_UNITS_IN_RI
     "#);
 }
 
+// 2026-05-08: `--z3rlimit 200` (state (d)) — see Avx2 sibling comment.
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 200"))]
 #[hax_lib::attributes]
 impl Operations for Coefficients {
     #[ensures(|result| result.repr() == [0i32; COEFFICIENTS_IN_SIMD_UNIT])]
@@ -475,22 +480,21 @@ impl Operations for Coefficients {
 
     #[requires(fstar!(r#"
         Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX}) (${rhs.repr()})"#))]
+    // 2026-05-08: matches the trait declaration drop (Phase A item 10).
     #[ensures(|_| fstar!(r#"
         Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX}) (Libcrux_ml_dsa.Simd.Traits.f_repr ${lhs}_future) /\
         Spec.Utils.forall8 (fun (i: nat{i < 8}) ->
           Libcrux_ml_dsa.Simd.Traits.Specs.montgomery_multiply_lane_post
             (Seq.index (${lhs.repr()}) i)
             (Seq.index (${rhs.repr()}) i)
-            (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${lhs}_future) i)) /\
-        (forall (i:nat). i < 8 ==>
-          Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${lhs}_future) i ==
-          Spec.MLDSA.Math.mont_mul (Seq.index (${lhs.repr()}) i) (Seq.index (${rhs.repr()}) i))"#))]
+            (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${lhs}_future) i))"#))]
     fn montgomery_multiply(lhs: &mut Coefficients, rhs: &Coefficients) {
         montgomery_multiply_with_proof(lhs, rhs)
     }
 
     #[requires(fstar!(r#"v $SHIFT_BY == 13 /\
-        (forall i. i < 8 ==> v (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${simd_unit}) i) >= 0 /\
+        Spec.Utils.forall8 (fun (i: nat{i < 8}) ->
+            v (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${simd_unit}) i) >= 0 /\
             v (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${simd_unit}) i) <= 261631)"#))]
     #[ensures(|_| fstar!(r#"
         Spec.Utils.forall8 (fun (i: nat{i < 8}) ->
@@ -651,7 +655,7 @@ impl Operations for Coefficients {
 
     #[requires(fstar!(r#"
         Seq.length $out == 10 /\
-        (forall (i: nat). i < 8 ==>
+        Spec.Utils.forall8 (fun (i: nat{i < 8}) ->
           v (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${simd_unit}) i) >= 0 /\
           v (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${simd_unit}) i) < pow2 10)"#))]
     #[ensures(|_| fstar!(r#"
@@ -670,13 +674,14 @@ impl Operations for Coefficients {
     }
 
     #[requires(fstar!(r#"
-        (forall (i:nat). i < 32 ==>
+        Spec.Utils.forall32 (fun (i: nat{i < 32}) ->
             Spec.Utils.is_i32b_array_opaque
             (v ${specs::NTT_BASE_BOUND})
             (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index ${simd_units} i)))
     "#))]
     #[ensures(|_| fstar!(r#"
-        (forall (i:nat). i < 32 ==> Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX})
+        Spec.Utils.forall32 (fun (i: nat{i < 32}) ->
+            Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX})
             (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index ${simd_units}_future i)))
     "#))]
     fn ntt(simd_units: &mut [Coefficients; SIMD_UNITS_IN_RING_ELEMENT]) {
@@ -685,11 +690,13 @@ impl Operations for Coefficients {
     }
 
     #[requires(fstar!(r#"
-        (forall (i:nat). i < 32 ==> Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX})
+        Spec.Utils.forall32 (fun (i: nat{i < 32}) ->
+            Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX})
             (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index ${simd_units} i)))
     "#))]
     #[ensures(|_| fstar!(r#"
-        (forall (i:nat). i < 32 ==> Spec.Utils.is_i32b_array_opaque 4211177
+        Spec.Utils.forall32 (fun (i: nat{i < 32}) ->
+            Spec.Utils.is_i32b_array_opaque 4211177
             (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index ${simd_units}_future i)))
     "#))]
     fn invert_ntt_montgomery(simd_units: &mut [Coefficients; SIMD_UNITS_IN_RING_ELEMENT]) {
@@ -698,11 +705,11 @@ impl Operations for Coefficients {
     }
 
     #[requires(fstar!(r#"
-        (forall (i:nat). i < 32 ==>
+        Spec.Utils.forall32 (fun (i: nat{i < 32}) ->
             Spec.Utils.is_i32b_array_opaque 2143289343
                 (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index ${simd_units} i)))"#))]
     #[ensures(|_| fstar!(r#"
-        (forall (j:nat). j < 32 ==>
+        Spec.Utils.forall32 (fun (j: nat{j < 32}) ->
           Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX})
             (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index ${simd_units}_future j)) /\
           Spec.Utils.forall8 (fun (i: nat{i < 8}) ->

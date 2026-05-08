@@ -28,6 +28,228 @@ be moved to `fstar-perf-top20.archive.md` if the file gets long.
 
 ---
 
+## Snapshot 2026-05-08b (after `--split_queries always` on impl_1 + reduce_with_proof)
+
+Source: `verification_result.txt` from `JOBS=4 ./hax.sh prove` after
+`rm -f /Users/karthik/libcrux-ml-dsa-proofs/.fstar-cache/checked/Libcrux_ml_dsa.*.fst.checked`.
+HEAD `9b5b75b4b` + uncommitted edits this session:
+- `Ml_dsa_generic::generate_key_pair` body re-admitted
+- `Operations::montgomery_multiply` post: dropped `mont_mul` clause
+  (audit Phase A item 10)
+- `impl Operations for AVX2SIMDUnit` annotated with
+  `#[hax_lib::fstar::options("--split_queries always")]`
+- `impl Operations for Coefficients` (Portable) same
+- `reduce_with_proof` (Portable free fn) same
+
+Build: 99 modules invoked (incl. transitive Spec.\*), [CHECK]=82, [ADMIT]=17,
+**0 F\* errors, 0 make-level failures**.
+
+### Headline deltas vs Snapshot 2026-05-08
+
+| Function | 05-08 | 05-08b | Δ |
+|---|---:|---:|---|
+| `Simd.Avx2::impl_1` | 57.40s, FAILED-then-OK rlimit-sat | **11.80s, clean** | **-79%** |
+| `Simd.Portable::impl_1` | 39.53s, FAILED-then-OK rlimit-sat | **0.52s, clean (4 queries)** | **-99%** |
+| `Simd.Portable::reduce_with_proof` | 17.75s, FAILED-then-OK rlimit-sat | **1.72s, clean** | **-90%** |
+
+The Portable impl_1 collapse from 547 queries to 4 confirms the Track B
+`*_with_proof` free-fn split was load-bearing — once `--split_queries always`
+let F\* check each method's contract independently, impl_1's function-level
+VC reduces to a handful of dispatcher checks.  Same expected (modulo Track
+B not being applied to Avx2 yet) for the Avx2 collapse.
+
+### Top-25 per-function totals
+
+| # | Function | Module | total (s) | max query (ms) | queries | flags |
+|---|---|---|---:|---:|---:|---|
+| 1 | `ntt_at_layer_3_` | `L_md.Simd.Portable.Ntt` | 73.74 | 8613 | 36 | — |
+| 2 | `invert_ntt_at_layer_3_` | `L_md.Simd.Portable.Invntt` | 72.55 | 8879 | 36 | — |
+| 3 | `impl_1` | `L_md.Simd.Avx2` | 11.80 | 4101 | 40 | — |
+| 4 | `deserialize` | `L_md.Simd.Portable.Encoding.T0` | 8.40 | 7603 | 18 | — |
+| 5 | `ntt_at_layer_0_` | `L_md.Simd.Portable.Ntt` | 5.33 | 197 | 64 | — |
+| 6 | `invert_ntt_at_layer_0_` | `L_md.Simd.Portable.Invntt` | 4.82 | 169 | 64 | — |
+| 7 | `decompose_element` | `L_md.Simd.Portable.Arithmetic` | 4.61 | 338 | 18 | — |
+| 8 | `ntt_at_layer_4_` | `L_md.Simd.Portable.Ntt` | 4.53 | 903 | 20 | — |
+| 9 | `invert_ntt_at_layer_4_` | `L_md.Simd.Portable.Invntt` | 4.52 | 829 | 20 | — |
+| 10 | `ntt_at_layer_1_` | `L_md.Simd.Portable.Ntt` | 3.76 | 130 | 64 | — |
+| 11 | `invert_ntt_at_layer_1_` | `L_md.Simd.Portable.Invntt` | 3.49 | 116 | 64 | — |
+| 12 | `ntt_at_layer_2_` | `L_md.Simd.Portable.Ntt` | 3.04 | 107 | 64 | — |
+| 13 | `invert_ntt_at_layer_2_` | `L_md.Simd.Portable.Invntt` | 2.77 | 92 | 64 | — |
+| 14 | `reduce_with_proof` | `L_md.Simd.Portable` | 1.72 | 571 | 95 | — |
+| 15 | `ntt_dot_accumulate` | `L_md.Matrix` | 1.12 | 116 | 41 | — |
+| 16 | `inv_ntt_and_add_s2` | `L_md.Matrix` | 0.54 | 43 | 20 | — |
+| 17 | `impl_1` | `L_md.Simd.Portable` | 0.52 | 418 | 4 | — |
+| 18 | `deserialize_when_gamma1_is_2_pow_17_` | `L_md.Simd.Portable.Encoding.Gamma1` | 0.51 | 55 | 14 | — |
+| 19 | `generate_key_pair` | `L_md.Ml_dsa_generic.Ml_dsa_87_` | 0.41 | 248 | 5 | admitted body |
+| 20 | `generate_key_pair` | `L_md.Ml_dsa_generic.Ml_dsa_65_` | 0.40 | 241 | 5 | admitted body |
+| 21 | `generate_key_pair` | `L_md.Ml_dsa_generic.Ml_dsa_44_` | 0.39 | 231 | 5 | admitted body |
+| 22 | `compute_w_approx` | `L_md.Matrix` | 0.31 | 39 | 11 | — |
+| 23 | `ntt_at_layer_5_` | `L_md.Simd.Portable.Ntt` | 0.30 | 47 | 11 | — |
+| 24 | `invert_ntt_at_layer_5_` | `L_md.Simd.Portable.Invntt` | 0.27 | 43 | 11 | — |
+| 25 | `outer_3_plus` | `L_md.Simd.Portable.Invntt` | 0.25 | 29 | 13 | — |
+
+### Top module totals
+
+| # | Module | total (s) |
+|---|---|---:|
+| 1 | `L_md.Simd.Portable.Ntt` | 91.17 |
+| 2 | `L_md.Simd.Portable.Invntt` | 89.10 |
+| 3 | `L_md.Simd.Avx2` | 11.80 |
+| 4 | `L_md.Simd.Portable.Encoding.T0` | 8.40 |
+| 5 | `L_md.Simd.Portable.Arithmetic` | 5.17 |
+| 6 | `L_md.Simd.Portable` | 2.24 |
+| 7 | `L_md.Matrix` | 2.07 |
+
+### Untouched outliers (potential next targets)
+
+The big remaining cliffs are now:
+1. `Simd.Portable.Ntt::ntt_at_layer_3_` (74s, 36 queries) — the per-layer
+   NTT body proof is the new top.  Pre-existing structural shape; not
+   helped by split_queries on the trait impl since this is below the
+   trait impl block.
+2. `Simd.Portable.Invntt::invert_ntt_at_layer_3_` (73s, same shape).
+3. `Simd.Portable.Encoding.T0::deserialize` (8.4s, 18 queries) — also
+   one of the 3 hard-fail-without-hints functions.
+
+The hard-fail-without-hints set (per `hint-deletion-experiment-2026-05-08.md`)
+pre-edit was 3 functions: `compute_matrix_x_mask`, `T0::deserialize`,
+`Gamma1::deserialize_when_gamma1_is_2_pow_17_`.  Re-running the no-hints
+prove with the current edits is in progress to confirm whether any of
+those changed status (most likely unchanged — they were not the targets
+of these edits).
+
+---
+
+## Snapshot 2026-05-08 (cold-cache baseline before trait-opacity remediation)
+
+Source: `verification_result.txt` from `JOBS=4 ./hax.sh prove` after
+`rm -f /Users/karthik/libcrux-ml-dsa-proofs/.fstar-cache/checked/Libcrux_ml_dsa.*.fst.checked`.
+HEAD `9b5b75b4b` + tactical body-admit on `Ml_dsa_generic::generate_key_pair`
+(see `proofs/agent-status/abstraction-boundary-audit-2026-05-07.md`).
+
+Build: 85 modules invoked, [CHECK]=68, [ADMIT]=17, **0 F\* errors,
+0 make-level failures**.  Cold-cache wall: ~30 min.  This is the
+baseline against which the trait-opacity remediations
+(audit Phase A items 10, 11, 12, 13–15, 20, 23, 24, 25, 26, 27)
+will be measured.
+
+**Why this matters for the audit**: the q60 cliff in `generate_key_pair`
+that motivated the audit is invisible here (rows 20–22, all 0.36–0.38s)
+because the body is admitted.  The trait-opacity remediation needs to
+keep the trait-impl modules (rows 1–11) at or below their current
+totals while *also* being strong enough to discharge `generate_key_pair`'s
+body when the admit is removed.  Re-profile after each opacity change
++ before un-admitting.
+
+### Top-25 per-function totals
+
+| # | Function | Module | total (s) | max query (ms) | queries | flags |
+|---|---|---|---:|---:|---:|---|
+| 1 | `ntt_at_layer_3_` | `L_md.Simd.Portable.Ntt` | 71.11 | 8273 | 36 | — |
+| 2 | `invert_ntt_at_layer_3_` | `L_md.Simd.Portable.Invntt` | 67.95 | 8295 | 36 | — |
+| 3 | `impl_1` | `L_md.Simd.Avx2` | 57.40 | 11669 | 633 | FAILED-then-OK, rlimit-sat |
+| 4 | `impl_1` | `L_md.Simd.Portable` | 39.53 | 13561 | 547 | FAILED-then-OK, rlimit-sat |
+| 5 | `reduce_with_proof` | `L_md.Simd.Portable` | 17.75 | 15918 | 105 | FAILED-then-OK, rlimit-sat |
+| 6 | `deserialize` | `L_md.Simd.Portable.Encoding.T0` | 7.70 | 7014 | 18 | — |
+| 7 | `ntt_at_layer_0_` | `L_md.Simd.Portable.Ntt` | 4.77 | 168 | 64 | — |
+| 8 | `invert_ntt_at_layer_0_` | `L_md.Simd.Portable.Invntt` | 4.50 | 160 | 64 | — |
+| 9 | `invert_ntt_at_layer_4_` | `L_md.Simd.Portable.Invntt` | 4.35 | 828 | 20 | — |
+| 10 | `ntt_at_layer_4_` | `L_md.Simd.Portable.Ntt` | 4.34 | 869 | 20 | — |
+| 11 | `decompose_element` | `L_md.Simd.Portable.Arithmetic` | 4.29 | 338 | 18 | — |
+| 12 | `power2round` | `L_md.Simd.Avx2.Arithmetic` | 3.58 | 3576 | 1 | — |
+| 13 | `ntt_at_layer_1_` | `L_md.Simd.Portable.Ntt` | 3.34 | 115 | 64 | — |
+| 14 | `invert_ntt_at_layer_1_` | `L_md.Simd.Portable.Invntt` | 3.31 | 112 | 64 | — |
+| 15 | `ntt_at_layer_2_` | `L_md.Simd.Portable.Ntt` | 2.74 | 97 | 64 | — |
+| 16 | `invert_ntt_at_layer_2_` | `L_md.Simd.Portable.Invntt` | 2.66 | 89 | 64 | — |
+| 17 | `ntt_dot_accumulate` | `L_md.Matrix` | 1.08 | 125 | 41 | — |
+| 18 | `inv_ntt_and_add_s2` | `L_md.Matrix` | 0.49 | 40 | 20 | — |
+| 19 | `deserialize_when_gamma1_is_2_pow_17_` | `L_md.Simd.Portable.Encoding.Gamma1` | 0.48 | 53 | 14 | — |
+| 20 | `generate_key_pair` | `L_md.Ml_dsa_generic.Ml_dsa_65_` | 0.38 | 233 | 5 | admitted body |
+| 21 | `generate_key_pair` | `L_md.Ml_dsa_generic.Ml_dsa_87_` | 0.37 | 229 | 5 | admitted body |
+| 22 | `generate_key_pair` | `L_md.Ml_dsa_generic.Ml_dsa_44_` | 0.36 | 227 | 5 | admitted body |
+| 23 | `compute_w_approx` | `L_md.Matrix` | 0.29 | 35 | 11 | — |
+| 24 | `ntt_at_layer_5_` | `L_md.Simd.Portable.Ntt` | 0.28 | 43 | 11 | — |
+| 25 | `invert_ntt_at_layer_5_` | `L_md.Simd.Portable.Invntt` | 0.25 | 39 | 11 | — |
+
+### Top-25 module totals
+
+| # | Module | total (s) | functions tracked |
+|---|---|---:|---:|
+| 1 | `L_md.Simd.Portable.Ntt` | 87.00 | 14 |
+| 2 | `L_md.Simd.Portable.Invntt` | 83.68 | 13 |
+| 3 | `L_md.Simd.Avx2` | 57.40 | 1 |
+| 4 | `L_md.Simd.Portable` | 57.28 | 2 |
+| 5 | `L_md.Simd.Portable.Encoding.T0` | 7.70 | 1 |
+| 6 | `L_md.Simd.Portable.Arithmetic` | 4.79 | 4 |
+| 7 | `L_md.Simd.Avx2.Arithmetic` | 3.68 | 6 |
+| 8 | `L_md.Matrix` | 1.97 | 4 |
+| 9 | `L_md.Simd.Portable.Encoding.Gamma1` | 0.61 | 2 |
+| 10 | `L_md.Ml_dsa_generic.Ml_dsa_65_` | 0.38 | 1 |
+| 11 | `L_md.Ml_dsa_generic.Ml_dsa_87_` | 0.37 | 1 |
+| 12 | `L_md.Ml_dsa_generic.Ml_dsa_44_` | 0.36 | 1 |
+| 13 | `L_md.Polynomial` | 0.24 | 1 |
+| 14 | `L_md.Encoding.Signature` | 0.21 | 1 |
+| 15 | `L_md.Encoding.Signing_key` | 0.20 | 1 |
+| 16 | `L_md.Simd.Avx2.Invntt` | 0.17 | 1 |
+| 17 | `L_md.Simd.Avx2.Ntt` | 0.14 | 3 |
+| 18 | `L_md.Encoding.Verification_key` | 0.14 | 1 |
+| 19 | `L_md.Simd.Avx2.Encoding.Error` | 0.06 | 1 |
+| 20 | `L_md.Simd.Avx2.Encoding.Gamma1` | 0.05 | 2 |
+| 21 | `L_md.Simd.Avx2.Encoding.T0` | 0.04 | 3 |
+
+_Sample size: 2080 Query-stats lines, ~306s total Z3 time, across 64
+functions in 21 modules._
+
+### Observations vs 2026-04-29b
+
+| Observation | Then (2026-04-29b) | Now (2026-05-08) |
+|---|---|---|
+| `ntt_at_layer_3_` total | 132.42 s, 684 queries | 71.11 s, **36 queries** |
+| `invert_ntt_at_layer_3_` total | 132.42 s, 684 queries | 67.95 s, **36 queries** |
+| `Simd.Avx2::impl_1` total | 50.35 s, 603 queries | 57.40 s, 633 queries |
+| `Simd.Portable::impl_1` total | 35.66 s, 541 queries | 39.53 s, 547 queries |
+| `reduce_with_proof` total | 20.84 s, 106 queries | 17.75 s, 105 queries |
+| `decompose_element` total | 16.66 s, 100 queries | 4.29 s, 18 queries |
+
+The `ntt_at_layer_3_` query count drop (684 → 36) is the headline
+change.  Sprint 3+3.5+4 closures (compute_matrix_x_mask, opacify
+range/slice, compute_w_approx) and the keygen-cone opacification
+appear to have collapsed a quantifier branching factor in the NTT
+trait impl.  The total time dropped accordingly (132 → 71 s).
+
+**`decompose_element` saw a similar drop** (100 → 18 queries; 16.66 →
+4.29 s).  Likely fallout from the per-lane `decompose_lane_post`
+opacity work (Phase B item ⑤ in the audit).
+
+`Simd.Avx2::impl_1` and `Simd.Portable::impl_1` and `reduce_with_proof`
+remain at the same FAILED-then-OK rlimit-saturated pattern as
+2026-04-29b — pre-existing, not a regression.
+
+**New on this snapshot**: `Simd.Portable.Encoding.T0::deserialize`
+at 7.70 s with max single query 7.0 s in just 18 queries — a single
+borderline-cliff sub-query.  Cause unknown; not in 2026-04-29b.
+Targeted qi.profile candidate.
+
+### qi.profile targets (next step)
+
+In order of expected leverage on the trait-opacity remediation:
+
+1. `Simd.Avx2::impl_1` max query 11.7 s — touches the AVX2 trait
+   impl whose post/pre is the audit's Phase A target.
+2. `Simd.Portable::impl_1` max query 13.6 s — same shape as above.
+3. `Simd.Portable::reduce_with_proof` max query 15.9 s — uses
+   `reduce_lane_post` (audit Phase B item ④).
+4. `Simd.Portable.Encoding.T0::deserialize` max query 7.0 s — new
+   outlier; likely a stale-shape consumer of `t0_deserialize` post.
+5. `Simd.Portable.Ntt::ntt_at_layer_3_` max query 8.3 s — touches
+   the NTT trait pre/post (audit Phase A item 25).
+6. `Simd.Portable.Invntt::invert_ntt_at_layer_3_` max query 8.3 s —
+   same shape, audit Phase A item 26.
+7. `Simd.Avx2.Arithmetic::power2round` total 3.6 s in **1 query** —
+   single borderline query, audit Phase A item 12 candidate.
+
+---
+
 ## Snapshot 2026-04-29c (Step 14 Track D-2 — `*_deserialize` trait body close, partial)
 
 Source: `/tmp/d2-iter12.log` (Step 14 Track D-2 close commit batch

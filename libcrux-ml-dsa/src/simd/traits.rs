@@ -127,21 +127,31 @@ pub(crate) trait Operations: Copy + Clone + Repr {
     // Modular operations
     #[hax_lib::requires(fstar!(r#"
         Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX}) (${rhs.repr()})"#))]
+    // 2026-05-08 (audit Phase A item 10): dropped third clause
+    //   `forall (i:nat). i < 8 ==> Seq.index ... == Spec.MLDSA.Math.mont_mul ...`
+    // because `mont_mul` is a non-opaque (transparent) wrapper over `mont_red`/`i32_mul`,
+    // so the bare `forall i<8` Skolem leaked raw arithmetic above the trait at every
+    // call site (k!61 cascade candidate per
+    // proofs/agent-status/abstraction-boundary-audit-2026-05-07.md).  Audit confirmed
+    // zero above-trait consumers reference `Spec.MLDSA.Math.mont_mul`, so this is a
+    // free clause-drop.  The free-fn posts (avx2/arithmetic.rs, portable/arithmetic.rs,
+    // portable.rs::montgomery_multiply_with_proof) retain the mont_mul clause; that
+    // lives below the trait boundary and is fine.
     #[hax_lib::ensures(|result| fstar!(r#"
         Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX}) (f_repr ${lhs}_future) /\
         Spec.Utils.forall8 (fun (i: nat{i < 8}) ->
           Libcrux_ml_dsa.Simd.Traits.Specs.montgomery_multiply_lane_post
             (Seq.index (${lhs.repr()}) i)
             (Seq.index (${rhs.repr()}) i)
-            (Seq.index (f_repr ${lhs}_future) i)) /\
-        (forall (i:nat). i < 8 ==>
-          Seq.index (f_repr ${lhs}_future) i ==
-          Spec.MLDSA.Math.mont_mul (Seq.index (${lhs.repr()}) i) (Seq.index (${rhs.repr()}) i))"#))]
+            (Seq.index (f_repr ${lhs}_future) i))"#))]
     fn montgomery_multiply(lhs: &mut Self, rhs: &Self);
 
     // 261631 is the largest x such that x * pow2 13 <= 2143289343 (the barrett reduce input bound)
+    // 2026-05-08: bare `forall i. i < 8 ==> ...` → `Spec.Utils.forall8` (transparent macro
+    // that unfolds to a finite 8-way conjunction; no Z3 quantifier instantiation).
     #[hax_lib::requires(fstar!(r#"v $SHIFT_BY == 13 /\
-        (forall i. i < 8 ==> v (Seq.index (f_repr ${simd_unit}) i) >= 0 /\
+        Spec.Utils.forall8 (fun (i: nat{i < 8}) ->
+            v (Seq.index (f_repr ${simd_unit}) i) >= 0 /\
             v (Seq.index (f_repr ${simd_unit}) i) <= 261631)"#))]
     #[hax_lib::ensures(|_| fstar!(r#"
         Spec.Utils.forall8 (fun (i: nat{i < 8}) ->
@@ -302,9 +312,10 @@ pub(crate) trait Operations: Copy + Clone + Repr {
     fn t0_deserialize(serialized: &[u8], out: &mut Self);
 
     // t1: simple_bit_pack with width 10.
+    // 2026-05-08: bare `forall (i: nat). i < 8 ==> ...` → `Spec.Utils.forall8`.
     #[hax_lib::requires(fstar!(r#"
         Seq.length $out == 10 /\
-        (forall (i: nat). i < 8 ==>
+        Spec.Utils.forall8 (fun (i: nat{i < 8}) ->
           v (Seq.index (f_repr ${simd_unit}) i) >= 0 /\
           v (Seq.index (f_repr ${simd_unit}) i) < pow2 10)"#))]
     #[hax_lib::ensures(|_| fstar!(r#"
@@ -318,14 +329,19 @@ pub(crate) trait Operations: Copy + Clone + Repr {
     fn t1_deserialize(serialized: &[u8], out: &mut Self);
 
     // NTT
+    // 2026-05-08: bare `forall (i:nat). i < 32 ==> ...` → `Spec.Utils.forall32` here
+    // and on `invert_ntt_montgomery` / `reduce` below.  Same rationale as forall8:
+    // transparent macro unfolds to a 32-way conjunction so Z3 doesn't instantiate
+    // a quantifier at the call site.
     #[hax_lib::requires(fstar!(r#"
-        (forall (i:nat). i < 32 ==> 
-            Spec.Utils.is_i32b_array_opaque 
+        Spec.Utils.forall32 (fun (i: nat{i < 32}) ->
+            Spec.Utils.is_i32b_array_opaque
             (v ${specs::NTT_BASE_BOUND})
             (f_repr (Seq.index ${simd_units} i)))
     "#))]
     #[hax_lib::ensures(|_| fstar!(r#"
-        (forall (i:nat). i < 32 ==> Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX}) 
+        Spec.Utils.forall32 (fun (i: nat{i < 32}) ->
+            Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX})
             (f_repr (Seq.index ${simd_units}_future i)))
     "#))]
     fn ntt(simd_units: &mut [Self; SIMD_UNITS_IN_RING_ELEMENT]);
@@ -342,22 +358,24 @@ pub(crate) trait Operations: Copy + Clone + Repr {
     // headline Sprint 2 payoff: 4_211_177 + 4 (eta) ≪ FIELD_MAX so the
     // subsequent `+ s2` step stays comfortably bounded).
     #[hax_lib::requires(fstar!(r#"
-        (forall (i:nat). i < 32 ==> Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX})
+        Spec.Utils.forall32 (fun (i: nat{i < 32}) ->
+            Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX})
             (f_repr (Seq.index ${simd_units} i)))
     "#))]
     #[hax_lib::ensures(|_| fstar!(r#"
-        (forall (i:nat). i < 32 ==> Spec.Utils.is_i32b_array_opaque 4211177
+        Spec.Utils.forall32 (fun (i: nat{i < 32}) ->
+            Spec.Utils.is_i32b_array_opaque 4211177
             (f_repr (Seq.index ${simd_units}_future i)))
     "#))]
     fn invert_ntt_montgomery(simd_units: &mut [Self; SIMD_UNITS_IN_RING_ELEMENT]);
 
     // Barrett reduce all coefficients
     #[hax_lib::requires(fstar!(r#"
-        (forall (i:nat). i < 32 ==>
+        Spec.Utils.forall32 (fun (i: nat{i < 32}) ->
             Spec.Utils.is_i32b_array_opaque 2143289343
                 (f_repr (Seq.index ${simd_units} i)))"#))]
     #[hax_lib::ensures(|_| fstar!(r#"
-        (forall (j:nat). j < 32 ==>
+        Spec.Utils.forall32 (fun (j: nat{j < 32}) ->
           Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX})
             (f_repr (Seq.index ${simd_units}_future j)) /\
           Spec.Utils.forall8 (fun (i: nat{i < 8}) ->
