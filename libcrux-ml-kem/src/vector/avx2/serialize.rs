@@ -460,7 +460,7 @@ fn mm256_si256_from_two_si128(lower: Vec128, upper: Vec128) -> Vec256 {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::fstar::options("--ext context_pruning --split_queries always --z3rlimit 400")]
 #[hax_lib::requires(fstar!(r#"Seq.length bytes == 10"#))]
 #[hax_lib::ensures(|result| fstar!(r#"forall (i: nat{i < 256}).
   $result i = (if i % 16 >= 5 then 0
@@ -554,7 +554,31 @@ assert_norm (BitVec.Utils.forall256 (fun i ->
         bytes[1] as i8,
         bytes[0] as i8,
     );
-    deserialize_5_vec(coefficients)
+    let result = deserialize_5_vec(coefficients);
+    // 16 per-k bridges from coefficients (post mm_set_epi8) to bit_vec_of_int_t_array bytes.
+    // Each is a forall over b∈[0,8) at concrete k; mm_set_epi8 reduces match-arm `i/8 = k`
+    // and the byte_map[k] = (0,1,1,2,2,3,3,4,5,6,6,7,7,8,8,9) substitutes concretely.
+    hax_lib::fstar!(
+        r#"
+assert (forall (b: nat{b < 8}). $coefficients (8*0  + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (0*8 + b));
+assert (forall (b: nat{b < 8}). $coefficients (8*1  + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (1*8 + b));
+assert (forall (b: nat{b < 8}). $coefficients (8*2  + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (1*8 + b));
+assert (forall (b: nat{b < 8}). $coefficients (8*3  + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (2*8 + b));
+assert (forall (b: nat{b < 8}). $coefficients (8*4  + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (2*8 + b));
+assert (forall (b: nat{b < 8}). $coefficients (8*5  + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (3*8 + b));
+assert (forall (b: nat{b < 8}). $coefficients (8*6  + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (3*8 + b));
+assert (forall (b: nat{b < 8}). $coefficients (8*7  + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (4*8 + b));
+assert (forall (b: nat{b < 8}). $coefficients (8*8  + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (5*8 + b));
+assert (forall (b: nat{b < 8}). $coefficients (8*9  + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (6*8 + b));
+assert (forall (b: nat{b < 8}). $coefficients (8*10 + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (6*8 + b));
+assert (forall (b: nat{b < 8}). $coefficients (8*11 + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (7*8 + b));
+assert (forall (b: nat{b < 8}). $coefficients (8*12 + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (7*8 + b));
+assert (forall (b: nat{b < 8}). $coefficients (8*13 + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (8*8 + b));
+assert (forall (b: nat{b < 8}). $coefficients (8*14 + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (8*8 + b));
+assert (forall (b: nat{b < 8}). $coefficients (8*15 + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (9*8 + b))
+"#
+    );
+    result
 }
 
 #[inline(always)]
