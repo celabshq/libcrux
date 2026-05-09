@@ -291,6 +291,46 @@ let lemma_inv_butterfly_fe_commute_mul_diff (vec_i vec_j zeta result_j: i16) :
     lemma_impl_mul_v_val (mont_i16_to_spec_fe zeta) diff_fe;
     lemma_inv_butterfly_mul_diff_core (v vec_i) (v vec_j) (v zeta) (v result_j)
 
+(* Lane-post → mod_q_eq bridges.
+
+   The trait posts for `barrett_reduce` and `montgomery_multiply_by_constant`
+   wrap each per-lane equation in an opaque atom (`barrett_reduce_lane_post`
+   / `montgomery_multiply_lane_post`) so above-trait consumers don't see
+   the raw `mod_q_eq` (and the non-linear `* v c * 169` for Montgomery).
+   These two thin lemmas reveal the atom inside the lemma body and yield
+   the underlying `mod_q_eq` fact, so consumers can chain into existing
+   `lemma_*_fe_commute_*_mod` lemmas without revealing at the call site. *)
+
+let lemma_barrett_reduce_lane_post_to_mod_q_eq (a r: i16) :
+    Lemma (requires TS.barrett_reduce_lane_post a r)
+          (ensures  mod_q_eq (v r) (v a))
+  = reveal_opaque (`%TS.barrett_reduce_lane_post) (TS.barrett_reduce_lane_post)
+
+let lemma_montgomery_multiply_lane_post_to_mod_q_eq (a c r: i16) :
+    Lemma (requires TS.montgomery_multiply_lane_post a c r)
+          (ensures  mod_q_eq (v r) (v a * v c * 169))
+  = reveal_opaque (`%TS.montgomery_multiply_lane_post) (TS.montgomery_multiply_lane_post)
+
+(* Fused lane-post → FE-equation bridges.  Bundle the lane-atom reveal,
+   `mod_q_eq` unfold, and the FE-commute step into one chunk-side lemma
+   so consumers (e.g. `inv_ntt_layer_int_vec_step_reduce`'s aux1) make a
+   single lemma call per lane.  This keeps the L7+L8 abstraction intact
+   (consumers never see the raw `mod_q_eq` or `% 3329`) and reduces the
+   Z3 quantifier-instantiation budget the consumer must spend. *)
+
+let lemma_inv_butterfly_mont_lane_to_fe (a b zeta r b_minus_a: i16) :
+    Lemma (requires TS.montgomery_multiply_lane_post b_minus_a zeta r
+                  /\ v b_minus_a == v b - v a)
+          (ensures  mont_i16_to_spec_fe r ==
+                    P.impl_FieldElement__mul
+                      (mont_i16_to_spec_fe zeta)
+                      (P.impl_FieldElement__sub
+                         (mont_i16_to_spec_fe b)
+                         (mont_i16_to_spec_fe a)))
+  = lemma_montgomery_multiply_lane_post_to_mod_q_eq b_minus_a zeta r;
+    lemma_mod_q_eq_unfold (v r) (v b_minus_a * v zeta * 169);
+    lemma_inv_butterfly_fe_commute_mul_diff a b zeta r
+
 (* `base_case_multiply_even` commute.  The impl's `ntt_multiply_binomials_post`
    residue for the even lane is
      v r % q == ((a0*b0 + a1*b1*z*169) * 169) % q
