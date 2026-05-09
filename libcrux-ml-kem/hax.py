@@ -114,7 +114,6 @@ class extractAction(argparse.Action):
         # Extract ml-kem
         includes = [
             "+**",
-            "-libcrux_ml_kem::types::index_impls::**",
             "-libcrux_ml_kem::kem::**",
             "-libcrux_ml_kem::hash_functions::portable::*",
             "-libcrux_ml_kem::hash_functions::avx2::*",

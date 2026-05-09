@@ -77,33 +77,41 @@ macro_rules! impl_generic_struct {
 }
 macro_rules! impl_index_impls_for_generic_struct {
     ($name:ident) => {
+        #[hax_lib::attributes]
         impl<const SIZE: usize> core::ops::Index<usize> for $name<SIZE> {
             type Output = u8;
 
+            #[requires(index < SIZE)]
             fn index(&self, index: usize) -> &Self::Output {
                 &self.value[index]
             }
         }
 
+        #[hax_lib::attributes]
         impl<const SIZE: usize> core::ops::Index<core::ops::Range<usize>> for $name<SIZE> {
             type Output = [u8];
 
+            #[requires(range.start <= range.end && range.end <= SIZE)]
             fn index(&self, range: core::ops::Range<usize>) -> &Self::Output {
                 &self.value[range]
             }
         }
 
+        #[hax_lib::attributes]
         impl<const SIZE: usize> core::ops::Index<core::ops::RangeTo<usize>> for $name<SIZE> {
             type Output = [u8];
 
+            #[requires(range.end <= SIZE)]
             fn index(&self, range: core::ops::RangeTo<usize>) -> &Self::Output {
                 &self.value[range]
             }
         }
 
+        #[hax_lib::attributes]
         impl<const SIZE: usize> core::ops::Index<core::ops::RangeFrom<usize>> for $name<SIZE> {
             type Output = [u8];
 
+            #[requires(range.start <= SIZE)]
             fn index(&self, range: core::ops::RangeFrom<usize>) -> &Self::Output {
                 &self.value[range]
             }
