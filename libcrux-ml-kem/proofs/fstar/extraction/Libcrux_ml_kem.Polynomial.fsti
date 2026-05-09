@@ -333,12 +333,13 @@ val to_standard_domain
         fun result ->
           let result:v_T = result in
           Libcrux_ml_kem.Polynomial.Spec.is_bounded_vector #v_T (mk_usize 3328) result /\
-          (forall (i: nat).
-              i < 16 ==>
-              Hacspec_ml_kem.ModQ.mod_q_eq (v (Seq.index (Libcrux_ml_kem.Vector.Traits.f_repr #v_T
-                            result)
-                        i))
-                (v (Seq.index (Libcrux_ml_kem.Vector.Traits.f_repr #v_T vector) i) * 1353 * 169)))
+          Spec.Utils.forall16 (fun (i: nat{i < 16}) ->
+                Libcrux_ml_kem.Vector.Traits.Spec.montgomery_multiply_lane_post (Seq.index (Libcrux_ml_kem.Vector.Traits.f_repr
+                          #v_T
+                          vector)
+                      i)
+                  Libcrux_ml_kem.Vector.Traits.v_MONTGOMERY_R_SQUARED_MOD_FIELD_MODULUS
+                  (Seq.index (Libcrux_ml_kem.Vector.Traits.f_repr #v_T result) i)))
 
 /// Compute `to_standard_domain(myself) + error` lane-wise — different
 /// fused-finalize pattern from the three INTT-track reduce fns above.

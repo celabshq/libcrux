@@ -291,6 +291,46 @@ let lemma_inv_butterfly_fe_commute_mul_diff (vec_i vec_j zeta result_j: i16) :
     lemma_impl_mul_v_val (mont_i16_to_spec_fe zeta) diff_fe;
     lemma_inv_butterfly_mul_diff_core (v vec_i) (v vec_j) (v zeta) (v result_j)
 
+(* Lane-post → mod_q_eq bridges.
+
+   The trait posts for `barrett_reduce` and `montgomery_multiply_by_constant`
+   wrap each per-lane equation in an opaque atom (`barrett_reduce_lane_post`
+   / `montgomery_multiply_lane_post`) so above-trait consumers don't see
+   the raw `mod_q_eq` (and the non-linear `* v c * 169` for Montgomery).
+   These two thin lemmas reveal the atom inside the lemma body and yield
+   the underlying `mod_q_eq` fact, so consumers can chain into existing
+   `lemma_*_fe_commute_*_mod` lemmas without revealing at the call site. *)
+
+let lemma_barrett_reduce_lane_post_to_mod_q_eq (a r: i16) :
+    Lemma (requires TS.barrett_reduce_lane_post a r)
+          (ensures  mod_q_eq (v r) (v a))
+  = reveal_opaque (`%TS.barrett_reduce_lane_post) (TS.barrett_reduce_lane_post)
+
+let lemma_montgomery_multiply_lane_post_to_mod_q_eq (a c r: i16) :
+    Lemma (requires TS.montgomery_multiply_lane_post a c r)
+          (ensures  mod_q_eq (v r) (v a * v c * 169))
+  = reveal_opaque (`%TS.montgomery_multiply_lane_post) (TS.montgomery_multiply_lane_post)
+
+(* Fused lane-post → FE-equation bridges.  Bundle the lane-atom reveal,
+   `mod_q_eq` unfold, and the FE-commute step into one chunk-side lemma
+   so consumers (e.g. `inv_ntt_layer_int_vec_step_reduce`'s aux1) make a
+   single lemma call per lane.  This keeps the L7+L8 abstraction intact
+   (consumers never see the raw `mod_q_eq` or `% 3329`) and reduces the
+   Z3 quantifier-instantiation budget the consumer must spend. *)
+
+let lemma_inv_butterfly_mont_lane_to_fe (a b zeta r b_minus_a: i16) :
+    Lemma (requires TS.montgomery_multiply_lane_post b_minus_a zeta r
+                  /\ v b_minus_a == v b - v a)
+          (ensures  mont_i16_to_spec_fe r ==
+                    P.impl_FieldElement__mul
+                      (mont_i16_to_spec_fe zeta)
+                      (P.impl_FieldElement__sub
+                         (mont_i16_to_spec_fe b)
+                         (mont_i16_to_spec_fe a)))
+  = lemma_montgomery_multiply_lane_post_to_mod_q_eq b_minus_a zeta r;
+    lemma_mod_q_eq_unfold (v r) (v b_minus_a * v zeta * 169);
+    lemma_inv_butterfly_fe_commute_mul_diff a b zeta r
+
 (* `base_case_multiply_even` commute.  The impl's `ntt_multiply_binomials_post`
    residue for the even lane is
      v r % q == ((a0*b0 + a1*b1*z*169) * 169) % q
@@ -826,7 +866,10 @@ let lemma_montgomery_multiply_by_constant_chunk_commutes_mont_mont
             == P.impl_FieldElement__mul
                  (Seq.index (mont_i16_to_spec_array (sz 16) (T.f_repr vec)) j)
                  (mont_i16_to_spec_fe c)))
-  = let r = T.f_montgomery_multiply_by_constant vec c in
+  = (* Reveal the lane-form opaque so the per-lane `mod_q_eq` from the
+       trait post is in scope below. *)
+    reveal_opaque (`%TS.montgomery_multiply_lane_post) (TS.montgomery_multiply_lane_post);
+    let r = T.f_montgomery_multiply_by_constant vec c in
     let vec_arr = T.f_repr vec in
     let r_arr = T.f_repr r in
     let aux (j: nat) : Lemma (j < 16 ==>
@@ -854,7 +897,10 @@ let lemma_montgomery_multiply_by_constant_chunk_commutes_mont_plain
             == P.impl_FieldElement__mul
                  (Seq.index (mont_i16_to_spec_array (sz 16) (T.f_repr vec)) j)
                  (i16_to_spec_fe c)))
-  = let r = T.f_montgomery_multiply_by_constant vec c in
+  = (* Reveal the lane-form opaque so the per-lane `mod_q_eq` from the
+       trait post is in scope below. *)
+    reveal_opaque (`%TS.montgomery_multiply_lane_post) (TS.montgomery_multiply_lane_post);
+    let r = T.f_montgomery_multiply_by_constant vec c in
     let vec_arr = T.f_repr vec in
     let r_arr = T.f_repr r in
     let aux (j: nat) : Lemma (j < 16 ==>
@@ -883,7 +929,10 @@ let lemma_barrett_reduce_chunk_commutes
     (ensures
        (let r = T.f_barrett_reduce vec in
         i16_to_spec_array (sz 16) (T.f_repr r) == i16_to_spec_array (sz 16) (T.f_repr vec)))
-  = let r = T.f_barrett_reduce vec in
+  = (* Reveal the lane-form opaque so the per-lane `mod_q_eq` from the
+       trait post is in scope below. *)
+    reveal_opaque (`%TS.barrett_reduce_lane_post) (TS.barrett_reduce_lane_post);
+    let r = T.f_barrett_reduce vec in
     let vec_arr = T.f_repr vec in
     let r_arr = T.f_repr r in
     let aux (j: nat) : Lemma (j < 16 ==>
@@ -1395,7 +1444,10 @@ let lemma_poly_barrett_reduce_commute
     (ensures
        to_spec_poly_plain result
          == HP.poly_barrett_reduce (to_spec_poly_plain myself))
-  = let aux (j: nat) : Lemma (j < 256 ==>
+  = (* Reveal the lane-form opaque so the per-lane `mod_q_eq` extracted
+       from the trait post is in scope below. *)
+    reveal_opaque (`%TS.barrett_reduce_lane_post) (TS.barrett_reduce_lane_post);
+    let aux (j: nat) : Lemma (j < 256 ==>
         Seq.index (to_spec_poly_plain result) j
           == Seq.index (to_spec_poly_plain myself) j)
       = if j < 256 then begin
@@ -1404,7 +1456,8 @@ let lemma_poly_barrett_reduce_commute
           let m_arr = T.f_repr (Seq.index myself.V.f_coefficients k) in
           let r_arr = T.f_repr (Seq.index result.V.f_coefficients k) in
           (* From requires (instantiated at k): `barrett_reduce_post m_arr r_arr`,
-             which gives `v r_arr.[l] % 3329 == v m_arr.[l] % 3329`. *)
+             whose lane-form (revealed above) gives
+             `mod_q_eq (v r_arr.[l]) (v m_arr.[l])`. *)
           assert (TS.barrett_reduce_post m_arr r_arr);
           lemma_mod_q_eq_unfold (v (Seq.index r_arr l)) (v (Seq.index m_arr l));
           assert (v (Seq.index r_arr l) % 3329 == v (Seq.index m_arr l) % 3329);
@@ -1758,7 +1811,11 @@ let lemma_subtract_reduce_iter
         TS.barrett_reduce_post diff_chunk red_chunk)
       (ensures
         subtract_reduce_finalize_chunk myself_chunk red_chunk b_chunk_in)
-  = let aux (k: nat) : Lemma (k < 16 ==>
+  = (* Reveal the lane-form opaque atoms so the per-lane `mod_q_eq` facts
+       extracted from the trait posts are in scope below. *)
+    reveal_opaque (`%TS.montgomery_multiply_lane_post) (TS.montgomery_multiply_lane_post);
+    reveal_opaque (`%TS.barrett_reduce_lane_post) (TS.barrett_reduce_lane_post);
+    let aux (k: nat) : Lemma (k < 16 ==>
         i16_to_spec_fe (Seq.index red_chunk k) ==
           P.impl_FieldElement__sub
             (i16_to_spec_fe (Seq.index myself_chunk k))

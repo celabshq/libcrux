@@ -857,10 +857,11 @@ fn add_error_reduce<Vector: Operations>(
 
 #[inline(always)]
 #[hax_lib::ensures(|result| spec::is_bounded_vector(3328, &result) & fstar!(r#"
-                    forall (i: nat). i < 16 ==>
-                        Hacspec_ml_kem.ModQ.mod_q_eq
-                          (v (Seq.index (Libcrux_ml_kem.Vector.Traits.f_repr #$:T ${result}) i))
-                          (v (Seq.index (Libcrux_ml_kem.Vector.Traits.f_repr #$:T ${vector}) i) * 1353 * 169)
+                    Spec.Utils.forall16 (fun (i: nat{i < 16}) ->
+                      Libcrux_ml_kem.Vector.Traits.Spec.montgomery_multiply_lane_post
+                        (Seq.index (Libcrux_ml_kem.Vector.Traits.f_repr #$:T ${vector}) i)
+                        Libcrux_ml_kem.Vector.Traits.v_MONTGOMERY_R_SQUARED_MOD_FIELD_MODULUS
+                        (Seq.index (Libcrux_ml_kem.Vector.Traits.f_repr #$:T ${result}) i))
                 "#))]
 fn to_standard_domain<T: Operations>(vector: T) -> T {
     T::montgomery_multiply_by_constant(vector, MONTGOMERY_R_SQUARED_MOD_FIELD_MODULUS as i16)

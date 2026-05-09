@@ -470,6 +470,9 @@ pub(crate) fn inv_ntt_layer_int_vec_step_reduce<Vector: Operations>(
               (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
                  (Seq.index b_arr_in i)))
           = if i < 16 then begin
+              Hacspec_ml_kem.Commute.Chunk.lemma_barrett_reduce_lane_post_to_mod_q_eq
+                (Seq.index a_plus_b_arr i)
+                (Seq.index r0_arr i);
               Hacspec_ml_kem.ModQ.lemma_mod_q_eq_unfold
                 (v (Seq.index r0_arr i))
                 (v (Seq.index a_plus_b_arr i));
@@ -490,16 +493,13 @@ pub(crate) fn inv_ntt_layer_int_vec_step_reduce<Vector: Operations>(
                    (Seq.index b_arr_in i))
                 (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
                    (Seq.index a_arr_in i))))
-          = if i < 16 then begin
-              Hacspec_ml_kem.ModQ.lemma_mod_q_eq_unfold
-                (v (Seq.index r1_arr i))
-                (v (Seq.index b_minus_a_arr i) * v ${zeta_r} * 169);
-              Hacspec_ml_kem.Commute.Chunk.lemma_inv_butterfly_fe_commute_mul_diff
+          = if i < 16 then
+              Hacspec_ml_kem.Commute.Chunk.lemma_inv_butterfly_mont_lane_to_fe
                 (Seq.index a_arr_in i)
                 (Seq.index b_arr_in i)
                 ${zeta_r}
                 (Seq.index r1_arr i)
-            end
+                (Seq.index b_minus_a_arr i)
         in
         Classical.forall_intro aux1
       "#);
