@@ -952,6 +952,7 @@ fn op_ntt_multiply(
 // needed; `impl_1`'s VC is now uniformly trivial.
 // =====================================================================
 #[hax_lib::attributes]
+#[cfg_attr(hax, hax_lib::fstar::options("--split_queries always"))]
 impl Operations for PortableVector {
     #[ensures(|out| fstar!(r#"impl.f_repr out == Seq.create 16 (mk_i16 0)"#))]
     fn ZERO() -> Self {

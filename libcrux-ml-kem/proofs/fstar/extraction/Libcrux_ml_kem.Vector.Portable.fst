@@ -954,6 +954,8 @@ let op_ntt_multiply
   let _:Prims.unit = admit () (* Panic freedom *) in
   result
 
+#push-options "--split_queries always"
+
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 let impl_1: Libcrux_ml_kem.Vector.Traits.t_Operations
 Libcrux_ml_kem.Vector.Portable.Vector_type.t_PortableVector =
@@ -1681,3 +1683,5 @@ Libcrux_ml_kem.Vector.Portable.Vector_type.t_PortableVector =
       let hax_temp_output:usize = out1 in
       out, hax_temp_output <: (t_Slice i16 & usize)
   }
+
+#pop-options
