@@ -767,7 +767,7 @@ let ntt_multiply_branch_post
     pub(crate) fn barrett_reduce_post(vec: &[i16; 16], result: &[i16; 16]) -> hax_lib::Prop {
         hax_lib::fstar_prop_expr!(
             r#"is_i16b_array_opaque 3328 ${result} /\
-               Spec.Utils.forall16 (fun (i: nat{i < 16}) ->
+               (forall (i:nat). i < 16 ==>
                  barrett_reduce_lane_post (Seq.index ${vec} i) (Seq.index ${result} i))"#
         )
     }
@@ -789,7 +789,7 @@ let ntt_multiply_branch_post
     ) -> hax_lib::Prop {
         hax_lib::fstar_prop_expr!(
             r#"is_i16b_array_opaque 3328 ${result} /\
-               Spec.Utils.forall16 (fun (i: nat{i < 16}) ->
+               (forall (i:nat). i < 16 ==>
                  montgomery_multiply_lane_post (Seq.index ${vec} i) ${c} (Seq.index ${result} i))"#
         )
     }
