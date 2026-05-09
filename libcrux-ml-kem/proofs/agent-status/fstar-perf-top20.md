@@ -653,3 +653,96 @@ both files are touched by the agent):
   expected to fix the `Vector.Portable.fst:1008` cold-baseline failure
   (the `f_from_bytes` post check at the impl-record level is a
   combined-WP issue that splits cleanly per-method).
+
+## Snapshot 2 — 2026-05-09 — post-L7+L8 cold-baseline at tip `9dc1fa2cd`
+
+**Source:** `/tmp/parent-fullmake.log` (full `make -k -j4` from
+`libcrux-ml-kem/proofs/fstar/extraction/`, wall 6:13).
+
+**Build status:** `rc=2` due to **1 cold-baseline failure**:
+`Libcrux_ml_kem.Types.Index_impls.fst:18` — pre-existing, unrelated
+to L7+L8 (Task #22; needs spec strengthening of `f_index_pre`).
+
+**Wall time:** 6:13 (down from 13:53 in agent's worktree's first try
+without copied hints — the hint regeneration sprint here in the
+parent was the main effect).
+
+### Top 20 by single-query max time
+
+| max ms | total ms | function |
+|---:|---:|---|
+| 35 220 | 59 140 | `Libcrux_ml_kem.Vector.Avx2.Serialize.deserialize_5_` |
+| 9 392 | 9 481 | `Libcrux_ml_kem.Vector.Portable.Arithmetic.montgomery_reduce_element` |
+| 6 709 | 6 838 | `Libcrux_ml_kem.Vector.Portable.Arithmetic.to_unsigned_representative` |
+| 5 705 | 5 835 | `Libcrux_ml_kem.Vector.Avx2.Arithmetic.to_unsigned_representative` |
+| 5 660 | 5 891 | `Libcrux_ml_kem.Invert_ntt.invert_ntt_at_layer_3_` |
+| 4 875 | 5 176 | `Libcrux_ml_kem.Invert_ntt.invert_ntt_at_layer_2_` |
+| 3 895 | 7 586 | `Libcrux_ml_kem.Polynomial.v_ZETAS_TIMES_MONTGOMERY_R` |
+| 3 724 | 3 829 | `Libcrux_ml_kem.Vector.Portable.Compress.compress_1_` |
+| 3 515 | 4 199 | `Libcrux_ml_kem.Serialize.deserialize_then_decompress_ring_element_u` |
+| 3 489 | 7 947 | `Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step` |
+| 2 437 | 2 531 | `Libcrux_ml_kem.Vector.Portable.Compress.decompress_ciphertext_coefficient` |
+| 2 396 | 2 511 | `Libcrux_ml_kem.Vector.Portable.Ntt.ntt_layer_3_step` |
+| 1 979 | 4 635 | `Libcrux_ml_kem.Polynomial.multiply_by_constant_bounded` |
+| 1 836 | 1 954 | `Libcrux_ml_kem.Vector.Portable.Ntt.ntt_layer_2_step` |
+| 1 758 | 1 889 | `Libcrux_ml_kem.Vector.Portable.Sampling.rej_sample` |
+| 1 722 | 26 464 | `Libcrux_ml_kem.Ntt.ntt_at_layer_4_plus` |
+| 1 642 | 1 770 | `Libcrux_ml_kem.Vector.Portable.Ntt.ntt_layer_1_step` |
+| 1 623 | 1 763 | `Libcrux_ml_kem.Vector.Portable.Ntt.inv_ntt_layer_1_step` |
+| 1 324 | 1 586 | `Libcrux_ml_kem.Ind_cpa.serialize_vector` |
+| 1 248 | 1 597 | `Libcrux_ml_kem.Serialize.deserialize_to_reduced_ring_element` |
+
+### Top 20 by total per-function
+
+| total ms | max ms | function |
+|---:|---:|---|
+| 59 140 | 35 220 | `Libcrux_ml_kem.Vector.Avx2.Serialize.deserialize_5_` |
+| 48 984 | 567 | `Libcrux_ml_kem.Invert_ntt.invert_ntt_at_layer_1_` |
+| 46 841 | 204 | `Libcrux_ml_kem.Ntt.ntt_at_layer_1_` |
+| 34 838 | 291 | `Libcrux_ml_kem.Ntt.ntt_at_layer_2_` |
+| 26 464 | 1 722 | `Libcrux_ml_kem.Ntt.ntt_at_layer_4_plus` |
+| 25 957 | 163 | `Libcrux_ml_kem.Ntt.ntt_at_layer_3_` |
+| 21 195 | 645 | `Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply` |
+| 17 807 | 259 | `Libcrux_ml_kem.Ind_cca.Unpacked.decapsulate` |
+| 12 628 | 175 | `Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials` |
+| 12 195 | 170 | `Libcrux_ml_kem.Vector.Avx2.Serialize.deserialize_5___deserialize_5_vec` |
+| 11 936 | 178 | `Libcrux_ml_kem.Invert_ntt.inv_ntt_layer_int_vec_step_reduce` |
+| 10 983 | 188 | `Libcrux_ml_kem.Vector.Avx2.Serialize.serialize_4_` |
+| 10 876 | 219 | `Libcrux_ml_kem.Vector.Avx2.Serialize.serialize_1_` |
+| 10 595 | 142 | `Libcrux_ml_kem.Ind_cpa.encrypt_c1` |
+| 10 567 | 277 | `Libcrux_ml_kem.Ind_cpa.encrypt_unpacked` |
+| 10 348 | 201 | `Libcrux_ml_kem.Vector.Avx2.Serialize.serialize_5___serialize_5_vec` |
+| 10 309 | 138 | `Libcrux_ml_kem.Polynomial.subtract_reduce` |
+|  9 481 | 9 392 | `Libcrux_ml_kem.Vector.Portable.Arithmetic.montgomery_reduce_element` |
+|  8 830 | 194 | `Libcrux_ml_kem.Ind_cca.Unpacked.generate_keypair` |
+|  8 748 | 128 | `Libcrux_ml_kem.Polynomial.add_to_ring_element` |
+
+### Comparison vs Snapshot 2 (2026-05-08, pre-L7+L8)
+
+The audit predicted L7+L8 would drop items 9 (`lemma_base_case_mult_even_mod_core`,
+32 s in one query) and 24 (`montgomery_reduce_element`, 9 s in 3 queries).
+
+- `montgomery_reduce_element`: 9 392 ms in **1** query (was 9 s in 3
+  queries) — **same wall**, just consolidated. The non-linear `* 169`
+  arithmetic that the L8 abstraction hides is consumed *inside* this
+  function, not above the trait, so per-function cost is unchanged.
+- `lemma_base_case_mult_even_mod_core`: not in current top-20.
+  Successfully verified within `Hacspec_ml_kem.Commute.Chunk` —
+  expected since the lemma's body now consumes the new opaque
+  `montgomery_multiply_lane_post` atom that wraps the residue, and the
+  `mod_q_eq_unfold` happens inside `Commute.Chunk` lemma bodies (the
+  L7+L8 reveal discipline) rather than at every consumer.
+
+**Net effect of L7+L8 on the top-25:** small to negligible at the
+*single-query max* level — the non-linear arithmetic was already
+locked inside opaque atoms (`mod_q_eq`) at parent.  The win is
+*architectural*: above-trait callers (`Polynomial.fst`, `Ind_cpa.fst`,
+`Invert_ntt.fst`) no longer see raw `% 3329` or `* v c * 169` in their
+goals, removing accidental-NRA risk for future code added to those
+files.
+
+### New cliff-edge candidates worth qi.profile
+
+- `deserialize_5_` (35 s single query) — by far the heaviest, dominates
+  cold time.  Pre-existing; not L7+L8-related.
+- `to_unsigned_representative` (Portable+Avx2): both ~6 s single query.
