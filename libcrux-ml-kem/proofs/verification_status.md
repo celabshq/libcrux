@@ -52,17 +52,17 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 |            | serialize         |    1 |  22 |   0 |     |  22 |    0 |      0 |       0 |
 |            | compress          |    1 |   6 |   0 |     |   5 |    1 |      0 |       0 |
 |            | sampling          |    1 |   1 |   0 |     |   0 |    1 |      0 |       0 |
-|            | vector_type       |    1 |   5 |   0 |     |   1 |    4 |      0 |       0 |
-|            | vector            |    1 |  64 |   4 |     |   2 |   31 |      0 |      27 |
-|            | **Portable total** | **7** | **121** | **4** |     | **36** | **44** | **10** |  **27** |
+|            | vector_type       |    1 |   5 |   0 |     |   2 |    3 |      0 |       0 |
+|            | vector            |    1 |  64 |   2 |     |   2 |   33 |      0 |      27 |
+|            | **Portable total** | **7** | **121** | **2** |     | **37** | **45** | **10** |  **27** |
 |            |                   |      |     |     |     |     |      |        |         |
 | _Avx2_     | arithmetic        |    1 |  12 |   0 |     |   5 |    7 |      0 |       0 |
 |            | ntt               |    1 |   7 |   2 |     |   3 |    0 |      2 |       0 |
-|            | serialize         |    1 |  23 |   1 |     |   3 |   19 |      0 |       0 |
+|            | serialize         |    1 |  24 |   0 |     |   2 |   22 |      0 |       0 |
 |            | compress          |    1 |   5 |   0 |     |   4 |    1 |      0 |       0 |
 |            | sampling          |    1 |   1 |   0 |     |   1 |    0 |      0 |       0 |
-|            | vector            |    1 |  69 |   4 |     |   9 |   33 |      0 |      23 |
-|            | **Avx2 total**    | **6** | **117** | **7** |     | **25** | **60** |  **2** |  **23** |
+|            | vector            |    1 |  72 |   1 |     |  10 |   36 |      0 |      25 |
+|            | **Avx2 total**    | **6** | **121** | **3** |     | **25** | **66** |  **2** |  **25** |
 |            |                   |      |     |     |     |     |      |        |         |
 | _Neon_     | arithmetic        |    1 |  13 |  13 |     |   0 |    0 |      0 |       0 |
 |            | ntt               |    1 |   7 |   7 |     |   0 |    0 |      0 |       0 |
@@ -76,22 +76,22 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 ## Summary
 
 - **Total modules**: 49
-- **Total functions**: 950
-- **Lax** (admitted): 154 (16.2%)
+- **Total functions**: 954
+- **Lax** (admitted): 148 (15.5%)
 - **Unverified** (not extracted): 56 (5.9%)
-- **Panic-safe** (PF + Math + Bounds + Hacspec): 740 (77.9%)
-  - Panic-free only (no further proof): 437 (46.0%)
-  - Math (non-trivial ensures, no bounds/spec match): 163 (17.2%)
+- **Panic-safe** (PF + Math + Bounds + Hacspec): 750 (78.6%)
+  - Panic-free only (no further proof): 438 (45.9%)
+  - Math (non-trivial ensures, no bounds/spec match): 170 (17.8%)
   - Bounds (range/interval ensures): 44 (4.6%)
-  - Hacspec (cites high-level spec): 96 (10.1%)
+  - Hacspec (cites high-level spec): 98 (10.3%)
 
 ### Modules per category
 
 | Category     | Modules |  Fns | Lax | Unv |  PF | Math | Bounds | Hacspec |
 | ------------ | ------- | ---- | --- | --- | --- | ---- | ------ | ------- |
 | Generic      |      29 |  629 |  61 |  55 | 376 |   59 |     32 |      46 |
-| Portable     |       7 |  121 |   4 |   0 |  36 |   44 |     10 |      27 |
-| Avx2         |       6 |  117 |   7 |   0 |  25 |   60 |      2 |      23 |
+| Portable     |       7 |  121 |   2 |   0 |  37 |   45 |     10 |      27 |
+| Avx2         |       6 |  121 |   3 |   0 |  25 |   66 |      2 |      25 |
 | Neon         |       7 |   83 |  82 |   1 |   0 |    0 |      0 |       0 |
 
 ## Unverified Rust modules (not extracted to F\*)
@@ -113,9 +113,5 @@ Functions classified as lax due to `admit ()` (or `--admit_smt_queries true`) in
 | ------------------------- | ----- |
 | Generic/invert_ntt        |   552 |
 | Generic/ntt               |   564 |
-| Portable/vector           |   445 |
-| Portable/vector           |   684 |
-| Portable/vector           |   972 |
-| Portable/vector           |   986 |
-| Avx2/vector               |  1140 |
-| Avx2/vector               |  1153 |
+| Portable/vector           |   450 |
+| Portable/vector           |   689 |
