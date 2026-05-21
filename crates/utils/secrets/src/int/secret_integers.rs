@@ -1,8 +1,8 @@
 //! This module defines classification and declassification over secret integers
 //! These implementations are meant to be used when feature `check-secret-independence` is set
 use super::classify_secret::*;
+use crate::mem_requests::{ct_classify, ct_declassify};
 use crate::traits::*;
-use crate::valgrind_mem_requests::{ct_classify, ct_declassify};
 use core::ops::*;
 
 pub type I8 = Secret<i8>;

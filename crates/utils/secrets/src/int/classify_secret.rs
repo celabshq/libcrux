@@ -1,10 +1,10 @@
+use crate::mem_requests::{ct_classify, ct_declassify};
 /// This file defines functions for classifying and declassifying various types.
 /// We give definitions for all conversions so that they can be tested
 /// However, this file is only meant to be used when using feature "check-secret-independence"
 /// That is, it should not be used when running the Rust code in production.
 /// Otherwise, the crate defaults to public integers.
 use crate::traits::*;
-use crate::valgrind_mem_requests::{ct_classify, ct_declassify};
 
 /// A type for secret values
 #[repr(transparent)]

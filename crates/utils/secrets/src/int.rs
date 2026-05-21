@@ -253,7 +253,7 @@ mod portable {
 #[cfg(all(not(hax), target_arch = "aarch64"))]
 mod aarch64 {
     use super::*;
-    use crate::valgrind_mem_requests::{ct_classify, ct_declassify};
+    use crate::mem_requests::{ct_classify, ct_declassify};
 
     use core::arch::asm;
 
