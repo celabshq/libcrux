@@ -145,38 +145,39 @@ pub trait Select {
 
 #[cfg(any(hax, not(target_arch = "aarch64")))]
 mod portable {
-    use core::ops::{BitAnd, BitXor, Neg, Not};
+    use core::ops::{BitAnd, BitXor, Not};
 
     use super::{Select, Swap};
     use crate::Declassify;
     #[cfg(feature = "check-secret-independence")]
     use crate::IntOps;
     use crate::{CastOps, U16, U32, U64, U8};
+    use core::hint::black_box;
 
+    /// Mask for constant time swapping/selecting
+    ///
+    /// If selector == 0 -> mask = 0b111..11
+    /// If selector != 0 -> mask = 0b000..00
     // Don't inline this to avoid that the compiler optimizes this out.
     #[inline(never)]
-    fn is_non_zero_32(selector: U8) -> U32 {
-        core::hint::black_box(
-            ((!(core::hint::black_box(selector).as_u32())).wrapping_add(U32(1)) >> 31) & U32(1),
-        )
-    }
-
-    // Don't inline this to avoid that the compiler optimizes this out.
-    #[inline(never)]
-    fn is_non_zero_64(selector: U8) -> U64 {
-        core::hint::black_box(
-            ((!(core::hint::black_box(selector).as_u64())).wrapping_add(U64(1)) >> 63) & U64(1),
-        )
+    fn ct_mask(selector: U8) -> U64 {
+        let selector = black_box(selector);
+        let is_non_zero = (!selector.as_u64()).wrapping_add(U64(1)) >> 63;
+        let is_non_zero = black_box(is_non_zero);
+        let mask = is_non_zero.wrapping_sub(1);
+        mask.as_u64()
     }
 
     /// This macro implements `Select` for public integer type
     /// `&[$ty]` and its secret version `&[$secret_ty]`.
     macro_rules! impl_select {
-        ($ty:ty, $secret_ty:ident, $is_non_zero:ident, $cast:path) => {
+        ($ty:ty, $secret_ty:ident, $cast:path) => {
             impl Select for [$ty] {
                 fn select(&mut self, other: &Self, selector: crate::U8) {
-                    let mask = $cast($is_non_zero(selector)).wrapping_sub($secret_ty(1));
+                    let mask: $secret_ty = $cast(ct_mask(selector));
                     for i in 0..self.len() {
+                        // if selector == 0, then mask is 0b111..11 and we select self[i],
+                        // otherwise mask is 0b000..00 and we select other[i]
                         self[i] = ((mask & self[i]) | (!mask & other[i])).declassify();
                     }
                 }
@@ -185,7 +186,7 @@ mod portable {
             #[cfg(feature = "check-secret-independence")]
             impl Select for [$secret_ty] {
                 fn select(&mut self, other: &Self, selector: crate::U8) {
-                    let mask = $cast($is_non_zero(selector)).wrapping_sub($secret_ty(1));
+                    let mask = $cast(ct_mask(selector));
                     for i in 0..self.len() {
                         self[i] = (mask & self[i]) | (!mask & other[i]);
                     }
@@ -194,26 +195,10 @@ mod portable {
         };
     }
 
-    impl_select!(u8, U8, is_non_zero_32, CastOps::as_u8);
-    impl_select!(u16, U16, is_non_zero_32, CastOps::as_u16);
-    impl_select!(u32, U32, is_non_zero_32, CastOps::as_u32);
-    impl_select!(u64, U64, is_non_zero_64, CastOps::as_u64);
-
-    /// Compute the mask for ct swapping
-    fn ct_swap_mask<Int, Uint>(
-        selector: U8,
-        to_signed: impl Fn(U8) -> Int,
-        to_unsigned: impl Fn(Int) -> Uint,
-    ) -> Uint
-    where
-        Int: Neg<Output = Int>,
-    {
-        let selector = core::hint::black_box(selector);
-        // if selector == 0, then mask = -(0) == 00...00
-        // if selector == 1, then mask = -(1) == 11...11
-        let mask = to_unsigned(-(to_signed(selector)));
-        core::hint::black_box(mask)
-    }
+    impl_select!(u8, U8, CastOps::as_u8);
+    impl_select!(u16, U16, CastOps::as_u16);
+    impl_select!(u32, U32, CastOps::as_u32);
+    impl_select!(u64, U64, CastOps::as_u64);
 
     fn ct_swap_loop<T, S>(lhs: &mut [T], rhs: &mut [T], mask: S, declassify: impl Fn(S) -> T)
     where
@@ -225,7 +210,7 @@ mod portable {
         // in release mode
         debug_assert_eq!(lhs.len(), rhs.len());
         for i in 0..lhs.len() {
-            let dummy = mask & (lhs[i] ^ rhs[i]);
+            let dummy = !mask & (lhs[i] ^ rhs[i]);
             lhs[i] = declassify(dummy ^ lhs[i]);
             rhs[i] = declassify(dummy ^ rhs[i]);
         }
@@ -234,11 +219,11 @@ mod portable {
     /// This macro implements `Swap` for public integer type
     /// `&[$ty]` and its secret version `&[$secret_ty]`.
     macro_rules! impl_swap {
-        ($ty:ty, $secret_ty:ty, $unsigned_cast:expr, $signed_cast:expr) => {
+        ($ty:ty, $secret_ty:ty, $cast:expr) => {
             impl Swap for [$ty] {
                 #[inline]
                 fn cswap(&mut self, other: &mut Self, selector: U8) {
-                    let mask = ct_swap_mask(selector, $signed_cast, $unsigned_cast);
+                    let mask = $cast(ct_mask(selector));
                     ct_swap_loop(self, other, mask, Declassify::declassify);
                 }
             }
@@ -247,7 +232,7 @@ mod portable {
             impl Swap for [$secret_ty] {
                 #[inline]
                 fn cswap(&mut self, other: &mut Self, selector: U8) {
-                    let mask = ct_swap_mask(selector, $signed_cast, $unsigned_cast);
+                    let mask = $cast(ct_mask(selector));
                     // Here the generic parameters S and T are both `Secret`, so we
                     // don't need (and don't want!) to declassify
                     ct_swap_loop(self, other, mask, core::convert::identity);
@@ -256,10 +241,10 @@ mod portable {
         };
     }
 
-    impl_swap!(u8, U8, CastOps::as_u8, CastOps::as_i8);
-    impl_swap!(u16, U16, CastOps::as_u16, CastOps::as_i16);
-    impl_swap!(u32, U32, CastOps::as_u32, CastOps::as_i32);
-    impl_swap!(u64, U64, CastOps::as_u64, CastOps::as_i64);
+    impl_swap!(u8, U8, CastOps::as_u8);
+    impl_swap!(u16, U16, CastOps::as_u16);
+    impl_swap!(u32, U32, CastOps::as_u32);
+    impl_swap!(u64, U64, CastOps::as_u64);
 }
 
 #[cfg(all(not(hax), target_arch = "aarch64"))]
