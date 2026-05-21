@@ -18,6 +18,7 @@ pub type U128 = Secret<u128>;
 
 // Construct a secret integer
 pub fn secret<T>(x: T) -> Secret<T> {
+    ct_classify(&x);
     Secret(x)
 }
 
@@ -25,7 +26,6 @@ pub fn secret<T>(x: T) -> Secret<T> {
 impl<T: Scalar> Classify for T {
     type Classified = Secret<T>;
     fn classify(self) -> Secret<Self> {
-        ct_classify(&self);
         secret(self)
     }
 }
