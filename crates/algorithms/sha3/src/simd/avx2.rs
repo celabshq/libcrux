@@ -185,14 +185,15 @@ pub(crate) fn store_block<const RATE: usize>(
             out3[start + 8 * k..start + 8 * (k + 1)].copy_from_slice(&u8s[24..32]);
         }
         let rem8 = rem % 8;
+        let offset = start + chunks8 * 8;
         if rem8 > 0 {
             let i = (4 * chunks + chunks8) / 5;
             let j = (4 * chunks + chunks8) % 5;
             mm256_storeu_si256_u8(&mut u8s, *get_ij(s, i, j));
-            out0[start + len - rem8..start + len].copy_from_slice(&u8s[0..rem8]);
-            out1[start + len - rem8..start + len].copy_from_slice(&u8s[8..8 + rem8]);
-            out2[start + len - rem8..start + len].copy_from_slice(&u8s[16..16 + rem8]);
-            out3[start + len - rem8..start + len].copy_from_slice(&u8s[24..24 + rem8]);
+            out0[offset..offset + rem8].copy_from_slice(&u8s[0..rem8]);
+            out1[offset..offset + rem8].copy_from_slice(&u8s[8..8 + rem8]);
+            out2[offset..offset + rem8].copy_from_slice(&u8s[16..16 + rem8]);
+            out3[offset..offset + rem8].copy_from_slice(&u8s[24..24 + rem8]);
         }
     }
 }
