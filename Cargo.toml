@@ -34,7 +34,6 @@ exclude = [
 [workspace]
 members = [
     "benchmarks",
-    "cavp",
     "crates/algorithms/aesgcm",
     "crates/algorithms/blake2",
     "crates/algorithms/aesgcm/fuzz",
@@ -88,7 +87,6 @@ readme = "Readme.md"
 allow-branch = ["main"]
 
 [workspace.dependencies]
-cavp = { path = "cavp" }
 hax-lib = { version = "=0.3.6" }
 libcrux-aead = { version = "=0.0.8", path = "crates/primitives/aead" }
 libcrux-aesgcm = { version = "=0.0.8", path = "crates/algorithms/aesgcm" }
