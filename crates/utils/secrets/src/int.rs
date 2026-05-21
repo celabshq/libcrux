@@ -214,7 +214,7 @@ mod portable {
             impl Swap for [$ty] {
                 #[inline]
                 fn cswap(&mut self, other: &mut Self, selector: U8) {
-                    debug_assert_eq!(self.len(), other.len());
+                    assert_eq!(self.len(), other.len());
                     let mask: $secret_ty = $cast($mask_fn(selector));
                     for i in 0..self.len() {
                         // if selector == 0, then mask == 0b111..11
@@ -232,7 +232,7 @@ mod portable {
             impl Swap for [$secret_ty] {
                 #[inline]
                 fn cswap(&mut self, other: &mut Self, selector: U8) {
-                    debug_assert_eq!(self.len(), other.len());
+                    assert_eq!(self.len(), other.len());
                     let mask: $secret_ty = $cast($mask_fn(selector));
                     for i in 0..self.len() {
                         let dummy: $secret_ty = !mask & (self[i] ^ other[i]);
@@ -331,7 +331,7 @@ mod aarch64 {
     impl<T: Select> Select for [T] {
         #[inline]
         fn select(&mut self, other: &Self, selector: U8) {
-            debug_assert_eq!(self.len(), other.len());
+            assert_eq!(self.len(), other.len());
             for i in 0..self.len() {
                 (&mut self[i]).select(&other[i], selector);
             }
