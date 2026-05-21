@@ -1,6 +1,8 @@
+use libcrux_secrets::mem_requests::ct_declassify;
+
+use crate::constants::FIELD_MODULUS;
 #[cfg(hax)]
 use crate::specs::simd::portable::sample::*;
-use crate::{constants::FIELD_MODULUS, ct_test::ct_declassify};
 
 #[inline(always)]
 #[hax_lib::requires(rejection_sample_less_than_field_modulus_pre(randomness, out))]

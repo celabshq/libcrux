@@ -17,7 +17,7 @@
 ///
 /// No-op if `valgrind_ct_test` cfg is not enabled.
 #[inline(always)]
-pub(crate) fn ct_classify<T: ?Sized>(val: &T) {
+pub fn ct_classify<T: ?Sized>(val: &T) {
     #[cfg(valgrind_ct_test)]
     {
         use core::ffi::c_void;
@@ -37,7 +37,7 @@ pub(crate) fn ct_classify<T: ?Sized>(val: &T) {
 ///
 /// No-op if `valgrind_ct_test` cfg is not enabled.
 #[inline(always)]
-pub(crate) fn ct_declassify<T: ?Sized>(val: &T) {
+pub fn ct_declassify<T: ?Sized>(val: &T) {
     #[cfg(valgrind_ct_test)]
     {
         use core::ffi::c_void;

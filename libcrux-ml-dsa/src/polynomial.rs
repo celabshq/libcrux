@@ -77,7 +77,7 @@ impl<SIMDUnit: Operations> PolynomialRingElement<SIMDUnit> {
             // Round 3 of the NIST Post-Quantum Cryptography
             // Standardization.
             // (https://pq-crystals.org/dilithium/data/dilithium-specification-round3-20210208.pdf)
-            crate::ct_test::ct_declassify(&coeff_exceeds);
+            libcrux_secrets::mem_requests::ct_declassify(&coeff_exceeds);
             // XXX: We can't use the non-short-circuiting
             // core::ops::BitOr here, because of an issue in hax-lib
             // v0.3.6.

@@ -1,9 +1,10 @@
+use libcrux_secrets::mem_requests::{ct_classify, ct_declassify};
+
 use crate::{
     arithmetic::{
         decompose_vector, make_hint, power2round_vector, use_hint, vector_infinity_norm_exceeds,
     },
     constants::*,
-    ct_test::ct_declassify,
     encoding::{self},
     hash_functions::{shake128, shake256},
     matrix::{
@@ -28,7 +29,6 @@ pub(crate) mod multiplexing;
 #[libcrux_macros::ml_dsa_parameter_sets(44, 65, 87)]
 pub(crate) mod generic {
     use super::*;
-    use crate::ct_test::ct_classify;
 
     // Derived constants
     const ROW_COLUMN: usize = ROWS_IN_A + COLUMNS_IN_A;

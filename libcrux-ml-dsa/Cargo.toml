@@ -30,6 +30,7 @@ libcrux-sha3.workspace = true
 libcrux-intrinsics.workspace = true
 libcrux-platform.workspace = true
 libcrux-macros.workspace = true
+libcrux-secrets.workspace = true
 hax-lib.workspace = true
 tls_codec = { version = "0.4.2", features = [
     "derive",

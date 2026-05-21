@@ -1,9 +1,7 @@
 use libcrux_intrinsics::avx2::*;
+use libcrux_secrets::mem_requests::ct_declassify;
 
-use crate::{
-    ct_test::ct_declassify,
-    simd::avx2::{encoding, rejection_sample::shuffle_table::SHUFFLE_TABLE, Eta},
-};
+use crate::simd::avx2::{encoding, rejection_sample::shuffle_table::SHUFFLE_TABLE, Eta};
 
 // TODO: This code seems to slow the implementation down, but stabilizes
 // benchmarks. Revisit this once the other functions are vectorized.

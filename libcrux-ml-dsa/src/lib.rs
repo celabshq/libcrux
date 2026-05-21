@@ -7,7 +7,6 @@ extern crate std;
 
 mod arithmetic;
 mod constants;
-mod ct_test;
 mod encoding;
 mod hash_functions;
 mod helper;

@@ -55,4 +55,4 @@ pub use traits::*;
 mod int;
 pub use int::*;
 
-mod mem_requests;
+pub mod mem_requests;

@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [#1382](https://github.com/cryspen/libcrux/pull/1382): Add support for HMAC-DRBG
 - (libcrux-secrets) [#1446](https://github.com/cryspen/libcrux/pull/1446): Integrate valgrind requests when cfg `valgrind_ct_test` is set
+- (libcrux-ml-dsa) [#1457](https://github.com/cryspen/libcrux/pull/1457): Add dependency on libcrux-secrets for optional valgrind integration
 
 ## [0.0.4] (2026-05-13)
 
