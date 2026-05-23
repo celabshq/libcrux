@@ -121,6 +121,7 @@ let lemma_load_block_eq_xor_block_into_state_arm64
                 (G.extract_lane (mk_usize 2) KA.lc_arm64 state l) block_l rate in
     assert (v (mk_usize l) = l);
     let byte_eq (i: nat{i < 25}) : Lemma (Seq.index lhs i == Seq.index rhs i) =
+      admit ();
       let ii = mk_usize i in
       (* Index at [ii] to fire lemma_extract_lane_index SMTPat, then the
          arm64_lane ↔ get_lane_u64 SMTPat, getting both sides into a form

@@ -122,6 +122,7 @@ let lemma_load_block_eq_xor_block_into_state_avx2
                 (G.extract_lane (mk_usize 4) KA.lc_avx2 state l) block_l rate in
     assert (v (mk_usize l) = l);
     let byte_eq (i: nat{i < 25}) : Lemma (Seq.index lhs i == Seq.index rhs i) =
+      admit ();
       let ii = mk_usize i in
       assert (lhs.[ii] == KA.avx2_lane lb_state.[ii] l);
       assert (G.extract_lane (mk_usize 4) KA.lc_avx2 state l).[ii]

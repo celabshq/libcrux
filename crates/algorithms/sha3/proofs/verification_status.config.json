@@ -30,9 +30,11 @@
     {"category": "Portable", "display": "simd", "paths": ["simd/portable"]},
     {"category": "Avx2", "display": "generic_keccak", "paths": ["generic_keccak/simd256"]},
     {"category": "Avx2", "display": "avx2", "paths": ["avx2"]},
-    {"category": "Avx2", "display": "simd", "paths": ["simd/avx2"]},
+    {"category": "Avx2", "display": "simd",
+     "paths": ["simd/avx2", "simd/avx2/load", "simd/avx2/store", "simd/avx2/wrappers"]},
     {"category": "Neon", "display": "generic_keccak", "paths": ["generic_keccak/simd128"]},
     {"category": "Neon", "display": "neon", "paths": ["neon"]},
-    {"category": "Neon", "display": "simd", "paths": ["simd/arm64"]}
+    {"category": "Neon", "display": "simd",
+     "paths": ["simd/arm64", "simd/arm64/load", "simd/arm64/store", "simd/arm64/wrappers"]}
   ]
 }

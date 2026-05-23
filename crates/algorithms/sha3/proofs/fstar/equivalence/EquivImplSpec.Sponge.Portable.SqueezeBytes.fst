@@ -24,7 +24,7 @@ module KP = EquivImplSpec.Keccakf.Portable
    Post: the new output (after [keccakf1600] + [f_squeeze] at offset
         [i*rate], len [rate]) agrees with the byteform spec at byte [k]
         for every [k] in the new prefix range. *)
-#push-options "--z3rlimit 400 --split_queries always"
+#push-options "--z3rlimit 800 --split_queries always"
 let lemma_squeeze_step_byte_write
       (rate: usize{Libcrux_sha3.Proof_utils.valid_rate rate})
       (s_init_st: t_Array u64 (mk_usize 25))

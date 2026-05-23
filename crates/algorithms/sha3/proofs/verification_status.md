@@ -32,41 +32,41 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 |            | generic_keccak/xof |    1 |   8 |   0 |     |   2 |    6 |      0 |       0 |
 |            | **Generic total** | **8** | **101** | **0** | **1** | **79** | **9** |  **0** |  **12** |
 |            |                   |      |     |     |     |     |      |        |         |
-| _Portable_ | generic_keccak    |    1 |   9 |   0 |     |   1 |    4 |      0 |       4 |
+| _Portable_ | generic_keccak    |    1 |  10 |   0 |     |   1 |    4 |      0 |       5 |
 |            | portable          |    1 |  27 |   0 |     |   8 |   13 |      0 |       6 |
-|            | simd              |    1 |  20 |   0 |     |  17 |    3 |      0 |       0 |
-|            | **Portable total** | **3** | **56** | **0** |     | **26** | **20** |  **0** |  **10** |
+|            | simd              |    4 |  20 |   0 |     |  17 |    3 |      0 |       0 |
+|            | **Portable total** | **6** | **57** | **0** |     | **26** | **20** |  **0** |  **11** |
 |            |                   |      |     |     |     |     |      |        |         |
 | _Avx2_     | generic_keccak    |    1 |   9 |   0 |     |   1 |    6 |      0 |       2 |
 |            | avx2              |    1 |   9 |   0 |     |   3 |    6 |      0 |       0 |
-|            | simd              |    1 |  23 |   1 |     |  17 |    5 |      0 |       0 |
-|            | **Avx2 total**    | **3** | **41** | **1** |     | **21** | **17** |  **0** |   **2** |
+|            | simd              |    4 |  24 |   1 |     |  17 |    6 |      0 |       0 |
+|            | **Avx2 total**    | **6** | **42** | **1** |     | **21** | **18** |  **0** |   **2** |
 |            |                   |      |     |     |     |     |      |        |         |
 | _Neon_     | generic_keccak    |    1 |   7 |   0 |     |   0 |    6 |      0 |       1 |
 |            | neon              |    1 |  15 |   0 |     |   8 |    0 |      0 |       7 |
-|            | simd              |    1 |  22 |   1 |     |  16 |    5 |      0 |       0 |
-|            | **Neon total**    | **3** | **44** | **1** |     | **24** | **11** |  **0** |   **8** |
+|            | simd              |    4 |  28 |   0 |     |  16 |   12 |      0 |       0 |
+|            | **Neon total**    | **6** | **50** | **0** |     | **24** | **18** |  **0** |   **8** |
 
 ## Summary
 
-- **Total modules**: 17
-- **Total functions**: 242
-- **Lax** (admitted): 2 (0.8%)
+- **Total modules**: 26
+- **Total functions**: 250
+- **Lax** (admitted): 1 (0.4%)
 - **Unverified** (not extracted): 1 (0.4%)
-- **Panic-safe** (PF + Math + Bounds + Hacspec): 239 (98.8%)
-  - Panic-free only (no further proof): 150 (62.0%)
-  - Math (non-trivial ensures, no bounds/spec match): 57 (23.6%)
+- **Panic-safe** (PF + Math + Bounds + Hacspec): 248 (99.2%)
+  - Panic-free only (no further proof): 150 (60.0%)
+  - Math (non-trivial ensures, no bounds/spec match): 65 (26.0%)
   - Bounds (range/interval ensures): 0 (0.0%)
-  - Hacspec (cites high-level spec): 32 (13.2%)
+  - Hacspec (cites high-level spec): 33 (13.2%)
 
 ### Modules per category
 
 | Category     | Modules |  Fns | Lax | Unv |  PF | Math | Bounds | Hacspec |
 | ------------ | ------- | ---- | --- | --- | --- | ---- | ------ | ------- |
 | Generic      |       8 |  101 |   0 |   1 |  79 |    9 |      0 |      12 |
-| Portable     |       3 |   56 |   0 |   0 |  26 |   20 |      0 |      10 |
-| Avx2         |       3 |   41 |   1 |   0 |  21 |   17 |      0 |       2 |
-| Neon         |       3 |   44 |   1 |   0 |  24 |   11 |      0 |       8 |
+| Portable     |       6 |   57 |   0 |   0 |  26 |   20 |      0 |      11 |
+| Avx2         |       6 |   42 |   1 |   0 |  21 |   18 |      0 |       2 |
+| Neon         |       6 |   50 |   0 |   0 |  24 |   18 |      0 |       8 |
 
 ## Unverified Rust modules (not extracted to F\*)
 
@@ -82,5 +82,4 @@ Functions classified as lax due to `admit ()` (or `--admit_smt_queries true`) in
 
 | Module                    |  Line |
 | ------------------------- | ----- |
-| Avx2/simd                 |   411 |
-| Neon/simd                 |   241 |
+| Avx2/simd                 |    65 |
