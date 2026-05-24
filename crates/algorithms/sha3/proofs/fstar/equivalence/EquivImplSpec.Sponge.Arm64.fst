@@ -117,16 +117,30 @@ let lemma_load_block_byte_eq_arm64
                     (G.extract_lane (mk_usize 2) KA.lc_arm64 state l)
                     block_l rate in
         Seq.index lhs i == Seq.index rhs i))
-  = admit ()
-    (* TRACK B FOLLOW-UP: structural body proof gap. The OLD inline byte_eq
-       inside [lemma_load_block_eq_xor_block_into_state_arm64] had
-       [admit ();] masking exactly this gap. Extracting to a standalone
-       lemma exposed the gap; closing it requires either (a) strengthening
-       this lemma's [requires] to package [load_block]'s per-(i, lane)
-       ensures conjunct as a direct hypothesis (per the diagnosis-report
-       recipe step 3), or (b) discharging [SP.lemma_subslice_bytes_eq]'s
-       preconditions + bridging via SMTPats. The [slices_same_len] +
-       [Seq.length] bridge alone is necessary but not sufficient. *)
+  = let ii = mk_usize i in
+    let lb_state = Libcrux_sha3.Simd.Arm64.load_block rate state blocks offset in
+    (* Bridge slices_same_len so Seq.length blocks.[mk_usize l] is known *)
+    assert (Seq.length #u8 (blocks.[ mk_usize l ]) ==
+            Seq.length #u8 (blocks.[ mk_usize 0 ]));
+    (* Mirror squeeze pattern: arm64_lane unfold + extract_lane SMTPat seeds
+       + get_lane_u64 mentions so the per-lane bridge equates lhs/rhs *)
+    KA.lemma_arm64_lane_unfold state.[ii] l;
+    KA.lemma_arm64_lane_unfold lb_state.[ii] l;
+    assert ((G.extract_lane (mk_usize 2) KA.lc_arm64 state l).[ii]
+              == KA.arm64_lane state.[ii] l);
+    assert ((G.extract_lane (mk_usize 2) KA.lc_arm64 lb_state l).[ii]
+              == KA.arm64_lane lb_state.[ii] l);
+    let _ = I.get_lane_u64 state.[ii] (mk_usize 0) in
+    let _ = I.get_lane_u64 state.[ii] (mk_usize 1) in
+    let _ = I.get_lane_u64 lb_state.[ii] (mk_usize 0) in
+    let _ = I.get_lane_u64 lb_state.[ii] (mk_usize 1) in
+    (* Reveal load_lane_u64 so the per-lane equation unfolds to
+       get_lane_u64 state.[ii] lane ^. from_le_bytes(blocks.[lane][offset+8i..]) *)
+    reveal_opaque (`%Libcrux_sha3.Simd.Arm64.Load.load_lane_u64)
+                  Libcrux_sha3.Simd.Arm64.Load.load_lane_u64;
+    (* Apply subslice equality for the data-bytes branch *)
+    if v ii < v (rate /! mk_usize 8 <: usize) then
+      SP.lemma_subslice_bytes_eq (blocks.[ mk_usize l ]) offset rate ii
 #pop-options
 
 (* ================================================================

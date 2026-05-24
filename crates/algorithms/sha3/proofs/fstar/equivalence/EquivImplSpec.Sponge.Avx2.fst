@@ -117,9 +117,34 @@ let lemma_load_block_byte_eq_avx2
                     (G.extract_lane (mk_usize 4) KA.lc_avx2 state l)
                     block_l rate in
         Seq.index lhs i == Seq.index rhs i))
-  = admit ()
-    (* TRACK B FOLLOW-UP: structural body proof gap. Mirrors
-       lemma_load_block_byte_eq_arm64. See its comment for closure plan. *)
+  = let ii = mk_usize i in
+    let lb_state = Libcrux_sha3.Simd.Avx2.load_block rate state blocks offset in
+    (* Bridge slices_same_len so Seq.length blocks.[mk_usize l] is known *)
+    assert (Seq.length #u8 (blocks.[ mk_usize l ]) ==
+            Seq.length #u8 (blocks.[ mk_usize 0 ]));
+    (* Mirror Arm64 byte_eq: avx2_lane unfold + extract_lane SMTPat seeds
+       + 4-lane get_lane_u64 mentions so the per-lane bridge equates lhs/rhs *)
+    KA.lemma_avx2_lane_unfold state.[ii] l;
+    KA.lemma_avx2_lane_unfold lb_state.[ii] l;
+    assert ((G.extract_lane (mk_usize 4) KA.lc_avx2 state l).[ii]
+              == KA.avx2_lane state.[ii] l);
+    assert ((G.extract_lane (mk_usize 4) KA.lc_avx2 lb_state l).[ii]
+              == KA.avx2_lane lb_state.[ii] l);
+    let _ = I.get_lane_u64 state.[ii] (mk_usize 0) in
+    let _ = I.get_lane_u64 state.[ii] (mk_usize 1) in
+    let _ = I.get_lane_u64 state.[ii] (mk_usize 2) in
+    let _ = I.get_lane_u64 state.[ii] (mk_usize 3) in
+    let _ = I.get_lane_u64 lb_state.[ii] (mk_usize 0) in
+    let _ = I.get_lane_u64 lb_state.[ii] (mk_usize 1) in
+    let _ = I.get_lane_u64 lb_state.[ii] (mk_usize 2) in
+    let _ = I.get_lane_u64 lb_state.[ii] (mk_usize 3) in
+    (* Reveal load_lane_u64 so the per-lane equation unfolds to
+       get_lane_u64 state.[ii] lane ^. from_le_bytes(blocks.[lane][offset+8i..]) *)
+    reveal_opaque (`%Libcrux_sha3.Simd.Avx2.Load.load_lane_u64)
+                  Libcrux_sha3.Simd.Avx2.Load.load_lane_u64;
+    (* Apply subslice equality for the data-bytes branch *)
+    if v ii < v (rate /! mk_usize 8 <: usize) then
+      SP.lemma_subslice_bytes_eq (blocks.[ mk_usize l ]) offset rate ii
 #pop-options
 
 (* ================================================================
@@ -429,9 +454,20 @@ let lemma_sq_lane_avx2_eq_squeeze_state
     let byte_eq (i: nat{i < Seq.length out_l})
       : Lemma (Seq.index lhs i == Seq.index rhs i) =
       let ii = mk_usize i in
+      assert (v ii < Seq.length out_l);
+      (* Mirror Arm64 squeeze byte_eq, 4-lane variant: extract_lane SMTPat seed
+         + avx2_lane unfold + 4 get_lane_u64 mentions so the per-lane bridge
+         equates lhs and rhs in the in-range branch. *)
       if v start <= v ii && v ii < v start + v len then begin
         let j : usize = (ii -! start) /! mk_usize 8 in
-        KA.lemma_avx2_lane_unfold state.[j] l
+        KA.lemma_avx2_lane_unfold state.[j] l;
+        assert ((G.extract_lane (mk_usize 4) KA.lc_avx2 state l).[j]
+                  == KA.avx2_lane state.[j] l);
+        let _ = I.get_lane_u64 state.[j] (mk_usize 0) in
+        let _ = I.get_lane_u64 state.[j] (mk_usize 1) in
+        let _ = I.get_lane_u64 state.[j] (mk_usize 2) in
+        let _ = I.get_lane_u64 state.[j] (mk_usize 3) in
+        ()
       end
     in
     Classical.forall_intro byte_eq;
