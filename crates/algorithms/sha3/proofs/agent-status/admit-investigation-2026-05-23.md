@@ -27,6 +27,152 @@ chain.
 
 ---
 
+## 2026-05-24 UPDATE — empirical findings from Track A and Track B attempts
+
+Track A (`~/libcrux-sha3-track-a`, branch `sha3-proofs-track-a`) attempted admit 1
+closure. Track B (`~/libcrux-sha3-track-b`, branch `sha3-proofs-track-b`)
+attempted admits 4 and 5. **Both tracks closed 0 admits**, but both produced
+strong validation of the diagnosis below + concrete handoff recipes for the
+next attempts. The closure-plan effort estimates in this note were too
+optimistic — both Path 1/2 ("inline lockstep / squeeze_blocks2 cherry-pick"
+for admits 1/2) and "Fix 1 alone" (opacity for admits 4/5) were called
+mechanical/low-variance; empirically each is medium-variance structural.
+
+### Track A findings (admit 1)
+
+- Path 1 (inline lockstep replacing `assume val lemma_squeeze2_arm64`) is
+  **structurally infeasible as stated**: `Simd128.squeeze2`'s function-level
+  ensures is bounds-only, and its `fold_range` loop_invariant carries no
+  byteform predicate. F\* has no path from the (bounds-only) upper-bound
+  loop_invariant back to the per-byte equivalence the lemma needs.
+- Path 2 / "Path Z" (cherry-pick `squeeze_blocks2` from
+  `~/libcrux-sha3-squeeze2 @ 1d35f933c`) **lands the helper cleanly**
+  (`squeeze_blocks2` verifies on its own at 4× rlimit), but `squeeze2`'s
+  body still cliffs — Z3 saturates on the first sub-VC. Same shape the
+  squeeze2 branch's `7979e4371` resolved via `--admit_smt_queries true`
+  (a workaround Track A correctly refused per the no-new-admits rule).
+- The forall_intro fix from `squeeze2-body-2026-05-05.md` with `()` aux
+  bodies **was validated as insufficient**: Z3 enters the same saturation
+  pattern. Open question: do aux bodies that explicitly invoke
+  `lemma_sq_lane_arm64_eq_squeeze_state` (rather than `()`) discharge?
+  That's the next experiment for admit 1.
+- Track A's worktree state: clean baseline at fork point; status notes
+  + rollup committed at HEAD `448a61bca`.
+
+### Track B findings (admits 4 + 5)
+
+- Diagnosis was **empirically correct**. Fix 1+2 (opacity on
+  `KA.{arm64,avx2}_lane` + per-`i` `match` destructure replacing
+  `Classical.forall_intro byte_eq`) collapsed `k!61` from 128,229
+  instances → 30 instances. **4000× reduction.** Strongest evidence
+  to date that the opacity approach is correct in principle.
+- **But it unmasked the next-down cascades** (skill §1.5.1 "layered
+  cascades" prediction realised):
+  - `Core_models.Ops.Index.f_index` interp at **2196 instances** (was
+    fully masked behind `k!61`).
+  - `Rust_primitives.Hax.Folds.fsti` `forall` interp at **1094**, from
+    `load_block`'s heavy ensures clause's universally-quantified body.
+  - `Core_models.Default` / `Core_models.Convert` interps totalling
+    **~3000** — unrelated typeclass machinery firing under the new
+    e-matching surface.
+- **Fix 1 alone regresses a previously-passing baseline lemma**:
+  `lemma_sq_lane_avx2_eq_squeeze_state` (`Sponge.Avx2.fst:378+`) goes
+  from <10 s baseline to **98 s saturating rlimit 600/600**. The
+  opacity introduction shifts an e-matching path; the squeeze lemma
+  has no companion fix in scope. **Closure requires threading
+  `lemma_avx2_lane_unfold` reveal into the squeeze lemma's asserts.**
+- The Fix 3 layer (multi-pattern SMTPat narrowing) didn't help over
+  Fix 1+2 — the next cliff isn't `arm64_lane`-shaped.
+- **Closure requires a 4th-layer structural refactor**: extract
+  `byte_eq` from inside `lemma_load_block_eq_xor_block_into_state_{arm64,avx2}`
+  into a **standalone top-level lemma** (e.g.
+  `lemma_load_block_byte_eq_arm64`) whose `requires` packages the
+  `load_block` ensures conjunct **at index `i` as a per-`i` hypothesis**
+  — not as a free `load_block`-style forall. This is the standard
+  "iter-start snapshot + standalone bridge lemma" pattern from skill
+  §7 ("Iter-start snapshot + standalone bridge lemma for opaque
+  carryover after Seq.upd"), adapted to the per-`i` byte-equality
+  shape. Expected to suppress the `f_index` / Folds-forall instances
+  and clear the path.
+- Track B's worktree state: clean baseline; status + rollup committed
+  at HEAD `b701bf5eb`. All proof code reverted to base (byte-identical
+  to `d8f65def4`).
+
+### Revised closure recipes
+
+**Admit 1 (Arm64 squeeze driver)** — Path Z (resumable):
+
+1. Re-cherry-pick `1d35f933c` from `~/libcrux-sha3-squeeze2` to bring
+   `squeeze_blocks2` + 3 step lemmas + one-liner driver back.
+2. In `Simd128.squeeze2`'s else branch (just before the two
+   `lemma_squeeze_final_reconcile_arm64 ... {0,1}` calls), add four
+   `Classical.forall_intro` calls (prefix × 2 lanes, trailing × 2 lanes).
+   **Aux bodies must explicitly invoke
+   `lemma_sq_lane_arm64_eq_squeeze_state`** on the relevant ranges to
+   reify the byte-level facts before the `()` rewriter would have
+   fired. Track A validated that `()` does NOT work; the explicit
+   invocation is the next experiment.
+3. If the aux bodies discharge: drop `--admit_smt_queries true` from
+   `lemma_squeeze_final_reconcile_arm64`'s push-options (per the prior
+   note, the lemma's body falls out cleanly once preconditions are
+   met explicitly). The driver `lemma_squeeze2_arm64` is the existing
+   one-liner.
+4. If they don't: Path Z is structurally infeasible without admits.
+   Fall back is much-larger-scope (e.g. moving byte-level reasoning
+   inside the Arm64 instance's `f_squeeze2` trait method ensures).
+
+**Admit 2 (AVX2 squeeze driver)** — depends on admit 1's closure
+pattern landing. Adds porting `lemma_squeeze_one_step_arm64` →
+`lemma_squeeze_one_step_avx2` (the gap in `Avx2.Steps.fst` — file
+ends at line 171 with `lemma_squeeze_last_avx2`) + `squeeze_blocks2`
+→ `squeeze_blocks4` + the 3 step lemmas Arm64→AVX2.
+
+**Admits 4 + 5 (byte_eq mirrored pair)** — 5-step recipe (Track B
+agent's rollup):
+
+1. Re-apply Fix 1 (opacity on `KA.{arm64,avx2}_lane` in
+   `EquivImplSpec.Keccakf.{Arm64,Avx2}.fst` + `reveal_opaque` /
+   `*_lane_unfold` helpers at SMTPat-bridge sites in
+   `EquivImplSpec.Sponge.{Arm64,Avx2}.fst`).
+2. Thread `lemma_avx2_lane_unfold` reveal into
+   `lemma_sq_lane_avx2_eq_squeeze_state` to fix the Fix-1-induced
+   regression in `EquivImplSpec.Sponge.Avx2.fst:378+`.
+3. **Extract `byte_eq` into a standalone top-level lemma**
+   `lemma_load_block_byte_eq_arm64` (and mirror) whose `requires`
+   take the `load_block` ensures conjunct at index `i` directly as
+   a per-`i` hypothesis. Caller threads the conjunct from
+   `load_block`'s ensures into the call site.
+4. `--admit_except` on the new standalone lemma to isolate;
+   `--using_facts_from '* -Core_models.Default -Core_models.Convert'`
+   to suppress the 3000-instance typeclass contribution.
+5. Mirror for AVX2 (admit 5).
+
+**Admit 3 (AVX2 store_block)** — unchanged from original recipe
+(`store-block-avx2-discharge` structural split +
+`loop-invariant-opacify` `LoopInv.fst` transplant). The `k!61` cascade
+collapse Track B validated (4000×) is direct evidence that the same
+opacity attack will work on admit 3's loop-invariant — Track C
+inherits Track B's positive result + the standalone-lemma-extraction
+discipline.
+
+### Revised sprint ordering
+
+1. **Re-attempt Track B** with the 5-step recipe above. Highest
+   confidence: diagnosis empirically validated, foundation
+   (Keccakf opacity) closes cleanly in 2.4 s. Closes 2 of 5.
+2. **Re-attempt Track A** with the explicit-lemma aux bodies. Pivots
+   on the open empirical question; if aux bodies discharge, closes
+   admit 1, then admit 2 mechanically. If not, Path Z is dead and we
+   need a different angle (or admit-with-justification).
+3. **Track C** (admit 3). Largest scaffolding pre-drafted; benefits
+   from Tracks A/B's validated patterns.
+
+The Track A and Track B status notes + rollups in their respective
+worktrees contain the full operational details (memory peaks, exact
+file:line targets, what was tried and reverted).
+
+---
+
 ## Admit 1: `lemma_squeeze2_arm64` (`assume val`) at `EquivImplSpec.Sponge.Arm64.Driver.fst:111`
 
 ### Failure shape
