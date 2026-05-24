@@ -1,0 +1,5 @@
+# F* hint files: text-format but proof-state-shaped — diffs are noisy and
+# uninformative (Z3 fingerprint churn). Treat as binary in PR diffs so
+# `git diff` / GitHub show "Binary files X and Y differ" instead of
+# expanding the full hint contents.
+*.hints diff=binary
