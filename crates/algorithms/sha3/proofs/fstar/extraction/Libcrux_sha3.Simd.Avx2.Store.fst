@@ -578,15 +578,15 @@ let store_block
         let out0:t_Slice u8 =
           Rust_primitives.Hax.Monomorphized_update_at.update_at_range out0
             ({
-                Core_models.Ops.Range.f_start = (start +! len <: usize) -! rem8 <: usize;
-                Core_models.Ops.Range.f_end = start +! len <: usize
+                Core_models.Ops.Range.f_start = (start +! rem <: usize) -! rem8 <: usize;
+                Core_models.Ops.Range.f_end = start +! rem <: usize
               }
               <:
               Core_models.Ops.Range.t_Range usize)
             (Core_models.Slice.impl__copy_from_slice #u8
                 (out0.[ {
-                      Core_models.Ops.Range.f_start = (start +! len <: usize) -! rem8 <: usize;
-                      Core_models.Ops.Range.f_end = start +! len <: usize
+                      Core_models.Ops.Range.f_start = (start +! rem <: usize) -! rem8 <: usize;
+                      Core_models.Ops.Range.f_end = start +! rem <: usize
                     }
                     <:
                     Core_models.Ops.Range.t_Range usize ]
@@ -606,15 +606,15 @@ let store_block
         let out1:t_Slice u8 =
           Rust_primitives.Hax.Monomorphized_update_at.update_at_range out1
             ({
-                Core_models.Ops.Range.f_start = (start +! len <: usize) -! rem8 <: usize;
-                Core_models.Ops.Range.f_end = start +! len <: usize
+                Core_models.Ops.Range.f_start = (start +! rem <: usize) -! rem8 <: usize;
+                Core_models.Ops.Range.f_end = start +! rem <: usize
               }
               <:
               Core_models.Ops.Range.t_Range usize)
             (Core_models.Slice.impl__copy_from_slice #u8
                 (out1.[ {
-                      Core_models.Ops.Range.f_start = (start +! len <: usize) -! rem8 <: usize;
-                      Core_models.Ops.Range.f_end = start +! len <: usize
+                      Core_models.Ops.Range.f_start = (start +! rem <: usize) -! rem8 <: usize;
+                      Core_models.Ops.Range.f_end = start +! rem <: usize
                     }
                     <:
                     Core_models.Ops.Range.t_Range usize ]
@@ -634,15 +634,15 @@ let store_block
         let out2:t_Slice u8 =
           Rust_primitives.Hax.Monomorphized_update_at.update_at_range out2
             ({
-                Core_models.Ops.Range.f_start = (start +! len <: usize) -! rem8 <: usize;
-                Core_models.Ops.Range.f_end = start +! len <: usize
+                Core_models.Ops.Range.f_start = (start +! rem <: usize) -! rem8 <: usize;
+                Core_models.Ops.Range.f_end = start +! rem <: usize
               }
               <:
               Core_models.Ops.Range.t_Range usize)
             (Core_models.Slice.impl__copy_from_slice #u8
                 (out2.[ {
-                      Core_models.Ops.Range.f_start = (start +! len <: usize) -! rem8 <: usize;
-                      Core_models.Ops.Range.f_end = start +! len <: usize
+                      Core_models.Ops.Range.f_start = (start +! rem <: usize) -! rem8 <: usize;
+                      Core_models.Ops.Range.f_end = start +! rem <: usize
                     }
                     <:
                     Core_models.Ops.Range.t_Range usize ]
@@ -662,15 +662,15 @@ let store_block
         let out3:t_Slice u8 =
           Rust_primitives.Hax.Monomorphized_update_at.update_at_range out3
             ({
-                Core_models.Ops.Range.f_start = (start +! len <: usize) -! rem8 <: usize;
-                Core_models.Ops.Range.f_end = start +! len <: usize
+                Core_models.Ops.Range.f_start = (start +! rem <: usize) -! rem8 <: usize;
+                Core_models.Ops.Range.f_end = start +! rem <: usize
               }
               <:
               Core_models.Ops.Range.t_Range usize)
             (Core_models.Slice.impl__copy_from_slice #u8
                 (out3.[ {
-                      Core_models.Ops.Range.f_start = (start +! len <: usize) -! rem8 <: usize;
-                      Core_models.Ops.Range.f_end = start +! len <: usize
+                      Core_models.Ops.Range.f_start = (start +! rem <: usize) -! rem8 <: usize;
+                      Core_models.Ops.Range.f_end = start +! rem <: usize
                     }
                     <:
                     Core_models.Ops.Range.t_Range usize ]
