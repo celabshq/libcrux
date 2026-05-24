@@ -113,3 +113,57 @@ let store_block_window_byte_of_storeu out out_new store_res vec a j =
     assert (Seq.index (Seq.slice out_new a (a + 32)) k == Seq.index store_res k)
   end;
   store_block_window_byte out out_new vec a j
+
+/// One-call wrapper that fuses the per-byte forall (from the
+/// strengthened `mm256_storeu_si256_u8` SMTPat) with
+/// `store_block_window_byte_of_storeu`. The bridge call site never
+/// has to discharge the 32-byte `forall` precondition itself; the
+/// SMTPat fires only inside this helper's body, isolated from any
+/// other storeu calls in the caller's scope. This breaks the
+/// 4-storeus-in-one-scope quantifier cliff seen in `store_u64x4x4`.
+val store_block_window_byte_of_storeu_call
+    (out out_new: Seq.seq u8)
+    (vec: t_Vec256)
+    (a: nat)
+    (j: nat)
+  : Lemma
+    (requires
+        a + 32 <= Seq.length out /\
+        Seq.length out_new == Seq.length out /\
+        j < Seq.length out_new /\
+        Seq.slice out_new 0 a == Seq.slice out 0 a /\
+        Seq.slice out_new a (a + 32) ==
+          mm256_storeu_si256_u8 (Seq.slice out a (a + 32)) vec /\
+        Seq.slice out_new (a + 32) (Seq.length out_new)
+          == Seq.slice out (a + 32) (Seq.length out))
+    (ensures
+        (if j < a then
+           Seq.index out_new j == Seq.index out j
+         else if j < a + 32 then
+           Seq.index out_new j ==
+             Seq.index
+               (Core_models.Num.impl_u64__to_le_bytes
+                  (get_lane_u64 vec (mk_usize ((j - a) / 8))))
+               ((j - a) % 8)
+         else
+           Seq.index out_new j == Seq.index out j))
+
+let store_block_window_byte_of_storeu_call out out_new vec a j =
+  let store_res = mm256_storeu_si256_u8 (Seq.slice out a (a + 32)) vec in
+  // Sanity: the intrinsic's length post.
+  assert (Seq.length store_res == 32);
+  // Drive the per-byte SMTPat instantiation manually so it fires
+  // here against the single concrete `store_res` in scope; the
+  // caller may have several other `mm256_storeu_si256_u8` calls
+  // active, and an unguided e-matching saturation across all of
+  // them is what previously cliffed `store_u64x4x4`.
+  introduce forall (k:nat{k < 32}).
+              Seq.index store_res k ==
+              Seq.index
+                (Core_models.Num.impl_u64__to_le_bytes (get_lane_u64 vec (mk_usize (k / 8))))
+                (k % 8)
+  with begin
+    Libcrux_intrinsics.Avx2_extract.lemma_mm256_storeu_si256_u8_byte
+      (Seq.slice out a (a + 32)) vec k
+  end;
+  store_block_window_byte_of_storeu out out_new store_res vec a j

@@ -12,6 +12,177 @@ use libcrux_intrinsics::avx2::*;
 use crate::generic_keccak::KeccakState;
 use crate::traits::{get_ij, Squeeze4};
 
+/// Per-iteration store wrapper for `store_block_full_avx2`. Given the
+/// four state vectors `s0..s3` (= `s[4*i + 0..4*i + 3]` after the
+/// composer's linearisation), the four permute2x128 + two
+/// unpacklo/unpackhi pass deinterleaves them into four output streams
+/// `v_m`, each whose lane `k` corresponds to lane `m` of `s_k`. Four
+/// `mm256_storeu_si256_u8` stores then write a 32-byte window per
+/// buffer.
+///
+/// Factored out of `store_block_full_avx2` so the strong per-byte
+/// ensures isolates the `update_at_range`/permute/unpack reasoning from
+/// the outer loop's heavy invariant. Mirrors `store_u64x2x2` on the
+/// AVX2 side (4 lanes instead of 2).
+#[inline(always)]
+#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always")]
+#[hax_lib::requires(
+    out0.len() == out1.len()
+    && out0.len() == out2.len()
+    && out0.len() == out3.len()
+    && start.to_int() + (32.to_int() * (i.to_int() + 1.to_int())) <= out0.len().to_int()
+)]
+#[hax_lib::ensures(|_|
+    (future(out0).len() == out0.len()).to_prop()
+    & (future(out1).len() == out1.len()).to_prop()
+    & (future(out2).len() == out2.len()).to_prop()
+    & (future(out3).len() == out3.len()).to_prop()
+    & hax_lib::forall(|j: usize|
+        if j < out0.len() {
+            if j < start + 32 * i {
+                out0[j] == future(out0)[j] && out1[j] == future(out1)[j]
+                    && out2[j] == future(out2)[j] && out3[j] == future(out3)[j]
+            } else if j < start + 32 * (i + 1) {
+                if (j - start) / 8 == 4 * i {
+                    future(out0)[j] == get_lane_u64(s0, 0).to_le_bytes()[(j - start) % 8]
+                        && future(out1)[j] == get_lane_u64(s0, 1).to_le_bytes()[(j - start) % 8]
+                        && future(out2)[j] == get_lane_u64(s0, 2).to_le_bytes()[(j - start) % 8]
+                        && future(out3)[j] == get_lane_u64(s0, 3).to_le_bytes()[(j - start) % 8]
+                } else if (j - start) / 8 == 4 * i + 1 {
+                    future(out0)[j] == get_lane_u64(s1, 0).to_le_bytes()[(j - start) % 8]
+                        && future(out1)[j] == get_lane_u64(s1, 1).to_le_bytes()[(j - start) % 8]
+                        && future(out2)[j] == get_lane_u64(s1, 2).to_le_bytes()[(j - start) % 8]
+                        && future(out3)[j] == get_lane_u64(s1, 3).to_le_bytes()[(j - start) % 8]
+                } else if (j - start) / 8 == 4 * i + 2 {
+                    future(out0)[j] == get_lane_u64(s2, 0).to_le_bytes()[(j - start) % 8]
+                        && future(out1)[j] == get_lane_u64(s2, 1).to_le_bytes()[(j - start) % 8]
+                        && future(out2)[j] == get_lane_u64(s2, 2).to_le_bytes()[(j - start) % 8]
+                        && future(out3)[j] == get_lane_u64(s2, 3).to_le_bytes()[(j - start) % 8]
+                } else {
+                    future(out0)[j] == get_lane_u64(s3, 0).to_le_bytes()[(j - start) % 8]
+                        && future(out1)[j] == get_lane_u64(s3, 1).to_le_bytes()[(j - start) % 8]
+                        && future(out2)[j] == get_lane_u64(s3, 2).to_le_bytes()[(j - start) % 8]
+                        && future(out3)[j] == get_lane_u64(s3, 3).to_le_bytes()[(j - start) % 8]
+                }
+            } else {
+                out0[j] == future(out0)[j] && out1[j] == future(out1)[j]
+                    && out2[j] == future(out2)[j] && out3[j] == future(out3)[j]
+            }
+        } else {
+            true
+        })
+)]
+fn store_u64x4x4(
+    out0: &mut [u8],
+    out1: &mut [u8],
+    out2: &mut [u8],
+    out3: &mut [u8],
+    s0: Vec256,
+    s1: Vec256,
+    s2: Vec256,
+    s3: Vec256,
+    start: usize,
+    i: usize,
+) {
+    let v0l = mm256_permute2x128_si256::<0x20>(s0, s2);
+    let v1h = mm256_permute2x128_si256::<0x20>(s1, s3);
+    let v2l = mm256_permute2x128_si256::<0x31>(s0, s2);
+    let v3h = mm256_permute2x128_si256::<0x31>(s1, s3);
+    let v0 = mm256_unpacklo_epi64(v0l, v1h);
+    let v1 = mm256_unpackhi_epi64(v0l, v1h);
+    let v2 = mm256_unpacklo_epi64(v2l, v3h);
+    let v3 = mm256_unpackhi_epi64(v2l, v3h);
+    #[cfg(hax)]
+    let old_out0 = out0.to_vec().as_slice();
+    #[cfg(hax)]
+    let old_out1 = out1.to_vec().as_slice();
+    #[cfg(hax)]
+    let old_out2 = out2.to_vec().as_slice();
+    #[cfg(hax)]
+    let old_out3 = out3.to_vec().as_slice();
+    mm256_storeu_si256_u8(&mut out0[start + 32 * i..start + 32 * (i + 1)], v0);
+    mm256_storeu_si256_u8(&mut out1[start + 32 * i..start + 32 * (i + 1)], v1);
+    mm256_storeu_si256_u8(&mut out2[start + 32 * i..start + 32 * (i + 1)], v2);
+    mm256_storeu_si256_u8(&mut out3[start + 32 * i..start + 32 * (i + 1)], v3);
+    // Bridge the strengthened `mm256_storeu_si256_u8` per-byte post +
+    // `update_at_range` slice posts into the per-absolute-index byte
+    // facts the function-level ensures expects, then propagate via
+    // `forall_intro` over the abstract index `j`.
+    hax_lib::fstar!(
+        r#"
+        let a_pos:nat = v start + 32 * v i in
+        assert (a_pos + 32 <= Seq.length old_out0);
+        assert (a_pos + 32 <= Seq.length old_out1);
+        assert (a_pos + 32 <= Seq.length old_out2);
+        assert (a_pos + 32 <= Seq.length old_out3);
+        let bridge_out0 (j_n:nat{j_n < Seq.length old_out0}) :
+            Lemma (
+              if j_n < a_pos then
+                Seq.index out0 j_n == Seq.index old_out0 j_n
+              else if j_n < a_pos + 32 then
+                Seq.index out0 j_n ==
+                  Seq.index
+                    (Core_models.Num.impl_u64__to_le_bytes
+                       (Libcrux_intrinsics.Avx2_extract.get_lane_u64 v0 (mk_usize ((j_n - a_pos) / 8))))
+                    ((j_n - a_pos) % 8)
+              else
+                Seq.index out0 j_n == Seq.index old_out0 j_n)
+          = Libcrux_sha3.Simd.Avx2.StoreBlockHelpers.store_block_window_byte_of_storeu_call
+              old_out0 out0 v0 a_pos j_n
+        in
+        let bridge_out1 (j_n:nat{j_n < Seq.length old_out1}) :
+            Lemma (
+              if j_n < a_pos then
+                Seq.index out1 j_n == Seq.index old_out1 j_n
+              else if j_n < a_pos + 32 then
+                Seq.index out1 j_n ==
+                  Seq.index
+                    (Core_models.Num.impl_u64__to_le_bytes
+                       (Libcrux_intrinsics.Avx2_extract.get_lane_u64 v1 (mk_usize ((j_n - a_pos) / 8))))
+                    ((j_n - a_pos) % 8)
+              else
+                Seq.index out1 j_n == Seq.index old_out1 j_n)
+          = Libcrux_sha3.Simd.Avx2.StoreBlockHelpers.store_block_window_byte_of_storeu_call
+              old_out1 out1 v1 a_pos j_n
+        in
+        let bridge_out2 (j_n:nat{j_n < Seq.length old_out2}) :
+            Lemma (
+              if j_n < a_pos then
+                Seq.index out2 j_n == Seq.index old_out2 j_n
+              else if j_n < a_pos + 32 then
+                Seq.index out2 j_n ==
+                  Seq.index
+                    (Core_models.Num.impl_u64__to_le_bytes
+                       (Libcrux_intrinsics.Avx2_extract.get_lane_u64 v2 (mk_usize ((j_n - a_pos) / 8))))
+                    ((j_n - a_pos) % 8)
+              else
+                Seq.index out2 j_n == Seq.index old_out2 j_n)
+          = Libcrux_sha3.Simd.Avx2.StoreBlockHelpers.store_block_window_byte_of_storeu_call
+              old_out2 out2 v2 a_pos j_n
+        in
+        let bridge_out3 (j_n:nat{j_n < Seq.length old_out3}) :
+            Lemma (
+              if j_n < a_pos then
+                Seq.index out3 j_n == Seq.index old_out3 j_n
+              else if j_n < a_pos + 32 then
+                Seq.index out3 j_n ==
+                  Seq.index
+                    (Core_models.Num.impl_u64__to_le_bytes
+                       (Libcrux_intrinsics.Avx2_extract.get_lane_u64 v3 (mk_usize ((j_n - a_pos) / 8))))
+                    ((j_n - a_pos) % 8)
+              else
+                Seq.index out3 j_n == Seq.index old_out3 j_n)
+          = Libcrux_sha3.Simd.Avx2.StoreBlockHelpers.store_block_window_byte_of_storeu_call
+              old_out3 out3 v3 a_pos j_n
+        in
+        Classical.forall_intro bridge_out0;
+        Classical.forall_intro bridge_out1;
+        Classical.forall_intro bridge_out2;
+        Classical.forall_intro bridge_out3
+        "#
+    );
+}
+
 #[inline(always)]
 #[hax_lib::fstar::options("--z3rlimit 300")]
 #[hax_lib::requires(valid_rate(RATE)

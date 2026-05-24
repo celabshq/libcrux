@@ -95,6 +95,20 @@ pub fn get_lane_u64(vec: Vec256, lane: usize) -> u64 {
               == get_lane_u64(vector, i)
         } else { true }))]
 #[hax_lib::fstar::after(
+    interface,
+    r#"
+val lemma_mm256_storeu_si256_u8_byte (output: t_Slice u8) (vector: t_Vec256) (k: nat)
+  : Lemma
+      (requires
+        Seq.length output == 32 /\ k < 32)
+      (ensures
+        Seq.index (mm256_storeu_si256_u8 output vector <: t_Slice u8) k ==
+        Seq.index
+          (Core_models.Num.impl_u64__to_le_bytes (get_lane_u64 vector (mk_usize (k / 8))))
+          (k % 8))
+"#
+)]
+#[hax_lib::fstar::after(
     r#"
 let lemma_mm256_storeu_si256_u8_byte (output: t_Slice u8) (vector: t_Vec256) (k: nat)
   : Lemma
@@ -105,7 +119,6 @@ let lemma_mm256_storeu_si256_u8_byte (output: t_Slice u8) (vector: t_Vec256) (k:
         Seq.index
           (Core_models.Num.impl_u64__to_le_bytes (get_lane_u64 vector (mk_usize (k / 8))))
           (k % 8))
-      [SMTPat (Seq.index (mm256_storeu_si256_u8 output vector <: t_Slice u8) k)]
   = admit ()
 "#
 )]
