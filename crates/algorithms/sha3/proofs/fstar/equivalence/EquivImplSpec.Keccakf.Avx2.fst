@@ -55,8 +55,14 @@ let _ =
    [()] composition (just like arm64).
    ================================================================ *)
 
+[@@ "opaque_to_smt"]
 let avx2_lane (vec: I.t_Vec256) (l: nat{l < 4}) : u64 =
   I.get_lane_u64x4 vec l
+
+(* Reveal helper for callers that need to unfold [avx2_lane] under SMT. *)
+let lemma_avx2_lane_unfold (vec: I.t_Vec256) (l: nat{l < 4})
+  : Lemma (avx2_lane vec l == I.get_lane_u64x4 vec l)
+  = reveal_opaque (`%avx2_lane) (avx2_lane vec l)
 
 (* ================================================================
    Lane-correctness field proofs — ADMITTED.
@@ -81,7 +87,11 @@ let avx2_lc_zero (l: nat{l < 4})
   : Lemma (avx2_lane (Libcrux_sha3.Traits.f_zero
              #I.t_Vec256 #(mk_usize 4)
              #FStar.Tactics.Typeclasses.solve ()) l == mk_u64 0)
-  = let _ = I.lemma_mm256_set1_epi64x_u64x4 (mk_i64 0) in ()
+  = let _ = I.lemma_mm256_set1_epi64x_u64x4 (mk_i64 0) in
+    lemma_avx2_lane_unfold
+      (Libcrux_sha3.Traits.f_zero
+        #I.t_Vec256 #(mk_usize 4)
+        #FStar.Tactics.Typeclasses.solve ()) l
 
 let avx2_lc_xor5 (a b c d e: I.t_Vec256) (l: nat{l < 4})
   : Lemma (avx2_lane (Libcrux_sha3.Traits.f_xor5
@@ -89,7 +99,15 @@ let avx2_lc_xor5 (a b c d e: I.t_Vec256) (l: nat{l < 4})
              #FStar.Tactics.Typeclasses.solve a b c d e) l ==
            (((avx2_lane a l ^. avx2_lane b l) ^. avx2_lane c l)
              ^. avx2_lane d l) ^. avx2_lane e l)
-  = ()
+  = lemma_avx2_lane_unfold a l;
+    lemma_avx2_lane_unfold b l;
+    lemma_avx2_lane_unfold c l;
+    lemma_avx2_lane_unfold d l;
+    lemma_avx2_lane_unfold e l;
+    lemma_avx2_lane_unfold
+      (Libcrux_sha3.Traits.f_xor5
+        #I.t_Vec256 #(mk_usize 4)
+        #FStar.Tactics.Typeclasses.solve a b c d e) l
 
 (* Bridge: the AVX2 implementation of rotate_left as
    (x <<! LEFT) ^. (x >>! RIGHT) (when LEFT + RIGHT == 64) yields
@@ -110,6 +128,12 @@ let avx2_lc_rotate_left1_and_xor (a b: I.t_Vec256) (l: nat{l < 4})
        where rotate_left 1 63 b = mm256_xor_si256 (mm256_slli_epi64 1 b) (mm256_srli_epi64 63 b).
        SMTPats give per-lane shifts/xor; bridge lemma equates
        (x <<! 1) ^. (x >>! 63) with impl_u64__rotate_left x 1. *)
+    lemma_avx2_lane_unfold a l;
+    lemma_avx2_lane_unfold b l;
+    lemma_avx2_lane_unfold
+      (Libcrux_sha3.Traits.f_rotate_left1_and_xor
+        #I.t_Vec256 #(mk_usize 4)
+        #FStar.Tactics.Typeclasses.solve a b) l;
     PUL.lemma_shl_xor_shr_is_rotate_left (avx2_lane b l) (mk_i32 1) (mk_i32 63)
 #pop-options
 
@@ -131,6 +155,12 @@ let avx2_lc_xor_and_rotate (v_LEFT v_RIGHT: i32) (a b: I.t_Vec256) (l: nat{l < 4
   = (* e_vxarq_u64 LEFT RIGHT a b = rotate_left LEFT RIGHT (mm256_xor_si256 a b).
        Per-lane: avx2_lane(xor a b) l = avx2_lane a l ^. avx2_lane b l, then
        rotate_left over that lane via lemma_shl_xor_shr_is_rotate_left. *)
+    lemma_avx2_lane_unfold a l;
+    lemma_avx2_lane_unfold b l;
+    lemma_avx2_lane_unfold
+      (Libcrux_sha3.Traits.f_xor_and_rotate
+        #I.t_Vec256 #(mk_usize 4)
+        #FStar.Tactics.Typeclasses.solve v_LEFT v_RIGHT a b) l;
     let xab_lane = avx2_lane a l ^. avx2_lane b l in
     PUL.lemma_shl_xor_shr_is_rotate_left xab_lane v_LEFT v_RIGHT
 #pop-options
@@ -140,7 +170,13 @@ let avx2_lc_and_not_xor (a b c: I.t_Vec256) (l: nat{l < 4})
              #I.t_Vec256 #(mk_usize 4)
              #FStar.Tactics.Typeclasses.solve a b c) l ==
            avx2_lane a l ^. (avx2_lane b l &. (~. (avx2_lane c l))))
-  = ()
+  = lemma_avx2_lane_unfold a l;
+    lemma_avx2_lane_unfold b l;
+    lemma_avx2_lane_unfold c l;
+    lemma_avx2_lane_unfold
+      (Libcrux_sha3.Traits.f_and_not_xor
+        #I.t_Vec256 #(mk_usize 4)
+        #FStar.Tactics.Typeclasses.solve a b c) l
 
 #push-options "--z3rlimit 200"
 let avx2_lc_xor_constant (a: I.t_Vec256) (c: u64) (l: nat{l < 4})
@@ -153,7 +189,11 @@ let avx2_lc_xor_constant (a: I.t_Vec256) (c: u64) (l: nat{l < 4})
          avx2_lane (mm256_xor_si256 a x) l = avx2_lane a l ^. avx2_lane x l
          avx2_lane (mm256_set1_epi64x (cast c <: i64)) l = cast_mod (cast c <: i64) <: u64
        The second cast_mod (i64 -> u64) of (cast c : i64) round-trips back to c. *)
-    ()
+    lemma_avx2_lane_unfold a l;
+    lemma_avx2_lane_unfold
+      (Libcrux_sha3.Traits.f_xor_constant
+        #I.t_Vec256 #(mk_usize 4)
+        #FStar.Tactics.Typeclasses.solve a c) l
 #pop-options
 
 let avx2_lc_xor (a b: I.t_Vec256) (l: nat{l < 4})
@@ -161,7 +201,12 @@ let avx2_lc_xor (a b: I.t_Vec256) (l: nat{l < 4})
              #I.t_Vec256 #(mk_usize 4)
              #FStar.Tactics.Typeclasses.solve a b) l ==
            avx2_lane a l ^. avx2_lane b l)
-  = ()
+  = lemma_avx2_lane_unfold a l;
+    lemma_avx2_lane_unfold b l;
+    lemma_avx2_lane_unfold
+      (Libcrux_sha3.Traits.f_xor
+        #I.t_Vec256 #(mk_usize 4)
+        #FStar.Tactics.Typeclasses.solve a b) l
 
 (* ================================================================
    Assemble the [lane_correctness] record
@@ -231,7 +276,8 @@ let lemma_extract_lane_zero_avx2 (l: nat{l < 4})
                 Libcrux_sha3.Traits.f_zero
                   #I.t_Vec256 #(mk_usize 4)
                   #FStar.Tactics.Typeclasses.solve ());
-      avx2_lc_zero l
+      avx2_lc_zero l;
+      lemma_avx2_lane_unfold zeros_simd.[ii] l
     in
     FStar.Classical.forall_intro aux;
     Seq.lemma_eq_intro (lhs <: Seq.seq u64) (zeros_u64 <: Seq.seq u64)

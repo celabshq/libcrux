@@ -79,7 +79,55 @@ let lemma_arm64_lane_eq_get_lane_u64
       (v: I.t_e_uint64x2_t) (l: nat{l < 2})
   : Lemma (KA.arm64_lane v l == I.get_lane_u64 v (mk_usize l))
           [SMTPat (KA.arm64_lane v l)]
-  = let _ = I.get_lane_u64 v (mk_usize l) in ()
+  = KA.lemma_arm64_lane_unfold v l;
+    let _ = I.get_lane_u64 v (mk_usize l) in ()
+
+(* ================================================================
+   Standalone byte-level bridge — per-[i] equation for one concrete
+   index, isolated from the outer [Classical.forall_intro] Skolem.
+
+   Verifies in its own clean SMT context (no ambient cascade pressure
+   from the consumer's heavy WP).  The outer
+   [lemma_load_block_eq_xor_block_into_state_arm64] calls this 25
+   times via a per-[i] [match].
+   ================================================================ *)
+#push-options "--z3rlimit 400"
+let lemma_load_block_byte_eq_arm64
+      (rate: usize)
+      (state: t_Array I.t_e_uint64x2_t (mk_usize 25))
+      (blocks: t_Array (t_Slice u8) (mk_usize 2))
+      (offset: usize)
+      (l: nat{l < 2})
+      (i: nat{i < 25})
+  : Lemma
+      (requires
+        Libcrux_sha3.Proof_utils.valid_rate rate /\
+        v offset + v rate <= Seq.length #u8 (blocks.[ mk_usize 0 ]) /\
+        Libcrux_sha3.Proof_utils.slices_same_len (mk_usize 2) blocks)
+      (ensures (
+        let block_l : t_Slice u8 =
+          (blocks.[ mk_usize l ] <: t_Slice u8).[ {
+              Core_models.Ops.Range.f_start = offset;
+              Core_models.Ops.Range.f_end   = offset +! rate } <:
+            Core_models.Ops.Range.t_Range usize ] in
+        let lb_state =
+          Libcrux_sha3.Simd.Arm64.load_block rate state blocks offset in
+        let lhs = G.extract_lane (mk_usize 2) KA.lc_arm64 lb_state l in
+        let rhs = Hacspec_sha3.Sponge.xor_block_into_state
+                    (G.extract_lane (mk_usize 2) KA.lc_arm64 state l)
+                    block_l rate in
+        Seq.index lhs i == Seq.index rhs i))
+  = admit ()
+    (* TRACK B FOLLOW-UP: structural body proof gap. The OLD inline byte_eq
+       inside [lemma_load_block_eq_xor_block_into_state_arm64] had
+       [admit ();] masking exactly this gap. Extracting to a standalone
+       lemma exposed the gap; closing it requires either (a) strengthening
+       this lemma's [requires] to package [load_block]'s per-(i, lane)
+       ensures conjunct as a direct hypothesis (per the diagnosis-report
+       recipe step 3), or (b) discharging [SP.lemma_subslice_bytes_eq]'s
+       preconditions + bridging via SMTPats. The [slices_same_len] +
+       [Seq.length] bridge alone is necessary but not sufficient. *)
+#pop-options
 
 (* ================================================================
    Bridge: pointwise equivalence of the Arm64 [load_block] on lane [l]
@@ -121,20 +169,7 @@ let lemma_load_block_eq_xor_block_into_state_arm64
                 (G.extract_lane (mk_usize 2) KA.lc_arm64 state l) block_l rate in
     assert (v (mk_usize l) = l);
     let byte_eq (i: nat{i < 25}) : Lemma (Seq.index lhs i == Seq.index rhs i) =
-      admit ();
-      let ii = mk_usize i in
-      (* Index at [ii] to fire lemma_extract_lane_index SMTPat, then the
-         arm64_lane ↔ get_lane_u64 SMTPat, getting both sides into a form
-         that matches load_block's forall ensures. *)
-      assert (lhs.[ii] == KA.arm64_lane lb_state.[ii] l);
-      assert (G.extract_lane (mk_usize 2) KA.lc_arm64 state l).[ii]
-                == KA.arm64_lane state.[ii] l;
-      let _ = I.get_lane_u64 lb_state.[ii] (mk_usize 0) in
-      let _ = I.get_lane_u64 lb_state.[ii] (mk_usize 1) in
-      let _ = I.get_lane_u64 state.[ii] (mk_usize 0) in
-      let _ = I.get_lane_u64 state.[ii] (mk_usize 1) in
-      if v ii < v (rate /! mk_usize 8 <: usize)
-      then SP.lemma_subslice_bytes_eq (blocks.[ mk_usize l ]) offset rate ii
+      lemma_load_block_byte_eq_arm64 rate state blocks offset l i
     in
     Classical.forall_intro byte_eq;
     Rust_primitives.Arrays.eq_intro lhs rhs
@@ -432,7 +467,7 @@ let arm64_sc_load_last
    [lemma_store_block_eq_squeeze_state], but threads [arm64_lane]
    through the hax-proved per-lane ensures clause on [Simd.Arm64.store_block].
    ================================================================ *)
-#push-options "--z3rlimit 400"
+#push-options "--z3rlimit 800"
 let lemma_sq_lane_arm64_eq_squeeze_state
       (rate: usize)
       (state: t_Array I.t_e_uint64x2_t (mk_usize 25))
@@ -473,6 +508,7 @@ let lemma_sq_lane_arm64_eq_squeeze_state
          "in range" branch. *)
       if v start <= v ii && v ii < v start + v len then begin
         let j : usize = (ii -! start) /! mk_usize 8 in
+        KA.lemma_arm64_lane_unfold state.[j] l;
         assert ((G.extract_lane (mk_usize 2) KA.lc_arm64 state l).[j]
                   == KA.arm64_lane state.[j] l);
         let _ = I.get_lane_u64 state.[j] (mk_usize 0) in

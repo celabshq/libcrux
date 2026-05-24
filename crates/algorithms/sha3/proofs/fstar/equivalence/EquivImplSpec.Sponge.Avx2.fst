@@ -81,7 +81,46 @@ let lemma_avx2_lane_eq_get_lane_u64
       (vec: I.t_Vec256) (l: nat{l < 4})
   : Lemma (KA.avx2_lane vec l == I.get_lane_u64 vec (mk_usize l))
           [SMTPat (KA.avx2_lane vec l)]
-  = let _ = I.get_lane_u64 vec (mk_usize l) in ()
+  = KA.lemma_avx2_lane_unfold vec l;
+    let _ = I.get_lane_u64 vec (mk_usize l) in ()
+
+(* ================================================================
+   Standalone byte-level bridge — per-[i] equation for one concrete
+   index, isolated from the outer [Classical.forall_intro] Skolem.
+
+   Mirrors [lemma_load_block_byte_eq_arm64] at N=4 (4 lanes,
+   t_Vec256, AVX2 intrinsics).
+   ================================================================ *)
+#push-options "--z3rlimit 400"
+let lemma_load_block_byte_eq_avx2
+      (rate: usize)
+      (state: t_Array I.t_Vec256 (mk_usize 25))
+      (blocks: t_Array (t_Slice u8) (mk_usize 4))
+      (offset: usize)
+      (l: nat{l < 4})
+      (i: nat{i < 25})
+  : Lemma
+      (requires
+        Libcrux_sha3.Proof_utils.valid_rate rate /\
+        v offset + v rate <= Seq.length #u8 (blocks.[ mk_usize 0 ]) /\
+        Libcrux_sha3.Proof_utils.slices_same_len (mk_usize 4) blocks)
+      (ensures (
+        let block_l : t_Slice u8 =
+          (blocks.[ mk_usize l ] <: t_Slice u8).[ {
+              Core_models.Ops.Range.f_start = offset;
+              Core_models.Ops.Range.f_end   = offset +! rate } <:
+            Core_models.Ops.Range.t_Range usize ] in
+        let lb_state =
+          Libcrux_sha3.Simd.Avx2.load_block rate state blocks offset in
+        let lhs = G.extract_lane (mk_usize 4) KA.lc_avx2 lb_state l in
+        let rhs = Hacspec_sha3.Sponge.xor_block_into_state
+                    (G.extract_lane (mk_usize 4) KA.lc_avx2 state l)
+                    block_l rate in
+        Seq.index lhs i == Seq.index rhs i))
+  = admit ()
+    (* TRACK B FOLLOW-UP: structural body proof gap. Mirrors
+       lemma_load_block_byte_eq_arm64. See its comment for closure plan. *)
+#pop-options
 
 (* ================================================================
    Bridge: pointwise equivalence of the AVX2 [load_block] on lane [l]
@@ -122,24 +161,7 @@ let lemma_load_block_eq_xor_block_into_state_avx2
                 (G.extract_lane (mk_usize 4) KA.lc_avx2 state l) block_l rate in
     assert (v (mk_usize l) = l);
     let byte_eq (i: nat{i < 25}) : Lemma (Seq.index lhs i == Seq.index rhs i) =
-      admit ();
-      let ii = mk_usize i in
-      assert (lhs.[ii] == KA.avx2_lane lb_state.[ii] l);
-      assert (G.extract_lane (mk_usize 4) KA.lc_avx2 state l).[ii]
-                == KA.avx2_lane state.[ii] l;
-      let _ = I.get_lane_u64 lb_state.[ii] (mk_usize 0) in
-      let _ = I.get_lane_u64 lb_state.[ii] (mk_usize 1) in
-      let _ = I.get_lane_u64 lb_state.[ii] (mk_usize 2) in
-      let _ = I.get_lane_u64 lb_state.[ii] (mk_usize 3) in
-      let _ = I.get_lane_u64 state.[ii] (mk_usize 0) in
-      let _ = I.get_lane_u64 state.[ii] (mk_usize 1) in
-      let _ = I.get_lane_u64 state.[ii] (mk_usize 2) in
-      let _ = I.get_lane_u64 state.[ii] (mk_usize 3) in
-      if v ii < v (rate /! mk_usize 8 <: usize) then begin
-        assert (Seq.length #u8 (blocks.[ mk_usize l ] <: t_Slice u8)
-                  == Seq.length #u8 (blocks.[ mk_usize 0 ] <: t_Slice u8));
-        SP.lemma_subslice_bytes_eq (blocks.[ mk_usize l ]) offset rate ii
-      end
+      lemma_load_block_byte_eq_avx2 rate state blocks offset l i
     in
     Classical.forall_intro byte_eq;
     Rust_primitives.Arrays.eq_intro lhs rhs
@@ -373,7 +395,7 @@ let avx2_sc_load_last
 (* Bridge: pointwise equivalence of AVX2 [sq_lane_avx2] on lane [l]
    with the scalar spec [squeeze_state] — mirrors
    [lemma_sq_lane_arm64_eq_squeeze_state] at N=4. *)
-#push-options "--z3rlimit 600"
+#push-options "--z3rlimit 800"
 let lemma_sq_lane_avx2_eq_squeeze_state
       (rate: usize)
       (state: t_Array I.t_Vec256 (mk_usize 25))
@@ -407,16 +429,9 @@ let lemma_sq_lane_avx2_eq_squeeze_state
     let byte_eq (i: nat{i < Seq.length out_l})
       : Lemma (Seq.index lhs i == Seq.index rhs i) =
       let ii = mk_usize i in
-      assert (v ii < Seq.length out_l);
       if v start <= v ii && v ii < v start + v len then begin
         let j : usize = (ii -! start) /! mk_usize 8 in
-        assert ((G.extract_lane (mk_usize 4) KA.lc_avx2 state l).[j]
-                  == KA.avx2_lane state.[j] l);
-        let _ = I.get_lane_u64 state.[j] (mk_usize 0) in
-        let _ = I.get_lane_u64 state.[j] (mk_usize 1) in
-        let _ = I.get_lane_u64 state.[j] (mk_usize 2) in
-        let _ = I.get_lane_u64 state.[j] (mk_usize 3) in
-        ()
+        KA.lemma_avx2_lane_unfold state.[j] l
       end
     in
     Classical.forall_intro byte_eq;

@@ -41,8 +41,14 @@ let _ =
    of [lane_correctness] is simply [get_lane_u64x2].
    ================================================================ *)
 
+[@@ "opaque_to_smt"]
 let arm64_lane (v: I.t_e_uint64x2_t) (l: nat{l < 2}) : u64 =
   I.get_lane_u64x2 v l
+
+(* Reveal helper for callers that need to unfold [arm64_lane] under SMT. *)
+let lemma_arm64_lane_unfold (v: I.t_e_uint64x2_t) (l: nat{l < 2})
+  : Lemma (arm64_lane v l == I.get_lane_u64x2 v l)
+  = reveal_opaque (`%arm64_lane) (arm64_lane v l)
 
 (* ================================================================
    Lane-correctness field proofs
@@ -59,7 +65,10 @@ let arm64_lc_zero (l: nat{l < 2})
   : Lemma (arm64_lane (Libcrux_sha3.Traits.f_zero
              #I.t_e_uint64x2_t #(mk_usize 2)
              #FStar.Tactics.Typeclasses.solve ()) l == mk_u64 0)
-  = ()
+  = reveal_opaque (`%arm64_lane)
+      (arm64_lane (Libcrux_sha3.Traits.f_zero
+                     #I.t_e_uint64x2_t #(mk_usize 2)
+                     #FStar.Tactics.Typeclasses.solve ()) l)
 
 let arm64_lc_xor5 (a b c d e: I.t_e_uint64x2_t) (l: nat{l < 2})
   : Lemma (arm64_lane (Libcrux_sha3.Traits.f_xor5
@@ -67,7 +76,15 @@ let arm64_lc_xor5 (a b c d e: I.t_e_uint64x2_t) (l: nat{l < 2})
              #FStar.Tactics.Typeclasses.solve a b c d e) l ==
            (((arm64_lane a l ^. arm64_lane b l) ^. arm64_lane c l)
              ^. arm64_lane d l) ^. arm64_lane e l)
-  = ()
+  = lemma_arm64_lane_unfold a l;
+    lemma_arm64_lane_unfold b l;
+    lemma_arm64_lane_unfold c l;
+    lemma_arm64_lane_unfold d l;
+    lemma_arm64_lane_unfold e l;
+    lemma_arm64_lane_unfold
+      (Libcrux_sha3.Traits.f_xor5
+        #I.t_e_uint64x2_t #(mk_usize 2)
+        #FStar.Tactics.Typeclasses.solve a b c d e) l
 
 let arm64_lc_rotate_left1_and_xor (a b: I.t_e_uint64x2_t) (l: nat{l < 2})
   : Lemma (arm64_lane (Libcrux_sha3.Traits.f_rotate_left1_and_xor
@@ -75,7 +92,12 @@ let arm64_lc_rotate_left1_and_xor (a b: I.t_e_uint64x2_t) (l: nat{l < 2})
              #FStar.Tactics.Typeclasses.solve a b) l ==
            arm64_lane a l ^.
            Core_models.Num.impl_u64__rotate_left (arm64_lane b l) (mk_u32 1))
-  = ()
+  = lemma_arm64_lane_unfold a l;
+    lemma_arm64_lane_unfold b l;
+    lemma_arm64_lane_unfold
+      (Libcrux_sha3.Traits.f_rotate_left1_and_xor
+        #I.t_e_uint64x2_t #(mk_usize 2)
+        #FStar.Tactics.Typeclasses.solve a b) l
 
 let arm64_lc_xor_and_rotate (v_LEFT v_RIGHT: i32) (a b: I.t_e_uint64x2_t) (l: nat{l < 2})
   : Lemma
@@ -91,28 +113,48 @@ let arm64_lc_xor_and_rotate (v_LEFT v_RIGHT: i32) (a b: I.t_e_uint64x2_t) (l: na
           #FStar.Tactics.Typeclasses.solve v_LEFT v_RIGHT a b) l ==
         Core_models.Num.impl_u64__rotate_left
           (arm64_lane a l ^. arm64_lane b l) (cast (v_LEFT <: i32) <: u32))
-  = ()
+  = lemma_arm64_lane_unfold a l;
+    lemma_arm64_lane_unfold b l;
+    lemma_arm64_lane_unfold
+      (Libcrux_sha3.Traits.f_xor_and_rotate
+        #I.t_e_uint64x2_t #(mk_usize 2)
+        #FStar.Tactics.Typeclasses.solve v_LEFT v_RIGHT a b) l
 
 let arm64_lc_and_not_xor (a b c: I.t_e_uint64x2_t) (l: nat{l < 2})
   : Lemma (arm64_lane (Libcrux_sha3.Traits.f_and_not_xor
              #I.t_e_uint64x2_t #(mk_usize 2)
              #FStar.Tactics.Typeclasses.solve a b c) l ==
            arm64_lane a l ^. (arm64_lane b l &. (~. (arm64_lane c l))))
-  = ()
+  = lemma_arm64_lane_unfold a l;
+    lemma_arm64_lane_unfold b l;
+    lemma_arm64_lane_unfold c l;
+    lemma_arm64_lane_unfold
+      (Libcrux_sha3.Traits.f_and_not_xor
+        #I.t_e_uint64x2_t #(mk_usize 2)
+        #FStar.Tactics.Typeclasses.solve a b c) l
 
 let arm64_lc_xor_constant (a: I.t_e_uint64x2_t) (c: u64) (l: nat{l < 2})
   : Lemma (arm64_lane (Libcrux_sha3.Traits.f_xor_constant
              #I.t_e_uint64x2_t #(mk_usize 2)
              #FStar.Tactics.Typeclasses.solve a c) l ==
            arm64_lane a l ^. c)
-  = ()
+  = lemma_arm64_lane_unfold a l;
+    lemma_arm64_lane_unfold
+      (Libcrux_sha3.Traits.f_xor_constant
+        #I.t_e_uint64x2_t #(mk_usize 2)
+        #FStar.Tactics.Typeclasses.solve a c) l
 
 let arm64_lc_xor (a b: I.t_e_uint64x2_t) (l: nat{l < 2})
   : Lemma (arm64_lane (Libcrux_sha3.Traits.f_xor
              #I.t_e_uint64x2_t #(mk_usize 2)
              #FStar.Tactics.Typeclasses.solve a b) l ==
            arm64_lane a l ^. arm64_lane b l)
-  = ()
+  = lemma_arm64_lane_unfold a l;
+    lemma_arm64_lane_unfold b l;
+    lemma_arm64_lane_unfold
+      (Libcrux_sha3.Traits.f_xor
+        #I.t_e_uint64x2_t #(mk_usize 2)
+        #FStar.Tactics.Typeclasses.solve a b) l
 
 (* ================================================================
    Assemble the [lane_correctness] record
@@ -185,7 +227,8 @@ let lemma_extract_lane_zero_arm64 (l: nat{l < 2})
                   #I.t_e_uint64x2_t #(mk_usize 2)
                   #FStar.Tactics.Typeclasses.solve ());
       (* arm64_lane (f_zero ()) l == 0u64 *)
-      arm64_lc_zero l
+      arm64_lc_zero l;
+      lemma_arm64_lane_unfold zeros_simd.[ii] l
     in
     FStar.Classical.forall_intro aux;
     Seq.lemma_eq_intro (lhs <: Seq.seq u64) (zeros_u64 <: Seq.seq u64)
