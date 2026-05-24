@@ -167,3 +167,33 @@ let store_block_window_byte_of_storeu_call out out_new vec a j =
       (Seq.slice out a (a + 32)) vec k
   end;
   store_block_window_byte_of_storeu out out_new store_res vec a j
+
+/// Materialises the per-byte forall over a 32-byte scratch buffer
+/// produced directly by `mm256_storeu_si256_u8` (e.g. when the
+/// store_block tail body writes into a local `[0u8; 32]`). Packages
+/// 32 SMTPat firings of `lemma_mm256_storeu_si256_u8_byte` into one
+/// `forall` so the caller does not need to coax e-matching.
+val mm256_storeu_si256_u8_byte_window
+    (init: Seq.seq u8)
+    (vec: t_Vec256)
+  : Lemma
+    (requires Seq.length init == 32)
+    (ensures
+        Seq.length (mm256_storeu_si256_u8 init vec) == 32 /\
+        (forall (k:nat{k < 32}).
+            Seq.index (mm256_storeu_si256_u8 init vec) k ==
+            Seq.index
+              (Core_models.Num.impl_u64__to_le_bytes (get_lane_u64 vec (mk_usize (k / 8))))
+              (k % 8)))
+
+let mm256_storeu_si256_u8_byte_window init vec =
+  let u8s = mm256_storeu_si256_u8 init vec in
+  assert (Seq.length u8s == 32);
+  introduce forall (k:nat{k < 32}).
+              Seq.index u8s k ==
+              Seq.index
+                (Core_models.Num.impl_u64__to_le_bytes (get_lane_u64 vec (mk_usize (k / 8))))
+                (k % 8)
+  with begin
+    Libcrux_intrinsics.Avx2_extract.lemma_mm256_storeu_si256_u8_byte init vec k
+  end
