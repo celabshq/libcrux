@@ -1,0 +1,128 @@
+[
+  "5211b86a931327b0f058325716abba6a",
+  [
+    [
+      "Tactics.Utils.op_let_Question_u35",
+      1,
+      2,
+      1,
+      [ "@query", "lemma_FStar.Pervasives.invertOption" ],
+      0,
+      "8c19a97f2142455e7c882641d7c6f523"
+    ],
+    [
+      "Tactics.Utils.unwrap",
+      1,
+      2,
+      1,
+      [ "@query", "lemma_FStar.Pervasives.invertOption" ],
+      0,
+      "552cea9b9782da41a3529076044f2489"
+    ],
+    [
+      "Tactics.Utils.expect",
+      1,
+      2,
+      1,
+      [ "@query", "lemma_FStar.Pervasives.invertOption" ],
+      0,
+      "415fb283fbb2a8e8757d64167d719619"
+    ],
+    [
+      "Tactics.Utils.expect_lhs_eq_rhs_term",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "equation_FStar.Stubs.Reflection.Types.typ",
+        "function_token_typing_FStar.Stubs.Reflection.Types.term",
+        "lemma_FStar.Pervasives.invertOption"
+      ],
+      0,
+      "4513b3c3bbc7d10e7bd0e445f545b09b"
+    ],
+    [
+      "Tactics.Utils.expect_app_n",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query", "equation_Prims.eqtype",
+        "equation_Prims.nat", "function_token_typing_Prims.int",
+        "haseqTm_refine_542f9d4f129664613f2483a6c88bc7c2", "int_inversion",
+        "primitive_Prims.op_Equality", "projection_inverse_BoxBool_proj_0",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_9d6af3f3535473623f7aec2f0501897f"
+      ],
+      0,
+      "5955d0ea4ec6122bb7b9296f44b6e98f"
+    ],
+    [
+      "Tactics.Utils.revert_if_none",
+      1,
+      2,
+      1,
+      [ "@query", "lemma_FStar.Pervasives.invertOption" ],
+      0,
+      "f3929c3193835d8400b080a45276d3c2"
+    ],
+    [
+      "Tactics.Utils.weaken_eq2_lemma",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query", "equation_Prims.subtype_of",
+        "refinement_interpretation_Tm_refine_a17a2460023e36fc15d00ec5e411cabd"
+      ],
+      0,
+      "38036558892c07392cccbc2b4170f3a3"
+    ],
+    [
+      "Tactics.Utils.apply_lemma_rw_eqtype",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query", "equation_Prims.eqtype",
+        "function_token_typing_Prims.unit",
+        "lemma_FStar.Pervasives.invertOption",
+        "refinement_interpretation_Tm_refine_9d6af3f3535473623f7aec2f0501897f"
+      ],
+      0,
+      "caa7fdc114e89ca10b8644db5ed08028"
+    ],
+    [
+      "Tactics.Utils.__proj__UnifyAppReturn__item__uu___",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "refinement_interpretation_Tm_refine_fa3e4c4e6b2e6beab61914c7e7957644"
+      ],
+      0,
+      "72417d38a6d64c1a76da0ebb0510801c"
+    ],
+    [
+      "Tactics.Utils._split_forall_nat",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query", "equation_Prims.nat",
+        "equation_Prims.pos", "int_inversion", "int_typing",
+        "primitive_Prims.op_Equality", "primitive_Prims.op_Subtraction",
+        "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_BoxInt_proj_0",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_774ba3f728d91ead8ef40be66c9802e5",
+        "refinement_interpretation_Tm_refine_c1424615841f28cac7fc34e92b7ff33c",
+        "refinement_interpretation_Tm_refine_cf74cf5c1e7834b84db9cc7ebce886a3"
+      ],
+      0,
+      "890517d60f2e77586f101abb8bf5b2bc"
+    ]
+  ]
+]

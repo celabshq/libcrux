@@ -1,0 +1,79 @@
+[
+  "a5b892576802cbc38923616443ee57cd",
+  [
+    [
+      "Core_models.Convert.impl",
+      1,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "Core_models.Convert_interpretation_Tm_arrow_527d0c4b8598d265b3ecc95b6df26a30",
+        "data_elim_Core_models.Convert.Mkt_From",
+        "fuel_guarded_inversion_Core_models.Convert.t_From",
+        "proj_equation_Core_models.Convert.Mkt_From_@f_from_pre",
+        "refinement_interpretation_Tm_refine_e263604a64d343fa5112de970172906b",
+        "token_correspondence_Core_models.Convert.__proj__Mkt_From__item__f_from_pre"
+      ],
+      0,
+      "441420abb838d9f2431618f0281b0ab5"
+    ],
+    [
+      "Core_models.Convert.impl_1",
+      1,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "Core_models.Convert_interpretation_Tm_arrow_527d0c4b8598d265b3ecc95b6df26a30",
+        "data_elim_Core_models.Convert.Mkt_From",
+        "fuel_guarded_inversion_Core_models.Convert.t_From",
+        "proj_equation_Core_models.Convert.Mkt_From_@f_from_pre",
+        "refinement_interpretation_Tm_refine_e263604a64d343fa5112de970172906b",
+        "token_correspondence_Core_models.Convert.__proj__Mkt_From__item__f_from_pre"
+      ],
+      0,
+      "759911976430fe65f5d8e01408e1cb60"
+    ],
+    [
+      "Core_models.Convert.impl_2",
+      1,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "assumption_Rust_primitives.Integers.int_t__uu___haseq",
+        "constructor_distinct_Rust_primitives.Integers.USIZE",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Core_models.Slice.impl__len",
+        "equation_Rust_primitives.Arrays.length",
+        "equation_Rust_primitives.Integers.usize",
+        "equation_Rust_primitives.Slice.slice_length",
+        "fuel_guarded_inversion_Core_models.Marker.t_Copy",
+        "fuel_guarded_inversion_Rust_primitives.Integers.int_t",
+        "primitive_Prims.op_Equality", "projection_inverse_BoxBool_proj_0",
+        "refinement_interpretation_Tm_refine_eea4a7aaf0d9fd792b6bd561042bfd5e",
+        "typing_tok_Rust_primitives.Integers.USIZE@tok"
+      ],
+      0,
+      "f76b59bf19fcd29b8f8fd2076e22090b"
+    ],
+    [
+      "Core_models.Convert.impl_3",
+      1,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "Core_models.Convert_interpretation_Tm_arrow_527d0c4b8598d265b3ecc95b6df26a30",
+        "data_elim_Core_models.Convert.Mkt_TryFrom",
+        "fuel_guarded_inversion_Core_models.Convert.t_TryFrom",
+        "proj_equation_Core_models.Convert.Mkt_TryFrom_@f_try_from_pre",
+        "refinement_interpretation_Tm_refine_e263604a64d343fa5112de970172906b",
+        "token_correspondence_Core_models.Convert.__proj__Mkt_TryFrom__item__f_try_from_pre"
+      ],
+      0,
+      "535a41e62d2c969722ef111141fb9fe7"
+    ]
+  ]
+]

@@ -14,7 +14,7 @@ Cargo.lock
 *.bak
 
 # F*
-.fstar-cache
+.fstar-cache/checked/
 .depend
 /proofs/fstar/*/#*#
 /proofs/fstar/*/.#*
