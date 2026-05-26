@@ -66,7 +66,7 @@ pub fn classify_mut_slice<T: Scalar>(x: &mut [T]) -> &mut [Secret<T>] {
     ct_classify(x);
     // SAFETY: this is safe since the `Secret` type is `repr(transparent)`, so
     //       the memory representation of the public and secret slices is the same
-    unsafe { core::mem::transmute(x) }
+    unsafe { core::slice::from_raw_parts_mut(x.as_mut_ptr().cast::<Secret<T>>(), x.len()) }
 }
 
 /// Declassify a mutable reference to a slice
@@ -74,7 +74,7 @@ pub fn declassify_mut_slice<T: Scalar>(x: &mut [Secret<T>]) -> &mut [T] {
     ct_declassify(x);
     // SAFETY: this is safe since the `Secret` type is `repr(transparent)`, so
     //       the memory representation of the public and secret slices is the same
-    unsafe { core::mem::transmute(x) }
+    unsafe { core::slice::from_raw_parts_mut(x.as_mut_ptr().cast::<T>(), x.len()) }
 }
 
 // We define a series of operations that are safe over secret values

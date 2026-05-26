@@ -91,7 +91,7 @@ impl<'a, T: Scalar> ClassifyRef for &'a [T] {
         ct_classify(self);
         // SAFETY: this is safe since the `Secret` type is `repr(transparent)`, so
         //       the memory representation of the public and secret slices is the same
-        unsafe { core::mem::transmute(self) }
+        unsafe { core::slice::from_raw_parts(self.as_ptr().cast::<Secret<T>>(), self.len()) }
     }
 }
 
@@ -102,7 +102,7 @@ impl<'a, T: Scalar> DeclassifyRef for &'a [Secret<T>] {
         ct_declassify(self);
         // SAFETY: this is safe since the `Secret` type is `repr(transparent)`, so
         //       the memory representation of the public and secret slices is the same
-        unsafe { core::mem::transmute(self) }
+        unsafe { core::slice::from_raw_parts(self.as_ptr().cast::<T>(), self.len()) }
     }
 }
 
@@ -113,7 +113,9 @@ impl<'a, T: Scalar> ClassifyRefMut for &'a mut [T] {
         ct_classify(self);
         // SAFETY: this is safe since the `Secret` type is `repr(transparent)`, so
         //       the memory representation of the public and secret slices is the same
-        unsafe { core::mem::transmute(self) }
+        unsafe {
+            core::slice::from_raw_parts_mut(self.as_mut_ptr().cast::<Secret<T>>(), self.len())
+        }
     }
 }
 
@@ -124,7 +126,7 @@ impl<'a, T: Scalar> DeclassifyRefMut for &'a mut [Secret<T>] {
         ct_declassify(self);
         // SAFETY: this is safe since the `Secret` type is `repr(transparent)`, so
         //       the memory representation of the public and secret slices is the same
-        unsafe { core::mem::transmute(self) }
+        unsafe { core::slice::from_raw_parts_mut(self.as_mut_ptr().cast::<T>(), self.len()) }
     }
 }
 
