@@ -34,7 +34,8 @@ pub const SHA3_512_DIGEST_SIZE: usize = 64;
 pub(crate) mod proof_utils;
 
 /// The Digest Algorithm.
-#[cfg_attr(not(eurydice), derive(Clone, Copy, Debug, PartialEq))]
+#[cfg_attr(not(eurydice), derive(Debug, PartialEq))]
+#[derive(Clone, Copy)]
 #[repr(u32)]
 pub enum Algorithm {
     /// SHA3 224
