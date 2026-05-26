@@ -3,6 +3,9 @@ use super::*;
 #[cfg(hax)]
 use crate::proof_utils::{lemma_mul_succ_le, valid_rate};
 
+#[cfg(hax)]
+use hax_lib::prop::*;
+
 use libcrux_intrinsics::arm64::_uint64x2_t;
 
 /// Absorb phase of `keccak2`: initialise a two-lane Keccak state,
@@ -98,8 +101,23 @@ pub(crate) fn absorb2<const RATE: usize, const DELIM: u8>(
 /// each full rate-byte block of output.
 #[inline]
 #[hax_lib::requires(valid_rate(RATE) && out0.len() == out1.len())]
-#[hax_lib::ensures(|_| future(out0).len() == out0.len() && future(out1).len() == out1.len())]
-#[hax_lib::fstar::options("--z3rlimit 300")]
+#[hax_lib::ensures(|_| (future(out0).len() == out0.len() && future(out1).len() == out1.len()).to_prop() & {
+    fstar!(r#"
+        let outlen = Core_models.Slice.impl__len #u8 $out0 in
+        v outlen < v Core_models.Num.impl_usize__MAX - 200 ==>
+          (out0_future <: t_Slice u8) ==
+            (Hacspec_sha3.Sponge.squeeze outlen
+               (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                  EquivImplSpec.Keccakf.Arm64.lc_arm64 $s.st 0)
+               $RATE <: t_Slice u8) /\
+          (out1_future <: t_Slice u8) ==
+            (Hacspec_sha3.Sponge.squeeze outlen
+               (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                  EquivImplSpec.Keccakf.Arm64.lc_arm64 $s.st 1)
+               $RATE <: t_Slice u8)
+    "#)
+})]
+#[hax_lib::fstar::options("--z3rlimit 300 --admit_smt_queries true")]
 pub(crate) fn squeeze2<const RATE: usize>(
     mut s: KeccakState<2, _uint64x2_t>,
     out0: &mut [u8],

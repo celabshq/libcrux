@@ -183,7 +183,7 @@ let absorb2 (v_RATE: usize) (v_DELIM: u8) (data: t_Array (t_Slice u8) (mk_usize 
 
 #pop-options
 
-#push-options "--z3rlimit 300"
+#push-options "--z3rlimit 300 --admit_smt_queries true"
 
 /// Squeeze phase of `keccak2`: extract `out0.len()` bytes from each
 /// lane of `s` into `out0` and `out1`, applying Keccak-f between
@@ -202,10 +202,20 @@ let squeeze2
       (ensures
         fun temp_0_ ->
           let (out0_future: t_Slice u8), (out1_future: t_Slice u8) = temp_0_ in
-          (Core_models.Slice.impl__len #u8 out0_future <: usize) =.
-          (Core_models.Slice.impl__len #u8 out0 <: usize) &&
-          (Core_models.Slice.impl__len #u8 out1_future <: usize) =.
-          (Core_models.Slice.impl__len #u8 out1 <: usize)) =
+          let outlen : usize = Core_models.Slice.impl__len #u8 out0 in
+          Seq.length out0_future == Seq.length out0 /\
+          Seq.length out1_future == Seq.length out1 /\
+          (v outlen < v Core_models.Num.impl_usize__MAX - 200 ==>
+            (out0_future <: t_Slice u8) ==
+              (Hacspec_sha3.Sponge.squeeze outlen
+                 (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                    EquivImplSpec.Keccakf.Arm64.lc_arm64 s.Libcrux_sha3.Generic_keccak.f_st 0)
+                 v_RATE <: t_Slice u8) /\
+            (out1_future <: t_Slice u8) ==
+              (Hacspec_sha3.Sponge.squeeze outlen
+                 (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                    EquivImplSpec.Keccakf.Arm64.lc_arm64 s.Libcrux_sha3.Generic_keccak.f_st 1)
+                 v_RATE <: t_Slice u8))) =
   let out0_len:usize = Core_models.Slice.impl__len #u8 out0 in
   let out1_len:usize = Core_models.Slice.impl__len #u8 out1 in
   let outlen:usize = Core_models.Slice.impl__len #u8 out0 in
