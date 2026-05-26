@@ -125,6 +125,9 @@ libcrux-kats = { path = "crates/testing/kats" }
 libcrux-macros = { version = "=0.0.3", path = "crates/utils/macros" }
 libcrux-secrets = { version = "=0.0.5", path = "crates/utils/secrets" }
 
+# External crates
+crabgrind = "0.2.6"
+
 [lib]
 crate-type = ["staticlib", "cdylib", "lib"]
 bench = false                               # so libtest doesn't eat the arguments for criterion

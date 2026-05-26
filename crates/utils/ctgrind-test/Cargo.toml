@@ -10,7 +10,7 @@ readme = "README.md"
 publish = false
 
 [dependencies]
-crabgrind = "0.2"
+crabgrind.workspace = true
 libcrux-sha3 = { workspace = true }
 libcrux-ml-kem = { workspace = true, features = ["mlkem512"] }
 libcrux-ml-dsa = { workspace = true }
