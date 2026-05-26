@@ -1,4 +1,6 @@
-use super::{hmac_sha2_256_slices, hmac_sha2_384_slices, hmac_sha2_512_slices, utils, HmacState};
+use libcrux_hmac::{hmac_slices, HmacState};
+
+use super::utils;
 
 /// The Error returned by the Update operation of HMAC-DRBG.
 pub enum Error {
@@ -18,12 +20,16 @@ pub(super) trait HmacAlgorithm<const OUTLEN: usize>: utils::private::Sealed {
     /// Single shot HMAC.
     ///
     /// Returns an [`InputTooLarge`] when the input is too long.
-    fn hmac(dst: &mut [u8; OUTLEN], key: &[u8], data: &[u8]) -> Result<(), Error>;
+    fn hmac(dst: &mut [u8; OUTLEN], key: &[u8], data: &[u8]) -> Result<(), Error> {
+        hmac_slices::<OUTLEN, Self::State>(dst, key, &[data]).map_err(|_| Error::InputTooLarge)
+    }
 
     /// New HMAC streaming state.
     ///
     /// Returns the [`Self::State`] or an [`InputTooLarge`] if the `key` is too long.
-    fn new_hmac(key: &[u8]) -> Result<Self::State, Error>;
+    fn new_hmac(key: &[u8]) -> Result<Self::State, Error> {
+        Self::State::new(key).map_err(|_| Error::InputTooLarge)
+    }
 }
 
 /// Marker type selecting HMAC-SHA-256.
@@ -40,41 +46,12 @@ pub struct HmacSha512;
 
 impl HmacAlgorithm<32> for HmacSha256 {
     type State = libcrux_hmac::HmacSha256;
-
-    #[inline]
-    fn hmac(dst: &mut [u8; 32], key: &[u8], data: &[u8]) -> Result<(), Error> {
-        hmac_sha2_256_slices(dst, key, &[data]).map_err(|_| Error::InputTooLarge)
-    }
-
-    #[inline]
-    fn new_hmac(key: &[u8]) -> Result<Self::State, Error> {
-        libcrux_hmac::HmacSha256::new(key).map_err(|_| Error::InputTooLarge)
-    }
 }
 
 impl HmacAlgorithm<48> for HmacSha384 {
     type State = libcrux_hmac::HmacSha384;
-
-    #[inline]
-    fn hmac(dst: &mut [u8; 48], key: &[u8], data: &[u8]) -> Result<(), Error> {
-        hmac_sha2_384_slices(dst, key, &[data]).map_err(|_| Error::InputTooLarge)
-    }
-
-    #[inline]
-    fn new_hmac(key: &[u8]) -> Result<Self::State, Error> {
-        libcrux_hmac::HmacSha384::new(key).map_err(|_| Error::InputTooLarge)
-    }
 }
 
 impl HmacAlgorithm<64> for HmacSha512 {
     type State = libcrux_hmac::HmacSha512;
-
-    #[inline]
-    fn hmac(dst: &mut [u8; 64], key: &[u8], data: &[u8]) -> Result<(), Error> {
-        hmac_sha2_512_slices(dst, key, &[data]).map_err(|_| Error::InputTooLarge)
-    }
-    #[inline]
-    fn new_hmac(key: &[u8]) -> Result<Self::State, Error> {
-        libcrux_hmac::HmacSha512::new(key).map_err(|_| Error::InputTooLarge)
-    }
 }

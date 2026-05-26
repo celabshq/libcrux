@@ -32,7 +32,7 @@
 
 use core::{marker::PhantomData, sync::atomic};
 
-use libcrux_hmac::{hmac_sha2_256_slices, hmac_sha2_384_slices, hmac_sha2_512_slices, HmacState};
+use libcrux_hmac::HmacState;
 
 #[cfg(test)]
 mod tests;

@@ -1,7 +1,7 @@
 use libcrux_hmac::{hmac, Algorithm, HmacSha256, HmacSha384, HmacSha512, HmacState};
 use libcrux_kats::wycheproof::{
-    self,
-    hmac::{HashAlgorithm, HmacTests, MacResult},
+    hmac::{HashAlgorithm, HmacTests, Test},
+    schema_common::TestResult,
 };
 
 fn run<const OUTLEN: usize, Digest: HmacState<OUTLEN>>(
@@ -9,7 +9,9 @@ fn run<const OUTLEN: usize, Digest: HmacState<OUTLEN>>(
     alg: Algorithm,
     dst: &mut [u8; OUTLEN],
 ) {
+    let mut test_groups_run = 0;
     for group in &tests.test_groups {
+        let mut tests_run = 0;
         for t in &group.tests {
             // Incremental API
             let mut h = Digest::new(&t.key).unwrap();
@@ -26,25 +28,31 @@ fn run<const OUTLEN: usize, Digest: HmacState<OUTLEN>>(
             let computed = hmac(alg, &t.key, &t.msg, None);
             let computed = &computed[..tag_bytes];
             check(t, computed);
+            tests_run += 1;
         }
+
+        debug_assert_ne!(tests_run, 0);
+        test_groups_run += 1;
     }
+
+    debug_assert_ne!(test_groups_run, 0);
 }
 
-fn check(t: &wycheproof::hmac::Test, computed: &[u8]) {
+fn check(t: &Test, computed: &[u8]) {
     match t.result {
-        MacResult::Valid => assert_eq!(
+        TestResult::Valid => assert_eq!(
             computed,
             t.tag.as_slice(),
             "tcId={} should be valid",
             t.tc_id
         ),
-        MacResult::Invalid => assert_ne!(
+        TestResult::Invalid => assert_ne!(
             computed,
             t.tag.as_slice(),
             "tcId={} should be invalid",
             t.tc_id
         ),
-        MacResult::Acceptable => {} // skip
+        TestResult::Acceptable => {} // skip
     }
 }
 

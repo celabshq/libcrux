@@ -90,35 +90,35 @@ pub type HmacSha384 = HmacStream<48, 128, libcrux_sha2::Sha384Hash>;
 /// Streaming HMAC-SHA-512 state.  Initialize with [`HmacSha512::new`].
 pub type HmacSha512 = HmacStream<64, 128, libcrux_sha2::Sha512Hash>;
 
+pub fn hmac_slices<const OUTLEN: usize, Hmac: HmacState<OUTLEN>>(
+    dst: &mut [u8; OUTLEN],
+    key: &[u8],
+    slices: &[&[u8]],
+) -> Result<(), Error> {
+    let mut state = Hmac::new(key)?;
+
+    for &s in slices {
+        state.update(s)?;
+    }
+
+    state.finalize(dst);
+    Ok(())
+}
+
 /// Compute HMAC-SHA-256 over logically concatenated, non-contiguous data slices.
 #[inline]
 pub fn hmac_sha2_256_slices(dst: &mut [u8; 32], key: &[u8], slices: &[&[u8]]) -> Result<(), Error> {
-    let mut h = HmacSha256::new(key)?;
-    for &s in slices {
-        h.update(s)?;
-    }
-    h.finalize(dst);
-    Ok(())
+    hmac_slices::<32, HmacSha256>(dst, key, slices)
 }
 
 /// Compute HMAC-SHA-384 over logically concatenated, non-contiguous data slices.
 #[inline]
 pub fn hmac_sha2_384_slices(dst: &mut [u8; 48], key: &[u8], slices: &[&[u8]]) -> Result<(), Error> {
-    let mut h = HmacSha384::new(key)?;
-    for &s in slices {
-        h.update(s)?;
-    }
-    h.finalize(dst);
-    Ok(())
+    hmac_slices::<48, HmacSha384>(dst, key, slices)
 }
 
 /// Compute HMAC-SHA-512 over logically concatenated, non-contiguous data slices.
 #[inline]
 pub fn hmac_sha2_512_slices(dst: &mut [u8; 64], key: &[u8], slices: &[&[u8]]) -> Result<(), Error> {
-    let mut h = HmacSha512::new(key)?;
-    for &s in slices {
-        h.update(s)?;
-    }
-    h.finalize(dst);
-    Ok(())
+    hmac_slices::<64, HmacSha512>(dst, key, slices)
 }

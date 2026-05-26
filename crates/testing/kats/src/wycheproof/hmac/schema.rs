@@ -71,18 +71,10 @@ pub struct Test {
     pub tag: Vec<u8>,
 
     /// Test result.
-    pub result: MacResult,
+    pub result: TestResult,
 
     /// A list of flags.
     pub flags: Vec<Flag>,
-}
-
-#[derive(PartialEq, Serialize, Deserialize, Debug)]
-#[serde(rename_all = "snake_case")]
-pub enum MacResult {
-    Valid,
-    Invalid,
-    Acceptable,
 }
 
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize)]
