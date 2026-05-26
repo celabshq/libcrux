@@ -261,11 +261,15 @@ mod aarch64 {
 
     macro_rules! select64 {
         ($lhs:expr, $rhs:expr, $selector:expr) => {
-            // Using https://developer.arm.com/documentation/ddi0602/2021-12/Base-Instructions/CSEL--Conditional-Select-
+            // Using https://developer.arm.com/documentation/ddi0602/2026-03/Base-Instructions/TST--immediate---Test-bits--immediate---an-alias-of-ANDS--immediate--
+            // and https://developer.arm.com/documentation/ddi0602/2026-03/Base-Instructions/CSEL--Conditional-select-
             #[allow(unsafe_code)]
             unsafe {
+                // We use the `tst` instruction to only check the lower byte of the cond register.
+                // $selector has type `u8`, so the bits [8..32] of the cond register are unspecified.
+                // See https://doc.rust-lang.org/reference/inline-assembly.html#r-asm.register-operands.smaller-value
                 asm! {
-                    "cmp {cond:w}, 0",
+                    "tst {cond:w}, 0xff",
                     "csel {lhs:x}, {rhs:x}, {lhs:x}, NE",
                     cond = in(reg) $selector,
                     lhs = inlateout(reg) *$lhs,
@@ -278,11 +282,15 @@ mod aarch64 {
 
     macro_rules! select32 {
         ($lhs:expr, $rhs:expr, $selector:expr) => {
-            // Using https://developer.arm.com/documentation/ddi0602/2021-12/Base-Instructions/CSEL--Conditional-Select-
+            // Using https://developer.arm.com/documentation/ddi0602/2026-03/Base-Instructions/TST--immediate---Test-bits--immediate---an-alias-of-ANDS--immediate--
+            // and https://developer.arm.com/documentation/ddi0602/2026-03/Base-Instructions/CSEL--Conditional-select-
             #[allow(unsafe_code)]
             unsafe {
+                // We use the `tst` instruction to only check the lower byte of the cond register.
+                // $selector has type `u8`, so the bits [8..32] of the cond register are unspecified.
+                // See https://doc.rust-lang.org/reference/inline-assembly.html#r-asm.register-operands.smaller-value
                 asm! {
-                    "cmp {cond:w}, 0",
+                    "tst {cond:w}, 0xff",
                     "csel {lhs:w}, {rhs:w}, {lhs:w}, NE",
                     cond = in(reg) $selector,
                     lhs = inlateout(reg) *$lhs,
@@ -335,11 +343,15 @@ mod aarch64 {
 
     macro_rules! swap64 {
         ($lhs:expr, $rhs:expr, $selector:expr) => {
-            // Using https://developer.arm.com/documentation/ddi0602/2021-12/Base-Instructions/CSEL--Conditional-Select-
+            // Using https://developer.arm.com/documentation/ddi0602/2026-03/Base-Instructions/TST--immediate---Test-bits--immediate---an-alias-of-ANDS--immediate--
+            // and https://developer.arm.com/documentation/ddi0602/2026-03/Base-Instructions/CSEL--Conditional-select-
             #[allow(unsafe_code)]
             unsafe {
+                // We use the `tst` instruction to only check the lower byte of the cond register.
+                // $selector has type `u8`, so the bits [8..32] of the cond register are unspecified.
+                // See https://doc.rust-lang.org/reference/inline-assembly.html#r-asm.register-operands.smaller-value
                 asm! {
-                    "cmp {cond:w}, 0",
+                    "tst {cond:w}, 0xff",
                     "csel {tmp}, {b:x}, {a:x}, NE",
                     "csel {b:x}, {a:x}, {b:x}, NE",
                     "mov {a:x}, {tmp}",
@@ -355,11 +367,15 @@ mod aarch64 {
 
     macro_rules! swap32 {
         ($lhs:expr, $rhs:expr, $selector:expr) => {
-            // Using https://developer.arm.com/documentation/ddi0602/2021-12/Base-Instructions/CSEL--Conditional-Select-
+            // Using https://developer.arm.com/documentation/ddi0602/2026-03/Base-Instructions/TST--immediate---Test-bits--immediate---an-alias-of-ANDS--immediate--
+            // and https://developer.arm.com/documentation/ddi0602/2026-03/Base-Instructions/CSEL--Conditional-select-
             #[allow(unsafe_code)]
             unsafe {
+                // We use the `tst` instruction to only check the lower byte of the cond register.
+                // $selector has type `u8`, so the bits [8..32] of the cond register are unspecified.
+                // See https://doc.rust-lang.org/reference/inline-assembly.html#r-asm.register-operands.smaller-value
                 asm! {
-                    "cmp {cond:w}, 0",
+                    "tst {cond:w}, 0xff",
                     "csel {tmp:w}, {b:w}, {a:w}, NE",
                     "csel {b:w}, {a:w}, {b:w}, NE",
                     "mov {a:w}, {tmp:w}",
@@ -427,8 +443,11 @@ mod select {
         [T]: Select,
     {
         let selector: u8 = rng.random::<u8>() & 1;
-        // XXX: Setting `selector` as follows will break the selection in release mode on `aarch64`.
-        // let selector = if selector { 0 } else { rng.next_u32() as u8 };
+        let selector = if selector == 0 {
+            0
+        } else {
+            rng.next_u32() as u8
+        };
         let mut lhs = [T::default(); 256];
         rng.fill(&mut lhs);
         let mut rhs = [T::default(); 256];
@@ -468,8 +487,11 @@ mod select {
         macro_rules! secret_test {
             ($ty:ty, $rng:expr) => {{
                 let selector: u8 = $rng.random::<u8>() & 1;
-                // XXX: Setting `selector` as follows will break the selection in release mode on `aarch64`.
-                // let selector = if selector { 0 } else { rng.next_u32() as u8 };
+                let selector = if selector == 0 {
+                    0
+                } else {
+                    $rng.next_u32() as u8
+                };
                 let mut lhs = [<$ty>::default(); 256];
                 $rng.fill(&mut lhs);
                 let mut rhs = [<$ty>::default(); 256];
@@ -522,8 +544,11 @@ mod swap {
         [T]: Swap,
     {
         let selector = rng.random::<u8>() & 1;
-        // XXX: Setting `selector` as follows will break the swap in release mode on `aarch64`.
-        // let selector = if selector { 0 } else { rng.next_u32() as u8 };
+        let selector = if selector == 0 {
+            0
+        } else {
+            rng.next_u32() as u8
+        };
         let mut lhs = [T::default(); 256];
         rng.fill(&mut lhs);
         let mut rhs = [T::default(); 256];
@@ -561,8 +586,11 @@ mod swap {
         macro_rules! secret_test {
             ($ty:ty, $rng:expr) => {{
                 let selector = $rng.random::<u8>() & 1;
-                // XXX: Setting `selector` as follows will break the swap in release mode on `aarch64`.
-                // let selector = if selector { 0 } else { $rng.next_u32() as u8 };
+                let selector = if selector == 0 {
+                    0
+                } else {
+                    $rng.next_u32() as u8
+                };
                 let mut lhs = [<$ty>::default(); 256];
                 $rng.fill(&mut lhs);
                 let mut rhs = [<$ty>::default(); 256];
