@@ -4,6 +4,7 @@ use super::classify_secret::*;
 use crate::mem_requests::{ct_classify, ct_declassify};
 use crate::traits::*;
 use core::ops::*;
+use core::ptr;
 
 pub type I8 = Secret<i8>;
 pub type U8 = Secret<u8>;
@@ -46,7 +47,7 @@ impl<'a, T: Scalar> ClassifyRef for &'a T {
         ct_classify(self);
         // SAFETY: this is safe since the `Secret` type is `repr(transparent)`, so
         //       the memory representation of the public and secret values is the same
-        unsafe { core::mem::transmute(self) }
+        unsafe { &*ptr::from_ref(self).cast::<Secret<T>>() }
     }
 }
 
@@ -57,7 +58,7 @@ impl<'a, T: Scalar> DeclassifyRef for &'a Secret<T> {
         ct_declassify(self);
         // SAFETY: this is safe since the `Secret` type is `repr(transparent)`, so
         //       the memory representation of the public and secret values is the same
-        unsafe { core::mem::transmute(self) }
+        unsafe { &*ptr::from_ref(self).cast::<T>() }
     }
 }
 
