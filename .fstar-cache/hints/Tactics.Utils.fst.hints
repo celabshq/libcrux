@@ -1,5 +1,5 @@
 [
-  "5211b86a931327b0f058325716abba6a",
+  "df909942f3dd108a0cdd8dd47b35492d",
   [
     [
       "Tactics.Utils.op_let_Question_u35",
@@ -8,7 +8,7 @@
       1,
       [ "@query", "lemma_FStar.Pervasives.invertOption" ],
       0,
-      "8c19a97f2142455e7c882641d7c6f523"
+      "9bece77438ebe010b96cd6a87c01559c"
     ],
     [
       "Tactics.Utils.unwrap",
@@ -17,7 +17,7 @@
       1,
       [ "@query", "lemma_FStar.Pervasives.invertOption" ],
       0,
-      "552cea9b9782da41a3529076044f2489"
+      "56c10b97720cf7dd5622ee60c4581fbf"
     ],
     [
       "Tactics.Utils.expect",
@@ -26,7 +26,7 @@
       1,
       [ "@query", "lemma_FStar.Pervasives.invertOption" ],
       0,
-      "415fb283fbb2a8e8757d64167d719619"
+      "d2aaf5ee0d0e9a59a23a9dea93e684ca"
     ],
     [
       "Tactics.Utils.expect_lhs_eq_rhs_term",
@@ -40,7 +40,7 @@
         "lemma_FStar.Pervasives.invertOption"
       ],
       0,
-      "4513b3c3bbc7d10e7bd0e445f545b09b"
+      "9cac939bc27e73420e224b5bb4774647"
     ],
     [
       "Tactics.Utils.expect_app_n",
@@ -56,7 +56,7 @@
         "refinement_interpretation_Tm_refine_9d6af3f3535473623f7aec2f0501897f"
       ],
       0,
-      "5955d0ea4ec6122bb7b9296f44b6e98f"
+      "a58161a005b8b5e1b2d4b02891bc7220"
     ],
     [
       "Tactics.Utils.revert_if_none",
@@ -65,7 +65,7 @@
       1,
       [ "@query", "lemma_FStar.Pervasives.invertOption" ],
       0,
-      "f3929c3193835d8400b080a45276d3c2"
+      "52319e9b60650056bea6abec5b6a3e87"
     ],
     [
       "Tactics.Utils.weaken_eq2_lemma",
@@ -77,7 +77,7 @@
         "refinement_interpretation_Tm_refine_a17a2460023e36fc15d00ec5e411cabd"
       ],
       0,
-      "38036558892c07392cccbc2b4170f3a3"
+      "0830e473c9acbb760d7dcf5183ceb4a1"
     ],
     [
       "Tactics.Utils.apply_lemma_rw_eqtype",
@@ -91,7 +91,7 @@
         "refinement_interpretation_Tm_refine_9d6af3f3535473623f7aec2f0501897f"
       ],
       0,
-      "caa7fdc114e89ca10b8644db5ed08028"
+      "e021db8a07fb80cf1cdc9f72fafe8344"
     ],
     [
       "Tactics.Utils.__proj__UnifyAppReturn__item__uu___",
@@ -103,7 +103,29 @@
         "refinement_interpretation_Tm_refine_fa3e4c4e6b2e6beab61914c7e7957644"
       ],
       0,
-      "72417d38a6d64c1a76da0ebb0510801c"
+      "59505ac49263e018ce6f15fecef34d7d"
+    ],
+    [
+      "Tactics.Utils.unify_app",
+      1,
+      2,
+      1,
+      [
+        "@MaxFuel_assumption", "@MaxIFuel_assumption",
+        "@fuel_correspondence_FStar.List.Tot.Base.length.fuel_instrumented",
+        "@query", "constructor_distinct_Tm_unit", "disc_equation_Prims.Cons",
+        "disc_equation_Prims.Nil",
+        "equation_FStar.Stubs.Reflection.Types.typ", "equation_Prims.nat",
+        "equation_with_fuel_FStar.List.Tot.Base.length.fuel_instrumented",
+        "function_token_typing_FStar.Stubs.Reflection.Types.namedv",
+        "function_token_typing_FStar.Stubs.Reflection.Types.term",
+        "int_inversion", "kinding_FStar.Pervasives.Native.tuple2@tok",
+        "projection_inverse_BoxBool_proj_0",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "typing_FStar.List.Tot.Base.length"
+      ],
+      0,
+      "2542da258811adfdeafadeb15b4d75fc"
     ],
     [
       "Tactics.Utils._split_forall_nat",
@@ -122,7 +144,7 @@
         "refinement_interpretation_Tm_refine_cf74cf5c1e7834b84db9cc7ebce886a3"
       ],
       0,
-      "890517d60f2e77586f101abb8bf5b2bc"
+      "7b597f879c54fb537f357fb7030313ca"
     ]
   ]
 ]

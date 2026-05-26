@@ -1,75 +1,6 @@
 [
-  "d38e66049f55a91540099f59713e5f02",
+  "9b64c9a4ee82a9d022b50b6119e56bc1",
   [
-    [
-      "BitVec.Utils.mk_list_32",
-      1,
-      33,
-      1,
-      [
-        "@MaxFuel_assumption", "@MaxIFuel_assumption",
-        "@fuel_correspondence_FStar.List.Tot.Base.length.fuel_instrumented",
-        "@query", "constructor_distinct_Prims.Cons",
-        "constructor_distinct_Prims.Nil", "data_elim_Prims.Cons",
-        "data_typing_intro_Prims.Nil@tok",
-        "equation_with_fuel_FStar.List.Tot.Base.length.fuel_instrumented",
-        "int_inversion", "int_typing", "primitive_Prims.op_Addition",
-        "projection_inverse_BoxInt_proj_0",
-        "projection_inverse_Prims.Cons_@0",
-        "projection_inverse_Prims.Cons_@a",
-        "projection_inverse_Prims.Cons_@hd",
-        "projection_inverse_Prims.Cons_@tl",
-        "projection_inverse_Prims.Nil_@0", "projection_inverse_Prims.Nil_@a"
-      ],
-      0,
-      "eca7ad2f1ba8b4c0fb15615d6822551d"
-    ],
-    [
-      "BitVec.Utils.mk_list_16",
-      1,
-      33,
-      1,
-      [
-        "@MaxFuel_assumption", "@MaxIFuel_assumption",
-        "@fuel_correspondence_FStar.List.Tot.Base.length.fuel_instrumented",
-        "@query", "constructor_distinct_Prims.Cons",
-        "constructor_distinct_Prims.Nil", "data_elim_Prims.Cons",
-        "data_typing_intro_Prims.Nil@tok",
-        "equation_with_fuel_FStar.List.Tot.Base.length.fuel_instrumented",
-        "int_inversion", "int_typing", "primitive_Prims.op_Addition",
-        "projection_inverse_BoxInt_proj_0",
-        "projection_inverse_Prims.Cons_@0",
-        "projection_inverse_Prims.Cons_@a",
-        "projection_inverse_Prims.Cons_@hd",
-        "projection_inverse_Prims.Cons_@tl",
-        "projection_inverse_Prims.Nil_@0", "projection_inverse_Prims.Nil_@a"
-      ],
-      0,
-      "833917e689053b27135a11f9eddc5395"
-    ],
-    [
-      "BitVec.Utils.mk_list_8",
-      1,
-      33,
-      1,
-      [
-        "@MaxFuel_assumption", "@MaxIFuel_assumption",
-        "@fuel_correspondence_FStar.List.Tot.Base.length.fuel_instrumented",
-        "@query", "constructor_distinct_Prims.Cons",
-        "constructor_distinct_Prims.Nil", "data_elim_Prims.Cons",
-        "data_typing_intro_Prims.Nil@tok",
-        "equation_with_fuel_FStar.List.Tot.Base.length.fuel_instrumented",
-        "int_inversion", "int_typing", "primitive_Prims.op_Addition",
-        "projection_inverse_BoxInt_proj_0",
-        "projection_inverse_Prims.Cons_@0",
-        "projection_inverse_Prims.Cons_@a",
-        "projection_inverse_Prims.Cons_@hd",
-        "projection_inverse_Prims.Cons_@tl",
-        "projection_inverse_Prims.Nil_@0", "projection_inverse_Prims.Nil_@a"
-      ],
-      0,
-      "9d5e7752073e9cdd7311a1004a21b5b4"
-    ],
     [
       "BitVec.Utils.rw_get_bit_cast",
       1,
@@ -87,7 +18,7 @@
         "refinement_interpretation_Tm_refine_b0f8aa1d20f9ec106abc782f5782833b"
       ],
       0,
-      "214d769f17315cf4803e010660bada06"
+      "b51271eafe5f6a6a2b19b7b04f6c505a"
     ],
     [
       "BitVec.Utils.rw_get_bit_shr",
@@ -135,7 +66,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "dddb5f3d1069a28d6a7ad2eae6cc9764"
+      "981bf485bfd40aece0b580c65c39177a"
     ],
     [
       "BitVec.Utils.forall8",
@@ -153,7 +84,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "25d14603196e7fbd4f43b3969ecb0b22"
+      "50b4ed19bb3f0bd82eb8ac3346703fb9"
     ],
     [
       "BitVec.Utils.forall16",
@@ -178,7 +109,7 @@
         "typing_Tm_abs_ec30f89dd41a89c535c8f61b24f115cd"
       ],
       0,
-      "544bba314fa956236fc0a2af264db269"
+      "30a79b656c4670d51dd5331dc4a7e21a"
     ],
     [
       "BitVec.Utils.forall32",
@@ -208,7 +139,7 @@
         "typing_Tm_abs_ec30f89dd41a89c535c8f61b24f115cd"
       ],
       0,
-      "1d2f974ec21427cc47f39fdf3f10f875"
+      "97ff7b29cc8040934359628b3ab72fc1"
     ],
     [
       "BitVec.Utils.forall64",
@@ -239,7 +170,7 @@
         "typing_Tm_abs_ead63b58b01021259ad5a491aa4f71f1"
       ],
       0,
-      "18f7c6dc861cd093cf38ede039c065c3"
+      "ef1dffeebbc184d0747675b01eb415bf"
     ],
     [
       "BitVec.Utils.forall128",
@@ -275,7 +206,7 @@
         "typing_Tm_abs_ead63b58b01021259ad5a491aa4f71f1"
       ],
       0,
-      "86326acacaa29ea55ae0de616ef34ba7"
+      "b92a6d02f9fa5ce82a0bdc4cd03311bb"
     ],
     [
       "BitVec.Utils.forall256",
@@ -315,7 +246,7 @@
         "typing_Tm_abs_ead63b58b01021259ad5a491aa4f71f1"
       ],
       0,
-      "15a587b7ec7443fa2cb622378567d9ec"
+      "1585e1daa563ce6655d9c2c6279576fb"
     ],
     [
       "BitVec.Utils.forall_n",
@@ -332,7 +263,7 @@
         "refinement_interpretation_Tm_refine_d131d4ef716432e3a8862dae7df47aab"
       ],
       0,
-      "555ae5b5541ead3e480af7ab2869aac9"
+      "42ec17bb8966c7605ddb436552c63f79"
     ],
     [
       "BitVec.Utils.bit_vec_to_int_t_lemma",
@@ -353,7 +284,7 @@
         "refinement_interpretation_Tm_refine_b4a5e28b452e8c9f3f8502041c26b12d"
       ],
       0,
-      "0b503ccd994fafff5d4bcc4260373a4a"
+      "f52434a1a00a07db509f48d6df352ebf"
     ]
   ]
 ]

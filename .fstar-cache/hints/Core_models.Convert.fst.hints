@@ -8,7 +8,7 @@
       1,
       [
         "@MaxIFuel_assumption", "@query",
-        "Core_models.Convert_interpretation_Tm_arrow_527d0c4b8598d265b3ecc95b6df26a30",
+        "Core_models.Ops.Function_interpretation_Tm_arrow_527d0c4b8598d265b3ecc95b6df26a30",
         "data_elim_Core_models.Convert.Mkt_From",
         "fuel_guarded_inversion_Core_models.Convert.t_From",
         "proj_equation_Core_models.Convert.Mkt_From_@f_from_pre",
@@ -16,7 +16,7 @@
         "token_correspondence_Core_models.Convert.__proj__Mkt_From__item__f_from_pre"
       ],
       0,
-      "441420abb838d9f2431618f0281b0ab5"
+      "5e1fc6774e72786efa6e3248f5b9dc48"
     ],
     [
       "Core_models.Convert.impl_1",
@@ -25,7 +25,7 @@
       1,
       [
         "@MaxIFuel_assumption", "@query",
-        "Core_models.Convert_interpretation_Tm_arrow_527d0c4b8598d265b3ecc95b6df26a30",
+        "Core_models.Ops.Function_interpretation_Tm_arrow_527d0c4b8598d265b3ecc95b6df26a30",
         "data_elim_Core_models.Convert.Mkt_From",
         "fuel_guarded_inversion_Core_models.Convert.t_From",
         "proj_equation_Core_models.Convert.Mkt_From_@f_from_pre",
@@ -33,7 +33,7 @@
         "token_correspondence_Core_models.Convert.__proj__Mkt_From__item__f_from_pre"
       ],
       0,
-      "759911976430fe65f5d8e01408e1cb60"
+      "66e4c19a98da652909b2761d591d4f34"
     ],
     [
       "Core_models.Convert.impl_2",
@@ -56,7 +56,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f76b59bf19fcd29b8f8fd2076e22090b"
+      "242087be486a8e32d6018699cb49efa9"
     ],
     [
       "Core_models.Convert.impl_3",
@@ -65,7 +65,7 @@
       1,
       [
         "@MaxIFuel_assumption", "@query",
-        "Core_models.Convert_interpretation_Tm_arrow_527d0c4b8598d265b3ecc95b6df26a30",
+        "Core_models.Ops.Function_interpretation_Tm_arrow_527d0c4b8598d265b3ecc95b6df26a30",
         "data_elim_Core_models.Convert.Mkt_TryFrom",
         "fuel_guarded_inversion_Core_models.Convert.t_TryFrom",
         "proj_equation_Core_models.Convert.Mkt_TryFrom_@f_try_from_pre",
@@ -73,7 +73,7 @@
         "token_correspondence_Core_models.Convert.__proj__Mkt_TryFrom__item__f_try_from_pre"
       ],
       0,
-      "535a41e62d2c969722ef111141fb9fe7"
+      "8a9707d2f30c0452e5e82e6fa8e461f3"
     ]
   ]
 ]

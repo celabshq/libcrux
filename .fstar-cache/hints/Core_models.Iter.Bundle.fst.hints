@@ -13,7 +13,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "cd11f52a0ffd0c9a91ddc529f0b0aff6"
+      "1d6341e01aedc6606a69b92570a4ed57"
     ],
     [
       "Core_models.Iter.Bundle.impl__new",
@@ -43,7 +43,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "6aee0c056e3ac7c27010a4988fac7126"
+      "b17c21285b199b208a2d02cd281331c4"
     ],
     [
       "Core_models.Iter.Bundle.t_FlatMap",
@@ -52,7 +52,7 @@
       1,
       [ "@query", "assumption_Core_models.Bundle.t_Option__uu___haseq" ],
       0,
-      "9ddbd9f576cc16141b186c12be52a151"
+      "65e5c864e711afd288aa01165d2f2cee"
     ],
     [
       "Core_models.Iter.Bundle.t_Map",
@@ -61,7 +61,7 @@
       1,
       [ "@query" ],
       0,
-      "c4ccc0ddd564cb0c1d03c9593a91897b"
+      "f4894c783e78a0f60afd953952ff3aa7"
     ],
     [
       "Core_models.Iter.Bundle.t_StepBy",
@@ -75,7 +75,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4c0a7e29bff301ad93e9557ddde7e8c7"
+      "91f2bb9f212bccce1e2f1976aaf28fd9"
     ],
     [
       "Core_models.Iter.Bundle.t_Take",
@@ -89,7 +89,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "14c1bcee71cb9a1448d04addc15b793d"
+      "393c4cfb4e48afc06051617ec3dfe4c0"
     ],
     [
       "Core_models.Iter.Bundle.t_Zip",
@@ -98,7 +98,7 @@
       1,
       [ "@query" ],
       0,
-      "f64a26b6dcf8c4570d71658fa5467ef7"
+      "f9fa4ec3edffec967479e143d5cccf26"
     ],
     [
       "Core_models.Iter.Bundle.impl_1",
@@ -107,7 +107,7 @@
       1,
       [
         "@MaxIFuel_assumption", "@query",
-        "Core_models.Ops.Function_interpretation_Tm_arrow_527d0c4b8598d265b3ecc95b6df26a30",
+        "Core_models.Iter.Traits.Collect_interpretation_Tm_arrow_527d0c4b8598d265b3ecc95b6df26a30",
         "bool_inversion", "bool_typing",
         "constructor_distinct_Rust_primitives.Integers.USIZE",
         "data_elim_Core_models.Iter.Bundle.Mkt_Enumerate",
@@ -120,7 +120,6 @@
         "equation_Rust_primitives.Arithmetic.v_USIZE_MAX",
         "equation_Rust_primitives.Integers.lt",
         "equation_Rust_primitives.Integers.max_usize",
-        "equation_Rust_primitives.Integers.maxint",
         "equation_Rust_primitives.Integers.minint",
         "equation_Rust_primitives.Integers.mk_int",
         "equation_Rust_primitives.Integers.mk_usize",
@@ -133,9 +132,8 @@
         "fuel_guarded_inversion_Core_models.Iter.Bundle.t_Enumerate",
         "fuel_guarded_inversion_Core_models.Iter.Bundle.t_Iterator",
         "fuel_guarded_inversion_Rust_primitives.Integers.int_t",
-        "int_inversion", "primitive_Prims.op_Addition",
-        "primitive_Prims.op_AmpAmp", "primitive_Prims.op_LessThan",
-        "primitive_Prims.op_LessThanOrEqual",
+        "primitive_Prims.op_Addition", "primitive_Prims.op_AmpAmp",
+        "primitive_Prims.op_LessThan", "primitive_Prims.op_LessThanOrEqual",
         "proj_equation_Core_models.Iter.Bundle.Mkt_Enumerate_@f_count",
         "proj_equation_Core_models.Iter.Bundle.Mkt_Enumerate_@f_iter",
         "proj_equation_Core_models.Iter.Bundle.Mkt_Iterator_@f_Item",
@@ -149,10 +147,16 @@
         "refinement_interpretation_Tm_refine_e263604a64d343fa5112de970172906b",
         "token_correspondence_Core_models.Iter.Bundle.__proj__Mkt_Iterator__item__f_next_pre",
         "typing_Core_models.Iter.Bundle.__proj__Mkt_Enumerate__item__f_count",
-        "typing_Core_models.Iter.Bundle.__proj__Mkt_Enumerate__item__f_iter"
+        "typing_Core_models.Iter.Bundle.__proj__Mkt_Enumerate__item__f_iter",
+        "typing_Core_models.Num.impl_usize__MAX",
+        "typing_Rust_primitives.Integers.lt",
+        "typing_Rust_primitives.Integers.max_usize",
+        "typing_Rust_primitives.Integers.range",
+        "typing_Rust_primitives.Integers.v",
+        "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "951697f6c2177692c7f319b00841e22c"
+      "8c19ebf3e05de91286e01860ca4a3643"
     ],
     [
       "Core_models.Iter.Bundle.impl_1__from__flat_map",
@@ -164,7 +168,7 @@
         "refinement_interpretation_Tm_refine_f0fff09138211a4482f534024f597a2b"
       ],
       0,
-      "a716c166864506e1bed3deffb2cc72c2"
+      "e3c619668f73c413c25bd6b1797e02c7"
     ],
     [
       "Core_models.Iter.Bundle.impl_1__from__map",
@@ -173,7 +177,7 @@
       1,
       [
         "@MaxIFuel_assumption", "@query",
-        "Core_models.Ops.Function_interpretation_Tm_arrow_527d0c4b8598d265b3ecc95b6df26a30",
+        "Core_models.Iter.Traits.Collect_interpretation_Tm_arrow_527d0c4b8598d265b3ecc95b6df26a30",
         "Core_models.Ops.Function_interpretation_Tm_arrow_feb1a0351b62feb59e692abdf1ae1a81",
         "data_elim_Core_models.Iter.Bundle.Mkt_Iterator",
         "data_elim_Core_models.Ops.Function.Mkt_FnOnce",
@@ -198,7 +202,7 @@
         "typing_Core_models.Iter.Bundle.__proj__Mkt_Map__item__f_iter"
       ],
       0,
-      "a0ee31b1d5848b43742ab28f7b77ee8d"
+      "0b99007852dc31969c8bb0d0e2dffa60"
     ],
     [
       "Core_models.Iter.Bundle.impl_1__from__take",
@@ -208,7 +212,7 @@
       [
         "@MaxFuel_assumption", "@MaxIFuel_assumption",
         "@fuel_correspondence_Prims.pow2.fuel_instrumented", "@query",
-        "Core_models.Ops.Function_interpretation_Tm_arrow_527d0c4b8598d265b3ecc95b6df26a30",
+        "Core_models.Iter.Traits.Collect_interpretation_Tm_arrow_527d0c4b8598d265b3ecc95b6df26a30",
         "assumption_Rust_primitives.Integers.int_t__uu___haseq",
         "bool_inversion", "bool_typing",
         "constructor_distinct_Rust_primitives.Integers.USIZE",
@@ -255,7 +259,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "29ac67cf4956b7c508cb302092412f10"
+      "cfc4907137b4224635d23dbb38d3987f"
     ],
     [
       "Core_models.Iter.Bundle.t_IteratorMethods",
@@ -270,7 +274,7 @@
         "refinement_interpretation_Tm_refine_f710fe4ec3e0b415068a2ce41981ad86"
       ],
       0,
-      "aed72170ebaaf808df84d21e3b6e9311"
+      "779be81c531b27f40324a011d4df0005"
     ],
     [
       "Core_models.Iter.Bundle.__proj__Mkt_IteratorMethods__item__f_fold",
@@ -282,7 +286,7 @@
         "refinement_interpretation_Tm_refine_c7aab0d50a79bffaa2f0b5e984e74418"
       ],
       0,
-      "fd19ad151e0340b26467f96689267ddb"
+      "25edab3472ac12bbf0867ccbd7a48aa9"
     ],
     [
       "Core_models.Iter.Bundle.__proj__Mkt_IteratorMethods__item__f_fold",
@@ -296,7 +300,7 @@
         "refinement_interpretation_Tm_refine_ced5a6b84b6cfffea9b5ac9f804a71e9"
       ],
       0,
-      "779924e72996d0ef8798ffce1984564c"
+      "0bdcec31b1dffa3f4ee2cf04ee1ace3e"
     ],
     [
       "Core_models.Iter.Bundle.__proj__Mkt_IteratorMethods__item__f_map",
@@ -308,7 +312,7 @@
         "refinement_interpretation_Tm_refine_8ff3fd1ef60a286473adaa794a48b431"
       ],
       0,
-      "3a8406e27908f1e12c0a749bc06fb9b9"
+      "f0ca74220aa64425f9f4e66005b52b80"
     ],
     [
       "Core_models.Iter.Bundle.__proj__Mkt_IteratorMethods__item__f_map",
@@ -322,7 +326,7 @@
         "refinement_interpretation_Tm_refine_e6b09c1519ce0ca2b3540125517745e7"
       ],
       0,
-      "7fc3018deb3ec651e64734f621473a02"
+      "6a6d384ebfb8b26a249558e0a8cea55b"
     ],
     [
       "Core_models.Iter.Bundle.__proj__Mkt_IteratorMethods__item__f_all",
@@ -334,7 +338,7 @@
         "refinement_interpretation_Tm_refine_2a2ec99e6a2fc849f4644818c66266dc"
       ],
       0,
-      "db99ee8596158554325f36c765ab2b94"
+      "f35018415d0fa4247b39f34d1629b3fd"
     ],
     [
       "Core_models.Iter.Bundle.__proj__Mkt_IteratorMethods__item__f_all",
@@ -348,7 +352,7 @@
         "refinement_interpretation_Tm_refine_2d13bbc86ae0e8fbcf92a84cb6a06d79"
       ],
       0,
-      "f0ec3ec0d80b6ed5c5851fd70e3ea29f"
+      "a8815f0f9b7dd90fbe9aabc40b9fe9f2"
     ],
     [
       "Core_models.Iter.Bundle.__proj__Mkt_IteratorMethods__item__f_flat_map",
@@ -360,7 +364,7 @@
         "refinement_interpretation_Tm_refine_8ff3fd1ef60a286473adaa794a48b431"
       ],
       0,
-      "deda886f8d129715e8eee2810c1a2885"
+      "b5941fc210a5bf537114e13f18fbcd4d"
     ],
     [
       "Core_models.Iter.Bundle.__proj__Mkt_IteratorMethods__item__f_flat_map",
@@ -374,7 +378,7 @@
         "refinement_interpretation_Tm_refine_e6b09c1519ce0ca2b3540125517745e7"
       ],
       0,
-      "d196eb6192f6db7549ee72de590f77b5"
+      "f5d36d4d62447d7a23996f142bd9758d"
     ],
     [
       "Core_models.Iter.Bundle.f_fold",
@@ -388,7 +392,7 @@
         "refinement_interpretation_Tm_refine_ced5a6b84b6cfffea9b5ac9f804a71e9"
       ],
       0,
-      "54d0a73381ee8019c3a5d142a04a5e38"
+      "02a336733b56bb6d4322dd21dd57af6c"
     ],
     [
       "Core_models.Iter.Bundle.f_map",
@@ -402,7 +406,7 @@
         "refinement_interpretation_Tm_refine_e6b09c1519ce0ca2b3540125517745e7"
       ],
       0,
-      "5e9c675c4448c2d81ae6d0d5ad734bdf"
+      "5e72e6d598b77af07ac8a91c93aeeab6"
     ],
     [
       "Core_models.Iter.Bundle.f_all",
@@ -416,7 +420,7 @@
         "refinement_interpretation_Tm_refine_2d13bbc86ae0e8fbcf92a84cb6a06d79"
       ],
       0,
-      "21403ae7914d750815b567cb8048a450"
+      "68768b3c6b4d17a6fdd0bafb9fb3f678"
     ],
     [
       "Core_models.Iter.Bundle.f_flat_map",
@@ -430,7 +434,7 @@
         "refinement_interpretation_Tm_refine_e6b09c1519ce0ca2b3540125517745e7"
       ],
       0,
-      "b4ccb47aca809abdd0d70d407d0497e8"
+      "3e0dd3dfe94392b8fb33b425a941fae4"
     ],
     [
       "Core_models.Iter.Bundle.impl",
@@ -442,7 +446,7 @@
         "refinement_interpretation_Tm_refine_f0fff09138211a4482f534024f597a2b"
       ],
       0,
-      "c253125e93bfe7d28e76485a21616f40"
+      "efc64e0f082a23a46e1f1844d1c8dc18"
     ]
   ]
 ]
