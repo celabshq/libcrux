@@ -18,8 +18,37 @@ pub mod hacl {
 }
 
 mod impl_hacl;
+mod incremental;
 
 pub use impl_hacl::*;
+pub use incremental::*;
+
+/// Streaming HMAC state.
+///
+/// Initialize with the concrete type's `new(key)` constructor, feed data
+/// fragments with [`update`](HmacState::update), and obtain the tag with
+/// [`finalize`](HmacState::finalize).
+///
+/// Implementations are available as [`HmacSha256`], [`HmacSha384`], and
+/// [`HmacSha512`].
+pub trait HmacState<const OUTLEN: usize> {
+    /// Create a new [`HmacState`].
+    fn new(key: &[u8]) -> Result<Self, Error>
+    where
+        Self: Sized;
+
+    /// Feed a data fragment into the HMAC computation.
+    fn update(&mut self, data: &[u8]) -> Result<(), Error>;
+
+    /// Finalize the HMAC and write the tag into `dst`.
+    fn finalize(self, dst: &mut [u8; OUTLEN]);
+}
+
+/// HMAC Errors
+#[derive(Debug)]
+pub enum Error {
+    InvalidInputLength,
+}
 
 /// The HMAC algorithm defining the used hash function.
 #[derive(Copy, Clone, Debug, PartialEq)]

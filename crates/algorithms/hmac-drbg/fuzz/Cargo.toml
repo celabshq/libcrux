@@ -1,0 +1,39 @@
+[package]
+name = "libcrux-drbg-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+
+[dependencies.libcrux-hmac-drbg]
+path = ".."
+features = ["testing"]
+
+[[bin]]
+name = "new"
+path = "fuzz_targets/new.rs"
+test = false
+doc = false
+bench = false
+harness = false
+
+[[bin]]
+name = "generate"
+path = "fuzz_targets/generate.rs"
+test = false
+doc = false
+bench = false
+harness = false
+
+[[bin]]
+name = "lifecycle"
+path = "fuzz_targets/lifecycle.rs"
+test = false
+doc = false
+bench = false
+harness = false

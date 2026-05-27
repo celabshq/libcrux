@@ -12,6 +12,10 @@ use std::{
     io::{BufRead, BufReader},
 };
 
+/// HMAC_DRBG test vectors (SP 800-90A Rev 1)
+#[cfg(feature = "drbg")]
+pub mod drbg;
+
 /// Read a test vector file.
 pub fn read_file<Ty: Tv>(file: &str) -> Result<TestVector<Ty>, Error> {
     let reader = BufReader::new(File::open(file).map_err(|_| Error::FileOpen)?);
@@ -122,6 +126,16 @@ mod helper {
         fn read_header<Ty: Tv<H = Self>>(line: &str, header: &mut Self) -> Result<(), Error>
         where
             Self: Sized;
+
+        /// Algorithm/variant identifier (e.g. hash name). Default: empty string.
+        fn algorithm(&self) -> &str {
+            ""
+        }
+
+        /// Whether prediction resistance is active for this section. Default: false.
+        fn prediction_resistance(&self) -> bool {
+            false
+        }
     }
 }
 use helper::*;
