@@ -53,7 +53,7 @@ core-models = { path = "../crates/utils/core-models", version = "0.0.6" }
 
 [target.'cfg(valgrind_ct_test)'.dependencies]
 # Used for constant time testing using valgrind
-crabgrind = { version = "0.2.6" }
+crabgrind.workspace = true
 
 [features]
 default = ["std", "mldsa44", "mldsa65", "mldsa87"]

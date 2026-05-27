@@ -35,7 +35,6 @@ name = "aesgcm"
 
 [dev-dependencies]
 aes-gcm = "0.10.3"
-cavp = { path = "../../../cavp" }
 criterion = "0.8.0"
 hex = "0.4.3"
 pretty_env_logger = "0.5.0"

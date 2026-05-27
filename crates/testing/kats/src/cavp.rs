@@ -1,3 +1,11 @@
+//! Libcrux CAVP Utilities
+//!
+//! > The NIST Cryptographic Algorithm Validation Program (CAVP) provides validation testing of Approved (i.e., FIPS-approved and NIST-recommended) cryptographic algorithms and their individual components.
+//!
+//!- [NIST: Cryptographic Algorithm Validation Program](https://csrc.nist.gov/projects/cryptographic-algorithm-validation-program)
+//!
+//! This module provides tooling around parsing and handling of CAVP test vectors for `libcrux` crates.
+
 use core::fmt;
 use std::{
     fs::File,
@@ -423,7 +431,7 @@ fn to_usize(mut value: std::str::Split<&str>) -> Result<usize, Error> {
 
 #[cfg(test)]
 mod tests {
-    use crate::*;
+    use super::*;
 
     #[test]
     fn sha3() {
