@@ -5,6 +5,7 @@ use crate::mem_requests::{ct_classify, ct_declassify};
 /// That is, it should not be used when running the Rust code in production.
 /// Otherwise, the crate defaults to public integers.
 use crate::traits::*;
+use core::ptr;
 
 /// A type for secret values
 #[repr(transparent)]
@@ -69,7 +70,7 @@ impl<'a, T: Scalar> ClassifyRefMut for &'a mut T {
         ct_classify(self);
         // SAFETY: this is safe since the `Secret` type is `repr(transparent)`, so
         //       the memory representation of the public and secret values is the same
-        unsafe { core::mem::transmute(self) }
+        unsafe { &mut *ptr::from_mut(self).cast::<Secret<T>>() }
     }
 }
 
@@ -80,7 +81,7 @@ impl<'a, T: Scalar> DeclassifyRefMut for &'a mut Secret<T> {
         ct_declassify(self);
         // SAFETY: this is safe since the `Secret` type is `repr(transparent)`, so
         //       the memory representation of the public and secret values is the same
-        unsafe { core::mem::transmute(self) }
+        unsafe { &mut *ptr::from_mut(self).cast::<T>() }
     }
 }
 
@@ -91,7 +92,7 @@ impl<'a, T: Scalar> ClassifyRef for &'a [T] {
         ct_classify(self);
         // SAFETY: this is safe since the `Secret` type is `repr(transparent)`, so
         //       the memory representation of the public and secret slices is the same
-        unsafe { core::mem::transmute(self) }
+        unsafe { core::slice::from_raw_parts(self.as_ptr().cast::<Secret<T>>(), self.len()) }
     }
 }
 
@@ -102,7 +103,7 @@ impl<'a, T: Scalar> DeclassifyRef for &'a [Secret<T>] {
         ct_declassify(self);
         // SAFETY: this is safe since the `Secret` type is `repr(transparent)`, so
         //       the memory representation of the public and secret slices is the same
-        unsafe { core::mem::transmute(self) }
+        unsafe { core::slice::from_raw_parts(self.as_ptr().cast::<T>(), self.len()) }
     }
 }
 
@@ -113,7 +114,9 @@ impl<'a, T: Scalar> ClassifyRefMut for &'a mut [T] {
         ct_classify(self);
         // SAFETY: this is safe since the `Secret` type is `repr(transparent)`, so
         //       the memory representation of the public and secret slices is the same
-        unsafe { core::mem::transmute(self) }
+        unsafe {
+            core::slice::from_raw_parts_mut(self.as_mut_ptr().cast::<Secret<T>>(), self.len())
+        }
     }
 }
 
@@ -124,7 +127,7 @@ impl<'a, T: Scalar> DeclassifyRefMut for &'a mut [Secret<T>] {
         ct_declassify(self);
         // SAFETY: this is safe since the `Secret` type is `repr(transparent)`, so
         //       the memory representation of the public and secret slices is the same
-        unsafe { core::mem::transmute(self) }
+        unsafe { core::slice::from_raw_parts_mut(self.as_mut_ptr().cast::<T>(), self.len()) }
     }
 }
 
@@ -135,7 +138,7 @@ impl<'a, T: Scalar, const N: usize> ClassifyRef for &'a [T; N] {
         ct_classify(self);
         // SAFETY: this is safe since the `Secret` type is `repr(transparent)`, so
         //       the memory representation of the public and secret arrays is the same
-        unsafe { core::mem::transmute(self) }
+        unsafe { &*self.as_ptr().cast::<[Secret<T>; N]>() }
     }
 }
 
@@ -146,7 +149,7 @@ impl<'a, T: Scalar, const N: usize> DeclassifyRef for &'a [Secret<T>; N] {
         ct_declassify(self);
         // SAFETY: this is safe since the `Secret` type is `repr(transparent)`, so
         //       the memory representation of the public and secret arrays is the same
-        unsafe { core::mem::transmute(self) }
+        unsafe { &*self.as_ptr().cast::<[T; N]>() }
     }
 }
 
@@ -157,7 +160,7 @@ impl<'a, T: Scalar, const N: usize> ClassifyRefMut for &'a mut [T; N] {
         ct_classify(self);
         // SAFETY: this is safe since the `Secret` type is `repr(transparent)`, so
         //       the memory representation of the public and secret arrays is the same
-        unsafe { core::mem::transmute(self) }
+        unsafe { &mut *self.as_mut_ptr().cast::<[Secret<T>; N]>() }
     }
 }
 
@@ -168,6 +171,6 @@ impl<'a, T: Scalar, const N: usize> DeclassifyRefMut for &'a mut [Secret<T>; N] 
         ct_declassify(self);
         // SAFETY: this is safe since the `Secret` type is `repr(transparent)`, so
         //       the memory representation of the public and secret arrays is the same
-        unsafe { core::mem::transmute(self) }
+        unsafe { &mut *self.as_mut_ptr().cast::<[T; N]>() }
     }
 }
