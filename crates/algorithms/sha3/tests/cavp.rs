@@ -361,9 +361,6 @@ macro_rules! shake256_vo_avx2_test {
         #[test]
         #[cfg(feature = "simd256")]
         #[allow(non_snake_case)]
-        // This test uncovered a bug in the avx2 shake26 implementation
-        // Expect the panic here and fix in following PR
-        #[should_panic(expected = "range start index 64 out of range for slice of length 33")]
         fn $test_name() {
             let _ = pretty_env_logger::try_init();
             let tv = $kats_fn();

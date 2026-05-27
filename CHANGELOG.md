@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- (libcrux-secrets) [#1460](https://github.com/cryspen/libcrux/issues/1460): Fix incorrect cmp in aarch64 select/swap implementation 
+- (libcrux-secrets) [#1460](https://github.com/cryspen/libcrux/issues/1460): Fix incorrect cmp in aarch64 select/swap implementation
+- (libcrux-sha3) [#1456](https://github.com/cryspen/libcrux/pull/1456): Fix out of bounds indexing in avx2 SHAKE-256 implementation
 
 ### Changed
 

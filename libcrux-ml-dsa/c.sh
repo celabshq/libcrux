@@ -101,10 +101,12 @@ fi
 [[ -z "$EURYDICE_REV" && -d $EURYDICE_HOME/.git ]] && export EURYDICE_REV=$(git -C $EURYDICE_HOME rev-parse HEAD)
 [[ -z "$KRML_REV" && -d $KRML_HOME/.git ]] && export KRML_REV=$(git -C $KRML_HOME rev-parse HEAD)
 [[ -z "$LIBCRUX_REV" ]] && export LIBCRUX_REV=$(git rev-parse HEAD)
-if [[ -z "$FSTAR_REV" && -d $FSTAR_HOME/.git ]]; then
-    export FSTAR_REV=$(git -C $FSTAR_HOME rev-parse HEAD)
-else
-    export FSTAR_REV=$(fstar.exe --version | grep commit | sed 's/commit=\(.*\)/\1/')
+if [[ -z "$FSTAR_REV" ]]; then
+    if [[ -d $FSTAR_HOME/.git ]]; then
+        export FSTAR_REV=$(git -C $FSTAR_HOME rev-parse HEAD)
+    else
+        export FSTAR_REV=$(fstar.exe --version | grep commit | sed 's/commit=\(.*\)/\1/')
+    fi
 fi
 rm -f code_gen.txt
 echo "This code was generated with the following revisions:" >> code_gen.txt

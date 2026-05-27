@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- [#1456](https://github.com/cryspen/libcrux/pull/1456): Fix out of bounds indexing in avx2 SHAKE-256 implementation
+
 ### Changed
 
 - [1454](https://github.com/cryspen/libcrux/pull/1454): `debug_assert` that generic `LEN` matches algorithm in `hash` function
