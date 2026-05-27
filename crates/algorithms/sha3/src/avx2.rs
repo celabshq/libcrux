@@ -4,6 +4,20 @@ pub mod x4 {
 
     /// Perform 4 SHAKE256 operations in parallel
     #[allow(clippy::too_many_arguments)]
+    #[hax_lib::requires(
+        input0.len() == input1.len() &&
+        input0.len() == input2.len() &&
+        input0.len() == input3.len() &&
+        out0.len() == out1.len() &&
+        out0.len() == out2.len() &&
+        out0.len() == out3.len()
+    )]
+    #[hax_lib::ensures(|_|
+        future(out0).len() == out0.len() &&
+        future(out1).len() == out1.len() &&
+        future(out2).len() == out2.len() &&
+        future(out3).len() == out3.len()
+    )]
     #[inline(always)]
     pub fn shake256(
         input0: &[u8],
@@ -20,10 +34,14 @@ pub mod x4 {
 
     /// An incremental API to perform 4 operations in parallel
     pub mod incremental {
+        #[cfg(hax)]
+        use hax_lib::ToInt;
+
         use crate::generic_keccak::KeccakState as GenericState;
         use libcrux_intrinsics::avx2::*;
 
         /// The Keccak state for the incremental API.
+        #[hax_lib::fstar::before("noeq")]
         pub struct KeccakState {
             state: GenericState<4, Vec256>,
         }
@@ -37,6 +55,12 @@ pub mod x4 {
         }
 
         /// Absorb
+        #[hax_lib::requires(
+            data0.len().to_int() < hax_lib::int!(168) &&
+            data0.len() == data1.len() &&
+            data0.len() == data2.len() &&
+            data0.len() == data3.len()
+        )]
         #[inline(always)]
         pub fn shake128_absorb_final(
             s: &mut KeccakState,
@@ -51,6 +75,12 @@ pub mod x4 {
 
         /// Absorb
         #[inline(always)]
+        #[hax_lib::requires(
+            data0.len().to_int() < hax_lib::int!(136) &&
+            data0.len() == data1.len() &&
+            data0.len() == data2.len() &&
+            data0.len() == data3.len()
+        )]
         pub fn shake256_absorb_final(
             s: &mut KeccakState,
             data0: &[u8],
@@ -64,6 +94,18 @@ pub mod x4 {
 
         /// Squeeze block
         #[inline(always)]
+        #[hax_lib::requires(
+            out0.len().to_int() >= hax_lib::int!(136) &&
+            out0.len() == out1.len() &&
+            out0.len() == out2.len() &&
+            out0.len() == out3.len()
+        )]
+        #[hax_lib::ensures(|_|
+            future(out0).len() == out0.len() &&
+            future(out1).len() == out1.len() &&
+            future(out2).len() == out2.len() &&
+            future(out3).len() == out3.len()
+        )]
         pub fn shake256_squeeze_first_block(
             s: &mut KeccakState,
             out0: &mut [u8],
@@ -76,6 +118,18 @@ pub mod x4 {
 
         /// Squeeze next block
         #[inline(always)]
+        #[hax_lib::requires(
+            out0.len().to_int() >= hax_lib::int!(136) &&
+            out0.len() == out1.len() &&
+            out0.len() == out2.len() &&
+            out0.len() == out3.len()
+        )]
+        #[hax_lib::ensures(|_|
+            future(out0).len() == out0.len() &&
+            future(out1).len() == out1.len() &&
+            future(out2).len() == out2.len() &&
+            future(out3).len() == out3.len()
+        )]
         pub fn shake256_squeeze_next_block(
             s: &mut KeccakState,
             out0: &mut [u8],
@@ -88,6 +142,18 @@ pub mod x4 {
 
         /// Squeeze three blocks
         #[inline(always)]
+        #[hax_lib::requires(
+            out0.len().to_int() >= hax_lib::int!(504) && // 3 * 168 = 504
+            out0.len() == out1.len() &&
+            out0.len() == out2.len() &&
+            out0.len() == out3.len()
+        )]
+        #[hax_lib::ensures(|_|
+            future(out0).len() == out0.len() &&
+            future(out1).len() == out1.len() &&
+            future(out2).len() == out2.len() &&
+            future(out3).len() == out3.len()
+        )]
         pub fn shake128_squeeze_first_three_blocks(
             s: &mut KeccakState,
             out0: &mut [u8],
@@ -101,6 +167,18 @@ pub mod x4 {
 
         /// Squeeze five blocks
         #[inline(always)]
+        #[hax_lib::requires(
+            out0.len().to_int() >= hax_lib::int!(840) && // 5 * 168 = 840
+            out0.len() == out1.len() &&
+            out0.len() == out2.len() &&
+            out0.len() == out3.len()
+        )]
+        #[hax_lib::ensures(|_|
+            future(out0).len() == out0.len() &&
+            future(out1).len() == out1.len() &&
+            future(out2).len() == out2.len() &&
+            future(out3).len() == out3.len()
+        )]
         pub fn shake128_squeeze_first_five_blocks(
             s: &mut KeccakState,
             out0: &mut [u8],
@@ -114,6 +192,18 @@ pub mod x4 {
 
         /// Squeeze another block
         #[inline(always)]
+        #[hax_lib::requires(
+            out0.len().to_int() >= hax_lib::int!(168) &&
+            out0.len() == out1.len() &&
+            out0.len() == out2.len() &&
+            out0.len() == out3.len()
+        )]
+        #[hax_lib::ensures(|_|
+            future(out0).len() == out0.len() &&
+            future(out1).len() == out1.len() &&
+            future(out2).len() == out2.len() &&
+            future(out3).len() == out3.len()
+        )]
         pub fn shake128_squeeze_next_block(
             s: &mut KeccakState,
             out0: &mut [u8],

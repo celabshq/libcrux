@@ -13,6 +13,9 @@ pub type Vec128 = __m128i;
 pub type Vec256Float = __m256;
 
 #[hax_lib::opaque]
+#[hax_lib::ensures(|_|
+    future(output).len() == output.len()
+)]
 #[inline(always)]
 pub fn mm256_storeu_si256_u8(output: &mut [u8], vector: Vec256) {
     // Note: in this module the `debug_assert_eq!` are essentially sanity

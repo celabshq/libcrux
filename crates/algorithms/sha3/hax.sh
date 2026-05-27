@@ -10,6 +10,7 @@ function extract_all() {
     rename_core_models_files crates/utils/core-models
 
     extract crates/utils/intrinsics \
+        -C --features simd128,simd256 ";" \
         into -i "-core_models::**" \
         fstar --z3rlimit 80 --interfaces "+**"
 
@@ -18,11 +19,8 @@ function extract_all() {
         fstar --z3rlimit 80
     
     extract crates/algorithms/sha3 \
+        -C --features simd128,simd256 ";" \
         into -i "+**" \
-        -i "-**::avx2::**" \
-        -i "-**::neon::**" \
-        -i "-**::simd128::**" \
-        -i "-**::simd256::**" \
         fstar --z3rlimit 80
 }
 

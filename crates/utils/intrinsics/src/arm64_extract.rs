@@ -68,6 +68,7 @@ pub fn _vst1q_u64(out: &mut [u64], v: _uint64x2_t) {
 }
 
 #[inline(always)]
+#[hax_lib::ensures(|_| future(out).len() == out.len())]
 pub fn _vst1q_bytes_u64(out: &mut [_int16x8_t], v: _uint64x2_t) {
     unimplemented!()
 }
