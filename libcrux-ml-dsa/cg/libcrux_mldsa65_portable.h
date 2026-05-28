@@ -8,7 +8,7 @@
  * Eurydice: b227478b67c6a6e2ff611f978f10d6b7f26472ac
  * Karamel: 4e64d915da3c172d1dfad805b8e1a46beff938bc
  * F*: 32dcc97722b61224e0e9c5b447ca72c4cd9ffcf9
- * Libcrux: dc3acb91f95df539456687a4c0965566e29e77f8
+ * Libcrux: d8990345d65f638c9b7e98a68b61e93e2bf9180e
  */
 
 #ifndef libcrux_mldsa65_portable_H
@@ -1154,18 +1154,6 @@ libcrux_ml_dsa_simd_portable_rejection_sample_less_than_field_modulus_65(
       randomness, out);
 }
 
-/**
- Declassify secret memory.
-
- No-op if `valgrind_ct_test` cfg is not enabled.
-*/
-/**
-A monomorphic instance of libcrux_ml_dsa.ct_test.ct_declassify
-with types bool
-
-*/
-void libcrux_ml_dsa_ct_test_ct_declassify_5f(const bool *val);
-
 static KRML_MUSTINLINE size_t
 libcrux_ml_dsa_simd_portable_sample_rejection_sample_less_than_eta_equals_2(
     Eurydice_borrow_slice_u8 randomness, Eurydice_dst_ref_mut_fc out) {
@@ -1177,12 +1165,14 @@ libcrux_ml_dsa_simd_portable_sample_rejection_sample_less_than_eta_equals_2(
     uint8_t try_1 = (uint32_t)byte >> 4U;
     bool try_0_comp = try_0 < 15U;
     bool try_1_comp = try_1 < 15U;
+    libcrux_secrets_mem_requests_ct_declassify(&try_0_comp, bool, void *);
     if (try_0_comp) {
       int32_t try_00 = (int32_t)try_0;
       int32_t try_0_mod_5 = try_00 - (try_00 * (int32_t)26 >> 7U) * (int32_t)5;
       out.ptr[sampled] = (int32_t)2 - try_0_mod_5;
       sampled++;
     }
+    libcrux_secrets_mem_requests_ct_declassify(&try_1_comp, bool, void *);
     if (try_1_comp) {
       int32_t try_10 = (int32_t)try_1;
       int32_t try_1_mod_5 = try_10 - (try_10 * (int32_t)26 >> 7U) * (int32_t)5;
@@ -1215,10 +1205,12 @@ libcrux_ml_dsa_simd_portable_sample_rejection_sample_less_than_eta_equals_4(
     uint8_t try_1 = (uint32_t)byte >> 4U;
     bool try_0_comp = try_0 < 9U;
     bool try_1_comp = try_1 < 9U;
+    libcrux_secrets_mem_requests_ct_declassify(&try_0_comp, bool, void *);
     if (try_0_comp) {
       out.ptr[sampled] = (int32_t)4 - (int32_t)try_0;
       sampled++;
     }
+    libcrux_secrets_mem_requests_ct_declassify(&try_1_comp, bool, void *);
     if (try_1_comp) {
       out.ptr[sampled] = (int32_t)4 - (int32_t)try_1;
       sampled++;
@@ -3937,30 +3929,6 @@ static inline void libcrux_ml_dsa_simd_portable_barrett_reduce_simd_unit_65(
   libcrux_ml_dsa_simd_portable_arithmetic_barrett_reduce_simd_unit(simd_unit);
 }
 
-/**
- Mark memory as secret.
-
- No-op if `valgrind_ct_test` cfg is not enabled.
-*/
-/**
-A monomorphic instance of libcrux_ml_dsa.ct_test.ct_classify
-with types Eurydice_arr uint8_t[[$32size_t]]
-
-*/
-void libcrux_ml_dsa_ct_test_ct_classify_62(const Eurydice_arr_60 *val);
-
-/**
- Declassify secret memory.
-
- No-op if `valgrind_ct_test` cfg is not enabled.
-*/
-/**
-A monomorphic instance of libcrux_ml_dsa.ct_test.ct_declassify
-with types Eurydice_derefed_slice uint8_t
-
-*/
-void libcrux_ml_dsa_ct_test_ct_declassify_45(const uint8_t (*val)[]);
-
 typedef struct Eurydice_borrow_slice_u8_x2_s {
   Eurydice_borrow_slice_u8 fst;
   Eurydice_borrow_slice_u8 snd;
@@ -4860,20 +4828,6 @@ static inline Eurydice_dst_ref_mut_e7 Eurydice_array_to_slice_mut_712(
 }
 
 /**
- Declassify secret memory.
-
- No-op if `valgrind_ct_test` cfg is not enabled.
-*/
-/**
-A monomorphic instance of libcrux_ml_dsa.ct_test.ct_declassify
-with types Eurydice_arr libcrux_ml_dsa_polynomial_PolynomialRingElement
-libcrux_ml_dsa_simd_portable_vector_type_Coefficients[[$6size_t]]
-
-*/
-static inline void libcrux_ml_dsa_ct_test_ct_declassify_04(
-    const Eurydice_arr_a3 *val) {}
-
-/**
 A monomorphic instance of libcrux_ml_dsa.arithmetic.power2round_vector
 with types libcrux_ml_dsa_simd_portable_vector_type_Coefficients
 with const generics
@@ -5110,6 +5064,8 @@ static KRML_MUSTINLINE void
 libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_generate_key_pair_5a(
     Eurydice_arr_60 randomness, Eurydice_mut_borrow_slice_u8 signing_key,
     Eurydice_mut_borrow_slice_u8 verification_key) {
+  libcrux_secrets_mem_requests_ct_classify(&randomness, Eurydice_arr_60,
+                                           void *);
   Eurydice_arr_d1 seed_expanded0 = {{0U}};
   libcrux_sha3_generic_keccak_xof_KeccakXofState_e2 shake =
       libcrux_ml_dsa_hash_functions_portable_init_26();
@@ -5156,6 +5112,7 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_generate_key_pair_5a(
   }
   memcpy(a_as_ntt.data, repeat_expression2,
          (size_t)30U * sizeof(Eurydice_arr_a4));
+  libcrux_secrets_mem_requests_ct_declassify(seed_for_a, uint8_t[], void *);
   libcrux_ml_dsa_samplex4_portable_matrix_flat_a8_37(
       LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_COLUMNS_IN_A, seed_for_a,
       Eurydice_array_to_slice_mut_710(&a_as_ntt));
@@ -5183,6 +5140,7 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_generate_key_pair_5a(
       Eurydice_array_to_slice_shared_71(&s1_ntt),
       Eurydice_array_to_slice_shared_710(&s1_s2),
       Eurydice_array_to_slice_mut_712(&t0));
+  libcrux_secrets_mem_requests_ct_declassify(&t0, Eurydice_arr_a3, void *);
   Eurydice_arr_a3 t1;
   Eurydice_arr_a4 repeat_expression[6U];
   for (size_t i = (size_t)0U; i < (size_t)6U; i++) {
@@ -5239,30 +5197,6 @@ static inline void libcrux_ml_dsa_ml_dsa_65_portable_generate_key_pair_mut(
   libcrux_ml_dsa_ml_dsa_generic_instantiations_portable_ml_dsa_65_generate_key_pair(
       randomness, signing_key, verification_key);
 }
-
-/**
- Mark memory as secret.
-
- No-op if `valgrind_ct_test` cfg is not enabled.
-*/
-/**
-A monomorphic instance of libcrux_ml_dsa.ct_test.ct_classify
-with types Eurydice_derefed_slice uint8_t
-
-*/
-void libcrux_ml_dsa_ct_test_ct_classify_45(const uint8_t (*val)[]);
-
-/**
- Declassify secret memory.
-
- No-op if `valgrind_ct_test` cfg is not enabled.
-*/
-/**
-A monomorphic instance of libcrux_ml_dsa.ct_test.ct_declassify
-with types Eurydice_arr uint8_t[[$48size_t]]
-
-*/
-void libcrux_ml_dsa_ct_test_ct_declassify_7d(const Eurydice_arr_5f *val);
 
 /**
 A monomorphic instance of core.result.Result
@@ -5954,6 +5888,7 @@ libcrux_ml_dsa_polynomial_infinity_norm_exceeds_ff_37(
     size_t i0 = i;
     bool coeff_exceeds = libcrux_ml_dsa_simd_portable_infinity_norm_exceeds_65(
         &self->data[i0], bound);
+    libcrux_secrets_mem_requests_ct_declassify(&coeff_exceeds, bool, void *);
     bool uu____0;
     if (result) {
       uu____0 = true;
@@ -6162,6 +6097,11 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_internal_5a(
       uint8_t, Eurydice_borrow_slice_u8_x2);
   Eurydice_borrow_slice_u8 s2_serialized = uu____4.fst;
   Eurydice_borrow_slice_u8 t0_serialized = uu____4.snd;
+  libcrux_secrets_mem_requests_ct_classify(&randomness, Eurydice_arr_60,
+                                           void *);
+  libcrux_secrets_mem_requests_ct_classify(seed_for_signing, uint8_t[], void *);
+  libcrux_secrets_mem_requests_ct_classify(s1_serialized, uint8_t[], void *);
+  libcrux_secrets_mem_requests_ct_classify(s2_serialized, uint8_t[], void *);
   Eurydice_arr_b0 s1_as_ntt;
   Eurydice_arr_a4 repeat_expression0[5U];
   for (size_t i = (size_t)0U; i < (size_t)5U; i++) {
@@ -6287,6 +6227,8 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_internal_5a(
         &shake, Eurydice_array_to_slice_shared_ee(&commitment_serialized));
     libcrux_ml_dsa_hash_functions_portable_squeeze_26(
         &shake, Eurydice_array_to_slice_mut_95(&commitment_hash_candidate));
+    libcrux_secrets_mem_requests_ct_declassify(&commitment_hash_candidate,
+                                               Eurydice_arr_5f, void *);
     Eurydice_arr_a4 verifier_challenge = libcrux_ml_dsa_polynomial_zero_ff_37();
     libcrux_ml_dsa_sample_sample_challenge_ring_element_2e(
         Eurydice_array_to_slice_shared_95(&commitment_hash_candidate),
@@ -6331,6 +6273,10 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_internal_5a(
         if (!libcrux_ml_dsa_arithmetic_vector_infinity_norm_exceeds_37(
                 Eurydice_array_to_slice_shared_711(&challenge_times_t0),
                 LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_GAMMA2)) {
+          libcrux_secrets_mem_requests_ct_declassify(&w0, Eurydice_arr_a3,
+                                                     void *);
+          libcrux_secrets_mem_requests_ct_declassify(&challenge_times_t0,
+                                                     Eurydice_arr_a3, void *);
           libcrux_ml_dsa_matrix_add_vectors_37(
               LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_ROWS_IN_A,
               Eurydice_array_to_slice_mut_712(&w0),

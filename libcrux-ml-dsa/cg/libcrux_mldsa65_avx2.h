@@ -8,7 +8,7 @@
  * Eurydice: b227478b67c6a6e2ff611f978f10d6b7f26472ac
  * Karamel: 4e64d915da3c172d1dfad805b8e1a46beff938bc
  * F*: 32dcc97722b61224e0e9c5b447ca72c4cd9ffcf9
- * Libcrux: dc3acb91f95df539456687a4c0965566e29e77f8
+ * Libcrux: d8990345d65f638c9b7e98a68b61e93e2bf9180e
  */
 
 #ifndef libcrux_mldsa65_avx2_H
@@ -839,18 +839,6 @@ libcrux_ml_dsa_simd_avx2_encoding_error_deserialize_to_unsigned(
 }
 
 /**
- Declassify secret memory.
-
- No-op if `valgrind_ct_test` cfg is not enabled.
-*/
-/**
-A monomorphic instance of libcrux_ml_dsa.ct_test.ct_declassify
-with types core_core_arch_x86___m256i
-
-*/
-void libcrux_ml_dsa_ct_test_ct_declassify_17(const __m256i *val);
-
-/**
 A monomorphic instance of
 libcrux_ml_dsa.simd.avx2.rejection_sample.less_than_eta.shift_interval with
 const generics
@@ -894,6 +882,8 @@ libcrux_ml_dsa_simd_avx2_rejection_sample_less_than_eta_sample_fd(
       libcrux_intrinsics_avx2_mm256_cmpgt_epi32(
           libcrux_intrinsics_avx2_mm256_set1_epi32(interval_boundary),
           potential_coefficients);
+  libcrux_secrets_mem_requests_ct_declassify(&compare_with_interval_boundary,
+                                             __m256i, void *);
   int32_t good = libcrux_intrinsics_avx2_mm256_movemask_ps(
       libcrux_intrinsics_avx2_mm256_castsi256_ps(
           compare_with_interval_boundary));
@@ -980,6 +970,8 @@ libcrux_ml_dsa_simd_avx2_rejection_sample_less_than_eta_sample_ac(
       libcrux_intrinsics_avx2_mm256_cmpgt_epi32(
           libcrux_intrinsics_avx2_mm256_set1_epi32(interval_boundary),
           potential_coefficients);
+  libcrux_secrets_mem_requests_ct_declassify(&compare_with_interval_boundary,
+                                             __m256i, void *);
   int32_t good = libcrux_intrinsics_avx2_mm256_movemask_ps(
       libcrux_intrinsics_avx2_mm256_castsi256_ps(
           compare_with_interval_boundary));
@@ -4460,21 +4452,6 @@ static inline Eurydice_dst_ref_mut_2a Eurydice_array_to_slice_mut_716(
 }
 
 /**
- Declassify secret memory.
-
- No-op if `valgrind_ct_test` cfg is not enabled.
-*/
-/**
-A monomorphic instance of libcrux_ml_dsa.ct_test.ct_declassify
-with types Eurydice_arr libcrux_ml_dsa_polynomial_PolynomialRingElement
-libcrux_ml_dsa_simd_avx2_vector_type_Vec256[[$6size_t]]
-
-*/
-KRML_ATTRIBUTE_TARGET("avx2")
-static inline void libcrux_ml_dsa_ct_test_ct_declassify_040(
-    const Eurydice_arr_b50 *val) {}
-
-/**
 A monomorphic instance of libcrux_ml_dsa.arithmetic.power2round_vector
 with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256
 with const generics
@@ -4721,6 +4698,8 @@ static KRML_MUSTINLINE void
 libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_generate_key_pair_07(
     Eurydice_arr_60 randomness, Eurydice_mut_borrow_slice_u8 signing_key,
     Eurydice_mut_borrow_slice_u8 verification_key) {
+  libcrux_secrets_mem_requests_ct_classify(&randomness, Eurydice_arr_60,
+                                           void *);
   Eurydice_arr_d1 seed_expanded0 = {{0U}};
   libcrux_sha3_generic_keccak_xof_KeccakXofState_e2 shake =
       libcrux_ml_dsa_hash_functions_portable_init_26();
@@ -4768,6 +4747,7 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_generate_key_pair_07(
   }
   memcpy(a_as_ntt.data, repeat_expression2,
          (size_t)30U * sizeof(Eurydice_arr_cd0));
+  libcrux_secrets_mem_requests_ct_declassify(seed_for_a, uint8_t[], void *);
   libcrux_ml_dsa_samplex4_avx2_matrix_flat_e8_64(
       LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_COLUMNS_IN_A, seed_for_a,
       Eurydice_array_to_slice_mut_714(&a_as_ntt));
@@ -4796,6 +4776,7 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_generate_key_pair_07(
       Eurydice_array_to_slice_shared_713(&s1_ntt),
       Eurydice_array_to_slice_shared_714(&s1_s2),
       Eurydice_array_to_slice_mut_716(&t0));
+  libcrux_secrets_mem_requests_ct_declassify(&t0, Eurydice_arr_b50, void *);
   Eurydice_arr_b50 t1;
   Eurydice_arr_cd0 repeat_expression[6U];
   for (size_t i = (size_t)0U; i < (size_t)6U; i++) {
@@ -5488,6 +5469,7 @@ libcrux_ml_dsa_polynomial_infinity_norm_exceeds_ff_64(
     size_t i0 = i;
     bool coeff_exceeds = libcrux_ml_dsa_simd_avx2_infinity_norm_exceeds_a2(
         &self->data[i0], bound);
+    libcrux_secrets_mem_requests_ct_declassify(&coeff_exceeds, bool, void *);
     bool uu____0;
     if (result) {
       uu____0 = true;
@@ -5702,6 +5684,11 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_internal_07(
       uint8_t, Eurydice_borrow_slice_u8_x2);
   Eurydice_borrow_slice_u8 s2_serialized = uu____4.fst;
   Eurydice_borrow_slice_u8 t0_serialized = uu____4.snd;
+  libcrux_secrets_mem_requests_ct_classify(&randomness, Eurydice_arr_60,
+                                           void *);
+  libcrux_secrets_mem_requests_ct_classify(seed_for_signing, uint8_t[], void *);
+  libcrux_secrets_mem_requests_ct_classify(s1_serialized, uint8_t[], void *);
+  libcrux_secrets_mem_requests_ct_classify(s2_serialized, uint8_t[], void *);
   Eurydice_arr_dd s1_as_ntt;
   Eurydice_arr_cd0 repeat_expression0[5U];
   for (size_t i = (size_t)0U; i < (size_t)5U; i++) {
@@ -5828,6 +5815,8 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_internal_07(
         &shake, Eurydice_array_to_slice_shared_ee(&commitment_serialized));
     libcrux_ml_dsa_hash_functions_portable_squeeze_26(
         &shake, Eurydice_array_to_slice_mut_95(&commitment_hash_candidate));
+    libcrux_secrets_mem_requests_ct_declassify(&commitment_hash_candidate,
+                                               Eurydice_arr_5f, void *);
     Eurydice_arr_cd0 verifier_challenge =
         libcrux_ml_dsa_polynomial_zero_ff_64();
     libcrux_ml_dsa_sample_sample_challenge_ring_element_18(
@@ -5873,6 +5862,10 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_internal_07(
         if (!libcrux_ml_dsa_arithmetic_vector_infinity_norm_exceeds_64(
                 Eurydice_array_to_slice_shared_715(&challenge_times_t0),
                 LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_GAMMA2)) {
+          libcrux_secrets_mem_requests_ct_declassify(&w0, Eurydice_arr_b50,
+                                                     void *);
+          libcrux_secrets_mem_requests_ct_declassify(&challenge_times_t0,
+                                                     Eurydice_arr_b50, void *);
           libcrux_ml_dsa_matrix_add_vectors_64(
               LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_ROWS_IN_A,
               Eurydice_array_to_slice_mut_716(&w0),
