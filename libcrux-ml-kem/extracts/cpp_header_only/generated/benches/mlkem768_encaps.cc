@@ -15,13 +15,13 @@ void generate_random(uint8_t *output, uint32_t output_len) {
 }
 
 int main(int argc, char const *argv[]) {
-  Eurydice_arr_060 keygen_rand;
+  Eurydice_arr_c7 keygen_rand;
   memset(keygen_rand.data, 0x13, 64);
 
   auto key_pair =
       libcrux_ml_kem_mlkem768_portable_generate_key_pair(keygen_rand);
 
-  Eurydice_arr_600 encaps_rand;
+  Eurydice_arr_ec encaps_rand;
   memset(encaps_rand.data, 0x15, 32);
 
   auto ctxt =
