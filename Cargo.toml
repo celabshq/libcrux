@@ -177,8 +177,7 @@ digest = []
 kem = []
 
 # Protocols
-all_protocols = ["hpke", "psq"]
-hpke = []
+all_protocols = ["psq"]
 psq = []
 
 [dependencies]
@@ -186,9 +185,6 @@ getrandom = { version = "0.3", optional = true }
 
 # Proofs
 hax-lib.workspace = true
-
-# External Cryspen code.
-hpke-rs = { version = "0.5", features = ["libcrux"] }
 
 # Primitives
 libcrux-aead.workspace = true
