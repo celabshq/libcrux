@@ -1499,3 +1499,118 @@ let lemma_layer_4_plus_cross_vector
     lemma_div_128_prod (v len);
     lemma_ntt_inverse_layer_n_256_compose p q len zs
 #pop-options
+
+(* === USER-14 zeta correspondence axiom (user-approved Option B, 2026-05-30) ===
+   The impl Montgomery zeta `Libcrux_ml_kem.Polynomial.zeta` is exposed to clients
+   as an `assume val` with a BOUND-ONLY postcondition (result in [-1664,1664]); its
+   concrete value is opaque cross-module.  This axiom records its correspondence to
+   the spec plain zeta table `N.v_ZETAS`, which is validated at runtime by
+   `ntt_matches_spec` / `full_ntt_multiply_chain_matches_spec` in `src/ntt.rs`.
+   Needed by the table-form posts of `invert_ntt_at_layer_4_plus` and (downstream)
+   `invert_ntt_montgomery` (USER-15), since `IN.ntt_inverse_layer` consumes concrete
+   `v_ZETAS` whereas the impl butterflies use `mont_i16_to_spec_fe (zeta …)`. *)
+assume
+val lemma_zeta_eq_vzetas (k: usize)
+  : Lemma (requires v k < 128)
+          (ensures mont_i16_to_spec_fe (Libcrux_ml_kem.Polynomial.zeta k) == N.v_ZETAS.[ k ])
+
+(* === USER-14 unfold lemma: table-building `IN.ntt_inverse_layer` -> explicit
+   `IN.ntt_inverse_layer_n` for layers 4..7, against a caller-supplied zeta slice
+   `zs` whose entries match the spec's internal table `v_ZETAS[2*groups-1-round]`.
+   Purely structural (no zeta correspondence inside): unfolds the table-building
+   definition and shows its internal slice equals `zs` point-wise (createi_lemma +
+   lemma_index_slice), then concludes by congruence of `ntt_inverse_layer_n`. *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 200"
+let lemma_ntt_inverse_layer_unfold
+    (p: t_Array P.t_FieldElement (mk_usize 256))
+    (layer: usize)
+    (zs: t_Slice P.t_FieldElement)
+  : Lemma
+    (requires
+      (v layer == 4 \/ v layer == 5 \/ v layer == 6 \/ v layer == 7) /\
+      Seq.length zs == 128 / (pow2 (v layer)) /\
+      (let groups = 128 / pow2 (v layer) in
+       forall (round: nat). round < groups ==>
+         Seq.index zs round == N.v_ZETAS.[ sz (2 * groups - 1 - round) ]))
+    (ensures
+      IN.ntt_inverse_layer p layer ==
+        IN.ntt_inverse_layer_n (mk_usize 256) p (mk_usize 1 <<! layer) zs)
+  = let len : usize = mk_usize 1 <<! layer in
+    let groups : usize = mk_usize 128 /! len in
+    assert (v len == pow2 (v layer));
+    assert (v groups == 128 / pow2 (v layer));
+    let zetas_tbl : t_Array P.t_FieldElement (mk_usize 128) =
+      P.createi #P.t_FieldElement (mk_usize 128)
+        #(usize -> P.t_FieldElement)
+        (fun round ->
+          if round <. groups
+          then N.v_ZETAS.[ (mk_usize 2 *! groups -! mk_usize 1) -! round ]
+          else P.impl_FieldElement__new (mk_u16 0))
+    in
+    let tbl_slice : t_Slice P.t_FieldElement =
+      zetas_tbl.[ { Core_models.Ops.Range.f_start = mk_usize 0;
+                    Core_models.Ops.Range.f_end = groups } ] in
+    (* FACT 1: ntt_inverse_layer unfolds (definitionally) to ntt_inverse_layer_n on
+       the table slice.  Proved by normalization + reflexivity (no SMT search). *)
+    assert (IN.ntt_inverse_layer p layer ==
+            IN.ntt_inverse_layer_n (mk_usize 256) p len tbl_slice)
+      by (FStar.Tactics.norm [delta_only [`%IN.ntt_inverse_layer]; iota; zeta; primops];
+          FStar.Tactics.trefl ());
+    (* FACT 2: tbl_slice == zs, proven point-wise (createi_lemma + lemma_index_slice).
+       Then SMT concludes the goal by congruence of ntt_inverse_layer_n on tbl_slice == zs. *)
+    assert (Seq.length tbl_slice == v groups);
+    let aux (i: nat) : Lemma (i < v groups ==> Seq.index tbl_slice i == Seq.index zs i)
+      = if i < v groups then begin
+          FStar.Seq.Base.lemma_index_slice zetas_tbl 0 (v groups) i;
+          assert (sz i <. groups);
+          P.createi_lemma #P.t_FieldElement (mk_usize 128)
+            #(usize -> P.t_FieldElement)
+            (fun round ->
+              ((if round <. groups
+                then N.v_ZETAS.[ (mk_usize 2 *! groups -! mk_usize 1) -! round ]
+                else P.impl_FieldElement__new (mk_u16 0)) <: P.t_FieldElement))
+            (sz i);
+          (* index arithmetic: the table index equals the zs requires-index *)
+          assert (v ((mk_usize 2 *! groups -! mk_usize 1) -! sz i) == 2 * v groups - 1 - i)
+        end
+    in
+    Classical.forall_intro aux;
+    Seq.lemma_eq_intro tbl_slice zs
+#pop-options
+
+(* === USER-14 end-to-end chain test (validates Option B): assuming the loop
+   produced the per-vector cross_vec_hyp, the function's strengthened post
+   (table-form `IN.ntt_inverse_layer`) follows by composing the verified
+   lemmas: cross-vector bridge -> unfold -> to_spec_poly_mont_unfold.  This is
+   exactly the post-loop wiring `invert_ntt_at_layer_4_plus` needs; the only
+   remaining work is establishing the cross_vec_hyp hypothesis from the double
+   loop's invariants. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_layer_4_plus_post_from_cross_vec
+    (#vV: Type0) {| iop: T.t_Operations vV |}
+    (re_in re_out: VV.t_PolynomialRingElement vV)
+    (layer len: usize)
+    (step_vec: pos)
+    (zs: t_Slice P.t_FieldElement)
+  : Lemma
+    (requires
+      (v layer == 4 \/ v layer == 5 \/ v layer == 6 \/ v layer == 7) /\
+      v len == pow2 (v layer) /\
+      v len == 16 * step_vec /\
+      Seq.length zs == 128 / pow2 (v layer) /\
+      (let groups = 128 / pow2 (v layer) in
+       forall (round: nat). round < groups ==>
+         Seq.index zs round == N.v_ZETAS.[ sz (2 * groups - 1 - round) ]) /\
+      (forall (m: nat) (l: nat).
+         cross_vec_hyp #vV re_in.VV.f_coefficients re_out.VV.f_coefficients step_vec zs m l))
+    (ensures
+      to_spec_poly_mont #vV re_out ==
+        IN.ntt_inverse_layer (to_spec_poly_mont #vV re_in) layer)
+  = assert_norm (pow2 4 == 16 /\ pow2 5 == 32 /\ pow2 6 == 64 /\ pow2 7 == 128);
+    assert (v len == 16 \/ v len == 32 \/ v len == 64 \/ v len == 128);
+    assert (v len / 16 == step_vec);
+    lemma_to_spec_poly_mont_unfold #vV re_out;
+    lemma_to_spec_poly_mont_unfold #vV re_in;
+    lemma_layer_4_plus_cross_vector #vV re_in.VV.f_coefficients re_out.VV.f_coefficients len zs;
+    lemma_ntt_inverse_layer_unfold (to_spec_poly_mont_arr #vV re_in.VV.f_coefficients) layer zs
+#pop-options
