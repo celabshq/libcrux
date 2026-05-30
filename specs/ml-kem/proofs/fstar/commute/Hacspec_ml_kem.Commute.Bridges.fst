@@ -1679,3 +1679,21 @@ let lemma_cross_vec_from_step
     in
     Classical.forall_intro aux_hi
 #pop-options
+
+(* === USER-14 frame lemma: cross_vec_hyp reads `cout` only at index m, so an update
+   to `cout` at indices other than m preserves it.  Lets the body's loop carry the
+   already-done vectors' cross_vec_hyp across each Seq.upd of the two written vectors. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_cross_vec_frame
+    (#vV: Type0) {| iop: T.t_Operations vV |}
+    (cin cout1 cout2: t_Array vV (mk_usize 16))
+    (step_vec: pos)
+    (zs: t_Slice P.t_FieldElement)
+    (m l: nat)
+  : Lemma
+    (requires m < 16 /\ Seq.index cout1 m == Seq.index cout2 m)
+    (ensures cross_vec_hyp #vV cin cout1 step_vec zs m l <==>
+             cross_vec_hyp #vV cin cout2 step_vec zs m l)
+  = reveal_opaque (`%cross_vec_hyp) (cross_vec_hyp #vV cin cout1 step_vec zs m l);
+    reveal_opaque (`%cross_vec_hyp) (cross_vec_hyp #vV cin cout2 step_vec zs m l)
+#pop-options
