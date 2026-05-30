@@ -1614,3 +1614,68 @@ let lemma_layer_4_plus_post_from_cross_vec
     lemma_layer_4_plus_cross_vector #vV re_in.VV.f_coefficients re_out.VV.f_coefficients len zs;
     lemma_ntt_inverse_layer_unfold (to_spec_poly_mont_arr #vV re_in.VV.f_coefficients) layer zs
 #pop-options
+
+(* === USER-14 keystone: from one inv_ntt_layer_int_vec_step_reduce step (vectors
+   j and j+step_vec, low/high halves of block = j/(2*step_vec)), establish
+   cross_vec_hyp for BOTH written vectors.  This is the per-inner-iteration fact
+   the body's loop accumulates.  `cout` is `cin` updated at j and j+step_vec; the
+   two requires foralls are exactly the per-step bridge's ensures (in f_repr form,
+   with a = cin[j], b = cin[j+step_vec], r0 = cout[j], r1 = cout[j+step_vec]). *)
+(* Clean (fuel0/ifuel0) nonlinear index helper: partner j+sv sits in the same
+   block as j (when j is in the low half) and falls in the high half. *)
+#push-options "--fuel 0 --ifuel 0 --z3rlimit 100"
+let lemma_vec_partner_hi (j: nat) (sv: pos)
+  : Lemma (requires j % (2 * sv) < sv)
+          (ensures (j + sv) / (2 * sv) == j / (2 * sv) /\
+                   (j + sv) % (2 * sv) == j % (2 * sv) + sv /\
+                   j % (2 * sv) + sv >= sv)
+  = let block = j / (2 * sv) in
+    let pos = j % (2 * sv) in
+    FStar.Math.Lemmas.euclidean_division_definition j (2 * sv);
+    assert (j + sv == block * (2 * sv) + (pos + sv));
+    FStar.Math.Lemmas.small_div (pos + sv) (2 * sv);
+    FStar.Math.Lemmas.small_mod (pos + sv) (2 * sv);
+    FStar.Math.Lemmas.lemma_div_plus (pos + sv) block (2 * sv);
+    FStar.Math.Lemmas.lemma_mod_plus (pos + sv) block (2 * sv)
+#pop-options
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200 --split_queries always"
+let lemma_cross_vec_from_step
+    (#vV: Type0) {| iop: T.t_Operations vV |}
+    (cin cout: t_Array vV (mk_usize 16))
+    (step_vec: pos)
+    (zs: t_Slice P.t_FieldElement)
+    (j: nat)
+    (zeta_r: i16)
+  : Lemma
+    (requires
+      j + step_vec < 16 /\
+      j % (2 * step_vec) < step_vec /\
+      j / (2 * step_vec) < Seq.length zs /\
+      Seq.index zs (j / (2 * step_vec)) == mont_i16_to_spec_fe zeta_r /\
+      (forall (l: nat). l < 16 ==>
+         mont_i16_to_spec_fe (Seq.index (T.f_repr (Seq.index cout j)) l) ==
+           (IN.inv_butterfly (mont_i16_to_spec_fe zeta_r)
+              (mont_i16_to_spec_fe (Seq.index (T.f_repr (Seq.index cin j)) l))
+              (mont_i16_to_spec_fe (Seq.index (T.f_repr (Seq.index cin (j + step_vec))) l)))._1) /\
+      (forall (l: nat). l < 16 ==>
+         mont_i16_to_spec_fe (Seq.index (T.f_repr (Seq.index cout (j + step_vec))) l) ==
+           (IN.inv_butterfly (mont_i16_to_spec_fe zeta_r)
+              (mont_i16_to_spec_fe (Seq.index (T.f_repr (Seq.index cin j)) l))
+              (mont_i16_to_spec_fe (Seq.index (T.f_repr (Seq.index cin (j + step_vec))) l)))._2))
+    (ensures
+      (forall (l: nat). l < 16 ==> cross_vec_hyp #vV cin cout step_vec zs j l) /\
+      (forall (l: nat). l < 16 ==> cross_vec_hyp #vV cin cout step_vec zs (j + step_vec) l))
+  = (* low half (m = j): block = j/(2sv) < len, pos < sv, partner = j+step_vec
+       referenced directly -- no nonlinear index reasoning needed. *)
+    let aux_lo (l: nat) : Lemma (cross_vec_hyp #vV cin cout step_vec zs j l)
+      = reveal_opaque (`%cross_vec_hyp) (cross_vec_hyp #vV cin cout step_vec zs j l)
+    in
+    Classical.forall_intro aux_lo;
+    (* high half (m = j+step_vec): needs block'==block, pos'>=sv, m-sv==j. *)
+    lemma_vec_partner_hi j step_vec;
+    let aux_hi (l: nat) : Lemma (cross_vec_hyp #vV cin cout step_vec zs (j + step_vec) l)
+      = reveal_opaque (`%cross_vec_hyp) (cross_vec_hyp #vV cin cout step_vec zs (j + step_vec) l)
+    in
+    Classical.forall_intro aux_hi
+#pop-options
