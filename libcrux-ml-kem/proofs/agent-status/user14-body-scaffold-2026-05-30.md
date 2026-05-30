@@ -4,7 +4,27 @@ All 6 supporting lemmas are verified & committed in `Bridges.fst` (tip `e947a206
 This file holds the in-progress body proof so it can be re-applied once the
 extraction-dir `.depend` is restored (see the env blocker below).
 
-## Env blocker (why this wasn't built/committed)
+## STATUS UPDATE (2026-05-31): env blocker FIXED; body now blocked on nested-fold WP
+- The `.depend` env blocker below is **RESOLVED** (commit `064186f97`): removing the
+  `hpke-rs` dependency dropped the published libcrux crates that pinned `hax-lib "=0.3.6"`,
+  collapsing the tree to a single `hax-lib 0.3.7` (git). `.depend` regenerates cleanly and the
+  extraction dir builds again.
+- **New finding on the body build itself:** with Phase 1 applied (`--admit_except` on the fn),
+  the function VC has ONE giant sub-query that **cancels at rlimit 800 (~185 s)** — the
+  never-before-verified **nested double-fold bounds maintenance** collapsing the function-level
+  WP (skill: "Sequential folds collapse the function-level WP — split functions"). Other
+  sub-queries pass in ms. So before/with the `cross_vec_hyp` threading, the bounds + zeta_i
+  post for this nested-loop fn must be made tractable.
+  - **Recommended fix: split `invert_ntt_at_layer_4_plus` into per-round / per-step helpers**
+    (single fold each), so the call boundary isolates each WP — exactly the ml-dsa
+    `compute_as1_plus_s2` split pattern. Then apply the Phase-1/2 scaffold to the (smaller)
+    helpers.
+  - **Runaway caution:** do NOT `assume (forall round. … sz(2*v groups-1-round) …)` inside the
+    fn — that quantifier sent z3 to a 10 GB / 75-min runaway (no rlimit cap caught it). Monolithic
+    builds of this fn are runaway-prone; keep the fn small (split) and use `verify-to-position`
+    where possible. Kill stray z3 with `pkill -f 'admit_except.*invert_ntt_at_layer_4_plus'`.
+
+## Env blocker (RESOLVED — kept for context; why this wasn't built/committed earlier)
 The extraction dir's `fstar --dep full` fails on dependency CYCLES in
 hax-lib 0.3.6 / core-models 0.0.5 (this worktree's hax checkout `d8b5b3d`):
 - without `--cmi`: `Error 308: Recursive dependency on Core_models.Iter.Traits.Iterator.fst`
