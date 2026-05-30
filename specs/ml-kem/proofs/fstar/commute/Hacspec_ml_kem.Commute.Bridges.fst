@@ -1400,8 +1400,14 @@ let cross_vec_hyp
              (mont_i16_to_spec_fe (Seq.index (T.f_repr (Seq.index cin (m - step_vec))) l))
              (mont_i16_to_spec_fe (Seq.index (T.f_repr (Seq.index cin m)) l)))._2))
 
+(* Standalone bridge lemma (skill "standalone bridge lemma" pattern): builds
+   exactly Level A's per-coefficient hypothesis from the per-vector cross_vec_hyp.
+   Factored out of lemma_layer_4_plus_cross_vector so the Classical.forall_intro
+   WP is isolated from the lemma_ntt_inverse_layer_n_256_compose call — the fused
+   form was a ~6-8 min monolithic query.  This lemma's ensures IS Level A's
+   requires, so the consumer's compose call discharges trivially from this post. *)
 #push-options "--z3rlimit 300 --fuel 0 --ifuel 1"
-let lemma_layer_4_plus_cross_vector
+let lemma_layer_4_plus_per_coeff
     (#vV: Type0) {| iop: T.t_Operations vV |}
     (cin cout: t_Array vV (mk_usize 16))
     (len: usize)
@@ -1413,14 +1419,25 @@ let lemma_layer_4_plus_cross_vector
       (forall (m: nat) (l: nat).
          cross_vec_hyp #vV cin cout (v len / 16) zs m l))
     (ensures
-      to_spec_poly_mont_arr #vV cout ==
-        IN.ntt_inverse_layer_n (mk_usize 256) (to_spec_poly_mont_arr #vV cin) len zs)
+      (let p = to_spec_poly_mont_arr #vV cin in
+       let q = to_spec_poly_mont_arr #vV cout in
+       (forall (i: nat). i < 256 ==>
+         (let group : nat = i / (2 * v len) in
+          let idx   : nat = i % (2 * v len) in
+          group < Seq.length zs /\
+          (idx < v len ==>
+             i + v len < 256 /\
+             Seq.index q i ==
+               (IN.inv_butterfly (Seq.index zs group) (Seq.index p i) (Seq.index p (i + v len)))._1) /\
+          (idx >= v len ==>
+             i >= v len /\
+             Seq.index q i ==
+               (IN.inv_butterfly (Seq.index zs group) (Seq.index p (i - v len)) (Seq.index p i))._2)))))
   = (* establish step_vec ∈ {1,2,4,8} from the len disjunction *)
     assert (v len / 16 == 1 \/ v len / 16 == 2 \/ v len / 16 == 4 \/ v len / 16 == 8);
     let step_vec : s:pos{s == 1 \/ s == 2 \/ s == 4 \/ s == 8} = v len / 16 in
     let p = to_spec_poly_mont_arr #vV cin in
     let q = to_spec_poly_mont_arr #vV cout in
-    (* establish per-coefficient hypothesis of Level A *)
     let aux (i: nat) : Lemma (i < 256 ==>
         (let group : nat = i / (2 * v len) in
          let idx   : nat = i % (2 * v len) in
@@ -1456,9 +1473,29 @@ let lemma_layer_4_plus_cross_vector
           end
         end
     in
-    Classical.forall_intro aux;
+    Classical.forall_intro aux
+#pop-options
+
+#push-options "--z3rlimit 200 --fuel 0 --ifuel 1"
+let lemma_layer_4_plus_cross_vector
+    (#vV: Type0) {| iop: T.t_Operations vV |}
+    (cin cout: t_Array vV (mk_usize 16))
+    (len: usize)
+    (zs: t_Slice P.t_FieldElement)
+  : Lemma
+    (requires
+      (v len == 16 \/ v len == 32 \/ v len == 64 \/ v len == 128) /\
+      Seq.length zs == 128 / v len /\
+      (forall (m: nat) (l: nat).
+         cross_vec_hyp #vV cin cout (v len / 16) zs m l))
+    (ensures
+      to_spec_poly_mont_arr #vV cout ==
+        IN.ntt_inverse_layer_n (mk_usize 256) (to_spec_poly_mont_arr #vV cin) len zs)
+  = let p = to_spec_poly_mont_arr #vV cin in
+    let q = to_spec_poly_mont_arr #vV cout in
+    (* standalone lemma supplies exactly Level A's per-coefficient requires forall *)
+    lemma_layer_4_plus_per_coeff #vV cin cout len zs;
     (* len ∈ {16,32,64,128}; 2*(128/len)*len == 256 via the enumerated helper. *)
-    assert (Seq.length zs == 128 / v len);
     lemma_div_128_prod (v len);
     lemma_ntt_inverse_layer_n_256_compose p q len zs
 #pop-options
