@@ -57,4 +57,37 @@ be needed for the opaque `cross_vec_hyp` carry across `Seq.upd`.
 ## Verified-build evidence
 - `lemma_ntt_inverse_layer_unfold`: `fstar_build --admit_except` exit 0.
 - `lemma_layer_4_plus_post_from_cross_vec`: `fstar_build --admit_except` exit 0.
-- Full `check/Hacspec_ml_kem.Commute.Bridges.fst` (no admit): exit 0, 0 failed modules, ~87s.
+- `lemma_cross_vec_from_step` + `lemma_vec_partner_hi`: full `fstar_build` exit 0 (commit `76a6062f5`).
+- Full `check/Hacspec_ml_kem.Commute.Bridges.fst` (no admit): exit 0, 0 failed modules, ~95s.
+
+## UPDATE — per-step keystone VERIFIED (commit `76a6062f5`); only loop threading remains
+`lemma_cross_vec_from_step` (Bridges.fst) is verified: from ONE
+`inv_ntt_layer_int_vec_step_reduce` step (vectors j and j+step_vec, low/high halves of
+block = j/(2*step_vec)), it establishes `cross_vec_hyp` for BOTH written vectors. Its requires
+ARE the per-step bridge's ensures (inv_butterfly form, f_repr); zs[block] == mont zeta_r.
+Cascade fix that made it pass: factor nonlinear index algebra into `lemma_vec_partner_hi`
+(fuel0/ifuel0) + split the low/high cases (`--split_queries always`); the low-half case needs
+no index reasoning at all.
+
+So EVERY supporting lemma is now proven: axiom, unfold, per-step (`lemma_cross_vec_from_step`),
+post-loop (`lemma_layer_4_plus_post_from_cross_vec`). The body of `invert_ntt_at_layer_4_plus`
+reduces to **loop bookkeeping only** — thread a done/pending invariant through the two
+`fold_range`s:
+- Snapshot `re_init = re.f_coefficients`, `re0 = re`; build
+  `zs = Seq.init groups (fun r -> mont_i16_to_spec_fe (zeta (e_zeta_i_init - 1 - r)))`
+  (zeta index in-bounds since e_zeta_i_init = 2*groups, r < groups).
+- Carry in BOTH invariants (as a conjunct): `v step ∈ {16,32,64,128}` (so `v step/16 : pos`),
+  and per vector m: pending (== re_init[m]) for m in the existing bounds-clause's "4*3328" set,
+  else done (`∀ l<16. cross_vec_hyp re_init re.f_coefficients (v step/16) zs m l`). The done/pending
+  partition is EXACTLY the existing bounds invariant's loose/tight partition (mirror it).
+- Inner step: vectors j, j+step_vec are pending pre-step (== re_init), so after the two `Seq.upd`s
+  call the per-step bridge `lemma_inv_ntt_layer_int_vec_step_reduce_to_hacspec` then
+  `lemma_cross_vec_from_step` with cin = re_init, j, zeta_r = zeta(e_zeta_i_init-1-round) (use
+  `lemma_zeta_eq_vzetas`/zs def to match zs[round] == mont zeta_r). Frame: other vectors unchanged
+  so their cross_vec_hyp/pending persists. (Rule SD4: targeted reveals only — the keystone already
+  does the reveal in clean context, so the loop body just calls it.)
+- Post-loop: `Classical.forall_intro` to get `∀ m l. cross_vec_hyp …`, then call
+  `lemma_layer_4_plus_post_from_cross_vec re0 re_final layer step step_vec zs` to close the post.
+- Then drop `--admit_smt_queries true`; backport snapshot+invariants+asserts to invert_ntt.rs
+  (`loop_invariant!` + `fstar!` blocks, mirroring layers 1-3's post-loop forall_intro at
+  invert_ntt.rs:111-142); re-extract; per-stage clean build of Invert_ntt.fst + Bridges.fst.
