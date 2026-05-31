@@ -540,13 +540,15 @@ pub(crate) fn inv_ntt_layer_int_vec_step_reduce<Vector: Operations>(
 // calls (`layer == 5..7`) see the tight `3328` input.  We use the
 // looser `4*3328` precondition uniformly to keep one signature.
 #[inline(always)]
-// Phase 7a Step 5 (lane A5) drive-to-the-top spike: STRENGTHENED post
-// citing `IN.ntt_inverse_layer p layer` at the polynomial level (256-
-// element FE polynomial).  Body remains admitted via
-// `--admit_smt_queries true` while the Z3 wall on
-// `inv_ntt_layer_int_vec_step_reduce`'s strengthened post (Q187/Q191/
-// Q192 saturating rlimit 200) is investigated.  Filed as USER-14
-// (layer_4_plus body discharge with Step 3.1 forall in SMT context).
+// USER-14 Step B (CLOSED): the STRENGTHENED post citing `IN.ntt_inverse_layer p
+// layer` at the polynomial level (256-element FE polynomial) is now PROVEN with
+// NO admit.  `invert_ntt_at_layer_4_plus` verifies via the store_block top-down
+// recipe — opaque named fold-invariants (`outer_inv`/`inner_inv`, injected below)
+// carry one atom each, and the nested-fold maintenance is discharged by standalone
+// clean-context lemmas (`lemma_inner_step_maintains`, `lemma_inner_to_outer`,
+// `lemma_postloop_cross_vec`, the per-index `lemma_*_lookup`s).  The per-step
+// functional post is wrapped opaque (`inv_ntt_step_post`) so it stays inert in the
+// loop and is revealed only by the per-step bridge.
 //
 // The strengthened post is what `invert_ntt_montgomery` consumes to
 // chain layers 4..7 into `IN.ntt_inverse_butterflies`.  Validated
