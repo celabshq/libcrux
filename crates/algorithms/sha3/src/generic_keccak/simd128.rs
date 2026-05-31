@@ -96,9 +96,142 @@ pub(crate) fn absorb2<const RATE: usize, const DELIM: u8>(
     s
 }
 
+// Full-blocks loop engine of `squeeze2` (mirrors the Portable
+// `squeeze_blocks` shape): first block (no keccakf) + the `1..blocks`
+// loop only — NO `blocks==0` case and NO trailing partial block.  Both
+// of those live in `squeeze2`, so each function's VC stays small and
+// there is no branch-merge inside this loop-bearing body (which is what
+// saturated the monolithic VC).  Ensures: per-lane state advanced to
+// `iterate_keccak_f (blocks-1)` plus the opaque `squeezed_upto` prefix
+// at `blocks*RATE`.
+#[inline]
+#[hax_lib::requires(
+    valid_rate(RATE) &&
+    out0.len() == out1.len() &&
+    blocks > 0 &&
+    blocks == out0.len() / RATE
+)]
+#[hax_lib::ensures(|_| (future(out0).len() == out0.len() && future(out1).len() == out1.len()).to_prop() & {
+    fstar!(r#"
+        let outlen = Core_models.Slice.impl__len #u8 $out0 in
+        v outlen < v Core_models.Num.impl_usize__MAX - 200 ==>
+          ((EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+              EquivImplSpec.Keccakf.Arm64.lc_arm64 $s_future.st 0) ==
+             Hacspec_sha3.Sponge.iterate_keccak_f ($blocks -! mk_usize 1)
+               (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                  EquivImplSpec.Keccakf.Arm64.lc_arm64 $s.st 0) /\
+           (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+              EquivImplSpec.Keccakf.Arm64.lc_arm64 $s_future.st 1) ==
+             Hacspec_sha3.Sponge.iterate_keccak_f ($blocks -! mk_usize 1)
+               (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                  EquivImplSpec.Keccakf.Arm64.lc_arm64 $s.st 1) /\
+           EquivImplSpec.Sponge.Arm64.SqueezeDriver.squeezed_upto
+             (out0_future <: Seq.seq u8)
+             (Hacspec_sha3.Sponge.squeeze outlen
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                   EquivImplSpec.Keccakf.Arm64.lc_arm64 $s.st 0) $RATE <: Seq.seq u8)
+             (v $blocks * v $RATE) /\
+           EquivImplSpec.Sponge.Arm64.SqueezeDriver.squeezed_upto
+             (out1_future <: Seq.seq u8)
+             (Hacspec_sha3.Sponge.squeeze outlen
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                   EquivImplSpec.Keccakf.Arm64.lc_arm64 $s.st 1) $RATE <: Seq.seq u8)
+             (v $blocks * v $RATE))
+    "#)
+})]
+#[hax_lib::fstar::options("--fuel 0 --ifuel 1 --z3rlimit 400 --split_queries always --using_facts_from '* -Hacspec_sha3.Sponge.squeeze -EquivImplSpec.Keccakf.Generic.extract_lane'")]
+fn squeeze2_blocks<const RATE: usize>(
+    s: &mut KeccakState<2, _uint64x2_t>,
+    out0: &mut [u8],
+    out1: &mut [u8],
+    blocks: usize,
+) {
+    #[cfg(hax)]
+    let out0_len = out0.len();
+    #[cfg(hax)]
+    let out1_len = out1.len();
+    #[cfg(hax)]
+    let s_init_st = s.st;
+
+    let outlen = out0.len();
+
+    hax_lib::fstar!(
+        r#"if v $outlen < v Core_models.Num.impl_usize__MAX - 200 then begin
+             (if v $outlen < v $RATE
+              then FStar.Math.Lemmas.small_div (v $outlen) (v $RATE));
+             assert (v $RATE <= v $outlen);
+             EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_iterate_keccak_f_zero
+               (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                  EquivImplSpec.Keccakf.Arm64.lc_arm64 $s_init_st 0);
+             EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_iterate_keccak_f_zero
+               (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                  EquivImplSpec.Keccakf.Arm64.lc_arm64 $s_init_st 1);
+             EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeeze_first_driver_arm64
+               $RATE $s $out0 $out1 $RATE
+           end"#
+    );
+    s.squeeze2::<RATE>(out0, out1, 0, RATE);
+    for i in 1..blocks {
+        hax_lib::loop_invariant!(|i: usize| (out0.len() == out0_len
+            && out1.len() == out1_len)
+            .to_prop()
+            & {
+                fstar!(
+                    r#"v $i >= 1 /\ v $i <= v $blocks /\
+                       (v $outlen < v Core_models.Num.impl_usize__MAX - 200 ==>
+                         (v $i * v $RATE <= v $outlen /\
+                          (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                             EquivImplSpec.Keccakf.Arm64.lc_arm64 $s.st 0) ==
+                            Hacspec_sha3.Sponge.iterate_keccak_f ($i -! mk_usize 1)
+                              (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                                 EquivImplSpec.Keccakf.Arm64.lc_arm64 $s_init_st 0) /\
+                          (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                             EquivImplSpec.Keccakf.Arm64.lc_arm64 $s.st 1) ==
+                            Hacspec_sha3.Sponge.iterate_keccak_f ($i -! mk_usize 1)
+                              (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                                 EquivImplSpec.Keccakf.Arm64.lc_arm64 $s_init_st 1) /\
+                          EquivImplSpec.Sponge.Arm64.SqueezeDriver.squeezed_upto
+                            ($out0 <: Seq.seq u8)
+                            (Hacspec_sha3.Sponge.squeeze
+                               (Core_models.Slice.impl__len #u8 $out0)
+                               (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                                  EquivImplSpec.Keccakf.Arm64.lc_arm64 $s_init_st 0)
+                               $RATE <: Seq.seq u8)
+                            (v $i * v $RATE) /\
+                          EquivImplSpec.Sponge.Arm64.SqueezeDriver.squeezed_upto
+                            ($out1 <: Seq.seq u8)
+                            (Hacspec_sha3.Sponge.squeeze
+                               (Core_models.Slice.impl__len #u8 $out1)
+                               (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                                  EquivImplSpec.Keccakf.Arm64.lc_arm64 $s_init_st 1)
+                               $RATE <: Seq.seq u8)
+                            (v $i * v $RATE)))"#
+                )
+            });
+        #[cfg(hax)]
+        lemma_mul_succ_le(i, blocks, RATE);
+
+        hax_lib::fstar!(
+            r#"if v $outlen < v Core_models.Num.impl_usize__MAX - 200 then begin
+                 Libcrux_sha3.Proof_utils.Lemmas.lemma_div_mul_mod $outlen $RATE;
+                 EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeeze_mid_driver_arm64
+                   $RATE $s_init_st $s $out0 $out1 $i
+               end"#
+        );
+
+        s.keccakf1600();
+        s.squeeze2::<RATE>(out0, out1, i * RATE, RATE);
+    }
+}
+
 /// Squeeze phase of `keccak2`: extract `out0.len()` bytes from each
 /// lane of `s` into `out0` and `out1`, applying Keccak-f between
-/// each full rate-byte block of output.
+/// each full rate-byte block of output.  Mirrors the Portable `squeeze`
+/// shape: branch on `blocks==0`, delegate the full-blocks loop to
+/// `squeeze2_blocks`, handle the trailing partial block, and discharge
+/// the full `Seq`-equality functional spec via `lemma_squeezed_upto_full`
+/// — closing within each branch so no VC carries both the loop and the
+/// byteform `squeeze` equality.
 #[inline]
 #[hax_lib::requires(valid_rate(RATE) && out0.len() == out1.len())]
 #[hax_lib::ensures(|_| (future(out0).len() == out0.len() && future(out1).len() == out1.len()).to_prop() & {
@@ -117,36 +250,103 @@ pub(crate) fn absorb2<const RATE: usize, const DELIM: u8>(
                $RATE <: t_Slice u8)
     "#)
 })]
-#[hax_lib::fstar::options("--z3rlimit 300 --admit_smt_queries true")]
+#[hax_lib::fstar::options("--fuel 0 --ifuel 1 --z3rlimit 400 --split_queries always --using_facts_from '* -Hacspec_sha3.Sponge.squeeze -EquivImplSpec.Keccakf.Generic.extract_lane'")]
 pub(crate) fn squeeze2<const RATE: usize>(
     mut s: KeccakState<2, _uint64x2_t>,
     out0: &mut [u8],
     out1: &mut [u8],
 ) {
     #[cfg(hax)]
-    let out0_len = out0.len();
-    #[cfg(hax)]
-    let out1_len = out1.len();
+    let s_init_st = s.st;
 
     let outlen = out0.len();
     let blocks = outlen / RATE;
     let last = outlen - (outlen % RATE);
 
     if blocks == 0 {
+        hax_lib::fstar!(
+            r#"if v $outlen < v Core_models.Num.impl_usize__MAX - 200 then begin
+                 EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeeze_first_driver_arm64
+                   $RATE $s $out0 $out1 $outlen
+               end"#
+        );
         s.squeeze2::<RATE>(out0, out1, 0, outlen);
+        hax_lib::fstar!(
+            r#"if v $outlen < v Core_models.Num.impl_usize__MAX - 200 then begin
+                 EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeeze_length $outlen
+                   (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                      EquivImplSpec.Keccakf.Arm64.lc_arm64 $s_init_st 0) $RATE;
+                 EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeeze_length $outlen
+                   (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                      EquivImplSpec.Keccakf.Arm64.lc_arm64 $s_init_st 1) $RATE;
+                 EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeezed_upto_full
+                   ($out0 <: Seq.seq u8)
+                   (Hacspec_sha3.Sponge.squeeze $outlen
+                      (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                         EquivImplSpec.Keccakf.Arm64.lc_arm64 $s_init_st 0) $RATE <: Seq.seq u8);
+                 EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeezed_upto_full
+                   ($out1 <: Seq.seq u8)
+                   (Hacspec_sha3.Sponge.squeeze $outlen
+                      (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                         EquivImplSpec.Keccakf.Arm64.lc_arm64 $s_init_st 1) $RATE <: Seq.seq u8)
+               end"#
+        );
     } else {
-        s.squeeze2::<RATE>(out0, out1, 0, RATE);
-        for i in 1..blocks {
-            hax_lib::loop_invariant!(|_: usize| out0.len() == out0_len && out1.len() == out1_len);
-            #[cfg(hax)]
-            lemma_mul_succ_le(i, blocks, RATE);
-
-            s.keccakf1600();
-            s.squeeze2::<RATE>(out0, out1, i * RATE, RATE);
-        }
+        squeeze2_blocks::<RATE>(&mut s, out0, out1, blocks);
         if last < outlen {
+            hax_lib::fstar!(
+                r#"if v $outlen < v Core_models.Num.impl_usize__MAX - 200 then begin
+                     Math.Lemmas.lemma_div_mod (v $outlen) (v $RATE);
+                     EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_blocks_rate_split $outlen $RATE;
+                     EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeeze_tail_driver_arm64
+                       $RATE $s_init_st $s $out0 $out1 $blocks
+                   end"#
+            );
             s.keccakf1600();
             s.squeeze2::<RATE>(out0, out1, last, outlen - last);
+            hax_lib::fstar!(
+                r#"if v $outlen < v Core_models.Num.impl_usize__MAX - 200 then begin
+                     EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeeze_length $outlen
+                       (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                          EquivImplSpec.Keccakf.Arm64.lc_arm64 $s_init_st 0) $RATE;
+                     EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeeze_length $outlen
+                       (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                          EquivImplSpec.Keccakf.Arm64.lc_arm64 $s_init_st 1) $RATE;
+                     EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeezed_upto_full
+                       ($out0 <: Seq.seq u8)
+                       (Hacspec_sha3.Sponge.squeeze $outlen
+                          (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                             EquivImplSpec.Keccakf.Arm64.lc_arm64 $s_init_st 0) $RATE <: Seq.seq u8);
+                     EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeezed_upto_full
+                       ($out1 <: Seq.seq u8)
+                       (Hacspec_sha3.Sponge.squeeze $outlen
+                          (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                             EquivImplSpec.Keccakf.Arm64.lc_arm64 $s_init_st 1) $RATE <: Seq.seq u8)
+                   end"#
+            );
+        } else {
+            hax_lib::fstar!(
+                r#"if v $outlen < v Core_models.Num.impl_usize__MAX - 200 then begin
+                     EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_exact_multiple $outlen $RATE;
+                     assert (v $blocks * v $RATE == v $outlen);
+                     EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeeze_length $outlen
+                       (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                          EquivImplSpec.Keccakf.Arm64.lc_arm64 $s_init_st 0) $RATE;
+                     EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeeze_length $outlen
+                       (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                          EquivImplSpec.Keccakf.Arm64.lc_arm64 $s_init_st 1) $RATE;
+                     EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeezed_upto_full
+                       ($out0 <: Seq.seq u8)
+                       (Hacspec_sha3.Sponge.squeeze $outlen
+                          (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                             EquivImplSpec.Keccakf.Arm64.lc_arm64 $s_init_st 0) $RATE <: Seq.seq u8);
+                     EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeezed_upto_full
+                       ($out1 <: Seq.seq u8)
+                       (Hacspec_sha3.Sponge.squeeze $outlen
+                          (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                             EquivImplSpec.Keccakf.Arm64.lc_arm64 $s_init_st 1) $RATE <: Seq.seq u8)
+                   end"#
+            );
         }
     }
 }

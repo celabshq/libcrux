@@ -1,9 +1,81 @@
 use hax_lib::{forall, implies, Prop};
+#[cfg(hax)]
+use hax_lib::prop::*;
 
 /// Checks if all slices in an array have the same length.
 pub(crate) fn slices_same_len<const N: usize>(slices: &[&[u8]; N]) -> Prop {
     forall(|i: usize| implies(i < N, slices[0].len() == slices[i].len()))
 }
+
+/// `modifies_range a fa lo hi`: `fa` has the same length as `a` and is
+/// equal to `a` at every index outside the half-open range `[lo, hi)`.
+/// Opaque so that composition proofs manipulate it via the frame
+/// lemmas (`lemma_modifies_range_union`) without unfolding the byte
+/// content — the central trick for the SHA-3 store-block composition.
+#[cfg(hax)]
+#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
+pub(crate) fn modifies_range(a: &[u8], fa: &[u8], lo: usize, hi: usize) -> Prop {
+    forall(|k: usize| implies(k < a.len() && k < fa.len() && (k < lo || k >= hi), a[k] == fa[k]))
+        & (a.len() == fa.len()).to_prop()
+}
+
+/// Frame composition: a modification of `[lo,mid)` followed by a
+/// modification of `[mid,hi)` is a modification of `[lo,hi)`. The only
+/// lemma the outer loop / composer needs about `modifies_range`; both
+/// `modifies_range` occurrences are revealed here so callers never do.
+#[cfg(hax)]
+#[hax_lib::fstar::replace(
+    r#"
+let lemma_modifies_range_union (a b c: t_Slice u8) (lo mid hi: usize)
+  : Lemma
+    (requires
+      modifies_range a b lo mid /\ modifies_range b c mid hi /\
+      v lo <= v mid /\ v mid <= v hi)
+    (ensures modifies_range a c lo hi)
+  = reveal_opaque (`%modifies_range) modifies_range
+"#
+)]
+pub(crate) fn lemma_modifies_range_union(
+    _a: &[u8],
+    _b: &[u8],
+    _c: &[u8],
+    _lo: usize,
+    _mid: usize,
+    _hi: usize,
+) {
+}
+
+/// Reflexivity: a sequence trivially modifies itself on any range
+/// (it equals itself everywhere). Used to seed loop-invariant base
+/// cases. Reveals `modifies_range`.
+#[cfg(hax)]
+#[hax_lib::fstar::replace(
+    r#"
+let lemma_modifies_range_refl (a: t_Slice u8) (lo hi: usize)
+  : Lemma (ensures modifies_range a a lo hi)
+  = reveal_opaque (`%modifies_range) modifies_range
+"#
+)]
+pub(crate) fn lemma_modifies_range_refl(_a: &[u8], _lo: usize, _hi: usize) {}
+
+/// Introduce `modifies_range` over an arbitrary range from the explicit
+/// frame fact (equal length + equal outside `[lo,hi)`). Reveals
+/// `modifies_range`; lets leaf producers package their frame without
+/// revealing in their own body.
+#[cfg(hax)]
+#[hax_lib::fstar::replace(
+    r#"
+let lemma_modifies_range_intro (a b: t_Slice u8) (lo hi: usize)
+  : Lemma
+    (requires
+      Seq.length a == Seq.length b /\
+      (forall (k: nat). (k < Seq.length a /\ (k < v lo \/ k >= v hi)) ==>
+        Seq.index b k == Seq.index a k))
+    (ensures modifies_range a b lo hi)
+  = reveal_opaque (`%modifies_range) modifies_range
+"#
+)]
+pub(crate) fn lemma_modifies_range_intro(_a: &[u8], _b: &[u8], _lo: usize, _hi: usize) {}
 
 pub(crate) fn valid_rate(rate: usize) -> bool {
     // This is could be changed to checking against the specific valid rates

@@ -197,3 +197,146 @@ let mm256_storeu_si256_u8_byte_window init vec =
   with begin
     Libcrux_intrinsics.Avx2_extract.lemma_mm256_storeu_si256_u8_byte init vec k
   end
+
+/// Layer 4 per-(j,lane) bridge: from `store_u64x4x4`'s 4-branch `s_k`
+/// post at a single absolute byte index `j` in the window
+/// `[start+32*i, start+32*(i+1))`, plus the linearisation
+/// `s_k == s[4*i+k]`, conclude the unified `s[(j-start)/8]` form.
+/// Verified in isolation so the outer-loop body never sees the 4x4
+/// cross-product.
+val lemma_lane_chain_to_s
+    (s: Seq.seq t_Vec256)
+    (s0 s1 s2 s3: t_Vec256)
+    (start: nat)
+    (i: nat)
+    (lane_m: nat{lane_m < 4})
+    (j: nat)
+    (out_byte: u8)
+  : Lemma
+    (requires
+        Seq.length s >= 4 * i + 4 /\
+        start + 32 * i <= j /\ j < start + 32 * (i + 1) /\
+        s0 == Seq.index s (4 * i + 0) /\
+        s1 == Seq.index s (4 * i + 1) /\
+        s2 == Seq.index s (4 * i + 2) /\
+        s3 == Seq.index s (4 * i + 3) /\
+        ((j - start) / 8 == 4 * i + 0 ==>
+            out_byte == Seq.index
+              (Core_models.Num.impl_u64__to_le_bytes (get_lane_u64 s0 (mk_usize lane_m)))
+              ((j - start) % 8)) /\
+        ((j - start) / 8 == 4 * i + 1 ==>
+            out_byte == Seq.index
+              (Core_models.Num.impl_u64__to_le_bytes (get_lane_u64 s1 (mk_usize lane_m)))
+              ((j - start) % 8)) /\
+        ((j - start) / 8 == 4 * i + 2 ==>
+            out_byte == Seq.index
+              (Core_models.Num.impl_u64__to_le_bytes (get_lane_u64 s2 (mk_usize lane_m)))
+              ((j - start) % 8)) /\
+        ((j - start) / 8 == 4 * i + 3 ==>
+            out_byte == Seq.index
+              (Core_models.Num.impl_u64__to_le_bytes (get_lane_u64 s3 (mk_usize lane_m)))
+              ((j - start) % 8)))
+    (ensures
+        out_byte == Seq.index
+          (Core_models.Num.impl_u64__to_le_bytes
+             (get_lane_u64 (Seq.index s ((j - start) / 8)) (mk_usize lane_m)))
+          ((j - start) % 8))
+
+#push-options "--z3rlimit 200"
+let lemma_lane_chain_to_s s s0 s1 s2 s3 start i lane_m j out_byte =
+  let b: nat = j - start in
+  let q: nat = b / 8 in
+  let r: nat = b % 8 in
+  // Euclidean: b == q*8 + r, with 0 <= r < 8.
+  FStar.Math.Lemmas.lemma_mod_lt b 8;
+  FStar.Math.Lemmas.euclidean_division_definition b 8;
+  // Combined with 32*i <= b < 32*(i+1), derive 4*i <= q < 4*(i+1).
+  assert (4 * i <= q);
+  assert (q < 4 * (i + 1));
+  // Case split: q in {4i, 4i+1, 4i+2, 4i+3}.  Each case fires exactly
+  // one of the 4 hypothesis implications + the corresponding
+  // linearisation step.
+  if q = 4 * i then
+    assert (Seq.index s q == s0)
+  else if q = 4 * i + 1 then
+    assert (Seq.index s q == s1)
+  else if q = 4 * i + 2 then
+    assert (Seq.index s q == s2)
+  else (
+    assert (q == 4 * i + 3);
+    assert (Seq.index s q == s3)
+  )
+#pop-options
+
+/// Layer 4 per-output bridge: lifts the per-(j,lane) bridge over the
+/// whole window via `Classical.forall_intro`, taking a single output
+/// buffer's post-`store_u64x4x4` state (4-branch `s_k` form, nested
+/// if-else matching the wrapper's post exactly) to the unified
+/// `s[(j-start)/8]` form.  Verified in isolated context so the
+/// outer-loop body proof is a single call per output.
+val lemma_lane_chain_to_s_all_j
+    (s: Seq.seq t_Vec256)
+    (s0 s1 s2 s3: t_Vec256)
+    (start: nat)
+    (i: nat)
+    (lane_m: nat{lane_m < 4})
+    (out_m_new: Seq.seq u8)
+  : Lemma
+    (requires
+      Seq.length s >= 4 * i + 4 /\
+      s0 == Seq.index s (4 * i + 0) /\
+      s1 == Seq.index s (4 * i + 1) /\
+      s2 == Seq.index s (4 * i + 2) /\
+      s3 == Seq.index s (4 * i + 3) /\
+      (forall (j_n: nat).
+        (start + 32 * i <= j_n /\
+         j_n < start + 32 * (i + 1) /\
+         j_n < Seq.length out_m_new) ==>
+        (if (j_n - start) / 8 = 4 * i then
+           Seq.index out_m_new j_n == Seq.index
+             (Core_models.Num.impl_u64__to_le_bytes (get_lane_u64 s0 (mk_usize lane_m)))
+             ((j_n - start) % 8)
+         else if (j_n - start) / 8 = 4 * i + 1 then
+           Seq.index out_m_new j_n == Seq.index
+             (Core_models.Num.impl_u64__to_le_bytes (get_lane_u64 s1 (mk_usize lane_m)))
+             ((j_n - start) % 8)
+         else if (j_n - start) / 8 = 4 * i + 2 then
+           Seq.index out_m_new j_n == Seq.index
+             (Core_models.Num.impl_u64__to_le_bytes (get_lane_u64 s2 (mk_usize lane_m)))
+             ((j_n - start) % 8)
+         else
+           Seq.index out_m_new j_n == Seq.index
+             (Core_models.Num.impl_u64__to_le_bytes (get_lane_u64 s3 (mk_usize lane_m)))
+             ((j_n - start) % 8))))
+    (ensures
+      forall (j_n: nat).
+        (start + 32 * i <= j_n /\
+         j_n < start + 32 * (i + 1) /\
+         j_n < Seq.length out_m_new) ==>
+        Seq.index out_m_new j_n == Seq.index
+          (Core_models.Num.impl_u64__to_le_bytes
+            (get_lane_u64 (Seq.index s ((j_n - start) / 8)) (mk_usize lane_m)))
+          ((j_n - start) % 8))
+
+#push-options "--z3rlimit 400"
+let lemma_lane_chain_to_s_all_j s s0 s1 s2 s3 start i lane_m out_m_new =
+  let aux (j_n: nat{j_n < Seq.length out_m_new}) :
+    Lemma
+      ((start + 32 * i <= j_n /\
+        j_n < start + 32 * (i + 1)) ==>
+       Seq.index out_m_new j_n == Seq.index
+         (Core_models.Num.impl_u64__to_le_bytes
+           (get_lane_u64 (Seq.index s ((j_n - start) / 8)) (mk_usize lane_m)))
+         ((j_n - start) % 8))
+    = if start + 32 * i <= j_n && j_n < start + 32 * (i + 1) then begin
+        let b: nat = j_n - start in
+        let q: nat = b / 8 in
+        FStar.Math.Lemmas.lemma_mod_lt b 8;
+        FStar.Math.Lemmas.euclidean_division_definition b 8;
+        assert (4 * i <= q /\ q < 4 * (i + 1));
+        lemma_lane_chain_to_s s s0 s1 s2 s3 start i lane_m j_n (Seq.index out_m_new j_n)
+      end
+      else ()
+  in
+  Classical.forall_intro aux
+#pop-options

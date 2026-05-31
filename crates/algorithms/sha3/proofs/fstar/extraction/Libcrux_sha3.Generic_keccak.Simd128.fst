@@ -183,11 +183,262 @@ let absorb2 (v_RATE: usize) (v_DELIM: u8) (data: t_Array (t_Slice u8) (mk_usize 
 
 #pop-options
 
-#push-options "--z3rlimit 300 --admit_smt_queries true"
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 400 --split_queries always --using_facts_from '* -Hacspec_sha3.Sponge.squeeze -EquivImplSpec.Keccakf.Generic.extract_lane'"
+
+let squeeze2_blocks
+      (v_RATE: usize)
+      (s:
+          Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 2)
+            Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t)
+      (out0 out1: t_Slice u8)
+      (blocks: usize)
+    : Prims.Pure
+      (Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 2)
+          Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t &
+        t_Slice u8 &
+        t_Slice u8)
+      (requires
+        Libcrux_sha3.Proof_utils.valid_rate v_RATE &&
+        (Core_models.Slice.impl__len #u8 out0 <: usize) =.
+        (Core_models.Slice.impl__len #u8 out1 <: usize) &&
+        blocks >. mk_usize 0 &&
+        blocks =. ((Core_models.Slice.impl__len #u8 out0 <: usize) /! v_RATE <: usize))
+      (ensures
+        fun temp_0_ ->
+          let
+          (s_future:
+            Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 2)
+              Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t),
+          (out0_future: t_Slice u8),
+          (out1_future: t_Slice u8) =
+            temp_0_
+          in
+          b2t
+          (((Core_models.Slice.impl__len #u8 out0_future <: usize) =.
+              (Core_models.Slice.impl__len #u8 out0 <: usize)
+              <:
+              bool) &&
+            ((Core_models.Slice.impl__len #u8 out1_future <: usize) =.
+              (Core_models.Slice.impl__len #u8 out1 <: usize)
+              <:
+              bool)) /\
+          (let outlen = Core_models.Slice.impl__len #u8 out0 in
+            v outlen < v Core_models.Num.impl_usize__MAX - 200 ==>
+            ((EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                  EquivImplSpec.Keccakf.Arm64.lc_arm64
+                  s_future.Libcrux_sha3.Generic_keccak.f_st
+                  0) ==
+              Hacspec_sha3.Sponge.iterate_keccak_f (blocks -! mk_usize 1)
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                    EquivImplSpec.Keccakf.Arm64.lc_arm64
+                    s.Libcrux_sha3.Generic_keccak.f_st
+                    0) /\
+              (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                  EquivImplSpec.Keccakf.Arm64.lc_arm64
+                  s_future.Libcrux_sha3.Generic_keccak.f_st
+                  1) ==
+              Hacspec_sha3.Sponge.iterate_keccak_f (blocks -! mk_usize 1)
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                    EquivImplSpec.Keccakf.Arm64.lc_arm64
+                    s.Libcrux_sha3.Generic_keccak.f_st
+                    1) /\
+              EquivImplSpec.Sponge.Arm64.SqueezeDriver.squeezed_upto (out0_future <: Seq.seq u8)
+                (Hacspec_sha3.Sponge.squeeze outlen
+                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                        EquivImplSpec.Keccakf.Arm64.lc_arm64
+                        s.Libcrux_sha3.Generic_keccak.f_st
+                        0)
+                    v_RATE
+                  <:
+                  Seq.seq u8)
+                (v blocks * v v_RATE) /\
+              EquivImplSpec.Sponge.Arm64.SqueezeDriver.squeezed_upto (out1_future <: Seq.seq u8)
+                (Hacspec_sha3.Sponge.squeeze outlen
+                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                        EquivImplSpec.Keccakf.Arm64.lc_arm64
+                        s.Libcrux_sha3.Generic_keccak.f_st
+                        1)
+                    v_RATE
+                  <:
+                  Seq.seq u8)
+                (v blocks * v v_RATE)))) =
+  let out0_len:usize = Core_models.Slice.impl__len #u8 out0 in
+  let out1_len:usize = Core_models.Slice.impl__len #u8 out1 in
+  let s_init_st:t_Array Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t (mk_usize 25) =
+    s.Libcrux_sha3.Generic_keccak.f_st
+  in
+  let outlen:usize = Core_models.Slice.impl__len #u8 out0 in
+  let _:Prims.unit =
+    if v outlen < v Core_models.Num.impl_usize__MAX - 200
+    then
+      ((if v outlen < v v_RATE then FStar.Math.Lemmas.small_div (v outlen) (v v_RATE));
+        assert (v v_RATE <= v outlen);
+        EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_iterate_keccak_f_zero (EquivImplSpec.Keccakf.Generic.extract_lane
+              (mk_usize 2)
+              EquivImplSpec.Keccakf.Arm64.lc_arm64
+              s_init_st
+              0);
+        EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_iterate_keccak_f_zero (EquivImplSpec.Keccakf.Generic.extract_lane
+              (mk_usize 2)
+              EquivImplSpec.Keccakf.Arm64.lc_arm64
+              s_init_st
+              1);
+        EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeeze_first_driver_arm64 v_RATE
+          s
+          out0
+          out1
+          v_RATE)
+  in
+  let (tmp0: t_Slice u8), (tmp1: t_Slice u8) =
+    Libcrux_sha3.Traits.f_squeeze2 #(Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 2)
+          Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t)
+      #Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t
+      #FStar.Tactics.Typeclasses.solve
+      v_RATE
+      s
+      out0
+      out1
+      (mk_usize 0)
+      v_RATE
+  in
+  let out0:t_Slice u8 = tmp0 in
+  let out1:t_Slice u8 = tmp1 in
+  let _:Prims.unit = () in
+  let
+  (out0: t_Slice u8),
+  (out1: t_Slice u8),
+  (s:
+    Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 2)
+      Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t) =
+    Rust_primitives.Hax.Folds.fold_range (mk_usize 1)
+      blocks
+      (fun temp_0_ i ->
+          let
+          (out0: t_Slice u8),
+          (out1: t_Slice u8),
+          (s:
+            Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 2)
+              Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t) =
+            temp_0_
+          in
+          let i:usize = i in
+          b2t
+          (((Core_models.Slice.impl__len #u8 out0 <: usize) =. out0_len <: bool) &&
+            ((Core_models.Slice.impl__len #u8 out1 <: usize) =. out1_len <: bool)) /\
+          (v i >= 1) /\ (v i <= v blocks) /\
+          (v outlen < v Core_models.Num.impl_usize__MAX - 200 ==>
+            (v i * v v_RATE <= v outlen /\
+              (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                  EquivImplSpec.Keccakf.Arm64.lc_arm64
+                  s.Libcrux_sha3.Generic_keccak.f_st
+                  0) ==
+              Hacspec_sha3.Sponge.iterate_keccak_f (i -! mk_usize 1)
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                    EquivImplSpec.Keccakf.Arm64.lc_arm64
+                    s_init_st
+                    0) /\
+              (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                  EquivImplSpec.Keccakf.Arm64.lc_arm64
+                  s.Libcrux_sha3.Generic_keccak.f_st
+                  1) ==
+              Hacspec_sha3.Sponge.iterate_keccak_f (i -! mk_usize 1)
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                    EquivImplSpec.Keccakf.Arm64.lc_arm64
+                    s_init_st
+                    1) /\
+              EquivImplSpec.Sponge.Arm64.SqueezeDriver.squeezed_upto (out0 <: Seq.seq u8)
+                (Hacspec_sha3.Sponge.squeeze (Core_models.Slice.impl__len #u8 out0)
+                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                        EquivImplSpec.Keccakf.Arm64.lc_arm64
+                        s_init_st
+                        0)
+                    v_RATE
+                  <:
+                  Seq.seq u8)
+                (v i * v v_RATE) /\
+              EquivImplSpec.Sponge.Arm64.SqueezeDriver.squeezed_upto (out1 <: Seq.seq u8)
+                (Hacspec_sha3.Sponge.squeeze (Core_models.Slice.impl__len #u8 out1)
+                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                        EquivImplSpec.Keccakf.Arm64.lc_arm64
+                        s_init_st
+                        1)
+                    v_RATE
+                  <:
+                  Seq.seq u8)
+                (v i * v v_RATE))))
+      (out0, out1, s
+        <:
+        (t_Slice u8 & t_Slice u8 &
+          Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 2)
+            Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t))
+      (fun temp_0_ i ->
+          let
+          (out0: t_Slice u8),
+          (out1: t_Slice u8),
+          (s:
+            Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 2)
+              Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t) =
+            temp_0_
+          in
+          let i:usize = i in
+          let _:Prims.unit = Libcrux_sha3.Proof_utils.Lemmas.lemma_mul_succ_le i blocks v_RATE in
+          let _:Prims.unit =
+            if v outlen < v Core_models.Num.impl_usize__MAX - 200
+            then
+              (Libcrux_sha3.Proof_utils.Lemmas.lemma_div_mul_mod outlen v_RATE;
+                EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeeze_mid_driver_arm64 v_RATE
+                  s_init_st
+                  s
+                  out0
+                  out1
+                  i)
+          in
+          let s:Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 2)
+            Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t =
+            Libcrux_sha3.Generic_keccak.impl_2__keccakf1600 (mk_usize 2)
+              #Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t
+              s
+          in
+          let (tmp0: t_Slice u8), (tmp1: t_Slice u8) =
+            Libcrux_sha3.Traits.f_squeeze2 #(Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 2)
+                  Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t)
+              #Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t
+              #FStar.Tactics.Typeclasses.solve
+              v_RATE
+              s
+              out0
+              out1
+              (i *! v_RATE <: usize)
+              v_RATE
+          in
+          let out0:t_Slice u8 = tmp0 in
+          let out1:t_Slice u8 = tmp1 in
+          let _:Prims.unit = () in
+          out0, out1, s
+          <:
+          (t_Slice u8 & t_Slice u8 &
+            Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 2)
+              Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t))
+  in
+  s, out0, out1
+  <:
+  (Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 2)
+      Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t &
+    t_Slice u8 &
+    t_Slice u8)
+
+#pop-options
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 400 --split_queries always --using_facts_from '* -Hacspec_sha3.Sponge.squeeze -EquivImplSpec.Keccakf.Generic.extract_lane'"
 
 /// Squeeze phase of `keccak2`: extract `out0.len()` bytes from each
 /// lane of `s` into `out0` and `out1`, applying Keccak-f between
-/// each full rate-byte block of output.
+/// each full rate-byte block of output.  Mirrors the Portable `squeeze`
+/// shape: branch on `blocks==0`, delegate the full-blocks loop to
+/// `squeeze2_blocks`, handle the trailing partial block, and discharge
+/// the full `Seq`-equality functional spec via `lemma_squeezed_upto_full`
+/// — closing within each branch so no VC carries both the loop and the
+/// byteform `squeeze` equality.
 let squeeze2
       (v_RATE: usize)
       (s:
@@ -202,22 +453,38 @@ let squeeze2
       (ensures
         fun temp_0_ ->
           let (out0_future: t_Slice u8), (out1_future: t_Slice u8) = temp_0_ in
-          let outlen : usize = Core_models.Slice.impl__len #u8 out0 in
-          Seq.length out0_future == Seq.length out0 /\
-          Seq.length out1_future == Seq.length out1 /\
-          (v outlen < v Core_models.Num.impl_usize__MAX - 200 ==>
+          b2t
+          (((Core_models.Slice.impl__len #u8 out0_future <: usize) =.
+              (Core_models.Slice.impl__len #u8 out0 <: usize)
+              <:
+              bool) &&
+            ((Core_models.Slice.impl__len #u8 out1_future <: usize) =.
+              (Core_models.Slice.impl__len #u8 out1 <: usize)
+              <:
+              bool)) /\
+          (let outlen = Core_models.Slice.impl__len #u8 out0 in
+            v outlen < v Core_models.Num.impl_usize__MAX - 200 ==>
             (out0_future <: t_Slice u8) ==
-              (Hacspec_sha3.Sponge.squeeze outlen
-                 (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
-                    EquivImplSpec.Keccakf.Arm64.lc_arm64 s.Libcrux_sha3.Generic_keccak.f_st 0)
-                 v_RATE <: t_Slice u8) /\
+            (Hacspec_sha3.Sponge.squeeze outlen
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                    EquivImplSpec.Keccakf.Arm64.lc_arm64
+                    s.Libcrux_sha3.Generic_keccak.f_st
+                    0)
+                v_RATE
+              <:
+              t_Slice u8) /\
             (out1_future <: t_Slice u8) ==
-              (Hacspec_sha3.Sponge.squeeze outlen
-                 (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
-                    EquivImplSpec.Keccakf.Arm64.lc_arm64 s.Libcrux_sha3.Generic_keccak.f_st 1)
-                 v_RATE <: t_Slice u8))) =
-  let out0_len:usize = Core_models.Slice.impl__len #u8 out0 in
-  let out1_len:usize = Core_models.Slice.impl__len #u8 out1 in
+            (Hacspec_sha3.Sponge.squeeze outlen
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                    EquivImplSpec.Keccakf.Arm64.lc_arm64
+                    s.Libcrux_sha3.Generic_keccak.f_st
+                    1)
+                v_RATE
+              <:
+              t_Slice u8))) =
+  let s_init_st:t_Array Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t (mk_usize 25) =
+    s.Libcrux_sha3.Generic_keccak.f_st
+  in
   let outlen:usize = Core_models.Slice.impl__len #u8 out0 in
   let blocks:usize = outlen /! v_RATE in
   let last:usize = outlen -! (outlen %! v_RATE <: usize) in
@@ -229,6 +496,15 @@ let squeeze2
       Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t) =
     if blocks =. mk_usize 0
     then
+      let _:Prims.unit =
+        if v outlen < v Core_models.Num.impl_usize__MAX - 200
+        then
+          EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeeze_first_driver_arm64 v_RATE
+            s
+            out0
+            out1
+            outlen
+      in
       let (tmp0: t_Slice u8), (tmp1: t_Slice u8) =
         Libcrux_sha3.Traits.f_squeeze2 #(Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 2)
               Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t)
@@ -244,94 +520,75 @@ let squeeze2
       let out0:t_Slice u8 = tmp0 in
       let out1:t_Slice u8 = tmp1 in
       let _:Prims.unit = () in
+      let _:Prims.unit =
+        if v outlen < v Core_models.Num.impl_usize__MAX - 200
+        then
+          (EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeeze_length outlen
+              (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                  EquivImplSpec.Keccakf.Arm64.lc_arm64
+                  s_init_st
+                  0)
+              v_RATE;
+            EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeeze_length outlen
+              (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                  EquivImplSpec.Keccakf.Arm64.lc_arm64
+                  s_init_st
+                  1)
+              v_RATE;
+            EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeezed_upto_full (out0 <: Seq.seq u8)
+              (Hacspec_sha3.Sponge.squeeze outlen
+                  (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                      EquivImplSpec.Keccakf.Arm64.lc_arm64
+                      s_init_st
+                      0)
+                  v_RATE
+                <:
+                Seq.seq u8);
+            EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeezed_upto_full (out1 <: Seq.seq u8)
+              (Hacspec_sha3.Sponge.squeeze outlen
+                  (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                      EquivImplSpec.Keccakf.Arm64.lc_arm64
+                      s_init_st
+                      1)
+                  v_RATE
+                <:
+                Seq.seq u8))
+      in
       out0, out1, s
       <:
       (t_Slice u8 & t_Slice u8 &
         Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 2)
           Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t)
     else
-      let (tmp0: t_Slice u8), (tmp1: t_Slice u8) =
-        Libcrux_sha3.Traits.f_squeeze2 #(Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 2)
-              Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t)
-          #Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t
-          #FStar.Tactics.Typeclasses.solve
-          v_RATE
-          s
-          out0
-          out1
-          (mk_usize 0)
-          v_RATE
-      in
-      let out0:t_Slice u8 = tmp0 in
-      let out1:t_Slice u8 = tmp1 in
-      let _:Prims.unit = () in
       let
-      (out0: t_Slice u8),
-      (out1: t_Slice u8),
-      (s:
+      (tmp0:
         Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 2)
-          Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t) =
-        Rust_primitives.Hax.Folds.fold_range (mk_usize 1)
-          blocks
-          (fun temp_0_ temp_1_ ->
-              let
-              (out0: t_Slice u8),
-              (out1: t_Slice u8),
-              (s:
-                Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 2)
-                  Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t) =
-                temp_0_
-              in
-              let _:usize = temp_1_ in
-              ((Core_models.Slice.impl__len #u8 out0 <: usize) =. out0_len <: bool) &&
-              ((Core_models.Slice.impl__len #u8 out1 <: usize) =. out1_len <: bool))
-          (out0, out1, s
-            <:
-            (t_Slice u8 & t_Slice u8 &
-              Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 2)
-                Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t))
-          (fun temp_0_ i ->
-              let
-              (out0: t_Slice u8),
-              (out1: t_Slice u8),
-              (s:
-                Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 2)
-                  Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t) =
-                temp_0_
-              in
-              let i:usize = i in
-              let _:Prims.unit =
-                Libcrux_sha3.Proof_utils.Lemmas.lemma_mul_succ_le i blocks v_RATE
-              in
-              let s:Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 2)
-                Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t =
-                Libcrux_sha3.Generic_keccak.impl_2__keccakf1600 (mk_usize 2)
-                  #Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t
-                  s
-              in
-              let (tmp0: t_Slice u8), (tmp1: t_Slice u8) =
-                Libcrux_sha3.Traits.f_squeeze2 #(Libcrux_sha3.Generic_keccak.t_KeccakState
-                      (mk_usize 2) Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t)
-                  #Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t
-                  #FStar.Tactics.Typeclasses.solve
-                  v_RATE
-                  s
-                  out0
-                  out1
-                  (i *! v_RATE <: usize)
-                  v_RATE
-              in
-              let out0:t_Slice u8 = tmp0 in
-              let out1:t_Slice u8 = tmp1 in
-              let _:Prims.unit = () in
-              out0, out1, s
-              <:
-              (t_Slice u8 & t_Slice u8 &
-                Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 2)
-                  Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t))
+          Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t),
+      (tmp1: t_Slice u8),
+      (tmp2: t_Slice u8) =
+        squeeze2_blocks v_RATE s out0 out1 blocks
       in
+      let s:Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 2)
+        Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t =
+        tmp0
+      in
+      let out0:t_Slice u8 = tmp1 in
+      let out1:t_Slice u8 = tmp2 in
+      let _:Prims.unit = () in
       if last <. outlen
       then
+        let _:Prims.unit =
+          if v outlen < v Core_models.Num.impl_usize__MAX - 200
+          then
+            (Math.Lemmas.lemma_div_mod (v outlen) (v v_RATE);
+              EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_blocks_rate_split outlen v_RATE;
+              EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeeze_tail_driver_arm64 v_RATE
+                s_init_st
+                s
+                out0
+                out1
+                blocks)
+        in
         let s:Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 2)
           Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t =
           Libcrux_sha3.Generic_keccak.impl_2__keccakf1600 (mk_usize 2)
@@ -353,12 +610,82 @@ let squeeze2
         let out0:t_Slice u8 = tmp0 in
         let out1:t_Slice u8 = tmp1 in
         let _:Prims.unit = () in
+        let _:Prims.unit =
+          if v outlen < v Core_models.Num.impl_usize__MAX - 200
+          then
+            (EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeeze_length outlen
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                    EquivImplSpec.Keccakf.Arm64.lc_arm64
+                    s_init_st
+                    0)
+                v_RATE;
+              EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeeze_length outlen
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                    EquivImplSpec.Keccakf.Arm64.lc_arm64
+                    s_init_st
+                    1)
+                v_RATE;
+              EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeezed_upto_full (out0 <: Seq.seq u8)
+                (Hacspec_sha3.Sponge.squeeze outlen
+                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                        EquivImplSpec.Keccakf.Arm64.lc_arm64
+                        s_init_st
+                        0)
+                    v_RATE
+                  <:
+                  Seq.seq u8);
+              EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeezed_upto_full (out1 <: Seq.seq u8)
+                (Hacspec_sha3.Sponge.squeeze outlen
+                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                        EquivImplSpec.Keccakf.Arm64.lc_arm64
+                        s_init_st
+                        1)
+                    v_RATE
+                  <:
+                  Seq.seq u8))
+        in
         out0, out1, s
         <:
         (t_Slice u8 & t_Slice u8 &
           Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 2)
             Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t)
       else
+        let _:Prims.unit =
+          if v outlen < v Core_models.Num.impl_usize__MAX - 200
+          then
+            (EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_exact_multiple outlen v_RATE;
+              assert (v blocks * v v_RATE == v outlen);
+              EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeeze_length outlen
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                    EquivImplSpec.Keccakf.Arm64.lc_arm64
+                    s_init_st
+                    0)
+                v_RATE;
+              EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeeze_length outlen
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                    EquivImplSpec.Keccakf.Arm64.lc_arm64
+                    s_init_st
+                    1)
+                v_RATE;
+              EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeezed_upto_full (out0 <: Seq.seq u8)
+                (Hacspec_sha3.Sponge.squeeze outlen
+                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                        EquivImplSpec.Keccakf.Arm64.lc_arm64
+                        s_init_st
+                        0)
+                    v_RATE
+                  <:
+                  Seq.seq u8);
+              EquivImplSpec.Sponge.Arm64.SqueezeDriver.lemma_squeezed_upto_full (out1 <: Seq.seq u8)
+                (Hacspec_sha3.Sponge.squeeze outlen
+                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
+                        EquivImplSpec.Keccakf.Arm64.lc_arm64
+                        s_init_st
+                        1)
+                    v_RATE
+                  <:
+                  Seq.seq u8))
+        in
         out0, out1, s
         <:
         (t_Slice u8 & t_Slice u8 &
