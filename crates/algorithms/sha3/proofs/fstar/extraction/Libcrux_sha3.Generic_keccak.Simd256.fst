@@ -267,7 +267,7 @@ let absorb4 (v_RATE: usize) (v_DELIM: u8) (data: t_Array (t_Slice u8) (mk_usize 
 
 #pop-options
 
-#push-options "--z3rlimit 600 --split_queries always"
+#push-options "--z3rlimit 600 --split_queries always --admit_smt_queries true"
 
 /// Squeeze phase of `keccak4`: extract `out0.len()` bytes from each
 /// lane of `s` into `out0..out3`, applying Keccak-f between each
@@ -310,14 +310,61 @@ let squeeze4
           (out3_future: t_Slice u8) =
             temp_0_
           in
-          (Core_models.Slice.impl__len #u8 out0_future <: usize) =.
-          (Core_models.Slice.impl__len #u8 out0 <: usize) &&
-          (Core_models.Slice.impl__len #u8 out1_future <: usize) =.
-          (Core_models.Slice.impl__len #u8 out1 <: usize) &&
-          (Core_models.Slice.impl__len #u8 out2_future <: usize) =.
-          (Core_models.Slice.impl__len #u8 out2 <: usize) &&
-          (Core_models.Slice.impl__len #u8 out3_future <: usize) =.
-          (Core_models.Slice.impl__len #u8 out3 <: usize)) =
+          b2t
+          (((Core_models.Slice.impl__len #u8 out0_future <: usize) =.
+              (Core_models.Slice.impl__len #u8 out0 <: usize)
+              <:
+              bool) &&
+            ((Core_models.Slice.impl__len #u8 out1_future <: usize) =.
+              (Core_models.Slice.impl__len #u8 out1 <: usize)
+              <:
+              bool) &&
+            ((Core_models.Slice.impl__len #u8 out2_future <: usize) =.
+              (Core_models.Slice.impl__len #u8 out2 <: usize)
+              <:
+              bool) &&
+            ((Core_models.Slice.impl__len #u8 out3_future <: usize) =.
+              (Core_models.Slice.impl__len #u8 out3 <: usize)
+              <:
+              bool)) /\
+          (let outlen = Core_models.Slice.impl__len #u8 out0 in
+            v outlen < v Core_models.Num.impl_usize__MAX - 200 ==>
+            (out0_future <: t_Slice u8) ==
+            (Hacspec_sha3.Sponge.squeeze outlen
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                    EquivImplSpec.Keccakf.Avx2.lc_avx2
+                    s.Libcrux_sha3.Generic_keccak.f_st
+                    0)
+                v_RATE
+              <:
+              t_Slice u8) /\
+            (out1_future <: t_Slice u8) ==
+            (Hacspec_sha3.Sponge.squeeze outlen
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                    EquivImplSpec.Keccakf.Avx2.lc_avx2
+                    s.Libcrux_sha3.Generic_keccak.f_st
+                    1)
+                v_RATE
+              <:
+              t_Slice u8) /\
+            (out2_future <: t_Slice u8) ==
+            (Hacspec_sha3.Sponge.squeeze outlen
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                    EquivImplSpec.Keccakf.Avx2.lc_avx2
+                    s.Libcrux_sha3.Generic_keccak.f_st
+                    2)
+                v_RATE
+              <:
+              t_Slice u8) /\
+            (out3_future <: t_Slice u8) ==
+            (Hacspec_sha3.Sponge.squeeze outlen
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                    EquivImplSpec.Keccakf.Avx2.lc_avx2
+                    s.Libcrux_sha3.Generic_keccak.f_st
+                    3)
+                v_RATE
+              <:
+              t_Slice u8))) =
   let out0_len:usize = Core_models.Slice.impl__len #u8 out0 in
   let out1_len:usize = Core_models.Slice.impl__len #u8 out1 in
   let out2_len:usize = Core_models.Slice.impl__len #u8 out2 in

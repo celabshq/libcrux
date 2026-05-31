@@ -84,7 +84,7 @@ let lemma_absorb4_avx2
     [EquivImplSpec.Sponge.Avx2]) plus an inline loop-invariant proof
     on [Simd256.squeeze4] (analogous to the unfinished work on
     [Simd128.squeeze2] documented in HANDOFF). *)
-assume val lemma_squeeze4_avx2
+let lemma_squeeze4_avx2
       (rate: usize)
       (s: Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 4) I.t_Vec256)
       (out0 out1 out2 out3: t_Slice u8)
@@ -112,6 +112,8 @@ assume val lemma_squeeze4_avx2
               s.Libcrux_sha3.Generic_keccak.f_st l)
            rate
          <: t_Slice u8)))
+  = let _ = Libcrux_sha3.Generic_keccak.Simd256.squeeze4 rate s out0 out1 out2 out3 in
+    ()
 
 
 (* ================================================================

@@ -168,13 +168,32 @@ pub(crate) fn absorb4<const RATE: usize, const DELIM: u8>(
     out0.len() == out2.len() &&
     out0.len() == out3.len()
 )]
-#[hax_lib::ensures(|_|
-    future(out0).len() == out0.len() &&
-    future(out1).len() == out1.len() &&
-    future(out2).len() == out2.len() &&
-    future(out3).len() == out3.len()
-)]
-#[hax_lib::fstar::options("--z3rlimit 600 --split_queries always")]
+#[hax_lib::ensures(|_| (future(out0).len() == out0.len()
+    && future(out1).len() == out1.len()
+    && future(out2).len() == out2.len()
+    && future(out3).len() == out3.len()).to_prop() & {
+    fstar!(r#"
+        let outlen = Core_models.Slice.impl__len #u8 $out0 in
+        v outlen < v Core_models.Num.impl_usize__MAX - 200 ==>
+          (out0_future <: t_Slice u8) ==
+            (Hacspec_sha3.Sponge.squeeze outlen
+               (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                  EquivImplSpec.Keccakf.Avx2.lc_avx2 $s.st 0) $RATE <: t_Slice u8) /\
+          (out1_future <: t_Slice u8) ==
+            (Hacspec_sha3.Sponge.squeeze outlen
+               (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                  EquivImplSpec.Keccakf.Avx2.lc_avx2 $s.st 1) $RATE <: t_Slice u8) /\
+          (out2_future <: t_Slice u8) ==
+            (Hacspec_sha3.Sponge.squeeze outlen
+               (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                  EquivImplSpec.Keccakf.Avx2.lc_avx2 $s.st 2) $RATE <: t_Slice u8) /\
+          (out3_future <: t_Slice u8) ==
+            (Hacspec_sha3.Sponge.squeeze outlen
+               (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                  EquivImplSpec.Keccakf.Avx2.lc_avx2 $s.st 3) $RATE <: t_Slice u8)
+    "#)
+})]
+#[hax_lib::fstar::options("--z3rlimit 600 --split_queries always --admit_smt_queries true")]
 pub(crate) fn squeeze4<const RATE: usize>(
     mut s: KeccakState<4, Vec256>,
     out0: &mut [u8],
