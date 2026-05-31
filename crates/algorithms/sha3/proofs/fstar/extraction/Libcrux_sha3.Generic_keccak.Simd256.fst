@@ -267,23 +267,370 @@ let absorb4 (v_RATE: usize) (v_DELIM: u8) (data: t_Array (t_Slice u8) (mk_usize 
 
 #pop-options
 
-#push-options "--z3rlimit 600 --split_queries always --admit_smt_queries true"
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 400 --split_queries always --using_facts_from '* -Hacspec_sha3.Sponge.squeeze -EquivImplSpec.Keccakf.Generic.extract_lane'"
+
+let squeeze4_blocks
+      (v_RATE: usize)
+      (s:
+          Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 4)
+            Libcrux_intrinsics.Avx2_extract.t_Vec256)
+      (out0 out1 out2 out3: t_Slice u8)
+      (blocks: usize)
+    : Prims.Pure
+      (Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 4)
+          Libcrux_intrinsics.Avx2_extract.t_Vec256 &
+        t_Slice u8 &
+        t_Slice u8 &
+        t_Slice u8 &
+        t_Slice u8)
+      (requires
+        Libcrux_sha3.Proof_utils.valid_rate v_RATE &&
+        (Core_models.Slice.impl__len #u8 out0 <: usize) =.
+        (Core_models.Slice.impl__len #u8 out1 <: usize) &&
+        (Core_models.Slice.impl__len #u8 out0 <: usize) =.
+        (Core_models.Slice.impl__len #u8 out2 <: usize) &&
+        (Core_models.Slice.impl__len #u8 out0 <: usize) =.
+        (Core_models.Slice.impl__len #u8 out3 <: usize) &&
+        blocks >. mk_usize 0 &&
+        blocks =. ((Core_models.Slice.impl__len #u8 out0 <: usize) /! v_RATE <: usize))
+      (ensures
+        fun temp_0_ ->
+          let
+          (s_future:
+            Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 4)
+              Libcrux_intrinsics.Avx2_extract.t_Vec256),
+          (out0_future: t_Slice u8),
+          (out1_future: t_Slice u8),
+          (out2_future: t_Slice u8),
+          (out3_future: t_Slice u8) =
+            temp_0_
+          in
+          b2t
+          (((Core_models.Slice.impl__len #u8 out0_future <: usize) =.
+              (Core_models.Slice.impl__len #u8 out0 <: usize)
+              <:
+              bool) &&
+            ((Core_models.Slice.impl__len #u8 out1_future <: usize) =.
+              (Core_models.Slice.impl__len #u8 out1 <: usize)
+              <:
+              bool) &&
+            ((Core_models.Slice.impl__len #u8 out2_future <: usize) =.
+              (Core_models.Slice.impl__len #u8 out2 <: usize)
+              <:
+              bool) &&
+            ((Core_models.Slice.impl__len #u8 out3_future <: usize) =.
+              (Core_models.Slice.impl__len #u8 out3 <: usize)
+              <:
+              bool)) /\
+          (let outlen = Core_models.Slice.impl__len #u8 out0 in
+            v outlen < v Core_models.Num.impl_usize__MAX - 200 ==>
+            ((EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                  EquivImplSpec.Keccakf.Avx2.lc_avx2
+                  s_future.Libcrux_sha3.Generic_keccak.f_st
+                  0) ==
+              Hacspec_sha3.Sponge.iterate_keccak_f (blocks -! mk_usize 1)
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                    EquivImplSpec.Keccakf.Avx2.lc_avx2
+                    s.Libcrux_sha3.Generic_keccak.f_st
+                    0) /\
+              (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                  EquivImplSpec.Keccakf.Avx2.lc_avx2
+                  s_future.Libcrux_sha3.Generic_keccak.f_st
+                  1) ==
+              Hacspec_sha3.Sponge.iterate_keccak_f (blocks -! mk_usize 1)
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                    EquivImplSpec.Keccakf.Avx2.lc_avx2
+                    s.Libcrux_sha3.Generic_keccak.f_st
+                    1) /\
+              (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                  EquivImplSpec.Keccakf.Avx2.lc_avx2
+                  s_future.Libcrux_sha3.Generic_keccak.f_st
+                  2) ==
+              Hacspec_sha3.Sponge.iterate_keccak_f (blocks -! mk_usize 1)
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                    EquivImplSpec.Keccakf.Avx2.lc_avx2
+                    s.Libcrux_sha3.Generic_keccak.f_st
+                    2) /\
+              (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                  EquivImplSpec.Keccakf.Avx2.lc_avx2
+                  s_future.Libcrux_sha3.Generic_keccak.f_st
+                  3) ==
+              Hacspec_sha3.Sponge.iterate_keccak_f (blocks -! mk_usize 1)
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                    EquivImplSpec.Keccakf.Avx2.lc_avx2
+                    s.Libcrux_sha3.Generic_keccak.f_st
+                    3) /\
+              EquivImplSpec.Sponge.Avx2.SqueezeDriver.squeezed_upto (out0_future <: Seq.seq u8)
+                (Hacspec_sha3.Sponge.squeeze outlen
+                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                        EquivImplSpec.Keccakf.Avx2.lc_avx2
+                        s.Libcrux_sha3.Generic_keccak.f_st
+                        0)
+                    v_RATE
+                  <:
+                  Seq.seq u8)
+                (v blocks * v v_RATE) /\
+              EquivImplSpec.Sponge.Avx2.SqueezeDriver.squeezed_upto (out1_future <: Seq.seq u8)
+                (Hacspec_sha3.Sponge.squeeze outlen
+                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                        EquivImplSpec.Keccakf.Avx2.lc_avx2
+                        s.Libcrux_sha3.Generic_keccak.f_st
+                        1)
+                    v_RATE
+                  <:
+                  Seq.seq u8)
+                (v blocks * v v_RATE) /\
+              EquivImplSpec.Sponge.Avx2.SqueezeDriver.squeezed_upto (out2_future <: Seq.seq u8)
+                (Hacspec_sha3.Sponge.squeeze outlen
+                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                        EquivImplSpec.Keccakf.Avx2.lc_avx2
+                        s.Libcrux_sha3.Generic_keccak.f_st
+                        2)
+                    v_RATE
+                  <:
+                  Seq.seq u8)
+                (v blocks * v v_RATE) /\
+              EquivImplSpec.Sponge.Avx2.SqueezeDriver.squeezed_upto (out3_future <: Seq.seq u8)
+                (Hacspec_sha3.Sponge.squeeze outlen
+                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                        EquivImplSpec.Keccakf.Avx2.lc_avx2
+                        s.Libcrux_sha3.Generic_keccak.f_st
+                        3)
+                    v_RATE
+                  <:
+                  Seq.seq u8)
+                (v blocks * v v_RATE)))) =
+  let out0_len:usize = Core_models.Slice.impl__len #u8 out0 in
+  let out1_len:usize = Core_models.Slice.impl__len #u8 out1 in
+  let out2_len:usize = Core_models.Slice.impl__len #u8 out2 in
+  let out3_len:usize = Core_models.Slice.impl__len #u8 out3 in
+  let s_init_st:t_Array Libcrux_intrinsics.Avx2_extract.t_Vec256 (mk_usize 25) =
+    s.Libcrux_sha3.Generic_keccak.f_st
+  in
+  let outlen:usize = Core_models.Slice.impl__len #u8 out0 in
+  let _:Prims.unit =
+    if v outlen < v Core_models.Num.impl_usize__MAX - 200
+    then
+      ((if v outlen < v v_RATE then FStar.Math.Lemmas.small_div (v outlen) (v v_RATE));
+        assert (v v_RATE <= v outlen);
+        EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_iterate_keccak_f_zero (EquivImplSpec.Keccakf.Generic.extract_lane
+              (mk_usize 4)
+              EquivImplSpec.Keccakf.Avx2.lc_avx2
+              s_init_st
+              0);
+        EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_iterate_keccak_f_zero (EquivImplSpec.Keccakf.Generic.extract_lane
+              (mk_usize 4)
+              EquivImplSpec.Keccakf.Avx2.lc_avx2
+              s_init_st
+              1);
+        EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_iterate_keccak_f_zero (EquivImplSpec.Keccakf.Generic.extract_lane
+              (mk_usize 4)
+              EquivImplSpec.Keccakf.Avx2.lc_avx2
+              s_init_st
+              2);
+        EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_iterate_keccak_f_zero (EquivImplSpec.Keccakf.Generic.extract_lane
+              (mk_usize 4)
+              EquivImplSpec.Keccakf.Avx2.lc_avx2
+              s_init_st
+              3);
+        EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_squeeze_first_driver_avx2 v_RATE
+          s
+          out0
+          out1
+          out2
+          out3
+          v_RATE)
+  in
+  let (tmp0: t_Slice u8), (tmp1: t_Slice u8), (tmp2: t_Slice u8), (tmp3: t_Slice u8) =
+    Libcrux_sha3.Traits.f_squeeze4 #(Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 4)
+          Libcrux_intrinsics.Avx2_extract.t_Vec256) #Libcrux_intrinsics.Avx2_extract.t_Vec256
+      #FStar.Tactics.Typeclasses.solve v_RATE s out0 out1 out2 out3 (mk_usize 0) v_RATE
+  in
+  let out0:t_Slice u8 = tmp0 in
+  let out1:t_Slice u8 = tmp1 in
+  let out2:t_Slice u8 = tmp2 in
+  let out3:t_Slice u8 = tmp3 in
+  let _:Prims.unit = () in
+  let
+  (out0: t_Slice u8),
+  (out1: t_Slice u8),
+  (out2: t_Slice u8),
+  (out3: t_Slice u8),
+  (s:
+    Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 4) Libcrux_intrinsics.Avx2_extract.t_Vec256)
+  =
+    Rust_primitives.Hax.Folds.fold_range (mk_usize 1)
+      blocks
+      (fun temp_0_ i ->
+          let
+          (out0: t_Slice u8),
+          (out1: t_Slice u8),
+          (out2: t_Slice u8),
+          (out3: t_Slice u8),
+          (s:
+            Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 4)
+              Libcrux_intrinsics.Avx2_extract.t_Vec256) =
+            temp_0_
+          in
+          let i:usize = i in
+          b2t
+          (((Core_models.Slice.impl__len #u8 out0 <: usize) =. out0_len <: bool) &&
+            ((Core_models.Slice.impl__len #u8 out1 <: usize) =. out1_len <: bool) &&
+            ((Core_models.Slice.impl__len #u8 out2 <: usize) =. out2_len <: bool) &&
+            ((Core_models.Slice.impl__len #u8 out3 <: usize) =. out3_len <: bool)) /\
+          (v i >= 1) /\ (v i <= v blocks) /\
+          (v outlen < v Core_models.Num.impl_usize__MAX - 200 ==>
+            (v i * v v_RATE <= v outlen /\
+              (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                  EquivImplSpec.Keccakf.Avx2.lc_avx2
+                  s.Libcrux_sha3.Generic_keccak.f_st
+                  0) ==
+              Hacspec_sha3.Sponge.iterate_keccak_f (i -! mk_usize 1)
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                    EquivImplSpec.Keccakf.Avx2.lc_avx2
+                    s_init_st
+                    0) /\
+              (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                  EquivImplSpec.Keccakf.Avx2.lc_avx2
+                  s.Libcrux_sha3.Generic_keccak.f_st
+                  1) ==
+              Hacspec_sha3.Sponge.iterate_keccak_f (i -! mk_usize 1)
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                    EquivImplSpec.Keccakf.Avx2.lc_avx2
+                    s_init_st
+                    1) /\
+              (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                  EquivImplSpec.Keccakf.Avx2.lc_avx2
+                  s.Libcrux_sha3.Generic_keccak.f_st
+                  2) ==
+              Hacspec_sha3.Sponge.iterate_keccak_f (i -! mk_usize 1)
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                    EquivImplSpec.Keccakf.Avx2.lc_avx2
+                    s_init_st
+                    2) /\
+              (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                  EquivImplSpec.Keccakf.Avx2.lc_avx2
+                  s.Libcrux_sha3.Generic_keccak.f_st
+                  3) ==
+              Hacspec_sha3.Sponge.iterate_keccak_f (i -! mk_usize 1)
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                    EquivImplSpec.Keccakf.Avx2.lc_avx2
+                    s_init_st
+                    3) /\
+              EquivImplSpec.Sponge.Avx2.SqueezeDriver.squeezed_upto (out0 <: Seq.seq u8)
+                (Hacspec_sha3.Sponge.squeeze (Core_models.Slice.impl__len #u8 out0)
+                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                        EquivImplSpec.Keccakf.Avx2.lc_avx2
+                        s_init_st
+                        0)
+                    v_RATE
+                  <:
+                  Seq.seq u8)
+                (v i * v v_RATE) /\
+              EquivImplSpec.Sponge.Avx2.SqueezeDriver.squeezed_upto (out1 <: Seq.seq u8)
+                (Hacspec_sha3.Sponge.squeeze (Core_models.Slice.impl__len #u8 out1)
+                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                        EquivImplSpec.Keccakf.Avx2.lc_avx2
+                        s_init_st
+                        1)
+                    v_RATE
+                  <:
+                  Seq.seq u8)
+                (v i * v v_RATE) /\
+              EquivImplSpec.Sponge.Avx2.SqueezeDriver.squeezed_upto (out2 <: Seq.seq u8)
+                (Hacspec_sha3.Sponge.squeeze (Core_models.Slice.impl__len #u8 out2)
+                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                        EquivImplSpec.Keccakf.Avx2.lc_avx2
+                        s_init_st
+                        2)
+                    v_RATE
+                  <:
+                  Seq.seq u8)
+                (v i * v v_RATE) /\
+              EquivImplSpec.Sponge.Avx2.SqueezeDriver.squeezed_upto (out3 <: Seq.seq u8)
+                (Hacspec_sha3.Sponge.squeeze (Core_models.Slice.impl__len #u8 out3)
+                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                        EquivImplSpec.Keccakf.Avx2.lc_avx2
+                        s_init_st
+                        3)
+                    v_RATE
+                  <:
+                  Seq.seq u8)
+                (v i * v v_RATE))))
+      (out0, out1, out2, out3, s
+        <:
+        (t_Slice u8 & t_Slice u8 & t_Slice u8 & t_Slice u8 &
+          Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 4)
+            Libcrux_intrinsics.Avx2_extract.t_Vec256))
+      (fun temp_0_ i ->
+          let
+          (out0: t_Slice u8),
+          (out1: t_Slice u8),
+          (out2: t_Slice u8),
+          (out3: t_Slice u8),
+          (s:
+            Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 4)
+              Libcrux_intrinsics.Avx2_extract.t_Vec256) =
+            temp_0_
+          in
+          let i:usize = i in
+          let _:Prims.unit = Libcrux_sha3.Proof_utils.Lemmas.lemma_mul_succ_le i blocks v_RATE in
+          let _:Prims.unit =
+            if v outlen < v Core_models.Num.impl_usize__MAX - 200
+            then
+              (Libcrux_sha3.Proof_utils.Lemmas.lemma_div_mul_mod outlen v_RATE;
+                EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_squeeze_mid_driver_avx2 v_RATE
+                  s_init_st
+                  s
+                  out0
+                  out1
+                  out2
+                  out3
+                  i)
+          in
+          let s:Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 4)
+            Libcrux_intrinsics.Avx2_extract.t_Vec256 =
+            Libcrux_sha3.Generic_keccak.impl_2__keccakf1600 (mk_usize 4)
+              #Libcrux_intrinsics.Avx2_extract.t_Vec256
+              s
+          in
+          let (tmp0: t_Slice u8), (tmp1: t_Slice u8), (tmp2: t_Slice u8), (tmp3: t_Slice u8) =
+            Libcrux_sha3.Traits.f_squeeze4 #(Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 4)
+                  Libcrux_intrinsics.Avx2_extract.t_Vec256)
+              #Libcrux_intrinsics.Avx2_extract.t_Vec256 #FStar.Tactics.Typeclasses.solve v_RATE s
+              out0 out1 out2 out3 (i *! v_RATE <: usize) v_RATE
+          in
+          let out0:t_Slice u8 = tmp0 in
+          let out1:t_Slice u8 = tmp1 in
+          let out2:t_Slice u8 = tmp2 in
+          let out3:t_Slice u8 = tmp3 in
+          let _:Prims.unit = () in
+          out0, out1, out2, out3, s
+          <:
+          (t_Slice u8 & t_Slice u8 & t_Slice u8 & t_Slice u8 &
+            Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 4)
+              Libcrux_intrinsics.Avx2_extract.t_Vec256))
+  in
+  s, out0, out1, out2, out3
+  <:
+  (Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 4) Libcrux_intrinsics.Avx2_extract.t_Vec256 &
+    t_Slice u8 &
+    t_Slice u8 &
+    t_Slice u8 &
+    t_Slice u8)
+
+#pop-options
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 400 --split_queries always --using_facts_from '* -Hacspec_sha3.Sponge.squeeze -EquivImplSpec.Keccakf.Generic.extract_lane'"
 
 /// Squeeze phase of `keccak4`: extract `out0.len()` bytes from each
 /// lane of `s` into `out0..out3`, applying Keccak-f between each
-/// full rate-byte block of output.
-/// **Per-lane spec-equivalence ensures NOT YET proved.**  The
-/// monolithic inline-ensures approach (mirror of Portable.squeeze at
-/// N=4) hits the same Z3 BoxBool cascade documented in the
-/// 2026-04-25 squeeze2 post-mortem; at N=4 it is even worse (8 forall
-/// conjuncts in the loop invariant vs 4 at N=2).  See HANDOFF.md
-/// \"2026-04-25 (later)\" section for the path forward via per-lane
-/// `Sponge.Avx2.Steps` lemmas (Option B).  Until that lands,
-/// `lemma_squeeze4_avx2` in `EquivImplSpec.Sponge.Avx2.API.fst`
-/// remains an `assume val`.  The `squeeze_last4` helper above and the
-/// `out0.len() < usize::MAX - 200` precondition propagation up to
-/// `keccak4` and `avx2::shake256` are kept — they are infrastructure
-/// for the eventual proof.
+/// full rate-byte block of output.  Mirrors the Arm64 `squeeze2`
+/// shape: branch on `blocks==0`, delegate the full-blocks loop to
+/// `squeeze4_blocks`, handle the trailing partial block, and discharge
+/// the full `Seq`-equality functional spec via `lemma_squeezed_upto_full`
+/// — closing within each branch so no VC carries both the loop and the
+/// byteform `squeeze` equality.
 let squeeze4
       (v_RATE: usize)
       (s:
@@ -365,10 +712,9 @@ let squeeze4
                 v_RATE
               <:
               t_Slice u8))) =
-  let out0_len:usize = Core_models.Slice.impl__len #u8 out0 in
-  let out1_len:usize = Core_models.Slice.impl__len #u8 out1 in
-  let out2_len:usize = Core_models.Slice.impl__len #u8 out2 in
-  let out3_len:usize = Core_models.Slice.impl__len #u8 out3 in
+  let s_init_st:t_Array Libcrux_intrinsics.Avx2_extract.t_Vec256 (mk_usize 25) =
+    s.Libcrux_sha3.Generic_keccak.f_st
+  in
   let outlen:usize = Core_models.Slice.impl__len #u8 out0 in
   let blocks:usize = outlen /! v_RATE in
   let last:usize = outlen -! (outlen %! v_RATE <: usize) in
@@ -382,6 +728,17 @@ let squeeze4
   =
     if blocks =. mk_usize 0
     then
+      let _:Prims.unit =
+        if v outlen < v Core_models.Num.impl_usize__MAX - 200
+        then
+          EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_squeeze_first_driver_avx2 v_RATE
+            s
+            out0
+            out1
+            out2
+            out3
+            outlen
+      in
       let (tmp0: t_Slice u8), (tmp1: t_Slice u8), (tmp2: t_Slice u8), (tmp3: t_Slice u8) =
         Libcrux_sha3.Traits.f_squeeze4 #(Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 4)
               Libcrux_intrinsics.Avx2_extract.t_Vec256) #Libcrux_intrinsics.Avx2_extract.t_Vec256
@@ -392,93 +749,111 @@ let squeeze4
       let out2:t_Slice u8 = tmp2 in
       let out3:t_Slice u8 = tmp3 in
       let _:Prims.unit = () in
+      let _:Prims.unit =
+        if v outlen < v Core_models.Num.impl_usize__MAX - 200
+        then
+          (EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_squeeze_length outlen
+              (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                  EquivImplSpec.Keccakf.Avx2.lc_avx2
+                  s_init_st
+                  0)
+              v_RATE;
+            EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_squeeze_length outlen
+              (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                  EquivImplSpec.Keccakf.Avx2.lc_avx2
+                  s_init_st
+                  1)
+              v_RATE;
+            EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_squeeze_length outlen
+              (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                  EquivImplSpec.Keccakf.Avx2.lc_avx2
+                  s_init_st
+                  2)
+              v_RATE;
+            EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_squeeze_length outlen
+              (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                  EquivImplSpec.Keccakf.Avx2.lc_avx2
+                  s_init_st
+                  3)
+              v_RATE;
+            EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_squeezed_upto_full (out0 <: Seq.seq u8)
+              (Hacspec_sha3.Sponge.squeeze outlen
+                  (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                      EquivImplSpec.Keccakf.Avx2.lc_avx2
+                      s_init_st
+                      0)
+                  v_RATE
+                <:
+                Seq.seq u8);
+            EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_squeezed_upto_full (out1 <: Seq.seq u8)
+              (Hacspec_sha3.Sponge.squeeze outlen
+                  (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                      EquivImplSpec.Keccakf.Avx2.lc_avx2
+                      s_init_st
+                      1)
+                  v_RATE
+                <:
+                Seq.seq u8);
+            EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_squeezed_upto_full (out2 <: Seq.seq u8)
+              (Hacspec_sha3.Sponge.squeeze outlen
+                  (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                      EquivImplSpec.Keccakf.Avx2.lc_avx2
+                      s_init_st
+                      2)
+                  v_RATE
+                <:
+                Seq.seq u8);
+            EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_squeezed_upto_full (out3 <: Seq.seq u8)
+              (Hacspec_sha3.Sponge.squeeze outlen
+                  (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                      EquivImplSpec.Keccakf.Avx2.lc_avx2
+                      s_init_st
+                      3)
+                  v_RATE
+                <:
+                Seq.seq u8))
+      in
       out0, out1, out2, out3, s
       <:
       (t_Slice u8 & t_Slice u8 & t_Slice u8 & t_Slice u8 &
         Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 4)
           Libcrux_intrinsics.Avx2_extract.t_Vec256)
     else
-      let (tmp0: t_Slice u8), (tmp1: t_Slice u8), (tmp2: t_Slice u8), (tmp3: t_Slice u8) =
-        Libcrux_sha3.Traits.f_squeeze4 #(Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 4)
-              Libcrux_intrinsics.Avx2_extract.t_Vec256) #Libcrux_intrinsics.Avx2_extract.t_Vec256
-          #FStar.Tactics.Typeclasses.solve v_RATE s out0 out1 out2 out3 (mk_usize 0) v_RATE
-      in
-      let out0:t_Slice u8 = tmp0 in
-      let out1:t_Slice u8 = tmp1 in
-      let out2:t_Slice u8 = tmp2 in
-      let out3:t_Slice u8 = tmp3 in
-      let _:Prims.unit = () in
       let
-      (out0: t_Slice u8),
-      (out1: t_Slice u8),
-      (out2: t_Slice u8),
-      (out3: t_Slice u8),
-      (s:
+      (tmp0:
         Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 4)
-          Libcrux_intrinsics.Avx2_extract.t_Vec256) =
-        Rust_primitives.Hax.Folds.fold_range (mk_usize 1)
-          blocks
-          (fun temp_0_ temp_1_ ->
-              let
-              (out0: t_Slice u8),
-              (out1: t_Slice u8),
-              (out2: t_Slice u8),
-              (out3: t_Slice u8),
-              (s:
-                Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 4)
-                  Libcrux_intrinsics.Avx2_extract.t_Vec256) =
-                temp_0_
-              in
-              let _:usize = temp_1_ in
-              ((Core_models.Slice.impl__len #u8 out0 <: usize) =. out0_len <: bool) &&
-              ((Core_models.Slice.impl__len #u8 out1 <: usize) =. out1_len <: bool) &&
-              ((Core_models.Slice.impl__len #u8 out2 <: usize) =. out2_len <: bool) &&
-              ((Core_models.Slice.impl__len #u8 out3 <: usize) =. out3_len <: bool))
-          (out0, out1, out2, out3, s
-            <:
-            (t_Slice u8 & t_Slice u8 & t_Slice u8 & t_Slice u8 &
-              Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 4)
-                Libcrux_intrinsics.Avx2_extract.t_Vec256))
-          (fun temp_0_ i ->
-              let
-              (out0: t_Slice u8),
-              (out1: t_Slice u8),
-              (out2: t_Slice u8),
-              (out3: t_Slice u8),
-              (s:
-                Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 4)
-                  Libcrux_intrinsics.Avx2_extract.t_Vec256) =
-                temp_0_
-              in
-              let i:usize = i in
-              let _:Prims.unit =
-                Libcrux_sha3.Proof_utils.Lemmas.lemma_mul_succ_le i blocks v_RATE
-              in
-              let s:Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 4)
-                Libcrux_intrinsics.Avx2_extract.t_Vec256 =
-                Libcrux_sha3.Generic_keccak.impl_2__keccakf1600 (mk_usize 4)
-                  #Libcrux_intrinsics.Avx2_extract.t_Vec256
-                  s
-              in
-              let (tmp0: t_Slice u8), (tmp1: t_Slice u8), (tmp2: t_Slice u8), (tmp3: t_Slice u8) =
-                Libcrux_sha3.Traits.f_squeeze4 #(Libcrux_sha3.Generic_keccak.t_KeccakState
-                      (mk_usize 4) Libcrux_intrinsics.Avx2_extract.t_Vec256)
-                  #Libcrux_intrinsics.Avx2_extract.t_Vec256 #FStar.Tactics.Typeclasses.solve v_RATE
-                  s out0 out1 out2 out3 (i *! v_RATE <: usize) v_RATE
-              in
-              let out0:t_Slice u8 = tmp0 in
-              let out1:t_Slice u8 = tmp1 in
-              let out2:t_Slice u8 = tmp2 in
-              let out3:t_Slice u8 = tmp3 in
-              let _:Prims.unit = () in
-              out0, out1, out2, out3, s
-              <:
-              (t_Slice u8 & t_Slice u8 & t_Slice u8 & t_Slice u8 &
-                Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 4)
-                  Libcrux_intrinsics.Avx2_extract.t_Vec256))
+          Libcrux_intrinsics.Avx2_extract.t_Vec256),
+      (tmp1: t_Slice u8),
+      (tmp2: t_Slice u8),
+      (tmp3: t_Slice u8),
+      (tmp4: t_Slice u8) =
+        squeeze4_blocks v_RATE s out0 out1 out2 out3 blocks
       in
+      let s:Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 4)
+        Libcrux_intrinsics.Avx2_extract.t_Vec256 =
+        tmp0
+      in
+      let out0:t_Slice u8 = tmp1 in
+      let out1:t_Slice u8 = tmp2 in
+      let out2:t_Slice u8 = tmp3 in
+      let out3:t_Slice u8 = tmp4 in
+      let _:Prims.unit = () in
       if last <. outlen
       then
+        let _:Prims.unit =
+          if v outlen < v Core_models.Num.impl_usize__MAX - 200
+          then
+            (Math.Lemmas.lemma_div_mod (v outlen) (v v_RATE);
+              EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_blocks_rate_split outlen v_RATE;
+              EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_squeeze_tail_driver_avx2 v_RATE
+                s_init_st
+                s
+                out0
+                out1
+                out2
+                out3
+                blocks)
+        in
         let s:Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 4)
           Libcrux_intrinsics.Avx2_extract.t_Vec256 =
           Libcrux_sha3.Generic_keccak.impl_2__keccakf1600 (mk_usize 4)
@@ -496,12 +871,142 @@ let squeeze4
         let out2:t_Slice u8 = tmp2 in
         let out3:t_Slice u8 = tmp3 in
         let _:Prims.unit = () in
+        let _:Prims.unit =
+          if v outlen < v Core_models.Num.impl_usize__MAX - 200
+          then
+            (EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_squeeze_length outlen
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                    EquivImplSpec.Keccakf.Avx2.lc_avx2
+                    s_init_st
+                    0)
+                v_RATE;
+              EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_squeeze_length outlen
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                    EquivImplSpec.Keccakf.Avx2.lc_avx2
+                    s_init_st
+                    1)
+                v_RATE;
+              EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_squeeze_length outlen
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                    EquivImplSpec.Keccakf.Avx2.lc_avx2
+                    s_init_st
+                    2)
+                v_RATE;
+              EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_squeeze_length outlen
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                    EquivImplSpec.Keccakf.Avx2.lc_avx2
+                    s_init_st
+                    3)
+                v_RATE;
+              EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_squeezed_upto_full (out0 <: Seq.seq u8)
+                (Hacspec_sha3.Sponge.squeeze outlen
+                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                        EquivImplSpec.Keccakf.Avx2.lc_avx2
+                        s_init_st
+                        0)
+                    v_RATE
+                  <:
+                  Seq.seq u8);
+              EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_squeezed_upto_full (out1 <: Seq.seq u8)
+                (Hacspec_sha3.Sponge.squeeze outlen
+                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                        EquivImplSpec.Keccakf.Avx2.lc_avx2
+                        s_init_st
+                        1)
+                    v_RATE
+                  <:
+                  Seq.seq u8);
+              EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_squeezed_upto_full (out2 <: Seq.seq u8)
+                (Hacspec_sha3.Sponge.squeeze outlen
+                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                        EquivImplSpec.Keccakf.Avx2.lc_avx2
+                        s_init_st
+                        2)
+                    v_RATE
+                  <:
+                  Seq.seq u8);
+              EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_squeezed_upto_full (out3 <: Seq.seq u8)
+                (Hacspec_sha3.Sponge.squeeze outlen
+                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                        EquivImplSpec.Keccakf.Avx2.lc_avx2
+                        s_init_st
+                        3)
+                    v_RATE
+                  <:
+                  Seq.seq u8))
+        in
         out0, out1, out2, out3, s
         <:
         (t_Slice u8 & t_Slice u8 & t_Slice u8 & t_Slice u8 &
           Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 4)
             Libcrux_intrinsics.Avx2_extract.t_Vec256)
       else
+        let _:Prims.unit =
+          if v outlen < v Core_models.Num.impl_usize__MAX - 200
+          then
+            (EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_exact_multiple outlen v_RATE;
+              assert (v blocks * v v_RATE == v outlen);
+              EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_squeeze_length outlen
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                    EquivImplSpec.Keccakf.Avx2.lc_avx2
+                    s_init_st
+                    0)
+                v_RATE;
+              EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_squeeze_length outlen
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                    EquivImplSpec.Keccakf.Avx2.lc_avx2
+                    s_init_st
+                    1)
+                v_RATE;
+              EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_squeeze_length outlen
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                    EquivImplSpec.Keccakf.Avx2.lc_avx2
+                    s_init_st
+                    2)
+                v_RATE;
+              EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_squeeze_length outlen
+                (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                    EquivImplSpec.Keccakf.Avx2.lc_avx2
+                    s_init_st
+                    3)
+                v_RATE;
+              EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_squeezed_upto_full (out0 <: Seq.seq u8)
+                (Hacspec_sha3.Sponge.squeeze outlen
+                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                        EquivImplSpec.Keccakf.Avx2.lc_avx2
+                        s_init_st
+                        0)
+                    v_RATE
+                  <:
+                  Seq.seq u8);
+              EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_squeezed_upto_full (out1 <: Seq.seq u8)
+                (Hacspec_sha3.Sponge.squeeze outlen
+                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                        EquivImplSpec.Keccakf.Avx2.lc_avx2
+                        s_init_st
+                        1)
+                    v_RATE
+                  <:
+                  Seq.seq u8);
+              EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_squeezed_upto_full (out2 <: Seq.seq u8)
+                (Hacspec_sha3.Sponge.squeeze outlen
+                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                        EquivImplSpec.Keccakf.Avx2.lc_avx2
+                        s_init_st
+                        2)
+                    v_RATE
+                  <:
+                  Seq.seq u8);
+              EquivImplSpec.Sponge.Avx2.SqueezeDriver.lemma_squeezed_upto_full (out3 <: Seq.seq u8)
+                (Hacspec_sha3.Sponge.squeeze outlen
+                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
+                        EquivImplSpec.Keccakf.Avx2.lc_avx2
+                        s_init_st
+                        3)
+                    v_RATE
+                  <:
+                  Seq.seq u8))
+        in
         out0, out1, out2, out3, s
         <:
         (t_Slice u8 & t_Slice u8 & t_Slice u8 & t_Slice u8 &
