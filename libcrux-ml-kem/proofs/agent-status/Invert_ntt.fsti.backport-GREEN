@@ -1,0 +1,222 @@
+module Libcrux_ml_kem.Invert_ntt
+#set-options "--fuel 0 --ifuel 1 --z3rlimit 80"
+open FStar.Mul
+open Core_models
+
+let _ =
+  (* This module has implicit dependencies, here we make them explicit. *)
+  (* The implicit dependencies arise from typeclasses instances. *)
+  let open Libcrux_ml_kem.Vector.Traits in
+  ()
+
+val invert_ntt_at_layer_1_
+      (#v_Vector: Type0)
+      {| i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector |}
+      (zeta_i: usize)
+      (re: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
+    : Prims.Pure (usize & Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
+      (requires
+        Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector
+          (mk_usize 4 *! mk_usize 3328 <: usize)
+          re /\ b2t (zeta_i =. mk_usize 128 <: bool))
+      (ensures
+        fun temp_0_ ->
+          let
+          (zeta_i_future: usize),
+          (re_future: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector) =
+            temp_0_
+          in
+          Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector (mk_usize 3328) re_future /\
+          b2t (zeta_i_future =. mk_usize 64 <: bool) /\
+          (forall (i: usize).
+              i <. mk_usize 16 ==>
+              Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_array (mk_usize 16)
+                (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector
+                    (Seq.index re_future.f_coefficients (v i))) ==
+              Hacspec_ml_kem.Invert_ntt.ntt_inverse_layer_n (mk_usize 16)
+                (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_array (mk_usize 16)
+                    (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector
+                        (Seq.index re.f_coefficients (v i))))
+                (mk_usize 2)
+                (Rust_primitives.unsize (Libcrux_ml_kem.Vector.Traits.Spec.zetas_4_ (Libcrux_ml_kem.Polynomial.zeta
+                            (mk_usize 127 -! mk_usize 4 *! i))
+                        (Libcrux_ml_kem.Polynomial.zeta (mk_usize 126 -! mk_usize 4 *! i))
+                        (Libcrux_ml_kem.Polynomial.zeta (mk_usize 125 -! mk_usize 4 *! i))
+                        (Libcrux_ml_kem.Polynomial.zeta (mk_usize 124 -! mk_usize 4 *! i))))))
+
+val invert_ntt_at_layer_2_
+      (#v_Vector: Type0)
+      {| i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector |}
+      (zeta_i: usize)
+      (re: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
+    : Prims.Pure (usize & Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
+      (requires
+        Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector (mk_usize 3328) re /\
+        b2t (zeta_i =. mk_usize 64 <: bool))
+      (ensures
+        fun temp_0_ ->
+          let
+          (zeta_i_future: usize),
+          (re_future: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector) =
+            temp_0_
+          in
+          Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector
+            (mk_usize 2 *! mk_usize 3328 <: usize)
+            re_future /\ b2t (zeta_i_future =. mk_usize 32 <: bool) /\
+          (forall (i: usize).
+              i <. mk_usize 16 ==>
+              Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_array (mk_usize 16)
+                (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector
+                    (Seq.index re_future.f_coefficients (v i))) ==
+              Hacspec_ml_kem.Invert_ntt.ntt_inverse_layer_n (mk_usize 16)
+                (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_array (mk_usize 16)
+                    (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector
+                        (Seq.index re.f_coefficients (v i))))
+                (mk_usize 4)
+                (Rust_primitives.unsize (Libcrux_ml_kem.Vector.Traits.Spec.zetas_2_ (Libcrux_ml_kem.Polynomial.zeta
+                            (mk_usize 63 -! mk_usize 2 *! i))
+                        (Libcrux_ml_kem.Polynomial.zeta (mk_usize 62 -! mk_usize 2 *! i))))))
+
+val invert_ntt_at_layer_3_
+      (#v_Vector: Type0)
+      {| i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector |}
+      (zeta_i: usize)
+      (re: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
+    : Prims.Pure (usize & Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
+      (requires
+        Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector
+          (mk_usize 2 *! mk_usize 3328 <: usize)
+          re /\ b2t (zeta_i =. mk_usize 32 <: bool))
+      (ensures
+        fun temp_0_ ->
+          let
+          (zeta_i_future: usize),
+          (re_future: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector) =
+            temp_0_
+          in
+          Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector
+            (mk_usize 4 *! mk_usize 3328 <: usize)
+            re_future /\ b2t (zeta_i_future =. mk_usize 16 <: bool) /\
+          (forall (i: usize).
+              i <. mk_usize 16 ==>
+              Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_array (mk_usize 16)
+                (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector
+                    (Seq.index re_future.f_coefficients (v i))) ==
+              Hacspec_ml_kem.Invert_ntt.ntt_inverse_layer_n (mk_usize 16)
+                (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_array (mk_usize 16)
+                    (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector
+                        (Seq.index re.f_coefficients (v i))))
+                (mk_usize 8)
+                (Rust_primitives.unsize (Libcrux_ml_kem.Vector.Traits.Spec.zetas_1_ (Libcrux_ml_kem.Polynomial.zeta
+                            (mk_usize 31 -! i))))))
+
+val inv_ntt_step_post
+      (#v_Vector: Type0)
+      {| i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector |}
+      (a b r0 r1: v_Vector)
+      (zeta_r: i16)
+    : Prims.Pure Hax_lib.Prop.t_Prop Prims.l_True (fun _ -> Prims.l_True)
+
+val inv_ntt_layer_int_vec_step_reduce
+      (#v_Vector: Type0)
+      {| i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector |}
+      (a b: v_Vector)
+      (zeta_r: i16)
+    : Prims.Pure (v_Vector & v_Vector)
+      (requires
+        Libcrux_ml_kem.Polynomial.Spec.is_bounded_vector #v_Vector
+          (mk_usize 4 *! mk_usize 3328 <: usize)
+          a /\
+        Libcrux_ml_kem.Polynomial.Spec.is_bounded_vector #v_Vector
+          (mk_usize 4 *! mk_usize 3328 <: usize)
+          b /\
+        b2t ((zeta_r >=. mk_i16 (-1664) <: bool) && (zeta_r <=. mk_i16 1664 <: bool)))
+      (ensures
+        fun temp_0_ ->
+          let (r0: v_Vector), (r1: v_Vector) = temp_0_ in
+          Libcrux_ml_kem.Polynomial.Spec.is_bounded_vector #v_Vector (mk_usize 3328) r0 /\
+          Libcrux_ml_kem.Polynomial.Spec.is_bounded_vector #v_Vector (mk_usize 3328) r1 /\
+          inv_ntt_step_post #v_Vector a b r0 r1 zeta_r)
+
+val invert_ntt_at_layer_4_plus
+      (#v_Vector: Type0)
+      {| i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector |}
+      (zeta_i: usize)
+      (re: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
+      (layer: usize)
+    : Prims.Pure (usize & Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
+      (requires
+        Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector
+          (mk_usize 4 *! mk_usize 3328 <: usize)
+          re /\
+        b2t
+        (match layer <: usize with
+          | Rust_primitives.Integers.MkInt 4 -> zeta_i =. mk_usize 16 <: bool
+          | Rust_primitives.Integers.MkInt 5 -> zeta_i =. mk_usize 8 <: bool
+          | Rust_primitives.Integers.MkInt 6 -> zeta_i =. mk_usize 4 <: bool
+          | Rust_primitives.Integers.MkInt 7 -> zeta_i =. mk_usize 2 <: bool
+          | _ -> false))
+      (ensures
+        fun temp_0_ ->
+          let
+          (zeta_i_future: usize),
+          (re_future: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector) =
+            temp_0_
+          in
+          Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector (mk_usize 3328) re_future /\
+          b2t
+          (match layer <: usize with
+            | Rust_primitives.Integers.MkInt 4 -> zeta_i_future =. mk_usize 8 <: bool
+            | Rust_primitives.Integers.MkInt 5 -> zeta_i_future =. mk_usize 4 <: bool
+            | Rust_primitives.Integers.MkInt 6 -> zeta_i_future =. mk_usize 2 <: bool
+            | Rust_primitives.Integers.MkInt 7 -> zeta_i_future =. mk_usize 1 <: bool
+            | _ -> false) /\
+          Hacspec_ml_kem.Commute.Chunk.to_spec_poly_mont #v_Vector re_future ==
+          Hacspec_ml_kem.Invert_ntt.ntt_inverse_layer (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_mont
+                #v_Vector
+                re)
+            layer)
+
+/// Run the seven Gentleman-Sande inverse-NTT layers (Montgomery zetas, no
+/// per-layer finalize).  The lane-storage convention here is libcrux\'s
+/// `·R⁻¹` form: callers (matrix-vector products composed of `ntt_multiply`
+/// + `add_to_ring_element`) hand us coefficients whose i16 value `v c`
+/// satisfies `v c ≡ value · R⁻¹ (mod q)`, where `value` is the FIPS-203
+/// \"real\" spec value.  Each GS butterfly uses `montgomery_multiply(b, ζ·R)
+/// = b · ζ · R · R⁻¹ = b · ζ`, so the Montgomery scalar of `ζ` cancels
+/// with `mont_mul`\'s built-in `· R⁻¹` and the `·R⁻¹` form is preserved.
+/// On exit, `re` represents `ntt_inverse_butterflies(input_real)` still
+/// in `·R⁻¹` form — the missing `· 128⁻¹` finalize that turns the 7-layer
+/// butterfly chain into FIPS-203 `ntt_inverse` is **fused into the next
+/// per-element op** by the caller.  Specifically, the three INTT-track
+/// reduce fns in `polynomial.rs` (`subtract_reduce`,
+/// `add_message_error_reduce`, `add_error_reduce`) immediately follow
+/// `invert_ntt_montgomery` with a single `mont_mul(_, 1441)` step.  The
+/// constant `1441 = R²/128 mod q` (per `pq-crystals/kyber/main/ref/ntt.c`
+/// line 106: `const int16_t f = 1441; // mont^2/128`); on a `·R⁻¹` lane,
+/// `mont_mul(_, 1441) = (·R⁻¹) · 1441 · R⁻¹ = · (R²/128) · R⁻² = · 1/128`,
+/// which simultaneously
+///   (a) discharges the missing `· 128⁻¹` from the 7 GS layers, and
+///   (b) brings the lane back to plain form (`v c ≡ value · 1`).
+/// Cross-spec runtime evidence: `ntt_matches_spec`,
+/// `ntt_multiply_matches_spec`, and `full_ntt_multiply_chain_matches_spec`
+/// in `src/ntt.rs` execute the entire pipeline and `assert_eq!` against
+/// the hacspec reference, confirming that all Montgomery factors cancel
+/// through this chain.
+val invert_ntt_montgomery
+      (v_K: usize)
+      (#v_Vector: Type0)
+      {| i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector |}
+      (re: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
+    : Prims.Pure (Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
+      (requires
+        b2t (v_K <=. mk_usize 4 <: bool) /\
+        Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector (v_K *! mk_usize 3328 <: usize) re)
+      (ensures
+        fun re_future ->
+          let re_future:Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector = re_future in
+          Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector (mk_usize 3328) re_future /\
+          Hacspec_ml_kem.Commute.Chunk.to_spec_poly_mont #v_Vector re_future ==
+          Hacspec_ml_kem.Invert_ntt.ntt_inverse_butterflies (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_mont
+                #v_Vector
+                re))

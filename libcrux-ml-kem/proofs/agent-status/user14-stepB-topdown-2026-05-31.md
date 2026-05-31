@@ -73,7 +73,55 @@ maintenance = ONE `lemma_inner_step_maintains` call (+ the existing `lemma_offse
 - `agent-status/Invert_ntt.fst.stepB-topdown-wip` — current on-disk .fst (this session).
 - `agent-status/Invert_ntt.fst.stepB-cvda-backup` — prior session base (inline maintenance).
 
-## Backport plan (Task #6, pending .fst green)
+## Backport progress (Task #6, IN PROGRESS)
+### DONE — opacity fix in `invert_ntt.rs` (working tree, untested pending full extract)
+- Added `#[cfg(hax)] #[fstar::before([@@ "opaque_to_smt"])] pub(crate) fn inv_ntt_step_post<Vector>(a,b,r0,r1: &Vector, zeta_r: i16) -> hax_lib::Prop` with the two per-lane foralls as `fstar_prop_expr!`, placed before `inv_ntt_layer_int_vec_step_reduce`.
+- `inv_ntt_layer_int_vec_step_reduce` `#[ensures]`: replaced the raw foralls with `fstar!(r#"inv_ntt_step_post #$:Vector ${a} ${b} ${r0} ${r1} ${zeta_r}"#)`.
+- Body: appended `hax_lib::fstar!(reveal_opaque (\`%inv_ntt_step_post) (inv_ntt_step_post #$:Vector ${_a_in} ${_b_in} ${r0} ${r1} ${zeta_r}))`.
+
+### REMAINING — confirmed mechanism: RAW `fstar::before` injection (NO type reshape)
+The verified `.fst` lemmas use native-F* `pos`/`nat`/`t_Array`/`Seq` (don't round-trip through Rust
+types), so inject them VERBATIM (they're standalone, no `${}` antiquotation) and have the function
+reference them via `fstar!` with `v`-projected args. Steps:
+1. On `invert_ntt_at_layer_4_plus`, add ONE `#[cfg_attr(hax, hax_lib::fstar::before(r#" <verbatim F*> "#))]`
+   containing, IN ORDER (copy from the committed verified `.fst`, lines ~434–984): `lemma_step_keystone`,
+   `cross_vec_done_at` + `lemma_cvda_intro/reveal/frame1`, `lemma_cross_vec_frame_others`, `lemma_inner_index`,
+   `lemma_offset_vec`, `lemma_layer_numeric_facts`, `lemma_step_keystone_loop`, `outer_inv`, `inner_inv`,
+   `lemma_outer_inv_lookup`, `lemma_inner_inv_lookup`, `lemma_outer_inv_init`, `lemma_inner_inv_init`,
+   `lemma_inner_step_maintains`, `lemma_inner_to_outer`, `lemma_postloop_cross_vec`, PLUS a new
+   `let zs_of (layer e_zeta_i_init: usize) : t_Slice Hacspec_ml_kem.Parameters.t_FieldElement =
+   Seq.init (v (mk_usize 128 >>! layer)) (fun (r:nat{r < v (mk_usize 128>>!layer)}) ->
+   mont_i16_to_spec_fe (zeta (e_zeta_i_init -! mk_usize 1 -! mk_usize r)))`.
+   (The raw F* embeds cleanly in `r#"..."#` — backticks/`#push-options "..."` are fine; no `"#` sequence appears.)
+2. Remove `#[hax_lib::fstar::options("--admit_smt_queries true")]`; restore the real options
+   `("--z3rlimit 400 --ext context_pruning --split_queries always")`.
+3. Function body (mirror the committed verified `.fst` fn + layer_1's idiom):
+   - `#[cfg(hax)] let _re_init = re.coefficients;` and `#[cfg(hax)] let _re0 = ...` (or just use _re_init —
+     `lemma_layer_4_plus_post_from_cross_vec` needs re_in.f_coefficients == _re_init).
+   - `let step = 1 << layer;`, `let groups = 128 >> layer;`, `let step_vec_n = step / FIELD_ELEMENTS_IN_VECTOR;`
+     (usize; pass `(v ${step_vec_n})` for the nat/pos arg — F* proves pos from the numeric facts).
+   - `hax_lib::fstar!(r#"lemma_layer_numeric_facts ${layer} ${_zeta_i_init}"#);` before the loop.
+   - `hax_lib::fstar!(r#"lemma_outer_inv_init #$:Vector ${_re_init} ${re}.f_coefficients (v ${step_vec_n}) (zs_of ${layer} ${_zeta_i_init}) ${step}"#);` (outer-fold init).
+   - outer `loop_invariant!(|round| { (*zeta_i == _zeta_i_init - round).to_prop() & fstar!(r#"outer_inv #$:Vector ${_re_init} ${re}.f_coefficients (v ${step_vec_n}) (zs_of ${layer} ${_zeta_i_init}) ${round} ${step}"#) })`.
+   - outer body: before inner loop `fstar!(lemma_inner_inv_init … round step offset_vec step_vec)`; inner
+     `loop_invariant!(|j| fstar!(r#"inner_inv #$:Vector ${_re_init} ${re}.f_coefficients (v ${step_vec_n}) (zs_of …) ${offset_vec} ${step_vec} ${j}"#))`.
+   - inner body: BEFORE the step, `fstar!(lemma_inner_inv_lookup … j j; lemma_inner_inv_lookup … j (j+!step_vec))`
+     (expose the 4*3328 bounds for the step precondition); after the two `re.coefficients[..] = ` updates,
+     `fstar!(lemma_offset_vec …; FStar.Seq.Base.init_index_ …; lemma_inner_step_maintains …)`.
+   - after inner loop: `fstar!(lemma_offset_vec …; lemma_inner_to_outer … (round+!1) (offset_vec+!step_vec))`.
+   - epilogue: the zeta-table `aux` forall, `lemma_offset_vec (v groups) …`, the `is_bounded_poly 3328`
+     `auxb` forall via `lemma_outer_inv_lookup … (sz i)`, `lemma_postloop_cross_vec …`,
+     `lemma_layer_4_plus_post_from_cross_vec _re0 re layer step (v step_vec_n) (zs_of …)`.
+4. `cargo check` (won't validate cfg(hax) bodies); then re-extract; then per-stage clean build of
+   `check/Libcrux_ml_kem.Invert_ntt.fst` (delete its .checked + hints first). Iterate: the extracted
+   function from loop_invariant!/fstar! must verify — compare to the committed verified `.fst` (commit
+   `55cdf0a2d`) and adjust the Rust until the extracted module verifies with NO admit/assume.
+5. SAFETY: before re-extracting (it OVERWRITES the on-disk `.fst`/`.fsti`), the verified versions are at
+   commit `55cdf0a2d` (`agent-status/Invert_ntt.{fst,fsti}.stepB-topdown-VERIFIED`), `/tmp/Invert_ntt.{fst,fsti}.VERIFIED.bak`,
+   and `/Users/karthik/user14-backups/*.tgz`. If extraction breaks the module, restore the scratch `.fst`/`.fsti`
+   to rebuild-verify, and iterate the Rust.
+
+## (original) Backport plan (Task #6, pending .fst green)
 The .fst is scratch ahead of Rust. Backport to `invert_ntt.rs`:
 1. **Opacity fix**: `inv_ntt_step_post` opaque pred (currently .fsti-scratch) → inject via
    `#[hax_lib::fstar::before(interface, r#"[@@ "opaque_to_smt"] let inv_ntt_step_post ... "#)]`;
