@@ -31,7 +31,7 @@ config=$extract_root/extract.yaml
 out=generated
 glue=$EURYDICE_HOME/include/eurydice_glue.h
 features_mlkem="${features} --no-default-features --features=mlkem768"
-features_mldsa="${features} --no-default-features --features=mldsa65"
+features_mldsa="${features} --no-default-features --features=mldsa65 --features=mldsa44 --features=mldsa87"
 eurydice_glue=1
 karamel_include=1
 unrolling=16

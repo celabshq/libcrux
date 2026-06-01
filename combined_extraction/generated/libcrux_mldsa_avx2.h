@@ -8,7 +8,7 @@
  * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
  * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
  * F*: unset
- * Libcrux: ae092f4921933e45dec31610a1465191171e5b3f
+ * Libcrux: c4e5e5e511bbc4c53f826163f57bfd10e9228911
  */
 
 
@@ -18,6 +18,9 @@
 #include "eurydice_glue.h"
 
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
 #include "intrinsics/libcrux_intrinsics_avx2.h"
 
@@ -82,7 +85,7 @@ KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE Eurydice_arr_ff
 libcrux_ml_dsa_hash_functions_simd256_squeeze_first_block_shake256(Eurydice_arr_7c *state)
 {
-  Eurydice_arr_ff out = { { 0U } };
+  Eurydice_arr_ff out = { .data = { 0U } };
   libcrux_sha3_portable_incremental_shake256_squeeze_first_block(state,
     Eurydice_array_to_slice_mut_58(&out));
   return out;
@@ -92,16 +95,17 @@ KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE Eurydice_arr_ff_x4
 libcrux_ml_dsa_hash_functions_simd256_squeeze_first_block_x4(Eurydice_arr_c40 *state)
 {
-  Eurydice_arr_ff out0 = { { 0U } };
-  Eurydice_arr_ff out1 = { { 0U } };
-  Eurydice_arr_ff out2 = { { 0U } };
-  Eurydice_arr_ff out3 = { { 0U } };
+  Eurydice_arr_ff out0 = { .data = { 0U } };
+  Eurydice_arr_ff out1 = { .data = { 0U } };
+  Eurydice_arr_ff out2 = { .data = { 0U } };
+  Eurydice_arr_ff out3 = { .data = { 0U } };
   libcrux_sha3_avx2_x4_incremental_shake256_squeeze_first_block(state,
     Eurydice_array_to_slice_mut_58(&out0),
     Eurydice_array_to_slice_mut_58(&out1),
     Eurydice_array_to_slice_mut_58(&out2),
     Eurydice_array_to_slice_mut_58(&out3));
-  return (Eurydice_arr_ff_x4{ out0, out1, out2, out3 });
+  return
+    (KRML_CLITERAL(Eurydice_arr_ff_x4){ .fst = out0, .snd = out1, .thd = out2, .f3 = out3 });
 }
 
 KRML_ATTRIBUTE_TARGET("avx2")
@@ -125,23 +129,24 @@ KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE Eurydice_arr_c5_x4
 libcrux_ml_dsa_hash_functions_simd256_squeeze_next_block(Eurydice_arr_c40 *state)
 {
-  Eurydice_arr_c5 out0 = { { 0U } };
-  Eurydice_arr_c5 out1 = { { 0U } };
-  Eurydice_arr_c5 out2 = { { 0U } };
-  Eurydice_arr_c5 out3 = { { 0U } };
+  Eurydice_arr_c5 out0 = { .data = { 0U } };
+  Eurydice_arr_c5 out1 = { .data = { 0U } };
+  Eurydice_arr_c5 out2 = { .data = { 0U } };
+  Eurydice_arr_c5 out3 = { .data = { 0U } };
   libcrux_sha3_avx2_x4_incremental_shake128_squeeze_next_block(state,
     Eurydice_array_to_slice_mut_2c(&out0),
     Eurydice_array_to_slice_mut_2c(&out1),
     Eurydice_array_to_slice_mut_2c(&out2),
     Eurydice_array_to_slice_mut_2c(&out3));
-  return (Eurydice_arr_c5_x4{ out0, out1, out2, out3 });
+  return
+    (KRML_CLITERAL(Eurydice_arr_c5_x4){ .fst = out0, .snd = out1, .thd = out2, .f3 = out3 });
 }
 
 KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE Eurydice_arr_ff
 libcrux_ml_dsa_hash_functions_simd256_squeeze_next_block_shake256(Eurydice_arr_7c *state)
 {
-  Eurydice_arr_ff out = { { 0U } };
+  Eurydice_arr_ff out = { .data = { 0U } };
   libcrux_sha3_portable_incremental_shake256_squeeze_next_block(state,
     Eurydice_array_to_slice_mut_58(&out));
   return out;
@@ -151,16 +156,17 @@ KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE Eurydice_arr_ff_x4
 libcrux_ml_dsa_hash_functions_simd256_squeeze_next_block_x4(Eurydice_arr_c40 *state)
 {
-  Eurydice_arr_ff out0 = { { 0U } };
-  Eurydice_arr_ff out1 = { { 0U } };
-  Eurydice_arr_ff out2 = { { 0U } };
-  Eurydice_arr_ff out3 = { { 0U } };
+  Eurydice_arr_ff out0 = { .data = { 0U } };
+  Eurydice_arr_ff out1 = { .data = { 0U } };
+  Eurydice_arr_ff out2 = { .data = { 0U } };
+  Eurydice_arr_ff out3 = { .data = { 0U } };
   libcrux_sha3_avx2_x4_incremental_shake256_squeeze_next_block(state,
     Eurydice_array_to_slice_mut_58(&out0),
     Eurydice_array_to_slice_mut_58(&out1),
     Eurydice_array_to_slice_mut_58(&out2),
     Eurydice_array_to_slice_mut_58(&out3));
-  return (Eurydice_arr_ff_x4{ out0, out1, out2, out3 });
+  return
+    (KRML_CLITERAL(Eurydice_arr_ff_x4){ .fst = out0, .snd = out1, .thd = out2, .f3 = out3 });
 }
 
 /**
@@ -573,8 +579,8 @@ libcrux_ml_dsa_simd_avx2_arithmetic_use_hint(int32_t gamma2, const __m256i *r, _
   core_core_arch_x86___m256i_x2
   uu____0 =
     {
-      libcrux_intrinsics_avx2_mm256_setzero_si256(),
-      libcrux_intrinsics_avx2_mm256_setzero_si256()
+      .fst = libcrux_intrinsics_avx2_mm256_setzero_si256(),
+      .snd = libcrux_intrinsics_avx2_mm256_setzero_si256()
     };
   __m256i r0 = uu____0.fst;
   __m256i r1 = uu____0.snd;
@@ -740,7 +746,7 @@ libcrux_ml_dsa_simd_avx2_rejection_sample_less_than_field_modulus_bytestream_to_
   Eurydice_borrow_slice_u8 serialized
 )
 {
-  Eurydice_arr_ec serialized_extended = { { 0U } };
+  Eurydice_arr_ec serialized_extended = { .data = { 0U } };
   Eurydice_slice_copy(Eurydice_array_to_subslice_to_mut_21(&serialized_extended, (size_t)24U),
     serialized,
     uint8_t);
@@ -791,7 +797,7 @@ libcrux_ml_dsa_simd_avx2_rejection_sample_less_than_field_modulus_bytestream_to_
       libcrux_intrinsics_avx2_mm256_set1_epi32(LIBCRUX_ML_DSA_SIMD_AVX2_REJECTION_SAMPLE_LESS_THAN_FIELD_MODULUS_BYTESTREAM_TO_POTENTIAL_COEFFICIENTS_COEFFICIENT_MASK));
 }
 
-#define LIBCRUX_ML_DSA_SIMD_AVX2_REJECTION_SAMPLE_SHUFFLE_TABLE_SHUFFLE_TABLE ((Eurydice_arr_a30{ { { { 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 6U, 7U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U } }, { { 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 6U, 7U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { { 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U } } } }))
+#define LIBCRUX_ML_DSA_SIMD_AVX2_REJECTION_SAMPLE_SHUFFLE_TABLE_SHUFFLE_TABLE ((KRML_CLITERAL(Eurydice_arr_a30){ .data = { { .data = { 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 6U, 7U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U } }, { .data = { 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 6U, 7U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { .data = { 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U } } } }))
 
 KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE size_t
@@ -828,7 +834,7 @@ libcrux_ml_dsa_simd_avx2_rejection_sample_less_than_field_modulus_sample(
     libcrux_intrinsics_avx2_mm_shuffle_epi8(lower_coefficients,
       lower_shuffles0);
   libcrux_intrinsics_avx2_mm_storeu_si128_i32(Eurydice_slice_subslice_mut_47(output,
-      (core_ops_range_Range_87{ (size_t)0U, (size_t)4U })),
+      (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)4U })),
     lower_coefficients0);
   size_t sampled_count = (size_t)core_num__i32__count_ones(good_lower_half);
   Eurydice_arr_b2
@@ -847,7 +853,12 @@ libcrux_ml_dsa_simd_avx2_rejection_sample_less_than_field_modulus_sample(
     libcrux_intrinsics_avx2_mm_shuffle_epi8(upper_coefficients,
       upper_shuffles0);
   libcrux_intrinsics_avx2_mm_storeu_si128_i32(Eurydice_slice_subslice_mut_47(output,
-      (core_ops_range_Range_87{ sampled_count, sampled_count + (size_t)4U })),
+      (
+        KRML_CLITERAL(core_ops_range_Range_87){
+          .start = sampled_count,
+          .end = sampled_count + (size_t)4U
+        }
+      )),
     upper_coefficients0);
   size_t uu____0 = sampled_count;
   return uu____0 + (size_t)core_num__i32__count_ones(good_upper_half);
@@ -1035,7 +1046,7 @@ libcrux_ml_dsa_simd_avx2_rejection_sample_less_than_eta_sample_af(
     libcrux_intrinsics_avx2_mm_shuffle_epi8(lower_coefficients,
       lower_shuffles0);
   libcrux_intrinsics_avx2_mm_storeu_si128_i32(Eurydice_slice_subslice_mut_47(output,
-      (core_ops_range_Range_87{ (size_t)0U, (size_t)4U })),
+      (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)4U })),
     lower_coefficients0);
   size_t sampled_count = (size_t)core_num__i32__count_ones(good_lower_half);
   Eurydice_arr_b2
@@ -1051,7 +1062,12 @@ libcrux_ml_dsa_simd_avx2_rejection_sample_less_than_eta_sample_af(
     libcrux_intrinsics_avx2_mm_shuffle_epi8(upper_coefficients,
       upper_shuffles0);
   libcrux_intrinsics_avx2_mm_storeu_si128_i32(Eurydice_slice_subslice_mut_47(output,
-      (core_ops_range_Range_87{ sampled_count, sampled_count + (size_t)4U })),
+      (
+        KRML_CLITERAL(core_ops_range_Range_87){
+          .start = sampled_count,
+          .end = sampled_count + (size_t)4U
+        }
+      )),
     upper_coefficients0);
   size_t uu____0 = sampled_count;
   return uu____0 + (size_t)core_num__i32__count_ones(good_upper_half);
@@ -1126,7 +1142,7 @@ libcrux_ml_dsa_simd_avx2_rejection_sample_less_than_eta_sample_23(
     libcrux_intrinsics_avx2_mm_shuffle_epi8(lower_coefficients,
       lower_shuffles0);
   libcrux_intrinsics_avx2_mm_storeu_si128_i32(Eurydice_slice_subslice_mut_47(output,
-      (core_ops_range_Range_87{ (size_t)0U, (size_t)4U })),
+      (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)4U })),
     lower_coefficients0);
   size_t sampled_count = (size_t)core_num__i32__count_ones(good_lower_half);
   Eurydice_arr_b2
@@ -1142,7 +1158,12 @@ libcrux_ml_dsa_simd_avx2_rejection_sample_less_than_eta_sample_23(
     libcrux_intrinsics_avx2_mm_shuffle_epi8(upper_coefficients,
       upper_shuffles0);
   libcrux_intrinsics_avx2_mm_storeu_si128_i32(Eurydice_slice_subslice_mut_47(output,
-      (core_ops_range_Range_87{ sampled_count, sampled_count + (size_t)4U })),
+      (
+        KRML_CLITERAL(core_ops_range_Range_87){
+          .start = sampled_count,
+          .end = sampled_count + (size_t)4U
+        }
+      )),
     upper_coefficients0);
   size_t uu____0 = sampled_count;
   return uu____0 + (size_t)core_num__i32__count_ones(good_upper_half);
@@ -1221,7 +1242,7 @@ libcrux_ml_dsa_simd_avx2_encoding_gamma1_serialize_when_gamma1_is_2_pow_19(
   Eurydice_mut_borrow_slice_u8 out
 )
 {
-  Eurydice_arr_ec serialized = { { 0U } };
+  Eurydice_arr_ec serialized = { .data = { 0U } };
   __m256i
   simd_unit_shifted =
     libcrux_intrinsics_avx2_mm256_sub_epi32(libcrux_intrinsics_avx2_mm256_set1_epi32(LIBCRUX_ML_DSA_SIMD_AVX2_ENCODING_GAMMA1_GAMMA1_2_POW_19),
@@ -1231,16 +1252,16 @@ libcrux_ml_dsa_simd_avx2_encoding_gamma1_serialize_when_gamma1_is_2_pow_19(
     libcrux_ml_dsa_simd_avx2_encoding_gamma1_serialize_when_gamma1_is_2_pow_19_aux(simd_unit_shifted);
   __m128i lower_4 = libcrux_intrinsics_avx2_mm256_castsi256_si128(adjacent_4_combined);
   libcrux_intrinsics_avx2_mm_storeu_bytes_si128(Eurydice_array_to_subslice_mut_d46(&serialized,
-      (core_ops_range_Range_87{ (size_t)0U, (size_t)16U })),
+      (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)16U })),
     lower_4);
   __m128i
   upper_4 = libcrux_intrinsics_avx2_mm256_extracti128_si256(1, adjacent_4_combined, __m128i);
   libcrux_intrinsics_avx2_mm_storeu_bytes_si128(Eurydice_array_to_subslice_mut_d46(&serialized,
-      (core_ops_range_Range_87{ (size_t)10U, (size_t)26U })),
+      (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)10U, .end = (size_t)26U })),
     upper_4);
   Eurydice_slice_copy(out,
     Eurydice_array_to_subslice_shared_d4(&serialized,
-      (core_ops_range_Range_87{ (size_t)0U, (size_t)20U })),
+      (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)20U })),
     uint8_t);
 }
 
@@ -1287,7 +1308,7 @@ libcrux_ml_dsa_simd_avx2_encoding_gamma1_serialize_when_gamma1_is_2_pow_17(
   Eurydice_mut_borrow_slice_u8 out
 )
 {
-  Eurydice_arr_ec serialized = { { 0U } };
+  Eurydice_arr_ec serialized = { .data = { 0U } };
   __m256i
   simd_unit_shifted =
     libcrux_intrinsics_avx2_mm256_sub_epi32(libcrux_intrinsics_avx2_mm256_set1_epi32(LIBCRUX_ML_DSA_SIMD_AVX2_ENCODING_GAMMA1_GAMMA1_2_POW_17),
@@ -1297,16 +1318,16 @@ libcrux_ml_dsa_simd_avx2_encoding_gamma1_serialize_when_gamma1_is_2_pow_17(
     libcrux_ml_dsa_simd_avx2_encoding_gamma1_serialize_when_gamma1_is_2_pow_17_aux(simd_unit_shifted);
   __m128i lower_4 = libcrux_intrinsics_avx2_mm256_castsi256_si128(adjacent_4_combined);
   libcrux_intrinsics_avx2_mm_storeu_bytes_si128(Eurydice_array_to_subslice_mut_d46(&serialized,
-      (core_ops_range_Range_87{ (size_t)0U, (size_t)16U })),
+      (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)16U })),
     lower_4);
   __m128i
   upper_4 = libcrux_intrinsics_avx2_mm256_extracti128_si256(1, adjacent_4_combined, __m128i);
   libcrux_intrinsics_avx2_mm_storeu_bytes_si128(Eurydice_array_to_subslice_mut_d46(&serialized,
-      (core_ops_range_Range_87{ (size_t)9U, (size_t)25U })),
+      (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)9U, .end = (size_t)25U })),
     upper_4);
   Eurydice_slice_copy(out,
     Eurydice_array_to_subslice_shared_d4(&serialized,
-      (core_ops_range_Range_87{ (size_t)0U, (size_t)18U })),
+      (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)18U })),
     uint8_t);
 }
 
@@ -1368,11 +1389,11 @@ libcrux_ml_dsa_simd_avx2_encoding_gamma1_deserialize_when_gamma1_is_2_pow_17_uns
   __m128i
   serialized_lower =
     libcrux_intrinsics_avx2_mm_loadu_si128(Eurydice_slice_subslice_shared_c8(serialized,
-        (core_ops_range_Range_87{ (size_t)0U, (size_t)16U })));
+        (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)16U })));
   __m128i
   serialized_upper =
     libcrux_intrinsics_avx2_mm_loadu_si128(Eurydice_slice_subslice_shared_c8(serialized,
-        (core_ops_range_Range_87{ (size_t)2U, (size_t)18U })));
+        (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)2U, .end = (size_t)18U })));
   __m256i
   serialized_vec = libcrux_intrinsics_avx2_mm256_set_m128i(serialized_upper, serialized_lower);
   __m256i
@@ -1435,11 +1456,11 @@ libcrux_ml_dsa_simd_avx2_encoding_gamma1_deserialize_when_gamma1_is_2_pow_19_uns
   __m128i
   serialized_lower =
     libcrux_intrinsics_avx2_mm_loadu_si128(Eurydice_slice_subslice_shared_c8(serialized,
-        (core_ops_range_Range_87{ (size_t)0U, (size_t)16U })));
+        (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)16U })));
   __m128i
   serialized_upper =
     libcrux_intrinsics_avx2_mm_loadu_si128(Eurydice_slice_subslice_shared_c8(serialized,
-        (core_ops_range_Range_87{ (size_t)4U, (size_t)20U })));
+        (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)4U, .end = (size_t)20U })));
   __m256i
   serialized_vec = libcrux_intrinsics_avx2_mm256_set_m128i(serialized_upper, serialized_lower);
   __m256i
@@ -1672,17 +1693,17 @@ libcrux_ml_dsa_simd_avx2_encoding_commitment_serialize(
   Eurydice_mut_borrow_slice_u8 out
 )
 {
-  Eurydice_arr_38 serialized = { { 0U } };
+  Eurydice_arr_38 serialized = { .data = { 0U } };
   switch ((uint32_t)(uint8_t)out.meta)
   {
     case 4U:
       {
         libcrux_intrinsics_avx2_mm_storeu_bytes_si128(Eurydice_array_to_subslice_mut_d47(&serialized,
-            (core_ops_range_Range_87{ (size_t)0U, (size_t)16U })),
+            (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)16U })),
           libcrux_ml_dsa_simd_avx2_encoding_commitment_serialize_4(simd_unit));
         Eurydice_slice_copy(out,
           Eurydice_array_to_subslice_shared_d41(&serialized,
-            (core_ops_range_Range_87{ (size_t)0U, (size_t)4U })),
+            (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)4U })),
           uint8_t);
         break;
       }
@@ -1694,14 +1715,14 @@ libcrux_ml_dsa_simd_avx2_encoding_commitment_serialize(
         __m128i
         upper_3 = libcrux_intrinsics_avx2_mm256_extracti128_si256(1, adjacent_3_combined, __m128i);
         libcrux_intrinsics_avx2_mm_storeu_bytes_si128(Eurydice_array_to_subslice_mut_d47(&serialized,
-            (core_ops_range_Range_87{ (size_t)0U, (size_t)16U })),
+            (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)16U })),
           lower_3);
         libcrux_intrinsics_avx2_mm_storeu_bytes_si128(Eurydice_array_to_subslice_mut_d47(&serialized,
-            (core_ops_range_Range_87{ (size_t)3U, (size_t)19U })),
+            (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)3U, .end = (size_t)19U })),
           upper_3);
         Eurydice_slice_copy(out,
           Eurydice_array_to_subslice_shared_d41(&serialized,
-            (core_ops_range_Range_87{ (size_t)0U, (size_t)6U })),
+            (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)6U })),
           uint8_t);
         break;
       }
@@ -1774,7 +1795,7 @@ libcrux_ml_dsa_simd_avx2_encoding_error_serialize_when_eta_is_4(
   Eurydice_mut_borrow_slice_u8 out
 )
 {
-  Eurydice_arr_b2 serialized = { { 0U } };
+  Eurydice_arr_b2 serialized = { .data = { 0U } };
   __m256i
   simd_unit_shifted =
     libcrux_intrinsics_avx2_mm256_sub_epi32(libcrux_intrinsics_avx2_mm256_set1_epi32(LIBCRUX_ML_DSA_SIMD_AVX2_ENCODING_ERROR_ETA_4),
@@ -1783,11 +1804,11 @@ libcrux_ml_dsa_simd_avx2_encoding_error_serialize_when_eta_is_4(
   adjacent_4_combined =
     libcrux_ml_dsa_simd_avx2_encoding_error_serialize_when_eta_is_4_aux(simd_unit_shifted);
   libcrux_intrinsics_avx2_mm_storeu_bytes_si128(Eurydice_array_to_subslice_mut_d48(&serialized,
-      (core_ops_range_Range_87{ (size_t)0U, (size_t)16U })),
+      (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)16U })),
     adjacent_4_combined);
   Eurydice_slice_copy(out,
     Eurydice_array_to_subslice_shared_d42(&serialized,
-      (core_ops_range_Range_87{ (size_t)0U, (size_t)4U })),
+      (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)4U })),
     uint8_t);
 }
 
@@ -1880,7 +1901,7 @@ libcrux_ml_dsa_simd_avx2_encoding_error_serialize_when_eta_is_2(
   Eurydice_mut_borrow_slice_u8 out
 )
 {
-  Eurydice_arr_b2 serialized = { { 0U } };
+  Eurydice_arr_b2 serialized = { .data = { 0U } };
   __m256i
   simd_unit_shifted =
     libcrux_intrinsics_avx2_mm256_sub_epi32(libcrux_intrinsics_avx2_mm256_set1_epi32(LIBCRUX_ML_DSA_SIMD_AVX2_ENCODING_ERROR_ETA_2),
@@ -1889,11 +1910,11 @@ libcrux_ml_dsa_simd_avx2_encoding_error_serialize_when_eta_is_2(
   adjacent_6_combined =
     libcrux_ml_dsa_simd_avx2_encoding_error_serialize_when_eta_is_2_aux(simd_unit_shifted);
   libcrux_intrinsics_avx2_mm_storeu_bytes_si128(Eurydice_array_to_subslice_mut_d48(&serialized,
-      (core_ops_range_Range_87{ (size_t)0U, (size_t)16U })),
+      (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)16U })),
     adjacent_6_combined);
   Eurydice_slice_copy(out,
     Eurydice_array_to_subslice_shared_d42(&serialized,
-      (core_ops_range_Range_87{ (size_t)0U, (size_t)3U })),
+      (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)3U })),
     uint8_t);
 }
 
@@ -2053,7 +2074,7 @@ libcrux_ml_dsa_simd_avx2_encoding_t0_serialize(
   Eurydice_mut_borrow_slice_u8 out
 )
 {
-  Eurydice_arr_b2 serialized = { { 0U } };
+  Eurydice_arr_b2 serialized = { .data = { 0U } };
   __m256i simd_unit_changed = libcrux_ml_dsa_simd_avx2_encoding_t0_change_interval(simd_unit);
   __m128i
   bits_sequential = libcrux_ml_dsa_simd_avx2_encoding_t0_serialize_aux(simd_unit_changed);
@@ -2061,7 +2082,7 @@ libcrux_ml_dsa_simd_avx2_encoding_t0_serialize(
     bits_sequential);
   Eurydice_slice_copy(out,
     Eurydice_array_to_subslice_shared_d42(&serialized,
-      (core_ops_range_Range_87{ (size_t)0U, (size_t)13U })),
+      (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)13U })),
     uint8_t);
 }
 
@@ -2087,9 +2108,9 @@ libcrux_ml_dsa_simd_avx2_encoding_t0_deserialize_unsigned(
   __m256i *out
 )
 {
-  Eurydice_arr_b2 serialized_extended = { { 0U } };
+  Eurydice_arr_b2 serialized_extended = { .data = { 0U } };
   Eurydice_slice_copy(Eurydice_array_to_subslice_mut_d48(&serialized_extended,
-      (core_ops_range_Range_87{ (size_t)0U, (size_t)13U })),
+      (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)13U })),
     serialized,
     uint8_t);
   __m128i
@@ -2170,7 +2191,7 @@ libcrux_ml_dsa_simd_avx2_encoding_t1_serialize(
   Eurydice_mut_borrow_slice_u8 out
 )
 {
-  Eurydice_arr_94 serialized = { { 0U } };
+  Eurydice_arr_94 serialized = { .data = { 0U } };
   __m256i
   adjacent_2_combined =
     libcrux_intrinsics_avx2_mm256_sllv_epi32(simd_unit[0U],
@@ -2195,16 +2216,16 @@ libcrux_ml_dsa_simd_avx2_encoding_t1_serialize(
       __m256i);
   __m128i lower_4 = libcrux_intrinsics_avx2_mm256_castsi256_si128(adjacent_4_combined1);
   libcrux_intrinsics_avx2_mm_storeu_bytes_si128(Eurydice_array_to_subslice_mut_d49(&serialized,
-      (core_ops_range_Range_87{ (size_t)0U, (size_t)16U })),
+      (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)16U })),
     lower_4);
   __m128i
   upper_4 = libcrux_intrinsics_avx2_mm256_extracti128_si256(1, adjacent_4_combined1, __m128i);
   libcrux_intrinsics_avx2_mm_storeu_bytes_si128(Eurydice_array_to_subslice_mut_d49(&serialized,
-      (core_ops_range_Range_87{ (size_t)5U, (size_t)21U })),
+      (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)5U, .end = (size_t)21U })),
     upper_4);
   Eurydice_slice_copy(out,
     Eurydice_array_to_subslice_shared_d43(&serialized,
-      (core_ops_range_Range_87{ (size_t)0U, (size_t)10U })),
+      (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)10U })),
     uint8_t);
 }
 
@@ -2227,9 +2248,9 @@ KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE void
 libcrux_ml_dsa_simd_avx2_encoding_t1_deserialize(Eurydice_borrow_slice_u8 bytes, __m256i *out)
 {
-  Eurydice_arr_b2 bytes_extended = { { 0U } };
+  Eurydice_arr_b2 bytes_extended = { .data = { 0U } };
   Eurydice_slice_copy(Eurydice_array_to_subslice_mut_d48(&bytes_extended,
-      (core_ops_range_Range_87{ (size_t)0U, (size_t)10U })),
+      (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)10U })),
     bytes,
     uint8_t);
   __m128i
@@ -3083,7 +3104,7 @@ libcrux_ml_dsa_simd_avx2_invntt_simd_unit_invert_ntt_at_layer_0(
   __m256i b_shuffled = libcrux_intrinsics_avx2_mm256_unpackhi_epi64(sums, differences);
   __m256i a = libcrux_intrinsics_avx2_mm256_shuffle_epi32(216, a_shuffled0, __m256i);
   __m256i b = libcrux_intrinsics_avx2_mm256_shuffle_epi32(216, b_shuffled, __m256i);
-  return (libcrux_ml_dsa_simd_avx2_vector_type_Vec256_x2{ a, b });
+  return (KRML_CLITERAL(libcrux_ml_dsa_simd_avx2_vector_type_Vec256_x2){ .fst = a, .snd = b });
 }
 
 KRML_ATTRIBUTE_TARGET("avx2")
@@ -3314,7 +3335,7 @@ libcrux_ml_dsa_simd_avx2_invntt_simd_unit_invert_ntt_at_layer_1(
   libcrux_ml_dsa_simd_avx2_arithmetic_montgomery_multiply(&differences, &zetas);
   __m256i a = libcrux_intrinsics_avx2_mm256_unpacklo_epi64(sums, differences);
   __m256i b = libcrux_intrinsics_avx2_mm256_unpackhi_epi64(sums, differences);
-  return (libcrux_ml_dsa_simd_avx2_vector_type_Vec256_x2{ a, b });
+  return (KRML_CLITERAL(libcrux_ml_dsa_simd_avx2_vector_type_Vec256_x2){ .fst = a, .snd = b });
 }
 
 KRML_ATTRIBUTE_TARGET("avx2")
@@ -3481,7 +3502,7 @@ libcrux_ml_dsa_simd_avx2_invntt_simd_unit_invert_ntt_at_layer_2(
   libcrux_ml_dsa_simd_avx2_arithmetic_montgomery_multiply(&differences, &zetas);
   __m256i a = libcrux_intrinsics_avx2_mm256_permute2x128_si256(32, sums, differences, __m256i);
   __m256i b = libcrux_intrinsics_avx2_mm256_permute2x128_si256(49, sums, differences, __m256i);
-  return (libcrux_ml_dsa_simd_avx2_vector_type_Vec256_x2{ a, b });
+  return (KRML_CLITERAL(libcrux_ml_dsa_simd_avx2_vector_type_Vec256_x2){ .fst = a, .snd = b });
 }
 
 KRML_ATTRIBUTE_TARGET("avx2")
@@ -4415,9 +4436,9 @@ typedef Eurydice_arr_60 libcrux_ml_dsa_polynomial_PolynomialRingElement_4b;
 A monomorphic instance of Eurydice.arr
 with types libcrux_ml_dsa_polynomial_PolynomialRingElement_4b
 with const generics
-- $11size_t
+- $8size_t
 */
-typedef struct Eurydice_arr_4f_s { Eurydice_arr_60 data[11U]; } Eurydice_arr_4f;
+typedef struct Eurydice_arr_fa_s { Eurydice_arr_60 data[8U]; } Eurydice_arr_fa;
 
 /**
 This function found in impl {libcrux_ml_dsa::polynomial::PolynomialRingElement<SIMDUnit>[TraitClause@0, TraitClause@1]}
@@ -4487,7 +4508,12 @@ libcrux_ml_dsa_sample_rejection_sample_less_than_eta_equals_4_64(
     Eurydice_borrow_slice_u8
     random_bytes =
       Eurydice_slice_subslice_shared_c8(randomness,
-        (core_ops_range_Range_87{ _cloop_i * (size_t)4U, _cloop_i * (size_t)4U + (size_t)4U }));
+        (
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = _cloop_i * (size_t)4U,
+            .end = _cloop_i * (size_t)4U + (size_t)4U
+          }
+        ));
     if (!done)
     {
       size_t
@@ -4525,7 +4551,12 @@ libcrux_ml_dsa_sample_rejection_sample_less_than_eta_equals_2_64(
     Eurydice_borrow_slice_u8
     random_bytes =
       Eurydice_slice_subslice_shared_c8(randomness,
-        (core_ops_range_Range_87{ _cloop_i * (size_t)4U, _cloop_i * (size_t)4U + (size_t)4U }));
+        (
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = _cloop_i * (size_t)4U,
+            .end = _cloop_i * (size_t)4U + (size_t)4U
+          }
+        ));
     if (!done)
     {
       size_t
@@ -4603,9 +4634,9 @@ libcrux_ml_dsa_polynomial_from_i32_array_ff_64(
     size_t i0 = i;
     libcrux_ml_dsa_simd_avx2_from_coefficient_array_a2(Eurydice_slice_subslice_shared_47(array,
         (
-          core_ops_range_Range_87{
-            i0 * LIBCRUX_ML_DSA_SIMD_TRAITS_COEFFICIENTS_IN_SIMD_UNIT,
-            (i0 + (size_t)1U) * LIBCRUX_ML_DSA_SIMD_TRAITS_COEFFICIENTS_IN_SIMD_UNIT
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = i0 * LIBCRUX_ML_DSA_SIMD_TRAITS_COEFFICIENTS_IN_SIMD_UNIT,
+            .end = (i0 + (size_t)1U) * LIBCRUX_ML_DSA_SIMD_TRAITS_COEFFICIENTS_IN_SIMD_UNIT
           }
         )),
       &result->data[i0]);
@@ -4642,7 +4673,9 @@ libcrux_ml_dsa_sample_sample_four_error_ring_elements_fc(
       Eurydice_array_to_slice_shared_f1(&seed3));
   Eurydice_arr_ff_x4
   randomnesses0 = libcrux_ml_dsa_hash_functions_simd256_squeeze_first_block_x4_ad(&state);
-  Eurydice_arr_93 out = { { { { 0U } }, { { 0U } }, { { 0U } }, { { 0U } } } };
+  Eurydice_arr_930
+  out =
+    { .data = { { .data = { 0U } }, { .data = { 0U } }, { .data = { 0U } }, { .data = { 0U } } } };
   size_t sampled0 = (size_t)0U;
   size_t sampled1 = (size_t)0U;
   size_t sampled2 = (size_t)0U;
@@ -4911,15 +4944,15 @@ libcrux_ml_dsa_samplex4_sample_s1_and_s2_fc(
 A monomorphic instance of Eurydice.array_to_slice_mut
 with types libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256
 with const generics
-- N= 11
+- N= 8
 */
 KRML_ATTRIBUTE_TARGET("avx2")
 static inline Eurydice_dst_ref_mut_ba
-Eurydice_array_to_slice_mut_203(Eurydice_arr_4f *a)
+Eurydice_array_to_slice_mut_209(Eurydice_arr_fa *a)
 {
   Eurydice_dst_ref_mut_ba lit;
   lit.ptr = a->data;
-  lit.meta = (size_t)11U;
+  lit.meta = (size_t)8U;
   return lit;
 }
 
@@ -4927,17 +4960,17 @@ Eurydice_array_to_slice_mut_203(Eurydice_arr_4f *a)
 A monomorphic instance of Eurydice.arr
 with types libcrux_ml_dsa_polynomial_PolynomialRingElement_4b
 with const generics
-- $6size_t
+- $4size_t
 */
-typedef struct Eurydice_arr_e2_s { Eurydice_arr_60 data[6U]; } Eurydice_arr_e2;
+typedef struct Eurydice_arr_6f_s { Eurydice_arr_60 data[4U]; } Eurydice_arr_6f;
 
 /**
 A monomorphic instance of Eurydice.arr
 with types libcrux_ml_dsa_polynomial_PolynomialRingElement_4b
 with const generics
-- $30size_t
+- $16size_t
 */
-typedef struct Eurydice_arr_9a_s { Eurydice_arr_60 data[30U]; } Eurydice_arr_9a;
+typedef struct Eurydice_arr_3e_s { Eurydice_arr_60 data[16U]; } Eurydice_arr_3e;
 
 /**
 A monomorphic instance of libcrux_ml_dsa.sample.rejection_sample_less_than_field_modulus
@@ -4960,7 +4993,12 @@ libcrux_ml_dsa_sample_rejection_sample_less_than_field_modulus_64(
     Eurydice_borrow_slice_u8
     random_bytes =
       Eurydice_slice_subslice_shared_c8(randomness,
-        (core_ops_range_Range_87{ _cloop_i * (size_t)24U, _cloop_i * (size_t)24U + (size_t)24U }));
+        (
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = _cloop_i * (size_t)24U,
+            .end = _cloop_i * (size_t)24U + (size_t)24U
+          }
+        ));
     if (!done)
     {
       size_t
@@ -5232,11 +5270,13 @@ libcrux_ml_dsa_samplex4_matrix_flat_0a(
   Eurydice_dst_ref_mut_ba matrix
 )
 {
-  Eurydice_arr_d10 rand_stack0 = { { 0U } };
-  Eurydice_arr_d10 rand_stack1 = { { 0U } };
-  Eurydice_arr_d10 rand_stack2 = { { 0U } };
-  Eurydice_arr_d10 rand_stack3 = { { 0U } };
-  Eurydice_arr_93 tmp_stack = { { { { 0U } }, { { 0U } }, { { 0U } }, { { 0U } } } };
+  Eurydice_arr_d10 rand_stack0 = { .data = { 0U } };
+  Eurydice_arr_d10 rand_stack1 = { .data = { 0U } };
+  Eurydice_arr_d10 rand_stack2 = { .data = { 0U } };
+  Eurydice_arr_d10 rand_stack3 = { .data = { 0U } };
+  Eurydice_arr_930
+  tmp_stack =
+    { .data = { { .data = { 0U } }, { .data = { 0U } }, { .data = { 0U } }, { .data = { 0U } } } };
   for (size_t i = (size_t)0U; i < matrix.meta / (size_t)4U + (size_t)1U; i++)
   {
     size_t start_index = i;
@@ -5311,39 +5351,31 @@ libcrux_ml_dsa_samplex4_avx2_matrix_flat_e8_64(
 A monomorphic instance of Eurydice.array_to_slice_mut
 with types libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256
 with const generics
-- N= 30
+- N= 16
 */
 KRML_ATTRIBUTE_TARGET("avx2")
 static inline Eurydice_dst_ref_mut_ba
-Eurydice_array_to_slice_mut_204(Eurydice_arr_9a *a)
+Eurydice_array_to_slice_mut_2010(Eurydice_arr_3e *a)
 {
   Eurydice_dst_ref_mut_ba lit;
   lit.ptr = a->data;
-  lit.meta = (size_t)30U;
+  lit.meta = (size_t)16U;
   return lit;
 }
-
-/**
-A monomorphic instance of Eurydice.arr
-with types libcrux_ml_dsa_polynomial_PolynomialRingElement_4b
-with const generics
-- $5size_t
-*/
-typedef struct Eurydice_arr_77_s { Eurydice_arr_60 data[5U]; } Eurydice_arr_77;
 
 /**
 A monomorphic instance of Eurydice.array_to_slice_mut
 with types libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256
 with const generics
-- N= 5
+- N= 4
 */
 KRML_ATTRIBUTE_TARGET("avx2")
 static inline Eurydice_dst_ref_mut_ba
-Eurydice_array_to_slice_mut_205(Eurydice_arr_77 *a)
+Eurydice_array_to_slice_mut_2011(Eurydice_arr_6f *a)
 {
   Eurydice_dst_ref_mut_ba lit;
   lit.ptr = a->data;
-  lit.meta = (size_t)5U;
+  lit.meta = (size_t)4U;
   return lit;
 }
 
@@ -5351,13 +5383,16 @@ Eurydice_array_to_slice_mut_205(Eurydice_arr_77 *a)
 A monomorphic instance of Eurydice.array_to_subslice_shared
 with types libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256, core_ops_range_Range size_t, Eurydice_derefed_slice libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256
 with const generics
-- N= 11
+- N= 8
 */
 KRML_ATTRIBUTE_TARGET("avx2")
 static inline Eurydice_dst_ref_shared_ba
-Eurydice_array_to_subslice_shared_250(const Eurydice_arr_4f *a, core_ops_range_Range_87 r)
+Eurydice_array_to_subslice_shared_252(const Eurydice_arr_fa *a, core_ops_range_Range_87 r)
 {
-  return (Eurydice_dst_ref_shared_ba{ a->data + r.start, r.end - r.start });
+  return
+    (
+      KRML_CLITERAL(Eurydice_dst_ref_shared_ba){ .ptr = a->data + r.start, .meta = r.end - r.start }
+    );
 }
 
 /**
@@ -5487,15 +5522,15 @@ libcrux_ml_dsa_matrix_compute_as1_plus_s2_64(
 A monomorphic instance of Eurydice.array_to_slice_shared
 with types libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256
 with const generics
-- N= 5
+- N= 4
 */
 KRML_ATTRIBUTE_TARGET("avx2")
 static inline Eurydice_dst_ref_shared_ba
-Eurydice_array_to_slice_shared_203(const Eurydice_arr_77 *a)
+Eurydice_array_to_slice_shared_209(const Eurydice_arr_6f *a)
 {
   Eurydice_dst_ref_shared_ba lit;
   lit.ptr = a->data;
-  lit.meta = (size_t)5U;
+  lit.meta = (size_t)4U;
   return lit;
 }
 
@@ -5503,31 +5538,15 @@ Eurydice_array_to_slice_shared_203(const Eurydice_arr_77 *a)
 A monomorphic instance of Eurydice.array_to_slice_shared
 with types libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256
 with const generics
-- N= 11
+- N= 8
 */
 KRML_ATTRIBUTE_TARGET("avx2")
 static inline Eurydice_dst_ref_shared_ba
-Eurydice_array_to_slice_shared_204(const Eurydice_arr_4f *a)
+Eurydice_array_to_slice_shared_2010(const Eurydice_arr_fa *a)
 {
   Eurydice_dst_ref_shared_ba lit;
   lit.ptr = a->data;
-  lit.meta = (size_t)11U;
-  return lit;
-}
-
-/**
-A monomorphic instance of Eurydice.array_to_slice_mut
-with types libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256
-with const generics
-- N= 6
-*/
-KRML_ATTRIBUTE_TARGET("avx2")
-static inline Eurydice_dst_ref_mut_ba
-Eurydice_array_to_slice_mut_206(Eurydice_arr_e2 *a)
-{
-  Eurydice_dst_ref_mut_ba lit;
-  lit.ptr = a->data;
-  lit.meta = (size_t)6U;
+  lit.meta = (size_t)8U;
   return lit;
 }
 
@@ -5538,12 +5557,12 @@ Eurydice_array_to_slice_mut_206(Eurydice_arr_e2 *a)
 */
 /**
 A monomorphic instance of libcrux_secrets.mem_requests.ct_declassify
-with types Eurydice_arr libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256[[$6size_t]]
+with types Eurydice_arr libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256[[$4size_t]]
 
 */
 KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE void
-libcrux_secrets_mem_requests_ct_declassify_b20(const Eurydice_arr_e2 *val)
+libcrux_secrets_mem_requests_ct_declassify_f50(const Eurydice_arr_6f *val)
 {
 
 }
@@ -5592,9 +5611,10 @@ libcrux_ml_dsa_encoding_t1_serialize_64(
     libcrux_ml_dsa_simd_avx2_t1_serialize_a2(simd_unit,
       Eurydice_slice_subslice_mut_c8(serialized,
         (
-          core_ops_range_Range_87{
-            i0 * LIBCRUX_ML_DSA_ENCODING_T1_SERIALIZE_OUTPUT_BYTES_PER_SIMD_UNIT,
-            (i0 + (size_t)1U) * LIBCRUX_ML_DSA_ENCODING_T1_SERIALIZE_OUTPUT_BYTES_PER_SIMD_UNIT
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = i0 * LIBCRUX_ML_DSA_ENCODING_T1_SERIALIZE_OUTPUT_BYTES_PER_SIMD_UNIT,
+            .end = (i0 + (size_t)1U) *
+              LIBCRUX_ML_DSA_ENCODING_T1_SERIALIZE_OUTPUT_BYTES_PER_SIMD_UNIT
           }
         )));
   }
@@ -5615,7 +5635,12 @@ libcrux_ml_dsa_encoding_verification_key_generate_serialized_64(
 )
 {
   Eurydice_slice_copy(Eurydice_slice_subslice_mut_c8(verification_key_serialized,
-      (core_ops_range_Range_87{ (size_t)0U, LIBCRUX_ML_DSA_CONSTANTS_SEED_FOR_A_SIZE })),
+      (
+        KRML_CLITERAL(core_ops_range_Range_87){
+          .start = (size_t)0U,
+          .end = LIBCRUX_ML_DSA_CONSTANTS_SEED_FOR_A_SIZE
+        }
+      )),
     seed,
     uint8_t);
   for (size_t i = (size_t)0U; i < t1.meta; i++)
@@ -5629,28 +5654,12 @@ libcrux_ml_dsa_encoding_verification_key_generate_serialized_64(
     libcrux_ml_dsa_encoding_t1_serialize_64(ring_element,
       Eurydice_slice_subslice_mut_c8(verification_key_serialized,
         (
-          core_ops_range_Range_87{
-            offset,
-            offset + LIBCRUX_ML_DSA_CONSTANTS_RING_ELEMENT_OF_T1S_SIZE
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = offset,
+            .end = offset + LIBCRUX_ML_DSA_CONSTANTS_RING_ELEMENT_OF_T1S_SIZE
           }
         )));
   }
-}
-
-/**
-A monomorphic instance of Eurydice.array_to_slice_shared
-with types libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256
-with const generics
-- N= 6
-*/
-KRML_ATTRIBUTE_TARGET("avx2")
-static inline Eurydice_dst_ref_shared_ba
-Eurydice_array_to_slice_shared_205(const Eurydice_arr_e2 *a)
-{
-  Eurydice_dst_ref_shared_ba lit;
-  lit.ptr = a->data;
-  lit.meta = (size_t)6U;
-  return lit;
 }
 
 /**
@@ -5709,9 +5718,9 @@ libcrux_ml_dsa_encoding_error_serialize_64(
       simd_unit,
       Eurydice_slice_subslice_mut_c8(serialized,
         (
-          core_ops_range_Range_87{
-            i0 * output_bytes_per_simd_unit,
-            (i0 + (size_t)1U) * output_bytes_per_simd_unit
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = i0 * output_bytes_per_simd_unit,
+            .end = (i0 + (size_t)1U) * output_bytes_per_simd_unit
           }
         )));
   }
@@ -5737,9 +5746,9 @@ libcrux_ml_dsa_encoding_t0_serialize_64(
     libcrux_ml_dsa_simd_avx2_t0_serialize_a2(simd_unit,
       Eurydice_slice_subslice_mut_c8(serialized,
         (
-          core_ops_range_Range_87{
-            i0 * LIBCRUX_ML_DSA_ENCODING_T0_OUTPUT_BYTES_PER_SIMD_UNIT,
-            (i0 + (size_t)1U) * LIBCRUX_ML_DSA_ENCODING_T0_OUTPUT_BYTES_PER_SIMD_UNIT
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = i0 * LIBCRUX_ML_DSA_ENCODING_T0_OUTPUT_BYTES_PER_SIMD_UNIT,
+            .end = (i0 + (size_t)1U) * LIBCRUX_ML_DSA_ENCODING_T0_OUTPUT_BYTES_PER_SIMD_UNIT
           }
         )));
   }
@@ -5766,22 +5775,32 @@ libcrux_ml_dsa_encoding_signing_key_generate_serialized_18(
 {
   size_t offset = (size_t)0U;
   Eurydice_slice_copy(Eurydice_slice_subslice_mut_c8(signing_key_serialized,
-      (core_ops_range_Range_87{ offset, offset + LIBCRUX_ML_DSA_CONSTANTS_SEED_FOR_A_SIZE })),
+      (
+        KRML_CLITERAL(core_ops_range_Range_87){
+          .start = offset,
+          .end = offset + LIBCRUX_ML_DSA_CONSTANTS_SEED_FOR_A_SIZE
+        }
+      )),
     seed_matrix,
     uint8_t);
   offset += LIBCRUX_ML_DSA_CONSTANTS_SEED_FOR_A_SIZE;
   Eurydice_slice_copy(Eurydice_slice_subslice_mut_c8(signing_key_serialized,
-      (core_ops_range_Range_87{ offset, offset + LIBCRUX_ML_DSA_CONSTANTS_SEED_FOR_SIGNING_SIZE })),
+      (
+        KRML_CLITERAL(core_ops_range_Range_87){
+          .start = offset,
+          .end = offset + LIBCRUX_ML_DSA_CONSTANTS_SEED_FOR_SIGNING_SIZE
+        }
+      )),
     seed_signing,
     uint8_t);
   offset += LIBCRUX_ML_DSA_CONSTANTS_SEED_FOR_SIGNING_SIZE;
-  Eurydice_arr_c7 verification_key_hash = { { 0U } };
+  Eurydice_arr_c7 verification_key_hash = { .data = { 0U } };
   libcrux_ml_dsa_hash_functions_simd256_shake256_8c_c9(verification_key, &verification_key_hash);
   Eurydice_slice_copy(Eurydice_slice_subslice_mut_c8(signing_key_serialized,
       (
-        core_ops_range_Range_87{
-          offset,
-          offset + LIBCRUX_ML_DSA_CONSTANTS_BYTES_FOR_VERIFICATION_KEY_HASH
+        KRML_CLITERAL(core_ops_range_Range_87){
+          .start = offset,
+          .end = offset + LIBCRUX_ML_DSA_CONSTANTS_BYTES_FOR_VERIFICATION_KEY_HASH
         }
       )),
     Eurydice_array_to_slice_shared_17(&verification_key_hash),
@@ -5793,7 +5812,12 @@ libcrux_ml_dsa_encoding_signing_key_generate_serialized_18(
     libcrux_ml_dsa_encoding_error_serialize_64(eta,
       &s1_2.ptr[i0],
       Eurydice_slice_subslice_mut_c8(signing_key_serialized,
-        (core_ops_range_Range_87{ offset, offset + error_ring_element_size })));
+        (
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = offset,
+            .end = offset + error_ring_element_size
+          }
+        )));
     offset += error_ring_element_size;
   }
   for (size_t i = (size_t)0U; i < t0.meta; i++)
@@ -5803,9 +5827,9 @@ libcrux_ml_dsa_encoding_signing_key_generate_serialized_18(
     libcrux_ml_dsa_encoding_t0_serialize_64(ring_element,
       Eurydice_slice_subslice_mut_c8(signing_key_serialized,
         (
-          core_ops_range_Range_87{
-            offset,
-            offset + LIBCRUX_ML_DSA_CONSTANTS_RING_ELEMENT_OF_T0S_SIZE
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = offset,
+            .end = offset + LIBCRUX_ML_DSA_CONSTANTS_RING_ELEMENT_OF_T0S_SIZE
           }
         )));
     offset += LIBCRUX_ML_DSA_CONSTANTS_RING_ELEMENT_OF_T0S_SIZE;
@@ -5813,20 +5837,20 @@ libcrux_ml_dsa_encoding_signing_key_generate_serialized_18(
 }
 
 /**
-A monomorphic instance of libcrux_ml_dsa.ml_dsa_generic.ml_dsa_65.generate_key_pair
+A monomorphic instance of libcrux_ml_dsa.ml_dsa_generic.ml_dsa_44.generate_key_pair
 with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256, libcrux_ml_dsa_samplex4_avx2_AVX2Sampler, libcrux_ml_dsa_hash_functions_simd256_Shake128x4, libcrux_ml_dsa_hash_functions_simd256_Shake256, libcrux_ml_dsa_hash_functions_portable_Shake256Xof, libcrux_ml_dsa_hash_functions_simd256_Shake256x4
 with const generics
 
 */
 KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE void
-libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_generate_key_pair_07(
+libcrux_ml_dsa_ml_dsa_generic_ml_dsa_44_generate_key_pair_07(
   Eurydice_arr_ec randomness,
   Eurydice_mut_borrow_slice_u8 signing_key,
   Eurydice_mut_borrow_slice_u8 verification_key
 )
 {
-  Eurydice_arr_89 seed_expanded0 = { { 0U } };
+  Eurydice_arr_89 seed_expanded0 = { .data = { 0U } };
   libcrux_sha3_generic_keccak_xof_KeccakXofState_8d
   shake = libcrux_ml_dsa_hash_functions_portable_init_26();
   libcrux_ml_dsa_hash_functions_portable_absorb_26(&shake,
@@ -5835,9 +5859,9 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_generate_key_pair_07(
   Eurydice_array_u8x2
   lvalue =
     {
-      {
-        (uint8_t)LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_ROWS_IN_A,
-        (uint8_t)LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_COLUMNS_IN_A
+      .data = {
+        (uint8_t)LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_ROWS_IN_A,
+        (uint8_t)LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_COLUMNS_IN_A
       }
     };
   libcrux_ml_dsa_hash_functions_portable_absorb_final_26(&shake,
@@ -5860,74 +5884,84 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_generate_key_pair_07(
       Eurydice_borrow_slice_u8_x2);
   Eurydice_borrow_slice_u8 seed_for_error_vectors = uu____1.fst;
   Eurydice_borrow_slice_u8 seed_for_signing = uu____1.snd;
-  Eurydice_arr_4f s1_s2;
-  Eurydice_arr_60 repeat_expression0[11U];
-  for (size_t i = (size_t)0U; i < (size_t)11U; i++)
+  Eurydice_arr_fa s1_s2;
+  Eurydice_arr_60 repeat_expression0[8U];
+  for (size_t i = (size_t)0U; i < (size_t)8U; i++)
   {
     repeat_expression0[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
   }
-  memcpy(s1_s2.data, repeat_expression0, (size_t)11U * sizeof (Eurydice_arr_60));
-  libcrux_ml_dsa_samplex4_sample_s1_and_s2_fc(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_ETA,
+  memcpy(s1_s2.data, repeat_expression0, (size_t)8U * sizeof (Eurydice_arr_60));
+  libcrux_ml_dsa_samplex4_sample_s1_and_s2_fc(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_ETA,
     seed_for_error_vectors,
-    Eurydice_array_to_slice_mut_203(&s1_s2));
-  Eurydice_arr_e2 t0;
-  Eurydice_arr_60 repeat_expression1[6U];
-  for (size_t i = (size_t)0U; i < (size_t)6U; i++)
+    Eurydice_array_to_slice_mut_209(&s1_s2));
+  Eurydice_arr_6f t0;
+  Eurydice_arr_60 repeat_expression1[4U];
+  for (size_t i = (size_t)0U; i < (size_t)4U; i++)
   {
     repeat_expression1[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
   }
-  memcpy(t0.data, repeat_expression1, (size_t)6U * sizeof (Eurydice_arr_60));
-  Eurydice_arr_9a a_as_ntt;
-  Eurydice_arr_60 repeat_expression2[30U];
-  for (size_t i = (size_t)0U; i < (size_t)30U; i++)
+  memcpy(t0.data, repeat_expression1, (size_t)4U * sizeof (Eurydice_arr_60));
+  Eurydice_arr_3e a_as_ntt;
+  Eurydice_arr_60 repeat_expression2[16U];
+  for (size_t i = (size_t)0U; i < (size_t)16U; i++)
   {
     repeat_expression2[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
   }
-  memcpy(a_as_ntt.data, repeat_expression2, (size_t)30U * sizeof (Eurydice_arr_60));
-  libcrux_ml_dsa_samplex4_avx2_matrix_flat_e8_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_COLUMNS_IN_A,
+  memcpy(a_as_ntt.data, repeat_expression2, (size_t)16U * sizeof (Eurydice_arr_60));
+  libcrux_ml_dsa_samplex4_avx2_matrix_flat_e8_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_COLUMNS_IN_A,
     seed_for_a,
-    Eurydice_array_to_slice_mut_204(&a_as_ntt));
-  Eurydice_arr_77 s1_ntt;
-  Eurydice_arr_60 repeat_expression3[5U];
-  for (size_t i = (size_t)0U; i < (size_t)5U; i++)
+    Eurydice_array_to_slice_mut_2010(&a_as_ntt));
+  Eurydice_arr_6f s1_ntt;
+  Eurydice_arr_60 repeat_expression3[4U];
+  for (size_t i = (size_t)0U; i < (size_t)4U; i++)
   {
     repeat_expression3[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
   }
-  memcpy(s1_ntt.data, repeat_expression3, (size_t)5U * sizeof (Eurydice_arr_60));
-  Eurydice_slice_copy(Eurydice_array_to_slice_mut_205(&s1_ntt),
-    Eurydice_array_to_subslice_shared_250(&s1_s2,
-      (core_ops_range_Range_87{ (size_t)0U, LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_COLUMNS_IN_A })),
+  memcpy(s1_ntt.data, repeat_expression3, (size_t)4U * sizeof (Eurydice_arr_60));
+  Eurydice_slice_copy(Eurydice_array_to_slice_mut_2011(&s1_ntt),
+    Eurydice_array_to_subslice_shared_252(&s1_s2,
+      (
+        KRML_CLITERAL(core_ops_range_Range_87){
+          .start = (size_t)0U,
+          .end = LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_COLUMNS_IN_A
+        }
+      )),
     Eurydice_arr_60);
-  for (size_t i = (size_t)0U; i < (size_t)5U; i++)
+  for (size_t i = (size_t)0U; i < (size_t)4U; i++)
   {
     size_t i0 = i;
     libcrux_ml_dsa_ntt_ntt_64(&s1_ntt.data[i0]);
   }
-  libcrux_ml_dsa_matrix_compute_as1_plus_s2_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_ROWS_IN_A,
-    LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_COLUMNS_IN_A,
-    Eurydice_array_to_slice_mut_204(&a_as_ntt),
-    Eurydice_array_to_slice_shared_203(&s1_ntt),
-    Eurydice_array_to_slice_shared_204(&s1_s2),
-    Eurydice_array_to_slice_mut_206(&t0));
-  Eurydice_arr_e2 t1;
-  Eurydice_arr_60 repeat_expression[6U];
-  for (size_t i = (size_t)0U; i < (size_t)6U; i++)
+  libcrux_ml_dsa_matrix_compute_as1_plus_s2_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_ROWS_IN_A,
+    LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_COLUMNS_IN_A,
+    Eurydice_array_to_slice_mut_2010(&a_as_ntt),
+    Eurydice_array_to_slice_shared_209(&s1_ntt),
+    Eurydice_array_to_slice_shared_2010(&s1_s2),
+    Eurydice_array_to_slice_mut_2011(&t0));
+  Eurydice_arr_6f t1;
+  Eurydice_arr_60 repeat_expression[4U];
+  for (size_t i = (size_t)0U; i < (size_t)4U; i++)
   {
     repeat_expression[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
   }
-  memcpy(t1.data, repeat_expression, (size_t)6U * sizeof (Eurydice_arr_60));
-  libcrux_ml_dsa_arithmetic_power2round_vector_64(Eurydice_array_to_slice_mut_206(&t0),
-    Eurydice_array_to_slice_mut_206(&t1));
+  memcpy(t1.data, repeat_expression, (size_t)4U * sizeof (Eurydice_arr_60));
+  libcrux_ml_dsa_arithmetic_power2round_vector_64(Eurydice_array_to_slice_mut_2011(&t0),
+    Eurydice_array_to_slice_mut_2011(&t1));
   libcrux_ml_dsa_encoding_verification_key_generate_serialized_64(seed_for_a,
-    Eurydice_array_to_slice_shared_205(&t1),
+    Eurydice_array_to_slice_shared_209(&t1),
     verification_key);
-  libcrux_ml_dsa_encoding_signing_key_generate_serialized_18(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_ETA,
-    LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_65_ERROR_RING_ELEMENT_SIZE,
+  libcrux_ml_dsa_encoding_signing_key_generate_serialized_18(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_ETA,
+    LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_44_ERROR_RING_ELEMENT_SIZE,
     seed_for_a,
     seed_for_signing,
-    (Eurydice_borrow_slice_u8{ verification_key.ptr, verification_key.meta }),
-    Eurydice_array_to_slice_shared_204(&s1_s2),
-    Eurydice_array_to_slice_shared_205(&t0),
+    (
+      KRML_CLITERAL(Eurydice_borrow_slice_u8){
+        .ptr = verification_key.ptr,
+        .meta = verification_key.meta
+      }
+    ),
+    Eurydice_array_to_slice_shared_2010(&s1_s2),
+    Eurydice_array_to_slice_shared_209(&t0),
     signing_key);
 }
 
@@ -5936,26 +5970,26 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_generate_key_pair_07(
 */
 KRML_ATTRIBUTE_TARGET("avx2")
 static inline void
-libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_generate_key_pair__inner(
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_44_generate_key_pair__inner(
   Eurydice_arr_ec randomness,
   Eurydice_mut_borrow_slice_u8 signing_key,
   Eurydice_mut_borrow_slice_u8 verification_key
 )
 {
-  libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_generate_key_pair_07(randomness,
+  libcrux_ml_dsa_ml_dsa_generic_ml_dsa_44_generate_key_pair_07(randomness,
     signing_key,
     verification_key);
 }
 
 KRML_ATTRIBUTE_TARGET("avx2")
 static inline void
-libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_generate_key_pair(
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_44_generate_key_pair(
   Eurydice_arr_ec randomness,
   Eurydice_mut_borrow_slice_u8 signing_key,
   Eurydice_mut_borrow_slice_u8 verification_key
 )
 {
-  libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_generate_key_pair__inner(randomness,
+  libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_44_generate_key_pair__inner(randomness,
     signing_key,
     verification_key);
 }
@@ -5980,7 +6014,12 @@ libcrux_ml_dsa_encoding_error_deserialize_64(
     size_t i0 = i;
     libcrux_ml_dsa_simd_avx2_error_deserialize_a2(eta,
       Eurydice_slice_subslice_shared_c8(serialized,
-        (core_ops_range_Range_87{ i0 * chunk_size, (i0 + (size_t)1U) * chunk_size })),
+        (
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = i0 * chunk_size,
+            .end = (i0 + (size_t)1U) * chunk_size
+          }
+        )),
       &result->data[i0]);
   }
 }
@@ -6007,9 +6046,9 @@ libcrux_ml_dsa_encoding_error_deserialize_to_vector_then_ntt_64(
     bytes =
       Eurydice_slice_subslice_shared_c8(serialized,
         (
-          core_ops_range_Range_87{
-            i0 * ring_element_size,
-            i0 * ring_element_size + ring_element_size
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = i0 * ring_element_size,
+            .end = i0 * ring_element_size + ring_element_size
           }
         ));
     libcrux_ml_dsa_encoding_error_deserialize_64(eta, bytes, &ring_elements.ptr[i0]);
@@ -6035,9 +6074,9 @@ libcrux_ml_dsa_encoding_t0_deserialize_64(
     size_t i0 = i;
     libcrux_ml_dsa_simd_avx2_t0_deserialize_a2(Eurydice_slice_subslice_shared_c8(serialized,
         (
-          core_ops_range_Range_87{
-            i0 * LIBCRUX_ML_DSA_ENCODING_T0_OUTPUT_BYTES_PER_SIMD_UNIT,
-            (i0 + (size_t)1U) * LIBCRUX_ML_DSA_ENCODING_T0_OUTPUT_BYTES_PER_SIMD_UNIT
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = i0 * LIBCRUX_ML_DSA_ENCODING_T0_OUTPUT_BYTES_PER_SIMD_UNIT,
+            .end = (i0 + (size_t)1U) * LIBCRUX_ML_DSA_ENCODING_T0_OUTPUT_BYTES_PER_SIMD_UNIT
           }
         )),
       &result->data[i0]);
@@ -6068,9 +6107,9 @@ libcrux_ml_dsa_encoding_t0_deserialize_to_vector_then_ntt_64(
     bytes =
       Eurydice_slice_subslice_shared_c8(serialized,
         (
-          core_ops_range_Range_87{
-            i0 * LIBCRUX_ML_DSA_CONSTANTS_RING_ELEMENT_OF_T0S_SIZE,
-            i0 * LIBCRUX_ML_DSA_CONSTANTS_RING_ELEMENT_OF_T0S_SIZE +
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = i0 * LIBCRUX_ML_DSA_CONSTANTS_RING_ELEMENT_OF_T0S_SIZE,
+            .end = i0 * LIBCRUX_ML_DSA_CONSTANTS_RING_ELEMENT_OF_T0S_SIZE +
               LIBCRUX_ML_DSA_CONSTANTS_RING_ELEMENT_OF_T0S_SIZE
           }
         ));
@@ -6081,15 +6120,15 @@ libcrux_ml_dsa_encoding_t0_deserialize_to_vector_then_ntt_64(
 
 /**
 A monomorphic instance of core.option.Option
-with types Eurydice_arr_77
+with types Eurydice_arr_6f
 
 */
-typedef struct core_option_Option_61_s
+typedef struct core_option_Option_f9_s
 {
-  core_option_Option_05_tags tag;
-  Eurydice_arr_77 f0;
+  core_option_Option_45_tags tag;
+  Eurydice_arr_6f f0;
 }
-core_option_Option_61;
+core_option_Option_f9;
 
 /**
 A monomorphic instance of libcrux_ml_dsa.hash_functions.simd256.shake256_x4
@@ -6169,9 +6208,9 @@ libcrux_ml_dsa_encoding_gamma1_deserialize_64(
     size_t i0 = i;
     libcrux_ml_dsa_simd_avx2_gamma1_deserialize_a2(Eurydice_slice_subslice_shared_c8(serialized,
         (
-          core_ops_range_Range_87{
-            i0 * (gamma1_exponent + (size_t)1U),
-            (i0 + (size_t)1U) * (gamma1_exponent + (size_t)1U)
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = i0 * (gamma1_exponent + (size_t)1U),
+            .end = (i0 + (size_t)1U) * (gamma1_exponent + (size_t)1U)
           }
         )),
       &result->data[i0],
@@ -6326,7 +6365,7 @@ libcrux_ml_dsa_sample_sample_mask_ring_element_18(
       }
     case 19U:
       {
-        Eurydice_arr_20 out = { { 0U } };
+        Eurydice_arr_20 out = { .data = { 0U } };
         libcrux_ml_dsa_hash_functions_simd256_shake256_8c_0e(Eurydice_array_to_slice_shared_f1(seed),
           &out);
         libcrux_ml_dsa_encoding_gamma1_deserialize_64(gamma1_exponent,
@@ -6340,7 +6379,7 @@ libcrux_ml_dsa_sample_sample_mask_ring_element_18(
         KRML_HOST_EXIT(255U);
       }
   }
-  Eurydice_arr_220 out = { { 0U } };
+  Eurydice_arr_220 out = { .data = { 0U } };
   libcrux_ml_dsa_hash_functions_simd256_shake256_8c_5a(Eurydice_array_to_slice_shared_f1(seed),
     &out);
   libcrux_ml_dsa_encoding_gamma1_deserialize_64(gamma1_exponent,
@@ -6385,10 +6424,10 @@ libcrux_ml_dsa_sample_sample_mask_vector_f4(
   {
     case 17U:
       {
-        Eurydice_arr_220 out0 = { { 0U } };
-        Eurydice_arr_220 out1 = { { 0U } };
-        Eurydice_arr_220 out2 = { { 0U } };
-        Eurydice_arr_220 out3 = { { 0U } };
+        Eurydice_arr_220 out0 = { .data = { 0U } };
+        Eurydice_arr_220 out1 = { .data = { 0U } };
+        Eurydice_arr_220 out2 = { .data = { 0U } };
+        Eurydice_arr_220 out3 = { .data = { 0U } };
         libcrux_ml_dsa_hash_functions_simd256_shake256_x4_ad_5a(Eurydice_array_to_slice_shared_f1(&seed0),
           Eurydice_array_to_slice_shared_f1(&seed1),
           Eurydice_array_to_slice_shared_f1(&seed2),
@@ -6413,10 +6452,10 @@ libcrux_ml_dsa_sample_sample_mask_vector_f4(
       }
     case 19U:
       {
-        Eurydice_arr_20 out0 = { { 0U } };
-        Eurydice_arr_20 out1 = { { 0U } };
-        Eurydice_arr_20 out2 = { { 0U } };
-        Eurydice_arr_20 out3 = { { 0U } };
+        Eurydice_arr_20 out0 = { .data = { 0U } };
+        Eurydice_arr_20 out1 = { .data = { 0U } };
+        Eurydice_arr_20 out2 = { .data = { 0U } };
+        Eurydice_arr_20 out3 = { .data = { 0U } };
         libcrux_ml_dsa_hash_functions_simd256_shake256_x4_ad_0e(Eurydice_array_to_slice_shared_f1(&seed0),
           Eurydice_array_to_slice_shared_f1(&seed1),
           Eurydice_array_to_slice_shared_f1(&seed2),
@@ -6495,15 +6534,15 @@ libcrux_ml_dsa_matrix_compute_matrix_x_mask_64(
 A monomorphic instance of Eurydice.array_to_slice_shared
 with types libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256
 with const generics
-- N= 30
+- N= 16
 */
 KRML_ATTRIBUTE_TARGET("avx2")
 static inline Eurydice_dst_ref_shared_ba
-Eurydice_array_to_slice_shared_206(const Eurydice_arr_9a *a)
+Eurydice_array_to_slice_shared_2011(const Eurydice_arr_3e *a)
 {
   Eurydice_dst_ref_shared_ba lit;
   lit.ptr = a->data;
-  lit.meta = (size_t)30U;
+  lit.meta = (size_t)16U;
   return lit;
 }
 
@@ -6558,9 +6597,9 @@ libcrux_ml_dsa_encoding_commitment_serialize_64(
     libcrux_ml_dsa_simd_avx2_commitment_serialize_a2(simd_unit,
       Eurydice_slice_subslice_mut_c8(serialized,
         (
-          core_ops_range_Range_87{
-            i0 * output_bytes_per_simd_unit,
-            (i0 + (size_t)1U) * output_bytes_per_simd_unit
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = i0 * output_bytes_per_simd_unit,
+            .end = (i0 + (size_t)1U) * output_bytes_per_simd_unit
           }
         )));
   }
@@ -6587,7 +6626,12 @@ libcrux_ml_dsa_encoding_commitment_serialize_vector_64(
     const Eurydice_arr_60 *ring_element = &vector.ptr[_cloop_j];
     libcrux_ml_dsa_encoding_commitment_serialize_64(ring_element,
       Eurydice_slice_subslice_mut_c8(serialized,
-        (core_ops_range_Range_87{ offset, offset + ring_element_size })));
+        (
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = offset,
+            .end = offset + ring_element_size
+          }
+        )));
     offset += ring_element_size;
   }
 }
@@ -6612,14 +6656,14 @@ libcrux_ml_dsa_sample_sample_challenge_ring_element_18(
   Eurydice_array_u8x8 arr;
   memcpy(arr.data,
     Eurydice_array_to_subslice_shared_d40(&randomness0,
-      (core_ops_range_Range_87{ (size_t)0U, (size_t)8U })).ptr,
+      (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)8U })).ptr,
     (size_t)8U * sizeof (uint8_t));
   uint64_t
   signs =
-    core_num__u64__from_le_bytes(core_result_unwrap_26_e0(core_result_Result_8e_s(core_result_Ok,
-          &core_result_Result_8e_s::U::case_Ok,
-          arr)));
-  Eurydice_arr_6c result = { { 0U } };
+    core_num__u64__from_le_bytes(core_result_unwrap_26_e0((
+          KRML_CLITERAL(core_result_Result_8e){ .tag = core_result_Ok, .val = { .case_Ok = arr } }
+        )));
+  Eurydice_arr_6c result = { .data = { 0U } };
   size_t out_index = (size_t)256U - number_of_ones;
   bool
   done =
@@ -6824,16 +6868,16 @@ KRML_ATTRIBUTE_TARGET("avx2")
 static inline Eurydice_arr_6c
 libcrux_ml_dsa_polynomial_to_i32_array_ff_64(const Eurydice_arr_60 *self)
 {
-  Eurydice_arr_6c result = { { 0U } };
+  Eurydice_arr_6c result = { .data = { 0U } };
   for (size_t i = (size_t)0U; i < (size_t)32U; i++)
   {
     size_t i0 = i;
     libcrux_ml_dsa_simd_avx2_to_coefficient_array_a2(&self->data[i0],
       Eurydice_array_to_subslice_mut_44(&result,
         (
-          core_ops_range_Range_87{
-            i0 * LIBCRUX_ML_DSA_SIMD_TRAITS_COEFFICIENTS_IN_SIMD_UNIT,
-            (i0 + (size_t)1U) * LIBCRUX_ML_DSA_SIMD_TRAITS_COEFFICIENTS_IN_SIMD_UNIT
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = i0 * LIBCRUX_ML_DSA_SIMD_TRAITS_COEFFICIENTS_IN_SIMD_UNIT,
+            .end = (i0 + (size_t)1U) * LIBCRUX_ML_DSA_SIMD_TRAITS_COEFFICIENTS_IN_SIMD_UNIT
           }
         )));
   }
@@ -6898,9 +6942,9 @@ libcrux_ml_dsa_encoding_gamma1_serialize_64(
     libcrux_ml_dsa_simd_avx2_gamma1_serialize_a2(simd_unit,
       Eurydice_slice_subslice_mut_c8(serialized,
         (
-          core_ops_range_Range_87{
-            i0 * (gamma1_exponent + (size_t)1U),
-            (i0 + (size_t)1U) * (gamma1_exponent + (size_t)1U)
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = i0 * (gamma1_exponent + (size_t)1U),
+            .end = (i0 + (size_t)1U) * (gamma1_exponent + (size_t)1U)
           }
         )),
       gamma1_exponent);
@@ -6930,7 +6974,12 @@ libcrux_ml_dsa_encoding_signature_serialize_64(
 {
   size_t offset = (size_t)0U;
   Eurydice_slice_copy(Eurydice_slice_subslice_mut_c8(signature,
-      (core_ops_range_Range_87{ offset, offset + commitment_hash_size })),
+      (
+        KRML_CLITERAL(core_ops_range_Range_87){
+          .start = offset,
+          .end = offset + commitment_hash_size
+        }
+      )),
     commitment_hash,
     uint8_t);
   offset += commitment_hash_size;
@@ -6939,7 +6988,12 @@ libcrux_ml_dsa_encoding_signature_serialize_64(
     size_t i0 = i;
     libcrux_ml_dsa_encoding_gamma1_serialize_64(&signer_response.ptr[i0],
       Eurydice_slice_subslice_mut_c8(signature,
-        (core_ops_range_Range_87{ offset, offset + gamma1_ring_element_size })),
+        (
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = offset,
+            .end = offset + gamma1_ring_element_size
+          }
+        )),
       gamma1_exponent);
     offset += gamma1_ring_element_size;
   }
@@ -6961,19 +7015,19 @@ libcrux_ml_dsa_encoding_signature_serialize_64(
 }
 
 /**
-A monomorphic instance of libcrux_ml_dsa.ml_dsa_generic.ml_dsa_65.sign_internal
+A monomorphic instance of libcrux_ml_dsa.ml_dsa_generic.ml_dsa_44.sign_internal
 with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256, libcrux_ml_dsa_samplex4_avx2_AVX2Sampler, libcrux_ml_dsa_hash_functions_simd256_Shake128x4, libcrux_ml_dsa_hash_functions_simd256_Shake256, libcrux_ml_dsa_hash_functions_portable_Shake256Xof, libcrux_ml_dsa_hash_functions_simd256_Shake256x4
 with const generics
 
 */
 KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE core_result_Result_53
-libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_internal_07(
+libcrux_ml_dsa_ml_dsa_generic_ml_dsa_44_sign_internal_07(
   Eurydice_borrow_slice_u8 signing_key,
   Eurydice_borrow_slice_u8 message,
   core_option_Option_84 domain_separation_context,
   Eurydice_arr_ec randomness,
-  Eurydice_arr_0c *signature
+  Eurydice_arr_85 *signature
 )
 {
   Eurydice_borrow_slice_u8_x2
@@ -7003,8 +7057,8 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_internal_07(
   Eurydice_borrow_slice_u8_x2
   uu____3 =
     Eurydice_slice_split_at(remaining_serialized2,
-      LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_65_ERROR_RING_ELEMENT_SIZE *
-        LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_COLUMNS_IN_A,
+      LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_44_ERROR_RING_ELEMENT_SIZE *
+        LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_COLUMNS_IN_A,
       uint8_t,
       Eurydice_borrow_slice_u8_x2);
   Eurydice_borrow_slice_u8 s1_serialized = uu____3.fst;
@@ -7012,59 +7066,59 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_internal_07(
   Eurydice_borrow_slice_u8_x2
   uu____4 =
     Eurydice_slice_split_at(remaining_serialized,
-      LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_65_ERROR_RING_ELEMENT_SIZE *
-        LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_ROWS_IN_A,
+      LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_44_ERROR_RING_ELEMENT_SIZE *
+        LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_ROWS_IN_A,
       uint8_t,
       Eurydice_borrow_slice_u8_x2);
   Eurydice_borrow_slice_u8 s2_serialized = uu____4.fst;
   Eurydice_borrow_slice_u8 t0_serialized = uu____4.snd;
-  Eurydice_arr_77 s1_as_ntt;
-  Eurydice_arr_60 repeat_expression0[5U];
-  for (size_t i = (size_t)0U; i < (size_t)5U; i++)
+  Eurydice_arr_6f s1_as_ntt;
+  Eurydice_arr_60 repeat_expression0[4U];
+  for (size_t i = (size_t)0U; i < (size_t)4U; i++)
   {
     repeat_expression0[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
   }
-  memcpy(s1_as_ntt.data, repeat_expression0, (size_t)5U * sizeof (Eurydice_arr_60));
-  Eurydice_arr_e2 s2_as_ntt;
-  Eurydice_arr_60 repeat_expression1[6U];
-  for (size_t i = (size_t)0U; i < (size_t)6U; i++)
+  memcpy(s1_as_ntt.data, repeat_expression0, (size_t)4U * sizeof (Eurydice_arr_60));
+  Eurydice_arr_6f s2_as_ntt;
+  Eurydice_arr_60 repeat_expression1[4U];
+  for (size_t i = (size_t)0U; i < (size_t)4U; i++)
   {
     repeat_expression1[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
   }
-  memcpy(s2_as_ntt.data, repeat_expression1, (size_t)6U * sizeof (Eurydice_arr_60));
-  Eurydice_arr_e2 t0_as_ntt;
-  Eurydice_arr_60 repeat_expression2[6U];
-  for (size_t i = (size_t)0U; i < (size_t)6U; i++)
+  memcpy(s2_as_ntt.data, repeat_expression1, (size_t)4U * sizeof (Eurydice_arr_60));
+  Eurydice_arr_6f t0_as_ntt;
+  Eurydice_arr_60 repeat_expression2[4U];
+  for (size_t i = (size_t)0U; i < (size_t)4U; i++)
   {
     repeat_expression2[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
   }
-  memcpy(t0_as_ntt.data, repeat_expression2, (size_t)6U * sizeof (Eurydice_arr_60));
-  libcrux_ml_dsa_encoding_error_deserialize_to_vector_then_ntt_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_ETA,
-    LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_65_ERROR_RING_ELEMENT_SIZE,
+  memcpy(t0_as_ntt.data, repeat_expression2, (size_t)4U * sizeof (Eurydice_arr_60));
+  libcrux_ml_dsa_encoding_error_deserialize_to_vector_then_ntt_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_ETA,
+    LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_44_ERROR_RING_ELEMENT_SIZE,
     s1_serialized,
-    Eurydice_array_to_slice_mut_205(&s1_as_ntt));
-  libcrux_ml_dsa_encoding_error_deserialize_to_vector_then_ntt_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_ETA,
-    LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_65_ERROR_RING_ELEMENT_SIZE,
+    Eurydice_array_to_slice_mut_2011(&s1_as_ntt));
+  libcrux_ml_dsa_encoding_error_deserialize_to_vector_then_ntt_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_ETA,
+    LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_44_ERROR_RING_ELEMENT_SIZE,
     s2_serialized,
-    Eurydice_array_to_slice_mut_206(&s2_as_ntt));
+    Eurydice_array_to_slice_mut_2011(&s2_as_ntt));
   libcrux_ml_dsa_encoding_t0_deserialize_to_vector_then_ntt_64(t0_serialized,
-    Eurydice_array_to_slice_mut_206(&t0_as_ntt));
-  Eurydice_arr_9a matrix;
-  Eurydice_arr_60 repeat_expression3[30U];
-  for (size_t i = (size_t)0U; i < (size_t)30U; i++)
+    Eurydice_array_to_slice_mut_2011(&t0_as_ntt));
+  Eurydice_arr_3e matrix;
+  Eurydice_arr_60 repeat_expression3[16U];
+  for (size_t i = (size_t)0U; i < (size_t)16U; i++)
   {
     repeat_expression3[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
   }
-  memcpy(matrix.data, repeat_expression3, (size_t)30U * sizeof (Eurydice_arr_60));
-  libcrux_ml_dsa_samplex4_avx2_matrix_flat_e8_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_COLUMNS_IN_A,
+  memcpy(matrix.data, repeat_expression3, (size_t)16U * sizeof (Eurydice_arr_60));
+  libcrux_ml_dsa_samplex4_avx2_matrix_flat_e8_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_COLUMNS_IN_A,
     seed_for_a,
-    Eurydice_array_to_slice_mut_204(&matrix));
-  Eurydice_arr_c7 message_representative = { { 0U } };
+    Eurydice_array_to_slice_mut_2010(&matrix));
+  Eurydice_arr_c7 message_representative = { .data = { 0U } };
   libcrux_ml_dsa_ml_dsa_generic_derive_message_representative_43(verification_key_hash,
     &domain_separation_context,
     message,
     &message_representative);
-  Eurydice_arr_c7 mask_seed = { { 0U } };
+  Eurydice_arr_c7 mask_seed = { .data = { 0U } };
   libcrux_sha3_generic_keccak_xof_KeccakXofState_8d
   shake0 = libcrux_ml_dsa_hash_functions_portable_init_26();
   libcrux_ml_dsa_hash_functions_portable_absorb_26(&shake0, seed_for_signing);
@@ -7076,70 +7130,70 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_internal_07(
     Eurydice_array_to_slice_mut_17(&mask_seed));
   uint16_t domain_separator_for_mask = 0U;
   size_t attempt = (size_t)0U;
-  core_option_Option_81 commitment_hash0 = { core_option_None };
-  core_option_Option_61 signer_response0 = { core_option_None };
-  core_option_Option_05 hint0 = { core_option_None };
+  core_option_Option_14 commitment_hash0 = { .tag = core_option_None };
+  core_option_Option_f9 signer_response0 = { .tag = core_option_None };
+  core_option_Option_51 hint0 = { .tag = core_option_None };
   while (attempt < LIBCRUX_ML_DSA_CONSTANTS_REJECTION_SAMPLE_BOUND_SIGN)
   {
     attempt++;
-    Eurydice_arr_77 mask;
-    Eurydice_arr_60 repeat_expression4[5U];
-    for (size_t i = (size_t)0U; i < (size_t)5U; i++)
+    Eurydice_arr_6f mask;
+    Eurydice_arr_60 repeat_expression4[4U];
+    for (size_t i = (size_t)0U; i < (size_t)4U; i++)
     {
       repeat_expression4[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
     }
-    memcpy(mask.data, repeat_expression4, (size_t)5U * sizeof (Eurydice_arr_60));
-    Eurydice_arr_e2 w0;
-    Eurydice_arr_60 repeat_expression5[6U];
-    for (size_t i = (size_t)0U; i < (size_t)6U; i++)
+    memcpy(mask.data, repeat_expression4, (size_t)4U * sizeof (Eurydice_arr_60));
+    Eurydice_arr_6f w0;
+    Eurydice_arr_60 repeat_expression5[4U];
+    for (size_t i = (size_t)0U; i < (size_t)4U; i++)
     {
       repeat_expression5[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
     }
-    memcpy(w0.data, repeat_expression5, (size_t)6U * sizeof (Eurydice_arr_60));
-    Eurydice_arr_e2 commitment;
-    Eurydice_arr_60 repeat_expression6[6U];
-    for (size_t i = (size_t)0U; i < (size_t)6U; i++)
+    memcpy(w0.data, repeat_expression5, (size_t)4U * sizeof (Eurydice_arr_60));
+    Eurydice_arr_6f commitment;
+    Eurydice_arr_60 repeat_expression6[4U];
+    for (size_t i = (size_t)0U; i < (size_t)4U; i++)
     {
       repeat_expression6[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
     }
-    memcpy(commitment.data, repeat_expression6, (size_t)6U * sizeof (Eurydice_arr_60));
-    libcrux_ml_dsa_sample_sample_mask_vector_f4(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_COLUMNS_IN_A,
-      LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_GAMMA1_EXPONENT,
+    memcpy(commitment.data, repeat_expression6, (size_t)4U * sizeof (Eurydice_arr_60));
+    libcrux_ml_dsa_sample_sample_mask_vector_f4(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_COLUMNS_IN_A,
+      LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_GAMMA1_EXPONENT,
       &mask_seed,
       &domain_separator_for_mask,
-      Eurydice_array_to_slice_mut_205(&mask));
-    Eurydice_arr_e2 a_x_mask;
-    Eurydice_arr_60 repeat_expression[6U];
-    for (size_t i = (size_t)0U; i < (size_t)6U; i++)
+      Eurydice_array_to_slice_mut_2011(&mask));
+    Eurydice_arr_6f a_x_mask;
+    Eurydice_arr_60 repeat_expression[4U];
+    for (size_t i = (size_t)0U; i < (size_t)4U; i++)
     {
       repeat_expression[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
     }
-    memcpy(a_x_mask.data, repeat_expression, (size_t)6U * sizeof (Eurydice_arr_60));
-    Eurydice_arr_77
+    memcpy(a_x_mask.data, repeat_expression, (size_t)4U * sizeof (Eurydice_arr_60));
+    Eurydice_arr_6f
     mask_ntt =
-      core_array__core__clone__Clone_for__T__N___clone((size_t)5U,
+      core_array__core__clone__Clone_for__T__N___clone((size_t)4U,
         &mask,
         Eurydice_arr_60,
-        Eurydice_arr_77);
-    for (size_t i = (size_t)0U; i < (size_t)5U; i++)
+        Eurydice_arr_6f);
+    for (size_t i = (size_t)0U; i < (size_t)4U; i++)
     {
       size_t i0 = i;
       libcrux_ml_dsa_ntt_ntt_64(&mask_ntt.data[i0]);
     }
-    libcrux_ml_dsa_matrix_compute_matrix_x_mask_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_ROWS_IN_A,
-      LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_COLUMNS_IN_A,
-      Eurydice_array_to_slice_shared_206(&matrix),
-      Eurydice_array_to_slice_shared_203(&mask_ntt),
-      Eurydice_array_to_slice_mut_206(&a_x_mask));
-    libcrux_ml_dsa_arithmetic_decompose_vector_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_ROWS_IN_A,
-      LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_GAMMA2,
-      Eurydice_array_to_slice_shared_205(&a_x_mask),
-      Eurydice_array_to_slice_mut_206(&w0),
-      Eurydice_array_to_slice_mut_206(&commitment));
-    Eurydice_arr_65 commitment_hash_candidate = { { 0U } };
-    Eurydice_arr_d2 commitment_serialized = { { 0U } };
-    libcrux_ml_dsa_encoding_commitment_serialize_vector_64(LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_65_COMMITMENT_RING_ELEMENT_SIZE,
-      Eurydice_array_to_slice_shared_205(&commitment),
+    libcrux_ml_dsa_matrix_compute_matrix_x_mask_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_ROWS_IN_A,
+      LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_COLUMNS_IN_A,
+      Eurydice_array_to_slice_shared_2011(&matrix),
+      Eurydice_array_to_slice_shared_209(&mask_ntt),
+      Eurydice_array_to_slice_mut_2011(&a_x_mask));
+    libcrux_ml_dsa_arithmetic_decompose_vector_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_ROWS_IN_A,
+      LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_GAMMA2,
+      Eurydice_array_to_slice_shared_209(&a_x_mask),
+      Eurydice_array_to_slice_mut_2011(&w0),
+      Eurydice_array_to_slice_mut_2011(&commitment));
+    Eurydice_arr_ec commitment_hash_candidate = { .data = { 0U } };
+    Eurydice_arr_d2 commitment_serialized = { .data = { 0U } };
+    libcrux_ml_dsa_encoding_commitment_serialize_vector_64(LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_44_COMMITMENT_RING_ELEMENT_SIZE,
+      Eurydice_array_to_slice_shared_209(&commitment),
       Eurydice_array_to_slice_mut_27(&commitment_serialized));
     libcrux_sha3_generic_keccak_xof_KeccakXofState_8d
     shake = libcrux_ml_dsa_hash_functions_portable_init_26();
@@ -7148,80 +7202,99 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_internal_07(
     libcrux_ml_dsa_hash_functions_portable_absorb_final_26(&shake,
       Eurydice_array_to_slice_shared_27(&commitment_serialized));
     libcrux_ml_dsa_hash_functions_portable_squeeze_26(&shake,
-      Eurydice_array_to_slice_mut_9f(&commitment_hash_candidate));
+      Eurydice_array_to_slice_mut_01(&commitment_hash_candidate));
     Eurydice_arr_60 verifier_challenge = libcrux_ml_dsa_polynomial_zero_ff_64();
-    libcrux_ml_dsa_sample_sample_challenge_ring_element_18(Eurydice_array_to_slice_shared_9f(&commitment_hash_candidate),
-      LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_ONES_IN_VERIFIER_CHALLENGE,
+    libcrux_ml_dsa_sample_sample_challenge_ring_element_18(Eurydice_array_to_slice_shared_01(&commitment_hash_candidate),
+      LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_ONES_IN_VERIFIER_CHALLENGE,
       &verifier_challenge);
     libcrux_ml_dsa_ntt_ntt_64(&verifier_challenge);
-    Eurydice_arr_77
+    Eurydice_arr_6f
     challenge_times_s1 =
-      core_array__core__clone__Clone_for__T__N___clone((size_t)5U,
+      core_array__core__clone__Clone_for__T__N___clone((size_t)4U,
         &s1_as_ntt,
         Eurydice_arr_60,
-        Eurydice_arr_77);
-    Eurydice_arr_e2
+        Eurydice_arr_6f);
+    Eurydice_arr_6f
     challenge_times_s2 =
-      core_array__core__clone__Clone_for__T__N___clone((size_t)6U,
+      core_array__core__clone__Clone_for__T__N___clone((size_t)4U,
         &s2_as_ntt,
         Eurydice_arr_60,
-        Eurydice_arr_e2);
-    libcrux_ml_dsa_matrix_vector_times_ring_element_64(Eurydice_array_to_slice_mut_205(&challenge_times_s1),
+        Eurydice_arr_6f);
+    libcrux_ml_dsa_matrix_vector_times_ring_element_64(Eurydice_array_to_slice_mut_2011(&challenge_times_s1),
       &verifier_challenge);
-    libcrux_ml_dsa_matrix_vector_times_ring_element_64(Eurydice_array_to_slice_mut_206(&challenge_times_s2),
+    libcrux_ml_dsa_matrix_vector_times_ring_element_64(Eurydice_array_to_slice_mut_2011(&challenge_times_s2),
       &verifier_challenge);
-    libcrux_ml_dsa_matrix_add_vectors_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_COLUMNS_IN_A,
-      Eurydice_array_to_slice_mut_205(&mask),
-      Eurydice_array_to_slice_shared_203(&challenge_times_s1));
-    libcrux_ml_dsa_matrix_subtract_vectors_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_ROWS_IN_A,
-      Eurydice_array_to_slice_mut_206(&w0),
-      Eurydice_array_to_slice_shared_205(&challenge_times_s2));
+    libcrux_ml_dsa_matrix_add_vectors_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_COLUMNS_IN_A,
+      Eurydice_array_to_slice_mut_2011(&mask),
+      Eurydice_array_to_slice_shared_209(&challenge_times_s1));
+    libcrux_ml_dsa_matrix_subtract_vectors_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_ROWS_IN_A,
+      Eurydice_array_to_slice_mut_2011(&w0),
+      Eurydice_array_to_slice_shared_209(&challenge_times_s2));
     if
     (
-      !libcrux_ml_dsa_arithmetic_vector_infinity_norm_exceeds_64(Eurydice_array_to_slice_shared_203(&mask),
-        (int32_t)((uint32_t)1 << (uint32_t)LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_GAMMA1_EXPONENT) -
-          LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_65_BETA)
+      !libcrux_ml_dsa_arithmetic_vector_infinity_norm_exceeds_64(Eurydice_array_to_slice_shared_209(&mask),
+        (int32_t)((uint32_t)1 << (uint32_t)LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_GAMMA1_EXPONENT) -
+          LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_44_BETA)
     )
     {
       if
       (
-        !libcrux_ml_dsa_arithmetic_vector_infinity_norm_exceeds_64(Eurydice_array_to_slice_shared_205(&w0),
-          LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_GAMMA2 - LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_65_BETA)
+        !libcrux_ml_dsa_arithmetic_vector_infinity_norm_exceeds_64(Eurydice_array_to_slice_shared_209(&w0),
+          LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_GAMMA2 - LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_44_BETA)
       )
       {
-        Eurydice_arr_e2
+        Eurydice_arr_6f
         challenge_times_t0 =
-          core_array__core__clone__Clone_for__T__N___clone((size_t)6U,
+          core_array__core__clone__Clone_for__T__N___clone((size_t)4U,
             &t0_as_ntt,
             Eurydice_arr_60,
-            Eurydice_arr_e2);
-        libcrux_ml_dsa_matrix_vector_times_ring_element_64(Eurydice_array_to_slice_mut_206(&challenge_times_t0),
+            Eurydice_arr_6f);
+        libcrux_ml_dsa_matrix_vector_times_ring_element_64(Eurydice_array_to_slice_mut_2011(&challenge_times_t0),
           &verifier_challenge);
         if
         (
-          !libcrux_ml_dsa_arithmetic_vector_infinity_norm_exceeds_64(Eurydice_array_to_slice_shared_205(&challenge_times_t0),
-            LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_GAMMA2)
+          !libcrux_ml_dsa_arithmetic_vector_infinity_norm_exceeds_64(Eurydice_array_to_slice_shared_209(&challenge_times_t0),
+            LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_GAMMA2)
         )
         {
-          libcrux_ml_dsa_matrix_add_vectors_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_ROWS_IN_A,
-            Eurydice_array_to_slice_mut_206(&w0),
-            Eurydice_array_to_slice_shared_205(&challenge_times_t0));
-          Eurydice_arr_5d0
+          libcrux_ml_dsa_matrix_add_vectors_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_ROWS_IN_A,
+            Eurydice_array_to_slice_mut_2011(&w0),
+            Eurydice_array_to_slice_shared_209(&challenge_times_t0));
+          Eurydice_arr_b7
           hint_candidate =
-            { { { { 0U } }, { { 0U } }, { { 0U } }, { { 0U } }, { { 0U } }, { { 0U } } } };
+            {
+              .data = {
+                { .data = { 0U } },
+                { .data = { 0U } },
+                { .data = { 0U } },
+                { .data = { 0U } }
+              }
+            };
           size_t
           ones_in_hint =
-            libcrux_ml_dsa_arithmetic_make_hint_64(Eurydice_array_to_slice_shared_205(&w0),
-              Eurydice_array_to_slice_shared_205(&commitment),
-              LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_GAMMA2,
+            libcrux_ml_dsa_arithmetic_make_hint_64(Eurydice_array_to_slice_shared_209(&w0),
+              Eurydice_array_to_slice_shared_209(&commitment),
+              LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_GAMMA2,
               Eurydice_array_to_slice_mut_86(&hint_candidate));
-          if (!(ones_in_hint > LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_MAX_ONES_IN_HINT))
+          if (!(ones_in_hint > LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_MAX_ONES_IN_HINT))
           {
             attempt = LIBCRUX_ML_DSA_CONSTANTS_REJECTION_SAMPLE_BOUND_SIGN;
             commitment_hash0 =
-              (core_option_Option_81{ core_option_Some, commitment_hash_candidate });
-            signer_response0 = (core_option_Option_61{ core_option_Some, mask });
-            hint0 = (core_option_Option_05{ core_option_Some, hint_candidate });
+              (
+                KRML_CLITERAL(core_option_Option_14){
+                  .tag = core_option_Some,
+                  .f0 = commitment_hash_candidate
+                }
+              );
+            signer_response0 =
+              (KRML_CLITERAL(core_option_Option_f9){ .tag = core_option_Some, .f0 = mask });
+            hint0 =
+              (
+                KRML_CLITERAL(core_option_Option_51){
+                  .tag = core_option_Some,
+                  .f0 = hint_candidate
+                }
+              );
           }
         }
       }
@@ -7232,51 +7305,51 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_internal_07(
   {
     uu____5 =
       (
-        core_result_Result_53{
-          core_result_Err,
-          libcrux_ml_dsa_types_SigningError_RejectionSamplingError
+        KRML_CLITERAL(core_result_Result_53){
+          .tag = core_result_Err,
+          .f0 = libcrux_ml_dsa_types_SigningError_RejectionSamplingError
         }
       );
   }
   else
   {
-    Eurydice_arr_65 commitment_hash = commitment_hash0.f0;
-    Eurydice_arr_65 commitment_hash1 = commitment_hash;
+    Eurydice_arr_ec commitment_hash = commitment_hash0.f0;
+    Eurydice_arr_ec commitment_hash1 = commitment_hash;
     if (signer_response0.tag == core_option_None)
     {
       uu____5 =
         (
-          core_result_Result_53{
-            core_result_Err,
-            libcrux_ml_dsa_types_SigningError_RejectionSamplingError
+          KRML_CLITERAL(core_result_Result_53){
+            .tag = core_result_Err,
+            .f0 = libcrux_ml_dsa_types_SigningError_RejectionSamplingError
           }
         );
     }
     else
     {
-      Eurydice_arr_77 signer_response = signer_response0.f0;
-      Eurydice_arr_77 signer_response1 = signer_response;
+      Eurydice_arr_6f signer_response = signer_response0.f0;
+      Eurydice_arr_6f signer_response1 = signer_response;
       if (!(hint0.tag == core_option_None))
       {
-        Eurydice_arr_5d0 hint = hint0.f0;
-        Eurydice_arr_5d0 hint1 = hint;
-        libcrux_ml_dsa_encoding_signature_serialize_64(Eurydice_array_to_slice_shared_9f(&commitment_hash1),
-          Eurydice_array_to_slice_shared_203(&signer_response1),
+        Eurydice_arr_b7 hint = hint0.f0;
+        Eurydice_arr_b7 hint1 = hint;
+        libcrux_ml_dsa_encoding_signature_serialize_64(Eurydice_array_to_slice_shared_01(&commitment_hash1),
+          Eurydice_array_to_slice_shared_209(&signer_response1),
           Eurydice_array_to_slice_shared_86(&hint1),
-          LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_COMMITMENT_HASH_SIZE,
-          LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_COLUMNS_IN_A,
-          LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_ROWS_IN_A,
-          LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_GAMMA1_EXPONENT,
-          LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_65_GAMMA1_RING_ELEMENT_SIZE,
-          LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_MAX_ONES_IN_HINT,
-          Eurydice_array_to_slice_mut_6b(signature));
-        return (core_result_Result_53{ core_result_Ok });
+          LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_COMMITMENT_HASH_SIZE,
+          LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_COLUMNS_IN_A,
+          LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_ROWS_IN_A,
+          LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_GAMMA1_EXPONENT,
+          LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_44_GAMMA1_RING_ELEMENT_SIZE,
+          LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_MAX_ONES_IN_HINT,
+          Eurydice_array_to_slice_mut_0d(signature));
+        return (KRML_CLITERAL(core_result_Result_53){ .tag = core_result_Ok });
       }
       uu____5 =
         (
-          core_result_Result_53{
-            core_result_Err,
-            libcrux_ml_dsa_types_SigningError_RejectionSamplingError
+          KRML_CLITERAL(core_result_Result_53){
+            .tag = core_result_Err,
+            .f0 = libcrux_ml_dsa_types_SigningError_RejectionSamplingError
           }
         );
     }
@@ -7285,93 +7358,104 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_internal_07(
 }
 
 /**
-A monomorphic instance of libcrux_ml_dsa.ml_dsa_generic.ml_dsa_65.sign_mut
+A monomorphic instance of libcrux_ml_dsa.ml_dsa_generic.ml_dsa_44.sign_mut
 with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256, libcrux_ml_dsa_samplex4_avx2_AVX2Sampler, libcrux_ml_dsa_hash_functions_simd256_Shake128x4, libcrux_ml_dsa_hash_functions_simd256_Shake256, libcrux_ml_dsa_hash_functions_portable_Shake256Xof, libcrux_ml_dsa_hash_functions_simd256_Shake256x4
 with const generics
 
 */
 KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE core_result_Result_53
-libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_mut_07(
+libcrux_ml_dsa_ml_dsa_generic_ml_dsa_44_sign_mut_07(
   Eurydice_borrow_slice_u8 signing_key,
   Eurydice_borrow_slice_u8 message,
   Eurydice_borrow_slice_u8 context,
   Eurydice_arr_ec randomness,
-  Eurydice_arr_0c *signature
+  Eurydice_arr_85 *signature
 )
 {
   core_result_Result_a8
-  uu____0 = libcrux_ml_dsa_pre_hash_new_88(context, (core_option_Option_57{ core_option_None }));
+  uu____0 =
+    libcrux_ml_dsa_pre_hash_new_88(context,
+      (KRML_CLITERAL(core_option_Option_57){ .tag = core_option_None }));
   if (!(uu____0.tag == core_result_Ok))
   {
     return
       (
-        core_result_Result_53{
-          core_result_Err,
-          libcrux_ml_dsa_types_SigningError_ContextTooLongError
+        KRML_CLITERAL(core_result_Result_53){
+          .tag = core_result_Err,
+          .f0 = libcrux_ml_dsa_types_SigningError_ContextTooLongError
         }
       );
   }
   libcrux_ml_dsa_pre_hash_DomainSeparationContext dsc = uu____0.val.case_Ok;
   libcrux_ml_dsa_pre_hash_DomainSeparationContext domain_separation_context = dsc;
   return
-    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_internal_07(signing_key,
+    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_44_sign_internal_07(signing_key,
       message,
-      (core_option_Option_84{ core_option_Some, domain_separation_context }),
+      (
+        KRML_CLITERAL(core_option_Option_84){
+          .tag = core_option_Some,
+          .f0 = domain_separation_context
+        }
+      ),
       randomness,
       signature);
 }
 
 /**
-A monomorphic instance of libcrux_ml_dsa.ml_dsa_generic.ml_dsa_65.sign
+A monomorphic instance of libcrux_ml_dsa.ml_dsa_generic.ml_dsa_44.sign
 with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256, libcrux_ml_dsa_samplex4_avx2_AVX2Sampler, libcrux_ml_dsa_hash_functions_simd256_Shake128x4, libcrux_ml_dsa_hash_functions_simd256_Shake256, libcrux_ml_dsa_hash_functions_portable_Shake256Xof, libcrux_ml_dsa_hash_functions_simd256_Shake256x4
 with const generics
 
 */
 KRML_ATTRIBUTE_TARGET("avx2")
-static KRML_MUSTINLINE core_result_Result_8c
-libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_07(
+static KRML_MUSTINLINE core_result_Result_48
+libcrux_ml_dsa_ml_dsa_generic_ml_dsa_44_sign_07(
   Eurydice_borrow_slice_u8 signing_key,
   Eurydice_borrow_slice_u8 message,
   Eurydice_borrow_slice_u8 context,
   Eurydice_arr_ec randomness
 )
 {
-  Eurydice_arr_0c signature = libcrux_ml_dsa_types_zero_c5_5c();
+  Eurydice_arr_85 signature = libcrux_ml_dsa_types_zero_c5_37();
   core_result_Result_53
   uu____0 =
-    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_mut_07(signing_key,
+    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_44_sign_mut_07(signing_key,
       message,
       context,
       randomness,
       &signature);
-  core_result_Result_8c uu____1;
+  core_result_Result_48 uu____1;
   if (uu____0.tag == core_result_Ok)
   {
     uu____1 =
-      core_result_Result_8c_s(core_result_Ok,
-        &core_result_Result_8c_s::U::case_Ok,
-        signature);
+      (
+        KRML_CLITERAL(core_result_Result_48){
+          .tag = core_result_Ok,
+          .val = { .case_Ok = signature }
+        }
+      );
   }
   else
   {
     libcrux_ml_dsa_types_SigningError e = uu____0.f0;
-    uu____1 = core_result_Result_8c_s(core_result_Err, &core_result_Result_8c_s::U::case_Err, e);
+    uu____1 =
+      (KRML_CLITERAL(core_result_Result_48){ .tag = core_result_Err, .val = { .case_Err = e } });
   }
   return uu____1;
 }
 
 KRML_ATTRIBUTE_TARGET("avx2")
-static inline core_result_Result_8c
-libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_sign__inner(
-  const Eurydice_arr_24 *signing_key,
+static inline core_result_Result_48
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_44_sign__inner(
+  const Eurydice_arr_10 *signing_key,
   Eurydice_borrow_slice_u8 message,
   Eurydice_borrow_slice_u8 context,
   Eurydice_arr_ec randomness
 )
 {
   return
-    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_07(Eurydice_array_to_slice_shared_98(signing_key),
+    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_44_sign_07(Eurydice_array_to_slice_shared_34(signing_key),
       message,
       context,
       randomness);
@@ -7381,16 +7465,16 @@ libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_sign__inner(
  Sign.
 */
 KRML_ATTRIBUTE_TARGET("avx2")
-static inline core_result_Result_8c
-libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_sign(
-  const Eurydice_arr_24 *signing_key,
+static inline core_result_Result_48
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_44_sign(
+  const Eurydice_arr_10 *signing_key,
   Eurydice_borrow_slice_u8 message,
   Eurydice_borrow_slice_u8 context,
   Eurydice_arr_ec randomness
 )
 {
   return
-    libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_sign__inner(signing_key,
+    libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_44_sign__inner(signing_key,
       message,
       context,
       randomness);
@@ -7398,16 +7482,16 @@ libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_sign(
 
 KRML_ATTRIBUTE_TARGET("avx2")
 static inline core_result_Result_53
-libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_sign_mut__inner(
-  const Eurydice_arr_24 *signing_key,
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_44_sign_mut__inner(
+  const Eurydice_arr_10 *signing_key,
   Eurydice_borrow_slice_u8 message,
   Eurydice_borrow_slice_u8 context,
   Eurydice_arr_ec randomness,
-  Eurydice_arr_0c *signature
+  Eurydice_arr_85 *signature
 )
 {
   return
-    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_mut_07(Eurydice_array_to_slice_shared_98(signing_key),
+    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_44_sign_mut_07(Eurydice_array_to_slice_shared_34(signing_key),
       message,
       context,
       randomness,
@@ -7419,16 +7503,16 @@ libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_sign_mut__inner(
 */
 KRML_ATTRIBUTE_TARGET("avx2")
 static inline core_result_Result_53
-libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_sign_mut(
-  const Eurydice_arr_24 *signing_key,
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_44_sign_mut(
+  const Eurydice_arr_10 *signing_key,
   Eurydice_borrow_slice_u8 message,
   Eurydice_borrow_slice_u8 context,
   Eurydice_arr_ec randomness,
-  Eurydice_arr_0c *signature
+  Eurydice_arr_85 *signature
 )
 {
   return
-    libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_sign_mut__inner(signing_key,
+    libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_44_sign_mut__inner(signing_key,
       message,
       context,
       randomness,
@@ -7436,20 +7520,20 @@ libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_sign_mut(
 }
 
 /**
-A monomorphic instance of libcrux_ml_dsa.ml_dsa_generic.ml_dsa_65.sign_pre_hashed_mut
+A monomorphic instance of libcrux_ml_dsa.ml_dsa_generic.ml_dsa_44.sign_pre_hashed_mut
 with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256, libcrux_ml_dsa_samplex4_avx2_AVX2Sampler, libcrux_ml_dsa_hash_functions_portable_Shake128, libcrux_ml_dsa_hash_functions_simd256_Shake128x4, libcrux_ml_dsa_hash_functions_simd256_Shake256, libcrux_ml_dsa_hash_functions_portable_Shake256Xof, libcrux_ml_dsa_hash_functions_simd256_Shake256x4, libcrux_ml_dsa_pre_hash_SHAKE128_PH
 with const generics
 
 */
 KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE core_result_Result_53
-libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_pre_hashed_mut_37(
+libcrux_ml_dsa_ml_dsa_generic_ml_dsa_44_sign_pre_hashed_mut_37(
   Eurydice_borrow_slice_u8 signing_key,
   Eurydice_borrow_slice_u8 message,
   Eurydice_borrow_slice_u8 context,
   Eurydice_mut_borrow_slice_u8 pre_hash_buffer,
   Eurydice_arr_ec randomness,
-  Eurydice_arr_0c *signature
+  Eurydice_arr_85 *signature
 )
 {
   if (!(context.meta > LIBCRUX_ML_DSA_CONSTANTS_CONTEXT_MAX_LEN))
@@ -7458,44 +7542,59 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_pre_hashed_mut_37(
     core_result_Result_a8
     uu____0 =
       libcrux_ml_dsa_pre_hash_new_88(context,
-        (core_option_Option_57{ core_option_Some, libcrux_ml_dsa_pre_hash_oid_30() }));
+        (
+          KRML_CLITERAL(core_option_Option_57){
+            .tag = core_option_Some,
+            .f0 = libcrux_ml_dsa_pre_hash_oid_30()
+          }
+        ));
     if (!(uu____0.tag == core_result_Ok))
     {
       return
         (
-          core_result_Result_53{
-            core_result_Err,
-            libcrux_ml_dsa_types_SigningError_ContextTooLongError
+          KRML_CLITERAL(core_result_Result_53){
+            .tag = core_result_Err,
+            .f0 = libcrux_ml_dsa_types_SigningError_ContextTooLongError
           }
         );
     }
     libcrux_ml_dsa_pre_hash_DomainSeparationContext dsc = uu____0.val.case_Ok;
     libcrux_ml_dsa_pre_hash_DomainSeparationContext domain_separation_context = dsc;
     return
-      libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_internal_07(signing_key,
-        (Eurydice_borrow_slice_u8{ pre_hash_buffer.ptr, pre_hash_buffer.meta }),
-        (core_option_Option_84{ core_option_Some, domain_separation_context }),
+      libcrux_ml_dsa_ml_dsa_generic_ml_dsa_44_sign_internal_07(signing_key,
+        (
+          KRML_CLITERAL(Eurydice_borrow_slice_u8){
+            .ptr = pre_hash_buffer.ptr,
+            .meta = pre_hash_buffer.meta
+          }
+        ),
+        (
+          KRML_CLITERAL(core_option_Option_84){
+            .tag = core_option_Some,
+            .f0 = domain_separation_context
+          }
+        ),
         randomness,
         signature);
   }
   return
     (
-      core_result_Result_53{
-        core_result_Err,
-        libcrux_ml_dsa_types_SigningError_ContextTooLongError
+      KRML_CLITERAL(core_result_Result_53){
+        .tag = core_result_Err,
+        .f0 = libcrux_ml_dsa_types_SigningError_ContextTooLongError
       }
     );
 }
 
 /**
-A monomorphic instance of libcrux_ml_dsa.ml_dsa_generic.ml_dsa_65.sign_pre_hashed
+A monomorphic instance of libcrux_ml_dsa.ml_dsa_generic.ml_dsa_44.sign_pre_hashed
 with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256, libcrux_ml_dsa_samplex4_avx2_AVX2Sampler, libcrux_ml_dsa_hash_functions_portable_Shake128, libcrux_ml_dsa_hash_functions_simd256_Shake128x4, libcrux_ml_dsa_hash_functions_simd256_Shake256, libcrux_ml_dsa_hash_functions_portable_Shake256Xof, libcrux_ml_dsa_hash_functions_simd256_Shake256x4, libcrux_ml_dsa_pre_hash_SHAKE128_PH
 with const generics
 
 */
 KRML_ATTRIBUTE_TARGET("avx2")
-static KRML_MUSTINLINE core_result_Result_8c
-libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_pre_hashed_37(
+static KRML_MUSTINLINE core_result_Result_48
+libcrux_ml_dsa_ml_dsa_generic_ml_dsa_44_sign_pre_hashed_37(
   Eurydice_borrow_slice_u8 signing_key,
   Eurydice_borrow_slice_u8 message,
   Eurydice_borrow_slice_u8 context,
@@ -7503,35 +7602,39 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_pre_hashed_37(
   Eurydice_arr_ec randomness
 )
 {
-  Eurydice_arr_0c signature = libcrux_ml_dsa_types_zero_c5_5c();
+  Eurydice_arr_85 signature = libcrux_ml_dsa_types_zero_c5_37();
   core_result_Result_53
   uu____0 =
-    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_pre_hashed_mut_37(signing_key,
+    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_44_sign_pre_hashed_mut_37(signing_key,
       message,
       context,
       pre_hash_buffer,
       randomness,
       &signature);
-  core_result_Result_8c uu____1;
+  core_result_Result_48 uu____1;
   if (uu____0.tag == core_result_Ok)
   {
     uu____1 =
-      core_result_Result_8c_s(core_result_Ok,
-        &core_result_Result_8c_s::U::case_Ok,
-        signature);
+      (
+        KRML_CLITERAL(core_result_Result_48){
+          .tag = core_result_Ok,
+          .val = { .case_Ok = signature }
+        }
+      );
   }
   else
   {
     libcrux_ml_dsa_types_SigningError e = uu____0.f0;
-    uu____1 = core_result_Result_8c_s(core_result_Err, &core_result_Result_8c_s::U::case_Err, e);
+    uu____1 =
+      (KRML_CLITERAL(core_result_Result_48){ .tag = core_result_Err, .val = { .case_Err = e } });
   }
   return uu____1;
 }
 
 KRML_ATTRIBUTE_TARGET("avx2")
-static inline core_result_Result_8c
-libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_sign_pre_hashed_shake128__inner(
-  const Eurydice_arr_24 *signing_key,
+static inline core_result_Result_48
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_44_sign_pre_hashed_shake128__inner(
+  const Eurydice_arr_10 *signing_key,
   Eurydice_borrow_slice_u8 message,
   Eurydice_borrow_slice_u8 context,
   Eurydice_mut_borrow_slice_u8 pre_hash_buffer,
@@ -7539,7 +7642,7 @@ libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_sign_pre_hashed_shak
 )
 {
   return
-    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_pre_hashed_37(Eurydice_array_to_slice_shared_98(signing_key),
+    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_44_sign_pre_hashed_37(Eurydice_array_to_slice_shared_34(signing_key),
       message,
       context,
       pre_hash_buffer,
@@ -7550,9 +7653,9 @@ libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_sign_pre_hashed_shak
  Sign (pre-hashed).
 */
 KRML_ATTRIBUTE_TARGET("avx2")
-static inline core_result_Result_8c
-libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_sign_pre_hashed_shake128(
-  const Eurydice_arr_24 *signing_key,
+static inline core_result_Result_48
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_44_sign_pre_hashed_shake128(
+  const Eurydice_arr_10 *signing_key,
   Eurydice_borrow_slice_u8 message,
   Eurydice_borrow_slice_u8 context,
   Eurydice_mut_borrow_slice_u8 pre_hash_buffer,
@@ -7560,7 +7663,7 @@ libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_sign_pre_hashed_shak
 )
 {
   return
-    libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_sign_pre_hashed_shake128__inner(signing_key,
+    libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_44_sign_pre_hashed_shake128__inner(signing_key,
       message,
       context,
       pre_hash_buffer,
@@ -7585,9 +7688,9 @@ libcrux_ml_dsa_encoding_t1_deserialize_64(
     size_t i0 = i;
     libcrux_ml_dsa_simd_avx2_t1_deserialize_a2(Eurydice_slice_subslice_shared_c8(serialized,
         (
-          core_ops_range_Range_87{
-            i0 * LIBCRUX_ML_DSA_ENCODING_T1_DESERIALIZE_WINDOW,
-            (i0 + (size_t)1U) * LIBCRUX_ML_DSA_ENCODING_T1_DESERIALIZE_WINDOW
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = i0 * LIBCRUX_ML_DSA_ENCODING_T1_DESERIALIZE_WINDOW,
+            .end = (i0 + (size_t)1U) * LIBCRUX_ML_DSA_ENCODING_T1_DESERIALIZE_WINDOW
           }
         )),
       &result->data[i0]);
@@ -7614,9 +7717,9 @@ libcrux_ml_dsa_encoding_verification_key_deserialize_64(
     size_t i0 = i;
     libcrux_ml_dsa_encoding_t1_deserialize_64(Eurydice_slice_subslice_shared_c8(serialized,
         (
-          core_ops_range_Range_87{
-            i0 * LIBCRUX_ML_DSA_CONSTANTS_RING_ELEMENT_OF_T1S_SIZE,
-            (i0 + (size_t)1U) * LIBCRUX_ML_DSA_CONSTANTS_RING_ELEMENT_OF_T1S_SIZE
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = i0 * LIBCRUX_ML_DSA_CONSTANTS_RING_ELEMENT_OF_T1S_SIZE,
+            .end = (i0 + (size_t)1U) * LIBCRUX_ML_DSA_CONSTANTS_RING_ELEMENT_OF_T1S_SIZE
           }
         )),
       &t1.ptr[i0]);
@@ -7654,7 +7757,7 @@ libcrux_ml_dsa_encoding_signature_deserialize_64(
   Eurydice_borrow_slice_u8 commitment_hash = uu____0.fst;
   Eurydice_borrow_slice_u8 rest_of_serialized = uu____0.snd;
   Eurydice_slice_copy(Eurydice_slice_subslice_mut_c8(out_commitment_hash,
-      (core_ops_range_Range_87{ (size_t)0U, commitment_hash_size })),
+      (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = commitment_hash_size })),
     commitment_hash,
     uint8_t);
   Eurydice_borrow_slice_u8_x2
@@ -7671,9 +7774,9 @@ libcrux_ml_dsa_encoding_signature_deserialize_64(
     libcrux_ml_dsa_encoding_gamma1_deserialize_64(gamma1_exponent,
       Eurydice_slice_subslice_shared_c8(signer_response_serialized,
         (
-          core_ops_range_Range_87{
-            i0 * gamma1_ring_element_size,
-            (i0 + (size_t)1U) * gamma1_ring_element_size
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = i0 * gamma1_ring_element_size,
+            .end = (i0 + (size_t)1U) * gamma1_ring_element_size
           }
         )),
       &out_signer_response.ptr[i0]);
@@ -7729,15 +7832,15 @@ libcrux_ml_dsa_encoding_signature_deserialize_64(
   {
     uu____2 =
       (
-        core_result_Result_41{
-          core_result_Err,
-          libcrux_ml_dsa_types_VerificationError_MalformedHintError
+        KRML_CLITERAL(core_result_Result_41){
+          .tag = core_result_Err,
+          .f0 = libcrux_ml_dsa_types_VerificationError_MalformedHintError
         }
       );
   }
   else
   {
-    uu____2 = (core_result_Result_41{ core_result_Ok });
+    uu____2 = (KRML_CLITERAL(core_result_Result_41){ .tag = core_result_Ok });
   }
   return uu____2;
 }
@@ -7865,6 +7968,1361 @@ libcrux_ml_dsa_arithmetic_use_hint_64(
  `message` already contains the domain separation.
 */
 /**
+A monomorphic instance of libcrux_ml_dsa.ml_dsa_generic.ml_dsa_44.verify_internal
+with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256, libcrux_ml_dsa_samplex4_avx2_AVX2Sampler, libcrux_ml_dsa_hash_functions_simd256_Shake128x4, libcrux_ml_dsa_hash_functions_simd256_Shake256, libcrux_ml_dsa_hash_functions_portable_Shake256Xof
+with const generics
+
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static KRML_MUSTINLINE core_result_Result_41
+libcrux_ml_dsa_ml_dsa_generic_ml_dsa_44_verify_internal_07(
+  const Eurydice_arr_02 *verification_key,
+  Eurydice_borrow_slice_u8 message,
+  core_option_Option_84 domain_separation_context,
+  const Eurydice_arr_85 *signature_serialized
+)
+{
+  Eurydice_borrow_slice_u8_x2
+  uu____0 =
+    Eurydice_slice_split_at(Eurydice_array_to_slice_shared_9f(verification_key),
+      LIBCRUX_ML_DSA_CONSTANTS_SEED_FOR_A_SIZE,
+      uint8_t,
+      Eurydice_borrow_slice_u8_x2);
+  Eurydice_borrow_slice_u8 seed_for_a = uu____0.fst;
+  Eurydice_borrow_slice_u8 t1_serialized = uu____0.snd;
+  Eurydice_arr_6f t1;
+  Eurydice_arr_60 repeat_expression0[4U];
+  for (size_t i = (size_t)0U; i < (size_t)4U; i++)
+  {
+    repeat_expression0[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+  }
+  memcpy(t1.data, repeat_expression0, (size_t)4U * sizeof (Eurydice_arr_60));
+  libcrux_ml_dsa_encoding_verification_key_deserialize_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_ROWS_IN_A,
+    LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_44_VERIFICATION_KEY_SIZE,
+    t1_serialized,
+    Eurydice_array_to_slice_mut_2011(&t1));
+  Eurydice_arr_ec deserialized_commitment_hash = { .data = { 0U } };
+  Eurydice_arr_6f deserialized_signer_response;
+  Eurydice_arr_60 repeat_expression1[4U];
+  for (size_t i = (size_t)0U; i < (size_t)4U; i++)
+  {
+    repeat_expression1[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+  }
+  memcpy(deserialized_signer_response.data,
+    repeat_expression1,
+    (size_t)4U * sizeof (Eurydice_arr_60));
+  Eurydice_arr_b7
+  deserialized_hint =
+    { .data = { { .data = { 0U } }, { .data = { 0U } }, { .data = { 0U } }, { .data = { 0U } } } };
+  core_result_Result_41
+  uu____1 =
+    libcrux_ml_dsa_encoding_signature_deserialize_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_COLUMNS_IN_A,
+      LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_ROWS_IN_A,
+      LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_COMMITMENT_HASH_SIZE,
+      LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_GAMMA1_EXPONENT,
+      LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_44_GAMMA1_RING_ELEMENT_SIZE,
+      LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_MAX_ONES_IN_HINT,
+      LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_44_SIGNATURE_SIZE,
+      Eurydice_array_to_slice_shared_0d(signature_serialized),
+      Eurydice_array_to_slice_mut_01(&deserialized_commitment_hash),
+      Eurydice_array_to_slice_mut_2011(&deserialized_signer_response),
+      Eurydice_array_to_slice_mut_86(&deserialized_hint));
+  core_result_Result_41 uu____2;
+  if (uu____1.tag == core_result_Ok)
+  {
+    if
+    (
+      libcrux_ml_dsa_arithmetic_vector_infinity_norm_exceeds_64(Eurydice_array_to_slice_shared_209(&deserialized_signer_response),
+        (int32_t)((uint32_t)1 << (uint32_t)LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_GAMMA1_EXPONENT) -
+          LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_44_BETA)
+    )
+    {
+      uu____2 =
+        (
+          KRML_CLITERAL(core_result_Result_41){
+            .tag = core_result_Err,
+            .f0 = libcrux_ml_dsa_types_VerificationError_SignerResponseExceedsBoundError
+          }
+        );
+    }
+    else
+    {
+      Eurydice_arr_3e matrix;
+      Eurydice_arr_60 repeat_expression[16U];
+      for (size_t i = (size_t)0U; i < (size_t)16U; i++)
+      {
+        repeat_expression[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+      }
+      memcpy(matrix.data, repeat_expression, (size_t)16U * sizeof (Eurydice_arr_60));
+      libcrux_ml_dsa_samplex4_avx2_matrix_flat_e8_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_COLUMNS_IN_A,
+        seed_for_a,
+        Eurydice_array_to_slice_mut_2010(&matrix));
+      Eurydice_arr_c7 verification_key_hash = { .data = { 0U } };
+      libcrux_ml_dsa_hash_functions_simd256_shake256_8c_c9(Eurydice_array_to_slice_shared_9f(verification_key),
+        &verification_key_hash);
+      Eurydice_arr_c7 message_representative = { .data = { 0U } };
+      libcrux_ml_dsa_ml_dsa_generic_derive_message_representative_43(Eurydice_array_to_slice_shared_17(&verification_key_hash),
+        &domain_separation_context,
+        message,
+        &message_representative);
+      Eurydice_arr_60 verifier_challenge = libcrux_ml_dsa_polynomial_zero_ff_64();
+      libcrux_ml_dsa_sample_sample_challenge_ring_element_18(Eurydice_array_to_slice_shared_01(&deserialized_commitment_hash),
+        LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_ONES_IN_VERIFIER_CHALLENGE,
+        &verifier_challenge);
+      libcrux_ml_dsa_ntt_ntt_64(&verifier_challenge);
+      for (size_t i = (size_t)0U; i < (size_t)4U; i++)
+      {
+        size_t i0 = i;
+        libcrux_ml_dsa_ntt_ntt_64(&deserialized_signer_response.data[i0]);
+      }
+      libcrux_ml_dsa_matrix_compute_w_approx_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_ROWS_IN_A,
+        LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_COLUMNS_IN_A,
+        Eurydice_array_to_slice_shared_2011(&matrix),
+        Eurydice_array_to_slice_shared_209(&deserialized_signer_response),
+        &verifier_challenge,
+        Eurydice_array_to_slice_mut_2011(&t1));
+      Eurydice_arr_ec recomputed_commitment_hash = { .data = { 0U } };
+      libcrux_ml_dsa_arithmetic_use_hint_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_44_GAMMA2,
+        Eurydice_array_to_slice_shared_86(&deserialized_hint),
+        Eurydice_array_to_slice_mut_2011(&t1));
+      Eurydice_arr_d2 commitment_serialized = { .data = { 0U } };
+      libcrux_ml_dsa_encoding_commitment_serialize_vector_64(LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_44_COMMITMENT_RING_ELEMENT_SIZE,
+        Eurydice_array_to_slice_shared_209(&t1),
+        Eurydice_array_to_slice_mut_27(&commitment_serialized));
+      libcrux_sha3_generic_keccak_xof_KeccakXofState_8d
+      shake = libcrux_ml_dsa_hash_functions_portable_init_26();
+      libcrux_ml_dsa_hash_functions_portable_absorb_26(&shake,
+        Eurydice_array_to_slice_shared_17(&message_representative));
+      libcrux_ml_dsa_hash_functions_portable_absorb_final_26(&shake,
+        Eurydice_array_to_slice_shared_27(&commitment_serialized));
+      libcrux_ml_dsa_hash_functions_portable_squeeze_26(&shake,
+        Eurydice_array_to_slice_mut_01(&recomputed_commitment_hash));
+      if
+      (
+        Eurydice_array_eq((size_t)32U,
+          &deserialized_commitment_hash,
+          &recomputed_commitment_hash,
+          uint8_t)
+      )
+      {
+        uu____2 = (KRML_CLITERAL(core_result_Result_41){ .tag = core_result_Ok });
+      }
+      else
+      {
+        uu____2 =
+          (
+            KRML_CLITERAL(core_result_Result_41){
+              .tag = core_result_Err,
+              .f0 = libcrux_ml_dsa_types_VerificationError_CommitmentHashesDontMatchError
+            }
+          );
+      }
+    }
+  }
+  else
+  {
+    libcrux_ml_dsa_types_VerificationError e = uu____1.f0;
+    uu____2 = (KRML_CLITERAL(core_result_Result_41){ .tag = core_result_Err, .f0 = e });
+  }
+  return uu____2;
+}
+
+/**
+A monomorphic instance of libcrux_ml_dsa.ml_dsa_generic.ml_dsa_44.verify
+with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256, libcrux_ml_dsa_samplex4_avx2_AVX2Sampler, libcrux_ml_dsa_hash_functions_simd256_Shake128x4, libcrux_ml_dsa_hash_functions_simd256_Shake256, libcrux_ml_dsa_hash_functions_portable_Shake256Xof
+with const generics
+
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static KRML_MUSTINLINE core_result_Result_41
+libcrux_ml_dsa_ml_dsa_generic_ml_dsa_44_verify_07(
+  const Eurydice_arr_02 *verification_key_serialized,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  const Eurydice_arr_85 *signature_serialized
+)
+{
+  core_result_Result_a8
+  uu____0 =
+    libcrux_ml_dsa_pre_hash_new_88(context,
+      (KRML_CLITERAL(core_option_Option_57){ .tag = core_option_None }));
+  if (!(uu____0.tag == core_result_Ok))
+  {
+    return
+      (
+        KRML_CLITERAL(core_result_Result_41){
+          .tag = core_result_Err,
+          .f0 = libcrux_ml_dsa_types_VerificationError_VerificationContextTooLongError
+        }
+      );
+  }
+  libcrux_ml_dsa_pre_hash_DomainSeparationContext dsc = uu____0.val.case_Ok;
+  libcrux_ml_dsa_pre_hash_DomainSeparationContext domain_separation_context = dsc;
+  return
+    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_44_verify_internal_07(verification_key_serialized,
+      message,
+      (
+        KRML_CLITERAL(core_option_Option_84){
+          .tag = core_option_Some,
+          .f0 = domain_separation_context
+        }
+      ),
+      signature_serialized);
+}
+
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline core_result_Result_41
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_44_verify__inner(
+  const Eurydice_arr_02 *verification_key,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  const Eurydice_arr_85 *signature
+)
+{
+  return
+    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_44_verify_07(verification_key,
+      message,
+      context,
+      signature);
+}
+
+/**
+ Verify.
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline core_result_Result_41
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_44_verify(
+  const Eurydice_arr_02 *verification_key,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  const Eurydice_arr_85 *signature
+)
+{
+  return
+    libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_44_verify__inner(verification_key,
+      message,
+      context,
+      signature);
+}
+
+/**
+A monomorphic instance of libcrux_ml_dsa.ml_dsa_generic.ml_dsa_44.verify_pre_hashed
+with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256, libcrux_ml_dsa_samplex4_avx2_AVX2Sampler, libcrux_ml_dsa_hash_functions_portable_Shake128, libcrux_ml_dsa_hash_functions_simd256_Shake128x4, libcrux_ml_dsa_hash_functions_simd256_Shake256, libcrux_ml_dsa_hash_functions_portable_Shake256Xof, libcrux_ml_dsa_pre_hash_SHAKE128_PH
+with const generics
+
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static KRML_MUSTINLINE core_result_Result_41
+libcrux_ml_dsa_ml_dsa_generic_ml_dsa_44_verify_pre_hashed_37(
+  const Eurydice_arr_02 *verification_key_serialized,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  Eurydice_mut_borrow_slice_u8 pre_hash_buffer,
+  const Eurydice_arr_85 *signature_serialized
+)
+{
+  libcrux_ml_dsa_pre_hash_hash_30_83(message, pre_hash_buffer);
+  core_result_Result_a8
+  uu____0 =
+    libcrux_ml_dsa_pre_hash_new_88(context,
+      (
+        KRML_CLITERAL(core_option_Option_57){
+          .tag = core_option_Some,
+          .f0 = libcrux_ml_dsa_pre_hash_oid_30()
+        }
+      ));
+  if (!(uu____0.tag == core_result_Ok))
+  {
+    return
+      (
+        KRML_CLITERAL(core_result_Result_41){
+          .tag = core_result_Err,
+          .f0 = libcrux_ml_dsa_types_VerificationError_VerificationContextTooLongError
+        }
+      );
+  }
+  libcrux_ml_dsa_pre_hash_DomainSeparationContext dsc = uu____0.val.case_Ok;
+  libcrux_ml_dsa_pre_hash_DomainSeparationContext domain_separation_context = dsc;
+  return
+    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_44_verify_internal_07(verification_key_serialized,
+      (
+        KRML_CLITERAL(Eurydice_borrow_slice_u8){
+          .ptr = pre_hash_buffer.ptr,
+          .meta = pre_hash_buffer.meta
+        }
+      ),
+      (
+        KRML_CLITERAL(core_option_Option_84){
+          .tag = core_option_Some,
+          .f0 = domain_separation_context
+        }
+      ),
+      signature_serialized);
+}
+
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline core_result_Result_41
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_44_verify_pre_hashed_shake128__inner(
+  const Eurydice_arr_02 *verification_key,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  Eurydice_mut_borrow_slice_u8 pre_hash_buffer,
+  const Eurydice_arr_85 *signature
+)
+{
+  return
+    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_44_verify_pre_hashed_37(verification_key,
+      message,
+      context,
+      pre_hash_buffer,
+      signature);
+}
+
+/**
+ Verify (pre-hashed with SHAKE-128).
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline core_result_Result_41
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_44_verify_pre_hashed_shake128(
+  const Eurydice_arr_02 *verification_key,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  Eurydice_mut_borrow_slice_u8 pre_hash_buffer,
+  const Eurydice_arr_85 *signature
+)
+{
+  return
+    libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_44_verify_pre_hashed_shake128__inner(verification_key,
+      message,
+      context,
+      pre_hash_buffer,
+      signature);
+}
+
+/**
+A monomorphic instance of Eurydice.arr
+with types libcrux_ml_dsa_polynomial_PolynomialRingElement_4b
+with const generics
+- $11size_t
+*/
+typedef struct Eurydice_arr_4f_s { Eurydice_arr_60 data[11U]; } Eurydice_arr_4f;
+
+/**
+A monomorphic instance of Eurydice.array_to_slice_mut
+with types libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256
+with const generics
+- N= 11
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline Eurydice_dst_ref_mut_ba
+Eurydice_array_to_slice_mut_2012(Eurydice_arr_4f *a)
+{
+  Eurydice_dst_ref_mut_ba lit;
+  lit.ptr = a->data;
+  lit.meta = (size_t)11U;
+  return lit;
+}
+
+/**
+A monomorphic instance of Eurydice.arr
+with types libcrux_ml_dsa_polynomial_PolynomialRingElement_4b
+with const generics
+- $6size_t
+*/
+typedef struct Eurydice_arr_e20_s { Eurydice_arr_60 data[6U]; } Eurydice_arr_e20;
+
+/**
+A monomorphic instance of Eurydice.arr
+with types libcrux_ml_dsa_polynomial_PolynomialRingElement_4b
+with const generics
+- $30size_t
+*/
+typedef struct Eurydice_arr_9a_s { Eurydice_arr_60 data[30U]; } Eurydice_arr_9a;
+
+/**
+A monomorphic instance of Eurydice.array_to_slice_mut
+with types libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256
+with const generics
+- N= 30
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline Eurydice_dst_ref_mut_ba
+Eurydice_array_to_slice_mut_2013(Eurydice_arr_9a *a)
+{
+  Eurydice_dst_ref_mut_ba lit;
+  lit.ptr = a->data;
+  lit.meta = (size_t)30U;
+  return lit;
+}
+
+/**
+A monomorphic instance of Eurydice.arr
+with types libcrux_ml_dsa_polynomial_PolynomialRingElement_4b
+with const generics
+- $5size_t
+*/
+typedef struct Eurydice_arr_77_s { Eurydice_arr_60 data[5U]; } Eurydice_arr_77;
+
+/**
+A monomorphic instance of Eurydice.array_to_slice_mut
+with types libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256
+with const generics
+- N= 5
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline Eurydice_dst_ref_mut_ba
+Eurydice_array_to_slice_mut_2014(Eurydice_arr_77 *a)
+{
+  Eurydice_dst_ref_mut_ba lit;
+  lit.ptr = a->data;
+  lit.meta = (size_t)5U;
+  return lit;
+}
+
+/**
+A monomorphic instance of Eurydice.array_to_subslice_shared
+with types libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256, core_ops_range_Range size_t, Eurydice_derefed_slice libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256
+with const generics
+- N= 11
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline Eurydice_dst_ref_shared_ba
+Eurydice_array_to_subslice_shared_253(const Eurydice_arr_4f *a, core_ops_range_Range_87 r)
+{
+  return
+    (
+      KRML_CLITERAL(Eurydice_dst_ref_shared_ba){ .ptr = a->data + r.start, .meta = r.end - r.start }
+    );
+}
+
+/**
+A monomorphic instance of Eurydice.array_to_slice_shared
+with types libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256
+with const generics
+- N= 5
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline Eurydice_dst_ref_shared_ba
+Eurydice_array_to_slice_shared_2012(const Eurydice_arr_77 *a)
+{
+  Eurydice_dst_ref_shared_ba lit;
+  lit.ptr = a->data;
+  lit.meta = (size_t)5U;
+  return lit;
+}
+
+/**
+A monomorphic instance of Eurydice.array_to_slice_shared
+with types libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256
+with const generics
+- N= 11
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline Eurydice_dst_ref_shared_ba
+Eurydice_array_to_slice_shared_2013(const Eurydice_arr_4f *a)
+{
+  Eurydice_dst_ref_shared_ba lit;
+  lit.ptr = a->data;
+  lit.meta = (size_t)11U;
+  return lit;
+}
+
+/**
+A monomorphic instance of Eurydice.array_to_slice_mut
+with types libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256
+with const generics
+- N= 6
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline Eurydice_dst_ref_mut_ba
+Eurydice_array_to_slice_mut_2015(Eurydice_arr_e20 *a)
+{
+  Eurydice_dst_ref_mut_ba lit;
+  lit.ptr = a->data;
+  lit.meta = (size_t)6U;
+  return lit;
+}
+
+/**
+ Declassify secret memory.
+
+ No-op if `valgrind_ct_test` cfg is not enabled.
+*/
+/**
+A monomorphic instance of libcrux_secrets.mem_requests.ct_declassify
+with types Eurydice_arr libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256[[$6size_t]]
+
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static KRML_MUSTINLINE void
+libcrux_secrets_mem_requests_ct_declassify_b20(const Eurydice_arr_e20 *val)
+{
+
+}
+
+/**
+A monomorphic instance of Eurydice.array_to_slice_shared
+with types libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256
+with const generics
+- N= 6
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline Eurydice_dst_ref_shared_ba
+Eurydice_array_to_slice_shared_2014(const Eurydice_arr_e20 *a)
+{
+  Eurydice_dst_ref_shared_ba lit;
+  lit.ptr = a->data;
+  lit.meta = (size_t)6U;
+  return lit;
+}
+
+/**
+A monomorphic instance of libcrux_ml_dsa.ml_dsa_generic.ml_dsa_65.generate_key_pair
+with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256, libcrux_ml_dsa_samplex4_avx2_AVX2Sampler, libcrux_ml_dsa_hash_functions_simd256_Shake128x4, libcrux_ml_dsa_hash_functions_simd256_Shake256, libcrux_ml_dsa_hash_functions_portable_Shake256Xof, libcrux_ml_dsa_hash_functions_simd256_Shake256x4
+with const generics
+
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static KRML_MUSTINLINE void
+libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_generate_key_pair_07(
+  Eurydice_arr_ec randomness,
+  Eurydice_mut_borrow_slice_u8 signing_key,
+  Eurydice_mut_borrow_slice_u8 verification_key
+)
+{
+  Eurydice_arr_89 seed_expanded0 = { .data = { 0U } };
+  libcrux_sha3_generic_keccak_xof_KeccakXofState_8d
+  shake = libcrux_ml_dsa_hash_functions_portable_init_26();
+  libcrux_ml_dsa_hash_functions_portable_absorb_26(&shake,
+    Eurydice_array_to_slice_shared_01(&randomness));
+  /* original Rust expression is not an lvalue in C */
+  Eurydice_array_u8x2
+  lvalue =
+    {
+      .data = {
+        (uint8_t)LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_ROWS_IN_A,
+        (uint8_t)LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_COLUMNS_IN_A
+      }
+    };
+  libcrux_ml_dsa_hash_functions_portable_absorb_final_26(&shake,
+    Eurydice_array_to_slice_shared_82(&lvalue));
+  libcrux_ml_dsa_hash_functions_portable_squeeze_26(&shake,
+    Eurydice_array_to_slice_mut_78(&seed_expanded0));
+  Eurydice_borrow_slice_u8_x2
+  uu____0 =
+    Eurydice_slice_split_at(Eurydice_array_to_slice_shared_78(&seed_expanded0),
+      LIBCRUX_ML_DSA_CONSTANTS_SEED_FOR_A_SIZE,
+      uint8_t,
+      Eurydice_borrow_slice_u8_x2);
+  Eurydice_borrow_slice_u8 seed_for_a = uu____0.fst;
+  Eurydice_borrow_slice_u8 seed_expanded = uu____0.snd;
+  Eurydice_borrow_slice_u8_x2
+  uu____1 =
+    Eurydice_slice_split_at(seed_expanded,
+      LIBCRUX_ML_DSA_CONSTANTS_SEED_FOR_ERROR_VECTORS_SIZE,
+      uint8_t,
+      Eurydice_borrow_slice_u8_x2);
+  Eurydice_borrow_slice_u8 seed_for_error_vectors = uu____1.fst;
+  Eurydice_borrow_slice_u8 seed_for_signing = uu____1.snd;
+  Eurydice_arr_4f s1_s2;
+  Eurydice_arr_60 repeat_expression0[11U];
+  for (size_t i = (size_t)0U; i < (size_t)11U; i++)
+  {
+    repeat_expression0[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+  }
+  memcpy(s1_s2.data, repeat_expression0, (size_t)11U * sizeof (Eurydice_arr_60));
+  libcrux_ml_dsa_samplex4_sample_s1_and_s2_fc(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_ETA,
+    seed_for_error_vectors,
+    Eurydice_array_to_slice_mut_2012(&s1_s2));
+  Eurydice_arr_e20 t0;
+  Eurydice_arr_60 repeat_expression1[6U];
+  for (size_t i = (size_t)0U; i < (size_t)6U; i++)
+  {
+    repeat_expression1[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+  }
+  memcpy(t0.data, repeat_expression1, (size_t)6U * sizeof (Eurydice_arr_60));
+  Eurydice_arr_9a a_as_ntt;
+  Eurydice_arr_60 repeat_expression2[30U];
+  for (size_t i = (size_t)0U; i < (size_t)30U; i++)
+  {
+    repeat_expression2[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+  }
+  memcpy(a_as_ntt.data, repeat_expression2, (size_t)30U * sizeof (Eurydice_arr_60));
+  libcrux_ml_dsa_samplex4_avx2_matrix_flat_e8_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_COLUMNS_IN_A,
+    seed_for_a,
+    Eurydice_array_to_slice_mut_2013(&a_as_ntt));
+  Eurydice_arr_77 s1_ntt;
+  Eurydice_arr_60 repeat_expression3[5U];
+  for (size_t i = (size_t)0U; i < (size_t)5U; i++)
+  {
+    repeat_expression3[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+  }
+  memcpy(s1_ntt.data, repeat_expression3, (size_t)5U * sizeof (Eurydice_arr_60));
+  Eurydice_slice_copy(Eurydice_array_to_slice_mut_2014(&s1_ntt),
+    Eurydice_array_to_subslice_shared_253(&s1_s2,
+      (
+        KRML_CLITERAL(core_ops_range_Range_87){
+          .start = (size_t)0U,
+          .end = LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_COLUMNS_IN_A
+        }
+      )),
+    Eurydice_arr_60);
+  for (size_t i = (size_t)0U; i < (size_t)5U; i++)
+  {
+    size_t i0 = i;
+    libcrux_ml_dsa_ntt_ntt_64(&s1_ntt.data[i0]);
+  }
+  libcrux_ml_dsa_matrix_compute_as1_plus_s2_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_ROWS_IN_A,
+    LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_COLUMNS_IN_A,
+    Eurydice_array_to_slice_mut_2013(&a_as_ntt),
+    Eurydice_array_to_slice_shared_2012(&s1_ntt),
+    Eurydice_array_to_slice_shared_2013(&s1_s2),
+    Eurydice_array_to_slice_mut_2015(&t0));
+  Eurydice_arr_e20 t1;
+  Eurydice_arr_60 repeat_expression[6U];
+  for (size_t i = (size_t)0U; i < (size_t)6U; i++)
+  {
+    repeat_expression[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+  }
+  memcpy(t1.data, repeat_expression, (size_t)6U * sizeof (Eurydice_arr_60));
+  libcrux_ml_dsa_arithmetic_power2round_vector_64(Eurydice_array_to_slice_mut_2015(&t0),
+    Eurydice_array_to_slice_mut_2015(&t1));
+  libcrux_ml_dsa_encoding_verification_key_generate_serialized_64(seed_for_a,
+    Eurydice_array_to_slice_shared_2014(&t1),
+    verification_key);
+  libcrux_ml_dsa_encoding_signing_key_generate_serialized_18(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_ETA,
+    LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_65_ERROR_RING_ELEMENT_SIZE,
+    seed_for_a,
+    seed_for_signing,
+    (
+      KRML_CLITERAL(Eurydice_borrow_slice_u8){
+        .ptr = verification_key.ptr,
+        .meta = verification_key.meta
+      }
+    ),
+    Eurydice_array_to_slice_shared_2013(&s1_s2),
+    Eurydice_array_to_slice_shared_2014(&t0),
+    signing_key);
+}
+
+/**
+ Key Generation.
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline void
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_generate_key_pair__inner(
+  Eurydice_arr_ec randomness,
+  Eurydice_mut_borrow_slice_u8 signing_key,
+  Eurydice_mut_borrow_slice_u8 verification_key
+)
+{
+  libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_generate_key_pair_07(randomness,
+    signing_key,
+    verification_key);
+}
+
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline void
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_generate_key_pair(
+  Eurydice_arr_ec randomness,
+  Eurydice_mut_borrow_slice_u8 signing_key,
+  Eurydice_mut_borrow_slice_u8 verification_key
+)
+{
+  libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_generate_key_pair__inner(randomness,
+    signing_key,
+    verification_key);
+}
+
+/**
+A monomorphic instance of core.option.Option
+with types Eurydice_arr_77
+
+*/
+typedef struct core_option_Option_61_s
+{
+  core_option_Option_45_tags tag;
+  Eurydice_arr_77 f0;
+}
+core_option_Option_61;
+
+/**
+A monomorphic instance of Eurydice.array_to_slice_shared
+with types libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256
+with const generics
+- N= 30
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline Eurydice_dst_ref_shared_ba
+Eurydice_array_to_slice_shared_2015(const Eurydice_arr_9a *a)
+{
+  Eurydice_dst_ref_shared_ba lit;
+  lit.ptr = a->data;
+  lit.meta = (size_t)30U;
+  return lit;
+}
+
+/**
+A monomorphic instance of libcrux_ml_dsa.ml_dsa_generic.ml_dsa_65.sign_internal
+with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256, libcrux_ml_dsa_samplex4_avx2_AVX2Sampler, libcrux_ml_dsa_hash_functions_simd256_Shake128x4, libcrux_ml_dsa_hash_functions_simd256_Shake256, libcrux_ml_dsa_hash_functions_portable_Shake256Xof, libcrux_ml_dsa_hash_functions_simd256_Shake256x4
+with const generics
+
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static KRML_MUSTINLINE core_result_Result_53
+libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_internal_07(
+  Eurydice_borrow_slice_u8 signing_key,
+  Eurydice_borrow_slice_u8 message,
+  core_option_Option_84 domain_separation_context,
+  Eurydice_arr_ec randomness,
+  Eurydice_arr_0c *signature
+)
+{
+  Eurydice_borrow_slice_u8_x2
+  uu____0 =
+    Eurydice_slice_split_at(signing_key,
+      LIBCRUX_ML_DSA_CONSTANTS_SEED_FOR_A_SIZE,
+      uint8_t,
+      Eurydice_borrow_slice_u8_x2);
+  Eurydice_borrow_slice_u8 seed_for_a = uu____0.fst;
+  Eurydice_borrow_slice_u8 remaining_serialized0 = uu____0.snd;
+  Eurydice_borrow_slice_u8_x2
+  uu____1 =
+    Eurydice_slice_split_at(remaining_serialized0,
+      LIBCRUX_ML_DSA_CONSTANTS_SEED_FOR_SIGNING_SIZE,
+      uint8_t,
+      Eurydice_borrow_slice_u8_x2);
+  Eurydice_borrow_slice_u8 seed_for_signing = uu____1.fst;
+  Eurydice_borrow_slice_u8 remaining_serialized1 = uu____1.snd;
+  Eurydice_borrow_slice_u8_x2
+  uu____2 =
+    Eurydice_slice_split_at(remaining_serialized1,
+      LIBCRUX_ML_DSA_CONSTANTS_BYTES_FOR_VERIFICATION_KEY_HASH,
+      uint8_t,
+      Eurydice_borrow_slice_u8_x2);
+  Eurydice_borrow_slice_u8 verification_key_hash = uu____2.fst;
+  Eurydice_borrow_slice_u8 remaining_serialized2 = uu____2.snd;
+  Eurydice_borrow_slice_u8_x2
+  uu____3 =
+    Eurydice_slice_split_at(remaining_serialized2,
+      LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_65_ERROR_RING_ELEMENT_SIZE *
+        LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_COLUMNS_IN_A,
+      uint8_t,
+      Eurydice_borrow_slice_u8_x2);
+  Eurydice_borrow_slice_u8 s1_serialized = uu____3.fst;
+  Eurydice_borrow_slice_u8 remaining_serialized = uu____3.snd;
+  Eurydice_borrow_slice_u8_x2
+  uu____4 =
+    Eurydice_slice_split_at(remaining_serialized,
+      LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_65_ERROR_RING_ELEMENT_SIZE *
+        LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_ROWS_IN_A,
+      uint8_t,
+      Eurydice_borrow_slice_u8_x2);
+  Eurydice_borrow_slice_u8 s2_serialized = uu____4.fst;
+  Eurydice_borrow_slice_u8 t0_serialized = uu____4.snd;
+  Eurydice_arr_77 s1_as_ntt;
+  Eurydice_arr_60 repeat_expression0[5U];
+  for (size_t i = (size_t)0U; i < (size_t)5U; i++)
+  {
+    repeat_expression0[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+  }
+  memcpy(s1_as_ntt.data, repeat_expression0, (size_t)5U * sizeof (Eurydice_arr_60));
+  Eurydice_arr_e20 s2_as_ntt;
+  Eurydice_arr_60 repeat_expression1[6U];
+  for (size_t i = (size_t)0U; i < (size_t)6U; i++)
+  {
+    repeat_expression1[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+  }
+  memcpy(s2_as_ntt.data, repeat_expression1, (size_t)6U * sizeof (Eurydice_arr_60));
+  Eurydice_arr_e20 t0_as_ntt;
+  Eurydice_arr_60 repeat_expression2[6U];
+  for (size_t i = (size_t)0U; i < (size_t)6U; i++)
+  {
+    repeat_expression2[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+  }
+  memcpy(t0_as_ntt.data, repeat_expression2, (size_t)6U * sizeof (Eurydice_arr_60));
+  libcrux_ml_dsa_encoding_error_deserialize_to_vector_then_ntt_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_ETA,
+    LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_65_ERROR_RING_ELEMENT_SIZE,
+    s1_serialized,
+    Eurydice_array_to_slice_mut_2014(&s1_as_ntt));
+  libcrux_ml_dsa_encoding_error_deserialize_to_vector_then_ntt_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_ETA,
+    LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_65_ERROR_RING_ELEMENT_SIZE,
+    s2_serialized,
+    Eurydice_array_to_slice_mut_2015(&s2_as_ntt));
+  libcrux_ml_dsa_encoding_t0_deserialize_to_vector_then_ntt_64(t0_serialized,
+    Eurydice_array_to_slice_mut_2015(&t0_as_ntt));
+  Eurydice_arr_9a matrix;
+  Eurydice_arr_60 repeat_expression3[30U];
+  for (size_t i = (size_t)0U; i < (size_t)30U; i++)
+  {
+    repeat_expression3[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+  }
+  memcpy(matrix.data, repeat_expression3, (size_t)30U * sizeof (Eurydice_arr_60));
+  libcrux_ml_dsa_samplex4_avx2_matrix_flat_e8_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_COLUMNS_IN_A,
+    seed_for_a,
+    Eurydice_array_to_slice_mut_2013(&matrix));
+  Eurydice_arr_c7 message_representative = { .data = { 0U } };
+  libcrux_ml_dsa_ml_dsa_generic_derive_message_representative_43(verification_key_hash,
+    &domain_separation_context,
+    message,
+    &message_representative);
+  Eurydice_arr_c7 mask_seed = { .data = { 0U } };
+  libcrux_sha3_generic_keccak_xof_KeccakXofState_8d
+  shake0 = libcrux_ml_dsa_hash_functions_portable_init_26();
+  libcrux_ml_dsa_hash_functions_portable_absorb_26(&shake0, seed_for_signing);
+  libcrux_ml_dsa_hash_functions_portable_absorb_26(&shake0,
+    Eurydice_array_to_slice_shared_01(&randomness));
+  libcrux_ml_dsa_hash_functions_portable_absorb_final_26(&shake0,
+    Eurydice_array_to_slice_shared_17(&message_representative));
+  libcrux_ml_dsa_hash_functions_portable_squeeze_26(&shake0,
+    Eurydice_array_to_slice_mut_17(&mask_seed));
+  uint16_t domain_separator_for_mask = 0U;
+  size_t attempt = (size_t)0U;
+  core_option_Option_81 commitment_hash0 = { .tag = core_option_None };
+  core_option_Option_61 signer_response0 = { .tag = core_option_None };
+  core_option_Option_05 hint0 = { .tag = core_option_None };
+  while (attempt < LIBCRUX_ML_DSA_CONSTANTS_REJECTION_SAMPLE_BOUND_SIGN)
+  {
+    attempt++;
+    Eurydice_arr_77 mask;
+    Eurydice_arr_60 repeat_expression4[5U];
+    for (size_t i = (size_t)0U; i < (size_t)5U; i++)
+    {
+      repeat_expression4[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+    }
+    memcpy(mask.data, repeat_expression4, (size_t)5U * sizeof (Eurydice_arr_60));
+    Eurydice_arr_e20 w0;
+    Eurydice_arr_60 repeat_expression5[6U];
+    for (size_t i = (size_t)0U; i < (size_t)6U; i++)
+    {
+      repeat_expression5[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+    }
+    memcpy(w0.data, repeat_expression5, (size_t)6U * sizeof (Eurydice_arr_60));
+    Eurydice_arr_e20 commitment;
+    Eurydice_arr_60 repeat_expression6[6U];
+    for (size_t i = (size_t)0U; i < (size_t)6U; i++)
+    {
+      repeat_expression6[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+    }
+    memcpy(commitment.data, repeat_expression6, (size_t)6U * sizeof (Eurydice_arr_60));
+    libcrux_ml_dsa_sample_sample_mask_vector_f4(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_COLUMNS_IN_A,
+      LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_GAMMA1_EXPONENT,
+      &mask_seed,
+      &domain_separator_for_mask,
+      Eurydice_array_to_slice_mut_2014(&mask));
+    Eurydice_arr_e20 a_x_mask;
+    Eurydice_arr_60 repeat_expression[6U];
+    for (size_t i = (size_t)0U; i < (size_t)6U; i++)
+    {
+      repeat_expression[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+    }
+    memcpy(a_x_mask.data, repeat_expression, (size_t)6U * sizeof (Eurydice_arr_60));
+    Eurydice_arr_77
+    mask_ntt =
+      core_array__core__clone__Clone_for__T__N___clone((size_t)5U,
+        &mask,
+        Eurydice_arr_60,
+        Eurydice_arr_77);
+    for (size_t i = (size_t)0U; i < (size_t)5U; i++)
+    {
+      size_t i0 = i;
+      libcrux_ml_dsa_ntt_ntt_64(&mask_ntt.data[i0]);
+    }
+    libcrux_ml_dsa_matrix_compute_matrix_x_mask_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_ROWS_IN_A,
+      LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_COLUMNS_IN_A,
+      Eurydice_array_to_slice_shared_2015(&matrix),
+      Eurydice_array_to_slice_shared_2012(&mask_ntt),
+      Eurydice_array_to_slice_mut_2015(&a_x_mask));
+    libcrux_ml_dsa_arithmetic_decompose_vector_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_ROWS_IN_A,
+      LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_GAMMA2,
+      Eurydice_array_to_slice_shared_2014(&a_x_mask),
+      Eurydice_array_to_slice_mut_2015(&w0),
+      Eurydice_array_to_slice_mut_2015(&commitment));
+    Eurydice_arr_65 commitment_hash_candidate = { .data = { 0U } };
+    Eurydice_arr_d2 commitment_serialized = { .data = { 0U } };
+    libcrux_ml_dsa_encoding_commitment_serialize_vector_64(LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_65_COMMITMENT_RING_ELEMENT_SIZE,
+      Eurydice_array_to_slice_shared_2014(&commitment),
+      Eurydice_array_to_slice_mut_27(&commitment_serialized));
+    libcrux_sha3_generic_keccak_xof_KeccakXofState_8d
+    shake = libcrux_ml_dsa_hash_functions_portable_init_26();
+    libcrux_ml_dsa_hash_functions_portable_absorb_26(&shake,
+      Eurydice_array_to_slice_shared_17(&message_representative));
+    libcrux_ml_dsa_hash_functions_portable_absorb_final_26(&shake,
+      Eurydice_array_to_slice_shared_27(&commitment_serialized));
+    libcrux_ml_dsa_hash_functions_portable_squeeze_26(&shake,
+      Eurydice_array_to_slice_mut_9f(&commitment_hash_candidate));
+    Eurydice_arr_60 verifier_challenge = libcrux_ml_dsa_polynomial_zero_ff_64();
+    libcrux_ml_dsa_sample_sample_challenge_ring_element_18(Eurydice_array_to_slice_shared_9f0(&commitment_hash_candidate),
+      LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_ONES_IN_VERIFIER_CHALLENGE,
+      &verifier_challenge);
+    libcrux_ml_dsa_ntt_ntt_64(&verifier_challenge);
+    Eurydice_arr_77
+    challenge_times_s1 =
+      core_array__core__clone__Clone_for__T__N___clone((size_t)5U,
+        &s1_as_ntt,
+        Eurydice_arr_60,
+        Eurydice_arr_77);
+    Eurydice_arr_e20
+    challenge_times_s2 =
+      core_array__core__clone__Clone_for__T__N___clone((size_t)6U,
+        &s2_as_ntt,
+        Eurydice_arr_60,
+        Eurydice_arr_e20);
+    libcrux_ml_dsa_matrix_vector_times_ring_element_64(Eurydice_array_to_slice_mut_2014(&challenge_times_s1),
+      &verifier_challenge);
+    libcrux_ml_dsa_matrix_vector_times_ring_element_64(Eurydice_array_to_slice_mut_2015(&challenge_times_s2),
+      &verifier_challenge);
+    libcrux_ml_dsa_matrix_add_vectors_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_COLUMNS_IN_A,
+      Eurydice_array_to_slice_mut_2014(&mask),
+      Eurydice_array_to_slice_shared_2012(&challenge_times_s1));
+    libcrux_ml_dsa_matrix_subtract_vectors_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_ROWS_IN_A,
+      Eurydice_array_to_slice_mut_2015(&w0),
+      Eurydice_array_to_slice_shared_2014(&challenge_times_s2));
+    if
+    (
+      !libcrux_ml_dsa_arithmetic_vector_infinity_norm_exceeds_64(Eurydice_array_to_slice_shared_2012(&mask),
+        (int32_t)((uint32_t)1 << (uint32_t)LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_GAMMA1_EXPONENT) -
+          LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_65_BETA)
+    )
+    {
+      if
+      (
+        !libcrux_ml_dsa_arithmetic_vector_infinity_norm_exceeds_64(Eurydice_array_to_slice_shared_2014(&w0),
+          LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_GAMMA2 - LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_65_BETA)
+      )
+      {
+        Eurydice_arr_e20
+        challenge_times_t0 =
+          core_array__core__clone__Clone_for__T__N___clone((size_t)6U,
+            &t0_as_ntt,
+            Eurydice_arr_60,
+            Eurydice_arr_e20);
+        libcrux_ml_dsa_matrix_vector_times_ring_element_64(Eurydice_array_to_slice_mut_2015(&challenge_times_t0),
+          &verifier_challenge);
+        if
+        (
+          !libcrux_ml_dsa_arithmetic_vector_infinity_norm_exceeds_64(Eurydice_array_to_slice_shared_2014(&challenge_times_t0),
+            LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_GAMMA2)
+        )
+        {
+          libcrux_ml_dsa_matrix_add_vectors_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_ROWS_IN_A,
+            Eurydice_array_to_slice_mut_2015(&w0),
+            Eurydice_array_to_slice_shared_2014(&challenge_times_t0));
+          Eurydice_arr_5d0
+          hint_candidate =
+            {
+              .data = {
+                { .data = { 0U } }, { .data = { 0U } }, { .data = { 0U } }, { .data = { 0U } },
+                { .data = { 0U } }, { .data = { 0U } }
+              }
+            };
+          size_t
+          ones_in_hint =
+            libcrux_ml_dsa_arithmetic_make_hint_64(Eurydice_array_to_slice_shared_2014(&w0),
+              Eurydice_array_to_slice_shared_2014(&commitment),
+              LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_GAMMA2,
+              Eurydice_array_to_slice_mut_860(&hint_candidate));
+          if (!(ones_in_hint > LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_MAX_ONES_IN_HINT))
+          {
+            attempt = LIBCRUX_ML_DSA_CONSTANTS_REJECTION_SAMPLE_BOUND_SIGN;
+            commitment_hash0 =
+              (
+                KRML_CLITERAL(core_option_Option_81){
+                  .tag = core_option_Some,
+                  .f0 = commitment_hash_candidate
+                }
+              );
+            signer_response0 =
+              (KRML_CLITERAL(core_option_Option_61){ .tag = core_option_Some, .f0 = mask });
+            hint0 =
+              (
+                KRML_CLITERAL(core_option_Option_05){
+                  .tag = core_option_Some,
+                  .f0 = hint_candidate
+                }
+              );
+          }
+        }
+      }
+    }
+  }
+  core_result_Result_53 uu____5;
+  if (commitment_hash0.tag == core_option_None)
+  {
+    uu____5 =
+      (
+        KRML_CLITERAL(core_result_Result_53){
+          .tag = core_result_Err,
+          .f0 = libcrux_ml_dsa_types_SigningError_RejectionSamplingError
+        }
+      );
+  }
+  else
+  {
+    Eurydice_arr_65 commitment_hash = commitment_hash0.f0;
+    Eurydice_arr_65 commitment_hash1 = commitment_hash;
+    if (signer_response0.tag == core_option_None)
+    {
+      uu____5 =
+        (
+          KRML_CLITERAL(core_result_Result_53){
+            .tag = core_result_Err,
+            .f0 = libcrux_ml_dsa_types_SigningError_RejectionSamplingError
+          }
+        );
+    }
+    else
+    {
+      Eurydice_arr_77 signer_response = signer_response0.f0;
+      Eurydice_arr_77 signer_response1 = signer_response;
+      if (!(hint0.tag == core_option_None))
+      {
+        Eurydice_arr_5d0 hint = hint0.f0;
+        Eurydice_arr_5d0 hint1 = hint;
+        libcrux_ml_dsa_encoding_signature_serialize_64(Eurydice_array_to_slice_shared_9f0(&commitment_hash1),
+          Eurydice_array_to_slice_shared_2012(&signer_response1),
+          Eurydice_array_to_slice_shared_860(&hint1),
+          LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_COMMITMENT_HASH_SIZE,
+          LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_COLUMNS_IN_A,
+          LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_ROWS_IN_A,
+          LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_GAMMA1_EXPONENT,
+          LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_65_GAMMA1_RING_ELEMENT_SIZE,
+          LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_MAX_ONES_IN_HINT,
+          Eurydice_array_to_slice_mut_6b(signature));
+        return (KRML_CLITERAL(core_result_Result_53){ .tag = core_result_Ok });
+      }
+      uu____5 =
+        (
+          KRML_CLITERAL(core_result_Result_53){
+            .tag = core_result_Err,
+            .f0 = libcrux_ml_dsa_types_SigningError_RejectionSamplingError
+          }
+        );
+    }
+  }
+  return uu____5;
+}
+
+/**
+A monomorphic instance of libcrux_ml_dsa.ml_dsa_generic.ml_dsa_65.sign_mut
+with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256, libcrux_ml_dsa_samplex4_avx2_AVX2Sampler, libcrux_ml_dsa_hash_functions_simd256_Shake128x4, libcrux_ml_dsa_hash_functions_simd256_Shake256, libcrux_ml_dsa_hash_functions_portable_Shake256Xof, libcrux_ml_dsa_hash_functions_simd256_Shake256x4
+with const generics
+
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static KRML_MUSTINLINE core_result_Result_53
+libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_mut_07(
+  Eurydice_borrow_slice_u8 signing_key,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  Eurydice_arr_ec randomness,
+  Eurydice_arr_0c *signature
+)
+{
+  core_result_Result_a8
+  uu____0 =
+    libcrux_ml_dsa_pre_hash_new_88(context,
+      (KRML_CLITERAL(core_option_Option_57){ .tag = core_option_None }));
+  if (!(uu____0.tag == core_result_Ok))
+  {
+    return
+      (
+        KRML_CLITERAL(core_result_Result_53){
+          .tag = core_result_Err,
+          .f0 = libcrux_ml_dsa_types_SigningError_ContextTooLongError
+        }
+      );
+  }
+  libcrux_ml_dsa_pre_hash_DomainSeparationContext dsc = uu____0.val.case_Ok;
+  libcrux_ml_dsa_pre_hash_DomainSeparationContext domain_separation_context = dsc;
+  return
+    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_internal_07(signing_key,
+      message,
+      (
+        KRML_CLITERAL(core_option_Option_84){
+          .tag = core_option_Some,
+          .f0 = domain_separation_context
+        }
+      ),
+      randomness,
+      signature);
+}
+
+/**
+A monomorphic instance of libcrux_ml_dsa.ml_dsa_generic.ml_dsa_65.sign
+with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256, libcrux_ml_dsa_samplex4_avx2_AVX2Sampler, libcrux_ml_dsa_hash_functions_simd256_Shake128x4, libcrux_ml_dsa_hash_functions_simd256_Shake256, libcrux_ml_dsa_hash_functions_portable_Shake256Xof, libcrux_ml_dsa_hash_functions_simd256_Shake256x4
+with const generics
+
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static KRML_MUSTINLINE core_result_Result_8c
+libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_07(
+  Eurydice_borrow_slice_u8 signing_key,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  Eurydice_arr_ec randomness
+)
+{
+  Eurydice_arr_0c signature = libcrux_ml_dsa_types_zero_c5_5c();
+  core_result_Result_53
+  uu____0 =
+    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_mut_07(signing_key,
+      message,
+      context,
+      randomness,
+      &signature);
+  core_result_Result_8c uu____1;
+  if (uu____0.tag == core_result_Ok)
+  {
+    uu____1 =
+      (
+        KRML_CLITERAL(core_result_Result_8c){
+          .tag = core_result_Ok,
+          .val = { .case_Ok = signature }
+        }
+      );
+  }
+  else
+  {
+    libcrux_ml_dsa_types_SigningError e = uu____0.f0;
+    uu____1 =
+      (KRML_CLITERAL(core_result_Result_8c){ .tag = core_result_Err, .val = { .case_Err = e } });
+  }
+  return uu____1;
+}
+
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline core_result_Result_8c
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_sign__inner(
+  const Eurydice_arr_24 *signing_key,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  Eurydice_arr_ec randomness
+)
+{
+  return
+    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_07(Eurydice_array_to_slice_shared_98(signing_key),
+      message,
+      context,
+      randomness);
+}
+
+/**
+ Sign.
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline core_result_Result_8c
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_sign(
+  const Eurydice_arr_24 *signing_key,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  Eurydice_arr_ec randomness
+)
+{
+  return
+    libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_sign__inner(signing_key,
+      message,
+      context,
+      randomness);
+}
+
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline core_result_Result_53
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_sign_mut__inner(
+  const Eurydice_arr_24 *signing_key,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  Eurydice_arr_ec randomness,
+  Eurydice_arr_0c *signature
+)
+{
+  return
+    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_mut_07(Eurydice_array_to_slice_shared_98(signing_key),
+      message,
+      context,
+      randomness,
+      signature);
+}
+
+/**
+ Sign.
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline core_result_Result_53
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_sign_mut(
+  const Eurydice_arr_24 *signing_key,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  Eurydice_arr_ec randomness,
+  Eurydice_arr_0c *signature
+)
+{
+  return
+    libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_sign_mut__inner(signing_key,
+      message,
+      context,
+      randomness,
+      signature);
+}
+
+/**
+A monomorphic instance of libcrux_ml_dsa.ml_dsa_generic.ml_dsa_65.sign_pre_hashed_mut
+with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256, libcrux_ml_dsa_samplex4_avx2_AVX2Sampler, libcrux_ml_dsa_hash_functions_portable_Shake128, libcrux_ml_dsa_hash_functions_simd256_Shake128x4, libcrux_ml_dsa_hash_functions_simd256_Shake256, libcrux_ml_dsa_hash_functions_portable_Shake256Xof, libcrux_ml_dsa_hash_functions_simd256_Shake256x4, libcrux_ml_dsa_pre_hash_SHAKE128_PH
+with const generics
+
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static KRML_MUSTINLINE core_result_Result_53
+libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_pre_hashed_mut_37(
+  Eurydice_borrow_slice_u8 signing_key,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  Eurydice_mut_borrow_slice_u8 pre_hash_buffer,
+  Eurydice_arr_ec randomness,
+  Eurydice_arr_0c *signature
+)
+{
+  if (!(context.meta > LIBCRUX_ML_DSA_CONSTANTS_CONTEXT_MAX_LEN))
+  {
+    libcrux_ml_dsa_pre_hash_hash_30_83(message, pre_hash_buffer);
+    core_result_Result_a8
+    uu____0 =
+      libcrux_ml_dsa_pre_hash_new_88(context,
+        (
+          KRML_CLITERAL(core_option_Option_57){
+            .tag = core_option_Some,
+            .f0 = libcrux_ml_dsa_pre_hash_oid_30()
+          }
+        ));
+    if (!(uu____0.tag == core_result_Ok))
+    {
+      return
+        (
+          KRML_CLITERAL(core_result_Result_53){
+            .tag = core_result_Err,
+            .f0 = libcrux_ml_dsa_types_SigningError_ContextTooLongError
+          }
+        );
+    }
+    libcrux_ml_dsa_pre_hash_DomainSeparationContext dsc = uu____0.val.case_Ok;
+    libcrux_ml_dsa_pre_hash_DomainSeparationContext domain_separation_context = dsc;
+    return
+      libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_internal_07(signing_key,
+        (
+          KRML_CLITERAL(Eurydice_borrow_slice_u8){
+            .ptr = pre_hash_buffer.ptr,
+            .meta = pre_hash_buffer.meta
+          }
+        ),
+        (
+          KRML_CLITERAL(core_option_Option_84){
+            .tag = core_option_Some,
+            .f0 = domain_separation_context
+          }
+        ),
+        randomness,
+        signature);
+  }
+  return
+    (
+      KRML_CLITERAL(core_result_Result_53){
+        .tag = core_result_Err,
+        .f0 = libcrux_ml_dsa_types_SigningError_ContextTooLongError
+      }
+    );
+}
+
+/**
+A monomorphic instance of libcrux_ml_dsa.ml_dsa_generic.ml_dsa_65.sign_pre_hashed
+with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256, libcrux_ml_dsa_samplex4_avx2_AVX2Sampler, libcrux_ml_dsa_hash_functions_portable_Shake128, libcrux_ml_dsa_hash_functions_simd256_Shake128x4, libcrux_ml_dsa_hash_functions_simd256_Shake256, libcrux_ml_dsa_hash_functions_portable_Shake256Xof, libcrux_ml_dsa_hash_functions_simd256_Shake256x4, libcrux_ml_dsa_pre_hash_SHAKE128_PH
+with const generics
+
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static KRML_MUSTINLINE core_result_Result_8c
+libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_pre_hashed_37(
+  Eurydice_borrow_slice_u8 signing_key,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  Eurydice_mut_borrow_slice_u8 pre_hash_buffer,
+  Eurydice_arr_ec randomness
+)
+{
+  Eurydice_arr_0c signature = libcrux_ml_dsa_types_zero_c5_5c();
+  core_result_Result_53
+  uu____0 =
+    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_pre_hashed_mut_37(signing_key,
+      message,
+      context,
+      pre_hash_buffer,
+      randomness,
+      &signature);
+  core_result_Result_8c uu____1;
+  if (uu____0.tag == core_result_Ok)
+  {
+    uu____1 =
+      (
+        KRML_CLITERAL(core_result_Result_8c){
+          .tag = core_result_Ok,
+          .val = { .case_Ok = signature }
+        }
+      );
+  }
+  else
+  {
+    libcrux_ml_dsa_types_SigningError e = uu____0.f0;
+    uu____1 =
+      (KRML_CLITERAL(core_result_Result_8c){ .tag = core_result_Err, .val = { .case_Err = e } });
+  }
+  return uu____1;
+}
+
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline core_result_Result_8c
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_sign_pre_hashed_shake128__inner(
+  const Eurydice_arr_24 *signing_key,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  Eurydice_mut_borrow_slice_u8 pre_hash_buffer,
+  Eurydice_arr_ec randomness
+)
+{
+  return
+    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_sign_pre_hashed_37(Eurydice_array_to_slice_shared_98(signing_key),
+      message,
+      context,
+      pre_hash_buffer,
+      randomness);
+}
+
+/**
+ Sign (pre-hashed).
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline core_result_Result_8c
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_sign_pre_hashed_shake128(
+  const Eurydice_arr_24 *signing_key,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  Eurydice_mut_borrow_slice_u8 pre_hash_buffer,
+  Eurydice_arr_ec randomness
+)
+{
+  return
+    libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_sign_pre_hashed_shake128__inner(signing_key,
+      message,
+      context,
+      pre_hash_buffer,
+      randomness);
+}
+
+/**
+ The internal verification API.
+
+ If no `domain_separation_context` is supplied, it is assumed that
+ `message` already contains the domain separation.
+*/
+/**
 A monomorphic instance of libcrux_ml_dsa.ml_dsa_generic.ml_dsa_65.verify_internal
 with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256, libcrux_ml_dsa_samplex4_avx2_AVX2Sampler, libcrux_ml_dsa_hash_functions_simd256_Shake128x4, libcrux_ml_dsa_hash_functions_simd256_Shake256, libcrux_ml_dsa_hash_functions_portable_Shake256Xof
 with const generics
@@ -7887,7 +9345,7 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_verify_internal_07(
       Eurydice_borrow_slice_u8_x2);
   Eurydice_borrow_slice_u8 seed_for_a = uu____0.fst;
   Eurydice_borrow_slice_u8 t1_serialized = uu____0.snd;
-  Eurydice_arr_e2 t1;
+  Eurydice_arr_e20 t1;
   Eurydice_arr_60 repeat_expression0[6U];
   for (size_t i = (size_t)0U; i < (size_t)6U; i++)
   {
@@ -7897,8 +9355,8 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_verify_internal_07(
   libcrux_ml_dsa_encoding_verification_key_deserialize_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_ROWS_IN_A,
     LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_65_VERIFICATION_KEY_SIZE,
     t1_serialized,
-    Eurydice_array_to_slice_mut_206(&t1));
-  Eurydice_arr_65 deserialized_commitment_hash = { { 0U } };
+    Eurydice_array_to_slice_mut_2015(&t1));
+  Eurydice_arr_65 deserialized_commitment_hash = { .data = { 0U } };
   Eurydice_arr_77 deserialized_signer_response;
   Eurydice_arr_60 repeat_expression1[5U];
   for (size_t i = (size_t)0U; i < (size_t)5U; i++)
@@ -7910,7 +9368,12 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_verify_internal_07(
     (size_t)5U * sizeof (Eurydice_arr_60));
   Eurydice_arr_5d0
   deserialized_hint =
-    { { { { 0U } }, { { 0U } }, { { 0U } }, { { 0U } }, { { 0U } }, { { 0U } } } };
+    {
+      .data = {
+        { .data = { 0U } }, { .data = { 0U } }, { .data = { 0U } }, { .data = { 0U } },
+        { .data = { 0U } }, { .data = { 0U } }
+      }
+    };
   core_result_Result_41
   uu____1 =
     libcrux_ml_dsa_encoding_signature_deserialize_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_COLUMNS_IN_A,
@@ -7922,23 +9385,23 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_verify_internal_07(
       LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_65_SIGNATURE_SIZE,
       Eurydice_array_to_slice_shared_6b(signature_serialized),
       Eurydice_array_to_slice_mut_9f(&deserialized_commitment_hash),
-      Eurydice_array_to_slice_mut_205(&deserialized_signer_response),
-      Eurydice_array_to_slice_mut_86(&deserialized_hint));
+      Eurydice_array_to_slice_mut_2014(&deserialized_signer_response),
+      Eurydice_array_to_slice_mut_860(&deserialized_hint));
   core_result_Result_41 uu____2;
   if (uu____1.tag == core_result_Ok)
   {
     if
     (
-      libcrux_ml_dsa_arithmetic_vector_infinity_norm_exceeds_64(Eurydice_array_to_slice_shared_203(&deserialized_signer_response),
+      libcrux_ml_dsa_arithmetic_vector_infinity_norm_exceeds_64(Eurydice_array_to_slice_shared_2012(&deserialized_signer_response),
         (int32_t)((uint32_t)1 << (uint32_t)LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_GAMMA1_EXPONENT) -
           LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_65_BETA)
     )
     {
       uu____2 =
         (
-          core_result_Result_41{
-            core_result_Err,
-            libcrux_ml_dsa_types_VerificationError_SignerResponseExceedsBoundError
+          KRML_CLITERAL(core_result_Result_41){
+            .tag = core_result_Err,
+            .f0 = libcrux_ml_dsa_types_VerificationError_SignerResponseExceedsBoundError
           }
         );
     }
@@ -7953,17 +9416,17 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_verify_internal_07(
       memcpy(matrix.data, repeat_expression, (size_t)30U * sizeof (Eurydice_arr_60));
       libcrux_ml_dsa_samplex4_avx2_matrix_flat_e8_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_COLUMNS_IN_A,
         seed_for_a,
-        Eurydice_array_to_slice_mut_204(&matrix));
-      Eurydice_arr_c7 verification_key_hash = { { 0U } };
+        Eurydice_array_to_slice_mut_2013(&matrix));
+      Eurydice_arr_c7 verification_key_hash = { .data = { 0U } };
       libcrux_ml_dsa_hash_functions_simd256_shake256_8c_c9(Eurydice_array_to_slice_shared_37(verification_key),
         &verification_key_hash);
-      Eurydice_arr_c7 message_representative = { { 0U } };
+      Eurydice_arr_c7 message_representative = { .data = { 0U } };
       libcrux_ml_dsa_ml_dsa_generic_derive_message_representative_43(Eurydice_array_to_slice_shared_17(&verification_key_hash),
         &domain_separation_context,
         message,
         &message_representative);
       Eurydice_arr_60 verifier_challenge = libcrux_ml_dsa_polynomial_zero_ff_64();
-      libcrux_ml_dsa_sample_sample_challenge_ring_element_18(Eurydice_array_to_slice_shared_9f(&deserialized_commitment_hash),
+      libcrux_ml_dsa_sample_sample_challenge_ring_element_18(Eurydice_array_to_slice_shared_9f0(&deserialized_commitment_hash),
         LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_ONES_IN_VERIFIER_CHALLENGE,
         &verifier_challenge);
       libcrux_ml_dsa_ntt_ntt_64(&verifier_challenge);
@@ -7974,17 +9437,17 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_verify_internal_07(
       }
       libcrux_ml_dsa_matrix_compute_w_approx_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_ROWS_IN_A,
         LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_COLUMNS_IN_A,
-        Eurydice_array_to_slice_shared_206(&matrix),
-        Eurydice_array_to_slice_shared_203(&deserialized_signer_response),
+        Eurydice_array_to_slice_shared_2015(&matrix),
+        Eurydice_array_to_slice_shared_2012(&deserialized_signer_response),
         &verifier_challenge,
-        Eurydice_array_to_slice_mut_206(&t1));
-      Eurydice_arr_65 recomputed_commitment_hash = { { 0U } };
+        Eurydice_array_to_slice_mut_2015(&t1));
+      Eurydice_arr_65 recomputed_commitment_hash = { .data = { 0U } };
       libcrux_ml_dsa_arithmetic_use_hint_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_65_GAMMA2,
-        Eurydice_array_to_slice_shared_86(&deserialized_hint),
-        Eurydice_array_to_slice_mut_206(&t1));
-      Eurydice_arr_d2 commitment_serialized = { { 0U } };
+        Eurydice_array_to_slice_shared_860(&deserialized_hint),
+        Eurydice_array_to_slice_mut_2015(&t1));
+      Eurydice_arr_d2 commitment_serialized = { .data = { 0U } };
       libcrux_ml_dsa_encoding_commitment_serialize_vector_64(LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_65_COMMITMENT_RING_ELEMENT_SIZE,
-        Eurydice_array_to_slice_shared_205(&t1),
+        Eurydice_array_to_slice_shared_2014(&t1),
         Eurydice_array_to_slice_mut_27(&commitment_serialized));
       libcrux_sha3_generic_keccak_xof_KeccakXofState_8d
       shake = libcrux_ml_dsa_hash_functions_portable_init_26();
@@ -8002,15 +9465,15 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_verify_internal_07(
           uint8_t)
       )
       {
-        uu____2 = (core_result_Result_41{ core_result_Ok });
+        uu____2 = (KRML_CLITERAL(core_result_Result_41){ .tag = core_result_Ok });
       }
       else
       {
         uu____2 =
           (
-            core_result_Result_41{
-              core_result_Err,
-              libcrux_ml_dsa_types_VerificationError_CommitmentHashesDontMatchError
+            KRML_CLITERAL(core_result_Result_41){
+              .tag = core_result_Err,
+              .f0 = libcrux_ml_dsa_types_VerificationError_CommitmentHashesDontMatchError
             }
           );
       }
@@ -8019,7 +9482,7 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_verify_internal_07(
   else
   {
     libcrux_ml_dsa_types_VerificationError e = uu____1.f0;
-    uu____2 = (core_result_Result_41{ core_result_Err, e });
+    uu____2 = (KRML_CLITERAL(core_result_Result_41){ .tag = core_result_Err, .f0 = e });
   }
   return uu____2;
 }
@@ -8040,14 +9503,16 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_verify_07(
 )
 {
   core_result_Result_a8
-  uu____0 = libcrux_ml_dsa_pre_hash_new_88(context, (core_option_Option_57{ core_option_None }));
+  uu____0 =
+    libcrux_ml_dsa_pre_hash_new_88(context,
+      (KRML_CLITERAL(core_option_Option_57){ .tag = core_option_None }));
   if (!(uu____0.tag == core_result_Ok))
   {
     return
       (
-        core_result_Result_41{
-          core_result_Err,
-          libcrux_ml_dsa_types_VerificationError_VerificationContextTooLongError
+        KRML_CLITERAL(core_result_Result_41){
+          .tag = core_result_Err,
+          .f0 = libcrux_ml_dsa_types_VerificationError_VerificationContextTooLongError
         }
       );
   }
@@ -8056,7 +9521,12 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_verify_07(
   return
     libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_verify_internal_07(verification_key_serialized,
       message,
-      (core_option_Option_84{ core_option_Some, domain_separation_context }),
+      (
+        KRML_CLITERAL(core_option_Option_84){
+          .tag = core_option_Some,
+          .f0 = domain_separation_context
+        }
+      ),
       signature_serialized);
 }
 
@@ -8115,14 +9585,19 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_verify_pre_hashed_37(
   core_result_Result_a8
   uu____0 =
     libcrux_ml_dsa_pre_hash_new_88(context,
-      (core_option_Option_57{ core_option_Some, libcrux_ml_dsa_pre_hash_oid_30() }));
+      (
+        KRML_CLITERAL(core_option_Option_57){
+          .tag = core_option_Some,
+          .f0 = libcrux_ml_dsa_pre_hash_oid_30()
+        }
+      ));
   if (!(uu____0.tag == core_result_Ok))
   {
     return
       (
-        core_result_Result_41{
-          core_result_Err,
-          libcrux_ml_dsa_types_VerificationError_VerificationContextTooLongError
+        KRML_CLITERAL(core_result_Result_41){
+          .tag = core_result_Err,
+          .f0 = libcrux_ml_dsa_types_VerificationError_VerificationContextTooLongError
         }
       );
   }
@@ -8130,8 +9605,18 @@ libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_verify_pre_hashed_37(
   libcrux_ml_dsa_pre_hash_DomainSeparationContext domain_separation_context = dsc;
   return
     libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_verify_internal_07(verification_key_serialized,
-      (Eurydice_borrow_slice_u8{ pre_hash_buffer.ptr, pre_hash_buffer.meta }),
-      (core_option_Option_84{ core_option_Some, domain_separation_context }),
+      (
+        KRML_CLITERAL(Eurydice_borrow_slice_u8){
+          .ptr = pre_hash_buffer.ptr,
+          .meta = pre_hash_buffer.meta
+        }
+      ),
+      (
+        KRML_CLITERAL(core_option_Option_84){
+          .tag = core_option_Some,
+          .f0 = domain_separation_context
+        }
+      ),
       signature_serialized);
 }
 
@@ -8168,6 +9653,1326 @@ libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_verify_pre_hashed_sh
 {
   return
     libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_65_verify_pre_hashed_shake128__inner(verification_key,
+      message,
+      context,
+      pre_hash_buffer,
+      signature);
+}
+
+/**
+A monomorphic instance of Eurydice.arr
+with types libcrux_ml_dsa_polynomial_PolynomialRingElement_4b
+with const generics
+- $15size_t
+*/
+typedef struct Eurydice_arr_09_s { Eurydice_arr_60 data[15U]; } Eurydice_arr_09;
+
+/**
+A monomorphic instance of Eurydice.array_to_slice_mut
+with types libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256
+with const generics
+- N= 15
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline Eurydice_dst_ref_mut_ba
+Eurydice_array_to_slice_mut_2016(Eurydice_arr_09 *a)
+{
+  Eurydice_dst_ref_mut_ba lit;
+  lit.ptr = a->data;
+  lit.meta = (size_t)15U;
+  return lit;
+}
+
+/**
+A monomorphic instance of Eurydice.arr
+with types libcrux_ml_dsa_polynomial_PolynomialRingElement_4b
+with const generics
+- $56size_t
+*/
+typedef struct Eurydice_arr_cd_s { Eurydice_arr_60 data[56U]; } Eurydice_arr_cd;
+
+/**
+A monomorphic instance of Eurydice.array_to_slice_mut
+with types libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256
+with const generics
+- N= 56
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline Eurydice_dst_ref_mut_ba
+Eurydice_array_to_slice_mut_2017(Eurydice_arr_cd *a)
+{
+  Eurydice_dst_ref_mut_ba lit;
+  lit.ptr = a->data;
+  lit.meta = (size_t)56U;
+  return lit;
+}
+
+/**
+A monomorphic instance of Eurydice.arr
+with types libcrux_ml_dsa_polynomial_PolynomialRingElement_4b
+with const generics
+- $7size_t
+*/
+typedef struct Eurydice_arr_c1_s { Eurydice_arr_60 data[7U]; } Eurydice_arr_c1;
+
+/**
+A monomorphic instance of Eurydice.array_to_slice_mut
+with types libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256
+with const generics
+- N= 7
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline Eurydice_dst_ref_mut_ba
+Eurydice_array_to_slice_mut_2018(Eurydice_arr_c1 *a)
+{
+  Eurydice_dst_ref_mut_ba lit;
+  lit.ptr = a->data;
+  lit.meta = (size_t)7U;
+  return lit;
+}
+
+/**
+A monomorphic instance of Eurydice.array_to_subslice_shared
+with types libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256, core_ops_range_Range size_t, Eurydice_derefed_slice libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256
+with const generics
+- N= 15
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline Eurydice_dst_ref_shared_ba
+Eurydice_array_to_subslice_shared_254(const Eurydice_arr_09 *a, core_ops_range_Range_87 r)
+{
+  return
+    (
+      KRML_CLITERAL(Eurydice_dst_ref_shared_ba){ .ptr = a->data + r.start, .meta = r.end - r.start }
+    );
+}
+
+/**
+A monomorphic instance of Eurydice.array_to_slice_shared
+with types libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256
+with const generics
+- N= 7
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline Eurydice_dst_ref_shared_ba
+Eurydice_array_to_slice_shared_2016(const Eurydice_arr_c1 *a)
+{
+  Eurydice_dst_ref_shared_ba lit;
+  lit.ptr = a->data;
+  lit.meta = (size_t)7U;
+  return lit;
+}
+
+/**
+A monomorphic instance of Eurydice.array_to_slice_shared
+with types libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256
+with const generics
+- N= 15
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline Eurydice_dst_ref_shared_ba
+Eurydice_array_to_slice_shared_2017(const Eurydice_arr_09 *a)
+{
+  Eurydice_dst_ref_shared_ba lit;
+  lit.ptr = a->data;
+  lit.meta = (size_t)15U;
+  return lit;
+}
+
+/**
+ Declassify secret memory.
+
+ No-op if `valgrind_ct_test` cfg is not enabled.
+*/
+/**
+A monomorphic instance of libcrux_secrets.mem_requests.ct_declassify
+with types Eurydice_arr libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256[[$8size_t]]
+
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static KRML_MUSTINLINE void
+libcrux_secrets_mem_requests_ct_declassify_6a0(const Eurydice_arr_fa *val)
+{
+
+}
+
+/**
+A monomorphic instance of libcrux_ml_dsa.ml_dsa_generic.ml_dsa_87.generate_key_pair
+with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256, libcrux_ml_dsa_samplex4_avx2_AVX2Sampler, libcrux_ml_dsa_hash_functions_simd256_Shake128x4, libcrux_ml_dsa_hash_functions_simd256_Shake256, libcrux_ml_dsa_hash_functions_portable_Shake256Xof, libcrux_ml_dsa_hash_functions_simd256_Shake256x4
+with const generics
+
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static KRML_MUSTINLINE void
+libcrux_ml_dsa_ml_dsa_generic_ml_dsa_87_generate_key_pair_07(
+  Eurydice_arr_ec randomness,
+  Eurydice_mut_borrow_slice_u8 signing_key,
+  Eurydice_mut_borrow_slice_u8 verification_key
+)
+{
+  Eurydice_arr_89 seed_expanded0 = { .data = { 0U } };
+  libcrux_sha3_generic_keccak_xof_KeccakXofState_8d
+  shake = libcrux_ml_dsa_hash_functions_portable_init_26();
+  libcrux_ml_dsa_hash_functions_portable_absorb_26(&shake,
+    Eurydice_array_to_slice_shared_01(&randomness));
+  /* original Rust expression is not an lvalue in C */
+  Eurydice_array_u8x2
+  lvalue =
+    {
+      .data = {
+        (uint8_t)LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_ROWS_IN_A,
+        (uint8_t)LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_COLUMNS_IN_A
+      }
+    };
+  libcrux_ml_dsa_hash_functions_portable_absorb_final_26(&shake,
+    Eurydice_array_to_slice_shared_82(&lvalue));
+  libcrux_ml_dsa_hash_functions_portable_squeeze_26(&shake,
+    Eurydice_array_to_slice_mut_78(&seed_expanded0));
+  Eurydice_borrow_slice_u8_x2
+  uu____0 =
+    Eurydice_slice_split_at(Eurydice_array_to_slice_shared_78(&seed_expanded0),
+      LIBCRUX_ML_DSA_CONSTANTS_SEED_FOR_A_SIZE,
+      uint8_t,
+      Eurydice_borrow_slice_u8_x2);
+  Eurydice_borrow_slice_u8 seed_for_a = uu____0.fst;
+  Eurydice_borrow_slice_u8 seed_expanded = uu____0.snd;
+  Eurydice_borrow_slice_u8_x2
+  uu____1 =
+    Eurydice_slice_split_at(seed_expanded,
+      LIBCRUX_ML_DSA_CONSTANTS_SEED_FOR_ERROR_VECTORS_SIZE,
+      uint8_t,
+      Eurydice_borrow_slice_u8_x2);
+  Eurydice_borrow_slice_u8 seed_for_error_vectors = uu____1.fst;
+  Eurydice_borrow_slice_u8 seed_for_signing = uu____1.snd;
+  Eurydice_arr_09 s1_s2;
+  Eurydice_arr_60 repeat_expression0[15U];
+  for (size_t i = (size_t)0U; i < (size_t)15U; i++)
+  {
+    repeat_expression0[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+  }
+  memcpy(s1_s2.data, repeat_expression0, (size_t)15U * sizeof (Eurydice_arr_60));
+  libcrux_ml_dsa_samplex4_sample_s1_and_s2_fc(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_ETA,
+    seed_for_error_vectors,
+    Eurydice_array_to_slice_mut_2016(&s1_s2));
+  Eurydice_arr_fa t0;
+  Eurydice_arr_60 repeat_expression1[8U];
+  for (size_t i = (size_t)0U; i < (size_t)8U; i++)
+  {
+    repeat_expression1[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+  }
+  memcpy(t0.data, repeat_expression1, (size_t)8U * sizeof (Eurydice_arr_60));
+  Eurydice_arr_cd a_as_ntt;
+  Eurydice_arr_60 repeat_expression2[56U];
+  for (size_t i = (size_t)0U; i < (size_t)56U; i++)
+  {
+    repeat_expression2[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+  }
+  memcpy(a_as_ntt.data, repeat_expression2, (size_t)56U * sizeof (Eurydice_arr_60));
+  libcrux_ml_dsa_samplex4_avx2_matrix_flat_e8_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_COLUMNS_IN_A,
+    seed_for_a,
+    Eurydice_array_to_slice_mut_2017(&a_as_ntt));
+  Eurydice_arr_c1 s1_ntt;
+  Eurydice_arr_60 repeat_expression3[7U];
+  for (size_t i = (size_t)0U; i < (size_t)7U; i++)
+  {
+    repeat_expression3[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+  }
+  memcpy(s1_ntt.data, repeat_expression3, (size_t)7U * sizeof (Eurydice_arr_60));
+  Eurydice_slice_copy(Eurydice_array_to_slice_mut_2018(&s1_ntt),
+    Eurydice_array_to_subslice_shared_254(&s1_s2,
+      (
+        KRML_CLITERAL(core_ops_range_Range_87){
+          .start = (size_t)0U,
+          .end = LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_COLUMNS_IN_A
+        }
+      )),
+    Eurydice_arr_60);
+  for (size_t i = (size_t)0U; i < (size_t)7U; i++)
+  {
+    size_t i0 = i;
+    libcrux_ml_dsa_ntt_ntt_64(&s1_ntt.data[i0]);
+  }
+  libcrux_ml_dsa_matrix_compute_as1_plus_s2_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_ROWS_IN_A,
+    LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_COLUMNS_IN_A,
+    Eurydice_array_to_slice_mut_2017(&a_as_ntt),
+    Eurydice_array_to_slice_shared_2016(&s1_ntt),
+    Eurydice_array_to_slice_shared_2017(&s1_s2),
+    Eurydice_array_to_slice_mut_209(&t0));
+  Eurydice_arr_fa t1;
+  Eurydice_arr_60 repeat_expression[8U];
+  for (size_t i = (size_t)0U; i < (size_t)8U; i++)
+  {
+    repeat_expression[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+  }
+  memcpy(t1.data, repeat_expression, (size_t)8U * sizeof (Eurydice_arr_60));
+  libcrux_ml_dsa_arithmetic_power2round_vector_64(Eurydice_array_to_slice_mut_209(&t0),
+    Eurydice_array_to_slice_mut_209(&t1));
+  libcrux_ml_dsa_encoding_verification_key_generate_serialized_64(seed_for_a,
+    Eurydice_array_to_slice_shared_2010(&t1),
+    verification_key);
+  libcrux_ml_dsa_encoding_signing_key_generate_serialized_18(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_ETA,
+    LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_87_ERROR_RING_ELEMENT_SIZE,
+    seed_for_a,
+    seed_for_signing,
+    (
+      KRML_CLITERAL(Eurydice_borrow_slice_u8){
+        .ptr = verification_key.ptr,
+        .meta = verification_key.meta
+      }
+    ),
+    Eurydice_array_to_slice_shared_2017(&s1_s2),
+    Eurydice_array_to_slice_shared_2010(&t0),
+    signing_key);
+}
+
+/**
+ Key Generation.
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline void
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_87_generate_key_pair__inner(
+  Eurydice_arr_ec randomness,
+  Eurydice_mut_borrow_slice_u8 signing_key,
+  Eurydice_mut_borrow_slice_u8 verification_key
+)
+{
+  libcrux_ml_dsa_ml_dsa_generic_ml_dsa_87_generate_key_pair_07(randomness,
+    signing_key,
+    verification_key);
+}
+
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline void
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_87_generate_key_pair(
+  Eurydice_arr_ec randomness,
+  Eurydice_mut_borrow_slice_u8 signing_key,
+  Eurydice_mut_borrow_slice_u8 verification_key
+)
+{
+  libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_87_generate_key_pair__inner(randomness,
+    signing_key,
+    verification_key);
+}
+
+/**
+A monomorphic instance of core.option.Option
+with types Eurydice_arr_c1
+
+*/
+typedef struct core_option_Option_da_s
+{
+  core_option_Option_45_tags tag;
+  Eurydice_arr_c1 f0;
+}
+core_option_Option_da;
+
+/**
+A monomorphic instance of Eurydice.array_to_slice_shared
+with types libcrux_ml_dsa_polynomial_PolynomialRingElement libcrux_ml_dsa_simd_avx2_vector_type_Vec256
+with const generics
+- N= 56
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline Eurydice_dst_ref_shared_ba
+Eurydice_array_to_slice_shared_2018(const Eurydice_arr_cd *a)
+{
+  Eurydice_dst_ref_shared_ba lit;
+  lit.ptr = a->data;
+  lit.meta = (size_t)56U;
+  return lit;
+}
+
+/**
+A monomorphic instance of libcrux_ml_dsa.ml_dsa_generic.ml_dsa_87.sign_internal
+with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256, libcrux_ml_dsa_samplex4_avx2_AVX2Sampler, libcrux_ml_dsa_hash_functions_simd256_Shake128x4, libcrux_ml_dsa_hash_functions_simd256_Shake256, libcrux_ml_dsa_hash_functions_portable_Shake256Xof, libcrux_ml_dsa_hash_functions_simd256_Shake256x4
+with const generics
+
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static KRML_MUSTINLINE core_result_Result_53
+libcrux_ml_dsa_ml_dsa_generic_ml_dsa_87_sign_internal_07(
+  Eurydice_borrow_slice_u8 signing_key,
+  Eurydice_borrow_slice_u8 message,
+  core_option_Option_84 domain_separation_context,
+  Eurydice_arr_ec randomness,
+  Eurydice_arr_93 *signature
+)
+{
+  Eurydice_borrow_slice_u8_x2
+  uu____0 =
+    Eurydice_slice_split_at(signing_key,
+      LIBCRUX_ML_DSA_CONSTANTS_SEED_FOR_A_SIZE,
+      uint8_t,
+      Eurydice_borrow_slice_u8_x2);
+  Eurydice_borrow_slice_u8 seed_for_a = uu____0.fst;
+  Eurydice_borrow_slice_u8 remaining_serialized0 = uu____0.snd;
+  Eurydice_borrow_slice_u8_x2
+  uu____1 =
+    Eurydice_slice_split_at(remaining_serialized0,
+      LIBCRUX_ML_DSA_CONSTANTS_SEED_FOR_SIGNING_SIZE,
+      uint8_t,
+      Eurydice_borrow_slice_u8_x2);
+  Eurydice_borrow_slice_u8 seed_for_signing = uu____1.fst;
+  Eurydice_borrow_slice_u8 remaining_serialized1 = uu____1.snd;
+  Eurydice_borrow_slice_u8_x2
+  uu____2 =
+    Eurydice_slice_split_at(remaining_serialized1,
+      LIBCRUX_ML_DSA_CONSTANTS_BYTES_FOR_VERIFICATION_KEY_HASH,
+      uint8_t,
+      Eurydice_borrow_slice_u8_x2);
+  Eurydice_borrow_slice_u8 verification_key_hash = uu____2.fst;
+  Eurydice_borrow_slice_u8 remaining_serialized2 = uu____2.snd;
+  Eurydice_borrow_slice_u8_x2
+  uu____3 =
+    Eurydice_slice_split_at(remaining_serialized2,
+      LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_87_ERROR_RING_ELEMENT_SIZE *
+        LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_COLUMNS_IN_A,
+      uint8_t,
+      Eurydice_borrow_slice_u8_x2);
+  Eurydice_borrow_slice_u8 s1_serialized = uu____3.fst;
+  Eurydice_borrow_slice_u8 remaining_serialized = uu____3.snd;
+  Eurydice_borrow_slice_u8_x2
+  uu____4 =
+    Eurydice_slice_split_at(remaining_serialized,
+      LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_87_ERROR_RING_ELEMENT_SIZE *
+        LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_ROWS_IN_A,
+      uint8_t,
+      Eurydice_borrow_slice_u8_x2);
+  Eurydice_borrow_slice_u8 s2_serialized = uu____4.fst;
+  Eurydice_borrow_slice_u8 t0_serialized = uu____4.snd;
+  Eurydice_arr_c1 s1_as_ntt;
+  Eurydice_arr_60 repeat_expression0[7U];
+  for (size_t i = (size_t)0U; i < (size_t)7U; i++)
+  {
+    repeat_expression0[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+  }
+  memcpy(s1_as_ntt.data, repeat_expression0, (size_t)7U * sizeof (Eurydice_arr_60));
+  Eurydice_arr_fa s2_as_ntt;
+  Eurydice_arr_60 repeat_expression1[8U];
+  for (size_t i = (size_t)0U; i < (size_t)8U; i++)
+  {
+    repeat_expression1[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+  }
+  memcpy(s2_as_ntt.data, repeat_expression1, (size_t)8U * sizeof (Eurydice_arr_60));
+  Eurydice_arr_fa t0_as_ntt;
+  Eurydice_arr_60 repeat_expression2[8U];
+  for (size_t i = (size_t)0U; i < (size_t)8U; i++)
+  {
+    repeat_expression2[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+  }
+  memcpy(t0_as_ntt.data, repeat_expression2, (size_t)8U * sizeof (Eurydice_arr_60));
+  libcrux_ml_dsa_encoding_error_deserialize_to_vector_then_ntt_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_ETA,
+    LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_87_ERROR_RING_ELEMENT_SIZE,
+    s1_serialized,
+    Eurydice_array_to_slice_mut_2018(&s1_as_ntt));
+  libcrux_ml_dsa_encoding_error_deserialize_to_vector_then_ntt_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_ETA,
+    LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_87_ERROR_RING_ELEMENT_SIZE,
+    s2_serialized,
+    Eurydice_array_to_slice_mut_209(&s2_as_ntt));
+  libcrux_ml_dsa_encoding_t0_deserialize_to_vector_then_ntt_64(t0_serialized,
+    Eurydice_array_to_slice_mut_209(&t0_as_ntt));
+  Eurydice_arr_cd matrix;
+  Eurydice_arr_60 repeat_expression3[56U];
+  for (size_t i = (size_t)0U; i < (size_t)56U; i++)
+  {
+    repeat_expression3[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+  }
+  memcpy(matrix.data, repeat_expression3, (size_t)56U * sizeof (Eurydice_arr_60));
+  libcrux_ml_dsa_samplex4_avx2_matrix_flat_e8_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_COLUMNS_IN_A,
+    seed_for_a,
+    Eurydice_array_to_slice_mut_2017(&matrix));
+  Eurydice_arr_c7 message_representative = { .data = { 0U } };
+  libcrux_ml_dsa_ml_dsa_generic_derive_message_representative_43(verification_key_hash,
+    &domain_separation_context,
+    message,
+    &message_representative);
+  Eurydice_arr_c7 mask_seed = { .data = { 0U } };
+  libcrux_sha3_generic_keccak_xof_KeccakXofState_8d
+  shake0 = libcrux_ml_dsa_hash_functions_portable_init_26();
+  libcrux_ml_dsa_hash_functions_portable_absorb_26(&shake0, seed_for_signing);
+  libcrux_ml_dsa_hash_functions_portable_absorb_26(&shake0,
+    Eurydice_array_to_slice_shared_01(&randomness));
+  libcrux_ml_dsa_hash_functions_portable_absorb_final_26(&shake0,
+    Eurydice_array_to_slice_shared_17(&message_representative));
+  libcrux_ml_dsa_hash_functions_portable_squeeze_26(&shake0,
+    Eurydice_array_to_slice_mut_17(&mask_seed));
+  uint16_t domain_separator_for_mask = 0U;
+  size_t attempt = (size_t)0U;
+  core_option_Option_b2 commitment_hash0 = { .tag = core_option_None };
+  core_option_Option_da signer_response0 = { .tag = core_option_None };
+  core_option_Option_45 hint0 = { .tag = core_option_None };
+  while (attempt < LIBCRUX_ML_DSA_CONSTANTS_REJECTION_SAMPLE_BOUND_SIGN)
+  {
+    attempt++;
+    Eurydice_arr_c1 mask;
+    Eurydice_arr_60 repeat_expression4[7U];
+    for (size_t i = (size_t)0U; i < (size_t)7U; i++)
+    {
+      repeat_expression4[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+    }
+    memcpy(mask.data, repeat_expression4, (size_t)7U * sizeof (Eurydice_arr_60));
+    Eurydice_arr_fa w0;
+    Eurydice_arr_60 repeat_expression5[8U];
+    for (size_t i = (size_t)0U; i < (size_t)8U; i++)
+    {
+      repeat_expression5[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+    }
+    memcpy(w0.data, repeat_expression5, (size_t)8U * sizeof (Eurydice_arr_60));
+    Eurydice_arr_fa commitment;
+    Eurydice_arr_60 repeat_expression6[8U];
+    for (size_t i = (size_t)0U; i < (size_t)8U; i++)
+    {
+      repeat_expression6[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+    }
+    memcpy(commitment.data, repeat_expression6, (size_t)8U * sizeof (Eurydice_arr_60));
+    libcrux_ml_dsa_sample_sample_mask_vector_f4(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_COLUMNS_IN_A,
+      LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_GAMMA1_EXPONENT,
+      &mask_seed,
+      &domain_separator_for_mask,
+      Eurydice_array_to_slice_mut_2018(&mask));
+    Eurydice_arr_fa a_x_mask;
+    Eurydice_arr_60 repeat_expression[8U];
+    for (size_t i = (size_t)0U; i < (size_t)8U; i++)
+    {
+      repeat_expression[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+    }
+    memcpy(a_x_mask.data, repeat_expression, (size_t)8U * sizeof (Eurydice_arr_60));
+    Eurydice_arr_c1
+    mask_ntt =
+      core_array__core__clone__Clone_for__T__N___clone((size_t)7U,
+        &mask,
+        Eurydice_arr_60,
+        Eurydice_arr_c1);
+    for (size_t i = (size_t)0U; i < (size_t)7U; i++)
+    {
+      size_t i0 = i;
+      libcrux_ml_dsa_ntt_ntt_64(&mask_ntt.data[i0]);
+    }
+    libcrux_ml_dsa_matrix_compute_matrix_x_mask_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_ROWS_IN_A,
+      LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_COLUMNS_IN_A,
+      Eurydice_array_to_slice_shared_2018(&matrix),
+      Eurydice_array_to_slice_shared_2016(&mask_ntt),
+      Eurydice_array_to_slice_mut_209(&a_x_mask));
+    libcrux_ml_dsa_arithmetic_decompose_vector_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_ROWS_IN_A,
+      LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_GAMMA2,
+      Eurydice_array_to_slice_shared_2010(&a_x_mask),
+      Eurydice_array_to_slice_mut_209(&w0),
+      Eurydice_array_to_slice_mut_209(&commitment));
+    Eurydice_arr_c7 commitment_hash_candidate = { .data = { 0U } };
+    Eurydice_arr_1b commitment_serialized = { .data = { 0U } };
+    libcrux_ml_dsa_encoding_commitment_serialize_vector_64(LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_87_COMMITMENT_RING_ELEMENT_SIZE,
+      Eurydice_array_to_slice_shared_2010(&commitment),
+      Eurydice_array_to_slice_mut_68(&commitment_serialized));
+    libcrux_sha3_generic_keccak_xof_KeccakXofState_8d
+    shake = libcrux_ml_dsa_hash_functions_portable_init_26();
+    libcrux_ml_dsa_hash_functions_portable_absorb_26(&shake,
+      Eurydice_array_to_slice_shared_17(&message_representative));
+    libcrux_ml_dsa_hash_functions_portable_absorb_final_26(&shake,
+      Eurydice_array_to_slice_shared_68(&commitment_serialized));
+    libcrux_ml_dsa_hash_functions_portable_squeeze_26(&shake,
+      Eurydice_array_to_slice_mut_17(&commitment_hash_candidate));
+    Eurydice_arr_60 verifier_challenge = libcrux_ml_dsa_polynomial_zero_ff_64();
+    libcrux_ml_dsa_sample_sample_challenge_ring_element_18(Eurydice_array_to_slice_shared_17(&commitment_hash_candidate),
+      LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_ONES_IN_VERIFIER_CHALLENGE,
+      &verifier_challenge);
+    libcrux_ml_dsa_ntt_ntt_64(&verifier_challenge);
+    Eurydice_arr_c1
+    challenge_times_s1 =
+      core_array__core__clone__Clone_for__T__N___clone((size_t)7U,
+        &s1_as_ntt,
+        Eurydice_arr_60,
+        Eurydice_arr_c1);
+    Eurydice_arr_fa
+    challenge_times_s2 =
+      core_array__core__clone__Clone_for__T__N___clone((size_t)8U,
+        &s2_as_ntt,
+        Eurydice_arr_60,
+        Eurydice_arr_fa);
+    libcrux_ml_dsa_matrix_vector_times_ring_element_64(Eurydice_array_to_slice_mut_2018(&challenge_times_s1),
+      &verifier_challenge);
+    libcrux_ml_dsa_matrix_vector_times_ring_element_64(Eurydice_array_to_slice_mut_209(&challenge_times_s2),
+      &verifier_challenge);
+    libcrux_ml_dsa_matrix_add_vectors_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_COLUMNS_IN_A,
+      Eurydice_array_to_slice_mut_2018(&mask),
+      Eurydice_array_to_slice_shared_2016(&challenge_times_s1));
+    libcrux_ml_dsa_matrix_subtract_vectors_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_ROWS_IN_A,
+      Eurydice_array_to_slice_mut_209(&w0),
+      Eurydice_array_to_slice_shared_2010(&challenge_times_s2));
+    if
+    (
+      !libcrux_ml_dsa_arithmetic_vector_infinity_norm_exceeds_64(Eurydice_array_to_slice_shared_2016(&mask),
+        (int32_t)((uint32_t)1 << (uint32_t)LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_GAMMA1_EXPONENT) -
+          LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_87_BETA)
+    )
+    {
+      if
+      (
+        !libcrux_ml_dsa_arithmetic_vector_infinity_norm_exceeds_64(Eurydice_array_to_slice_shared_2010(&w0),
+          LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_GAMMA2 - LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_87_BETA)
+      )
+      {
+        Eurydice_arr_fa
+        challenge_times_t0 =
+          core_array__core__clone__Clone_for__T__N___clone((size_t)8U,
+            &t0_as_ntt,
+            Eurydice_arr_60,
+            Eurydice_arr_fa);
+        libcrux_ml_dsa_matrix_vector_times_ring_element_64(Eurydice_array_to_slice_mut_209(&challenge_times_t0),
+          &verifier_challenge);
+        if
+        (
+          !libcrux_ml_dsa_arithmetic_vector_infinity_norm_exceeds_64(Eurydice_array_to_slice_shared_2010(&challenge_times_t0),
+            LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_GAMMA2)
+        )
+        {
+          libcrux_ml_dsa_matrix_add_vectors_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_ROWS_IN_A,
+            Eurydice_array_to_slice_mut_209(&w0),
+            Eurydice_array_to_slice_shared_2010(&challenge_times_t0));
+          Eurydice_arr_81
+          hint_candidate =
+            {
+              .data = {
+                { .data = { 0U } }, { .data = { 0U } }, { .data = { 0U } }, { .data = { 0U } },
+                { .data = { 0U } }, { .data = { 0U } }, { .data = { 0U } }, { .data = { 0U } }
+              }
+            };
+          size_t
+          ones_in_hint =
+            libcrux_ml_dsa_arithmetic_make_hint_64(Eurydice_array_to_slice_shared_2010(&w0),
+              Eurydice_array_to_slice_shared_2010(&commitment),
+              LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_GAMMA2,
+              Eurydice_array_to_slice_mut_861(&hint_candidate));
+          if (!(ones_in_hint > LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_MAX_ONES_IN_HINT))
+          {
+            attempt = LIBCRUX_ML_DSA_CONSTANTS_REJECTION_SAMPLE_BOUND_SIGN;
+            commitment_hash0 =
+              (
+                KRML_CLITERAL(core_option_Option_b2){
+                  .tag = core_option_Some,
+                  .f0 = commitment_hash_candidate
+                }
+              );
+            signer_response0 =
+              (KRML_CLITERAL(core_option_Option_da){ .tag = core_option_Some, .f0 = mask });
+            hint0 =
+              (
+                KRML_CLITERAL(core_option_Option_45){
+                  .tag = core_option_Some,
+                  .f0 = hint_candidate
+                }
+              );
+          }
+        }
+      }
+    }
+  }
+  core_result_Result_53 uu____5;
+  if (commitment_hash0.tag == core_option_None)
+  {
+    uu____5 =
+      (
+        KRML_CLITERAL(core_result_Result_53){
+          .tag = core_result_Err,
+          .f0 = libcrux_ml_dsa_types_SigningError_RejectionSamplingError
+        }
+      );
+  }
+  else
+  {
+    Eurydice_arr_c7 commitment_hash = commitment_hash0.f0;
+    Eurydice_arr_c7 commitment_hash1 = commitment_hash;
+    if (signer_response0.tag == core_option_None)
+    {
+      uu____5 =
+        (
+          KRML_CLITERAL(core_result_Result_53){
+            .tag = core_result_Err,
+            .f0 = libcrux_ml_dsa_types_SigningError_RejectionSamplingError
+          }
+        );
+    }
+    else
+    {
+      Eurydice_arr_c1 signer_response = signer_response0.f0;
+      Eurydice_arr_c1 signer_response1 = signer_response;
+      if (!(hint0.tag == core_option_None))
+      {
+        Eurydice_arr_81 hint = hint0.f0;
+        Eurydice_arr_81 hint1 = hint;
+        libcrux_ml_dsa_encoding_signature_serialize_64(Eurydice_array_to_slice_shared_17(&commitment_hash1),
+          Eurydice_array_to_slice_shared_2016(&signer_response1),
+          Eurydice_array_to_slice_shared_861(&hint1),
+          LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_COMMITMENT_HASH_SIZE,
+          LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_COLUMNS_IN_A,
+          LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_ROWS_IN_A,
+          LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_GAMMA1_EXPONENT,
+          LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_87_GAMMA1_RING_ELEMENT_SIZE,
+          LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_MAX_ONES_IN_HINT,
+          Eurydice_array_to_slice_mut_11(signature));
+        return (KRML_CLITERAL(core_result_Result_53){ .tag = core_result_Ok });
+      }
+      uu____5 =
+        (
+          KRML_CLITERAL(core_result_Result_53){
+            .tag = core_result_Err,
+            .f0 = libcrux_ml_dsa_types_SigningError_RejectionSamplingError
+          }
+        );
+    }
+  }
+  return uu____5;
+}
+
+/**
+A monomorphic instance of libcrux_ml_dsa.ml_dsa_generic.ml_dsa_87.sign_mut
+with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256, libcrux_ml_dsa_samplex4_avx2_AVX2Sampler, libcrux_ml_dsa_hash_functions_simd256_Shake128x4, libcrux_ml_dsa_hash_functions_simd256_Shake256, libcrux_ml_dsa_hash_functions_portable_Shake256Xof, libcrux_ml_dsa_hash_functions_simd256_Shake256x4
+with const generics
+
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static KRML_MUSTINLINE core_result_Result_53
+libcrux_ml_dsa_ml_dsa_generic_ml_dsa_87_sign_mut_07(
+  Eurydice_borrow_slice_u8 signing_key,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  Eurydice_arr_ec randomness,
+  Eurydice_arr_93 *signature
+)
+{
+  core_result_Result_a8
+  uu____0 =
+    libcrux_ml_dsa_pre_hash_new_88(context,
+      (KRML_CLITERAL(core_option_Option_57){ .tag = core_option_None }));
+  if (!(uu____0.tag == core_result_Ok))
+  {
+    return
+      (
+        KRML_CLITERAL(core_result_Result_53){
+          .tag = core_result_Err,
+          .f0 = libcrux_ml_dsa_types_SigningError_ContextTooLongError
+        }
+      );
+  }
+  libcrux_ml_dsa_pre_hash_DomainSeparationContext dsc = uu____0.val.case_Ok;
+  libcrux_ml_dsa_pre_hash_DomainSeparationContext domain_separation_context = dsc;
+  return
+    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_87_sign_internal_07(signing_key,
+      message,
+      (
+        KRML_CLITERAL(core_option_Option_84){
+          .tag = core_option_Some,
+          .f0 = domain_separation_context
+        }
+      ),
+      randomness,
+      signature);
+}
+
+/**
+A monomorphic instance of libcrux_ml_dsa.ml_dsa_generic.ml_dsa_87.sign
+with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256, libcrux_ml_dsa_samplex4_avx2_AVX2Sampler, libcrux_ml_dsa_hash_functions_simd256_Shake128x4, libcrux_ml_dsa_hash_functions_simd256_Shake256, libcrux_ml_dsa_hash_functions_portable_Shake256Xof, libcrux_ml_dsa_hash_functions_simd256_Shake256x4
+with const generics
+
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static KRML_MUSTINLINE core_result_Result_8b
+libcrux_ml_dsa_ml_dsa_generic_ml_dsa_87_sign_07(
+  Eurydice_borrow_slice_u8 signing_key,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  Eurydice_arr_ec randomness
+)
+{
+  Eurydice_arr_93 signature = libcrux_ml_dsa_types_zero_c5_f1();
+  core_result_Result_53
+  uu____0 =
+    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_87_sign_mut_07(signing_key,
+      message,
+      context,
+      randomness,
+      &signature);
+  core_result_Result_8b uu____1;
+  if (uu____0.tag == core_result_Ok)
+  {
+    uu____1 =
+      (
+        KRML_CLITERAL(core_result_Result_8b){
+          .tag = core_result_Ok,
+          .val = { .case_Ok = signature }
+        }
+      );
+  }
+  else
+  {
+    libcrux_ml_dsa_types_SigningError e = uu____0.f0;
+    uu____1 =
+      (KRML_CLITERAL(core_result_Result_8b){ .tag = core_result_Err, .val = { .case_Err = e } });
+  }
+  return uu____1;
+}
+
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline core_result_Result_8b
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_87_sign__inner(
+  const Eurydice_arr_e2 *signing_key,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  Eurydice_arr_ec randomness
+)
+{
+  return
+    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_87_sign_07(Eurydice_array_to_slice_shared_f7(signing_key),
+      message,
+      context,
+      randomness);
+}
+
+/**
+ Sign.
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline core_result_Result_8b
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_87_sign(
+  const Eurydice_arr_e2 *signing_key,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  Eurydice_arr_ec randomness
+)
+{
+  return
+    libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_87_sign__inner(signing_key,
+      message,
+      context,
+      randomness);
+}
+
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline core_result_Result_53
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_87_sign_mut__inner(
+  const Eurydice_arr_e2 *signing_key,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  Eurydice_arr_ec randomness,
+  Eurydice_arr_93 *signature
+)
+{
+  return
+    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_87_sign_mut_07(Eurydice_array_to_slice_shared_f7(signing_key),
+      message,
+      context,
+      randomness,
+      signature);
+}
+
+/**
+ Sign.
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline core_result_Result_53
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_87_sign_mut(
+  const Eurydice_arr_e2 *signing_key,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  Eurydice_arr_ec randomness,
+  Eurydice_arr_93 *signature
+)
+{
+  return
+    libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_87_sign_mut__inner(signing_key,
+      message,
+      context,
+      randomness,
+      signature);
+}
+
+/**
+A monomorphic instance of libcrux_ml_dsa.ml_dsa_generic.ml_dsa_87.sign_pre_hashed_mut
+with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256, libcrux_ml_dsa_samplex4_avx2_AVX2Sampler, libcrux_ml_dsa_hash_functions_portable_Shake128, libcrux_ml_dsa_hash_functions_simd256_Shake128x4, libcrux_ml_dsa_hash_functions_simd256_Shake256, libcrux_ml_dsa_hash_functions_portable_Shake256Xof, libcrux_ml_dsa_hash_functions_simd256_Shake256x4, libcrux_ml_dsa_pre_hash_SHAKE128_PH
+with const generics
+
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static KRML_MUSTINLINE core_result_Result_53
+libcrux_ml_dsa_ml_dsa_generic_ml_dsa_87_sign_pre_hashed_mut_37(
+  Eurydice_borrow_slice_u8 signing_key,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  Eurydice_mut_borrow_slice_u8 pre_hash_buffer,
+  Eurydice_arr_ec randomness,
+  Eurydice_arr_93 *signature
+)
+{
+  if (!(context.meta > LIBCRUX_ML_DSA_CONSTANTS_CONTEXT_MAX_LEN))
+  {
+    libcrux_ml_dsa_pre_hash_hash_30_83(message, pre_hash_buffer);
+    core_result_Result_a8
+    uu____0 =
+      libcrux_ml_dsa_pre_hash_new_88(context,
+        (
+          KRML_CLITERAL(core_option_Option_57){
+            .tag = core_option_Some,
+            .f0 = libcrux_ml_dsa_pre_hash_oid_30()
+          }
+        ));
+    if (!(uu____0.tag == core_result_Ok))
+    {
+      return
+        (
+          KRML_CLITERAL(core_result_Result_53){
+            .tag = core_result_Err,
+            .f0 = libcrux_ml_dsa_types_SigningError_ContextTooLongError
+          }
+        );
+    }
+    libcrux_ml_dsa_pre_hash_DomainSeparationContext dsc = uu____0.val.case_Ok;
+    libcrux_ml_dsa_pre_hash_DomainSeparationContext domain_separation_context = dsc;
+    return
+      libcrux_ml_dsa_ml_dsa_generic_ml_dsa_87_sign_internal_07(signing_key,
+        (
+          KRML_CLITERAL(Eurydice_borrow_slice_u8){
+            .ptr = pre_hash_buffer.ptr,
+            .meta = pre_hash_buffer.meta
+          }
+        ),
+        (
+          KRML_CLITERAL(core_option_Option_84){
+            .tag = core_option_Some,
+            .f0 = domain_separation_context
+          }
+        ),
+        randomness,
+        signature);
+  }
+  return
+    (
+      KRML_CLITERAL(core_result_Result_53){
+        .tag = core_result_Err,
+        .f0 = libcrux_ml_dsa_types_SigningError_ContextTooLongError
+      }
+    );
+}
+
+/**
+A monomorphic instance of libcrux_ml_dsa.ml_dsa_generic.ml_dsa_87.sign_pre_hashed
+with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256, libcrux_ml_dsa_samplex4_avx2_AVX2Sampler, libcrux_ml_dsa_hash_functions_portable_Shake128, libcrux_ml_dsa_hash_functions_simd256_Shake128x4, libcrux_ml_dsa_hash_functions_simd256_Shake256, libcrux_ml_dsa_hash_functions_portable_Shake256Xof, libcrux_ml_dsa_hash_functions_simd256_Shake256x4, libcrux_ml_dsa_pre_hash_SHAKE128_PH
+with const generics
+
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static KRML_MUSTINLINE core_result_Result_8b
+libcrux_ml_dsa_ml_dsa_generic_ml_dsa_87_sign_pre_hashed_37(
+  Eurydice_borrow_slice_u8 signing_key,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  Eurydice_mut_borrow_slice_u8 pre_hash_buffer,
+  Eurydice_arr_ec randomness
+)
+{
+  Eurydice_arr_93 signature = libcrux_ml_dsa_types_zero_c5_f1();
+  core_result_Result_53
+  uu____0 =
+    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_87_sign_pre_hashed_mut_37(signing_key,
+      message,
+      context,
+      pre_hash_buffer,
+      randomness,
+      &signature);
+  core_result_Result_8b uu____1;
+  if (uu____0.tag == core_result_Ok)
+  {
+    uu____1 =
+      (
+        KRML_CLITERAL(core_result_Result_8b){
+          .tag = core_result_Ok,
+          .val = { .case_Ok = signature }
+        }
+      );
+  }
+  else
+  {
+    libcrux_ml_dsa_types_SigningError e = uu____0.f0;
+    uu____1 =
+      (KRML_CLITERAL(core_result_Result_8b){ .tag = core_result_Err, .val = { .case_Err = e } });
+  }
+  return uu____1;
+}
+
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline core_result_Result_8b
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_87_sign_pre_hashed_shake128__inner(
+  const Eurydice_arr_e2 *signing_key,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  Eurydice_mut_borrow_slice_u8 pre_hash_buffer,
+  Eurydice_arr_ec randomness
+)
+{
+  return
+    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_87_sign_pre_hashed_37(Eurydice_array_to_slice_shared_f7(signing_key),
+      message,
+      context,
+      pre_hash_buffer,
+      randomness);
+}
+
+/**
+ Sign (pre-hashed).
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline core_result_Result_8b
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_87_sign_pre_hashed_shake128(
+  const Eurydice_arr_e2 *signing_key,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  Eurydice_mut_borrow_slice_u8 pre_hash_buffer,
+  Eurydice_arr_ec randomness
+)
+{
+  return
+    libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_87_sign_pre_hashed_shake128__inner(signing_key,
+      message,
+      context,
+      pre_hash_buffer,
+      randomness);
+}
+
+/**
+ The internal verification API.
+
+ If no `domain_separation_context` is supplied, it is assumed that
+ `message` already contains the domain separation.
+*/
+/**
+A monomorphic instance of libcrux_ml_dsa.ml_dsa_generic.ml_dsa_87.verify_internal
+with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256, libcrux_ml_dsa_samplex4_avx2_AVX2Sampler, libcrux_ml_dsa_hash_functions_simd256_Shake128x4, libcrux_ml_dsa_hash_functions_simd256_Shake256, libcrux_ml_dsa_hash_functions_portable_Shake256Xof
+with const generics
+
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static KRML_MUSTINLINE core_result_Result_41
+libcrux_ml_dsa_ml_dsa_generic_ml_dsa_87_verify_internal_07(
+  const Eurydice_arr_43 *verification_key,
+  Eurydice_borrow_slice_u8 message,
+  core_option_Option_84 domain_separation_context,
+  const Eurydice_arr_93 *signature_serialized
+)
+{
+  Eurydice_borrow_slice_u8_x2
+  uu____0 =
+    Eurydice_slice_split_at(Eurydice_array_to_slice_shared_fc(verification_key),
+      LIBCRUX_ML_DSA_CONSTANTS_SEED_FOR_A_SIZE,
+      uint8_t,
+      Eurydice_borrow_slice_u8_x2);
+  Eurydice_borrow_slice_u8 seed_for_a = uu____0.fst;
+  Eurydice_borrow_slice_u8 t1_serialized = uu____0.snd;
+  Eurydice_arr_fa t1;
+  Eurydice_arr_60 repeat_expression0[8U];
+  for (size_t i = (size_t)0U; i < (size_t)8U; i++)
+  {
+    repeat_expression0[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+  }
+  memcpy(t1.data, repeat_expression0, (size_t)8U * sizeof (Eurydice_arr_60));
+  libcrux_ml_dsa_encoding_verification_key_deserialize_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_ROWS_IN_A,
+    LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_87_VERIFICATION_KEY_SIZE,
+    t1_serialized,
+    Eurydice_array_to_slice_mut_209(&t1));
+  Eurydice_arr_c7 deserialized_commitment_hash = { .data = { 0U } };
+  Eurydice_arr_c1 deserialized_signer_response;
+  Eurydice_arr_60 repeat_expression1[7U];
+  for (size_t i = (size_t)0U; i < (size_t)7U; i++)
+  {
+    repeat_expression1[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+  }
+  memcpy(deserialized_signer_response.data,
+    repeat_expression1,
+    (size_t)7U * sizeof (Eurydice_arr_60));
+  Eurydice_arr_81
+  deserialized_hint =
+    {
+      .data = {
+        { .data = { 0U } }, { .data = { 0U } }, { .data = { 0U } }, { .data = { 0U } },
+        { .data = { 0U } }, { .data = { 0U } }, { .data = { 0U } }, { .data = { 0U } }
+      }
+    };
+  core_result_Result_41
+  uu____1 =
+    libcrux_ml_dsa_encoding_signature_deserialize_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_COLUMNS_IN_A,
+      LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_ROWS_IN_A,
+      LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_COMMITMENT_HASH_SIZE,
+      LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_GAMMA1_EXPONENT,
+      LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_87_GAMMA1_RING_ELEMENT_SIZE,
+      LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_MAX_ONES_IN_HINT,
+      LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_87_SIGNATURE_SIZE,
+      Eurydice_array_to_slice_shared_11(signature_serialized),
+      Eurydice_array_to_slice_mut_17(&deserialized_commitment_hash),
+      Eurydice_array_to_slice_mut_2018(&deserialized_signer_response),
+      Eurydice_array_to_slice_mut_861(&deserialized_hint));
+  core_result_Result_41 uu____2;
+  if (uu____1.tag == core_result_Ok)
+  {
+    if
+    (
+      libcrux_ml_dsa_arithmetic_vector_infinity_norm_exceeds_64(Eurydice_array_to_slice_shared_2016(&deserialized_signer_response),
+        (int32_t)((uint32_t)1 << (uint32_t)LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_GAMMA1_EXPONENT) -
+          LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_87_BETA)
+    )
+    {
+      uu____2 =
+        (
+          KRML_CLITERAL(core_result_Result_41){
+            .tag = core_result_Err,
+            .f0 = libcrux_ml_dsa_types_VerificationError_SignerResponseExceedsBoundError
+          }
+        );
+    }
+    else
+    {
+      Eurydice_arr_cd matrix;
+      Eurydice_arr_60 repeat_expression[56U];
+      for (size_t i = (size_t)0U; i < (size_t)56U; i++)
+      {
+        repeat_expression[i] = libcrux_ml_dsa_polynomial_zero_ff_64();
+      }
+      memcpy(matrix.data, repeat_expression, (size_t)56U * sizeof (Eurydice_arr_60));
+      libcrux_ml_dsa_samplex4_avx2_matrix_flat_e8_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_COLUMNS_IN_A,
+        seed_for_a,
+        Eurydice_array_to_slice_mut_2017(&matrix));
+      Eurydice_arr_c7 verification_key_hash = { .data = { 0U } };
+      libcrux_ml_dsa_hash_functions_simd256_shake256_8c_c9(Eurydice_array_to_slice_shared_fc(verification_key),
+        &verification_key_hash);
+      Eurydice_arr_c7 message_representative = { .data = { 0U } };
+      libcrux_ml_dsa_ml_dsa_generic_derive_message_representative_43(Eurydice_array_to_slice_shared_17(&verification_key_hash),
+        &domain_separation_context,
+        message,
+        &message_representative);
+      Eurydice_arr_60 verifier_challenge = libcrux_ml_dsa_polynomial_zero_ff_64();
+      libcrux_ml_dsa_sample_sample_challenge_ring_element_18(Eurydice_array_to_slice_shared_17(&deserialized_commitment_hash),
+        LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_ONES_IN_VERIFIER_CHALLENGE,
+        &verifier_challenge);
+      libcrux_ml_dsa_ntt_ntt_64(&verifier_challenge);
+      for (size_t i = (size_t)0U; i < (size_t)7U; i++)
+      {
+        size_t i0 = i;
+        libcrux_ml_dsa_ntt_ntt_64(&deserialized_signer_response.data[i0]);
+      }
+      libcrux_ml_dsa_matrix_compute_w_approx_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_ROWS_IN_A,
+        LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_COLUMNS_IN_A,
+        Eurydice_array_to_slice_shared_2018(&matrix),
+        Eurydice_array_to_slice_shared_2016(&deserialized_signer_response),
+        &verifier_challenge,
+        Eurydice_array_to_slice_mut_209(&t1));
+      Eurydice_arr_c7 recomputed_commitment_hash = { .data = { 0U } };
+      libcrux_ml_dsa_arithmetic_use_hint_64(LIBCRUX_ML_DSA_CONSTANTS_ML_DSA_87_GAMMA2,
+        Eurydice_array_to_slice_shared_861(&deserialized_hint),
+        Eurydice_array_to_slice_mut_209(&t1));
+      Eurydice_arr_1b commitment_serialized = { .data = { 0U } };
+      libcrux_ml_dsa_encoding_commitment_serialize_vector_64(LIBCRUX_ML_DSA_ML_DSA_GENERIC_ML_DSA_87_COMMITMENT_RING_ELEMENT_SIZE,
+        Eurydice_array_to_slice_shared_2010(&t1),
+        Eurydice_array_to_slice_mut_68(&commitment_serialized));
+      libcrux_sha3_generic_keccak_xof_KeccakXofState_8d
+      shake = libcrux_ml_dsa_hash_functions_portable_init_26();
+      libcrux_ml_dsa_hash_functions_portable_absorb_26(&shake,
+        Eurydice_array_to_slice_shared_17(&message_representative));
+      libcrux_ml_dsa_hash_functions_portable_absorb_final_26(&shake,
+        Eurydice_array_to_slice_shared_68(&commitment_serialized));
+      libcrux_ml_dsa_hash_functions_portable_squeeze_26(&shake,
+        Eurydice_array_to_slice_mut_17(&recomputed_commitment_hash));
+      if
+      (
+        Eurydice_array_eq((size_t)64U,
+          &deserialized_commitment_hash,
+          &recomputed_commitment_hash,
+          uint8_t)
+      )
+      {
+        uu____2 = (KRML_CLITERAL(core_result_Result_41){ .tag = core_result_Ok });
+      }
+      else
+      {
+        uu____2 =
+          (
+            KRML_CLITERAL(core_result_Result_41){
+              .tag = core_result_Err,
+              .f0 = libcrux_ml_dsa_types_VerificationError_CommitmentHashesDontMatchError
+            }
+          );
+      }
+    }
+  }
+  else
+  {
+    libcrux_ml_dsa_types_VerificationError e = uu____1.f0;
+    uu____2 = (KRML_CLITERAL(core_result_Result_41){ .tag = core_result_Err, .f0 = e });
+  }
+  return uu____2;
+}
+
+/**
+A monomorphic instance of libcrux_ml_dsa.ml_dsa_generic.ml_dsa_87.verify
+with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256, libcrux_ml_dsa_samplex4_avx2_AVX2Sampler, libcrux_ml_dsa_hash_functions_simd256_Shake128x4, libcrux_ml_dsa_hash_functions_simd256_Shake256, libcrux_ml_dsa_hash_functions_portable_Shake256Xof
+with const generics
+
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static KRML_MUSTINLINE core_result_Result_41
+libcrux_ml_dsa_ml_dsa_generic_ml_dsa_87_verify_07(
+  const Eurydice_arr_43 *verification_key_serialized,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  const Eurydice_arr_93 *signature_serialized
+)
+{
+  core_result_Result_a8
+  uu____0 =
+    libcrux_ml_dsa_pre_hash_new_88(context,
+      (KRML_CLITERAL(core_option_Option_57){ .tag = core_option_None }));
+  if (!(uu____0.tag == core_result_Ok))
+  {
+    return
+      (
+        KRML_CLITERAL(core_result_Result_41){
+          .tag = core_result_Err,
+          .f0 = libcrux_ml_dsa_types_VerificationError_VerificationContextTooLongError
+        }
+      );
+  }
+  libcrux_ml_dsa_pre_hash_DomainSeparationContext dsc = uu____0.val.case_Ok;
+  libcrux_ml_dsa_pre_hash_DomainSeparationContext domain_separation_context = dsc;
+  return
+    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_87_verify_internal_07(verification_key_serialized,
+      message,
+      (
+        KRML_CLITERAL(core_option_Option_84){
+          .tag = core_option_Some,
+          .f0 = domain_separation_context
+        }
+      ),
+      signature_serialized);
+}
+
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline core_result_Result_41
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_87_verify__inner(
+  const Eurydice_arr_43 *verification_key,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  const Eurydice_arr_93 *signature
+)
+{
+  return
+    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_87_verify_07(verification_key,
+      message,
+      context,
+      signature);
+}
+
+/**
+ Verify.
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline core_result_Result_41
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_87_verify(
+  const Eurydice_arr_43 *verification_key,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  const Eurydice_arr_93 *signature
+)
+{
+  return
+    libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_87_verify__inner(verification_key,
+      message,
+      context,
+      signature);
+}
+
+/**
+A monomorphic instance of libcrux_ml_dsa.ml_dsa_generic.ml_dsa_87.verify_pre_hashed
+with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256, libcrux_ml_dsa_samplex4_avx2_AVX2Sampler, libcrux_ml_dsa_hash_functions_portable_Shake128, libcrux_ml_dsa_hash_functions_simd256_Shake128x4, libcrux_ml_dsa_hash_functions_simd256_Shake256, libcrux_ml_dsa_hash_functions_portable_Shake256Xof, libcrux_ml_dsa_pre_hash_SHAKE128_PH
+with const generics
+
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static KRML_MUSTINLINE core_result_Result_41
+libcrux_ml_dsa_ml_dsa_generic_ml_dsa_87_verify_pre_hashed_37(
+  const Eurydice_arr_43 *verification_key_serialized,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  Eurydice_mut_borrow_slice_u8 pre_hash_buffer,
+  const Eurydice_arr_93 *signature_serialized
+)
+{
+  libcrux_ml_dsa_pre_hash_hash_30_83(message, pre_hash_buffer);
+  core_result_Result_a8
+  uu____0 =
+    libcrux_ml_dsa_pre_hash_new_88(context,
+      (
+        KRML_CLITERAL(core_option_Option_57){
+          .tag = core_option_Some,
+          .f0 = libcrux_ml_dsa_pre_hash_oid_30()
+        }
+      ));
+  if (!(uu____0.tag == core_result_Ok))
+  {
+    return
+      (
+        KRML_CLITERAL(core_result_Result_41){
+          .tag = core_result_Err,
+          .f0 = libcrux_ml_dsa_types_VerificationError_VerificationContextTooLongError
+        }
+      );
+  }
+  libcrux_ml_dsa_pre_hash_DomainSeparationContext dsc = uu____0.val.case_Ok;
+  libcrux_ml_dsa_pre_hash_DomainSeparationContext domain_separation_context = dsc;
+  return
+    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_87_verify_internal_07(verification_key_serialized,
+      (
+        KRML_CLITERAL(Eurydice_borrow_slice_u8){
+          .ptr = pre_hash_buffer.ptr,
+          .meta = pre_hash_buffer.meta
+        }
+      ),
+      (
+        KRML_CLITERAL(core_option_Option_84){
+          .tag = core_option_Some,
+          .f0 = domain_separation_context
+        }
+      ),
+      signature_serialized);
+}
+
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline core_result_Result_41
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_87_verify_pre_hashed_shake128__inner(
+  const Eurydice_arr_43 *verification_key,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  Eurydice_mut_borrow_slice_u8 pre_hash_buffer,
+  const Eurydice_arr_93 *signature
+)
+{
+  return
+    libcrux_ml_dsa_ml_dsa_generic_ml_dsa_87_verify_pre_hashed_37(verification_key,
+      message,
+      context,
+      pre_hash_buffer,
+      signature);
+}
+
+/**
+ Verify (pre-hashed with SHAKE-128).
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline core_result_Result_41
+libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_87_verify_pre_hashed_shake128(
+  const Eurydice_arr_43 *verification_key,
+  Eurydice_borrow_slice_u8 message,
+  Eurydice_borrow_slice_u8 context,
+  Eurydice_mut_borrow_slice_u8 pre_hash_buffer,
+  const Eurydice_arr_93 *signature
+)
+{
+  return
+    libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_87_verify_pre_hashed_shake128__inner(verification_key,
       message,
       context,
       pre_hash_buffer,
@@ -8274,6 +11079,9 @@ libcrux_ml_dsa_simd_avx2_vector_type_clone_be(const __m256i *self)
   return self[0U];
 }
 
+#if defined(__cplusplus)
+}
+#endif
 
 #define libcrux_mldsa_avx2_H_DEFINED
 #endif /* libcrux_mldsa_avx2_H */

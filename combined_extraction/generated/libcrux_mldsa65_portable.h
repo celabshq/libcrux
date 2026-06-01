@@ -8,7 +8,7 @@
  * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
  * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
  * F*: unset
- * Libcrux: ae092f4921933e45dec31610a1465191171e5b3f
+ * Libcrux: c4e5e5e511bbc4c53f826163f57bfd10e9228911
  */
 
 
@@ -18,6 +18,9 @@
 #include "eurydice_glue.h"
 
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
 #include "libcrux_mldsa_portable.h"
 #include "libcrux_mldsa_core.h"
@@ -29,16 +32,16 @@
 static inline libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_MLDSA65KeyPair
 libcrux_ml_dsa_ml_dsa_65_portable_generate_key_pair(Eurydice_arr_ec randomness)
 {
-  Eurydice_arr_24 signing_key = { { 0U } };
-  Eurydice_arr_29 verification_key = { { 0U } };
+  Eurydice_arr_24 signing_key = { .data = { 0U } };
+  Eurydice_arr_29 verification_key = { .data = { 0U } };
   libcrux_ml_dsa_ml_dsa_generic_instantiations_portable_ml_dsa_65_generate_key_pair(randomness,
     &signing_key,
     &verification_key);
   return
     (
-      libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_MLDSA65KeyPair{
-        libcrux_ml_dsa_types_new_9b_e5(signing_key),
-        libcrux_ml_dsa_types_new_7f_a2(verification_key)
+      KRML_CLITERAL(libcrux_ml_dsa_ml_dsa_generic_ml_dsa_65_MLDSA65KeyPair){
+        .signing_key = libcrux_ml_dsa_types_new_9b_e5(signing_key),
+        .verification_key = libcrux_ml_dsa_types_new_7f_a2(verification_key)
       }
     );
 }
@@ -119,7 +122,7 @@ libcrux_ml_dsa_ml_dsa_65_portable_sign_pre_hashed_shake128(
   Eurydice_arr_ec randomness
 )
 {
-  Eurydice_arr_ec pre_hash_buffer = { { 0U } };
+  Eurydice_arr_ec pre_hash_buffer = { .data = { 0U } };
   const Eurydice_arr_24 *uu____0 = libcrux_ml_dsa_types_as_ref_9b_e5(signing_key);
   return
     libcrux_ml_dsa_ml_dsa_generic_instantiations_portable_ml_dsa_65_sign_pre_hashed_shake128(uu____0,
@@ -166,7 +169,7 @@ libcrux_ml_dsa_ml_dsa_65_portable_verify_pre_hashed_shake128(
   const Eurydice_arr_0c *signature
 )
 {
-  Eurydice_arr_ec pre_hash_buffer = { { 0U } };
+  Eurydice_arr_ec pre_hash_buffer = { .data = { 0U } };
   const Eurydice_arr_29 *uu____0 = libcrux_ml_dsa_types_as_ref_7f_a2(verification_key);
   Eurydice_borrow_slice_u8 uu____1 = message;
   Eurydice_borrow_slice_u8 uu____2 = context;
@@ -179,6 +182,9 @@ libcrux_ml_dsa_ml_dsa_65_portable_verify_pre_hashed_shake128(
       libcrux_ml_dsa_types_as_ref_c5_5c(signature));
 }
 
+#if defined(__cplusplus)
+}
+#endif
 
 #define libcrux_mldsa65_portable_H_DEFINED
 #endif /* libcrux_mldsa65_portable_H */

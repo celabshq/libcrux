@@ -8,7 +8,7 @@
  * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
  * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
  * F*: unset
- * Libcrux: ae092f4921933e45dec31610a1465191171e5b3f
+ * Libcrux: c4e5e5e511bbc4c53f826163f57bfd10e9228911
  */
 
 
@@ -18,6 +18,9 @@
 #include "eurydice_glue.h"
 
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
 #include "intrinsics/libcrux_intrinsics_avx2.h"
 
@@ -32,7 +35,7 @@ KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE Eurydice_arr_c7
 libcrux_ml_kem_hash_functions_avx2_G(Eurydice_borrow_slice_u8 input)
 {
-  Eurydice_arr_c7 digest = { { 0U } };
+  Eurydice_arr_c7 digest = { .data = { 0U } };
   libcrux_sha3_portable_sha512(Eurydice_array_to_slice_mut_17(&digest), input);
   return digest;
 }
@@ -41,7 +44,7 @@ KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE Eurydice_arr_ec
 libcrux_ml_kem_hash_functions_avx2_H(Eurydice_borrow_slice_u8 input)
 {
-  Eurydice_arr_ec digest = { { 0U } };
+  Eurydice_arr_ec digest = { .data = { 0U } };
   libcrux_sha3_portable_sha256(Eurydice_array_to_slice_mut_01(&digest), input);
   return digest;
 }
@@ -916,7 +919,8 @@ libcrux_ml_kem_vector_avx2_serialize_serialize_1(__m256i vector)
   __m128i high_msbs = libcrux_intrinsics_avx2_mm256_extracti128_si256(1, lsb_to_msb, __m128i);
   __m128i msbs = libcrux_intrinsics_avx2_mm_packs_epi16(low_msbs, high_msbs);
   int32_t bits_packed = libcrux_intrinsics_avx2_mm_movemask_epi8(msbs);
-  Eurydice_array_u8x2 result = { { (uint8_t)bits_packed, (uint8_t)(bits_packed >> 8U) } };
+  Eurydice_array_u8x2
+  result = { .data = { (uint8_t)bits_packed, (uint8_t)(bits_packed >> 8U) } };
   return result;
 }
 
@@ -1051,7 +1055,7 @@ KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE Eurydice_array_u8x8
 libcrux_ml_kem_vector_avx2_serialize_serialize_4(__m256i vector)
 {
-  Eurydice_arr_b2 serialized = { { 0U } };
+  Eurydice_arr_b2 serialized = { .data = { 0U } };
   __m256i
   adjacent_2_combined = libcrux_ml_kem_vector_avx2_serialize_mm256_concat_pairs_n(4U, vector);
   __m256i
@@ -1099,12 +1103,12 @@ libcrux_ml_kem_vector_avx2_serialize_serialize_4(__m256i vector)
   Eurydice_array_u8x8 arr;
   memcpy(arr.data,
     Eurydice_array_to_subslice_shared_d42(&serialized,
-      (core_ops_range_Range_87{ (size_t)0U, (size_t)8U })).ptr,
+      (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)8U })).ptr,
     (size_t)8U * sizeof (uint8_t));
   return
-    core_result_unwrap_26_e0(core_result_Result_8e_s(core_result_Ok,
-        &core_result_Result_8e_s::U::case_Ok,
-        arr));
+    core_result_unwrap_26_e0((
+        KRML_CLITERAL(core_result_Result_8e){ .tag = core_result_Ok, .val = { .case_Ok = arr } }
+      ));
 }
 
 KRML_ATTRIBUTE_TARGET("avx2")
@@ -1317,7 +1321,7 @@ libcrux_ml_kem_vector_avx2_serialize_serialize_10_serialize_10_vec(__m256i vecto
   __m128i lower_8 = libcrux_intrinsics_avx2_mm256_castsi256_si128(adjacent_8_combined);
   __m128i
   upper_8 = libcrux_intrinsics_avx2_mm256_extracti128_si256(1, adjacent_8_combined, __m128i);
-  return (core_core_arch_x86___m128i_x2{ lower_8, upper_8 });
+  return (KRML_CLITERAL(core_core_arch_x86___m128i_x2){ .fst = lower_8, .snd = upper_8 });
 }
 
 KRML_ATTRIBUTE_TARGET("avx2")
@@ -1328,22 +1332,22 @@ libcrux_ml_kem_vector_avx2_serialize_serialize_10(__m256i vector)
   uu____0 = libcrux_ml_kem_vector_avx2_serialize_serialize_10_serialize_10_vec(vector);
   __m128i lower_8 = uu____0.fst;
   __m128i upper_8 = uu____0.snd;
-  Eurydice_arr_ec serialized = { { 0U } };
+  Eurydice_arr_ec serialized = { .data = { 0U } };
   libcrux_intrinsics_avx2_mm_storeu_bytes_si128(Eurydice_array_to_subslice_mut_d46(&serialized,
-      (core_ops_range_Range_87{ (size_t)0U, (size_t)16U })),
+      (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)16U })),
     lower_8);
   libcrux_intrinsics_avx2_mm_storeu_bytes_si128(Eurydice_array_to_subslice_mut_d46(&serialized,
-      (core_ops_range_Range_87{ (size_t)10U, (size_t)26U })),
+      (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)10U, .end = (size_t)26U })),
     upper_8);
   Eurydice_arr_fc arr;
   memcpy(arr.data,
     Eurydice_array_to_subslice_shared_d4(&serialized,
-      (core_ops_range_Range_87{ (size_t)0U, (size_t)20U })).ptr,
+      (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)20U })).ptr,
     (size_t)20U * sizeof (uint8_t));
   return
-    core_result_unwrap_26_7d(core_result_Result_83_s(core_result_Ok,
-        &core_result_Result_83_s::U::case_Ok,
-        arr));
+    core_result_unwrap_26_7d((
+        KRML_CLITERAL(core_result_Result_83){ .tag = core_result_Ok, .val = { .case_Ok = arr } }
+      ));
 }
 
 KRML_ATTRIBUTE_TARGET("avx2")
@@ -1414,11 +1418,11 @@ libcrux_ml_kem_vector_avx2_serialize_deserialize_10(Eurydice_borrow_slice_u8 byt
   Eurydice_borrow_slice_u8
   lower_coefficients =
     Eurydice_slice_subslice_shared_c8(bytes,
-      (core_ops_range_Range_87{ (size_t)0U, (size_t)16U }));
+      (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)16U }));
   Eurydice_borrow_slice_u8
   upper_coefficients =
     Eurydice_slice_subslice_shared_c8(bytes,
-      (core_ops_range_Range_87{ (size_t)4U, (size_t)20U }));
+      (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)4U, .end = (size_t)20U }));
   return
     libcrux_ml_kem_vector_avx2_serialize_deserialize_10_deserialize_10_vec(libcrux_intrinsics_avx2_mm_loadu_si128(lower_coefficients),
       libcrux_intrinsics_avx2_mm_loadu_si128(upper_coefficients));
@@ -1494,33 +1498,33 @@ libcrux_ml_kem_vector_avx2_serialize_serialize_12_serialize_12_vec(__m256i vecto
   __m128i lower_8 = libcrux_intrinsics_avx2_mm256_castsi256_si128(adjacent_8_combined);
   __m128i
   upper_8 = libcrux_intrinsics_avx2_mm256_extracti128_si256(1, adjacent_8_combined, __m128i);
-  return (core_core_arch_x86___m128i_x2{ lower_8, upper_8 });
+  return (KRML_CLITERAL(core_core_arch_x86___m128i_x2){ .fst = lower_8, .snd = upper_8 });
 }
 
 KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE Eurydice_arr_94
 libcrux_ml_kem_vector_avx2_serialize_serialize_12(__m256i vector)
 {
-  Eurydice_arr_ec serialized = { { 0U } };
+  Eurydice_arr_ec serialized = { .data = { 0U } };
   core_core_arch_x86___m128i_x2
   uu____0 = libcrux_ml_kem_vector_avx2_serialize_serialize_12_serialize_12_vec(vector);
   __m128i lower_8 = uu____0.fst;
   __m128i upper_8 = uu____0.snd;
   libcrux_intrinsics_avx2_mm_storeu_bytes_si128(Eurydice_array_to_subslice_mut_d46(&serialized,
-      (core_ops_range_Range_87{ (size_t)0U, (size_t)16U })),
+      (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)16U })),
     lower_8);
   libcrux_intrinsics_avx2_mm_storeu_bytes_si128(Eurydice_array_to_subslice_mut_d46(&serialized,
-      (core_ops_range_Range_87{ (size_t)12U, (size_t)28U })),
+      (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)12U, .end = (size_t)28U })),
     upper_8);
   Eurydice_arr_94 arr;
   memcpy(arr.data,
     Eurydice_array_to_subslice_shared_d4(&serialized,
-      (core_ops_range_Range_87{ (size_t)0U, (size_t)24U })).ptr,
+      (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)24U })).ptr,
     (size_t)24U * sizeof (uint8_t));
   return
-    core_result_unwrap_26_78(core_result_Result_57_s(core_result_Ok,
-        &core_result_Result_57_s::U::case_Ok,
-        arr));
+    core_result_unwrap_26_78((
+        KRML_CLITERAL(core_result_Result_57){ .tag = core_result_Ok, .val = { .case_Ok = arr } }
+      ));
 }
 
 KRML_ATTRIBUTE_TARGET("avx2")
@@ -1591,11 +1595,11 @@ libcrux_ml_kem_vector_avx2_serialize_deserialize_12(Eurydice_borrow_slice_u8 byt
   __m128i
   lower_coefficients =
     libcrux_intrinsics_avx2_mm_loadu_si128(Eurydice_slice_subslice_shared_c8(bytes,
-        (core_ops_range_Range_87{ (size_t)0U, (size_t)16U })));
+        (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)16U })));
   __m128i
   upper_coefficients =
     libcrux_intrinsics_avx2_mm_loadu_si128(Eurydice_slice_subslice_shared_c8(bytes,
-        (core_ops_range_Range_87{ (size_t)8U, (size_t)24U })));
+        (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)8U, .end = (size_t)24U })));
   return
     libcrux_ml_kem_vector_avx2_serialize_deserialize_12_deserialize_12_vec(lower_coefficients,
       upper_coefficients);
@@ -1618,7 +1622,7 @@ libcrux_ml_kem_vector_avx2_deserialize_12_f5(Eurydice_borrow_slice_u8 bytes)
   return libcrux_ml_kem_vector_avx2_deserialize_12(bytes);
 }
 
-#define LIBCRUX_ML_KEM_VECTOR_REJ_SAMPLE_TABLE_REJECTION_SAMPLE_SHUFFLE_TABLE ((Eurydice_arr_87{ { { { 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 6U, 7U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 6U, 7U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 6U, 7U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 6U, 7U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 6U, 7U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 6U, 7U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 6U, 7U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 6U, 7U, 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 6U, 7U, 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 6U, 7U, 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 6U, 7U, 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 6U, 7U, 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 6U, 7U, 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 6U, 7U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 6U, 7U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 6U, 7U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 6U, 7U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 6U, 7U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 6U, 7U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 6U, 7U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 6U, 7U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 6U, 7U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 6U, 7U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 6U, 7U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U } }, { { 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 6U, 7U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 6U, 7U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 6U, 7U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 6U, 7U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 6U, 7U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 6U, 7U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 6U, 7U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 6U, 7U, 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 6U, 7U, 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 6U, 7U, 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 6U, 7U, 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 6U, 7U, 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 6U, 7U, 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U } }, { { 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 6U, 7U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 6U, 7U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 6U, 7U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 6U, 7U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 6U, 7U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 6U, 7U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 6U, 7U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U } }, { { 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U } }, { { 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U } }, { { 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 6U, 7U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 6U, 7U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 6U, 7U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 6U, 7U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 6U, 7U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 6U, 7U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 6U, 7U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 6U, 7U, 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 6U, 7U, 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 6U, 7U, 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 6U, 7U, 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 6U, 7U, 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 6U, 7U, 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U } }, { { 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 6U, 7U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 6U, 7U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 6U, 7U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 6U, 7U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 6U, 7U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 6U, 7U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 6U, 7U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U } }, { { 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U } }, { { 6U, 7U, 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 6U, 7U, 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 6U, 7U, 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 6U, 7U, 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U } }, { { 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 6U, 7U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 6U, 7U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 6U, 7U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 6U, 7U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 6U, 7U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 6U, 7U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 6U, 7U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { { 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { { 6U, 7U, 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 6U, 7U, 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 6U, 7U, 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 6U, 7U, 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 6U, 7U, 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 6U, 7U, 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U } }, { { 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { { 6U, 7U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 6U, 7U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 6U, 7U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 6U, 7U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 6U, 7U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 6U, 7U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 6U, 7U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U } }, { { 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { { 4U, 5U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U } }, { { 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { { 2U, 3U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U } }, { { 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { { 0U, 1U, 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U } }, { { 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U } }, { { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U } } } }))
+#define LIBCRUX_ML_KEM_VECTOR_REJ_SAMPLE_TABLE_REJECTION_SAMPLE_SHUFFLE_TABLE ((KRML_CLITERAL(Eurydice_arr_87){ .data = { { .data = { 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 6U, 7U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 6U, 7U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 6U, 7U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 6U, 7U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 6U, 7U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 6U, 7U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 6U, 7U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 6U, 7U, 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 6U, 7U, 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 6U, 7U, 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 6U, 7U, 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 6U, 7U, 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 6U, 7U, 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 6U, 7U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 6U, 7U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 6U, 7U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 6U, 7U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 6U, 7U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 6U, 7U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 6U, 7U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 6U, 7U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 6U, 7U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 6U, 7U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 6U, 7U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 255U, 255U, 255U, 255U } }, { .data = { 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 6U, 7U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 6U, 7U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 6U, 7U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 6U, 7U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 6U, 7U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 6U, 7U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 6U, 7U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 6U, 7U, 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 6U, 7U, 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 6U, 7U, 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 6U, 7U, 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 6U, 7U, 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 6U, 7U, 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 12U, 13U, 255U, 255U, 255U, 255U } }, { .data = { 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 6U, 7U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 6U, 7U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 6U, 7U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 6U, 7U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 6U, 7U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 6U, 7U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 6U, 7U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U } }, { .data = { 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U } }, { .data = { 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 255U, 255U } }, { .data = { 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 6U, 7U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 6U, 7U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 6U, 7U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 6U, 7U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 6U, 7U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 6U, 7U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 6U, 7U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 6U, 7U, 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 6U, 7U, 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 6U, 7U, 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 6U, 7U, 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 6U, 7U, 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 6U, 7U, 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 14U, 15U, 255U, 255U, 255U, 255U } }, { .data = { 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 6U, 7U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 6U, 7U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 6U, 7U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 6U, 7U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 6U, 7U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 6U, 7U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 6U, 7U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U } }, { .data = { 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U } }, { .data = { 6U, 7U, 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 6U, 7U, 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 6U, 7U, 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 6U, 7U, 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 14U, 15U, 255U, 255U } }, { .data = { 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 6U, 7U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 6U, 7U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 6U, 7U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 6U, 7U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 6U, 7U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 6U, 7U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 6U, 7U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { .data = { 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { .data = { 6U, 7U, 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 6U, 7U, 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 6U, 7U, 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 6U, 7U, 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 6U, 7U, 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 6U, 7U, 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 12U, 13U, 14U, 15U, 255U, 255U } }, { .data = { 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { .data = { 6U, 7U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 6U, 7U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 6U, 7U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 6U, 7U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 6U, 7U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 6U, 7U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 6U, 7U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U } }, { .data = { 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { .data = { 4U, 5U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U } }, { .data = { 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { .data = { 2U, 3U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U } }, { .data = { 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U, 255U, 255U } }, { .data = { 0U, 1U, 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U } }, { .data = { 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U, 255U, 255U } }, { .data = { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U } } } }))
 
 KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE size_t
@@ -1667,7 +1671,12 @@ libcrux_ml_kem_vector_avx2_sampling_rejection_sample(
     libcrux_intrinsics_avx2_mm_shuffle_epi8(upper_coefficients,
       upper_shuffles0);
   libcrux_intrinsics_avx2_mm_storeu_si128(Eurydice_slice_subslice_mut_a6(output,
-      (core_ops_range_Range_87{ sampled_count, sampled_count + (size_t)8U })),
+      (
+        KRML_CLITERAL(core_ops_range_Range_87){
+          .start = sampled_count,
+          .end = sampled_count + (size_t)8U
+        }
+      )),
     upper_coefficients0);
   size_t uu____0 = sampled_count;
   return uu____0 + (size_t)core_num__u8__count_ones(good.data[1U]);
@@ -1764,7 +1773,12 @@ libcrux_ml_kem_serialize_deserialize_to_uncompressed_ring_element_84(
     Eurydice_borrow_slice_u8
     bytes =
       Eurydice_slice_subslice_shared_c8(serialized,
-        (core_ops_range_Range_87{ i0 * (size_t)24U, i0 * (size_t)24U + (size_t)24U }));
+        (
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = i0 * (size_t)24U,
+            .end = i0 * (size_t)24U + (size_t)24U
+          }
+        ));
     re.data[i0] = libcrux_ml_kem_vector_avx2_deserialize_12_f5(bytes);
   }
   return re;
@@ -1793,9 +1807,9 @@ libcrux_ml_kem_ind_cpa_deserialize_vector_e3(
     uu____0 =
       libcrux_ml_kem_serialize_deserialize_to_uncompressed_ring_element_84(Eurydice_slice_subslice_shared_c8(secret_key,
           (
-            core_ops_range_Range_87{
-              i0 * LIBCRUX_ML_KEM_CONSTANTS_BYTES_PER_RING_ELEMENT,
-              (i0 + (size_t)1U) * LIBCRUX_ML_KEM_CONSTANTS_BYTES_PER_RING_ELEMENT
+            KRML_CLITERAL(core_ops_range_Range_87){
+              .start = i0 * LIBCRUX_ML_KEM_CONSTANTS_BYTES_PER_RING_ELEMENT,
+              .end = (i0 + (size_t)1U) * LIBCRUX_ML_KEM_CONSTANTS_BYTES_PER_RING_ELEMENT
             }
           )));
     secret_as_ntt->data[i0] = uu____0;
@@ -1906,7 +1920,12 @@ libcrux_ml_kem_serialize_deserialize_then_decompress_10_84(Eurydice_borrow_slice
     Eurydice_borrow_slice_u8
     bytes =
       Eurydice_slice_subslice_shared_c8(serialized,
-        (core_ops_range_Range_87{ i0 * (size_t)20U, i0 * (size_t)20U + (size_t)20U }));
+        (
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = i0 * (size_t)20U,
+            .end = i0 * (size_t)20U + (size_t)20U
+          }
+        ));
     __m256i coefficient = libcrux_ml_kem_vector_avx2_deserialize_10_f5(bytes);
     re.data[i0] = libcrux_ml_kem_vector_avx2_decompress_ciphertext_coefficient_f5_ef(coefficient);
   }
@@ -1948,7 +1967,7 @@ libcrux_ml_kem_ntt_ntt_layer_int_vec_step_84(__m256i a, __m256i b, int16_t zeta_
   __m256i t = libcrux_ml_kem_vector_avx2_montgomery_multiply_by_constant_f5(b, zeta_r);
   b = libcrux_ml_kem_vector_avx2_sub_f5(a, &t);
   a = libcrux_ml_kem_vector_avx2_add_f5(a, &t);
-  return (libcrux_ml_kem_vector_avx2_SIMD256Vector_x2{ a, b });
+  return (KRML_CLITERAL(libcrux_ml_kem_vector_avx2_SIMD256Vector_x2){ .fst = a, .snd = b });
 }
 
 /**
@@ -2161,9 +2180,11 @@ libcrux_ml_kem_ind_cpa_deserialize_then_decompress_u_15(const Eurydice_arr_2b *c
     u_bytes =
       Eurydice_array_to_subslice_shared_d44(ciphertext,
         (
-          core_ops_range_Range_87{
-            i0 * (LIBCRUX_ML_KEM_CONSTANTS_COEFFICIENTS_IN_RING_ELEMENT * (size_t)10U / (size_t)8U),
-            i0 * (LIBCRUX_ML_KEM_CONSTANTS_COEFFICIENTS_IN_RING_ELEMENT * (size_t)10U / (size_t)8U)
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = i0 *
+              (LIBCRUX_ML_KEM_CONSTANTS_COEFFICIENTS_IN_RING_ELEMENT * (size_t)10U / (size_t)8U),
+            .end = i0 *
+              (LIBCRUX_ML_KEM_CONSTANTS_COEFFICIENTS_IN_RING_ELEMENT * (size_t)10U / (size_t)8U)
             + LIBCRUX_ML_KEM_CONSTANTS_COEFFICIENTS_IN_RING_ELEMENT * (size_t)10U / (size_t)8U
           }
         ));
@@ -2257,7 +2278,12 @@ libcrux_ml_kem_serialize_deserialize_then_decompress_4_84(Eurydice_borrow_slice_
     Eurydice_borrow_slice_u8
     bytes =
       Eurydice_slice_subslice_shared_c8(serialized,
-        (core_ops_range_Range_87{ i0 * (size_t)8U, i0 * (size_t)8U + (size_t)8U }));
+        (
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = i0 * (size_t)8U,
+            .end = i0 * (size_t)8U + (size_t)8U
+          }
+        ));
     __m256i coefficient = libcrux_ml_kem_vector_avx2_deserialize_4_f5(bytes);
     re.data[i0] = libcrux_ml_kem_vector_avx2_decompress_ciphertext_coefficient_f5_d1(coefficient);
   }
@@ -2504,7 +2530,7 @@ libcrux_ml_kem_invert_ntt_inv_ntt_layer_int_vec_step_reduce_84(
   __m256i a_minus_b = libcrux_ml_kem_vector_avx2_sub_f5(b, &a);
   a = libcrux_ml_kem_vector_avx2_barrett_reduce_f5(libcrux_ml_kem_vector_avx2_add_f5(a, &b));
   b = libcrux_ml_kem_vector_avx2_montgomery_multiply_by_constant_f5(a_minus_b, zeta_r);
-  return (libcrux_ml_kem_vector_avx2_SIMD256Vector_x2{ a, b });
+  return (KRML_CLITERAL(libcrux_ml_kem_vector_avx2_SIMD256Vector_x2){ .fst = a, .snd = b });
 }
 
 /**
@@ -2663,7 +2689,7 @@ KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE Eurydice_arr_ec
 libcrux_ml_kem_serialize_compress_then_serialize_message_84(Eurydice_arr_13 re)
 {
-  Eurydice_arr_ec serialized = { { 0U } };
+  Eurydice_arr_ec serialized = { .data = { 0U } };
   for (size_t i = (size_t)0U; i < (size_t)16U; i++)
   {
     size_t i0 = i;
@@ -2671,7 +2697,12 @@ libcrux_ml_kem_serialize_compress_then_serialize_message_84(Eurydice_arr_13 re)
     __m256i coefficient_compressed = libcrux_ml_kem_vector_avx2_compress_1_f5(coefficient);
     Eurydice_array_u8x2 bytes = libcrux_ml_kem_vector_avx2_serialize_1_f5(coefficient_compressed);
     Eurydice_slice_copy(Eurydice_array_to_subslice_mut_d46(&serialized,
-        (core_ops_range_Range_87{ (size_t)2U * i0, (size_t)2U * i0 + (size_t)2U })),
+        (
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = (size_t)2U * i0,
+            .end = (size_t)2U * i0 + (size_t)2U
+          }
+        )),
       Eurydice_array_to_slice_shared_82(&bytes),
       uint8_t);
   }
@@ -2782,7 +2813,7 @@ KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE Eurydice_arr_ec
 libcrux_ml_kem_hash_functions_avx2_PRF_ce(Eurydice_borrow_slice_u8 input)
 {
-  Eurydice_arr_ec digest = { { 0U } };
+  Eurydice_arr_ec digest = { .data = { 0U } };
   libcrux_sha3_portable_shake256(Eurydice_array_to_slice_mut_01(&digest), input);
   return digest;
 }
@@ -2845,7 +2876,7 @@ libcrux_ml_kem_ind_cpa_unpacked_default_8b_e3(void)
     repeat_expression0[i] = libcrux_ml_kem_polynomial_ZERO_d6_84();
   }
   memcpy(uu____0.data, repeat_expression0, (size_t)3U * sizeof (Eurydice_arr_13));
-  Eurydice_arr_ec uu____1 = { { 0U } };
+  Eurydice_arr_ec uu____1 = { .data = { 0U } };
   libcrux_ml_kem_ind_cpa_unpacked_IndCpaPublicKeyUnpacked_ef lit0;
   lit0.t_as_ntt = uu____0;
   lit0.seed_for_A = uu____1;
@@ -2889,7 +2920,12 @@ libcrux_ml_kem_serialize_deserialize_to_reduced_ring_element_84(
     Eurydice_borrow_slice_u8
     bytes =
       Eurydice_slice_subslice_shared_c8(serialized,
-        (core_ops_range_Range_87{ i0 * (size_t)24U, i0 * (size_t)24U + (size_t)24U }));
+        (
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = i0 * (size_t)24U,
+            .end = i0 * (size_t)24U + (size_t)24U
+          }
+        ));
     __m256i coefficient = libcrux_ml_kem_vector_avx2_deserialize_12_f5(bytes);
     re.data[i0] = libcrux_ml_kem_vector_avx2_cond_subtract_3329_f5(coefficient);
   }
@@ -2923,9 +2959,9 @@ libcrux_ml_kem_serialize_deserialize_ring_elements_reduced_e3(
     ring_element =
       Eurydice_slice_subslice_shared_c8(public_key,
         (
-          core_ops_range_Range_87{
-            i0 * LIBCRUX_ML_KEM_CONSTANTS_BYTES_PER_RING_ELEMENT,
-            i0 * LIBCRUX_ML_KEM_CONSTANTS_BYTES_PER_RING_ELEMENT +
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = i0 * LIBCRUX_ML_KEM_CONSTANTS_BYTES_PER_RING_ELEMENT,
+            .end = i0 * LIBCRUX_ML_KEM_CONSTANTS_BYTES_PER_RING_ELEMENT +
               LIBCRUX_ML_KEM_CONSTANTS_BYTES_PER_RING_ELEMENT
           }
         ));
@@ -2942,7 +2978,7 @@ with const generics
 */
 KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE Eurydice_arr_c40
-libcrux_ml_kem_hash_functions_avx2_shake128_init_absorb_final_78(const Eurydice_arr_81 *input)
+libcrux_ml_kem_hash_functions_avx2_shake128_init_absorb_final_78(const Eurydice_arr_810 *input)
 {
   Eurydice_arr_c40 state = libcrux_sha3_avx2_x4_incremental_init();
   libcrux_sha3_avx2_x4_incremental_shake128_absorb_final(&state,
@@ -2964,7 +3000,7 @@ with const generics
 KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE Eurydice_arr_c40
 libcrux_ml_kem_hash_functions_avx2_shake128_init_absorb_final_41_78(
-  const Eurydice_arr_81 *input
+  const Eurydice_arr_810 *input
 )
 {
   return libcrux_ml_kem_hash_functions_avx2_shake128_init_absorb_final_78(input);
@@ -2979,11 +3015,12 @@ KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE Eurydice_arr_7e
 libcrux_ml_kem_hash_functions_avx2_shake128_squeeze_first_three_blocks_78(Eurydice_arr_c40 *st)
 {
-  Eurydice_arr_7e out = { { { { 0U } }, { { 0U } }, { { 0U } } } };
-  Eurydice_arr_79 out0 = { { 0U } };
-  Eurydice_arr_79 out1 = { { 0U } };
-  Eurydice_arr_79 out2 = { { 0U } };
-  Eurydice_arr_79 out3 = { { 0U } };
+  Eurydice_arr_7e
+  out = { .data = { { .data = { 0U } }, { .data = { 0U } }, { .data = { 0U } } } };
+  Eurydice_arr_79 out0 = { .data = { 0U } };
+  Eurydice_arr_79 out1 = { .data = { 0U } };
+  Eurydice_arr_79 out2 = { .data = { 0U } };
+  Eurydice_arr_79 out3 = { .data = { 0U } };
   libcrux_sha3_avx2_x4_incremental_shake128_squeeze_first_three_blocks(st,
     Eurydice_array_to_slice_mut_48(&out0),
     Eurydice_array_to_slice_mut_48(&out1),
@@ -3078,12 +3115,17 @@ libcrux_ml_kem_sampling_sample_from_uniform_distribution_next_79(
         size_t
         sampled =
           libcrux_ml_kem_vector_avx2_rej_sample_f5(Eurydice_array_to_subslice_shared_d45(&randomness->data[i1],
-              (core_ops_range_Range_87{ r * (size_t)24U, r * (size_t)24U + (size_t)24U })),
+              (
+                KRML_CLITERAL(core_ops_range_Range_87){
+                  .start = r * (size_t)24U,
+                  .end = r * (size_t)24U + (size_t)24U
+                }
+              )),
             Eurydice_array_to_subslice_mut_e7(&out->data[i1],
               (
-                core_ops_range_Range_87{
-                  sampled_coefficients->data[i1],
-                  sampled_coefficients->data[i1] + (size_t)16U
+                KRML_CLITERAL(core_ops_range_Range_87){
+                  .start = sampled_coefficients->data[i1],
+                  .end = sampled_coefficients->data[i1] + (size_t)16U
                 }
               )));
         size_t uu____0 = i1;
@@ -3116,11 +3158,12 @@ KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE Eurydice_arr_2c
 libcrux_ml_kem_hash_functions_avx2_shake128_squeeze_next_block_78(Eurydice_arr_c40 *st)
 {
-  Eurydice_arr_2c out = { { { { 0U } }, { { 0U } }, { { 0U } } } };
-  Eurydice_arr_c5 out0 = { { 0U } };
-  Eurydice_arr_c5 out1 = { { 0U } };
-  Eurydice_arr_c5 out2 = { { 0U } };
-  Eurydice_arr_c5 out3 = { { 0U } };
+  Eurydice_arr_2c
+  out = { .data = { { .data = { 0U } }, { .data = { 0U } }, { .data = { 0U } } } };
+  Eurydice_arr_c5 out0 = { .data = { 0U } };
+  Eurydice_arr_c5 out1 = { .data = { 0U } };
+  Eurydice_arr_c5 out2 = { .data = { 0U } };
+  Eurydice_arr_c5 out3 = { .data = { 0U } };
   libcrux_sha3_avx2_x4_incremental_shake128_squeeze_next_block(st,
     Eurydice_array_to_slice_mut_2c(&out0),
     Eurydice_array_to_slice_mut_2c(&out1),
@@ -3213,12 +3256,17 @@ libcrux_ml_kem_sampling_sample_from_uniform_distribution_next_790(
         size_t
         sampled =
           libcrux_ml_kem_vector_avx2_rej_sample_f5(Eurydice_array_to_subslice_shared_d46(&randomness->data[i1],
-              (core_ops_range_Range_87{ r * (size_t)24U, r * (size_t)24U + (size_t)24U })),
+              (
+                KRML_CLITERAL(core_ops_range_Range_87){
+                  .start = r * (size_t)24U,
+                  .end = r * (size_t)24U + (size_t)24U
+                }
+              )),
             Eurydice_array_to_subslice_mut_e7(&out->data[i1],
               (
-                core_ops_range_Range_87{
-                  sampled_coefficients->data[i1],
-                  sampled_coefficients->data[i1] + (size_t)16U
+                KRML_CLITERAL(core_ops_range_Range_87){
+                  .start = sampled_coefficients->data[i1],
+                  .end = sampled_coefficients->data[i1] + (size_t)16U
                 }
               )));
         size_t uu____0 = i1;
@@ -3258,7 +3306,12 @@ libcrux_ml_kem_polynomial_from_i16_array_84(Eurydice_borrow_slice_i16 a)
     size_t i0 = i;
     result.data[i0] =
       libcrux_ml_kem_vector_avx2_from_i16_array_f5(Eurydice_slice_subslice_shared_a6(a,
-          (core_ops_range_Range_87{ i0 * (size_t)16U, (i0 + (size_t)1U) * (size_t)16U })));
+          (
+            KRML_CLITERAL(core_ops_range_Range_87){
+              .start = i0 * (size_t)16U,
+              .end = (i0 + (size_t)1U) * (size_t)16U
+            }
+          )));
   }
   return result;
 }
@@ -3295,7 +3348,7 @@ libcrux_ml_kem_sampling_sample_from_xof_call_mut_0a_28(void **_, Eurydice_arr_5b
   Eurydice_arr_5b s = tupled_args;
   return
     libcrux_ml_kem_polynomial_from_i16_array_d6_84(Eurydice_array_to_subslice_shared_e70(&s,
-        (core_ops_range_Range_87{ (size_t)0U, (size_t)256U })));
+        (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)256U })));
 }
 
 /**
@@ -3306,10 +3359,11 @@ with const generics
 */
 KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE Eurydice_arr_600
-libcrux_ml_kem_sampling_sample_from_xof_28(const Eurydice_arr_81 *seeds)
+libcrux_ml_kem_sampling_sample_from_xof_28(const Eurydice_arr_810 *seeds)
 {
-  Eurydice_arr_eb sampled_coefficients = { { 0U } };
-  Eurydice_arr_b1 out = { { { { 0U } }, { { 0U } }, { { 0U } } } };
+  Eurydice_arr_eb sampled_coefficients = { .data = { 0U } };
+  Eurydice_arr_b1
+  out = { .data = { { .data = { 0U } }, { .data = { 0U } }, { .data = { 0U } } } };
   Eurydice_arr_c40
   xof_state = libcrux_ml_kem_hash_functions_avx2_shake128_init_absorb_final_41_78(seeds);
   Eurydice_arr_7e
@@ -3365,7 +3419,7 @@ libcrux_ml_kem_matrix_sample_matrix_A_28(
   for (size_t i0 = (size_t)0U; i0 < (size_t)3U; i0++)
   {
     size_t i1 = i0;
-    Eurydice_arr_81 seeds;
+    Eurydice_arr_810 seeds;
     Eurydice_arr_31 repeat_expression[3U];
     for (size_t i = (size_t)0U; i < (size_t)3U; i++)
     {
@@ -3484,13 +3538,14 @@ with const generics
 */
 KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE Eurydice_arr_58
-libcrux_ml_kem_hash_functions_avx2_PRFxN_3b(const Eurydice_arr_800 *input)
+libcrux_ml_kem_hash_functions_avx2_PRFxN_3b(const Eurydice_arr_fd *input)
 {
-  Eurydice_arr_58 out = { { { { 0U } }, { { 0U } }, { { 0U } } } };
-  Eurydice_arr_89 out0 = { { 0U } };
-  Eurydice_arr_89 out1 = { { 0U } };
-  Eurydice_arr_89 out2 = { { 0U } };
-  Eurydice_arr_89 out3 = { { 0U } };
+  Eurydice_arr_58
+  out = { .data = { { .data = { 0U } }, { .data = { 0U } }, { .data = { 0U } } } };
+  Eurydice_arr_89 out0 = { .data = { 0U } };
+  Eurydice_arr_89 out1 = { .data = { 0U } };
+  Eurydice_arr_89 out2 = { .data = { 0U } };
+  Eurydice_arr_89 out3 = { .data = { 0U } };
   libcrux_sha3_avx2_x4_shake256(Eurydice_array_to_slice_shared_b5(input->data),
     Eurydice_array_to_slice_shared_b5(&input->data[1U]),
     Eurydice_array_to_slice_shared_b5(&input->data[2U]),
@@ -3516,7 +3571,7 @@ with const generics
 */
 KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE Eurydice_arr_58
-libcrux_ml_kem_hash_functions_avx2_PRFxN_41_3b(const Eurydice_arr_800 *input)
+libcrux_ml_kem_hash_functions_avx2_PRFxN_41_3b(const Eurydice_arr_fd *input)
 {
   return libcrux_ml_kem_hash_functions_avx2_PRFxN_3b(input);
 }
@@ -3583,7 +3638,7 @@ libcrux_ml_kem_sampling_sample_from_binomial_distribution_2_84(
   Eurydice_borrow_slice_u8 randomness
 )
 {
-  Eurydice_arr_04 sampled_i16s = { { 0U } };
+  Eurydice_arr_04 sampled_i16s = { .data = { 0U } };
   for (size_t i0 = (size_t)0U; i0 < randomness.meta / (size_t)4U; i0++)
   {
     size_t chunk_number = i0;
@@ -3591,9 +3646,9 @@ libcrux_ml_kem_sampling_sample_from_binomial_distribution_2_84(
     byte_chunk =
       Eurydice_slice_subslice_shared_c8(randomness,
         (
-          core_ops_range_Range_87{
-            chunk_number * (size_t)4U,
-            chunk_number * (size_t)4U + (size_t)4U
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = chunk_number * (size_t)4U,
+            .end = chunk_number * (size_t)4U + (size_t)4U
           }
         ));
     uint32_t
@@ -3696,21 +3751,21 @@ KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE uint8_t
 libcrux_ml_kem_ind_cpa_sample_vector_cbd_then_ntt_d6(
   Eurydice_arr_600 *re_as_ntt,
-  const Eurydice_arr_fa *prf_input,
+  const Eurydice_arr_fa0 *prf_input,
   uint8_t domain_separator
 )
 {
-  Eurydice_arr_800 prf_inputs;
-  Eurydice_arr_fa repeat_expression[3U];
+  Eurydice_arr_fd prf_inputs;
+  Eurydice_arr_fa0 repeat_expression[3U];
   for (size_t i = (size_t)0U; i < (size_t)3U; i++)
   {
     repeat_expression[i] =
       core_array__core__clone__Clone_for__T__N___clone((size_t)33U,
         prf_input,
         uint8_t,
-        Eurydice_arr_fa);
+        Eurydice_arr_fa0);
   }
-  memcpy(prf_inputs.data, repeat_expression, (size_t)3U * sizeof (Eurydice_arr_fa));
+  memcpy(prf_inputs.data, repeat_expression, (size_t)3U * sizeof (Eurydice_arr_fa0));
   domain_separator = libcrux_ml_kem_utils_prf_input_inc_78(&prf_inputs, domain_separator);
   Eurydice_arr_58 prf_outputs = libcrux_ml_kem_hash_functions_avx2_PRFxN_41_3b(&prf_inputs);
   for (size_t i = (size_t)0U; i < (size_t)3U; i++)
@@ -3762,22 +3817,22 @@ with const generics
 KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE uint8_t
 libcrux_ml_kem_ind_cpa_sample_ring_element_cbd_d6(
-  const Eurydice_arr_fa *prf_input,
+  const Eurydice_arr_fa0 *prf_input,
   uint8_t domain_separator,
   Eurydice_arr_600 *error_1
 )
 {
-  Eurydice_arr_800 prf_inputs;
-  Eurydice_arr_fa repeat_expression[3U];
+  Eurydice_arr_fd prf_inputs;
+  Eurydice_arr_fa0 repeat_expression[3U];
   for (size_t i = (size_t)0U; i < (size_t)3U; i++)
   {
     repeat_expression[i] =
       core_array__core__clone__Clone_for__T__N___clone((size_t)33U,
         prf_input,
         uint8_t,
-        Eurydice_arr_fa);
+        Eurydice_arr_fa0);
   }
-  memcpy(prf_inputs.data, repeat_expression, (size_t)3U * sizeof (Eurydice_arr_fa));
+  memcpy(prf_inputs.data, repeat_expression, (size_t)3U * sizeof (Eurydice_arr_fa0));
   domain_separator = libcrux_ml_kem_utils_prf_input_inc_78(&prf_inputs, domain_separator);
   Eurydice_arr_58 prf_outputs = libcrux_ml_kem_hash_functions_avx2_PRFxN_41_3b(&prf_inputs);
   for (size_t i = (size_t)0U; i < (size_t)3U; i++)
@@ -3800,7 +3855,7 @@ KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE Eurydice_arr_89
 libcrux_ml_kem_hash_functions_avx2_PRF_ec(Eurydice_borrow_slice_u8 input)
 {
-  Eurydice_arr_89 digest = { { 0U } };
+  Eurydice_arr_89 digest = { .data = { 0U } };
   libcrux_sha3_portable_shake256(Eurydice_array_to_slice_mut_78(&digest), input);
   return digest;
 }
@@ -4020,7 +4075,7 @@ KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE Eurydice_arr_b0
 libcrux_ml_kem_serialize_compress_then_serialize_10_03(const Eurydice_arr_13 *re)
 {
-  Eurydice_arr_b0 serialized = { { 0U } };
+  Eurydice_arr_b0 serialized = { .data = { 0U } };
   for (size_t i = (size_t)0U; i < LIBCRUX_ML_KEM_POLYNOMIAL_VECTORS_IN_RING_ELEMENT; i++)
   {
     size_t i0 = i;
@@ -4029,7 +4084,12 @@ libcrux_ml_kem_serialize_compress_then_serialize_10_03(const Eurydice_arr_13 *re
       libcrux_ml_kem_vector_avx2_compress_f5_ef(libcrux_ml_kem_serialize_to_unsigned_field_modulus_84(re->data[i0]));
     Eurydice_arr_fc bytes = libcrux_ml_kem_vector_avx2_serialize_10_f5(coefficient);
     Eurydice_slice_copy(Eurydice_array_to_subslice_mut_d413(&serialized,
-        (core_ops_range_Range_87{ (size_t)20U * i0, (size_t)20U * i0 + (size_t)20U })),
+        (
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = (size_t)20U * i0,
+            .end = (size_t)20U * i0 + (size_t)20U
+          }
+        )),
       Eurydice_array_to_slice_shared_8f(&bytes),
       uint8_t);
   }
@@ -4077,9 +4137,9 @@ libcrux_ml_kem_ind_cpa_compress_then_serialize_u_d4(
     uu____0 =
       Eurydice_slice_subslice_mut_c8(out,
         (
-          core_ops_range_Range_87{
-            i0 * ((size_t)960U / (size_t)3U),
-            (i0 + (size_t)1U) * ((size_t)960U / (size_t)3U)
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = i0 * ((size_t)960U / (size_t)3U),
+            .end = (i0 + (size_t)1U) * ((size_t)960U / (size_t)3U)
           }
         ));
     /* original Rust expression is not an lvalue in C */
@@ -4110,7 +4170,7 @@ libcrux_ml_kem_ind_cpa_encrypt_c1_78(
   Eurydice_mut_borrow_slice_u8 ciphertext
 )
 {
-  Eurydice_arr_fa prf_input = libcrux_ml_kem_utils_into_padded_array_29(randomness);
+  Eurydice_arr_fa0 prf_input = libcrux_ml_kem_utils_into_padded_array_29(randomness);
   Eurydice_arr_600 arr_struct0;
   for (size_t i = (size_t)0U; i < (size_t)3U; i++)
   {
@@ -4146,7 +4206,7 @@ libcrux_ml_kem_ind_cpa_encrypt_c1_78(
     libcrux_ml_kem_sampling_sample_from_binomial_distribution_16(Eurydice_array_to_slice_shared_78(&prf_output));
   Eurydice_arr_600 u = libcrux_ml_kem_matrix_compute_vector_u_e3(matrix, &r_as_ntt, &error_1);
   libcrux_ml_kem_ind_cpa_compress_then_serialize_u_d4(u, ciphertext);
-  return (tuple_24{ r_as_ntt, error_2 });
+  return (KRML_CLITERAL(tuple_24){ .fst = r_as_ntt, .snd = error_2 });
 }
 
 /**
@@ -4168,7 +4228,12 @@ libcrux_ml_kem_serialize_deserialize_then_decompress_message_84(
     __m256i
     coefficient_compressed =
       libcrux_ml_kem_vector_avx2_deserialize_1_f5(Eurydice_array_to_subslice_shared_d4(serialized,
-          (core_ops_range_Range_87{ (size_t)2U * i0, (size_t)2U * i0 + (size_t)2U })));
+          (
+            KRML_CLITERAL(core_ops_range_Range_87){
+              .start = (size_t)2U * i0,
+              .end = (size_t)2U * i0 + (size_t)2U
+            }
+          )));
     re.data[i0] = libcrux_ml_kem_vector_avx2_decompress_1_f5(coefficient_compressed);
   }
   return re;
@@ -4361,7 +4426,12 @@ libcrux_ml_kem_serialize_compress_then_serialize_4_84(
       libcrux_ml_kem_vector_avx2_compress_f5_d1(libcrux_ml_kem_serialize_to_unsigned_field_modulus_84(re.data[i0]));
     Eurydice_array_u8x8 bytes = libcrux_ml_kem_vector_avx2_serialize_4_f5(coefficient);
     Eurydice_slice_copy(Eurydice_slice_subslice_mut_c8(serialized,
-        (core_ops_range_Range_87{ (size_t)8U * i0, (size_t)8U * i0 + (size_t)8U })),
+        (
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = (size_t)8U * i0,
+            .end = (size_t)8U * i0 + (size_t)8U
+          }
+        )),
       Eurydice_array_to_slice_shared_6e(&bytes),
       uint8_t);
   }
@@ -4481,13 +4551,13 @@ libcrux_ml_kem_ind_cpa_encrypt_unpacked_28(
   Eurydice_borrow_slice_u8 randomness
 )
 {
-  Eurydice_arr_2b ciphertext = { { 0U } };
+  Eurydice_arr_2b ciphertext = { .data = { 0U } };
   tuple_24
   uu____0 =
     libcrux_ml_kem_ind_cpa_encrypt_c1_78(randomness,
       &public_key->A,
       Eurydice_array_to_subslice_mut_d414(&ciphertext,
-        (core_ops_range_Range_87{ (size_t)0U, (size_t)960U })));
+        (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)960U })));
   Eurydice_arr_600 r_as_ntt = uu____0.fst;
   Eurydice_arr_13 error_2 = uu____0.snd;
   libcrux_ml_kem_ind_cpa_encrypt_c2_15(&public_key->t_as_ntt,
@@ -4545,7 +4615,7 @@ libcrux_ml_kem_variant_kdf_39_a4(
   const Eurydice_arr_2b *_
 )
 {
-  Eurydice_arr_ec out = { { 0U } };
+  Eurydice_arr_ec out = { .data = { 0U } };
   Eurydice_slice_copy(Eurydice_array_to_slice_mut_01(&out), shared_secret, uint8_t);
   return out;
 }
@@ -4728,7 +4798,7 @@ KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE Eurydice_arr_ec
 libcrux_ml_kem_variant_entropy_preprocess_39_b6(Eurydice_borrow_slice_u8 randomness)
 {
-  Eurydice_arr_ec out = { { 0U } };
+  Eurydice_arr_ec out = { .data = { 0U } };
   Eurydice_slice_copy(Eurydice_array_to_slice_mut_01(&out), randomness, uint8_t);
   return out;
 }
@@ -4805,7 +4875,13 @@ libcrux_ml_kem_ind_cca_encapsulate_a1(
       &randomness0,
       pseudorandomness);
   Eurydice_arr_2b uu____2 = libcrux_ml_kem_types_from_19_52(ciphertext);
-  return (tuple_f4{ uu____2, libcrux_ml_kem_variant_kdf_39_a4(shared_secret, &ciphertext) });
+  return
+    (
+      KRML_CLITERAL(tuple_f4){
+        .fst = uu____2,
+        .snd = libcrux_ml_kem_variant_kdf_39_a4(shared_secret, &ciphertext)
+      }
+    );
 }
 
 /**
@@ -4915,12 +4991,12 @@ KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE Eurydice_arr_c7
 libcrux_ml_kem_variant_cpa_keygen_seed_39_b6(Eurydice_borrow_slice_u8 key_generation_seed)
 {
-  Eurydice_arr_fa seed = { { 0U } };
+  Eurydice_arr_fa0 seed = { .data = { 0U } };
   Eurydice_slice_copy(Eurydice_array_to_subslice_mut_d412(&seed,
       (
-        core_ops_range_Range_87{
-          (size_t)0U,
-          LIBCRUX_ML_KEM_CONSTANTS_CPA_PKE_KEY_GENERATION_SEED_SIZE
+        KRML_CLITERAL(core_ops_range_Range_87){
+          .start = (size_t)0U,
+          .end = LIBCRUX_ML_KEM_CONSTANTS_CPA_PKE_KEY_GENERATION_SEED_SIZE
         }
       )),
     key_generation_seed,
@@ -5111,7 +5187,7 @@ libcrux_ml_kem_ind_cpa_generate_keypair_unpacked_ab(
   /* original Rust expression is not an lvalue in C */
   Eurydice_arr_31 lvalue0 = libcrux_ml_kem_utils_into_padded_array_de(seed_for_A);
   libcrux_ml_kem_matrix_sample_matrix_A_28(uu____1, &lvalue0, true);
-  Eurydice_arr_fa
+  Eurydice_arr_fa0
   prf_input = libcrux_ml_kem_utils_into_padded_array_29(seed_for_secret_and_error);
   uint8_t
   domain_separator =
@@ -5139,9 +5215,9 @@ libcrux_ml_kem_ind_cpa_generate_keypair_unpacked_ab(
   memcpy(arr.data, seed_for_A.ptr, (size_t)32U * sizeof (uint8_t));
   Eurydice_arr_ec
   uu____2 =
-    core_result_unwrap_26_39(core_result_Result_07_s(core_result_Ok,
-        &core_result_Result_07_s::U::case_Ok,
-        arr));
+    core_result_unwrap_26_39((
+        KRML_CLITERAL(core_result_Result_07){ .tag = core_result_Ok, .val = { .case_Ok = arr } }
+      ));
   public_key->seed_for_A = uu____2;
 }
 
@@ -5155,14 +5231,19 @@ KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE Eurydice_arr_b20
 libcrux_ml_kem_serialize_serialize_uncompressed_ring_element_84(const Eurydice_arr_13 *re)
 {
-  Eurydice_arr_b20 serialized = { { 0U } };
+  Eurydice_arr_b20 serialized = { .data = { 0U } };
   for (size_t i = (size_t)0U; i < LIBCRUX_ML_KEM_POLYNOMIAL_VECTORS_IN_RING_ELEMENT; i++)
   {
     size_t i0 = i;
     __m256i coefficient = libcrux_ml_kem_serialize_to_unsigned_field_modulus_84(re->data[i0]);
     Eurydice_arr_94 bytes = libcrux_ml_kem_vector_avx2_serialize_12_f5(coefficient);
     Eurydice_slice_copy(Eurydice_array_to_subslice_mut_d415(&serialized,
-        (core_ops_range_Range_87{ (size_t)24U * i0, (size_t)24U * i0 + (size_t)24U })),
+        (
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = (size_t)24U * i0,
+            .end = (size_t)24U * i0 + (size_t)24U
+          }
+        )),
       Eurydice_array_to_slice_shared_ed(&bytes),
       uint8_t);
   }
@@ -5193,9 +5274,9 @@ libcrux_ml_kem_ind_cpa_serialize_vector_e3(
     uu____0 =
       Eurydice_slice_subslice_mut_c8(out,
         (
-          core_ops_range_Range_87{
-            i0 * LIBCRUX_ML_KEM_CONSTANTS_BYTES_PER_RING_ELEMENT,
-            (i0 + (size_t)1U) * LIBCRUX_ML_KEM_CONSTANTS_BYTES_PER_RING_ELEMENT
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = i0 * LIBCRUX_ML_KEM_CONSTANTS_BYTES_PER_RING_ELEMENT,
+            .end = (i0 + (size_t)1U) * LIBCRUX_ML_KEM_CONSTANTS_BYTES_PER_RING_ELEMENT
           }
         ));
     /* original Rust expression is not an lvalue in C */
@@ -5225,9 +5306,9 @@ libcrux_ml_kem_ind_cpa_serialize_public_key_mut_79(
   libcrux_ml_kem_ind_cpa_serialize_vector_e3(t_as_ntt,
     Eurydice_array_to_subslice_mut_d416(serialized,
       (
-        core_ops_range_Range_87{
-          (size_t)0U,
-          libcrux_ml_kem_constants_ranked_bytes_per_ring_element((size_t)3U)
+        KRML_CLITERAL(core_ops_range_Range_87){
+          .start = (size_t)0U,
+          .end = libcrux_ml_kem_constants_ranked_bytes_per_ring_element((size_t)3U)
         }
       )));
   Eurydice_slice_copy(Eurydice_array_to_subslice_from_mut_5f4(serialized,
@@ -5253,7 +5334,7 @@ libcrux_ml_kem_ind_cpa_serialize_public_key_79(
   Eurydice_borrow_slice_u8 seed_for_a
 )
 {
-  Eurydice_arr_5f public_key_serialized = { { 0U } };
+  Eurydice_arr_5f public_key_serialized = { .data = { 0U } };
   libcrux_ml_kem_ind_cpa_serialize_public_key_mut_79(t_as_ntt,
     seed_for_a,
     &public_key_serialized);
@@ -5282,14 +5363,14 @@ libcrux_ml_kem_ind_cpa_serialize_unpacked_secret_key_15(
   public_key_serialized =
     libcrux_ml_kem_ind_cpa_serialize_public_key_79(&public_key->t_as_ntt,
       Eurydice_array_to_slice_shared_01(&public_key->seed_for_A));
-  Eurydice_arr_0e secret_key_serialized = { { 0U } };
+  Eurydice_arr_0e secret_key_serialized = { .data = { 0U } };
   libcrux_ml_kem_ind_cpa_serialize_vector_e3(private_key,
     Eurydice_array_to_slice_mut_f4(&secret_key_serialized));
   return
     (
-      libcrux_ml_kem_utils_extraction_helper_Keypair768{
-        secret_key_serialized,
-        public_key_serialized
+      KRML_CLITERAL(libcrux_ml_kem_utils_extraction_helper_Keypair768){
+        .fst = secret_key_serialized,
+        .snd = public_key_serialized
       }
     );
 }
@@ -5338,25 +5419,40 @@ libcrux_ml_kem_ind_cca_serialize_kem_secret_key_mut_a4(
 {
   size_t pointer = (size_t)0U;
   Eurydice_slice_copy(Eurydice_array_to_subslice_mut_d417(serialized,
-      (core_ops_range_Range_87{ pointer, pointer + private_key.meta })),
+      (
+        KRML_CLITERAL(core_ops_range_Range_87){
+          .start = pointer,
+          .end = pointer + private_key.meta
+        }
+      )),
     private_key,
     uint8_t);
   pointer += private_key.meta;
   Eurydice_slice_copy(Eurydice_array_to_subslice_mut_d417(serialized,
-      (core_ops_range_Range_87{ pointer, pointer + public_key.meta })),
+      (KRML_CLITERAL(core_ops_range_Range_87){ .start = pointer, .end = pointer + public_key.meta })),
     public_key,
     uint8_t);
   pointer += public_key.meta;
   Eurydice_mut_borrow_slice_u8
   uu____0 =
     Eurydice_array_to_subslice_mut_d417(serialized,
-      (core_ops_range_Range_87{ pointer, pointer + LIBCRUX_ML_KEM_CONSTANTS_H_DIGEST_SIZE }));
+      (
+        KRML_CLITERAL(core_ops_range_Range_87){
+          .start = pointer,
+          .end = pointer + LIBCRUX_ML_KEM_CONSTANTS_H_DIGEST_SIZE
+        }
+      ));
   /* original Rust expression is not an lvalue in C */
   Eurydice_arr_ec lvalue = libcrux_ml_kem_hash_functions_avx2_H_41_78(public_key);
   Eurydice_slice_copy(uu____0, Eurydice_array_to_slice_shared_01(&lvalue), uint8_t);
   pointer += LIBCRUX_ML_KEM_CONSTANTS_H_DIGEST_SIZE;
   Eurydice_slice_copy(Eurydice_array_to_subslice_mut_d417(serialized,
-      (core_ops_range_Range_87{ pointer, pointer + implicit_rejection_value.meta })),
+      (
+        KRML_CLITERAL(core_ops_range_Range_87){
+          .start = pointer,
+          .end = pointer + implicit_rejection_value.meta
+        }
+      )),
     implicit_rejection_value,
     uint8_t);
 }
@@ -5376,7 +5472,7 @@ libcrux_ml_kem_ind_cca_serialize_kem_secret_key_a4(
   Eurydice_borrow_slice_u8 implicit_rejection_value
 )
 {
-  Eurydice_arr_7d out = { { 0U } };
+  Eurydice_arr_7d out = { .data = { 0U } };
   libcrux_ml_kem_ind_cca_serialize_kem_secret_key_mut_a4(private_key,
     public_key,
     implicit_rejection_value,
@@ -5411,9 +5507,9 @@ libcrux_ml_kem_ind_cca_generate_keypair_db(const Eurydice_arr_c7 *randomness)
   ind_cpa_keypair_randomness =
     Eurydice_array_to_subslice_shared_d47(randomness,
       (
-        core_ops_range_Range_87{
-          (size_t)0U,
-          LIBCRUX_ML_KEM_CONSTANTS_CPA_PKE_KEY_GENERATION_SEED_SIZE
+        KRML_CLITERAL(core_ops_range_Range_87){
+          .start = (size_t)0U,
+          .end = LIBCRUX_ML_KEM_CONSTANTS_CPA_PKE_KEY_GENERATION_SEED_SIZE
         }
       ));
   Eurydice_borrow_slice_u8
@@ -5506,18 +5602,18 @@ libcrux_ml_kem_ind_cca_validate_private_key_only_a4(const Eurydice_arr_7d *priva
   t =
     libcrux_ml_kem_hash_functions_avx2_H_41_78(Eurydice_array_to_subslice_shared_d48(private_key,
         (
-          core_ops_range_Range_87{
-            (size_t)384U * (size_t)3U,
-            (size_t)768U * (size_t)3U + (size_t)32U
+          KRML_CLITERAL(core_ops_range_Range_87){
+            .start = (size_t)384U * (size_t)3U,
+            .end = (size_t)768U * (size_t)3U + (size_t)32U
           }
         )));
   Eurydice_borrow_slice_u8
   expected =
     Eurydice_array_to_subslice_shared_d48(private_key,
       (
-        core_ops_range_Range_87{
-          (size_t)768U * (size_t)3U + (size_t)32U,
-          (size_t)768U * (size_t)3U + (size_t)64U
+        KRML_CLITERAL(core_ops_range_Range_87){
+          .start = (size_t)768U * (size_t)3U + (size_t)32U,
+          .end = (size_t)768U * (size_t)3U + (size_t)64U
         }
       ));
   return Eurydice_array_eq_slice_shared((size_t)32U, &t, &expected, uint8_t, bool);
@@ -6017,11 +6113,17 @@ libcrux_ml_kem_ind_cca_unpacked_encapsulate_a8(
     libcrux_ml_kem_ind_cpa_encrypt_unpacked_28(&public_key->ind_cpa_public_key,
       randomness,
       pseudorandomness);
-  Eurydice_arr_ec shared_secret_array = { { 0U } };
+  Eurydice_arr_ec shared_secret_array = { .data = { 0U } };
   Eurydice_slice_copy(Eurydice_array_to_slice_mut_01(&shared_secret_array),
     shared_secret,
     uint8_t);
-  return (tuple_f4{ libcrux_ml_kem_types_from_19_52(ciphertext), shared_secret_array });
+  return
+    (
+      KRML_CLITERAL(tuple_f4){
+        .fst = libcrux_ml_kem_types_from_19_52(ciphertext),
+        .snd = shared_secret_array
+      }
+    );
 }
 
 /**
@@ -6222,9 +6324,9 @@ libcrux_ml_kem_ind_cca_unpacked_generate_keypair_db(
   ind_cpa_keypair_randomness =
     Eurydice_array_to_subslice_shared_d47(&randomness,
       (
-        core_ops_range_Range_87{
-          (size_t)0U,
-          LIBCRUX_ML_KEM_CONSTANTS_CPA_PKE_KEY_GENERATION_SEED_SIZE
+        KRML_CLITERAL(core_ops_range_Range_87){
+          .start = (size_t)0U,
+          .end = LIBCRUX_ML_KEM_CONSTANTS_CPA_PKE_KEY_GENERATION_SEED_SIZE
         }
       ));
   Eurydice_borrow_slice_u8
@@ -6249,9 +6351,9 @@ libcrux_ml_kem_ind_cca_unpacked_generate_keypair_db(
   memcpy(arr.data, implicit_rejection_value.ptr, (size_t)32U * sizeof (uint8_t));
   Eurydice_arr_ec
   uu____1 =
-    core_result_unwrap_26_39(core_result_Result_07_s(core_result_Ok,
-        &core_result_Result_07_s::U::case_Ok,
-        arr));
+    core_result_unwrap_26_39((
+        KRML_CLITERAL(core_result_Result_07){ .tag = core_result_Ok, .val = { .case_Ok = arr } }
+      ));
   out->private_key.implicit_rejection_value = uu____1;
 }
 
@@ -6326,9 +6428,9 @@ libcrux_ml_kem_ind_cca_unpacked_default_30_e3(void)
 {
   return
     (
-      libcrux_ml_kem_ind_cca_unpacked_MlKemPublicKeyUnpacked_ef{
-        libcrux_ml_kem_ind_cpa_unpacked_default_8b_e3(),
-        { { 0U } }
+      KRML_CLITERAL(libcrux_ml_kem_ind_cca_unpacked_MlKemPublicKeyUnpacked_ef){
+        .ind_cpa_public_key = libcrux_ml_kem_ind_cpa_unpacked_default_8b_e3(),
+        .public_key_hash = { .data = { 0U } }
       }
     );
 }
@@ -6347,12 +6449,16 @@ static KRML_MUSTINLINE libcrux_ml_kem_mlkem768_avx2_unpacked_MlKem768KeyPairUnpa
 libcrux_ml_kem_ind_cca_unpacked_default_7b_e3(void)
 {
   libcrux_ml_kem_ind_cca_unpacked_MlKemPrivateKeyUnpacked_ef
-  uu____0 = { libcrux_ml_kem_ind_cpa_unpacked_default_70_e3(), { { 0U } } };
+  uu____0 =
+    {
+      .ind_cpa_private_key = libcrux_ml_kem_ind_cpa_unpacked_default_70_e3(),
+      .implicit_rejection_value = { .data = { 0U } }
+    };
   return
     (
-      libcrux_ml_kem_mlkem768_avx2_unpacked_MlKem768KeyPairUnpacked{
-        uu____0,
-        libcrux_ml_kem_ind_cca_unpacked_default_30_e3()
+      KRML_CLITERAL(libcrux_ml_kem_mlkem768_avx2_unpacked_MlKem768KeyPairUnpacked){
+        .private_key = uu____0,
+        .public_key = libcrux_ml_kem_ind_cca_unpacked_default_30_e3()
       }
     );
 }
@@ -6406,7 +6512,7 @@ libcrux_ml_kem_sampling_sample_from_xof_call_mut_0a_7e(void **_, Eurydice_arr_5b
   Eurydice_arr_5b s = tupled_args;
   return
     libcrux_ml_kem_polynomial_from_i16_array_d6_84(Eurydice_array_to_subslice_shared_e70(&s,
-        (core_ops_range_Range_87{ (size_t)0U, (size_t)256U })));
+        (KRML_CLITERAL(core_ops_range_Range_87){ .start = (size_t)0U, .end = (size_t)256U })));
 }
 
 /**
@@ -6417,11 +6523,12 @@ with const generics
 */
 KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE Eurydice_arr_600
-libcrux_ml_kem_sampling_sample_from_xof_7e(const Eurydice_arr_81 *seeds)
+libcrux_ml_kem_sampling_sample_from_xof_7e(const Eurydice_arr_810 *seeds)
 {
-  Eurydice_arr_eb sampled_coefficients = { { 0U } };
-  Eurydice_arr_b1 out = { { { { 0U } }, { { 0U } }, { { 0U } } } };
-  Eurydice_arr_1b
+  Eurydice_arr_eb sampled_coefficients = { .data = { 0U } };
+  Eurydice_arr_b1
+  out = { .data = { { .data = { 0U } }, { .data = { 0U } }, { .data = { 0U } } } };
+  Eurydice_arr_1b0
   xof_state = libcrux_ml_kem_hash_functions_portable_shake128_init_absorb_final_4a_78(seeds);
   Eurydice_arr_7e
   randomness0 =
@@ -6477,7 +6584,7 @@ libcrux_ml_kem_matrix_sample_matrix_A_7e(
   for (size_t i0 = (size_t)0U; i0 < (size_t)3U; i0++)
   {
     size_t i1 = i0;
-    Eurydice_arr_81 seeds;
+    Eurydice_arr_810 seeds;
     Eurydice_arr_31 repeat_expression[3U];
     for (size_t i = (size_t)0U; i < (size_t)3U; i++)
     {
@@ -6847,10 +6954,10 @@ libcrux_ml_kem_ind_cpa_unpacked_clone_91_e3(
       Eurydice_arr_ec);
   return
     (
-      libcrux_ml_kem_ind_cpa_unpacked_IndCpaPublicKeyUnpacked_ef{
-        uu____0,
-        uu____1,
-        core_array__core__clone__Clone_for__T__N___clone((size_t)3U,
+      KRML_CLITERAL(libcrux_ml_kem_ind_cpa_unpacked_IndCpaPublicKeyUnpacked_ef){
+        .t_as_ntt = uu____0,
+        .seed_for_A = uu____1,
+        .A = core_array__core__clone__Clone_for__T__N___clone((size_t)3U,
           &self->A,
           Eurydice_arr_600,
           Eurydice_arr_601)
@@ -6877,9 +6984,9 @@ libcrux_ml_kem_ind_cca_unpacked_clone_d7_e3(
   uu____0 = libcrux_ml_kem_ind_cpa_unpacked_clone_91_e3(&self->ind_cpa_public_key);
   return
     (
-      libcrux_ml_kem_ind_cca_unpacked_MlKemPublicKeyUnpacked_ef{
-        uu____0,
-        core_array__core__clone__Clone_for__T__N___clone((size_t)32U,
+      KRML_CLITERAL(libcrux_ml_kem_ind_cca_unpacked_MlKemPublicKeyUnpacked_ef){
+        .ind_cpa_public_key = uu____0,
+        .public_key_hash = core_array__core__clone__Clone_for__T__N___clone((size_t)32U,
           &self->public_key_hash,
           uint8_t,
           Eurydice_arr_ec)
@@ -7031,6 +7138,9 @@ libcrux_ml_kem_mlkem768_avx2_unpacked_unpacked_public_key(
     unpacked_public_key);
 }
 
+#if defined(__cplusplus)
+}
+#endif
 
 #define libcrux_mlkem768_avx2_H_DEFINED
 #endif /* libcrux_mlkem768_avx2_H */
