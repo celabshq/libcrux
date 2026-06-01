@@ -469,26 +469,27 @@ let lemma_poly_step_intro (#vV: Type0) {| iop: T.t_Operations vV |}
    (64 groups / 4 zetas, ~4x the createi-SMTPat e-matching context) cascades and is NOT yet
    closed — SMT ADMITTED here pending a fact-pruning / opacity fix for the createi cascade.
    The driver's poly_step #1 therefore rests on this one localized admit. *)
-#push-options "--fuel 0 --ifuel 1 --z3rlimit 400 --admit_smt_queries true"
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 400 --split_queries always"
 let lemma_layer1_to_poly_step (#vV: Type0) {| iop: T.t_Operations vV |}
     (re_in re_out: VV.t_PolynomialRingElement vV)
   : Lemma
     (requires
       (forall (i: usize). v i < 16 ==>
-        mont_i16_to_spec_array (mk_usize 16) (T.f_repr (Seq.index re_out.VV.f_coefficients (v i))) ==
-          IN.ntt_inverse_layer_n (mk_usize 16)
-            (mont_i16_to_spec_array (mk_usize 16) (T.f_repr (Seq.index re_in.VV.f_coefficients (v i))))
-            (mk_usize 2)
-            (Rust_primitives.unsize (zetas_4_ (Libcrux_ml_kem.Polynomial.zeta (mk_usize 127 -! mk_usize 4 *! i))
-                  (Libcrux_ml_kem.Polynomial.zeta (mk_usize 126 -! mk_usize 4 *! i))
-                  (Libcrux_ml_kem.Polynomial.zeta (mk_usize 125 -! mk_usize 4 *! i))
-                  (Libcrux_ml_kem.Polynomial.zeta (mk_usize 124 -! mk_usize 4 *! i))))))
+        pv_post #vV re_in.VV.f_coefficients re_out.VV.f_coefficients (mk_usize 2)
+          (zetas_4_ (Libcrux_ml_kem.Polynomial.zeta (mk_usize 127 -! mk_usize 4 *! i))
+                    (Libcrux_ml_kem.Polynomial.zeta (mk_usize 126 -! mk_usize 4 *! i))
+                    (Libcrux_ml_kem.Polynomial.zeta (mk_usize 125 -! mk_usize 4 *! i))
+                    (Libcrux_ml_kem.Polynomial.zeta (mk_usize 124 -! mk_usize 4 *! i)))
+          (v i)))
     (ensures poly_step #vV re_in re_out (mk_usize 1))
   = reveal_opaque (`%poly_step) (poly_step #vV re_in re_out (mk_usize 1));
     assert_norm (pow2 1 == 2);
+    assert_norm (8 / v (mk_usize 2) == 4);
+    assert_norm (128 / v (mk_usize 2) == 64);
     let zs : t_Slice P.t_FieldElement =
       Seq.init 64 (fun (r: nat {r < 64}) ->
         mont_i16_to_spec_fe (Libcrux_ml_kem.Polynomial.zeta (mk_usize 127 -! mk_usize r))) in
+    assert (Seq.length zs == 64);
     (* pvz matches the requires-forall body EXACTLY at i = sz m (NO clamp): the
        per-vector relation transfers by direct instantiation, and `pv_post` keeps the
        nested createi terms OPAQUE downstream, so they are never bulk-matched (the
@@ -508,17 +509,12 @@ let lemma_layer1_to_poly_step (#vV: Type0) {| iop: T.t_Operations vV |}
         lemma_zeta_eq_vzetas (mk_usize 127 -! mk_usize round);
         assert (v (mk_usize 127 -! mk_usize round) == 127 - round)
       end in
-    Classical.forall_intro aux_zs;
-    (* Establish the OPAQUE per-vector post per m via intro; its requires (the raw
-       createi relation for pvz m) is the requires-forall instantiated at i = sz m
-       (pvz m IS the forall body there).  No createi unfolding/matching occurs. *)
+    (* aux_pv: transfer the OPAQUE per-vector post from the requires forall at i = sz m.
+       pvz m IS the requires body's pvm at i = sz m (zetas_4_ args literally equal), and
+       v (sz m) == m, so the requires-instance IS the goal — opaque, no createi exposed. *)
     let aux_pv (m: nat) : Lemma (m < 16 ==>
         pv_post #vV re_in.VV.f_coefficients re_out.VV.f_coefficients (mk_usize 2) (pvz m) m) =
-      if m < 16 then begin
-        assert (v (sz m) < 16);
-        pv_post_intro #vV re_in.VV.f_coefficients re_out.VV.f_coefficients (mk_usize 2) (pvz m) m
-      end in
-    Classical.forall_intro aux_pv;
+      if m < 16 then (let i = sz m in assert (v i == m); assert (v i < 16)) in
     let aux_zc (m: nat) (g: nat) : Lemma (m < 16 /\ g < 8 / 2 ==>
         Seq.index (Rust_primitives.unsize (pvz m)) g == Seq.index zs ((8 / 2) * m + g)) =
       if m < 16 && g < 4 then begin
@@ -536,6 +532,11 @@ let lemma_layer1_to_poly_step (#vV: Type0) {| iop: T.t_Operations vV |}
         assert (v (mk_usize 125 -! mk_usize 4 *! sz m) == 125 - 4 * m);
         assert (v (mk_usize 124 -! mk_usize 4 *! sz m) == 124 - 4 * m)
       end in
+    (* Introduce all three universal facts AFTER all aux bodies are checked, so each
+       aux body is verified in a clean context (no other aux's triggered fact in scope —
+       the pollution that made the interleaved form blow up). *)
+    Classical.forall_intro aux_zs;
+    Classical.forall_intro aux_pv;
     Classical.forall_intro_2 aux_zc;
     lemma_intra_vec_layer_to_poly #vV re_in re_out (mk_usize 1) (mk_usize 2) zs pvz
 #pop-options
@@ -545,24 +546,27 @@ let lemma_layer1_to_poly_step (#vV: Type0) {| iop: T.t_Operations vV |}
    the createi_lemma e-matching cliff (queries cancel at rlimit 300 nondeterministically —
    passed in 6fd5b8eb, cascaded in ff04f530).  SMT-ADMITTED for a DETERMINISTIC base until
    the module-wide createi fix (drop the admit + prune createi_lemma — see layer-1 note). *)
-#push-options "--fuel 0 --ifuel 1 --z3rlimit 300 --admit_smt_queries true"
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 400 --split_queries always"
 let lemma_layer2_to_poly_step (#vV: Type0) {| iop: T.t_Operations vV |}
     (re_in re_out: VV.t_PolynomialRingElement vV)
   : Lemma
     (requires
       (forall (i: usize). v i < 16 ==>
-        mont_i16_to_spec_array (mk_usize 16) (T.f_repr (Seq.index re_out.VV.f_coefficients (v i))) ==
-          IN.ntt_inverse_layer_n (mk_usize 16)
-            (mont_i16_to_spec_array (mk_usize 16) (T.f_repr (Seq.index re_in.VV.f_coefficients (v i))))
-            (mk_usize 4)
-            (Rust_primitives.unsize (zetas_2_ (Libcrux_ml_kem.Polynomial.zeta (mk_usize 63 -! mk_usize 2 *! i))
-                  (Libcrux_ml_kem.Polynomial.zeta (mk_usize 62 -! mk_usize 2 *! i))))))
+        pv_post #vV re_in.VV.f_coefficients re_out.VV.f_coefficients (mk_usize 4)
+          (zetas_2_ (Libcrux_ml_kem.Polynomial.zeta (mk_usize 63 -! mk_usize 2 *! i))
+                    (Libcrux_ml_kem.Polynomial.zeta (mk_usize 62 -! mk_usize 2 *! i)))
+          (v i)))
     (ensures poly_step #vV re_in re_out (mk_usize 2))
   = reveal_opaque (`%poly_step) (poly_step #vV re_in re_out (mk_usize 2));
     assert_norm (pow2 2 == 4);
+    (* Ground the len-dependent divisions in a CLEAN context (before the forall_intro's
+       triggers pollute) so the chainer's `128 / v len` / `8 / v len` conjuncts reduce. *)
+    assert_norm (8 / v (mk_usize 4) == 2);
+    assert_norm (128 / v (mk_usize 4) == 32);
     let zs : t_Slice P.t_FieldElement =
       Seq.init 32 (fun (r: nat {r < 32}) ->
         mont_i16_to_spec_fe (Libcrux_ml_kem.Polynomial.zeta (mk_usize 63 -! mk_usize r))) in
+    assert (Seq.length zs == 32);
     let pvz : (m: nat {m < 16}) -> t_Array P.t_FieldElement (mk_usize 2) =
       fun (m: nat {m < 16}) ->
         zetas_2_ (Libcrux_ml_kem.Polynomial.zeta (mk_usize 63 -! mk_usize 2 *! sz m))
@@ -576,14 +580,9 @@ let lemma_layer2_to_poly_step (#vV: Type0) {| iop: T.t_Operations vV |}
         lemma_zeta_eq_vzetas (mk_usize 63 -! mk_usize round);
         assert (v (mk_usize 63 -! mk_usize round) == 63 - round)
       end in
-    Classical.forall_intro aux_zs;
     let aux_pv (m: nat) : Lemma (m < 16 ==>
-        mont_i16_to_spec_array (mk_usize 16) (T.f_repr (Seq.index re_out.VV.f_coefficients m)) ==
-          IN.ntt_inverse_layer_n (mk_usize 16)
-            (mont_i16_to_spec_array (mk_usize 16) (T.f_repr (Seq.index re_in.VV.f_coefficients m)))
-            (mk_usize 4) (Rust_primitives.unsize (pvz m))) =
+        pv_post #vV re_in.VV.f_coefficients re_out.VV.f_coefficients (mk_usize 4) (pvz m) m) =
       if m < 16 then (let i = sz m in assert (v i == m); assert (v i < 16)) in
-    Classical.forall_intro aux_pv;
     let aux_zc (m: nat) (g: nat) : Lemma (m < 16 /\ g < 8 / 4 ==>
         Seq.index (Rust_primitives.unsize (pvz m)) g == Seq.index zs ((8 / 4) * m + g)) =
       if m < 16 && g < 2 then begin
@@ -597,6 +596,8 @@ let lemma_layer2_to_poly_step (#vV: Type0) {| iop: T.t_Operations vV |}
         assert (v (mk_usize 63 -! mk_usize 2 *! sz m) == 63 - 2 * m);
         assert (v (mk_usize 62 -! mk_usize 2 *! sz m) == 62 - 2 * m)
       end in
+    Classical.forall_intro aux_zs;
+    Classical.forall_intro aux_pv;
     Classical.forall_intro_2 aux_zc;
     lemma_intra_vec_layer_to_poly #vV re_in re_out (mk_usize 2) (mk_usize 4) zs pvz
 #pop-options
@@ -605,23 +606,24 @@ let lemma_layer2_to_poly_step (#vV: Type0) {| iop: T.t_Operations vV |}
    Body COMPLETE and verified once (build 6fd5b8eb); smallest context (16 groups, 1 zeta)
    so least cliff-prone, but same createi_lemma e-matching risk.  SMT-ADMITTED for a
    DETERMINISTIC base until the module-wide createi fix (drop the admit + prune). *)
-#push-options "--fuel 0 --ifuel 1 --z3rlimit 300 --admit_smt_queries true"
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 400 --split_queries always"
 let lemma_layer3_to_poly_step (#vV: Type0) {| iop: T.t_Operations vV |}
     (re_in re_out: VV.t_PolynomialRingElement vV)
   : Lemma
     (requires
       (forall (i: usize). v i < 16 ==>
-        mont_i16_to_spec_array (mk_usize 16) (T.f_repr (Seq.index re_out.VV.f_coefficients (v i))) ==
-          IN.ntt_inverse_layer_n (mk_usize 16)
-            (mont_i16_to_spec_array (mk_usize 16) (T.f_repr (Seq.index re_in.VV.f_coefficients (v i))))
-            (mk_usize 8)
-            (Rust_primitives.unsize (zetas_1_ (Libcrux_ml_kem.Polynomial.zeta (mk_usize 31 -! i))))))
+        pv_post #vV re_in.VV.f_coefficients re_out.VV.f_coefficients (mk_usize 8)
+          (zetas_1_ (Libcrux_ml_kem.Polynomial.zeta (mk_usize 31 -! i)))
+          (v i)))
     (ensures poly_step #vV re_in re_out (mk_usize 3))
   = reveal_opaque (`%poly_step) (poly_step #vV re_in re_out (mk_usize 3));
     assert_norm (pow2 3 == 8);
+    assert_norm (8 / v (mk_usize 8) == 1);
+    assert_norm (128 / v (mk_usize 8) == 16);
     let zs : t_Slice P.t_FieldElement =
       Seq.init 16 (fun (r: nat {r < 16}) ->
         mont_i16_to_spec_fe (Libcrux_ml_kem.Polynomial.zeta (mk_usize 31 -! mk_usize r))) in
+    assert (Seq.length zs == 16);
     let pvz : (m: nat {m < 16}) -> t_Array P.t_FieldElement (mk_usize 1) =
       fun (m: nat {m < 16}) -> zetas_1_ (Libcrux_ml_kem.Polynomial.zeta (mk_usize 31 -! sz m)) in
     let aux_zs (round: nat) : Lemma (round < 16 ==>
@@ -633,14 +635,9 @@ let lemma_layer3_to_poly_step (#vV: Type0) {| iop: T.t_Operations vV |}
         lemma_zeta_eq_vzetas (mk_usize 31 -! mk_usize round);
         assert (v (mk_usize 31 -! mk_usize round) == 31 - round)
       end in
-    Classical.forall_intro aux_zs;
     let aux_pv (m: nat) : Lemma (m < 16 ==>
-        mont_i16_to_spec_array (mk_usize 16) (T.f_repr (Seq.index re_out.VV.f_coefficients m)) ==
-          IN.ntt_inverse_layer_n (mk_usize 16)
-            (mont_i16_to_spec_array (mk_usize 16) (T.f_repr (Seq.index re_in.VV.f_coefficients m)))
-            (mk_usize 8) (Rust_primitives.unsize (pvz m))) =
+        pv_post #vV re_in.VV.f_coefficients re_out.VV.f_coefficients (mk_usize 8) (pvz m) m) =
       if m < 16 then (let i = sz m in assert (v i == m); assert (v i < 16)) in
-    Classical.forall_intro aux_pv;
     let aux_zc (m: nat) (g: nat) : Lemma (m < 16 /\ g < 8 / 8 ==>
         Seq.index (Rust_primitives.unsize (pvz m)) g == Seq.index zs ((8 / 8) * m + g)) =
       if m < 16 && g < 1 then begin
@@ -652,6 +649,8 @@ let lemma_layer3_to_poly_step (#vV: Type0) {| iop: T.t_Operations vV |}
         assert (v (mk_usize 31 -! sz m) == 31 - m);
         assert (v (mk_usize 31 -! mk_usize ((8 / 8) * m + g)) == 31 - m)
       end in
+    Classical.forall_intro aux_zs;
+    Classical.forall_intro aux_pv;
     Classical.forall_intro_2 aux_zc;
     lemma_intra_vec_layer_to_poly #vV re_in re_out (mk_usize 3) (mk_usize 8) zs pvz
 #pop-options
@@ -678,3 +677,4 @@ let lemma_compose_7 (#vV: Type0) {| iop: T.t_Operations vV |}
     reveal_opaque (`%poly_step) (poly_step #vV re6 re7 (mk_usize 7));
     lemma_ntt_inverse_butterflies_unfold (to_spec_poly_mont #vV re0)
 #pop-options
+

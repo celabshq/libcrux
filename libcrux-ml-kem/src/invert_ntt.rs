@@ -22,20 +22,14 @@ use crate::vector::traits::spec::{mont_i16_to_spec_array, zetas_1, zetas_2, zeta
     & (*future(zeta_i) == 64)
     & fstar!(r#"
         forall (i: usize). i <. mk_usize 16 ==>
-          ${mont_i16_to_spec_array::<16>} (mk_usize 16)
-            (Libcrux_ml_kem.Vector.Traits.f_repr #$:Vector
-              (Seq.index ${re}_future.f_coefficients (v i))) ==
-          Hacspec_ml_kem.Invert_ntt.ntt_inverse_layer_n (mk_usize 16)
-            (${mont_i16_to_spec_array::<16>} (mk_usize 16)
-              (Libcrux_ml_kem.Vector.Traits.f_repr #$:Vector
-                (Seq.index ${re}.f_coefficients (v i))))
-            (mk_usize 2)
-            (Rust_primitives.unsize
-              (${zetas_4}
-                (Libcrux_ml_kem.Polynomial.zeta (mk_usize 127 -! mk_usize 4 *! i))
-                (Libcrux_ml_kem.Polynomial.zeta (mk_usize 126 -! mk_usize 4 *! i))
-                (Libcrux_ml_kem.Polynomial.zeta (mk_usize 125 -! mk_usize 4 *! i))
-                (Libcrux_ml_kem.Polynomial.zeta (mk_usize 124 -! mk_usize 4 *! i))))
+          Hacspec_ml_kem.Commute.Invert_ntt_bridge.pv_post #$:Vector
+            ${re}.f_coefficients ${re}_future.f_coefficients (mk_usize 2)
+            (${zetas_4}
+              (Libcrux_ml_kem.Polynomial.zeta (mk_usize 127 -! mk_usize 4 *! i))
+              (Libcrux_ml_kem.Polynomial.zeta (mk_usize 126 -! mk_usize 4 *! i))
+              (Libcrux_ml_kem.Polynomial.zeta (mk_usize 125 -! mk_usize 4 *! i))
+              (Libcrux_ml_kem.Polynomial.zeta (mk_usize 124 -! mk_usize 4 *! i)))
+            (v i)
       "#))]
 pub(crate) fn invert_ntt_at_layer_1<Vector: Operations>(
     zeta_i: &mut usize,
@@ -110,20 +104,14 @@ pub(crate) fn invert_ntt_at_layer_1<Vector: Operations>(
     // to lift the impl equation to the spec function-form equation.
     hax_lib::fstar!(r#"
         let aux (j: nat) : Lemma (j < 16 ==>
-            ${mont_i16_to_spec_array::<16>} (mk_usize 16)
-              (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector
-                (Seq.index re.f_coefficients j)) ==
-            Hacspec_ml_kem.Invert_ntt.ntt_inverse_layer_n (mk_usize 16)
-              (${mont_i16_to_spec_array::<16>} (mk_usize 16)
-                (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector
-                  (Seq.index ${_re_init} j)))
-              (mk_usize 2)
-              (Rust_primitives.unsize
-                (${zetas_4}
-                  (Libcrux_ml_kem.Polynomial.zeta (mk_usize 127 -! mk_usize 4 *! sz j))
-                  (Libcrux_ml_kem.Polynomial.zeta (mk_usize 126 -! mk_usize 4 *! sz j))
-                  (Libcrux_ml_kem.Polynomial.zeta (mk_usize 125 -! mk_usize 4 *! sz j))
-                  (Libcrux_ml_kem.Polynomial.zeta (mk_usize 124 -! mk_usize 4 *! sz j)))))
+            Hacspec_ml_kem.Commute.Invert_ntt_bridge.pv_post #v_Vector
+              ${_re_init} re.f_coefficients (mk_usize 2)
+              (${zetas_4}
+                (Libcrux_ml_kem.Polynomial.zeta (mk_usize 127 -! mk_usize 4 *! sz j))
+                (Libcrux_ml_kem.Polynomial.zeta (mk_usize 126 -! mk_usize 4 *! sz j))
+                (Libcrux_ml_kem.Polynomial.zeta (mk_usize 125 -! mk_usize 4 *! sz j))
+                (Libcrux_ml_kem.Polynomial.zeta (mk_usize 124 -! mk_usize 4 *! sz j)))
+              j)
           = if j < 16 then begin
               reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
                 (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque (4 * 3328)
@@ -135,7 +123,15 @@ pub(crate) fn invert_ntt_at_layer_1<Vector: Operations>(
                 (Libcrux_ml_kem.Polynomial.zeta (mk_usize 127 -! mk_usize 4 *! sz j))
                 (Libcrux_ml_kem.Polynomial.zeta (mk_usize 126 -! mk_usize 4 *! sz j))
                 (Libcrux_ml_kem.Polynomial.zeta (mk_usize 125 -! mk_usize 4 *! sz j))
-                (Libcrux_ml_kem.Polynomial.zeta (mk_usize 124 -! mk_usize 4 *! sz j))
+                (Libcrux_ml_kem.Polynomial.zeta (mk_usize 124 -! mk_usize 4 *! sz j));
+              Hacspec_ml_kem.Commute.Invert_ntt_bridge.pv_post_intro #v_Vector
+                ${_re_init} re.f_coefficients (mk_usize 2)
+                (${zetas_4}
+                  (Libcrux_ml_kem.Polynomial.zeta (mk_usize 127 -! mk_usize 4 *! sz j))
+                  (Libcrux_ml_kem.Polynomial.zeta (mk_usize 126 -! mk_usize 4 *! sz j))
+                  (Libcrux_ml_kem.Polynomial.zeta (mk_usize 125 -! mk_usize 4 *! sz j))
+                  (Libcrux_ml_kem.Polynomial.zeta (mk_usize 124 -! mk_usize 4 *! sz j)))
+                j
             end
         in
         Classical.forall_intro aux
@@ -173,18 +169,12 @@ pub(crate) fn invert_ntt_at_layer_1<Vector: Operations>(
     & (*future(zeta_i) == 32)
     & fstar!(r#"
         forall (i: usize). i <. mk_usize 16 ==>
-          ${mont_i16_to_spec_array::<16>} (mk_usize 16)
-            (Libcrux_ml_kem.Vector.Traits.f_repr #$:Vector
-              (Seq.index ${re}_future.f_coefficients (v i))) ==
-          Hacspec_ml_kem.Invert_ntt.ntt_inverse_layer_n (mk_usize 16)
-            (${mont_i16_to_spec_array::<16>} (mk_usize 16)
-              (Libcrux_ml_kem.Vector.Traits.f_repr #$:Vector
-                (Seq.index ${re}.f_coefficients (v i))))
-            (mk_usize 4)
-            (Rust_primitives.unsize
-              (${zetas_2}
-                (Libcrux_ml_kem.Polynomial.zeta (mk_usize 63 -! mk_usize 2 *! i))
-                (Libcrux_ml_kem.Polynomial.zeta (mk_usize 62 -! mk_usize 2 *! i))))
+          Hacspec_ml_kem.Commute.Invert_ntt_bridge.pv_post #$:Vector
+            ${re}.f_coefficients ${re}_future.f_coefficients (mk_usize 4)
+            (${zetas_2}
+              (Libcrux_ml_kem.Polynomial.zeta (mk_usize 63 -! mk_usize 2 *! i))
+              (Libcrux_ml_kem.Polynomial.zeta (mk_usize 62 -! mk_usize 2 *! i)))
+            (v i)
       "#))]
 pub(crate) fn invert_ntt_at_layer_2<Vector: Operations>(
     zeta_i: &mut usize,
@@ -254,18 +244,12 @@ pub(crate) fn invert_ntt_at_layer_2<Vector: Operations>(
     // (already proven in Bridges.fst, commit b7b49c358).
     hax_lib::fstar!(r#"
         let aux (j: nat) : Lemma (j < 16 ==>
-            ${mont_i16_to_spec_array::<16>} (mk_usize 16)
-              (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector
-                (Seq.index re.f_coefficients j)) ==
-            Hacspec_ml_kem.Invert_ntt.ntt_inverse_layer_n (mk_usize 16)
-              (${mont_i16_to_spec_array::<16>} (mk_usize 16)
-                (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector
-                  (Seq.index ${_re_init} j)))
-              (mk_usize 4)
-              (Rust_primitives.unsize
-                (${zetas_2}
-                  (Libcrux_ml_kem.Polynomial.zeta (mk_usize 63 -! mk_usize 2 *! sz j))
-                  (Libcrux_ml_kem.Polynomial.zeta (mk_usize 62 -! mk_usize 2 *! sz j)))))
+            Hacspec_ml_kem.Commute.Invert_ntt_bridge.pv_post #v_Vector
+              ${_re_init} re.f_coefficients (mk_usize 4)
+              (${zetas_2}
+                (Libcrux_ml_kem.Polynomial.zeta (mk_usize 63 -! mk_usize 2 *! sz j))
+                (Libcrux_ml_kem.Polynomial.zeta (mk_usize 62 -! mk_usize 2 *! sz j)))
+              j)
           = if j < 16 then begin
               reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
                 (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque (3328)
@@ -275,7 +259,13 @@ pub(crate) fn invert_ntt_at_layer_2<Vector: Operations>(
                 #v_Vector
                 (Seq.index ${_re_init} j)
                 (Libcrux_ml_kem.Polynomial.zeta (mk_usize 63 -! mk_usize 2 *! sz j))
-                (Libcrux_ml_kem.Polynomial.zeta (mk_usize 62 -! mk_usize 2 *! sz j))
+                (Libcrux_ml_kem.Polynomial.zeta (mk_usize 62 -! mk_usize 2 *! sz j));
+              Hacspec_ml_kem.Commute.Invert_ntt_bridge.pv_post_intro #v_Vector
+                ${_re_init} re.f_coefficients (mk_usize 4)
+                (${zetas_2}
+                  (Libcrux_ml_kem.Polynomial.zeta (mk_usize 63 -! mk_usize 2 *! sz j))
+                  (Libcrux_ml_kem.Polynomial.zeta (mk_usize 62 -! mk_usize 2 *! sz j)))
+                j
             end
         in
         Classical.forall_intro aux
@@ -290,17 +280,11 @@ pub(crate) fn invert_ntt_at_layer_2<Vector: Operations>(
     & (*future(zeta_i) == 16)
     & fstar!(r#"
         forall (i: usize). i <. mk_usize 16 ==>
-          ${mont_i16_to_spec_array::<16>} (mk_usize 16)
-            (Libcrux_ml_kem.Vector.Traits.f_repr #$:Vector
-              (Seq.index ${re}_future.f_coefficients (v i))) ==
-          Hacspec_ml_kem.Invert_ntt.ntt_inverse_layer_n (mk_usize 16)
-            (${mont_i16_to_spec_array::<16>} (mk_usize 16)
-              (Libcrux_ml_kem.Vector.Traits.f_repr #$:Vector
-                (Seq.index ${re}.f_coefficients (v i))))
-            (mk_usize 8)
-            (Rust_primitives.unsize
-              (${zetas_1}
-                (Libcrux_ml_kem.Polynomial.zeta (mk_usize 31 -! i))))
+          Hacspec_ml_kem.Commute.Invert_ntt_bridge.pv_post #$:Vector
+            ${re}.f_coefficients ${re}_future.f_coefficients (mk_usize 8)
+            (${zetas_1}
+              (Libcrux_ml_kem.Polynomial.zeta (mk_usize 31 -! i)))
+            (v i)
       "#))]
 pub(crate) fn invert_ntt_at_layer_3<Vector: Operations>(
     zeta_i: &mut usize,
@@ -369,17 +353,11 @@ pub(crate) fn invert_ntt_at_layer_3<Vector: Operations>(
     // to lift the impl equation to the spec function-form equation.
     hax_lib::fstar!(r#"
         let aux (j: nat) : Lemma (j < 16 ==>
-            ${mont_i16_to_spec_array::<16>} (mk_usize 16)
-              (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector
-                (Seq.index re.f_coefficients j)) ==
-            Hacspec_ml_kem.Invert_ntt.ntt_inverse_layer_n (mk_usize 16)
-              (${mont_i16_to_spec_array::<16>} (mk_usize 16)
-                (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector
-                  (Seq.index ${_re_init} j)))
-              (mk_usize 8)
-              (Rust_primitives.unsize
-                (${zetas_1}
-                  (Libcrux_ml_kem.Polynomial.zeta (mk_usize 31 -! sz j)))))
+            Hacspec_ml_kem.Commute.Invert_ntt_bridge.pv_post #v_Vector
+              ${_re_init} re.f_coefficients (mk_usize 8)
+              (${zetas_1}
+                (Libcrux_ml_kem.Polynomial.zeta (mk_usize 31 -! sz j)))
+              j)
           = if j < 16 then begin
               reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
                 (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque (2 * 3328)
@@ -388,7 +366,12 @@ pub(crate) fn invert_ntt_at_layer_3<Vector: Operations>(
               Hacspec_ml_kem.Commute.Bridges.lemma_inv_ntt_layer_3_step_to_hacspec
                 #v_Vector
                 (Seq.index ${_re_init} j)
-                (Libcrux_ml_kem.Polynomial.zeta (mk_usize 31 -! sz j))
+                (Libcrux_ml_kem.Polynomial.zeta (mk_usize 31 -! sz j));
+              Hacspec_ml_kem.Commute.Invert_ntt_bridge.pv_post_intro #v_Vector
+                ${_re_init} re.f_coefficients (mk_usize 8)
+                (${zetas_1}
+                  (Libcrux_ml_kem.Polynomial.zeta (mk_usize 31 -! sz j)))
+                j
             end
         in
         Classical.forall_intro aux
