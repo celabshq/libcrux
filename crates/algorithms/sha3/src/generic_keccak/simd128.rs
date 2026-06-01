@@ -139,7 +139,13 @@ pub(crate) fn absorb2<const RATE: usize, const DELIM: u8>(
              (v $blocks * v $RATE))
     "#)
 })]
-#[hax_lib::fstar::options("--fuel 0 --ifuel 1 --z3rlimit 400 --split_queries always --using_facts_from '* -Hacspec_sha3.Sponge.squeeze -EquivImplSpec.Keccakf.Generic.extract_lane'")]
+// NOTE: NO `--split_queries always` here (unlike the other squeeze fns).
+// Splitting fragments the loop's shared machine-integer context, so each
+// sub-goal re-derives the `Rust_primitives.Integers` interpretation axioms
+// from scratch — a BoxInt/BoxBool projection cascade (~130k instances) that
+// maxes rlimit. Unsplit, the shared context closes the whole VC in <10
+// rlimit. (The N=4 `squeeze4_blocks` only survives split via a recorded hint.)
+#[hax_lib::fstar::options("--fuel 0 --ifuel 1 --z3rlimit 400 --using_facts_from '* -Hacspec_sha3.Sponge.squeeze -EquivImplSpec.Keccakf.Generic.extract_lane'")]
 fn squeeze2_blocks<const RATE: usize>(
     s: &mut KeccakState<2, _uint64x2_t>,
     out0: &mut [u8],

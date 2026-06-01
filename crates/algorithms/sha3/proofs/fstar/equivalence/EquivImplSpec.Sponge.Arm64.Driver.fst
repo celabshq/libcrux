@@ -39,22 +39,15 @@ module EquivImplSpec.Sponge.Arm64.Driver
        ↓
      lemma_keccak2_arm64  : per-lane keccak2 ≡ scalar keccak
 
-   [lemma_squeeze2_arm64] is ADMITTED ([assume val]) — Arm64 squeeze
-   counterpart of [lemma_squeeze_portable], requiring reasoning over
-   the [fold_range] in [Generic_keccak.Simd128.squeeze2] (whose
-   current Rust-side ensures is bounds-only) plus the per-lane NEON
-   bridges.
-
-   Status of the per-lane NEON bridges [arm64_sc_load_block],
-   [arm64_sc_load_last], [arm64_sc_store_block]: these are now real
-   [let]s in [EquivImplSpec.Sponge.Arm64.fst] (lines 150, 386, 487
-   respectively), NOT admitted.  The remaining open work for
-   [lemma_squeeze2_arm64] is therefore the loop-shape part: porting
-   the Portable squeeze closure pattern (push the lockstep induction
-   into [squeeze2]'s Rust-side ensures, then reconcile via a one-line
-   driver wrapper) to N=2.  See [EquivImplSpec.Sponge.Arm64.Steps.
-   lemma_squeeze_one_step_arm64] (already proved) for the per-lane
-   per-iteration step lemma that supports the closure.
+   [lemma_squeeze2_arm64] is now PROVEN (no admit): it reads lane [l]
+   off [Generic_keccak.Simd128.squeeze2]'s strong per-lane functional
+   post via [match l].  Under hax-lib 0.3.7 the key is the facts filter
+   `-Libcrux_sha3.Generic_keccak.Simd128.squeeze2_blocks` (plus -squeeze
+   / -extract_lane): it stops F* unfolding squeeze2's loop body and forces
+   use of squeeze2's opaque post atomically — 2.9 rlimit instead of a
+   ground-explosion cascade.  The per-lane NEON bridges
+   [arm64_sc_load_block]/[arm64_sc_load_last]/[arm64_sc_store_block] are
+   real [let]s in [EquivImplSpec.Sponge.Arm64.fst], also NOT admitted.
    ================================================================ *)
 
 #set-options "--fuel 0 --ifuel 1 --z3rlimit 100"
@@ -108,7 +101,7 @@ let lemma_absorb2_arm64
     [s], running [squeeze2] yields output slices whose lane-[l]
     component equals [Hacspec_sha3.Sponge.squeeze] applied to
     [extract_lane s l]. *)
-#push-options "--admit_smt_queries true" (* TEMP diagnostic admit — UNDO *)
+#push-options "--z3rlimit 400 --using_facts_from '* -Hacspec_sha3.Sponge.squeeze -EquivImplSpec.Keccakf.Generic.extract_lane -Libcrux_sha3.Generic_keccak.Simd128.squeeze2_blocks'"
 let lemma_squeeze2_arm64
       (rate: usize)
       (s: Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 2) I.t_e_uint64x2_t)
@@ -132,8 +125,13 @@ let lemma_squeeze2_arm64
            rate
          <: t_Slice u8)))
   = let _ = Libcrux_sha3.Generic_keccak.Simd128.squeeze2 rate s out0 out1 in
-    ()
-#pop-options (* end TEMP diagnostic admit *)
+    (* squeeze2's post gives out0'/out1' == squeeze(extract_lane s 0/1); pick the
+       concrete lane so the if-ladder collapses to the matching conjunct (the
+       symbolic `if l=0` forced a case split that cascaded hint-free). *)
+    (match l with
+     | 0 -> ()
+     | _ -> ())
+#pop-options
 
 (* ================================================================
    lemma_keccak2_arm64 = lemma_absorb2_arm64 ; lemma_squeeze2_arm64.
