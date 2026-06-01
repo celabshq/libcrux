@@ -54,22 +54,22 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 |            | **Portable total** | **12** | **118** | **5** |     | **10** | **37** | **38** |  **28** |
 |            |                   |      |     |     |     |     |      |        |         |
 | _Avx2_     | vector_type       |    1 |   3 |   0 |     |   3 |    0 |      0 |       0 |
-|            | arithmetic        |    1 |  14 |   2 |     |   0 |    4 |      1 |       7 |
+|            | arithmetic        |    1 |  14 |   0 |     |   2 |    4 |      1 |       7 |
 |            | ntt               |    1 |  12 |   0 |     |   5 |    7 |      0 |       0 |
-|            | invntt            |    1 |  17 |   2 |     |   2 |   13 |      0 |       0 |
+|            | invntt            |    1 |  17 |   0 |     |   4 |   13 |      0 |       0 |
 |            | rejection_sample  |    4 |   7 |   3 |     |   4 |    0 |      0 |       0 |
 |            | encoding          |    6 |  26 |   7 |     |   2 |   17 |      0 |       0 |
 |            | simd (top)        |    1 |  38 |   7 |     |   1 |   12 |      2 |      16 |
-|            | **Avx2 total**    | **15** | **117** | **21** |     | **17** | **53** |  **3** |  **23** |
+|            | **Avx2 total**    | **15** | **117** | **17** |     | **21** | **53** |  **3** |  **23** |
 
 ## Summary
 
 - **Total modules**: 58
 - **Total functions**: 593
-- **Lax** (admitted): 51 (8.6%)
+- **Lax** (admitted): 47 (7.9%)
 - **Unverified** (not extracted): 6 (1.0%)
-- **Panic-safe** (PF + Math + Bounds + Hacspec): 536 (90.4%)
-  - Panic-free only (no further proof): 278 (46.9%)
+- **Panic-safe** (PF + Math + Bounds + Hacspec): 540 (91.1%)
+  - Panic-free only (no further proof): 282 (47.6%)
   - Math (non-trivial ensures, no bounds/spec match): 131 (22.1%)
   - Bounds (range/interval ensures): 66 (11.1%)
   - Hacspec (cites high-level spec): 61 (10.3%)
@@ -80,7 +80,7 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 | ------------ | ------- | ---- | --- | --- | --- | ---- | ------ | ------- |
 | Generic      |      31 |  358 |  25 |   6 | 251 |   41 |     25 |      10 |
 | Portable     |      12 |  118 |   5 |   0 |  10 |   37 |     38 |      28 |
-| Avx2         |      15 |  117 |  21 |   0 |  17 |   53 |      3 |      23 |
+| Avx2         |      15 |  117 |  17 |   0 |  21 |   53 |      3 |      23 |
 
 ## Unverified Rust modules (not extracted to F\*)
 

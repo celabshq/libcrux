@@ -5,11 +5,11 @@ use libcrux_intrinsics::avx2::*;
 
 #[inline(always)]
 #[allow(unsafe_code)]
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::fstar::verification_status(panic_free)]
 pub(crate) fn invert_ntt_montgomery(re: &mut AVX2RingElement) {
     #[cfg_attr(not(hax), target_feature(enable = "avx2"))]
     #[allow(unsafe_code)]
-    #[hax_lib::fstar::verification_status(lax)]
+    #[hax_lib::fstar::verification_status(panic_free)]
     unsafe fn inv_inner(re: &mut AVX2RingElement) {
         invert_ntt_at_layer_0(re);
         invert_ntt_at_layer_1(re);
