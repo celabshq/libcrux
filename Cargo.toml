@@ -177,7 +177,10 @@ digest = []
 kem = []
 
 # Protocols
-all_protocols = ["hpke", "psq"]
+# `hpke` disabled for the hax-lib 0.3.7 migration: hpke-rs depends on a crates.io
+# `libcrux` pinned to hax-lib 0.3.6, which conflicts with the workspace 0.3.7 pin.
+# Re-add "hpke" once hpke-rs supports hax-lib 0.3.7.
+all_protocols = ["psq"]
 hpke = []
 psq = []
 
@@ -188,7 +191,9 @@ getrandom = { version = "0.3", optional = true }
 hax-lib.workspace = true
 
 # External Cryspen code.
-# TEMP 0.3.7 migration (drop crates.io libcrux pinned to hax 0.3.6): hpke-rs = { version = "0.5", features = ["libcrux"] }
+# Disabled for the hax-lib 0.3.7 migration (pulls a crates.io `libcrux` pinned to
+# hax-lib 0.3.6, conflicting with the 0.3.7 pin). Restore when hpke-rs is on 0.3.7.
+# hpke-rs = { version = "0.5", features = ["libcrux"] }
 
 # Primitives
 libcrux-aead.workspace = true
