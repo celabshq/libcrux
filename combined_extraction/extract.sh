@@ -36,7 +36,7 @@ eurydice_glue=1
 karamel_include=1
 unrolling=16
 format=1
-cpp17=-fc++17-compat
+cpp17=
 
 # Parse command line arguments.
 all_args=("$@")
