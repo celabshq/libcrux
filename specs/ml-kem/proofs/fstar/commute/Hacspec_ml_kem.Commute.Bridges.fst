@@ -80,9 +80,7 @@ let lemma_ntt_inverse_layer_n_16_2_lane
 
 (*** Phase 7b — Forward NTT layer 1 hacspec bridge ***)
 
-#restart-solver
-
-#push-options "--z3rlimit 400 --fuel 0 --ifuel 1"
+#push-options "--z3rlimit 800 --fuel 0 --ifuel 1 --z3refresh"
 
 (* Per-lane bridge for `f_ntt_layer_1_step`: produces the per-lane FE
    equation `out_fe.[i] == rhs.[i]` from the trait branch post and the
@@ -141,7 +139,7 @@ let lemma_ntt_layer_1_step_lane_bridge
       mont_array_lane in_arr (sz (i - 2))
     end
 
-#pop-options
+#pop-options 
 
 #push-options "--z3rlimit 400 --fuel 0 --ifuel 1"
 
@@ -237,7 +235,7 @@ let lemma_inv_ntt_layer_1_step_lane_bridge
       mont_array_lane in_arr (sz (i - 2))
     end
 
-#pop-options
+#pop-options 
 
 #push-options "--z3rlimit 400 --fuel 0 --ifuel 1"
 
@@ -343,7 +341,7 @@ let lemma_ntt_inverse_layer_n_16_8_lane
       (sz i)
 #pop-options
 
-#push-options "--z3rlimit 400 --fuel 0 --ifuel 1"
+#push-options "--z3rlimit 800 --fuel 0 --ifuel 1 --z3refresh"
 
 (* Per-lane bridge for `f_inv_ntt_layer_3_step`: produces the per-lane FE
    equation `out_fe.[i] == rhs.[i]` from the trait branch post and the

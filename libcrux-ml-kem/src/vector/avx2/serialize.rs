@@ -460,7 +460,7 @@ fn mm256_si256_from_two_si128(lower: Vec128, upper: Vec128) -> Vec256 {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--ext context_pruning --split_queries always --z3rlimit 400")]
+#[hax_lib::fstar::options("--ext context_pruning --split_queries always --z3rlimit 800 --z3refresh")]
 #[hax_lib::requires(fstar!(r#"Seq.length bytes == 10"#))]
 #[hax_lib::ensures(|result| fstar!(r#"forall (i: nat{i < 256}).
   $result i = (if i % 16 >= 5 then 0

@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-hax-lib = { git = "https://github.com/cryspen/hax" }
+hax-lib = { git = "https://github.com/cryspen/hax", tag = "cargo-hax-v0.3.7" }
 
 [dev-dependencies]
 hex = "0.4.3"
