@@ -38,11 +38,11 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 |            | hash_functions    |    1 |  79 |   0 |     |  69 |   10 |      0 |       0 |
 |            | encoding          |    6 |  46 |   1 |     |  35 |    7 |      3 |       0 |
 |            | ml_dsa_generic    |    4 |  41 |  10 |     |  31 |    0 |      0 |       0 |
-|            | ml_dsa_*          |    3 |  46 |  46 |     |   0 |    0 |      0 |       0 |
+|            | ml_dsa_*          |    3 |  46 |   0 |     |  46 |    0 |      0 |       0 |
 |            | simd (top)        |    1 |   0 |   0 |     |   0 |    0 |      0 |       0 |
 |            | simd/traits       |    2 |  33 |   0 |     |   6 |   15 |      4 |       8 |
 |            | simd/tests        |    1 |   6 |   0 |   6 |   0 |    0 |      0 |       0 |
-|            | **Generic total** | **31** | **358** | **71** | **6** | **205** | **41** | **25** |  **10** |
+|            | **Generic total** | **31** | **358** | **25** | **6** | **251** | **41** | **25** |  **10** |
 |            |                   |      |     |     |     |     |      |        |         |
 | _Portable_ | vector_type       |    1 |   3 |   0 |     |   3 |    0 |      0 |       0 |
 |            | arithmetic        |    1 |  21 |   0 |     |   2 |    3 |      1 |      15 |
@@ -66,10 +66,10 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 
 - **Total modules**: 58
 - **Total functions**: 593
-- **Lax** (admitted): 97 (16.4%)
+- **Lax** (admitted): 51 (8.6%)
 - **Unverified** (not extracted): 6 (1.0%)
-- **Panic-safe** (PF + Math + Bounds + Hacspec): 490 (82.6%)
-  - Panic-free only (no further proof): 232 (39.1%)
+- **Panic-safe** (PF + Math + Bounds + Hacspec): 536 (90.4%)
+  - Panic-free only (no further proof): 278 (46.9%)
   - Math (non-trivial ensures, no bounds/spec match): 131 (22.1%)
   - Bounds (range/interval ensures): 66 (11.1%)
   - Hacspec (cites high-level spec): 61 (10.3%)
@@ -78,7 +78,7 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 
 | Category     | Modules |  Fns | Lax | Unv |  PF | Math | Bounds | Hacspec |
 | ------------ | ------- | ---- | --- | --- | --- | ---- | ------ | ------- |
-| Generic      |      31 |  358 |  71 |   6 | 205 |   41 |     25 |      10 |
+| Generic      |      31 |  358 |  25 |   6 | 251 |   41 |     25 |      10 |
 | Portable     |      12 |  118 |   5 |   0 |  10 |   37 |     38 |      28 |
 | Avx2         |      15 |  117 |  21 |   0 |  17 |   53 |      3 |      23 |
 
@@ -108,12 +108,12 @@ Functions classified as lax due to `admit ()` (or `--admit_smt_queries true`) in
 | Generic/ml_dsa_generic    |   220 |
 | Generic/ml_dsa_generic    |   450 |
 | Generic/ml_dsa_generic    |   573 |
-| Generic/ml_dsa_generic    |   610 |
-| Generic/ml_dsa_generic    |   654 |
-| Generic/ml_dsa_generic    |   704 |
-| Generic/ml_dsa_generic    |   753 |
-| Generic/ml_dsa_generic    |   780 |
-| Generic/ml_dsa_generic    |   832 |
+| Generic/ml_dsa_generic    |   611 |
+| Generic/ml_dsa_generic    |   655 |
+| Generic/ml_dsa_generic    |   705 |
+| Generic/ml_dsa_generic    |   754 |
+| Generic/ml_dsa_generic    |   782 |
+| Generic/ml_dsa_generic    |   834 |
 | Portable/simd (top)       |   532 |
 | Portable/simd (top)       |   544 |
 | Portable/simd (top)       |   556 |

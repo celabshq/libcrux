@@ -11,32 +11,19 @@ SLOW_MODULES +=
 # Goal: drive this list to zero.
 
 # =====================================================================
-# User-facing per-parameter-set API wrappers (12)
+# User-facing per-parameter-set API wrappers — ALL un-laxed (2026-06-01)
 # =====================================================================
-# Public entry points (`generate_key_pair`, `sign`, `verify`).  They
-# thread through the verified core via `Ml_dsa_generic.*` (which IS
-# verified).  Closing them requires top-level functional-correctness
-# specs that don't exist yet.  Stretch goal for a future sprint.
-ADMIT_MODULES = \
-	Libcrux_ml_dsa.Ml_dsa_44_.fst \
-	Libcrux_ml_dsa.Ml_dsa_44_.Avx2.fst \
-	Libcrux_ml_dsa.Ml_dsa_44_.Neon.fst \
-	Libcrux_ml_dsa.Ml_dsa_44_.Portable.fst \
-	Libcrux_ml_dsa.Ml_dsa_65_.fst \
-	Libcrux_ml_dsa.Ml_dsa_65_.Avx2.fst \
-	Libcrux_ml_dsa.Ml_dsa_65_.Neon.fst \
-	Libcrux_ml_dsa.Ml_dsa_65_.Portable.fst \
-	Libcrux_ml_dsa.Ml_dsa_87_.fst \
-	Libcrux_ml_dsa.Ml_dsa_87_.Avx2.fst \
-	Libcrux_ml_dsa.Ml_dsa_87_.Neon.fst \
-	Libcrux_ml_dsa.Ml_dsa_87_.Portable.fst
+# Public entry points (`generate_key_pair`, `sign`, `verify`) for
+# ml_dsa_44/65/87.  All 12 modules now verify (panic-free tier): the
+# pre-hashed path required a length-preservation postcondition threaded
+# through multiplexing -> instantiations -> generic (admitted core).
 
 # =====================================================================
 # X4-parallel matrix sampling dispatchers (4)
 # =====================================================================
 # Requires trait-method panic-freedom on the underlying X4 Xof hash
 # functions.  Tracked as Session D in `proofs/post-merge-handoff.md`.
-ADMIT_MODULES += \
+ADMIT_MODULES = \
 	Libcrux_ml_dsa.Samplex4.fst \
 	Libcrux_ml_dsa.Samplex4.Avx2.fst \
 	Libcrux_ml_dsa.Samplex4.Neon.fst \

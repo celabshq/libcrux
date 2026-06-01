@@ -607,6 +607,7 @@ pub(crate) mod generic {
     }
 
     #[inline(always)]
+    #[cfg_attr(hax, hax_lib::ensures(|_| future(pre_hash_buffer).len() == pre_hash_buffer.len()))]
     pub(crate) fn sign_pre_hashed<
         SIMDUnit: Operations,
         Sampler: X4Sampler,
@@ -777,6 +778,7 @@ pub(crate) mod generic {
     }
 
     #[inline(always)]
+    #[cfg_attr(hax, hax_lib::ensures(|_| future(pre_hash_buffer).len() == pre_hash_buffer.len()))]
     pub(crate) fn verify_pre_hashed<
         SIMDUnit: Operations,
         Sampler: X4Sampler,
