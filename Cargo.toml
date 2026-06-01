@@ -87,7 +87,7 @@ readme = "Readme.md"
 allow-branch = ["main"]
 
 [workspace.dependencies]
-hax-lib = { git = "https://github.com/cryspen/hax", branch = "integer-lemmas" }
+hax-lib = { git = "https://github.com/cryspen/hax", tag = "cargo-hax-v0.3.7" }
 libcrux-aead = { version = "=0.0.7", path = "crates/primitives/aead" }
 libcrux-aesgcm = { version = "=0.0.7", path = "crates/algorithms/aesgcm" }
 libcrux-blake2 = { version = "=0.0.6", path = "crates/algorithms/blake2" }
@@ -188,7 +188,7 @@ getrandom = { version = "0.3", optional = true }
 hax-lib.workspace = true
 
 # External Cryspen code.
-hpke-rs = { version = "0.5", features = ["libcrux"] }
+# TEMP 0.3.7 migration (drop crates.io libcrux pinned to hax 0.3.6): hpke-rs = { version = "0.5", features = ["libcrux"] }
 
 # Primitives
 libcrux-aead.workspace = true
@@ -245,7 +245,7 @@ strip = true
 # opt-level = 1
 
 [patch.crates-io]
-hax-lib = { git = "https://github.com/cryspen/hax", branch = "integer-lemmas" }
+hax-lib = { git = "https://github.com/cryspen/hax", tag = "cargo-hax-v0.3.7" }
 #hax-lib = { git = "https://github.com/cryspen/hax" }
 
 [lints.rust]

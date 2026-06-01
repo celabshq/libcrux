@@ -5,7 +5,7 @@ use hax_lib::int::ToInt;
 use hax_lib::prop::*;
 
 #[cfg(hax)]
-use crate::proof_utils::valid_rate;
+use crate::proof_utils::{modifies_range, valid_rate};
 
 use libcrux_intrinsics::arm64::*;
 
@@ -13,6 +13,32 @@ use crate::generic_keccak::KeccakState;
 use crate::traits::{get_ij, Squeeze2};
 
 use super::wrappers::uint64x2_t;
+
+/// `stored s out start lane lo hi`: every byte index `k` in the
+/// half-open range `[lo, hi)` of `out` holds the correct squeezed
+/// output byte — byte `(k-start) % 8` of the little-endian encoding of
+/// lane `lane` of state word `s[(k-start)/8]`. Opaque so the squeeze
+/// loop/composer (`squeeze2_blocks`, `lemma_squeeze_*_driver_arm64`)
+/// carry it as an atom and never unfold the per-byte `forall`; revealed
+/// only at the byte-eq consumer (`lemma_sq_lane_arm64_eq_squeeze_state`).
+/// Arm64 (N=2) analog of `Simd.Avx2.Store.stored`.
+#[cfg(hax)]
+#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
+pub(crate) fn stored(
+    s: &[uint64x2_t; 25],
+    out: &[u8],
+    start: usize,
+    lane: usize,
+    lo: usize,
+    hi: usize,
+) -> hax_lib::Prop {
+    hax_lib::forall(|k: usize| {
+        hax_lib::implies(
+            lane < 2 && start <= k && lo <= k && k < hi && k < out.len() && (k - start) / 8 < 25,
+            out[k] == get_lane_u64(s[(k - start) / 8], lane).to_le_bytes()[(k - start) % 8],
+        )
+    })
+}
 
 /// Per-iteration store wrapper for the `store_block` loop body.
 ///
@@ -615,28 +641,10 @@ fn store_block_tail(
 #[hax_lib::requires(valid_rate(RATE) && len <= RATE && start.to_int() + len.to_int() <= out0.len().to_int() && out0.len() == out1.len())]
 #[hax_lib::ensures(|_| (future(out0).len() == out0.len()).to_prop()
     & (future(out1).len() == out1.len()).to_prop()
-    & hax_lib::forall(|i: usize| if i < out0.len() {
-        if i < start {
-            out0[i] == future(out0)[i]
-        } else if i < start + len {
-            future(out0)[i] == get_lane_u64(s[(i - start) / 8], 0).to_le_bytes()[(i - start) % 8]
-        } else {
-            out0[i] == future(out0)[i]
-        }
-    } else {
-        true
-    })
-    & hax_lib::forall(|i: usize| if i < out1.len() {
-        if i < start {
-            out1[i] == future(out1)[i]
-        } else if i < start + len {
-            future(out1)[i] == get_lane_u64(s[(i - start) / 8], 1).to_le_bytes()[(i - start) % 8]
-        } else {
-            out1[i] == future(out1)[i]
-        }
-    } else {
-        true
-    })
+    & modifies_range(out0, future(out0), start, start + len)
+    & modifies_range(out1, future(out1), start, start + len)
+    & stored(s, future(out0), start, 0, start, start + len)
+    & stored(s, future(out1), start, 1, start, start + len)
 )]
 pub(crate) fn store_block<const RATE: usize>(
     s: &[uint64x2_t; 25],
@@ -668,6 +676,16 @@ pub(crate) fn store_block<const RATE: usize>(
     );
     store_block_full(s, out0, out1, start, q);
     store_block_tail(s, out0, out1, start, q, remaining);
+    // Package the per-byte facts (proved as raw `forall`s by the two
+    // callees, which carry the unchanged-outside clauses so they compose
+    // over [start, start+len)) into the opaque `stored` / `modifies_range`
+    // post.  Same obligation as the old raw-forall ensures, just wrapped —
+    // revealing lets F* discharge the opaque goal from the callee facts.
+    hax_lib::fstar!(
+        r#"reveal_opaque (`%stored) stored;
+           reveal_opaque (`%Libcrux_sha3.Proof_utils.modifies_range)
+             Libcrux_sha3.Proof_utils.modifies_range"#
+    );
 }
 
 #[hax_lib::attributes]

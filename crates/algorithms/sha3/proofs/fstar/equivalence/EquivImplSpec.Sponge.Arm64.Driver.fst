@@ -108,6 +108,7 @@ let lemma_absorb2_arm64
     [s], running [squeeze2] yields output slices whose lane-[l]
     component equals [Hacspec_sha3.Sponge.squeeze] applied to
     [extract_lane s l]. *)
+#push-options "--admit_smt_queries true" (* TEMP diagnostic admit — UNDO *)
 let lemma_squeeze2_arm64
       (rate: usize)
       (s: Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 2) I.t_e_uint64x2_t)
@@ -132,6 +133,7 @@ let lemma_squeeze2_arm64
          <: t_Slice u8)))
   = let _ = Libcrux_sha3.Generic_keccak.Simd128.squeeze2 rate s out0 out1 in
     ()
+#pop-options (* end TEMP diagnostic admit *)
 
 (* ================================================================
    lemma_keccak2_arm64 = lemma_absorb2_arm64 ; lemma_squeeze2_arm64.

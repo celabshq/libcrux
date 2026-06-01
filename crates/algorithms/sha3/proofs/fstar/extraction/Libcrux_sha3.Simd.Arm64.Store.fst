@@ -10,6 +10,48 @@ let _ =
   let open Libcrux_sha3.Traits in
   ()
 
+[@@ "opaque_to_smt"]
+
+/// `stored s out start lane lo hi`: every byte index `k` in the
+/// half-open range `[lo, hi)` of `out` holds the correct squeezed
+/// output byte — byte `(k-start) % 8` of the little-endian encoding of
+/// lane `lane` of state word `s[(k-start)/8]`. Opaque so the squeeze
+/// loop/composer (`squeeze2_blocks`, `lemma_squeeze_*_driver_arm64`)
+/// carry it as an atom and never unfold the per-byte `forall`; revealed
+/// only at the byte-eq consumer (`lemma_sq_lane_arm64_eq_squeeze_state`).
+/// Arm64 (N=2) analog of `Simd.Avx2.Store.stored`.
+let stored
+      (s: t_Array Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t (mk_usize 25))
+      (out: t_Slice u8)
+      (start lane lo hi: usize)
+    : Hax_lib.Prop.t_Prop =
+  forall (k: usize).
+    b2t
+    ((lane <. mk_usize 2 <: bool) && (start <=. k <: bool) && (lo <=. k <: bool) &&
+      (k <. hi <: bool) &&
+      (k <. (Core_models.Slice.impl__len #u8 out <: usize) <: bool) &&
+      (((k -! start <: usize) /! mk_usize 8 <: usize) <. mk_usize 25 <: bool)) ==>
+    b2t
+    ((out.[ k ] <: u8) =.
+      ((Core_models.Num.impl_u64__to_le_bytes (Libcrux_intrinsics.Arm64_extract.get_lane_u64 (s.[ (k -!
+                      start
+                      <:
+                      usize) /!
+                    mk_usize 8
+                    <:
+                    usize ]
+                  <:
+                  Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t)
+                lane
+              <:
+              u64)
+          <:
+          t_Array u8 (mk_usize 8)).[ (k -! start <: usize) %! mk_usize 8 <: usize ]
+        <:
+        u8)
+      <:
+      bool)
+
 #push-options "--z3rlimit 400 --split_queries always"
 
 /// Per-iteration store wrapper for the `store_block` loop body.
@@ -1231,56 +1273,10 @@ let store_block
             (Core_models.Slice.impl__len #u8 out1 <: usize)
             <:
             bool) /\
-          (forall (i: usize).
-              b2t
-              (if i <. (Core_models.Slice.impl__len #u8 out0 <: usize) <: bool
-                then
-                  if i <. start <: bool
-                  then (out0.[ i ] <: u8) =. (out0_future.[ i ] <: u8) <: bool
-                  else
-                    if i <. (start +! len <: usize) <: bool
-                    then
-                      (out0_future.[ i ] <: u8) =.
-                      ((Core_models.Num.impl_u64__to_le_bytes (Libcrux_intrinsics.Arm64_extract.get_lane_u64
-                                (s.[ (i -! start <: usize) /! mk_usize 8 <: usize ]
-                                  <:
-                                  Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t)
-                                (mk_usize 0)
-                              <:
-                              u64)
-                          <:
-                          t_Array u8 (mk_usize 8)).[ (i -! start <: usize) %! mk_usize 8 <: usize ]
-                        <:
-                        u8)
-                      <:
-                      bool
-                    else (out0.[ i ] <: u8) =. (out0_future.[ i ] <: u8) <: bool
-                else true)) /\
-          (forall (i: usize).
-              b2t
-              (if i <. (Core_models.Slice.impl__len #u8 out1 <: usize) <: bool
-                then
-                  if i <. start <: bool
-                  then (out1.[ i ] <: u8) =. (out1_future.[ i ] <: u8) <: bool
-                  else
-                    if i <. (start +! len <: usize) <: bool
-                    then
-                      (out1_future.[ i ] <: u8) =.
-                      ((Core_models.Num.impl_u64__to_le_bytes (Libcrux_intrinsics.Arm64_extract.get_lane_u64
-                                (s.[ (i -! start <: usize) /! mk_usize 8 <: usize ]
-                                  <:
-                                  Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t)
-                                (mk_usize 1)
-                              <:
-                              u64)
-                          <:
-                          t_Array u8 (mk_usize 8)).[ (i -! start <: usize) %! mk_usize 8 <: usize ]
-                        <:
-                        u8)
-                      <:
-                      bool
-                    else (out1.[ i ] <: u8) =. (out1_future.[ i ] <: u8) <: bool
-                else true))) =
+          Libcrux_sha3.Proof_utils.modifies_range out0 out0_future start (start +! len <: usize) /\
+          Libcrux_sha3.Proof_utils.modifies_range out1 out1_future start (start +! len <: usize) /\
+          stored s out0_future start (mk_usize 0) start (start +! len <: usize) /\
+          stored s out1_future start (mk_usize 1) start (start +! len <: usize)) =
   let _:Prims.unit =
     if true
     then
@@ -1315,6 +1311,11 @@ let store_block
   let out0:t_Slice u8 = tmp0 in
   let out1:t_Slice u8 = tmp1 in
   let _:Prims.unit = () in
+  let _:Prims.unit =
+    reveal_opaque (`%stored) stored;
+    reveal_opaque (`%Libcrux_sha3.Proof_utils.modifies_range)
+      Libcrux_sha3.Proof_utils.modifies_range
+  in
   out0, out1 <: (t_Slice u8 & t_Slice u8)
 
 #pop-options
