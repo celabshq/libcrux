@@ -1325,7 +1325,12 @@ pub(crate) fn invert_ntt_at_layer_4_plus<Vector: Operations>(
 // being correct, since runtime tests in `src/ntt.rs`
 // (`ntt_matches_spec`, `full_ntt_multiply_chain_matches_spec`)
 // confirm the spec relationship empirically.
-#[hax_lib::fstar::verification_status(panic_free)]
+// USER-15: body fully verified (no panic_free admit).  The 7 per-layer
+// `poly_step` atoms are composed into the polynomial-level butterflies
+// equality via the `Invert_ntt_bridge` lemmas below; `lemma_compose_7`
+// discharges the functional post.  (The layer-1..3 bridges are themselves
+// SMT-admitted inside `Invert_ntt_bridge` pending the createi cascade fix,
+// USER-15 job B — but the driver here proves its ensures admit-free.)
 #[hax_lib::fstar::options("--z3rlimit 200 --ext context_pruning --split_queries always")]
 #[hax_lib::requires((K <= 4).to_prop() & (spec::is_bounded_poly(K * 3328, re)))]
 #[hax_lib::ensures(|result| spec::is_bounded_poly(3328, future(re))
@@ -1345,22 +1350,76 @@ pub(crate) fn invert_ntt_montgomery<const K: usize, Vector: Operations>(
     #[cfg(hax)]
     spec::is_bounded_poly_higher(re, K * 3328, 4 * 3328);
 
+    // USER-15: ghost-only (cfg(hax)) per-layer SSA snapshots so the bridge
+    // lemmas below can name re0..re7.  No executable-code change.
+    #[cfg(hax)]
+    let re0 = *re;
+
     let mut zeta_i = super::constants::COEFFICIENTS_IN_RING_ELEMENT / 2;
 
     invert_ntt_at_layer_1(&mut zeta_i, re);
+    #[cfg(hax)]
+    let re1 = *re;
+    // layer 1 raw 16-vector post ==> poly_step #1 (createi bridge, job B).
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step #$:Vector ${re0} ${re1}"#
+    );
+
     invert_ntt_at_layer_2(&mut zeta_i, re);
+    #[cfg(hax)]
+    let re2 = *re;
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step #$:Vector ${re1} ${re2}"#
+    );
+
     invert_ntt_at_layer_3(&mut zeta_i, re);
+    #[cfg(hax)]
+    let re3 = *re;
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step #$:Vector ${re2} ${re3}"#
+    );
+
     // Layer 3's ensures gives 4*3328 directly; layer_4_plus needs 4*3328.
     invert_ntt_at_layer_4_plus(&mut zeta_i, re, 4);
+    #[cfg(hax)]
+    let re4 = *re;
+    // layers 4-7: the function post ALREADY cites the poly-level
+    // ntt_inverse_layer, so poly_step intro is the trivial reveal.
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_poly_step_intro #$:Vector ${re3} ${re4} (mk_usize 4)"#
+    );
     // Layer 4_plus's ensures is the tight 3328; widen to 4*3328 for the
     // next call (uniform 4*3328 precondition keeps one signature).
     #[cfg(hax)]
     spec::is_bounded_poly_higher(re, 3328, 4 * 3328);
+
     invert_ntt_at_layer_4_plus(&mut zeta_i, re, 5);
     #[cfg(hax)]
-    spec::is_bounded_poly_higher(re, 3328, 4 * 3328);
-    invert_ntt_at_layer_4_plus(&mut zeta_i, re, 6);
+    let re5 = *re;
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_poly_step_intro #$:Vector ${re4} ${re5} (mk_usize 5)"#
+    );
     #[cfg(hax)]
     spec::is_bounded_poly_higher(re, 3328, 4 * 3328);
+
+    invert_ntt_at_layer_4_plus(&mut zeta_i, re, 6);
+    #[cfg(hax)]
+    let re6 = *re;
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_poly_step_intro #$:Vector ${re5} ${re6} (mk_usize 6)"#
+    );
+    #[cfg(hax)]
+    spec::is_bounded_poly_higher(re, 3328, 4 * 3328);
+
     invert_ntt_at_layer_4_plus(&mut zeta_i, re, 7);
+    #[cfg(hax)]
+    let re7 = *re;
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_poly_step_intro #$:Vector ${re6} ${re7} (mk_usize 7)"#
+    );
+
+    // compose the 7 poly_step atoms into the butterflies equality (driver post).
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_compose_7 #$:Vector ${re0} ${re1} ${re2} ${re3} ${re4} ${re5} ${re6} ${re7}"#
+    );
 }
