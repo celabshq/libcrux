@@ -4,11 +4,11 @@
  * SPDX-License-Identifier: MIT or Apache-2.0
  *
  * This code was generated with the following revisions:
- * Charon: 377317d6b25702c46ffff072fa00a3e32095e46f
- * Eurydice: b227478b67c6a6e2ff611f978f10d6b7f26472ac
- * Karamel: 4e64d915da3c172d1dfad805b8e1a46beff938bc
- * F*: 32dcc97722b61224e0e9c5b447ca72c4cd9ffcf9
- * Libcrux: db8f44d124d91d4c2406ee47c321ed556b38aa93
+ * Charon: e656e17bff6ca5efac8ab6919b9b74cb9a8dd8ad
+ * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
+ * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
+ * F*: unset
+ * Libcrux: ae092f4921933e45dec31610a1465191171e5b3f
  */
 
 #ifndef libcrux_mlkem768_H
@@ -69,9 +69,9 @@ extern "C" {
   (LIBCRUX_ML_KEM_CONSTANTS_SHARED_SECRET_SIZE +                   \
    LIBCRUX_ML_KEM_MLKEM768_CPA_PKE_CIPHERTEXT_SIZE)
 
-typedef Eurydice_arr_ea libcrux_ml_kem_mlkem768_MlKem768PrivateKey;
+typedef Eurydice_arr_7d libcrux_ml_kem_mlkem768_MlKem768PrivateKey;
 
-typedef Eurydice_arr_74 libcrux_ml_kem_mlkem768_MlKem768PublicKey;
+typedef Eurydice_arr_5f libcrux_ml_kem_mlkem768_MlKem768PublicKey;
 
 #define LIBCRUX_ML_KEM_MLKEM768_RANKED_BYTES_PER_RING_ELEMENT \
   (LIBCRUX_ML_KEM_MLKEM768_RANK *                             \

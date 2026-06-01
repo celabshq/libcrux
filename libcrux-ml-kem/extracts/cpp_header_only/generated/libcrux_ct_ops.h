@@ -4,11 +4,11 @@
  * SPDX-License-Identifier: MIT or Apache-2.0
  *
  * This code was generated with the following revisions:
- * Charon: 377317d6b25702c46ffff072fa00a3e32095e46f
- * Eurydice: b227478b67c6a6e2ff611f978f10d6b7f26472ac
- * Karamel: 4e64d915da3c172d1dfad805b8e1a46beff938bc
- * F*: 32dcc97722b61224e0e9c5b447ca72c4cd9ffcf9
- * Libcrux: db8f44d124d91d4c2406ee47c321ed556b38aa93
+ * Charon: e656e17bff6ca5efac8ab6919b9b74cb9a8dd8ad
+ * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
+ * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
+ * F*: unset
+ * Libcrux: ae092f4921933e45dec31610a1465191171e5b3f
  */
 
 #ifndef libcrux_ct_ops_H
@@ -22,9 +22,10 @@
 */
 static KRML_NOINLINE uint8_t
 libcrux_ml_kem_constant_time_ops_inz(uint8_t value) {
-  uint16_t value0 = (uint16_t)value;
+  uint16_t value0 = (uint16_t)(uint32_t)value;
   uint8_t result =
-      (uint8_t)((uint32_t)core_num__u16__wrapping_add(~value0, 1U) >> 8U);
+      (uint8_t)((uint32_t)core_num__u16__wrapping_add(~value0, 1U) >> 8U &
+                0xFFFFU);
   return (uint32_t)result & 1U;
 }
 
@@ -58,31 +59,30 @@ libcrux_ml_kem_constant_time_ops_compare_ciphertexts_in_constant_time(
  If `selector` is not zero, return the bytes in `rhs`; return the bytes in
  `lhs` otherwise.
 */
-static KRML_NOINLINE Eurydice_arr_600
-libcrux_ml_kem_constant_time_ops_select_ct(Eurydice_borrow_slice_u8 lhs,
-                                           Eurydice_borrow_slice_u8 rhs,
-                                           uint8_t selector) {
+static KRML_NOINLINE Eurydice_arr_ec libcrux_ml_kem_constant_time_ops_select_ct(
+    Eurydice_borrow_slice_u8 lhs, Eurydice_borrow_slice_u8 rhs,
+    uint8_t selector) {
   uint8_t mask = core_num__u8__wrapping_sub(
       libcrux_ml_kem_constant_time_ops_is_non_zero(selector), 1U);
-  Eurydice_arr_600 out = {{0U}};
+  Eurydice_arr_ec out = {{0U}};
   for (size_t i = (size_t)0U; i < LIBCRUX_ML_KEM_CONSTANTS_SHARED_SECRET_SIZE;
        i++) {
     size_t i0 = i;
     uint8_t outi = ((uint32_t)lhs.ptr[i0] & (uint32_t)mask) |
-                   ((uint32_t)rhs.ptr[i0] & (uint32_t)~mask);
+                   ((uint32_t)rhs.ptr[i0] & (~(uint32_t)mask & 0xFFU));
     out.data[i0] = outi;
   }
   return out;
 }
 
-static KRML_NOINLINE Eurydice_arr_600
+static KRML_NOINLINE Eurydice_arr_ec
 libcrux_ml_kem_constant_time_ops_select_shared_secret_in_constant_time(
     Eurydice_borrow_slice_u8 lhs, Eurydice_borrow_slice_u8 rhs,
     uint8_t selector) {
   return libcrux_ml_kem_constant_time_ops_select_ct(lhs, rhs, selector);
 }
 
-static KRML_NOINLINE Eurydice_arr_600
+static KRML_NOINLINE Eurydice_arr_ec
 libcrux_ml_kem_constant_time_ops_compare_ciphertexts_select_shared_secret_in_constant_time(
     Eurydice_borrow_slice_u8 lhs_c, Eurydice_borrow_slice_u8 rhs_c,
     Eurydice_borrow_slice_u8 lhs_s, Eurydice_borrow_slice_u8 rhs_s) {
