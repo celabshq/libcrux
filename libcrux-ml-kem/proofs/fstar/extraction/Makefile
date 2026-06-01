@@ -11,13 +11,15 @@ ADMIT_MODULES = Libcrux_ml_kem.Vector.Neon.Arithmetic.fst \
               Libcrux_ml_kem.Vector.Neon.Vector_type.fst \
               Libcrux_ml_kem.Vector.Neon.Vector_type.fsti \
               Libcrux_ml_kem.Ind_cca.Incremental.fst \
-              Libcrux_ml_kem.Ind_cca.Incremental.Avx2.fst \
-              Libcrux_ml_kem.Ind_cca.Incremental.Portable.fst \
               Libcrux_ml_kem.Ind_cca.Incremental.Types.fst \
-              Libcrux_ml_kem.Ind_cca.Incremental.Multiplexing.fst \
               Libcrux_ml_kem.Mlkem512.Incremental.fst \
               Libcrux_ml_kem.Mlkem768.Incremental.fst \
               Libcrux_ml_kem.Mlkem1024.Incremental.fst
+# NOTE: Ind_cca.Incremental.{Avx2,Portable} and Ind_cca.Incremental.Multiplexing are now
+# VERIFIED (removed from ADMIT_MODULES) — pure dispatch / backend wrappers, no postconditions.
+# Remaining incremental admits (Types/Incremental/Mlkem*.Incremental) need the milestone-#0
+# follow-up: key_pair_len usize non-overflow + f_pk1_bytes `bytes.len()>=64` precondition +
+# Incremental.generate_keypair subtyping.  See proof_milestones.md rows 19-25.
 # Incremental-API modules (Mlkem*.Incremental.* and Ind_cca.Incremental.*) admitted
 # as milestone-#0 follow-up.  Newly extracted via `incremental` cargo feature.
 # PF proofs scoped to proof_milestones.md rows 19-25.  Immediate failures are

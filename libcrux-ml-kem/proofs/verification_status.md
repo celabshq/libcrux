@@ -33,10 +33,10 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 |            | ind_cpa           |    1 |  21 |   0 |     |  20 |    1 |      0 |       0 |
 |            | ind_cca           |    1 |  27 |   0 |     |  23 |    1 |      0 |       3 |
 |            | instantiations    |    2 |  40 |   0 |     |  40 |    0 |      0 |       0 |
-|            | multiplexing      |    2 |  20 |  12 |     |   8 |    0 |      0 |       0 |
+|            | multiplexing      |    2 |  20 |   0 |     |  20 |    0 |      0 |       0 |
 |            | incremental       |    2 |  45 |  45 |     |   0 |    0 |      0 |       0 |
 |            | polynomial        |    1 |  54 |   0 |     |  27 |    2 |     21 |       4 |
-|            | invert_ntt        |    1 |   7 |   0 |     |   2 |    0 |      1 |       4 |
+|            | invert_ntt        |    1 |   7 |   0 |     |   1 |    0 |      1 |       5 |
 |            | ntt               |    1 |  11 |   1 |     |   3 |    0 |      4 |       3 |
 |            | mlkem*            |    4 | 134 |   0 |  36 |  98 |    0 |      0 |       0 |
 |            | matrix            |    1 |   5 |   0 |     |   0 |    0 |      5 |       0 |
@@ -45,7 +45,7 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 |            | vector (top)      |    1 |   3 |   0 |     |   3 |    0 |      0 |       0 |
 |            | vector/traits     |    1 | 111 |   0 |     |  73 |   36 |      0 |       2 |
 |            | rej_sample_table  |    1 |   0 |   0 |     |   0 |    0 |      0 |       0 |
-|            | **Generic total** | **29** | **630** | **60** | **55** | **377** | **59** | **33** |  **46** |
+|            | **Generic total** | **29** | **630** | **48** | **55** | **388** | **59** | **33** |  **47** |
 |            |                   |      |     |     |     |     |      |        |         |
 | _Portable_ | arithmetic        |    1 |  13 |   0 |     |   6 |    7 |      0 |       0 |
 |            | ntt               |    1 |  10 |   0 |     |   0 |    0 |     10 |       0 |
@@ -77,19 +77,19 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 
 - **Total modules**: 49
 - **Total functions**: 955
-- **Lax** (admitted): 147 (15.4%)
+- **Lax** (admitted): 135 (14.1%)
 - **Unverified** (not extracted): 56 (5.9%)
-- **Panic-safe** (PF + Math + Bounds + Hacspec): 752 (78.7%)
-  - Panic-free only (no further proof): 439 (46.0%)
+- **Panic-safe** (PF + Math + Bounds + Hacspec): 764 (80.0%)
+  - Panic-free only (no further proof): 450 (47.1%)
   - Math (non-trivial ensures, no bounds/spec match): 170 (17.8%)
   - Bounds (range/interval ensures): 45 (4.7%)
-  - Hacspec (cites high-level spec): 98 (10.3%)
+  - Hacspec (cites high-level spec): 99 (10.4%)
 
 ### Modules per category
 
 | Category     | Modules |  Fns | Lax | Unv |  PF | Math | Bounds | Hacspec |
 | ------------ | ------- | ---- | --- | --- | --- | ---- | ------ | ------- |
-| Generic      |      29 |  630 |  60 |  55 | 377 |   59 |     33 |      46 |
+| Generic      |      29 |  630 |  48 |  55 | 388 |   59 |     33 |      47 |
 | Portable     |       7 |  121 |   2 |   0 |  37 |   45 |     10 |      27 |
 | Avx2         |       6 |  121 |   3 |   0 |  25 |   66 |      2 |      25 |
 | Neon         |       7 |   83 |  82 |   1 |   0 |    0 |      0 |       0 |
