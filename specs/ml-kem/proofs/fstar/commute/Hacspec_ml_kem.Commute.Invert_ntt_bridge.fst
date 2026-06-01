@@ -217,6 +217,52 @@ let lemma_gv_lt (l: nat {l < 16}) (len: pos {len == 2 \/ len == 4 \/ len == 8})
    `pvz_m[g] == zs[(8/len)*m+g]`, build Level A's per-coefficient hypothesis
    for `IN.ntt_inverse_layer_n 256`.  Mirror of `lemma_layer_4_plus_per_coeff`
    but intra-vector (partner lane l±len stays in vector m). *)
+(* === USER-15 job B: opaque per-vector layer-post atom ===
+   The per-vector relation `mont_arr cout[m] == ntt_inverse_layer_n 16 (mont_arr cin[m]) len pv`
+   carries NESTED createi terms (mont_i16_to_spec_array + ntt_inverse_layer_n).  Matching a
+   16-fold `forall m` of it triggers the createi_lemma SMTPat cascade.  Wrapping it in this
+   `opaque_to_smt` atom lets producers establish it where 16-fold createi is affordable
+   (the layer function loop, rlimit 800) and lets every consumer below carry it OPAQUELY —
+   per_coeff reveals it one block at a time (bounded), never the bulk forall. *)
+[@@ "opaque_to_smt"]
+let pv_post (#vV: Type0) {| iop: T.t_Operations vV |}
+    (cin cout: t_Array vV (mk_usize 16))
+    (len: usize {v len == 2 \/ v len == 4 \/ v len == 8})
+    (pvm: t_Array P.t_FieldElement (mk_usize (8 / v len))) (m: nat) : prop =
+  m < 16 ==>
+    mont_i16_to_spec_array (mk_usize 16) (T.f_repr (Seq.index cout m)) ==
+      IN.ntt_inverse_layer_n (mk_usize 16)
+        (mont_i16_to_spec_array (mk_usize 16) (T.f_repr (Seq.index cin m)))
+        len (Rust_primitives.unsize pvm)
+
+#push-options "--fuel 0 --ifuel 0 --z3rlimit 20"
+let pv_post_intro (#vV: Type0) {| iop: T.t_Operations vV |}
+    (cin cout: t_Array vV (mk_usize 16))
+    (len: usize {v len == 2 \/ v len == 4 \/ v len == 8})
+    (pvm: t_Array P.t_FieldElement (mk_usize (8 / v len))) (m: nat)
+  : Lemma
+    (requires m < 16 ==>
+      mont_i16_to_spec_array (mk_usize 16) (T.f_repr (Seq.index cout m)) ==
+        IN.ntt_inverse_layer_n (mk_usize 16)
+          (mont_i16_to_spec_array (mk_usize 16) (T.f_repr (Seq.index cin m)))
+          len (Rust_primitives.unsize pvm))
+    (ensures pv_post #vV cin cout len pvm m)
+  = reveal_opaque (`%pv_post) (pv_post #vV cin cout len pvm m)
+
+let pv_post_elim (#vV: Type0) {| iop: T.t_Operations vV |}
+    (cin cout: t_Array vV (mk_usize 16))
+    (len: usize {v len == 2 \/ v len == 4 \/ v len == 8})
+    (pvm: t_Array P.t_FieldElement (mk_usize (8 / v len))) (m: nat {m < 16})
+  : Lemma
+    (requires pv_post #vV cin cout len pvm m)
+    (ensures
+      mont_i16_to_spec_array (mk_usize 16) (T.f_repr (Seq.index cout m)) ==
+        IN.ntt_inverse_layer_n (mk_usize 16)
+          (mont_i16_to_spec_array (mk_usize 16) (T.f_repr (Seq.index cin m)))
+          len (Rust_primitives.unsize pvm))
+  = reveal_opaque (`%pv_post) (pv_post #vV cin cout len pvm m)
+#pop-options
+
 #push-options "--z3rlimit 300 --fuel 0 --ifuel 1"
 let lemma_intra_vec_per_coeff
     (#vV: Type0) {| iop: T.t_Operations vV |}
@@ -230,11 +276,7 @@ let lemma_intra_vec_per_coeff
   : Lemma
     (requires
       Seq.length zs == 128 / v len /\
-      (forall (m: nat). m < 16 ==>
-        mont_i16_to_spec_array (mk_usize 16) (T.f_repr (Seq.index cout m)) ==
-          IN.ntt_inverse_layer_n (mk_usize 16)
-            (mont_i16_to_spec_array (mk_usize 16) (T.f_repr (Seq.index cin m)))
-            len (Rust_primitives.unsize (pvz m))) /\
+      (forall (m: nat). m < 16 ==> pv_post #vV cin cout len (pvz m) m) /\
       (forall (m: nat) (g: nat). m < 16 /\ g < 8 / v len ==>
         Seq.index (Rust_primitives.unsize (pvz m)) g == Seq.index zs ((8 / v len) * m + g)))
     (ensures
@@ -273,6 +315,8 @@ let lemma_intra_vec_per_coeff
           lemma_intra_idx i (v len);
           lemma_gv_lt l (v len);
           lemma_intra_arith (v len) m;
+          (* recover the raw per-vector relation for THIS block only (bounded reveal) *)
+          pv_post_elim #vV cin cout len (pvz m) m;
           let gv : nat = l / (2 * v len) in
           (* gv < s and group == s*m+gv, so the zeta-correspondence forall fires at (m,gv) *)
           assert (i / (2 * v len) == s * m + gv);
@@ -331,10 +375,7 @@ let lemma_intra_vec_layer_to_poly
       (v len == 2 \/ v len == 4 \/ v len == 8) /\
       Seq.length zs == 128 / v len /\
       (forall (m: nat). m < 16 ==>
-        mont_i16_to_spec_array (mk_usize 16) (T.f_repr (Seq.index re_out.VV.f_coefficients m)) ==
-          IN.ntt_inverse_layer_n (mk_usize 16)
-            (mont_i16_to_spec_array (mk_usize 16) (T.f_repr (Seq.index re_in.VV.f_coefficients m)))
-            len (Rust_primitives.unsize (pvz m))) /\
+        pv_post #vV re_in.VV.f_coefficients re_out.VV.f_coefficients len (pvz m) m) /\
       (forall (m: nat) (g: nat). m < 16 /\ g < 8 / v len ==>
         Seq.index (Rust_primitives.unsize (pvz m)) g == Seq.index zs ((8 / v len) * m + g)) /\
       (let groups = 128 / v len in
@@ -448,15 +489,16 @@ let lemma_layer1_to_poly_step (#vV: Type0) {| iop: T.t_Operations vV |}
     let zs : t_Slice P.t_FieldElement =
       Seq.init 64 (fun (r: nat {r < 64}) ->
         mont_i16_to_spec_fe (Libcrux_ml_kem.Polynomial.zeta (mk_usize 127 -! mk_usize r))) in
-    (* clamp the zeta index with `%! 32` so `4 *! _` and `127 -! _` are STRUCTURALLY
-       in-range (operand `{v < 32}`) — no SMT range VCs (layer 1's 4 zetas otherwise
-       flood Z3 under --split_queries).  For m<16, `sz m %! 32 == sz m` (bridged below). *)
+    (* pvz matches the requires-forall body EXACTLY at i = sz m (NO clamp): the
+       per-vector relation transfers by direct instantiation, and `pv_post` keeps the
+       nested createi terms OPAQUE downstream, so they are never bulk-matched (the
+       cascade root).  No --split_queries here (the clamp existed only for that). *)
     let pvz : (m: nat {m < 16}) -> t_Array P.t_FieldElement (mk_usize 4) =
       fun (m: nat {m < 16}) ->
-        zetas_4_ (Libcrux_ml_kem.Polynomial.zeta (mk_usize 127 -! mk_usize 4 *! (sz m %! mk_usize 32)))
-                 (Libcrux_ml_kem.Polynomial.zeta (mk_usize 126 -! mk_usize 4 *! (sz m %! mk_usize 32)))
-                 (Libcrux_ml_kem.Polynomial.zeta (mk_usize 125 -! mk_usize 4 *! (sz m %! mk_usize 32)))
-                 (Libcrux_ml_kem.Polynomial.zeta (mk_usize 124 -! mk_usize 4 *! (sz m %! mk_usize 32))) in
+        zetas_4_ (Libcrux_ml_kem.Polynomial.zeta (mk_usize 127 -! mk_usize 4 *! sz m))
+                 (Libcrux_ml_kem.Polynomial.zeta (mk_usize 126 -! mk_usize 4 *! sz m))
+                 (Libcrux_ml_kem.Polynomial.zeta (mk_usize 125 -! mk_usize 4 *! sz m))
+                 (Libcrux_ml_kem.Polynomial.zeta (mk_usize 124 -! mk_usize 4 *! sz m)) in
     let aux_zs (round: nat) : Lemma (round < 64 ==>
         Seq.index zs round == N.v_ZETAS.[ sz (2 * 64 - 1 - round) ]) =
       if round < 64 then begin
@@ -467,31 +509,32 @@ let lemma_layer1_to_poly_step (#vV: Type0) {| iop: T.t_Operations vV |}
         assert (v (mk_usize 127 -! mk_usize round) == 127 - round)
       end in
     Classical.forall_intro aux_zs;
+    (* Establish the OPAQUE per-vector post per m via intro; its requires (the raw
+       createi relation for pvz m) is the requires-forall instantiated at i = sz m
+       (pvz m IS the forall body there).  No createi unfolding/matching occurs. *)
     let aux_pv (m: nat) : Lemma (m < 16 ==>
-        mont_i16_to_spec_array (mk_usize 16) (T.f_repr (Seq.index re_out.VV.f_coefficients m)) ==
-          IN.ntt_inverse_layer_n (mk_usize 16)
-            (mont_i16_to_spec_array (mk_usize 16) (T.f_repr (Seq.index re_in.VV.f_coefficients m)))
-            (mk_usize 2) (Rust_primitives.unsize (pvz m))) =
-      if m < 16 then (let i = sz m in assert (v i == m); assert (v i < 16);
-                      assert ((sz m) %! mk_usize 32 == sz m)) in
+        pv_post #vV re_in.VV.f_coefficients re_out.VV.f_coefficients (mk_usize 2) (pvz m) m) =
+      if m < 16 then begin
+        assert (v (sz m) < 16);
+        pv_post_intro #vV re_in.VV.f_coefficients re_out.VV.f_coefficients (mk_usize 2) (pvz m) m
+      end in
     Classical.forall_intro aux_pv;
     let aux_zc (m: nat) (g: nat) : Lemma (m < 16 /\ g < 8 / 2 ==>
         Seq.index (Rust_primitives.unsize (pvz m)) g == Seq.index zs ((8 / 2) * m + g)) =
       if m < 16 && g < 4 then begin
-        assert ((sz m) %! mk_usize 32 == sz m);
-        zetas_4_lane (Libcrux_ml_kem.Polynomial.zeta (mk_usize 127 -! mk_usize 4 *! (sz m %! mk_usize 32)))
-          (Libcrux_ml_kem.Polynomial.zeta (mk_usize 126 -! mk_usize 4 *! (sz m %! mk_usize 32)))
-          (Libcrux_ml_kem.Polynomial.zeta (mk_usize 125 -! mk_usize 4 *! (sz m %! mk_usize 32)))
-          (Libcrux_ml_kem.Polynomial.zeta (mk_usize 124 -! mk_usize 4 *! (sz m %! mk_usize 32))) (sz g);
+        zetas_4_lane (Libcrux_ml_kem.Polynomial.zeta (mk_usize 127 -! mk_usize 4 *! sz m))
+          (Libcrux_ml_kem.Polynomial.zeta (mk_usize 126 -! mk_usize 4 *! sz m))
+          (Libcrux_ml_kem.Polynomial.zeta (mk_usize 125 -! mk_usize 4 *! sz m))
+          (Libcrux_ml_kem.Polynomial.zeta (mk_usize 124 -! mk_usize 4 *! sz m)) (sz g);
         FStar.Seq.Base.init_index_ 64
           (fun (r: nat {r < 64}) ->
             mont_i16_to_spec_fe (Libcrux_ml_kem.Polynomial.zeta (mk_usize 127 -! mk_usize r)))
           ((8 / 2) * m + g);
         assert (v (mk_usize 127 -! mk_usize ((8 / 2) * m + g)) == 127 - 4 * m - g);
-        assert (v (mk_usize 127 -! mk_usize 4 *! (sz m %! mk_usize 32)) == 127 - 4 * m);
-        assert (v (mk_usize 126 -! mk_usize 4 *! (sz m %! mk_usize 32)) == 126 - 4 * m);
-        assert (v (mk_usize 125 -! mk_usize 4 *! (sz m %! mk_usize 32)) == 125 - 4 * m);
-        assert (v (mk_usize 124 -! mk_usize 4 *! (sz m %! mk_usize 32)) == 124 - 4 * m)
+        assert (v (mk_usize 127 -! mk_usize 4 *! sz m) == 127 - 4 * m);
+        assert (v (mk_usize 126 -! mk_usize 4 *! sz m) == 126 - 4 * m);
+        assert (v (mk_usize 125 -! mk_usize 4 *! sz m) == 125 - 4 * m);
+        assert (v (mk_usize 124 -! mk_usize 4 *! sz m) == 124 - 4 * m)
       end in
     Classical.forall_intro_2 aux_zc;
     lemma_intra_vec_layer_to_poly #vV re_in re_out (mk_usize 1) (mk_usize 2) zs pvz
