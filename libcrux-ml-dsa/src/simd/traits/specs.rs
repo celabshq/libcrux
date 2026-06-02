@@ -69,6 +69,48 @@ let lemma_is_binary_array_8_intro (x: t_Array i32 (mk_usize 8))
             (ensures is_binary_array_8_opaque x) =
   reveal_opaque (`%is_binary_array_8_opaque) (is_binary_array_8_opaque x)
 
+(* 256-element hint array where each coefficient is 0 or 1. Used by use_hint's
+   function pre (one row of `hint: &[[i32; 256]]`). Mirrors is_binary_array_8. *)
+let is_binary_256_array (x: t_Array i32 (mk_usize 256)) : prop =
+  forall (j: nat). j < 256 ==>
+    (v (Seq.index x j) == 0 \/ v (Seq.index x j) == 1)
+
+[@@ "opaque_to_smt"]
+let is_binary_256_array_opaque (x: t_Array i32 (mk_usize 256)) : prop =
+  is_binary_256_array x
+
+let lemma_is_binary_256_array_lookup (x: t_Array i32 (mk_usize 256)) (i: nat)
+    : Lemma (requires is_binary_256_array_opaque x /\ i < 256)
+            (ensures v (Seq.index x i) == 0 \/ v (Seq.index x i) == 1)
+            [SMTPat (Seq.index x i); SMTPat (is_binary_256_array_opaque x)] =
+  reveal_opaque (`%is_binary_256_array_opaque) (is_binary_256_array_opaque x)
+
+let lemma_is_binary_256_array_intro (x: t_Array i32 (mk_usize 256))
+    : Lemma (requires forall (j: nat). j < 256 ==>
+                       (v (Seq.index x j) == 0 \/ v (Seq.index x j) == 1))
+            (ensures is_binary_256_array_opaque x) =
+  reveal_opaque (`%is_binary_256_array_opaque) (is_binary_256_array_opaque x)
+
+(* Slice version over the whole hint matrix: every row is a binary 256-array. *)
+[@@ "opaque_to_smt"]
+let is_binary_256_array_slice (arr: t_Slice (t_Array i32 (mk_usize 256))) : prop =
+  forall (k: nat). k < Seq.length arr ==>
+    is_binary_256_array_opaque (Seq.index arr k)
+
+let lemma_is_binary_256_array_slice_lookup
+      (arr: t_Slice (t_Array i32 (mk_usize 256))) (k: nat)
+    : Lemma (requires is_binary_256_array_slice arr /\ k < Seq.length arr)
+            (ensures is_binary_256_array_opaque (Seq.index arr k))
+            [SMTPat (is_binary_256_array_slice arr); SMTPat (Seq.index arr k)] =
+  reveal_opaque (`%is_binary_256_array_slice) (is_binary_256_array_slice arr)
+
+let lemma_is_binary_256_array_slice_intro
+      (arr: t_Slice (t_Array i32 (mk_usize 256)))
+    : Lemma (requires forall (k: nat). k < Seq.length arr ==>
+                       is_binary_256_array_opaque (Seq.index arr k))
+            (ensures is_binary_256_array_slice arr) =
+  reveal_opaque (`%is_binary_256_array_slice) (is_binary_256_array_slice arr)
+
 (* F-3 (2026-04-28): the *_serialize trait pres need a non-negative
    bound, not the centered `is_i32b_array_opaque b` (which allows
    |x| <= b including negative).  The impls of commitment_serialize,

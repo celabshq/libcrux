@@ -235,9 +235,7 @@ pub(crate) fn make_hint<SIMDUnit: Operations>(
          v $gamma2 == v ${crate::constants::GAMMA2_V95_232}) /\
          ${hint.len()} == ${re_vector.len()} /\
          v (${hint.len()}) <= 8 /\
-         (forall i. forall j.
-            (v (Seq.index (Seq.index ${hint} i) j) == 0 \/
-             v (Seq.index (Seq.index ${hint} i) j) == 1)) /\
+         Libcrux_ml_dsa.Simd.Traits.Specs.is_binary_256_array_slice ${hint} /\
          Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice (mk_usize 8380416) ${re_vector}}"#))]
 #[hax_lib::ensures(|_| fstar!(r#"
     Seq.length ${re_vector}_future == Seq.length re_vector /\
@@ -296,13 +294,19 @@ pub(crate) fn use_hint<SIMDUnit: Operations>(
 
         // Bridge: from_i32_array gives `f_repr tmp.simd_units[kk] == hint[i][kk*8..(kk+1)*8]`,
         // and `hint[i]` is binary (function pre), so each tmp simd-unit is a binary array.
+        // Surface the array-level binary atom on hint[i] from the slice-level pre so the
+        // array lookup SMTPat fires inside the inner introduce.
         hax_lib::fstar!(r#"
+            Libcrux_ml_dsa.Simd.Traits.Specs.lemma_is_binary_256_array_slice_lookup
+              $hint (v ${i});
             let aux (kk:nat{kk < 32}) : Lemma
                 (Libcrux_ml_dsa.Simd.Traits.Specs.is_binary_array_8_opaque
                    (i0._super_i2.f_repr (Seq.index ${tmp}.f_simd_units kk))) =
               let r = i0._super_i2.f_repr (Seq.index ${tmp}.f_simd_units kk) in
               introduce forall (m:nat{m < 8}). (v (Seq.index r m) == 0 \/ v (Seq.index r m) == 1)
-              with (Seq.lemma_index_slice (Seq.index $hint (v ${i})) (kk * 8) ((kk + 1) * 8) m);
+              with (Seq.lemma_index_slice (Seq.index $hint (v ${i})) (kk * 8) ((kk + 1) * 8) m;
+                    Libcrux_ml_dsa.Simd.Traits.Specs.lemma_is_binary_256_array_lookup
+                      (Seq.index $hint (v ${i})) (kk * 8 + m));
               Libcrux_ml_dsa.Simd.Traits.Specs.lemma_is_binary_array_8_intro r
             in Classical.forall_intro aux"#);
 
