@@ -436,26 +436,225 @@ pub(crate) fn inv_ntt_layer_1_step(
     result
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// Inverse-NTT layer-2 lemma library — same architecture as layer-1, with
+// cross-128-bit-lane `mm256_permute4x64_epi64` (modelless: axiomatized per
+// control by `lemma_permute_{245,160}`) and NO Barrett (the "add" outputs are
+// the raw sum, bounded `2*3328`).  `lemma_inv_l2_sums` pays map2/createi once;
+// `lemma_inv_l2_post` derives `inv_ntt_layer_2_butterfly_post` over plain i16
+// arrays.
+// ─────────────────────────────────────────────────────────────────────────
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"Spec.Utils.is_i16b 1664 zeta0 /\ Spec.Utils.is_i16b 1664 zeta1"#))]
+#[hax_lib::fstar::before(
+    r#"
+let lemma_permute_245 (vv: ZI.t_Vec256) : Lemma
+  (ensures (let r = ZI.mm256_permute4x64_epi64 (mk_i32 245) vv in
+     ZI.get_lane r 0 == ZI.get_lane vv 4 /\ ZI.get_lane r 1 == ZI.get_lane vv 5 /\
+     ZI.get_lane r 2 == ZI.get_lane vv 6 /\ ZI.get_lane r 3 == ZI.get_lane vv 7 /\
+     ZI.get_lane r 4 == ZI.get_lane vv 4 /\ ZI.get_lane r 5 == ZI.get_lane vv 5 /\
+     ZI.get_lane r 6 == ZI.get_lane vv 6 /\ ZI.get_lane r 7 == ZI.get_lane vv 7 /\
+     ZI.get_lane r 8 == ZI.get_lane vv 12 /\ ZI.get_lane r 9 == ZI.get_lane vv 13 /\
+     ZI.get_lane r 10 == ZI.get_lane vv 14 /\ ZI.get_lane r 11 == ZI.get_lane vv 15 /\
+     ZI.get_lane r 12 == ZI.get_lane vv 12 /\ ZI.get_lane r 13 == ZI.get_lane vv 13 /\
+     ZI.get_lane r 14 == ZI.get_lane vv 14 /\ ZI.get_lane r 15 == ZI.get_lane vv 15))
+  = admit ()
+
+let lemma_permute_160 (vv: ZI.t_Vec256) : Lemma
+  (ensures (let r = ZI.mm256_permute4x64_epi64 (mk_i32 160) vv in
+     ZI.get_lane r 0 == ZI.get_lane vv 0 /\ ZI.get_lane r 1 == ZI.get_lane vv 1 /\
+     ZI.get_lane r 2 == ZI.get_lane vv 2 /\ ZI.get_lane r 3 == ZI.get_lane vv 3 /\
+     ZI.get_lane r 4 == ZI.get_lane vv 0 /\ ZI.get_lane r 5 == ZI.get_lane vv 1 /\
+     ZI.get_lane r 6 == ZI.get_lane vv 2 /\ ZI.get_lane r 7 == ZI.get_lane vv 3 /\
+     ZI.get_lane r 8 == ZI.get_lane vv 8 /\ ZI.get_lane r 9 == ZI.get_lane vv 9 /\
+     ZI.get_lane r 10 == ZI.get_lane vv 10 /\ ZI.get_lane r 11 == ZI.get_lane vv 11 /\
+     ZI.get_lane r 12 == ZI.get_lane vv 8 /\ ZI.get_lane r 13 == ZI.get_lane vv 9 /\
+     ZI.get_lane r 14 == ZI.get_lane vv 10 /\ ZI.get_lane r 15 == ZI.get_lane vv 11))
+  = admit ()
+
+let lemma_permute_preserves_bound (c: i32) (vv: ZI.t_Vec256) (b: nat) : Lemma
+  (requires ZS.is_i16b_array b (ZI.vec256_as_i16x16 vv))
+  (ensures ZS.is_i16b_array b (ZI.vec256_as_i16x16 (ZI.mm256_permute4x64_epi64 c vv)))
+  = admit ()
+
+let lemma_blend_240 (a b: ZI.t_Vec256) : Lemma
+  (ensures (let r = ZI.mm256_blend_epi16 (mk_i32 240) a b in
+     ZI.get_lane r 0 == ZI.get_lane a 0 /\ ZI.get_lane r 1 == ZI.get_lane a 1 /\
+     ZI.get_lane r 2 == ZI.get_lane a 2 /\ ZI.get_lane r 3 == ZI.get_lane a 3 /\
+     ZI.get_lane r 4 == ZI.get_lane b 4 /\ ZI.get_lane r 5 == ZI.get_lane b 5 /\
+     ZI.get_lane r 6 == ZI.get_lane b 6 /\ ZI.get_lane r 7 == ZI.get_lane b 7 /\
+     ZI.get_lane r 8 == ZI.get_lane a 8 /\ ZI.get_lane r 9 == ZI.get_lane a 9 /\
+     ZI.get_lane r 10 == ZI.get_lane a 10 /\ ZI.get_lane r 11 == ZI.get_lane a 11 /\
+     ZI.get_lane r 12 == ZI.get_lane b 12 /\ ZI.get_lane r 13 == ZI.get_lane b 13 /\
+     ZI.get_lane r 14 == ZI.get_lane b 14 /\ ZI.get_lane r 15 == ZI.get_lane b 15))
+  = admit ()
+
+#push-options "--z3rlimit 400 --split_queries always"
+let lemma_inv_l2_sums (lhs rhs0 mult rhs sum: ZI.t_Vec256) : Lemma
+  (requires
+     rhs == ZI.mm256_mullo_epi16 rhs0 mult /\
+     sum == ZI.mm256_add_epi16 lhs rhs /\
+     ZS.is_i16b_array 3328 (ZI.vec256_as_i16x16 lhs) /\
+     ZS.is_i16b_array 3328 (ZI.vec256_as_i16x16 rhs0) /\
+     (forall (i:nat). i < 16 ==> (v (ZI.get_lane mult i) == 1 \/ v (ZI.get_lane mult i) == -1)))
+  (ensures
+     ZS.is_i16b_array (2*3328) (ZI.vec256_as_i16x16 sum) /\
+     (forall (i:nat). i < 16 ==>
+        v (ZI.get_lane sum i) ==
+          v (ZI.get_lane lhs i) + v (ZI.get_lane rhs0 i) * v (ZI.get_lane mult i)))
+  = ()
+#pop-options
+
+#push-options "--z3rlimit 300 --split_queries always"
+let lemma_inv_l2_sums_v (vector lhs rhs0 mult rhs sum: ZI.t_Vec256) : Lemma
+  (requires
+     rhs == ZI.mm256_mullo_epi16 rhs0 mult /\
+     sum == ZI.mm256_add_epi16 lhs rhs /\
+     ZS.is_i16b_array 3328 (ZI.vec256_as_i16x16 lhs) /\
+     ZS.is_i16b_array 3328 (ZI.vec256_as_i16x16 rhs0) /\
+     v (ZI.get_lane mult 0) == 1 /\ v (ZI.get_lane mult 1) == 1 /\
+     v (ZI.get_lane mult 2) == 1 /\ v (ZI.get_lane mult 3) == 1 /\
+     v (ZI.get_lane mult 4) == -1 /\ v (ZI.get_lane mult 5) == -1 /\
+     v (ZI.get_lane mult 6) == -1 /\ v (ZI.get_lane mult 7) == -1 /\
+     v (ZI.get_lane mult 8) == 1 /\ v (ZI.get_lane mult 9) == 1 /\
+     v (ZI.get_lane mult 10) == 1 /\ v (ZI.get_lane mult 11) == 1 /\
+     v (ZI.get_lane mult 12) == -1 /\ v (ZI.get_lane mult 13) == -1 /\
+     v (ZI.get_lane mult 14) == -1 /\ v (ZI.get_lane mult 15) == -1 /\
+     ZI.get_lane lhs 0 == ZI.get_lane vector 4 /\ ZI.get_lane lhs 1 == ZI.get_lane vector 5 /\
+     ZI.get_lane lhs 2 == ZI.get_lane vector 6 /\ ZI.get_lane lhs 3 == ZI.get_lane vector 7 /\
+     ZI.get_lane lhs 4 == ZI.get_lane vector 4 /\ ZI.get_lane lhs 5 == ZI.get_lane vector 5 /\
+     ZI.get_lane lhs 6 == ZI.get_lane vector 6 /\ ZI.get_lane lhs 7 == ZI.get_lane vector 7 /\
+     ZI.get_lane lhs 8 == ZI.get_lane vector 12 /\ ZI.get_lane lhs 9 == ZI.get_lane vector 13 /\
+     ZI.get_lane lhs 10 == ZI.get_lane vector 14 /\ ZI.get_lane lhs 11 == ZI.get_lane vector 15 /\
+     ZI.get_lane lhs 12 == ZI.get_lane vector 12 /\ ZI.get_lane lhs 13 == ZI.get_lane vector 13 /\
+     ZI.get_lane lhs 14 == ZI.get_lane vector 14 /\ ZI.get_lane lhs 15 == ZI.get_lane vector 15 /\
+     ZI.get_lane rhs0 0 == ZI.get_lane vector 0 /\ ZI.get_lane rhs0 1 == ZI.get_lane vector 1 /\
+     ZI.get_lane rhs0 2 == ZI.get_lane vector 2 /\ ZI.get_lane rhs0 3 == ZI.get_lane vector 3 /\
+     ZI.get_lane rhs0 4 == ZI.get_lane vector 0 /\ ZI.get_lane rhs0 5 == ZI.get_lane vector 1 /\
+     ZI.get_lane rhs0 6 == ZI.get_lane vector 2 /\ ZI.get_lane rhs0 7 == ZI.get_lane vector 3 /\
+     ZI.get_lane rhs0 8 == ZI.get_lane vector 8 /\ ZI.get_lane rhs0 9 == ZI.get_lane vector 9 /\
+     ZI.get_lane rhs0 10 == ZI.get_lane vector 10 /\ ZI.get_lane rhs0 11 == ZI.get_lane vector 11 /\
+     ZI.get_lane rhs0 12 == ZI.get_lane vector 8 /\ ZI.get_lane rhs0 13 == ZI.get_lane vector 9 /\
+     ZI.get_lane rhs0 14 == ZI.get_lane vector 10 /\ ZI.get_lane rhs0 15 == ZI.get_lane vector 11)
+  (ensures
+     ZS.is_i16b_array (2*3328) (ZI.vec256_as_i16x16 sum) /\
+     v (ZI.get_lane sum 0)  == v (ZI.get_lane vector 4)  + v (ZI.get_lane vector 0) /\
+     v (ZI.get_lane sum 1)  == v (ZI.get_lane vector 5)  + v (ZI.get_lane vector 1) /\
+     v (ZI.get_lane sum 2)  == v (ZI.get_lane vector 6)  + v (ZI.get_lane vector 2) /\
+     v (ZI.get_lane sum 3)  == v (ZI.get_lane vector 7)  + v (ZI.get_lane vector 3) /\
+     v (ZI.get_lane sum 4)  == v (ZI.get_lane vector 4)  - v (ZI.get_lane vector 0) /\
+     v (ZI.get_lane sum 5)  == v (ZI.get_lane vector 5)  - v (ZI.get_lane vector 1) /\
+     v (ZI.get_lane sum 6)  == v (ZI.get_lane vector 6)  - v (ZI.get_lane vector 2) /\
+     v (ZI.get_lane sum 7)  == v (ZI.get_lane vector 7)  - v (ZI.get_lane vector 3) /\
+     v (ZI.get_lane sum 8)  == v (ZI.get_lane vector 12) + v (ZI.get_lane vector 8) /\
+     v (ZI.get_lane sum 9)  == v (ZI.get_lane vector 13) + v (ZI.get_lane vector 9) /\
+     v (ZI.get_lane sum 10) == v (ZI.get_lane vector 14) + v (ZI.get_lane vector 10) /\
+     v (ZI.get_lane sum 11) == v (ZI.get_lane vector 15) + v (ZI.get_lane vector 11) /\
+     v (ZI.get_lane sum 12) == v (ZI.get_lane vector 12) - v (ZI.get_lane vector 8) /\
+     v (ZI.get_lane sum 13) == v (ZI.get_lane vector 13) - v (ZI.get_lane vector 9) /\
+     v (ZI.get_lane sum 14) == v (ZI.get_lane vector 14) - v (ZI.get_lane vector 10) /\
+     v (ZI.get_lane sum 15) == v (ZI.get_lane vector 15) - v (ZI.get_lane vector 11))
+  = lemma_inv_l2_sums lhs rhs0 mult rhs sum
+#pop-options
+
+#push-options "--z3rlimit 200 --split_queries always"
+let lemma_inv_l2_post
+    (vec sum stz zetas res: t_Array i16 (mk_usize 16))
+    (zeta0 zeta1: i16)
+  : Lemma
+    (requires
+      v (Seq.index sum 0)  == v (Seq.index vec 4)  + v (Seq.index vec 0) /\
+      v (Seq.index sum 1)  == v (Seq.index vec 5)  + v (Seq.index vec 1) /\
+      v (Seq.index sum 2)  == v (Seq.index vec 6)  + v (Seq.index vec 2) /\
+      v (Seq.index sum 3)  == v (Seq.index vec 7)  + v (Seq.index vec 3) /\
+      v (Seq.index sum 4)  == v (Seq.index vec 4)  - v (Seq.index vec 0) /\
+      v (Seq.index sum 5)  == v (Seq.index vec 5)  - v (Seq.index vec 1) /\
+      v (Seq.index sum 6)  == v (Seq.index vec 6)  - v (Seq.index vec 2) /\
+      v (Seq.index sum 7)  == v (Seq.index vec 7)  - v (Seq.index vec 3) /\
+      v (Seq.index sum 8)  == v (Seq.index vec 12) + v (Seq.index vec 8) /\
+      v (Seq.index sum 9)  == v (Seq.index vec 13) + v (Seq.index vec 9) /\
+      v (Seq.index sum 10) == v (Seq.index vec 14) + v (Seq.index vec 10) /\
+      v (Seq.index sum 11) == v (Seq.index vec 15) + v (Seq.index vec 11) /\
+      v (Seq.index sum 12) == v (Seq.index vec 12) - v (Seq.index vec 8) /\
+      v (Seq.index sum 13) == v (Seq.index vec 13) - v (Seq.index vec 9) /\
+      v (Seq.index sum 14) == v (Seq.index vec 14) - v (Seq.index vec 10) /\
+      v (Seq.index sum 15) == v (Seq.index vec 15) - v (Seq.index vec 11) /\
+      (forall (i:nat). i < 16 ==>
+         v (Seq.index stz i) % 3329 == (v (Seq.index sum i) * v (Seq.index zetas i) * 169) % 3329) /\
+      v (Seq.index zetas 4) == v zeta0 /\ v (Seq.index zetas 5) == v zeta0 /\
+      v (Seq.index zetas 6) == v zeta0 /\ v (Seq.index zetas 7) == v zeta0 /\
+      v (Seq.index zetas 12) == v zeta1 /\ v (Seq.index zetas 13) == v zeta1 /\
+      v (Seq.index zetas 14) == v zeta1 /\ v (Seq.index zetas 15) == v zeta1 /\
+      Seq.index res 0 == Seq.index sum 0 /\ Seq.index res 1 == Seq.index sum 1 /\
+      Seq.index res 2 == Seq.index sum 2 /\ Seq.index res 3 == Seq.index sum 3 /\
+      Seq.index res 4 == Seq.index stz 4 /\ Seq.index res 5 == Seq.index stz 5 /\
+      Seq.index res 6 == Seq.index stz 6 /\ Seq.index res 7 == Seq.index stz 7 /\
+      Seq.index res 8 == Seq.index sum 8 /\ Seq.index res 9 == Seq.index sum 9 /\
+      Seq.index res 10 == Seq.index sum 10 /\ Seq.index res 11 == Seq.index sum 11 /\
+      Seq.index res 12 == Seq.index stz 12 /\ Seq.index res 13 == Seq.index stz 13 /\
+      Seq.index res 14 == Seq.index stz 14 /\ Seq.index res 15 == Seq.index stz 15 /\
+      ZS.is_i16b_array (2*3328) sum /\ ZS.is_i16b_array 3328 stz)
+    (ensures
+      ZS.is_i16b_array (2*3328) res /\
+      ZS.inv_ntt_layer_2_butterfly_post vec res zeta0 zeta1)
+  =
+  reveal_opaque (`%ZS.inv_ntt_layer_2_butterfly_post)
+    (ZS.inv_ntt_layer_2_butterfly_post vec)
+#pop-options
+"#
+)]
+#[hax_lib::fstar::options("--z3rlimit 300 --split_queries always")]
+#[hax_lib::requires(fstar!(r#"Spec.Utils.is_i16b 1664 zeta0 /\ Spec.Utils.is_i16b 1664 zeta1 /\
+                            Spec.Utils.is_i16b_array 3328 (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector})"#))]
+#[hax_lib::ensures(|result| fstar!(r#"
+    Spec.Utils.is_i16b_array (2*3328) (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}) /\
+    Spec.Utils.inv_ntt_layer_2_butterfly_post
+      (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector})
+      (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}) zeta0 zeta1"#))]
 pub(crate) fn inv_ntt_layer_2_step(vector: Vec256, zeta0: i16, zeta1: i16) -> Vec256 {
     let lhs = mm256_permute4x64_epi64::<0b11_11_01_01>(vector);
-
-    let rhs = mm256_permute4x64_epi64::<0b10_10_00_00>(vector);
-    let rhs = mm256_mullo_epi16(
-        rhs,
-        mm256_set_epi16(-1, -1, -1, -1, 1, 1, 1, 1, -1, -1, -1, -1, 1, 1, 1, 1),
+    hax_lib::fstar!(
+        r#"lemma_permute_245 ${vector};
+           lemma_permute_preserves_bound (mk_i32 245) ${vector} 3328"#
     );
+
+    let rhs0 = mm256_permute4x64_epi64::<0b10_10_00_00>(vector);
+    hax_lib::fstar!(
+        r#"lemma_permute_160 ${vector};
+           lemma_permute_preserves_bound (mk_i32 160) ${vector} 3328"#
+    );
+
+    let mult = mm256_set_epi16(-1, -1, -1, -1, 1, 1, 1, 1, -1, -1, -1, -1, 1, 1, 1, 1);
+    let rhs = mm256_mullo_epi16(rhs0, mult);
 
     let sum = mm256_add_epi16(lhs, rhs);
-    let sum_times_zetas = arithmetic::montgomery_multiply_by_constants(
-        sum,
-        mm256_set_epi16(
-            zeta1, zeta1, zeta1, zeta1, 0, 0, 0, 0, zeta0, zeta0, zeta0, zeta0, 0, 0, 0, 0,
-        ),
-    );
+    hax_lib::fstar!(r#"lemma_inv_l2_sums_v ${vector} ${lhs} ${rhs0} ${mult} ${rhs} ${sum}"#);
 
-    mm256_blend_epi16::<0b1_1_1_1_0_0_0_0>(sum, sum_times_zetas)
+    let zetas = mm256_set_epi16(
+        zeta1, zeta1, zeta1, zeta1, 0, 0, 0, 0, zeta0, zeta0, zeta0, zeta0, 0, 0, 0, 0,
+    );
+    let sum_times_zetas = arithmetic::montgomery_multiply_by_constants(sum, zetas);
+
+    let result = mm256_blend_epi16::<0b1_1_1_1_0_0_0_0>(sum, sum_times_zetas);
+    hax_lib::fstar!(
+        r#"assert (Spec.Utils.is_i16b_array 1664 (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${zetas}));
+           assert (v (Libcrux_intrinsics.Avx2_extract.get_lane ${zetas} 4) == v zeta0 /\
+                   v (Libcrux_intrinsics.Avx2_extract.get_lane ${zetas} 5) == v zeta0 /\
+                   v (Libcrux_intrinsics.Avx2_extract.get_lane ${zetas} 6) == v zeta0 /\
+                   v (Libcrux_intrinsics.Avx2_extract.get_lane ${zetas} 7) == v zeta0 /\
+                   v (Libcrux_intrinsics.Avx2_extract.get_lane ${zetas} 12) == v zeta1 /\
+                   v (Libcrux_intrinsics.Avx2_extract.get_lane ${zetas} 13) == v zeta1 /\
+                   v (Libcrux_intrinsics.Avx2_extract.get_lane ${zetas} 14) == v zeta1 /\
+                   v (Libcrux_intrinsics.Avx2_extract.get_lane ${zetas} 15) == v zeta1);
+           lemma_blend_240 ${sum} ${sum_times_zetas};
+           lemma_inv_l2_post
+             (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector})
+             (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${sum})
+             (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${sum_times_zetas})
+             (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${zetas})
+             (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result})
+             zeta0 zeta1"#
+    );
+    result
 }
 
 #[inline(always)]
