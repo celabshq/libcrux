@@ -239,16 +239,7 @@ pub(crate) fn make_hint<SIMDUnit: Operations>(
          Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice (mk_usize 8380416) ${re_vector}}"#))]
 #[hax_lib::ensures(|_| fstar!(r#"
     Seq.length ${re_vector}_future == Seq.length re_vector /\
-    (forall (i:nat). i < Seq.length ${re_vector}_future ==>
-      (forall (j:nat). j < 32 ==>
-        ((v $gamma2 == v ${crate::constants::GAMMA2_V95_232} ==>
-            Spec.Utils.is_i32b_array_opaque 44
-              (i0._super_i2.f_repr
-                (Seq.index (Seq.index ${re_vector}_future i).Libcrux_ml_dsa.Polynomial.f_simd_units j))) /\
-         (v $gamma2 == v ${crate::constants::GAMMA2_V261_888} ==>
-            Spec.Utils.is_i32b_array_opaque 16
-              (i0._super_i2.f_repr
-                (Seq.index (Seq.index ${re_vector}_future i).Libcrux_ml_dsa.Polynomial.f_simd_units j))))))"#))]
+    Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice (use_hint_bound $gamma2) ${re_vector}_future"#))]
 pub(crate) fn use_hint<SIMDUnit: Operations>(
     gamma2: Gamma2,
     hint: &[[i32; COEFFICIENTS_IN_RING_ELEMENT]],
