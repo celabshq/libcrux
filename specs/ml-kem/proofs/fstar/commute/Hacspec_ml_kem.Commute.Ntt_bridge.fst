@@ -327,8 +327,31 @@ let lemma_ntt_layer_unfold_lo
          Seq.index zs round == N.v_ZETAS.[ sz (groups + round) ]))
     (ensures
       N.ntt_layer p layer == N.ntt_layer_n (mk_usize 256) p len zs)
-  = admit () (* TEMP-ADMIT-UNFOLD: verified squash+norm body (lo) at rlimit 400, ~33s;
-                admitted during F-A iteration for fast builds; RESTORE before final. *)
+  = lemma_shift_pow2_lo layer;
+    let len' : usize = mk_usize 1 <<! layer in
+    assert (v len' == v len);
+    assert (len' == len);
+    let groups : usize = mk_usize 128 /! len' in
+    assert (v groups == 128 / v len /\ v groups <= 64);
+    let tbl_slice : t_Slice P.t_FieldElement =
+      N.v_ZETAS.[ { Core_models.Ops.Range.f_start = groups;
+                    Core_models.Ops.Range.f_end = mk_usize 2 *! groups <: usize } ] in
+    (* FACT 1: ntt_layer unfolds definitionally to ntt_layer_n on the v_ZETAS slice. *)
+    assert (N.ntt_layer p layer == N.ntt_layer_n (mk_usize 256) p len' tbl_slice)
+      by (FStar.Tactics.norm [delta_only [`%N.ntt_layer]; iota; zeta; primops];
+          FStar.Tactics.trefl ());
+    (* FACT 2: tbl_slice == zs, point-wise (slice index == v_ZETAS[groups+i] == zs[i]). *)
+    assert (v groups == 128 / v len);
+    assert (Seq.length zs == v groups);
+    assert (Seq.length tbl_slice == v groups);
+    let aux (i: nat) : Lemma (i < v groups ==> Seq.index tbl_slice i == Seq.index zs i)
+      = if i < v groups then begin
+          FStar.Seq.Base.lemma_index_slice N.v_ZETAS (v groups) (2 * v groups) i;
+          assert (v (sz (v groups + i)) == v groups + i)
+        end
+    in
+    Classical.forall_intro aux;
+    Seq.lemma_eq_intro tbl_slice zs
 #pop-options
 
 (* === unfold for layers 4..7: ntt_layer p layer == ntt_layer_n 256 p (1<<layer) zs,
@@ -350,8 +373,34 @@ let lemma_ntt_layer_unfold
          Seq.index zs round == N.v_ZETAS.[ sz (groups + round) ]))
     (ensures
       N.ntt_layer p layer == N.ntt_layer_n (mk_usize 256) p len zs)
-  = admit () (* TEMP-ADMIT-UNFOLD: verified squash+norm body (hi) at rlimit 400;
-                admitted during F-A iteration for fast builds; RESTORE before final. *)
+  = (if v layer = 4 then assert_norm (v (mk_usize 1 <<! mk_usize 4) == pow2 4)
+     else if v layer = 5 then assert_norm (v (mk_usize 1 <<! mk_usize 5) == pow2 5)
+     else if v layer = 6 then assert_norm (v (mk_usize 1 <<! mk_usize 6) == pow2 6)
+     else assert_norm (v (mk_usize 1 <<! mk_usize 7) == pow2 7));
+    let len' : usize = mk_usize 1 <<! layer in
+    assert (v len' == v len);
+    assert (len' == len);
+    let groups : usize = mk_usize 128 /! len' in
+    assert (v groups == 128 / v len /\ v groups <= 8);
+    let tbl_slice : t_Slice P.t_FieldElement =
+      N.v_ZETAS.[ { Core_models.Ops.Range.f_start = groups;
+                    Core_models.Ops.Range.f_end = mk_usize 2 *! groups <: usize } ] in
+    (* FACT 1: ntt_layer unfolds definitionally to ntt_layer_n on the v_ZETAS slice. *)
+    assert (N.ntt_layer p layer == N.ntt_layer_n (mk_usize 256) p len' tbl_slice)
+      by (FStar.Tactics.norm [delta_only [`%N.ntt_layer]; iota; zeta; primops];
+          FStar.Tactics.trefl ());
+    (* FACT 2: tbl_slice == zs, point-wise (slice index == v_ZETAS[groups+i] == zs[i]). *)
+    assert (v groups == 128 / v len);
+    assert (Seq.length zs == v groups);
+    assert (Seq.length tbl_slice == v groups);
+    let aux (i: nat) : Lemma (i < v groups ==> Seq.index tbl_slice i == Seq.index zs i)
+      = if i < v groups then begin
+          FStar.Seq.Base.lemma_index_slice N.v_ZETAS (v groups) (2 * v groups) i;
+          assert (v (sz (v groups + i)) == v groups + i)
+        end
+    in
+    Classical.forall_intro aux;
+    Seq.lemma_eq_intro tbl_slice zs
 #pop-options
 
 (* === Unfold `N.ntt` to the explicit 7-fold nesting of `N.ntt_layer`
@@ -755,4 +804,236 @@ let lemma_layer1_to_poly_step (#vV: Type0) {| iop: T.t_Operations vV |}
     Classical.forall_intro aux_pv;
     Classical.forall_intro_2 aux_zc;
     lemma_intra_vec_layer_to_poly #vV re_in re_out (mk_usize 1) (mk_usize 2) zs pvz
+#pop-options
+
+(* =====================================================================
+   SECTION 7 — FORWARD layer 4-7 cross-vector keystone (F-B).
+   Mirror of the Bridges USER-14 inverse keystone (cross_vec_hyp /
+   lemma_layer_4_plus_per_coeff / lemma_layer_4_plus_cross_vector /
+   lemma_layer_4_plus_post_from_cross_vec / lemma_cross_vec_from_step /
+   lemma_cross_vec_frame) but for the Cooley-Tukey forward butterfly, and
+   the per-coefficient bridge yields PLAIN form directly via the Section-1
+   mont->plain cancellation cores — so the driver poly_step composes in
+   plain form with NO global ntt homogeneity.
+   Reuses the direction-agnostic index helpers from Bridges (open'd):
+   lemma_cross_idx, lemma_partner_idx_{add,sub}, lemma_div_128_prod,
+   lemma_vec_partner_hi.
+   ===================================================================== *)
+
+(* Flat per-vector forward butterfly relation (MONT), cross-vector partners
+   m and m +/- step_vec.  Mirror of Bridges.cross_vec_hyp with N.butterfly. *)
+[@@ "opaque_to_smt"]
+let cross_vec_hyp_fwd
+    (#vV: Type0) {| iop: T.t_Operations vV |}
+    (cin cout: t_Array vV (mk_usize 16)) (step_vec: pos) (zs: t_Slice P.t_FieldElement)
+    (m: nat) (l: nat) : prop =
+  (m < 16 /\ l < 16) ==>
+    (let block : nat = m / (2 * step_vec) in
+     let pos   : nat = m % (2 * step_vec) in
+     block < Seq.length zs /\
+     (pos < step_vec ==>
+        m + step_vec < 16 /\
+        mont_i16_to_spec_fe (Seq.index (T.f_repr (Seq.index cout m)) l) ==
+          (N.butterfly (Seq.index zs block)
+             (mont_i16_to_spec_fe (Seq.index (T.f_repr (Seq.index cin m)) l))
+             (mont_i16_to_spec_fe (Seq.index (T.f_repr (Seq.index cin (m + step_vec))) l)))._1) /\
+     (pos >= step_vec ==>
+        m >= step_vec /\
+        mont_i16_to_spec_fe (Seq.index (T.f_repr (Seq.index cout m)) l) ==
+          (N.butterfly (Seq.index zs block)
+             (mont_i16_to_spec_fe (Seq.index (T.f_repr (Seq.index cin (m - step_vec))) l))
+             (mont_i16_to_spec_fe (Seq.index (T.f_repr (Seq.index cin m)) l)))._2))
+
+(* PLAIN per-coefficient bridge: cross_vec_hyp_fwd forall -> Level-A (PLAIN)
+   per-coefficient butterfly relations against to_spec_poly_plain_arr.
+   Mirror of Bridges.lemma_layer_4_plus_per_coeff fused with the Section-4
+   mont->plain reconciliation (lemma_mont_to_plain_butterfly_{plus,minus}). *)
+#push-options "--z3rlimit 300 --fuel 0 --ifuel 1"
+let lemma_layer_4_plus_per_coeff_fwd
+    (#vV: Type0) {| iop: T.t_Operations vV |}
+    (cin cout: t_Array vV (mk_usize 16))
+    (len: usize)
+    (zs: t_Slice P.t_FieldElement)
+  : Lemma
+    (requires
+      (v len == 16 \/ v len == 32 \/ v len == 64 \/ v len == 128) /\
+      Seq.length zs == 128 / v len /\
+      (forall (m: nat) (l: nat).
+         cross_vec_hyp_fwd #vV cin cout (v len / 16) zs m l))
+    (ensures
+      (let p = to_spec_poly_plain_arr #vV cin in
+       let q = to_spec_poly_plain_arr #vV cout in
+       (forall (i: nat). i < 256 ==>
+         (let group : nat = i / (2 * v len) in
+          let idx   : nat = i % (2 * v len) in
+          group < Seq.length zs /\
+          (idx < v len ==>
+             i + v len < 256 /\
+             Seq.index q i ==
+               (N.butterfly (Seq.index zs group) (Seq.index p i) (Seq.index p (i + v len)))._1) /\
+          (idx >= v len ==>
+             i >= v len /\
+             Seq.index q i ==
+               (N.butterfly (Seq.index zs group) (Seq.index p (i - v len)) (Seq.index p i))._2)))))
+  = assert (v len / 16 == 1 \/ v len / 16 == 2 \/ v len / 16 == 4 \/ v len / 16 == 8);
+    let step_vec : s:pos{s == 1 \/ s == 2 \/ s == 4 \/ s == 8} = v len / 16 in
+    assert (v len == 16 * step_vec);
+    let p = to_spec_poly_plain_arr #vV cin in
+    let q = to_spec_poly_plain_arr #vV cout in
+    let aux (i: nat) : Lemma (i < 256 ==>
+        (let group : nat = i / (2 * v len) in
+         let idx   : nat = i % (2 * v len) in
+         group < Seq.length zs /\
+         (idx < v len ==>
+            i + v len < 256 /\
+            Seq.index q i ==
+              (N.butterfly (Seq.index zs group) (Seq.index p i) (Seq.index p (i + v len)))._1) /\
+         (idx >= v len ==>
+            i >= v len /\
+            Seq.index q i ==
+              (N.butterfly (Seq.index zs group) (Seq.index p (i - v len)) (Seq.index p i))._2)))
+      = if i < 256 then begin
+          let m : nat = i / 16 in
+          let l : nat = i % 16 in
+          lemma_cross_idx i step_vec;
+          assert (cross_vec_hyp_fwd #vV cin cout step_vec zs m l);
+          reveal_opaque (`%cross_vec_hyp_fwd)
+            (cross_vec_hyp_fwd #vV cin cout step_vec zs m l);
+          let block : nat = m / (2 * step_vec) in
+          let pos   : nat = m % (2 * step_vec) in
+          tspp_arr_lane #vV cout i;
+          tspp_arr_lane #vV cin i;
+          if pos < step_vec then begin
+            lemma_partner_idx_add i step_vec;
+            tspp_arr_lane #vV cin (i + v len);
+            lemma_mont_to_plain_butterfly_plus
+              (Seq.index (T.f_repr (Seq.index cin m)) l)
+              (Seq.index (T.f_repr (Seq.index cin (m + step_vec))) l)
+              (Seq.index (T.f_repr (Seq.index cout m)) l)
+              (Seq.index zs block)
+          end else begin
+            lemma_partner_idx_sub i step_vec;
+            tspp_arr_lane #vV cin (i - v len);
+            lemma_mont_to_plain_butterfly_minus
+              (Seq.index (T.f_repr (Seq.index cin (m - step_vec))) l)
+              (Seq.index (T.f_repr (Seq.index cin m)) l)
+              (Seq.index (T.f_repr (Seq.index cout m)) l)
+              (Seq.index zs block)
+          end
+        end
+    in
+    Classical.forall_intro aux
+#pop-options
+
+(* LEVEL B (PLAIN): cross_vec_hyp_fwd forall -> ntt_layer_n 256 equality in plain form. *)
+#push-options "--z3rlimit 200 --fuel 0 --ifuel 1"
+let lemma_layer_4_plus_cross_vector_fwd
+    (#vV: Type0) {| iop: T.t_Operations vV |}
+    (cin cout: t_Array vV (mk_usize 16))
+    (len: usize)
+    (zs: t_Slice P.t_FieldElement)
+  : Lemma
+    (requires
+      (v len == 16 \/ v len == 32 \/ v len == 64 \/ v len == 128) /\
+      Seq.length zs == 128 / v len /\
+      (forall (m: nat) (l: nat). cross_vec_hyp_fwd #vV cin cout (v len / 16) zs m l))
+    (ensures
+      to_spec_poly_plain_arr #vV cout ==
+        N.ntt_layer_n (mk_usize 256) (to_spec_poly_plain_arr #vV cin) len zs)
+  = let p = to_spec_poly_plain_arr #vV cin in
+    let q = to_spec_poly_plain_arr #vV cout in
+    lemma_layer_4_plus_per_coeff_fwd #vV cin cout len zs;
+    lemma_div_128_prod (v len);
+    lemma_ntt_layer_n_256_compose p q len zs
+#pop-options
+
+(* The keystone post: from the per-vector cross_vec_hyp_fwd forall + ascending
+   zeta correspondence, conclude the PLAIN poly_step for layer in {4,5,6,7}. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_layer_4_plus_to_poly_step
+    (#vV: Type0) {| iop: T.t_Operations vV |}
+    (re_in re_out: VV.t_PolynomialRingElement vV)
+    (layer len: usize)
+    (step_vec: pos)
+    (zs: t_Slice P.t_FieldElement)
+  : Lemma
+    (requires
+      (v layer == 4 \/ v layer == 5 \/ v layer == 6 \/ v layer == 7) /\
+      v len == pow2 (v layer) /\
+      v len == 16 * step_vec /\
+      Seq.length zs == 128 / v len /\
+      ((Seq.length zs) * 2) * v len == 256 /\
+      (let groups = 128 / v len in
+       forall (round: nat). round < groups ==>
+         Seq.index zs round == N.v_ZETAS.[ sz (groups + round) ]) /\
+      (forall (m: nat) (l: nat).
+         cross_vec_hyp_fwd #vV re_in.VV.f_coefficients re_out.VV.f_coefficients step_vec zs m l))
+    (ensures poly_step #vV re_in re_out layer)
+  = reveal_opaque (`%poly_step) (poly_step #vV re_in re_out layer);
+    assert_norm (pow2 4 == 16 /\ pow2 5 == 32 /\ pow2 6 == 64 /\ pow2 7 == 128);
+    assert (v len == 16 \/ v len == 32 \/ v len == 64 \/ v len == 128);
+    assert (v len / 16 == step_vec);
+    lemma_to_spec_poly_plain_unfold #vV re_out;
+    lemma_to_spec_poly_plain_unfold #vV re_in;
+    lemma_layer_4_plus_cross_vector_fwd #vV re_in.VV.f_coefficients re_out.VV.f_coefficients len zs;
+    lemma_ntt_layer_unfold (to_spec_poly_plain_arr #vV re_in.VV.f_coefficients) layer len zs
+#pop-options
+
+(* Generic keystone helper: from one forward step's raw per-lane butterfly
+   relations (vectors j and j+step_vec, both written from cin[j],cin[j+step_vec]),
+   establish cross_vec_hyp_fwd for BOTH written vectors.  Mirror of
+   Bridges.lemma_cross_vec_from_step with N.butterfly. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200 --split_queries always"
+let lemma_cross_vec_from_step_fwd
+    (#vV: Type0) {| iop: T.t_Operations vV |}
+    (cin cout: t_Array vV (mk_usize 16))
+    (step_vec: pos)
+    (zs: t_Slice P.t_FieldElement)
+    (j: nat)
+    (zeta_r: i16)
+  : Lemma
+    (requires
+      j + step_vec < 16 /\
+      j % (2 * step_vec) < step_vec /\
+      j / (2 * step_vec) < Seq.length zs /\
+      Seq.index zs (j / (2 * step_vec)) == mont_i16_to_spec_fe zeta_r /\
+      (forall (l: nat). l < 16 ==>
+         mont_i16_to_spec_fe (Seq.index (T.f_repr (Seq.index cout j)) l) ==
+           (N.butterfly (mont_i16_to_spec_fe zeta_r)
+              (mont_i16_to_spec_fe (Seq.index (T.f_repr (Seq.index cin j)) l))
+              (mont_i16_to_spec_fe (Seq.index (T.f_repr (Seq.index cin (j + step_vec))) l)))._1) /\
+      (forall (l: nat). l < 16 ==>
+         mont_i16_to_spec_fe (Seq.index (T.f_repr (Seq.index cout (j + step_vec))) l) ==
+           (N.butterfly (mont_i16_to_spec_fe zeta_r)
+              (mont_i16_to_spec_fe (Seq.index (T.f_repr (Seq.index cin j)) l))
+              (mont_i16_to_spec_fe (Seq.index (T.f_repr (Seq.index cin (j + step_vec))) l)))._2))
+    (ensures
+      (forall (l: nat). l < 16 ==> cross_vec_hyp_fwd #vV cin cout step_vec zs j l) /\
+      (forall (l: nat). l < 16 ==> cross_vec_hyp_fwd #vV cin cout step_vec zs (j + step_vec) l))
+  = let aux_lo (l: nat) : Lemma (cross_vec_hyp_fwd #vV cin cout step_vec zs j l)
+      = reveal_opaque (`%cross_vec_hyp_fwd) (cross_vec_hyp_fwd #vV cin cout step_vec zs j l)
+    in
+    Classical.forall_intro aux_lo;
+    lemma_vec_partner_hi j step_vec;
+    let aux_hi (l: nat) : Lemma (cross_vec_hyp_fwd #vV cin cout step_vec zs (j + step_vec) l)
+      = reveal_opaque (`%cross_vec_hyp_fwd) (cross_vec_hyp_fwd #vV cin cout step_vec zs (j + step_vec) l)
+    in
+    Classical.forall_intro aux_hi
+#pop-options
+
+(* Frame: cross_vec_hyp_fwd reads cout only at index m, so an update to cout at
+   indices other than m preserves it.  Mirror of Bridges.lemma_cross_vec_frame. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_cross_vec_frame_fwd
+    (#vV: Type0) {| iop: T.t_Operations vV |}
+    (cin cout1 cout2: t_Array vV (mk_usize 16))
+    (step_vec: pos)
+    (zs: t_Slice P.t_FieldElement)
+    (m l: nat)
+  : Lemma
+    (requires m < 16 /\ Seq.index cout1 m == Seq.index cout2 m)
+    (ensures cross_vec_hyp_fwd #vV cin cout1 step_vec zs m l <==>
+             cross_vec_hyp_fwd #vV cin cout2 step_vec zs m l)
+  = reveal_opaque (`%cross_vec_hyp_fwd) (cross_vec_hyp_fwd #vV cin cout1 step_vec zs m l);
+    reveal_opaque (`%cross_vec_hyp_fwd) (cross_vec_hyp_fwd #vV cin cout2 step_vec zs m l)
 #pop-options
