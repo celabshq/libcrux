@@ -1235,10 +1235,98 @@ let lemma_inv_ntt_layer_1_butterfly_to_fe
 
 #pop-options
 
-(* `ntt_layer_1_step_branch_post` is NON-opaque (no opaque_to_smt), so
-   `op_ntt_layer_1_step` in `Libcrux_ml_kem.Vector.Portable` proves the
-   layer-1 post directly via 8 `lemma_butterfly_pair_commute` calls plus
-   a local predicate matching the unfolded branch_post body. *)
+(* ──────  Per-branch concrete-`b` layer-1 step lemmas  ──────
+   Each lemma fixes `b` to a literal so the 4-way `if b=0 .. else zeta3`
+   ladder in `ntt_layer_1_step_branch_post` collapses to the branch's
+   zeta at proof time, in a clean SMT context (no cross-branch fact
+   pollution).  Body = reveal the opaque branch_post at this concrete
+   application + the already-proven `_butterfly_to_fe` arithmetic.
+   `op_ntt_layer_1_step` / `op_inv_ntt_layer_1_step` close the per-vector
+   `forall4` post by calling these four and conjoining the opaque atoms. *)
+
+#push-options "--z3rlimit 100 --fuel 0 --ifuel 1"
+
+let lemma_ntt_layer_1_step_branch_0
+    (vec result: t_Array i16 (mk_usize 16)) (zeta0 zeta1 zeta2 zeta3: i16) :
+  Lemma (requires Spec.Utils.ntt_spec vec (v zeta0) 0 2 result /\
+                  Spec.Utils.ntt_spec vec (v zeta0) 1 3 result)
+        (ensures TS.ntt_layer_1_step_branch_post 0 vec zeta0 zeta1 zeta2 zeta3 result)
+  = reveal_opaque (`%TS.ntt_layer_1_step_branch_post)
+                  (TS.ntt_layer_1_step_branch_post 0 vec zeta0 zeta1 zeta2 zeta3 result);
+    lemma_ntt_layer_1_butterfly_to_fe vec result zeta0 0 2 1 3
+
+let lemma_ntt_layer_1_step_branch_1
+    (vec result: t_Array i16 (mk_usize 16)) (zeta0 zeta1 zeta2 zeta3: i16) :
+  Lemma (requires Spec.Utils.ntt_spec vec (v zeta1) 4 6 result /\
+                  Spec.Utils.ntt_spec vec (v zeta1) 5 7 result)
+        (ensures TS.ntt_layer_1_step_branch_post 1 vec zeta0 zeta1 zeta2 zeta3 result)
+  = reveal_opaque (`%TS.ntt_layer_1_step_branch_post)
+                  (TS.ntt_layer_1_step_branch_post 1 vec zeta0 zeta1 zeta2 zeta3 result);
+    lemma_ntt_layer_1_butterfly_to_fe vec result zeta1 4 6 5 7
+
+let lemma_ntt_layer_1_step_branch_2
+    (vec result: t_Array i16 (mk_usize 16)) (zeta0 zeta1 zeta2 zeta3: i16) :
+  Lemma (requires Spec.Utils.ntt_spec vec (v zeta2) 8 10 result /\
+                  Spec.Utils.ntt_spec vec (v zeta2) 9 11 result)
+        (ensures TS.ntt_layer_1_step_branch_post 2 vec zeta0 zeta1 zeta2 zeta3 result)
+  = reveal_opaque (`%TS.ntt_layer_1_step_branch_post)
+                  (TS.ntt_layer_1_step_branch_post 2 vec zeta0 zeta1 zeta2 zeta3 result);
+    lemma_ntt_layer_1_butterfly_to_fe vec result zeta2 8 10 9 11
+
+let lemma_ntt_layer_1_step_branch_3
+    (vec result: t_Array i16 (mk_usize 16)) (zeta0 zeta1 zeta2 zeta3: i16) :
+  Lemma (requires Spec.Utils.ntt_spec vec (v zeta3) 12 14 result /\
+                  Spec.Utils.ntt_spec vec (v zeta3) 13 15 result)
+        (ensures TS.ntt_layer_1_step_branch_post 3 vec zeta0 zeta1 zeta2 zeta3 result)
+  = reveal_opaque (`%TS.ntt_layer_1_step_branch_post)
+                  (TS.ntt_layer_1_step_branch_post 3 vec zeta0 zeta1 zeta2 zeta3 result);
+    lemma_ntt_layer_1_butterfly_to_fe vec result zeta3 12 14 13 15
+
+(* Inverse (Gentleman–Sande) mirror — same concrete-`b` collapse. *)
+
+let lemma_inv_ntt_layer_1_step_branch_0
+    (vec result: t_Array i16 (mk_usize 16)) (zeta0 zeta1 zeta2 zeta3: i16) :
+  Lemma (requires Spec.Utils.inv_ntt_spec vec (v zeta0) 0 2 result /\
+                  Spec.Utils.inv_ntt_spec vec (v zeta0) 1 3 result)
+        (ensures TS.inv_ntt_layer_1_step_branch_post 0 vec zeta0 zeta1 zeta2 zeta3 result)
+  = reveal_opaque (`%TS.inv_ntt_layer_1_step_branch_post)
+                  (TS.inv_ntt_layer_1_step_branch_post 0 vec zeta0 zeta1 zeta2 zeta3 result);
+    lemma_inv_ntt_layer_1_butterfly_to_fe vec result zeta0 0 2 1 3
+
+let lemma_inv_ntt_layer_1_step_branch_1
+    (vec result: t_Array i16 (mk_usize 16)) (zeta0 zeta1 zeta2 zeta3: i16) :
+  Lemma (requires Spec.Utils.inv_ntt_spec vec (v zeta1) 4 6 result /\
+                  Spec.Utils.inv_ntt_spec vec (v zeta1) 5 7 result)
+        (ensures TS.inv_ntt_layer_1_step_branch_post 1 vec zeta0 zeta1 zeta2 zeta3 result)
+  = reveal_opaque (`%TS.inv_ntt_layer_1_step_branch_post)
+                  (TS.inv_ntt_layer_1_step_branch_post 1 vec zeta0 zeta1 zeta2 zeta3 result);
+    lemma_inv_ntt_layer_1_butterfly_to_fe vec result zeta1 4 6 5 7
+
+let lemma_inv_ntt_layer_1_step_branch_2
+    (vec result: t_Array i16 (mk_usize 16)) (zeta0 zeta1 zeta2 zeta3: i16) :
+  Lemma (requires Spec.Utils.inv_ntt_spec vec (v zeta2) 8 10 result /\
+                  Spec.Utils.inv_ntt_spec vec (v zeta2) 9 11 result)
+        (ensures TS.inv_ntt_layer_1_step_branch_post 2 vec zeta0 zeta1 zeta2 zeta3 result)
+  = reveal_opaque (`%TS.inv_ntt_layer_1_step_branch_post)
+                  (TS.inv_ntt_layer_1_step_branch_post 2 vec zeta0 zeta1 zeta2 zeta3 result);
+    lemma_inv_ntt_layer_1_butterfly_to_fe vec result zeta2 8 10 9 11
+
+let lemma_inv_ntt_layer_1_step_branch_3
+    (vec result: t_Array i16 (mk_usize 16)) (zeta0 zeta1 zeta2 zeta3: i16) :
+  Lemma (requires Spec.Utils.inv_ntt_spec vec (v zeta3) 12 14 result /\
+                  Spec.Utils.inv_ntt_spec vec (v zeta3) 13 15 result)
+        (ensures TS.inv_ntt_layer_1_step_branch_post 3 vec zeta0 zeta1 zeta2 zeta3 result)
+  = reveal_opaque (`%TS.inv_ntt_layer_1_step_branch_post)
+                  (TS.inv_ntt_layer_1_step_branch_post 3 vec zeta0 zeta1 zeta2 zeta3 result);
+    lemma_inv_ntt_layer_1_butterfly_to_fe vec result zeta3 12 14 13 15
+
+#pop-options
+
+(* `ntt_layer_1_step_branch_post` is opaque; `op_ntt_layer_1_step` in
+   `Libcrux_ml_kem.Vector.Portable` discharges the per-vector `forall4`
+   post by calling the four `lemma_ntt_layer_1_step_branch_{0..3}` above
+   (each closes one opaque branch atom) after revealing
+   `ntt_layer_1_butterfly_post` to expose the `ntt_spec` residues. *)
 
 (* The trait post of `f_ntt_layer_1_step` is exactly this predicate —
    4 groups of 4 FE equalities, wrapped in `Spec.Utils.forall4`.  The

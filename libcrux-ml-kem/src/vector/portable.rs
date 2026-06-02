@@ -415,44 +415,24 @@ fn op_decompress_ciphertext_coefficient<const COEFFICIENT_BITS: i32>(a: Portable
 // NTT-layer wrappers.  Each bridges from the primitive's
 // `Spec.Utils.is_i16b_array N` (non-opaque) + `*_butterfly_post`
 // residue post to the trait's `is_i16b_array_opaque N` + `forall4
-// (FE-algebra equality)` post.  Bridge = 8 `lemma_butterfly_pair_commute`
-// calls + per-group `assert (p_layer_X N)` + final
-// `assert (forall4 p_layer_X)`.
+// (FE-algebra equality)` post.  Layers 2 / 3 close the per-branch
+// `forall4` inline (2-way / single-zeta dispatch).
 //
-// `op_ntt_layer_1_step`: admit-with-comment, Phase 6 agent A 2026-04-27.
-//   What was tried: same recipe that closes layers 2 / 3 (drop the
-//   `--admit_smt_queries true` and replace with
-//   `--z3rlimit N --split_queries always`) at N ∈ {200, 400, 800}.
-//   Outcome: at rlimit 800 with split_queries, F* completed 60 sub-queries
-//   in ~16 ms each, then a single sub-query (one of the 4 per-branch
-//   `p_layer_1 b` asserts, b ∈ {0..3}) ran for >10 min without resolving
-//   before manual cancel.  Earlier rlimit 400 run failed cleanly with
-//   Error 19 "Assertion failed" at the same block in 4 min.
-//   Hypothesis: the per-branch `p_layer_1` body uses a 4-way conditional
-//   `if b=0 then zeta0 else if b=1 then zeta1 else if b=2 then zeta2 else
-//   zeta3` to pick the right zeta, which Z3 case-splits on every
-//   instantiation.  Compounded with the 16 underlying lemma facts, the
-//   per-branch goal exceeds Z3's reasoning budget at rlimit 800.
-//   Layers 2 / 3 verify because layer 3 has 0 zeta dispatching (single
-//   zeta) and layer 2 has only a 2-way conditional (`if b<2 then zeta0
-//   else zeta1`).
-//   Next step (USER): refactor by replacing the 4-way `if/else` ladder
-//   with 4 separate per-zeta let-rebinds, e.g. assert each
-//   `p_layer_1_zeta{0..3}` first, then introduce `p_layer_1` as a
-//   case-split lemma combining them.  Or factor each branch into a
-//   dedicated `lemma_op_ntt_layer_1_step_branch_b` lemma in
-//   `Hacspec_ml_kem.Commute.Chunk.fst` that takes `b` and the matching
-//   `zeta_b` explicitly, then close the wrapper via 4 such calls
-//   followed by `Spec.Utils.forall4` intro.
-#[hax_lib::fstar::options("--admit_smt_queries true")]
+// Layer 1 has a 4-way zeta dispatch (`if b=0 then zeta0 .. else zeta3`).
+// Asserting the per-branch predicate inline made Z3 case-split the
+// ladder under all 16 butterfly facts — a single sub-query ran >10 min
+// at rlimit 800 (Phase 6, 2026-04-27).  Closed by the concrete-`b`
+// `lemma_{,inv_}ntt_layer_1_step_branch_{0..3}` in `Commute.Chunk`: each
+// fixes `b` to a literal so the ladder collapses to one zeta in a clean
+// SMT context.  The wrapper reveals the butterfly residues and conjoins
+// the four opaque branch atoms via `forall4`.
+#[hax_lib::fstar::options("--z3rlimit 400 --fuel 0 --ifuel 1 --split_queries always")]
 #[hax_lib::requires(fstar!(r#"${spec::ntt_layer_1_step_pre} ${a}.f_elements zeta0 zeta1 zeta2 zeta3"#))]
 #[hax_lib::ensures(|out| fstar!(r#"${spec::ntt_layer_1_step_post} ${a}.f_elements zeta0 zeta1 zeta2 zeta3 ${out}.f_elements"#))]
 fn op_ntt_layer_1_step(a: PortableVector, zeta0: i16, zeta1: i16, zeta2: i16, zeta3: i16) -> PortableVector {
     hax_lib::fstar!(
         r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
-                    (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque (7*3328));
-           reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.ntt_layer_1_step_branch_post)
-                    Libcrux_ml_kem.Vector.Traits.Spec.ntt_layer_1_step_branch_post"#
+                    (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque (7*3328))"#
     );
     let out = ntt_layer_1_step(a, zeta0, zeta1, zeta2, zeta3);
     hax_lib::fstar!(
@@ -463,61 +443,14 @@ fn op_ntt_layer_1_step(a: PortableVector, zeta0: i16, zeta1: i16, zeta2: i16, ze
         r#"
         reveal_opaque (`%Spec.Utils.ntt_layer_1_butterfly_post)
                       (Spec.Utils.ntt_layer_1_butterfly_post ${a}.f_elements);
-        Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute
-          ${a}.f_elements ${out}.f_elements zeta0 0 2;
-        Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute
-          ${a}.f_elements ${out}.f_elements zeta0 1 3;
-        Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute
-          ${a}.f_elements ${out}.f_elements zeta1 4 6;
-        Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute
-          ${a}.f_elements ${out}.f_elements zeta1 5 7;
-        Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute
-          ${a}.f_elements ${out}.f_elements zeta2 8 10;
-        Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute
-          ${a}.f_elements ${out}.f_elements zeta2 9 11;
-        Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute
-          ${a}.f_elements ${out}.f_elements zeta3 12 14;
-        Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute
-          ${a}.f_elements ${out}.f_elements zeta3 13 15;
-        let p_layer_1 : (b: nat{b < 4}) -> Type0 =
-          fun (b: nat{b < 4}) ->
-            (let z = (if b = 0 then zeta0
-                      else if b = 1 then zeta1
-                      else if b = 2 then zeta2
-                      else zeta3) in
-             let i1 : nat = 4 * b in
-             let j1 : nat = 4 * b + 2 in
-             let i2 : nat = 4 * b + 1 in
-             let j2 : nat = 4 * b + 3 in
-             Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index ${out}.f_elements i1) ==
-               Hacspec_ml_kem.Parameters.impl_FieldElement__add
-                 (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index ${a}.f_elements i1))
-                 (Hacspec_ml_kem.Parameters.impl_FieldElement__mul
-                   (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe z)
-                   (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index ${a}.f_elements j1))) /\
-             Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index ${out}.f_elements j1) ==
-               Hacspec_ml_kem.Parameters.impl_FieldElement__sub
-                 (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index ${a}.f_elements i1))
-                 (Hacspec_ml_kem.Parameters.impl_FieldElement__mul
-                   (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe z)
-                   (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index ${a}.f_elements j1))) /\
-             Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index ${out}.f_elements i2) ==
-               Hacspec_ml_kem.Parameters.impl_FieldElement__add
-                 (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index ${a}.f_elements i2))
-                 (Hacspec_ml_kem.Parameters.impl_FieldElement__mul
-                   (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe z)
-                   (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index ${a}.f_elements j2))) /\
-             Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index ${out}.f_elements j2) ==
-               Hacspec_ml_kem.Parameters.impl_FieldElement__sub
-                 (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index ${a}.f_elements i2))
-                 (Hacspec_ml_kem.Parameters.impl_FieldElement__mul
-                   (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe z)
-                   (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index ${a}.f_elements j2)))) in
-        assert (p_layer_1 0);
-        assert (p_layer_1 1);
-        assert (p_layer_1 2);
-        assert (p_layer_1 3);
-        assert (Spec.Utils.forall4 p_layer_1)
+        Hacspec_ml_kem.Commute.Chunk.lemma_ntt_layer_1_step_branch_0
+          ${a}.f_elements ${out}.f_elements zeta0 zeta1 zeta2 zeta3;
+        Hacspec_ml_kem.Commute.Chunk.lemma_ntt_layer_1_step_branch_1
+          ${a}.f_elements ${out}.f_elements zeta0 zeta1 zeta2 zeta3;
+        Hacspec_ml_kem.Commute.Chunk.lemma_ntt_layer_1_step_branch_2
+          ${a}.f_elements ${out}.f_elements zeta0 zeta1 zeta2 zeta3;
+        Hacspec_ml_kem.Commute.Chunk.lemma_ntt_layer_1_step_branch_3
+          ${a}.f_elements ${out}.f_elements zeta0 zeta1 zeta2 zeta3
         "#
     );
     out
@@ -676,22 +609,18 @@ fn op_ntt_layer_3_step(a: PortableVector, zeta: i16) -> PortableVector {
     out
 }
 
-// `op_inv_ntt_layer_1_step`: admit-with-comment, Phase 6 agent A
-// 2026-04-27.  Same shape as `op_ntt_layer_1_step` — 4-way zeta dispatch
-// in the per-branch predicate `p_inv_1`.  Not attempted directly (would
-// exceed wall-clock budget); admitted by analogy.  Same hypothesis and
-// next-step refactor recipe as `op_ntt_layer_1_step` above:
-// replace the 4-way `if/else` ladder with 4 explicit per-zeta lemmas
-// + `forall4` intro.
-#[hax_lib::fstar::options("--admit_smt_queries true")]
+// Inverse layer-1 NTT post — symmetric to `op_ntt_layer_1_step`.  The
+// four Gentleman–Sande branch posts are closed by the concrete-`b`
+// `lemma_inv_ntt_layer_1_step_branch_{0..3}` in `Commute.Chunk`, then
+// conjoined via `forall4`.  (Primitive's output bound is 3328 here —
+// portable still Barrett-reduces.)
+#[hax_lib::fstar::options("--z3rlimit 400 --fuel 0 --ifuel 1 --split_queries always")]
 #[hax_lib::requires(fstar!(r#"${spec::inv_ntt_layer_1_step_pre} ${a}.f_elements zeta0 zeta1 zeta2 zeta3"#))]
 #[hax_lib::ensures(|out| fstar!(r#"${spec::inv_ntt_layer_1_step_post} ${a}.f_elements zeta0 zeta1 zeta2 zeta3 ${out}.f_elements"#))]
 fn op_inv_ntt_layer_1_step(a: PortableVector, zeta0: i16, zeta1: i16, zeta2: i16, zeta3: i16) -> PortableVector {
     hax_lib::fstar!(
         r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
-                    (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque (4*3328));
-           reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.inv_ntt_layer_1_step_branch_post)
-                    Libcrux_ml_kem.Vector.Traits.Spec.inv_ntt_layer_1_step_branch_post"#
+                    (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque (4*3328))"#
     );
     let out = inv_ntt_layer_1_step(a, zeta0, zeta1, zeta2, zeta3);
     hax_lib::fstar!(
@@ -702,57 +631,14 @@ fn op_inv_ntt_layer_1_step(a: PortableVector, zeta0: i16, zeta1: i16, zeta2: i16
         r#"
         reveal_opaque (`%Spec.Utils.inv_ntt_layer_1_butterfly_post)
                       (Spec.Utils.inv_ntt_layer_1_butterfly_post ${a}.f_elements);
-        Hacspec_ml_kem.Commute.Chunk.lemma_inv_butterfly_pair_commute
-          ${a}.f_elements ${out}.f_elements zeta0 0 2;
-        Hacspec_ml_kem.Commute.Chunk.lemma_inv_butterfly_pair_commute
-          ${a}.f_elements ${out}.f_elements zeta0 1 3;
-        Hacspec_ml_kem.Commute.Chunk.lemma_inv_butterfly_pair_commute
-          ${a}.f_elements ${out}.f_elements zeta1 4 6;
-        Hacspec_ml_kem.Commute.Chunk.lemma_inv_butterfly_pair_commute
-          ${a}.f_elements ${out}.f_elements zeta1 5 7;
-        Hacspec_ml_kem.Commute.Chunk.lemma_inv_butterfly_pair_commute
-          ${a}.f_elements ${out}.f_elements zeta2 8 10;
-        Hacspec_ml_kem.Commute.Chunk.lemma_inv_butterfly_pair_commute
-          ${a}.f_elements ${out}.f_elements zeta2 9 11;
-        Hacspec_ml_kem.Commute.Chunk.lemma_inv_butterfly_pair_commute
-          ${a}.f_elements ${out}.f_elements zeta3 12 14;
-        Hacspec_ml_kem.Commute.Chunk.lemma_inv_butterfly_pair_commute
-          ${a}.f_elements ${out}.f_elements zeta3 13 15;
-        let p_inv_1 : (b: nat{b < 4}) -> Type0 =
-          fun (b: nat{b < 4}) ->
-            (let z = (if b = 0 then zeta0
-                      else if b = 1 then zeta1
-                      else if b = 2 then zeta2
-                      else zeta3) in
-             let i1 : nat = 4 * b in
-             let j1 : nat = 4 * b + 2 in
-             let i2 : nat = 4 * b + 1 in
-             let j2 : nat = 4 * b + 3 in
-             Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index ${out}.f_elements i1) ==
-               Hacspec_ml_kem.Parameters.impl_FieldElement__add
-                 (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index ${a}.f_elements i1))
-                 (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index ${a}.f_elements j1)) /\
-             Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index ${out}.f_elements j1) ==
-               Hacspec_ml_kem.Parameters.impl_FieldElement__mul
-                 (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe z)
-                 (Hacspec_ml_kem.Parameters.impl_FieldElement__sub
-                   (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index ${a}.f_elements j1))
-                   (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index ${a}.f_elements i1))) /\
-             Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index ${out}.f_elements i2) ==
-               Hacspec_ml_kem.Parameters.impl_FieldElement__add
-                 (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index ${a}.f_elements i2))
-                 (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index ${a}.f_elements j2)) /\
-             Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index ${out}.f_elements j2) ==
-               Hacspec_ml_kem.Parameters.impl_FieldElement__mul
-                 (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe z)
-                 (Hacspec_ml_kem.Parameters.impl_FieldElement__sub
-                   (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index ${a}.f_elements j2))
-                   (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index ${a}.f_elements i2)))) in
-        assert (p_inv_1 0);
-        assert (p_inv_1 1);
-        assert (p_inv_1 2);
-        assert (p_inv_1 3);
-        assert (Spec.Utils.forall4 p_inv_1)
+        Hacspec_ml_kem.Commute.Chunk.lemma_inv_ntt_layer_1_step_branch_0
+          ${a}.f_elements ${out}.f_elements zeta0 zeta1 zeta2 zeta3;
+        Hacspec_ml_kem.Commute.Chunk.lemma_inv_ntt_layer_1_step_branch_1
+          ${a}.f_elements ${out}.f_elements zeta0 zeta1 zeta2 zeta3;
+        Hacspec_ml_kem.Commute.Chunk.lemma_inv_ntt_layer_1_step_branch_2
+          ${a}.f_elements ${out}.f_elements zeta0 zeta1 zeta2 zeta3;
+        Hacspec_ml_kem.Commute.Chunk.lemma_inv_ntt_layer_1_step_branch_3
+          ${a}.f_elements ${out}.f_elements zeta0 zeta1 zeta2 zeta3
         "#
     );
     out
