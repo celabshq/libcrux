@@ -14,29 +14,26 @@ module EquivImplSpec.Sponge.Avx2.API
    [absorb_blocks]-based loop invariant) discharges
    [lemma_absorb2_arm64] directly.
 
-   The AVX2 driver [Libcrux_sha3.Generic_keccak.Simd256] currently
-   exposes only a single [keccak4] function — it has no separate
-   [absorb4] or [squeeze4] functions, so the absorb / squeeze
-   decomposition cannot be cleanly split at the F* level.
+   The AVX2 driver [Libcrux_sha3.Generic_keccak.Simd256] now exposes
+   separate [absorb4], [squeeze4], and [keccak4] functions (mirroring the
+   Arm64 [Simd128] split), so the absorb / squeeze decomposition splits
+   cleanly at the F* level:
 
-   Consequence:
-   - [lemma_squeeze4_avx2] is stated about the [t_Squeeze4.f_squeeze4]
-     trait method, which IS the lane-wise primitive used by
-     [Generic_keccak.Simd256.{keccak4, impl__squeeze_*}].
-     It is ADMITTED — it specialises [avx2_sc_store_block]
-     (also admitted) to the per-lane spec [Hacspec_sha3.Sponge.squeeze]
-     by induction over the keccakf1600/squeeze loop.
-   - [lemma_keccak4_avx2] is the AVX2 counterpart of
-     [lemma_keccak2_arm64] — per-lane equivalence between
-     [Generic_keccak.Simd256.keccak4] and the scalar
-     [Hacspec_sha3.Sponge.keccak].  It is ADMITTED for the same
-     reason: it would compose [lemma_absorb4_avx2] (which we cannot
-     state as a separate lemma without an [absorb4] function) with
-     [lemma_squeeze4_avx2] over the [keccak4] body.
-   - Top-level hashers ([lemma_shake256_x4_avx2]) are derived
-     from [lemma_keccak4_avx2].
+   - [lemma_absorb4_avx2] : per-lane [extract_lane (absorb4 …) l] ≡
+     [Hacspec_sha3.Sponge.absorb data[l]], discharged by the Rust-side
+     ensures on [Simd256.absorb4] (an [absorb_blocks]-based loop invariant
+     at N=4, mirroring [Simd128.absorb2]).
+   - [lemma_squeeze4_avx2] : per-lane [squeeze4] output ≡
+     [Hacspec_sha3.Sponge.squeeze (extract_lane s l)], discharged by the
+     Rust-side ensures on [Simd256.squeeze4].
+   - [lemma_keccak4_avx2] : the AVX2 counterpart of [lemma_keccak2_arm64]
+     — per-lane equivalence between [Simd256.keccak4] and the scalar
+     [Hacspec_sha3.Sponge.keccak], proven by composing the two above.
+   - Top-level hashers ([lemma_shake256_x4_avx2]) are derived from
+     [lemma_keccak4_avx2].
 
-   See SHA3_STATUS.md for the full load-bearing admit inventory.
+   All are proven (no admits); the only external trust is the AVX2
+   intrinsic layer inherited via [lemma_keccakf1600_avx2].
    ================================================================ *)
 
 #set-options "--fuel 0 --ifuel 1 --z3rlimit 100"
@@ -79,11 +76,9 @@ let lemma_absorb4_avx2
     component equals [Hacspec_sha3.Sponge.squeeze] applied to
     [extract_lane s l].
 
-    Mirrors [lemma_squeeze2_arm64].  Discharging this would require
-    closing the [avx2_sc_store_block] admit (currently in
-    [EquivImplSpec.Sponge.Avx2]) plus an inline loop-invariant proof
-    on [Simd256.squeeze4] (analogous to the unfinished work on
-    [Simd128.squeeze2] documented in HANDOFF). *)
+    Mirrors [lemma_squeeze2_arm64]: discharged directly by the Rust-side
+    ensures on [Simd256.squeeze4] (an inline loop-invariant proof at N=4,
+    the AVX2 analogue of [Simd128.squeeze2]). *)
 let lemma_squeeze4_avx2
       (rate: usize)
       (s: Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 4) I.t_Vec256)

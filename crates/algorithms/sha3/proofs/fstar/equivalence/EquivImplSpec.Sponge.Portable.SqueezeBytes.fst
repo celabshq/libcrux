@@ -4,10 +4,10 @@ module EquivImplSpec.Sponge.Portable.SqueezeBytes
    the in-body [forall_intro] closures so each lemma is verified
    standalone with one quantifier scope.
 
-   This is the structural fix sketched in the USER-2 stability admit
-   on [Libcrux_sha3.Generic_keccak.Portable.squeeze]: each per-byte
-   aux is verified once here, and the squeeze body cites them by
-   name in [forall_intro]. *)
+   This is the structural fix for the per-byte stability problem in
+   [Libcrux_sha3.Generic_keccak.Portable.squeeze]: each per-byte aux is
+   verified once here, and the squeeze body cites them by name in
+   [forall_intro]. *)
 
 #set-options "--fuel 1 --ifuel 1 --z3rlimit 200"
 

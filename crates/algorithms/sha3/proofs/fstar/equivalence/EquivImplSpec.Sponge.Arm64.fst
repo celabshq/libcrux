@@ -10,10 +10,10 @@ module EquivImplSpec.Sponge.Arm64
      - t_Squeeze2 at N=2 (two output slices)
 
    The three per-backend lemmas — sc_load_block, sc_load_last,
-   sc_store_block — are admitted. Their proofs will unfold the NEON
-   t_Absorb / t_Squeeze2 methods, push [arm64_lane] through the
+   sc_store_block — are proven (real [let]s below). Each unfolds the NEON
+   t_Absorb / t_Squeeze2 methods, pushes [arm64_lane] through the
    per-intrinsic postconditions declared in [Libcrux_intrinsics.
-   Arm64_extract], and reduce to the scalar xor_block_into_state /
+   Arm64_extract], and reduces to the scalar xor_block_into_state /
    squeeze_state on the extracted lane.
    ================================================================ *)
 

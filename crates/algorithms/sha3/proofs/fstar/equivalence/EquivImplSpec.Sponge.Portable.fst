@@ -9,13 +9,12 @@ module EquivImplSpec.Sponge.Portable
    t_Squeeze typeclass instances at N=1.
 
    The three per-backend lemmas — sc_load_block, sc_load_last,
-   sc_store_block — are admitted here. They reduce to:
+   sc_store_block — are proven here (real [let]s below). They reduce to:
      f_load_block / f_load_last  ≡ scalar xor_block_into_state
      f_squeeze                   ≡ scalar squeeze_state
-   under the N=1 identity for extract_lane. Discharging them is the
-   content of the portable sponge-layer proof already carried out in
-   [EquivImplSpec.Sponge.Absorb] / [.Squeeze]; they should be closable
-   by composing those lemmas with [lemma_extract_lane_portable_identity].
+   under the N=1 identity for extract_lane, by composing the closed
+   bridge lemmas (reused from [EquivImplSpec.Sponge.Portable.Steps]) with
+   [lemma_extract_lane_portable_identity].
    ================================================================ *)
 
 #set-options "--fuel 0 --ifuel 1 --z3rlimit 100"
@@ -68,7 +67,7 @@ let sq_lane_portable
    [createi] on the extraction side).
 
    These closed lemmas are reused from [Sponge.Portable.Steps.fst] and
-   from the [sc_load_block] / [sc_load_last] admits below.
+   by the [sc_load_block] / [sc_load_last] proofs below.
    ================================================================ *)
 
 (* Slice-of-slice byte equality:

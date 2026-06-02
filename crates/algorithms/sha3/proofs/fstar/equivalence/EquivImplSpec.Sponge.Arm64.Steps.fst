@@ -17,16 +17,17 @@ module EquivImplSpec.Sponge.Arm64.Steps
    - [lemma_squeeze_last_arm64] : same shape, at len≤rate
 
    All four are proven by composing:
-   - the admitted primitive equivalences in [EquivImplSpec.Sponge.Arm64]
+   - the per-backend primitive equivalences in [EquivImplSpec.Sponge.Arm64]
      (arm64_sc_load_block / arm64_sc_load_last / arm64_sc_store_block),
    - the lane-wise keccakf1600 theorem [lemma_keccakf1600_arm64].
 
    The N=2 extract_lane is NOT an identity (unlike Portable), so it is
    carried through the statements rather than collapsed.
 
-   The top-level [keccak2] driver in [src/generic_keccak/simd128.rs]
-   has no F* counterpart yet, so loop-level composition is still out
-   of scope; these step lemmas give callers the per-block primitives.
+   Loop-level composition over the [keccak2] driver in
+   [src/generic_keccak/simd128.rs] is handled in
+   [EquivImplSpec.Sponge.Arm64.{SqueezeDriver,Driver}]; these step lemmas
+   give callers the per-block primitives.
    ================================================================ *)
 
 #set-options "--fuel 1 --ifuel 1 --z3rlimit 150"

@@ -29,37 +29,31 @@ module EquivImplSpec.Keccakf.Generic
    4. Composition — chain per-step commutativity into one-round, then
       induction over 24 rounds.
 
-   PROOF STATUS:
+   PROOF STATUS: fully proven — no admits in this module (or anywhere
+   in the sha3 proof tree). The generic impl-side lemmas, the per-step
+   to_spec commutativity lemmas, the one-round / multi-round composition,
+   and the fold_range bridges (lemma_keccakf1600_is_rounds /
+   lemma_keccak_f_is_rounds) all carry real proofs. Library facts reused
+   from Proof_Utils.Lemmas (lemma_rotate_left_zero, logand_commutative)
+   and lemma_rho_offsets_values are likewise proven.
 
-   Proven (= ()):
-   - All generic impl-side lemmas (Phase 1): lemma_theta_generic,
-     lemma_rho_{0..4}_generic, lemma_pi_{0..4}_generic,
-     lemma_rho_unfold_generic, lemma_pi_unfold_generic.
-     These express impl results in terms of abstract KeccakItem ops.
-   - Operation-level lane commutativity: lane_xor5, lane_xor, etc.
-     (trivial wrappers around lane_correctness fields)
-   - One-round and multi-round composition (assuming per-step lemmas)
+   The only trust assumptions are *external* to this tree: each backend's
+   lane_correctness record (the Portable / NEON / AVX2 instantiations)
+   ultimately rests on the per-lane intrinsic semantics axiomatized in
+   Libcrux_intrinsics.{Arm64,Avx2}_extract. This generic module is
+   backend-agnostic and fully discharged.
 
-   Admitted (library-level, same as portable proof):
-   - [Proof_Utils.Lemmas.lemma_rotate_left_zero]: rotate_left(x, 0) == x
-   - [Proof_Utils.Lemmas.logand_commutative]: (a &. b) == (b &. a)
-   - lemma_rho_offsets_values: RHO_OFFSETS array element values
-   - lemma_keccakf1600_is_rounds: fold_range bridge (impl side)
-   - lemma_keccak_f_is_rounds: fold_range bridge (spec side)
-
-   PROOF STRATEGY for the to_spec admits:
-
-   Each to_spec lemma follows the same pattern:
+   PROOF STRATEGY for each to_spec lemma (the shape every step proof uses):
    1. Use the generic impl-side lemma to know what each slot contains
       (e.g., lemma_rho_0_generic says r.[1] == f_xor_and_rotate ... s.[1] d.[0])
    2. Apply lane_* helpers to convert from abstract v_T ops to scalar u64 ops
-      (e.g., lane_xor_and_rotate says lc.lane(f_xor_and_rotate ... a b) l == rotl(lane a l ^. lane b l, LEFT))
-   3. Use spec-side reduction (e.g., lemma_rho_theta_spec from the portable proof)
+      (e.g., lane_xor_and_rotate: lc.lane(f_xor_and_rotate ... a b) l == rotl(lane a l ^. lane b l, LEFT))
+   3. Use spec-side reduction (e.g., lemma_rho_theta_spec)
    4. Conclude with Rust_primitives.Arrays.eq_intro
 
    The tricky part is getting Z3 to see pointwise equality across all 25
-   indices. The portable proof handles this with explicit per-index asserts;
-   the generic proof needs the same but with lane extraction in between.
+   indices; the per-index facts are assembled and lifted to a forall for
+   eq_intro (see lemma_chi_to_spec for the cleanest instance of the pattern).
 
    INSTANTIATION (future files):
    - Portable (N=1, u64): lane(x,0) = x. All lc_* are `= ()`.

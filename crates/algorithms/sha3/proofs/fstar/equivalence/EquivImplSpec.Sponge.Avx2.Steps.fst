@@ -19,11 +19,12 @@ module EquivImplSpec.Sponge.Avx2.Steps
    - [lemma_squeeze_last_avx2] : same shape, at len≤rate
 
    All four are proven by composing:
-   - the admitted primitive equivalences in [EquivImplSpec.Sponge.Avx2]
+   - the per-backend primitive equivalences in [EquivImplSpec.Sponge.Avx2]
      (avx2_sc_load_block / avx2_sc_load_last / avx2_sc_store_block),
    - the lane-wise keccakf1600 theorem [lemma_keccakf1600_avx2]
-     (which itself rests on the seven admitted lane-correctness
-     primitives in [EquivImplSpec.Keccakf.Avx2]).
+     (which itself rests on the seven lane-correctness primitives in
+     [EquivImplSpec.Keccakf.Avx2], discharged via the AVX2 intrinsic
+     SMTPats in [Libcrux_intrinsics.Avx2_extract] — external trust).
 
    The N=4 extract_lane is NOT an identity, so it is carried through
    the statements rather than collapsed.

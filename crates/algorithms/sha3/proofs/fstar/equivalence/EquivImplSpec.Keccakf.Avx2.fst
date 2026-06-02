@@ -11,15 +11,13 @@ module EquivImplSpec.Keccakf.Avx2
    primitives (e_veorq_u64, e_vrax1q_u64, ...) whose F* extractions
    carry per-lane [ensures] clauses on [get_lane_u64x2].  The AVX2
    [t_Vec256 = bit_vec 256] uses bit_vec-level intrinsics
-   (mm256_xor_si256, mm256_set1_epi64x, ...) that have NO
-   per-u64-lane ensures in [Libcrux_intrinsics.Avx2_extract].
+   (mm256_xor_si256, mm256_set1_epi64x, ...).  Their per-u64-lane
+   semantics are exposed via the [lemma_mm256_*_u64x4] SMTPats in
+   [Libcrux_intrinsics.Avx2_extract] (the AVX2 analogue of the NEON
+   per-lane ensures), so the seven [lane_correctness] field proofs are
+   discharged here by SMT — same external trust boundary as Arm64.
 
-   Consequence: the seven [lane_correctness] field proofs cannot be
-   discharged by SMT here.  They are ADMITTED.  Closing them requires
-   adding per-u64-lane ensures to the AVX2 intrinsic stubs (or adding
-   bit-vector lane-correctness lemmas in [BitVec.Intrinsics]).
-
-   Once the seven primitives are admitted, the main theorem
+   With the seven primitives in hand, the main theorem
      [lemma_keccakf1600_avx2 ks l ==
         keccak_f (extract_lane lc_avx2 ks.f_st l)]
    follows from the generic [G.lemma_keccakf1600_to_spec].
@@ -50,9 +48,9 @@ let _ =
    [Libcrux_intrinsics.Avx2_extract] alongside an opaque
    [vec256_as_u64x4]) and rely on the [lemma_mm256_*_u64x4] SMTPats
    on the AVX2 intrinsics for per-u64-lane semantics.  The lane
-   primitives are admit'd in [Libcrux_intrinsics.Avx2_extract.fst];
-   this module then closes the [lc_*] proofs by trivial
-   [()] composition (just like arm64).
+   primitives are axiomatized (admit'd) in [Libcrux_intrinsics.Avx2_extract.fst]
+   — the external trust boundary; this module then closes the [lc_*]
+   proofs by unfolding [avx2_lane] onto those per-lane SMTPats (like arm64).
    ================================================================ *)
 
 [@@ "opaque_to_smt"]
@@ -65,13 +63,16 @@ let lemma_avx2_lane_unfold (vec: I.t_Vec256) (l: nat{l < 4})
   = reveal_opaque (`%avx2_lane) (avx2_lane vec l)
 
 (* ================================================================
-   Lane-correctness field proofs — ADMITTED.
+   Lane-correctness field proofs.
 
-   Discharging these requires per-u64-lane ensures on the underlying
-   AVX2 intrinsics (mm256_xor_si256, mm256_set1_epi64x, mm256_andnot_si256,
-   mm256_slli_epi64, mm256_srli_epi64).  Those ensures live in
-   [BitVec.Intrinsics] and [Libcrux_intrinsics.Avx2_extract], neither of
-   which currently exposes lane-level structure.
+   Each is discharged by unfolding the typeclass-dispatched [f_*] to the
+   concrete [Simd.Avx2.{e_*, _v*}] helpers and pushing [avx2_lane]
+   through the per-u64-lane semantics of the underlying AVX2 intrinsics
+   (mm256_xor_si256, mm256_set1_epi64x, mm256_andnot_si256,
+   mm256_slli_epi64, mm256_srli_epi64), which are exposed via the
+   [lemma_mm256_*_u64x4] SMTPats in [Libcrux_intrinsics.Avx2_extract].
+   That intrinsic layer is the (external) trust boundary, exactly as for
+   the NEON per-lane ensures in [Arm64_extract].
    ================================================================ *)
 
 (* The seven proofs below mirror the arm64 lane-correctness lemmas
@@ -111,10 +112,8 @@ let avx2_lc_xor5 (a b c d e: I.t_Vec256) (l: nat{l < 4})
 
 (* Bridge: the AVX2 implementation of rotate_left as
    (x <<! LEFT) ^. (x >>! RIGHT) (when LEFT + RIGHT == 64) yields
-   the per-lane Core_models rotate_left.  Lemma is admitted in
-   [Libcrux_sha3.Proof_utils.Lemmas.lemma_shl_xor_shr_is_rotate_left]
-   because [Core_models.Num.impl_u64__rotate_left] is an opaque
-   [assume val] (Core_models.Num.fst:493). *)
+   the per-lane Core_models rotate_left.  Proven in
+   [Libcrux_sha3.Proof_utils.Lemmas.lemma_shl_xor_shr_is_rotate_left]. *)
 module PUL = Libcrux_sha3.Proof_utils.Lemmas
 
 #push-options "--z3rlimit 200"
@@ -227,8 +226,9 @@ let lc_avx2 : G.lane_correctness (mk_usize 4) #I.t_Vec256 =
 (* ================================================================
    MAIN THEOREM: extract_lane commutes with keccakf1600 on AVX2.
 
-   Direct specialization of [lemma_keccakf1600_to_spec].  Discharged
-   modulo the seven admitted lane-correctness primitives above.
+   Direct specialization of [lemma_keccakf1600_to_spec], via the seven
+   lane-correctness primitives above (which rest on the AVX2 intrinsic
+   SMTPats in [Libcrux_intrinsics.Avx2_extract] — external trust).
    ================================================================ *)
 
 let lemma_keccakf1600_avx2

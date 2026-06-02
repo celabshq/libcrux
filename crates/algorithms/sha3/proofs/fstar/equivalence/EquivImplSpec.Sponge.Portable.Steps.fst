@@ -19,9 +19,8 @@ module EquivImplSpec.Sponge.Portable.Steps
    [createi_lemma] SMT pattern on the [createi]-form spec
    [xor_block_into_state]. No admit is reached on this side.
 
-   Squeeze-side proofs still compose the admitted [portable_sc_store_block]
-   at lane l=0 with the N=1 extract-lane identity and
-   [lemma_keccakf1600_portable].
+   Squeeze-side proofs compose [portable_sc_store_block] (proven) at lane
+   l=0 with the N=1 extract-lane identity and [lemma_keccakf1600_portable].
    ================================================================ *)
 
 #set-options "--fuel 1 --ifuel 1 --z3rlimit 150"
@@ -180,7 +179,7 @@ let lemma_squeeze_block_portable
     let ks' = Libcrux_sha3.Generic_keccak.impl_2__keccakf1600
                 (mk_usize 1) #u64 ks in
     let state' = ks'.Libcrux_sha3.Generic_keccak.f_st in
-    (* store_block at l=0 via the Sponge.Portable admit (collapses to identity). *)
+    (* store_block at l=0 via Sponge.Portable.portable_sc_store_block (collapses to identity at N=1). *)
     let outputs : t_Array (t_Slice u8) (mk_usize 1) =
       let list = [out] in
       FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
