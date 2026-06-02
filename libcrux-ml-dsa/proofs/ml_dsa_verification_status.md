@@ -96,7 +96,7 @@ Functions classified as lax due to `admit ()` (or `--admit_smt_queries true`) in
 
 | Module                    |  Line |
 | ------------------------- | ----- |
-| Generic/arithmetic        |    84 |
+| Generic/arithmetic        |    88 |
 | Generic/sample            |    87 |
 | Generic/sample            |   306 |
 | Generic/sample            |   408 |
