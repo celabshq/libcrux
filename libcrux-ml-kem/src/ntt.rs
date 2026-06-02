@@ -1,8 +1,8 @@
 use crate::{
     hax_utils::hax_debug_assert,
     polynomial::{
-        add_bounded, multiply_by_constant_bounded, sub_bounded, zeta, PolynomialRingElement,
-        VECTORS_IN_RING_ELEMENT,
+        add_bounded, multiply_by_constant_bounded, poly_barrett_reduce, sub_bounded, zeta,
+        PolynomialRingElement, VECTORS_IN_RING_ELEMENT,
     },
     vector::Operations,
 };
@@ -349,21 +349,697 @@ pub(crate) fn ntt_at_layer_3<Vector: Operations>(
       "#);
 }
 
+// F-B: opaque per-step forward butterfly functional post (MONT form).  Mirror of
+// the inverse `inv_ntt_step_post`, but with the Cooley-Tukey butterfly:
+//   mont(x[i]) == add (mont a[i]) (mul (mont zeta_r) (mont b[i]))   (butterfly._1)
+//   mont(y[i]) == sub (mont a[i]) (mul (mont zeta_r) (mont b[i]))   (butterfly._2)
+// Wrapped opaque so it stays inert in `ntt_at_layer_4_plus`'s loop context and is
+// revealed only by the per-step bridge `lemma_step_keystone_fwd`.
+#[cfg(hax)]
+#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
+pub(crate) fn ntt_step_post<Vector: Operations>(
+    a: &Vector,
+    b: &Vector,
+    x: &Vector,
+    y: &Vector,
+    zeta_r: i16,
+) -> hax_lib::Prop {
+    hax_lib::fstar_prop_expr!(
+        r#"
+  (forall (i: nat).
+      i < 16 ==>
+      Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+        (Seq.index (Libcrux_ml_kem.Vector.Traits.f_to_i16_array x) i) ==
+      Hacspec_ml_kem.Parameters.impl_FieldElement__add
+        (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+            (Seq.index (Libcrux_ml_kem.Vector.Traits.f_to_i16_array a) i))
+        (Hacspec_ml_kem.Parameters.impl_FieldElement__mul
+            (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe zeta_r)
+            (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+                (Seq.index (Libcrux_ml_kem.Vector.Traits.f_to_i16_array b) i)))) /\
+  (forall (i: nat).
+      i < 16 ==>
+      Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+        (Seq.index (Libcrux_ml_kem.Vector.Traits.f_to_i16_array y) i) ==
+      Hacspec_ml_kem.Parameters.impl_FieldElement__sub
+        (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+            (Seq.index (Libcrux_ml_kem.Vector.Traits.f_to_i16_array a) i))
+        (Hacspec_ml_kem.Parameters.impl_FieldElement__mul
+            (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe zeta_r)
+            (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+                (Seq.index (Libcrux_ml_kem.Vector.Traits.f_to_i16_array b) i))))"#
+    )
+}
+
 #[inline(always)]
+#[hax_lib::fstar::options("--z3rlimit 400 --ext context_pruning --split_queries always")]
 #[hax_lib::requires(spec::is_bounded_vector(_initial_coefficient_bound, &a) & (zeta_r >= -1664 && zeta_r <= 1664 && _initial_coefficient_bound <= 5 * 3328))]
-#[hax_lib::ensures(|(r0, r1)| spec::is_bounded_vector(_initial_coefficient_bound+3328, &r0) & (spec::is_bounded_vector(_initial_coefficient_bound+3328, &r1)))]
+#[hax_lib::ensures(|(r0, r1)| spec::is_bounded_vector(_initial_coefficient_bound+3328, &r0) & (spec::is_bounded_vector(_initial_coefficient_bound+3328, &r1) & fstar!(r#"
+    ntt_step_post #$:Vector ${a} ${b} ${r0} ${r1} ${zeta_r}
+"#)))]
 fn ntt_layer_int_vec_step<Vector: Operations>(
     mut a: Vector,
     mut b: Vector,
     zeta_r: i16,
     _initial_coefficient_bound: usize, // This can be used for specifying the range of values allowed in re
 ) -> (Vector, Vector) {
+    #[cfg(hax)]
+    let _a_in = a;
+    #[cfg(hax)]
+    let _b_in = b;
+
     let t = Vector::montgomery_multiply_by_constant(b, zeta_r);
     b = sub_bounded(a, _initial_coefficient_bound, &t, 3328);
     a = add_bounded(a, _initial_coefficient_bound, &t, 3328);
+
+    // Lift the per-lane mod-q residue equations (from
+    // `montgomery_multiply_by_constant_post` composed with `add_post`/`sub_post`)
+    // to per-lane FE equations under `mont_i16_to_spec_fe`.  No barrett (simpler
+    // than the inverse).  Two `forall_intro`s — one per output.
+    hax_lib::fstar!(r#"
+        let a_arr = Libcrux_ml_kem.Vector.Traits.f_to_i16_array ${_a_in} in
+        let b_arr = Libcrux_ml_kem.Vector.Traits.f_to_i16_array ${_b_in} in
+        let t_arr = Libcrux_ml_kem.Vector.Traits.f_to_i16_array ${t} in
+        let x_arr = Libcrux_ml_kem.Vector.Traits.f_to_i16_array ${a} in
+        let y_arr = Libcrux_ml_kem.Vector.Traits.f_to_i16_array ${b} in
+        let aux0 (i: nat) : Lemma (i < 16 ==>
+            Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index x_arr i) ==
+            Hacspec_ml_kem.Parameters.impl_FieldElement__add
+              (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index a_arr i))
+              (Hacspec_ml_kem.Parameters.impl_FieldElement__mul
+                (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe ${zeta_r})
+                (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index b_arr i))))
+          = if i < 16 then begin
+              Hacspec_ml_kem.Commute.Chunk.lemma_montgomery_multiply_lane_post_to_mod_q_eq
+                (Seq.index b_arr i) ${zeta_r} (Seq.index t_arr i);
+              Hacspec_ml_kem.ModQ.lemma_mod_q_eq_unfold
+                (v (Seq.index t_arr i)) (v (Seq.index b_arr i) * v ${zeta_r} * 169);
+              Hacspec_ml_kem.Commute.Chunk.lemma_mont_mul_fe_commute_mont_mont
+                ${zeta_r} (Seq.index b_arr i) (Seq.index t_arr i);
+              Hacspec_ml_kem.Commute.Chunk.lemma_add_fe_commute_mont
+                (Seq.index a_arr i) (Seq.index t_arr i) (Seq.index x_arr i)
+            end
+        in
+        Classical.forall_intro aux0;
+        let aux1 (i: nat) : Lemma (i < 16 ==>
+            Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index y_arr i) ==
+            Hacspec_ml_kem.Parameters.impl_FieldElement__sub
+              (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index a_arr i))
+              (Hacspec_ml_kem.Parameters.impl_FieldElement__mul
+                (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe ${zeta_r})
+                (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index b_arr i))))
+          = if i < 16 then begin
+              Hacspec_ml_kem.Commute.Chunk.lemma_montgomery_multiply_lane_post_to_mod_q_eq
+                (Seq.index b_arr i) ${zeta_r} (Seq.index t_arr i);
+              Hacspec_ml_kem.ModQ.lemma_mod_q_eq_unfold
+                (v (Seq.index t_arr i)) (v (Seq.index b_arr i) * v ${zeta_r} * 169);
+              Hacspec_ml_kem.Commute.Chunk.lemma_mont_mul_fe_commute_mont_mont
+                ${zeta_r} (Seq.index b_arr i) (Seq.index t_arr i);
+              Hacspec_ml_kem.Commute.Chunk.lemma_sub_fe_commute_mont
+                (Seq.index a_arr i) (Seq.index t_arr i) (Seq.index y_arr i)
+            end
+        in
+        Classical.forall_intro aux1
+      "#);
+    // Fold the two per-lane foralls into the opaque `ntt_step_post`.
+    hax_lib::fstar!(
+        r#"reveal_opaque (`%ntt_step_post)
+             (ntt_step_post #$:Vector ${_a_in} ${_b_in} ${a} ${b} ${zeta_r})"#
+    );
     (a, b)
 }
 
+#[cfg_attr(hax, hax_lib::fstar::before(r#"
+(* ===== Forward layer-4+ cross-vector scaffold (mirror of the inverse
+   Invert_ntt.fst USER-14 Step B keystone, with the forward butterfly atom
+   `cross_vec_hyp_fwd` and the bound parameterized by e_initial_coefficient_bound). ===== *)
+
+(* Keystone: from one ntt_layer_int_vec_step (vectors j and j+step_vec, written to
+   cout = cin updated at j,j+step_vec), establish cross_vec_hyp_fwd for BOTH written
+   vectors.  Lives here (not Ntt_bridge) because it cites the module-local opaque
+   `ntt_step_post`.  Mirror of Invert_ntt.lemma_step_keystone. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200 --split_queries always"
+let lemma_step_keystone_fwd
+      (#v_Vector: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()]
+          i0:
+          Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+      (cin cout: t_Array v_Vector (mk_usize 16))
+      (step_vec: pos)
+      (zs: t_Slice Hacspec_ml_kem.Parameters.t_FieldElement)
+      (j: nat)
+      (zeta_r: i16)
+      (a b x y: v_Vector)
+    : Lemma
+      (requires
+        j + step_vec < 16 /\
+        j % (2 * step_vec) < step_vec /\
+        j / (2 * step_vec) < Seq.length zs /\
+        Seq.index zs (j / (2 * step_vec)) ==
+          Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe zeta_r /\
+        Seq.index cin j == a /\ Seq.index cin (j + step_vec) == b /\
+        Seq.index cout j == x /\ Seq.index cout (j + step_vec) == y /\
+        ntt_step_post #v_Vector a b x y zeta_r)
+      (ensures
+        (forall (l: nat). l < 16 ==>
+           Hacspec_ml_kem.Commute.Ntt_bridge.cross_vec_hyp_fwd #v_Vector cin cout step_vec zs j l) /\
+        (forall (l: nat). l < 16 ==>
+           Hacspec_ml_kem.Commute.Ntt_bridge.cross_vec_hyp_fwd #v_Vector cin cout step_vec zs
+             (j + step_vec) l)) =
+  reveal_opaque (`%ntt_step_post) (ntt_step_post #v_Vector a b x y zeta_r);
+  let a_arr = Libcrux_ml_kem.Vector.Traits.f_to_i16_array a in
+  let b_arr = Libcrux_ml_kem.Vector.Traits.f_to_i16_array b in
+  let x_arr = Libcrux_ml_kem.Vector.Traits.f_to_i16_array x in
+  let y_arr = Libcrux_ml_kem.Vector.Traits.f_to_i16_array y in
+  assert (a_arr == Libcrux_ml_kem.Vector.Traits.f_repr (Seq.index cin j));
+  assert (b_arr == Libcrux_ml_kem.Vector.Traits.f_repr (Seq.index cin (j + step_vec)));
+  assert (x_arr == Libcrux_ml_kem.Vector.Traits.f_repr (Seq.index cout j));
+  assert (y_arr == Libcrux_ml_kem.Vector.Traits.f_repr (Seq.index cout (j + step_vec)));
+  Hacspec_ml_kem.Commute.Ntt_bridge.lemma_cross_vec_from_step_fwd #v_Vector cin cout step_vec zs j
+    zeta_r
+#pop-options
+
+(* opaque per-vector "content" predicate (forward); wraps the per-lane
+   cross_vec_hyp_fwd forall for ONE vector m.  Mirror of cross_vec_done_at. *)
+[@@ "opaque_to_smt"]
+let cross_vec_done_at_fwd
+      (#v_Vector: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()]
+          i0:
+          Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+      (cin cout: t_Array v_Vector (mk_usize 16))
+      (step_vec: pos)
+      (zs: t_Slice Hacspec_ml_kem.Parameters.t_FieldElement)
+      (m: nat)
+    : prop =
+  forall (l: nat). l < 16 ==>
+    Hacspec_ml_kem.Commute.Ntt_bridge.cross_vec_hyp_fwd #v_Vector cin cout step_vec zs m l
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 50"
+let lemma_cvda_fwd_intro
+      (#v_Vector: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+      (cin cout: t_Array v_Vector (mk_usize 16)) (step_vec: pos)
+      (zs: t_Slice Hacspec_ml_kem.Parameters.t_FieldElement) (m: nat)
+    : Lemma
+      (requires
+        (forall (l: nat). l < 16 ==>
+           Hacspec_ml_kem.Commute.Ntt_bridge.cross_vec_hyp_fwd #v_Vector cin cout step_vec zs m l))
+      (ensures cross_vec_done_at_fwd #v_Vector cin cout step_vec zs m) =
+  reveal_opaque (`%cross_vec_done_at_fwd) (cross_vec_done_at_fwd #v_Vector cin cout step_vec zs m)
+
+let lemma_cvda_fwd_reveal
+      (#v_Vector: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+      (cin cout: t_Array v_Vector (mk_usize 16)) (step_vec: pos)
+      (zs: t_Slice Hacspec_ml_kem.Parameters.t_FieldElement) (m l: nat)
+    : Lemma
+      (requires cross_vec_done_at_fwd #v_Vector cin cout step_vec zs m /\ l < 16)
+      (ensures Hacspec_ml_kem.Commute.Ntt_bridge.cross_vec_hyp_fwd #v_Vector cin cout step_vec zs m l) =
+  reveal_opaque (`%cross_vec_done_at_fwd) (cross_vec_done_at_fwd #v_Vector cin cout step_vec zs m)
+
+let lemma_cvda_fwd_frame1
+      (#v_Vector: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+      (cin cout1 cout2: t_Array v_Vector (mk_usize 16)) (step_vec: pos)
+      (zs: t_Slice Hacspec_ml_kem.Parameters.t_FieldElement) (m: nat)
+    : Lemma
+      (requires m < 16 /\ Seq.index cout1 m == Seq.index cout2 m)
+      (ensures cross_vec_done_at_fwd #v_Vector cin cout1 step_vec zs m <==>
+               cross_vec_done_at_fwd #v_Vector cin cout2 step_vec zs m) =
+  reveal_opaque (`%cross_vec_done_at_fwd) (cross_vec_done_at_fwd #v_Vector cin cout1 step_vec zs m);
+  reveal_opaque (`%cross_vec_done_at_fwd) (cross_vec_done_at_fwd #v_Vector cin cout2 step_vec zs m);
+  let aux (l: nat)
+      : Lemma (l < 16 ==>
+                 (Hacspec_ml_kem.Commute.Ntt_bridge.cross_vec_hyp_fwd #v_Vector cin cout1 step_vec zs m l <==>
+                  Hacspec_ml_kem.Commute.Ntt_bridge.cross_vec_hyp_fwd #v_Vector cin cout2 step_vec zs m l)) =
+    if l < 16
+    then Hacspec_ml_kem.Commute.Ntt_bridge.lemma_cross_vec_frame_fwd #v_Vector cin cout1 cout2 step_vec zs m l
+  in
+  Classical.forall_intro aux
+#pop-options
+
+(* the two writes (at j1=j, j2=j+step_vec) leave every OTHER vector m untouched, so its
+   opaque cross_vec_done_at_fwd carries from cb to cf.  Mirror of lemma_cross_vec_frame_others. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_cross_vec_frame_others_fwd
+      (#v_Vector: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()]
+          i0:
+          Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+      (cin cb cf: t_Array v_Vector (mk_usize 16))
+      (step_vec: pos)
+      (zs: t_Slice Hacspec_ml_kem.Parameters.t_FieldElement)
+      (j1 j2: nat)
+    : Lemma
+      (requires
+        (forall (m: nat). m < 16 /\ m <> j1 /\ m <> j2 ==> Seq.index cf m == Seq.index cb m))
+      (ensures
+        (forall (m: nat). m < 16 /\ m <> j1 /\ m <> j2 ==>
+           (cross_vec_done_at_fwd #v_Vector cin cb step_vec zs m <==>
+            cross_vec_done_at_fwd #v_Vector cin cf step_vec zs m))) =
+  let aux (m: nat)
+      : Lemma (m < 16 /\ m <> j1 /\ m <> j2 ==>
+                 (cross_vec_done_at_fwd #v_Vector cin cb step_vec zs m <==>
+                  cross_vec_done_at_fwd #v_Vector cin cf step_vec zs m)) =
+    if m < 16 && m <> j1 && m <> j2
+    then lemma_cvda_fwd_frame1 #v_Vector cin cb cf step_vec zs m
+  in
+  Classical.forall_intro aux
+#pop-options
+
+(* index helper: in round `round`, inner index j sits in [2*round*sv, 2*round*sv+sv).
+   Copied verbatim from Invert_ntt.lemma_inner_index. *)
+#push-options "--fuel 0 --ifuel 0 --z3rlimit 100"
+let lemma_inner_index_fwd (round j sv: nat)
+    : Lemma (requires sv >= 1 /\ 2 * round * sv <= j /\ j < 2 * round * sv + sv)
+            (ensures j / (2 * sv) == round /\ j % (2 * sv) == j - 2 * round * sv /\ j % (2 * sv) < sv) =
+  let d:nat = j - 2 * round * sv in
+  assert (j == d + round * (2 * sv));
+  FStar.Math.Lemmas.small_div d (2 * sv);
+  FStar.Math.Lemmas.small_mod d (2 * sv);
+  FStar.Math.Lemmas.lemma_div_plus d round (2 * sv);
+  FStar.Math.Lemmas.lemma_mod_plus d round (2 * sv)
+#pop-options
+
+(* nonlinear closure for lemma_layer_4_plus_to_poly_step's `(len(zs)*2)*len == 256`
+   requires: from len == 16*k and 2*groups*k == 16, derive (groups*2)*len == 256. *)
+#push-options "--fuel 0 --ifuel 0 --z3rlimit 100"
+let lemma_groups_len_256 (groups len k: nat)
+    : Lemma (requires len == 16 * k /\ 2 * groups * k == 16)
+            (ensures (groups * 2) * len == 256) =
+  assert ((groups * 2) * len == (groups * 2) * (16 * k));
+  assert ((groups * 2) * (16 * k) == 16 * (2 * groups * k))
+#pop-options
+
+(* offset_vec = (round*step*2)/16 collapses to 2*round*step_vec when step = 16*step_vec.
+   Copied verbatim from Invert_ntt.lemma_offset_vec. *)
+#push-options "--fuel 0 --ifuel 0 --z3rlimit 100"
+let lemma_offset_vec_fwd (round step offset offset_vec sv: nat)
+    : Lemma (requires step == 16 * sv /\ offset == round * step * 2 /\ offset_vec == offset / 16)
+            (ensures offset_vec == 2 * round * sv) =
+  assert (offset == (2 * round * sv) * 16);
+  FStar.Math.Lemmas.cancel_mul_div (2 * round * sv) 16
+#pop-options
+
+(* per-layer numeric facts; FORWARD variant: e_zeta_i_init == groups - 1 per layer
+   (L7 g=1 init=0; L6 g=2 init=1; L5 g=4 init=3; L4 g=8 init=7). *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 50"
+let lemma_layer_numeric_facts_fwd (layer e_zeta_i_init: usize)
+    : Lemma
+      (requires
+        (v layer == 4 \/ v layer == 5 \/ v layer == 6 \/ v layer == 7) /\
+        (v layer == 4 ==> v e_zeta_i_init == 7) /\ (v layer == 5 ==> v e_zeta_i_init == 3) /\
+        (v layer == 6 ==> v e_zeta_i_init == 1) /\ (v layer == 7 ==> v e_zeta_i_init == 0))
+      (ensures
+        v (mk_usize 1 <<! layer <: usize) == pow2 (v layer) /\
+        v e_zeta_i_init + 1 == v (mk_usize 128 >>! layer <: usize) /\
+        v (mk_usize 128 >>! layer <: usize) >= 1 /\
+        v (mk_usize 1 <<! layer <: usize) == 16 * (v (mk_usize 1 <<! layer <: usize) / 16) /\
+        v (mk_usize 1 <<! layer <: usize) / 16 >= 1 /\
+        v (mk_usize 128 >>! layer <: usize) == 128 / pow2 (v layer) /\
+        2 * v (mk_usize 128 >>! layer <: usize) * (v (mk_usize 1 <<! layer <: usize) / 16) == 16) =
+  (match v layer with
+    | 4 -> assert_norm (v (mk_usize 1 <<! mk_usize 4 <: usize) == 16 /\
+                        v (mk_usize 128 >>! mk_usize 4 <: usize) == 8 /\ pow2 4 == 16 /\
+                        2 * 8 * (16 / 16) == 16)
+    | 5 -> assert_norm (v (mk_usize 1 <<! mk_usize 5 <: usize) == 32 /\
+                        v (mk_usize 128 >>! mk_usize 5 <: usize) == 4 /\ pow2 5 == 32 /\
+                        2 * 4 * (32 / 16) == 16)
+    | 6 -> assert_norm (v (mk_usize 1 <<! mk_usize 6 <: usize) == 64 /\
+                        v (mk_usize 128 >>! mk_usize 6 <: usize) == 2 /\ pow2 6 == 64 /\
+                        2 * 2 * (64 / 16) == 16)
+    | 7 -> assert_norm (v (mk_usize 1 <<! mk_usize 7 <: usize) == 128 /\
+                        v (mk_usize 128 >>! mk_usize 7 <: usize) == 1 /\ pow2 7 == 128 /\
+                        2 * 1 * (128 / 16) == 16)
+    | _ -> ())
+#pop-options
+
+(* keystone wrapper: discharges index preconditions of lemma_step_keystone_fwd from the
+   loop-shaped facts.  Mirror of Invert_ntt.lemma_step_keystone_loop. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200 --split_queries always"
+let lemma_step_keystone_loop_fwd
+      (#v_Vector: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()]
+          i0:
+          Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+      (re_init cf: t_Array v_Vector (mk_usize 16))
+      (step_vec_n: pos)
+      (zs: t_Slice Hacspec_ml_kem.Parameters.t_FieldElement)
+      (round j: nat)
+      (zeta_r: i16)
+      (a b x y: v_Vector)
+    : Lemma
+      (requires
+        2 * round * step_vec_n <= j /\ j < 2 * round * step_vec_n + step_vec_n /\
+        j + step_vec_n < 16 /\
+        round < Seq.length zs /\
+        Seq.index zs round == Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe zeta_r /\
+        Seq.index re_init j == a /\ Seq.index re_init (j + step_vec_n) == b /\
+        Seq.index cf j == x /\ Seq.index cf (j + step_vec_n) == y /\
+        ntt_step_post #v_Vector a b x y zeta_r)
+      (ensures
+        cross_vec_done_at_fwd #v_Vector re_init cf step_vec_n zs j /\
+        cross_vec_done_at_fwd #v_Vector re_init cf step_vec_n zs (j + step_vec_n)) =
+  lemma_inner_index_fwd round j step_vec_n;
+  lemma_step_keystone_fwd #v_Vector re_init cf step_vec_n zs j zeta_r a b x y;
+  lemma_cvda_fwd_intro #v_Vector re_init cf step_vec_n zs j;
+  lemma_cvda_fwd_intro #v_Vector re_init cf step_vec_n zs (j + step_vec_n)
+#pop-options
+
+(* opaque NAMED invariant predicates (forward).  Bound parameterized by
+   e_initial_coefficient_bound: PENDING = bound (== re_init), DONE = bound+3328 (butterflied). *)
+[@@ "opaque_to_smt"]
+let outer_inv_fwd
+      (#v_Vector: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()]
+          i0:
+          Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+      (re_init coeffs: t_Array v_Vector (mk_usize 16))
+      (step_vec_n: pos)
+      (zs: t_Slice Hacspec_ml_kem.Parameters.t_FieldElement)
+      (e_initial_coefficient_bound: usize{v e_initial_coefficient_bound + 3328 < 65536})
+      (round step: usize)
+    : prop =
+  forall (i: usize).
+    if i <. mk_usize 16
+    then
+      if v i >= (v round * v step * 2) / 16
+      then
+        (Libcrux_ml_kem.Polynomial.Spec.is_bounded_vector #v_Vector
+            e_initial_coefficient_bound
+            (coeffs.[ i ] <: v_Vector) /\
+         Seq.index coeffs (v i) == Seq.index re_init (v i))
+      else
+        (Libcrux_ml_kem.Polynomial.Spec.is_bounded_vector #v_Vector
+            (e_initial_coefficient_bound +! mk_usize 3328 <: usize)
+            (coeffs.[ i ] <: v_Vector) /\
+         cross_vec_done_at_fwd #v_Vector re_init coeffs step_vec_n zs (v i))
+    else b2t true
+
+[@@ "opaque_to_smt"]
+let inner_inv_fwd
+      (#v_Vector: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()]
+          i0:
+          Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+      (re_init coeffs: t_Array v_Vector (mk_usize 16))
+      (step_vec_n: pos)
+      (zs: t_Slice Hacspec_ml_kem.Parameters.t_FieldElement)
+      (e_initial_coefficient_bound: usize{v e_initial_coefficient_bound + 3328 < 65536})
+      (offset_vec step_vec j: usize)
+    : prop =
+  forall (i: usize).
+    if i <. mk_usize 16
+    then
+      if
+        (v i >= v j && v i < v offset_vec + v step_vec) ||
+        v i >= v j + v step_vec
+      then
+        (Libcrux_ml_kem.Polynomial.Spec.is_bounded_vector #v_Vector
+            e_initial_coefficient_bound
+            (coeffs.[ i ] <: v_Vector) /\
+         Seq.index coeffs (v i) == Seq.index re_init (v i))
+      else
+        (Libcrux_ml_kem.Polynomial.Spec.is_bounded_vector #v_Vector
+            (e_initial_coefficient_bound +! mk_usize 3328 <: usize)
+            (coeffs.[ i ] <: v_Vector) /\
+         cross_vec_done_at_fwd #v_Vector re_init coeffs step_vec_n zs (v i))
+    else b2t true
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_outer_inv_fwd_lookup
+      (#v_Vector: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()]
+          i0:
+          Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+      (re_init coeffs: t_Array v_Vector (mk_usize 16))
+      (step_vec_n: pos)
+      (zs: t_Slice Hacspec_ml_kem.Parameters.t_FieldElement)
+      (e_initial_coefficient_bound: usize{v e_initial_coefficient_bound + 3328 < 65536})
+      (round step i: usize)
+    : Lemma
+      (requires
+        outer_inv_fwd #v_Vector re_init coeffs step_vec_n zs e_initial_coefficient_bound round step /\
+        v i < 16)
+      (ensures
+        (if v i >= (v round * v step * 2) / 16
+         then
+           (Libcrux_ml_kem.Polynomial.Spec.is_bounded_vector #v_Vector
+               e_initial_coefficient_bound (coeffs.[ i ] <: v_Vector) /\
+            Seq.index coeffs (v i) == Seq.index re_init (v i))
+         else
+           (Libcrux_ml_kem.Polynomial.Spec.is_bounded_vector #v_Vector
+               (e_initial_coefficient_bound +! mk_usize 3328 <: usize) (coeffs.[ i ] <: v_Vector) /\
+            cross_vec_done_at_fwd #v_Vector re_init coeffs step_vec_n zs (v i)))) =
+  reveal_opaque (`%outer_inv_fwd)
+    (outer_inv_fwd #v_Vector re_init coeffs step_vec_n zs e_initial_coefficient_bound round step)
+#pop-options
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_inner_inv_fwd_lookup
+      (#v_Vector: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()]
+          i0:
+          Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+      (re_init coeffs: t_Array v_Vector (mk_usize 16))
+      (step_vec_n: pos)
+      (zs: t_Slice Hacspec_ml_kem.Parameters.t_FieldElement)
+      (e_initial_coefficient_bound: usize{v e_initial_coefficient_bound + 3328 < 65536})
+      (offset_vec step_vec j i: usize)
+    : Lemma
+      (requires
+        inner_inv_fwd #v_Vector re_init coeffs step_vec_n zs e_initial_coefficient_bound offset_vec
+          step_vec j /\ v i < 16)
+      (ensures
+        (if (v i >= v j && v i < v offset_vec + v step_vec) || v i >= v j + v step_vec
+         then
+           (Libcrux_ml_kem.Polynomial.Spec.is_bounded_vector #v_Vector
+               e_initial_coefficient_bound (coeffs.[ i ] <: v_Vector) /\
+            Seq.index coeffs (v i) == Seq.index re_init (v i))
+         else
+           (Libcrux_ml_kem.Polynomial.Spec.is_bounded_vector #v_Vector
+               (e_initial_coefficient_bound +! mk_usize 3328 <: usize) (coeffs.[ i ] <: v_Vector) /\
+            cross_vec_done_at_fwd #v_Vector re_init coeffs step_vec_n zs (v i)))) =
+  reveal_opaque (`%inner_inv_fwd)
+    (inner_inv_fwd #v_Vector re_init coeffs step_vec_n zs e_initial_coefficient_bound offset_vec
+        step_vec j)
+#pop-options
+
+(* outer fold init at round=0 — threshold collapses to 0, every vector PENDING (== re_init). *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_outer_inv_fwd_init
+      (#v_Vector: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()]
+          i0:
+          Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+      (re_init coeffs: t_Array v_Vector (mk_usize 16))
+      (step_vec_n: pos)
+      (zs: t_Slice Hacspec_ml_kem.Parameters.t_FieldElement)
+      (e_initial_coefficient_bound: usize{v e_initial_coefficient_bound + 3328 < 65536})
+      (step: usize)
+    : Lemma
+      (requires
+        (forall (i: usize). i <. mk_usize 16 ==>
+           Libcrux_ml_kem.Polynomial.Spec.is_bounded_vector #v_Vector
+             e_initial_coefficient_bound (coeffs.[ i ] <: v_Vector) /\
+           Seq.index coeffs (v i) == Seq.index re_init (v i)))
+      (ensures outer_inv_fwd #v_Vector re_init coeffs step_vec_n zs e_initial_coefficient_bound
+                 (mk_usize 0) step) =
+  assert ((v (mk_usize 0) * v step * 2) / 16 == 0);
+  reveal_opaque (`%outer_inv_fwd)
+    (outer_inv_fwd #v_Vector re_init coeffs step_vec_n zs e_initial_coefficient_bound (mk_usize 0) step)
+#pop-options
+
+(* inner fold init — at j = offset_vec, inner PENDING collapses to (i >= offset_vec) = outer PENDING. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200 --split_queries always"
+let lemma_inner_inv_fwd_init
+      (#v_Vector: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()]
+          i0:
+          Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+      (re_init coeffs: t_Array v_Vector (mk_usize 16))
+      (step_vec_n: pos)
+      (zs: t_Slice Hacspec_ml_kem.Parameters.t_FieldElement)
+      (e_initial_coefficient_bound: usize{v e_initial_coefficient_bound + 3328 < 65536})
+      (round step offset_vec step_vec: usize)
+    : Lemma
+      (requires
+        v step_vec == step_vec_n /\
+        v offset_vec == (v round * v step * 2) / 16 /\
+        outer_inv_fwd #v_Vector re_init coeffs step_vec_n zs e_initial_coefficient_bound round step)
+      (ensures
+        inner_inv_fwd #v_Vector re_init coeffs step_vec_n zs e_initial_coefficient_bound offset_vec
+          step_vec offset_vec) =
+  reveal_opaque (`%outer_inv_fwd)
+    (outer_inv_fwd #v_Vector re_init coeffs step_vec_n zs e_initial_coefficient_bound round step);
+  reveal_opaque (`%inner_inv_fwd)
+    (inner_inv_fwd #v_Vector re_init coeffs step_vec_n zs e_initial_coefficient_bound offset_vec
+        step_vec offset_vec)
+#pop-options
+
+(* the CORE maintenance lemma — one inner-fold step.  Mirror of lemma_inner_step_maintains. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 300 --split_queries always"
+let lemma_inner_step_maintains_fwd
+      (#v_Vector: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()]
+          i0:
+          Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+      (re_init cb cf: t_Array v_Vector (mk_usize 16))
+      (step_vec_n: pos)
+      (zs: t_Slice Hacspec_ml_kem.Parameters.t_FieldElement)
+      (e_initial_coefficient_bound: usize{v e_initial_coefficient_bound + 3328 < 65536})
+      (offset_vec step_vec j: usize)
+      (round: nat)
+      (zeta_r: i16)
+      (x y: v_Vector)
+    : Lemma
+      (requires
+        v step_vec == step_vec_n /\
+        v offset_vec == 2 * round * step_vec_n /\
+        v offset_vec <= v j /\ v j < v offset_vec + step_vec_n /\
+        v j + step_vec_n < 16 /\
+        round < Seq.length zs /\
+        Seq.index zs round == Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe zeta_r /\
+        inner_inv_fwd #v_Vector re_init cb step_vec_n zs e_initial_coefficient_bound offset_vec
+          step_vec j /\
+        cf == Seq.upd (Seq.upd cb (v j) x) (v j + step_vec_n) y /\
+        ntt_step_post #v_Vector (Seq.index cb (v j)) (Seq.index cb (v j + step_vec_n))
+          x y zeta_r /\
+        Libcrux_ml_kem.Polynomial.Spec.is_bounded_vector #v_Vector
+          (e_initial_coefficient_bound +! mk_usize 3328 <: usize) x /\
+        Libcrux_ml_kem.Polynomial.Spec.is_bounded_vector #v_Vector
+          (e_initial_coefficient_bound +! mk_usize 3328 <: usize) y)
+      (ensures
+        inner_inv_fwd #v_Vector re_init cf step_vec_n zs e_initial_coefficient_bound offset_vec
+          step_vec (j +! mk_usize 1)) =
+  lemma_inner_inv_fwd_lookup #v_Vector re_init cb step_vec_n zs e_initial_coefficient_bound offset_vec
+    step_vec j j;
+  lemma_inner_inv_fwd_lookup #v_Vector re_init cb step_vec_n zs e_initial_coefficient_bound offset_vec
+    step_vec j (j +! step_vec <: usize);
+  let a:v_Vector = Seq.index cb (v j) in
+  let b:v_Vector = Seq.index cb (v j + step_vec_n) in
+  Seq.lemma_index_upd1 (Seq.upd cb (v j) x) (v j + step_vec_n) y;
+  Seq.lemma_index_upd2 (Seq.upd cb (v j) x) (v j + step_vec_n) y (v j);
+  Seq.lemma_index_upd1 cb (v j) x;
+  assert (Seq.index cf (v j) == x);
+  assert (Seq.index cf (v j + step_vec_n) == y);
+  lemma_step_keystone_loop_fwd #v_Vector re_init cf step_vec_n zs round (v j) zeta_r a b x y;
+  lemma_cross_vec_frame_others_fwd #v_Vector re_init cb cf step_vec_n zs (v j) (v j + step_vec_n);
+  let aux (i: usize)
+      : Lemma
+        (if i <. mk_usize 16
+         then
+           (if
+               (v i >= v (j +! mk_usize 1 <: usize) && v i < v offset_vec + v step_vec) ||
+               v i >= v (j +! mk_usize 1 <: usize) + v step_vec
+             then
+               (Libcrux_ml_kem.Polynomial.Spec.is_bounded_vector #v_Vector
+                   e_initial_coefficient_bound
+                   (cf.[ i ] <: v_Vector) /\
+                Seq.index cf (v i) == Seq.index re_init (v i))
+             else
+               (Libcrux_ml_kem.Polynomial.Spec.is_bounded_vector #v_Vector
+                   (e_initial_coefficient_bound +! mk_usize 3328 <: usize)
+                   (cf.[ i ] <: v_Vector) /\
+                cross_vec_done_at_fwd #v_Vector re_init cf step_vec_n zs (v i)))
+         else b2t true) =
+    if i <. mk_usize 16
+    then begin
+      lemma_inner_inv_fwd_lookup #v_Vector re_init cb step_vec_n zs e_initial_coefficient_bound
+        offset_vec step_vec j i;
+      if v i = v j then ()
+      else if v i = v j + step_vec_n then ()
+      else begin
+        Seq.lemma_index_upd2 (Seq.upd cb (v j) x) (v j + step_vec_n) y (v i);
+        Seq.lemma_index_upd2 cb (v j) x (v i);
+        lemma_cvda_fwd_frame1 #v_Vector re_init cb cf step_vec_n zs (v i)
+      end
+    end
+  in
+  Classical.forall_intro aux;
+  reveal_opaque (`%inner_inv_fwd)
+    (inner_inv_fwd #v_Vector re_init cf step_vec_n zs e_initial_coefficient_bound offset_vec step_vec
+        (j +! mk_usize 1))
+#pop-options
+
+(* inner fold result -> outer invariant at round+1.  Mirror of lemma_inner_to_outer. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200 --split_queries always"
+let lemma_inner_to_outer_fwd
+      (#v_Vector: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()]
+          i0:
+          Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+      (re_init coeffs: t_Array v_Vector (mk_usize 16))
+      (step_vec_n: pos)
+      (zs: t_Slice Hacspec_ml_kem.Parameters.t_FieldElement)
+      (e_initial_coefficient_bound: usize{v e_initial_coefficient_bound + 3328 < 65536})
+      (round step offset_vec step_vec rnext jend: usize)
+    : Lemma
+      (requires
+        v step == 16 * step_vec_n /\
+        v step_vec == step_vec_n /\
+        v offset_vec == 2 * v round * step_vec_n /\
+        v rnext == v round + 1 /\
+        v jend == v offset_vec + v step_vec /\
+        inner_inv_fwd #v_Vector re_init coeffs step_vec_n zs e_initial_coefficient_bound offset_vec
+          step_vec jend)
+      (ensures
+        outer_inv_fwd #v_Vector re_init coeffs step_vec_n zs e_initial_coefficient_bound rnext step) =
+  lemma_offset_vec_fwd (v round + 1) (v step) ((v round + 1) * v step * 2)
+    (((v round + 1) * v step * 2) / 16) step_vec_n;
+  reveal_opaque (`%inner_inv_fwd)
+    (inner_inv_fwd #v_Vector re_init coeffs step_vec_n zs e_initial_coefficient_bound offset_vec
+        step_vec jend);
+  reveal_opaque (`%outer_inv_fwd)
+    (outer_inv_fwd #v_Vector re_init coeffs step_vec_n zs e_initial_coefficient_bound rnext step)
+#pop-options
+
+(* post-loop bridge — outer_inv at round=groups (ALL vectors DONE) -> full cross_vec_hyp_fwd forall. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200 --split_queries always"
+let lemma_postloop_cross_vec_fwd
+      (#v_Vector: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()]
+          i0:
+          Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+      (re_init coeffs: t_Array v_Vector (mk_usize 16))
+      (step_vec_n: pos)
+      (zs: t_Slice Hacspec_ml_kem.Parameters.t_FieldElement)
+      (e_initial_coefficient_bound: usize{v e_initial_coefficient_bound + 3328 < 65536})
+      (groups step: usize)
+    : Lemma
+      (requires
+        (v groups * v step * 2) / 16 == 16 /\
+        outer_inv_fwd #v_Vector re_init coeffs step_vec_n zs e_initial_coefficient_bound groups step)
+      (ensures
+        (forall (m: nat) (l: nat).
+           Hacspec_ml_kem.Commute.Ntt_bridge.cross_vec_hyp_fwd #v_Vector re_init coeffs step_vec_n zs m l)) =
+  let aux (m: nat) (l: nat)
+      : Lemma
+        (Hacspec_ml_kem.Commute.Ntt_bridge.cross_vec_hyp_fwd #v_Vector re_init coeffs step_vec_n zs m l) =
+    if m < 16 && l < 16
+    then begin
+      lemma_outer_inv_fwd_lookup #v_Vector re_init coeffs step_vec_n zs e_initial_coefficient_bound
+        groups step (mk_usize m);
+      lemma_cvda_fwd_reveal #v_Vector re_init coeffs step_vec_n zs m l
+    end
+    else
+      reveal_opaque (`%Hacspec_ml_kem.Commute.Ntt_bridge.cross_vec_hyp_fwd)
+        (Hacspec_ml_kem.Commute.Ntt_bridge.cross_vec_hyp_fwd #v_Vector re_init coeffs step_vec_n zs m l)
+  in
+  Classical.forall_intro_2 aux
+#pop-options
+
+(* per-round zeta slice (impl Montgomery zetas mapped to spec FEs); FORWARD = ASCENDING:
+   zs[r] = mont(zeta(e_zeta_i_init + 1 + r)). *)
+let zs_of_fwd (groups: usize)
+    (e_zeta_i_init: usize{v e_zeta_i_init + v groups <= 127})
+    : t_Slice Hacspec_ml_kem.Parameters.t_FieldElement =
+  Seq.init (v groups)
+    (fun (r: nat{r < v groups}) ->
+        Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+          (Libcrux_ml_kem.Polynomial.zeta (e_zeta_i_init +! mk_usize 1 +! mk_usize r <: usize) <: i16))
+"#))]
 #[hax_lib::fstar::options("--z3rlimit 300 --ext context_pruning --split_queries always")]
 #[hax_lib::requires(
     spec::is_bounded_poly(_initial_coefficient_bound, re) & (
@@ -383,8 +1059,9 @@ fn ntt_layer_int_vec_step<Vector: Operations>(
             6 => *future(zeta_i) == 3,
             7 => *future(zeta_i) == 1,
             _ => false,
-        })
-)]
+        }) & fstar!(r#"
+    Hacspec_ml_kem.Commute.Ntt_bridge.poly_step #$:Vector ${re} ${re}_future ${layer}
+"#))]
 #[inline(always)]
 pub(crate) fn ntt_at_layer_4_plus<Vector: Operations>(
     zeta_i: &mut usize,
@@ -392,52 +1069,70 @@ pub(crate) fn ntt_at_layer_4_plus<Vector: Operations>(
     layer: usize,
     _initial_coefficient_bound: usize, // This can be used for specifying the range of values allowed in re
 ) {
-    let step = 1 << layer;
-
     #[cfg(hax)]
     let _zeta_i_init = *zeta_i;
+    #[cfg(hax)]
+    let _re0 = *re;
+    #[cfg(hax)]
+    let _re_init = re.coefficients;
 
-    for round in 0..(128 >> layer) {
+    let step = 1 << layer;
+    let groups = 128 >> layer;
+    // ghost: only referenced by the F* proof blocks (as the nat `v step_vec_n`).
+    #[cfg(hax)]
+    let step_vec_n = step / 16;
+
+    // F-B: per-layer numeric facts + outer-fold invariant init.
+    hax_lib::fstar!(r#"lemma_layer_numeric_facts_fwd ${layer} ${_zeta_i_init}"#);
+    hax_lib::fstar!(
+        r#"lemma_outer_inv_fwd_init #$:Vector ${_re_init} ${re}.f_coefficients
+             (v ${step_vec_n}) (zs_of_fwd ${groups} ${_zeta_i_init})
+             ${_initial_coefficient_bound} ${step}"#
+    );
+
+    for round in 0..groups {
         hax_lib::loop_invariant!(|round: usize| {
             (*zeta_i == _zeta_i_init + round).to_prop()
-                & (hax_lib::forall(|i: usize| {
-                    if i < 16 {
-                        if i >= (round * step * 2) / 16 {
-                            spec::is_bounded_vector(_initial_coefficient_bound, &re.coefficients[i])
-                        } else {
-                            spec::is_bounded_vector(
-                                _initial_coefficient_bound + 3328,
-                                &re.coefficients[i],
-                            )
-                        }
-                    } else {
-                        true.to_prop()
-                    }
-                }))
+                & fstar!(
+                    r#"outer_inv_fwd #$:Vector ${_re_init} ${re}.f_coefficients
+                         (v ${step_vec_n}) (zs_of_fwd ${groups} ${_zeta_i_init})
+                         ${_initial_coefficient_bound} ${round} ${step}"#
+                )
         });
+
         *zeta_i += 1;
 
         let offset = round * step * 2;
-        let offset_vec = offset / 16; //FIELD_ELEMENTS_IN_VECTOR;
-        let step_vec = step / 16; //FIELD_ELEMENTS_IN_VECTOR;
+        let offset_vec = offset / 16;
+        let step_vec = step / 16;
+
+        // inner-fold invariant init (outer_inv at round -> inner_inv at offset_vec).
+        hax_lib::fstar!(
+            r#"lemma_inner_inv_fwd_init #$:Vector ${_re_init} ${re}.f_coefficients
+                 (v ${step_vec_n}) (zs_of_fwd ${groups} ${_zeta_i_init})
+                 ${_initial_coefficient_bound} ${round} ${step} ${offset_vec} ${step_vec}"#
+        );
 
         for j in offset_vec..offset_vec + step_vec {
             hax_lib::loop_invariant!(|j: usize| {
-                hax_lib::forall(|i: usize| {
-                    if i < 16 {
-                        if (i >= j && i < offset_vec + step_vec) || (i >= j + step_vec) {
-                            spec::is_bounded_vector(_initial_coefficient_bound, &re.coefficients[i])
-                        } else {
-                            spec::is_bounded_vector(
-                                _initial_coefficient_bound + 3328,
-                                &re.coefficients[i],
-                            )
-                        }
-                    } else {
-                        true.to_prop()
-                    }
-                })
+                fstar!(
+                    r#"inner_inv_fwd #$:Vector ${_re_init} ${re}.f_coefficients
+                         (v ${step_vec_n}) (zs_of_fwd ${groups} ${_zeta_i_init})
+                         ${_initial_coefficient_bound} ${offset_vec} ${step_vec} ${j}"#
+                )
             });
+
+            #[cfg(hax)]
+            let _re_body_in = *re;
+            // expose the PENDING bounds on j and j+step_vec for the step precondition.
+            hax_lib::fstar!(
+                r#"lemma_inner_inv_fwd_lookup #$:Vector ${_re_init} ${re}.f_coefficients (v ${step_vec_n})
+                     (zs_of_fwd ${groups} ${_zeta_i_init}) ${_initial_coefficient_bound} ${offset_vec} ${step_vec} ${j} ${j};
+                   lemma_inner_inv_fwd_lookup #$:Vector ${_re_init} ${re}.f_coefficients (v ${step_vec_n})
+                     (zs_of_fwd ${groups} ${_zeta_i_init}) ${_initial_coefficient_bound} ${offset_vec} ${step_vec} ${j}
+                     (${j} +! ${step_vec})"#
+            );
+
             let (x, y) = ntt_layer_int_vec_step(
                 re.coefficients[j],
                 re.coefficients[j + step_vec],
@@ -446,8 +1141,73 @@ pub(crate) fn ntt_at_layer_4_plus<Vector: Operations>(
             );
             re.coefficients[j] = x;
             re.coefficients[j + step_vec] = y;
+
+            // inner maintenance: inner_inv at (cb,j) -> inner_inv at (cf,j+1).
+            hax_lib::fstar!(
+                r#"lemma_offset_vec_fwd (v ${round}) (v ${step}) (v ${offset}) (v ${offset_vec}) (v ${step_vec_n});
+                   FStar.Seq.Base.init_index_ (v ${groups})
+                     (fun (r: nat{r < v ${groups}}) ->
+                        Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+                          (Libcrux_ml_kem.Polynomial.zeta
+                            (${_zeta_i_init} +! mk_usize 1 +! mk_usize r)))
+                     (v ${round});
+                   lemma_inner_step_maintains_fwd #$:Vector ${_re_init}
+                     ${_re_body_in}.f_coefficients ${re}.f_coefficients (v ${step_vec_n})
+                     (zs_of_fwd ${groups} ${_zeta_i_init}) ${_initial_coefficient_bound} ${offset_vec} ${step_vec} ${j}
+                     (v ${round}) (Libcrux_ml_kem.Polynomial.zeta ${zeta_i}) ${x} ${y}"#
+            );
         }
+
+        // outer maintenance: inner_inv at offset_vec+step_vec -> outer_inv at round+1.
+        hax_lib::fstar!(
+            r#"lemma_offset_vec_fwd (v ${round}) (v ${step}) (v ${offset}) (v ${offset_vec}) (v ${step_vec_n});
+               lemma_inner_to_outer_fwd #$:Vector ${_re_init} ${re}.f_coefficients (v ${step_vec_n})
+                 (zs_of_fwd ${groups} ${_zeta_i_init}) ${_initial_coefficient_bound} ${round} ${step} ${offset_vec} ${step_vec}
+                 (${round} +! mk_usize 1) (${offset_vec} +! ${step_vec})"#
+        );
     }
+
+    // zeta-table forall (ASCENDING): zs_of_fwd[round] == v_ZETAS[groups+round].
+    hax_lib::fstar!(
+        r#"(let aux (round: nat)
+              : Lemma (round < v ${groups} ==>
+                  Seq.index (zs_of_fwd ${groups} ${_zeta_i_init}) round ==
+                  Hacspec_ml_kem.Ntt.v_ZETAS.[ sz (v ${groups} + round) ]) =
+            if round < v ${groups} then begin
+              FStar.Seq.Base.init_index_ (v ${groups})
+                (fun (r: nat{r < v ${groups}}) ->
+                   Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+                     (Libcrux_ml_kem.Polynomial.zeta (${_zeta_i_init} +! mk_usize 1 +! mk_usize r)))
+                round;
+              Hacspec_ml_kem.Commute.Bridges.lemma_zeta_eq_vzetas
+                (${_zeta_i_init} +! mk_usize 1 +! mk_usize round);
+              assert (v (${_zeta_i_init} +! mk_usize 1 +! mk_usize round) == v ${groups} + round)
+            end
+          in Classical.forall_intro aux)"#
+    );
+    // (a) is_bounded_poly (bound+3328) (every vector DONE) + (b) the cross_vec_hyp_fwd
+    // forall; then the bridge keystone discharges the PLAIN poly_step post.
+    hax_lib::fstar!(
+        r#"lemma_offset_vec_fwd (v ${groups}) (v ${step}) (v ${groups} * v ${step} * 2)
+             ((v ${groups} * v ${step} * 2) / 16) (v ${step_vec_n});
+           (let auxb (i: nat)
+              : Lemma (i < 16 ==>
+                  Libcrux_ml_kem.Polynomial.Spec.is_bounded_vector #$:Vector
+                    (${_initial_coefficient_bound} +! mk_usize 3328) (${re}.f_coefficients.[ sz i ])) =
+            if i < 16 then
+              lemma_outer_inv_fwd_lookup #$:Vector ${_re_init} ${re}.f_coefficients (v ${step_vec_n})
+                (zs_of_fwd ${groups} ${_zeta_i_init}) ${_initial_coefficient_bound} ${groups} ${step} (sz i)
+          in Classical.forall_intro auxb);
+           lemma_postloop_cross_vec_fwd #$:Vector ${_re_init} ${re}.f_coefficients (v ${step_vec_n})
+             (zs_of_fwd ${groups} ${_zeta_i_init}) ${_initial_coefficient_bound} ${groups} ${step};
+           FStar.Seq.Base.lemma_init_len (v ${groups})
+             (fun (r: nat{r < v ${groups}}) ->
+                Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+                  (Libcrux_ml_kem.Polynomial.zeta (${_zeta_i_init} +! mk_usize 1 +! mk_usize r)));
+           lemma_groups_len_256 (v ${groups}) (v ${step}) (v ${step} / 16);
+           Hacspec_ml_kem.Commute.Ntt_bridge.lemma_layer_4_plus_to_poly_step #$:Vector
+             ${_re0} ${re} ${layer} ${step} (v ${step_vec_n}) (zs_of_fwd ${groups} ${_zeta_i_init})"#
+    );
 }
 
 #[inline(always)]
@@ -472,8 +1232,10 @@ pub(crate) fn ntt_at_layer_7<Vector: Operations>(re: &mut PolynomialRingElement<
             })
         });
 
-        // Help Z3 compute the bound from multiply_by_constant_bounded's ensures
-        hax_lib::fstar!(r#"assume (v (Core_models.Num.impl_i16__abs (mk_i16 (-1600))) == 1600)"#);
+        // Help Z3 compute the bound from multiply_by_constant_bounded's ensures.
+        // `abs_i16` is an abstract `val`, so assert_norm can't compute it; cite the
+        // pre-existing library axiom `Spec.Utils.impl_i16__abs_value` instead.
+        hax_lib::fstar!(r#"Spec.Utils.impl_i16__abs_value (mk_i16 (-1600))"#);
         let t = multiply_by_constant_bounded(re.coefficients[j + step], 3, -1600);
         hax_lib::fstar!(
             r#"assert (Libcrux_ml_kem.Polynomial.Spec.is_bounded_vector #$:Vector (mk_usize 4800) $t)"#
@@ -540,15 +1302,12 @@ pub(crate) fn ntt_binomially_sampled_ring_element<Vector: Operations>(
 // Forward NTT driver, functional post via the Ntt_bridge composition (mirror of
 // invert_ntt_montgomery).  The 7 per-layer `poly_step` atoms compose into the
 // polynomial-level `Hacspec_ml_kem.Ntt.ntt` equality via `lemma_compose_7`.
-// REMAINING TEMP-ADMITS (see proofs/agent-status/RESUME-fwd-ntt-2026-06-02.md):
-//   - layers 4-7 `poly_step` are ASSUMED (F-B = forward cross-vector keystone,
-//     to be added to Ntt_bridge.fst, mirroring the USER-14 Bridges machinery);
-//   - barrett value-preservation is ASSUMED (impl__poly_barrett_reduce's post is
-//     bounds-only; strengthen it to barrett_reduce_post then use
-//     Chunk.lemma_poly_barrett_reduce_commute + _id);
-//   - the 28296 bound is ASSUMED (is_bounded_poly_higher's usize-overflow VC
-//     saturates under the layer-post quantifier context; factor a clean helper).
-// Layers 1-3 (lemma_layer{1,2,3}_to_poly_step) and lemma_compose_7 are REAL.
+// F-B CLOSED (0 admits): layers 4-7 `poly_step` come from `ntt_at_layer_4_plus`'s
+// strengthened post (forward cross-vector keystone scaffold in this module +
+// `Ntt_bridge.lemma_layer_4_plus_to_poly_step`); layers 1-3 via
+// `lemma_layer{1,2,3}_to_poly_step`; barrett value-preservation via the
+// strengthened `impl__poly_barrett_reduce` post + `lemma_poly_barrett_reduce_id`;
+// the 28296 bound via `is_bounded_poly_higher`.
 #[hax_lib::fstar::options("--z3rlimit 400 --split_queries always")]
 #[hax_lib::requires(spec::is_bounded_poly(3328, re))]
 #[hax_lib::ensures(|result| spec::is_bounded_poly(3328, future(re)) & fstar!(r#"
@@ -571,30 +1330,20 @@ pub(crate) fn ntt_vector_u<const VECTOR_U_COMPRESSION_FACTOR: usize, Vector: Ope
     hax_lib::fstar!(r#"assert (v ${bnd28296} == 28296)"#);
     let mut zeta_i = 0;
 
+    // layers 7,6,5,4: poly_step comes directly from ntt_at_layer_4_plus's
+    // strengthened post (F-B), so no per-layer assume is needed.
     ntt_at_layer_4_plus(&mut zeta_i, re, 7, 3328);
     #[cfg(hax)]
     let re1 = *re;
-    hax_lib::fstar!(
-        r#"assume (Hacspec_ml_kem.Commute.Ntt_bridge.poly_step #$:Vector ${re0} ${re1} (mk_usize 7))"#
-    );
     ntt_at_layer_4_plus(&mut zeta_i, re, 6, 2 * 3328);
     #[cfg(hax)]
     let re2 = *re;
-    hax_lib::fstar!(
-        r#"assume (Hacspec_ml_kem.Commute.Ntt_bridge.poly_step #$:Vector ${re1} ${re2} (mk_usize 6))"#
-    );
     ntt_at_layer_4_plus(&mut zeta_i, re, 5, 3 * 3328);
     #[cfg(hax)]
     let re3 = *re;
-    hax_lib::fstar!(
-        r#"assume (Hacspec_ml_kem.Commute.Ntt_bridge.poly_step #$:Vector ${re2} ${re3} (mk_usize 5))"#
-    );
     ntt_at_layer_4_plus(&mut zeta_i, re, 4, 4 * 3328);
     #[cfg(hax)]
     let re4 = *re;
-    hax_lib::fstar!(
-        r#"assume (Hacspec_ml_kem.Commute.Ntt_bridge.poly_step #$:Vector ${re3} ${re4} (mk_usize 4))"#
-    );
     ntt_at_layer_3(&mut zeta_i, re, 5 * 3328);
     #[cfg(hax)]
     let re5 = *re;
@@ -619,17 +1368,20 @@ pub(crate) fn ntt_vector_u<const VECTOR_U_COMPRESSION_FACTOR: usize, Vector: Ope
         r#"Hacspec_ml_kem.Commute.Ntt_bridge.lemma_compose_7 #$:Vector ${re0} ${re1} ${re2} ${re3} ${re4} ${re5} ${re6} ${re7}"#
     );
 
-    // 28296 was pre-bound + anchored in clean context at the function start.
+    // 28296 bound for the barrett precondition (re is bounded 8*3328 after layer 1).
+    #[cfg(hax)]
+    spec::is_bounded_poly_higher(re, 8 * 3328, bnd28296);
+
+    // Call the free `poly_barrett_reduce` (whose post already carries the
+    // value-preservation `to_spec_poly_plain result == HP.poly_barrett_reduce (...)`)
+    // rather than the bounds-only `PolynomialRingElement::poly_barrett_reduce` method.
+    poly_barrett_reduce(re);
+    // barrett is the plain identity (`poly_barrett_reduce p == p`), so
+    // `to_spec_poly_plain` survives the reduce — discharges the driver's N.ntt equality.
     hax_lib::fstar!(
-        r#"assume (Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #$:Vector ${bnd28296} ${re})"#
+        r#"Hacspec_ml_kem.Commute.Chunk.lemma_poly_barrett_reduce_id
+             (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #$:Vector ${re7})"#
     );
-    // barrett value-preservation (impl post is bounds-only).
-    hax_lib::fstar!(
-        r#"assume (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #$:Vector
-                     (Libcrux_ml_kem.Polynomial.impl__poly_barrett_reduce #$:Vector ${re})
-                   == Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #$:Vector ${re7})"#
-    );
-    re.poly_barrett_reduce()
 }
 
 #[cfg(test)]

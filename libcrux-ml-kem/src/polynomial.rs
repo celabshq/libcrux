@@ -509,7 +509,7 @@ fn add_to_ring_element<Vector: Operations>(
                                 Hacspec_ml_kem.Polynomial.poly_barrett_reduce
                                   (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain
                                     #$:Vector ${myself})"#))]
-fn poly_barrett_reduce<Vector: Operations>(myself: &mut PolynomialRingElement<Vector>) {
+pub(crate) fn poly_barrett_reduce<Vector: Operations>(myself: &mut PolynomialRingElement<Vector>) {
     #[cfg(hax)]
     let _myself = myself.coefficients;
 
