@@ -99,12 +99,14 @@ let ntt_at_layer_1_
         : Lemma
         (j < 16 ==>
           Hacspec_ml_kem.Commute.Ntt_bridge.pv_post #v_Vector
-            e_re_init re.f_coefficients (mk_usize 2)
-            (Libcrux_ml_kem.Vector.Traits.Spec.zetas_4_ (Libcrux_ml_kem.Polynomial.zeta
-                        (mk_usize 64 +! mk_usize 4 *! sz j))
-                    (Libcrux_ml_kem.Polynomial.zeta (mk_usize 65 +! mk_usize 4 *! sz j))
-                    (Libcrux_ml_kem.Polynomial.zeta (mk_usize 66 +! mk_usize 4 *! sz j))
-                    (Libcrux_ml_kem.Polynomial.zeta (mk_usize 67 +! mk_usize 4 *! sz j)))
+            e_re_init
+            re.f_coefficients
+            (mk_usize 2)
+            (Libcrux_ml_kem.Vector.Traits.Spec.zetas_4_ (Libcrux_ml_kem.Polynomial.zeta (mk_usize 64 +!
+                      mk_usize 4 *! sz j))
+                (Libcrux_ml_kem.Polynomial.zeta (mk_usize 65 +! mk_usize 4 *! sz j))
+                (Libcrux_ml_kem.Polynomial.zeta (mk_usize 66 +! mk_usize 4 *! sz j))
+                (Libcrux_ml_kem.Polynomial.zeta (mk_usize 67 +! mk_usize 4 *! sz j)))
             j) =
       if j < 16
       then
@@ -118,12 +120,14 @@ let ntt_at_layer_1_
             (Libcrux_ml_kem.Polynomial.zeta (mk_usize 66 +! mk_usize 4 *! sz j))
             (Libcrux_ml_kem.Polynomial.zeta (mk_usize 67 +! mk_usize 4 *! sz j));
           Hacspec_ml_kem.Commute.Ntt_bridge.pv_post_intro #v_Vector
-            e_re_init re.f_coefficients (mk_usize 2)
-            (Libcrux_ml_kem.Vector.Traits.Spec.zetas_4_ (Libcrux_ml_kem.Polynomial.zeta
-                        (mk_usize 64 +! mk_usize 4 *! sz j))
-                    (Libcrux_ml_kem.Polynomial.zeta (mk_usize 65 +! mk_usize 4 *! sz j))
-                    (Libcrux_ml_kem.Polynomial.zeta (mk_usize 66 +! mk_usize 4 *! sz j))
-                    (Libcrux_ml_kem.Polynomial.zeta (mk_usize 67 +! mk_usize 4 *! sz j)))
+            e_re_init
+            re.f_coefficients
+            (mk_usize 2)
+            (Libcrux_ml_kem.Vector.Traits.Spec.zetas_4_ (Libcrux_ml_kem.Polynomial.zeta (mk_usize 64 +!
+                      mk_usize 4 *! sz j))
+                (Libcrux_ml_kem.Polynomial.zeta (mk_usize 65 +! mk_usize 4 *! sz j))
+                (Libcrux_ml_kem.Polynomial.zeta (mk_usize 66 +! mk_usize 4 *! sz j))
+                (Libcrux_ml_kem.Polynomial.zeta (mk_usize 67 +! mk_usize 4 *! sz j)))
             j)
     in
     Classical.forall_intro aux
@@ -216,10 +220,12 @@ let ntt_at_layer_2_
         : Lemma
         (j < 16 ==>
           Hacspec_ml_kem.Commute.Ntt_bridge.pv_post #v_Vector
-            e_re_init re.f_coefficients (mk_usize 4)
-            (Libcrux_ml_kem.Vector.Traits.Spec.zetas_2_ (Libcrux_ml_kem.Polynomial.zeta
-                        (mk_usize 32 +! mk_usize 2 *! sz j))
-                    (Libcrux_ml_kem.Polynomial.zeta (mk_usize 33 +! mk_usize 2 *! sz j)))
+            e_re_init
+            re.f_coefficients
+            (mk_usize 4)
+            (Libcrux_ml_kem.Vector.Traits.Spec.zetas_2_ (Libcrux_ml_kem.Polynomial.zeta (mk_usize 32 +!
+                      mk_usize 2 *! sz j))
+                (Libcrux_ml_kem.Polynomial.zeta (mk_usize 33 +! mk_usize 2 *! sz j)))
             j) =
       if j < 16
       then
@@ -231,10 +237,12 @@ let ntt_at_layer_2_
             (Libcrux_ml_kem.Polynomial.zeta (mk_usize 32 +! mk_usize 2 *! sz j))
             (Libcrux_ml_kem.Polynomial.zeta (mk_usize 33 +! mk_usize 2 *! sz j));
           Hacspec_ml_kem.Commute.Ntt_bridge.pv_post_intro #v_Vector
-            e_re_init re.f_coefficients (mk_usize 4)
-            (Libcrux_ml_kem.Vector.Traits.Spec.zetas_2_ (Libcrux_ml_kem.Polynomial.zeta
-                        (mk_usize 32 +! mk_usize 2 *! sz j))
-                    (Libcrux_ml_kem.Polynomial.zeta (mk_usize 33 +! mk_usize 2 *! sz j)))
+            e_re_init
+            re.f_coefficients
+            (mk_usize 4)
+            (Libcrux_ml_kem.Vector.Traits.Spec.zetas_2_ (Libcrux_ml_kem.Polynomial.zeta (mk_usize 32 +!
+                      mk_usize 2 *! sz j))
+                (Libcrux_ml_kem.Polynomial.zeta (mk_usize 33 +! mk_usize 2 *! sz j)))
             j)
     in
     Classical.forall_intro aux
@@ -321,9 +329,11 @@ let ntt_at_layer_3_
         : Lemma
         (j < 16 ==>
           Hacspec_ml_kem.Commute.Ntt_bridge.pv_post #v_Vector
-            e_re_init re.f_coefficients (mk_usize 8)
-            (Libcrux_ml_kem.Vector.Traits.Spec.zetas_1_ (Libcrux_ml_kem.Polynomial.zeta
-                        (mk_usize 16 +! sz j)))
+            e_re_init
+            re.f_coefficients
+            (mk_usize 8)
+            (Libcrux_ml_kem.Vector.Traits.Spec.zetas_1_ (Libcrux_ml_kem.Polynomial.zeta (mk_usize 16 +!
+                      sz j)))
             j) =
       if j < 16
       then
@@ -334,9 +344,11 @@ let ntt_at_layer_3_
             (Seq.index e_re_init j)
             (Libcrux_ml_kem.Polynomial.zeta (mk_usize 16 +! sz j));
           Hacspec_ml_kem.Commute.Ntt_bridge.pv_post_intro #v_Vector
-            e_re_init re.f_coefficients (mk_usize 8)
-            (Libcrux_ml_kem.Vector.Traits.Spec.zetas_1_ (Libcrux_ml_kem.Polynomial.zeta
-                        (mk_usize 16 +! sz j)))
+            e_re_init
+            re.f_coefficients
+            (mk_usize 8)
+            (Libcrux_ml_kem.Vector.Traits.Spec.zetas_1_ (Libcrux_ml_kem.Polynomial.zeta (mk_usize 16 +!
+                      sz j)))
             j)
     in
     Classical.forall_intro aux
@@ -638,23 +650,6 @@ let ntt_binomially_sampled_ring_element
 
 #pop-options
 
-(* TEMP-ADMIT-F-B: layers 4-7 poly_step.  Real proof = forward cross-vector
-   keystone (mirror of the USER-14 Bridges machinery for the Cooley-Tukey
-   butterfly, in plain form).  Stubbed so the driver composition (F-C) is
-   demonstrated end-to-end; replace with the keystone lemma in Ntt_bridge.fst. *)
-#push-options "--admit_smt_queries true"
-let lemma_layer_4_plus_to_poly_step_TEMP
-      (#v_Vector: Type0)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()]
-          i0:
-          Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
-      (re_in re_out: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
-      (layer: usize)
-    : Lemma (requires v layer >= 1 /\ v layer <= 7)
-            (ensures Hacspec_ml_kem.Commute.Ntt_bridge.poly_step #v_Vector re_in re_out layer)
-    = ()
-#pop-options
-
 #push-options "--z3rlimit 400 --split_queries always"
 
 let ntt_vector_u
@@ -666,83 +661,93 @@ let ntt_vector_u
       (re: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
      =
   let re0:Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector = re in
-  (* pre-bind the barrett bound in CLEAN context so its usize range-check is not
-     poisoned by the 7 layer-post quantifiers downstream (cascade pollution). *)
-  let bnd28296:usize = mk_usize 28296 in
+  let (bnd28296: usize):usize = mk_usize 28296 in
+  let _:Prims.unit = assert (v bnd28296 == 28296) in
   let zeta_i:usize = mk_usize 0 in
   let (tmp0: usize), (tmp1: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector) =
     ntt_at_layer_4_plus #v_Vector zeta_i re (mk_usize 7) (mk_usize 3328)
   in
   let zeta_i:usize = tmp0 in
   let re:Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector = tmp1 in
+  let _:Prims.unit = () in
   let re1:Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector = re in
+  let _:Prims.unit =
+    assume (Hacspec_ml_kem.Commute.Ntt_bridge.poly_step #v_Vector re0 re1 (mk_usize 7))
+  in
   let (tmp0: usize), (tmp1: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector) =
     ntt_at_layer_4_plus #v_Vector zeta_i re (mk_usize 6) (mk_usize 2 *! mk_usize 3328 <: usize)
   in
   let zeta_i:usize = tmp0 in
   let re:Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector = tmp1 in
+  let _:Prims.unit = () in
   let re2:Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector = re in
+  let _:Prims.unit =
+    assume (Hacspec_ml_kem.Commute.Ntt_bridge.poly_step #v_Vector re1 re2 (mk_usize 6))
+  in
   let (tmp0: usize), (tmp1: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector) =
     ntt_at_layer_4_plus #v_Vector zeta_i re (mk_usize 5) (mk_usize 3 *! mk_usize 3328 <: usize)
   in
   let zeta_i:usize = tmp0 in
   let re:Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector = tmp1 in
+  let _:Prims.unit = () in
   let re3:Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector = re in
+  let _:Prims.unit =
+    assume (Hacspec_ml_kem.Commute.Ntt_bridge.poly_step #v_Vector re2 re3 (mk_usize 5))
+  in
   let (tmp0: usize), (tmp1: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector) =
     ntt_at_layer_4_plus #v_Vector zeta_i re (mk_usize 4) (mk_usize 4 *! mk_usize 3328 <: usize)
   in
   let zeta_i:usize = tmp0 in
   let re:Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector = tmp1 in
+  let _:Prims.unit = () in
   let re4:Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector = re in
+  let _:Prims.unit =
+    assume (Hacspec_ml_kem.Commute.Ntt_bridge.poly_step #v_Vector re3 re4 (mk_usize 4))
+  in
   let (tmp0: usize), (tmp1: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector) =
     ntt_at_layer_3_ #v_Vector zeta_i re (mk_usize 5 *! mk_usize 3328 <: usize)
   in
   let zeta_i:usize = tmp0 in
   let re:Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector = tmp1 in
+  let _:Prims.unit = () in
   let re5:Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector = re in
+  let _:Prims.unit =
+    Hacspec_ml_kem.Commute.Ntt_bridge.lemma_layer3_to_poly_step #v_Vector re4 re5
+  in
   let (tmp0: usize), (tmp1: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector) =
     ntt_at_layer_2_ #v_Vector zeta_i re (mk_usize 6 *! mk_usize 3328 <: usize)
   in
   let zeta_i:usize = tmp0 in
   let re:Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector = tmp1 in
+  let _:Prims.unit = () in
   let re6:Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector = re in
+  let _:Prims.unit =
+    Hacspec_ml_kem.Commute.Ntt_bridge.lemma_layer2_to_poly_step #v_Vector re5 re6
+  in
   let (tmp0: usize), (tmp1: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector) =
     ntt_at_layer_1_ #v_Vector zeta_i re (mk_usize 7 *! mk_usize 3328 <: usize)
   in
   let zeta_i:usize = tmp0 in
   let re:Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector = tmp1 in
+  let _:Prims.unit = () in
   let re7:Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector = re in
-  (* TEMP-ADMIT-BOUND: `is_bounded_poly_higher re (8*3328) 28296` is true
-     (re is_bounded 8*3328 from layer_1_; 26624<=28296) but its `8 *! 3328`
-     usize-overflow VC SATURATES under the 7 layer-post quantifier context
-     (cascade pollution).  The binomial path proves the same widening at
-     rlimit 200; the real fix factors this into a clean-context helper.
-     Assumed here to satisfy barrett's `is_bounded_poly 28296` precondition. *)
   let _:Prims.unit =
-    assume (Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector bnd28296 re)
+    Hacspec_ml_kem.Commute.Ntt_bridge.lemma_layer1_to_poly_step #v_Vector re6 re7
   in
-  let re_b:Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector =
-    Libcrux_ml_kem.Polynomial.impl__poly_barrett_reduce #v_Vector re
-  in
-  (* composition: 7 plain poly_step atoms (layers 7..1) -> N.ntt equality on re7. *)
-  let _:Prims.unit = lemma_layer_4_plus_to_poly_step_TEMP #v_Vector re0 re1 (mk_usize 7) in
-  let _:Prims.unit = lemma_layer_4_plus_to_poly_step_TEMP #v_Vector re1 re2 (mk_usize 6) in
-  let _:Prims.unit = lemma_layer_4_plus_to_poly_step_TEMP #v_Vector re2 re3 (mk_usize 5) in
-  let _:Prims.unit = lemma_layer_4_plus_to_poly_step_TEMP #v_Vector re3 re4 (mk_usize 4) in
-  let _:Prims.unit = Hacspec_ml_kem.Commute.Ntt_bridge.lemma_layer3_to_poly_step #v_Vector re4 re5 in
-  let _:Prims.unit = Hacspec_ml_kem.Commute.Ntt_bridge.lemma_layer2_to_poly_step #v_Vector re5 re6 in
-  let _:Prims.unit = Hacspec_ml_kem.Commute.Ntt_bridge.lemma_layer1_to_poly_step #v_Vector re6 re7 in
   let _:Prims.unit =
     Hacspec_ml_kem.Commute.Ntt_bridge.lemma_compose_7 #v_Vector re0 re1 re2 re3 re4 re5 re6 re7
   in
-  (* TEMP-ADMIT-BARRETT: impl__poly_barrett_reduce's post is bounds-only; it does
-     NOT expose value-preservation.  The real proof strengthens that post to give
-     `barrett_reduce_post` per chunk, then uses Chunk.lemma_poly_barrett_reduce_commute
-     + lemma_poly_barrett_reduce_id (a shared Polynomial-module change). *)
   let _:Prims.unit =
-    assume (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #v_Vector re_b ==
-            Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #v_Vector re7)
+    assume (Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector bnd28296 re)
   in
-  re_b
+  let _:Prims.unit =
+    assume (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #v_Vector
+          (Libcrux_ml_kem.Polynomial.impl__poly_barrett_reduce #v_Vector re) ==
+        Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #v_Vector re7)
+  in
+  let re:Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector =
+    Libcrux_ml_kem.Polynomial.impl__poly_barrett_reduce #v_Vector re
+  in
+  re
 
 #pop-options
