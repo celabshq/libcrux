@@ -238,10 +238,7 @@ pub(crate) fn make_hint<SIMDUnit: Operations>(
          (forall i. forall j.
             (v (Seq.index (Seq.index ${hint} i) j) == 0 \/
              v (Seq.index (Seq.index ${hint} i) j) == 1)) /\
-         (forall i. forall j.
-            Spec.Utils.is_i32b_array_opaque
-            (v ${crate::simd::traits::specs::FIELD_MAX})
-            (i0._super_i2.f_repr (Seq.index (Seq.index re_vector i).f_simd_units j)))"#))]
+         Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice (mk_usize 8380416) ${re_vector}}"#))]
 #[hax_lib::ensures(|_| fstar!(r#"
     Seq.length ${re_vector}_future == Seq.length re_vector /\
     (forall (i:nat). i < Seq.length ${re_vector}_future ==>
@@ -269,8 +266,8 @@ pub(crate) fn use_hint<SIMDUnit: Operations>(
             Lemma (Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly
                      (mk_usize 8380416) (Seq.index old_rv k)) =
             assert (Seq.index old_rv k == Seq.index $re_vector k);
-            Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_intro
-              (mk_usize 8380416) (Seq.index $re_vector k)
+            Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_slice_lookup
+              (mk_usize 8380416) $re_vector k
           in Classical.forall_intro aux
         in
         Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_slice_intro
@@ -320,6 +317,12 @@ pub(crate) fn use_hint<SIMDUnit: Operations>(
                 (forall (jj:nat). v ${j} <= jj /\ jj < 32 ==>
                   Libcrux_ml_dsa.Simd.Traits.Specs.is_binary_array_8_opaque
                     (i0._super_i2.f_repr (Seq.index ${tmp}.f_simd_units jj)))"#));
+            // Bridge: is_bounded_poly FIELD_MAX re_vector[i] (inv) gives the
+            // per-lane FIELD_MAX bound on re_vector[i].simd_units[j] that the
+            // use_hint trait pre requires (explicit lookup, not the flaky SMTPat).
+            hax_lib::fstar!(r#"
+                Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_lookup
+                  (mk_usize 8380416) (Seq.index $re_vector (v ${i})) (v ${j})"#);
             SIMDUnit::use_hint(gamma2, &re_vector[i].simd_units[j], &mut tmp.simd_units[j]);
         }
         // After inner loop: all 32 tmp simd-units are is_i32b_array_opaque b_g; lift to is_bounded_poly b_g tmp.
