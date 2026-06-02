@@ -24,49 +24,49 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 | ---------- | ----------------- | ---- | --- | --- | --- | --- | ---- | ------ | ------- |
 | _Generic_  | lib               |    1 |  16 |   0 |     |   4 |    0 |      0 |      12 |
 |            | traits            |    1 |  14 |   0 |     |  11 |    3 |      0 |       0 |
-|            | proof_utils       |    1 |   6 |   0 |     |   6 |    0 |      0 |       0 |
+|            | proof_utils       |    1 |  10 |   0 |     |  10 |    0 |      0 |       0 |
 |            | impl_digest_trait |    1 |   1 |   0 |   1 |   0 |    0 |      0 |       0 |
 |            | simd (top)        |    1 |   0 |   0 |     |   0 |    0 |      0 |       0 |
 |            | generic_keccak (top) |    1 |  56 |   0 |     |  56 |    0 |      0 |       0 |
 |            | generic_keccak/constants |    1 |   0 |   0 |     |   0 |    0 |      0 |       0 |
 |            | generic_keccak/xof |    1 |   8 |   0 |     |   2 |    6 |      0 |       0 |
-|            | **Generic total** | **8** | **101** | **0** | **1** | **79** | **9** |  **0** |  **12** |
+|            | **Generic total** | **8** | **105** | **0** | **1** | **83** | **9** |  **0** |  **12** |
 |            |                   |      |     |     |     |     |      |        |         |
 | _Portable_ | generic_keccak    |    1 |  10 |   0 |     |   1 |    4 |      0 |       5 |
 |            | portable          |    1 |  27 |   0 |     |   8 |   13 |      0 |       6 |
 |            | simd              |    4 |  20 |   0 |     |  17 |    3 |      0 |       0 |
 |            | **Portable total** | **6** | **57** | **0** |     | **26** | **20** |  **0** |  **11** |
 |            |                   |      |     |     |     |     |      |        |         |
-| _Avx2_     | generic_keccak    |    1 |   9 |   0 |     |   1 |    6 |      0 |       2 |
+| _Avx2_     | generic_keccak    |    1 |  10 |   0 |     |   1 |    5 |      0 |       4 |
 |            | avx2              |    1 |   9 |   0 |     |   3 |    6 |      0 |       0 |
-|            | simd              |    4 |  24 |   1 |     |  17 |    6 |      0 |       0 |
-|            | **Avx2 total**    | **6** | **42** | **1** |     | **21** | **18** |  **0** |   **2** |
+|            | simd              |    4 |  36 |   0 |     |  24 |   12 |      0 |       0 |
+|            | **Avx2 total**    | **6** | **55** | **0** |     | **28** | **23** |  **0** |   **4** |
 |            |                   |      |     |     |     |     |      |        |         |
-| _Neon_     | generic_keccak    |    1 |   7 |   0 |     |   0 |    6 |      0 |       1 |
+| _Neon_     | generic_keccak    |    1 |   8 |   0 |     |   0 |    5 |      0 |       3 |
 |            | neon              |    1 |  15 |   0 |     |   8 |    0 |      0 |       7 |
-|            | simd              |    4 |  28 |   0 |     |  16 |   12 |      0 |       0 |
-|            | **Neon total**    | **6** | **50** | **0** |     | **24** | **18** |  **0** |   **8** |
+|            | simd              |    4 |  29 |   0 |     |  17 |   12 |      0 |       0 |
+|            | **Neon total**    | **6** | **52** | **0** |     | **25** | **17** |  **0** |  **10** |
 
 ## Summary
 
 - **Total modules**: 26
-- **Total functions**: 250
-- **Lax** (admitted): 1 (0.4%)
+- **Total functions**: 269
+- **Lax** (admitted): 0 (0.0%)
 - **Unverified** (not extracted): 1 (0.4%)
-- **Panic-safe** (PF + Math + Bounds + Hacspec): 248 (99.2%)
-  - Panic-free only (no further proof): 150 (60.0%)
-  - Math (non-trivial ensures, no bounds/spec match): 65 (26.0%)
+- **Panic-safe** (PF + Math + Bounds + Hacspec): 268 (99.6%)
+  - Panic-free only (no further proof): 162 (60.2%)
+  - Math (non-trivial ensures, no bounds/spec match): 69 (25.7%)
   - Bounds (range/interval ensures): 0 (0.0%)
-  - Hacspec (cites high-level spec): 33 (13.2%)
+  - Hacspec (cites high-level spec): 37 (13.8%)
 
 ### Modules per category
 
 | Category     | Modules |  Fns | Lax | Unv |  PF | Math | Bounds | Hacspec |
 | ------------ | ------- | ---- | --- | --- | --- | ---- | ------ | ------- |
-| Generic      |       8 |  101 |   0 |   1 |  79 |    9 |      0 |      12 |
+| Generic      |       8 |  105 |   0 |   1 |  83 |    9 |      0 |      12 |
 | Portable     |       6 |   57 |   0 |   0 |  26 |   20 |      0 |      11 |
-| Avx2         |       6 |   42 |   1 |   0 |  21 |   18 |      0 |       2 |
-| Neon         |       6 |   50 |   0 |   0 |  24 |   18 |      0 |       8 |
+| Avx2         |       6 |   55 |   0 |   0 |  28 |   23 |      0 |       4 |
+| Neon         |       6 |   52 |   0 |   0 |  25 |   17 |      0 |      10 |
 
 ## Unverified Rust modules (not extracted to F\*)
 
@@ -75,11 +75,3 @@ These Rust modules have no corresponding F\* file in the extraction directory â€
 | Module                         | Path                                     | Fns |
 | ------------------------------ | ---------------------------------------- | --- |
 | Generic/impl_digest_trait      | src/impl_digest_trait.rs                 |   1 |
-
-## Body-admit sites (audit)
-
-Functions classified as lax due to `admit ()` (or `--admit_smt_queries true`) inside their body. Auditable so the script's classification decisions are traceable.
-
-| Module                    |  Line |
-| ------------------------- | ----- |
-| Avx2/simd                 |    65 |
