@@ -81,3 +81,19 @@ In Libcrux_ml_kem.Ntt.fst ntt_vector_u:
   - bound assume (is_bounded_poly 28296 re): pollution-blocked is_bounded_poly_higher; provable, factor.
 Plus: discharge abs(-1600)==1600 assume in ntt_at_layer_7_ (Core_models.Num.impl_i16__abs; concrete).
 Plus: backport extracted Ntt.fst/.fsti edits (F-A pv_post ensures+intro, F-C driver) to src/ntt.rs + re-extract.
+
+## FINAL STATE (committed beeac1ee2, a1d82181a) — durable
+- Ntt_bridge.fst committed (tracked). 2 TEMP-ADMIT-UNFOLD (provable squash+norm@400).
+- src/ntt.rs committed with F-A (pv_post ensures+intro) + F-C (driver composition).
+  `cargo hax into fstar` (hax 0.3.7) reproduces the verified Libcrux_ml_kem.Ntt.{fst,fsti};
+  full-module check GREEN.
+- ntt_vector_u PROVES `to_spec_poly_plain re_future == N.ntt (to_spec_poly_plain re)`
+  modulo: 4 `assume poly_step` (layers 4-7 = F-B), 1 barrett-value `assume`,
+  1 bound `assume` (28296; pre-bound+anchored, value still assumed),
+  2 unfold admits in the bridge. Layers 1-3 bridges + compose_7 REAL.
+- Extraction gotcha recorded: hax floats `#[cfg(hax)] let` to first use; anchor a
+  ghost `fstar!("assert (v ${k} == N)")` early to keep a literal's range-check in
+  clean context (else it saturates under the post-layer quantifier pollution).
+- NOTE: re-extracting all of ml-kem under hax 0.3.7 also rewrites
+  Libcrux_ml_kem.Vector.Portable.Vector_type.fst::from_i16_array (try_into form);
+  reverted (unrelated pre-existing extraction drift, not part of this work).
