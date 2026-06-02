@@ -390,17 +390,10 @@ fn op_decompress_ciphertext_coefficient<const COEFFICIENT_BITS: i32>(vector: SIM
 // + bound `8*3328`) plus the four `lemma_ntt_layer_1_step_branch_{0..3}`
 // (Commute.Chunk) discharge the trait post directly.  Wrapper does this inline.
 
-let op_ntt_layer_2_step_bridge
-    (vector: bit_vec 256) (zeta0 zeta1: i16) (result: bit_vec 256) : Lemma
-  (requires
-    Libcrux_ml_kem.Vector.Traits.Spec.ntt_layer_2_step_pre
-      (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 vector) zeta0 zeta1 /\
-    result == Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step vector zeta0 zeta1)
-  (ensures
-    Libcrux_ml_kem.Vector.Traits.Spec.ntt_layer_2_step_post
-      (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 vector) zeta0 zeta1
-      (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 result))
-  = admit ()
+// `op_ntt_layer_2_step_bridge` is no longer admitted: the strengthened post of
+// `Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step` (`ntt_layer_2_butterfly_post`
+// + bound `7*3328`) plus 8 `lemma_butterfly_pair_commute` applications discharge
+// the trait post directly.  Wrapper does this inline.
 
 // `op_ntt_layer_3_step_bridge` is no longer admitted: the strengthened
 // post of `Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step` (per-lane
@@ -459,11 +452,71 @@ fn op_ntt_layer_1_step(
 }
 
 #[inline(always)]
+#[hax_lib::fstar::options("--z3rlimit 600 --fuel 1 --ifuel 1 --split_queries always")]
 #[hax_lib::requires(fstar!(r#"${spec::ntt_layer_2_step_pre} (impl.f_repr ${vector}) zeta0 zeta1"#))]
 #[hax_lib::ensures(|out| fstar!(r#"${spec::ntt_layer_2_step_post} (impl.f_repr ${vector}) zeta0 zeta1 (impl.f_repr ${out})"#))]
 fn op_ntt_layer_2_step(vector: SIMD256Vector, zeta0: i16, zeta1: i16) -> SIMD256Vector {
+    hax_lib::fstar!(
+        r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
+                    (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque (6*3328));
+           reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.ntt_layer_2_step_branch_post)
+                    Libcrux_ml_kem.Vector.Traits.Spec.ntt_layer_2_step_branch_post"#
+    );
     let elements = ntt::ntt_layer_2_step(vector.elements, zeta0, zeta1);
-    hax_lib::fstar!(r#"op_ntt_layer_2_step_bridge ${vector}.f_elements zeta0 zeta1 ${elements}"#);
+    hax_lib::fstar!(
+        r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
+                    (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque (7*3328));
+           let vec = Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}.f_elements in
+           let out = Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${elements} in
+           reveal_opaque (`%Spec.Utils.ntt_layer_2_butterfly_post)
+                    (Spec.Utils.ntt_layer_2_butterfly_post vec);
+           Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute vec out zeta0 0 4;
+           Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute vec out zeta0 1 5;
+           Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute vec out zeta0 2 6;
+           Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute vec out zeta0 3 7;
+           Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute vec out zeta1 8 12;
+           Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute vec out zeta1 9 13;
+           Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute vec out zeta1 10 14;
+           Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute vec out zeta1 11 15;
+           let p_layer_2 : (b: nat{b < 4}) -> Type0 =
+             fun (b: nat{b < 4}) ->
+               (let z = (if b < 2 then zeta0 else zeta1) in
+                let base : nat = if b < 2 then 0 else 8 in
+                let off : nat = if b = 0 || b = 2 then 0 else 2 in
+                let i1 : nat = base + off in
+                let j1 : nat = i1 + 4 in
+                let i2 : nat = i1 + 1 in
+                let j2 : nat = j1 + 1 in
+                Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index out i1) ==
+                  Hacspec_ml_kem.Parameters.impl_FieldElement__add
+                    (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index vec i1))
+                    (Hacspec_ml_kem.Parameters.impl_FieldElement__mul
+                      (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe z)
+                      (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index vec j1))) /\
+                Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index out j1) ==
+                  Hacspec_ml_kem.Parameters.impl_FieldElement__sub
+                    (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index vec i1))
+                    (Hacspec_ml_kem.Parameters.impl_FieldElement__mul
+                      (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe z)
+                      (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index vec j1))) /\
+                Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index out i2) ==
+                  Hacspec_ml_kem.Parameters.impl_FieldElement__add
+                    (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index vec i2))
+                    (Hacspec_ml_kem.Parameters.impl_FieldElement__mul
+                      (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe z)
+                      (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index vec j2))) /\
+                Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index out j2) ==
+                  Hacspec_ml_kem.Parameters.impl_FieldElement__sub
+                    (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index vec i2))
+                    (Hacspec_ml_kem.Parameters.impl_FieldElement__mul
+                      (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe z)
+                      (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index vec j2)))) in
+           assert (p_layer_2 0);
+           assert (p_layer_2 1);
+           assert (p_layer_2 2);
+           assert (p_layer_2 3);
+           assert (Spec.Utils.forall4 p_layer_2)"#
+    );
     SIMD256Vector { elements }
 }
 
