@@ -385,17 +385,10 @@ fn op_decompress_ciphertext_coefficient<const COEFFICIENT_BITS: i32>(vector: SIM
 // Layer-0.5 admits — same on portable).
 #[hax_lib::fstar::before(
     r#"
-let op_ntt_layer_1_step_bridge
-    (vector: bit_vec 256) (zeta0 zeta1 zeta2 zeta3: i16) (result: bit_vec 256) : Lemma
-  (requires
-    Libcrux_ml_kem.Vector.Traits.Spec.ntt_layer_1_step_pre
-      (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 vector) zeta0 zeta1 zeta2 zeta3 /\
-    result == Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step vector zeta0 zeta1 zeta2 zeta3)
-  (ensures
-    Libcrux_ml_kem.Vector.Traits.Spec.ntt_layer_1_step_post
-      (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 vector) zeta0 zeta1 zeta2 zeta3
-      (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 result))
-  = admit ()
+// `op_ntt_layer_1_step_bridge` is no longer admitted: the strengthened post of
+// `Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step` (`ntt_layer_1_butterfly_post`
+// + bound `8*3328`) plus the four `lemma_ntt_layer_1_step_branch_{0..3}`
+// (Commute.Chunk) discharge the trait post directly.  Wrapper does this inline.
 
 let op_ntt_layer_2_step_bridge
     (vector: bit_vec 256) (zeta0 zeta1: i16) (result: bit_vec 256) : Lemma
@@ -435,6 +428,7 @@ let op_ntt_layer_2_step_bridge
 "#
 )]
 #[inline(always)]
+#[hax_lib::fstar::options("--z3rlimit 400 --fuel 0 --ifuel 1 --split_queries always")]
 #[hax_lib::requires(fstar!(r#"${spec::ntt_layer_1_step_pre} (impl.f_repr ${vector}) zeta0 zeta1 zeta2 zeta3"#))]
 #[hax_lib::ensures(|out| fstar!(r#"${spec::ntt_layer_1_step_post} (impl.f_repr ${vector}) zeta0 zeta1 zeta2 zeta3 (impl.f_repr ${out})"#))]
 fn op_ntt_layer_1_step(
@@ -444,9 +438,22 @@ fn op_ntt_layer_1_step(
     zeta2: i16,
     zeta3: i16,
 ) -> SIMD256Vector {
+    hax_lib::fstar!(
+        r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
+                    (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque (7*3328))"#
+    );
     let elements = ntt::ntt_layer_1_step(vector.elements, zeta0, zeta1, zeta2, zeta3);
     hax_lib::fstar!(
-        r#"op_ntt_layer_1_step_bridge ${vector}.f_elements zeta0 zeta1 zeta2 zeta3 ${elements}"#
+        r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
+                    (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque (8*3328));
+           let vec = Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}.f_elements in
+           let out = Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${elements} in
+           reveal_opaque (`%Spec.Utils.ntt_layer_1_butterfly_post)
+                    (Spec.Utils.ntt_layer_1_butterfly_post vec);
+           Hacspec_ml_kem.Commute.Chunk.lemma_ntt_layer_1_step_branch_0 vec out zeta0 zeta1 zeta2 zeta3;
+           Hacspec_ml_kem.Commute.Chunk.lemma_ntt_layer_1_step_branch_1 vec out zeta0 zeta1 zeta2 zeta3;
+           Hacspec_ml_kem.Commute.Chunk.lemma_ntt_layer_1_step_branch_2 vec out zeta0 zeta1 zeta2 zeta3;
+           Hacspec_ml_kem.Commute.Chunk.lemma_ntt_layer_1_step_branch_3 vec out zeta0 zeta1 zeta2 zeta3"#
     );
     SIMD256Vector { elements }
 }

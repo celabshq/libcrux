@@ -1,7 +1,178 @@
 use super::*;
 
+// ─────────────────────────────────────────────────────────────────────────
+// Forward-NTT layer-1 lemma library.  Same within-128-bit-lane shuffle_epi32
+// architecture as the inverse layers, but the "add" operand is a montgomery
+// residue (only known mod 3329), so the post-helper (`lemma_fwd_l1_post`)
+// bridges via mod-add-distributivity (`lemma_modadd`); the subtraction in
+// `ntt_spec` comes from the negated zetas entries.  `fwd_shuffle_*` /
+// `lemma_fwd_l1_*` are this layer's copies (distinct names so they don't
+// collide with the inverse-layer before-blocks later in the file).  FI/FS/FA
+// are this file's module abbreviations (defined here, the first fn).
+// ─────────────────────────────────────────────────────────────────────────
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"Spec.Utils.is_i16b 1664 zeta0 /\ Spec.Utils.is_i16b 1664 zeta1 /\ Spec.Utils.is_i16b 1664 zeta2 /\ Spec.Utils.is_i16b 1664 zeta3"#))]
+#[hax_lib::fstar::before(
+    r#"
+module FI = Libcrux_intrinsics.Avx2_extract
+module FS = Spec.Utils
+module FA = Libcrux_ml_kem.Vector.Avx2.Arithmetic
+
+let fwd_shuffle_245 (vv: FI.t_Vec256) : Lemma
+  (ensures (let r = FI.mm256_shuffle_epi32 (mk_i32 245) vv in
+     FI.get_lane r 0 == FI.get_lane vv 2 /\ FI.get_lane r 1 == FI.get_lane vv 3 /\
+     FI.get_lane r 2 == FI.get_lane vv 2 /\ FI.get_lane r 3 == FI.get_lane vv 3 /\
+     FI.get_lane r 4 == FI.get_lane vv 6 /\ FI.get_lane r 5 == FI.get_lane vv 7 /\
+     FI.get_lane r 6 == FI.get_lane vv 6 /\ FI.get_lane r 7 == FI.get_lane vv 7 /\
+     FI.get_lane r 8 == FI.get_lane vv 10 /\ FI.get_lane r 9 == FI.get_lane vv 11 /\
+     FI.get_lane r 10 == FI.get_lane vv 10 /\ FI.get_lane r 11 == FI.get_lane vv 11 /\
+     FI.get_lane r 12 == FI.get_lane vv 14 /\ FI.get_lane r 13 == FI.get_lane vv 15 /\
+     FI.get_lane r 14 == FI.get_lane vv 14 /\ FI.get_lane r 15 == FI.get_lane vv 15))
+  = admit ()
+
+let fwd_shuffle_160 (vv: FI.t_Vec256) : Lemma
+  (ensures (let r = FI.mm256_shuffle_epi32 (mk_i32 160) vv in
+     FI.get_lane r 0 == FI.get_lane vv 0 /\ FI.get_lane r 1 == FI.get_lane vv 1 /\
+     FI.get_lane r 2 == FI.get_lane vv 0 /\ FI.get_lane r 3 == FI.get_lane vv 1 /\
+     FI.get_lane r 4 == FI.get_lane vv 4 /\ FI.get_lane r 5 == FI.get_lane vv 5 /\
+     FI.get_lane r 6 == FI.get_lane vv 4 /\ FI.get_lane r 7 == FI.get_lane vv 5 /\
+     FI.get_lane r 8 == FI.get_lane vv 8 /\ FI.get_lane r 9 == FI.get_lane vv 9 /\
+     FI.get_lane r 10 == FI.get_lane vv 8 /\ FI.get_lane r 11 == FI.get_lane vv 9 /\
+     FI.get_lane r 12 == FI.get_lane vv 12 /\ FI.get_lane r 13 == FI.get_lane vv 13 /\
+     FI.get_lane r 14 == FI.get_lane vv 12 /\ FI.get_lane r 15 == FI.get_lane vv 13))
+  = admit ()
+
+let fwd_shuffle_preserves_bound (c: i32) (vv: FI.t_Vec256) (b: nat) : Lemma
+  (requires FS.is_i16b_array b (FI.vec256_as_i16x16 vv))
+  (ensures FS.is_i16b_array b (FI.vec256_as_i16x16 (FI.mm256_shuffle_epi32 c vv)))
+  = admit ()
+
+#push-options "--z3rlimit 400 --split_queries always"
+let lemma_fwd_l1_add (lhs rhs result: FI.t_Vec256) : Lemma
+  (requires
+     result == FI.mm256_add_epi16 lhs rhs /\
+     FS.is_i16b_array (7*3328) (FI.vec256_as_i16x16 lhs) /\
+     FS.is_i16b_array 3328 (FI.vec256_as_i16x16 rhs))
+  (ensures
+     FS.is_i16b_array (8*3328) (FI.vec256_as_i16x16 result) /\
+     (forall (i:nat). i < 16 ==>
+        v (FI.get_lane result i) == v (FI.get_lane lhs i) + v (FI.get_lane rhs i)))
+  = ()
+#pop-options
+
+#push-options "--z3rlimit 300 --split_queries always"
+let lemma_fwd_l1_resultv (vector lhs rhs result: FI.t_Vec256) : Lemma
+  (requires
+     result == FI.mm256_add_epi16 lhs rhs /\
+     FS.is_i16b_array (7*3328) (FI.vec256_as_i16x16 lhs) /\
+     FS.is_i16b_array 3328 (FI.vec256_as_i16x16 rhs) /\
+     FI.get_lane lhs 0 == FI.get_lane vector 0 /\ FI.get_lane lhs 1 == FI.get_lane vector 1 /\
+     FI.get_lane lhs 2 == FI.get_lane vector 0 /\ FI.get_lane lhs 3 == FI.get_lane vector 1 /\
+     FI.get_lane lhs 4 == FI.get_lane vector 4 /\ FI.get_lane lhs 5 == FI.get_lane vector 5 /\
+     FI.get_lane lhs 6 == FI.get_lane vector 4 /\ FI.get_lane lhs 7 == FI.get_lane vector 5 /\
+     FI.get_lane lhs 8 == FI.get_lane vector 8 /\ FI.get_lane lhs 9 == FI.get_lane vector 9 /\
+     FI.get_lane lhs 10 == FI.get_lane vector 8 /\ FI.get_lane lhs 11 == FI.get_lane vector 9 /\
+     FI.get_lane lhs 12 == FI.get_lane vector 12 /\ FI.get_lane lhs 13 == FI.get_lane vector 13 /\
+     FI.get_lane lhs 14 == FI.get_lane vector 12 /\ FI.get_lane lhs 15 == FI.get_lane vector 13)
+  (ensures
+     FS.is_i16b_array (8*3328) (FI.vec256_as_i16x16 result) /\
+     v (FI.get_lane result 0)  == v (FI.get_lane vector 0)  + v (FI.get_lane rhs 0) /\
+     v (FI.get_lane result 1)  == v (FI.get_lane vector 1)  + v (FI.get_lane rhs 1) /\
+     v (FI.get_lane result 2)  == v (FI.get_lane vector 0)  + v (FI.get_lane rhs 2) /\
+     v (FI.get_lane result 3)  == v (FI.get_lane vector 1)  + v (FI.get_lane rhs 3) /\
+     v (FI.get_lane result 4)  == v (FI.get_lane vector 4)  + v (FI.get_lane rhs 4) /\
+     v (FI.get_lane result 5)  == v (FI.get_lane vector 5)  + v (FI.get_lane rhs 5) /\
+     v (FI.get_lane result 6)  == v (FI.get_lane vector 4)  + v (FI.get_lane rhs 6) /\
+     v (FI.get_lane result 7)  == v (FI.get_lane vector 5)  + v (FI.get_lane rhs 7) /\
+     v (FI.get_lane result 8)  == v (FI.get_lane vector 8)  + v (FI.get_lane rhs 8) /\
+     v (FI.get_lane result 9)  == v (FI.get_lane vector 9)  + v (FI.get_lane rhs 9) /\
+     v (FI.get_lane result 10) == v (FI.get_lane vector 8)  + v (FI.get_lane rhs 10) /\
+     v (FI.get_lane result 11) == v (FI.get_lane vector 9)  + v (FI.get_lane rhs 11) /\
+     v (FI.get_lane result 12) == v (FI.get_lane vector 12) + v (FI.get_lane rhs 12) /\
+     v (FI.get_lane result 13) == v (FI.get_lane vector 13) + v (FI.get_lane rhs 13) /\
+     v (FI.get_lane result 14) == v (FI.get_lane vector 12) + v (FI.get_lane rhs 14) /\
+     v (FI.get_lane result 15) == v (FI.get_lane vector 13) + v (FI.get_lane rhs 15))
+  = lemma_fwd_l1_add lhs rhs result
+#pop-options
+
+let lemma_modadd (a r x:int) : Lemma
+  (requires r % 3329 == x % 3329)
+  (ensures (a + r) % 3329 == (a + x) % 3329)
+  = FStar.Math.Lemmas.lemma_mod_add_distr a r 3329;
+    FStar.Math.Lemmas.lemma_mod_add_distr a x 3329
+
+#push-options "--z3rlimit 300 --split_queries always"
+let lemma_fwd_l1_post
+    (vec rhs zetas result: t_Array i16 (mk_usize 16))
+    (zeta0 zeta1 zeta2 zeta3: i16)
+  : Lemma
+    (requires
+      v (Seq.index result 0)  == v (Seq.index vec 0)  + v (Seq.index rhs 0) /\
+      v (Seq.index result 1)  == v (Seq.index vec 1)  + v (Seq.index rhs 1) /\
+      v (Seq.index result 2)  == v (Seq.index vec 0)  + v (Seq.index rhs 2) /\
+      v (Seq.index result 3)  == v (Seq.index vec 1)  + v (Seq.index rhs 3) /\
+      v (Seq.index result 4)  == v (Seq.index vec 4)  + v (Seq.index rhs 4) /\
+      v (Seq.index result 5)  == v (Seq.index vec 5)  + v (Seq.index rhs 5) /\
+      v (Seq.index result 6)  == v (Seq.index vec 4)  + v (Seq.index rhs 6) /\
+      v (Seq.index result 7)  == v (Seq.index vec 5)  + v (Seq.index rhs 7) /\
+      v (Seq.index result 8)  == v (Seq.index vec 8)  + v (Seq.index rhs 8) /\
+      v (Seq.index result 9)  == v (Seq.index vec 9)  + v (Seq.index rhs 9) /\
+      v (Seq.index result 10) == v (Seq.index vec 8)  + v (Seq.index rhs 10) /\
+      v (Seq.index result 11) == v (Seq.index vec 9)  + v (Seq.index rhs 11) /\
+      v (Seq.index result 12) == v (Seq.index vec 12) + v (Seq.index rhs 12) /\
+      v (Seq.index result 13) == v (Seq.index vec 13) + v (Seq.index rhs 13) /\
+      v (Seq.index result 14) == v (Seq.index vec 12) + v (Seq.index rhs 14) /\
+      v (Seq.index result 15) == v (Seq.index vec 13) + v (Seq.index rhs 15) /\
+      v (Seq.index rhs 0)  % 3329 == (v (Seq.index vec 2)  * v zeta0 * 169) % 3329 /\
+      v (Seq.index rhs 1)  % 3329 == (v (Seq.index vec 3)  * v zeta0 * 169) % 3329 /\
+      v (Seq.index rhs 2)  % 3329 == (v (Seq.index vec 2)  * (- v zeta0) * 169) % 3329 /\
+      v (Seq.index rhs 3)  % 3329 == (v (Seq.index vec 3)  * (- v zeta0) * 169) % 3329 /\
+      v (Seq.index rhs 4)  % 3329 == (v (Seq.index vec 6)  * v zeta1 * 169) % 3329 /\
+      v (Seq.index rhs 5)  % 3329 == (v (Seq.index vec 7)  * v zeta1 * 169) % 3329 /\
+      v (Seq.index rhs 6)  % 3329 == (v (Seq.index vec 6)  * (- v zeta1) * 169) % 3329 /\
+      v (Seq.index rhs 7)  % 3329 == (v (Seq.index vec 7)  * (- v zeta1) * 169) % 3329 /\
+      v (Seq.index rhs 8)  % 3329 == (v (Seq.index vec 10) * v zeta2 * 169) % 3329 /\
+      v (Seq.index rhs 9)  % 3329 == (v (Seq.index vec 11) * v zeta2 * 169) % 3329 /\
+      v (Seq.index rhs 10) % 3329 == (v (Seq.index vec 10) * (- v zeta2) * 169) % 3329 /\
+      v (Seq.index rhs 11) % 3329 == (v (Seq.index vec 11) * (- v zeta2) * 169) % 3329 /\
+      v (Seq.index rhs 12) % 3329 == (v (Seq.index vec 14) * v zeta3 * 169) % 3329 /\
+      v (Seq.index rhs 13) % 3329 == (v (Seq.index vec 15) * v zeta3 * 169) % 3329 /\
+      v (Seq.index rhs 14) % 3329 == (v (Seq.index vec 14) * (- v zeta3) * 169) % 3329 /\
+      v (Seq.index rhs 15) % 3329 == (v (Seq.index vec 15) * (- v zeta3) * 169) % 3329 /\
+      FS.is_i16b_array (8*3328) result)
+    (ensures
+      FS.is_i16b_array (8*3328) result /\
+      FS.ntt_layer_1_butterfly_post vec result zeta0 zeta1 zeta2 zeta3)
+  =
+  lemma_modadd (v (Seq.index vec 0)) (v (Seq.index rhs 0)) (v (Seq.index vec 2) * v zeta0 * 169);
+  lemma_modadd (v (Seq.index vec 1)) (v (Seq.index rhs 1)) (v (Seq.index vec 3) * v zeta0 * 169);
+  lemma_modadd (v (Seq.index vec 0)) (v (Seq.index rhs 2)) (v (Seq.index vec 2) * (- v zeta0) * 169);
+  lemma_modadd (v (Seq.index vec 1)) (v (Seq.index rhs 3)) (v (Seq.index vec 3) * (- v zeta0) * 169);
+  lemma_modadd (v (Seq.index vec 4)) (v (Seq.index rhs 4)) (v (Seq.index vec 6) * v zeta1 * 169);
+  lemma_modadd (v (Seq.index vec 5)) (v (Seq.index rhs 5)) (v (Seq.index vec 7) * v zeta1 * 169);
+  lemma_modadd (v (Seq.index vec 4)) (v (Seq.index rhs 6)) (v (Seq.index vec 6) * (- v zeta1) * 169);
+  lemma_modadd (v (Seq.index vec 5)) (v (Seq.index rhs 7)) (v (Seq.index vec 7) * (- v zeta1) * 169);
+  lemma_modadd (v (Seq.index vec 8)) (v (Seq.index rhs 8)) (v (Seq.index vec 10) * v zeta2 * 169);
+  lemma_modadd (v (Seq.index vec 9)) (v (Seq.index rhs 9)) (v (Seq.index vec 11) * v zeta2 * 169);
+  lemma_modadd (v (Seq.index vec 8)) (v (Seq.index rhs 10)) (v (Seq.index vec 10) * (- v zeta2) * 169);
+  lemma_modadd (v (Seq.index vec 9)) (v (Seq.index rhs 11)) (v (Seq.index vec 11) * (- v zeta2) * 169);
+  lemma_modadd (v (Seq.index vec 12)) (v (Seq.index rhs 12)) (v (Seq.index vec 14) * v zeta3 * 169);
+  lemma_modadd (v (Seq.index vec 13)) (v (Seq.index rhs 13)) (v (Seq.index vec 15) * v zeta3 * 169);
+  lemma_modadd (v (Seq.index vec 12)) (v (Seq.index rhs 14)) (v (Seq.index vec 14) * (- v zeta3) * 169);
+  lemma_modadd (v (Seq.index vec 13)) (v (Seq.index rhs 15)) (v (Seq.index vec 15) * (- v zeta3) * 169);
+  reveal_opaque (`%FS.ntt_layer_1_butterfly_post)
+    (FS.ntt_layer_1_butterfly_post vec)
+#pop-options
+"#
+)]
+#[hax_lib::fstar::options("--z3rlimit 300 --split_queries always")]
+#[hax_lib::requires(fstar!(r#"Spec.Utils.is_i16b 1664 zeta0 /\ Spec.Utils.is_i16b 1664 zeta1 /\
+                            Spec.Utils.is_i16b 1664 zeta2 /\ Spec.Utils.is_i16b 1664 zeta3 /\
+                            Spec.Utils.is_i16b_array (7*3328) (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector})"#))]
+#[hax_lib::ensures(|result| fstar!(r#"
+    Spec.Utils.is_i16b_array (8*3328) (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}) /\
+    Spec.Utils.ntt_layer_1_butterfly_post
+      (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector})
+      (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}) zeta0 zeta1 zeta2 zeta3"#))]
 pub(crate) fn ntt_layer_1_step(
     vector: Vec256,
     zeta0: i16,
@@ -13,13 +184,50 @@ pub(crate) fn ntt_layer_1_step(
         -zeta3, -zeta3, zeta3, zeta3, -zeta2, -zeta2, zeta2, zeta2, -zeta1, -zeta1, zeta1, zeta1,
         -zeta0, -zeta0, zeta0, zeta0,
     );
+    hax_lib::fstar!(
+        r#"assert (Spec.Utils.is_i16b_array 1664 (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${zetas}))"#
+    );
 
-    let rhs = mm256_shuffle_epi32::<0b11_11_01_01>(vector);
-    let rhs = arithmetic::montgomery_multiply_by_constants(rhs, zetas);
+    let rhs0 = mm256_shuffle_epi32::<0b11_11_01_01>(vector);
+    hax_lib::fstar!(
+        r#"fwd_shuffle_245 ${vector};
+           fwd_shuffle_preserves_bound (mk_i32 245) ${vector} (7*3328)"#
+    );
+    let rhs = arithmetic::montgomery_multiply_by_constants(rhs0, zetas);
 
     let lhs = mm256_shuffle_epi32::<0b10_10_00_00>(vector);
+    hax_lib::fstar!(
+        r#"fwd_shuffle_160 ${vector};
+           fwd_shuffle_preserves_bound (mk_i32 160) ${vector} (7*3328)"#
+    );
 
-    mm256_add_epi16(lhs, rhs)
+    let result = mm256_add_epi16(lhs, rhs);
+    hax_lib::fstar!(
+        r#"lemma_fwd_l1_resultv ${vector} ${lhs} ${rhs} ${result};
+           assert (v (Libcrux_intrinsics.Avx2_extract.get_lane ${zetas} 0) == v zeta0 /\
+                   v (Libcrux_intrinsics.Avx2_extract.get_lane ${zetas} 1) == v zeta0 /\
+                   v (Libcrux_intrinsics.Avx2_extract.get_lane ${zetas} 2) == - v zeta0 /\
+                   v (Libcrux_intrinsics.Avx2_extract.get_lane ${zetas} 3) == - v zeta0 /\
+                   v (Libcrux_intrinsics.Avx2_extract.get_lane ${zetas} 4) == v zeta1 /\
+                   v (Libcrux_intrinsics.Avx2_extract.get_lane ${zetas} 5) == v zeta1 /\
+                   v (Libcrux_intrinsics.Avx2_extract.get_lane ${zetas} 6) == - v zeta1 /\
+                   v (Libcrux_intrinsics.Avx2_extract.get_lane ${zetas} 7) == - v zeta1 /\
+                   v (Libcrux_intrinsics.Avx2_extract.get_lane ${zetas} 8) == v zeta2 /\
+                   v (Libcrux_intrinsics.Avx2_extract.get_lane ${zetas} 9) == v zeta2 /\
+                   v (Libcrux_intrinsics.Avx2_extract.get_lane ${zetas} 10) == - v zeta2 /\
+                   v (Libcrux_intrinsics.Avx2_extract.get_lane ${zetas} 11) == - v zeta2 /\
+                   v (Libcrux_intrinsics.Avx2_extract.get_lane ${zetas} 12) == v zeta3 /\
+                   v (Libcrux_intrinsics.Avx2_extract.get_lane ${zetas} 13) == v zeta3 /\
+                   v (Libcrux_intrinsics.Avx2_extract.get_lane ${zetas} 14) == - v zeta3 /\
+                   v (Libcrux_intrinsics.Avx2_extract.get_lane ${zetas} 15) == - v zeta3);
+           lemma_fwd_l1_post
+             (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector})
+             (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${rhs})
+             (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${zetas})
+             (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result})
+             zeta0 zeta1 zeta2 zeta3"#
+    );
+    result
 }
 
 #[inline(always)]
