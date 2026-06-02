@@ -559,23 +559,16 @@ pub(crate) fn vector_times_ring_element<SIMDUnit: Operations>(
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 200 --ext context_pruning")]
+#[hax_lib::fstar::options("--z3rlimit 200 --ext context_pruning --split_queries always")]
 #[hax_lib::requires(fstar!(r#"
     Seq.length $lhs >= v $dimension /\
     Seq.length $rhs >= v $dimension /\
-    (forall (k:nat). k < v $dimension ==>
-        (forall (j:nat). j < 32 ==>
-            Spec.Utils.is_i32b_array_opaque (v ${FIELD_MAX})
-                (i0._super_i2.f_repr (Seq.index (Seq.index $lhs k).f_simd_units j)) /\
-            Spec.Utils.is_i32b_array_opaque (v ${FIELD_MAX})
-                (i0._super_i2.f_repr (Seq.index (Seq.index $rhs k).f_simd_units j))))
+    Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice (mk_usize 8380416) $lhs /\
+    Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice (mk_usize 8380416) $rhs
 "#))]
 #[hax_lib::ensures(|_| fstar!(r#"
     Seq.length ${lhs}_future == Seq.length $lhs /\
-    (forall (k:nat{k < Seq.length ${lhs}_future}). k < v $dimension ==>
-        (forall (j:nat). j < 32 ==>
-            Spec.Utils.is_i32b_array_opaque 16760832
-                (i0._super_i2.f_repr (Seq.index (Seq.index ${lhs}_future k).f_simd_units j))))
+    Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice (mk_usize 16760832) ${lhs}_future
 "#))]
 pub(crate) fn add_vectors<SIMDUnit: Operations>(
     dimension: usize,
@@ -584,40 +577,77 @@ pub(crate) fn add_vectors<SIMDUnit: Operations>(
 ) {
     #[cfg(hax)]
     let e_lhs_orig: &[PolynomialRingElement<SIMDUnit>] = lhs.to_vec().as_slice();
+    hax_lib::fstar!(r#"
+        let _:Prims.unit =
+          let aux (k: nat{k < Seq.length e_lhs_orig}) :
+            Lemma (Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly
+                     (mk_usize 8380416) (Seq.index e_lhs_orig k)) =
+            assert (Seq.index e_lhs_orig k == Seq.index $lhs k);
+            Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_slice_lookup
+              (mk_usize 8380416) $lhs k
+          in Classical.forall_intro aux
+        in
+        Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_slice_intro
+          (mk_usize 8380416) e_lhs_orig;
+        Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_range_intro
+          (mk_usize 16760832) (mk_usize 0) (mk_usize 0) $lhs"#);
     for i in 0..dimension {
         hax_lib::loop_invariant!(|i: usize| fstar!(
-            r#"v i <= v dimension /\
-              Seq.length lhs == Seq.length e_lhs_orig /\
-              Seq.length lhs >= v dimension /\
-              (forall (k:nat). k < v i ==>
-                  (forall (j:nat). j < 32 ==>
-                      Spec.Utils.is_i32b_array_opaque 16760832
-                          (i0._super_i2.f_repr (Seq.index (Seq.index lhs k).f_simd_units j)))) /\
-              (forall (k:nat). v i <= k /\ k < Seq.length lhs ==>
-                  Seq.index lhs k == Seq.index e_lhs_orig k)"#
+            r#"v $i <= v $dimension /\
+              Seq.length $lhs == Seq.length e_lhs_orig /\
+              Seq.length $lhs >= v $dimension /\
+              Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice (mk_usize 8380416) e_lhs_orig /\
+              Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice (mk_usize 8380416) $rhs /\
+              Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_range
+                  (mk_usize 16760832) (mk_usize 0) $i $lhs /\
+              (forall (k:nat). v $i <= k /\ k < Seq.length $lhs ==>
+                  Seq.index $lhs k == Seq.index e_lhs_orig k)"#
         ));
-        PolynomialRingElement::<SIMDUnit>::add_bounded(&mut lhs[i], 8380416, &rhs[i], 8380416);
+        #[cfg(hax)]
+        let iter_start: &[PolynomialRingElement<SIMDUnit>] = lhs.to_vec().as_slice();
+        hax_lib::fstar!(r#"
+            assert (Seq.index $lhs (v $i) == Seq.index e_lhs_orig (v $i));
+            Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_slice_lookup
+              (mk_usize 8380416) e_lhs_orig (v $i);
+            Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_slice_lookup
+              (mk_usize 8380416) $rhs (v $i)"#);
+        add_to_ring_element::<SIMDUnit>(&mut lhs[i], &rhs[i], 8380416, 8380416);
+        hax_lib::fstar!(r#"
+            Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_range_extend_after_update
+              (mk_usize 16760832) $i iter_start $lhs"#);
     }
+    hax_lib::fstar!(r#"
+        let _:Prims.unit =
+          let aux (k: nat{k < Seq.length ${lhs}}) :
+            Lemma (Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly (mk_usize 16760832)
+                     (Seq.index $lhs k)) =
+            if k < v $dimension then
+              Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_range_lookup
+                (mk_usize 16760832) (mk_usize 0) $dimension $lhs k
+            else begin
+              assert (Seq.index $lhs k == Seq.index e_lhs_orig k);
+              Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_slice_lookup
+                (mk_usize 8380416) e_lhs_orig k;
+              Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_higher
+                (mk_usize 8380416) (mk_usize 16760832) (Seq.index $lhs k)
+            end
+          in Classical.forall_intro aux
+        in
+        Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_slice_intro
+          (mk_usize 16760832) $lhs"#);
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 200 --ext context_pruning")]
+#[hax_lib::fstar::options("--z3rlimit 200 --ext context_pruning --split_queries always")]
 #[hax_lib::requires(fstar!(r#"
     Seq.length $lhs >= v $dimension /\
     Seq.length $rhs >= v $dimension /\
-    (forall (k:nat). k < v $dimension ==>
-        (forall (j:nat). j < 32 ==>
-            Spec.Utils.is_i32b_array_opaque (v ${FIELD_MAX})
-                (i0._super_i2.f_repr (Seq.index (Seq.index $lhs k).f_simd_units j)) /\
-            Spec.Utils.is_i32b_array_opaque (v ${FIELD_MAX})
-                (i0._super_i2.f_repr (Seq.index (Seq.index $rhs k).f_simd_units j))))
+    Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice (mk_usize 8380416) $lhs /\
+    Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice (mk_usize 8380416) $rhs
 "#))]
 #[hax_lib::ensures(|_| fstar!(r#"
     Seq.length ${lhs}_future == Seq.length $lhs /\
-    (forall (k:nat{k < Seq.length ${lhs}_future}). k < v $dimension ==>
-        (forall (j:nat). j < 32 ==>
-            Spec.Utils.is_i32b_array_opaque 16760832
-                (i0._super_i2.f_repr (Seq.index (Seq.index ${lhs}_future k).f_simd_units j))))
+    Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice (mk_usize 16760832) ${lhs}_future
 "#))]
 pub(crate) fn subtract_vectors<SIMDUnit: Operations>(
     dimension: usize,
@@ -626,20 +656,64 @@ pub(crate) fn subtract_vectors<SIMDUnit: Operations>(
 ) {
     #[cfg(hax)]
     let e_lhs_orig: &[PolynomialRingElement<SIMDUnit>] = lhs.to_vec().as_slice();
+    hax_lib::fstar!(r#"
+        let _:Prims.unit =
+          let aux (k: nat{k < Seq.length e_lhs_orig}) :
+            Lemma (Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly
+                     (mk_usize 8380416) (Seq.index e_lhs_orig k)) =
+            assert (Seq.index e_lhs_orig k == Seq.index $lhs k);
+            Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_slice_lookup
+              (mk_usize 8380416) $lhs k
+          in Classical.forall_intro aux
+        in
+        Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_slice_intro
+          (mk_usize 8380416) e_lhs_orig;
+        Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_range_intro
+          (mk_usize 16760832) (mk_usize 0) (mk_usize 0) $lhs"#);
     for i in 0..dimension {
         hax_lib::loop_invariant!(|i: usize| fstar!(
-            r#"v i <= v dimension /\
-              Seq.length lhs == Seq.length e_lhs_orig /\
-              Seq.length lhs >= v dimension /\
-              (forall (k:nat). k < v i ==>
-                  (forall (j:nat). j < 32 ==>
-                      Spec.Utils.is_i32b_array_opaque 16760832
-                          (i0._super_i2.f_repr (Seq.index (Seq.index lhs k).f_simd_units j)))) /\
-              (forall (k:nat). v i <= k /\ k < Seq.length lhs ==>
-                  Seq.index lhs k == Seq.index e_lhs_orig k)"#
+            r#"v $i <= v $dimension /\
+              Seq.length $lhs == Seq.length e_lhs_orig /\
+              Seq.length $lhs >= v $dimension /\
+              Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice (mk_usize 8380416) e_lhs_orig /\
+              Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice (mk_usize 8380416) $rhs /\
+              Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_range
+                  (mk_usize 16760832) (mk_usize 0) $i $lhs /\
+              (forall (k:nat). v $i <= k /\ k < Seq.length $lhs ==>
+                  Seq.index $lhs k == Seq.index e_lhs_orig k)"#
         ));
-        PolynomialRingElement::<SIMDUnit>::subtract_bounded(&mut lhs[i], 8380416, &rhs[i], 8380416);
+        #[cfg(hax)]
+        let iter_start: &[PolynomialRingElement<SIMDUnit>] = lhs.to_vec().as_slice();
+        hax_lib::fstar!(r#"
+            assert (Seq.index $lhs (v $i) == Seq.index e_lhs_orig (v $i));
+            Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_slice_lookup
+              (mk_usize 8380416) e_lhs_orig (v $i);
+            Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_slice_lookup
+              (mk_usize 8380416) $rhs (v $i)"#);
+        subtract_to_ring_element::<SIMDUnit>(&mut lhs[i], &rhs[i], 8380416);
+        hax_lib::fstar!(r#"
+            Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_range_extend_after_update
+              (mk_usize 16760832) $i iter_start $lhs"#);
     }
+    hax_lib::fstar!(r#"
+        let _:Prims.unit =
+          let aux (k: nat{k < Seq.length ${lhs}}) :
+            Lemma (Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly (mk_usize 16760832)
+                     (Seq.index $lhs k)) =
+            if k < v $dimension then
+              Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_range_lookup
+                (mk_usize 16760832) (mk_usize 0) $dimension $lhs k
+            else begin
+              assert (Seq.index $lhs k == Seq.index e_lhs_orig k);
+              Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_slice_lookup
+                (mk_usize 8380416) e_lhs_orig k;
+              Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_higher
+                (mk_usize 8380416) (mk_usize 16760832) (Seq.index $lhs k)
+            end
+          in Classical.forall_intro aux
+        in
+        Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_slice_intro
+          (mk_usize 16760832) $lhs"#);
 }
 
 /// Per-row composition step for `compute_w_approx`: take a single t1 entry
