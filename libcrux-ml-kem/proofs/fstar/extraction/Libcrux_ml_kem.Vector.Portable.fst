@@ -852,6 +852,8 @@ let op_inv_ntt_layer_3_step
 
 #pop-options
 
+#push-options "--z3rlimit 400 --fuel 0 --ifuel 0 --split_queries always"
+
 let op_ntt_multiply
       (lhs rhs: Libcrux_ml_kem.Vector.Portable.Vector_type.t_PortableVector)
       (zeta0 zeta1 zeta2 zeta3: i16)
@@ -860,11 +862,50 @@ let op_ntt_multiply
     reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
       (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque 3328)
   in
-  let result:Libcrux_ml_kem.Vector.Portable.Vector_type.t_PortableVector =
+  let out:Libcrux_ml_kem.Vector.Portable.Vector_type.t_PortableVector =
     Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply lhs rhs zeta0 zeta1 zeta2 zeta3
   in
-  let _:Prims.unit = admit () (* Panic freedom *) in
-  result
+  let _:Prims.unit =
+    reveal_opaque (`%Spec.Utils.ntt_multiply_butterfly_post)
+      (Spec.Utils.ntt_multiply_butterfly_post lhs.f_elements
+          rhs.f_elements
+          out.f_elements
+          zeta0
+          zeta1
+          zeta2
+          zeta3);
+    Hacspec_ml_kem.Commute.Chunk.lemma_ntt_multiply_branch_0 lhs.f_elements
+      rhs.f_elements
+      out.f_elements
+      zeta0
+      zeta1
+      zeta2
+      zeta3;
+    Hacspec_ml_kem.Commute.Chunk.lemma_ntt_multiply_branch_1 lhs.f_elements
+      rhs.f_elements
+      out.f_elements
+      zeta0
+      zeta1
+      zeta2
+      zeta3;
+    Hacspec_ml_kem.Commute.Chunk.lemma_ntt_multiply_branch_2 lhs.f_elements
+      rhs.f_elements
+      out.f_elements
+      zeta0
+      zeta1
+      zeta2
+      zeta3;
+    Hacspec_ml_kem.Commute.Chunk.lemma_ntt_multiply_branch_3 lhs.f_elements
+      rhs.f_elements
+      out.f_elements
+      zeta0
+      zeta1
+      zeta2
+      zeta3
+  in
+  out
+
+#pop-options
 
 #push-options "--split_queries always"
 

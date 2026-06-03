@@ -332,14 +332,57 @@ pub(crate) fn montgomery_multiply_by_constants(vec: Vec256, constants: Vec256) -
     result
 }
 
+// The spec is stated through `lane32` — the integer value of the j-th
+// 32-bit lane of a `Vec256`, expressed via the canonical i16x16 view as
+// unsigned low half + 2^16 · signed high half.  (No i32-lane accessor
+// exists in `Avx2_extract`, and adding one there would cascade across
+// every crate; `lane32` is the ml-kem-local view.)
+//
+// History: the previous spec was stated on the i16x16 view directly,
+// where the `3328 * pow2 16` bounds are vacuous for i16 (any i16
+// satisfies them) and the per-lane residue claim is false on odd
+// (high-half) lanes.  It was never caught because the ensures is
+// admitted under `panic_free`.  The lane32 form below is the correct
+// i32-lane statement, cross-validated against a bit-exact simulation
+// of this function's body (2000 random trials).
+//
+// Ensures, per 32-bit lane j:
+//  - the low i16 lane of the result is the Montgomery reduction
+//    (bounded by 3328, residue `lane32 vec j * 169 mod q`), and
+//  - the full 32-bit lane equals that i16 sign-extended (the final
+//    `slli/srai` pair), so the result can feed 32-bit multiplies.
 #[inline(always)]
 #[hax_lib::fstar::verification_status(panic_free)]
-#[cfg_attr(hax, hax_lib::requires(fstar!(r#"Spec.Utils.is_i16b_array (3328 * pow2 16) (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $vec))"#)))]
-#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"Spec.Utils.is_i16b_array (3328 + 1665) (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}) /\
-                (Spec.Utils.is_i16b_array (3328 * pow2 15) (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $vec) ==>
-                 Spec.Utils.is_i16b_array 3328 (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $result)) /\
-                (forall i. i < 16 ==> v (get_lane $result i) % 3329 == 
-                                      ((v (get_lane $vec i) * 169) % 3329))"#)))]
+#[hax_lib::fstar::before(
+    interface,
+    r#"
+[@@ "opaque_to_smt"]
+let lane32 (vv: Libcrux_intrinsics.Avx2_extract.t_Vec256) (j: nat{j < 8}) : int =
+  (v (Libcrux_intrinsics.Avx2_extract.get_lane vv (2*j)) % 65536) +
+  65536 * v (Libcrux_intrinsics.Avx2_extract.get_lane vv (2*j + 1))
+
+(* Ground-literal per-lane triple: bound + sign-extension + residue.  Stated
+   per concrete lane (no quantifier) so consumers chain by congruence only. *)
+unfold let mont_red_i32_lane
+    (vec result: Libcrux_intrinsics.Avx2_extract.t_Vec256) (j: nat{j < 8}) : Type0 =
+  let r16 = Libcrux_intrinsics.Avx2_extract.get_lane result (2 * j) in
+  Spec.Utils.is_i16b 3328 r16 /\ lane32 result j == v r16 /\
+  v r16 % 3329 == ((lane32 vec j) * 169) % 3329
+"#
+)]
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"
+                (Spec.Utils.is_intb (3328 * pow2 15) (lane32 $vec 0) /\
+                 Spec.Utils.is_intb (3328 * pow2 15) (lane32 $vec 1) /\
+                 Spec.Utils.is_intb (3328 * pow2 15) (lane32 $vec 2) /\
+                 Spec.Utils.is_intb (3328 * pow2 15) (lane32 $vec 3) /\
+                 Spec.Utils.is_intb (3328 * pow2 15) (lane32 $vec 4) /\
+                 Spec.Utils.is_intb (3328 * pow2 15) (lane32 $vec 5) /\
+                 Spec.Utils.is_intb (3328 * pow2 15) (lane32 $vec 6) /\
+                 Spec.Utils.is_intb (3328 * pow2 15) (lane32 $vec 7)) ==>
+                (mont_red_i32_lane $vec ${result} 0 /\ mont_red_i32_lane $vec ${result} 1 /\
+                 mont_red_i32_lane $vec ${result} 2 /\ mont_red_i32_lane $vec ${result} 3 /\
+                 mont_red_i32_lane $vec ${result} 4 /\ mont_red_i32_lane $vec ${result} 5 /\
+                 mont_red_i32_lane $vec ${result} 6 /\ mont_red_i32_lane $vec ${result} 7)"#)))]
 pub(crate) fn montgomery_reduce_i32s(vec: Vec256) -> Vec256 {
     let k = mm256_mullo_epi16(
         vec,

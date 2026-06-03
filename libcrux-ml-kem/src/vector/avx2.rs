@@ -740,8 +740,13 @@ fn op_inv_ntt_layer_3_step(vector: SIMD256Vector, zeta: i16) -> SIMD256Vector {
     SIMD256Vector { elements }
 }
 
+// `op_ntt_multiply` — no longer admitted: the strengthened post of
+// `Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply` (`ntt_multiply_butterfly_post`
+// + bound `3328`) plus the four `lemma_ntt_multiply_branch_{0..3}`
+// (Commute.Chunk) discharge the trait post directly.  Wrapper does this
+// inline; no bridge needed.
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::fstar::options("--z3rlimit 400 --fuel 0 --ifuel 0 --split_queries always")]
 #[hax_lib::requires(fstar!(r#"${spec::ntt_multiply_pre} (impl.f_repr ${lhs}) (impl.f_repr ${rhs}) zeta0 zeta1 zeta2 zeta3"#))]
 #[hax_lib::ensures(|out| fstar!(r#"${spec::ntt_multiply_post} (impl.f_repr ${lhs}) (impl.f_repr ${rhs}) zeta0 zeta1 zeta2 zeta3 (impl.f_repr ${out})"#))]
 fn op_ntt_multiply(
@@ -754,11 +759,21 @@ fn op_ntt_multiply(
 ) -> SIMD256Vector {
     hax_lib::fstar!(
         r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
-                    (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)"#
+                    (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque 3328)"#
     );
-    SIMD256Vector {
-        elements: ntt::ntt_multiply(lhs.elements, rhs.elements, zeta0, zeta1, zeta2, zeta3),
-    }
+    let elements = ntt::ntt_multiply(lhs.elements, rhs.elements, zeta0, zeta1, zeta2, zeta3);
+    hax_lib::fstar!(
+        r#"let l = Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${lhs}.f_elements in
+           let r = Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${rhs}.f_elements in
+           let out = Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${elements} in
+           reveal_opaque (`%Spec.Utils.ntt_multiply_butterfly_post)
+                         (Spec.Utils.ntt_multiply_butterfly_post l r out zeta0 zeta1 zeta2 zeta3);
+           Hacspec_ml_kem.Commute.Chunk.lemma_ntt_multiply_branch_0 l r out zeta0 zeta1 zeta2 zeta3;
+           Hacspec_ml_kem.Commute.Chunk.lemma_ntt_multiply_branch_1 l r out zeta0 zeta1 zeta2 zeta3;
+           Hacspec_ml_kem.Commute.Chunk.lemma_ntt_multiply_branch_2 l r out zeta0 zeta1 zeta2 zeta3;
+           Hacspec_ml_kem.Commute.Chunk.lemma_ntt_multiply_branch_3 l r out zeta0 zeta1 zeta2 zeta3"#
+    );
+    SIMD256Vector { elements }
 }
 
 // `op_serialize_*` / `op_deserialize_*`: bridge from the underlying

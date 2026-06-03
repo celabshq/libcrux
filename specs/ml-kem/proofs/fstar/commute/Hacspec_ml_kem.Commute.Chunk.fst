@@ -1394,21 +1394,64 @@ let lemma_inv_ntt_layer_3_step_chunk_commutes
   = ()
 
 (* ────────────  NTT multiply  ────────────
-   `ntt_multiply_n` at N = 16 consumes four zetas (N / 4). *)
+   `ntt_multiply_n` at N = 16 consumes four zetas (N / 4).
+   The chunk-commute lemma itself (`lemma_ntt_multiply_chunk_commutes`,
+   formerly an assume val here) lives in the Phase-7b region below,
+   after the `mont_array_lane` / `zetas_4_lane` unfold helpers it needs.
 
-assume val lemma_ntt_multiply_chunk_commutes
-    (#vV: Type0) {| i: T.t_Operations vV |}
-    (lhs rhs: vV) (zeta0 zeta1 zeta2 zeta3: i16) :
-  Lemma
-    (requires TS.ntt_multiply_pre (T.f_repr lhs) (T.f_repr rhs)
-                                  zeta0 zeta1 zeta2 zeta3)
-    (ensures
-       (let r = T.f_ntt_multiply lhs rhs zeta0 zeta1 zeta2 zeta3 in
-        mont_i16_to_spec_array (sz 16) (T.f_repr r)
-          == N.ntt_multiply_n (mk_usize 16)
-               (mont_i16_to_spec_array (sz 16) (T.f_repr lhs))
-               (mont_i16_to_spec_array (sz 16) (T.f_repr rhs))
-               (zetas_4_ zeta0 zeta1 zeta2 zeta3)))
+   Wrapper-side branch lemmas: derive the opaque trait
+   `ntt_multiply_branch_post b` from the impl's `ntt_multiply_spec`
+   residue pairs at binomials 2b (zeta = +z_b) and 2b+1 (zeta = −z_b).
+   Mirrors `lemma_ntt_layer_1_step_branch_*`: one concrete `b` per
+   lemma.  The `is_i16b 1664` bound makes `neg_i16` the true negation. *)
+
+let lemma_ntt_multiply_branch_0
+    (lhs rhs result: t_Array i16 (mk_usize 16)) (zeta0 zeta1 zeta2 zeta3: i16) :
+  Lemma (requires Spec.Utils.is_i16b 1664 zeta0 /\
+                  Spec.Utils.ntt_multiply_spec lhs rhs (v zeta0) 0 result /\
+                  Spec.Utils.ntt_multiply_spec lhs rhs (- (v zeta0)) 1 result)
+        (ensures TS.ntt_multiply_branch_post 0 lhs rhs zeta0 zeta1 zeta2 zeta3 result)
+  = reveal_opaque (`%TS.ntt_multiply_branch_post)
+                  (TS.ntt_multiply_branch_post 0 lhs rhs zeta0 zeta1 zeta2 zeta3 result);
+    assert (v (Spec.Utils.neg_i16 zeta0) == - (v zeta0));
+    lemma_base_case_mult_pair_commute lhs rhs result zeta0 0;
+    lemma_base_case_mult_pair_commute lhs rhs result (Spec.Utils.neg_i16 zeta0) 1
+
+let lemma_ntt_multiply_branch_1
+    (lhs rhs result: t_Array i16 (mk_usize 16)) (zeta0 zeta1 zeta2 zeta3: i16) :
+  Lemma (requires Spec.Utils.is_i16b 1664 zeta1 /\
+                  Spec.Utils.ntt_multiply_spec lhs rhs (v zeta1) 2 result /\
+                  Spec.Utils.ntt_multiply_spec lhs rhs (- (v zeta1)) 3 result)
+        (ensures TS.ntt_multiply_branch_post 1 lhs rhs zeta0 zeta1 zeta2 zeta3 result)
+  = reveal_opaque (`%TS.ntt_multiply_branch_post)
+                  (TS.ntt_multiply_branch_post 1 lhs rhs zeta0 zeta1 zeta2 zeta3 result);
+    assert (v (Spec.Utils.neg_i16 zeta1) == - (v zeta1));
+    lemma_base_case_mult_pair_commute lhs rhs result zeta1 2;
+    lemma_base_case_mult_pair_commute lhs rhs result (Spec.Utils.neg_i16 zeta1) 3
+
+let lemma_ntt_multiply_branch_2
+    (lhs rhs result: t_Array i16 (mk_usize 16)) (zeta0 zeta1 zeta2 zeta3: i16) :
+  Lemma (requires Spec.Utils.is_i16b 1664 zeta2 /\
+                  Spec.Utils.ntt_multiply_spec lhs rhs (v zeta2) 4 result /\
+                  Spec.Utils.ntt_multiply_spec lhs rhs (- (v zeta2)) 5 result)
+        (ensures TS.ntt_multiply_branch_post 2 lhs rhs zeta0 zeta1 zeta2 zeta3 result)
+  = reveal_opaque (`%TS.ntt_multiply_branch_post)
+                  (TS.ntt_multiply_branch_post 2 lhs rhs zeta0 zeta1 zeta2 zeta3 result);
+    assert (v (Spec.Utils.neg_i16 zeta2) == - (v zeta2));
+    lemma_base_case_mult_pair_commute lhs rhs result zeta2 4;
+    lemma_base_case_mult_pair_commute lhs rhs result (Spec.Utils.neg_i16 zeta2) 5
+
+let lemma_ntt_multiply_branch_3
+    (lhs rhs result: t_Array i16 (mk_usize 16)) (zeta0 zeta1 zeta2 zeta3: i16) :
+  Lemma (requires Spec.Utils.is_i16b 1664 zeta3 /\
+                  Spec.Utils.ntt_multiply_spec lhs rhs (v zeta3) 6 result /\
+                  Spec.Utils.ntt_multiply_spec lhs rhs (- (v zeta3)) 7 result)
+        (ensures TS.ntt_multiply_branch_post 3 lhs rhs zeta0 zeta1 zeta2 zeta3 result)
+  = reveal_opaque (`%TS.ntt_multiply_branch_post)
+                  (TS.ntt_multiply_branch_post 3 lhs rhs zeta0 zeta1 zeta2 zeta3 result);
+    assert (v (Spec.Utils.neg_i16 zeta3) == - (v zeta3));
+    lemma_base_case_mult_pair_commute lhs rhs result zeta3 6;
+    lemma_base_case_mult_pair_commute lhs rhs result (Spec.Utils.neg_i16 zeta3) 7
 
 (*** Phase 7a Tier-1 commute lemmas — Polynomial ***)
 
@@ -2498,6 +2541,732 @@ let lemma_ntt_layer_1_step_to_hacspec
     in
     Classical.forall_intro aux;
     Seq.lemma_eq_intro r_fe rhs
+
+#pop-options
+
+(* ────────────  NTT multiply — chunk commute  ────────────
+   Same architecture as `lemma_ntt_layer_1_step_to_hacspec` above. *)
+
+#push-options "--z3rlimit 400 --fuel 0 --ifuel 1"
+
+(* Per-lane unfold for `N.ntt_multiply_n (mk_usize 16) p1 p2 zs` at
+   concrete lane `i ∈ [0, 16)`.  Mirrors `lemma_ntt_layer_n_16_2_lane`:
+   computes the createi body at index `i` — `group = i / 4`, zeta is
+   `zs[group]` (idx < 2) or its FE negation (idx ≥ 2), and the lane is
+   `base_case_multiply_even` (i even, partner i+1) or `_odd` (i odd,
+   partner i−1). *)
+let lemma_ntt_multiply_n_16_lane
+    (p1 p2: t_Array P.t_FieldElement (mk_usize 16))
+    (zs: t_Array P.t_FieldElement (mk_usize 4))
+    (i: nat {i < 16}) :
+    Lemma
+      (let result = N.ntt_multiply_n (mk_usize 16) p1 p2
+                                     (Rust_primitives.unsize zs) in
+       let group : nat = i / 4 in
+       let zeta = (if i % 4 < 2 then Seq.index zs group
+                   else P.impl_FieldElement__neg (Seq.index zs group)) in
+       (i % 2 = 0 ==>
+         i + 1 < 16 /\
+         Seq.index result i ==
+           N.base_case_multiply_even (Seq.index p1 i) (Seq.index p1 (i + 1))
+                                     (Seq.index p2 i) (Seq.index p2 (i + 1))
+                                     zeta) /\
+       (i % 2 = 1 ==>
+         i >= 1 /\
+         Seq.index result i ==
+           N.base_case_multiply_odd (Seq.index p1 (i - 1)) (Seq.index p1 i)
+                                    (Seq.index p2 (i - 1)) (Seq.index p2 i)))
+  = P.createi_lemma #P.t_FieldElement (mk_usize 16)
+      #(usize -> P.t_FieldElement)
+      (fun (j: usize { j <. mk_usize 16 }) ->
+        let group:usize = j /! mk_usize 4 in
+        let zeta:P.t_FieldElement =
+          if (j %! mk_usize 4 <: usize) <. mk_usize 2
+          then Seq.index zs (v group)
+          else P.impl_FieldElement__neg (Seq.index zs (v group))
+        in
+        (if (j %! mk_usize 2 <: usize) =. mk_usize 0
+         then
+           N.base_case_multiply_even (Seq.index p1 (v j)) (Seq.index p1 (v j + 1))
+                                     (Seq.index p2 (v j)) (Seq.index p2 (v j + 1))
+                                     zeta
+         else
+           N.base_case_multiply_odd (Seq.index p1 (v j - 1)) (Seq.index p1 (v j))
+                                    (Seq.index p2 (v j - 1)) (Seq.index p2 (v j)))
+        <: P.t_FieldElement)
+      (sz i)
+
+#pop-options
+
+(* The Montgomery lift commutes with FE negation: for |z| ≤ 1664 (so
+   `neg_i16 z` is the true integer negation), lifting `−z` equals the
+   FE additive inverse of lifting `z`. *)
+let lemma_mont_fe_neg (z: i16) :
+  Lemma (requires Spec.Utils.is_i16b 1664 z)
+        (ensures mont_i16_to_spec_fe (Spec.Utils.neg_i16 z)
+                 == P.impl_FieldElement__neg (mont_i16_to_spec_fe z))
+  = (* LHS f_val = ((−v z) · 169) % q;  RHS f_val = (q − (v z · 169) % q) % q. *)
+    L.lemma_mod_sub_distr 3329 (v z * 169) 3329;
+    (*  (3329 − (vz·169) % q) % q == (3329 − vz·169) % q  *)
+    L.lemma_mod_plus ((- (v z)) * 169) 1 3329
+    (*  (−vz·169 + 3329) % q == (−vz·169) % q  *)
+
+#push-options "--z3rlimit 400 --fuel 0 --ifuel 1"
+
+(* Per-lane bridge for `f_ntt_multiply`: produces the per-lane FE
+   equation from the trait branch post and the per-lane unfold of
+   `N.ntt_multiply_n`.  Lane `i` belongs to branch `b = i / 4`; the
+   branch post exposes 4 FE equalities at lanes (4b, 4b+1, 4b+2, 4b+3):
+     - i % 4 = 0: even base-case at binomial 2b   (zeta = +z_b)
+     - i % 4 = 1: odd  base-case at binomial 2b   (no zeta)
+     - i % 4 = 2: even base-case at binomial 2b+1 (zeta = −z_b)
+     - i % 4 = 3: odd  base-case at binomial 2b+1 (no zeta)
+   The N-side zeta for idx ≥ 2 is `impl_FieldElement__neg zs[b]`,
+   bridged to the branch post's `mont (neg_i16 z_b)` by `lemma_mont_fe_neg`. *)
+(* Per-lane bridges at concrete lanes — one top-level lemma per lane so
+   each verifies in a minimal context (the single shared-context dispatch
+   version saturated Z3 in 5 of its 121 split branches, 4-17 min cancels). *)
+private
+let lemma_ntt_multiply_lane_bridge_0
+    (lhs_arr rhs_arr out_arr: t_Array i16 (mk_usize 16))
+    (zeta0 zeta1 zeta2 zeta3: i16) :
+  Lemma
+    (requires
+      Spec.Utils.is_i16b 1664 zeta0 /\ Spec.Utils.is_i16b 1664 zeta1 /\
+      Spec.Utils.is_i16b 1664 zeta2 /\ Spec.Utils.is_i16b 1664 zeta3 /\
+      TS.ntt_multiply_post lhs_arr rhs_arr zeta0 zeta1 zeta2 zeta3 out_arr)
+    (ensures
+      (let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+       let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+       let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+       let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+       let nrhs = N.ntt_multiply_n (mk_usize 16) l_fe r_fe
+                                   (Rust_primitives.unsize zs) in
+       Seq.index o_fe 0 == Seq.index nrhs 0))
+  = let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+    let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+    let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+    let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+    assert (Spec.Utils.forall4 (fun (bb: nat{bb < 4}) ->
+              TS.ntt_multiply_branch_post bb lhs_arr rhs_arr
+                zeta0 zeta1 zeta2 zeta3 out_arr));
+    reveal_opaque (`%TS.ntt_multiply_branch_post)
+                  (TS.ntt_multiply_branch_post 0 lhs_arr rhs_arr
+                     zeta0 zeta1 zeta2 zeta3 out_arr);
+    lemma_ntt_multiply_n_16_lane l_fe r_fe zs 0;
+    zetas_4_lane zeta0 zeta1 zeta2 zeta3 (sz 0);
+    mont_array_lane out_arr (sz 0);
+    mont_array_lane lhs_arr (sz 0);
+    mont_array_lane rhs_arr (sz 0);
+    mont_array_lane lhs_arr (sz 1);
+    mont_array_lane rhs_arr (sz 1)
+
+private
+let lemma_ntt_multiply_lane_bridge_1
+    (lhs_arr rhs_arr out_arr: t_Array i16 (mk_usize 16))
+    (zeta0 zeta1 zeta2 zeta3: i16) :
+  Lemma
+    (requires
+      Spec.Utils.is_i16b 1664 zeta0 /\ Spec.Utils.is_i16b 1664 zeta1 /\
+      Spec.Utils.is_i16b 1664 zeta2 /\ Spec.Utils.is_i16b 1664 zeta3 /\
+      TS.ntt_multiply_post lhs_arr rhs_arr zeta0 zeta1 zeta2 zeta3 out_arr)
+    (ensures
+      (let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+       let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+       let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+       let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+       let nrhs = N.ntt_multiply_n (mk_usize 16) l_fe r_fe
+                                   (Rust_primitives.unsize zs) in
+       Seq.index o_fe 1 == Seq.index nrhs 1))
+  = let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+    let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+    let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+    let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+    assert (Spec.Utils.forall4 (fun (bb: nat{bb < 4}) ->
+              TS.ntt_multiply_branch_post bb lhs_arr rhs_arr
+                zeta0 zeta1 zeta2 zeta3 out_arr));
+    reveal_opaque (`%TS.ntt_multiply_branch_post)
+                  (TS.ntt_multiply_branch_post 0 lhs_arr rhs_arr
+                     zeta0 zeta1 zeta2 zeta3 out_arr);
+    lemma_ntt_multiply_n_16_lane l_fe r_fe zs 1;
+    zetas_4_lane zeta0 zeta1 zeta2 zeta3 (sz 0);
+    mont_array_lane out_arr (sz 1);
+    mont_array_lane lhs_arr (sz 1);
+    mont_array_lane rhs_arr (sz 1);
+    mont_array_lane lhs_arr (sz 0);
+    mont_array_lane rhs_arr (sz 0)
+
+private
+let lemma_ntt_multiply_lane_bridge_2
+    (lhs_arr rhs_arr out_arr: t_Array i16 (mk_usize 16))
+    (zeta0 zeta1 zeta2 zeta3: i16) :
+  Lemma
+    (requires
+      Spec.Utils.is_i16b 1664 zeta0 /\ Spec.Utils.is_i16b 1664 zeta1 /\
+      Spec.Utils.is_i16b 1664 zeta2 /\ Spec.Utils.is_i16b 1664 zeta3 /\
+      TS.ntt_multiply_post lhs_arr rhs_arr zeta0 zeta1 zeta2 zeta3 out_arr)
+    (ensures
+      (let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+       let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+       let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+       let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+       let nrhs = N.ntt_multiply_n (mk_usize 16) l_fe r_fe
+                                   (Rust_primitives.unsize zs) in
+       Seq.index o_fe 2 == Seq.index nrhs 2))
+  = let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+    let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+    let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+    let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+    assert (Spec.Utils.forall4 (fun (bb: nat{bb < 4}) ->
+              TS.ntt_multiply_branch_post bb lhs_arr rhs_arr
+                zeta0 zeta1 zeta2 zeta3 out_arr));
+    reveal_opaque (`%TS.ntt_multiply_branch_post)
+                  (TS.ntt_multiply_branch_post 0 lhs_arr rhs_arr
+                     zeta0 zeta1 zeta2 zeta3 out_arr);
+    lemma_ntt_multiply_n_16_lane l_fe r_fe zs 2;
+    zetas_4_lane zeta0 zeta1 zeta2 zeta3 (sz 0);
+    lemma_mont_fe_neg zeta0;
+    mont_array_lane out_arr (sz 2);
+    mont_array_lane lhs_arr (sz 2);
+    mont_array_lane rhs_arr (sz 2);
+    mont_array_lane lhs_arr (sz 3);
+    mont_array_lane rhs_arr (sz 3)
+
+private
+let lemma_ntt_multiply_lane_bridge_3
+    (lhs_arr rhs_arr out_arr: t_Array i16 (mk_usize 16))
+    (zeta0 zeta1 zeta2 zeta3: i16) :
+  Lemma
+    (requires
+      Spec.Utils.is_i16b 1664 zeta0 /\ Spec.Utils.is_i16b 1664 zeta1 /\
+      Spec.Utils.is_i16b 1664 zeta2 /\ Spec.Utils.is_i16b 1664 zeta3 /\
+      TS.ntt_multiply_post lhs_arr rhs_arr zeta0 zeta1 zeta2 zeta3 out_arr)
+    (ensures
+      (let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+       let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+       let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+       let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+       let nrhs = N.ntt_multiply_n (mk_usize 16) l_fe r_fe
+                                   (Rust_primitives.unsize zs) in
+       Seq.index o_fe 3 == Seq.index nrhs 3))
+  = let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+    let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+    let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+    let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+    assert (Spec.Utils.forall4 (fun (bb: nat{bb < 4}) ->
+              TS.ntt_multiply_branch_post bb lhs_arr rhs_arr
+                zeta0 zeta1 zeta2 zeta3 out_arr));
+    reveal_opaque (`%TS.ntt_multiply_branch_post)
+                  (TS.ntt_multiply_branch_post 0 lhs_arr rhs_arr
+                     zeta0 zeta1 zeta2 zeta3 out_arr);
+    lemma_ntt_multiply_n_16_lane l_fe r_fe zs 3;
+    zetas_4_lane zeta0 zeta1 zeta2 zeta3 (sz 0);
+    lemma_mont_fe_neg zeta0;
+    mont_array_lane out_arr (sz 3);
+    mont_array_lane lhs_arr (sz 3);
+    mont_array_lane rhs_arr (sz 3);
+    mont_array_lane lhs_arr (sz 2);
+    mont_array_lane rhs_arr (sz 2)
+
+private
+let lemma_ntt_multiply_lane_bridge_4
+    (lhs_arr rhs_arr out_arr: t_Array i16 (mk_usize 16))
+    (zeta0 zeta1 zeta2 zeta3: i16) :
+  Lemma
+    (requires
+      Spec.Utils.is_i16b 1664 zeta0 /\ Spec.Utils.is_i16b 1664 zeta1 /\
+      Spec.Utils.is_i16b 1664 zeta2 /\ Spec.Utils.is_i16b 1664 zeta3 /\
+      TS.ntt_multiply_post lhs_arr rhs_arr zeta0 zeta1 zeta2 zeta3 out_arr)
+    (ensures
+      (let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+       let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+       let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+       let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+       let nrhs = N.ntt_multiply_n (mk_usize 16) l_fe r_fe
+                                   (Rust_primitives.unsize zs) in
+       Seq.index o_fe 4 == Seq.index nrhs 4))
+  = let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+    let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+    let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+    let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+    assert (Spec.Utils.forall4 (fun (bb: nat{bb < 4}) ->
+              TS.ntt_multiply_branch_post bb lhs_arr rhs_arr
+                zeta0 zeta1 zeta2 zeta3 out_arr));
+    reveal_opaque (`%TS.ntt_multiply_branch_post)
+                  (TS.ntt_multiply_branch_post 1 lhs_arr rhs_arr
+                     zeta0 zeta1 zeta2 zeta3 out_arr);
+    lemma_ntt_multiply_n_16_lane l_fe r_fe zs 4;
+    zetas_4_lane zeta0 zeta1 zeta2 zeta3 (sz 1);
+    mont_array_lane out_arr (sz 4);
+    mont_array_lane lhs_arr (sz 4);
+    mont_array_lane rhs_arr (sz 4);
+    mont_array_lane lhs_arr (sz 5);
+    mont_array_lane rhs_arr (sz 5)
+
+private
+let lemma_ntt_multiply_lane_bridge_5
+    (lhs_arr rhs_arr out_arr: t_Array i16 (mk_usize 16))
+    (zeta0 zeta1 zeta2 zeta3: i16) :
+  Lemma
+    (requires
+      Spec.Utils.is_i16b 1664 zeta0 /\ Spec.Utils.is_i16b 1664 zeta1 /\
+      Spec.Utils.is_i16b 1664 zeta2 /\ Spec.Utils.is_i16b 1664 zeta3 /\
+      TS.ntt_multiply_post lhs_arr rhs_arr zeta0 zeta1 zeta2 zeta3 out_arr)
+    (ensures
+      (let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+       let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+       let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+       let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+       let nrhs = N.ntt_multiply_n (mk_usize 16) l_fe r_fe
+                                   (Rust_primitives.unsize zs) in
+       Seq.index o_fe 5 == Seq.index nrhs 5))
+  = let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+    let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+    let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+    let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+    assert (Spec.Utils.forall4 (fun (bb: nat{bb < 4}) ->
+              TS.ntt_multiply_branch_post bb lhs_arr rhs_arr
+                zeta0 zeta1 zeta2 zeta3 out_arr));
+    reveal_opaque (`%TS.ntt_multiply_branch_post)
+                  (TS.ntt_multiply_branch_post 1 lhs_arr rhs_arr
+                     zeta0 zeta1 zeta2 zeta3 out_arr);
+    lemma_ntt_multiply_n_16_lane l_fe r_fe zs 5;
+    zetas_4_lane zeta0 zeta1 zeta2 zeta3 (sz 1);
+    mont_array_lane out_arr (sz 5);
+    mont_array_lane lhs_arr (sz 5);
+    mont_array_lane rhs_arr (sz 5);
+    mont_array_lane lhs_arr (sz 4);
+    mont_array_lane rhs_arr (sz 4)
+
+private
+let lemma_ntt_multiply_lane_bridge_6
+    (lhs_arr rhs_arr out_arr: t_Array i16 (mk_usize 16))
+    (zeta0 zeta1 zeta2 zeta3: i16) :
+  Lemma
+    (requires
+      Spec.Utils.is_i16b 1664 zeta0 /\ Spec.Utils.is_i16b 1664 zeta1 /\
+      Spec.Utils.is_i16b 1664 zeta2 /\ Spec.Utils.is_i16b 1664 zeta3 /\
+      TS.ntt_multiply_post lhs_arr rhs_arr zeta0 zeta1 zeta2 zeta3 out_arr)
+    (ensures
+      (let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+       let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+       let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+       let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+       let nrhs = N.ntt_multiply_n (mk_usize 16) l_fe r_fe
+                                   (Rust_primitives.unsize zs) in
+       Seq.index o_fe 6 == Seq.index nrhs 6))
+  = let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+    let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+    let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+    let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+    assert (Spec.Utils.forall4 (fun (bb: nat{bb < 4}) ->
+              TS.ntt_multiply_branch_post bb lhs_arr rhs_arr
+                zeta0 zeta1 zeta2 zeta3 out_arr));
+    reveal_opaque (`%TS.ntt_multiply_branch_post)
+                  (TS.ntt_multiply_branch_post 1 lhs_arr rhs_arr
+                     zeta0 zeta1 zeta2 zeta3 out_arr);
+    lemma_ntt_multiply_n_16_lane l_fe r_fe zs 6;
+    zetas_4_lane zeta0 zeta1 zeta2 zeta3 (sz 1);
+    lemma_mont_fe_neg zeta1;
+    mont_array_lane out_arr (sz 6);
+    mont_array_lane lhs_arr (sz 6);
+    mont_array_lane rhs_arr (sz 6);
+    mont_array_lane lhs_arr (sz 7);
+    mont_array_lane rhs_arr (sz 7)
+
+private
+let lemma_ntt_multiply_lane_bridge_7
+    (lhs_arr rhs_arr out_arr: t_Array i16 (mk_usize 16))
+    (zeta0 zeta1 zeta2 zeta3: i16) :
+  Lemma
+    (requires
+      Spec.Utils.is_i16b 1664 zeta0 /\ Spec.Utils.is_i16b 1664 zeta1 /\
+      Spec.Utils.is_i16b 1664 zeta2 /\ Spec.Utils.is_i16b 1664 zeta3 /\
+      TS.ntt_multiply_post lhs_arr rhs_arr zeta0 zeta1 zeta2 zeta3 out_arr)
+    (ensures
+      (let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+       let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+       let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+       let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+       let nrhs = N.ntt_multiply_n (mk_usize 16) l_fe r_fe
+                                   (Rust_primitives.unsize zs) in
+       Seq.index o_fe 7 == Seq.index nrhs 7))
+  = let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+    let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+    let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+    let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+    assert (Spec.Utils.forall4 (fun (bb: nat{bb < 4}) ->
+              TS.ntt_multiply_branch_post bb lhs_arr rhs_arr
+                zeta0 zeta1 zeta2 zeta3 out_arr));
+    reveal_opaque (`%TS.ntt_multiply_branch_post)
+                  (TS.ntt_multiply_branch_post 1 lhs_arr rhs_arr
+                     zeta0 zeta1 zeta2 zeta3 out_arr);
+    lemma_ntt_multiply_n_16_lane l_fe r_fe zs 7;
+    zetas_4_lane zeta0 zeta1 zeta2 zeta3 (sz 1);
+    lemma_mont_fe_neg zeta1;
+    mont_array_lane out_arr (sz 7);
+    mont_array_lane lhs_arr (sz 7);
+    mont_array_lane rhs_arr (sz 7);
+    mont_array_lane lhs_arr (sz 6);
+    mont_array_lane rhs_arr (sz 6)
+
+private
+let lemma_ntt_multiply_lane_bridge_8
+    (lhs_arr rhs_arr out_arr: t_Array i16 (mk_usize 16))
+    (zeta0 zeta1 zeta2 zeta3: i16) :
+  Lemma
+    (requires
+      Spec.Utils.is_i16b 1664 zeta0 /\ Spec.Utils.is_i16b 1664 zeta1 /\
+      Spec.Utils.is_i16b 1664 zeta2 /\ Spec.Utils.is_i16b 1664 zeta3 /\
+      TS.ntt_multiply_post lhs_arr rhs_arr zeta0 zeta1 zeta2 zeta3 out_arr)
+    (ensures
+      (let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+       let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+       let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+       let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+       let nrhs = N.ntt_multiply_n (mk_usize 16) l_fe r_fe
+                                   (Rust_primitives.unsize zs) in
+       Seq.index o_fe 8 == Seq.index nrhs 8))
+  = let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+    let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+    let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+    let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+    assert (Spec.Utils.forall4 (fun (bb: nat{bb < 4}) ->
+              TS.ntt_multiply_branch_post bb lhs_arr rhs_arr
+                zeta0 zeta1 zeta2 zeta3 out_arr));
+    reveal_opaque (`%TS.ntt_multiply_branch_post)
+                  (TS.ntt_multiply_branch_post 2 lhs_arr rhs_arr
+                     zeta0 zeta1 zeta2 zeta3 out_arr);
+    lemma_ntt_multiply_n_16_lane l_fe r_fe zs 8;
+    zetas_4_lane zeta0 zeta1 zeta2 zeta3 (sz 2);
+    mont_array_lane out_arr (sz 8);
+    mont_array_lane lhs_arr (sz 8);
+    mont_array_lane rhs_arr (sz 8);
+    mont_array_lane lhs_arr (sz 9);
+    mont_array_lane rhs_arr (sz 9)
+
+private
+let lemma_ntt_multiply_lane_bridge_9
+    (lhs_arr rhs_arr out_arr: t_Array i16 (mk_usize 16))
+    (zeta0 zeta1 zeta2 zeta3: i16) :
+  Lemma
+    (requires
+      Spec.Utils.is_i16b 1664 zeta0 /\ Spec.Utils.is_i16b 1664 zeta1 /\
+      Spec.Utils.is_i16b 1664 zeta2 /\ Spec.Utils.is_i16b 1664 zeta3 /\
+      TS.ntt_multiply_post lhs_arr rhs_arr zeta0 zeta1 zeta2 zeta3 out_arr)
+    (ensures
+      (let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+       let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+       let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+       let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+       let nrhs = N.ntt_multiply_n (mk_usize 16) l_fe r_fe
+                                   (Rust_primitives.unsize zs) in
+       Seq.index o_fe 9 == Seq.index nrhs 9))
+  = let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+    let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+    let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+    let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+    assert (Spec.Utils.forall4 (fun (bb: nat{bb < 4}) ->
+              TS.ntt_multiply_branch_post bb lhs_arr rhs_arr
+                zeta0 zeta1 zeta2 zeta3 out_arr));
+    reveal_opaque (`%TS.ntt_multiply_branch_post)
+                  (TS.ntt_multiply_branch_post 2 lhs_arr rhs_arr
+                     zeta0 zeta1 zeta2 zeta3 out_arr);
+    lemma_ntt_multiply_n_16_lane l_fe r_fe zs 9;
+    zetas_4_lane zeta0 zeta1 zeta2 zeta3 (sz 2);
+    mont_array_lane out_arr (sz 9);
+    mont_array_lane lhs_arr (sz 9);
+    mont_array_lane rhs_arr (sz 9);
+    mont_array_lane lhs_arr (sz 8);
+    mont_array_lane rhs_arr (sz 8)
+
+private
+let lemma_ntt_multiply_lane_bridge_10
+    (lhs_arr rhs_arr out_arr: t_Array i16 (mk_usize 16))
+    (zeta0 zeta1 zeta2 zeta3: i16) :
+  Lemma
+    (requires
+      Spec.Utils.is_i16b 1664 zeta0 /\ Spec.Utils.is_i16b 1664 zeta1 /\
+      Spec.Utils.is_i16b 1664 zeta2 /\ Spec.Utils.is_i16b 1664 zeta3 /\
+      TS.ntt_multiply_post lhs_arr rhs_arr zeta0 zeta1 zeta2 zeta3 out_arr)
+    (ensures
+      (let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+       let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+       let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+       let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+       let nrhs = N.ntt_multiply_n (mk_usize 16) l_fe r_fe
+                                   (Rust_primitives.unsize zs) in
+       Seq.index o_fe 10 == Seq.index nrhs 10))
+  = let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+    let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+    let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+    let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+    assert (Spec.Utils.forall4 (fun (bb: nat{bb < 4}) ->
+              TS.ntt_multiply_branch_post bb lhs_arr rhs_arr
+                zeta0 zeta1 zeta2 zeta3 out_arr));
+    reveal_opaque (`%TS.ntt_multiply_branch_post)
+                  (TS.ntt_multiply_branch_post 2 lhs_arr rhs_arr
+                     zeta0 zeta1 zeta2 zeta3 out_arr);
+    lemma_ntt_multiply_n_16_lane l_fe r_fe zs 10;
+    zetas_4_lane zeta0 zeta1 zeta2 zeta3 (sz 2);
+    lemma_mont_fe_neg zeta2;
+    mont_array_lane out_arr (sz 10);
+    mont_array_lane lhs_arr (sz 10);
+    mont_array_lane rhs_arr (sz 10);
+    mont_array_lane lhs_arr (sz 11);
+    mont_array_lane rhs_arr (sz 11)
+
+private
+let lemma_ntt_multiply_lane_bridge_11
+    (lhs_arr rhs_arr out_arr: t_Array i16 (mk_usize 16))
+    (zeta0 zeta1 zeta2 zeta3: i16) :
+  Lemma
+    (requires
+      Spec.Utils.is_i16b 1664 zeta0 /\ Spec.Utils.is_i16b 1664 zeta1 /\
+      Spec.Utils.is_i16b 1664 zeta2 /\ Spec.Utils.is_i16b 1664 zeta3 /\
+      TS.ntt_multiply_post lhs_arr rhs_arr zeta0 zeta1 zeta2 zeta3 out_arr)
+    (ensures
+      (let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+       let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+       let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+       let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+       let nrhs = N.ntt_multiply_n (mk_usize 16) l_fe r_fe
+                                   (Rust_primitives.unsize zs) in
+       Seq.index o_fe 11 == Seq.index nrhs 11))
+  = let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+    let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+    let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+    let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+    assert (Spec.Utils.forall4 (fun (bb: nat{bb < 4}) ->
+              TS.ntt_multiply_branch_post bb lhs_arr rhs_arr
+                zeta0 zeta1 zeta2 zeta3 out_arr));
+    reveal_opaque (`%TS.ntt_multiply_branch_post)
+                  (TS.ntt_multiply_branch_post 2 lhs_arr rhs_arr
+                     zeta0 zeta1 zeta2 zeta3 out_arr);
+    lemma_ntt_multiply_n_16_lane l_fe r_fe zs 11;
+    zetas_4_lane zeta0 zeta1 zeta2 zeta3 (sz 2);
+    lemma_mont_fe_neg zeta2;
+    mont_array_lane out_arr (sz 11);
+    mont_array_lane lhs_arr (sz 11);
+    mont_array_lane rhs_arr (sz 11);
+    mont_array_lane lhs_arr (sz 10);
+    mont_array_lane rhs_arr (sz 10)
+
+private
+let lemma_ntt_multiply_lane_bridge_12
+    (lhs_arr rhs_arr out_arr: t_Array i16 (mk_usize 16))
+    (zeta0 zeta1 zeta2 zeta3: i16) :
+  Lemma
+    (requires
+      Spec.Utils.is_i16b 1664 zeta0 /\ Spec.Utils.is_i16b 1664 zeta1 /\
+      Spec.Utils.is_i16b 1664 zeta2 /\ Spec.Utils.is_i16b 1664 zeta3 /\
+      TS.ntt_multiply_post lhs_arr rhs_arr zeta0 zeta1 zeta2 zeta3 out_arr)
+    (ensures
+      (let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+       let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+       let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+       let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+       let nrhs = N.ntt_multiply_n (mk_usize 16) l_fe r_fe
+                                   (Rust_primitives.unsize zs) in
+       Seq.index o_fe 12 == Seq.index nrhs 12))
+  = let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+    let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+    let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+    let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+    assert (Spec.Utils.forall4 (fun (bb: nat{bb < 4}) ->
+              TS.ntt_multiply_branch_post bb lhs_arr rhs_arr
+                zeta0 zeta1 zeta2 zeta3 out_arr));
+    reveal_opaque (`%TS.ntt_multiply_branch_post)
+                  (TS.ntt_multiply_branch_post 3 lhs_arr rhs_arr
+                     zeta0 zeta1 zeta2 zeta3 out_arr);
+    lemma_ntt_multiply_n_16_lane l_fe r_fe zs 12;
+    zetas_4_lane zeta0 zeta1 zeta2 zeta3 (sz 3);
+    mont_array_lane out_arr (sz 12);
+    mont_array_lane lhs_arr (sz 12);
+    mont_array_lane rhs_arr (sz 12);
+    mont_array_lane lhs_arr (sz 13);
+    mont_array_lane rhs_arr (sz 13)
+
+private
+let lemma_ntt_multiply_lane_bridge_13
+    (lhs_arr rhs_arr out_arr: t_Array i16 (mk_usize 16))
+    (zeta0 zeta1 zeta2 zeta3: i16) :
+  Lemma
+    (requires
+      Spec.Utils.is_i16b 1664 zeta0 /\ Spec.Utils.is_i16b 1664 zeta1 /\
+      Spec.Utils.is_i16b 1664 zeta2 /\ Spec.Utils.is_i16b 1664 zeta3 /\
+      TS.ntt_multiply_post lhs_arr rhs_arr zeta0 zeta1 zeta2 zeta3 out_arr)
+    (ensures
+      (let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+       let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+       let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+       let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+       let nrhs = N.ntt_multiply_n (mk_usize 16) l_fe r_fe
+                                   (Rust_primitives.unsize zs) in
+       Seq.index o_fe 13 == Seq.index nrhs 13))
+  = let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+    let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+    let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+    let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+    assert (Spec.Utils.forall4 (fun (bb: nat{bb < 4}) ->
+              TS.ntt_multiply_branch_post bb lhs_arr rhs_arr
+                zeta0 zeta1 zeta2 zeta3 out_arr));
+    reveal_opaque (`%TS.ntt_multiply_branch_post)
+                  (TS.ntt_multiply_branch_post 3 lhs_arr rhs_arr
+                     zeta0 zeta1 zeta2 zeta3 out_arr);
+    lemma_ntt_multiply_n_16_lane l_fe r_fe zs 13;
+    zetas_4_lane zeta0 zeta1 zeta2 zeta3 (sz 3);
+    mont_array_lane out_arr (sz 13);
+    mont_array_lane lhs_arr (sz 13);
+    mont_array_lane rhs_arr (sz 13);
+    mont_array_lane lhs_arr (sz 12);
+    mont_array_lane rhs_arr (sz 12)
+
+private
+let lemma_ntt_multiply_lane_bridge_14
+    (lhs_arr rhs_arr out_arr: t_Array i16 (mk_usize 16))
+    (zeta0 zeta1 zeta2 zeta3: i16) :
+  Lemma
+    (requires
+      Spec.Utils.is_i16b 1664 zeta0 /\ Spec.Utils.is_i16b 1664 zeta1 /\
+      Spec.Utils.is_i16b 1664 zeta2 /\ Spec.Utils.is_i16b 1664 zeta3 /\
+      TS.ntt_multiply_post lhs_arr rhs_arr zeta0 zeta1 zeta2 zeta3 out_arr)
+    (ensures
+      (let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+       let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+       let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+       let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+       let nrhs = N.ntt_multiply_n (mk_usize 16) l_fe r_fe
+                                   (Rust_primitives.unsize zs) in
+       Seq.index o_fe 14 == Seq.index nrhs 14))
+  = let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+    let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+    let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+    let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+    assert (Spec.Utils.forall4 (fun (bb: nat{bb < 4}) ->
+              TS.ntt_multiply_branch_post bb lhs_arr rhs_arr
+                zeta0 zeta1 zeta2 zeta3 out_arr));
+    reveal_opaque (`%TS.ntt_multiply_branch_post)
+                  (TS.ntt_multiply_branch_post 3 lhs_arr rhs_arr
+                     zeta0 zeta1 zeta2 zeta3 out_arr);
+    lemma_ntt_multiply_n_16_lane l_fe r_fe zs 14;
+    zetas_4_lane zeta0 zeta1 zeta2 zeta3 (sz 3);
+    lemma_mont_fe_neg zeta3;
+    mont_array_lane out_arr (sz 14);
+    mont_array_lane lhs_arr (sz 14);
+    mont_array_lane rhs_arr (sz 14);
+    mont_array_lane lhs_arr (sz 15);
+    mont_array_lane rhs_arr (sz 15)
+
+private
+let lemma_ntt_multiply_lane_bridge_15
+    (lhs_arr rhs_arr out_arr: t_Array i16 (mk_usize 16))
+    (zeta0 zeta1 zeta2 zeta3: i16) :
+  Lemma
+    (requires
+      Spec.Utils.is_i16b 1664 zeta0 /\ Spec.Utils.is_i16b 1664 zeta1 /\
+      Spec.Utils.is_i16b 1664 zeta2 /\ Spec.Utils.is_i16b 1664 zeta3 /\
+      TS.ntt_multiply_post lhs_arr rhs_arr zeta0 zeta1 zeta2 zeta3 out_arr)
+    (ensures
+      (let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+       let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+       let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+       let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+       let nrhs = N.ntt_multiply_n (mk_usize 16) l_fe r_fe
+                                   (Rust_primitives.unsize zs) in
+       Seq.index o_fe 15 == Seq.index nrhs 15))
+  = let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+    let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+    let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+    let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+    assert (Spec.Utils.forall4 (fun (bb: nat{bb < 4}) ->
+              TS.ntt_multiply_branch_post bb lhs_arr rhs_arr
+                zeta0 zeta1 zeta2 zeta3 out_arr));
+    reveal_opaque (`%TS.ntt_multiply_branch_post)
+                  (TS.ntt_multiply_branch_post 3 lhs_arr rhs_arr
+                     zeta0 zeta1 zeta2 zeta3 out_arr);
+    lemma_ntt_multiply_n_16_lane l_fe r_fe zs 15;
+    zetas_4_lane zeta0 zeta1 zeta2 zeta3 (sz 3);
+    lemma_mont_fe_neg zeta3;
+    mont_array_lane out_arr (sz 15);
+    mont_array_lane lhs_arr (sz 15);
+    mont_array_lane rhs_arr (sz 15);
+    mont_array_lane lhs_arr (sz 14);
+    mont_array_lane rhs_arr (sz 14)
+
+private
+let lemma_ntt_multiply_lane_bridge
+    (lhs_arr rhs_arr out_arr: t_Array i16 (mk_usize 16))
+    (zeta0 zeta1 zeta2 zeta3: i16)
+    (i: nat {i < 16}) :
+  Lemma
+    (requires
+      Spec.Utils.is_i16b 1664 zeta0 /\ Spec.Utils.is_i16b 1664 zeta1 /\
+      Spec.Utils.is_i16b 1664 zeta2 /\ Spec.Utils.is_i16b 1664 zeta3 /\
+      TS.ntt_multiply_post lhs_arr rhs_arr zeta0 zeta1 zeta2 zeta3 out_arr)
+    (ensures
+      (let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+       let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+       let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+       let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+       let nrhs = N.ntt_multiply_n (mk_usize 16) l_fe r_fe
+                                   (Rust_primitives.unsize zs) in
+       Seq.index o_fe i == Seq.index nrhs i))
+  = match i with
+    | 0 -> lemma_ntt_multiply_lane_bridge_0 lhs_arr rhs_arr out_arr zeta0 zeta1 zeta2 zeta3
+    | 1 -> lemma_ntt_multiply_lane_bridge_1 lhs_arr rhs_arr out_arr zeta0 zeta1 zeta2 zeta3
+    | 2 -> lemma_ntt_multiply_lane_bridge_2 lhs_arr rhs_arr out_arr zeta0 zeta1 zeta2 zeta3
+    | 3 -> lemma_ntt_multiply_lane_bridge_3 lhs_arr rhs_arr out_arr zeta0 zeta1 zeta2 zeta3
+    | 4 -> lemma_ntt_multiply_lane_bridge_4 lhs_arr rhs_arr out_arr zeta0 zeta1 zeta2 zeta3
+    | 5 -> lemma_ntt_multiply_lane_bridge_5 lhs_arr rhs_arr out_arr zeta0 zeta1 zeta2 zeta3
+    | 6 -> lemma_ntt_multiply_lane_bridge_6 lhs_arr rhs_arr out_arr zeta0 zeta1 zeta2 zeta3
+    | 7 -> lemma_ntt_multiply_lane_bridge_7 lhs_arr rhs_arr out_arr zeta0 zeta1 zeta2 zeta3
+    | 8 -> lemma_ntt_multiply_lane_bridge_8 lhs_arr rhs_arr out_arr zeta0 zeta1 zeta2 zeta3
+    | 9 -> lemma_ntt_multiply_lane_bridge_9 lhs_arr rhs_arr out_arr zeta0 zeta1 zeta2 zeta3
+    | 10 -> lemma_ntt_multiply_lane_bridge_10 lhs_arr rhs_arr out_arr zeta0 zeta1 zeta2 zeta3
+    | 11 -> lemma_ntt_multiply_lane_bridge_11 lhs_arr rhs_arr out_arr zeta0 zeta1 zeta2 zeta3
+    | 12 -> lemma_ntt_multiply_lane_bridge_12 lhs_arr rhs_arr out_arr zeta0 zeta1 zeta2 zeta3
+    | 13 -> lemma_ntt_multiply_lane_bridge_13 lhs_arr rhs_arr out_arr zeta0 zeta1 zeta2 zeta3
+    | 14 -> lemma_ntt_multiply_lane_bridge_14 lhs_arr rhs_arr out_arr zeta0 zeta1 zeta2 zeta3
+    | _ -> lemma_ntt_multiply_lane_bridge_15 lhs_arr rhs_arr out_arr zeta0 zeta1 zeta2 zeta3
+#pop-options
+
+#push-options "--z3rlimit 400 --fuel 0 --ifuel 1"
+
+(* Chunk commute for `f_ntt_multiply` — closes the former assume val.
+   Composes the 16 per-lane bridges via `Classical.forall_intro` +
+   `Seq.lemma_eq_intro`, mirroring `lemma_ntt_layer_1_step_to_hacspec`. *)
+let lemma_ntt_multiply_chunk_commutes
+    (#vV: Type0) {| i: T.t_Operations vV |}
+    (lhs rhs: vV) (zeta0 zeta1 zeta2 zeta3: i16) :
+  Lemma
+    (requires TS.ntt_multiply_pre (T.f_repr lhs) (T.f_repr rhs)
+                                  zeta0 zeta1 zeta2 zeta3)
+    (ensures
+       (let r = T.f_ntt_multiply lhs rhs zeta0 zeta1 zeta2 zeta3 in
+        mont_i16_to_spec_array (sz 16) (T.f_repr r)
+          == N.ntt_multiply_n (mk_usize 16)
+               (mont_i16_to_spec_array (sz 16) (T.f_repr lhs))
+               (mont_i16_to_spec_array (sz 16) (T.f_repr rhs))
+               (zetas_4_ zeta0 zeta1 zeta2 zeta3)))
+  = let r = T.f_ntt_multiply lhs rhs zeta0 zeta1 zeta2 zeta3 in
+    let lhs_arr = T.f_repr lhs in
+    let rhs_arr = T.f_repr rhs in
+    let out_arr = T.f_repr r in
+    let zs = zetas_4_ zeta0 zeta1 zeta2 zeta3 in
+    let l_fe = mont_i16_to_spec_array (sz 16) lhs_arr in
+    let r_fe = mont_i16_to_spec_array (sz 16) rhs_arr in
+    let o_fe = mont_i16_to_spec_array (sz 16) out_arr in
+    let nrhs = N.ntt_multiply_n (mk_usize 16) l_fe r_fe
+                                (Rust_primitives.unsize zs) in
+    assert (TS.ntt_multiply_post lhs_arr rhs_arr zeta0 zeta1 zeta2 zeta3 out_arr);
+    let aux (j: nat) : Lemma (j < 16 ==> Seq.index o_fe j == Seq.index nrhs j)
+      = if j < 16 then
+          lemma_ntt_multiply_lane_bridge lhs_arr rhs_arr out_arr
+            zeta0 zeta1 zeta2 zeta3 j
+    in
+    Classical.forall_intro aux;
+    Seq.lemma_eq_intro o_fe nrhs
 
 #pop-options
 

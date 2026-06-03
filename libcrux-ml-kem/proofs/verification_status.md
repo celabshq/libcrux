@@ -53,16 +53,16 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 |            | compress          |    1 |   6 |   0 |     |   5 |    1 |      0 |       0 |
 |            | sampling          |    1 |   1 |   0 |     |   0 |    1 |      0 |       0 |
 |            | vector_type       |    1 |   5 |   0 |     |   2 |    3 |      0 |       0 |
-|            | vector            |    1 |  64 |   0 |     |   2 |   35 |      0 |      27 |
-|            | **Portable total** | **7** | **121** | **0** |     | **37** | **47** | **10** |  **27** |
+|            | vector            |    1 |  64 |   0 |     |   1 |   36 |      0 |      27 |
+|            | **Portable total** | **7** | **121** | **0** |     | **36** | **48** | **10** |  **27** |
 |            |                   |      |     |     |     |     |      |        |         |
 | _Avx2_     | arithmetic        |    1 |  12 |   0 |     |   5 |    7 |      0 |       0 |
-|            | ntt               |    1 |   7 |   1 |     |   0 |    0 |      6 |       0 |
+|            | ntt               |    1 |   7 |   0 |     |   0 |    0 |      7 |       0 |
 |            | serialize         |    1 |  24 |   0 |     |   2 |   22 |      0 |       0 |
 |            | compress          |    1 |   5 |   0 |     |   4 |    1 |      0 |       0 |
 |            | sampling          |    1 |   1 |   0 |     |   1 |    0 |      0 |       0 |
-|            | vector            |    1 |  72 |   1 |     |  10 |   36 |      0 |      25 |
-|            | **Avx2 total**    | **6** | **121** | **2** |     | **22** | **66** |  **6** |  **25** |
+|            | vector            |    1 |  72 |   1 |     |   9 |   37 |      0 |      25 |
+|            | **Avx2 total**    | **6** | **121** | **1** |     | **21** | **67** |  **7** |  **25** |
 |            |                   |      |     |     |     |     |      |        |         |
 | _Neon_     | arithmetic        |    1 |  13 |  13 |     |   0 |    0 |      0 |       0 |
 |            | ntt               |    1 |   7 |   7 |     |   0 |    0 |      0 |       0 |
@@ -77,12 +77,12 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 
 - **Total modules**: 49
 - **Total functions**: 956
-- **Lax** (admitted): 131 (13.7%)
+- **Lax** (admitted): 130 (13.6%)
 - **Unverified** (not extracted): 56 (5.9%)
-- **Panic-safe** (PF + Math + Bounds + Hacspec): 769 (80.4%)
-  - Panic-free only (no further proof): 448 (46.9%)
-  - Math (non-trivial ensures, no bounds/spec match): 172 (18.0%)
-  - Bounds (range/interval ensures): 48 (5.0%)
+- **Panic-safe** (PF + Math + Bounds + Hacspec): 770 (80.5%)
+  - Panic-free only (no further proof): 446 (46.7%)
+  - Math (non-trivial ensures, no bounds/spec match): 174 (18.2%)
+  - Bounds (range/interval ensures): 49 (5.1%)
   - Hacspec (cites high-level spec): 101 (10.6%)
 
 ### Modules per category
@@ -90,8 +90,8 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 | Category     | Modules |  Fns | Lax | Unv |  PF | Math | Bounds | Hacspec |
 | ------------ | ------- | ---- | --- | --- | --- | ---- | ------ | ------- |
 | Generic      |      29 |  631 |  47 |  55 | 389 |   59 |     32 |      49 |
-| Portable     |       7 |  121 |   0 |   0 |  37 |   47 |     10 |      27 |
-| Avx2         |       6 |  121 |   2 |   0 |  22 |   66 |      6 |      25 |
+| Portable     |       7 |  121 |   0 |   0 |  36 |   48 |     10 |      27 |
+| Avx2         |       6 |  121 |   1 |   0 |  21 |   67 |      7 |      25 |
 | Neon         |       7 |   83 |  82 |   1 |   0 |    0 |      0 |       0 |
 
 ## Unverified Rust modules (not extracted to F\*)

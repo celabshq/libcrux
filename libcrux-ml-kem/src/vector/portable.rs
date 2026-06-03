@@ -799,15 +799,12 @@ fn op_inv_ntt_layer_3_step(a: PortableVector, zeta: i16) -> PortableVector {
     out
 }
 
-// `op_ntt_multiply` — `panic_free` (C4f deferred from C4e admits).
-// The primitive's pre is `Spec.Utils.is_i16b_array 3328 ...`
-// (non-opaque); the wrapper's pre is `is_i16b_array_opaque 3328 ...`.
-// Reveal needed for the call's precondition.  The full forall4-FE
-// post proof was drafted but Z3 did not converge at rlimit 400; left
-// as `panic_free` until the Commute.Chunk Layer-0.5 lemmas' admits are
-// closed.  **Removal plan**: drop `panic_free` and prove the body when
-// `lemma_base_case_mult_{even,odd}_{mod_core,fe_commute}` close.
-#[hax_lib::fstar::verification_status(panic_free)]
+// `op_ntt_multiply` — no longer admitted (was `panic_free`, C4f): the
+// primitive's `ntt_multiply_butterfly_post` plus the four
+// `lemma_ntt_multiply_branch_{0..3}` (Commute.Chunk, built on the closed
+// `lemma_base_case_mult_{even,odd}_*` Layer-0.5 lemmas) discharge the
+// trait post directly.
+#[hax_lib::fstar::options("--z3rlimit 400 --fuel 0 --ifuel 0 --split_queries always")]
 #[hax_lib::requires(fstar!(r#"${spec::ntt_multiply_pre} ${lhs}.f_elements ${rhs}.f_elements zeta0 zeta1 zeta2 zeta3"#))]
 #[hax_lib::ensures(|out| fstar!(r#"${spec::ntt_multiply_post} ${lhs}.f_elements ${rhs}.f_elements zeta0 zeta1 zeta2 zeta3 ${out}.f_elements"#))]
 fn op_ntt_multiply(
@@ -822,7 +819,22 @@ fn op_ntt_multiply(
         r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
                     (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque 3328)"#
     );
-    ntt_multiply(lhs, rhs, zeta0, zeta1, zeta2, zeta3)
+    let out = ntt_multiply(lhs, rhs, zeta0, zeta1, zeta2, zeta3);
+    hax_lib::fstar!(
+        r#"reveal_opaque (`%Spec.Utils.ntt_multiply_butterfly_post)
+                         (Spec.Utils.ntt_multiply_butterfly_post
+                           ${lhs}.f_elements ${rhs}.f_elements ${out}.f_elements
+                           zeta0 zeta1 zeta2 zeta3);
+           Hacspec_ml_kem.Commute.Chunk.lemma_ntt_multiply_branch_0
+             ${lhs}.f_elements ${rhs}.f_elements ${out}.f_elements zeta0 zeta1 zeta2 zeta3;
+           Hacspec_ml_kem.Commute.Chunk.lemma_ntt_multiply_branch_1
+             ${lhs}.f_elements ${rhs}.f_elements ${out}.f_elements zeta0 zeta1 zeta2 zeta3;
+           Hacspec_ml_kem.Commute.Chunk.lemma_ntt_multiply_branch_2
+             ${lhs}.f_elements ${rhs}.f_elements ${out}.f_elements zeta0 zeta1 zeta2 zeta3;
+           Hacspec_ml_kem.Commute.Chunk.lemma_ntt_multiply_branch_3
+             ${lhs}.f_elements ${rhs}.f_elements ${out}.f_elements zeta0 zeta1 zeta2 zeta3"#
+    );
+    out
 }
 
 // =====================================================================
