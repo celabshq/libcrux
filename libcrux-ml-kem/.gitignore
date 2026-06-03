@@ -2,3 +2,6 @@ Cargo.lock
 proofs/fstar/extraction/.cache/
 proofs/fstar/extraction/.depend
 proofs/fstar/extraction/*.fst*
+
+# hax.py prove output — regenerated every run
+verification_result.txt
