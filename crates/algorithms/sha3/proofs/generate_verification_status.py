@@ -470,8 +470,10 @@ def parse_file(filepath, spec_re, range_re):
 
             # `#[hax_lib::opaque]` is a function-only marker meaning the body
             # is intentionally hidden from F* — equivalent to lax.
+            name_m = re.search(r"\bfn\s+([A-Za-z0-9_]+)", stripped)
             functions.append({
                 'line': lineno + 1,
+                'name': name_m.group(1) if name_m else '?',
                 'vstatus': pending_vstatus,
                 'ensures_level': ensures_level,
                 'body_admit': body_admit,
@@ -681,10 +683,11 @@ def write_status_md(rows, crate_name, output_path,
             f.write("These Rust modules have no corresponding F\\* file in the extraction "
                     "directory — they were filtered out by hax (`-i -<module>::**` in `hax.py`) "
                     "and are unverified at any tier.\n\n")
-            f.write(f"| {'Module':<30} | {'Path':<40} | {'Fns':>3} |\n")
-            f.write(f"| {'-'*30} | {'-'*40} | {'-'*3} |\n")
-            for label, path, n in unverified_paths_seen:
-                f.write(f"| {label:<30} | {path:<40} | {n:>3} |\n")
+            f.write(f"| {'Module':<30} | {'Path':<40} | {'Fns':>3} | Functions |\n")
+            f.write(f"| {'-'*30} | {'-'*40} | {'-'*3} | {'-'*9} |\n")
+            for label, path, n, fn_names in unverified_paths_seen:
+                fns = ', '.join(f"`{x}`" for x in fn_names)
+                f.write(f"| {label:<30} | {path:<40} | {n:>3} | {fns} |\n")
 
         if body_admit_sites_by_module:
             f.write("\n## Body-admit sites (audit)\n\n")
@@ -879,7 +882,8 @@ def main():
             for line in stats['body_admit_sites']:
                 all_body_admits.append((rel, line))
             if is_unverified and stats['total'] > 0:
-                unverified_paths_seen.append((f"{category}/{display}", rel, stats['total']))
+                fn_names = [fn.get('name', '?') for fn in funcs]
+                unverified_paths_seen.append((f"{category}/{display}", rel, stats['total'], fn_names))
 
         cat_display = ""
         if category != prev_category:

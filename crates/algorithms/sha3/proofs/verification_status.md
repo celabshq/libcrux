@@ -72,6 +72,6 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 
 These Rust modules have no corresponding F\* file in the extraction directory — they were filtered out by hax (`-i -<module>::**` in `hax.py`) and are unverified at any tier.
 
-| Module                         | Path                                     | Fns |
-| ------------------------------ | ---------------------------------------- | --- |
-| Generic/impl_digest_trait      | src/impl_digest_trait.rs                 |   1 |
+| Module                         | Path                                     | Fns | Functions |
+| ------------------------------ | ---------------------------------------- | --- | --------- |
+| Generic/impl_digest_trait      | src/impl_digest_trait.rs                 |   1 | `hash` |
