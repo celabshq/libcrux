@@ -1,14 +1,14 @@
 [package]
-name = "libjade-sys"
-version.workspace = true
-edition.workspace = true
-authors.workspace = true
-license.workspace = true
-homepage.workspace = true
-repository.workspace = true
-readme = "Readme.md"
+authors = ["Cryspen"]
 description = "Rust bindings for libjade, a formally verified cryptographic library written in jasmin."
+edition = "2021"
+homepage = "https://github.com/cryspen/libcrux"
+license = "Apache-2.0"
+name = "libjade-sys"
 publish = false
+readme = "Readme.md"
+repository = "https://github.com/cryspen/libcrux"
+version = "0.0.4"
 
 [dependencies]
 
