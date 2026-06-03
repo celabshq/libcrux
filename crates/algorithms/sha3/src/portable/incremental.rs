@@ -214,9 +214,7 @@ impl Xof<136> for CShake256 {
 /// Create a new SHAKE-128 state object.
 #[inline(always)]
 pub fn shake128_init() -> KeccakState {
-    KeccakState {
-        state: GenericState::<1, u64>::new(),
-    }
+    KeccakState::init()
 }
 
 /// Absorb

@@ -12,6 +12,15 @@ pub struct KeccakState {
     state: GenericState<1, u64>,
 }
 
+impl KeccakState {
+    /// Initialize a fresh portable Keccak state.
+    pub fn init() -> Self {
+        KeccakState {
+            state: GenericState::<1, u64>::new(),
+        }
+    }
+}
+
 /// A portable SHA3 224 implementation.
 #[inline(always)]
 pub fn sha224(digest: &mut [u8], data: &[u8]) {
