@@ -1160,3 +1160,63 @@ let lemma_ntt_layer_0_chunk_to_hacspec
     in
     Classical.forall_intro aux
 #pop-options
+
+(* === All-32-chunk composition: lemma_ntt_layer_0_step_to_hacspec_poly ===
+
+   Composes `lemma_ntt_layer_0_chunk_to_hacspec` over all 32 chunks into the
+   poly-level statement: every flat lane of `transformed` is mod-q congruent
+   to `Hacspec_ml_dsa.Ntt.ntt_layer (simd_units_to_array input) 0`.
+
+   The per-chunk butterfly witnesses — the Montgomery product `t b p` and the
+   impl's hardcoded Mont-form zeta `zm b p`, for pair p of chunk b — are
+   supplied as total witness FUNCTIONS over (chunk, pair); the consumer
+   (the impl's `ntt_at_layer_0` post) instantiates them from the per-round
+   `simd_unit_ntt_step` FE-posts and discharges the per-zeta congruence via
+   `Spec.MLDSA.Ntt.zeta_r`.  The hypothesis is the same 4-relation butterfly
+   shape as `lemma_ntt_layer_0_chunk_to_hacspec`'s requires, universally
+   quantified over (b, p). *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200 --split_queries always"
+let lemma_ntt_layer_0_step_to_hacspec_poly
+    (input transformed: t_Array (t_Array i32 (mk_usize 8)) (mk_usize 32))
+    (t zm: (b: nat{b < 32} -> p: nat{p < 4} -> i32))
+    : Lemma
+        (requires
+          (forall (b: nat{b < 32}) (p: nat{p < 4}).
+           (let ci = Seq.index input b in
+            let co = Seq.index transformed b in
+            let z : i32 = Hacspec_ml_dsa.Ntt.v_ZETAS.[ mk_usize (4*b + p + 128) ] in
+            v (Seq.index co (2*p))   == v (Seq.index ci (2*p)) + v (t b p) /\
+            v (Seq.index co (2*p+1)) == v (Seq.index ci (2*p)) - v (t b p) /\
+            (v (t b p)) % 8380417 == (v (Seq.index ci (2*p+1)) * v (zm b p) * 8265825) % 8380417 /\
+            (v (zm b p)) % 8380417 == (v z * pow2 32) % 8380417)))
+        (ensures
+          (let in_flat = simd_units_to_array input in
+           let out_flat = simd_units_to_array transformed in
+           let spec = Hacspec_ml_dsa.Ntt.ntt_layer in_flat (mk_usize 0) in
+           forall (i: nat). i < 256 ==>
+             (v (Seq.index out_flat i)) % 8380417 ==
+             (v (Seq.index spec i)) % 8380417))
+  = let q : pos = 8380417 in
+    let in_flat = simd_units_to_array input in
+    let out_flat = simd_units_to_array transformed in
+    let spec = Hacspec_ml_dsa.Ntt.ntt_layer in_flat (mk_usize 0) in
+    let chunk (b: nat{b < 32}) : Lemma
+        (forall (l: nat). l < 8 ==>
+           (v (Seq.index out_flat (8*b + l))) % q ==
+           (v (Seq.index spec (8*b + l))) % q)
+      = lemma_ntt_layer_0_chunk_to_hacspec input transformed b
+          (t b 0) (t b 1) (t b 2) (t b 3)
+          (zm b 0) (zm b 1) (zm b 2) (zm b 3)
+    in
+    let aux (i: nat{i < 256}) : Lemma
+        ((v (Seq.index out_flat i)) % q == (v (Seq.index spec i)) % q)
+      = let b : nat = i / 8 in
+        let l : nat = i % 8 in
+        assert (b < 32 /\ l < 8);
+        assert (8*b + l == i);
+        chunk b;
+        assert ((v (Seq.index out_flat (8*b + l))) % q ==
+                (v (Seq.index spec (8*b + l))) % q)
+    in
+    Classical.forall_intro aux
+#pop-options
