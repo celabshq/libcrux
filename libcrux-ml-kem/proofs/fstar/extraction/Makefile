@@ -9,18 +9,20 @@ ADMIT_MODULES = Libcrux_ml_kem.Vector.Neon.Arithmetic.fst \
               Libcrux_ml_kem.Vector.Neon.Ntt.fst \
               Libcrux_ml_kem.Vector.Neon.Serialize.fst \
               Libcrux_ml_kem.Vector.Neon.Vector_type.fst \
-              Libcrux_ml_kem.Vector.Neon.Vector_type.fsti \
-              Libcrux_ml_kem.Ind_cca.Incremental.fst \
-              Libcrux_ml_kem.Ind_cca.Incremental.Types.fst
-# NOTE: Ind_cca.Incremental.{Avx2,Portable}, Ind_cca.Incremental.Multiplexing and
-# Mlkem{512,768,1024}.Incremental are now VERIFIED (removed from ADMIT_MODULES).
-# The Mlkem*.Incremental closure (2026-06-03) hangs off #[ensures] value posts on
-# pk1_len/pk2_len/PublicKey1::len/KeyPair::num_bytes plus a length-preservation +
-# Ok-condition post cascaded through {mlkem.rs macro, multiplexing, platform,
-# generic} generate_keypair(_serialized).  See proof_milestones.md rows 19-25.
-# Remaining incremental admits (Types/Incremental) carry those posts admitted
-# (bodies unproven): f_pk1_bytes `bytes.len()>=64` precondition + to_bytes/
-# from_bytes byte-layout obligations are still open there.
+              Libcrux_ml_kem.Vector.Neon.Vector_type.fsti
+# NOTE: ALL incremental modules are now VERIFIED (removed from ADMIT_MODULES):
+# Ind_cca.Incremental{,.Types,.Avx2,.Portable,.Multiplexing} and
+# Mlkem{512,768,1024}.Incremental.  The Types/Incremental closure (2026-06-03)
+# hangs off plain-Rust requires/ensures on the byte-layout helpers
+# (write/vec_len_bytes/vec_to_bytes len-preservation), KeyPair/EncapsState
+# methods, and an is_rank/ETA/size-relation requires-cascade through
+# {generic, platform, multiplexing, mlkem.rs concrete} layers.
+# Function-scoped PROOF GAPS remain (admit()/lax in the Rust source, see
+# proofs/ml_kem_verification_status.md "Findings"): the 2 From-instance
+# bodies + to_bytes_compressed (hax core-trait pres are forced trivial /
+# serialize_vector exact-length contract) and encapsulate2_serialized +
+# decapsulate_incremental_key (raw 16-bit decode gives no 3328 bounds —
+# genuinely not panic-free for adversarial bytes).
 #
 # The .Alloc and .Incremental.Rand submodules are deleted post-extraction by
 # hax.py (they use `Box<dyn Keys>` and `try_fill_bytes` which lack F* models).

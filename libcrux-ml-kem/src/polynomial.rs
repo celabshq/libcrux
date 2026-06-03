@@ -380,6 +380,7 @@ fn from_bytes<Vector: Operations>(bytes: &[u8]) -> PolynomialRingElement<Vector>
 
 #[inline(always)]
 #[hax_lib::requires(VECTORS_IN_RING_ELEMENT * 32 <= out.len())]
+#[hax_lib::ensures(|_| future(out).len() == out.len())]
 fn to_bytes<Vector: Operations>(re: PolynomialRingElement<Vector>, out: &mut [u8]) {
     #[cfg(hax)]
     let _out_len = out.len();
@@ -395,6 +396,7 @@ fn to_bytes<Vector: Operations>(re: PolynomialRingElement<Vector>, out: &mut [u8
 #[allow(dead_code)]
 #[hax_lib::fstar::options("--z3rlimit 500 --split_queries always")]
 #[hax_lib::requires(re.len() <= 4 && 512 * re.len() <= out.len())]
+#[hax_lib::ensures(|_| future(out).len() == out.len())]
 pub(crate) fn vec_to_bytes<Vector: Operations>(
     re: &[PolynomialRingElement<Vector>],
     out: &mut [u8],
@@ -430,6 +432,7 @@ pub(crate) fn vec_from_bytes<Vector: Operations>(
 
 /// The length of a vector of ring elements in bytes
 #[hax_lib::requires(K <= 4)]
+#[hax_lib::ensures(|result| result == K * 512)]
 #[allow(dead_code)]
 pub(crate) const fn vec_len_bytes<const K: usize, Vector: Operations>() -> usize {
     K * PolynomialRingElement::<Vector>::num_bytes()
@@ -1075,6 +1078,7 @@ impl<Vector: Operations> PolynomialRingElement<Vector> {
     #[inline(always)]
     #[allow(dead_code)]
     #[requires(VECTORS_IN_RING_ELEMENT * 16 * 2 <= out.len())]
+    #[ensures(|_| future(out).len() == out.len())]
     pub(crate) fn to_bytes(self, out: &mut [u8]) {
         to_bytes(self, out)
     }

@@ -1,5 +1,7 @@
 use core::array::from_fn;
 
+#[allow(unused_imports)]
+use hax_lib::prop::ToProp;
 use ind_cpa::unpacked::IndCpaPublicKeyUnpacked;
 
 use super::*;
@@ -27,10 +29,12 @@ pub enum Error {
 
 /// Incremental trait for unpacked key pairs.
 //<const K: usize, Vector: Operations>
+#[hax_lib::attributes]
 pub trait IncrementalKeyPair {
     /// Get the [`PublicKey1`] from this key pair as bytes.
     ///
     /// The output `bytes` have to be at least 64 bytes long.
+    #[requires(bytes.len() >= 64)]
     fn pk1_bytes(&self, bytes: &mut [u8]) -> Result<(), Error>;
 
     /// Get the [`PublicKey2`] from this key pair as bytes.
@@ -41,7 +45,9 @@ pub trait IncrementalKeyPair {
     fn pk2_bytes(&self, bytes: &mut [u8]);
 }
 
+#[hax_lib::attributes]
 impl<const K: usize, Vector: Operations> IncrementalKeyPair for MlKemKeyPairUnpacked<K, Vector> {
+    #[requires(bytes.len() >= 64)]
     fn pk1_bytes(&self, bytes: &mut [u8]) -> Result<(), Error> {
         debug_assert!(bytes.len() >= 64);
         if bytes.len() < 64 {
@@ -54,6 +60,15 @@ impl<const K: usize, Vector: Operations> IncrementalKeyPair for MlKemKeyPairUnpa
         Ok(())
     }
 
+    #[requires(
+        (hacspec_ml_kem::parameters::is_rank(K)
+        && bytes.len() == hacspec_ml_kem::parameters::ranked_bytes_per_ring_element(K))
+            .to_prop()
+        & crate::polynomial::spec::is_bounded_polynomial_vector(
+            3328,
+            &self.public_key.ind_cpa_public_key.t_as_ntt,
+        )
+    )]
     fn pk2_bytes(&self, bytes: &mut [u8]) {
         serialize_vector(&self.public_key.ind_cpa_public_key.t_as_ntt, bytes);
     }
@@ -109,13 +124,18 @@ pub struct PublicKey2<const LEN: usize> {
     pub(super) t_as_ntt: [u8; LEN],
 }
 
+#[hax_lib::attributes]
 impl<const LEN: usize> PublicKey2<LEN> {
     /// Get the size of the second public key in bytes.
+    #[ensures(|result| result == LEN)]
     pub const fn len() -> usize {
         LEN
     }
 
     /// Deserialize the public key.
+    #[requires(hacspec_ml_kem::parameters::is_rank(K)
+        && LEN == hacspec_ml_kem::parameters::cpa_private_key_size(K))]
+    #[ensures(|result| crate::polynomial::spec::is_bounded_polynomial_vector(3328, &result))]
     pub(crate) fn deserialize<const K: usize, Vector: Operations>(
         &self,
     ) -> [PolynomialRingElement<Vector>; K] {
@@ -185,13 +205,18 @@ pub struct EncapsState<const K: usize, Vector: Operations> {
     pub(super) randomness: [u8; 32],
 }
 
+#[hax_lib::attributes]
 impl<const K: usize, Vector: Operations> EncapsState<K, Vector> {
     /// Get the number of bytes, required for the state.
+    #[requires(K <= 4)]
+    #[ensures(|result| result == K * 512 + 512 + 32)]
     pub const fn num_bytes() -> usize {
         vec_len_bytes::<K, Vector>() + PolynomialRingElement::<Vector>::num_bytes() + 32
     }
 
     /// Get the state as bytes
+    #[requires(K <= 4 && state.len() >= K * 512 + 512 + 32)]
+    #[ensures(|result| result.is_ok() && future(state).len() == state.len())]
     pub fn to_bytes(self, state: &mut [u8]) -> Result<(), Error> {
         debug_assert!(state.len() >= Self::num_bytes());
         if state.len() < Self::num_bytes() {
@@ -211,6 +236,8 @@ impl<const K: usize, Vector: Operations> EncapsState<K, Vector> {
     }
 
     /// Build a state from bytes
+    #[requires(K <= 4 && bytes.len() >= K * 512 + 512 + 32)]
+    #[ensures(|result| result.is_ok())]
     pub fn try_from_bytes(bytes: &[u8]) -> Result<Self, Error> {
         debug_assert!(bytes.len() >= Self::num_bytes());
         if bytes.len() < Self::num_bytes() {
@@ -236,6 +263,7 @@ impl<const K: usize, Vector: Operations> EncapsState<K, Vector> {
     }
 
     /// Build a state from bytes
+    #[requires(K <= 4 && STATE_LEN >= K * 512 + 512 + 32)]
     pub fn from_bytes<const STATE_LEN: usize>(bytes: &[u8; STATE_LEN]) -> Self {
         // Unwrapping here is safe because we know it's the correct size.
         Self::try_from_bytes(bytes).unwrap()
@@ -259,6 +287,12 @@ impl<const K: usize, const LEN: usize, Vector: Operations> From<&MlKemPublicKeyU
     for PublicKey2<LEN>
 {
     fn from(pk: &MlKemPublicKeyUnpacked<K, Vector>) -> Self {
+        // PROOF GAP (admitted): `Core_models.Convert.t_From` forces every
+        // instance precondition to be trivial (`pred: Type0{true ==> pred}`),
+        // but `serialize_vector` requires `is_rank(K)`,
+        // `LEN == ranked_bytes_per_ring_element(K)` and
+        // `is_bounded_polynomial_vector(3328, t_as_ntt)`.
+        hax_lib::fstar!("admit ()");
         let mut out = Self {
             t_as_ntt: [0u8; LEN],
         };
@@ -316,6 +350,11 @@ impl<const K: usize, const PK2_LEN: usize, Vector: Operations> From<KeyPair<K, P
     for MlKemKeyPairUnpacked<K, Vector>
 {
     fn from(value: KeyPair<K, PK2_LEN, Vector>) -> Self {
+        // PROOF GAP (admitted): `Core_models.Convert.t_From` forces every
+        // instance precondition to be trivial (`pred: Type0{true ==> pred}`),
+        // but `deserialize_vector` requires `is_rank(K)` and
+        // `PK2_LEN == cpa_private_key_size(K)`.
+        hax_lib::fstar!("admit ()");
         let mut t_as_ntt = from_fn(|_| PolynomialRingElement::<Vector>::ZERO());
         deserialize_vector(&value.pk2.t_as_ntt, &mut t_as_ntt);
 
@@ -335,6 +374,9 @@ impl<const K: usize, const PK2_LEN: usize, Vector: Operations> From<KeyPair<K, P
 
 /// Write `value` into `out` at `offset`.
 #[inline(always)]
+#[hax_lib::requires(value.len() <= out.len() && *offset <= out.len() - value.len())]
+#[hax_lib::ensures(|_| future(out).len() == out.len()
+    && *future(offset) == *offset + value.len())]
 fn write(out: &mut [u8], value: &[u8], offset: &mut usize) {
     let new_offset = *offset + value.len();
     out[*offset..new_offset].copy_from_slice(value);
@@ -344,6 +386,8 @@ fn write(out: &mut [u8], value: &[u8], offset: &mut usize) {
 #[hax_lib::attributes]
 impl<const K: usize, const PK2_LEN: usize, Vector: Operations> KeyPair<K, PK2_LEN, Vector> {
     /// Get [`PublicKey1`] as bytes.
+    #[requires(pk1.len() >= 64)]
+    #[ensures(|result| result.is_ok() && future(pk1).len() == pk1.len())]
     pub fn pk1_bytes(&self, pk1: &mut [u8]) -> Result<(), Error> {
         debug_assert!(pk1.len() >= PublicKey1::len());
         if pk1.len() < PublicKey1::len() {
@@ -357,6 +401,8 @@ impl<const K: usize, const PK2_LEN: usize, Vector: Operations> KeyPair<K, PK2_LE
     }
 
     /// Get [`PublicKey2`] as bytes.
+    #[ensures(|result| hax_lib::implies(pk2.len() >= PK2_LEN, result.is_ok())
+        & (future(pk2).len() == pk2.len()))]
     pub fn pk2_bytes(&self, pk2: &mut [u8]) -> Result<(), Error> {
         if pk2.len() < PK2_LEN {
             return Err(Error::InvalidOutputLength);
@@ -381,11 +427,20 @@ impl<const K: usize, const PK2_LEN: usize, Vector: Operations> KeyPair<K, PK2_LE
     /// Write this key pair into the `key` bytes.
     ///
     /// `key` must be at least of length `num_bytes()`
+    // The ground `K == 2 || ..` domain (rather than `K <= 4`) lets Z3
+    // case-split K to literals, linearizing the `i * (K * 512)` products
+    // in the matrix-loop invariant.
+    #[requires((K == 2 || K == 3 || K == 4) && PK2_LEN <= 1536
+        && key.len() >= 64 + PK2_LEN + K * 512 + 32 + K * K * 512)]
+    #[ensures(|result| result.is_ok() && future(key).len() == key.len())]
     pub fn to_bytes(&self, key: &mut [u8]) -> Result<(), Error> {
         debug_assert!(key.len() >= Self::num_bytes());
         if key.len() < Self::num_bytes() {
             return Err(Error::InvalidInputLength);
         }
+
+        #[cfg(hax)]
+        let _key_len = key.len();
 
         let mut offset = 0;
 
@@ -406,6 +461,15 @@ impl<const K: usize, const PK2_LEN: usize, Vector: Operations> KeyPair<K, PK2_LE
 
         // Matrix
         for i in 0..self.matrix.len() {
+            // The invariant is stated over mathematical integers (`v ..`)
+            // because the rebound loop index is a bare `usize`, so the
+            // machine-arithmetic form cannot prove overflow-freedom.
+            hax_lib::loop_invariant!(|i: usize| {
+                fstar!(
+                    r#"Seq.length $key == v ${_key_len} /\
+                    v $offset == 64 + v $PK2_LEN + v $K * 512 + 32 + v $i * (v $K * 512)"#
+                )
+            });
             vec_to_bytes(&self.matrix[i], &mut key[offset..]);
             offset += vec_len_bytes::<K, Vector>();
         }
@@ -423,6 +487,12 @@ impl<const K: usize, const PK2_LEN: usize, Vector: Operations> KeyPair<K, PK2_LE
         &self,
         key: &mut [u8; KEY_SIZE],
     ) {
+        // PROOF GAP (admitted): `serialize_vector` requires
+        // `out.len() == ranked_bytes_per_ring_element(K)` exactly, but is
+        // handed the full KEY_SIZE buffer here; it also requires
+        // `is_bounded_polynomial_vector(3328, secret_as_ntt)`, which is not
+        // available from this type.
+        hax_lib::fstar!("admit ()");
         // Write the private key.
         // This is a manual version of serialize_kem_secret_key_mut that skips
         // the hash.
@@ -440,6 +510,9 @@ impl<const K: usize, const PK2_LEN: usize, Vector: Operations> KeyPair<K, PK2_LE
     /// Read a key pair from the `key` bytes.
     ///
     /// `key` must be at least of length `num_bytes()`
+    // Ground K domain for the same reason as in `to_bytes`.
+    #[requires((K == 2 || K == 3 || K == 4) && PK2_LEN <= 1536
+        && key.len() >= 64 + PK2_LEN + K * 512 + 32 + K * K * 512)]
     pub fn from_bytes(key: &[u8]) -> Result<Self, Error> {
         debug_assert!(key.len() >= Self::num_bytes());
         if key.len() < Self::num_bytes() {
@@ -469,6 +542,10 @@ impl<const K: usize, const PK2_LEN: usize, Vector: Operations> KeyPair<K, PK2_LE
         // Matrix
         let mut matrix = [[PolynomialRingElement::<Vector>::ZERO(); K]; K];
         for i in 0..matrix.len() {
+            // Math-integer form for the same reason as in `to_bytes` above.
+            hax_lib::loop_invariant!(|i: usize| {
+                fstar!(r#"v $offset == 64 + v $PK2_LEN + v $K * 512 + 32 + v $i * (v $K * 512)"#)
+            });
             vec_from_bytes(&key[offset..], &mut matrix[i]);
             offset += vec_len_bytes::<K, Vector>();
         }

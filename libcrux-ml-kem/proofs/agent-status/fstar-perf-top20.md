@@ -746,3 +746,33 @@ files.
 - `deserialize_5_` (35 s single query) — by far the heaviest, dominates
   cold time.  Pre-existing; not L7+L8-related.
 - `to_unsigned_representative` (Portable+Avx2): both ~6 s single query.
+
+## Snapshot — 2026-06-03 — full `make all` gate after Ind_cca.Incremental.{Types,} closure (build 0d0e9896, 12.6 min, 0 failures)
+
+Source: fstar-mcp build log. NOTE: incremental rebuild — only the 26 modules
+stale from the Polynomial.fsti ensures change + incremental-subtree
+re-extraction were re-checked (incl. all NTT/bridge modules downstream of
+Polynomial); cached modules don't appear.
+
+| # | Total (s) | Max query (ms) | Queries | Failed | rlimit-sat | Module | Function |
+|---|---|---|---|---|---|---|---|
+| 1 | 224.2 | 113878 | 192 | 1 | 2 | Hacspec_ml_kem.Commute.Ntt_bridge | lemma_intra_vec_per_coeff |
+| 2 | 54.7 | 54650 | 2 | 0 | 0 | Hacspec_ml_kem.Commute.Bridges | lemma_ntt_inverse_layer_unfold |
+| 3 | 45.6 | 176 | 498 | 68 | 0 | Libcrux_ml_kem.Ntt | ntt_at_layer_1_ |
+| 4 | 42.8 | 173 | 545 | 110 | 0 | Libcrux_ml_kem.Invert_ntt | invert_ntt_at_layer_1_ |
+| 5 | 30.5 | 171 | 314 | 12 | 0 | Libcrux_ml_kem.Ntt | ntt_at_layer_4_plus |
+| 6 | 30.3 | 149 | 341 | 41 | 0 | Libcrux_ml_kem.Ntt | ntt_at_layer_2_ |
+| 7 | 29.9 | 212 | 298 | 10 | 0 | Libcrux_ml_kem.Invert_ntt | invert_ntt_at_layer_4_plus |
+| 8 | 22.6 | 129 | 259 | 35 | 0 | Hacspec_ml_kem.Commute.Ntt_bridge | lemma_layer1_to_poly_step |
+| 9 | 21.8 | 126 | 271 | 47 | 0 | Hacspec_ml_kem.Commute.Invert_ntt_bridge | lemma_layer1_to_poly_step |
+| 10 | 20.8 | 154 | 216 | 13 | 0 | Libcrux_ml_kem.Ntt | ntt_at_layer_3_ |
+| 11 | 18.2 | 133 | 194 | 26 | 0 | Hacspec_ml_kem.Commute.Ntt_bridge | lemma_layer2_to_poly_step |
+| 12 | 17.3 | 148 | 174 | 6 | 0 | Libcrux_ml_kem.Ind_cca.Unpacked | decapsulate |
+| 13 | 16.8 | 157 | 197 | 29 | 0 | Hacspec_ml_kem.Commute.Invert_ntt_bridge | lemma_layer2_to_poly_step |
+| 14 | 16.0 | 164 | 159 | 0 | 0 | Libcrux_ml_kem.Invert_ntt | lemma_inner_step_maintains |
+| 15 | 15.5 | 147 | 157 | 0 | 0 | Libcrux_ml_kem.Ntt | lemma_inner_step_maintains_fwd |
+| 16 | 13.2 | 159 | 137 | 7 | 0 | Hacspec_ml_kem.Commute.Ntt_bridge | lemma_layer3_to_poly_step |
+| 17 | 12.4 | 148 | 138 | 8 | 0 | Hacspec_ml_kem.Commute.Invert_ntt_bridge | lemma_layer3_to_poly_step |
+| 18 | 11.4 | 140 | 108 | 0 | 0 | Libcrux_ml_kem.Ind_cpa | encrypt_unpacked |
+| 19 | 11.1 | 156 | 112 | 5 | 0 | Libcrux_ml_kem.Invert_ntt | inv_ntt_layer_int_vec_step_reduce |
+| 20 | 11.1 | 139 | 108 | 1 | 0 | Libcrux_ml_kem.Ind_cpa | encrypt_c1 |

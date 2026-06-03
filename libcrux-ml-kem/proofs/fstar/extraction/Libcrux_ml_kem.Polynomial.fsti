@@ -188,7 +188,11 @@ val to_bytes
       (requires
         (Libcrux_ml_kem.Vector.v_VECTORS_IN_RING_ELEMENT *! mk_usize 32 <: usize) <=.
         (Core_models.Slice.impl__len #u8 out <: usize))
-      (fun _ -> Prims.l_True)
+      (ensures
+        fun out_future ->
+          let out_future:t_Slice u8 = out_future in
+          (Core_models.Slice.impl__len #u8 out_future <: usize) =.
+          (Core_models.Slice.impl__len #u8 out <: usize))
 
 /// Given two polynomial ring elements `lhs` and `rhs`, compute the pointwise
 /// sum of their constituent coefficients.
@@ -432,7 +436,12 @@ val vec_len_bytes:
     #v_Vector: Type0 ->
     {| i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector |} ->
     Prims.unit
-  -> Prims.Pure usize (requires v_K <=. mk_usize 4) (fun _ -> Prims.l_True)
+  -> Prims.Pure usize
+      (requires v_K <=. mk_usize 4)
+      (ensures
+        fun result ->
+          let result:usize = result in
+          result =. (v_K *! mk_usize 512 <: usize))
 
 val impl__from_i16_array
       (#v_Vector: Type0)
@@ -510,7 +519,11 @@ val impl__to_bytes
           <:
           usize) <=.
         (Core_models.Slice.impl__len #u8 out <: usize))
-      (fun _ -> Prims.l_True)
+      (ensures
+        fun out_future ->
+          let out_future:t_Slice u8 = out_future in
+          (Core_models.Slice.impl__len #u8 out_future <: usize) =.
+          (Core_models.Slice.impl__len #u8 out <: usize))
 
 /// Get the bytes of the vector of ring elements in `re` and write them to `out`.
 val vec_to_bytes
@@ -531,7 +544,11 @@ val vec_to_bytes
           <:
           usize) <=.
         (Core_models.Slice.impl__len #u8 out <: usize))
-      (fun _ -> Prims.l_True)
+      (ensures
+        fun out_future ->
+          let out_future:t_Slice u8 = out_future in
+          (Core_models.Slice.impl__len #u8 out_future <: usize) =.
+          (Core_models.Slice.impl__len #u8 out <: usize))
 
 /// Given two polynomial ring elements `lhs` and `rhs`, compute the pointwise
 /// sum of their constituent coefficients.

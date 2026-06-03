@@ -601,6 +601,17 @@ def write_status_md(rows, crate_name, output_path,
     if bucket:
         grouped.append((current_cat, bucket))
 
+    # Preserve hand-maintained sections (everything from the marker line on)
+    # across regenerations.
+    MANUAL_MARKER = "<!-- manual-sections-below -->"
+    manual_tail = ""
+    if os.path.exists(output_path):
+        with open(output_path) as f:
+            prev = f.read()
+        idx = prev.find(MANUAL_MARKER)
+        if idx != -1:
+            manual_tail = prev[idx:]
+
     with open(output_path, 'w') as f:
         f.write(PREAMBLE.format(crate=crate_name))
         # Columns: Category | File | Mods | Fns | Lax | Unv | PF | Math | Bounds | Hacspec
@@ -693,6 +704,9 @@ def write_status_md(rows, crate_name, output_path,
             for module_label, sites in body_admit_sites_by_module:
                 for line in sites:
                     f.write(f"| {module_label:<25} | {line:>5} |\n")
+
+        if manual_tail:
+            f.write("\n" + manual_tail)
 
 
 # ============================================================================
