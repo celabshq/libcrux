@@ -458,14 +458,18 @@ pub(crate) fn encapsulate2<
     Ciphertext2 { value: ciphertext }
 }
 
-// PROOF GAP (lax): the state bytes are decoded with the raw 16-bit decoder
-// (`EncapsState::from_bytes`), which yields arbitrary i16 coefficients, but
-// `encapsulate2`/`encrypt_c2` require `is_bounded_polynomial_vector(3328, ..)`.
-// Panic-freedom (in the F* machine-int sense) is genuinely false for
-// adversarial state bytes; see the findings section of
-// proofs/ml_kem_verification_status.md.
-#[hax_lib::fstar::verification_status(lax)]
+/// Encapsulate the second part of the ciphertext from a serialized state.
+///
+/// The state bytes are validated on decode: [`Error::InvalidInput`] is
+/// returned if any decoded coefficient is out of field range.
 #[inline(always)]
+#[hax_lib::requires(
+    hacspec_ml_kem::parameters::is_rank(K)
+    && PK2_LEN == hacspec_ml_kem::parameters::cpa_private_key_size(K)
+    && C2_SIZE == hacspec_ml_kem::parameters::c2_size(K)
+    && VECTOR_V_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_v_compression_factor(K)
+    && STATE_LEN >= K * 512 + 512 + 32
+)]
 pub(crate) fn encapsulate2_serialized<
     const K: usize,
     const PK2_LEN: usize,
@@ -476,13 +480,16 @@ pub(crate) fn encapsulate2_serialized<
 >(
     state: &[u8; STATE_LEN],
     public_key_part: &PublicKey2<PK2_LEN>,
-) -> Ciphertext2<C2_SIZE> {
-    let state = EncapsState::from_bytes(state);
+) -> Result<Ciphertext2<C2_SIZE>, Error> {
+    let state = EncapsState::try_from_bytes(state)?;
 
-    encapsulate2::<K, PK2_LEN, C2_SIZE, VECTOR_V_COMPRESSION_FACTOR, Vector>(
-        &state,
-        public_key_part,
-    )
+    Ok(encapsulate2::<
+        K,
+        PK2_LEN,
+        C2_SIZE,
+        VECTOR_V_COMPRESSION_FACTOR,
+        Vector,
+    >(&state, public_key_part))
 }
 
 #[inline(always)]
@@ -554,14 +561,28 @@ pub(crate) fn decapsulate<
     >(private_key, &ciphertext.into())
 }
 
-// PROOF GAP (lax): the key bytes are decoded with the raw 16-bit decoder
-// (`KeyPair::from_bytes`), which yields arbitrary i16 coefficients, but
-// `ind_cca::unpacked::decapsulate` requires bounded(3328) secret/matrix/t.
-// Panic-freedom (in the F* machine-int sense) is genuinely false for
-// adversarial key bytes; see the findings section of
-// proofs/ml_kem_verification_status.md.
-#[hax_lib::fstar::verification_status(lax)]
+/// Decapsulate with a serialized incremental key pair.
+///
+/// The key bytes are validated on decode: [`Error::InvalidInput`] is
+/// returned if any decoded coefficient is out of field range.
 #[inline(always)]
+#[hax_lib::requires(
+    hacspec_ml_kem::parameters::is_rank(K)
+    && PK2_LEN == hacspec_ml_kem::parameters::cpa_private_key_size(K)
+    && ETA1 == hacspec_ml_kem::parameters::eta1(K)
+    && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
+    && ETA2 == hacspec_ml_kem::parameters::eta2(K)
+    && ETA2_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta2_randomness_size(K)
+    && C1_SIZE == hacspec_ml_kem::parameters::c1_size(K)
+    && C2_SIZE == hacspec_ml_kem::parameters::c2_size(K)
+    && VECTOR_U_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_u_compression_factor(K)
+    && VECTOR_V_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_v_compression_factor(K)
+    && C1_BLOCK_SIZE == hacspec_ml_kem::parameters::c1_block_size(K)
+    && CIPHERTEXT_SIZE == hacspec_ml_kem::parameters::cpa_ciphertext_size(K)
+    && IMPLICIT_REJECTION_HASH_INPUT_SIZE
+        == hacspec_ml_kem::parameters::implicit_rejection_hash_input_size(K)
+    && key.len() >= 64 + PK2_LEN + K * 512 + 32 + K * K * 512
+)]
 pub(crate) fn decapsulate_incremental_key<
     const K: usize,
     const PK2_LEN: usize,
@@ -589,6 +610,7 @@ pub(crate) fn decapsulate_incremental_key<
 ) -> Result<MlKemSharedSecret, Error> {
     // Build an unpacked key pair from the input bytes.
     let key_pair: KeyPair<K, PK2_LEN, Vector> = KeyPair::from_bytes(key)?;
+    let key_pair = key_pair.into_unpacked();
 
     let mut ciphertext = [0u8; CIPHERTEXT_SIZE];
     ciphertext[..C1_SIZE].copy_from_slice(&ciphertext1.value);
@@ -613,7 +635,7 @@ pub(crate) fn decapsulate_incremental_key<
         IMPLICIT_REJECTION_HASH_INPUT_SIZE,
         Vector,
         Hasher,
-    >(&key_pair.into(), &ciphertext.into()))
+    >(&key_pair, &ciphertext.into()))
 }
 
 #[inline(always)]

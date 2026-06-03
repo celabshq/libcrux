@@ -194,7 +194,7 @@ macro_rules! impl_consistency_incremental {
                 debug_assert_eq!(ct2.value.len(), Ciphertext2::len());
 
                 // encaps2 with serialized state
-                let ct22 = encapsulate2(&serialized_state, &pk2_bytes);
+                let ct22 = encapsulate2(&serialized_state, &pk2_bytes).unwrap();
                 assert_eq!(ct2.value, ct22.value);
 
                 assert_eq!(dyn_ss, shared_secret_serialized);

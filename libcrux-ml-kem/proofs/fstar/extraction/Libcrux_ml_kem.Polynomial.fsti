@@ -194,6 +194,72 @@ val to_bytes
           (Core_models.Slice.impl__len #u8 out_future <: usize) =.
           (Core_models.Slice.impl__len #u8 out <: usize))
 
+/// Runtime check that every lane of `vec` lies in
+/// `[-(FIELD_MODULUS - 1), FIELD_MODULUS - 1]` = `[-3328, 3328]`.
+/// Used to validate raw-decoded (16-bit) serialization inputs before they
+/// flow into field arithmetic.
+val vector_within_field_bound
+      (#v_Vector: Type0)
+      {| i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector |}
+      (vec: v_Vector)
+    : Prims.Pure bool
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:bool = result in
+          b2t result ==>
+          Libcrux_ml_kem.Polynomial.Spec.is_bounded_vector #v_Vector (mk_usize 3328) vec)
+
+/// Runtime check that every coefficient of `re` lies in
+/// `[-(FIELD_MODULUS - 1), FIELD_MODULUS - 1]`.
+val poly_within_field_bound
+      (#v_Vector: Type0)
+      {| i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector |}
+      (re: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
+    : Prims.Pure bool
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:bool = result in
+          b2t result ==> Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector (mk_usize 3328) re
+      )
+
+/// Runtime check that every coefficient of every ring element in `v` lies
+/// in `[-(FIELD_MODULUS - 1), FIELD_MODULUS - 1]`.
+val polyvec_within_field_bound
+      (v_N: usize)
+      (#v_Vector: Type0)
+      {| i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector |}
+      (v: t_Array (Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector) v_N)
+    : Prims.Pure bool
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:bool = result in
+          b2t result ==>
+          Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector v_N
+            #v_Vector
+            (mk_usize 3328)
+            v)
+
+/// Runtime check that every coefficient of every ring element in `m` lies
+/// in `[-(FIELD_MODULUS - 1), FIELD_MODULUS - 1]`.
+val matrix_within_field_bound
+      (v_N: usize)
+      (#v_Vector: Type0)
+      {| i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector |}
+      (m: t_Array (t_Array (Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector) v_N) v_N)
+    : Prims.Pure bool
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:bool = result in
+          b2t result ==>
+          Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_matrix v_N
+            #v_Vector
+            (mk_usize 3328)
+            m)
+
 /// Given two polynomial ring elements `lhs` and `rhs`, compute the pointwise
 /// sum of their constituent coefficients.
 val add_to_ring_element

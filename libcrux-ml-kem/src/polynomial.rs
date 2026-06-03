@@ -1,6 +1,6 @@
 pub(crate) use crate::vector::{
-    Operations, PolynomialRingElement, MONTGOMERY_R_SQUARED_MOD_FIELD_MODULUS,
-    VECTORS_IN_RING_ELEMENT,
+    Operations, PolynomialRingElement, FIELD_MODULUS,
+    MONTGOMERY_R_SQUARED_MOD_FIELD_MODULUS, VECTORS_IN_RING_ELEMENT,
 };
 
 #[cfg(hax)]
@@ -436,6 +436,132 @@ pub(crate) fn vec_from_bytes<Vector: Operations>(
 #[allow(dead_code)]
 pub(crate) const fn vec_len_bytes<const K: usize, Vector: Operations>() -> usize {
     K * PolynomialRingElement::<Vector>::num_bytes()
+}
+
+/// Runtime check that every lane of `vec` lies in
+/// `[-(FIELD_MODULUS - 1), FIELD_MODULUS - 1]` = `[-3328, 3328]`.
+///
+/// Used to validate raw-decoded (16-bit) serialization inputs before they
+/// flow into field arithmetic.
+#[inline(always)]
+#[allow(dead_code)]
+#[hax_lib::ensures(|result| hax_lib::implies(result, spec::is_bounded_vector(3328, vec)))]
+fn vector_within_field_bound<Vector: Operations>(vec: &Vector) -> bool {
+    let arr = Vector::to_i16_array(*vec);
+    // Ground per-lane conjunction (no loop) so the per-lane facts are
+    // directly available to fold into the opaque bound atom below.
+    let ok = arr[0] > -FIELD_MODULUS && arr[0] < FIELD_MODULUS
+        && arr[1] > -FIELD_MODULUS && arr[1] < FIELD_MODULUS
+        && arr[2] > -FIELD_MODULUS && arr[2] < FIELD_MODULUS
+        && arr[3] > -FIELD_MODULUS && arr[3] < FIELD_MODULUS
+        && arr[4] > -FIELD_MODULUS && arr[4] < FIELD_MODULUS
+        && arr[5] > -FIELD_MODULUS && arr[5] < FIELD_MODULUS
+        && arr[6] > -FIELD_MODULUS && arr[6] < FIELD_MODULUS
+        && arr[7] > -FIELD_MODULUS && arr[7] < FIELD_MODULUS
+        && arr[8] > -FIELD_MODULUS && arr[8] < FIELD_MODULUS
+        && arr[9] > -FIELD_MODULUS && arr[9] < FIELD_MODULUS
+        && arr[10] > -FIELD_MODULUS && arr[10] < FIELD_MODULUS
+        && arr[11] > -FIELD_MODULUS && arr[11] < FIELD_MODULUS
+        && arr[12] > -FIELD_MODULUS && arr[12] < FIELD_MODULUS
+        && arr[13] > -FIELD_MODULUS && arr[13] < FIELD_MODULUS
+        && arr[14] > -FIELD_MODULUS && arr[14] < FIELD_MODULUS
+        && arr[15] > -FIELD_MODULUS && arr[15] < FIELD_MODULUS;
+    // Fold the 16 ground lane bounds into the opaque
+    // `is_i16b_array_opaque` atom behind `spec::is_bounded_vector`.
+    hax_lib::fstar!(
+        r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
+            (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)"#
+    );
+    ok
+}
+
+/// Runtime check that every coefficient of `re` lies in
+/// `[-(FIELD_MODULUS - 1), FIELD_MODULUS - 1]`.
+#[inline(always)]
+#[allow(dead_code)]
+#[hax_lib::ensures(|result| hax_lib::implies(result, spec::is_bounded_poly(3328, re)))]
+pub(crate) fn poly_within_field_bound<Vector: Operations>(
+    re: &PolynomialRingElement<Vector>,
+) -> bool {
+    let mut ok = true;
+    for i in 0..VECTORS_IN_RING_ELEMENT {
+        hax_lib::loop_invariant!(|i: usize| {
+            hax_lib::implies(
+                ok,
+                hax_lib::forall(|ii: usize| {
+                    hax_lib::implies(
+                        ii < 16 && ii < i,
+                        spec::is_bounded_vector(3328, &re.coefficients[ii]),
+                    )
+                }),
+            )
+        });
+        ok = ok && vector_within_field_bound(&re.coefficients[i]);
+    }
+    ok
+}
+
+/// Runtime check that every coefficient of every ring element in `v` lies
+/// in `[-(FIELD_MODULUS - 1), FIELD_MODULUS - 1]`.
+#[inline(always)]
+#[allow(dead_code)]
+#[hax_lib::ensures(|result|
+    hax_lib::implies(result, spec::is_bounded_polynomial_vector(3328, v)))]
+pub(crate) fn polyvec_within_field_bound<const N: usize, Vector: Operations>(
+    v: &[PolynomialRingElement<Vector>; N],
+) -> bool {
+    let mut ok = true;
+    for i in 0..N {
+        hax_lib::loop_invariant!(|i: usize| {
+            hax_lib::implies(
+                ok,
+                hax_lib::forall(|ii: usize| {
+                    hax_lib::implies(ii < N && ii < i, spec::is_bounded_poly(3328, &v[ii]))
+                }),
+            )
+        });
+        ok = ok && poly_within_field_bound(&v[i]);
+    }
+    // Fold the per-element bounds into the opaque
+    // `is_bounded_polynomial_vector` atom.
+    #[cfg(hax)]
+    if ok {
+        spec::lemma_is_bounded_polynomial_vector_intro(v, 3328);
+    }
+    ok
+}
+
+/// Runtime check that every coefficient of every ring element in `m` lies
+/// in `[-(FIELD_MODULUS - 1), FIELD_MODULUS - 1]`.
+#[inline(always)]
+#[allow(dead_code)]
+#[hax_lib::ensures(|result|
+    hax_lib::implies(result, spec::is_bounded_polynomial_matrix(3328, m)))]
+pub(crate) fn matrix_within_field_bound<const N: usize, Vector: Operations>(
+    m: &[[PolynomialRingElement<Vector>; N]; N],
+) -> bool {
+    let mut ok = true;
+    for i in 0..N {
+        hax_lib::loop_invariant!(|i: usize| {
+            hax_lib::implies(
+                ok,
+                hax_lib::forall(|ii: usize| {
+                    hax_lib::implies(
+                        ii < N && ii < i,
+                        spec::is_bounded_polynomial_vector(3328, &m[ii]),
+                    )
+                }),
+            )
+        });
+        ok = ok && polyvec_within_field_bound(&m[i]);
+    }
+    // Fold the per-row atoms into the opaque
+    // `is_bounded_polynomial_matrix` atom.
+    #[cfg(hax)]
+    if ok {
+        spec::lemma_is_bounded_polynomial_matrix_intro(m, 3328);
+    }
+    ok
 }
 
 /// Given two polynomial ring elements `lhs` and `rhs`, compute the pointwise

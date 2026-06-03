@@ -17,12 +17,13 @@ ADMIT_MODULES = Libcrux_ml_kem.Vector.Neon.Arithmetic.fst \
 # (write/vec_len_bytes/vec_to_bytes len-preservation), KeyPair/EncapsState
 # methods, and an is_rank/ETA/size-relation requires-cascade through
 # {generic, platform, multiplexing, mlkem.rs concrete} layers.
-# Function-scoped PROOF GAPS remain (admit()/lax in the Rust source, see
+# Function-scoped PROOF GAPS remain (admit() in the Rust source, see
 # proofs/ml_kem_verification_status.md "Findings"): the 2 From-instance
 # bodies + to_bytes_compressed (hax core-trait pres are forced trivial /
-# serialize_vector exact-length contract) and encapsulate2_serialized +
-# decapsulate_incremental_key (raw 16-bit decode gives no 3328 bounds —
-# genuinely not panic-free for adversarial bytes).
+# serialize_vector exact-length contract).  encapsulate2_serialized +
+# decapsulate_incremental_key are now FULLY VERIFIED via validate-on-decode
+# (coefficient bounds checked in EncapsState::try_from_bytes /
+# KeyPair::from_bytes, Error::InvalidInput on failure).
 #
 # The .Alloc and .Incremental.Rand submodules are deleted post-extraction by
 # hax.py (they use `Box<dyn Keys>` and `try_fill_bytes` which lack F* models).

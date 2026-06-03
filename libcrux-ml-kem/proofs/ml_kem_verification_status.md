@@ -34,8 +34,8 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 |            | ind_cca           |    1 |  27 |   0 |     |  23 |    1 |      0 |       3 |
 |            | instantiations    |    2 |  40 |   0 |     |  40 |    0 |      0 |       0 |
 |            | multiplexing      |    2 |  20 |   0 |     |  18 |    2 |      0 |       0 |
-|            | incremental       |    2 |  45 |   5 |     |  26 |   12 |      2 |       0 |
-|            | polynomial        |    1 |  54 |   0 |     |  23 |    6 |     21 |       4 |
+|            | incremental       |    2 |  45 |   3 |     |  26 |   11 |      5 |       0 |
+|            | polynomial        |    1 |  58 |   0 |     |  23 |    6 |     25 |       4 |
 |            | invert_ntt        |    1 |   7 |   0 |     |   1 |    0 |      1 |       5 |
 |            | ntt               |    1 |  12 |   0 |     |   4 |    0 |      3 |       5 |
 |            | mlkem*            |    4 | 134 |   0 |     | 131 |    3 |      0 |       0 |
@@ -45,7 +45,7 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 |            | vector (top)      |    1 |   3 |   0 |     |   3 |    0 |      0 |       0 |
 |            | vector/traits     |    1 | 111 |   0 |     |  73 |   36 |      0 |       2 |
 |            | rej_sample_table  |    1 |   0 |   0 |     |   0 |    0 |      0 |       0 |
-|            | **Generic total** | **29** | **631** | **7** | **19** | **442** | **80** | **34** |  **49** |
+|            | **Generic total** | **29** | **635** | **5** | **19** | **442** | **79** | **41** |  **49** |
 |            |                   |      |     |     |     |     |      |        |         |
 | _Portable_ | arithmetic        |    1 |  13 |   0 |     |   6 |    7 |      0 |       0 |
 |            | ntt               |    1 |  10 |   0 |     |   0 |    0 |     10 |       0 |
@@ -76,20 +76,20 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 ## Summary
 
 - **Total modules**: 49
-- **Total functions**: 956
-- **Lax** (admitted): 90 (9.4%)
+- **Total functions**: 960
+- **Lax** (admitted): 88 (9.2%)
 - **Unverified** (not extracted): 20 (2.1%)
-- **Panic-safe** (PF + Math + Bounds + Hacspec): 846 (88.5%)
-  - Panic-free only (no further proof): 499 (52.2%)
-  - Math (non-trivial ensures, no bounds/spec match): 195 (20.4%)
-  - Bounds (range/interval ensures): 51 (5.3%)
-  - Hacspec (cites high-level spec): 101 (10.6%)
+- **Panic-safe** (PF + Math + Bounds + Hacspec): 852 (88.8%)
+  - Panic-free only (no further proof): 499 (52.0%)
+  - Math (non-trivial ensures, no bounds/spec match): 194 (20.2%)
+  - Bounds (range/interval ensures): 58 (6.0%)
+  - Hacspec (cites high-level spec): 101 (10.5%)
 
 ### Modules per category
 
 | Category     | Modules |  Fns | Lax | Unv |  PF | Math | Bounds | Hacspec |
 | ------------ | ------- | ---- | --- | --- | --- | ---- | ------ | ------- |
-| Generic      |      29 |  631 |   7 |  19 | 442 |   80 |     34 |      49 |
+| Generic      |      29 |  635 |   5 |  19 | 442 |   79 |     41 |      49 |
 | Portable     |       7 |  121 |   0 |   0 |  36 |   48 |     10 |      27 |
 | Avx2         |       6 |  121 |   1 |   0 |  21 |   67 |      7 |      25 |
 | Neon         |       7 |   83 |  82 |   1 |   0 |    0 |      0 |       0 |
@@ -110,56 +110,62 @@ Functions classified as lax due to `admit ()` (or `--admit_smt_queries true`) in
 
 | Module                    |  Line |
 | ------------------------- | ----- |
-| Generic/incremental       |   289 |
-| Generic/incremental       |   352 |
-| Generic/incremental       |   486 |
+| Generic/incremental       |   302 |
+| Generic/incremental       |   365 |
+| Generic/incremental       |   488 |
 
 <!-- manual-sections-below -->
 
 ## Findings (code-level, for the libcrux team)
 
-### Incremental raw-byte formats skip input validation (2026-06-03)
+### Incremental raw-byte formats skip input validation (2026-06-03; FIXED 2026-06-03)
 
 The incremental API's *uncompressed* serialization formats
 (`EncapsState::{to,from}_bytes`, `KeyPair::{to,from}_bytes` in
 `src/ind_cca/incremental/types.rs`) store ring-element coefficients as raw
 16-bit values (`polynomial::vec_{to,from}_bytes`). On deserialization the
-coefficients are **not validated**: arbitrary input bytes decode to arbitrary
-`i16` coefficients, which then flow into Montgomery/NTT arithmetic that is
-only overflow-safe for coefficients bounded by 3328
+coefficients were **not validated**: arbitrary input bytes decode to
+arbitrary `i16` coefficients, which then flow into Montgomery/NTT arithmetic
+that is only overflow-safe for coefficients bounded by 3328
 (`encrypt_c2` and `ind_cca::unpacked::decapsulate` require
 `is_bounded_polynomial_vector(3328, ..)`).
 
-Consequences:
+**Resolution (validate-on-decode, per Karthik):**
 
-- `encapsulate2_serialized` and `decapsulate_incremental_key` are **not
-  panic-free in the F\* machine-integer sense** for adversarial `state`/key
-  bytes (debug builds: potential arithmetic-overflow panics; release builds:
-  wrapping arithmetic and garbage results, plus loss of the verified bound
-  invariants). They are marked
-  `#[hax_lib::fstar::verification_status(lax)]` with PROOF GAP comments and
-  cannot be closed without either (a) validating/clamping coefficients on
-  deserialization, or (b) documenting the byte formats as trusted
-  (integrity-protected) inputs.
+- `EncapsState::try_from_bytes` and `KeyPair::from_bytes` now bounds-check
+  every decoded coefficient (`[-3328, 3328]`) and return the new
+  `Error::InvalidInput` on failure (runtime checkers + check-to-spec bridge
+  proofs in `polynomial.rs`: `{vector,poly,polyvec,matrix}_within_field_bound`).
+- `encapsulate2_serialized` (and the `encapsulate2` chain up to the public
+  API) now returns `Result<Ciphertext2, Error>`; `EncapsState::from_bytes`
+  (the unwrapping variant) was removed. **C/eurydice bindings need
+  regeneration.**
+- `decapsulate_incremental_key` routes through the new annotated
+  `KeyPair::into_unpacked` (the `From` instance delegates to it) so the
+  validated bounds reach `unpacked::decapsulate`.
+- Both functions are now **fully verified** (lax markers removed).
 - The *compressed* format (`to_bytes_compressed`, 12-bit encoding via
   `serialize_vector`/`deserialize_vector`) is bounded by construction and
-  does not have this gap.
-- Additionally, `debug_assert!`s that precede the length guards in
+  never had this gap.
+
+Still open from the original finding:
+
+- `debug_assert!`s that precede the length guards in
   `pk1_bytes`/`to_bytes`/`try_from_bytes` panic (debug builds) on short
   buffers *before* the guard can return `Err`, so the documented
   "returns an error" behaviour only holds in release builds. The F\* specs
-  now carry the corresponding `requires` instead of `Err`-conditions.
+  carry the corresponding `requires` instead of `Err`-conditions.
 
 ### hax limitations hit by the incremental proofs (2026-06-03)
 
-- Trait-impl methods cannot carry `#[requires]`/`#[ensures]`
-  (`const _` injection fails; instance preconditions for `Core_models`
-  traits like `From` are forced trivial by `pred: Type0{true ==> pred}`).
-  The three affected instance bodies
-  (`IncrementalKeyPair::pk2_bytes for MlKemKeyPairUnpacked`,
-  `From<&MlKemPublicKeyUnpacked> for PublicKey2`,
-  `From<KeyPair> for MlKemKeyPairUnpacked`) carry `fstar!("admit ()")`
-  with PROOF GAP comments.
+- Instance preconditions for `Core_models` traits like `From` are forced
+  trivial by `pred: Type0{true ==> pred}` (own traits CAN carry pre/post on
+  impls via `#[hax_lib::attributes]` on the impl block). The two affected
+  instance bodies (`From<&MlKemPublicKeyUnpacked> for PublicKey2`,
+  `From<KeyPair> for MlKemKeyPairUnpacked` — the latter now a thin
+  delegation to the annotated `KeyPair::into_unpacked`) carry
+  `fstar!("admit ()")` with PROOF GAP comments. Relaxing the refinement in
+  hax's `Core_models.Convert` would let these close properly.
 - `KeyPair::to_bytes_compressed` hands the full `KEY_SIZE` buffer to
   `serialize_vector`, whose contract demands an exactly-sized output slice;
   closing it needs a prefix-form `serialize_vector` contract (admitted for

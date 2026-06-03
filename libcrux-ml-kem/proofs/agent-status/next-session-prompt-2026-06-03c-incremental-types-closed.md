@@ -48,16 +48,44 @@ express it:
 - Trait impls take `#[hax_lib::attributes]` + bare requires/ensures fine;
   `verification_status(lax)` does NOT work there (use body admit()).
 
+## UPDATE (same session, later): validate-on-decode LANDED (Karthik: "let's do A")
+
+B5/B6 are CLOSED — encapsulate2_serialized + decapsulate_incremental_key
+are fully verified. Mechanism:
+- polynomial.rs: runtime checkers {vector,poly,polyvec,matrix}
+  _within_field_bound with check-to-spec bridge ensures (ground 16-lane
+  conjunction + targeted reveal_opaque of is_i16b_array_opaque at the leaf;
+  forall-accumulating loop invariants above; intro-lemma folds into the
+  opaque atoms). All verified at default rlimit 80, first try.
+- types.rs: Error::InvalidInput variant; validation in
+  EncapsState::try_from_bytes + KeyPair::from_bytes (conditional Ok-ensures
+  carrying the bounds); EncapsState::from_bytes (unwrap variant) REMOVED;
+  new annotated KeyPair::into_unpacked (From instance delegates, its admit
+  stays — Core_models From-pre still forced trivial).
+- incremental.rs: both fns un-laxed; encapsulate2_serialized returns
+  Result now (chain: platform macro -> multiplexing -> concrete public API
+  returns Result<Ciphertext2, Error>) — **C/eurydice bindings need
+  regeneration**; decapsulate_incremental_key routes via into_unpacked.
+- tests/self.rs: encapsulate2(...).unwrap() — all 21 self-tests + 6 KATs
+  pass (round-trip of honest data unaffected by validation).
+- Crate: Lax 90 -> 88 (9.2%); incremental row at its 3 structural admits
+  (From x2 + to_bytes_compressed).
+- fstar-proxy wedged twice mid-session (tool calls not reaching its log);
+  direct `make -j2` fallback used once, logged to /tmp. Events use UTC —
+  don't compare against local-time `date` naively.
+
 ## Remaining tasks (priority order)
 
-1. **Findings follow-ups** (needs Karthik/team decision): validate-or-clamp
-   on raw-byte deserialization would close B5/B6 lax fns + enable
-   decapsulate_incremental_key contract; prefix-form serialize_vector
-   contract would close to_bytes_compressed.
-2. **pqcp.rs (16 fns) + lib.rs (3 fns)**: still SHELVED per Karthik
+1. **to_bytes_compressed admit**: needs prefix-form serialize_vector
+   contract (out.len() >= ranked + prefix ensures) — cascades into verified
+   ind_cpa/Serialize consumers; do as its own sprint.
+2. **From-instance admits (2)**: upstream hax fix — relax
+   `pred:Type0{true ==> pred}` in Core_models.Convert to allow nontrivial
+   instance pres; propose to hax team.
+3. **pqcp.rs (16 fns) + lib.rs (3 fns)**: still SHELVED per Karthik
    2026-06-03. Flip plan in the 2026-06-03b prompt (traits crate extraction
    stanza + un-exclude impl_kem_trait! + pqcp feature).
-3. Neon backend (82 lax) remains the biggest lax bucket (out of scope for
+4. Neon backend (82 lax) remains the biggest lax bucket (out of scope for
    portable+AVX2 mandate).
 
 ## Environment notes
