@@ -1,4 +1,68 @@
 files:
+  # INTRINSICS
+
+  - name: libcrux_intrinsics_neon
+    library: true
+    inline_static: true
+    api:
+      - [libcrux_intrinsics, arm64]
+
+  - name: libcrux_intrinsics_avx2
+    library: true
+    inline_static: true
+    api:
+      - [libcrux_intrinsics, avx2]
+
+  # SHA3 (no mention of libcrux_mlkem in this section, please)
+
+  # Keep the per-target seperation idea: each SHA3 variant in its own file
+  - name: libcrux_sha3_neon
+    api:
+      - [libcrux_sha3, neon, "*"]
+    private:
+      # When patterns is the only key of private, it is optional, and one may
+      # just specify a list of patterns that are understood to match patterns
+      # (not monomorphizations)
+      patterns:
+        - [libcrux_sha3, neon, "*"]
+        - [libcrux_sha3, simd, arm64, "*"]
+        - [libcrux_sha3, generic_keccak, simd128, "*"]
+      monomorphizations_of:
+        - [libcrux_sha3, neon, "*"]
+        - [libcrux_sha3, simd, arm64, "*"]
+        - [libcrux_sha3, generic_keccak, simd128, "*"]
+      monomorphizations_using:
+        - [libcrux_sha3, neon, "*"]
+        - [libcrux_sha3, simd, arm64, "*"]
+        - [libcrux_sha3, generic_keccak, simd128, "*"]
+      monomorphizations_exact:
+        - [libcrux_sha3, generic_keccak, "KeccakState_fc"]
+    include_in_h:
+      - '"intrinsics/libcrux_intrinsics_arm64.h"'
+
+  - name: libcrux_sha3_avx2
+    api:
+      - [libcrux_sha3, avx2, "*"]
+    private:
+      patterns:
+        - [libcrux_sha3, avx2, "*"]
+        - [libcrux_sha3, simd, avx2, "*"]
+        - [libcrux_sha3, generic_keccak, simd256, "*"]
+      monomorphizations_of:
+        - [libcrux_sha3, avx2, "*"]
+        - [libcrux_sha3, simd, avx2, "*"]
+        - [libcrux_sha3, generic_keccak, simd256, "*"]
+      monomorphizations_using:
+        - [libcrux_sha3, avx2, "*"]
+        - [libcrux_sha3, simd, avx2, "*"]
+        - [libcrux_sha3, generic_keccak, simd256, "*"]
+      monomorphizations_exact:
+        - [libcrux_sha3, generic_keccak, KeccakState_7d]
+        - [Eurydice, arr_c40]
+        - [Eurydice, arr_50]
+    include_in_h:
+      - '"intrinsics/libcrux_intrinsics_avx2.h"'
+
   # Portable SHA3
   - name: libcrux_sha3_portable
     api:
@@ -62,11 +126,37 @@ files:
         - [libcrux_sha3, "*"]
       monomorphizations_using:
         - [libcrux_sha3, "*"]
-      monomorphizations_exact:
-        - [Eurydice, arr_60]
     inline_static: true
 
   # MLKEM: HASH FUNCTIONS (as used by mlkem)
+
+  - name: libcrux_mlkem_neon
+    api:
+      - [libcrux_ml_kem, vector, neon, "*"]
+      - [libcrux_ml_kem, hash_functions, neon, "*"]
+    private:
+      monomorphizations_using:
+        - [libcrux_ml_kem, vector, neon, "*"]
+        - [libcrux_ml_kem, hash_functions, neon, "*"]
+      monomorphizations_of:
+        - [libcrux_ml_kem, vector, neon, "*"]
+        - [libcrux_ml_kem, hash_functions, neon, "*"]
+    include_in_h:
+      - '"intrinsics/libcrux_intrinsics_arm64.h"'
+
+  - name: libcrux_mlkem_avx2
+    api:
+      - [libcrux_ml_kem, vector, avx2, "*"]
+      - [libcrux_ml_kem, hash_functions, avx2, "*"]
+    private:
+      monomorphizations_using:
+        - [libcrux_ml_kem, vector, avx2, "*"]
+        - [libcrux_ml_kem, hash_functions, avx2, "*"]
+      monomorphizations_of:
+        - [libcrux_ml_kem, vector, avx2, "*"]
+        - [libcrux_ml_kem, hash_functions, avx2, "*"]
+    include_in_h:
+      - '"intrinsics/libcrux_intrinsics_avx2.h"'
 
   # This covers slightly more than the two bundles above, but this greatly
   # simplifies our lives.
@@ -106,12 +196,47 @@ files:
         - [ libcrux_ml_kem, constants ]
         - [ libcrux_ml_kem, constant_time_ops, "*"]
         - [ libcrux_ml_kem, utils, "*" ]
-      monomorphizations_exact:
-        - [Eurydice, arr_e2]
     api:
       - [Eurydice, "*"]
 
+  # MLKEM-512
+
+  - name: libcrux_mlkem512_avx2
+    api:
+      - [libcrux_ml_kem, mlkem512, avx2]
+    internal:
+      - [libcrux_ml_kem, mlkem512, avx2, unpacked]
+
+  - name: libcrux_mlkem512_neon
+    api:
+      - [libcrux_ml_kem, mlkem512, neon]
+    internal:
+      - [libcrux_ml_kem, mlkem512, neon, unpacked]
+
+  - name: libcrux_mlkem512_portable
+    api:
+      - [libcrux_ml_kem, mlkem512, portable]
+    internal:
+      - [libcrux_ml_kem, mlkem512, portable, unpacked]
+
+  # This one contains common definitions like types, etc.
+  - name: libcrux_mlkem512
+    api:
+      - [libcrux_ml_kem, mlkem512]
+
   # MLKEM-768
+
+  - name: libcrux_mlkem768_avx2
+    api:
+      - [libcrux_ml_kem, mlkem768, avx2]
+    internal:
+      - [libcrux_ml_kem, mlkem768, avx2, unpacked]
+
+  - name: libcrux_mlkem768_neon
+    api:
+      - [libcrux_ml_kem, mlkem768, neon]
+    internal:
+      - [libcrux_ml_kem, mlkem768, neon, unpacked]
 
   - name: libcrux_mlkem768_portable
     api:
@@ -125,6 +250,18 @@ files:
       - [libcrux_ml_kem, mlkem768]
 
   # MLKEM-1024
+
+  - name: libcrux_mlkem1024_avx2
+    api:
+      - [libcrux_ml_kem, mlkem1024, avx2]
+    internal:
+      - [libcrux_ml_kem, mlkem1024, avx2, unpacked]
+
+  - name: libcrux_mlkem1024_neon
+    api:
+      - [libcrux_ml_kem, mlkem1024, neon]
+    internal:
+      - [libcrux_ml_kem, mlkem1024, neon, unpacked]
 
   - name: libcrux_mlkem1024_portable
     api:
@@ -147,5 +284,7 @@ files:
 
 naming:
   skip_prefix:
+    - [ core, core_arch, arm_shared, neon ]
     - [ core, core_arch, x86 ]
     - [libcrux_intrinsics, arm64]
+    - [libcrux_intrinsics, avx2]

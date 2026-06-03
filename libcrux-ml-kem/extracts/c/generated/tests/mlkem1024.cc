@@ -21,11 +21,11 @@ using namespace std;
 #include "util.h"
 
 TEST(MlKem1024TestPortable, ConsistencyTest) {
-  Eurydice_arr_060 r = {0};
+  Eurydice_arr_c7 r = {0};
   memset(r.data, 0x13, 64);
   auto key_pair = libcrux_ml_kem_mlkem1024_portable_generate_key_pair(r);
 
-  Eurydice_arr_60 r2 = {0};
+  Eurydice_arr_ec r2 = {0};
   memset(r2.data, 0x15, 32);
   auto ctxt = libcrux_ml_kem_mlkem1024_portable_encapsulate(&key_pair.pk, r2);
 
@@ -59,12 +59,12 @@ TEST(MlKem1024TestPortableUnpacked, ConsistencyTest) {
 #endif  // #ifdef LIBCRUX_UNPACKED
 
 TEST(Kyber1024TestPortable, ModifiedCiphertextTest) {
-  Eurydice_arr_060 randomness1 = {0};
+  Eurydice_arr_c7 randomness1 = {0};
   memset(randomness1.data, 0x13, 64);
   auto key_pair =
       libcrux_ml_kem_mlkem1024_portable_generate_key_pair(randomness1);
 
-  Eurydice_arr_60 r2 = {0};
+  Eurydice_arr_ec r2 = {0};
   memset(r2.data, 0x15, 32);
   auto ctxt = libcrux_ml_kem_mlkem1024_portable_encapsulate(&key_pair.pk, r2);
 
@@ -87,12 +87,12 @@ TEST(Kyber1024TestPortable, ModifiedCiphertextTest) {
 }
 
 TEST(Kyber1024TestPortable, ModifiedSecretKeyTest) {
-  Eurydice_arr_060 randomness1 = {0};
+  Eurydice_arr_c7 randomness1 = {0};
   memset(randomness1.data, 0x13, 64);
   auto key_pair =
       libcrux_ml_kem_mlkem1024_portable_generate_key_pair(randomness1);
 
-  Eurydice_arr_60 r2 = {0};
+  Eurydice_arr_ec r2 = {0};
   memset(r2.data, 0x15, 32);
   auto ctxt = libcrux_ml_kem_mlkem1024_portable_encapsulate(&key_pair.pk, r2);
 
@@ -121,8 +121,8 @@ TEST(Kyber1024TestPortable, ModifiedSecretKeyTest) {
 TEST(MlKem1024TestPortable, NISTKnownAnswerTest) {
   // XXX: This should be done in a portable way.
   auto kats = read_kats("tests/mlkem1024_nistkats.json");
-  Eurydice_arr_060 keygen_rand = {0};
-  Eurydice_arr_60 encaps_rand = {0};
+  Eurydice_arr_c7 keygen_rand = {0};
+  Eurydice_arr_ec encaps_rand = {0};
 
   for (auto kat : kats) {
     memcpy(keygen_rand.data, kat.key_generation_seed.data(), 64);

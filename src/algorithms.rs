@@ -47,3 +47,6 @@ pub mod rsapss;
 
 #[cfg(feature = "poly1305")]
 pub mod poly1305;
+
+#[cfg(feature = "hmac_drbg")]
+pub mod hmac_drbg;

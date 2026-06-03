@@ -172,27 +172,28 @@ pub(crate) fn store_block<const RATE: usize>(
 
     let rem = len % 32;
     if rem > 0 {
-        let start = start + 32 * chunks;
+        let offset = start + 32 * chunks;
         let mut u8s = [0u8; 32];
         let chunks8 = rem / 8;
         for k in 0..chunks8 {
             let i = (4 * chunks + k) / 5;
             let j = (4 * chunks + k) % 5;
             mm256_storeu_si256_u8(&mut u8s, *get_ij(s, i, j));
-            out0[start + 8 * k..start + 8 * (k + 1)].copy_from_slice(&u8s[0..8]);
-            out1[start + 8 * k..start + 8 * (k + 1)].copy_from_slice(&u8s[8..16]);
-            out2[start + 8 * k..start + 8 * (k + 1)].copy_from_slice(&u8s[16..24]);
-            out3[start + 8 * k..start + 8 * (k + 1)].copy_from_slice(&u8s[24..32]);
+            out0[offset + 8 * k..offset + 8 * (k + 1)].copy_from_slice(&u8s[0..8]);
+            out1[offset + 8 * k..offset + 8 * (k + 1)].copy_from_slice(&u8s[8..16]);
+            out2[offset + 8 * k..offset + 8 * (k + 1)].copy_from_slice(&u8s[16..24]);
+            out3[offset + 8 * k..offset + 8 * (k + 1)].copy_from_slice(&u8s[24..32]);
         }
         let rem8 = rem % 8;
+        let offset_rem8 = offset + chunks8 * 8;
         if rem8 > 0 {
             let i = (4 * chunks + chunks8) / 5;
             let j = (4 * chunks + chunks8) % 5;
             mm256_storeu_si256_u8(&mut u8s, *get_ij(s, i, j));
-            out0[start + len - rem8..start + len].copy_from_slice(&u8s[0..rem8]);
-            out1[start + len - rem8..start + len].copy_from_slice(&u8s[8..8 + rem8]);
-            out2[start + len - rem8..start + len].copy_from_slice(&u8s[16..16 + rem8]);
-            out3[start + len - rem8..start + len].copy_from_slice(&u8s[24..24 + rem8]);
+            out0[offset_rem8..offset_rem8 + rem8].copy_from_slice(&u8s[0..rem8]);
+            out1[offset_rem8..offset_rem8 + rem8].copy_from_slice(&u8s[8..8 + rem8]);
+            out2[offset_rem8..offset_rem8 + rem8].copy_from_slice(&u8s[16..16 + rem8]);
+            out3[offset_rem8..offset_rem8 + rem8].copy_from_slice(&u8s[24..24 + rem8]);
         }
     }
 }

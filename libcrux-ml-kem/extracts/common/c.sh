@@ -45,9 +45,9 @@ while [ $# -gt 0 ]; do
         --config) config="$2"; shift ;;
         --out) out="$2"; shift ;;
         --glue) glue="$2"; shift ;;
-        --mlkem768) features="${features} --cargo-arg=--no-default-features --cargo-arg=--features=mlkem768" ;;
-        --mlkem768-1024) features="${features} --cargo-arg=--no-default-features --cargo-arg=--features=mlkem768 --cargo-arg=--features=mlkem1024" ;;
-        --kyber768) features="${features} --cargo-arg=--features=kyber" ;;
+        --mlkem768) features="${features} --no-default-features --features=mlkem768" ;;
+        --mlkem768-1024) features="${features} --no-default-features --features=mlkem768 --features=mlkem1024" ;;
+        --kyber768) features="${features} --features=kyber" ;;
         --no-glue) eurydice_glue=0 ;;
         --no-karamel_include) karamel_include=0 ;;
         --no-unrolling) unrolling=0 ;;
@@ -75,19 +75,18 @@ if [[ "$no_charon" = 0 ]]; then
     cargo clean -p libcrux-sha3
     rm -rf $repo_root/libcrux_ml_kem.llbc $repo_root/libcrux_sha3.llbc $repo_root/libcrux_secrets.llbc
 
-    flags=
+    flags="-- "
     if [[ $(uname -m) == "arm64" ]]; then
-        flags+="-- --target=x86_64-apple-darwin"
+        flags+="--target=x86_64-apple-darwin "
     fi
 
     echo "Running charon (all) ..."
     RUSTFLAGS="-Cdebug-assertions=no --cfg eurydice" $CHARON_HOME/bin/charon cargo \
-       $features \
       --preset eurydice \
       --include 'libcrux_sha3' \
       --include 'libcrux_secrets' \
       --start-from libcrux_ml_kem --start-from libcrux_sha3 \
-      --include 'core::num::*::BITS' --include 'core::num::*::MAX' $flags
+      --include 'core::num::*::BITS' --include 'core::num::*::MAX' $flags $features
     if ! [[ -f $repo_root/libcrux_ml_kem.llbc ]]; then
         echo "😱😱😱 You are the victim of this bug: https://hacspec.zulipchat.com/#narrow/stream/433829-Circus/topic/charon.20declines.20to.20generate.20an.20llbc.20file"
         echo "Suggestion: rm -rf $repo_root/target or cargo clean"
@@ -113,10 +112,12 @@ fi
 [[ -z "$EURYDICE_REV" && -d $EURYDICE_HOME/.git ]] && export EURYDICE_REV=$(git -C $EURYDICE_HOME rev-parse HEAD)
 [[ -z "$KRML_REV" && -d $KRML_HOME/.git ]] && export KRML_REV=$(git -C $KRML_HOME rev-parse HEAD)
 [[ -z "$LIBCRUX_REV" ]] && export LIBCRUX_REV=$(git rev-parse HEAD)
-if [[ -z "$FSTAR_REV" && -d $FSTAR_HOME/.git ]]; then
-    export FSTAR_REV=$(git -C $FSTAR_HOME rev-parse HEAD)
-else
-    export FSTAR_REV=$(fstar.exe --version | grep commit | sed 's/commit=\(.*\)/\1/')
+if [[ -z "$FSTAR_REV" ]]; then
+    if [[ -d $FSTAR_HOME/.git ]]; then
+        export FSTAR_REV=$(git -C $FSTAR_HOME rev-parse HEAD)
+    else
+        export FSTAR_REV=$(fstar.exe --version | grep commit | sed 's/commit=\(.*\)/\1/')
+    fi
 fi
 rm -f code_gen.txt
 echo "This code was generated with the following revisions:" >> code_gen.txt

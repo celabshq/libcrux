@@ -1,26 +1,36 @@
 use libcrux_kats::wycheproof::mlkem::schema::*;
+use libcrux_kats::wycheproof::mlkem::TestGroupType;
 
-use libcrux_ml_kem::{MlKemCiphertext, MlKemPublicKey};
+use libcrux_ml_kem::{MlKemCiphertext, MlKemPrivateKey, MlKemPublicKey};
 
 macro_rules! wycheproof_test {
     ($name:ident, $parameter_set:expr, $module:path) => {
         mod $name {
             use super::*;
+            use libcrux_kats::wycheproof::TestResult;
 
             #[test]
             fn keygen_and_decaps() {
                 use $module::*;
 
-                let katfile = MlKemTests::load($parameter_set);
+                let katfile = MlKemTests::load($parameter_set, TestGroupType::MlKemTest);
 
                 for test_group in katfile.keygen_and_decaps_tests() {
                     for test in &test_group.tests {
+                        let Ok(seed) = test.seed.clone().try_into() else {
+                            assert_eq!(test.result, TestResult::Invalid);
+                            continue;
+                        };
+
                         // generate key pair
-                        let key_pair = generate_key_pair(test.seed.clone());
+                        let key_pair = generate_key_pair(seed);
 
                         // convert ciphertext
-                        let ciphertext: MlKemCiphertext<_> =
-                            <[u8; _]>::try_from(test.ciphertext.clone()).unwrap().into();
+                        let Ok(ciphertext) = <[u8; _]>::try_from(test.ciphertext.clone()) else {
+                            assert_eq!(test.result, TestResult::Invalid);
+                            continue;
+                        };
+                        let ciphertext: MlKemCiphertext<_> = ciphertext.into();
 
                         // validate keys
                         assert!(validate_private_key(key_pair.private_key(), &ciphertext));
@@ -37,30 +47,85 @@ macro_rules! wycheproof_test {
                         assert_eq!(shared_secret_from_decapsulate, test.shared_secret.as_ref());
 
                         // assert result is valid
-                        assert_eq!(test.result, MlKemResult::Valid);
+                        assert_eq!(test.result, TestResult::Valid);
                     }
                 }
             }
+
             #[test]
             fn encaps() {
                 use $module::*;
-                let katfile = MlKemTests::load($parameter_set);
+                let katfile = MlKemTests::load($parameter_set, TestGroupType::MlKemEncapsTest);
 
                 for test_group in katfile.encaps_tests() {
                     for test in &test_group.tests {
-                        // all tests have an Invalid results and a `ModulusOverflow` flag
-                        assert_eq!(test.result, MlKemResult::Invalid);
-                        assert_eq!(test.flags, vec![Flag::ModulusOverflow]);
                         // convert to encapsulation key
-                        let bytes: [u8; _] = test
-                            .encapsulation_key
-                            .clone()
-                            .try_into()
-                            .expect("invalid length");
+                        let Ok(bytes) = <[u8; _]>::try_from(test.encapsulation_key.clone()) else {
+                            assert_eq!(test.result, TestResult::Invalid);
+                            continue;
+                        };
                         let encapsulation_key: MlKemPublicKey<_> = bytes.into();
 
-                        // validate the key (should fail for ModulusOverflow cases)
-                        assert!(!validate_public_key(&encapsulation_key));
+                        let is_valid = validate_public_key(&encapsulation_key);
+                        match test.result {
+                            TestResult::Invalid => assert!(
+                                !is_valid,
+                                "tc_id {} failed. invalid public key passes key validation",
+                                test.tc_id,
+                            ),
+                            TestResult::Valid => assert!(
+                                is_valid,
+                                "tc_id {} failed. valid public key rejected by key validation",
+                                test.tc_id,
+                            ),
+                            TestResult::Acceptable => {
+                                unreachable!("TestResult::Acceptable not part of test vectors")
+                            }
+                        }
+                    }
+                }
+            }
+
+            #[test]
+            fn semi_expanded_decaps() {
+                use $module::*;
+
+                let katfile =
+                    MlKemTests::load($parameter_set, TestGroupType::MlKemDecapsValidationTest);
+
+                for test_group in katfile.semi_expanded_decaps_tests() {
+                    for test in &test_group.tests {
+                        // convert private key
+                        let Ok(bytes) = <[u8; _]>::try_from(test.decapsulation_key.clone()) else {
+                            assert_eq!(test.result, TestResult::Invalid);
+                            continue;
+                        };
+                        let private_key: MlKemPrivateKey<_> = bytes.into();
+
+                        // convert ciphertext
+                        let Ok(ciphertext) = <[u8; _]>::try_from(test.ciphertext.clone()) else {
+                            assert_eq!(test.result, TestResult::Invalid);
+                            continue;
+                        };
+                        let ciphertext: MlKemCiphertext<_> = ciphertext.into();
+
+                        // validate keys
+                        let is_valid = validate_private_key(&private_key, &ciphertext);
+                        match test.result {
+                            TestResult::Invalid => assert!(
+                                !is_valid,
+                                "tc_id {} failed. invalid private key passes key validation",
+                                test.tc_id,
+                            ),
+                            TestResult::Valid => assert!(
+                                is_valid,
+                                "tc_id {} failed. valid private key rejected by key validation",
+                                test.tc_id,
+                            ),
+                            TestResult::Acceptable => {
+                                unreachable!("TestResult::Acceptable not part of test vectors")
+                            }
+                        }
                     }
                 }
             }

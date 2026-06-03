@@ -15,7 +15,7 @@ void generate_random(uint8_t *output, uint32_t output_len) {
 }
 
 int main(int argc, char const *argv[]) {
-  Eurydice_arr_060 randomness;
+  Eurydice_arr_c7 randomness;
   memset(randomness.data, 0x13, 64);
   auto key_pair =
       libcrux_ml_kem_mlkem768_portable_generate_key_pair(randomness);

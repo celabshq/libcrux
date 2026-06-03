@@ -14,6 +14,10 @@ function extract_all() {
         -C --features simd128,simd256 ";" \
         into -i "-core_models::**" \
         fstar --z3rlimit 80
+
+    extract crates/utils/secrets \
+        into -i "+:**" \
+        fstar
     
     extract libcrux-ml-dsa \
         -C --features simd128,simd256 ";" \

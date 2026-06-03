@@ -1,10 +1,3 @@
-/*
- * SPDX-FileCopyrightText: 2024 Eurydice Contributors
- * SPDX-FileCopyrightText: 2024-2025 Cryspen Sarl <info@cryspen.com>
- *
- * SPDX-License-Identifier: MIT or Apache-2.0
- */
-
 #pragma once
 
 #include <inttypes.h>
@@ -18,12 +11,16 @@
 #include <intrin.h>
 #endif
 
-#include "karamel/endianness.h"
-#include "karamel/target.h"
+#include "krml/internal/target.h"
+#include "krml/lowstar_endianness.h"
 
 // C++ HELPERS
 
 #if defined(__cplusplus)
+
+#ifndef KRML_HOST_EPRINTF
+#define KRML_HOST_EPRINTF(...) fprintf(stderr, __VA_ARGS__)
+#endif
 
 #include <utility>
 
@@ -57,37 +54,46 @@ using std::type_identity_t;
     if (!(test)) {                                                            \
       fprintf(stderr, "assertion \"%s\" failed: file \"%s\", line %d\n", msg, \
               __FILE__, __LINE__);                                            \
+      exit(255);                                                              \
     }                                                                         \
   } while (0)
 
+// SIZEOF, ALIGNOF
+
+#define Eurydice_sizeof(t) sizeof(t)
+
+#define Eurydice_alignof(t) alignof(t)
+
 // SLICES, ARRAYS, ETC.
 
-// We represent a slice as a pair of an (untyped) pointer, along with the length
-// of the slice, i.e. the number of elements in the slice (this is NOT the
-// number of bytes). This design choice has two important consequences.
-// - if you need to use `ptr`, you MUST cast it to a proper type *before*
-//   performing pointer arithmetic on it (remember that C desugars pointer
-//   arithmetic based on the type of the address)
-// - if you need to use `len` for a C style function (e.g. memcpy, memcmp), you
-//   need to multiply it by sizeof t, where t is the type of the elements.
-//
-// Empty slices have `len == 0` and `ptr` always needs to be a valid pointer
-// that is not NULL (otherwise the construction in EURYDICE_SLICE computes `NULL
-// + start`).
-typedef struct {
-  void *ptr;
-  size_t len;
-} Eurydice_slice;
+// For convenience, we give these common slice types, below, a distinguished
+// status and rather than emit them in the client code, we skip their
+// code-generation in Cleanup3.ml and write them by hand here. This makes it
+// easy to write interop code that brings those definitions in scope.
 
-typedef struct Eurydice_dst_ref_87_s {
+// &[u8]
+typedef struct Eurydice_borrow_slice_u8_s {
+  const uint8_t *ptr;
+  size_t meta;
+} Eurydice_borrow_slice_u8;
+
+// &[u16]
+typedef struct Eurydice_borrow_slice_i16_s {
+  const int16_t *ptr;
+  size_t meta;
+} Eurydice_borrow_slice_i16;
+
+// &mut [u8]
+typedef struct Eurydice_mut_borrow_slice_u8_s {
   uint8_t *ptr;
   size_t meta;
-} Eurydice_dst_ref_87;
+} Eurydice_mut_borrow_slice_u8;
 
-typedef struct Eurydice_dst_ref_9a_s {
+// &mut [u16]
+typedef struct Eurydice_mut_borrow_slice_i16_s {
   int16_t *ptr;
   size_t meta;
-} Eurydice_dst_ref_9a;
+} Eurydice_mut_borrow_slice_i16;
 
 #if defined(__cplusplus)
 #define KRML_CLITERAL(type) type
@@ -102,95 +108,44 @@ typedef struct Eurydice_dst_ref_9a_s {
 #define EURYDICE_CFIELD(X)
 #endif
 
-// Helper macro to create a slice out of a pointer x, a start index in x
-// (included), and an end index in x (excluded). The argument x must be suitably
-// cast to something that can decay (see remark above about how pointer
-// arithmetic works in C), meaning either pointer or array type.
-#define EURYDICE_SLICE(x, start, end) \
-  (KRML_CLITERAL(Eurydice_slice){(void *)(x + start), end - start})
-
-// Slice length
-#define EURYDICE_SLICE_LEN(s, _) (s).meta
-#define Eurydice_slice_len(s, _) (s).meta
-
-#define Eurydice_slice_index_mut(s, i, t) ((s).ptr[i])
-#define Eurydice_slice_index_shared(s, i, t) ((s).ptr[i])
-
-#define Eurydice_slice_index(s, i, t) ((s).ptr[i])
-
-// The following functions get sub slices from a slice.
-
-#define Eurydice_slice_subslice(s, r, t, _0, _1) \
-  EURYDICE_SLICE((t *)s.ptr, r.start, r.end)
-
-// Variant for when the start and end indices are statically known (i.e., the
-// range argument `r` is a literal).
-#define Eurydice_slice_subslice2(s, start, end, t) \
-  EURYDICE_SLICE((t *)s.ptr, (start), (end))
-
-// Previous version above does not work when t is an array type (as usual). Will
-// be deprecated soon.
-#define Eurydice_slice_subslice3(s, start, end, t_ptr) \
-  EURYDICE_SLICE((t_ptr)s.ptr, (start), (end))
-
-#define Eurydice_slice_subslice_to(s, subslice_end_pos, t, _0, _1) \
-  EURYDICE_SLICE((t *)s.ptr, 0, subslice_end_pos)
-
-#define Eurydice_slice_subslice_from(s, subslice_start_pos, t, _0, _1) \
-  EURYDICE_SLICE((t *)s.ptr, subslice_start_pos, s.len)
-
-#define Eurydice_array_to_slice(end, x, t) \
-  EURYDICE_SLICE(x, 0,                     \
-                 end) /* x is already at an array type, no need for cast */
-#define Eurydice_array_to_subslice(_arraylen, x, r, t, _0, _1) \
-  EURYDICE_SLICE((t *)x, r.start, r.end)
-
-// Same as above, variant for when start and end are statically known
-#define Eurydice_array_to_subslice2(x, start, end, t) \
-  EURYDICE_SLICE((t *)x, (start), (end))
-
-// Same as above, variant for when start and end are statically known
-#define Eurydice_array_to_subslice3(x, start, end, t_ptr) \
-  EURYDICE_SLICE((t_ptr)x, (start), (end))
-// The following functions convert an array into a slice.
-
-#define Eurydice_array_to_subslice_to(_size, x, r, t, _range_t, _0) \
-  EURYDICE_SLICE((t *)x, 0, r)
-#define Eurydice_array_to_subslice_from(size, x, r, t, _range_t, _0) \
-  EURYDICE_SLICE((t *)x, r, size)
+#define Eurydice_array_repeat(dst, len, init, t) \
+  ERROR "should've been desugared"
 
 // Copy a slice with memcopy
 #define Eurydice_slice_copy(dst, src, t) \
   memcpy(dst.ptr, src.ptr, dst.meta * sizeof(t))
 
-// Distinguished support for some PartialEq trait implementations
-//
-#define Eurydice_slice_eq(src1, src2, t, _) \
-  ((src1)->len == (src2)->len &&            \
-   !memcmp((src1)->ptr, (src2)->ptr, (src1)->len * sizeof(t)))
-
-#define core_array___Array_T__N___as_slice(len_, ptr_, t, ret_t) \
-  (KRML_CLITERAL(ret_t){EURYDICE_CFIELD(.ptr =)(ptr_)->data,     \
+#define core_array___T__N___as_slice(len_, ptr_, t, ret_t)   \
+  (KRML_CLITERAL(ret_t){EURYDICE_CFIELD(.ptr =)(ptr_)->data, \
                         EURYDICE_CFIELD(.meta =) len_})
 
-#define core_array__core__clone__Clone_for__Array_T__N___clone( \
-    len, src, elem_type, _ret_t)                                \
-  (*src)
+#define core_array__core__clone__Clone_for__T__N___clone(len, src, elem_type, \
+                                                         _ret_t)              \
+  (*(src))
 #define TryFromSliceError uint8_t
+#define core_array_TryFromSliceError uint8_t
 
-#define Eurydice_array_eq(sz, a1, a2, t) (memcmp(a1, a2, sz * sizeof(t)) == 0)
-
+// Distinguished support for some PartialEq trait implementations
+//
+// core::cmp::PartialEq<@Array<U, N>> for @Array<T, N>
+#define Eurydice_array_eq(sz, a1, a2, t) \
+  (memcmp((a1)->data, (a2)->data, sz * sizeof(t)) == 0)
 // core::cmp::PartialEq<&0 (@Slice<U>)> for @Array<T, N>
-#define Eurydice_array_eq_slice(sz, a1, s2, t, _) \
-  (memcmp(a1, (s2)->ptr, sz * sizeof(t)) == 0)
+#define Eurydice_array_eq_slice_shared(sz, a1, s2, t, _) \
+  (memcmp((a1)->data, (s2)->ptr, sz * sizeof(t)) == 0)
+#define Eurydice_array_eq_slice_mut(sz, a1, s2, t, _) \
+  Eurydice_array_eq_slice_shared(sz, a1, s2, t, _)
 
-#define core_array_equality___core__cmp__PartialEq__Array_U__N___for__Array_T__N____eq( \
+// DEPRECATED -- should no longer be generated
+#define core_array_equality__core__cmp__PartialEq__Array_U__N___for__Array_T__N___eq( \
+    sz, a1, a2, t, _, _ret_t)                                                         \
+  Eurydice_array_eq(sz, a1, a2, t)
+#define core_array_equality__core__cmp__PartialEq__0___Slice_U____for__Array_T__N___eq( \
     sz, a1, a2, t, _, _ret_t)                                                           \
-  Eurydice_array_eq(sz, a1, a2, t, _)
-
-#define core_array_equality___core__cmp__PartialEq__0___Slice_U____for__Array_T__N___3__eq( \
-    sz, a1, a2, t, _, _ret_t)                                                               \
-  Eurydice_array_eq(sz, a1, ((a2)->ptr), t, _)
+  Eurydice_array_eq(sz, a1, ((a2)->ptr), t)
+#define core_cmp_impls__core__cmp__PartialEq__0_mut__B___for__1_mut__A___eq( \
+    _m0, _m1, src1, src2, _0, _1, T)                                         \
+  Eurydice_slice_eq(src1, src2, _, _, T, _)
 
 #define Eurydice_slice_split_at(slice, mid, element_type, ret_t)        \
   KRML_CLITERAL(ret_t) {                                                \
@@ -202,60 +157,74 @@ typedef struct Eurydice_dst_ref_9a_s {
     }                                                                   \
   }
 
-#define Eurydice_slice_split_at_mut(slice, mid, element_type, ret_t)  \
-  KRML_CLITERAL(ret_t) {                                              \
-    EURYDICE_CFIELD(.fst =)                                           \
-    KRML_CLITERAL(Eurydice_slice){EURYDICE_CFIELD(.ptr =)(slice.ptr), \
-                                  EURYDICE_CFIELD(.len =) mid},       \
-        EURYDICE_CFIELD(.snd =) KRML_CLITERAL(Eurydice_slice) {       \
-      EURYDICE_CFIELD(.ptr =)                                         \
-      ((char *)slice.ptr + mid * sizeof(element_type)),               \
-          EURYDICE_CFIELD(.len =)(slice.len - mid)                    \
-    }                                                                 \
+#define Eurydice_slice_split_at_mut(slice, mid, element_type, ret_t)    \
+  KRML_CLITERAL(ret_t) {                                                \
+    EURYDICE_CFIELD(.fst =){EURYDICE_CFIELD(.ptr =)((slice).ptr),       \
+                            EURYDICE_CFIELD(.meta =) mid},              \
+        EURYDICE_CFIELD(.snd =) {                                       \
+      EURYDICE_CFIELD(.ptr =)                                           \
+      ((slice).ptr + mid), EURYDICE_CFIELD(.meta =)((slice).meta - mid) \
+    }                                                                   \
   }
 
 // Conversion of slice to an array, rewritten (by Eurydice) to name the
 // destination array, since arrays are not values in C.
 // N.B.: see note in karamel/lib/Inlining.ml if you change this.
-#define Eurydice_slice_to_array2(dst, src, _0, t_arr, _1)                 \
-  Eurydice_slice_to_array3(&(dst)->tag, (char *)&(dst)->val.case_Ok, src, \
-                           sizeof(t_arr))
 
-static KRML_MUSTINLINE void Eurydice_slice_to_array3(uint8_t *dst_tag,
-                                                     char *dst_ok,
-                                                     Eurydice_slice src,
-                                                     size_t sz) {
-  *dst_tag = 0;
-  memcpy(dst_ok, src.ptr, sz);
-}
+#define Eurydice_slice_to_ref_array2(len_, src, arr_ptr, t_ptr, t_arr, t_err, \
+                                     t_res)                                   \
+  (src.meta >= len_                                                           \
+       ? ((t_res){.tag = core_result_Ok, .val = {.case_Ok = arr_ptr}})        \
+       : ((t_res){.tag = core_result_Err, .val = {.case_Err = 0}}))
 
 // CORE STUFF (conversions, endianness, ...)
 
-typedef struct Eurydice_arr_8b_s {
-  uint8_t data[2];
-} Eurydice_arr_8b;
+// We slap extern "C" on declarations that intend to implement a prototype
+// generated by Eurydice, because Eurydice prototypes are always emitted within
+// an extern "C" block, UNLESS you use -fcxx17-compat, in which case, you must
+// pass -DKRML_CXX17_COMPAT="" to your C++ compiler.
+#if defined(__cplusplus) && !defined(KRML_CXX17_COMPAT)
+extern "C" {
+#endif
+
+#define core_hint_black_box(X, _0, _1) (X)
 
 // [ u8; 2 ]
 typedef struct Eurydice_array_u8x2_s {
   uint8_t data[2];
 } Eurydice_array_u8x2;
 
+// [ u8; 4 ]
+typedef struct Eurydice_array_u8x4_s {
+  uint8_t data[4];
+} Eurydice_array_u8x4;
+
 // [ u8; 8 ]
 typedef struct Eurydice_array_u8x8_s {
   uint8_t data[8];
 } Eurydice_array_u8x8;
 
-// &mut [u8]
-typedef struct Eurydice_mut_borrow_slice_u8_s {
-  uint8_t *ptr;
-  size_t meta;
-} Eurydice_mut_borrow_slice_u8;
+static inline uint16_t core_num__u16__from_le_bytes(Eurydice_array_u8x2 buf) {
+  return load16_le(buf.data);
+}
 
-// &[u8]
-typedef struct Eurydice_borrow_slice_u8_s {
-  const uint8_t *ptr;
-  size_t meta;
-} Eurydice_borrow_slice_u8;
+static inline Eurydice_array_u8x4 core_num__u32__to_be_bytes(uint32_t src) {
+  // TODO: why not store32_be?
+  Eurydice_array_u8x4 a;
+  uint32_t x = htobe32(src);
+  memcpy(a.data, &x, 4);
+  return a;
+}
+
+static inline Eurydice_array_u8x4 core_num__u32__to_le_bytes(uint32_t src) {
+  Eurydice_array_u8x4 a;
+  store32_le(a.data, src);
+  return a;
+}
+
+static inline uint32_t core_num__u32__from_le_bytes(Eurydice_array_u8x4 buf) {
+  return load32_le(buf.data);
+}
 
 static inline Eurydice_array_u8x8 core_num__u64__to_le_bytes(uint64_t v) {
   Eurydice_array_u8x8 a;
@@ -267,11 +236,35 @@ static inline uint64_t core_num__u64__from_le_bytes(Eurydice_array_u8x8 buf) {
   return load64_le(buf.data);
 }
 
-static KRML_MUSTINLINE uint32_t core_num__u32__from_le_bytes(uint8_t buf[4]) {
-  return load32_le(buf);
+static inline int64_t core_convert_num__core__convert__From_i32__for_i64__from(
+    int32_t x) {
+  return x;
 }
 
-static KRML_MUSTINLINE uint32_t core_num__u8__count_ones(uint8_t x0) {
+static inline uint64_t core_convert_num__core__convert__From_u8__for_u64__from(
+    uint8_t x) {
+  return x;
+}
+
+static inline uint64_t core_convert_num__core__convert__From_u16__for_u64__from(
+    uint16_t x) {
+  return x;
+}
+
+static inline size_t core_convert_num__core__convert__From_u16__for_usize__from(
+    uint16_t x) {
+  return x;
+}
+
+static inline uint32_t core_num__u8__count_ones(uint8_t x0) {
+#ifdef _MSC_VER
+  return __popcnt(x0);
+#else
+  return __builtin_popcount(x0);
+#endif
+}
+
+static inline uint32_t core_num__u32__count_ones(uint32_t x0) {
 #ifdef _MSC_VER
   return __popcnt(x0);
 #else
@@ -287,11 +280,126 @@ static inline uint32_t core_num__i32__count_ones(int32_t x0) {
 #endif
 }
 
+static inline size_t core_cmp_impls__core__cmp__Ord_for_usize__min(size_t a,
+                                                                   size_t b) {
+  if (a <= b)
+    return a;
+  else
+    return b;
+}
+
+// unsigned overflow wraparound semantics in C
+static inline uint8_t core_num__u8__wrapping_sub(uint8_t x, uint8_t y) {
+  return x - y;
+}
+static inline uint8_t core_num__u8__wrapping_add(uint8_t x, uint8_t y) {
+  return x + y;
+}
+static inline uint8_t core_num__u8__wrapping_mul(uint8_t x, uint8_t y) {
+  return x * y;
+}
+static inline uint16_t core_num__u16__wrapping_sub(uint16_t x, uint16_t y) {
+  return x - y;
+}
+static inline uint16_t core_num__u16__wrapping_add(uint16_t x, uint16_t y) {
+  return x + y;
+}
+static inline uint16_t core_num__u16__wrapping_mul(uint16_t x, uint16_t y) {
+  return x * y;
+}
+static inline uint32_t core_num__u32__wrapping_sub(uint32_t x, uint32_t y) {
+  return x - y;
+}
+static inline uint32_t core_num__u32__wrapping_add(uint32_t x, uint32_t y) {
+  return x + y;
+}
+static inline uint32_t core_num__u32__wrapping_mul(uint32_t x, uint32_t y) {
+  return x * y;
+}
+static inline uint64_t core_num__u64__wrapping_sub(uint64_t x, uint64_t y) {
+  return x - y;
+}
+static inline uint64_t core_num__u64__wrapping_add(uint64_t x, uint64_t y) {
+  return x + y;
+}
+static inline uint64_t core_num__u64__wrapping_mul(uint64_t x, uint64_t y) {
+  return x * y;
+}
+static inline size_t core_num__usize__wrapping_sub(size_t x, size_t y) {
+  return x - y;
+}
+static inline size_t core_num__usize__wrapping_add(size_t x, size_t y) {
+  return x + y;
+}
+static inline size_t core_num__usize__wrapping_mul(size_t x, size_t y) {
+  return x * y;
+}
+
+static inline int8_t core_num__i8__wrapping_add(int8_t x, int8_t y) {
+  return (int8_t)((uint8_t)x + (uint8_t)y);
+}
+static inline int8_t core_num__i8__wrapping_sub(int8_t x, int8_t y) {
+  return (int8_t)((uint8_t)x - (uint8_t)y);
+}
+static inline int8_t core_num__i8__wrapping_mul(int8_t x, int8_t y) {
+  return (int8_t)((uint8_t)x * (uint8_t)y);
+}
+static inline int16_t core_num__i16__wrapping_add(int16_t x, int16_t y) {
+  return (int16_t)((uint16_t)x + (uint16_t)y);
+}
+static inline int16_t core_num__i16__wrapping_sub(int16_t x, int16_t y) {
+  return (int16_t)((uint16_t)x - (uint16_t)y);
+}
+static inline int16_t core_num__i16__wrapping_mul(int16_t x, int16_t y) {
+  return (int16_t)((uint16_t)x * (uint16_t)y);
+}
+static inline int32_t core_num__i32__wrapping_add(int32_t x, int32_t y) {
+  return (int32_t)((uint32_t)x + (uint32_t)y);
+}
+static inline int32_t core_num__i32__wrapping_sub(int32_t x, int32_t y) {
+  return (int32_t)((uint32_t)x - (uint32_t)y);
+}
+static inline int32_t core_num__i32__wrapping_mul(int32_t x, int32_t y) {
+  return (int32_t)((uint32_t)x * (uint32_t)y);
+}
+static inline int64_t core_num__i64__wrapping_add(int64_t x, int64_t y) {
+  return (int64_t)((uint64_t)x + (uint64_t)y);
+}
+static inline int64_t core_num__i64__wrapping_sub(int64_t x, int64_t y) {
+  return (int64_t)((uint64_t)x - (uint64_t)y);
+}
+static inline int64_t core_num__i64__wrapping_mul(int64_t x, int64_t y) {
+  return (int64_t)((uint64_t)x * (uint64_t)y);
+}
+static inline int8_t core_num__i8__wrapping_neg(int8_t x) {
+  return (int8_t)(-(uint8_t)x);
+}
+static inline int16_t core_num__i16__wrapping_neg(int16_t x) {
+  return (int16_t)(-(uint16_t)x);
+}
+static inline int32_t core_num__i32__wrapping_neg(int32_t x) {
+  return (int32_t)(-(uint32_t)x);
+}
+static inline int64_t core_num__i64__wrapping_neg(int64_t x) {
+  return (int64_t)(-(uint64_t)x);
+}
+
+static inline uint64_t core_num__u64__rotate_left(uint64_t x0, uint32_t x1) {
+  return (x0 << x1) | (x0 >> ((-x1) & 63));
+}
+
+static inline void core_ops_arith__i32__add_assign(int32_t *x0, int32_t *x1) {
+  *x0 = *x0 + *x1;
+}
+
 static inline uint8_t Eurydice_bitand_pv_u8(const uint8_t *p, uint8_t v) {
   return (*p) & v;
 }
 static inline uint8_t Eurydice_shr_pv_u8(const uint8_t *p, int32_t v) {
   return (*p) >> v;
+}
+static inline uint32_t Eurydice_min_u32(uint32_t x, uint32_t y) {
+  return x < y ? x : y;
 }
 
 static inline uint8_t
@@ -306,20 +414,16 @@ core_ops_bit__core__ops__bit__Shr_i32__u8__for__0__u8___shr(const uint8_t *x0,
   return Eurydice_shr_pv_u8(x0, x1);
 }
 
-// unsigned overflow wraparound semantics in C
-static KRML_MUSTINLINE uint16_t core_num__u16__wrapping_add(uint16_t x,
-                                                            uint16_t y) {
-  return x + y;
-}
-static KRML_MUSTINLINE uint8_t core_num__u8__wrapping_sub(uint8_t x,
-                                                          uint8_t y) {
-  return x - y;
+#define core_num_nonzero_private_NonZeroUsizeInner size_t
+static inline core_num_nonzero_private_NonZeroUsizeInner
+core_num_nonzero_private___core__clone__Clone_for_core__num__nonzero__private__NonZeroUsizeInner___clone(
+    core_num_nonzero_private_NonZeroUsizeInner *x0) {
+  return *x0;
 }
 
-static KRML_MUSTINLINE uint64_t core_num__u64__rotate_left(uint64_t x0,
-                                                           uint32_t x1) {
-  return (x0 << x1 | x0 >> (64 - x1));
+#if defined(__cplusplus) && !defined(KRML_CXX17_COMPAT)
 }
+#endif
 
 // ITERATORS
 
@@ -330,13 +434,70 @@ static KRML_MUSTINLINE uint64_t core_num__u64__rotate_left(uint64_t x0,
        : (KRML_CLITERAL(ret_t){EURYDICE_CFIELD(.tag =) 1, \
                                EURYDICE_CFIELD(.f0 =)(iter_ptr)->start++}))
 
-#define core_iter_range___core__iter__traits__iterator__Iterator_A__for_core__ops__range__Range_A__TraitClause_0___6__next \
+#define core_iter_range__core__iter__traits__iterator__Iterator_A__for_core__ops__range__Range_A__TraitClause_0___next \
   Eurydice_range_iter_next
 
 // See note in karamel/lib/Inlining.ml if you change this
 #define Eurydice_into_iter(x, t, _ret_t, _) (x)
-#define core_iter_traits_collect___core__iter__traits__collect__IntoIterator_Clause1_Item__I__for_I__1__into_iter \
+#define core_iter_traits_collect__core__iter__traits__collect__IntoIterator_Clause1_Item__I__for_I__into_iter \
   Eurydice_into_iter
+
+// STRINGS
+
+typedef char Eurydice_c_char_t;
+typedef const Eurydice_c_char_t *Prims_string;
+typedef void Eurydice_c_void_t;
+
+// UNSAFE CODE
+
+#define core_slice___Slice_T___as_mut_ptr(x, t, _) (x.ptr)
+#define core_mem_size_of(t, _) (sizeof(t))
+#define core_slice_raw_from_raw_parts_mut(ptr, len, _0, _1) \
+  (KRML_CLITERAL(Eurydice_slice){(void *)(ptr), len})
+#define core_slice_raw_from_raw_parts(ptr, len, _0, _1) \
+  (KRML_CLITERAL(Eurydice_slice){(void *)(ptr), len})
+
+// FIXME: add dedicated extraction to extract NonNull<T> as T*
+#define core_ptr_non_null_NonNull void *
+
+// PRINTING
+//
+// This is temporary. Ultimately we want to be able to extract all of this.
+
+typedef void *core_fmt_Formatter;
+#define core_fmt_rt__core__fmt__rt__Argument__a___new_display(x1, x2, x3, x4) \
+  NULL
+
+// BOXES
+
+#ifndef EURYDICE_MALLOC
+#define EURYDICE_MALLOC malloc
+#endif
+
+#ifndef EURYDICE_REALLOC
+#define EURYDICE_REALLOC realloc
+#endif
+
+static inline char *malloc_and_init(size_t sz, char *init) {
+  char *ptr = (char *)EURYDICE_MALLOC(sz);
+  if (ptr != NULL) memcpy(ptr, init, sz);
+  return ptr;
+}
+
+#define Eurydice_box_new(init, t, t_dst) \
+  ((t_dst)(malloc_and_init(sizeof(t), (char *)(&init))))
+
+// Initializer for array of size zero
+#define Eurydice_empty_array(dummy, t, t_dst) ((t_dst){.data = {}})
+
+#define Eurydice_box_new_array(len, ptr, t, t_dst) \
+  ((t_dst)(malloc_and_init(len * sizeof(t), (char *)(ptr))))
+
+// FIXME this needs to handle allocation failure errors, but this seems hard to
+// do without evaluating malloc_and_init twice...
+#define alloc_boxed__alloc__boxed__Box_T___try_new(init, t, t_ret) \
+  ((t_ret){.tag = core_result_Ok,                                  \
+           .f0 = (t *)malloc_and_init(sizeof(t), (char *)(&init))})
 
 // OPTIONS
 

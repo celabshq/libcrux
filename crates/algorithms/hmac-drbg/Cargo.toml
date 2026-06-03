@@ -1,0 +1,38 @@
+[package]
+name = "libcrux-hmac-drbg"
+readme = "Readme.md"
+
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+repository.workspace = true
+version.workspace = true
+
+[features]
+default = []
+
+# Enables integration with the `rand` crate:
+#   - Defines extensions to the traits in `rand` for better expressing the interface of a DRBG.
+#   - Implements traits from `rand` (and the extensions) using the DRBG algorithms.
+rand = ["dep:rand"]
+
+# Exposes APIs that should only be used for testing this library.
+testing = []
+
+# Enables continuous health tests per NIST SP 800-90C §9.3.3 and AIS 20/31 T4:
+#   - Intra-call: each V = HMAC(K,V_old) must satisfy V ≠ V_old.
+#   - Inter-call: first generated block must differ from last block of the
+#     previous generate call.
+# On failure the DRBG is poisoned and all subsequent operations return
+# Error::HealthCheckFailed.
+health-tests = []
+
+[dependencies]
+libcrux-hmac.workspace = true
+rand = { version = "0.10", optional = true, default-features = false, features = [
+    "sys_rng",
+] }
+
+[dev-dependencies]
+libcrux-kats = { workspace = true, features = ["drbg"] }

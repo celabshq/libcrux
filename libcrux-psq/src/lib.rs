@@ -188,8 +188,5 @@ mod traits;
 #[doc(inline)]
 pub use traits::{Channel, IntoSession};
 
-#[cfg(feature = "v1")]
-pub mod v1;
-
 #[cfg(feature = "classic-mceliece")]
 pub mod classic_mceliece;

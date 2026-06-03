@@ -34,7 +34,8 @@ pub const SHA3_512_DIGEST_SIZE: usize = 64;
 pub(crate) mod proof_utils;
 
 /// The Digest Algorithm.
-#[cfg_attr(not(eurydice), derive(Clone, Copy, Debug, PartialEq))]
+#[cfg_attr(not(eurydice), derive(Debug, PartialEq))]
+#[derive(Clone, Copy)]
 #[repr(u32)]
 pub enum Algorithm {
     /// SHA3 224
@@ -87,10 +88,13 @@ pub const fn digest_size(mode: Algorithm) -> usize {
 
 /// SHA3
 #[hax_lib::fstar::options("--split_queries always")]
-#[hax_lib::requires(payload.len().to_int() <= u32::MAX.to_int())]
+#[hax_lib::requires(
+    payload.len().to_int() <= u32::MAX.to_int() &&
+    digest_size(algorithm) == LEN
+)]
 pub fn hash<const LEN: usize>(algorithm: Algorithm, payload: &[u8]) -> [u8; LEN] {
-    #[cfg(not(eurydice))]
     debug_assert!(payload.len() <= u32::MAX as usize);
+    debug_assert_eq!(digest_size(algorithm), LEN);
 
     let mut out = [0u8; LEN];
     match algorithm {

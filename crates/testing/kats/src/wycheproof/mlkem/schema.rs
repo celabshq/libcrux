@@ -62,6 +62,17 @@ pub struct MlKemEncapsTestGroup {
     pub tests: Vec<MlKemEncapsTest>,
 }
 
+/// Test group for decaps
+#[derive(PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MlKemDecapsValidationTestGroup {
+    pub source: Source,
+
+    pub parameter_set: ParameterSet,
+
+    pub tests: Vec<MlKemDecapsValidationTest>,
+}
+
 /// Test for encaps
 #[derive(PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type")]
@@ -70,6 +81,8 @@ pub enum TestGroup {
     MlKemTestGroup(MlKemTestGroup),
     #[serde(rename = "MLKEMEncapsTest")]
     MlKemEncapsTestGroup(MlKemEncapsTestGroup),
+    #[serde(rename = "MLKEMDecapsValidationTest")]
+    MlKemDecapsValidationTestGroup(MlKemDecapsValidationTestGroup),
 }
 
 /// Test for keygen and/or decaps
@@ -83,10 +96,13 @@ pub struct MlKemTest {
 
     /// The d || z seed
     #[serde(with = "hex::serde")]
-    pub seed: [u8; 64],
+    pub seed: Vec<u8>,
 
     /// The encapsulation key derived from the seed
     #[serde(rename = "ek")]
+    // is empty for some MlKemResult::Invalid tests
+    // Option<Vec<u8>> does not work with hex::serde
+    #[serde(default)]
     #[serde(with = "hex::serde")]
     pub encapsulation_key: Vec<u8>,
 
@@ -101,7 +117,7 @@ pub struct MlKemTest {
     pub shared_secret: Vec<u8>,
 
     /// Test result
-    pub result: MlKemResult,
+    pub result: TestResult,
 }
 
 #[derive(PartialEq, Serialize, Deserialize)]
@@ -132,20 +148,36 @@ pub struct MlKemEncapsTest {
     pub shared_secret: Vec<u8>,
 
     /// Test result
-    pub result: MlKemResult,
+    pub result: TestResult,
+}
+
+#[derive(PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MlKemDecapsValidationTest {
+    /// Identifier of the test case
+    pub tc_id: i64,
+
+    pub flags: Vec<Flag>,
+
+    /// The decapsulation key
+    #[serde(rename = "dk")]
+    #[serde(with = "hex::serde")]
+    pub decapsulation_key: Vec<u8>,
+
+    /// The output ciphertext
+    #[serde(rename = "c")]
+    #[serde(with = "hex::serde")]
+    pub ciphertext: Vec<u8>,
+
+    /// Test result
+    pub result: TestResult,
 }
 
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum Flag {
     ModulusOverflow,
     Strcmp,
-}
-
-#[derive(PartialEq, Serialize, Deserialize, Debug)]
-#[serde(rename_all = "snake_case")]
-pub enum MlKemResult {
-    Invalid,
-
-    Valid,
-    Acceptable,
+    IncorrectCiphertextLength,
+    IncorrectDecapsulationKeyLength,
+    InvalidDecapsulationKey,
 }
