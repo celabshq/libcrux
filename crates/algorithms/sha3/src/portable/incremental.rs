@@ -10,34 +10,9 @@ pub use cshake::{left_encode, left_encode_byte, right_encode};
 mod private {
     pub trait Sealed {}
 
-    #[hax_lib::fstar::replace(
-        "
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-let impl_1__from__private: t_Sealed t_Shake128Xof = { __marker_trait_t_Sealed = () }
-        "
-    )]
     impl Sealed for super::Shake128Xof {}
-    #[hax_lib::fstar::replace(
-        "
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-let impl__from__private: t_Sealed t_Shake256Xof = { __marker_trait_t_Sealed = () }
-        "
-    )]
     impl Sealed for super::Shake256Xof {}
-
-    //     #[hax_lib::fstar::replace(
-    //         "
-    // [@@ FStar.Tactics.Typeclasses.tcinstance]
-    // let impl_1__from__private: t_Sealed t_CShake128 = { __marker_trait_t_Sealed = () }
-    //         "
-    //     )]
     impl Sealed for super::CShake128 {}
-    //     #[hax_lib::fstar::replace(
-    //         "
-    // [@@ FStar.Tactics.Typeclasses.tcinstance]
-    // let impl_1__from__private: t_Sealed t_CShake256 = { __marker_trait_t_Sealed = () }
-    //         "
-    //     )]
     impl Sealed for super::CShake256 {}
 }
 
