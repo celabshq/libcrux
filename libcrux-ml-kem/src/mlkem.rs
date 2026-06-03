@@ -23,11 +23,13 @@ macro_rules! impl_incr_key_size {
         pub type Ciphertext2 = types::Ciphertext2<C2_SIZE>;
 
         /// Get the size of the first public key in bytes.
+        #[hax_lib::ensures(|result| result == 64)]
         pub const fn pk1_len() -> usize {
             PublicKey1::len()
         }
 
         /// Get the size of the second public key in bytes.
+        #[hax_lib::ensures(|result| result == RANKED_BYTES_PER_RING_ELEMENT)]
         pub const fn pk2_len() -> usize {
             RANKED_BYTES_PER_RING_ELEMENT
         }
@@ -215,6 +217,11 @@ macro_rules! impl_incr_key_size {
         ///
         /// `key_pair.len()` must be of size `key_pair_len()`.
         /// The function returns an error if this is not the case.
+        #[hax_lib::ensures(|result|
+            hax_lib::implies(
+                key_pair.len() >= 64 + RANKED_BYTES_PER_RING_ELEMENT + RANK * 512 + 32 + RANK * RANK * 512,
+                result.is_ok(),
+            ) & (future(key_pair).len() == key_pair.len()))]
         pub fn generate_key_pair(randomness: [u8; KEY_GENERATION_SEED_SIZE], key_pair: &mut [u8]) -> Result<(), Error> {
             multiplexing::generate_keypair::<
                 RANK,
@@ -510,6 +517,12 @@ macro_rules! impl_incr_platform {
         }
 
         $(#[$meta])*
+        #[hax_lib::requires(K <= 4 && PK2_LEN <= 1536)]
+        #[hax_lib::ensures(|result|
+            hax_lib::implies(
+                key_pair.len() >= 64 + PK2_LEN + K * 512 + 32 + K * K * 512,
+                result.is_ok(),
+            ) & (future(key_pair).len() == key_pair.len()))]
         pub(crate) $($unsafe)? fn generate_keypair_serialized<
             const K: usize,
             const PK2_LEN: usize,

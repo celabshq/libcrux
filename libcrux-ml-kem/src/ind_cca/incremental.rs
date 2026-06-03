@@ -145,6 +145,12 @@ pub(crate) fn generate_keypair_compressed<
 ///
 /// The public keys can be extracted from the bytes TODO.
 #[inline(always)]
+#[hax_lib::requires(K <= 4 && PK2_LEN <= 1536)]
+#[hax_lib::ensures(|result|
+    hax_lib::implies(
+        key_pair.len() >= 64 + PK2_LEN + K * 512 + 32 + K * K * 512,
+        result.is_ok(),
+    ) & (future(key_pair).len() == key_pair.len()))]
 pub(crate) fn generate_keypair_serialized<
     const K: usize,
     const PK2_LEN: usize,

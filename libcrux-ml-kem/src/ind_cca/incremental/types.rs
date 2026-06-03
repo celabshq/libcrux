@@ -66,8 +66,10 @@ pub struct PublicKey1 {
     pub(super) hash: [u8; 32],
 }
 
+#[hax_lib::attributes]
 impl PublicKey1 {
     /// Get the size of the first public key in bytes.
+    #[ensures(|result| result == 64)]
     pub const fn len() -> usize {
         32 + 32
     }
@@ -339,6 +341,7 @@ fn write(out: &mut [u8], value: &[u8], offset: &mut usize) {
     *offset = new_offset;
 }
 
+#[hax_lib::attributes]
 impl<const K: usize, const PK2_LEN: usize, Vector: Operations> KeyPair<K, PK2_LEN, Vector> {
     /// Get [`PublicKey1`] as bytes.
     pub fn pk1_bytes(&self, pk1: &mut [u8]) -> Result<(), Error> {
@@ -365,6 +368,8 @@ impl<const K: usize, const PK2_LEN: usize, Vector: Operations> KeyPair<K, PK2_LE
     }
 
     /// The byte size of this key pair.
+    #[requires(K <= 4 && PK2_LEN <= 1536)]
+    #[ensures(|result| result == 64 + PK2_LEN + K * 512 + 32 + K * K * 512)]
     pub const fn num_bytes() -> usize {
         PublicKey1::len() + PublicKey2::<PK2_LEN>::len()
         // sk length

@@ -11,21 +11,16 @@ ADMIT_MODULES = Libcrux_ml_kem.Vector.Neon.Arithmetic.fst \
               Libcrux_ml_kem.Vector.Neon.Vector_type.fst \
               Libcrux_ml_kem.Vector.Neon.Vector_type.fsti \
               Libcrux_ml_kem.Ind_cca.Incremental.fst \
-              Libcrux_ml_kem.Ind_cca.Incremental.Types.fst \
-              Libcrux_ml_kem.Mlkem512.Incremental.fst \
-              Libcrux_ml_kem.Mlkem768.Incremental.fst \
-              Libcrux_ml_kem.Mlkem1024.Incremental.fst
-# NOTE: Ind_cca.Incremental.{Avx2,Portable} and Ind_cca.Incremental.Multiplexing are now
-# VERIFIED (removed from ADMIT_MODULES) — pure dispatch / backend wrappers, no postconditions.
-# Remaining incremental admits (Types/Incremental/Mlkem*.Incremental) need the milestone-#0
-# follow-up: key_pair_len usize non-overflow + f_pk1_bytes `bytes.len()>=64` precondition +
-# Incremental.generate_keypair subtyping.  See proof_milestones.md rows 19-25.
-# Incremental-API modules (Mlkem*.Incremental.* and Ind_cca.Incremental.*) admitted
-# as milestone-#0 follow-up.  Newly extracted via `incremental` cargo feature.
-# PF proofs scoped to proof_milestones.md rows 19-25.  Immediate failures are
-# usize-arithmetic non-overflow obligations on `key_pair_len`, `encaps_state_len`
-# etc. which need either #[ensures] bounds on `pk1_len()`/`pk2_len()` in
-# src/mlkem.rs or per-fn rlimit bumps.
+              Libcrux_ml_kem.Ind_cca.Incremental.Types.fst
+# NOTE: Ind_cca.Incremental.{Avx2,Portable}, Ind_cca.Incremental.Multiplexing and
+# Mlkem{512,768,1024}.Incremental are now VERIFIED (removed from ADMIT_MODULES).
+# The Mlkem*.Incremental closure (2026-06-03) hangs off #[ensures] value posts on
+# pk1_len/pk2_len/PublicKey1::len/KeyPair::num_bytes plus a length-preservation +
+# Ok-condition post cascaded through {mlkem.rs macro, multiplexing, platform,
+# generic} generate_keypair(_serialized).  See proof_milestones.md rows 19-25.
+# Remaining incremental admits (Types/Incremental) carry those posts admitted
+# (bodies unproven): f_pk1_bytes `bytes.len()>=64` precondition + to_bytes/
+# from_bytes byte-layout obligations are still open there.
 #
 # The .Alloc and .Incremental.Rand submodules are deleted post-extraction by
 # hax.py (they use `Box<dyn Keys>` and `try_fill_bytes` which lack F* models).
