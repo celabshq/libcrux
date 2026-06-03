@@ -24,42 +24,72 @@ fn add(element: &FieldElement, other: &FieldElement) -> FieldElement {
     element ^ other
 }
 
+/// Performs a 64x64 to 128-bit carry-less multiplication.
 #[inline]
-fn ith_bit_mask(elem: &FieldElement, i: usize) -> FieldElement {
-    debug_assert!(i < 128);
+fn clmul64(x: u64, y: u64) -> FieldElement {
+    // Multiplication in GF(2)[X] with “holes”
+    // (sequences of zeroes) to avoid carry spilling.
+    //
+    // When carries do occur, they wind up in a "hole" and are subsequently
+    // masked out of the result.
+    // Adapted from https://github.com/RustCrypto/universal-hashes/blob/802b40974a08bbd2663c63780fc87a23ee931868/polyval/src/backend/soft64.rs#L201C1-L227C2
+    // Uses the technique described in https://www.bearssl.org/constanttime.html#ghash-for-gcm
+    // but directly outputs the 128 bits without needing the Rev trick.
+    // This method is constant time and significantly faster than iterating over the
+    // bits of x and xoring shifted y.
+    let x0 = (x & 0x1111_1111_1111_1111) as FieldElement;
+    let x1 = (x & 0x2222_2222_2222_2222) as FieldElement;
+    let x2 = (x & 0x4444_4444_4444_4444) as FieldElement;
+    let x3 = (x & 0x8888_8888_8888_8888) as FieldElement;
+    let y0 = (y & 0x1111_1111_1111_1111) as FieldElement;
+    let y1 = (y & 0x2222_2222_2222_2222) as FieldElement;
+    let y2 = (y & 0x4444_4444_4444_4444) as FieldElement;
+    let y3 = (y & 0x8888_8888_8888_8888) as FieldElement;
 
-    let bit: u16 = ((elem >> (127 - i)) as u16) & 0x1;
-    let bit_mask16 = (!bit).wrapping_add(1);
-    let bit_mask32 = (bit_mask16 as u32) ^ ((bit_mask16 as u32) << 16);
-    let bit_mask64 = (bit_mask32 as u64) ^ ((bit_mask32 as u64) << 32);
+    let mut z0 = (x0 * y0) ^ (x1 * y3) ^ (x2 * y2) ^ (x3 * y1);
+    let mut z1 = (x0 * y1) ^ (x1 * y0) ^ (x2 * y3) ^ (x3 * y2);
+    let mut z2 = (x0 * y2) ^ (x1 * y1) ^ (x2 * y0) ^ (x3 * y3);
+    let mut z3 = (x0 * y3) ^ (x1 * y2) ^ (x2 * y1) ^ (x3 * y0);
 
-    (bit_mask64 as u128) ^ ((bit_mask64 as u128) << 64)
+    z0 &= 0x1111_1111_1111_1111_1111_1111_1111_1111;
+    z1 &= 0x2222_2222_2222_2222_2222_2222_2222_2222;
+    z2 &= 0x4444_4444_4444_4444_4444_4444_4444_4444;
+    z3 &= 0x8888_8888_8888_8888_8888_8888_8888_8888;
+
+    z0 | z1 | z2 | z3
 }
 
-const IRRED: FieldElement = 0xE100_0000_0000_0000_0000_0000_0000_0000;
-
+/// Performs a 128x128 to 256-bit carry-less multiplication.
+///
+/// Return (high, low) bits
 #[inline]
-fn mul_x(elem: &mut FieldElement) {
-    let mask = ith_bit_mask(elem, 127);
-    *elem = (*elem >> 1) ^ (IRRED & mask)
+pub fn mul_wide(&a: &FieldElement, &b: &FieldElement) -> (FieldElement, FieldElement) {
+    let (a_low, a_high) = (a as u64, (a >> 64) as u64);
+    let (b_low, b_high) = (b as u64, (b >> 64) as u64);
+
+    // Use karatsuba multiplication
+    let ab_low = clmul64(a_low, b_low);
+    let ab_high = clmul64(a_high, b_high);
+    let ab_mid = clmul64(a_low ^ a_high, b_low ^ b_high) ^ ab_low ^ ab_high;
+    let low = ab_low ^ (ab_mid << 64);
+    let high = ab_high ^ (ab_mid >> 64);
+    (high, low)
 }
 
 #[inline]
-fn mul_step(x: &FieldElement, y: &mut FieldElement, i: usize, result: &mut FieldElement) {
-    debug_assert!(i < 128);
-    let mask = ith_bit_mask(x, i);
-    *result ^= *y & mask;
-    mul_x(y);
+pub fn reduce(&high: &FieldElement, &low: &FieldElement) -> FieldElement {
+    let high = (high << 1) ^ (low >> 127);
+    let low = low << 1;
+    let x0_0 = low << 64;
+    let x1_x0 = low ^ (x0_0 << 63) ^ (x0_0 << 62) ^ (x0_0 << 57);
+    let x1_x0 = x1_x0 ^ (x1_x0 >> 1) ^ (x1_x0 >> 2) ^ (x1_x0 >> 7);
+    x1_x0 ^ high
 }
 
 #[inline]
 fn mul(x: &FieldElement, y: &FieldElement) -> FieldElement {
-    let mut result = 0;
-    let mut multiplicand = *y;
-    for i in 0..128 {
-        mul_step(x, &mut multiplicand, i, &mut result)
-    }
-    result
+    let (high, low) = mul_wide(x, y);
+    reduce(&high, &low)
 }
 
 impl crate::platform::GF128FieldElement for FieldElement {
