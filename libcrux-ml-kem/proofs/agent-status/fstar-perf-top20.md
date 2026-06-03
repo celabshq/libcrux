@@ -804,3 +804,26 @@ from the polynomial.rs bounds-checker additions + incremental subtree.
 | 18 | 10.6 | 156 | 112 | 5 | 0 | Libcrux_ml_kem.Invert_ntt | inv_ntt_layer_int_vec_step_reduce |
 | 19 | 10.5 | 157 | 108 | 1 | 0 | Libcrux_ml_kem.Ind_cpa | encrypt_c1 |
 | 20 | 10.1 | 126 | 108 | 0 | 0 | Libcrux_ml_kem.Ind_cpa | encrypt_unpacked |
+
+## Snapshot — 2026-06-04 — Neon Sprint 1 (vector_type + arithmetic un-admit)
+
+Source: this session's targeted builds (2a077562 intrinsics fsti, 11a82c3c +
+3699694f Vector_type, f5eb4b38 Arithmetic) + final `make all` gate
+(bde54056, exit 0, 56 s warm).  Incremental — only rebuilt modules have
+stats; prior snapshots remain authoritative for untouched modules.
+
+| # | Total (s) | Max query (ms) | Queries | Failed | Module.Function |
+|---|---|---|---|---|---|
+| 1 | 24.0 | 24012 | 3 | 0 | Libcrux_ml_kem.Vector.Neon.Arithmetic.cond_subtract_3329_ |
+| 2 | 13.5 | 13469 | 3 | 0 | Libcrux_ml_kem.Vector.Neon.Arithmetic.to_unsigned_representative |
+| 3 |  0.7 |   223 | 6 | 0 | Libcrux_ml_kem.Vector.Neon.Vector_type.to_i16_array |
+
+Everything else this session was sub-second (Unpacked.* "failed 1" rows in
+the raw log are the benign stale-hint-retry noise — failed-with-hint then
+succeeded without).  Notes:
+- cond_subtract_3329_ is ONE ~24 s query at rlimit 300 (mask-chain +
+  introduce-forall with logand_lemma per lane).  Fine for now; if it
+  regresses, split the per-lane dispatch into a top-level helper lemma
+  (ground-literal SIMD recipe).
+- to_unsigned_representative: ~13.5 s at rlimit 300, portable-mirrored
+  assert chain.  Same remedy if it grows.

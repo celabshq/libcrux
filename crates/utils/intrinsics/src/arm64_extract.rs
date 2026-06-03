@@ -17,6 +17,12 @@ let get_lane_u16x4 (v: $:{_uint16x4_t}) (i: nat{i < 4}) : u16 =
   Seq.index (vec64_as_u16x4 v) i
 "#
 )]
+#[hax_lib::fstar::replace(
+    r#"
+assume val vec64_as_u16x4_axiom (x: $:{_uint16x4_t}) : t_Array u16 (sz 4)
+let vec64_as_u16x4 = vec64_as_u16x4_axiom
+"#
+)]
 pub struct _uint16x4_t(u8);
 
 #[derive(Clone, Copy)]
@@ -28,6 +34,12 @@ unfold type $:{_int16x4_t} = bit_vec 64
 val vec64_as_i16x4 (x: $:{_int16x4_t}) : t_Array i16 (sz 4)
 let get_lane_i16x4 (v: $:{_int16x4_t}) (i: nat{i < 4}) : i16 =
   Seq.index (vec64_as_i16x4 v) i
+"#
+)]
+#[hax_lib::fstar::replace(
+    r#"
+assume val vec64_as_i16x4_axiom (x: $:{_int16x4_t}) : t_Array i16 (sz 4)
+let vec64_as_i16x4 = vec64_as_i16x4_axiom
 "#
 )]
 pub struct _int16x4_t(u8);
@@ -43,6 +55,12 @@ let get_lane_i16x8 (v: $:{_int16x8_t}) (i: nat{i < 8}) : i16 =
   Seq.index (vec128_as_i16x8 v) i
 "#
 )]
+#[hax_lib::fstar::replace(
+    r#"
+assume val vec128_as_i16x8_axiom (x: $:{_int16x8_t}) : t_Array i16 (sz 8)
+let vec128_as_i16x8 = vec128_as_i16x8_axiom
+"#
+)]
 pub struct _int16x8_t(u8);
 
 #[derive(Clone, Copy)]
@@ -54,6 +72,12 @@ unfold type $:{_uint8x16_t} = bit_vec 128
 val vec128_as_u8x16 (x: $:{_uint8x16_t}) : t_Array u8 (sz 16)
 let get_lane_u8x16 (v: $:{_uint8x16_t}) (i: nat{i < 16}) : u8 =
   Seq.index (vec128_as_u8x16 v) i
+"#
+)]
+#[hax_lib::fstar::replace(
+    r#"
+assume val vec128_as_u8x16_axiom (x: $:{_uint8x16_t}) : t_Array u8 (sz 16)
+let vec128_as_u8x16 = vec128_as_u8x16_axiom
 "#
 )]
 pub struct _uint8x16_t(u8);
@@ -69,6 +93,12 @@ let get_lane_u16x8 (v: $:{_uint16x8_t}) (i: nat{i < 8}) : u16 =
   Seq.index (vec128_as_u16x8 v) i
 "#
 )]
+#[hax_lib::fstar::replace(
+    r#"
+assume val vec128_as_u16x8_axiom (x: $:{_uint16x8_t}) : t_Array u16 (sz 8)
+let vec128_as_u16x8 = vec128_as_u16x8_axiom
+"#
+)]
 pub struct _uint16x8_t(u8);
 
 #[derive(Clone, Copy)]
@@ -80,6 +110,12 @@ unfold type $:{_uint32x4_t} = bit_vec 128
 val vec128_as_u32x4 (x: $:{_uint32x4_t}) : t_Array u32 (sz 4)
 let get_lane_u32x4 (v: $:{_uint32x4_t}) (i: nat{i < 4}) : u32 =
   Seq.index (vec128_as_u32x4 v) i
+"#
+)]
+#[hax_lib::fstar::replace(
+    r#"
+assume val vec128_as_u32x4_axiom (x: $:{_uint32x4_t}) : t_Array u32 (sz 4)
+let vec128_as_u32x4 = vec128_as_u32x4_axiom
 "#
 )]
 pub struct _uint32x4_t(u8);
@@ -95,6 +131,12 @@ let get_lane_i32x4 (v: $:{_int32x4_t}) (i: nat{i < 4}) : i32 =
   Seq.index (vec128_as_i32x4 v) i
 "#
 )]
+#[hax_lib::fstar::replace(
+    r#"
+assume val vec128_as_i32x4_axiom (x: $:{_int32x4_t}) : t_Array i32 (sz 4)
+let vec128_as_i32x4 = vec128_as_i32x4_axiom
+"#
+)]
 pub struct _int32x4_t(u8);
 
 #[derive(Clone, Copy)]
@@ -108,6 +150,12 @@ let get_lane_u64x2 (v: $:{_uint64x2_t}) (i: nat{i < 2}) : u64 =
   Seq.index (vec128_as_u64x2 v) i
 "#
 )]
+#[hax_lib::fstar::replace(
+    r#"
+assume val vec128_as_u64x2_axiom (x: $:{_uint64x2_t}) : t_Array u64 (sz 2)
+let vec128_as_u64x2 = vec128_as_u64x2_axiom
+"#
+)]
 pub struct _uint64x2_t(u8);
 
 #[derive(Clone, Copy)]
@@ -119,6 +167,12 @@ unfold type $:{_int64x2_t} = bit_vec 128
 val vec128_as_i64x2 (x: $:{_int64x2_t}) : t_Array i64 (sz 2)
 let get_lane_i64x2 (v: $:{_int64x2_t}) (i: nat{i < 2}) : i64 =
   Seq.index (vec128_as_i64x2 v) i
+"#
+)]
+#[hax_lib::fstar::replace(
+    r#"
+assume val vec128_as_i64x2_axiom (x: $:{_int64x2_t}) : t_Array i64 (sz 2)
+let vec128_as_i64x2 = vec128_as_i64x2_axiom
 "#
 )]
 pub struct _int64x2_t(u8);
@@ -140,7 +194,12 @@ pub fn _vdupq_n_u64(i: u64) -> _uint64x2_t {
 #[inline(always)]
 #[hax_lib::lean::replace_body("()")]
 #[hax_lib::requires(out.len() >= 8)]
-#[hax_lib::ensures(|()| future(out).len() == out.len())]
+#[hax_lib::ensures(|()| fstar!(
+    "Seq.length (out_future <: t_Slice i16) == Seq.length ($out <: t_Slice i16) /\\
+     (forall (i:nat{i < 8}).
+        Seq.index (out_future <: t_Slice i16) i == get_lane_i16x8 $v i) /\\
+     (forall (i:nat{i >= 8 /\\ i < Seq.length (out_future <: t_Slice i16)}).
+        Seq.index (out_future <: t_Slice i16) i == Seq.index ($out <: t_Slice i16) i)"))]
 pub fn _vst1q_s16(out: &mut [i16], v: _int16x8_t) {
     unimplemented!()
 }
@@ -208,7 +267,16 @@ pub fn get_lane_u64(vec: _uint64x2_t, lane: usize) -> u64 {
 }
 
 #[inline(always)]
-#[hax_lib::ensures(|()| future(out).len() == out.len())]
+#[hax_lib::requires(out.len() >= 16)]
+#[hax_lib::ensures(|()| fstar!(
+    "Seq.length (out_future <: t_Slice u8) == Seq.length ($out <: t_Slice u8) /\\
+     (forall (i:nat{i < 16}).
+        Seq.index (out_future <: t_Slice u8) i ==
+        Seq.index
+          (Core_models.Num.impl_u64__to_le_bytes
+             (get_lane_u64x2 $v (i / 8))) (i % 8)) /\\
+     (forall (i:nat{i >= 16 /\\ i < Seq.length (out_future <: t_Slice u8)}).
+        Seq.index (out_future <: t_Slice u8) i == Seq.index ($out <: t_Slice u8) i)"))]
 #[hax_lib::lean::replace_body("()")]
 pub fn _vst1q_bytes_u64(out: &mut [u8], v: _uint64x2_t) {
     unimplemented!()
@@ -248,7 +316,9 @@ pub fn _vmulq_n_u16(v: _uint16x8_t, c: u16) -> _uint16x8_t {
 
 #[inline(always)]
 #[hax_lib::lean::replace_body("sorry")]
-// TODO: ensures needs `requires (v SHIFT_BY >= 0 /\ v SHIFT_BY < 16)` for >>! subtyping
+#[hax_lib::requires(0 <= SHIFT_BY && SHIFT_BY < 16)]
+#[hax_lib::ensures(|result| fstar!("forall (i:nat{i < 8}). get_lane_i16x8 $result i ==
+    (get_lane_i16x8 $v i >>! ${SHIFT_BY})"))]
 pub fn _vshrq_n_s16<const SHIFT_BY: i32>(v: _int16x8_t) -> _int16x8_t {
     unimplemented!()
 }
@@ -262,25 +332,44 @@ pub fn _vshrq_n_u16<const SHIFT_BY: i32>(v: _uint16x8_t) -> _uint16x8_t {
 
 #[inline(always)]
 #[hax_lib::lean::replace_body("sorry")]
-// TODO: ensures needs `requires (v SHIFT_BY >= 0 /\ v SHIFT_BY < 64)` for >>! subtyping
+#[hax_lib::requires(0 <= SHIFT_BY && SHIFT_BY < 64)]
+#[hax_lib::ensures(|result| fstar!("forall (i:nat{i < 2}). get_lane_u64x2 $result i ==
+    (get_lane_u64x2 $v i >>! (cast ${SHIFT_BY} <: u32))"))]
 pub fn _vshrq_n_u64<const SHIFT_BY: i32>(v: _uint64x2_t) -> _uint64x2_t {
     unimplemented!()
 }
 
+// Note: NO `#[hax_lib::lean::replace_body("sorry")]` — this is a real
+// fallback body, not a stub, and we want both backends to extract it.
+//
+// The `before` block opens the rotate-decomposition lemma module so its
+// SMTPat-tagged bridge lemma fires when F* sees `rotate_left ... LEFT`
+// in the post.
+#[cfg_attr(hax, hax_lib::fstar::before(r#"open Bitvec.U64Rotate"#))]
 #[inline(always)]
-#[hax_lib::lean::replace_body("sorry")]
+#[hax_lib::requires(0 < LEFT && LEFT < 64 && 0 < RIGHT && RIGHT < 64 && LEFT + RIGHT == 64)]
 #[hax_lib::ensures(|result| fstar!("forall (i:nat{i < 2}). get_lane_u64x2 $result i ==
     Core_models.Num.impl_u64__rotate_left (get_lane_u64x2 $a i ^. get_lane_u64x2 $b i) (cast ${LEFT} <: u32)"))]
 pub fn _vxarq_u64<const LEFT: i32, const RIGHT: i32>(
     a: _uint64x2_t,
     b: _uint64x2_t,
 ) -> _uint64x2_t {
-    unimplemented!()
+    // Manual fallback: VXAR is XOR-and-rotate-right by RIGHT, equivalent
+    // to `(a XOR b) shl LEFT  XOR  (a XOR b) shr RIGHT` when LEFT+RIGHT=64.
+    // The post's `rotate_left .. LEFT` is bridged to this composition
+    // by `Bitvec.U64Rotate.lemma_u64_rotate_left_decomp` (SMTPat).
+    let a_xor_b = _veorq_u64(a, b);
+    _veorq_u64(
+        _vshlq_n_u64::<LEFT>(a_xor_b),
+        _vshrq_n_u64::<RIGHT>(a_xor_b),
+    )
 }
 
 #[inline(always)]
 #[hax_lib::lean::replace_body("sorry")]
-// TODO: ensures needs `requires (v SHIFT_BY >= 0 /\ v SHIFT_BY < 64)` for <<! subtyping
+#[hax_lib::requires(0 <= SHIFT_BY && SHIFT_BY < 64)]
+#[hax_lib::ensures(|result| fstar!("forall (i:nat{i < 2}). get_lane_u64x2 $result i ==
+    (get_lane_u64x2 $v i <<! (cast ${SHIFT_BY} <: u32))"))]
 pub fn _vshlq_n_u64<const SHIFT_BY: i32>(v: _uint64x2_t) -> _uint64x2_t {
     unimplemented!()
 }
@@ -331,23 +420,27 @@ pub fn _vbicq_u64(a: _uint64x2_t, b: _uint64x2_t) -> _uint64x2_t {
     unimplemented!()
 }
 
+// Real fallback body — composition of `_veorq_u64` and `_vbicq_u64`.
 #[inline(always)]
-#[hax_lib::lean::replace_body("sorry")]
 #[hax_lib::ensures(|result| fstar!("forall (i:nat{i < 2}). get_lane_u64x2 $result i ==
     (get_lane_u64x2 $a i ^. (get_lane_u64x2 $b i &. (~. (get_lane_u64x2 $c i))))"))]
 pub fn _vbcaxq_u64(a: _uint64x2_t, b: _uint64x2_t, c: _uint64x2_t) -> _uint64x2_t {
-    unimplemented!()
+    _veorq_u64(a, _vbicq_u64(b, c))
 }
 
 #[inline(always)]
 #[hax_lib::lean::replace_body("sorry")]
-#[hax_lib::ensures(|result| fstar!("$result == $m0"))]
+#[hax_lib::ensures(|result| fstar!("$result == $m0 /\\
+    (forall (i:nat{i < 8}). get_lane_i16x8 $result i ==
+       Rust_primitives.Integers.cast_mod #Rust_primitives.Integers.u16_inttype #Rust_primitives.Integers.i16_inttype (get_lane_u16x8 $m0 i))"))]
 pub fn _vreinterpretq_s16_u16(m0: _uint16x8_t) -> _int16x8_t {
     unimplemented!()
 }
 #[inline(always)]
 #[hax_lib::lean::replace_body("sorry")]
-#[hax_lib::ensures(|result| fstar!("$result == $m0"))]
+#[hax_lib::ensures(|result| fstar!("$result == $m0 /\\
+    (forall (i:nat{i < 8}). get_lane_u16x8 $result i ==
+       Rust_primitives.Integers.cast_mod #Rust_primitives.Integers.i16_inttype #Rust_primitives.Integers.u16_inttype (get_lane_i16x8 $m0 i))"))]
 pub fn _vreinterpretq_u16_s16(m0: _int16x8_t) -> _uint16x8_t {
     unimplemented!()
 }
@@ -375,20 +468,27 @@ pub fn _veorq_u64(mask: _uint64x2_t, shifted: _uint64x2_t) -> _uint64x2_t {
     unimplemented!()
 }
 
+// Real fallback body — XOR-and-rotate-left-by-1.  The rotate is
+// decomposed via `Bitvec.U64Rotate.lemma_u64_rotate_left_decomp`
+// (SMTPat already in scope from `_vxarq_u64`'s before-block).
 #[inline(always)]
-#[hax_lib::lean::replace_body("sorry")]
 #[hax_lib::ensures(|result| fstar!("forall (i:nat{i < 2}). get_lane_u64x2 $result i ==
     (get_lane_u64x2 $a i ^. Core_models.Num.impl_u64__rotate_left (get_lane_u64x2 $b i) (mk_u32 1))"))]
 pub fn _vrax1q_u64(a: _uint64x2_t, b: _uint64x2_t) -> _uint64x2_t {
-    unimplemented!()
+    _veorq_u64(a, _veorq_u64(_vshlq_n_u64::<1>(b), _vshrq_n_u64::<63>(b)))
 }
 
+// Real fallback body — triple XOR via two _veorq_u64 calls.
+// Body is left-associative `(a XOR b) XOR c` to match the spec's parens
+// (and the downstream `arm64_lc_xor5` equivalence lemma).  The libcrux
+// arm64.rs fallback uses the right-associative form `a XOR (b XOR c)`;
+// both are equivalent at runtime by XOR associativity, but the
+// left-associative form lets F* discharge the post definitionally.
 #[inline(always)]
-#[hax_lib::lean::replace_body("sorry")]
 #[hax_lib::ensures(|result| fstar!("forall (i:nat{i < 2}). get_lane_u64x2 $result i ==
     ((get_lane_u64x2 $a i ^. get_lane_u64x2 $b i) ^. get_lane_u64x2 $c i)"))]
 pub fn _veor3q_u64(a: _uint64x2_t, b: _uint64x2_t, c: _uint64x2_t) -> _uint64x2_t {
-    unimplemented!()
+    _veorq_u64(_veorq_u64(a, b), c)
 }
 
 #[inline(always)]

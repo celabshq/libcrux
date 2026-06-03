@@ -2,14 +2,11 @@ SLOW_MODULES += Libcrux_ml_kem.Vector.Rej_sample_table.fsti
 SLOW_MODULES += Libcrux_ml_kem.Matrix.fst
 SLOW_MODULES += Libcrux_ml_kem.Vector.Portable.Serialize.fst
 
-ADMIT_MODULES = Libcrux_ml_kem.Vector.Neon.Arithmetic.fst \
-              Libcrux_ml_kem.Vector.Neon.Compress.fst \
+ADMIT_MODULES = Libcrux_ml_kem.Vector.Neon.Compress.fst \
               Libcrux_ml_kem.Vector.Neon.fsti \
               Libcrux_ml_kem.Vector.Neon.fst \
               Libcrux_ml_kem.Vector.Neon.Ntt.fst \
-              Libcrux_ml_kem.Vector.Neon.Serialize.fst \
-              Libcrux_ml_kem.Vector.Neon.Vector_type.fst \
-              Libcrux_ml_kem.Vector.Neon.Vector_type.fsti
+              Libcrux_ml_kem.Vector.Neon.Serialize.fst
 # NOTE: ALL incremental modules are now VERIFIED (removed from ADMIT_MODULES):
 # Ind_cca.Incremental{,.Types,.Avx2,.Portable,.Multiplexing} and
 # Mlkem{512,768,1024}.Incremental.  The Types/Incremental closure (2026-06-03)
@@ -27,8 +24,14 @@ ADMIT_MODULES = Libcrux_ml_kem.Vector.Neon.Arithmetic.fst \
 #
 # The .Alloc and .Incremental.Rand submodules are deleted post-extraction by
 # hax.py (they use `Box<dyn Keys>` and `try_fill_bytes` which lack F* models).
-# ^ .fsti masks Error 162 (decidable-equality module-level issue) per
-# MLKEM_STATUS.md Phase 6d directive.  Out of scope for portable+AVX2.
+#
+# Neon sprint 1 (2026-06-04): Vector_type.{fst,fsti} + Arithmetic.fst
+# removed from ADMIT_MODULES.  The historical "Error 162"
+# (decidable-equality, Phase 6d) no longer reproduces under hax 0.3.7 —
+# the un-admitted Vector_type.fsti verifies clean; no masking needed.
+# Remaining Neon entries: Serialize (Sprint 2 — vec128 BitVec bridges),
+# Ntt + Compress + Vector.Neon.{fst,fsti} (Sprint 3 — branch-post opacity,
+# vqdmulh models, impl-Operations contract pass).
 
 # =====================================================================
 # Trait-boundary admits — TEMPORARY, scope = trait_post-strengthening work
