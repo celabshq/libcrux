@@ -9,7 +9,7 @@
                      temp_0_
                    in
                    let j:usize = j in
-@@ -224,10 +224,10 @@
+@@ -233,10 +233,10 @@
                    in
                    let result:t_Slice (Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement v_SIMDUnit)
                    =

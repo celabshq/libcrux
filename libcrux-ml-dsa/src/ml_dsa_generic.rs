@@ -164,10 +164,18 @@ pub(crate) mod generic {
                 "#
             );
             for i in 0..s1_ntt.len() {
+                // Truthful split: processed entries [0,i) are NTT_OUTPUT_BOUND
+                // (forward ntt output, not reduced), unprocessed [i,len) are
+                // still FIELD_MAX (sampled s1). After the loop the whole slice
+                // is NTT_OUTPUT_BOUND, matching compute_as1_plus_s2's widened
+                // s1_ntt pre. (Body is admit()-ed; this keeps the claim truthful.)
                 hax_lib::loop_invariant!(|i: usize| fstar!(
                     r#"v $i <= Seq.length ${s1_ntt} /\
-                       Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice
-                           (mk_usize 8380416) ${s1_ntt}"#
+                       Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_range
+                           (mk_usize 75423744) (mk_usize 0) $i ${s1_ntt} /\
+                       (forall (k:nat). v $i <= k /\ k < Seq.length ${s1_ntt} ==>
+                          Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly
+                              (mk_usize 8380416) (Seq.index ${s1_ntt} k))"#
                 ));
                 ntt(&mut s1_ntt[i]);
             }

@@ -222,7 +222,8 @@ pub(crate) fn montgomery_multiply_by_constant(simd_unit: &mut Coefficients, c: i
 #[inline(always)]
 #[hax_lib::fstar::options("--z3rlimit 150")]
 #[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"Spec.Utils.is_i32b_array_opaque 8380416 ${rhs}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values"#))]
+#[hax_lib::requires(fstar!(r#"Spec.Utils.is_i32b_array_opaque (9 * 8380416) ${lhs}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values /\
+    Spec.Utils.is_i32b_array_opaque (9 * 8380416) ${rhs}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values"#))]
 #[hax_lib::ensures(|result| fstar!(r#"
     Spec.Utils.is_i32b_array_opaque 8380416 ${lhs}_future.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values /\
     Spec.MLDSA.Math.(forall i. i < 8 ==>
@@ -251,18 +252,24 @@ pub(crate) fn montgomery_multiply(lhs: &mut Coefficients, rhs: &Coefficients) {
               (forall j. j >= v $i ==> (Seq.index ${lhs}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values j) == (Seq.index ${_lhs0}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values j))"#
             )
         });
+        // Widened operand bound: both lhs[i] and rhs[i] are now bounded by
+        // 9*FIELD_MAX (NTT_OUTPUT_BOUND), so the product fits in i64 with
+        // |product| <= (9*FIELD_MAX)^2 <= 8380416*pow2 32 = montgomery_reduce's pre.
         hax_lib::fstar!(
-            r#"Spec.Utils.lemma_mul_i32b (pow2 31) (8380416) ${lhs}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values.[ $i ] ${rhs}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values.[ $i ]"#
+            r#"Spec.Utils.lemma_mul_i32b (9 * 8380416) (9 * 8380416) ${lhs}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values.[ $i ] ${rhs}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values.[ $i ];
+               assert_norm ((9 * 8380416) * (9 * 8380416) <= 8380416 * pow2 32)"#
         );
 
         lhs.values[i] = montgomery_reduce_element((lhs.values[i] as i64) * (rhs.values[i] as i64));
 
-        // Tight 8380416 bound + mod-q correctness + mont_mul equality for the
-        // per-element mont_mul.  Same bridge pattern as montgomery_multiply_by_constant.
+        // Tight 8380416 output bound + mod-q correctness + mont_mul equality for
+        // the per-element mont_mul, both operands bounded by 9*FIELD_MAX.  The
+        // product (9*FIELD_MAX)^2 < FIELD_MAX*2^31 so mont_red keeps the output
+        // FIELD_MAX-bounded (=> the widened bound+mod-q lemma applies).
         // The reveals unfold `i32_mul lhs rhs` to `(cast lhs) *! (cast rhs)` so F* sees
         // `mont_mul lhs rhs == mont_red ((lhs as i64) * (rhs as i64)) == result`.
         hax_lib::fstar!(
-            r#"Hacspec_ml_dsa.Commute.Chunk.lemma_mont_mul_bound_and_mod_q
+            r#"Spec.MLDSA.Math.lemma_mont_mul_bound_and_mod_q_ntt_output
                  (Seq.index ${_lhs0}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values (v $i))
                  (Seq.index ${rhs}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values (v $i));
                Spec.Intrinsics.reveal_opaque_arithmetic_ops #i64_inttype;

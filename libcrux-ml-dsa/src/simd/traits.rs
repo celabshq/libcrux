@@ -125,8 +125,13 @@ pub(crate) trait Operations: Copy + Clone + Repr {
     fn use_hint(gamma2: Gamma2, simd_unit: &Self, hint: &mut Self);
 
     // Modular operations
+    // Both operands may be NTT-domain values bounded by NTT_OUTPUT_BOUND
+    // (= 9*FIELD_MAX), the lazily-accumulated forward-NTT output bound. The
+    // product (9*FIELD_MAX)^2 < FIELD_MAX*2^31, so montgomery_reduce_element
+    // still reduces the output back to FIELD_MAX (the output post below).
     #[hax_lib::requires(fstar!(r#"
-        Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX}) (${rhs.repr()})"#))]
+        Spec.Utils.is_i32b_array_opaque (v ${specs::NTT_OUTPUT_BOUND}) (${lhs.repr()}) /\
+        Spec.Utils.is_i32b_array_opaque (v ${specs::NTT_OUTPUT_BOUND}) (${rhs.repr()})"#))]
     // 2026-05-08 (audit Phase A item 10): dropped third clause
     //   `forall (i:nat). i < 8 ==> Seq.index ... == Spec.MLDSA.Math.mont_mul ...`
     // because `mont_mul` is a non-opaque (transparent) wrapper over `mont_red`/`i32_mul`,
@@ -342,9 +347,12 @@ pub(crate) trait Operations: Copy + Clone + Repr {
             (v ${specs::NTT_BASE_BOUND})
             (f_repr (Seq.index ${simd_units} i)))
     "#))]
+    // Output bound is NTT_OUTPUT_BOUND (= 9*FIELD_MAX), not FIELD_MAX: the
+    // forward NTT lazily accumulates to NTT_BASE_BOUND + 8*FIELD_MAX and is
+    // deliberately NOT reduced (the downstream montgomery multiply absorbs it).
     #[hax_lib::ensures(|_| fstar!(r#"
         Spec.Utils.forall32 (fun (i: nat{i < 32}) ->
-            Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX})
+            Spec.Utils.is_i32b_array_opaque (v ${specs::NTT_OUTPUT_BOUND})
             (f_repr (Seq.index ${simd_units}_future i)))
     "#))]
     fn ntt(simd_units: &mut [Self; SIMD_UNITS_IN_RING_ELEMENT]);

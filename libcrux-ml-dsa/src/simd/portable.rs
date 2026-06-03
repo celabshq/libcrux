@@ -56,7 +56,8 @@ pub(crate) fn infinity_norm_exceeds_with_proof(simd_unit: &Coefficients, bound: 
 }
 
 #[hax_lib::requires(fstar!(r#"
-    Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX}) (${rhs.repr()})"#))]
+    Spec.Utils.is_i32b_array_opaque (v ${specs::NTT_OUTPUT_BOUND}) (${lhs.repr()}) /\
+    Spec.Utils.is_i32b_array_opaque (v ${specs::NTT_OUTPUT_BOUND}) (${rhs.repr()})"#))]
 #[hax_lib::ensures(|_| fstar!(r#"
     Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX}) (Libcrux_ml_dsa.Simd.Traits.f_repr ${lhs}_future) /\
     Spec.Utils.forall8 (fun (i: nat{i < 8}) ->
@@ -478,9 +479,10 @@ impl Operations for Coefficients {
         );
     }
 
+    // Both operands NTT_OUTPUT_BOUND (matches widened trait pre); output FIELD_MAX.
     #[requires(fstar!(r#"
-        Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX}) (${rhs.repr()})"#))]
-    // 2026-05-08: matches the trait declaration drop (Phase A item 10).
+        Spec.Utils.is_i32b_array_opaque (v ${specs::NTT_OUTPUT_BOUND}) (${lhs.repr()}) /\
+        Spec.Utils.is_i32b_array_opaque (v ${specs::NTT_OUTPUT_BOUND}) (${rhs.repr()})"#))]
     #[ensures(|_| fstar!(r#"
         Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX}) (Libcrux_ml_dsa.Simd.Traits.f_repr ${lhs}_future) /\
         Spec.Utils.forall8 (fun (i: nat{i < 8}) ->
@@ -681,12 +683,21 @@ impl Operations for Coefficients {
     "#))]
     #[ensures(|_| fstar!(r#"
         Spec.Utils.forall32 (fun (i: nat{i < 32}) ->
-            Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX})
+            Spec.Utils.is_i32b_array_opaque (v ${specs::NTT_OUTPUT_BOUND})
             (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index ${simd_units}_future i)))
     "#))]
     fn ntt(simd_units: &mut [Coefficients; SIMD_UNITS_IN_RING_ELEMENT]) {
-        hax_lib::fstar!("admit ()");
-        ntt::ntt(simd_units)
+        // Bridge inner ntt::ntt's `is_i32b_polynomial (NTT_BASE_BOUND + 8*FIELD_MAX)`
+        // post to the trait post `forall32 ... is_i32b_array_opaque NTT_OUTPUT_BOUND`.
+        // is_i32b_polynomial is opaque; reveal it, then NTT_OUTPUT_BOUND ==
+        // NTT_BASE_BOUND + 8*FIELD_MAX (both concrete) and f_repr c == c.f_values (defeq).
+        ntt::ntt(simd_units);
+        hax_lib::fstar!(
+            r#"reveal_opaque (`%Libcrux_ml_dsa.Simd.Portable.Ntt.is_i32b_polynomial)
+                 (Libcrux_ml_dsa.Simd.Portable.Ntt.is_i32b_polynomial
+                    (v ${specs::NTT_BASE_BOUND} + 8 * v ${specs::FIELD_MAX}) ${simd_units});
+               assert_norm (v ${specs::NTT_OUTPUT_BOUND} == v ${specs::NTT_BASE_BOUND} + 8 * v ${specs::FIELD_MAX})"#
+        );
     }
 
     #[requires(fstar!(r#"

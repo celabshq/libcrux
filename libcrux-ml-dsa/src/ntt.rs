@@ -6,8 +6,11 @@ use crate::simd::traits::specs::*;
 #[inline(always)]
 #[hax_lib::requires(fstar!(r#"
     Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly (mk_usize 8380416) re"#))]
+// Output bound is NTT_OUTPUT_BOUND = 9*FIELD_MAX = 75423744 (the lazily-
+// accumulated forward-NTT output; deliberately NOT reduced — the downstream
+// montgomery multiply absorbs it). REQUIRES stays FIELD_MAX (NTT_BASE_BOUND).
 #[hax_lib::ensures(|_| fstar!(r#"
-    Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly (mk_usize 8380416) ${re}_future"#))]
+    Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly (mk_usize 75423744) ${re}_future"#))]
 pub(crate) fn ntt<SIMDUnit: Operations>(re: &mut PolynomialRingElement<SIMDUnit>) {
     // Bridge `is_bounded_poly` (usize-typed bound) into the per-lane form
     // SIMDUnit::ntt's pre wants (with bound `v_NTT_BASE_BOUND = u32 FIELD_MAX`).
@@ -18,7 +21,7 @@ pub(crate) fn ntt<SIMDUnit: Operations>(re: &mut PolynomialRingElement<SIMDUnit>
     SIMDUnit::ntt(&mut re.simd_units);
     hax_lib::fstar!(
         r#"Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_intro
-             (mk_usize 8380416) $re"#
+             (mk_usize 75423744) $re"#
     );
 }
 
@@ -66,7 +69,8 @@ pub(crate) fn reduce<SIMDUnit: Operations>(re: &mut PolynomialRingElement<SIMDUn
 
 #[inline(always)]
 #[hax_lib::requires(fstar!(r#"
-    Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly (mk_usize 8380416) rhs"#))]
+    Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly (mk_usize 75423744) lhs /\
+    Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly (mk_usize 75423744) rhs"#))]
 #[hax_lib::ensures(|_| fstar!(r#"
     Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly (mk_usize 8380416) ${lhs}_future /\
     (forall (i:nat). i < 32 ==>
@@ -83,18 +87,23 @@ pub(crate) fn ntt_multiply_montgomery<SIMDUnit: Operations>(
     let orig_lhs = lhs.clone();
     hax_lib::fstar!(
         r#"reveal_opaque (`%Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly)
-             (Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly (mk_usize 8380416) $rhs)"#
+             (Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly (mk_usize 75423744) $rhs);
+           reveal_opaque (`%Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly)
+             (Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly (mk_usize 75423744) $lhs)"#
     );
 
     for i in 0..lhs.simd_units.len() {
         hax_lib::loop_invariant!(|i: usize| fstar!(
             r#"v i <= 32 /\
-              Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly (mk_usize 8380416) rhs /\
+              Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly (mk_usize 75423744) rhs /\
               (forall (j:nat). j < v i ==>
                 Spec.Utils.is_i32b_array_opaque (v ${FIELD_MAX})
                   (i0._super_i2.f_repr (Seq.index lhs.f_simd_units j))) /\
               (forall (j:nat). j >= v i /\ j < 32 ==>
                 Seq.index lhs.f_simd_units j == Seq.index orig_lhs.f_simd_units j) /\
+              (forall (j:nat). j < 32 ==>
+                Spec.Utils.is_i32b_array_opaque (v ${NTT_OUTPUT_BOUND})
+                  (i0._super_i2.f_repr (Seq.index orig_lhs.f_simd_units j))) /\
               (forall (j:nat). j < v i ==>
                 Spec.Utils.forall8 (fun (l: nat{l < 8}) ->
                   Libcrux_ml_dsa.Simd.Traits.Specs.montgomery_multiply_lane_post

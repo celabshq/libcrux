@@ -263,6 +263,52 @@ let lemma_mont_red_mod_q (value: i64)
    layer at a single level. *)
 let mont_mul (x:i32) (y:i32) : i32 = mont_red (i32_mul x y)
 
+(* Bound + mod-q correctness for `mont_mul` when BOTH operands are bounded
+   by NTT_OUTPUT_BOUND = 9*FIELD_MAX (the lazily-accumulated forward-NTT
+   output bound).  The product `i32_mul x y` is then bounded by
+   (9*FIELD_MAX)^2 = 81*FIELD_MAX^2, which is < FIELD_MAX*pow2 32 (indeed
+   81*FIELD_MAX < pow2 31), so `mont_red` reduces it back to a value bounded
+   by 4190209 + (81*FIELD_MAX^2)/pow2 32 = 5514722 <= FIELD_MAX = 8380416.
+
+   This is the below-trait fact that lets `montgomery_multiply`'s output post
+   stay FIELD_MAX even though both operands may be NTT-domain values up to
+   9*FIELD_MAX (the forward NTT is deliberately not reduced; the multiply
+   absorbs the lazy bound).  Mirrors `lemma_mont_mul_bound_and_mod_q` (which
+   requires `is_i32b 8380416 y`, one operand bounded by FIELD_MAX) but bounds
+   BOTH operands by 9*FIELD_MAX. *)
+#push-options "--z3rlimit 300 --fuel 0 --ifuel 1"
+let lemma_mont_mul_bound_and_mod_q_ntt_output (x y: i32)
+    : Lemma
+        (requires Spec.Utils.is_i32b (9 * 8380416) x /\
+                  Spec.Utils.is_i32b (9 * 8380416) y)
+        (ensures
+          Spec.Utils.is_i32b 8380416 (mont_mul x y) /\
+          (v (mont_mul x y)) % 8380417 == (v x * v y * 8265825) % 8380417)
+  = Spec.Intrinsics.reveal_opaque_arithmetic_ops #i32_inttype;
+    Spec.Intrinsics.reveal_opaque_arithmetic_ops #i64_inttype;
+    Spec.Intrinsics.reveal_opaque_cast_ops #i32_inttype #i64_inttype;
+    reveal_opaque (`%i32_mul) (i32_mul);
+    let prod : int = v x * v y in
+    // product = i32_mul x y (i64 with v == prod, since |prod| < pow2 63).
+    assert_norm ((9 * 8380416) * (9 * 8380416) < pow2 63);
+    Spec.Utils.lemma_range_at_percent (v x) (pow2 64);
+    Spec.Utils.lemma_range_at_percent (v y) (pow2 64);
+    let cast_x : i64 = cast x <: i64 in
+    let cast_y : i64 = cast y <: i64 in
+    assert (v cast_x == v x /\ v cast_y == v y);
+    let value : i64 = i32_mul x y in
+    Spec.Utils.lemma_range_at_percent prod (pow2 64);
+    assert (v value == prod);
+    // |value| <= 81*FIELD_MAX^2 <= 8380416*pow2 32, so the parametric mont_red
+    // bound applies and yields an output bounded by 5514722 <= 8380416.
+    assert_norm ((9 * 8380416) * (9 * 8380416) <= 8380416 * pow2 32);
+    assert (Spec.Utils.is_i64b ((9 * 8380416) * (9 * 8380416)) value);
+    lemma_mont_red_bound_internal ((9 * 8380416) * (9 * 8380416)) value;
+    assert_norm (4190209 + ((9 * 8380416) * (9 * 8380416)) / pow2 32 <= 8380416);
+    // mod-q correctness: mont_red value ≡ value * R^{-1} (mod q).
+    lemma_mont_red_mod_q value
+#pop-options
+
 [@@ "opaque_to_smt"]
 let barrett_red (x:i32) : i32 =
   let q = shift_right_opaque (add_mod_opaque x (shift_left (mk_i32 1) (mk_i32 22))) (mk_i32 23) in

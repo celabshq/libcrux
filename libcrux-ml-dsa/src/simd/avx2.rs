@@ -234,7 +234,8 @@ pub(crate) fn subtract_with_proof(lhs: &mut AVX2SIMDUnit, rhs: &AVX2SIMDUnit) {
 
 #[inline(always)]
 #[hax_lib::requires(fstar!(r#"
-    Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX}) (${rhs.repr()})"#))]
+    Spec.Utils.is_i32b_array_opaque (v ${specs::NTT_OUTPUT_BOUND}) (${lhs.repr()}) /\
+    Spec.Utils.is_i32b_array_opaque (v ${specs::NTT_OUTPUT_BOUND}) (${rhs.repr()})"#))]
 #[hax_lib::ensures(|_| fstar!(r#"
     Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX}) (Libcrux_ml_dsa.Simd.Traits.f_repr ${lhs}_future) /\
     Spec.Utils.forall8 (fun (i: nat{i < 8}) ->
@@ -247,8 +248,11 @@ pub(crate) fn montgomery_multiply_with_proof(lhs: &mut AVX2SIMDUnit, rhs: &AVX2S
     let _orig_lhs = *lhs;
     hax_lib::fstar!(
         r#"reveal_opaque (`%Spec.Utils.is_i32b_array_opaque)
-            (Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX})
-                (Libcrux_ml_dsa.Simd.Traits.f_repr ${rhs}))"#
+            (Spec.Utils.is_i32b_array_opaque (v ${specs::NTT_OUTPUT_BOUND})
+                (Libcrux_ml_dsa.Simd.Traits.f_repr ${rhs}));
+           reveal_opaque (`%Spec.Utils.is_i32b_array_opaque)
+            (Spec.Utils.is_i32b_array_opaque (v ${specs::NTT_OUTPUT_BOUND})
+                (Libcrux_ml_dsa.Simd.Traits.f_repr ${lhs}))"#
     );
     arithmetic::montgomery_multiply(&mut lhs.value, &rhs.value);
     hax_lib::fstar!(
@@ -262,7 +266,7 @@ pub(crate) fn montgomery_multiply_with_proof(lhs: &mut AVX2SIMDUnit, rhs: &AVX2S
                     (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${_orig_lhs}) k)
                     (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${rhs}) k)
                     (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${lhs}) k)) =
-            Hacspec_ml_dsa.Commute.Chunk.lemma_mont_mul_bound_and_mod_q
+            Spec.MLDSA.Math.lemma_mont_mul_bound_and_mod_q_ntt_output
                 (Spec.Intrinsics.to_i32x8
                     ${_orig_lhs}.Libcrux_ml_dsa.Simd.Avx2.Vector_type.f_value
                     (mk_u64 k))
@@ -654,9 +658,10 @@ impl Operations for AVX2SIMDUnit {
     }
 
     #[inline(always)]
+    // Both operands NTT_OUTPUT_BOUND (matches widened trait pre); output FIELD_MAX.
     #[requires(fstar!(r#"
-        Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX}) (${rhs.repr()})"#))]
-    // 2026-05-08: matches the trait declaration drop (Phase A item 10).
+        Spec.Utils.is_i32b_array_opaque (v ${specs::NTT_OUTPUT_BOUND}) (${lhs.repr()}) /\
+        Spec.Utils.is_i32b_array_opaque (v ${specs::NTT_OUTPUT_BOUND}) (${rhs.repr()})"#))]
     #[ensures(|_| fstar!(r#"
         Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX}) (Libcrux_ml_dsa.Simd.Traits.f_repr ${lhs}_future) /\
         Spec.Utils.forall8 (fun (i: nat{i < 8}) ->
@@ -906,10 +911,17 @@ impl Operations for AVX2SIMDUnit {
     "#))]
     #[ensures(|_| fstar!(r#"
         Spec.Utils.forall32 (fun (i: nat{i < 32}) ->
-            Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX})
+            Spec.Utils.is_i32b_array_opaque (v ${specs::NTT_OUTPUT_BOUND})
             (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index ${simd_units}_future i)))
     "#))]
     fn ntt(simd_units: &mut AVX2RingElement) {
+        // BLOCKER (spec-only scope): the inner avx2 ntt::ntt and its layer/round
+        // helpers carry NO bound ensures (the whole avx2/ntt.rs proves only the
+        // ntt_step functional equality, zero is_i32b facts). Dropping this admit
+        // and proving NTT_OUTPUT_BOUND would require building the full per-layer
+        // bound-accumulation proof on avx2 (Portable has it via is_i32b_polynomial;
+        // avx2 does not). That is beyond a spec-only restatement, so this admit
+        // stays. The post above IS truthful (matches the widened trait post).
         hax_lib::fstar!("admit ()");
         ntt::ntt(simd_units);
     }

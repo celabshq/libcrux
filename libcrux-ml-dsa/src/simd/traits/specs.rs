@@ -18,6 +18,14 @@ pub(crate) const FIELD_MID: u32 = 4190208;
 // i32::MAX, so panic-free proofs hold.
 pub(crate) const NTT_BASE_BOUND: u32 = FIELD_MAX;
 
+// Forward NTT lazily accumulates to NTT_BASE_BOUND + 8*FIELD_MAX = 9*FIELD_MAX
+// and is deliberately NOT reduced (the subsequent montgomery multiply absorbs
+// it: with both operands <= 9*FIELD_MAX, the product is < FIELD_MAX*2^31 so the
+// montgomery_reduce_element output stays FIELD_MAX-bounded). This is the
+// truthful post-condition of `Operations::ntt` (the prior FIELD_MAX claim was
+// an over-claim masked by admit()s in the Portable/Avx2 ntt wrappers).
+pub(crate) const NTT_OUTPUT_BOUND: u32 = 9 * FIELD_MAX;
+
 const COEFFICIENTS_IN_SIMD_UNIT: usize = 8;
 
 type SIMDContent = [i32; COEFFICIENTS_IN_SIMD_UNIT];

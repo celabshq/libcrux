@@ -138,7 +138,7 @@ pub(crate) fn deserialize_to_vector_then_ntt<SIMDUnit: Operations>(
               Seq.length ring_elements <= 8 /\
               (forall (k:nat). k < v i ==>
                 (forall (j:nat). j < 32 ==>
-                  Spec.Utils.is_i32b_array_opaque (v ${FIELD_MAX})
+                  Spec.Utils.is_i32b_array_opaque (v ${NTT_OUTPUT_BOUND})
                     (i0._super_i2.f_repr (Seq.index (Seq.index ring_elements k).f_simd_units j))))"#
         ));
         let bytes = &serialized[i * ring_element_size..(i + 1) * ring_element_size];
