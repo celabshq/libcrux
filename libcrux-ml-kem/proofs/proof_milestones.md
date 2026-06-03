@@ -1,7 +1,7 @@
 # ML-KEM Proof Milestones
 
 Hand-curated tracker of *meaningful* proof outcomes, complementing the
-mechanical `verification_status.md` tier counts. Each row is a named
+mechanical `ml_kem_verification_status.md` tier counts. Each row is a named
 proof goal; status is a judgment call based on inspecting the owning
 function's `#[ensures(...)]` text and body annotations on
 `trait-opacify` (HEAD `19ac49f8e`).

@@ -156,7 +156,7 @@ section F4).  Two candidate resolutions:
   R8 No `fstar-mcp` (per `feedback_use_fstar_mcp` and
      `feedback_fstar_mcp_session_dies_after_make`).
   R9 After each milestone closure: regenerate
-     `proofs/verification_status.md` and update `proof_milestones.md`
+     `proofs/ml_kem_verification_status.md` and update `proof_milestones.md`
      status icon.  Commit prefix: `agent-mlkem:`.
   R10 NO new `Spec.MLKEM.*` citations.  Use
   `Hacspec_ml_kem.Parameters.Sizes.*` for size constants

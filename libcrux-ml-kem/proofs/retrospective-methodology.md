@@ -352,13 +352,13 @@ For the retrospective, classify each closed milestone as:
 
 ```bash
 cd <crate-root> && python3 proofs/generate_verification_status.py
-grep -A8 "## Summary" proofs/verification_status.md
+grep -A8 "## Summary" proofs/ml_kem_verification_status.md
 ```
 
 ### D5b. Outstanding admits
 
 ```bash
-grep -A30 "## Body-admit sites" proofs/verification_status.md
+grep -A30 "## Body-admit sites" proofs/ml_kem_verification_status.md
 grep -B1 "ADMIT_MODULES" proofs/fstar/extraction/Makefile
 ```
 

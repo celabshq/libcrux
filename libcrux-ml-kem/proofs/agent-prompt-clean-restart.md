@@ -212,7 +212,7 @@ top-level functions.  Consumers in `src/*.rs` will need to either:
   R7 Trait FROZEN — `src/vector/traits.rs` not edited.
   R8 No `fstar-mcp` (per `feedback_use_fstar_mcp` and
      `feedback_fstar_mcp_session_dies_after_make`).
-  R9 After each milestone: regenerate `proofs/verification_status.md`,
+  R9 After each milestone: regenerate `proofs/ml_kem_verification_status.md`,
      update `proof_milestones.md`, commit prefix `agent-mlkem:`.
   R10 **No wrappers.  No namespace-squatting.  No new F* specs in
       Hacspec_ml_kem.*** (per the FORBIDDEN section above).  If your

@@ -29,7 +29,7 @@ DEFAULT_ML_KEM_CONFIG = {
     "src_dir": "src",
     "makefile": "proofs/fstar/extraction/Makefile",
     "extraction_dir": "proofs/fstar/extraction",
-    "output": "proofs/verification_status.md",
+    "output": "proofs/ml_kem_verification_status.md",
     "admit_module_prefix": "Libcrux_ml_kem.",
     "spec_patterns": [
         r"Hacspec_ml_kem\.",

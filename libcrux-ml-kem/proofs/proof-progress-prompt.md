@@ -35,7 +35,7 @@ Each branch worktree's `<crate-root>/proofs/` directory contains:
   + aggregate deltas.
 - **`verification_status.config.json`** — per-crate config (modules, paths,
   spec/range patterns, makefile location, F\* extraction dir).
-- **`verification_status.md`** — current snapshot of the branch.
+- **`ml_kem_verification_status.md`** — current snapshot of the branch.
 - **`proof_milestones.md`** — hand-curated milestones (NTT / Encoding / API).
 
 The script is the same source file in all three crates (cross-compatible).
@@ -69,7 +69,7 @@ The script is the same source file in all three crates (cross-compatible).
    files). Note the branch tips.
 
 2. **Run the script on each branch** (current state) — the
-   `verification_status.md` files in each worktree should already be
+   `ml_kem_verification_status.md` files in each worktree should already be
    up-to-date as of the last commit, but regenerate to be safe:
    ```bash
    cd ~/libcrux-trait-opacify/libcrux-ml-kem && \
@@ -104,7 +104,7 @@ The script is the same source file in all three crates (cross-compatible).
    ```bash
    python3 ~/libcrux-trait-opacify/libcrux-ml-kem/proofs/generate_verification_status.py \
      --diff /tmp/main-mlkem.md \
-            ~/libcrux-trait-opacify/libcrux-ml-kem/proofs/verification_status.md \
+            ~/libcrux-trait-opacify/libcrux-ml-kem/proofs/ml_kem_verification_status.md \
      --diff-label-prev main --diff-label-curr trait-opacify \
      --output /tmp/diff-mlkem.md
 

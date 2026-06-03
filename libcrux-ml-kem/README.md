@@ -169,7 +169,7 @@ instructions.
 The portable and AVX2 code for field arithmetic, NTT polynomial arithmetic, serialization, and the generic code for high-level algorithms
 is formally verified using [hax](https://cryspen.com/hax) and  [F*](https://fstar-lang.org).
 
-Please refer to [this file](proofs/verification_status.md) for detail on the verification of this crate.
+Please refer to [this file](proofs/ml_kem_verification_status.md) for detail on the verification of this crate.
 
 [verified]: ../.assets/verified-brightgreen.svg
 
