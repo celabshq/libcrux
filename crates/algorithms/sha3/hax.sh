@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -ex
+set -e
 
 function extract_all() {
     extract crates/sys/platform \
@@ -20,10 +20,12 @@ function extract_all() {
     extract crates/algorithms/sha3 \
         into -i "+**" \
         -i "-**::avx2::**" \
+        -i "-**::arm64::**" \
         -i "-**::neon::**" \
         -i "-**::simd128::**" \
         -i "-**::simd256::**" \
-        fstar --z3rlimit 80
+        fstar --z3rlimit 80 \
+        --interfaces "+** -**::generic_keccak::constants::**"
 }
 
 function prove() {
