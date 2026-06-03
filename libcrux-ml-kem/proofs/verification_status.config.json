@@ -44,7 +44,11 @@
     {"category": "Generic", "display": "invert_ntt", "paths": ["invert_ntt"]},
     {"category": "Generic", "display": "ntt", "paths": ["ntt"]},
     {"category": "Generic", "display": "mlkem*",
-     "paths": ["mlkem", "mlkem512", "mlkem768", "mlkem1024"]},
+     "paths": ["mlkem", "mlkem512", "mlkem768", "mlkem1024"],
+     "expansion_targets": {
+       "mlkem": ["mlkem512/incremental", "mlkem768/incremental",
+                 "mlkem1024/incremental", "ind_cca/incremental/avx2",
+                 "ind_cca/incremental/portable"]}},
     {"category": "Generic", "display": "matrix", "paths": ["matrix"]},
     {"category": "Generic", "display": "serialize", "paths": ["serialize"]},
     {"category": "Generic", "display": "sampling", "paths": ["sampling"]},

@@ -54,7 +54,13 @@ DEFAULT_ML_KEM_CONFIG = {
         {"category": "Generic", "display": "invert_ntt", "paths": ["invert_ntt"]},
         {"category": "Generic", "display": "ntt", "paths": ["ntt"]},
         {"category": "Generic", "display": "mlkem*",
-         "paths": ["mlkem", "mlkem512", "mlkem768", "mlkem1024"]},
+         "paths": ["mlkem", "mlkem512", "mlkem768", "mlkem1024"],
+         # mlkem.rs is macro_rules!-only: its fns expand into the listed
+         # F* modules (path vocabulary as reverse-mapped from F* names).
+         "expansion_targets": {
+             "mlkem": ["mlkem512/incremental", "mlkem768/incremental",
+                       "mlkem1024/incremental", "ind_cca/incremental/avx2",
+                       "ind_cca/incremental/portable"]}},
         {"category": "Generic", "display": "matrix", "paths": ["matrix"]},
         {"category": "Generic", "display": "serialize", "paths": ["serialize"]},
         {"category": "Generic", "display": "sampling", "paths": ["sampling"]},
@@ -856,6 +862,8 @@ def main():
         all_body_admits = []
         files_present = 0
 
+        expansion_targets = module.get('expansion_targets', {})
+
         for p in paths:
             filepath = os.path.join(src_dir, f"{p}.rs")
             if not os.path.isfile(filepath):
@@ -863,9 +871,21 @@ def main():
             files_present += 1
             rel = f"src/{p}.rs"
             funcs = parse_file(filepath, spec_re, range_re)
-            # If we have an extraction dir, a Rust module not present there is unverified.
-            is_unverified = bool(extracted_paths) and rel not in extracted_paths
-            stats = compute_module_stats(funcs, rel in admit_paths, is_unverified)
+            targets = [f"src/{t}.rs" for t in expansion_targets.get(p, [])]
+            if targets:
+                # Macro-only Rust module (e.g. mlkem.rs): no F* module maps
+                # to it directly; its fns expand into `targets` (the same
+                # pseudo-path vocabulary that `extracted_paths`/`admit_paths`
+                # use after reverse-mapping F* module names). Coverage and
+                # admit status derive from those expansion-target modules.
+                is_unverified = bool(extracted_paths) and any(
+                    t not in extracted_paths for t in targets)
+                in_admit = any(t in admit_paths for t in targets)
+            else:
+                # If we have an extraction dir, a Rust module not present there is unverified.
+                is_unverified = bool(extracted_paths) and rel not in extracted_paths
+                in_admit = rel in admit_paths
+            stats = compute_module_stats(funcs, in_admit, is_unverified)
             for k in ('total', 'lax', 'unverified', 'panic_free', 'math', 'bounds', 'hacspec'):
                 agg[k] += stats[k]
             for line in stats['body_admit_sites']:

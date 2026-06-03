@@ -33,19 +33,19 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 |            | ind_cpa           |    1 |  21 |   0 |     |  20 |    1 |      0 |       0 |
 |            | ind_cca           |    1 |  27 |   0 |     |  23 |    1 |      0 |       3 |
 |            | instantiations    |    2 |  40 |   0 |     |  40 |    0 |      0 |       0 |
-|            | multiplexing      |    2 |  20 |   0 |     |  20 |    0 |      0 |       0 |
+|            | multiplexing      |    2 |  20 |   0 |     |  19 |    1 |      0 |       0 |
 |            | incremental       |    2 |  45 |  45 |     |   0 |    0 |      0 |       0 |
 |            | polynomial        |    1 |  54 |   0 |     |  27 |    2 |     21 |       4 |
 |            | invert_ntt        |    1 |   7 |   0 |     |   1 |    0 |      1 |       5 |
 |            | ntt               |    1 |  12 |   0 |     |   4 |    0 |      3 |       5 |
-|            | mlkem*            |    4 | 134 |   0 |  36 |  98 |    0 |      0 |       0 |
+|            | mlkem*            |    4 | 134 |   0 |     | 131 |    3 |      0 |       0 |
 |            | matrix            |    1 |   5 |   0 |     |   0 |    0 |      5 |       0 |
 |            | serialize         |    1 |  25 |   0 |     |  22 |    1 |      2 |       0 |
 |            | sampling          |    1 |   9 |   2 |     |   7 |    0 |      0 |       0 |
 |            | vector (top)      |    1 |   3 |   0 |     |   3 |    0 |      0 |       0 |
 |            | vector/traits     |    1 | 111 |   0 |     |  73 |   36 |      0 |       2 |
 |            | rej_sample_table  |    1 |   0 |   0 |     |   0 |    0 |      0 |       0 |
-|            | **Generic total** | **29** | **631** | **47** | **55** | **389** | **59** | **32** |  **49** |
+|            | **Generic total** | **29** | **631** | **47** | **19** | **421** | **63** | **32** |  **49** |
 |            |                   |      |     |     |     |     |      |        |         |
 | _Portable_ | arithmetic        |    1 |  13 |   0 |     |   6 |    7 |      0 |       0 |
 |            | ntt               |    1 |  10 |   0 |     |   0 |    0 |     10 |       0 |
@@ -78,10 +78,10 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 - **Total modules**: 49
 - **Total functions**: 956
 - **Lax** (admitted): 130 (13.6%)
-- **Unverified** (not extracted): 56 (5.9%)
-- **Panic-safe** (PF + Math + Bounds + Hacspec): 770 (80.5%)
-  - Panic-free only (no further proof): 446 (46.7%)
-  - Math (non-trivial ensures, no bounds/spec match): 174 (18.2%)
+- **Unverified** (not extracted): 20 (2.1%)
+- **Panic-safe** (PF + Math + Bounds + Hacspec): 806 (84.3%)
+  - Panic-free only (no further proof): 478 (50.0%)
+  - Math (non-trivial ensures, no bounds/spec match): 178 (18.6%)
   - Bounds (range/interval ensures): 49 (5.1%)
   - Hacspec (cites high-level spec): 101 (10.6%)
 
@@ -89,7 +89,7 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 
 | Category     | Modules |  Fns | Lax | Unv |  PF | Math | Bounds | Hacspec |
 | ------------ | ------- | ---- | --- | --- | --- | ---- | ------ | ------- |
-| Generic      |      29 |  631 |  47 |  55 | 389 |   59 |     32 |      49 |
+| Generic      |      29 |  631 |  47 |  19 | 421 |   63 |     32 |      49 |
 | Portable     |       7 |  121 |   0 |   0 |  36 |   48 |     10 |      27 |
 | Avx2         |       6 |  121 |   1 |   0 |  21 |   67 |      7 |      25 |
 | Neon         |       7 |   83 |  82 |   1 |   0 |    0 |      0 |       0 |
@@ -102,5 +102,4 @@ These Rust modules have no corresponding F\* file in the extraction directory â€
 | ------------------------------ | ---------------------------------------- | --- |
 | Generic/lib                    | src/lib.rs                               |   3 |
 | Generic/pqcp                   | src/pqcp.rs                              |  16 |
-| Generic/mlkem*                 | src/mlkem.rs                             |  36 |
 | Neon/sampling                  | src/vector/neon/sampling.rs              |   1 |
