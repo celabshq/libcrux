@@ -25,12 +25,12 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 | _Generic_  | lib               |    1 |  16 |   0 |     |   4 |    0 |      0 |      12 |
 |            | traits            |    1 |  14 |   0 |     |  11 |    3 |      0 |       0 |
 |            | proof_utils       |    1 |  10 |   0 |     |  10 |    0 |      0 |       0 |
-|            | impl_digest_trait |    1 |   1 |   0 |   1 |   0 |    0 |      0 |       0 |
+|            | impl_digest_trait |    1 |   1 |   0 |     |   1 |    0 |      0 |       0 |
 |            | simd (top)        |    1 |   0 |   0 |     |   0 |    0 |      0 |       0 |
 |            | generic_keccak (top) |    1 |  56 |   0 |     |  56 |    0 |      0 |       0 |
 |            | generic_keccak/constants |    1 |   0 |   0 |     |   0 |    0 |      0 |       0 |
 |            | generic_keccak/xof |    1 |   8 |   0 |     |   2 |    6 |      0 |       0 |
-|            | **Generic total** | **8** | **105** | **0** | **1** | **83** | **9** |  **0** |  **12** |
+|            | **Generic total** | **8** | **105** | **0** |     | **84** | **9** |  **0** |  **12** |
 |            |                   |      |     |     |     |     |      |        |         |
 | _Portable_ | generic_keccak    |    1 |  10 |   0 |     |   1 |    4 |      0 |       5 |
 |            | portable          |    1 |  27 |   0 |     |   8 |   13 |      0 |       6 |
@@ -52,9 +52,9 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 - **Total modules**: 26
 - **Total functions**: 269
 - **Lax** (admitted): 0 (0.0%)
-- **Unverified** (not extracted): 1 (0.4%)
-- **Panic-safe** (PF + Math + Bounds + Hacspec): 268 (99.6%)
-  - Panic-free only (no further proof): 162 (60.2%)
+- **Unverified** (not extracted): 0 (0.0%)
+- **Panic-safe** (PF + Math + Bounds + Hacspec): 269 (100.0%)
+  - Panic-free only (no further proof): 163 (60.6%)
   - Math (non-trivial ensures, no bounds/spec match): 69 (25.7%)
   - Bounds (range/interval ensures): 0 (0.0%)
   - Hacspec (cites high-level spec): 37 (13.8%)
@@ -63,15 +63,7 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 
 | Category     | Modules |  Fns | Lax | Unv |  PF | Math | Bounds | Hacspec |
 | ------------ | ------- | ---- | --- | --- | --- | ---- | ------ | ------- |
-| Generic      |       8 |  105 |   0 |   1 |  83 |    9 |      0 |      12 |
+| Generic      |       8 |  105 |   0 |   0 |  84 |    9 |      0 |      12 |
 | Portable     |       6 |   57 |   0 |   0 |  26 |   20 |      0 |      11 |
 | Avx2         |       6 |   55 |   0 |   0 |  28 |   23 |      0 |       4 |
 | Neon         |       6 |   52 |   0 |   0 |  25 |   17 |      0 |      10 |
-
-## Unverified Rust modules (not extracted to F\*)
-
-These Rust modules have no corresponding F\* file in the extraction directory — they were filtered out by hax (`-i -<module>::**` in `hax.py`) and are unverified at any tier.
-
-| Module                         | Path                                     | Fns | Functions |
-| ------------------------------ | ---------------------------------------- | --- | --------- |
-| Generic/impl_digest_trait      | src/impl_digest_trait.rs                 |   1 | `hash` |

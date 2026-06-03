@@ -25,6 +25,16 @@ function extract_all() {
         into -i "+**" \
         fstar --z3rlimit 80
 
+    # Minimal libcrux-traits surface needed by sha3's
+    # `impl_digest_trait` module: only the `digest::arrayref` oneshot
+    # `Hash<OUTPUT_LEN>` trait and its `HashError` enum.  Selecting the
+    # two items by name (rather than the whole `arrayref` module) keeps
+    # the extraction from dragging in `DigestIncremental`,
+    # `DigestIncrementalBase`, `Hasher` and the aead/kem/ecdh surface.
+    extract traits \
+        into -i "-** +libcrux_traits::digest::arrayref::Hash +libcrux_traits::digest::arrayref::HashError" \
+        fstar --z3rlimit 80
+
     extract crates/algorithms/sha3 \
         -C --features simd128,simd256 ";" \
         into -i "+**" \
