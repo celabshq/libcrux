@@ -1,7 +1,7 @@
 use core::array::from_fn;
 
 #[allow(unused_imports)]
-use hax_lib::prop::ToProp;
+use hax_lib::{int::ToInt, prop::ToProp};
 use ind_cpa::unpacked::IndCpaPublicKeyUnpacked;
 
 use super::*;
@@ -461,14 +461,14 @@ impl<const K: usize, const PK2_LEN: usize, Vector: Operations> KeyPair<K, PK2_LE
 
         // Matrix
         for i in 0..self.matrix.len() {
-            // The invariant is stated over mathematical integers (`v ..`)
-            // because the rebound loop index is a bare `usize`, so the
-            // machine-arithmetic form cannot prove overflow-freedom.
+            // The leading `i <= K` conjunct bounds the (rebound, bare-usize)
+            // loop index so the `i * (K * 512)` machine product is provably
+            // overflow-free (lazy && checks later conjuncts under earlier
+            // ones).
             hax_lib::loop_invariant!(|i: usize| {
-                fstar!(
-                    r#"Seq.length $key == v ${_key_len} /\
-                    v $offset == 64 + v $PK2_LEN + v $K * 512 + 32 + v $i * (v $K * 512)"#
-                )
+                key.len() == _key_len
+                    && i <= K
+                    && offset == 64 + PK2_LEN + K * 512 + 32 + i * (K * 512)
             });
             vec_to_bytes(&self.matrix[i], &mut key[offset..]);
             offset += vec_len_bytes::<K, Vector>();
@@ -542,9 +542,10 @@ impl<const K: usize, const PK2_LEN: usize, Vector: Operations> KeyPair<K, PK2_LE
         // Matrix
         let mut matrix = [[PolynomialRingElement::<Vector>::ZERO(); K]; K];
         for i in 0..matrix.len() {
-            // Math-integer form for the same reason as in `to_bytes` above.
+            // `i <= K` bounds the loop index for the same reason as in
+            // `to_bytes` above.
             hax_lib::loop_invariant!(|i: usize| {
-                fstar!(r#"v $offset == 64 + v $PK2_LEN + v $K * 512 + 32 + v $i * (v $K * 512)"#)
+                i <= K && offset == 64 + PK2_LEN + K * 512 + 32 + i * (K * 512)
             });
             vec_from_bytes(&key[offset..], &mut matrix[i]);
             offset += vec_len_bytes::<K, Vector>();
