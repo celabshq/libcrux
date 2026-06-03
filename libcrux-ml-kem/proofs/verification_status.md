@@ -37,7 +37,7 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 |            | incremental       |    2 |  45 |  45 |     |   0 |    0 |      0 |       0 |
 |            | polynomial        |    1 |  54 |   0 |     |  27 |    2 |     21 |       4 |
 |            | invert_ntt        |    1 |   7 |   0 |     |   1 |    0 |      1 |       5 |
-|            | ntt               |    1 |  11 |   1 |     |   3 |    0 |      4 |       3 |
+|            | ntt               |    1 |  12 |   0 |     |   4 |    0 |      3 |       5 |
 |            | mlkem*            |    4 | 134 |   0 |  36 |  98 |    0 |      0 |       0 |
 |            | matrix            |    1 |   5 |   0 |     |   0 |    0 |      5 |       0 |
 |            | serialize         |    1 |  25 |   0 |     |  22 |    1 |      2 |       0 |
@@ -45,7 +45,7 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 |            | vector (top)      |    1 |   3 |   0 |     |   3 |    0 |      0 |       0 |
 |            | vector/traits     |    1 | 111 |   0 |     |  73 |   36 |      0 |       2 |
 |            | rej_sample_table  |    1 |   0 |   0 |     |   0 |    0 |      0 |       0 |
-|            | **Generic total** | **29** | **630** | **48** | **55** | **388** | **59** | **33** |  **47** |
+|            | **Generic total** | **29** | **631** | **47** | **55** | **389** | **59** | **32** |  **49** |
 |            |                   |      |     |     |     |     |      |        |         |
 | _Portable_ | arithmetic        |    1 |  13 |   0 |     |   6 |    7 |      0 |       0 |
 |            | ntt               |    1 |  10 |   0 |     |   0 |    0 |     10 |       0 |
@@ -76,20 +76,20 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 ## Summary
 
 - **Total modules**: 49
-- **Total functions**: 955
-- **Lax** (admitted): 132 (13.8%)
+- **Total functions**: 956
+- **Lax** (admitted): 131 (13.7%)
 - **Unverified** (not extracted): 56 (5.9%)
-- **Panic-safe** (PF + Math + Bounds + Hacspec): 767 (80.3%)
-  - Panic-free only (no further proof): 447 (46.8%)
+- **Panic-safe** (PF + Math + Bounds + Hacspec): 769 (80.4%)
+  - Panic-free only (no further proof): 448 (46.9%)
   - Math (non-trivial ensures, no bounds/spec match): 172 (18.0%)
-  - Bounds (range/interval ensures): 49 (5.1%)
-  - Hacspec (cites high-level spec): 99 (10.4%)
+  - Bounds (range/interval ensures): 48 (5.0%)
+  - Hacspec (cites high-level spec): 101 (10.6%)
 
 ### Modules per category
 
 | Category     | Modules |  Fns | Lax | Unv |  PF | Math | Bounds | Hacspec |
 | ------------ | ------- | ---- | --- | --- | --- | ---- | ------ | ------- |
-| Generic      |      29 |  630 |  48 |  55 | 388 |   59 |     33 |      47 |
+| Generic      |      29 |  631 |  47 |  55 | 389 |   59 |     32 |      49 |
 | Portable     |       7 |  121 |   0 |   0 |  37 |   47 |     10 |      27 |
 | Avx2         |       6 |  121 |   2 |   0 |  22 |   66 |      6 |      25 |
 | Neon         |       7 |   83 |  82 |   1 |   0 |    0 |      0 |       0 |
@@ -104,11 +104,3 @@ These Rust modules have no corresponding F\* file in the extraction directory â€
 | Generic/pqcp                   | src/pqcp.rs                              |  16 |
 | Generic/mlkem*                 | src/mlkem.rs                             |  36 |
 | Neon/sampling                  | src/vector/neon/sampling.rs              |   1 |
-
-## Body-admit sites (audit)
-
-Functions classified as lax due to `admit ()` (or `--admit_smt_queries true`) inside their body. Auditable so the script's classification decisions are traceable.
-
-| Module                    |  Line |
-| ------------------------- | ----- |
-| Generic/ntt               |   564 |
