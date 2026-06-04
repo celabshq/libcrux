@@ -1,4 +1,9 @@
 #![no_std]
+// The NTT layer-0/1/2 functional-correctness proof annotations attach a dense
+// stack of `#[hax_lib::fstar::before(...)]` blocks to ntt_at_layer_0, which
+// overflows the default proc-macro recursion limit during `#[_hax::json]`
+// expansion.  Compile-time only — does not affect extracted F* or runtime.
+#![recursion_limit = "1024"]
 #![deny(unsafe_code)]
 #![deny(unused_qualifications)]
 
