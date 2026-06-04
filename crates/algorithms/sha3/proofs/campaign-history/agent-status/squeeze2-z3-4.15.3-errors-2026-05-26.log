@@ -1,0 +1,71 @@
+  - Subtyping check failed
+  - See also /Users/karthik/.cargo/git/checkouts/hax-580ebeee043cdea1/952bee0/hax-lib/proof-libs/fstar/rust_primitives/Rust_primitives.Hax.fst(98,14-98,42)
+* Error 19 at Libcrux_sha3.Generic_keccak.Simd128.fst(280,46-280,58):
+  - Subtyping check failed
+  - See also /Users/karthik/.cargo/git/checkouts/hax-580ebeee043cdea1/952bee0/hax-lib/proof-libs/fstar/rust_primitives/Rust_primitives.Hax.fst(98,14-98,42)
+* Error 19 at Libcrux_sha3.Generic_keccak.Simd128.fst(344,46-344,58):
+  - Subtyping check failed
+  - See also /Users/karthik/.cargo/git/checkouts/hax-580ebeee043cdea1/952bee0/hax-lib/proof-libs/fstar/rust_primitives/Rust_primitives.Hax.fst(98,14-98,42)
+* Error 19 at Libcrux_sha3.Generic_keccak.Simd128.fst(376,10-376,16):
+  - Assertion failed
+  - See also /Users/karthik/.local/fstar-2026.03.24/lib/fstar/ulib/Prims.fst(449,83-449,96)
+* Error 19 at Libcrux_sha3.Generic_keccak.Simd128.fst(382,10-382,16):
+  - Assertion failed
+  - See also /Users/karthik/.local/fstar-2026.03.24/lib/fstar/ulib/Prims.fst(449,83-449,96)
+* Error 19 at Libcrux_sha3.Generic_keccak.Simd128.fst(409,50-409,54):
+  - Subtyping check failed
+  - See also /Users/karthik/.cargo/git/checkouts/hax-580ebeee043cdea1/952bee0/hax-lib/proof-libs/fstar/rust_primitives/Rust_primitives.Arrays.fsti(7,29-7,54)
+* Error 19 at Libcrux_sha3.Generic_keccak.Simd128.fst(409,50-409,54):
+  - Subtyping check failed
+  - See also /Users/karthik/.cargo/git/checkouts/hax-580ebeee043cdea1/952bee0/hax-lib/proof-libs/fstar/rust_primitives/Rust_primitives.Arrays.fsti(7,29-7,54)
+* Error 19 at Libcrux_sha3.Generic_keccak.Simd128.fst(445,10-449,65):
+  - Subtyping check failed
+  - See also /Users/karthik/.cargo/git/checkouts/hax-580ebeee043cdea1/952bee0/hax-lib/proof-libs/fstar/rust_primitives/Rust_primitives.Arrays.fsti(7,29-7,54)
+* Error 19 at Libcrux_sha3.Generic_keccak.Simd128.fst(467,54-467,66):
+  - Subtyping check failed
+  - See also /Users/karthik/.cargo/git/checkouts/hax-580ebeee043cdea1/952bee0/hax-lib/proof-libs/fstar/rust_primitives/Rust_primitives.Hax.fst(98,14-98,42)
+* Error 19 at Libcrux_sha3.Generic_keccak.Simd128.fst(500,24-500,30):
+  - Subtyping check failed
+  - See also /Users/karthik/.cargo/git/checkouts/hax-580ebeee043cdea1/952bee0/hax-lib/proof-libs/fstar/rust_primitives/Rust_primitives.Integers.fsti(222,19-222,38)
+* Error 19 at Libcrux_sha3.Generic_keccak.Simd128.fst(548,10-548,16):
+  - Assertion failed
+  - See also Libcrux_sha3.Generic_keccak.Simd128.fst(548,17-548,48)
+* Error 19 at Libcrux_sha3.Generic_keccak.Simd128.fst(569,48-569,98):
+  - Subtyping check failed
+  - See also /Users/karthik/.cargo/git/checkouts/hax-580ebeee043cdea1/952bee0/hax-lib/proof-libs/fstar/rust_primitives/Rust_primitives.Hax.fst(98,14-98,42)
+* Error 19 at Libcrux_sha3.Generic_keccak.Simd128.fst(587,50-587,89):
+  - Assertion failed
+  - See also ../equivalence/EquivImplSpec.Sponge.Portable.Steps.fst(426,8-426,28)
+* Error 19 at Libcrux_sha3.Generic_keccak.Simd128.fst(587,50-587,89):
+  - Assertion failed
+  - See also ../equivalence/EquivImplSpec.Sponge.Portable.Steps.fst(432,8-434,76)
+* Error 19 at Libcrux_sha3.Generic_keccak.Simd128.fst(587,50-587,89):
+  - Assertion failed
+  - See also ../equivalence/EquivImplSpec.Sponge.Portable.Steps.fst(435,8-436,57)
+* Error 19 at Libcrux_sha3.Generic_keccak.Simd128.fst(595,50-595,90):
+  - Assertion failed
+  - See also ../equivalence/EquivImplSpec.Sponge.Portable.Steps.fst(373,8-373,28)
+* Error 19 at Libcrux_sha3.Generic_keccak.Simd128.fst(595,50-595,90):
+  - Assertion failed
+  - See also ../equivalence/EquivImplSpec.Sponge.Portable.Steps.fst(382,9-385,77)
+* Error 19 at Libcrux_sha3.Generic_keccak.Simd128.fst(610,50-610,89):
+  - Assertion failed
+  - See also ../equivalence/EquivImplSpec.Sponge.Portable.Steps.fst(432,8-434,76)
+* Error 19 at Libcrux_sha3.Generic_keccak.Simd128.fst(610,50-610,89):
+  - Assertion failed
+  - See also ../equivalence/EquivImplSpec.Sponge.Portable.Steps.fst(435,8-436,57)
+* Error 19 at Libcrux_sha3.Generic_keccak.Simd128.fst(618,50-618,90):
+  - Assertion failed
+  - See also ../equivalence/EquivImplSpec.Sponge.Portable.Steps.fst(373,8-373,28)
+* Error 19 at Libcrux_sha3.Generic_keccak.Simd128.fst(618,50-618,90):
+  - Assertion failed
+  - See also ../equivalence/EquivImplSpec.Sponge.Portable.Steps.fst(379,8-379,76)
+* Error 19 at Libcrux_sha3.Generic_keccak.Simd128.fst(618,50-618,90):
+  - Assertion failed
+  - See also ../equivalence/EquivImplSpec.Sponge.Portable.Steps.fst(382,9-385,77)
+* Error 19 at Libcrux_sha3.Generic_keccak.Simd128.fst(641,10-641,16):
+  - Assertion failed
+  - See also Libcrux_sha3.Generic_keccak.Simd128.fst(641,17-641,37)
+* Error 19 at Libcrux_sha3.Generic_keccak.Simd128.fst(642,10-642,16):
+  - Assertion failed
+  - See also Libcrux_sha3.Generic_keccak.Simd128.fst(642,17-642,50)
