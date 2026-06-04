@@ -323,9 +323,14 @@ pub fn _vshrq_n_s16<const SHIFT_BY: i32>(v: _int16x8_t) -> _int16x8_t {
     unimplemented!()
 }
 
+// Total model (matches the hardware-tested core-models reference): immediate
+// logical shift right, u16.  N>=16 => 0, N<=0 => identity, else lane >> N.
 #[inline(always)]
 #[hax_lib::lean::replace_body("sorry")]
-// TODO: ensures needs `requires (v SHIFT_BY >= 0 /\ v SHIFT_BY < 16)` for >>! subtyping
+#[hax_lib::ensures(|result| fstar!("forall (i:nat{i < 8}). get_lane_u16x8 $result i ==
+    (if ${SHIFT_BY} >=. mk_i32 16 then mk_u16 0
+     else if ${SHIFT_BY} <=. mk_i32 0 then get_lane_u16x8 $v i
+     else get_lane_u16x8 $v i >>! ${SHIFT_BY}))"))]
 pub fn _vshrq_n_u16<const SHIFT_BY: i32>(v: _uint16x8_t) -> _uint16x8_t {
     unimplemented!()
 }
@@ -381,9 +386,13 @@ pub fn _vshlq_n_s16<const SHIFT_BY: i32>(v: _int16x8_t) -> _int16x8_t {
     unimplemented!()
 }
 
+// Total model: immediate logical shift left, u32.  N>=32 or N<0 => 0, else
+// lane << N (N=0 is identity).
 #[inline(always)]
 #[hax_lib::lean::replace_body("sorry")]
-// TODO: ensures needs `requires (v SHIFT_BY >= 0 /\ v SHIFT_BY < 32)` for <<! subtyping
+#[hax_lib::ensures(|result| fstar!("forall (i:nat{i < 4}). get_lane_u32x4 $result i ==
+    (if ${SHIFT_BY} >=. mk_i32 32 || ${SHIFT_BY} <. mk_i32 0 then mk_u32 0
+     else get_lane_u32x4 $v i <<! (cast ${SHIFT_BY} <: u32)))"))]
 pub fn _vshlq_n_u32<const SHIFT_BY: i32>(v: _uint32x4_t) -> _uint32x4_t {
     unimplemented!()
 }
@@ -531,8 +540,20 @@ pub fn _vaddq_u32(compressed: _uint32x4_t, half: _uint32x4_t) -> _uint32x4_t {
 pub fn _vreinterpretq_s32_u32(compressed: _uint32x4_t) -> _int32x4_t {
     unimplemented!()
 }
+// Saturating doubling multiply-high, 32-bit.  Per lane i:
+//   result_i = sat32( (2 * a_i * b) >> 32 ) = sat32( (a_i * b) >> 31 )
+// Faithful model via the i64 *arithmetic* shift `>>!` (the `(a*b) >>! 31`
+// identity, validated bit-exact against `sat32((2ab)>>32)` for all i32 a,b),
+// using i64 intermediate so the product never overflows.  Mirrors the s16
+// `_vqdmulhq_n_s16` model.  sat32(x) clamps to [i32::MIN, i32::MAX].
 #[inline(always)]
 #[hax_lib::lean::replace_body("sorry")]
+#[hax_lib::ensures(|result| fstar!("forall (i:nat{i < 4}).
+    (let prod = ((cast (get_lane_i32x4 $a i) <: i64) *. (cast $b <: i64)) >>! (mk_i32 31) in
+     get_lane_i32x4 $result i ==
+       (if prod >. mk_i64 2147483647 then mk_i32 2147483647
+        else if prod <. mk_i64 (-2147483648) then mk_i32 (-2147483648)
+        else (cast prod <: i32)))"))]
 pub fn _vqdmulhq_n_s32(a: _int32x4_t, b: i32) -> _int32x4_t {
     unimplemented!()
 }
@@ -544,9 +565,14 @@ pub fn _vreinterpretq_u32_s32(a: _int32x4_t) -> _uint32x4_t {
     unimplemented!()
 }
 
+// Total model: immediate logical shift right, u32.  N>=32 => 0, N<=0 =>
+// identity, else lane >> N.
 #[inline(always)]
 #[hax_lib::lean::replace_body("sorry")]
-// TODO: ensures needs `requires (v N >= 0 /\ v N < 32)` for >>! subtyping
+#[hax_lib::ensures(|result| fstar!("forall (i:nat{i < 4}). get_lane_u32x4 $result i ==
+    (if ${N} >=. mk_i32 32 then mk_u32 0
+     else if ${N} <=. mk_i32 0 then get_lane_u32x4 $a i
+     else get_lane_u32x4 $a i >>! (cast ${N} <: u32)))"))]
 pub fn _vshrq_n_u32<const N: i32>(a: _uint32x4_t) -> _uint32x4_t {
     unimplemented!()
 }
@@ -735,13 +761,54 @@ pub fn _vqtbl1q_u8(t: _uint8x16_t, idx: _uint8x16_t) -> _uint8x16_t {
 pub fn _vreinterpretq_s16_u8(a: _uint8x16_t) -> _int16x8_t {
     unimplemented!()
 }
+// Per-lane variable shift (ARM SSHL / USHL).  The shift amount for lane i is
+// the SIGNED value of the low byte of b_i: positive => shift left, negative =>
+// shift right (arithmetic for SSHL/signed, logical for USHL/unsigned).  The
+// low byte (unsigned, 0..255) is `b_i %! 256` (Euclidean); values >= 128 denote
+// a negative shift `s - 256`.  Shifts of magnitude >= 16 saturate (0, or all-
+// ones for SSHL of a negative input).  Validated bit-exact against the
+// serialize_1/serialize_4/deserialize_1/deserialize_12 shifters.
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::before(
+        interface,
+        r#"
+let arm_sshl_i16 (a b: i16) : i16 =
+  let s = v (b %! mk_i16 256) in
+  if s < 128 then (if s < 16 then a <<! mk_i32 s else mk_i16 0)
+  else (let r = 256 - s in
+        if r < 16 then a >>! mk_i32 r
+        else (if a <. mk_i16 0 then mk_i16 (-1) else mk_i16 0))
+
+let arm_ushl_u16 (a: u16) (b: i16) : u16 =
+  let s = v (b %! mk_i16 256) in
+  if s < 128 then (if s < 16 then a <<! mk_i32 s else mk_u16 0)
+  else (let r = 256 - s in
+        if r < 16 then a >>! mk_i32 r else mk_u16 0)
+
+// Low-N-bits mask 2^N - 1.  The pow2_le_compat lemma discharges the
+// range_t bound (maxint = pow2 (bits-1) - 1), which an assumed val's
+// ensures cannot carry itself.
+let arm_low_mask_i32 (n: nat{n < 32}) : i32 =
+  FStar.Math.Lemmas.pow2_le_compat 31 n;
+  mk_i32 (pow2 n - 1)
+let arm_low_mask_i64 (n: nat{n < 64}) : i64 =
+  FStar.Math.Lemmas.pow2_le_compat 63 n;
+  mk_i64 (pow2 n - 1)
+"#
+    )
+)]
 #[inline(always)]
 #[hax_lib::lean::replace_body("sorry")]
+#[hax_lib::ensures(|result| fstar!("forall (i:nat{i < 8}). get_lane_i16x8 $result i ==
+    arm_sshl_i16 (get_lane_i16x8 $a i) (get_lane_i16x8 $b i)"))]
 pub fn _vshlq_s16(a: _int16x8_t, b: _int16x8_t) -> _int16x8_t {
     unimplemented!()
 }
 #[inline(always)]
 #[hax_lib::lean::replace_body("sorry")]
+#[hax_lib::ensures(|result| fstar!("forall (i:nat{i < 8}). get_lane_u16x8 $result i ==
+    arm_ushl_u16 (get_lane_u16x8 $a i) (get_lane_i16x8 $b i)"))]
 pub fn _vshlq_u16(a: _uint16x8_t, b: _int16x8_t) -> _uint16x8_t {
     unimplemented!()
 }
@@ -774,8 +841,18 @@ pub fn _vaddvq_s16(a: _int16x8_t) -> i16 {
     unimplemented!()
 }
 
+// Shift-Left-and-Insert, 32-bit.  Per lane i, keep a_i's low N bits and OR in
+// b_i shifted left by N:  result_i = (a_i & (2^N - 1)) | (b_i << N).  Bitwise
+// ops act on the 2's-complement bit pattern.  The mask is `pow2 N - 1` (the low
+// N bits); computed via pow2 rather than `(1<<N)-1` so the i32 literal never
+// overflows at N=31.  Validated bit-exact against real `vsliq_n_s32` hardware
+// for N in {1,10,12,20,31} and the serialize_10/serialize_12 packing pipeline.
 #[inline(always)]
 #[hax_lib::lean::replace_body("sorry")]
+#[hax_lib::requires(0 <= N && N < 32)]
+#[hax_lib::ensures(|result| fstar!("forall (i:nat{i < 4}). get_lane_i32x4 $result i ==
+    ((get_lane_i32x4 $a i &. arm_low_mask_i32 (v ${N})) |.
+     (get_lane_i32x4 $b i <<! ${N}))"))]
 pub fn _vsliq_n_s32<const N: i32>(a: _int32x4_t, b: _int32x4_t) -> _int32x4_t {
     unimplemented!()
 }
@@ -787,8 +864,15 @@ pub fn _vreinterpretq_s64_s32(a: _int32x4_t) -> _int64x2_t {
     unimplemented!()
 }
 
+// Shift-Left-and-Insert, 64-bit (2 lanes).  Same shape as `_vsliq_n_s32`; mask
+// `pow2 N - 1` stays in i64 range through N=63 (where `1<<N` would overflow).
+// Validated bit-exact against real `vsliq_n_s64` hardware for N in {1,20,24,40,63}.
 #[inline(always)]
 #[hax_lib::lean::replace_body("sorry")]
+#[hax_lib::requires(0 <= N && N < 64)]
+#[hax_lib::ensures(|result| fstar!("forall (i:nat{i < 2}). get_lane_i64x2 $result i ==
+    ((get_lane_i64x2 $a i &. arm_low_mask_i64 (v ${N})) |.
+     (get_lane_i64x2 $b i <<! ${N}))"))]
 pub fn _vsliq_n_s64<const N: i32>(a: _int64x2_t, b: _int64x2_t) -> _int64x2_t {
     unimplemented!()
 }
