@@ -133,37 +133,201 @@ end"#
 
 const BARRETT_MULTIPLIER: i16 = 20159;
 
+// Functional foundation for the Neon barrett/montgomery primitives.  The four
+// helper lemmas bridge the saturating doubling-multiply-high (`_vqdmulhq_*`)
+// model to the scalar `Spec.Utils.{barrett_red,mont_mul_red_i16}` reductions.
+// The per-lane `int16x8_t` workers (`*_int16x8_t`) are `opaque_to_smt` so the
+// SIMD128 wrappers compose only against their (genuine `forall i<8`) posts —
+// without that, the wrappers' `pow2`/`barrett_red` machinery leaks into the
+// composition VC and saturates Z3.
+#[hax_lib::fstar::before(
+    r#"
+let lemma_neon_floor_collapse (p: int)
+    : Lemma ((p / pow2 15 + pow2 10) / pow2 11 == (p / pow2 16 + pow2 9) / pow2 10) =
+  FStar.Math.Lemmas.pow2_plus 10 15;
+  FStar.Math.Lemmas.division_addition_lemma p (pow2 15) (pow2 10);
+  FStar.Math.Lemmas.pow2_plus 15 11;
+  FStar.Math.Lemmas.division_multiplication_lemma (p + pow2 25) (pow2 15) (pow2 11);
+  FStar.Math.Lemmas.pow2_plus 9 16;
+  FStar.Math.Lemmas.division_addition_lemma p (pow2 16) (pow2 9);
+  FStar.Math.Lemmas.pow2_plus 16 10;
+  FStar.Math.Lemmas.division_multiplication_lemma (p + pow2 25) (pow2 16) (pow2 10)
+
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 300"
+
+(* The Neon barrett lane chain (saturating doubling-mul-high + add 1024 + >>11)
+   collapses to the scalar `Spec.Utils.barrett_red`: both quotients equal
+   floor((x*20159 + 2^25) / 2^26). *)
+let lemma_barrett_lane_eq (x: i16)
+    : Lemma (requires Spec.Utils.is_i16b 28296 x)
+      (ensures
+        (let prod:i32 = ((cast x <: i32) *. (cast (mk_i16 20159) <: i32)) >>! (mk_i32 15) in
+          let vec1:i16 =
+            (if prod >. mk_i32 32767
+              then mk_i16 32767
+              else if prod <. mk_i32 (- 32768) then mk_i16 (- 32768) else (cast prod <: i16))
+          in
+          x -. (((vec1 +. mk_i16 1024) >>! (mk_i32 11)) *. mk_i16 3329) == Spec.Utils.barrett_red x)) =
+  let xx:int = v x in
+  assert (xx * 20159 <= 570419064 /\ xx * 20159 >= -570419064);
+  let prod:i32 = ((cast x <: i32) *. (cast (mk_i16 20159) <: i32)) >>! (mk_i32 15) in
+  assert (v prod == (xx * 20159) / pow2 15);
+  FStar.Math.Lemmas.lemma_div_le (xx * 20159) 570419064 (pow2 15);
+  FStar.Math.Lemmas.lemma_div_le (-570419064) (xx * 20159) (pow2 15);
+  assert_norm (570419064 / pow2 15 == 17407);
+  assert_norm ((-570419064) / pow2 15 == -17408);
+  let vec1:i16 = (cast prod <: i16) in
+  let vec2:i16 = vec1 +. mk_i16 1024 in
+  let quotient:i16 = vec2 >>! (mk_i32 11) in
+  lemma_neon_floor_collapse (xx * 20159);
+  assert_norm (pow2 10 == 1024);
+  assert_norm (pow2 9 == 512);
+  assert (v quotient == ((xx * 20159) / pow2 16 + 512) / pow2 10);
+  ()
+#pop-options
+
+#push-options "--z3rlimit 200"
+(* The unsigned multiply-by-62209 detour reinterprets to a signed
+   multiply-by-(-3327), since 62209 == -3327 (mod 2^16). *)
+let lemma_u16_detour (a: i16)
+    : Lemma
+      (Rust_primitives.Integers.cast_mod #Rust_primitives.Integers.u16_inttype
+          #Rust_primitives.Integers.i16_inttype
+          ((Rust_primitives.Integers.cast_mod #Rust_primitives.Integers.i16_inttype
+                #Rust_primitives.Integers.u16_inttype
+                a) *.
+            mk_u16 62209) ==
+        a *. (mk_i16 (-3327))) =
+  let aa = v a in
+  FStar.Math.Lemmas.lemma_mod_mul_distr_l aa 62209 (pow2 16);
+  FStar.Math.Lemmas.lemma_mod_plus (aa * (-3327)) aa (pow2 16);
+  assert (aa * 62209 == aa * (-3327) + aa * pow2 16);
+  assert (((aa % pow2 16) * 62209) % pow2 16 == (aa * (-3327)) % pow2 16);
+  ()
+#pop-options
+
+#push-options "--z3rlimit 300"
+(* The saturating doubling-mul-high `e_vqdmulhq_n_s16 m d` (model `(m*d)>>15`)
+   then `>>1` equals the scalar high half `(m*d)>>16`, for products below 2^28
+   (so no saturation and the i16 cast is exact). *)
+let lemma_qdmulh_shift1 (m d: i16)
+    : Lemma (requires Spec.Utils.is_intb (pow2 28) (v m * v d))
+      (ensures
+        (let prod:i32 = ((cast m <: i32) *. (cast d <: i32)) >>! (mk_i32 15) in
+          let sat:i16 =
+            (if prod >. mk_i32 32767
+              then mk_i16 32767
+              else if prod <. mk_i32 (- 32768) then mk_i16 (- 32768) else (cast prod <: i16))
+          in
+          (sat >>! (mk_i32 1)) ==
+          (cast (((cast m <: i32) *. (cast d <: i32)) >>! (mk_i32 16)) <: i16))) =
+  let p:int = v m * v d in
+  assert (v ((cast m <: i32) *. (cast d <: i32)) == p);
+  let prod:i32 = ((cast m <: i32) *. (cast d <: i32)) >>! (mk_i32 15) in
+  assert (v prod == p / pow2 15);
+  FStar.Math.Lemmas.lemma_div_le p (pow2 28) (pow2 15);
+  FStar.Math.Lemmas.lemma_div_le (- pow2 28) p (pow2 15);
+  assert_norm (pow2 28 / pow2 15 == pow2 13);
+  assert_norm ((- pow2 28) / pow2 15 == - pow2 13);
+  assert_norm (pow2 13 < 32767);
+  let sat:i16 = (cast prod <: i16) in
+  assert (v (sat >>! (mk_i32 1)) == (p / pow2 15) / pow2 1);
+  FStar.Math.Lemmas.division_multiplication_lemma p (pow2 15) (pow2 1);
+  FStar.Math.Lemmas.pow2_plus 15 1;
+  ()
+#pop-options
+"#
+)]
+// Precondition stays `l_True` (the existing caller `inv_ntt_layer_1_step` in
+// Neon.Ntt does not track the 28296 bound); the functional post is guarded by
+// that bound as an antecedent.  The SIMD128 `barrett_reduce` wrapper discharges
+// it from `barrett_reduce_pre`.
 #[inline(always)]
-pub(crate) fn barrett_reduce_int16x8_t(v: _int16x8_t) -> _int16x8_t {
+#[hax_lib::fstar::options("--z3rlimit 300")]
+#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
+#[hax_lib::ensures(|result| fstar!(r#"(forall (i: nat{i < 8}).
+      Spec.Utils.is_i16b 28296 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i)) ==>
+    (forall (i: nat{i < 8}).
+      Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) /\
+      v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) % 3329 ==
+      v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i) % 3329)"#))]
+pub(crate) fn barrett_reduce_int16x8_t(a: _int16x8_t) -> _int16x8_t {
     // This is what we are trying to do in portable:
     // let t = (value as i32 * BARRETT_MULTIPLIER) + (BARRETT_R >> 1);
     // let quotient = (t >> BARRETT_SHIFT) as i16;
     // let result = value - (quotient * FIELD_MODULUS);
 
     let adder = _vdupq_n_s16(1024);
-    let vec = _vqdmulhq_n_s16(v, BARRETT_MULTIPLIER as i16);
-    let vec = _vaddq_s16(vec, adder);
-    let quotient = _vshrq_n_s16::<11>(vec);
+    let prod = _vqdmulhq_n_s16(a, BARRETT_MULTIPLIER as i16);
+    let summed = _vaddq_s16(prod, adder);
+    let quotient = _vshrq_n_s16::<11>(summed);
     let sub = _vmulq_n_s16(quotient, FIELD_MODULUS);
-    _vsubq_s16(v, sub)
+    let result = _vsubq_s16(a, sub);
+    hax_lib::fstar!(
+        r#"introduce
+  (forall (i: nat{i < 8}). Spec.Utils.is_i16b 28296 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i)) ==>
+  (forall (i: nat{i < 8}).
+      Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) /\
+      v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) % 3329 ==
+      v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i) % 3329)
+  with _h.
+  introduce
+  forall (i: nat{i < 8}).
+      Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) /\
+      v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) % 3329 ==
+      v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i) % 3329
+  with (assert (Spec.Utils.is_i16b 28296 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i));
+    lemma_barrett_lane_eq (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i);
+    Spec.Utils.lemma_barrett_red (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i))"#
+    );
+    result
 }
 
 #[inline(always)]
+#[hax_lib::fstar::options("--z3rlimit 300 --split_queries always")]
+#[hax_lib::requires(fstar!(r#"${spec::barrett_reduce_pre} (repr ${vec})"#))]
+#[hax_lib::ensures(|result| fstar!(r#"${spec::barrett_reduce_post} (repr ${vec}) (repr ${result})"#))]
 pub(crate) fn barrett_reduce(mut vec: SIMD128Vector) -> SIMD128Vector {
-    //let pv = crate::simd::portable::from_i16_array(to_i16_array(v));
-    //from_i16_array(crate::simd::portable::to_i16_array(crate::simd::portable::barrett_reduce(pv)))
-
     // This is what we are trying to do in portable:
     // let t = (value as i32 * BARRETT_MULTIPLIER) + (BARRETT_R >> 1);
     // let quotient = (t >> BARRETT_SHIFT) as i16;
     // let result = value - (quotient * FIELD_MODULUS);
 
+    #[cfg(hax)]
+    let _vec0 = vec;
+
+    // Unfold the (opaque) input/output array bounds, then establish the per-half
+    // input bounds (`lemma_repr_index` SMTPat bridges `repr` lanes to the
+    // `get_lane_i16x8` of `.f_low`/`.f_high`) so each per-half call's guarded
+    // post fires; the output bound folds back into the array post.
+    hax_lib::fstar!(
+        r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque 28296);
+           reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque 3328);
+           assert (forall (i: nat{i < 8}). Seq.index (repr ${vec}) i == Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${vec}.f_low i);
+           assert (forall (i: nat{i < 8}). Seq.index (repr ${vec}) (i + 8) == Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${vec}.f_high i);
+           assert (forall (i: nat{i < 8}). Spec.Utils.is_i16b 28296 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${vec}.f_low i));
+           assert (forall (i: nat{i < 8}). Spec.Utils.is_i16b 28296 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${vec}.f_high i))"#
+    );
     vec.low = barrett_reduce_int16x8_t(vec.low);
     vec.high = barrett_reduce_int16x8_t(vec.high);
+    // Compose the per-half facts into the per-lane opaque atom (pow2-free).
+    hax_lib::fstar!(
+        r#"introduce
+  forall (j: nat{j < 16}).
+      Libcrux_ml_kem.Vector.Traits.Spec.barrett_reduce_lane_post (Seq.index (repr ${_vec0}) j) (Seq.index (repr ${vec}) j)
+  with (reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.barrett_reduce_lane_post) (Libcrux_ml_kem.Vector.Traits.Spec.barrett_reduce_lane_post (Seq.index (repr ${_vec0}) j) (Seq.index (repr ${vec}) j));
+    Hacspec_ml_kem.ModQ.lemma_mod_q_eq_intro (v (Seq.index (repr ${vec}) j)) (v (Seq.index (repr ${_vec0}) j)))"#
+    );
     vec
 }
 
 #[inline(always)]
+#[hax_lib::fstar::options("--z3rlimit 300")]
+#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
+#[hax_lib::ensures(|result| fstar!(r#"forall (i: nat{i < 8}).
+    Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i ==
+    Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${high} i -.
+    (cast (((cast (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${low} i *. (mk_i16 (-3327))) <: i32) *. (mk_i32 3329)) >>! (mk_i32 16)) <: i16)"#))]
 pub(crate) fn montgomery_reduce_int16x8_t(low: _int16x8_t, high: _int16x8_t) -> _int16x8_t {
     // This is what we are trying to do in portable:
     // let k = low as i16 * INVERSE_OF_MODULUS_MOD_MONTGOMERY_R;
@@ -176,11 +340,29 @@ pub(crate) fn montgomery_reduce_int16x8_t(low: _int16x8_t, high: _int16x8_t) -> 
         INVERSE_OF_MODULUS_MOD_MONTGOMERY_R as u16,
     ));
     let c = _vshrq_n_s16::<1>(_vqdmulhq_n_s16(k, FIELD_MODULUS as i16));
-    _vsubq_s16(high, c)
+    let result = _vsubq_s16(high, c);
+    hax_lib::fstar!(
+        r#"introduce
+  forall (i: nat{i < 8}).
+      Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i ==
+      Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${high} i -.
+      (cast (((cast (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${low} i *. (mk_i16 (-3327))) <: i32) *. (mk_i32 3329)) >>! (mk_i32 16)) <: i16)
+  with (lemma_u16_detour (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${low} i);
+    assert (Spec.Utils.is_intb (pow2 28) (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${k} i) * v Libcrux_ml_kem.Vector.Traits.v_FIELD_MODULUS));
+    lemma_qdmulh_shift1 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${k} i) Libcrux_ml_kem.Vector.Traits.v_FIELD_MODULUS)"#
+    );
+    result
 }
 
 #[inline(always)]
-pub(crate) fn montgomery_multiply_by_constant_int16x8_t(v: _int16x8_t, c: i16) -> _int16x8_t {
+#[hax_lib::fstar::options("--fuel 1 --ifuel 1 --z3rlimit 300")]
+#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
+#[hax_lib::requires(fstar!(r#"Spec.Utils.is_i16b 1664 ${c}"#))]
+#[hax_lib::ensures(|result| fstar!(r#"forall (i: nat{i < 8}).
+    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) /\
+    v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) % 3329 ==
+    (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i) * v ${c} * 169) % 3329"#))]
+pub(crate) fn montgomery_multiply_by_constant_int16x8_t(a: _int16x8_t, c: i16) -> _int16x8_t {
     // This is what we are trying to do in portable:
     // let value = v as i16 * c
     // let k = (value as i16) as i16 * INVERSE_OF_MODULUS_MOD_MONTGOMERY_R;
@@ -189,9 +371,21 @@ pub(crate) fn montgomery_multiply_by_constant_int16x8_t(v: _int16x8_t, c: i16) -
     // let value_high = (value >> MONTGOMERY_SHIFT) as i16;
     // value_high - c
 
-    let v_low = _vmulq_n_s16(v, c);
-    let v_high = _vshrq_n_s16::<1>(_vqdmulhq_n_s16(v, c));
-    montgomery_reduce_int16x8_t(v_low, v_high)
+    let v_low = _vmulq_n_s16(a, c);
+    let v_high = _vshrq_n_s16::<1>(_vqdmulhq_n_s16(a, c));
+    let result = montgomery_reduce_int16x8_t(v_low, v_high);
+    hax_lib::fstar!(
+        r#"introduce
+  forall (i: nat{i < 8}).
+      Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) /\
+      v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) % 3329 ==
+      (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i) * v ${c} * 169) % 3329
+  with (assert (Spec.Utils.is_intb (pow2 28) (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i) * v ${c}));
+    lemma_qdmulh_shift1 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i) ${c};
+    assert (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i == Spec.Utils.mont_mul_red_i16 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i) ${c});
+    Spec.Utils.lemma_mont_mul_red_i16 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i) ${c})"#
+    );
+    result
 }
 
 #[inline(always)]
@@ -210,9 +404,25 @@ pub(crate) fn montgomery_multiply_int16x8_t(v: _int16x8_t, c: _int16x8_t) -> _in
 }
 
 #[inline(always)]
+#[hax_lib::fstar::options("--z3rlimit 300 --split_queries always")]
+#[hax_lib::requires(fstar!(r#"${spec::montgomery_multiply_by_constant_pre} (repr ${vec}) ${c}"#))]
+#[hax_lib::ensures(|result| fstar!(r#"${spec::montgomery_multiply_by_constant_post} (repr ${vec}) ${c} (repr ${result})"#))]
 pub(crate) fn montgomery_multiply_by_constant(mut vec: SIMD128Vector, c: i16) -> SIMD128Vector {
+    #[cfg(hax)]
+    let _vec0 = vec;
+
+    hax_lib::fstar!(
+        r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque 3328)"#
+    );
     vec.low = montgomery_multiply_by_constant_int16x8_t(vec.low, c);
     vec.high = montgomery_multiply_by_constant_int16x8_t(vec.high, c);
+    hax_lib::fstar!(
+        r#"introduce
+  forall (j: nat{j < 16}).
+      Libcrux_ml_kem.Vector.Traits.Spec.montgomery_multiply_lane_post (Seq.index (repr ${_vec0}) j) ${c} (Seq.index (repr ${vec}) j)
+  with (reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.montgomery_multiply_lane_post) (Libcrux_ml_kem.Vector.Traits.Spec.montgomery_multiply_lane_post (Seq.index (repr ${_vec0}) j) ${c} (Seq.index (repr ${vec}) j));
+    Hacspec_ml_kem.ModQ.lemma_mod_q_eq_intro (v (Seq.index (repr ${vec}) j)) (v (Seq.index (repr ${_vec0}) j) * v ${c} * 169))"#
+    );
     vec
 }
 
