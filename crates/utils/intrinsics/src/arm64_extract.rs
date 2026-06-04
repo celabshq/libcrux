@@ -619,6 +619,30 @@ let i64_byte (x: i64) (k: nat{k < 8}) : u8 =
   Rust_primitives.Integers.cast_mod #Rust_primitives.Integers.u64_inttype #Rust_primitives.Integers.u8_inttype
     ((Rust_primitives.Integers.cast_mod #Rust_primitives.Integers.i64_inttype #Rust_primitives.Integers.u64_inttype x)
      >>! mk_u32 (8 * k))
+// ntt-path cross-width repacks (i16<->i32<->i64, i16<->u8)
+let i16_bits_as_u64 (x: i16) : u64 =
+  Rust_primitives.Integers.cast #Rust_primitives.Integers.u32_inttype #Rust_primitives.Integers.u64_inttype
+    (i16_bits_as_u32 x)
+let i32_lo16_as_i16 (x: i32) : i16 =
+  u32_lo16_as_i16 (Rust_primitives.Integers.cast_mod #Rust_primitives.Integers.i32_inttype #Rust_primitives.Integers.u32_inttype x)
+let i32_hi16_as_i16 (x: i32) : i16 =
+  u32_hi16_as_i16 (Rust_primitives.Integers.cast_mod #Rust_primitives.Integers.i32_inttype #Rust_primitives.Integers.u32_inttype x)
+let i16x4_as_i64 (a b c d: i16) : i64 =
+  Rust_primitives.Integers.cast_mod #Rust_primitives.Integers.u64_inttype #Rust_primitives.Integers.i64_inttype
+    (i16_bits_as_u64 a |. (i16_bits_as_u64 b <<! mk_u32 16) |.
+     (i16_bits_as_u64 c <<! mk_u32 32) |. (i16_bits_as_u64 d <<! mk_u32 48))
+let i64_i16lane (x: i64) (j: nat{j < 4}) : i16 =
+  Rust_primitives.Integers.cast_mod #Rust_primitives.Integers.u16_inttype #Rust_primitives.Integers.i16_inttype
+    (Rust_primitives.Integers.cast_mod #Rust_primitives.Integers.u64_inttype #Rust_primitives.Integers.u16_inttype
+       ((Rust_primitives.Integers.cast_mod #Rust_primitives.Integers.i64_inttype #Rust_primitives.Integers.u64_inttype x)
+        >>! mk_u32 (16 * j)))
+let i16_byte (x: i16) (j: nat{j < 2}) : u8 =
+  Rust_primitives.Integers.cast_mod #Rust_primitives.Integers.u16_inttype #Rust_primitives.Integers.u8_inttype
+    ((Rust_primitives.Integers.cast_mod #Rust_primitives.Integers.i16_inttype #Rust_primitives.Integers.u16_inttype x)
+     >>! mk_u32 (8 * j))
+let u8x2_as_i16 (lo hi: u8) : i16 =
+  Rust_primitives.Integers.cast_mod #Rust_primitives.Integers.u16_inttype #Rust_primitives.Integers.i16_inttype
+    (u8x2_as_u16 lo hi)
 "#
     )
 )]
@@ -674,7 +698,10 @@ pub fn _vtrn1q_s32(a: _int32x4_t, b: _int32x4_t) -> _int32x4_t {
 }
 #[inline(always)]
 #[hax_lib::lean::replace_body("sorry")]
-#[hax_lib::ensures(|result| fstar!("$result == $a"))]
+#[hax_lib::ensures(|result| fstar!("$result == $a /\\
+    (forall (i:nat{i < 4}).
+       get_lane_i16x8 $result (2*i) == i32_lo16_as_i16 (get_lane_i32x4 $a i) /\\
+       get_lane_i16x8 $result (2*i+1) == i32_hi16_as_i16 (get_lane_i32x4 $a i))"))]
 pub fn _vreinterpretq_s16_s32(a: _int32x4_t) -> _int16x8_t {
     unimplemented!()
 }
@@ -715,13 +742,18 @@ pub fn _vtrn1q_u64(a: _uint64x2_t, b: _uint64x2_t) -> _uint64x2_t {
 
 #[inline(always)]
 #[hax_lib::lean::replace_body("sorry")]
-#[hax_lib::ensures(|result| fstar!("$result == $a"))]
+#[hax_lib::ensures(|result| fstar!("$result == $a /\\
+    (forall (k:nat{k < 8}). get_lane_i16x8 $result k ==
+       i64_i16lane (get_lane_i64x2 $a (k / 4)) (k % 4))"))]
 pub fn _vreinterpretq_s16_s64(a: _int64x2_t) -> _int16x8_t {
     unimplemented!()
 }
 #[inline(always)]
 #[hax_lib::lean::replace_body("sorry")]
-#[hax_lib::ensures(|result| fstar!("$result == $a"))]
+#[hax_lib::ensures(|result| fstar!("$result == $a /\\
+    (forall (i:nat{i < 2}). get_lane_i64x2 $result i ==
+       i16x4_as_i64 (get_lane_i16x8 $a (4*i)) (get_lane_i16x8 $a (4*i+1))
+                    (get_lane_i16x8 $a (4*i+2)) (get_lane_i16x8 $a (4*i+3)))"))]
 pub fn _vreinterpretq_s64_s16(a: _int16x8_t) -> _int64x2_t {
     unimplemented!()
 }
@@ -788,7 +820,9 @@ pub fn _vld1q_u8(ptr: &[u8]) -> _uint8x16_t {
 }
 #[inline(always)]
 #[hax_lib::lean::replace_body("sorry")]
-#[hax_lib::ensures(|result| fstar!("$result == $a"))]
+#[hax_lib::ensures(|result| fstar!("$result == $a /\\
+    (forall (k:nat{k < 16}). get_lane_u8x16 $result k ==
+       i16_byte (get_lane_i16x8 $a (k / 2)) (k % 2))"))]
 pub fn _vreinterpretq_u8_s16(a: _int16x8_t) -> _uint8x16_t {
     unimplemented!()
 }
@@ -803,7 +837,9 @@ pub fn _vqtbl1q_u8(t: _uint8x16_t, idx: _uint8x16_t) -> _uint8x16_t {
 }
 #[inline(always)]
 #[hax_lib::lean::replace_body("sorry")]
-#[hax_lib::ensures(|result| fstar!("$result == $a"))]
+#[hax_lib::ensures(|result| fstar!("$result == $a /\\
+    (forall (i:nat{i < 8}). get_lane_i16x8 $result i ==
+       u8x2_as_i16 (get_lane_u8x16 $a (2*i)) (get_lane_u8x16 $a (2*i+1)))"))]
 pub fn _vreinterpretq_s16_u8(a: _uint8x16_t) -> _int16x8_t {
     unimplemented!()
 }
