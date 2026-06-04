@@ -83,6 +83,26 @@ per-chunk dispatcher + all-32-chunk poly composition each.
   functional WP (relations relative to a snapshot) — bounds composes
   automatically, but functional-relative-to-orig may need explicit framing.
   Estimated multi-hour; its own focused session.
+- A3 REFINED BLOCKER (2026-06-04): the witness `zm b` can be
+  `cast (Spec.MLDSA.Ntt.zeta_r (b+32))` — `zeta_r`'s ensures holds at SYMBOLIC
+  b, giving `(v (zm b))%q == (zeta(b+32)*pow2 32)%q` for free (no per-b
+  assert_norm). BUT the poly lemma's zeta hypothesis is stated against
+  `v_ZETAS[b+32]`, so closing it still needs `v_ZETAS[idx] == zeta idx` at
+  SYMBOLIC idx. `Spec.MLDSA.Ntt.zeta` is a `match` (no symbolic reduction) and
+  there is no shared underlying list, so this table equality is only provable
+  per-CONCRETE-idx → a 32/64/128-arm match-dispatch per driver (per-i-match
+  recipe; 32 borderline, 128 rough). OPTION to de-risk: change the poly
+  lemmas' zeta hypothesis to cite `Spec.MLDSA.Ntt.zeta (idx)` instead of
+  `v_ZETAS[idx]`, and prove the within-chunk reducers (`layer_k_lane`) against
+  `zeta` once via the SAME table bridge — pushing the 224-arm bridge into ONE
+  reusable lemma proven by `introduce forall + match` (still 256 arms but
+  written once, not per-driver). Decide bridge-home before starting A3.
+- GOOD NEWS on composition: the 32-round functional WP should be NO harder than
+  the bounds forall32 — the snapshot-equality fact `re_before_b[b]==orig[b]` is
+  ALREADY discharged by F* to type the bounds round-call preconditions; the FE
+  relation `FErel(re_future[b], orig[b])` is preserved by later-round modifies
+  exactly like the absolute bound. So the risk is the table bridge + witness
+  plumbing, not the fold composition.
 
 ## Next (layer 3+ / future sessions)
 - Cross-chunk layers 3-7 (Commute.Bridges port) + 8-layer compose to
