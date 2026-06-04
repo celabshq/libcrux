@@ -179,6 +179,8 @@ pub(crate) fn inv_ntt_layer_3_step(mut v: SIMD128Vector, zeta: i16) -> SIMD128Ve
 }
 
 #[inline(always)]
+#[hax_lib::requires(fstar!(r#"Spec.Utils.is_i16b 1664 zeta1 /\ Spec.Utils.is_i16b 1664 zeta2 /\
+                            Spec.Utils.is_i16b 1664 zeta3 /\ Spec.Utils.is_i16b 1664 zeta4"#))]
 pub(crate) fn ntt_multiply(
     lhs: &SIMD128Vector,
     rhs: &SIMD128Vector,

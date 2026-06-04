@@ -827,3 +827,19 @@ succeeded without).  Notes:
   (ground-literal SIMD recipe).
 - to_unsigned_representative: ~13.5 s at rlimit 300, portable-mirrored
   assert chain.  Same remedy if it grows.
+
+## Snapshot — 2026-06-04 — Neon 0-lax wave (Compress/Ntt/Serialize leaf modules)
+
+3 parallel agents closed the 3 remaining Neon leaf submodules at panic_free.
+Clean rebuild in `make all` (build e9cbae55, exit 0, 48 s warm).
+
+| Total (s) | Max query (ms) | Queries | Module.Function |
+|---|---|---|---|
+| 5.6 | 5418 | 3 | Vector.Neon.Serialize.serialize_12_ |
+| 5.6 | 5412 | 3 | Vector.Neon.Serialize.serialize_10_ |
+| 0.8 |  781 | 1 | Vector.Neon.Ntt.ntt_multiply |
+| 0.6 |  505 | 4 | Vector.Neon.Serialize.deserialize_12_ |
+
+Everything else < 0.4 s. All panic_free (no functional ensures yet); the
+serialize_10/12 cost is the only thing worth watching when those go
+functional in the next phase.

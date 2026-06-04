@@ -2,6 +2,9 @@ use super::*;
 use crate::vector::portable::PortableVector;
 use libcrux_intrinsics::arm64::*;
 
+#[cfg(hax)]
+use crate::vector::traits::spec;
+
 #[inline(always)]
 pub(crate) fn serialize_1(v: SIMD128Vector) -> [u8; 2] {
     let shifter: [i16; 8] = [0, 1, 2, 3, 4, 5, 6, 7];
@@ -14,6 +17,7 @@ pub(crate) fn serialize_1(v: SIMD128Vector) -> [u8; 2] {
 }
 
 #[inline(always)]
+#[hax_lib::requires(a.len() == 2)]
 pub(crate) fn deserialize_1(a: &[u8]) -> SIMD128Vector {
     let one = _vdupq_n_s16(1);
     let low = _vdupq_n_s16(a[0] as i16);
@@ -43,6 +47,7 @@ pub(crate) fn serialize_4(v: SIMD128Vector) -> [u8; 8] {
 }
 
 #[inline(always)]
+#[hax_lib::requires(v.len() == 8)]
 pub(crate) fn deserialize_4(v: &[u8]) -> SIMD128Vector {
     let input = PortableVector::deserialize_4(v);
     let input_i16s = PortableVector::to_i16_array(input);
@@ -53,6 +58,11 @@ pub(crate) fn deserialize_4(v: &[u8]) -> SIMD128Vector {
 }
 
 #[inline(always)]
+#[hax_lib::fstar::before(
+    interface,
+    r#"unfold let repr = Libcrux_ml_kem.Vector.Neon.Vector_type.repr"#
+)]
+#[hax_lib::requires(fstar!(r#"${spec::serialize_5_pre} (repr ${v})"#))]
 pub(crate) fn serialize_5(v: SIMD128Vector) -> [u8; 10] {
     let out_i16s = to_i16_array(v);
     let out = PortableVector::from_i16_array(&out_i16s);
@@ -60,6 +70,7 @@ pub(crate) fn serialize_5(v: SIMD128Vector) -> [u8; 10] {
 }
 
 #[inline(always)]
+#[hax_lib::requires(v.len() == 10)]
 pub(crate) fn deserialize_5(v: &[u8]) -> SIMD128Vector {
     let output = PortableVector::deserialize_5(v);
     let array = PortableVector::to_i16_array(output);
@@ -99,6 +110,7 @@ pub(crate) fn serialize_10(v: SIMD128Vector) -> [u8; 20] {
 }
 
 #[inline(always)]
+#[hax_lib::requires(v.len() == 20)]
 pub(crate) fn deserialize_10(v: &[u8]) -> SIMD128Vector {
     let output = PortableVector::deserialize_10(v);
     let array = PortableVector::to_i16_array(output);
@@ -109,6 +121,7 @@ pub(crate) fn deserialize_10(v: &[u8]) -> SIMD128Vector {
 }
 
 #[inline(always)]
+#[hax_lib::requires(fstar!(r#"${spec::serialize_11_pre} (repr ${v})"#))]
 pub(crate) fn serialize_11(v: SIMD128Vector) -> [u8; 22] {
     let out_i16s = to_i16_array(v);
     let out = PortableVector::from_i16_array(&out_i16s);
@@ -116,6 +129,7 @@ pub(crate) fn serialize_11(v: SIMD128Vector) -> [u8; 22] {
 }
 
 #[inline(always)]
+#[hax_lib::requires(v.len() == 22)]
 pub(crate) fn deserialize_11(v: &[u8]) -> SIMD128Vector {
     let output = PortableVector::deserialize_11(v);
     let array = PortableVector::to_i16_array(output);
@@ -155,6 +169,7 @@ pub(crate) fn serialize_12(v: SIMD128Vector) -> [u8; 24] {
 }
 
 #[inline(always)]
+#[hax_lib::requires(v.len() == 24)]
 pub(crate) fn deserialize_12(v: &[u8]) -> SIMD128Vector {
     let indexes: [u8; 16] = [0, 1, 1, 2, 3, 4, 4, 5, 6, 7, 7, 8, 9, 10, 10, 11];
     let index_vec = _vld1q_u8(&indexes);

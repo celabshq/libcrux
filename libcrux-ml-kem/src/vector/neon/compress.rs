@@ -34,13 +34,23 @@ pub(crate) fn compress_1(mut v: SIMD128Vector) -> SIMD128Vector {
 }
 
 #[inline(always)]
+#[hax_lib::requires(fstar!(r#"v $coefficient_bits >= 0 /\ v $coefficient_bits < 15"#))]
 fn mask_n_least_significant_bits(coefficient_bits: i16) -> i16 {
     match coefficient_bits {
         4 => 0x0f,
         5 => 0x1f,
         10 => 0x3ff,
         11 => 0x7ff,
-        x => (1 << x) - 1,
+        x => {
+            // catch-all is only reachable for coefficient_bits in [0, 15);
+            // pow2 (v x) <= pow2 14 = 16384 < 2^15, so (1 << x) fits i16 and
+            // (1 << x) - 1 >= 0 cannot underflow.
+            hax_lib::fstar!(
+                r#"FStar.Math.Lemmas.pow2_le_compat 14 (v $x);
+                   assert_norm (pow2 14 == 16384)"#
+            );
+            (1 << x) - 1
+        }
     }
 }
 
@@ -64,6 +74,10 @@ fn compress_int32x4_t<const COEFFICIENT_BITS: i32>(v: _uint32x4_t) -> _uint32x4_
 }
 
 #[inline(always)]
+#[hax_lib::requires(fstar!(r#"Rust_primitives.Integers.v $COEFFICIENT_BITS == 4 \/
+    Rust_primitives.Integers.v $COEFFICIENT_BITS == 5 \/
+    Rust_primitives.Integers.v $COEFFICIENT_BITS == 10 \/
+    Rust_primitives.Integers.v $COEFFICIENT_BITS == 11"#))]
 pub(crate) fn compress<const COEFFICIENT_BITS: i32>(mut v: SIMD128Vector) -> SIMD128Vector {
     // This is what we are trying to do in portable:
     // let mut compressed = (fe as u64) << coefficient_bits;
@@ -71,6 +85,14 @@ pub(crate) fn compress<const COEFFICIENT_BITS: i32>(mut v: SIMD128Vector) -> SIM
     // compressed *= 10_321_340;
     // compressed >>= 35;
     // get_n_least_significant_bits(coefficient_bits, compressed as u32) as FieldElement
+
+    // The `i32 -> i16` cast preserves the value for COEFFICIENT_BITS in {4,5,10,11},
+    // which discharges `mask_n_least_significant_bits`'s `< 15` precondition.
+    // `v` is qualified because the vector parameter is named `v`.
+    hax_lib::fstar!(
+        r#"assert (Rust_primitives.Integers.v (cast ($COEFFICIENT_BITS <: i32) <: i16) ==
+            Rust_primitives.Integers.v $COEFFICIENT_BITS)"#
+    );
 
     let mask = _vdupq_n_s16(mask_n_least_significant_bits(COEFFICIENT_BITS as i16));
     let mask16 = _vdupq_n_u32(0xffff);
@@ -94,6 +116,8 @@ pub(crate) fn compress<const COEFFICIENT_BITS: i32>(mut v: SIMD128Vector) -> SIM
 }
 
 #[inline(always)]
+#[hax_lib::requires(fstar!(r#"Rust_primitives.Integers.v $COEFFICIENT_BITS >= 1 /\
+    Rust_primitives.Integers.v $COEFFICIENT_BITS <= 32"#))]
 fn decompress_uint32x4_t<const COEFFICIENT_BITS: i32>(v: _uint32x4_t) -> _uint32x4_t {
     let coeff = _vdupq_n_u32(1 << (COEFFICIENT_BITS - 1));
     let decompressed = _vmulq_n_u32(v, FIELD_MODULUS as u32);
@@ -104,13 +128,31 @@ fn decompress_uint32x4_t<const COEFFICIENT_BITS: i32>(v: _uint32x4_t) -> _uint32
 }
 
 #[inline(always)]
+#[hax_lib::fstar::before(
+    interface,
+    r#"unfold let repr = Libcrux_ml_kem.Vector.Neon.Vector_type.repr"#
+)]
+#[hax_lib::requires(fstar!(r#"forall i. (let x = Seq.index (repr ${a}) i in
+    x == mk_i16 0 \/ x == mk_i16 1)"#))]
 pub fn decompress_1(a: SIMD128Vector) -> SIMD128Vector {
     let z = ZERO();
+    // z is all-zero, and every lane of `a` is in {0, 1}, so 0 - a_i in {0, -1}
+    // satisfies `sub`'s precondition (no signed overflow).
+    hax_lib::fstar!(
+        r#"assert (forall i. Seq.index (repr ${z}) i == mk_i16 0);
+           assert (forall i. Spec.Utils.is_intb (pow2 15 - 1)
+             (Rust_primitives.Integers.v (Seq.index (repr ${z}) i) -
+              Rust_primitives.Integers.v (Seq.index (repr ${a}) i)))"#
+    );
     let s = super::arithmetic::sub(z, &a);
     super::arithmetic::bitwise_and_with_constant(s, 1665)
 }
 
 #[inline(always)]
+#[hax_lib::requires(fstar!(r#"Rust_primitives.Integers.v $COEFFICIENT_BITS == 4 \/
+    Rust_primitives.Integers.v $COEFFICIENT_BITS == 5 \/
+    Rust_primitives.Integers.v $COEFFICIENT_BITS == 10 \/
+    Rust_primitives.Integers.v $COEFFICIENT_BITS == 11"#))]
 pub(crate) fn decompress_ciphertext_coefficient<const COEFFICIENT_BITS: i32>(
     mut v: SIMD128Vector,
 ) -> SIMD128Vector {

@@ -84,3 +84,52 @@ Session start: 2026-06-03 ~23:00 CEST, tree 318b07e72.
    posts are the ONLY bridge, placed exactly at the type-pun).
 3. vecN_as_TxM_axiom .fst-side definitions (9 types, sha3 sync) — make
    Arm64_extract.fst well-formed; .fsti unchanged in trust terms.
+
+## Sprint 1.5 (continuation) — 0-lax push (3 parallel agents)
+
+Removed Compress/Ntt/Serialize from ADMIT_MODULES (working tree). Spawned 3
+parallel agents (compress/ntt/serialize), each .fst-direct + backport-to-.rs,
+NO whole-crate extract (parent integrates with one extract at the end).
+Panic-freedom obligations found per module: compress=shift-range in
+mask_n_least_significant_bits catch-all; ntt=neg-zeta overflow; serialize=
+slice-index a.[0..1].
+
+KEY STRUCTURAL FINDING: the `Operations` trait (vector/traits.rs) declares
+FUNCTIONAL pre/post on EVERY method (add_post, ntt_layer_1_step_post,
+serialize_1_post, ...). Therefore `Vector.Neon.{fst,fsti}` (the impl, 38 lax
+fns = the `vector` row) CANNOT leave ADMIT_MODULES at panic_free — each
+one-line dispatcher must prove the trait's functional post, which needs the
+underlying free fn to be functional. So:
+  - 0-lax-now ceiling = all LEAF modules (Vector_type ✓, Arithmetic ✓,
+    + Compress/Ntt/Serialize from this wave) out of ADMIT_MODULES.
+    Expected Neon: 64 lax → 38 lax (only the impl row remains).
+  - The impl gate folds into the FUNCTIONAL phase (model intrinsics →
+    functional submodules → then un-admit Vector.Neon.{fst,fsti}).
+Arithmetic add/sub/multiply/cond_subtract/to_unsigned are ALREADY functional
+(sprint 1); barrett/montgomery are panic_free (need _vqdmulhq models).
+
+## Sprint 1.5 RESULT — Neon 0-lax leaf milestone ✅
+
+3 parallel agents (compress/ntt/serialize) each .fst-direct + backport-to-.rs,
+NO concurrent extract. Parent integrated with ONE `hax.py extract` + `make all`.
+- Compress: 5 requires (mask shift-range + {4,5,10,11}/{0,1} domains, mirror
+  AVX2/portable), 0 admits.
+- Ntt: 1 requires (`is_i16b 1664` on ntt_multiply's 4 zetas, mirror
+  AVX2/portable), 0 admits.
+- Serialize: 12-fn length contracts + serialize_5/11 pre, 0 admits.
+- Gate: `make all` exit 0 / 0 errors (build e9cbae55, 48 s); all 3 modules
+  show real per-fn Query-stats + `Verified module`. cargo simd128 18/18.
+- ml_kem_verification_status: **Neon lax 64 → 38** (the 38 = exactly the
+  `vector`/impl row, gated on functional submodules per the trait-post
+  finding). 34 PF + 10 Math now.
+- Agent gotcha (all 3 hit it): hax emits `#[hax_lib::requires]` into the
+  `.fsti` `val`, NOT the `.fst` `let` — a requires placed only in the `.fst`
+  body is silently ignored (the `.fsti`'s `l_True` pre wins). Re-extraction
+  from .rs places it correctly; agents iterating .fst-direct must edit the
+  .fsti scratch. No intrinsic `requires` needed by any module.
+
+## Remaining for Neon = AVX2 parity (functional phase, task #8)
+Only `Vector.Neon.{fst,fsti}` (impl Operations, 38 fns) left in ADMIT_MODULES.
+It needs functional submodules first: model _vqdmulhq_n_s16/_vqdmulhq_s16
+(barrett/montgomery), _vmull/_vmlal_s16 (ntt), _vqtbl1q_u8/_vsliq_n
+(serialize); upgrade those fns to functional; then un-admit the impl.

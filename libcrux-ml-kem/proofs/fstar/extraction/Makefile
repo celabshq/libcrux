@@ -2,11 +2,8 @@ SLOW_MODULES += Libcrux_ml_kem.Vector.Rej_sample_table.fsti
 SLOW_MODULES += Libcrux_ml_kem.Matrix.fst
 SLOW_MODULES += Libcrux_ml_kem.Vector.Portable.Serialize.fst
 
-ADMIT_MODULES = Libcrux_ml_kem.Vector.Neon.Compress.fst \
-              Libcrux_ml_kem.Vector.Neon.fsti \
-              Libcrux_ml_kem.Vector.Neon.fst \
-              Libcrux_ml_kem.Vector.Neon.Ntt.fst \
-              Libcrux_ml_kem.Vector.Neon.Serialize.fst
+ADMIT_MODULES = Libcrux_ml_kem.Vector.Neon.fsti \
+              Libcrux_ml_kem.Vector.Neon.fst
 # NOTE: ALL incremental modules are now VERIFIED (removed from ADMIT_MODULES):
 # Ind_cca.Incremental{,.Types,.Avx2,.Portable,.Multiplexing} and
 # Mlkem{512,768,1024}.Incremental.  The Types/Incremental closure (2026-06-03)
