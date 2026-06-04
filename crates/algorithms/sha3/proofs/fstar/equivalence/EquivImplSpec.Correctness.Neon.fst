@@ -1,10 +1,18 @@
-module EquivImplSpec.Sponge.Arm64.API
+module EquivImplSpec.Correctness.Neon
 
 (* ================================================================
-   Top-level SHA-3 / SHAKE equivalence theorems for the Arm64
-   (N=2, v_T=t_e_uint64x2_t) backend.
+   MAIN THEOREMS — Neon / Arm64 backend (N=2, v_T=t_e_uint64x2_t).
+   See proofs/README.md.
 
-   STRUCTURAL DIFFERENCE FROM Sponge.Portable.API:
+   One top-level correctness lemma per algorithm; each says the public
+   Rust API result equals the Hacspec spec:
+     lemma_sha224/256/384/512_arm64 : Libcrux_sha3.Neon.shaXXX digest data
+                                      == Hacspec_sha3.Sha3.sha3_XXX_ data
+     lemma_shake128/256_arm64       : ... == Hacspec_sha3.Sha3.shakeXXX n data
+   Each is the lane-0 specialisation of the two-lane driver
+   [D.lemma_keccak2_arm64] (in EquivImplSpec.Sponge.Arm64.Driver).
+
+   STRUCTURAL DIFFERENCE FROM Correctness.Portable:
 
    The Arm64 top-level hashers in [Libcrux_sha3.Neon] dispatch
    through a two-lane driver [Libcrux_sha3.Generic_keccak.Simd128.keccak2],

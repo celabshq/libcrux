@@ -1,8 +1,16 @@
-module EquivImplSpec.Sponge.Portable.API
+module EquivImplSpec.Correctness.Portable
 
 (* ================================================================
-   Top-level SHA-3 / SHAKE equivalence theorems for the Portable
-   (N=1, v_T=u64) backend.
+   MAIN THEOREMS — Portable backend (N=1, v_T=u64).  See proofs/README.md.
+
+   One top-level correctness lemma per algorithm; each says the public
+   Rust API result equals the Hacspec spec:
+     lemma_sha224_portable  : Libcrux_sha3.Portable.sha224 digest data
+                              == Hacspec_sha3.Sha3.sha3_224_ data
+     lemma_sha256/384/512_portable  : ... == Hacspec_sha3.Sha3.sha3_{256,384,512}_ data
+     lemma_shake128/256_portable    : ... == Hacspec_sha3.Sha3.shake{128,256} n data
+   Each reduces, via [lemma_keccak1_portable] (= absorb · squeeze) with the
+   per-algorithm rate/delimiter, to the spec keccak.
 
    Proven top-down from two layer lemmas about the Portable absorb
    and squeeze drivers:

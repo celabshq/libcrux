@@ -23,9 +23,9 @@ ROOTS = \
 	EquivImplSpec.Sponge.Avx2.Steps.fst \
 	Hacspec_sha3.Sponge.Lemmas.fst \
 	EquivImplSpec.Sponge.Portable.SqueezeAPI.fst \
-	EquivImplSpec.Sponge.Portable.API.fst \
-	EquivImplSpec.Sponge.Arm64.API.fst \
-	EquivImplSpec.Sponge.Avx2.API.fst \
+	EquivImplSpec.Correctness.Portable.fst \
+	EquivImplSpec.Correctness.Neon.fst \
+	EquivImplSpec.Correctness.Avx2.fst \
 	EquivImplSpec.Keccakf.SpecRounds.fst
 
 # Disable context_pruning for proof modules — it strips definitions

@@ -1,10 +1,18 @@
-module EquivImplSpec.Sponge.Avx2.API
+module EquivImplSpec.Correctness.Avx2
 
 (* ================================================================
-   Top-level SHA-3 / SHAKE equivalence theorems for the AVX2
-   (N=4, v_T=t_Vec256) backend.
+   MAIN THEOREMS — AVX2 x4 backend (N=4, v_T=t_Vec256).
+   See proofs/README.md.
 
-   STRUCTURAL DIFFERENCE FROM Sponge.Arm64.API:
+   Top-level 4-way SHA-3 / SHAKE correctness: for each lane l < 4 the
+   public Rust x4 API result equals the Hacspec spec applied to that
+   lane's input, e.g.
+     lemma_sha256_x4_avx2 / lemma_shake{128,256}_x4_avx2 :
+       digests[l] == Hacspec_sha3.Sha3.sha3_256_ / shakeXXX (data[l])
+   Each is the per-lane projection of [lemma_keccak4_avx2]
+   (= absorb4 · squeeze4) over the four-lane driver.
+
+   STRUCTURAL DIFFERENCE FROM Correctness.Neon:
 
    The Arm64 driver [Libcrux_sha3.Generic_keccak.Simd128] exposes
    separate [absorb2], [squeeze2], and [keccak2] functions whose
