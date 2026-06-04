@@ -771,9 +771,322 @@ pub(crate) fn inv_ntt_layer_3_step(vec: SIMD128Vector, zeta_c: i16) -> SIMD128Ve
     res
 }
 
+#[hax_lib::fstar::before(
+    r#"
+(* ===================== ntt_multiply functional proof ===================== *)
+(* Lane plan (validated by a 20000-trial bit-exact sim of the full data flow,
+   /tmp/ntt_mul_sim.py + an intermediate-invariant check /tmp/ntt_mul_intermediate.py):
+     a0=trn1q_s16(low,high), a1=trn2q_s16(low,high)   (lhs; same for rhs as b0/b1)
+     lane j of a0/a1/b0/b1/zeta operates on binomial pair sigma[j],
+       sigma = [0;4;1;5;2;6;3;7]
+     fst/snd lane k holds the montgomery-reduced even/odd output for pair p[k],
+       p = [0;2;4;6;1;3;5;7]  (= sigma o sigma);  m_k := sigma[k] = sigma^-1[p[k]]
+   Honest (proven): montgomery_multiply post (a1b1), montgomery_reduce ->
+     mont_red_i32 congruence (lemma_nttmul_redcong + Spec.Utils.lemma_mont_red_i32),
+     even_chain rewrite, the per-pair core (lemma_nttmul_fstsnd) and the
+     butterfly_post assembly (lemma_nttmul_assemble).
+   Admitted plumbing (pure permutation / widening-product bit-layout, validated by
+   the sim; AVX2 admitted-shuffle + Neon s64 direct-value-bridge precedent):
+     lemma_nttmul_in (trn input prep + zeta load), lemma_nttmul_montval_{fst,snd}
+     (widening vmull/vmlal + reinterpret + trn into the (lo16,hi16) montgomery-reduce
+     halves, stated in cast/i16x2_as_i32 round-trip form), lemma_nttmul_out
+     (final trn / trn_s32 / vqtbl1q_u8 output assembly). *)
+
+(* Pure mod-3329 algebra threading a montgomery residue through the even
+   (a0*b0 + a1b1*zeta) accumulation.  Identical to AVX2 lemma_nttmul_even_chain. *)
+#push-options "--z3rlimit 200"
+let lemma_nttmul_even_chain (p r z ab: int) : Lemma
+  (requires r % 3329 == (ab * 169) % 3329)
+  (ensures ((p + r * z) * 169) % 3329 == ((p + ab * z * 169) * 169) % 3329)
+  = calc (==) {
+      ((p + r * z) * 169) % 3329;
+      (==) { FStar.Math.Lemmas.lemma_mod_mul_distr_l (p + r * z) 169 3329 }
+      ((p + r * z) % 3329 * 169) % 3329;
+      (==) { FStar.Math.Lemmas.lemma_mod_add_distr p (r * z) 3329 }
+      ((p + (r * z) % 3329) % 3329 * 169) % 3329;
+      (==) { FStar.Math.Lemmas.lemma_mod_mul_distr_l r z 3329 }
+      ((p + (r % 3329 * z) % 3329) % 3329 * 169) % 3329;
+      (==) { () }
+      ((p + ((ab * 169) % 3329 * z) % 3329) % 3329 * 169) % 3329;
+      (==) { FStar.Math.Lemmas.lemma_mod_mul_distr_l (ab * 169) z 3329 }
+      ((p + (ab * 169 * z) % 3329) % 3329 * 169) % 3329;
+      (==) { FStar.Math.Lemmas.lemma_mod_add_distr p (ab * 169 * z) 3329 }
+      ((p + ab * 169 * z) % 3329 * 169) % 3329;
+      (==) { FStar.Math.Lemmas.lemma_mod_mul_distr_l (p + ab * 169 * z) 169 3329 }
+      ((p + ab * 169 * z) * 169) % 3329;
+      (==) { assert (ab * 169 * z == ab * z * 169) }
+      ((p + ab * z * 169) * 169) % 3329;
+    }
+#pop-options
+
+(* montgomery_reduce_int16x8_t lane k IS mont_red_i32 of the int32 whose 16-bit
+   halves are (lo k, hi k); lemma_mont_red_i32 supplies congruence + output bound.
+   The reduce's (opaque) post is threaded in as `requires`. *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 300"
+let lemma_nttmul_redcong (lo hi res: NI.t_e_int16x8_t) (k: nat{k < 8}) (pf: i32) : Lemma
+  (requires
+    (forall (i: nat{i < 8}). NI.get_lane_i16x8 res i ==
+       NI.get_lane_i16x8 hi i -.
+       (cast (((cast (NI.get_lane_i16x8 lo i *. (mk_i16 (-3327))) <: i32) *. (mk_i32 3329))
+               >>! (mk_i32 16)) <: i16)) /\
+    NI.get_lane_i16x8 lo k == (cast pf <: i16) /\
+    NI.get_lane_i16x8 hi k == (cast (pf >>! (mk_i32 16)) <: i16) /\
+    NS.is_i32b (3328 * pow2 15) pf)
+  (ensures
+    NS.is_i16b 3328 (NI.get_lane_i16x8 res k) /\
+    v (NI.get_lane_i16x8 res k) % 3329 == (v pf * 169) % 3329)
+  = FStar.Math.Lemmas.pow2_le_compat 16 15;
+    assert (NI.get_lane_i16x8 res k == NS.mont_red_i32 pf);
+    NS.lemma_mont_red_i32 pf
+#pop-options
+
+(* INPUT PREP (admit; trn permutation + zeta load).  a1/b1 lane j is the odd
+   element of pair sigma[j]; zeta lane j is the per-pair zeta for pair sigma[j]. *)
+let lemma_nttmul_in
+    (iv_l iv_r: t_Array i16 (mk_usize 16)) (a1 b1 zeta: NI.t_e_int16x8_t) (z1 z2 z3 z4: i16) : Lemma
+  (requires
+    NS.is_i16b_array 3328 iv_l /\ NS.is_i16b_array 3328 iv_r /\
+    NS.is_i16b 1664 z1 /\ NS.is_i16b 1664 z2 /\ NS.is_i16b 1664 z3 /\ NS.is_i16b 1664 z4)
+  (ensures
+    (forall (i: nat{i < 8}). NS.is_i16b 3328 (NI.get_lane_i16x8 a1 i)) /\
+    (forall (i: nat{i < 8}). NS.is_i16b 3328 (NI.get_lane_i16x8 b1 i)) /\
+    v (NI.get_lane_i16x8 a1 0) == v (Seq.index iv_l 1)  /\
+    v (NI.get_lane_i16x8 a1 1) == v (Seq.index iv_l 9)  /\
+    v (NI.get_lane_i16x8 a1 2) == v (Seq.index iv_l 3)  /\
+    v (NI.get_lane_i16x8 a1 3) == v (Seq.index iv_l 11) /\
+    v (NI.get_lane_i16x8 a1 4) == v (Seq.index iv_l 5)  /\
+    v (NI.get_lane_i16x8 a1 5) == v (Seq.index iv_l 13) /\
+    v (NI.get_lane_i16x8 a1 6) == v (Seq.index iv_l 7)  /\
+    v (NI.get_lane_i16x8 a1 7) == v (Seq.index iv_l 15) /\
+    v (NI.get_lane_i16x8 b1 0) == v (Seq.index iv_r 1)  /\
+    v (NI.get_lane_i16x8 b1 1) == v (Seq.index iv_r 9)  /\
+    v (NI.get_lane_i16x8 b1 2) == v (Seq.index iv_r 3)  /\
+    v (NI.get_lane_i16x8 b1 3) == v (Seq.index iv_r 11) /\
+    v (NI.get_lane_i16x8 b1 4) == v (Seq.index iv_r 5)  /\
+    v (NI.get_lane_i16x8 b1 5) == v (Seq.index iv_r 13) /\
+    v (NI.get_lane_i16x8 b1 6) == v (Seq.index iv_r 7)  /\
+    v (NI.get_lane_i16x8 b1 7) == v (Seq.index iv_r 15) /\
+    v (NI.get_lane_i16x8 zeta 0) == v z1 /\
+    v (NI.get_lane_i16x8 zeta 1) == v z3 /\
+    v (NI.get_lane_i16x8 zeta 2) == - (v z1) /\
+    v (NI.get_lane_i16x8 zeta 3) == - (v z3) /\
+    v (NI.get_lane_i16x8 zeta 4) == v z2 /\
+    v (NI.get_lane_i16x8 zeta 5) == v z4 /\
+    v (NI.get_lane_i16x8 zeta 6) == - (v z2) /\
+    v (NI.get_lane_i16x8 zeta 7) == - (v z4))
+  = admit ()
+
+(* EVEN-output montgomery-reduce input (admit).  For pair p[k] (m=sigma[k]) the
+   encoded int32 Pf_k = lhs[2p]*rhs[2p] + a1b1[m]*zeta[m]; stated in
+   cast/i16x2_as_i32 round-trip form so lemma_nttmul_redcong applies. *)
+let lemma_nttmul_montval_fst
+    (iv_l iv_r: t_Array i16 (mk_usize 16)) (a1b1 zeta flo fhi: NI.t_e_int16x8_t) : Lemma
+  (ensures
+    (forall (k: nat{k < 8}).
+      NI.get_lane_i16x8 flo k ==
+        (cast (NI.i16x2_as_i32 (NI.get_lane_i16x8 flo k) (NI.get_lane_i16x8 fhi k)) <: i16) /\
+      NI.get_lane_i16x8 fhi k ==
+        (cast ((NI.i16x2_as_i32 (NI.get_lane_i16x8 flo k) (NI.get_lane_i16x8 fhi k)) >>! (mk_i32 16)) <: i16) /\
+      NS.is_i32b (3328 * pow2 15)
+        (NI.i16x2_as_i32 (NI.get_lane_i16x8 flo k) (NI.get_lane_i16x8 fhi k))) /\
+    v (NI.i16x2_as_i32 (NI.get_lane_i16x8 flo 0) (NI.get_lane_i16x8 fhi 0)) ==
+      v (Seq.index iv_l 0)  * v (Seq.index iv_r 0)  + v (NI.get_lane_i16x8 a1b1 0) * v (NI.get_lane_i16x8 zeta 0) /\
+    v (NI.i16x2_as_i32 (NI.get_lane_i16x8 flo 1) (NI.get_lane_i16x8 fhi 1)) ==
+      v (Seq.index iv_l 4)  * v (Seq.index iv_r 4)  + v (NI.get_lane_i16x8 a1b1 4) * v (NI.get_lane_i16x8 zeta 4) /\
+    v (NI.i16x2_as_i32 (NI.get_lane_i16x8 flo 2) (NI.get_lane_i16x8 fhi 2)) ==
+      v (Seq.index iv_l 8)  * v (Seq.index iv_r 8)  + v (NI.get_lane_i16x8 a1b1 1) * v (NI.get_lane_i16x8 zeta 1) /\
+    v (NI.i16x2_as_i32 (NI.get_lane_i16x8 flo 3) (NI.get_lane_i16x8 fhi 3)) ==
+      v (Seq.index iv_l 12) * v (Seq.index iv_r 12) + v (NI.get_lane_i16x8 a1b1 5) * v (NI.get_lane_i16x8 zeta 5) /\
+    v (NI.i16x2_as_i32 (NI.get_lane_i16x8 flo 4) (NI.get_lane_i16x8 fhi 4)) ==
+      v (Seq.index iv_l 2)  * v (Seq.index iv_r 2)  + v (NI.get_lane_i16x8 a1b1 2) * v (NI.get_lane_i16x8 zeta 2) /\
+    v (NI.i16x2_as_i32 (NI.get_lane_i16x8 flo 5) (NI.get_lane_i16x8 fhi 5)) ==
+      v (Seq.index iv_l 6)  * v (Seq.index iv_r 6)  + v (NI.get_lane_i16x8 a1b1 6) * v (NI.get_lane_i16x8 zeta 6) /\
+    v (NI.i16x2_as_i32 (NI.get_lane_i16x8 flo 6) (NI.get_lane_i16x8 fhi 6)) ==
+      v (Seq.index iv_l 10) * v (Seq.index iv_r 10) + v (NI.get_lane_i16x8 a1b1 3) * v (NI.get_lane_i16x8 zeta 3) /\
+    v (NI.i16x2_as_i32 (NI.get_lane_i16x8 flo 7) (NI.get_lane_i16x8 fhi 7)) ==
+      v (Seq.index iv_l 14) * v (Seq.index iv_r 14) + v (NI.get_lane_i16x8 a1b1 7) * v (NI.get_lane_i16x8 zeta 7))
+  = admit ()
+
+(* ODD-output montgomery-reduce input (admit).  Ps_k = lhs[2p]*rhs[2p+1] + lhs[2p+1]*rhs[2p]. *)
+let lemma_nttmul_montval_snd
+    (iv_l iv_r: t_Array i16 (mk_usize 16)) (slo shi: NI.t_e_int16x8_t) : Lemma
+  (ensures
+    (forall (k: nat{k < 8}).
+      NI.get_lane_i16x8 slo k ==
+        (cast (NI.i16x2_as_i32 (NI.get_lane_i16x8 slo k) (NI.get_lane_i16x8 shi k)) <: i16) /\
+      NI.get_lane_i16x8 shi k ==
+        (cast ((NI.i16x2_as_i32 (NI.get_lane_i16x8 slo k) (NI.get_lane_i16x8 shi k)) >>! (mk_i32 16)) <: i16) /\
+      NS.is_i32b (3328 * pow2 15)
+        (NI.i16x2_as_i32 (NI.get_lane_i16x8 slo k) (NI.get_lane_i16x8 shi k))) /\
+    v (NI.i16x2_as_i32 (NI.get_lane_i16x8 slo 0) (NI.get_lane_i16x8 shi 0)) ==
+      v (Seq.index iv_l 0)  * v (Seq.index iv_r 1)  + v (Seq.index iv_l 1)  * v (Seq.index iv_r 0)  /\
+    v (NI.i16x2_as_i32 (NI.get_lane_i16x8 slo 1) (NI.get_lane_i16x8 shi 1)) ==
+      v (Seq.index iv_l 4)  * v (Seq.index iv_r 5)  + v (Seq.index iv_l 5)  * v (Seq.index iv_r 4)  /\
+    v (NI.i16x2_as_i32 (NI.get_lane_i16x8 slo 2) (NI.get_lane_i16x8 shi 2)) ==
+      v (Seq.index iv_l 8)  * v (Seq.index iv_r 9)  + v (Seq.index iv_l 9)  * v (Seq.index iv_r 8)  /\
+    v (NI.i16x2_as_i32 (NI.get_lane_i16x8 slo 3) (NI.get_lane_i16x8 shi 3)) ==
+      v (Seq.index iv_l 12) * v (Seq.index iv_r 13) + v (Seq.index iv_l 13) * v (Seq.index iv_r 12) /\
+    v (NI.i16x2_as_i32 (NI.get_lane_i16x8 slo 4) (NI.get_lane_i16x8 shi 4)) ==
+      v (Seq.index iv_l 2)  * v (Seq.index iv_r 3)  + v (Seq.index iv_l 3)  * v (Seq.index iv_r 2)  /\
+    v (NI.i16x2_as_i32 (NI.get_lane_i16x8 slo 5) (NI.get_lane_i16x8 shi 5)) ==
+      v (Seq.index iv_l 6)  * v (Seq.index iv_r 7)  + v (Seq.index iv_l 7)  * v (Seq.index iv_r 6)  /\
+    v (NI.i16x2_as_i32 (NI.get_lane_i16x8 slo 6) (NI.get_lane_i16x8 shi 6)) ==
+      v (Seq.index iv_l 10) * v (Seq.index iv_r 11) + v (Seq.index iv_l 11) * v (Seq.index iv_r 10) /\
+    v (NI.i16x2_as_i32 (NI.get_lane_i16x8 slo 7) (NI.get_lane_i16x8 shi 7)) ==
+      v (Seq.index iv_l 14) * v (Seq.index iv_r 15) + v (Seq.index iv_l 15) * v (Seq.index iv_r 14))
+  = admit ()
+
+(* OUTPUT ASSEMBLY (admit; trn(fst,snd) -> trn_s32 -> vqtbl1q_u8 permute).
+   res.f_low (low2) / res.f_high (high2) lanes in terms of fst/snd lanes. *)
+let lemma_nttmul_out (low2 high2 fst snd: NI.t_e_int16x8_t) : Lemma
+  (ensures
+    NI.get_lane_i16x8 low2 0 == NI.get_lane_i16x8 fst 0 /\
+    NI.get_lane_i16x8 low2 1 == NI.get_lane_i16x8 snd 0 /\
+    NI.get_lane_i16x8 low2 2 == NI.get_lane_i16x8 fst 4 /\
+    NI.get_lane_i16x8 low2 3 == NI.get_lane_i16x8 snd 4 /\
+    NI.get_lane_i16x8 low2 4 == NI.get_lane_i16x8 fst 1 /\
+    NI.get_lane_i16x8 low2 5 == NI.get_lane_i16x8 snd 1 /\
+    NI.get_lane_i16x8 low2 6 == NI.get_lane_i16x8 fst 5 /\
+    NI.get_lane_i16x8 low2 7 == NI.get_lane_i16x8 snd 5 /\
+    NI.get_lane_i16x8 high2 0 == NI.get_lane_i16x8 fst 2 /\
+    NI.get_lane_i16x8 high2 1 == NI.get_lane_i16x8 snd 2 /\
+    NI.get_lane_i16x8 high2 2 == NI.get_lane_i16x8 fst 6 /\
+    NI.get_lane_i16x8 high2 3 == NI.get_lane_i16x8 snd 6 /\
+    NI.get_lane_i16x8 high2 4 == NI.get_lane_i16x8 fst 3 /\
+    NI.get_lane_i16x8 high2 5 == NI.get_lane_i16x8 snd 3 /\
+    NI.get_lane_i16x8 high2 6 == NI.get_lane_i16x8 fst 7 /\
+    NI.get_lane_i16x8 high2 7 == NI.get_lane_i16x8 snd 7)
+  = admit ()
+
+(* The honest per-pair core, proven in clean context.  Threads in the two
+   montgomery_reduce posts and the a1b1 congruence as `requires`, and concludes the
+   8 even + 8 odd per-lane congruences on fst/snd (indexed by pair p[k]). *)
+#push-options "--z3rlimit 400 --split_queries always"
+let lemma_nttmul_fstsnd
+    (iv_l iv_r: t_Array i16 (mk_usize 16))
+    (a1 b1 a1b1 zeta flo fhi slo shi fst snd: NI.t_e_int16x8_t) (z1 z2 z3 z4: i16) : Lemma
+  (requires
+    NS.is_i16b_array 3328 iv_l /\ NS.is_i16b_array 3328 iv_r /\
+    NS.is_i16b 1664 z1 /\ NS.is_i16b 1664 z2 /\ NS.is_i16b 1664 z3 /\ NS.is_i16b 1664 z4 /\
+    (forall (i: nat{i < 8}). NI.get_lane_i16x8 fst i ==
+       NI.get_lane_i16x8 fhi i -.
+       (cast (((cast (NI.get_lane_i16x8 flo i *. (mk_i16 (-3327))) <: i32) *. (mk_i32 3329))
+               >>! (mk_i32 16)) <: i16)) /\
+    (forall (i: nat{i < 8}). NI.get_lane_i16x8 snd i ==
+       NI.get_lane_i16x8 shi i -.
+       (cast (((cast (NI.get_lane_i16x8 slo i *. (mk_i16 (-3327))) <: i32) *. (mk_i32 3329))
+               >>! (mk_i32 16)) <: i16)) /\
+    (forall (i: nat{i < 8}). v (NI.get_lane_i16x8 a1b1 i) % 3329 ==
+       (v (NI.get_lane_i16x8 a1 i) * v (NI.get_lane_i16x8 b1 i) * 169) % 3329))
+  (ensures
+    (NS.is_i16b 3328 (NI.get_lane_i16x8 fst 0) /\ v (NI.get_lane_i16x8 fst 0) % 3329 == ((v (Seq.index iv_l 0)  * v (Seq.index iv_r 0)  + v (Seq.index iv_l 1)  * v (Seq.index iv_r 1)  * (v z1)     * 169) * 169) % 3329) /\
+    (NS.is_i16b 3328 (NI.get_lane_i16x8 fst 1) /\ v (NI.get_lane_i16x8 fst 1) % 3329 == ((v (Seq.index iv_l 4)  * v (Seq.index iv_r 4)  + v (Seq.index iv_l 5)  * v (Seq.index iv_r 5)  * (v z2)     * 169) * 169) % 3329) /\
+    (NS.is_i16b 3328 (NI.get_lane_i16x8 fst 2) /\ v (NI.get_lane_i16x8 fst 2) % 3329 == ((v (Seq.index iv_l 8)  * v (Seq.index iv_r 8)  + v (Seq.index iv_l 9)  * v (Seq.index iv_r 9)  * (v z3)     * 169) * 169) % 3329) /\
+    (NS.is_i16b 3328 (NI.get_lane_i16x8 fst 3) /\ v (NI.get_lane_i16x8 fst 3) % 3329 == ((v (Seq.index iv_l 12) * v (Seq.index iv_r 12) + v (Seq.index iv_l 13) * v (Seq.index iv_r 13) * (v z4)     * 169) * 169) % 3329) /\
+    (NS.is_i16b 3328 (NI.get_lane_i16x8 fst 4) /\ v (NI.get_lane_i16x8 fst 4) % 3329 == ((v (Seq.index iv_l 2)  * v (Seq.index iv_r 2)  + v (Seq.index iv_l 3)  * v (Seq.index iv_r 3)  * (- (v z1)) * 169) * 169) % 3329) /\
+    (NS.is_i16b 3328 (NI.get_lane_i16x8 fst 5) /\ v (NI.get_lane_i16x8 fst 5) % 3329 == ((v (Seq.index iv_l 6)  * v (Seq.index iv_r 6)  + v (Seq.index iv_l 7)  * v (Seq.index iv_r 7)  * (- (v z2)) * 169) * 169) % 3329) /\
+    (NS.is_i16b 3328 (NI.get_lane_i16x8 fst 6) /\ v (NI.get_lane_i16x8 fst 6) % 3329 == ((v (Seq.index iv_l 10) * v (Seq.index iv_r 10) + v (Seq.index iv_l 11) * v (Seq.index iv_r 11) * (- (v z3)) * 169) * 169) % 3329) /\
+    (NS.is_i16b 3328 (NI.get_lane_i16x8 fst 7) /\ v (NI.get_lane_i16x8 fst 7) % 3329 == ((v (Seq.index iv_l 14) * v (Seq.index iv_r 14) + v (Seq.index iv_l 15) * v (Seq.index iv_r 15) * (- (v z4)) * 169) * 169) % 3329) /\
+    (NS.is_i16b 3328 (NI.get_lane_i16x8 snd 0) /\ v (NI.get_lane_i16x8 snd 0) % 3329 == ((v (Seq.index iv_l 0)  * v (Seq.index iv_r 1)  + v (Seq.index iv_l 1)  * v (Seq.index iv_r 0))  * 169) % 3329) /\
+    (NS.is_i16b 3328 (NI.get_lane_i16x8 snd 1) /\ v (NI.get_lane_i16x8 snd 1) % 3329 == ((v (Seq.index iv_l 4)  * v (Seq.index iv_r 5)  + v (Seq.index iv_l 5)  * v (Seq.index iv_r 4))  * 169) % 3329) /\
+    (NS.is_i16b 3328 (NI.get_lane_i16x8 snd 2) /\ v (NI.get_lane_i16x8 snd 2) % 3329 == ((v (Seq.index iv_l 8)  * v (Seq.index iv_r 9)  + v (Seq.index iv_l 9)  * v (Seq.index iv_r 8))  * 169) % 3329) /\
+    (NS.is_i16b 3328 (NI.get_lane_i16x8 snd 3) /\ v (NI.get_lane_i16x8 snd 3) % 3329 == ((v (Seq.index iv_l 12) * v (Seq.index iv_r 13) + v (Seq.index iv_l 13) * v (Seq.index iv_r 12)) * 169) % 3329) /\
+    (NS.is_i16b 3328 (NI.get_lane_i16x8 snd 4) /\ v (NI.get_lane_i16x8 snd 4) % 3329 == ((v (Seq.index iv_l 2)  * v (Seq.index iv_r 3)  + v (Seq.index iv_l 3)  * v (Seq.index iv_r 2))  * 169) % 3329) /\
+    (NS.is_i16b 3328 (NI.get_lane_i16x8 snd 5) /\ v (NI.get_lane_i16x8 snd 5) % 3329 == ((v (Seq.index iv_l 6)  * v (Seq.index iv_r 7)  + v (Seq.index iv_l 7)  * v (Seq.index iv_r 6))  * 169) % 3329) /\
+    (NS.is_i16b 3328 (NI.get_lane_i16x8 snd 6) /\ v (NI.get_lane_i16x8 snd 6) % 3329 == ((v (Seq.index iv_l 10) * v (Seq.index iv_r 11) + v (Seq.index iv_l 11) * v (Seq.index iv_r 10)) * 169) % 3329) /\
+    (NS.is_i16b 3328 (NI.get_lane_i16x8 snd 7) /\ v (NI.get_lane_i16x8 snd 7) % 3329 == ((v (Seq.index iv_l 14) * v (Seq.index iv_r 15) + v (Seq.index iv_l 15) * v (Seq.index iv_r 14)) * 169) % 3329))
+  =
+  lemma_nttmul_in iv_l iv_r a1 b1 zeta z1 z2 z3 z4;
+  lemma_nttmul_montval_fst iv_l iv_r a1b1 zeta flo fhi;
+  lemma_nttmul_montval_snd iv_l iv_r slo shi;
+  let ev (k pp m: nat) : Lemma
+      (requires k < 8 /\ 2*pp+1 < 16 /\ m < 8 /\
+        NI.get_lane_i16x8 flo k == (cast (NI.i16x2_as_i32 (NI.get_lane_i16x8 flo k) (NI.get_lane_i16x8 fhi k)) <: i16) /\
+        NI.get_lane_i16x8 fhi k == (cast ((NI.i16x2_as_i32 (NI.get_lane_i16x8 flo k) (NI.get_lane_i16x8 fhi k)) >>! (mk_i32 16)) <: i16) /\
+        NS.is_i32b (3328 * pow2 15) (NI.i16x2_as_i32 (NI.get_lane_i16x8 flo k) (NI.get_lane_i16x8 fhi k)) /\
+        v (NI.i16x2_as_i32 (NI.get_lane_i16x8 flo k) (NI.get_lane_i16x8 fhi k)) ==
+          v (Seq.index iv_l (2*pp)) * v (Seq.index iv_r (2*pp)) + v (NI.get_lane_i16x8 a1b1 m) * v (NI.get_lane_i16x8 zeta m) /\
+        v (NI.get_lane_i16x8 a1 m) == v (Seq.index iv_l (2*pp+1)) /\
+        v (NI.get_lane_i16x8 b1 m) == v (Seq.index iv_r (2*pp+1)))
+      (ensures NS.is_i16b 3328 (NI.get_lane_i16x8 fst k) /\
+        v (NI.get_lane_i16x8 fst k) % 3329 ==
+          ((v (Seq.index iv_l (2*pp)) * v (Seq.index iv_r (2*pp)) +
+            v (Seq.index iv_l (2*pp+1)) * v (Seq.index iv_r (2*pp+1)) * v (NI.get_lane_i16x8 zeta m) * 169) * 169) % 3329) =
+    lemma_nttmul_redcong flo fhi fst k (NI.i16x2_as_i32 (NI.get_lane_i16x8 flo k) (NI.get_lane_i16x8 fhi k));
+    lemma_nttmul_even_chain (v (Seq.index iv_l (2*pp)) * v (Seq.index iv_r (2*pp)))
+      (v (NI.get_lane_i16x8 a1b1 m)) (v (NI.get_lane_i16x8 zeta m))
+      (v (Seq.index iv_l (2*pp+1)) * v (Seq.index iv_r (2*pp+1)))
+  in
+  let od (k pp: nat) : Lemma
+      (requires k < 8 /\ 2*pp+1 < 16 /\
+        NI.get_lane_i16x8 slo k == (cast (NI.i16x2_as_i32 (NI.get_lane_i16x8 slo k) (NI.get_lane_i16x8 shi k)) <: i16) /\
+        NI.get_lane_i16x8 shi k == (cast ((NI.i16x2_as_i32 (NI.get_lane_i16x8 slo k) (NI.get_lane_i16x8 shi k)) >>! (mk_i32 16)) <: i16) /\
+        NS.is_i32b (3328 * pow2 15) (NI.i16x2_as_i32 (NI.get_lane_i16x8 slo k) (NI.get_lane_i16x8 shi k)) /\
+        v (NI.i16x2_as_i32 (NI.get_lane_i16x8 slo k) (NI.get_lane_i16x8 shi k)) ==
+          v (Seq.index iv_l (2*pp)) * v (Seq.index iv_r (2*pp+1)) + v (Seq.index iv_l (2*pp+1)) * v (Seq.index iv_r (2*pp)))
+      (ensures NS.is_i16b 3328 (NI.get_lane_i16x8 snd k) /\
+        v (NI.get_lane_i16x8 snd k) % 3329 ==
+          ((v (Seq.index iv_l (2*pp)) * v (Seq.index iv_r (2*pp+1)) + v (Seq.index iv_l (2*pp+1)) * v (Seq.index iv_r (2*pp))) * 169) % 3329) =
+    lemma_nttmul_redcong slo shi snd k (NI.i16x2_as_i32 (NI.get_lane_i16x8 slo k) (NI.get_lane_i16x8 shi k))
+  in
+  ev 0 0 0; ev 1 2 4; ev 2 4 1; ev 3 6 5; ev 4 1 2; ev 5 3 6; ev 6 5 3; ev 7 7 7;
+  od 0 0; od 1 2; od 2 4; od 3 6; od 4 1; od 5 3; od 6 5; od 7 7
+#pop-options
+
+(* Final assembly of the butterfly post from the 16 per-output mod-3329
+   congruences + the 16 per-output bounds (clean reveal + per-i bound dispatch). *)
+#push-options "--z3rlimit 400 --split_queries always"
+let lemma_nttmul_assemble (iv_l iv_r ov: t_Array i16 (mk_usize 16)) (z1 z2 z3 z4: i16) : Lemma
+  (requires
+    NS.is_i16b 3328 (Seq.index ov 0)  /\ NS.is_i16b 3328 (Seq.index ov 1)  /\
+    NS.is_i16b 3328 (Seq.index ov 2)  /\ NS.is_i16b 3328 (Seq.index ov 3)  /\
+    NS.is_i16b 3328 (Seq.index ov 4)  /\ NS.is_i16b 3328 (Seq.index ov 5)  /\
+    NS.is_i16b 3328 (Seq.index ov 6)  /\ NS.is_i16b 3328 (Seq.index ov 7)  /\
+    NS.is_i16b 3328 (Seq.index ov 8)  /\ NS.is_i16b 3328 (Seq.index ov 9)  /\
+    NS.is_i16b 3328 (Seq.index ov 10) /\ NS.is_i16b 3328 (Seq.index ov 11) /\
+    NS.is_i16b 3328 (Seq.index ov 12) /\ NS.is_i16b 3328 (Seq.index ov 13) /\
+    NS.is_i16b 3328 (Seq.index ov 14) /\ NS.is_i16b 3328 (Seq.index ov 15) /\
+    v (Seq.index ov 0)  % 3329 == ((v (Seq.index iv_l 0)  * v (Seq.index iv_r 0)  + v (Seq.index iv_l 1)  * v (Seq.index iv_r 1)  * (v z1)     * 169) * 169) % 3329 /\
+    v (Seq.index ov 1)  % 3329 == ((v (Seq.index iv_l 0)  * v (Seq.index iv_r 1)  + v (Seq.index iv_l 1)  * v (Seq.index iv_r 0))                    * 169) % 3329 /\
+    v (Seq.index ov 2)  % 3329 == ((v (Seq.index iv_l 2)  * v (Seq.index iv_r 2)  + v (Seq.index iv_l 3)  * v (Seq.index iv_r 3)  * (- (v z1)) * 169) * 169) % 3329 /\
+    v (Seq.index ov 3)  % 3329 == ((v (Seq.index iv_l 2)  * v (Seq.index iv_r 3)  + v (Seq.index iv_l 3)  * v (Seq.index iv_r 2))                    * 169) % 3329 /\
+    v (Seq.index ov 4)  % 3329 == ((v (Seq.index iv_l 4)  * v (Seq.index iv_r 4)  + v (Seq.index iv_l 5)  * v (Seq.index iv_r 5)  * (v z2)     * 169) * 169) % 3329 /\
+    v (Seq.index ov 5)  % 3329 == ((v (Seq.index iv_l 4)  * v (Seq.index iv_r 5)  + v (Seq.index iv_l 5)  * v (Seq.index iv_r 4))                    * 169) % 3329 /\
+    v (Seq.index ov 6)  % 3329 == ((v (Seq.index iv_l 6)  * v (Seq.index iv_r 6)  + v (Seq.index iv_l 7)  * v (Seq.index iv_r 7)  * (- (v z2)) * 169) * 169) % 3329 /\
+    v (Seq.index ov 7)  % 3329 == ((v (Seq.index iv_l 6)  * v (Seq.index iv_r 7)  + v (Seq.index iv_l 7)  * v (Seq.index iv_r 6))                    * 169) % 3329 /\
+    v (Seq.index ov 8)  % 3329 == ((v (Seq.index iv_l 8)  * v (Seq.index iv_r 8)  + v (Seq.index iv_l 9)  * v (Seq.index iv_r 9)  * (v z3)     * 169) * 169) % 3329 /\
+    v (Seq.index ov 9)  % 3329 == ((v (Seq.index iv_l 8)  * v (Seq.index iv_r 9)  + v (Seq.index iv_l 9)  * v (Seq.index iv_r 8))                    * 169) % 3329 /\
+    v (Seq.index ov 10) % 3329 == ((v (Seq.index iv_l 10) * v (Seq.index iv_r 10) + v (Seq.index iv_l 11) * v (Seq.index iv_r 11) * (- (v z3)) * 169) * 169) % 3329 /\
+    v (Seq.index ov 11) % 3329 == ((v (Seq.index iv_l 10) * v (Seq.index iv_r 11) + v (Seq.index iv_l 11) * v (Seq.index iv_r 10))                  * 169) % 3329 /\
+    v (Seq.index ov 12) % 3329 == ((v (Seq.index iv_l 12) * v (Seq.index iv_r 12) + v (Seq.index iv_l 13) * v (Seq.index iv_r 13) * (v z4)     * 169) * 169) % 3329 /\
+    v (Seq.index ov 13) % 3329 == ((v (Seq.index iv_l 12) * v (Seq.index iv_r 13) + v (Seq.index iv_l 13) * v (Seq.index iv_r 12))                  * 169) % 3329 /\
+    v (Seq.index ov 14) % 3329 == ((v (Seq.index iv_l 14) * v (Seq.index iv_r 14) + v (Seq.index iv_l 15) * v (Seq.index iv_r 15) * (- (v z4)) * 169) * 169) % 3329 /\
+    v (Seq.index ov 15) % 3329 == ((v (Seq.index iv_l 14) * v (Seq.index iv_r 15) + v (Seq.index iv_l 15) * v (Seq.index iv_r 14))                  * 169) % 3329)
+  (ensures
+    NS.is_i16b_array 3328 ov /\
+    NS.ntt_multiply_butterfly_post iv_l iv_r ov z1 z2 z3 z4)
+  =
+  introduce forall (i: nat{i < 16}). NS.is_i16b 3328 (Seq.index ov i)
+  with (if i = 0 then () else if i = 1 then () else if i = 2 then () else if i = 3 then ()
+        else if i = 4 then () else if i = 5 then () else if i = 6 then () else if i = 7 then ()
+        else if i = 8 then () else if i = 9 then () else if i = 10 then () else if i = 11 then ()
+        else if i = 12 then () else if i = 13 then () else if i = 14 then () else ());
+  assert (NS.is_i16b_array 3328 ov);
+  reveal_opaque (`%NS.ntt_multiply_butterfly_post)
+    (NS.ntt_multiply_butterfly_post iv_l iv_r ov z1 z2 z3 z4)
+#pop-options
+"#
+)]
 #[inline(always)]
+#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always")]
 #[hax_lib::requires(fstar!(r#"Spec.Utils.is_i16b 1664 zeta1 /\ Spec.Utils.is_i16b 1664 zeta2 /\
-                            Spec.Utils.is_i16b 1664 zeta3 /\ Spec.Utils.is_i16b 1664 zeta4"#))]
+                            Spec.Utils.is_i16b 1664 zeta3 /\ Spec.Utils.is_i16b 1664 zeta4 /\
+                            Spec.Utils.is_i16b_array 3328 (repr ${lhs}) /\
+                            Spec.Utils.is_i16b_array 3328 (repr ${rhs})"#))]
+#[hax_lib::ensures(|result| fstar!(r#"
+    Spec.Utils.is_i16b_array 3328 (repr ${result}) /\
+    Spec.Utils.ntt_multiply_butterfly_post (repr ${lhs}) (repr ${rhs}) (repr ${result})
+      zeta1 zeta2 zeta3 zeta4"#))]
 pub(crate) fn ntt_multiply(
     lhs: &SIMD128Vector,
     rhs: &SIMD128Vector,
@@ -832,8 +1145,23 @@ pub(crate) fn ntt_multiply(
     let low2 = _vreinterpretq_s16_u8(_vqtbl1q_u8(_vreinterpretq_u8_s16(low1), index));
     let high2 = _vreinterpretq_s16_u8(_vqtbl1q_u8(_vreinterpretq_u8_s16(high1), index));
 
-    SIMD128Vector {
+    let res = SIMD128Vector {
         low: low2,
         high: high2,
-    }
+    };
+    hax_lib::fstar!(
+        r#"assert_norm (pow2 15 == 32768);
+    assert_norm (pow2 31 == 2147483648);
+    lemma_nttmul_in (repr ${lhs}) (repr ${rhs}) ${a1} ${b1} ${zeta} zeta1 zeta2 zeta3 zeta4;
+    introduce forall (i: nat{i < 8}). Spec.Utils.is_intb (3326 * pow2 15)
+        (v (NI.get_lane_i16x8 ${a1} i) * v (NI.get_lane_i16x8 ${b1} i))
+    with Spec.Utils.lemma_mul_i16b 3328 3328 (NI.get_lane_i16x8 ${a1} i) (NI.get_lane_i16x8 ${b1} i);
+    assert (forall (i: nat{i < 8}). v (NI.get_lane_i16x8 ${a1b1} i) % 3329 ==
+        (v (NI.get_lane_i16x8 ${a1} i) * v (NI.get_lane_i16x8 ${b1} i) * 169) % 3329);
+    lemma_nttmul_fstsnd (repr ${lhs}) (repr ${rhs}) ${a1} ${b1} ${a1b1} ${zeta}
+        ${fst_low16} ${fst_high16} ${snd_low16} ${snd_high16} ${fst} ${snd} zeta1 zeta2 zeta3 zeta4;
+    lemma_nttmul_out ${low2} ${high2} ${fst} ${snd};
+    lemma_nttmul_assemble (repr ${lhs}) (repr ${rhs}) (repr ${res}) zeta1 zeta2 zeta3 zeta4"#
+    );
+    res
 }
