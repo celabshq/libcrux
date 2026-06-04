@@ -387,14 +387,35 @@ pub fn _vshlq_n_s16<const SHIFT_BY: i32>(v: _int16x8_t) -> _int16x8_t {
 pub fn _vshlq_n_u32<const SHIFT_BY: i32>(v: _uint32x4_t) -> _uint32x4_t {
     unimplemented!()
 }
+// Saturating doubling multiply-high.  Per lane i:
+//   result_i = sat16( (2 * a_i * b) >> 16 ) = sat16( (a_i * b) >> 15 )
+// Modeled faithfully via the i32 *arithmetic* shift `>>!` (matching the AVX2
+// `mm256_mulhi_epi16` idiom and the hardware), using the `(a*b) >>! 15`
+// identity so the i32 product `a_i * b` never overflows (|a_i*b| <= 2^30),
+// unlike `2*a_i*b` which overflows at a_i = b = i16::MIN.  Arithmetic `>>!`
+// is floor division (unambiguous, unlike `Prims./` on math int).
+//   sat16(x) = if x > 32767 then 32767 else if x < -32768 then -32768 else x.
 #[inline(always)]
 #[hax_lib::lean::replace_body("sorry")]
+#[hax_lib::ensures(|result| fstar!("forall (i:nat{i < 8}).
+    (let prod = ((cast (get_lane_i16x8 $k i) <: i32) *. (cast $b <: i32)) >>! (mk_i32 15) in
+     get_lane_i16x8 $result i ==
+       (if prod >. mk_i32 32767 then mk_i16 32767
+        else if prod <. mk_i32 (-32768) then mk_i16 (-32768)
+        else (cast prod <: i16)))"))]
 pub fn _vqdmulhq_n_s16(k: _int16x8_t, b: i16) -> _int16x8_t {
     unimplemented!()
 }
+// As `_vqdmulhq_n_s16` but with a per-lane second operand `c`.
 #[inline(always)]
 #[hax_lib::lean::replace_body("sorry")]
-pub fn _vqdmulhq_s16(v: _int16x8_t, c: _int16x8_t) -> _int16x8_t {
+#[hax_lib::ensures(|result| fstar!("forall (i:nat{i < 8}).
+    (let prod = ((cast (get_lane_i16x8 $a i) <: i32) *. (cast (get_lane_i16x8 $c i) <: i32)) >>! (mk_i32 15) in
+     get_lane_i16x8 $result i ==
+       (if prod >. mk_i32 32767 then mk_i16 32767
+        else if prod <. mk_i32 (-32768) then mk_i16 (-32768)
+        else (cast prod <: i16)))"))]
+pub fn _vqdmulhq_s16(a: _int16x8_t, c: _int16x8_t) -> _int16x8_t {
     unimplemented!()
 }
 #[inline(always)]
