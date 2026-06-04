@@ -3,6 +3,49 @@ use super::vector_type::*;
 use libcrux_intrinsics::arm64::*;
 
 #[inline(always)]
+#[hax_lib::fstar::before(
+    interface,
+    r#"unfold let repr = Libcrux_ml_kem.Vector.Neon.Vector_type.repr"#
+)]
+#[hax_lib::fstar::before(
+    r#"
+module NI = Libcrux_intrinsics.Arm64_extract
+module NS = Spec.Utils
+module NA = Libcrux_ml_kem.Vector.Neon.Arithmetic
+
+(* Mod-3329 congruence carries through the butterfly add/sub, exactly as the
+   AVX2 ntt before-blocks (lemma_modadd). *)
+let lemma_modadd (a r x:int) : Lemma
+  (requires r % 3329 == x % 3329)
+  (ensures (a + r) % 3329 == (a + x) % 3329)
+  = FStar.Math.Lemmas.lemma_mod_add_distr a r 3329;
+    FStar.Math.Lemmas.lemma_mod_add_distr a x 3329
+
+let lemma_modsub (a r x:int) : Lemma
+  (requires r % 3329 == x % 3329)
+  (ensures (a - r) % 3329 == (a - x) % 3329)
+  = FStar.Math.Lemmas.lemma_mod_sub_distr a r 3329;
+    FStar.Math.Lemmas.lemma_mod_sub_distr a x 3329
+
+(* Per-lane i16 add/sub are exact when the result is in range — the Neon
+   analog of the AVX2 lemma_add_i_128 / lemma_sub_i_128 SMTPat lifters. *)
+let lemma_neon_add_lane (lhs rhs: NI.t_e_int16x8_t) (i:nat{i < 8}) : Lemma
+  (requires NS.is_intb (pow2 15 - 1)
+              (v (NI.get_lane_i16x8 lhs i) + v (NI.get_lane_i16x8 rhs i)))
+  (ensures v (NI.get_lane_i16x8 lhs i +. NI.get_lane_i16x8 rhs i) ==
+           v (NI.get_lane_i16x8 lhs i) + v (NI.get_lane_i16x8 rhs i))
+  [SMTPat (v (NI.get_lane_i16x8 lhs i +. NI.get_lane_i16x8 rhs i))]
+  = ()
+
+let lemma_neon_sub_lane (lhs rhs: NI.t_e_int16x8_t) (i:nat{i < 8}) : Lemma
+  (requires NS.is_intb (pow2 15 - 1)
+              (v (NI.get_lane_i16x8 lhs i) - v (NI.get_lane_i16x8 rhs i)))
+  (ensures v (NI.get_lane_i16x8 lhs i -. NI.get_lane_i16x8 rhs i) ==
+           v (NI.get_lane_i16x8 lhs i) - v (NI.get_lane_i16x8 rhs i))
+  [SMTPat (v (NI.get_lane_i16x8 lhs i -. NI.get_lane_i16x8 rhs i))]
+  = ()
+"#
+)]
 pub(crate) fn ntt_layer_1_step(
     mut v: SIMD128Vector,
     zeta1: i16,
@@ -73,17 +116,46 @@ pub(crate) fn ntt_layer_2_step(mut v: SIMD128Vector, zeta1: i16, zeta2: i16) -> 
 }
 
 #[inline(always)]
-pub(crate) fn ntt_layer_3_step(mut v: SIMD128Vector, zeta: i16) -> SIMD128Vector {
+#[hax_lib::fstar::options("--z3rlimit 300 --split_queries always")]
+#[hax_lib::requires(fstar!(r#"Spec.Utils.is_i16b 1664 ${zeta_c} /\
+    Spec.Utils.is_i16b_array (5 * 3328) (repr ${vec})"#))]
+#[hax_lib::ensures(|result| fstar!(r#"
+    Spec.Utils.is_i16b_array (6 * 3328) (repr ${result}) /\
+    (forall (i: nat{i < 8}).
+        (v (Seq.index (repr ${result}) i) % 3329 ==
+          (v (Seq.index (repr ${vec}) i) +
+            v (Seq.index (repr ${vec}) (i + 8)) * v ${zeta_c} * 169) % 3329) /\
+        (v (Seq.index (repr ${result}) (i + 8)) % 3329 ==
+          (v (Seq.index (repr ${vec}) i) -
+            v (Seq.index (repr ${vec}) (i + 8)) * v ${zeta_c} * 169) % 3329))"#))]
+pub(crate) fn ntt_layer_3_step(vec: SIMD128Vector, zeta_c: i16) -> SIMD128Vector {
     // This is what we are trying to do for every four elements:
     // let t = simd::Vector::montgomery_multiply_fe_by_fer(b, zeta_r);
     // b = simd::Vector::sub(a, &t);
     // a = simd::Vector::add(a, &t);
 
-    let zeta = _vdupq_n_s16(zeta);
-    let t = montgomery_multiply_int16x8_t(v.high, zeta);
-    v.high = _vsubq_s16(v.low, t);
-    v.low = _vaddq_s16(v.low, t);
-    v
+    let zeta = _vdupq_n_s16(zeta_c);
+    hax_lib::fstar!(r#"assert (forall (i: nat{i < 8}). NI.get_lane_i16x8 ${zeta} i == ${zeta_c})"#);
+    let t = montgomery_multiply_int16x8_t(vec.high, zeta);
+    hax_lib::fstar!(r#"assert (forall (i: nat{i < 8}). NS.is_i16b 1664 (NI.get_lane_i16x8 ${zeta} i))"#);
+    let mut res = vec;
+    res.high = _vsubq_s16(vec.low, t);
+    res.low = _vaddq_s16(res.low, t);
+    hax_lib::fstar!(
+        r#"introduce forall (i: nat{i < 8}).
+      (v (Seq.index (repr ${res}) i) % 3329 ==
+        (v (Seq.index (repr ${vec}) i) +
+          v (Seq.index (repr ${vec}) (i + 8)) * v ${zeta_c} * 169) % 3329) /\
+      (v (Seq.index (repr ${res}) (i + 8)) % 3329 ==
+        (v (Seq.index (repr ${vec}) i) -
+          v (Seq.index (repr ${vec}) (i + 8)) * v ${zeta_c} * 169) % 3329)
+    with (lemma_modadd (v (Seq.index (repr ${vec}) i)) (v (NI.get_lane_i16x8 ${t} i))
+            (v (Seq.index (repr ${vec}) (i + 8)) * v ${zeta_c} * 169);
+          lemma_modsub (v (Seq.index (repr ${vec}) i)) (v (NI.get_lane_i16x8 ${t} i))
+            (v (Seq.index (repr ${vec}) (i + 8)) * v ${zeta_c} * 169));
+        assert (Spec.Utils.is_i16b_array (6 * 3328) (repr ${res}))"#
+    );
+    res
 }
 
 #[inline(always)]
@@ -164,18 +236,45 @@ pub(crate) fn inv_ntt_layer_2_step(mut v: SIMD128Vector, zeta1: i16, zeta2: i16)
 }
 
 #[inline(always)]
-pub(crate) fn inv_ntt_layer_3_step(mut v: SIMD128Vector, zeta: i16) -> SIMD128Vector {
+#[hax_lib::fstar::options("--z3rlimit 300 --split_queries always")]
+#[hax_lib::requires(fstar!(r#"Spec.Utils.is_i16b 1664 ${zeta_c} /\
+    Spec.Utils.is_i16b_array (2 * 3328) (repr ${vec})"#))]
+#[hax_lib::ensures(|result| fstar!(r#"
+    Spec.Utils.is_i16b_array (4 * 3328) (repr ${result}) /\
+    (forall (i: nat{i < 8}).
+        (v (Seq.index (repr ${result}) i) % 3329 ==
+          (v (Seq.index (repr ${vec}) (i + 8)) + v (Seq.index (repr ${vec}) i)) % 3329) /\
+        (v (Seq.index (repr ${result}) (i + 8)) % 3329 ==
+          ((v (Seq.index (repr ${vec}) (i + 8)) - v (Seq.index (repr ${vec}) i)) *
+            v ${zeta_c} * 169) % 3329))"#))]
+pub(crate) fn inv_ntt_layer_3_step(vec: SIMD128Vector, zeta_c: i16) -> SIMD128Vector {
     // This is what we are trying to do for every four elements:
     //let a_minus_b = simd::Vector::sub(b, &a);
     //a = simd::Vector::add(a, &b);
     //b = simd::Vector::montgomery_multiply_fe_by_fer(a_minus_b, zeta_r);
     //(a, b)
 
-    let zeta = _vdupq_n_s16(zeta);
-    let b_minus_a = _vsubq_s16(v.high, v.low);
-    v.low = _vaddq_s16(v.low, v.high);
-    v.high = montgomery_multiply_int16x8_t(b_minus_a, zeta);
-    v
+    let zeta = _vdupq_n_s16(zeta_c);
+    hax_lib::fstar!(
+        r#"assert (forall (i: nat{i < 8}). NI.get_lane_i16x8 ${zeta} i == ${zeta_c});
+           assert (forall (i: nat{i < 8}). NS.is_i16b 1664 (NI.get_lane_i16x8 ${zeta} i))"#
+    );
+    let b_minus_a = _vsubq_s16(vec.high, vec.low);
+    let mut res = vec;
+    res.low = _vaddq_s16(vec.low, vec.high);
+    res.high = montgomery_multiply_int16x8_t(b_minus_a, zeta);
+    hax_lib::fstar!(
+        r#"introduce forall (i: nat{i < 8}).
+      (v (Seq.index (repr ${res}) i) % 3329 ==
+        (v (Seq.index (repr ${vec}) (i + 8)) + v (Seq.index (repr ${vec}) i)) % 3329) /\
+      (v (Seq.index (repr ${res}) (i + 8)) % 3329 ==
+        ((v (Seq.index (repr ${vec}) (i + 8)) - v (Seq.index (repr ${vec}) i)) *
+          v ${zeta_c} * 169) % 3329)
+    with (assert (v (NI.get_lane_i16x8 ${b_minus_a} i) ==
+            v (Seq.index (repr ${vec}) (i + 8)) - v (Seq.index (repr ${vec}) i)));
+        assert (Spec.Utils.is_i16b_array (4 * 3328) (repr ${res}))"#
+    );
+    res
 }
 
 #[inline(always)]

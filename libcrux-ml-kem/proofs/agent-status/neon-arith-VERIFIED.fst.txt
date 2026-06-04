@@ -1,0 +1,620 @@
+module Libcrux_ml_kem.Vector.Neon.Arithmetic
+#set-options "--fuel 0 --ifuel 1 --z3rlimit 80"
+open FStar.Mul
+open Core_models
+
+#push-options "--z3rlimit 150"
+
+let add (lhs rhs: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector) =
+  let e_lhs0:Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector = lhs in
+  let lhs:Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector =
+    {
+      lhs with
+      Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+      =
+      Libcrux_intrinsics.Arm64_extract.e_vaddq_s16 lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+        rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+    }
+    <:
+    Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector
+  in
+  let lhs:Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector =
+    {
+      lhs with
+      Libcrux_ml_kem.Vector.Neon.Vector_type.f_high
+      =
+      Libcrux_intrinsics.Arm64_extract.e_vaddq_s16 lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high
+        rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high
+    }
+    <:
+    Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector
+  in
+  lhs
+
+#pop-options
+
+#push-options "--z3rlimit 150"
+
+let sub (lhs rhs: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector) =
+  let e_lhs0:Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector = lhs in
+  let lhs:Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector =
+    {
+      lhs with
+      Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+      =
+      Libcrux_intrinsics.Arm64_extract.e_vsubq_s16 lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+        rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+    }
+    <:
+    Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector
+  in
+  let lhs:Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector =
+    {
+      lhs with
+      Libcrux_ml_kem.Vector.Neon.Vector_type.f_high
+      =
+      Libcrux_intrinsics.Arm64_extract.e_vsubq_s16 lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high
+        rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high
+    }
+    <:
+    Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector
+  in
+  lhs
+
+#pop-options
+
+#push-options "--z3rlimit 150"
+
+let multiply_by_constant (vec: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector) (c: i16) =
+  let e_vec0:Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector = vec in
+  let vec:Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector =
+    {
+      vec with
+      Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+      =
+      Libcrux_intrinsics.Arm64_extract.e_vmulq_n_s16 vec
+          .Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+        c
+    }
+    <:
+    Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector
+  in
+  let vec:Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector =
+    {
+      vec with
+      Libcrux_ml_kem.Vector.Neon.Vector_type.f_high
+      =
+      Libcrux_intrinsics.Arm64_extract.e_vmulq_n_s16 vec
+          .Libcrux_ml_kem.Vector.Neon.Vector_type.f_high
+        c
+    }
+    <:
+    Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector
+  in
+  vec
+
+#pop-options
+
+#push-options "--z3rlimit 150"
+
+let bitwise_and_with_constant (vec: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector) (c: i16) =
+  let e_vec0:Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector = vec in
+  let c_vec:Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t =
+    Libcrux_intrinsics.Arm64_extract.e_vdupq_n_s16 c
+  in
+  let vec:Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector =
+    {
+      vec with
+      Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+      =
+      Libcrux_intrinsics.Arm64_extract.e_vandq_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+        c_vec
+    }
+    <:
+    Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector
+  in
+  let vec:Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector =
+    {
+      vec with
+      Libcrux_ml_kem.Vector.Neon.Vector_type.f_high
+      =
+      Libcrux_intrinsics.Arm64_extract.e_vandq_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high
+        c_vec
+    }
+    <:
+    Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector
+  in
+  let _:Prims.unit =
+    Seq.lemma_eq_intro (repr vec) (Spec.Utils.map_array (fun x -> x &. c) (repr e_vec0))
+  in
+  vec
+
+#pop-options
+
+#push-options "--z3rlimit 150"
+
+let shift_right (v_SHIFT_BY: i32) (vec: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector) =
+  let e_vec0:Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector = vec in
+  let vec:Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector =
+    {
+      vec with
+      Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+      =
+      Libcrux_intrinsics.Arm64_extract.e_vshrq_n_s16 v_SHIFT_BY
+        vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+    }
+    <:
+    Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector
+  in
+  let vec:Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector =
+    {
+      vec with
+      Libcrux_ml_kem.Vector.Neon.Vector_type.f_high
+      =
+      Libcrux_intrinsics.Arm64_extract.e_vshrq_n_s16 v_SHIFT_BY
+        vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high
+    }
+    <:
+    Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector
+  in
+  let _:Prims.unit =
+    Seq.lemma_eq_intro (repr vec) (Spec.Utils.map_array (fun x -> x >>! v_SHIFT_BY) (repr e_vec0))
+  in
+  vec
+
+#pop-options
+
+#push-options "--z3rlimit 300"
+
+let cond_subtract_3329_ (vec: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector) =
+  let e_vec0:Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector = vec in
+  let c:Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t =
+    Libcrux_intrinsics.Arm64_extract.e_vdupq_n_s16 (mk_i16 3329)
+  in
+  let m0:Libcrux_intrinsics.Arm64_extract.t_e_uint16x8_t =
+    Libcrux_intrinsics.Arm64_extract.e_vcgeq_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low c
+  in
+  let m1:Libcrux_intrinsics.Arm64_extract.t_e_uint16x8_t =
+    Libcrux_intrinsics.Arm64_extract.e_vcgeq_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high c
+  in
+  let rm0:Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t =
+    Libcrux_intrinsics.Arm64_extract.e_vreinterpretq_s16_u16 m0
+  in
+  let rm1:Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t =
+    Libcrux_intrinsics.Arm64_extract.e_vreinterpretq_s16_u16 m1
+  in
+  let c0:Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t =
+    Libcrux_intrinsics.Arm64_extract.e_vandq_s16 c rm0
+  in
+  let c1:Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t =
+    Libcrux_intrinsics.Arm64_extract.e_vandq_s16 c rm1
+  in
+  let vec:Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector =
+    {
+      vec with
+      Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+      =
+      Libcrux_intrinsics.Arm64_extract.e_vsubq_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+        c0
+    }
+    <:
+    Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector
+  in
+  let vec:Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector =
+    {
+      vec with
+      Libcrux_ml_kem.Vector.Neon.Vector_type.f_high
+      =
+      Libcrux_intrinsics.Arm64_extract.e_vsubq_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high
+        c1
+    }
+    <:
+    Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector
+  in
+  let _:Prims.unit =
+    introduce forall (j: nat{j < 16}) . (let x = Seq.index (repr e_vec0) j in
+      let y = Seq.index (repr vec) j in
+      ((v y == v x - 3329 \/ v y == v x) /\ (v y % 3329 == v x % 3329)))
+    with if j < 8
+    then
+      Rust_primitives.Integers.logand_lemma (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 c j)
+        (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 rm0 j)
+    else
+      Rust_primitives.Integers.logand_lemma (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 c
+            (j - 8))
+        (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 rm1 (j - 8))
+  in
+  vec
+
+#pop-options
+
+let lemma_neon_floor_collapse (p: int)
+    : Lemma ((p / pow2 15 + pow2 10) / pow2 11 == (p / pow2 16 + pow2 9) / pow2 10) =
+  FStar.Math.Lemmas.pow2_plus 10 15;
+  FStar.Math.Lemmas.division_addition_lemma p (pow2 15) (pow2 10);
+  FStar.Math.Lemmas.pow2_plus 15 11;
+  FStar.Math.Lemmas.division_multiplication_lemma (p + pow2 25) (pow2 15) (pow2 11);
+  FStar.Math.Lemmas.pow2_plus 9 16;
+  FStar.Math.Lemmas.division_addition_lemma p (pow2 16) (pow2 9);
+  FStar.Math.Lemmas.pow2_plus 16 10;
+  FStar.Math.Lemmas.division_multiplication_lemma (p + pow2 25) (pow2 16) (pow2 10)
+
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 300"
+
+(* The Neon barrett lane chain (saturating doubling-mul-high + add 1024 + >>11)
+   collapses to the scalar `Spec.Utils.barrett_red`: both quotients equal
+   floor((x*20159 + 2^25) / 2^26). *)
+let lemma_barrett_lane_eq (x: i16)
+    : Lemma (requires Spec.Utils.is_i16b 28296 x)
+      (ensures
+        (let prod:i32 = ((cast x <: i32) *. (cast (mk_i16 20159) <: i32)) >>! (mk_i32 15) in
+          let vec1:i16 =
+            (if prod >. mk_i32 32767
+              then mk_i16 32767
+              else if prod <. mk_i32 (- 32768) then mk_i16 (- 32768) else (cast prod <: i16))
+          in
+          x -. (((vec1 +. mk_i16 1024) >>! (mk_i32 11)) *. mk_i16 3329) == Spec.Utils.barrett_red x)) =
+  let xx:int = v x in
+  assert (xx * 20159 <= 570419064 /\ xx * 20159 >= -570419064);
+  let prod:i32 = ((cast x <: i32) *. (cast (mk_i16 20159) <: i32)) >>! (mk_i32 15) in
+  assert (v prod == (xx * 20159) / pow2 15);
+  FStar.Math.Lemmas.lemma_div_le (xx * 20159) 570419064 (pow2 15);
+  FStar.Math.Lemmas.lemma_div_le (-570419064) (xx * 20159) (pow2 15);
+  assert_norm (570419064 / pow2 15 == 17407);
+  assert_norm ((-570419064) / pow2 15 == -17408);
+  let vec1:i16 = (cast prod <: i16) in
+  let vec2:i16 = vec1 +. mk_i16 1024 in
+  let quotient:i16 = vec2 >>! (mk_i32 11) in
+  lemma_neon_floor_collapse (xx * 20159);
+  assert_norm (pow2 10 == 1024);
+  assert_norm (pow2 9 == 512);
+  assert (v quotient == ((xx * 20159) / pow2 16 + 512) / pow2 10);
+  ()
+#pop-options
+
+#push-options "--z3rlimit 200"
+(* The unsigned multiply-by-62209 detour reinterprets to a signed
+   multiply-by-(-3327), since 62209 == -3327 (mod 2^16). *)
+let lemma_u16_detour (a: i16)
+    : Lemma
+      (Rust_primitives.Integers.cast_mod #Rust_primitives.Integers.u16_inttype
+          #Rust_primitives.Integers.i16_inttype
+          ((Rust_primitives.Integers.cast_mod #Rust_primitives.Integers.i16_inttype
+                #Rust_primitives.Integers.u16_inttype
+                a) *.
+            mk_u16 62209) ==
+        a *. (mk_i16 (-3327))) =
+  let aa = v a in
+  FStar.Math.Lemmas.lemma_mod_mul_distr_l aa 62209 (pow2 16);
+  FStar.Math.Lemmas.lemma_mod_plus (aa * (-3327)) aa (pow2 16);
+  assert (aa * 62209 == aa * (-3327) + aa * pow2 16);
+  assert (((aa % pow2 16) * 62209) % pow2 16 == (aa * (-3327)) % pow2 16);
+  ()
+#pop-options
+
+#push-options "--z3rlimit 300"
+(* The saturating doubling-mul-high `e_vqdmulhq_n_s16 m d` (model `(m*d)>>15`)
+   then `>>1` equals the scalar high half `(m*d)>>16`, for products below 2^28
+   (so no saturation and the i16 cast is exact). *)
+let lemma_qdmulh_shift1 (m d: i16)
+    : Lemma (requires Spec.Utils.is_intb (pow2 28) (v m * v d))
+      (ensures
+        (let prod:i32 = ((cast m <: i32) *. (cast d <: i32)) >>! (mk_i32 15) in
+          let sat:i16 =
+            (if prod >. mk_i32 32767
+              then mk_i16 32767
+              else if prod <. mk_i32 (- 32768) then mk_i16 (- 32768) else (cast prod <: i16))
+          in
+          (sat >>! (mk_i32 1)) ==
+          (cast (((cast m <: i32) *. (cast d <: i32)) >>! (mk_i32 16)) <: i16))) =
+  let p:int = v m * v d in
+  assert (v ((cast m <: i32) *. (cast d <: i32)) == p);
+  let prod:i32 = ((cast m <: i32) *. (cast d <: i32)) >>! (mk_i32 15) in
+  assert (v prod == p / pow2 15);
+  FStar.Math.Lemmas.lemma_div_le p (pow2 28) (pow2 15);
+  FStar.Math.Lemmas.lemma_div_le (- pow2 28) p (pow2 15);
+  assert_norm (pow2 28 / pow2 15 == pow2 13);
+  assert_norm ((- pow2 28) / pow2 15 == - pow2 13);
+  assert_norm (pow2 13 < 32767);
+  let sat:i16 = (cast prod <: i16) in
+  assert (v (sat >>! (mk_i32 1)) == (p / pow2 15) / pow2 1);
+  FStar.Math.Lemmas.division_multiplication_lemma p (pow2 15) (pow2 1);
+  FStar.Math.Lemmas.pow2_plus 15 1;
+  ()
+#pop-options
+
+#push-options "--z3rlimit 300"
+
+[@@ "opaque_to_smt"]
+
+let barrett_reduce_int16x8_t (a: Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t) =
+  let adder:Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t =
+    Libcrux_intrinsics.Arm64_extract.e_vdupq_n_s16 (mk_i16 1024)
+  in
+  let prod:Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t =
+    Libcrux_intrinsics.Arm64_extract.e_vqdmulhq_n_s16 a v_BARRETT_MULTIPLIER
+  in
+  let summed:Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t =
+    Libcrux_intrinsics.Arm64_extract.e_vaddq_s16 prod adder
+  in
+  let quotient:Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t =
+    Libcrux_intrinsics.Arm64_extract.e_vshrq_n_s16 (mk_i32 11) summed
+  in
+  let sub:Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t =
+    Libcrux_intrinsics.Arm64_extract.e_vmulq_n_s16 quotient
+      Libcrux_ml_kem.Vector.Traits.v_FIELD_MODULUS
+  in
+  let result:Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t =
+    Libcrux_intrinsics.Arm64_extract.e_vsubq_s16 a sub
+  in
+  let _:Prims.unit =
+    introduce (forall (i: nat{i < 8}).
+        Spec.Utils.is_i16b 28296 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 a i)) ==> (forall (i:
+        nat{i < 8}).
+        Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 result i) /\
+        v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 result i) % 3329 ==
+        v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 a i) % 3329)
+    with _h. introduce forall (i: nat{i < 8}) . Spec.Utils.is_i16b 3328
+      (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 result i) /\
+    v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 result i) % 3329 ==
+    v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 a i) % 3329
+    with (assert (Spec.Utils.is_i16b 28296 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 a i));
+      lemma_barrett_lane_eq (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 a i);
+      Spec.Utils.lemma_barrett_red (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 a i))
+  in
+  result
+
+#pop-options
+
+#push-options "--z3rlimit 300 --split_queries always"
+
+let barrett_reduce (vec: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector) =
+  let e_vec0:Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector = vec in
+  let _:Prims.unit =
+    reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
+      (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque 28296);
+    reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
+      (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque 3328);
+    assert (forall (i: nat{i < 8}).
+          Seq.index (repr vec) i == Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vec.f_low i);
+    assert (forall (i: nat{i < 8}).
+          Seq.index (repr vec) (i + 8) ==
+          Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vec.f_high i);
+    assert (forall (i: nat{i < 8}).
+          Spec.Utils.is_i16b 28296 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vec.f_low i));
+    assert (forall (i: nat{i < 8}).
+          Spec.Utils.is_i16b 28296 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vec.f_high i))
+  in
+  let vec:Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector =
+    {
+      vec with
+      Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+      =
+      barrett_reduce_int16x8_t vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+    }
+    <:
+    Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector
+  in
+  let vec:Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector =
+    {
+      vec with
+      Libcrux_ml_kem.Vector.Neon.Vector_type.f_high
+      =
+      barrett_reduce_int16x8_t vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high
+    }
+    <:
+    Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector
+  in
+  let _:Prims.unit =
+    introduce forall (j: nat{j < 16}) . Libcrux_ml_kem.Vector.Traits.Spec.barrett_reduce_lane_post (Seq.index
+          (repr e_vec0)
+          j)
+      (Seq.index (repr vec) j)
+    with (reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.barrett_reduce_lane_post)
+        (Libcrux_ml_kem.Vector.Traits.Spec.barrett_reduce_lane_post (Seq.index (repr e_vec0) j)
+            (Seq.index (repr vec) j));
+      Hacspec_ml_kem.ModQ.lemma_mod_q_eq_intro (v (Seq.index (repr vec) j))
+        (v (Seq.index (repr e_vec0) j)))
+  in
+  vec
+
+#pop-options
+
+#push-options "--z3rlimit 300"
+
+[@@ "opaque_to_smt"]
+
+let montgomery_reduce_int16x8_t (low high: Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t) =
+  let k:Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t =
+    Libcrux_intrinsics.Arm64_extract.e_vreinterpretq_s16_u16 (Libcrux_intrinsics.Arm64_extract.e_vmulq_n_u16
+          (Libcrux_intrinsics.Arm64_extract.e_vreinterpretq_u16_s16 low
+            <:
+            Libcrux_intrinsics.Arm64_extract.t_e_uint16x8_t)
+          (cast (Libcrux_ml_kem.Vector.Traits.v_INVERSE_OF_MODULUS_MOD_MONTGOMERY_R <: u32) <: u16)
+        <:
+        Libcrux_intrinsics.Arm64_extract.t_e_uint16x8_t)
+  in
+  let c:Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t =
+    Libcrux_intrinsics.Arm64_extract.e_vshrq_n_s16 (mk_i32 1)
+      (Libcrux_intrinsics.Arm64_extract.e_vqdmulhq_n_s16 k
+          Libcrux_ml_kem.Vector.Traits.v_FIELD_MODULUS
+        <:
+        Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t)
+  in
+  let result:Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t =
+    Libcrux_intrinsics.Arm64_extract.e_vsubq_s16 high c
+  in
+  let _:Prims.unit =
+    introduce forall (i: nat{i < 8}) . Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 result i ==
+    Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 high i -.
+    (cast (((cast (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 low i *. (mk_i16 (- 3327)))
+              <:
+              i32) *.
+            (mk_i32 3329)) >>!
+          (mk_i32 16))
+      <:
+      i16)
+    with (lemma_u16_detour (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 low i);
+      assert (Spec.Utils.is_intb (pow2 28)
+            (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 k i) *
+              v Libcrux_ml_kem.Vector.Traits.v_FIELD_MODULUS));
+      lemma_qdmulh_shift1 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 k i)
+        Libcrux_ml_kem.Vector.Traits.v_FIELD_MODULUS)
+  in
+  result
+
+#pop-options
+
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 300"
+
+[@@ "opaque_to_smt"]
+
+let montgomery_multiply_by_constant_int16x8_t
+      (a: Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t)
+      (c: i16)
+     =
+  let vv_low:Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t =
+    Libcrux_intrinsics.Arm64_extract.e_vmulq_n_s16 a c
+  in
+  let vv_high:Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t =
+    Libcrux_intrinsics.Arm64_extract.e_vshrq_n_s16 (mk_i32 1)
+      (Libcrux_intrinsics.Arm64_extract.e_vqdmulhq_n_s16 a c
+        <:
+        Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t)
+  in
+  let result:Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t =
+    montgomery_reduce_int16x8_t vv_low vv_high
+  in
+  let _:Prims.unit =
+    introduce forall (i: nat{i < 8}) . Spec.Utils.is_i16b 3328
+      (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 result i) /\
+    v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 result i) % 3329 ==
+    (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 a i) * v c * 169) % 3329
+    with (assert (Spec.Utils.is_intb (pow2 28)
+            (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 a i) * v c));
+      lemma_qdmulh_shift1 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 a i) c;
+      assert (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 result i ==
+          Spec.Utils.mont_mul_red_i16 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 a i) c);
+      Spec.Utils.lemma_mont_mul_red_i16 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 a i) c)
+  in
+  result
+
+#pop-options
+
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 300"
+
+[@@ "opaque_to_smt"]
+
+let montgomery_multiply_int16x8_t (a c: Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t) =
+  let vv_low:Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t =
+    Libcrux_intrinsics.Arm64_extract.e_vmulq_s16 a c
+  in
+  let vv_high:Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t =
+    Libcrux_intrinsics.Arm64_extract.e_vshrq_n_s16 (mk_i32 1)
+      (Libcrux_intrinsics.Arm64_extract.e_vqdmulhq_s16 a c
+        <:
+        Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t)
+  in
+  let result:Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t =
+    montgomery_reduce_int16x8_t vv_low vv_high
+  in
+  let _:Prims.unit =
+    introduce
+    (forall (i: nat{i < 8}).
+        Spec.Utils.is_i16b 1664 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 c i) \/
+        Spec.Utils.is_intb (3326 * pow2 15)
+          (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 a i) *
+            v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 c i))) ==>
+    (forall (i: nat{i < 8}).
+        Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 result i) /\
+        v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 result i) % 3329 ==
+        (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 a i) *
+          v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 c i) * 169) % 3329)
+    with _h.
+    introduce forall (i: nat{i < 8}) . Spec.Utils.is_i16b 3328
+      (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 result i) /\
+    v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 result i) % 3329 ==
+    (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 a i) *
+      v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 c i) * 169) % 3329
+    with (let ai = Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 a i in
+      let ci = Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 c i in
+      assert (Spec.Utils.is_i16b 1664 ci \/ Spec.Utils.is_intb (3326 * pow2 15) (v ai * v ci));
+      assert (Spec.Utils.is_intb (pow2 28) (v ai * v ci));
+      lemma_qdmulh_shift1 ai ci;
+      assert (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 result i ==
+          Spec.Utils.mont_mul_red_i16 ai ci);
+      Spec.Utils.lemma_mont_mul_red_i16 ai ci)
+  in
+  result
+
+#pop-options
+
+#push-options "--z3rlimit 300 --split_queries always"
+
+let montgomery_multiply_by_constant
+      (vec: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector)
+      (c: i16)
+     =
+  let e_vec0:Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector = vec in
+  let _:Prims.unit =
+    reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
+      (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque 3328)
+  in
+  let vec:Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector =
+    {
+      vec with
+      Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+      =
+      montgomery_multiply_by_constant_int16x8_t vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low c
+    }
+    <:
+    Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector
+  in
+  let vec:Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector =
+    {
+      vec with
+      Libcrux_ml_kem.Vector.Neon.Vector_type.f_high
+      =
+      montgomery_multiply_by_constant_int16x8_t vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high c
+    }
+    <:
+    Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector
+  in
+  let _:Prims.unit =
+    introduce forall (j: nat{j < 16}) . Libcrux_ml_kem.Vector.Traits.Spec.montgomery_multiply_lane_post
+      (Seq.index (repr e_vec0) j)
+      c
+      (Seq.index (repr vec) j)
+    with (reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.montgomery_multiply_lane_post)
+        (Libcrux_ml_kem.Vector.Traits.Spec.montgomery_multiply_lane_post (Seq.index (repr e_vec0) j)
+            c
+            (Seq.index (repr vec) j));
+      Hacspec_ml_kem.ModQ.lemma_mod_q_eq_intro (v (Seq.index (repr vec) j))
+        (v (Seq.index (repr e_vec0) j) * v c * 169))
+  in
+  vec
+
+#pop-options
+
+#push-options "--z3rlimit 300"
+
+let to_unsigned_representative (a: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector) =
+  let t:Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector = shift_right (mk_i32 15) a in
+  let _:Prims.unit =
+    assert (forall i. Seq.index (repr t) i == ((Seq.index (repr a) i) >>! (mk_i32 15)));
+    assert (forall i. Seq.index (repr a) i >=. mk_i16 0 ==> Seq.index (repr t) i == mk_i16 0);
+    assert (forall i. Seq.index (repr a) i <. mk_i16 0 ==> Seq.index (repr t) i == mk_i16 (- 1))
+  in
+  let fm:Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector =
+    bitwise_and_with_constant t Libcrux_ml_kem.Vector.Traits.v_FIELD_MODULUS
+  in
+  let _:Prims.unit =
+    assert (forall i.
+          Seq.index (repr fm) i ==
+          (Seq.index (repr t) i &. Libcrux_ml_kem.Vector.Traits.v_FIELD_MODULUS));
+    assert (forall i. Seq.index (repr a) i >=. mk_i16 0 ==> Seq.index (repr fm) i == mk_i16 0);
+    assert (forall i. Seq.index (repr a) i <. mk_i16 0 ==> Seq.index (repr fm) i == mk_i16 3329)
+  in
+  add a fm
+
+#pop-options

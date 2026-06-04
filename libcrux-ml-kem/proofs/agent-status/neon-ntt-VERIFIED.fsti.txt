@@ -1,0 +1,96 @@
+module Libcrux_ml_kem.Vector.Neon.Ntt
+#set-options "--fuel 0 --ifuel 1 --z3rlimit 80"
+open FStar.Mul
+open Core_models
+
+unfold let repr = Libcrux_ml_kem.Vector.Neon.Vector_type.repr
+
+val ntt_layer_1_step
+      (vec: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector)
+      (zeta1 zeta2 zeta3 zeta4: i16)
+    : Prims.Pure Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector
+      (requires
+        Spec.Utils.is_i16b 1664 zeta1 /\ Spec.Utils.is_i16b 1664 zeta2 /\
+        Spec.Utils.is_i16b 1664 zeta3 /\ Spec.Utils.is_i16b 1664 zeta4 /\
+        Spec.Utils.is_i16b_array (7 * 3328) (repr vec))
+      (ensures
+        fun result ->
+          Spec.Utils.is_i16b_array (8 * 3328) (repr result) /\
+          Spec.Utils.ntt_layer_1_butterfly_post (repr vec) (repr result)
+            zeta1 zeta2 zeta3 zeta4)
+
+val ntt_layer_2_step (vec: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector) (zeta1 zeta2: i16)
+    : Prims.Pure Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector
+      (requires
+        Spec.Utils.is_i16b 1664 zeta1 /\ Spec.Utils.is_i16b 1664 zeta2 /\
+        Spec.Utils.is_i16b_array (6 * 3328) (repr vec))
+      (ensures
+        fun result ->
+          Spec.Utils.is_i16b_array (7 * 3328) (repr result) /\
+          Spec.Utils.ntt_layer_2_butterfly_post (repr vec) (repr result) zeta1 zeta2)
+
+val ntt_layer_3_step (vec: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector) (zeta_c: i16)
+    : Prims.Pure Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector
+      (requires
+        Spec.Utils.is_i16b 1664 zeta_c /\
+        Spec.Utils.is_i16b_array (5 * 3328) (repr vec))
+      (ensures
+        fun result ->
+          Spec.Utils.is_i16b_array (6 * 3328) (repr result) /\
+          (forall (i: nat{i < 8}).
+              (v (Seq.index (repr result) i) % 3329 ==
+                (v (Seq.index (repr vec) i) +
+                  v (Seq.index (repr vec) (i + 8)) * v zeta_c * 169) % 3329) /\
+              (v (Seq.index (repr result) (i + 8)) % 3329 ==
+                (v (Seq.index (repr vec) i) -
+                  v (Seq.index (repr vec) (i + 8)) * v zeta_c * 169) % 3329)))
+
+val inv_ntt_layer_1_step
+      (vec: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector)
+      (zeta1 zeta2 zeta3 zeta4: i16)
+    : Prims.Pure Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector
+      (requires
+        Spec.Utils.is_i16b 1664 zeta1 /\ Spec.Utils.is_i16b 1664 zeta2 /\
+        Spec.Utils.is_i16b 1664 zeta3 /\ Spec.Utils.is_i16b 1664 zeta4 /\
+        Spec.Utils.is_i16b_array (4 * 3328) (repr vec))
+      (ensures
+        fun result ->
+          Spec.Utils.is_i16b_array 3328 (repr result) /\
+          Spec.Utils.inv_ntt_layer_1_butterfly_post (repr vec) (repr result)
+            zeta1 zeta2 zeta3 zeta4)
+
+val inv_ntt_layer_2_step
+      (vec: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector)
+      (zeta1 zeta2: i16)
+    : Prims.Pure Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector
+      (requires
+        Spec.Utils.is_i16b 1664 zeta1 /\ Spec.Utils.is_i16b 1664 zeta2 /\
+        Spec.Utils.is_i16b_array 3328 (repr vec))
+      (ensures
+        fun result ->
+          Spec.Utils.is_i16b_array (2 * 3328) (repr result) /\
+          Spec.Utils.inv_ntt_layer_2_butterfly_post (repr vec) (repr result) zeta1 zeta2)
+
+val inv_ntt_layer_3_step (vec: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector) (zeta_c: i16)
+    : Prims.Pure Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector
+      (requires
+        Spec.Utils.is_i16b 1664 zeta_c /\
+        Spec.Utils.is_i16b_array (2 * 3328) (repr vec))
+      (ensures
+        fun result ->
+          Spec.Utils.is_i16b_array (4 * 3328) (repr result) /\
+          (forall (i: nat{i < 8}).
+              (v (Seq.index (repr result) i) % 3329 ==
+                (v (Seq.index (repr vec) (i + 8)) + v (Seq.index (repr vec) i)) % 3329) /\
+              (v (Seq.index (repr result) (i + 8)) % 3329 ==
+                ((v (Seq.index (repr vec) (i + 8)) - v (Seq.index (repr vec) i)) * v zeta_c * 169) %
+                  3329)))
+
+val ntt_multiply
+      (lhs rhs: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector)
+      (zeta1 zeta2 zeta3 zeta4: i16)
+    : Prims.Pure Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector
+      (requires
+        Spec.Utils.is_i16b 1664 zeta1 /\ Spec.Utils.is_i16b 1664 zeta2 /\
+        Spec.Utils.is_i16b 1664 zeta3 /\ Spec.Utils.is_i16b 1664 zeta4)
+      (fun _ -> Prims.l_True)

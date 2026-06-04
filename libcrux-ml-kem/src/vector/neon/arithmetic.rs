@@ -388,8 +388,25 @@ pub(crate) fn montgomery_multiply_by_constant_int16x8_t(a: _int16x8_t, c: i16) -
     result
 }
 
+// Two-vector montgomery: same shape as the by-constant worker but a vector
+// multiplier `c`.  Pre stays `l_True`; the functional post is guarded by the
+// per-lane validity antecedent (`|c[i]| <= 1664` OR the product fits the
+// montgomery bound) so the not-yet-functional ntt callers keep building (same
+// implication-post device as `barrett_reduce_int16x8_t`).
 #[inline(always)]
-pub(crate) fn montgomery_multiply_int16x8_t(v: _int16x8_t, c: _int16x8_t) -> _int16x8_t {
+#[hax_lib::fstar::options("--fuel 1 --ifuel 1 --z3rlimit 300")]
+#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
+#[hax_lib::ensures(|result| fstar!(r#"(forall (i: nat{i < 8}).
+      Spec.Utils.is_i16b 1664 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${c} i) \/
+      Spec.Utils.is_intb (3326 * pow2 15)
+        (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i) *
+          v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${c} i))) ==>
+    (forall (i: nat{i < 8}).
+      Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) /\
+      v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) % 3329 ==
+      (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i) *
+        v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${c} i) * 169) % 3329)"#))]
+pub(crate) fn montgomery_multiply_int16x8_t(a: _int16x8_t, c: _int16x8_t) -> _int16x8_t {
     // This is what we are trying to do in portable:
     // let value = v as i16 * c
     // let k = (value as i16) as i16 * INVERSE_OF_MODULUS_MOD_MONTGOMERY_R;
@@ -398,9 +415,37 @@ pub(crate) fn montgomery_multiply_int16x8_t(v: _int16x8_t, c: _int16x8_t) -> _in
     // let value_high = (value >> MONTGOMERY_SHIFT) as i16;
     // value_high - c
 
-    let v_low = _vmulq_s16(v, c);
-    let v_high = _vshrq_n_s16::<1>(_vqdmulhq_s16(v, c));
-    montgomery_reduce_int16x8_t(v_low, v_high)
+    let v_low = _vmulq_s16(a, c);
+    let v_high = _vshrq_n_s16::<1>(_vqdmulhq_s16(a, c));
+    let result = montgomery_reduce_int16x8_t(v_low, v_high);
+    hax_lib::fstar!(
+        r#"introduce
+  (forall (i: nat{i < 8}).
+      Spec.Utils.is_i16b 1664 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${c} i) \/
+      Spec.Utils.is_intb (3326 * pow2 15)
+        (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i) *
+          v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${c} i))) ==>
+  (forall (i: nat{i < 8}).
+      Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) /\
+      v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) % 3329 ==
+      (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i) *
+        v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${c} i) * 169) % 3329)
+  with _h.
+  introduce forall (i: nat{i < 8}).
+      Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) /\
+      v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) % 3329 ==
+      (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i) *
+        v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${c} i) * 169) % 3329
+  with (let ai = Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i in
+    let ci = Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${c} i in
+    assert (Spec.Utils.is_i16b 1664 ci \/ Spec.Utils.is_intb (3326 * pow2 15) (v ai * v ci));
+    assert (Spec.Utils.is_intb (pow2 28) (v ai * v ci));
+    lemma_qdmulh_shift1 ai ci;
+    assert (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i ==
+        Spec.Utils.mont_mul_red_i16 ai ci);
+    Spec.Utils.lemma_mont_mul_red_i16 ai ci)"#
+    );
+    result
 }
 
 #[inline(always)]
