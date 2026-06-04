@@ -584,15 +584,42 @@ pub fn _vshrq_n_u32<const N: i32>(a: _uint32x4_t) -> _uint32x4_t {
 pub fn _vandq_u32(a: _uint32x4_t, b: _uint32x4_t) -> _uint32x4_t {
     unimplemented!()
 }
+// Cross-width reinterpret i16x8 <-> u32x4.  The register bits are identical
+// (`result == a`) but the two lane VIEWS (vec128_as_i16x8 vs vec128_as_u32x4)
+// are independent abstract vals with no relating axiom, so a bare `result == a`
+// leaves F* unable to track values across the reinterpret.  These ensures add
+// the little-endian lane-repacking bridge (u32 lane i = i16 lanes 2i .. 2i+1),
+// validated bit-exact against real `vreinterpretq_{u32_s16,s16_u32}` hardware.
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::before(
+        interface,
+        r#"
+let i16_bits_as_u32 (x: i16) : u32 =
+  Rust_primitives.Integers.cast #Rust_primitives.Integers.u16_inttype #Rust_primitives.Integers.u32_inttype
+    (Rust_primitives.Integers.cast_mod #Rust_primitives.Integers.i16_inttype #Rust_primitives.Integers.u16_inttype x)
+let u32_lo16_as_i16 (x: u32) : i16 =
+  Rust_primitives.Integers.cast_mod #Rust_primitives.Integers.u16_inttype #Rust_primitives.Integers.i16_inttype
+    (Rust_primitives.Integers.cast_mod #Rust_primitives.Integers.u32_inttype #Rust_primitives.Integers.u16_inttype x)
+let u32_hi16_as_i16 (x: u32) : i16 = u32_lo16_as_i16 (x >>! mk_u32 16)
+"#
+    )
+)]
 #[inline(always)]
 #[hax_lib::lean::replace_body("sorry")]
-#[hax_lib::ensures(|result| fstar!("$result == $a"))]
+#[hax_lib::ensures(|result| fstar!("$result == $a /\\
+    (forall (i:nat{i < 4}). get_lane_u32x4 $result i ==
+       (i16_bits_as_u32 (get_lane_i16x8 $a (2*i)) |.
+        (i16_bits_as_u32 (get_lane_i16x8 $a (2*i+1)) <<! mk_u32 16)))"))]
 pub fn _vreinterpretq_u32_s16(a: _int16x8_t) -> _uint32x4_t {
     unimplemented!()
 }
 #[inline(always)]
 #[hax_lib::lean::replace_body("sorry")]
-#[hax_lib::ensures(|result| fstar!("$result == $a"))]
+#[hax_lib::ensures(|result| fstar!("$result == $a /\\
+    (forall (i:nat{i < 4}).
+       get_lane_i16x8 $result (2*i) == u32_lo16_as_i16 (get_lane_u32x4 $a i) /\\
+       get_lane_i16x8 $result (2*i+1) == u32_hi16_as_i16 (get_lane_u32x4 $a i))"))]
 pub fn _vreinterpretq_s16_u32(a: _uint32x4_t) -> _int16x8_t {
     unimplemented!()
 }
