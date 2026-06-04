@@ -302,3 +302,41 @@ mod_q-reduced; may need a per-step "both sides mod_q" framing). Add functional e
 - cross_to_hacspec_poly lemmas exist in Commute.Chunk (1789/1896/2004/2112/2220).
 - Reused as-is across layers: unit_fe_post_cross, lemma_round_cross_intro, lemma_atom_to_bf_cross,
   outer_3_plus. NEW per layer: lemma_lL_cross_driver_compose + driver functional ensures + flat-asserts.
+
+---
+
+# SESSION 3 (cont.) — Phase 5 top-ntt compose
+
+## LAYERS 4-7 DONE + COMMITTED (32b696cca)
+- All 4 driver-compose lemmas + drivers replicated from L3 (createi-fix + 16 flat-asserts each);
+  one batch full build "Verified module ... All verification conditions discharged", 0 admits.
+
+## TOP NTT (== Hacspec_ml_dsa.Ntt.ntt) — compose infra PROVEN (scratch), wired, gate-building
+- Design: lemma_ntt_compose_8 (9 flat arrays + 8 mod-q post hyps) chains via 7 per-layer
+  ntt_layer congruence lemmas (layers 0-6): a==b (mod q) elementwise ==> ntt_layer a L == ntt_layer b L
+  (EXACT, since ntt_layer output is mod_q-reduced). Then ntt f0 == g0 by unfolding the 8-layer chain.
+- Per layer: lemma_layer_L_lane_cong (STANDALONE, NO createi — clean context) proves
+  layer_L_lane a ii == layer_L_lane b ii via parity case-split + 2 layer-independent butterfly
+  congruence helpers (lemma_bf_even/odd_cong, built on lemma_mod_q_v + FStar.Math.Lemmas mod lemmas);
+  lemma_ntt_layer_L_cong does the createi reduction (lemma_ntt_layer_L_lane) + Seq.lemma_eq_intro,
+  calling the clean lane-cong.
+- ALL 15 lemmas + compose VERIFY in scratch (direct fstar.exe, EXIT 0 "Verified module").
+
+## KEY F* LESSONS (top-ntt cong, this session)
+1. **createi cascade poisons trivial parity asserts** — calling lemma_ntt_layer_L_lane (createi
+   reduction) in the SAME function as the parity/%! reasoning poisoned `v(ii%!2)==parity` asserts
+   in the odd branch (even branch passed; asymmetric). FIX = split lane-cong into a STANDALONE
+   lemma with NO createi (clean context); the ntt-layer-cong calls reduction + lane-cong separately.
+   (Cascade-pollution recipe.) This was THE unlock after ~10 failed in-fn attempts.
+2. **modulo bound needs refined type** — `i % twoLen < twoLen` not derivable from `~(i%twoLen<len)`;
+   bind `let parity:(n:nat{n<twoLen}) = i%twoLen` so the bound is intrinsic (context_pruning-proof);
+   + FStar.Math.Lemmas.lemma_mod_lt i twoLen.
+3. **`<.`/`<=.` are unfold but `lt`/`lte` (bodies) are plain `let`** — need --ifuel 2 to unfold to
+   `v a < v b`; the layer_L_lane if-branch resolution needs the POSITIVE `<.` (even) / `~(<.)` (odd)
+   asserted explicitly so F* resolves the createi-body if.
+4. **Session reaping** — proxy interactive sessions reaped on cumulative timeout during edit latency;
+   for the tight cong edit-loop, used direct fstar.exe on a scratch (reference_sha3_fstar_local_invocation
+   pattern) for a clean EXIT-0 signal. Faster + reliable than re-opening sessions.
+- Wired into ntt.rs: compose block as before-block on top ntt; 8 #[cfg(hax)] snapshots (s0,s7..s1);
+  functional ensures (forall i<256 out_flat[i]%q == (ntt in_flat)[i]%q); compose call. Extracted clean
+  (15 lemmas present). Gate build IN PROGRESS (build_id 4f934652).
