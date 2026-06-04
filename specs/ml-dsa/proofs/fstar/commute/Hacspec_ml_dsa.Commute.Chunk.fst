@@ -1663,6 +1663,605 @@ let lemma_ntt_layer_2_step_to_hacspec_poly
     Classical.forall_intro aux
 #pop-options
 
+(* ===== Cross-chunk forward-NTT layers 3-7 ====================================
+   The butterfly pairs span TWO simd units (unit u lane l <-> unit u+step_by
+   lane l) sharing ONE zeta across all 8 lanes.  Mirrors the within-chunk
+   layer-0/1/2 bridge (layer_2_lane / lemma_ntt_layer_2_lane /
+   lemma_layer_2_chunk_pair / lemma_ntt_layer_2_step_to_hacspec_poly) but with
+   the cross-unit geometry.  Reuses the layer-agnostic butterfly algebra
+   lemma_layer_0_pair_spec and one generic index lemma below.
+
+   Layer L: len = 1<<L = 8*step_by coefficients, step_by = len/8 units,
+   k = 128/len.  step_by/len/k per layer:
+     L=3: step_by=1,  len=8,   k=16
+     L=4: step_by=2,  len=16,  k=8
+     L=5: step_by=4,  len=32,  k=4
+     L=6: step_by=8,  len=64,  k=2
+     L=7: step_by=16, len=128, k=1
+   A lo-unit ulo satisfies ulo % (2*step_by) < step_by and pairs with
+   ulo+step_by; block c = ulo/(2*step_by); zeta index = c + k. *)
+
+(* Generic flat-index arithmetic for one lo-unit pair.  Discharges, for
+   step_by = s (any power-of-two divisor of 16), the round/idx facts that
+   layer_L_lane needs at the two flat indices 8*ulo+l (lo) and 8*ulo+8s+l
+   (hi), plus the hi-partner unit bound ulo+s < 32. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 300 --split_queries always"
+let lemma_cross_idx (s:pos{16 % s == 0 /\ s <= 16}) (ulo:nat{ulo < 32 /\ ulo % (2*s) < s}) (l:nat{l<8})
+  : Lemma (ensures
+      ulo + s < 32 /\
+      (8*ulo+l) / (16*s) == ulo/(2*s) /\
+      (8*ulo+l) % (16*s) == 8*(ulo%(2*s)) + l /\
+      8*(ulo%(2*s)) + l < 8*s /\
+      (8*ulo + 8*s + l) / (16*s) == ulo/(2*s) /\
+      (8*ulo + 8*s + l) % (16*s) == 8*s + 8*(ulo%(2*s)) + l /\
+      8*s + 8*(ulo%(2*s)) + l >= 8*s /\
+      8*s + 8*(ulo%(2*s)) + l < 16*s)
+  = let c = ulo / (2*s) in
+    let r = ulo % (2*s) in
+    L.lemma_div_mod ulo (2*s);
+    assert (ulo == (2*s)*c + r);
+    assert (r < s);
+    L.lemma_div_mod 32 (2*s);
+    assert (32 == (2*s)*(32/(2*s)));
+    assert ((2*s)*c < (2*s)*(32/(2*s)));
+    L.lemma_mult_lt_left (2*s) c (32/(2*s));
+    assert (c < 32/(2*s));
+    L.lemma_mult_le_left (2*s) (c+1) (32/(2*s));
+    assert ((2*s)*(c+1) <= 32);
+    assert (ulo + s < (2*s)*(c+1));
+    assert (8*ulo == 16*s*c + 8*r);
+    assert (8*ulo + l == (8*r+l) + c*(16*s));
+    L.lemma_div_plus (8*r+l) c (16*s);
+    L.lemma_mod_plus (8*r+l) c (16*s);
+    L.small_div (8*r+l) (16*s);
+    L.small_mod (8*r+l) (16*s);
+    assert (8*ulo + 8*s + l == (8*s+8*r+l) + c*(16*s));
+    L.lemma_div_plus (8*s+8*r+l) c (16*s);
+    L.lemma_mod_plus (8*s+8*r+l) c (16*s);
+    L.small_div (8*s+8*r+l) (16*s);
+    L.small_mod (8*s+8*r+l) (16*s)
+#pop-options
+
+///////////////////////////////////////////////////////////////////////////////
+// LAYER 3 (step_by=1, len=8, k=16)
+///////////////////////////////////////////////////////////////////////////////
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200 --split_queries always"
+let layer_3_lane (p: t_Array i32 (mk_usize 256)) (i: usize{i <. mk_usize 256}) : i32 =
+  let round:usize = i /! mk_usize 16 in
+  let idx:usize = i %! mk_usize 16 in
+  let z:i64 = cast (Hacspec_ml_dsa.Ntt.v_ZETAS.[ round +! mk_usize 16 <: usize ] <: i32) <: i64 in
+  if idx <. mk_usize 8
+  then
+    let t:i32 =
+      Hacspec_ml_dsa.Arithmetic.mod_q (z *! (cast (p.[ i +! mk_usize 8 <: usize ] <: i32) <: i64) <: i64)
+    in
+    Hacspec_ml_dsa.Arithmetic.mod_q ((cast (p.[ i ] <: i32) <: i64) +! (cast (t <: i32) <: i64) <: i64)
+  else
+    let t:i32 =
+      Hacspec_ml_dsa.Arithmetic.mod_q (z *! (cast (p.[ i ] <: i32) <: i64) <: i64)
+    in
+    Hacspec_ml_dsa.Arithmetic.mod_q ((cast (p.[ i -! mk_usize 8 <: usize ] <: i32) <: i64) -! (cast (t <: i32) <: i64) <: i64)
+#pop-options
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 150 --split_queries always"
+let lemma_ntt_layer_3_lane (p: t_Array i32 (mk_usize 256)) (i: usize{i <. mk_usize 256})
+    : Lemma (Seq.index (Hacspec_ml_dsa.Ntt.ntt_layer p (mk_usize 3)) (v i) == layer_3_lane p i) = ()
+#pop-options
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 300 --split_queries always"
+let lemma_layer_3_cross_pair
+    (input transformed: t_Array (t_Array i32 (mk_usize 8)) (mk_usize 32))
+    (ulo: nat{ulo < 32 /\ ulo % 2 == 0}) (l: nat{l < 8}) (tp zmp: i32)
+    : Lemma
+        (requires
+          (let ci_lo = Seq.index input ulo in let ci_hi = Seq.index input (ulo+1) in
+           let co_lo = Seq.index transformed ulo in let co_hi = Seq.index transformed (ulo+1) in
+           let z : i32 = Hacspec_ml_dsa.Ntt.v_ZETAS.[ mk_usize (ulo/2 + 16) ] in
+           v (Seq.index co_lo l) == v (Seq.index ci_lo l) + v tp /\
+           v (Seq.index co_hi l) == v (Seq.index ci_lo l) - v tp /\
+           (v tp) % 8380417 == (v (Seq.index ci_hi l) * v zmp * 8265825) % 8380417 /\
+           (v zmp) % 8380417 == (v z * pow2 32) % 8380417))
+        (ensures
+          (let in_flat = simd_units_to_array input in
+           let co_lo = Seq.index transformed ulo in let co_hi = Seq.index transformed (ulo+1) in
+           let spec = Hacspec_ml_dsa.Ntt.ntt_layer in_flat (mk_usize 3) in
+           (v (Seq.index co_lo l)) % 8380417 == (v (Seq.index spec (8*ulo + l)))     % 8380417 /\
+           (v (Seq.index co_hi l)) % 8380417 == (v (Seq.index spec (8*ulo + 8 + l))) % 8380417))
+  = let in_flat = simd_units_to_array input in
+    let lo_old = Seq.index (Seq.index input ulo) l in
+    let hi_old = Seq.index (Seq.index input (ulo+1)) l in
+    let lo_new = Seq.index (Seq.index transformed ulo) l in
+    let hi_new = Seq.index (Seq.index transformed (ulo+1)) l in
+    let z : i32 = Hacspec_ml_dsa.Ntt.v_ZETAS.[ mk_usize (ulo/2 + 16) ] in
+    lemma_cross_idx 1 ulo l;
+    lemma_simd_units_to_array_reveal input ulo l;
+    lemma_simd_units_to_array_reveal input (ulo+1) l;
+    assert (Seq.index in_flat (8*ulo + l) == lo_old);
+    assert (8*(ulo+1) + l == 8*ulo + 8 + l);
+    assert (Seq.index in_flat (8*ulo + 8 + l) == hi_old);
+    lemma_ntt_layer_3_lane in_flat (mk_usize (8*ulo + l));
+    lemma_ntt_layer_3_lane in_flat (mk_usize (8*ulo + 8 + l));
+    lemma_layer_0_pair_spec lo_old hi_old tp lo_new hi_new zmp z
+#pop-options
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200 --split_queries always"
+let lemma_ntt_layer_3_cross_to_hacspec_poly
+    (input transformed: t_Array (t_Array i32 (mk_usize 8)) (mk_usize 32))
+    (t: (ulo: nat{ulo < 32} -> l: nat{l < 8} -> i32))
+    (zm: (ulo: nat{ulo < 32} -> i32))
+    : Lemma
+        (requires
+          (forall (ulo: nat{ulo < 32}) (l: nat{l < 8}). ulo % 2 == 0 ==>
+           (let ci_lo = Seq.index input ulo in let ci_hi = Seq.index input (ulo+1) in
+            let co_lo = Seq.index transformed ulo in let co_hi = Seq.index transformed (ulo+1) in
+            v (Seq.index co_lo l) == v (Seq.index ci_lo l) + v (t ulo l) /\
+            v (Seq.index co_hi l) == v (Seq.index ci_lo l) - v (t ulo l) /\
+            (v (t ulo l)) % 8380417 == (v (Seq.index ci_hi l) * v (zm ulo) * 8265825) % 8380417)) /\
+          (forall (ulo: nat{ulo < 32}). ulo % 2 == 0 ==>
+            (v (zm ulo)) % 8380417 ==
+            (v (Hacspec_ml_dsa.Ntt.v_ZETAS.[ mk_usize (ulo/2 + 16) ] <: i32) * pow2 32) % 8380417))
+        (ensures
+          (let in_flat = simd_units_to_array input in
+           let out_flat = simd_units_to_array transformed in
+           let spec = Hacspec_ml_dsa.Ntt.ntt_layer in_flat (mk_usize 3) in
+           forall (i: nat). i < 256 ==>
+             (v (Seq.index out_flat i)) % 8380417 == (v (Seq.index spec i)) % 8380417))
+  = let q : pos = 8380417 in
+    let in_flat = simd_units_to_array input in
+    let out_flat = simd_units_to_array transformed in
+    let spec = Hacspec_ml_dsa.Ntt.ntt_layer in_flat (mk_usize 3) in
+    let aux (i: nat{i < 256}) : Lemma
+        ((v (Seq.index out_flat i)) % q == (v (Seq.index spec i)) % q)
+      = let u : nat = i / 8 in let l : nat = i % 8 in
+        assert (u < 32 /\ l < 8 /\ 8*u + l == i);
+        if u % 2 = 0 then begin
+          lemma_layer_3_cross_pair input transformed u l (t u l) (zm u);
+          lemma_simd_units_to_array_reveal transformed u l
+        end else begin
+          let ulo : nat = u - 1 in
+          L.lemma_div_mod u 2;
+          assert (ulo % 2 == 0 /\ ulo + 1 == u /\ 8*ulo + 8 + l == 8*u + l);
+          lemma_layer_3_cross_pair input transformed ulo l (t ulo l) (zm ulo);
+          lemma_simd_units_to_array_reveal transformed u l
+        end
+    in
+    Classical.forall_intro aux
+#pop-options
+
+///////////////////////////////////////////////////////////////////////////////
+// LAYER 4 (step_by=2, len=16, k=8)
+///////////////////////////////////////////////////////////////////////////////
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200 --split_queries always"
+let layer_4_lane (p: t_Array i32 (mk_usize 256)) (i: usize{i <. mk_usize 256}) : i32 =
+  let round:usize = i /! mk_usize 32 in
+  let idx:usize = i %! mk_usize 32 in
+  let z:i64 = cast (Hacspec_ml_dsa.Ntt.v_ZETAS.[ round +! mk_usize 8 <: usize ] <: i32) <: i64 in
+  if idx <. mk_usize 16
+  then
+    let t:i32 =
+      Hacspec_ml_dsa.Arithmetic.mod_q (z *! (cast (p.[ i +! mk_usize 16 <: usize ] <: i32) <: i64) <: i64)
+    in
+    Hacspec_ml_dsa.Arithmetic.mod_q ((cast (p.[ i ] <: i32) <: i64) +! (cast (t <: i32) <: i64) <: i64)
+  else
+    let t:i32 =
+      Hacspec_ml_dsa.Arithmetic.mod_q (z *! (cast (p.[ i ] <: i32) <: i64) <: i64)
+    in
+    Hacspec_ml_dsa.Arithmetic.mod_q ((cast (p.[ i -! mk_usize 16 <: usize ] <: i32) <: i64) -! (cast (t <: i32) <: i64) <: i64)
+#pop-options
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 150 --split_queries always"
+let lemma_ntt_layer_4_lane (p: t_Array i32 (mk_usize 256)) (i: usize{i <. mk_usize 256})
+    : Lemma (Seq.index (Hacspec_ml_dsa.Ntt.ntt_layer p (mk_usize 4)) (v i) == layer_4_lane p i) = ()
+#pop-options
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 300 --split_queries always"
+let lemma_layer_4_cross_pair
+    (input transformed: t_Array (t_Array i32 (mk_usize 8)) (mk_usize 32))
+    (ulo: nat{ulo < 32 /\ ulo % 4 < 2}) (l: nat{l < 8}) (tp zmp: i32)
+    : Lemma
+        (requires
+          (let ci_lo = Seq.index input ulo in let ci_hi = Seq.index input (ulo+2) in
+           let co_lo = Seq.index transformed ulo in let co_hi = Seq.index transformed (ulo+2) in
+           let z : i32 = Hacspec_ml_dsa.Ntt.v_ZETAS.[ mk_usize (ulo/4 + 8) ] in
+           v (Seq.index co_lo l) == v (Seq.index ci_lo l) + v tp /\
+           v (Seq.index co_hi l) == v (Seq.index ci_lo l) - v tp /\
+           (v tp) % 8380417 == (v (Seq.index ci_hi l) * v zmp * 8265825) % 8380417 /\
+           (v zmp) % 8380417 == (v z * pow2 32) % 8380417))
+        (ensures
+          (let in_flat = simd_units_to_array input in
+           let co_lo = Seq.index transformed ulo in let co_hi = Seq.index transformed (ulo+2) in
+           let spec = Hacspec_ml_dsa.Ntt.ntt_layer in_flat (mk_usize 4) in
+           (v (Seq.index co_lo l)) % 8380417 == (v (Seq.index spec (8*ulo + l)))      % 8380417 /\
+           (v (Seq.index co_hi l)) % 8380417 == (v (Seq.index spec (8*ulo + 16 + l))) % 8380417))
+  = let in_flat = simd_units_to_array input in
+    let lo_old = Seq.index (Seq.index input ulo) l in
+    let hi_old = Seq.index (Seq.index input (ulo+2)) l in
+    let lo_new = Seq.index (Seq.index transformed ulo) l in
+    let hi_new = Seq.index (Seq.index transformed (ulo+2)) l in
+    let z : i32 = Hacspec_ml_dsa.Ntt.v_ZETAS.[ mk_usize (ulo/4 + 8) ] in
+    lemma_cross_idx 2 ulo l;
+    lemma_simd_units_to_array_reveal input ulo l;
+    lemma_simd_units_to_array_reveal input (ulo+2) l;
+    assert (Seq.index in_flat (8*ulo + l) == lo_old);
+    assert (8*(ulo+2) + l == 8*ulo + 16 + l);
+    assert (Seq.index in_flat (8*ulo + 16 + l) == hi_old);
+    lemma_ntt_layer_4_lane in_flat (mk_usize (8*ulo + l));
+    lemma_ntt_layer_4_lane in_flat (mk_usize (8*ulo + 16 + l));
+    lemma_layer_0_pair_spec lo_old hi_old tp lo_new hi_new zmp z
+#pop-options
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200 --split_queries always"
+let lemma_ntt_layer_4_cross_to_hacspec_poly
+    (input transformed: t_Array (t_Array i32 (mk_usize 8)) (mk_usize 32))
+    (t: (ulo: nat{ulo < 32} -> l: nat{l < 8} -> i32))
+    (zm: (ulo: nat{ulo < 32} -> i32))
+    : Lemma
+        (requires
+          (forall (ulo: nat{ulo < 32}) (l: nat{l < 8}). ulo % 4 < 2 ==>
+           (let ci_lo = Seq.index input ulo in let ci_hi = Seq.index input (ulo+2) in
+            let co_lo = Seq.index transformed ulo in let co_hi = Seq.index transformed (ulo+2) in
+            v (Seq.index co_lo l) == v (Seq.index ci_lo l) + v (t ulo l) /\
+            v (Seq.index co_hi l) == v (Seq.index ci_lo l) - v (t ulo l) /\
+            (v (t ulo l)) % 8380417 == (v (Seq.index ci_hi l) * v (zm ulo) * 8265825) % 8380417)) /\
+          (forall (ulo: nat{ulo < 32}). ulo % 4 < 2 ==>
+            (v (zm ulo)) % 8380417 ==
+            (v (Hacspec_ml_dsa.Ntt.v_ZETAS.[ mk_usize (ulo/4 + 8) ] <: i32) * pow2 32) % 8380417))
+        (ensures
+          (let in_flat = simd_units_to_array input in
+           let out_flat = simd_units_to_array transformed in
+           let spec = Hacspec_ml_dsa.Ntt.ntt_layer in_flat (mk_usize 4) in
+           forall (i: nat). i < 256 ==>
+             (v (Seq.index out_flat i)) % 8380417 == (v (Seq.index spec i)) % 8380417))
+  = let q : pos = 8380417 in
+    let in_flat = simd_units_to_array input in
+    let out_flat = simd_units_to_array transformed in
+    let spec = Hacspec_ml_dsa.Ntt.ntt_layer in_flat (mk_usize 4) in
+    let aux (i: nat{i < 256}) : Lemma
+        ((v (Seq.index out_flat i)) % q == (v (Seq.index spec i)) % q)
+      = let u : nat = i / 8 in let l : nat = i % 8 in
+        assert (u < 32 /\ l < 8 /\ 8*u + l == i);
+        if u % 4 < 2 then begin
+          lemma_layer_4_cross_pair input transformed u l (t u l) (zm u);
+          lemma_simd_units_to_array_reveal transformed u l
+        end else begin
+          let ulo : nat = u - 2 in
+          L.lemma_div_mod u 4;
+          assert (u % 4 >= 2 /\ u >= 2);
+          assert (ulo % 4 < 2 /\ ulo + 2 == u /\ 8*ulo + 16 + l == 8*u + l);
+          lemma_layer_4_cross_pair input transformed ulo l (t ulo l) (zm ulo);
+          lemma_simd_units_to_array_reveal transformed u l
+        end
+    in
+    Classical.forall_intro aux
+#pop-options
+
+///////////////////////////////////////////////////////////////////////////////
+// LAYER 5 (step_by=4, len=32, k=4)
+///////////////////////////////////////////////////////////////////////////////
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200 --split_queries always"
+let layer_5_lane (p: t_Array i32 (mk_usize 256)) (i: usize{i <. mk_usize 256}) : i32 =
+  let round:usize = i /! mk_usize 64 in
+  let idx:usize = i %! mk_usize 64 in
+  let z:i64 = cast (Hacspec_ml_dsa.Ntt.v_ZETAS.[ round +! mk_usize 4 <: usize ] <: i32) <: i64 in
+  if idx <. mk_usize 32
+  then
+    let t:i32 =
+      Hacspec_ml_dsa.Arithmetic.mod_q (z *! (cast (p.[ i +! mk_usize 32 <: usize ] <: i32) <: i64) <: i64)
+    in
+    Hacspec_ml_dsa.Arithmetic.mod_q ((cast (p.[ i ] <: i32) <: i64) +! (cast (t <: i32) <: i64) <: i64)
+  else
+    let t:i32 =
+      Hacspec_ml_dsa.Arithmetic.mod_q (z *! (cast (p.[ i ] <: i32) <: i64) <: i64)
+    in
+    Hacspec_ml_dsa.Arithmetic.mod_q ((cast (p.[ i -! mk_usize 32 <: usize ] <: i32) <: i64) -! (cast (t <: i32) <: i64) <: i64)
+#pop-options
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 150 --split_queries always"
+let lemma_ntt_layer_5_lane (p: t_Array i32 (mk_usize 256)) (i: usize{i <. mk_usize 256})
+    : Lemma (Seq.index (Hacspec_ml_dsa.Ntt.ntt_layer p (mk_usize 5)) (v i) == layer_5_lane p i) = ()
+#pop-options
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 300 --split_queries always"
+let lemma_layer_5_cross_pair
+    (input transformed: t_Array (t_Array i32 (mk_usize 8)) (mk_usize 32))
+    (ulo: nat{ulo < 32 /\ ulo % 8 < 4}) (l: nat{l < 8}) (tp zmp: i32)
+    : Lemma
+        (requires
+          (let ci_lo = Seq.index input ulo in let ci_hi = Seq.index input (ulo+4) in
+           let co_lo = Seq.index transformed ulo in let co_hi = Seq.index transformed (ulo+4) in
+           let z : i32 = Hacspec_ml_dsa.Ntt.v_ZETAS.[ mk_usize (ulo/8 + 4) ] in
+           v (Seq.index co_lo l) == v (Seq.index ci_lo l) + v tp /\
+           v (Seq.index co_hi l) == v (Seq.index ci_lo l) - v tp /\
+           (v tp) % 8380417 == (v (Seq.index ci_hi l) * v zmp * 8265825) % 8380417 /\
+           (v zmp) % 8380417 == (v z * pow2 32) % 8380417))
+        (ensures
+          (let in_flat = simd_units_to_array input in
+           let co_lo = Seq.index transformed ulo in let co_hi = Seq.index transformed (ulo+4) in
+           let spec = Hacspec_ml_dsa.Ntt.ntt_layer in_flat (mk_usize 5) in
+           (v (Seq.index co_lo l)) % 8380417 == (v (Seq.index spec (8*ulo + l)))      % 8380417 /\
+           (v (Seq.index co_hi l)) % 8380417 == (v (Seq.index spec (8*ulo + 32 + l))) % 8380417))
+  = let in_flat = simd_units_to_array input in
+    let lo_old = Seq.index (Seq.index input ulo) l in
+    let hi_old = Seq.index (Seq.index input (ulo+4)) l in
+    let lo_new = Seq.index (Seq.index transformed ulo) l in
+    let hi_new = Seq.index (Seq.index transformed (ulo+4)) l in
+    let z : i32 = Hacspec_ml_dsa.Ntt.v_ZETAS.[ mk_usize (ulo/8 + 4) ] in
+    lemma_cross_idx 4 ulo l;
+    lemma_simd_units_to_array_reveal input ulo l;
+    lemma_simd_units_to_array_reveal input (ulo+4) l;
+    assert (Seq.index in_flat (8*ulo + l) == lo_old);
+    assert (8*(ulo+4) + l == 8*ulo + 32 + l);
+    assert (Seq.index in_flat (8*ulo + 32 + l) == hi_old);
+    lemma_ntt_layer_5_lane in_flat (mk_usize (8*ulo + l));
+    lemma_ntt_layer_5_lane in_flat (mk_usize (8*ulo + 32 + l));
+    lemma_layer_0_pair_spec lo_old hi_old tp lo_new hi_new zmp z
+#pop-options
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200 --split_queries always"
+let lemma_ntt_layer_5_cross_to_hacspec_poly
+    (input transformed: t_Array (t_Array i32 (mk_usize 8)) (mk_usize 32))
+    (t: (ulo: nat{ulo < 32} -> l: nat{l < 8} -> i32))
+    (zm: (ulo: nat{ulo < 32} -> i32))
+    : Lemma
+        (requires
+          (forall (ulo: nat{ulo < 32}) (l: nat{l < 8}). ulo % 8 < 4 ==>
+           (let ci_lo = Seq.index input ulo in let ci_hi = Seq.index input (ulo+4) in
+            let co_lo = Seq.index transformed ulo in let co_hi = Seq.index transformed (ulo+4) in
+            v (Seq.index co_lo l) == v (Seq.index ci_lo l) + v (t ulo l) /\
+            v (Seq.index co_hi l) == v (Seq.index ci_lo l) - v (t ulo l) /\
+            (v (t ulo l)) % 8380417 == (v (Seq.index ci_hi l) * v (zm ulo) * 8265825) % 8380417)) /\
+          (forall (ulo: nat{ulo < 32}). ulo % 8 < 4 ==>
+            (v (zm ulo)) % 8380417 ==
+            (v (Hacspec_ml_dsa.Ntt.v_ZETAS.[ mk_usize (ulo/8 + 4) ] <: i32) * pow2 32) % 8380417))
+        (ensures
+          (let in_flat = simd_units_to_array input in
+           let out_flat = simd_units_to_array transformed in
+           let spec = Hacspec_ml_dsa.Ntt.ntt_layer in_flat (mk_usize 5) in
+           forall (i: nat). i < 256 ==>
+             (v (Seq.index out_flat i)) % 8380417 == (v (Seq.index spec i)) % 8380417))
+  = let q : pos = 8380417 in
+    let in_flat = simd_units_to_array input in
+    let out_flat = simd_units_to_array transformed in
+    let spec = Hacspec_ml_dsa.Ntt.ntt_layer in_flat (mk_usize 5) in
+    let aux (i: nat{i < 256}) : Lemma
+        ((v (Seq.index out_flat i)) % q == (v (Seq.index spec i)) % q)
+      = let u : nat = i / 8 in let l : nat = i % 8 in
+        assert (u < 32 /\ l < 8 /\ 8*u + l == i);
+        if u % 8 < 4 then begin
+          lemma_layer_5_cross_pair input transformed u l (t u l) (zm u);
+          lemma_simd_units_to_array_reveal transformed u l
+        end else begin
+          let ulo : nat = u - 4 in
+          L.lemma_div_mod u 8;
+          assert (u % 8 >= 4 /\ u >= 4);
+          assert (ulo % 8 < 4 /\ ulo + 4 == u /\ 8*ulo + 32 + l == 8*u + l);
+          lemma_layer_5_cross_pair input transformed ulo l (t ulo l) (zm ulo);
+          lemma_simd_units_to_array_reveal transformed u l
+        end
+    in
+    Classical.forall_intro aux
+#pop-options
+
+///////////////////////////////////////////////////////////////////////////////
+// LAYER 6 (step_by=8, len=64, k=2)
+///////////////////////////////////////////////////////////////////////////////
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200 --split_queries always"
+let layer_6_lane (p: t_Array i32 (mk_usize 256)) (i: usize{i <. mk_usize 256}) : i32 =
+  let round:usize = i /! mk_usize 128 in
+  let idx:usize = i %! mk_usize 128 in
+  let z:i64 = cast (Hacspec_ml_dsa.Ntt.v_ZETAS.[ round +! mk_usize 2 <: usize ] <: i32) <: i64 in
+  if idx <. mk_usize 64
+  then
+    let t:i32 =
+      Hacspec_ml_dsa.Arithmetic.mod_q (z *! (cast (p.[ i +! mk_usize 64 <: usize ] <: i32) <: i64) <: i64)
+    in
+    Hacspec_ml_dsa.Arithmetic.mod_q ((cast (p.[ i ] <: i32) <: i64) +! (cast (t <: i32) <: i64) <: i64)
+  else
+    let t:i32 =
+      Hacspec_ml_dsa.Arithmetic.mod_q (z *! (cast (p.[ i ] <: i32) <: i64) <: i64)
+    in
+    Hacspec_ml_dsa.Arithmetic.mod_q ((cast (p.[ i -! mk_usize 64 <: usize ] <: i32) <: i64) -! (cast (t <: i32) <: i64) <: i64)
+#pop-options
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 150 --split_queries always"
+let lemma_ntt_layer_6_lane (p: t_Array i32 (mk_usize 256)) (i: usize{i <. mk_usize 256})
+    : Lemma (Seq.index (Hacspec_ml_dsa.Ntt.ntt_layer p (mk_usize 6)) (v i) == layer_6_lane p i) = ()
+#pop-options
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 300 --split_queries always"
+let lemma_layer_6_cross_pair
+    (input transformed: t_Array (t_Array i32 (mk_usize 8)) (mk_usize 32))
+    (ulo: nat{ulo < 32 /\ ulo % 16 < 8}) (l: nat{l < 8}) (tp zmp: i32)
+    : Lemma
+        (requires
+          (let ci_lo = Seq.index input ulo in let ci_hi = Seq.index input (ulo+8) in
+           let co_lo = Seq.index transformed ulo in let co_hi = Seq.index transformed (ulo+8) in
+           let z : i32 = Hacspec_ml_dsa.Ntt.v_ZETAS.[ mk_usize (ulo/16 + 2) ] in
+           v (Seq.index co_lo l) == v (Seq.index ci_lo l) + v tp /\
+           v (Seq.index co_hi l) == v (Seq.index ci_lo l) - v tp /\
+           (v tp) % 8380417 == (v (Seq.index ci_hi l) * v zmp * 8265825) % 8380417 /\
+           (v zmp) % 8380417 == (v z * pow2 32) % 8380417))
+        (ensures
+          (let in_flat = simd_units_to_array input in
+           let co_lo = Seq.index transformed ulo in let co_hi = Seq.index transformed (ulo+8) in
+           let spec = Hacspec_ml_dsa.Ntt.ntt_layer in_flat (mk_usize 6) in
+           (v (Seq.index co_lo l)) % 8380417 == (v (Seq.index spec (8*ulo + l)))      % 8380417 /\
+           (v (Seq.index co_hi l)) % 8380417 == (v (Seq.index spec (8*ulo + 64 + l))) % 8380417))
+  = let in_flat = simd_units_to_array input in
+    let lo_old = Seq.index (Seq.index input ulo) l in
+    let hi_old = Seq.index (Seq.index input (ulo+8)) l in
+    let lo_new = Seq.index (Seq.index transformed ulo) l in
+    let hi_new = Seq.index (Seq.index transformed (ulo+8)) l in
+    let z : i32 = Hacspec_ml_dsa.Ntt.v_ZETAS.[ mk_usize (ulo/16 + 2) ] in
+    lemma_cross_idx 8 ulo l;
+    lemma_simd_units_to_array_reveal input ulo l;
+    lemma_simd_units_to_array_reveal input (ulo+8) l;
+    assert (Seq.index in_flat (8*ulo + l) == lo_old);
+    assert (8*(ulo+8) + l == 8*ulo + 64 + l);
+    assert (Seq.index in_flat (8*ulo + 64 + l) == hi_old);
+    lemma_ntt_layer_6_lane in_flat (mk_usize (8*ulo + l));
+    lemma_ntt_layer_6_lane in_flat (mk_usize (8*ulo + 64 + l));
+    lemma_layer_0_pair_spec lo_old hi_old tp lo_new hi_new zmp z
+#pop-options
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200 --split_queries always"
+let lemma_ntt_layer_6_cross_to_hacspec_poly
+    (input transformed: t_Array (t_Array i32 (mk_usize 8)) (mk_usize 32))
+    (t: (ulo: nat{ulo < 32} -> l: nat{l < 8} -> i32))
+    (zm: (ulo: nat{ulo < 32} -> i32))
+    : Lemma
+        (requires
+          (forall (ulo: nat{ulo < 32}) (l: nat{l < 8}). ulo % 16 < 8 ==>
+           (let ci_lo = Seq.index input ulo in let ci_hi = Seq.index input (ulo+8) in
+            let co_lo = Seq.index transformed ulo in let co_hi = Seq.index transformed (ulo+8) in
+            v (Seq.index co_lo l) == v (Seq.index ci_lo l) + v (t ulo l) /\
+            v (Seq.index co_hi l) == v (Seq.index ci_lo l) - v (t ulo l) /\
+            (v (t ulo l)) % 8380417 == (v (Seq.index ci_hi l) * v (zm ulo) * 8265825) % 8380417)) /\
+          (forall (ulo: nat{ulo < 32}). ulo % 16 < 8 ==>
+            (v (zm ulo)) % 8380417 ==
+            (v (Hacspec_ml_dsa.Ntt.v_ZETAS.[ mk_usize (ulo/16 + 2) ] <: i32) * pow2 32) % 8380417))
+        (ensures
+          (let in_flat = simd_units_to_array input in
+           let out_flat = simd_units_to_array transformed in
+           let spec = Hacspec_ml_dsa.Ntt.ntt_layer in_flat (mk_usize 6) in
+           forall (i: nat). i < 256 ==>
+             (v (Seq.index out_flat i)) % 8380417 == (v (Seq.index spec i)) % 8380417))
+  = let q : pos = 8380417 in
+    let in_flat = simd_units_to_array input in
+    let out_flat = simd_units_to_array transformed in
+    let spec = Hacspec_ml_dsa.Ntt.ntt_layer in_flat (mk_usize 6) in
+    let aux (i: nat{i < 256}) : Lemma
+        ((v (Seq.index out_flat i)) % q == (v (Seq.index spec i)) % q)
+      = let u : nat = i / 8 in let l : nat = i % 8 in
+        assert (u < 32 /\ l < 8 /\ 8*u + l == i);
+        if u % 16 < 8 then begin
+          lemma_layer_6_cross_pair input transformed u l (t u l) (zm u);
+          lemma_simd_units_to_array_reveal transformed u l
+        end else begin
+          let ulo : nat = u - 8 in
+          L.lemma_div_mod u 16;
+          assert (u % 16 >= 8 /\ u >= 8);
+          assert (ulo % 16 < 8 /\ ulo + 8 == u /\ 8*ulo + 64 + l == 8*u + l);
+          lemma_layer_6_cross_pair input transformed ulo l (t ulo l) (zm ulo);
+          lemma_simd_units_to_array_reveal transformed u l
+        end
+    in
+    Classical.forall_intro aux
+#pop-options
+
+///////////////////////////////////////////////////////////////////////////////
+// LAYER 7 (step_by=16, len=128, k=1)
+///////////////////////////////////////////////////////////////////////////////
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200 --split_queries always"
+let layer_7_lane (p: t_Array i32 (mk_usize 256)) (i: usize{i <. mk_usize 256}) : i32 =
+  let round:usize = i /! mk_usize 256 in
+  let idx:usize = i %! mk_usize 256 in
+  let z:i64 = cast (Hacspec_ml_dsa.Ntt.v_ZETAS.[ round +! mk_usize 1 <: usize ] <: i32) <: i64 in
+  if idx <. mk_usize 128
+  then
+    let t:i32 =
+      Hacspec_ml_dsa.Arithmetic.mod_q (z *! (cast (p.[ i +! mk_usize 128 <: usize ] <: i32) <: i64) <: i64)
+    in
+    Hacspec_ml_dsa.Arithmetic.mod_q ((cast (p.[ i ] <: i32) <: i64) +! (cast (t <: i32) <: i64) <: i64)
+  else
+    let t:i32 =
+      Hacspec_ml_dsa.Arithmetic.mod_q (z *! (cast (p.[ i ] <: i32) <: i64) <: i64)
+    in
+    Hacspec_ml_dsa.Arithmetic.mod_q ((cast (p.[ i -! mk_usize 128 <: usize ] <: i32) <: i64) -! (cast (t <: i32) <: i64) <: i64)
+#pop-options
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 150 --split_queries always"
+let lemma_ntt_layer_7_lane (p: t_Array i32 (mk_usize 256)) (i: usize{i <. mk_usize 256})
+    : Lemma (Seq.index (Hacspec_ml_dsa.Ntt.ntt_layer p (mk_usize 7)) (v i) == layer_7_lane p i) = ()
+#pop-options
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 300 --split_queries always"
+let lemma_layer_7_cross_pair
+    (input transformed: t_Array (t_Array i32 (mk_usize 8)) (mk_usize 32))
+    (ulo: nat{ulo < 32 /\ ulo % 32 < 16}) (l: nat{l < 8}) (tp zmp: i32)
+    : Lemma
+        (requires
+          (let ci_lo = Seq.index input ulo in let ci_hi = Seq.index input (ulo+16) in
+           let co_lo = Seq.index transformed ulo in let co_hi = Seq.index transformed (ulo+16) in
+           let z : i32 = Hacspec_ml_dsa.Ntt.v_ZETAS.[ mk_usize (ulo/32 + 1) ] in
+           v (Seq.index co_lo l) == v (Seq.index ci_lo l) + v tp /\
+           v (Seq.index co_hi l) == v (Seq.index ci_lo l) - v tp /\
+           (v tp) % 8380417 == (v (Seq.index ci_hi l) * v zmp * 8265825) % 8380417 /\
+           (v zmp) % 8380417 == (v z * pow2 32) % 8380417))
+        (ensures
+          (let in_flat = simd_units_to_array input in
+           let co_lo = Seq.index transformed ulo in let co_hi = Seq.index transformed (ulo+16) in
+           let spec = Hacspec_ml_dsa.Ntt.ntt_layer in_flat (mk_usize 7) in
+           (v (Seq.index co_lo l)) % 8380417 == (v (Seq.index spec (8*ulo + l)))       % 8380417 /\
+           (v (Seq.index co_hi l)) % 8380417 == (v (Seq.index spec (8*ulo + 128 + l))) % 8380417))
+  = let in_flat = simd_units_to_array input in
+    let lo_old = Seq.index (Seq.index input ulo) l in
+    let hi_old = Seq.index (Seq.index input (ulo+16)) l in
+    let lo_new = Seq.index (Seq.index transformed ulo) l in
+    let hi_new = Seq.index (Seq.index transformed (ulo+16)) l in
+    let z : i32 = Hacspec_ml_dsa.Ntt.v_ZETAS.[ mk_usize (ulo/32 + 1) ] in
+    lemma_cross_idx 16 ulo l;
+    lemma_simd_units_to_array_reveal input ulo l;
+    lemma_simd_units_to_array_reveal input (ulo+16) l;
+    assert (Seq.index in_flat (8*ulo + l) == lo_old);
+    assert (8*(ulo+16) + l == 8*ulo + 128 + l);
+    assert (Seq.index in_flat (8*ulo + 128 + l) == hi_old);
+    lemma_ntt_layer_7_lane in_flat (mk_usize (8*ulo + l));
+    lemma_ntt_layer_7_lane in_flat (mk_usize (8*ulo + 128 + l));
+    lemma_layer_0_pair_spec lo_old hi_old tp lo_new hi_new zmp z
+#pop-options
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200 --split_queries always"
+let lemma_ntt_layer_7_cross_to_hacspec_poly
+    (input transformed: t_Array (t_Array i32 (mk_usize 8)) (mk_usize 32))
+    (t: (ulo: nat{ulo < 32} -> l: nat{l < 8} -> i32))
+    (zm: (ulo: nat{ulo < 32} -> i32))
+    : Lemma
+        (requires
+          (forall (ulo: nat{ulo < 32}) (l: nat{l < 8}). ulo % 32 < 16 ==>
+           (let ci_lo = Seq.index input ulo in let ci_hi = Seq.index input (ulo+16) in
+            let co_lo = Seq.index transformed ulo in let co_hi = Seq.index transformed (ulo+16) in
+            v (Seq.index co_lo l) == v (Seq.index ci_lo l) + v (t ulo l) /\
+            v (Seq.index co_hi l) == v (Seq.index ci_lo l) - v (t ulo l) /\
+            (v (t ulo l)) % 8380417 == (v (Seq.index ci_hi l) * v (zm ulo) * 8265825) % 8380417)) /\
+          (forall (ulo: nat{ulo < 32}). ulo % 32 < 16 ==>
+            (v (zm ulo)) % 8380417 ==
+            (v (Hacspec_ml_dsa.Ntt.v_ZETAS.[ mk_usize (ulo/32 + 1) ] <: i32) * pow2 32) % 8380417))
+        (ensures
+          (let in_flat = simd_units_to_array input in
+           let out_flat = simd_units_to_array transformed in
+           let spec = Hacspec_ml_dsa.Ntt.ntt_layer in_flat (mk_usize 7) in
+           forall (i: nat). i < 256 ==>
+             (v (Seq.index out_flat i)) % 8380417 == (v (Seq.index spec i)) % 8380417))
+  = let q : pos = 8380417 in
+    let in_flat = simd_units_to_array input in
+    let out_flat = simd_units_to_array transformed in
+    let spec = Hacspec_ml_dsa.Ntt.ntt_layer in_flat (mk_usize 7) in
+    let aux (i: nat{i < 256}) : Lemma
+        ((v (Seq.index out_flat i)) % q == (v (Seq.index spec i)) % q)
+      = let u : nat = i / 8 in let l : nat = i % 8 in
+        assert (u < 32 /\ l < 8 /\ 8*u + l == i);
+        if u % 32 < 16 then begin
+          lemma_layer_7_cross_pair input transformed u l (t u l) (zm u);
+          lemma_simd_units_to_array_reveal transformed u l
+        end else begin
+          let ulo : nat = u - 16 in
+          L.lemma_div_mod u 32;
+          assert (u % 32 >= 16 /\ u >= 16);
+          assert (ulo % 32 < 16 /\ ulo + 16 == u /\ 8*ulo + 128 + l == 8*u + l);
+          lemma_layer_7_cross_pair input transformed ulo l (t ulo l) (zm ulo);
+          lemma_simd_units_to_array_reveal transformed u l
+        end
+    in
+    Classical.forall_intro aux
+#pop-options
+
+
 (* === Reusable spec zeta-table bridge: v_ZETAS[i] == Spec.MLDSA.Ntt.zeta i ===
    Ties the extracted table `v_ZETAS` (= array_of_list 256 <list> =
    Seq.seq_of_list <list>), read by the canonical `Hacspec_ml_dsa.Ntt.ntt_layer`,
