@@ -51,24 +51,26 @@ with `generate_verification_status.py`). Headline as of the last run:
 
 | Metric | Count | % |
 | --- | --- | --- |
-| Total functions | 979 | |
-| **Panic-safe** (panic-free + spec-bearing) | 952 | **97.2%** |
-| &nbsp;&nbsp;— cites high-level hacspec | 116 | 11.8% |
-| &nbsp;&nbsp;— interval/bounds ensures | 68 | 6.9% |
-| &nbsp;&nbsp;— other non-trivial ensures | 248 | 25.3% |
-| &nbsp;&nbsp;— panic-free only | 520 | 53.1% |
-| Lax (admitted) | 7 | 0.7% |
-| Unverified (not extracted) | 20 | 2.0% |
+| Total functions | 978 | |
+| **Panic-safe** (panic-free + spec-bearing) | 954 | **97.5%** |
+| &nbsp;&nbsp;— cites high-level hacspec | 116 | 11.9% |
+| &nbsp;&nbsp;— interval/bounds ensures | 68 | 7.0% |
+| &nbsp;&nbsp;— other non-trivial ensures | 250 | 25.6% |
+| &nbsp;&nbsp;— panic-free only | 520 | 53.2% |
+| Lax (admitted) | 5 | 0.5% |
+| Unverified (not extracted) | 19 | 1.9% |
 
-Per backend, the SIMD `Vector` trait and its primitives are: **Portable** — 0
-lax; **AVX2** — 0 lax; **Neon** — 2 lax (`rej_sample`, one helper). All NTT-layer
-trait methods (`op_{,inv_}ntt_layer_{1,2,3}_step`, `op_ntt_multiply`) and the
-arithmetic primitives are functionally verified on all three backends.
+Per backend, the SIMD `Vector` trait and its primitives carry **0 lax and 0
+unverified** on all three (Portable, AVX2, Neon): every NTT-layer trait method
+(`op_{,inv_}ntt_layer_{1,2,3}_step`, `op_ntt_multiply`), arithmetic primitive,
+and rejection sampler is functionally verified (Neon's `rej_sample` delegates to
+the verified portable scalar sampler).
 
-Known remaining gaps (see the status file for the live list): `rej_sample`
-(lax), a few incremental-API `From`-instance bodies (admitted due to a hax
-trait-precondition limitation), `pqcp`/`lib` glue (not extracted), and a
-prefix-form `serialize_vector` contract used by `to_bytes_compressed`.
+Known remaining gaps (see the status file for the live list): 5 admitted
+(`lax`) — the generic rejection-sampling helpers and a few incremental-API
+`From`-instance bodies (a hax trait-precondition limitation) — and 19 not
+extracted to F\* (`pqcp` and `lib` glue), plus a prefix-form `serialize_vector`
+contract used by `to_bytes_compressed`.
 
 ## Reproducing the results
 

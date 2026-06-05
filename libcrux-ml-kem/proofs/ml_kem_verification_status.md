@@ -41,58 +41,58 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 |            | mlkem*            |    4 | 134 |   0 |     | 131 |    3 |      0 |       0 |
 |            | matrix            |    1 |   5 |   0 |     |   0 |    0 |      5 |       0 |
 |            | serialize         |    1 |  25 |   0 |     |  22 |    1 |      2 |       0 |
-|            | sampling          |    1 |   9 |   2 |     |   7 |    0 |      0 |       0 |
+|            | sampling          |    0 |   9 |   2 |     |   7 |    0 |      0 |       0 |
 |            | vector (top)      |    1 |   3 |   0 |     |   3 |    0 |      0 |       0 |
 |            | vector/traits     |    1 | 111 |   0 |     |  73 |   36 |      0 |       2 |
 |            | rej_sample_table  |    1 |   0 |   0 |     |   0 |    0 |      0 |       0 |
-|            | **Generic total** | **29** | **635** | **5** | **19** | **442** | **79** | **41** |  **49** |
+|            | **Generic total** | **28** | **635** | **5** | **19** | **442** | **79** | **41** |  **49** |
 |            |                   |      |     |     |     |     |      |        |         |
 | _Portable_ | arithmetic        |    1 |  13 |   0 |     |   6 |    7 |      0 |       0 |
 |            | ntt               |    1 |  10 |   0 |     |   0 |    0 |     10 |       0 |
 |            | serialize         |    1 |  22 |   0 |     |  22 |    0 |      0 |       0 |
 |            | compress          |    1 |   6 |   0 |     |   5 |    1 |      0 |       0 |
-|            | sampling          |    1 |   1 |   0 |     |   0 |    1 |      0 |       0 |
+|            | sampling          |    0 |   1 |   0 |     |   0 |    1 |      0 |       0 |
 |            | vector_type       |    1 |   5 |   0 |     |   2 |    3 |      0 |       0 |
 |            | vector            |    1 |  64 |   0 |     |   1 |   36 |      0 |      27 |
-|            | **Portable total** | **7** | **121** | **0** |     | **36** | **48** | **10** |  **27** |
+|            | **Portable total** | **6** | **121** | **0** |     | **36** | **48** | **10** |  **27** |
 |            |                   |      |     |     |     |     |      |        |         |
 | _Avx2_     | arithmetic        |    1 |  12 |   0 |     |   5 |    7 |      0 |       0 |
 |            | ntt               |    1 |   7 |   0 |     |   0 |    0 |      7 |       0 |
 |            | serialize         |    1 |  24 |   0 |     |   2 |   22 |      0 |       0 |
 |            | compress          |    1 |   5 |   0 |     |   4 |    1 |      0 |       0 |
-|            | sampling          |    1 |   1 |   0 |     |   1 |    0 |      0 |       0 |
+|            | sampling          |    0 |   1 |   0 |     |   1 |    0 |      0 |       0 |
 |            | vector            |    1 |  72 |   0 |     |   9 |   37 |      0 |      26 |
-|            | **Avx2 total**    | **6** | **121** | **0** |     | **21** | **67** |  **7** |  **26** |
+|            | **Avx2 total**    | **5** | **121** | **0** |     | **21** | **67** |  **7** |  **26** |
 |            |                   |      |     |     |     |     |      |        |         |
 | _Neon_     | arithmetic        |    1 |  13 |   0 |     |   0 |   10 |      3 |       0 |
 |            | ntt               |    1 |   7 |   0 |     |   0 |    0 |      7 |       0 |
 |            | compress          |    1 |   7 |   0 |     |   4 |    3 |      0 |       0 |
 |            | serialize         |    1 |  12 |   0 |     |   5 |    7 |      0 |       0 |
-|            | sampling          |    1 |   1 |   0 |   1 |   0 |    0 |      0 |       0 |
+|            | sampling          |    0 |   0 |   0 |     |   0 |    0 |      0 |       0 |
 |            | vector_type       |    1 |   5 |   0 |     |   2 |    3 |      0 |       0 |
-|            | vector            |    1 |  57 |   2 |     |  10 |   31 |      0 |      14 |
-|            | **Neon total**    | **7** | **102** | **2** | **1** | **21** | **54** | **10** |  **14** |
+|            | vector            |    1 |  57 |   0 |     |  10 |   33 |      0 |      14 |
+|            | **Neon total**    | **6** | **101** | **0** |     | **21** | **56** | **10** |  **14** |
 
 ## Summary
 
-- **Total modules**: 49
-- **Total functions**: 979
-- **Lax** (admitted): 7 (0.7%)
-- **Unverified** (not extracted): 20 (2.0%)
-- **Panic-safe** (PF + Math + Bounds + Hacspec): 952 (97.2%)
-  - Panic-free only (no further proof): 520 (53.1%)
-  - Math (non-trivial ensures, no bounds/spec match): 248 (25.3%)
-  - Bounds (range/interval ensures): 68 (6.9%)
-  - Hacspec (cites high-level spec): 116 (11.8%)
+- **Total modules**: 45
+- **Total functions**: 978
+- **Lax** (admitted): 5 (0.5%)
+- **Unverified** (not extracted): 19 (1.9%)
+- **Panic-safe** (PF + Math + Bounds + Hacspec): 954 (97.5%)
+  - Panic-free only (no further proof): 520 (53.2%)
+  - Math (non-trivial ensures, no bounds/spec match): 250 (25.6%)
+  - Bounds (range/interval ensures): 68 (7.0%)
+  - Hacspec (cites high-level spec): 116 (11.9%)
 
 ### Modules per category
 
 | Category     | Modules |  Fns | Lax | Unv |  PF | Math | Bounds | Hacspec |
 | ------------ | ------- | ---- | --- | --- | --- | ---- | ------ | ------- |
-| Generic      |      29 |  635 |   5 |  19 | 442 |   79 |     41 |      49 |
-| Portable     |       7 |  121 |   0 |   0 |  36 |   48 |     10 |      27 |
-| Avx2         |       6 |  121 |   0 |   0 |  21 |   67 |      7 |      26 |
-| Neon         |       7 |  102 |   2 |   1 |  21 |   54 |     10 |      14 |
+| Generic      |      28 |  635 |   5 |  19 | 442 |   79 |     41 |      49 |
+| Portable     |       6 |  121 |   0 |   0 |  36 |   48 |     10 |      27 |
+| Avx2         |       5 |  121 |   0 |   0 |  21 |   67 |      7 |      26 |
+| Neon         |       6 |  101 |   0 |   0 |  21 |   56 |     10 |      14 |
 
 ## Unverified Rust modules (not extracted to F\*)
 
@@ -102,7 +102,6 @@ These Rust modules have no corresponding F\* file in the extraction directory â€
 | ------------------------------ | ---------------------------------------- | --- |
 | Generic/lib                    | src/lib.rs                               |   3 |
 | Generic/pqcp                   | src/pqcp.rs                              |  16 |
-| Neon/sampling                  | src/vector/neon/sampling.rs              |   1 |
 
 ## Body-admit sites (audit)
 

@@ -2,11 +2,10 @@
 
 #[cfg(hax)]
 use super::traits::{spec, Repr};
-use super::{Operations, FIELD_MODULUS};
+use super::Operations;
 #[cfg(hax)]
 use hax_lib::prop::ToProp;
 
-// mod sampling;
 mod arithmetic;
 mod compress;
 mod ntt;
@@ -527,7 +526,7 @@ fn op_deserialize_12(bytes: &[u8]) -> SIMD128Vector {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::fstar::options("--z3rlimit 50")]
 #[hax_lib::requires(input.len() == 24 && out.len() == 16)]
 #[hax_lib::ensures(|result| (future(out).len() == 16 && result <= 16).to_prop() & (
         hax_lib::forall(|j: usize|
@@ -766,30 +765,16 @@ impl Operations for SIMD128Vector {
     }
 }
 
-// Portable-fallback rejection sampler (the Neon SIMD path is disabled — see the
-// FIXME in the trait method).  Its `chunks(3)` indexing is not panic-free for
-// arbitrary input lengths, and its functional post is out of scope at this
-// layer; kept `lax` (was previously hidden by the whole-module admit).
+// Rejection sampling delegates to the verified portable scalar sampler; the
+// dedicated Neon SIMD path in neon/sampling.rs is currently disabled (see the
+// FIXME in the trait method), so this re-uses portable's proof directly.
 #[inline(always)]
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::fstar::options("--z3rlimit 50")]
+#[hax_lib::requires(a.len() == 24 && result.len() == 16)]
+#[hax_lib::ensures(|res| (future(result).len() == result.len() && res <= 16).to_prop().and(
+    hax_lib::forall(|j: usize|
+        hax_lib::implies(j < res,
+            future(result)[j] >= 0 && future(result)[j] <= 3328))))]
 pub(crate) fn rej_sample(a: &[u8], result: &mut [i16]) -> usize {
-    let mut sampled = 0;
-    for bytes in a.chunks(3) {
-        let b1 = bytes[0] as i16;
-        let b2 = bytes[1] as i16;
-        let b3 = bytes[2] as i16;
-
-        let d1 = ((b2 & 0xF) << 8) | b1;
-        let d2 = (b3 << 4) | (b2 >> 4);
-
-        if d1 < FIELD_MODULUS && sampled < 16 {
-            result[sampled] = d1;
-            sampled += 1
-        }
-        if d2 < FIELD_MODULUS && sampled < 16 {
-            result[sampled] = d2;
-            sampled += 1
-        }
-    }
-    sampled
+    crate::vector::portable::sampling::rej_sample(a, result)
 }

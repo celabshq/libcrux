@@ -4,7 +4,7 @@ use libcrux_secrets::*;
 mod arithmetic;
 mod compress;
 mod ntt;
-mod sampling;
+pub(crate) mod sampling;
 mod serialize;
 mod vector_type;
 
