@@ -106,5 +106,3 @@ minutes; a cold run is longer. A module verifies cleanly when F\* prints
 | `fstar/spec/`, `../../specs/ml-kem/` | the hacspec reference spec + commute lemmas |
 | `ml_kem_verification_status.md` | auto-generated per-function proof-tier tally |
 | `generate_verification_status.py` / `.sh`, `verification_status.config.json` | status generator |
-| `proof-style-guide.md` | proof-authoring conventions |
-| `Formal Verification of ML-KEM_ Portable and AVX2.pdf` | accompanying write-up |
