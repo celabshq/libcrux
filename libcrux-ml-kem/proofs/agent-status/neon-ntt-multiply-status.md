@@ -81,19 +81,43 @@ via `Hacspec_ml_kem.ModQ.lemma_mod_q_eq_intro` + `Classical.forall_intro` (no
 map_array step needed — Neon's post is already the %3329 form). Verified clean
 (build 61a5962f, 0 errors, real Query-stats; cargo simd128 23/23). Committed.
 
-### NTT-layer bridges — ATTEMPTED, reverted to panic_free (cold-saturation)
+### NTT-layer bridges — ATTEMPTED, reverted to panic_free (DEFECT, not cold-slow)
 Ported AVX2's FE-form proofs for `{,inv_}ntt_layer_{1,2,3}_step` verbatim
 (`repr`-adapted): reveal the in/out `is_i16b_array_opaque` bounds + the
 `butterfly_post`, call `Commute.Chunk.lemma_butterfly_pair_commute` (layer-2/3,
 inv-2/3) or `lemma_{,inv_}ntt_layer_1_step_branch_{0..3}` (layer-1, inv-1), then
-the `forall4 p_layer_N` FE-form assertion. Structurally correct (exact AVX2
-mirror). BUT a cold full-module build (6 FE-form proofs at rlimit 600, fuel 1,
-no recorded hints) ran **71 min on one fstar.exe without completing** — at least
-one of the six saturates cold. AVX2's pass because they ship recorded hints and
-were tuned. Reverted these 6 to panic_free to keep the module green and the
-session bounded. To land them: seed hints (let one run finish to record
-`.fst.hints`, then incremental builds are fast) and/or per-fn rlimit/structure
-tuning. The proof text is preserved in /tmp/neon_phaseB_ntt.py (this machine).
+the `forall4 p_layer_N` FE-form assertion. A cold full-module build (6 proofs at
+rlimit 600/400, fuel 1) ran **71 min on one fstar.exe without completing**.
+Reverted the 6 to panic_free; proof text preserved in /tmp/neon_phaseB_ntt.py.
+
+**CORRECTED diagnosis (do NOT chase hint-seeding):** AVX2's identical
+`op_ntt_layer_2/3` + `op_inv_ntt_layer_2/3` verify in **5–9 s each** cold
+(fstar-perf-top20.md), and `.fstar-cache/hints/` is **git-ignored / 0 tracked**
+— AVX2 does NOT rely on committed hints; it verifies cold in seconds. So the
+71-min non-completion is a **real saturation defect in the Neon port**, not
+cold-slowness. Prime suspect: Neon `repr x = Seq.append (vec128_as_i16x8 x.f_low)
+(vec128_as_i16x8 x.f_high)` is a STRUCTURED term, whereas AVX2's
+`vec256_as_i16x16 x.f_elements` is an ATOMIC opaque array. Feeding `repr vector`
+(append) into the `forall4` FE-form + 8 `butterfly_pair_commute` calls makes
+`Seq.index (repr ...)` terms that the `lemma_repr_index` SMTPat re-expands
+per-index, exploding the context. (Note: the Neon ntt.rs *primitives* already
+prove butterfly_post over repr fine — so repr itself is provable; the blowup is
+the bridge layer's FE-form × append interaction.)
+
+**Fix path (focused F* debug, NOT hint-seeding):**
+1. Isolate ONE op_ at a time via `--admit_except Libcrux_ml_kem.Vector.Neon.op_ntt_layer_N_step`
+   (rm the tainted .checked between runs); measure each — find which of the 6
+   saturate vs pass. (op_ntt_layer_1 / op_inv_ntt_layer_1 are branch-lemma based
+   at rlimit 400 — likely the lighter ones; layer-2/3 FE-form at 600 the heavy.)
+2. On a saturating one, `smtprofiling` (qi.profile) BEFORE concluding — confirm
+   whether it's the `lemma_repr_index` SMTPat re-expansion (likely) or a Commute
+   lemma trigger cascade.
+3. Likely fix: snapshot repr into an atomic 16-array the bridge treats opaquely
+   (e.g. bind `let v16 = to_i16_array vector` — its ensures gives `== repr v`, an
+   atomic `t_Array i16 16` rather than a live append) and run the Commute lemmas
+   over `v16`; or add a small clean-context Neon helper that converts
+   butterfly_post(repr) → the per-lane Seq.index facts the Commute lemmas want,
+   so the append never enters the FE-form forall4 context.
 
 ## Remaining panic_free / lax (after the upgrade)
 - panic_free: compress, decompress_1, decompress_ciphertext_coefficient (AVX2
