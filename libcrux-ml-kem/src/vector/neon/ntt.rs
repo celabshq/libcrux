@@ -564,13 +564,7 @@ pub(crate) fn ntt_layer_2_step(vec: SIMD128Vector, zeta1: i16, zeta2: i16) -> SI
     Spec.Utils.is_i16b_array (5 * 3328) (repr ${vec})"#))]
 #[hax_lib::ensures(|result| fstar!(r#"
     Spec.Utils.is_i16b_array (6 * 3328) (repr ${result}) /\
-    (forall (i: nat{i < 8}).
-        (v (Seq.index (repr ${result}) i) % 3329 ==
-          (v (Seq.index (repr ${vec}) i) +
-            v (Seq.index (repr ${vec}) (i + 8)) * v ${zeta_c} * 169) % 3329) /\
-        (v (Seq.index (repr ${result}) (i + 8)) % 3329 ==
-          (v (Seq.index (repr ${vec}) i) -
-            v (Seq.index (repr ${vec}) (i + 8)) * v ${zeta_c} * 169) % 3329))"#))]
+    Spec.Utils.ntt_layer_3_butterfly_post (repr ${vec}) (repr ${result}) ${zeta_c}"#))]
 pub(crate) fn ntt_layer_3_step(vec: SIMD128Vector, zeta_c: i16) -> SIMD128Vector {
     // This is what we are trying to do for every four elements:
     // let t = simd::Vector::montgomery_multiply_fe_by_fer(b, zeta_r);
@@ -585,18 +579,24 @@ pub(crate) fn ntt_layer_3_step(vec: SIMD128Vector, zeta_c: i16) -> SIMD128Vector
     res.high = _vsubq_s16(vec.low, t);
     res.low = _vaddq_s16(res.low, t);
     hax_lib::fstar!(
-        r#"introduce forall (i: nat{i < 8}).
-      (v (Seq.index (repr ${res}) i) % 3329 ==
-        (v (Seq.index (repr ${vec}) i) +
-          v (Seq.index (repr ${vec}) (i + 8)) * v ${zeta_c} * 169) % 3329) /\
-      (v (Seq.index (repr ${res}) (i + 8)) % 3329 ==
-        (v (Seq.index (repr ${vec}) i) -
-          v (Seq.index (repr ${vec}) (i + 8)) * v ${zeta_c} * 169) % 3329)
-    with (lemma_modadd (v (Seq.index (repr ${vec}) i)) (v (NI.get_lane_i16x8 ${t} i))
-            (v (Seq.index (repr ${vec}) (i + 8)) * v ${zeta_c} * 169);
-          lemma_modsub (v (Seq.index (repr ${vec}) i)) (v (NI.get_lane_i16x8 ${t} i))
-            (v (Seq.index (repr ${vec}) (i + 8)) * v ${zeta_c} * 169));
-        assert (Spec.Utils.is_i16b_array (6 * 3328) (repr ${res}))"#
+        r#"reveal_opaque (`%Spec.Utils.ntt_layer_3_butterfly_post) (Spec.Utils.ntt_layer_3_butterfly_post (repr ${vec}));
+           lemma_modadd (v (Seq.index (repr ${vec}) 0)) (v (NI.get_lane_i16x8 ${t} 0)) (v (Seq.index (repr ${vec}) 8) * v ${zeta_c} * 169);
+           lemma_modsub (v (Seq.index (repr ${vec}) 0)) (v (NI.get_lane_i16x8 ${t} 0)) (v (Seq.index (repr ${vec}) 8) * v ${zeta_c} * 169);
+           lemma_modadd (v (Seq.index (repr ${vec}) 1)) (v (NI.get_lane_i16x8 ${t} 1)) (v (Seq.index (repr ${vec}) 9) * v ${zeta_c} * 169);
+           lemma_modsub (v (Seq.index (repr ${vec}) 1)) (v (NI.get_lane_i16x8 ${t} 1)) (v (Seq.index (repr ${vec}) 9) * v ${zeta_c} * 169);
+           lemma_modadd (v (Seq.index (repr ${vec}) 2)) (v (NI.get_lane_i16x8 ${t} 2)) (v (Seq.index (repr ${vec}) 10) * v ${zeta_c} * 169);
+           lemma_modsub (v (Seq.index (repr ${vec}) 2)) (v (NI.get_lane_i16x8 ${t} 2)) (v (Seq.index (repr ${vec}) 10) * v ${zeta_c} * 169);
+           lemma_modadd (v (Seq.index (repr ${vec}) 3)) (v (NI.get_lane_i16x8 ${t} 3)) (v (Seq.index (repr ${vec}) 11) * v ${zeta_c} * 169);
+           lemma_modsub (v (Seq.index (repr ${vec}) 3)) (v (NI.get_lane_i16x8 ${t} 3)) (v (Seq.index (repr ${vec}) 11) * v ${zeta_c} * 169);
+           lemma_modadd (v (Seq.index (repr ${vec}) 4)) (v (NI.get_lane_i16x8 ${t} 4)) (v (Seq.index (repr ${vec}) 12) * v ${zeta_c} * 169);
+           lemma_modsub (v (Seq.index (repr ${vec}) 4)) (v (NI.get_lane_i16x8 ${t} 4)) (v (Seq.index (repr ${vec}) 12) * v ${zeta_c} * 169);
+           lemma_modadd (v (Seq.index (repr ${vec}) 5)) (v (NI.get_lane_i16x8 ${t} 5)) (v (Seq.index (repr ${vec}) 13) * v ${zeta_c} * 169);
+           lemma_modsub (v (Seq.index (repr ${vec}) 5)) (v (NI.get_lane_i16x8 ${t} 5)) (v (Seq.index (repr ${vec}) 13) * v ${zeta_c} * 169);
+           lemma_modadd (v (Seq.index (repr ${vec}) 6)) (v (NI.get_lane_i16x8 ${t} 6)) (v (Seq.index (repr ${vec}) 14) * v ${zeta_c} * 169);
+           lemma_modsub (v (Seq.index (repr ${vec}) 6)) (v (NI.get_lane_i16x8 ${t} 6)) (v (Seq.index (repr ${vec}) 14) * v ${zeta_c} * 169);
+           lemma_modadd (v (Seq.index (repr ${vec}) 7)) (v (NI.get_lane_i16x8 ${t} 7)) (v (Seq.index (repr ${vec}) 15) * v ${zeta_c} * 169);
+           lemma_modsub (v (Seq.index (repr ${vec}) 7)) (v (NI.get_lane_i16x8 ${t} 7)) (v (Seq.index (repr ${vec}) 15) * v ${zeta_c} * 169);
+           assert (Spec.Utils.is_i16b_array (6 * 3328) (repr ${res}))"#
     );
     res
 }
@@ -735,12 +735,7 @@ pub(crate) fn inv_ntt_layer_2_step(vec: SIMD128Vector, zeta1: i16, zeta2: i16) -
     Spec.Utils.is_i16b_array (2 * 3328) (repr ${vec})"#))]
 #[hax_lib::ensures(|result| fstar!(r#"
     Spec.Utils.is_i16b_array (4 * 3328) (repr ${result}) /\
-    (forall (i: nat{i < 8}).
-        (v (Seq.index (repr ${result}) i) % 3329 ==
-          (v (Seq.index (repr ${vec}) (i + 8)) + v (Seq.index (repr ${vec}) i)) % 3329) /\
-        (v (Seq.index (repr ${result}) (i + 8)) % 3329 ==
-          ((v (Seq.index (repr ${vec}) (i + 8)) - v (Seq.index (repr ${vec}) i)) *
-            v ${zeta_c} * 169) % 3329))"#))]
+    Spec.Utils.inv_ntt_layer_3_butterfly_post (repr ${vec}) (repr ${result}) ${zeta_c}"#))]
 pub(crate) fn inv_ntt_layer_3_step(vec: SIMD128Vector, zeta_c: i16) -> SIMD128Vector {
     // This is what we are trying to do for every four elements:
     //let a_minus_b = simd::Vector::sub(b, &a);
@@ -758,15 +753,16 @@ pub(crate) fn inv_ntt_layer_3_step(vec: SIMD128Vector, zeta_c: i16) -> SIMD128Ve
     res.low = _vaddq_s16(vec.low, vec.high);
     res.high = montgomery_multiply_int16x8_t(b_minus_a, zeta);
     hax_lib::fstar!(
-        r#"introduce forall (i: nat{i < 8}).
-      (v (Seq.index (repr ${res}) i) % 3329 ==
-        (v (Seq.index (repr ${vec}) (i + 8)) + v (Seq.index (repr ${vec}) i)) % 3329) /\
-      (v (Seq.index (repr ${res}) (i + 8)) % 3329 ==
-        ((v (Seq.index (repr ${vec}) (i + 8)) - v (Seq.index (repr ${vec}) i)) *
-          v ${zeta_c} * 169) % 3329)
-    with (assert (v (NI.get_lane_i16x8 ${b_minus_a} i) ==
-            v (Seq.index (repr ${vec}) (i + 8)) - v (Seq.index (repr ${vec}) i)));
-        assert (Spec.Utils.is_i16b_array (4 * 3328) (repr ${res}))"#
+        r#"reveal_opaque (`%Spec.Utils.inv_ntt_layer_3_butterfly_post) (Spec.Utils.inv_ntt_layer_3_butterfly_post (repr ${vec}));
+           assert (v (NI.get_lane_i16x8 ${b_minus_a} 0) == v (Seq.index (repr ${vec}) 8) - v (Seq.index (repr ${vec}) 0));
+           assert (v (NI.get_lane_i16x8 ${b_minus_a} 1) == v (Seq.index (repr ${vec}) 9) - v (Seq.index (repr ${vec}) 1));
+           assert (v (NI.get_lane_i16x8 ${b_minus_a} 2) == v (Seq.index (repr ${vec}) 10) - v (Seq.index (repr ${vec}) 2));
+           assert (v (NI.get_lane_i16x8 ${b_minus_a} 3) == v (Seq.index (repr ${vec}) 11) - v (Seq.index (repr ${vec}) 3));
+           assert (v (NI.get_lane_i16x8 ${b_minus_a} 4) == v (Seq.index (repr ${vec}) 12) - v (Seq.index (repr ${vec}) 4));
+           assert (v (NI.get_lane_i16x8 ${b_minus_a} 5) == v (Seq.index (repr ${vec}) 13) - v (Seq.index (repr ${vec}) 5));
+           assert (v (NI.get_lane_i16x8 ${b_minus_a} 6) == v (Seq.index (repr ${vec}) 14) - v (Seq.index (repr ${vec}) 6));
+           assert (v (NI.get_lane_i16x8 ${b_minus_a} 7) == v (Seq.index (repr ${vec}) 15) - v (Seq.index (repr ${vec}) 7));
+           assert (Spec.Utils.is_i16b_array (4 * 3328) (repr ${res}))"#
     );
     res
 }

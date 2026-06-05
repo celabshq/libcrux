@@ -139,57 +139,333 @@ fn op_decompress_ciphertext_coefficient<const COEFFICIENT_BITS: i32>(vector: SIM
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::fstar::options("--z3rlimit 400 --fuel 0 --ifuel 1 --split_queries always")]
 #[hax_lib::requires(fstar!(r#"${spec::ntt_layer_1_step_pre} (impl.f_repr ${vector}) zeta0 zeta1 zeta2 zeta3"#))]
 #[hax_lib::ensures(|out| fstar!(r#"${spec::ntt_layer_1_step_post} (impl.f_repr ${vector}) zeta0 zeta1 zeta2 zeta3 (impl.f_repr ${out})"#))]
 fn op_ntt_layer_1_step(vector: SIMD128Vector, zeta0: i16, zeta1: i16, zeta2: i16, zeta3: i16) -> SIMD128Vector {
-    hax_lib::fstar!(r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)"#);
-    ntt_layer_1_step(vector, zeta0, zeta1, zeta2, zeta3)
+    hax_lib::fstar!(r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque (7*3328))"#);
+    let result = ntt_layer_1_step(vector, zeta0, zeta1, zeta2, zeta3);
+    hax_lib::fstar!(
+        r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque (8*3328));
+           let vec = Libcrux_ml_kem.Vector.Neon.Vector_type.repr ${vector} in
+           let out = Libcrux_ml_kem.Vector.Neon.Vector_type.repr ${result} in
+           reveal_opaque (`%Spec.Utils.ntt_layer_1_butterfly_post) (Spec.Utils.ntt_layer_1_butterfly_post vec);
+           Hacspec_ml_kem.Commute.Chunk.lemma_ntt_layer_1_step_branch_0 vec out zeta0 zeta1 zeta2 zeta3;
+           Hacspec_ml_kem.Commute.Chunk.lemma_ntt_layer_1_step_branch_1 vec out zeta0 zeta1 zeta2 zeta3;
+           Hacspec_ml_kem.Commute.Chunk.lemma_ntt_layer_1_step_branch_2 vec out zeta0 zeta1 zeta2 zeta3;
+           Hacspec_ml_kem.Commute.Chunk.lemma_ntt_layer_1_step_branch_3 vec out zeta0 zeta1 zeta2 zeta3"#
+    );
+    result
 }
 
+#[hax_lib::fstar::before(r#"#push-options "--z3rlimit 600 --fuel 1 --ifuel 1 --split_queries always"
+
+let lemma_neon_ntt_layer_2_post (vec out: t_Array i16 (mk_usize 16)) (zeta0 zeta1: i16)
+    : Lemma
+      (requires Spec.Utils.ntt_layer_2_butterfly_post vec out zeta0 zeta1)
+      (ensures
+        Spec.Utils.forall4 (fun (b: nat{b < 4}) ->
+            Libcrux_ml_kem.Vector.Traits.Spec.ntt_layer_2_step_branch_post b vec zeta0 zeta1 out)) =
+  reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.ntt_layer_2_step_branch_post)
+    Libcrux_ml_kem.Vector.Traits.Spec.ntt_layer_2_step_branch_post;
+  reveal_opaque (`%Spec.Utils.ntt_layer_2_butterfly_post)
+    (Spec.Utils.ntt_layer_2_butterfly_post vec);
+  Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute vec out zeta0 0 4;
+  Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute vec out zeta0 1 5;
+  Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute vec out zeta0 2 6;
+  Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute vec out zeta0 3 7;
+  Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute vec out zeta1 8 12;
+  Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute vec out zeta1 9 13;
+  Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute vec out zeta1 10 14;
+  Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute vec out zeta1 11 15;
+  let p_layer_2: b: nat{b < 4} -> Type0 =
+    fun (b: nat{b < 4}) ->
+      (let z = (if b < 2 then zeta0 else zeta1) in
+        let base:nat = if b < 2 then 0 else 8 in
+        let off:nat = if b = 0 || b = 2 then 0 else 2 in
+        let i1:nat = base + off in
+        let j1:nat = i1 + 4 in
+        let i2:nat = i1 + 1 in
+        let j2:nat = j1 + 1 in
+        Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index out i1) ==
+        Hacspec_ml_kem.Parameters.impl_FieldElement__add (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+              (Seq.index vec i1))
+          (Hacspec_ml_kem.Parameters.impl_FieldElement__mul (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+                  z)
+              (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index vec j1))) /\
+        Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index out j1) ==
+        Hacspec_ml_kem.Parameters.impl_FieldElement__sub (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+              (Seq.index vec i1))
+          (Hacspec_ml_kem.Parameters.impl_FieldElement__mul (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+                  z)
+              (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index vec j1))) /\
+        Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index out i2) ==
+        Hacspec_ml_kem.Parameters.impl_FieldElement__add (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+              (Seq.index vec i2))
+          (Hacspec_ml_kem.Parameters.impl_FieldElement__mul (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+                  z)
+              (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index vec j2))) /\
+        Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index out j2) ==
+        Hacspec_ml_kem.Parameters.impl_FieldElement__sub (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+              (Seq.index vec i2))
+          (Hacspec_ml_kem.Parameters.impl_FieldElement__mul (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+                  z)
+              (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index vec j2))))
+  in
+  assert (p_layer_2 0);
+  assert (p_layer_2 1);
+  assert (p_layer_2 2);
+  assert (p_layer_2 3);
+  assert (Spec.Utils.forall4 p_layer_2)
+
+#pop-options
+
+#push-options "--z3rlimit 600 --fuel 1 --ifuel 1 --split_queries always"
+
+let lemma_neon_ntt_layer_3_post (vec out: t_Array i16 (mk_usize 16)) (zeta: i16)
+    : Lemma
+      (requires Spec.Utils.ntt_layer_3_butterfly_post vec out zeta)
+      (ensures
+        Spec.Utils.forall4 (fun (b: nat{b < 4}) ->
+            Libcrux_ml_kem.Vector.Traits.Spec.ntt_layer_3_step_branch_post b vec zeta out)) =
+  reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.ntt_layer_3_step_branch_post)
+    Libcrux_ml_kem.Vector.Traits.Spec.ntt_layer_3_step_branch_post;
+  reveal_opaque (`%Spec.Utils.ntt_layer_3_butterfly_post)
+    (Spec.Utils.ntt_layer_3_butterfly_post vec);
+  Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute vec out zeta 0 8;
+  Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute vec out zeta 1 9;
+  Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute vec out zeta 2 10;
+  Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute vec out zeta 3 11;
+  Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute vec out zeta 4 12;
+  Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute vec out zeta 5 13;
+  Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute vec out zeta 6 14;
+  Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute vec out zeta 7 15;
+  let p_layer_3: b: nat{b < 4} -> Type0 =
+    fun (b: nat{b < 4}) ->
+      (let i1:nat = 2 * b in
+        let j1:nat = 2 * b + 8 in
+        let i2:nat = 2 * b + 1 in
+        let j2:nat = 2 * b + 9 in
+        Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index out i1) ==
+        Hacspec_ml_kem.Parameters.impl_FieldElement__add (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+              (Seq.index vec i1))
+          (Hacspec_ml_kem.Parameters.impl_FieldElement__mul (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+                  zeta)
+              (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index vec j1))) /\
+        Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index out j1) ==
+        Hacspec_ml_kem.Parameters.impl_FieldElement__sub (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+              (Seq.index vec i1))
+          (Hacspec_ml_kem.Parameters.impl_FieldElement__mul (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+                  zeta)
+              (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index vec j1))) /\
+        Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index out i2) ==
+        Hacspec_ml_kem.Parameters.impl_FieldElement__add (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+              (Seq.index vec i2))
+          (Hacspec_ml_kem.Parameters.impl_FieldElement__mul (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+                  zeta)
+              (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index vec j2))) /\
+        Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index out j2) ==
+        Hacspec_ml_kem.Parameters.impl_FieldElement__sub (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+              (Seq.index vec i2))
+          (Hacspec_ml_kem.Parameters.impl_FieldElement__mul (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+                  zeta)
+              (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index vec j2))))
+  in
+  assert (p_layer_3 0);
+  assert (p_layer_3 1);
+  assert (p_layer_3 2);
+  assert (p_layer_3 3);
+  assert (Spec.Utils.forall4 p_layer_3)
+
+#pop-options
+
+#push-options "--z3rlimit 600 --fuel 1 --ifuel 1 --split_queries always"
+
+let lemma_neon_inv_ntt_layer_2_post (vec out: t_Array i16 (mk_usize 16)) (zeta0 zeta1: i16)
+    : Lemma
+      (requires Spec.Utils.inv_ntt_layer_2_butterfly_post vec out zeta0 zeta1)
+      (ensures
+        Spec.Utils.forall4 (fun (b: nat{b < 4}) ->
+            Libcrux_ml_kem.Vector.Traits.Spec.inv_ntt_layer_2_step_branch_post b vec zeta0 zeta1 out)) =
+  reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.inv_ntt_layer_2_step_branch_post)
+    Libcrux_ml_kem.Vector.Traits.Spec.inv_ntt_layer_2_step_branch_post;
+  reveal_opaque (`%Spec.Utils.inv_ntt_layer_2_butterfly_post)
+    (Spec.Utils.inv_ntt_layer_2_butterfly_post vec);
+  Hacspec_ml_kem.Commute.Chunk.lemma_inv_butterfly_pair_commute vec out zeta0 0 4;
+  Hacspec_ml_kem.Commute.Chunk.lemma_inv_butterfly_pair_commute vec out zeta0 1 5;
+  Hacspec_ml_kem.Commute.Chunk.lemma_inv_butterfly_pair_commute vec out zeta0 2 6;
+  Hacspec_ml_kem.Commute.Chunk.lemma_inv_butterfly_pair_commute vec out zeta0 3 7;
+  Hacspec_ml_kem.Commute.Chunk.lemma_inv_butterfly_pair_commute vec out zeta1 8 12;
+  Hacspec_ml_kem.Commute.Chunk.lemma_inv_butterfly_pair_commute vec out zeta1 9 13;
+  Hacspec_ml_kem.Commute.Chunk.lemma_inv_butterfly_pair_commute vec out zeta1 10 14;
+  Hacspec_ml_kem.Commute.Chunk.lemma_inv_butterfly_pair_commute vec out zeta1 11 15;
+  let p_inv_2: b: nat{b < 4} -> Type0 =
+    fun (b: nat{b < 4}) ->
+      (let z = (if b < 2 then zeta0 else zeta1) in
+        let base:nat = if b < 2 then 0 else 8 in
+        let off:nat = if b = 0 || b = 2 then 0 else 2 in
+        let i1:nat = base + off in
+        let j1:nat = i1 + 4 in
+        let i2:nat = i1 + 1 in
+        let j2:nat = j1 + 1 in
+        Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index out i1) ==
+        Hacspec_ml_kem.Parameters.impl_FieldElement__add (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+              (Seq.index vec i1))
+          (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index vec j1)) /\
+        Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index out j1) ==
+        Hacspec_ml_kem.Parameters.impl_FieldElement__mul (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+              z)
+          (Hacspec_ml_kem.Parameters.impl_FieldElement__sub (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+                  (Seq.index vec j1))
+              (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index vec i1))) /\
+        Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index out i2) ==
+        Hacspec_ml_kem.Parameters.impl_FieldElement__add (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+              (Seq.index vec i2))
+          (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index vec j2)) /\
+        Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index out j2) ==
+        Hacspec_ml_kem.Parameters.impl_FieldElement__mul (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+              z)
+          (Hacspec_ml_kem.Parameters.impl_FieldElement__sub (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+                  (Seq.index vec j2))
+              (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index vec i2))))
+  in
+  assert (p_inv_2 0);
+  assert (p_inv_2 1);
+  assert (p_inv_2 2);
+  assert (p_inv_2 3);
+  assert (Spec.Utils.forall4 p_inv_2)
+
+#pop-options
+
+#push-options "--z3rlimit 600 --fuel 1 --ifuel 1 --split_queries always"
+
+let lemma_neon_inv_ntt_layer_3_post (vec out: t_Array i16 (mk_usize 16)) (zeta: i16)
+    : Lemma
+      (requires Spec.Utils.inv_ntt_layer_3_butterfly_post vec out zeta)
+      (ensures
+        Spec.Utils.forall4 (fun (b: nat{b < 4}) ->
+            Libcrux_ml_kem.Vector.Traits.Spec.inv_ntt_layer_3_step_branch_post b vec zeta out)) =
+  reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.inv_ntt_layer_3_step_branch_post)
+    Libcrux_ml_kem.Vector.Traits.Spec.inv_ntt_layer_3_step_branch_post;
+  reveal_opaque (`%Spec.Utils.inv_ntt_layer_3_butterfly_post)
+    (Spec.Utils.inv_ntt_layer_3_butterfly_post vec);
+  Hacspec_ml_kem.Commute.Chunk.lemma_inv_butterfly_pair_commute vec out zeta 0 8;
+  Hacspec_ml_kem.Commute.Chunk.lemma_inv_butterfly_pair_commute vec out zeta 1 9;
+  Hacspec_ml_kem.Commute.Chunk.lemma_inv_butterfly_pair_commute vec out zeta 2 10;
+  Hacspec_ml_kem.Commute.Chunk.lemma_inv_butterfly_pair_commute vec out zeta 3 11;
+  Hacspec_ml_kem.Commute.Chunk.lemma_inv_butterfly_pair_commute vec out zeta 4 12;
+  Hacspec_ml_kem.Commute.Chunk.lemma_inv_butterfly_pair_commute vec out zeta 5 13;
+  Hacspec_ml_kem.Commute.Chunk.lemma_inv_butterfly_pair_commute vec out zeta 6 14;
+  Hacspec_ml_kem.Commute.Chunk.lemma_inv_butterfly_pair_commute vec out zeta 7 15;
+  let p_inv_layer_3: b: nat{b < 4} -> Type0 =
+    fun (b: nat{b < 4}) ->
+      (let i1:nat = 2 * b in
+        let j1:nat = 2 * b + 8 in
+        let i2:nat = 2 * b + 1 in
+        let j2:nat = 2 * b + 9 in
+        Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index out i1) ==
+        Hacspec_ml_kem.Parameters.impl_FieldElement__add (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+              (Seq.index vec i1))
+          (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index vec j1)) /\
+        Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index out j1) ==
+        Hacspec_ml_kem.Parameters.impl_FieldElement__mul (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+              zeta)
+          (Hacspec_ml_kem.Parameters.impl_FieldElement__sub (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+                  (Seq.index vec j1))
+              (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index vec i1))) /\
+        Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index out i2) ==
+        Hacspec_ml_kem.Parameters.impl_FieldElement__add (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+              (Seq.index vec i2))
+          (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index vec j2)) /\
+        Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index out j2) ==
+        Hacspec_ml_kem.Parameters.impl_FieldElement__mul (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+              zeta)
+          (Hacspec_ml_kem.Parameters.impl_FieldElement__sub (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+                  (Seq.index vec j2))
+              (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index vec i2))))
+  in
+  assert (p_inv_layer_3 0);
+  assert (p_inv_layer_3 1);
+  assert (p_inv_layer_3 2);
+  assert (p_inv_layer_3 3);
+  assert (Spec.Utils.forall4 p_inv_layer_3)
+
+#pop-options"#)]
+
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::fstar::options("--z3rlimit 200 --fuel 0 --ifuel 1 --split_queries always --using_facts_from '* -Libcrux_ml_kem.Vector.Neon.Vector_type.lemma_repr_index'")]
 #[hax_lib::requires(fstar!(r#"${spec::ntt_layer_2_step_pre} (impl.f_repr ${vector}) zeta0 zeta1"#))]
 #[hax_lib::ensures(|out| fstar!(r#"${spec::ntt_layer_2_step_post} (impl.f_repr ${vector}) zeta0 zeta1 (impl.f_repr ${out})"#))]
 fn op_ntt_layer_2_step(vector: SIMD128Vector, zeta0: i16, zeta1: i16) -> SIMD128Vector {
-    hax_lib::fstar!(r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)"#);
-    ntt_layer_2_step(vector, zeta0, zeta1)
+    hax_lib::fstar!(r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque (6*3328))"#);
+    let result = ntt_layer_2_step(vector, zeta0, zeta1);
+    hax_lib::fstar!(
+        r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque (7*3328));
+           lemma_neon_ntt_layer_2_post (Libcrux_ml_kem.Vector.Neon.Vector_type.repr ${vector}) (Libcrux_ml_kem.Vector.Neon.Vector_type.repr ${result}) zeta0 zeta1"#
+    );
+    result
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::fstar::options("--z3rlimit 200 --fuel 0 --ifuel 1 --split_queries always --using_facts_from '* -Libcrux_ml_kem.Vector.Neon.Vector_type.lemma_repr_index'")]
 #[hax_lib::requires(fstar!(r#"${spec::ntt_layer_3_step_pre} (impl.f_repr ${vector}) zeta"#))]
 #[hax_lib::ensures(|out| fstar!(r#"${spec::ntt_layer_3_step_post} (impl.f_repr ${vector}) zeta (impl.f_repr ${out})"#))]
 fn op_ntt_layer_3_step(vector: SIMD128Vector, zeta: i16) -> SIMD128Vector {
-    hax_lib::fstar!(r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)"#);
-    ntt_layer_3_step(vector, zeta)
+    hax_lib::fstar!(r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque (5*3328))"#);
+    let result = ntt_layer_3_step(vector, zeta);
+    hax_lib::fstar!(
+        r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque (6*3328));
+           lemma_neon_ntt_layer_3_post (Libcrux_ml_kem.Vector.Neon.Vector_type.repr ${vector}) (Libcrux_ml_kem.Vector.Neon.Vector_type.repr ${result}) zeta"#
+    );
+    result
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::fstar::options("--z3rlimit 400 --fuel 0 --ifuel 1 --split_queries always")]
 #[hax_lib::requires(fstar!(r#"${spec::inv_ntt_layer_1_step_pre} (impl.f_repr ${vector}) zeta0 zeta1 zeta2 zeta3"#))]
 #[hax_lib::ensures(|out| fstar!(r#"${spec::inv_ntt_layer_1_step_post} (impl.f_repr ${vector}) zeta0 zeta1 zeta2 zeta3 (impl.f_repr ${out})"#))]
 fn op_inv_ntt_layer_1_step(vector: SIMD128Vector, zeta0: i16, zeta1: i16, zeta2: i16, zeta3: i16) -> SIMD128Vector {
-    hax_lib::fstar!(r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)"#);
-    inv_ntt_layer_1_step(vector, zeta0, zeta1, zeta2, zeta3)
+    hax_lib::fstar!(r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque (4*3328))"#);
+    let result = inv_ntt_layer_1_step(vector, zeta0, zeta1, zeta2, zeta3);
+    hax_lib::fstar!(
+        r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque 3328);
+           let vec = Libcrux_ml_kem.Vector.Neon.Vector_type.repr ${vector} in
+           let out = Libcrux_ml_kem.Vector.Neon.Vector_type.repr ${result} in
+           reveal_opaque (`%Spec.Utils.inv_ntt_layer_1_butterfly_post) (Spec.Utils.inv_ntt_layer_1_butterfly_post vec);
+           Hacspec_ml_kem.Commute.Chunk.lemma_inv_ntt_layer_1_step_branch_0 vec out zeta0 zeta1 zeta2 zeta3;
+           Hacspec_ml_kem.Commute.Chunk.lemma_inv_ntt_layer_1_step_branch_1 vec out zeta0 zeta1 zeta2 zeta3;
+           Hacspec_ml_kem.Commute.Chunk.lemma_inv_ntt_layer_1_step_branch_2 vec out zeta0 zeta1 zeta2 zeta3;
+           Hacspec_ml_kem.Commute.Chunk.lemma_inv_ntt_layer_1_step_branch_3 vec out zeta0 zeta1 zeta2 zeta3"#
+    );
+    result
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::fstar::options("--z3rlimit 200 --fuel 0 --ifuel 1 --split_queries always --using_facts_from '* -Libcrux_ml_kem.Vector.Neon.Vector_type.lemma_repr_index'")]
 #[hax_lib::requires(fstar!(r#"${spec::inv_ntt_layer_2_step_pre} (impl.f_repr ${vector}) zeta0 zeta1"#))]
 #[hax_lib::ensures(|out| fstar!(r#"${spec::inv_ntt_layer_2_step_post} (impl.f_repr ${vector}) zeta0 zeta1 (impl.f_repr ${out})"#))]
 fn op_inv_ntt_layer_2_step(vector: SIMD128Vector, zeta0: i16, zeta1: i16) -> SIMD128Vector {
-    hax_lib::fstar!(r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)"#);
-    inv_ntt_layer_2_step(vector, zeta0, zeta1)
+    hax_lib::fstar!(r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque (3328))"#);
+    let result = inv_ntt_layer_2_step(vector, zeta0, zeta1);
+    hax_lib::fstar!(
+        r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque (2*3328));
+           lemma_neon_inv_ntt_layer_2_post (Libcrux_ml_kem.Vector.Neon.Vector_type.repr ${vector}) (Libcrux_ml_kem.Vector.Neon.Vector_type.repr ${result}) zeta0 zeta1"#
+    );
+    result
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::fstar::options("--z3rlimit 200 --fuel 0 --ifuel 1 --split_queries always --using_facts_from '* -Libcrux_ml_kem.Vector.Neon.Vector_type.lemma_repr_index'")]
 #[hax_lib::requires(fstar!(r#"${spec::inv_ntt_layer_3_step_pre} (impl.f_repr ${vector}) zeta"#))]
 #[hax_lib::ensures(|out| fstar!(r#"${spec::inv_ntt_layer_3_step_post} (impl.f_repr ${vector}) zeta (impl.f_repr ${out})"#))]
 fn op_inv_ntt_layer_3_step(vector: SIMD128Vector, zeta: i16) -> SIMD128Vector {
-    hax_lib::fstar!(r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)"#);
-    inv_ntt_layer_3_step(vector, zeta)
+    hax_lib::fstar!(r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque (2*3328))"#);
+    let result = inv_ntt_layer_3_step(vector, zeta);
+    hax_lib::fstar!(
+        r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque (4*3328));
+           lemma_neon_inv_ntt_layer_3_post (Libcrux_ml_kem.Vector.Neon.Vector_type.repr ${vector}) (Libcrux_ml_kem.Vector.Neon.Vector_type.repr ${result}) zeta"#
+    );
+    result
 }
 
 #[hax_lib::fstar::options("--z3rlimit 400 --fuel 0 --ifuel 0 --split_queries always")]

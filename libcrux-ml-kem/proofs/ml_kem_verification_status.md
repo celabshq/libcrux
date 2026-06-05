@@ -70,8 +70,8 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 |            | serialize         |    1 |  12 |   0 |     |   5 |    7 |      0 |       0 |
 |            | sampling          |    1 |   1 |   0 |   1 |   0 |    0 |      0 |       0 |
 |            | vector_type       |    1 |   5 |   0 |     |   2 |    3 |      0 |       0 |
-|            | vector            |    1 |  57 |   2 |     |  16 |   25 |      0 |      14 |
-|            | **Neon total**    | **7** | **102** | **2** | **1** | **27** | **48** | **10** |  **14** |
+|            | vector            |    1 |  57 |   2 |     |  10 |   31 |      0 |      14 |
+|            | **Neon total**    | **7** | **102** | **2** | **1** | **21** | **54** | **10** |  **14** |
 
 ## Summary
 
@@ -80,8 +80,8 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 - **Lax** (admitted): 7 (0.7%)
 - **Unverified** (not extracted): 20 (2.0%)
 - **Panic-safe** (PF + Math + Bounds + Hacspec): 952 (97.2%)
-  - Panic-free only (no further proof): 526 (53.7%)
-  - Math (non-trivial ensures, no bounds/spec match): 242 (24.7%)
+  - Panic-free only (no further proof): 520 (53.1%)
+  - Math (non-trivial ensures, no bounds/spec match): 248 (25.3%)
   - Bounds (range/interval ensures): 68 (6.9%)
   - Hacspec (cites high-level spec): 116 (11.8%)
 
@@ -92,7 +92,7 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 | Generic      |      29 |  635 |   5 |  19 | 442 |   79 |     41 |      49 |
 | Portable     |       7 |  121 |   0 |   0 |  36 |   48 |     10 |      27 |
 | Avx2         |       6 |  121 |   0 |   0 |  21 |   67 |      7 |      26 |
-| Neon         |       7 |  102 |   2 |   1 |  27 |   48 |     10 |      14 |
+| Neon         |       7 |  102 |   2 |   1 |  21 |   54 |     10 |      14 |
 
 ## Unverified Rust modules (not extracted to F\*)
 
