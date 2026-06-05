@@ -23,6 +23,10 @@
     "is_intb",
     "is_i32b"
   ],
+  "_excluded_modules": [
+    {"display": "pqcp", "paths": ["pqcp"],
+     "reason": "NIST/PQCP C-ABI shim (crypto_kem_*); FFI/boundary code, out of F* verification scope. Not listed in `modules`, so excluded from the tally."}
+  ],
   "modules": [
     {"category": "Generic", "display": "constants", "paths": ["constants"]},
     {"category": "Generic", "display": "constant_time_ops", "paths": ["constant_time_ops"]},
@@ -30,7 +34,6 @@
     {"category": "Generic", "display": "utils", "paths": ["utils"]},
     {"category": "Generic", "display": "variant", "paths": ["variant"]},
     {"category": "Generic", "display": "lib", "paths": ["lib"]},
-    {"category": "Generic", "display": "pqcp", "paths": ["pqcp"]},
     {"category": "Generic", "display": "hash_functions", "paths": ["hash_functions"]},
     {"category": "Generic", "display": "ind_cpa", "paths": ["ind_cpa"]},
     {"category": "Generic", "display": "ind_cca", "paths": ["ind_cca"]},

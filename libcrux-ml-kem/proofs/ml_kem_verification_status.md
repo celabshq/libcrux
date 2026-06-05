@@ -28,7 +28,6 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 |            | utils             |    1 |   2 |   0 |     |   1 |    1 |      0 |       0 |
 |            | variant           |    1 |   9 |   0 |     |   3 |    4 |      0 |       2 |
 |            | lib               |    1 |   3 |   0 |   3 |   0 |    0 |      0 |       0 |
-|            | pqcp              |    1 |  16 |   0 |  16 |   0 |    0 |      0 |       0 |
 |            | hash_functions    |    1 |  49 |   0 |     |  21 |    0 |      0 |      28 |
 |            | ind_cpa           |    1 |  21 |   0 |     |  20 |    1 |      0 |       0 |
 |            | ind_cca           |    1 |  27 |   0 |     |  23 |    1 |      0 |       3 |
@@ -41,11 +40,11 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 |            | mlkem*            |    4 | 134 |   0 |     | 131 |    3 |      0 |       0 |
 |            | matrix            |    1 |   5 |   0 |     |   0 |    0 |      5 |       0 |
 |            | serialize         |    1 |  25 |   0 |     |  22 |    1 |      2 |       0 |
-|            | sampling          |    0 |   9 |   2 |     |   7 |    0 |      0 |       0 |
+|            | sampling          |    0 |   9 |   1 |     |   7 |    1 |      0 |       0 |
 |            | vector (top)      |    1 |   3 |   0 |     |   3 |    0 |      0 |       0 |
 |            | vector/traits     |    1 | 111 |   0 |     |  73 |   36 |      0 |       2 |
 |            | rej_sample_table  |    1 |   0 |   0 |     |   0 |    0 |      0 |       0 |
-|            | **Generic total** | **28** | **635** | **5** | **19** | **442** | **79** | **41** |  **49** |
+|            | **Generic total** | **27** | **619** | **4** | **3** | **442** | **80** | **41** |  **49** |
 |            |                   |      |     |     |     |     |      |        |         |
 | _Portable_ | arithmetic        |    1 |  13 |   0 |     |   6 |    7 |      0 |       0 |
 |            | ntt               |    1 |  10 |   0 |     |   0 |    0 |     10 |       0 |
@@ -75,21 +74,21 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 
 ## Summary
 
-- **Total modules**: 45
-- **Total functions**: 978
-- **Lax** (admitted): 5 (0.5%)
-- **Unverified** (not extracted): 19 (1.9%)
-- **Panic-safe** (PF + Math + Bounds + Hacspec): 954 (97.5%)
-  - Panic-free only (no further proof): 520 (53.2%)
-  - Math (non-trivial ensures, no bounds/spec match): 250 (25.6%)
-  - Bounds (range/interval ensures): 68 (7.0%)
-  - Hacspec (cites high-level spec): 116 (11.9%)
+- **Total modules**: 44
+- **Total functions**: 962
+- **Lax** (admitted): 4 (0.4%)
+- **Unverified** (not extracted): 3 (0.3%)
+- **Panic-safe** (PF + Math + Bounds + Hacspec): 955 (99.3%)
+  - Panic-free only (no further proof): 520 (54.1%)
+  - Math (non-trivial ensures, no bounds/spec match): 251 (26.1%)
+  - Bounds (range/interval ensures): 68 (7.1%)
+  - Hacspec (cites high-level spec): 116 (12.1%)
 
 ### Modules per category
 
 | Category     | Modules |  Fns | Lax | Unv |  PF | Math | Bounds | Hacspec |
 | ------------ | ------- | ---- | --- | --- | --- | ---- | ------ | ------- |
-| Generic      |      28 |  635 |   5 |  19 | 442 |   79 |     41 |      49 |
+| Generic      |      27 |  619 |   4 |   3 | 442 |   80 |     41 |      49 |
 | Portable     |       6 |  121 |   0 |   0 |  36 |   48 |     10 |      27 |
 | Avx2         |       5 |  121 |   0 |   0 |  21 |   67 |      7 |      26 |
 | Neon         |       6 |  101 |   0 |   0 |  21 |   56 |     10 |      14 |
@@ -101,7 +100,6 @@ These Rust modules have no corresponding F\* file in the extraction directory â€
 | Module                         | Path                                     | Fns |
 | ------------------------------ | ---------------------------------------- | --- |
 | Generic/lib                    | src/lib.rs                               |   3 |
-| Generic/pqcp                   | src/pqcp.rs                              |  16 |
 
 ## Body-admit sites (audit)
 

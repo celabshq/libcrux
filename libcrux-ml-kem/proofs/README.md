@@ -51,14 +51,18 @@ with `generate_verification_status.py`). Headline as of the last run:
 
 | Metric | Count | % |
 | --- | --- | --- |
-| Total functions | 978 | |
-| **Panic-safe** (panic-free + spec-bearing) | 954 | **97.5%** |
-| &nbsp;&nbsp;— cites high-level hacspec | 116 | 11.9% |
-| &nbsp;&nbsp;— interval/bounds ensures | 68 | 7.0% |
-| &nbsp;&nbsp;— other non-trivial ensures | 250 | 25.6% |
-| &nbsp;&nbsp;— panic-free only | 520 | 53.2% |
-| Lax (admitted) | 5 | 0.5% |
-| Unverified (not extracted) | 19 | 1.9% |
+| Total functions | 962 | |
+| **Panic-safe** (panic-free + spec-bearing) | 955 | **99.3%** |
+| &nbsp;&nbsp;— cites high-level hacspec | 116 | 12.1% |
+| &nbsp;&nbsp;— interval/bounds ensures | 68 | 7.1% |
+| &nbsp;&nbsp;— other non-trivial ensures | 251 | 26.1% |
+| &nbsp;&nbsp;— panic-free only | 520 | 54.1% |
+| Lax (admitted) | 4 | 0.4% |
+| Unverified (not extracted) | 3 | 0.3% |
+
+The NIST/PQCP C-ABI shim (`src/pqcp/`, the `crypto_kem_*` boundary functions)
+is **excluded** from this tally as out-of-scope FFI/boundary code; see
+`_excluded_modules` in `verification_status.config.json`.
 
 Per backend, the SIMD `Vector` trait and its primitives carry **0 lax and 0
 unverified** on all three (Portable, AVX2, Neon): every NTT-layer trait method
@@ -66,11 +70,19 @@ unverified** on all three (Portable, AVX2, Neon): every NTT-layer trait method
 and rejection sampler is functionally verified (Neon's `rej_sample` delegates to
 the verified portable scalar sampler).
 
-Known remaining gaps (see the status file for the live list): 5 admitted
-(`lax`) — the generic rejection-sampling helpers and a few incremental-API
-`From`-instance bodies (a hax trait-precondition limitation) — and 19 not
-extracted to F\* (`pqcp` and `lib` glue), plus a prefix-form `serialize_vector`
-contract used by `to_bytes_compressed`.
+Known remaining gaps (see the status file for the live list): 4 admitted
+(`lax`) and 3 not extracted to F\*.
+
+- **`lax`** — (1) `sampling::sample_from_xof`: its rejection-sampling
+  `while !done` loop has no statically decreasing measure, so it is not
+  provably terminating, and `panic_free` does not exempt termination. The
+  bounded inner helper it drives, `sample_from_uniform_distribution_next`, **is**
+  now fully verified (it establishes the per-coefficient
+  `≤ COEFFICIENTS_IN_RING_ELEMENT` bound). (2–4) three incremental-API
+  `From`-instance bodies, blocked by a hax limitation that forces trivial
+  preconditions on core-trait (`From`) impls.
+- **not extracted** — the three functions in `src/lib.rs` (crate-level glue,
+  filtered out of extraction by hax).
 
 ## Reproducing the results
 
