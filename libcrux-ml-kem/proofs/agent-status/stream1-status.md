@@ -1,1 +1,0 @@
-2026-05-03 08:35 — DONE — All 4 task targets (Ind_cca, Ind_cca.Unpacked, Mlkem512, Mlkem1024) plus Instantiations.{Portable,Avx2}.Unpacked verify. Mlkem*.{Portable,Avx2}.Unpacked blocked by pre-existing Neon Vector_type.fsti extractor regression (`noeq noeq` parse error) — out of Lane E scope. Committing now.
