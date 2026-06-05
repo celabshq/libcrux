@@ -73,9 +73,32 @@ NOTHING was verified):
 - Un-admitting the module surfaced the free `rej_sample` (was hidden by the
   whole-module admit) — it failed panic-freedom; marked lax.
 
-## Follow-up (not blocking; Neon now matches AVX2 for the hard methods)
-Upgrade the panic_free bridges (to_unsigned/cond_subtract via mod_q_eq fold;
-{,inv_}ntt_layer via the FE-form Commute lemmas; compress/decompress/serialize
-FE-form) to fully-proven — the Neon mirror of portable's C4f work. AVX2 itself
-proves to_unsigned/cond_subtract and panic_frees the NTT-layer/compress ones, so
-matching AVX2 exactly means proving those two and leaving the rest panic_free.
+## Bridge upgrades (2026-06-05 follow-up session)
+Upgraded two panic_free bridges to FULLY PROVEN (mirrors avx2.rs exactly):
+`op_cond_subtract_3329` + `op_to_unsigned_representative` — the Neon primitive
+gives `v y % 3329 == v x % 3329` per lane; fold into the opaque `mod_q_eq` form
+via `Hacspec_ml_kem.ModQ.lemma_mod_q_eq_intro` + `Classical.forall_intro` (no
+map_array step needed — Neon's post is already the %3329 form). Verified clean
+(build 61a5962f, 0 errors, real Query-stats; cargo simd128 23/23). Committed.
+
+### NTT-layer bridges — ATTEMPTED, reverted to panic_free (cold-saturation)
+Ported AVX2's FE-form proofs for `{,inv_}ntt_layer_{1,2,3}_step` verbatim
+(`repr`-adapted): reveal the in/out `is_i16b_array_opaque` bounds + the
+`butterfly_post`, call `Commute.Chunk.lemma_butterfly_pair_commute` (layer-2/3,
+inv-2/3) or `lemma_{,inv_}ntt_layer_1_step_branch_{0..3}` (layer-1, inv-1), then
+the `forall4 p_layer_N` FE-form assertion. Structurally correct (exact AVX2
+mirror). BUT a cold full-module build (6 FE-form proofs at rlimit 600, fuel 1,
+no recorded hints) ran **71 min on one fstar.exe without completing** — at least
+one of the six saturates cold. AVX2's pass because they ship recorded hints and
+were tuned. Reverted these 6 to panic_free to keep the module green and the
+session bounded. To land them: seed hints (let one run finish to record
+`.fst.hints`, then incremental builds are fast) and/or per-fn rlimit/structure
+tuning. The proof text is preserved in /tmp/neon_phaseB_ntt.py (this machine).
+
+## Remaining panic_free / lax (after the upgrade)
+- panic_free: compress, decompress_1, decompress_ciphertext_coefficient (AVX2
+  ALSO panic_frees these); compress_1 (AVX2 proves — Neon-specific bridge, TODO);
+  {,inv_}ntt_layer_{1,2,3}_step (cold-saturation, see above);
+  serialize_1/4/10/12, deserialize_12 (underlying Neon free-fns are l_True — no
+  post to bridge from; needs the underlying Neon serialize proofs first).
+- lax: rej_sample (portable-fallback loop).

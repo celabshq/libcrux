@@ -57,22 +57,49 @@ impl crate::vector::traits::Repr for SIMD128Vector {}
 // is the Neon mirror of the portable C4f work.
 // =====================================================================
 
+// PROVEN (mirrors avx2.rs): the primitive gives `v y % 3329 == v x % 3329`
+// per lane; fold into the opaque `mod_q_eq` form the trait post expects.
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::requires(spec::cond_subtract_3329_pre(&vector.repr()))]
 #[hax_lib::ensures(|out| spec::cond_subtract_3329_post(&vector.repr(), &out.repr()))]
 fn op_cond_subtract_3329(vector: SIMD128Vector) -> SIMD128Vector {
     hax_lib::fstar!(r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)"#);
-    cond_subtract_3329(vector)
+    let result = cond_subtract_3329(vector);
+    hax_lib::fstar!(
+        r#"let aux (i: nat) : Lemma (i < 16 ==>
+            Hacspec_ml_kem.ModQ.mod_q_eq
+              (v (Seq.index (impl.f_repr ${result}) i))
+              (v (Seq.index (impl.f_repr ${vector}) i)))
+          = if i < 16 then
+              Hacspec_ml_kem.ModQ.lemma_mod_q_eq_intro
+                (v (Seq.index (impl.f_repr ${result}) i))
+                (v (Seq.index (impl.f_repr ${vector}) i))
+        in
+        Classical.forall_intro aux"#
+    );
+    result
 }
 
+// PROVEN (mirrors avx2.rs): same mod_q_eq fold.
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::requires(spec::to_unsigned_representative_pre(&a.repr()))]
 #[hax_lib::ensures(|out| spec::to_unsigned_representative_post(&a.repr(), &out.repr()))]
 fn op_to_unsigned_representative(a: SIMD128Vector) -> SIMD128Vector {
     hax_lib::fstar!(r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)"#);
-    to_unsigned_representative(a)
+    let result = to_unsigned_representative(a);
+    hax_lib::fstar!(
+        r#"let aux (i: nat) : Lemma (i < 16 ==>
+            Hacspec_ml_kem.ModQ.mod_q_eq
+              (v (Seq.index (impl.f_repr ${result}) i))
+              (v (Seq.index (impl.f_repr ${a}) i)))
+          = if i < 16 then
+              Hacspec_ml_kem.ModQ.lemma_mod_q_eq_intro
+                (v (Seq.index (impl.f_repr ${result}) i))
+                (v (Seq.index (impl.f_repr ${a}) i))
+        in
+        Classical.forall_intro aux"#
+    );
+    result
 }
 
 #[inline(always)]
