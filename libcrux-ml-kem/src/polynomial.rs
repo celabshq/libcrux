@@ -1059,8 +1059,165 @@ fn to_standard_domain<T: Operations>(vector: T) -> T {
 // hold context, and `agent-trackA.md` for the Option B failure.
 #[inline(always)]
 #[hax_lib::fstar::options("--z3rlimit 600 --split_queries always")]
+// Standard-domain lifts emitted into the INTERFACE (.fsti) so the strengthened
+// `ensures` below can reference them, WITHOUT touching the hand-maintained
+// `Hacspec_ml_kem.Commute.Chunk` module (editing Chunk invalidates its heavy
+// NTT lane-bridge replay hints and forces a cold pass that saturates).
+#[cfg_attr(hax, hax_lib::fstar::before(interface, r#"
+(* Standard-domain per-lane lift: interprets an i16 NTT-domain coefficient
+   `m` (in `·R⁻¹` form) as the plain abstract value `α` it represents,
+   `α ≡ v m * 2285 ≡ v m * R (mod q)` — exactly the value
+   `to_standard_domain` (= `mont_mul(_, R²)`) recovers.  Mirrors
+   `mont_i16_to_spec_fe` (which scales by `169 = R⁻¹`) with `2285 = R`. *)
+let std_i16_to_spec_fe (x: i16)
+    : Prims.Pure Hacspec_ml_kem.Parameters.t_FieldElement
+      Prims.l_True
+      (ensures
+        fun r ->
+          let r:Hacspec_ml_kem.Parameters.t_FieldElement = r in
+          v r.Hacspec_ml_kem.Parameters.f_val == (v x * 2285) % 3329) =
+  let (q: i32):i32 = mk_i32 3329 in
+  let r:u16 =
+    cast (((((cast (x <: i16) <: i32) *! mk_i32 2285 <: i32) %! q <: i32) +! q <: i32) %! q <: i32)
+    <:
+    u16
+  in
+  Hacspec_ml_kem.Parameters.impl_FieldElement__new r
+
+(* Poly-level standard-domain lift: `to_standard_domain` applied lane-wise
+   and read as the plain spec polynomial. *)
+let to_spec_poly_standard
+    (#v_Vector: Type0)
+    {| i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector |}
+    (p: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
+    : t_Array Hacspec_ml_kem.Parameters.t_FieldElement (mk_usize 256)
+  = Hacspec_ml_kem.Parameters.createi #Hacspec_ml_kem.Parameters.t_FieldElement (mk_usize 256)
+      #(usize -> Hacspec_ml_kem.Parameters.t_FieldElement)
+      (fun (j: usize { j <. mk_usize 256 }) ->
+        (std_i16_to_spec_fe
+          (Seq.index (Libcrux_ml_kem.Vector.Traits.f_repr
+                       (Seq.index p.Libcrux_ml_kem.Vector.f_coefficients (v j / 16)))
+                     (v j % 16))
+         <: Hacspec_ml_kem.Parameters.t_FieldElement))
+"#))]
+#[hax_lib::fstar::before(r#"
+(* Opaque per-chunk "done" atom: the lane-wise plain FE-add equation for a
+   processed chunk, with `red_chunk` the result lane, `myself_chunk` the
+   ORIGINAL (pre-to_standard_domain) lane, `error_chunk` the error lane.
+   Kept opaque so the loop invariant carries it as ONE atomic term per
+   chunk instead of an unfolded `forall l`, preventing per-iteration Z3
+   re-instantiation (mirrors subtract_reduce's `subtract_reduce_finalize_chunk`). *)
+[@@ "opaque_to_smt"]
+let add_std_chunk_done
+    (myself_chunk error_chunk red_chunk: t_Array i16 (mk_usize 16)) : prop =
+  forall (l: nat). l < 16 ==>
+    Libcrux_ml_kem.Vector.Traits.Spec.i16_to_spec_fe (Seq.index red_chunk l)
+      == Hacspec_ml_kem.Parameters.impl_FieldElement__add
+           (std_i16_to_spec_fe (Seq.index myself_chunk l))
+           (Libcrux_ml_kem.Vector.Traits.Spec.i16_to_spec_fe (Seq.index error_chunk l))
+
+let lemma_add_std_chunk_done_elim
+    (myself_chunk error_chunk red_chunk: t_Array i16 (mk_usize 16)) (l: nat) :
+    Lemma (requires add_std_chunk_done myself_chunk error_chunk red_chunk /\ l < 16)
+          (ensures
+            Libcrux_ml_kem.Vector.Traits.Spec.i16_to_spec_fe (Seq.index red_chunk l)
+              == Hacspec_ml_kem.Parameters.impl_FieldElement__add
+                   (std_i16_to_spec_fe (Seq.index myself_chunk l))
+                   (Libcrux_ml_kem.Vector.Traits.Spec.i16_to_spec_fe (Seq.index error_chunk l)))
+  = reveal_opaque (`%add_std_chunk_done)
+      (add_std_chunk_done myself_chunk error_chunk red_chunk)
+
+(* Per-iteration bridge for `add_standard_error_reduce`: from the three
+   trait chunk-posts (to_standard_domain = mont_mul(_, 1353), add, barrett)
+   at lane `l` of chunk `i`, conclude the lane-wise plain spec FE-add
+   equation against the standard-domain lift of the ORIGINAL `myself`
+   chunk.  A clean-context `forall_intro` over the proven per-lane bridge
+   `lemma_add_standard_error_reduce_lane`; the `plain` value is fixed to
+   `std_i16_to_spec_fe (myself_chunk.[l])` so it matches
+   `to_spec_poly_standard` lane-for-lane.  Produces the OPAQUE chunk atom. *)
+#push-options "--z3rlimit 300 --split_queries always --fuel 0 --ifuel 1"
+let lemma_add_std_err_iter
+    (#vV: Type0) {| iop: Libcrux_ml_kem.Vector.Traits.t_Operations vV |}
+    (myself_chunk normal_chunk error_chunk sum_chunk red_chunk: t_Array i16 (mk_usize 16)) :
+    Lemma
+      (requires
+        Libcrux_ml_kem.Vector.Traits.Spec.montgomery_multiply_by_constant_post
+          myself_chunk (mk_i16 1353) normal_chunk /\
+        Libcrux_ml_kem.Vector.Traits.Spec.add_post normal_chunk error_chunk sum_chunk /\
+        Libcrux_ml_kem.Vector.Traits.Spec.barrett_reduce_post sum_chunk red_chunk)
+      (ensures add_std_chunk_done myself_chunk error_chunk red_chunk)
+  = let open Libcrux_ml_kem.Vector.Traits.Spec in
+    reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.montgomery_multiply_lane_post)
+      (Libcrux_ml_kem.Vector.Traits.Spec.montgomery_multiply_lane_post);
+    reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.barrett_reduce_lane_post)
+      (Libcrux_ml_kem.Vector.Traits.Spec.barrett_reduce_lane_post);
+    let aux (l: nat) : Lemma (l < 16 ==>
+        i16_to_spec_fe (Seq.index red_chunk l)
+          == Hacspec_ml_kem.Parameters.impl_FieldElement__add
+               (std_i16_to_spec_fe (Seq.index myself_chunk l))
+               (i16_to_spec_fe (Seq.index error_chunk l)))
+      = if l < 16 then begin
+          let plain = std_i16_to_spec_fe (Seq.index myself_chunk l) in
+          (* mont_form_lane (myself.[l]) plain : (v myself * 2285) % q == v plain.f_val % q. *)
+          reveal_opaque (`%Hacspec_ml_kem.Commute.Chunk.mont_form_lane)
+            (Hacspec_ml_kem.Commute.Chunk.mont_form_lane (Seq.index myself_chunk l) plain);
+          assert (v plain.Hacspec_ml_kem.Parameters.f_val
+                  == (v (Seq.index myself_chunk l) * 2285) % 3329);
+          (* unfold the mod_q_eq trait posts into raw `% 3329`. *)
+          Hacspec_ml_kem.ModQ.lemma_mod_q_eq_unfold
+            (v (Seq.index normal_chunk l))
+            (v (Seq.index myself_chunk l) * v (mk_i16 1353) * 169);
+          Hacspec_ml_kem.ModQ.lemma_mod_q_eq_unfold
+            (v (Seq.index red_chunk l))
+            (v (Seq.index sum_chunk l));
+          Hacspec_ml_kem.Commute.Chunk.lemma_add_standard_error_reduce_lane
+            (Seq.index myself_chunk l)
+            (Seq.index normal_chunk l)
+            (Seq.index error_chunk l)
+            (Seq.index sum_chunk l)
+            (Seq.index red_chunk l)
+            plain
+        end
+    in
+    Classical.forall_intro aux;
+    reveal_opaque (`%add_std_chunk_done)
+      (add_std_chunk_done myself_chunk error_chunk red_chunk)
+
+(* Standalone clean-context bridge: the `ntt_product` slice at chunk `k`,
+   lane `l`, equals the standard-domain lift of the original `myself`
+   coefficient lane.  Isolates the createi unfold from the loop body. *)
+let lemma_ntt_product_slice
+    (#vV: Type0) {| iop: Libcrux_ml_kem.Vector.Traits.t_Operations vV |}
+    (p: Libcrux_ml_kem.Vector.t_PolynomialRingElement vV) (k l: nat) :
+    Lemma (requires k < 16 /\ l < 16)
+          (ensures
+            Seq.index (Seq.slice (to_spec_poly_standard #vV p) (k * 16) (k * 16 + 16)) l
+              == std_i16_to_spec_fe
+                   (Seq.index (Libcrux_ml_kem.Vector.Traits.f_repr
+                                (Seq.index p.Libcrux_ml_kem.Vector.f_coefficients k)) l))
+  = let np = to_spec_poly_standard #vV p in
+    Seq.lemma_index_slice np (k * 16) (k * 16 + 16) l;
+    Hacspec_ml_kem.Parameters.createi_lemma #Hacspec_ml_kem.Parameters.t_FieldElement
+      (mk_usize 256)
+      #(usize -> Hacspec_ml_kem.Parameters.t_FieldElement)
+      (fun (jj: usize { jj <. mk_usize 256 }) ->
+        (std_i16_to_spec_fe
+          (Seq.index (Libcrux_ml_kem.Vector.Traits.f_repr
+                       (Seq.index p.Libcrux_ml_kem.Vector.f_coefficients (v jj / 16)))
+                     (v jj % 16))
+         <: Hacspec_ml_kem.Parameters.t_FieldElement))
+      (sz (k * 16 + l))
+#pop-options
+"#)]
 #[hax_lib::requires(spec::is_bounded_poly(3328, &error))]
-#[hax_lib::ensures(|result| spec::is_bounded_poly(3328, &future(myself)))]
+#[hax_lib::ensures(|result|
+    spec::is_bounded_poly(3328, &future(myself))
+    & fstar!(r#"
+        Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #$:Vector ${myself}_future
+          == Hacspec_ml_kem.Polynomial.add_standard_error_reduce
+               (to_spec_poly_standard #$:Vector ${myself})
+               (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #$:Vector ${error})
+      "#))]
 fn add_standard_error_reduce<Vector: Operations>(
     myself: &mut PolynomialRingElement<Vector>,
     error: &PolynomialRingElement<Vector>,
@@ -1069,12 +1226,26 @@ fn add_standard_error_reduce<Vector: Operations>(
     let _myself = myself.coefficients;
 
     for j in 0..VECTORS_IN_RING_ELEMENT {
+        // Loop invariant: for already-processed chunks, the OPAQUE per-chunk
+        // FE-add atom keyed on the ORIGINAL (snapshot) `_myself` chunk; for
+        // unprocessed chunks, the chunk is still equal to the original.
         hax_lib::loop_invariant!(|i: usize| hax_lib::forall(|j: usize| {
             if j < 16 {
                 if j < i {
                     spec::is_bounded_vector(3328, &myself.coefficients[j])
+                        & fstar!(r#"
+                            add_std_chunk_done
+                              (Libcrux_ml_kem.Vector.Traits.f_repr #$:Vector
+                                (Seq.index ${_myself} (v $j)))
+                              (Libcrux_ml_kem.Vector.Traits.f_repr #$:Vector
+                                (Seq.index ${error}.f_coefficients (v $j)))
+                              (Libcrux_ml_kem.Vector.Traits.f_repr #$:Vector
+                                (Seq.index ${myself}.f_coefficients (v $j)))
+                          "#)
                 } else {
-                    true.to_prop()
+                    fstar!(r#"
+                        Seq.index ${myself}.f_coefficients (v $j) == Seq.index ${_myself} (v $j)
+                      "#)
                 }
             } else {
                 true.to_prop()
@@ -1093,8 +1264,68 @@ fn add_standard_error_reduce<Vector: Operations>(
 
         let red = Vector::barrett_reduce(sum);
         hax_lib::assert_prop!(spec::is_bounded_vector(3328, &red));
+
+        // Establish the per-lane plain FE-add equation for this chunk as the
+        // OPAQUE atom keyed on the ORIGINAL `_myself` chunk.
+        hax_lib::fstar!(r#"
+            lemma_add_std_err_iter #v_Vector
+              (Libcrux_ml_kem.Vector.Traits.f_repr (Seq.index ${_myself} (v $j)))
+              (Libcrux_ml_kem.Vector.Traits.f_repr ${coefficient_normal_form})
+              (Libcrux_ml_kem.Vector.Traits.f_repr
+                (${error}.f_coefficients.[ $j ] <: v_Vector))
+              (Libcrux_ml_kem.Vector.Traits.f_repr ${sum})
+              (Libcrux_ml_kem.Vector.Traits.f_repr ${red})
+          "#);
+
         myself.coefficients[j] = red;
     }
+
+    // Post-loop bridge: from the 16 per-chunk opaque atoms (loop invariant at
+    // i = 16) assemble the `_commute` precondition for every (k,l), then call
+    // the proven Chunk commute lemma against `myself_orig` (= original).
+    hax_lib::fstar!(r#"
+        let myself_orig : Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector =
+          { Libcrux_ml_kem.Vector.f_coefficients = ${_myself} } in
+        let ntt_product : t_Array Hacspec_ml_kem.Parameters.t_FieldElement (mk_usize 256) =
+          to_spec_poly_standard #v_Vector myself_orig in
+        let aux (k: nat) : Lemma (k < 16 ==>
+            (forall (l: nat). l < 16 ==>
+              Libcrux_ml_kem.Vector.Traits.Spec.i16_to_spec_fe
+                (Seq.index (Libcrux_ml_kem.Vector.Traits.f_repr
+                             (Seq.index ${myself}.f_coefficients k)) l)
+                == Hacspec_ml_kem.Parameters.impl_FieldElement__add
+                     (Seq.index (Seq.slice ntt_product (k * 16) (k * 16 + 16)) l)
+                     (Libcrux_ml_kem.Vector.Traits.Spec.i16_to_spec_fe
+                       (Seq.index (Libcrux_ml_kem.Vector.Traits.f_repr
+                                    (Seq.index ${error}.f_coefficients k)) l)))) =
+          if k < 16 then begin
+            let aux2 (l: nat) : Lemma (l < 16 ==>
+                Libcrux_ml_kem.Vector.Traits.Spec.i16_to_spec_fe
+                  (Seq.index (Libcrux_ml_kem.Vector.Traits.f_repr
+                               (Seq.index ${myself}.f_coefficients k)) l)
+                  == Hacspec_ml_kem.Parameters.impl_FieldElement__add
+                       (Seq.index (Seq.slice ntt_product (k * 16) (k * 16 + 16)) l)
+                       (Libcrux_ml_kem.Vector.Traits.Spec.i16_to_spec_fe
+                         (Seq.index (Libcrux_ml_kem.Vector.Traits.f_repr
+                                      (Seq.index ${error}.f_coefficients k)) l))) =
+              if l < 16 then begin
+                lemma_add_std_chunk_done_elim
+                  (Libcrux_ml_kem.Vector.Traits.f_repr (Seq.index ${_myself} k))
+                  (Libcrux_ml_kem.Vector.Traits.f_repr
+                    (Seq.index ${error}.f_coefficients k))
+                  (Libcrux_ml_kem.Vector.Traits.f_repr
+                    (Seq.index ${myself}.f_coefficients k))
+                  l;
+                lemma_ntt_product_slice #v_Vector myself_orig k l
+              end
+            in
+            Classical.forall_intro aux2
+          end
+        in
+        Classical.forall_intro aux;
+        Hacspec_ml_kem.Commute.Chunk.lemma_add_standard_error_reduce_commute #v_Vector
+          myself_orig ${error} ${myself} ntt_product
+      "#);
 }
 
 /// Given two `KyberPolynomialRingElement`s in their NTT representations,
@@ -1136,9 +1367,360 @@ fn add_standard_error_reduce<Vector: Operations>(
 //                 result.coefficients[i].abs() <= FIELD_MODULUS
 // ))))]
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 300 --split_queries always")]
+#[hax_lib::fstar::options("--z3rlimit 400 --ext context_pruning --split_queries always")]
+#[hax_lib::fstar::before(r#"(* ════════════════════════════════════════════════════════════════════
+   Phase B — `ntt_multiply` poly-level Montgomery commute (re-homed from
+   Hacspec_ml_kem.Commute.Bridges).  See subtract_reduce for the wiring
+   precedent.  The zeta correspondence is the one approved local assume. *)
+
+module N    = Hacspec_ml_kem.Ntt
+module P    = Hacspec_ml_kem.Parameters
+module T    = Libcrux_ml_kem.Vector.Traits
+module TS   = Libcrux_ml_kem.Vector.Traits.Spec
+module V    = Libcrux_ml_kem.Vector
+module Poly = Hacspec_ml_kem.Polynomial
+module CH   = Hacspec_ml_kem.Commute.Chunk
+
+(* APPROVED LOCAL ASSUME (user 2026-06-06): duplicate of the
+   runtime-validated axiom in Hacspec_ml_kem.Commute.Bridges; needed here
+   because zeta lives in this module so the Bridges copy can't be imported
+   (module cycle).  Bumps this module's assume count 1 -> 2. *)
+assume val lemma_zeta_eq_vzetas (k: usize)
+  : Lemma (requires v k < 128)
+          (ensures TS.mont_i16_to_spec_fe (zeta k) == N.v_ZETAS.[ k ])
+
+(* Bridge: is_bounded_vector b vec -> is_i16b_array_opaque (v b) (f_repr vec).
+   is_bounded_vector is over f_to_i16_array; the trait law
+   f_to_i16_array x == f_repr x (fired by calling f_to_i16_array) bridges. *)
+#push-options "--z3rlimit 100 --fuel 0 --ifuel 1"
+let lemma_is_i16b_repr_of_bounded
+    (#vV: Type0) {| iop: T.t_Operations vV |}
+    (vec: vV) (b: usize)
+  : Lemma
+    (requires Libcrux_ml_kem.Polynomial.Spec.is_bounded_vector #vV b vec)
+    (ensures TS.is_i16b_array_opaque (v b) (T.f_repr vec))
+  = reveal_opaque (`%TS.is_i16b_array_opaque)
+      (TS.is_i16b_array_opaque (v b) (T.f_to_i16_array vec));
+    let _ = T.f_to_i16_array vec in
+    reveal_opaque (`%TS.is_i16b_array_opaque)
+      (TS.is_i16b_array_opaque (v b) (T.f_repr vec))
+#pop-options
+
+#push-options "--z3rlimit 300 --fuel 0 --ifuel 1"
+let lemma_ntt_multiply_n_256_lane
+    (p1 p2: t_Array P.t_FieldElement (mk_usize 256))
+    (zs: t_Slice P.t_FieldElement)
+    (i: nat {i < 256})
+  : Lemma
+    (requires
+      (Core_models.Slice.impl__len #P.t_FieldElement zs <: usize) <. mk_usize 1024 &&
+      ((Core_models.Slice.impl__len #P.t_FieldElement zs <: usize) *! mk_usize 4 <: usize) =.
+        mk_usize 256)
+    (ensures
+      (let result = N.ntt_multiply_n (mk_usize 256) p1 p2 zs in
+       let group : nat = i / 4 in
+       let zeta = (if i % 4 < 2 then Seq.index zs group
+                   else P.impl_FieldElement__neg (Seq.index zs group)) in
+       (i % 2 = 0 ==>
+         i + 1 < 256 /\
+         Seq.index result i ==
+           N.base_case_multiply_even (Seq.index p1 i) (Seq.index p1 (i + 1))
+                                     (Seq.index p2 i) (Seq.index p2 (i + 1))
+                                     zeta) /\
+       (i % 2 = 1 ==>
+         i >= 1 /\
+         Seq.index result i ==
+           N.base_case_multiply_odd (Seq.index p1 (i - 1)) (Seq.index p1 i)
+                                    (Seq.index p2 (i - 1)) (Seq.index p2 i))))
+  = P.createi_lemma #P.t_FieldElement (mk_usize 256)
+      #(usize -> P.t_FieldElement)
+      (fun (j: usize { j <. mk_usize 256 }) ->
+        let group:usize = j /! mk_usize 4 in
+        let zeta:P.t_FieldElement =
+          if (j %! mk_usize 4 <: usize) <. mk_usize 2
+          then Seq.index zs (v group)
+          else P.impl_FieldElement__neg (Seq.index zs (v group))
+        in
+        (if (j %! mk_usize 2 <: usize) =. mk_usize 0
+         then
+           N.base_case_multiply_even (Seq.index p1 (v j)) (Seq.index p1 (v j + 1))
+                                     (Seq.index p2 (v j)) (Seq.index p2 (v j + 1))
+                                     zeta
+         else
+           N.base_case_multiply_odd (Seq.index p1 (v j - 1)) (Seq.index p1 (v j))
+                                    (Seq.index p2 (v j - 1)) (Seq.index p2 (v j)))
+        <: P.t_FieldElement)
+      (sz i)
+#pop-options
+
+let zetas_mul_slice : t_Slice P.t_FieldElement =
+  N.v_ZETAS.[ { Core_models.Ops.Range.f_start = mk_usize 64;
+                Core_models.Ops.Range.f_end   = mk_usize 128 } ]
+
+#push-options "--z3rlimit 100 --fuel 0 --ifuel 1"
+let lemma_zetas_mul_slice_len (_:unit)
+  : Lemma ((Core_models.Slice.impl__len #P.t_FieldElement zetas_mul_slice <: usize)
+             == mk_usize 64 /\
+           (Core_models.Slice.impl__len #P.t_FieldElement zetas_mul_slice <: usize) <. mk_usize 1024 /\
+           ((Core_models.Slice.impl__len #P.t_FieldElement zetas_mul_slice <: usize) *! mk_usize 4
+              <: usize) =. mk_usize 256)
+  = assert_norm (Seq.length N.v_ZETAS == 128)
+
+let lemma_zetas_mul_slice_index (round: nat {round < 64})
+  : Lemma (Seq.index zetas_mul_slice round == Seq.index N.v_ZETAS (64 + round))
+  = assert_norm (Seq.length N.v_ZETAS == 128);
+    FStar.Seq.Base.lemma_index_slice N.v_ZETAS 64 128 round
+#pop-options
+
+#push-options "--z3rlimit 200 --fuel 0 --ifuel 1"
+let lemma_chunk_zeta_eq_slice (m: nat {m < 16}) (g: nat {g < 4})
+  : Lemma
+    (let zs = TS.zetas_4_ (zeta (mk_usize 64 +! mk_usize 4 *! sz m))
+                          (zeta (mk_usize 65 +! mk_usize 4 *! sz m))
+                          (zeta (mk_usize 66 +! mk_usize 4 *! sz m))
+                          (zeta (mk_usize 67 +! mk_usize 4 *! sz m)) in
+     64 + (4 * m + g) < 128 /\
+     Seq.index zs g == Seq.index N.v_ZETAS (64 + (4 * m + g)))
+  = let z0 = zeta (mk_usize 64 +! mk_usize 4 *! sz m) in
+    let z1 = zeta (mk_usize 65 +! mk_usize 4 *! sz m) in
+    let z2 = zeta (mk_usize 66 +! mk_usize 4 *! sz m) in
+    let z3 = zeta (mk_usize 67 +! mk_usize 4 *! sz m) in
+    assert (4 * m + g < 64);
+    CH.zetas_4_lane z0 z1 z2 z3 (sz g);
+    assert (v (mk_usize 64 +! mk_usize 4 *! sz m) == 64 + 4 * m);
+    assert (v (mk_usize 65 +! mk_usize 4 *! sz m) == 65 + 4 * m);
+    assert (v (mk_usize 66 +! mk_usize 4 *! sz m) == 66 + 4 * m);
+    assert (v (mk_usize 67 +! mk_usize 4 *! sz m) == 67 + 4 * m);
+    assert (v (mk_usize (64 + 4 * m + g)) == 64 + 4 * m + g);
+    lemma_zeta_eq_vzetas (mk_usize (64 + 4 * m + g))
+#pop-options
+
+(* Clean-context lift helper: isolate the createi-based unfold so its
+   createi_lemma SMTPat doesn't cross-pollinate the per-lane bridge. *)
+#push-options "--z3rlimit 300 --fuel 0 --ifuel 1"
+let lemma_mont_lift_lane
+    (#vV: Type0) {| iop: T.t_Operations vV |}
+    (x: V.t_PolynomialRingElement vV) (i: nat {i < 256})
+  : Lemma
+    (Seq.index (CH.to_spec_poly_mont #vV x) i
+       == TS.mont_i16_to_spec_fe
+            (Seq.index (T.f_repr (Seq.index x.V.f_coefficients (i / 16))) (i % 16)))
+  = let m = i / 16 in
+    let l = i % 16 in
+    FStar.Math.Lemmas.lemma_div_mod i 16;
+    CH.poly_lane_mont #vV x i;
+    CH.mont_array_lane (T.f_repr (Seq.index x.V.f_coefficients m)) (sz l)
+#pop-options
+
+(* RETROFIT 2026-06-06: single symbolic-lane worker replacing the 16-way
+   per-literal `lemma_poly_lane_l0..l15` + z3refresh split.  Bridges the
+   256-level out-lift lane `16*m+l` to the chunk-level `ntt_multiply_n 16`
+   equation (the `requires`).  Createi-free: the createi_lemma SMTPat is
+   excluded; both lane unfolds are supplied via the proven lane lemmas and
+   the modular index facts are handed to Z3 explicitly, so the even/odd and
+   group/zeta ITEs collapse without fixing `l` to a literal.  One `l % 2`
+   branch picks the even (partner l+1) vs odd (partner l-1) neighbour. *)
+#push-options "--z3rlimit 400 --fuel 0 --ifuel 2 --using_facts_from '* -Hacspec_ml_kem.Parameters.createi_lemma'"
+let lemma_poly_lane_any
+    (#vV: Type0) {| iop: T.t_Operations vV |}
+    (myself rhs out: V.t_PolynomialRingElement vV)
+    (m: nat {m < 16}) (l: nat {l < 16})
+  : Lemma
+    (requires
+      (let cm_l = T.f_repr (Seq.index myself.V.f_coefficients m) in
+       let cm_r = T.f_repr (Seq.index rhs.V.f_coefficients m) in
+       let cm_out = T.f_repr (Seq.index out.V.f_coefficients m) in
+       TS.mont_i16_to_spec_array (sz 16) cm_out ==
+         N.ntt_multiply_n (mk_usize 16)
+           (TS.mont_i16_to_spec_array (sz 16) cm_l)
+           (TS.mont_i16_to_spec_array (sz 16) cm_r)
+           (Rust_primitives.unsize
+             (TS.zetas_4_ (zeta (mk_usize 64 +! mk_usize 4 *! sz m))
+                          (zeta (mk_usize 65 +! mk_usize 4 *! sz m))
+                          (zeta (mk_usize 66 +! mk_usize 4 *! sz m))
+                          (zeta (mk_usize 67 +! mk_usize 4 *! sz m))))))
+    (ensures
+      (let p1 = CH.to_spec_poly_mont #vV myself in
+       let p2 = CH.to_spec_poly_mont #vV rhs in
+       Seq.index (CH.to_spec_poly_mont #vV out) (16 * m + l)
+         == Seq.index (N.ntt_multiply_n (mk_usize 256) p1 p2 zetas_mul_slice) (16 * m + l)))
+  = let i : nat = 16 * m + l in
+    let cm_l = T.f_repr (Seq.index myself.V.f_coefficients m) in
+    let cm_r = T.f_repr (Seq.index rhs.V.f_coefficients m) in
+    let cm_out = T.f_repr (Seq.index out.V.f_coefficients m) in
+    let zsm = TS.zetas_4_ (zeta (mk_usize 64 +! mk_usize 4 *! sz m))
+                          (zeta (mk_usize 65 +! mk_usize 4 *! sz m))
+                          (zeta (mk_usize 66 +! mk_usize 4 *! sz m))
+                          (zeta (mk_usize 67 +! mk_usize 4 *! sz m)) in
+    let lm = TS.mont_i16_to_spec_array (sz 16) cm_l in
+    let rm = TS.mont_i16_to_spec_array (sz 16) cm_r in
+    let p1 = CH.to_spec_poly_mont #vV myself in
+    let p2 = CH.to_spec_poly_mont #vV rhs in
+    (* Explicit modular index facts: i = 16*m + l, 0 <= l,m < 16. *)
+    FStar.Math.Lemmas.lemma_div_plus l m 16;           (* i / 16 == l/16 + m == m *)
+    FStar.Math.Lemmas.modulo_addition_lemma l 16 m;    (* i % 16 == l % 16 == l   *)
+    FStar.Math.Lemmas.lemma_div_plus l (4 * m) 4;      (* i / 4  == l/4 + 4*m     *)
+    FStar.Math.Lemmas.modulo_addition_lemma l 4 (4 * m); (* i % 4 == l % 4        *)
+    FStar.Math.Lemmas.modulo_addition_lemma l 2 (8 * m); (* i % 2 == l % 2        *)
+    assert (i / 16 == m /\ i % 16 == l);
+    assert (i / 4 == 4 * m + l / 4 /\ i % 4 == l % 4 /\ i % 2 == l % 2);
+    lemma_mont_lift_lane #vV out i;
+    CH.lemma_ntt_multiply_n_16_lane lm rm zsm l;
+    lemma_zetas_mul_slice_len ();
+    lemma_ntt_multiply_n_256_lane p1 p2 zetas_mul_slice i;
+    lemma_mont_lift_lane #vV myself i;
+    lemma_mont_lift_lane #vV rhs i;
+    CH.mont_array_lane cm_out (sz l);
+    CH.mont_array_lane cm_l (sz l);
+    CH.mont_array_lane cm_r (sz l);
+    lemma_chunk_zeta_eq_slice m (l / 4);
+    lemma_zetas_mul_slice_index (i / 4);
+    (if l % 2 = 0 then begin
+       assert (l <= 14);
+       FStar.Math.Lemmas.lemma_div_plus (l + 1) m 16;
+       FStar.Math.Lemmas.modulo_addition_lemma (l + 1) 16 m;
+       assert ((i + 1) / 16 == m /\ (i + 1) % 16 == l + 1);
+       lemma_mont_lift_lane #vV myself (i + 1);
+       lemma_mont_lift_lane #vV rhs (i + 1);
+       CH.mont_array_lane cm_l (sz (l + 1));
+       CH.mont_array_lane cm_r (sz (l + 1))
+     end
+     else begin
+       assert (l >= 1);
+       FStar.Math.Lemmas.lemma_div_plus (l - 1) m 16;
+       FStar.Math.Lemmas.modulo_addition_lemma (l - 1) 16 m;
+       assert ((i - 1) / 16 == m /\ (i - 1) % 16 == l - 1);
+       lemma_mont_lift_lane #vV myself (i - 1);
+       lemma_mont_lift_lane #vV rhs (i - 1);
+       CH.mont_array_lane cm_l (sz (l - 1));
+       CH.mont_array_lane cm_r (sz (l - 1))
+     end)
+#pop-options
+
+(* Trivial dispatcher: lane i -> per-l lemma at l = i % 16, m = i / 16. *)
+#push-options "--z3rlimit 100 --fuel 0 --ifuel 1"
+let lemma_ntt_multiply_poly_lane
+    (#vV: Type0) {| iop: T.t_Operations vV |}
+    (myself rhs out: V.t_PolynomialRingElement vV)
+    (i: nat {i < 256})
+  : Lemma
+    (requires
+      (let m : nat = i / 16 in
+       let cm_l = T.f_repr (Seq.index myself.V.f_coefficients m) in
+       let cm_r = T.f_repr (Seq.index rhs.V.f_coefficients m) in
+       let cm_out = T.f_repr (Seq.index out.V.f_coefficients m) in
+       TS.mont_i16_to_spec_array (sz 16) cm_out ==
+         N.ntt_multiply_n (mk_usize 16)
+           (TS.mont_i16_to_spec_array (sz 16) cm_l)
+           (TS.mont_i16_to_spec_array (sz 16) cm_r)
+           (Rust_primitives.unsize
+             (TS.zetas_4_ (zeta (mk_usize 64 +! mk_usize 4 *! sz m))
+                          (zeta (mk_usize 65 +! mk_usize 4 *! sz m))
+                          (zeta (mk_usize 66 +! mk_usize 4 *! sz m))
+                          (zeta (mk_usize 67 +! mk_usize 4 *! sz m))))))
+    (ensures
+      (let p1 = CH.to_spec_poly_mont #vV myself in
+       let p2 = CH.to_spec_poly_mont #vV rhs in
+       Seq.index (CH.to_spec_poly_mont #vV out) (i)
+         == Seq.index (N.ntt_multiply_n (mk_usize 256) p1 p2 zetas_mul_slice) (i)))
+  = let m : nat = i / 16 in
+    let l : nat = i % 16 in
+    FStar.Math.Lemmas.lemma_div_mod i 16;
+    assert (i == 16 * m + l /\ l < 16 /\ m < 16);
+    lemma_poly_lane_any #vV myself rhs out m l
+#pop-options
+
+
+
+unfold
+let ntt_multiply_chunk_done
+    (#vV: Type0) {| iop: T.t_Operations vV |}
+    (myself rhs out: V.t_PolynomialRingElement vV) (m: nat {m < 16}) : prop =
+  TS.is_i16b_array_opaque 3328 (T.f_repr (Seq.index myself.V.f_coefficients m)) /\
+  TS.is_i16b_array_opaque 3328 (T.f_repr (Seq.index rhs.V.f_coefficients m)) /\
+  Seq.index out.V.f_coefficients m ==
+    T.f_ntt_multiply #vV (Seq.index myself.V.f_coefficients m)
+                         (Seq.index rhs.V.f_coefficients m)
+                         (zeta (mk_usize 64 +! mk_usize 4 *! sz m))
+                         (zeta (mk_usize 65 +! mk_usize 4 *! sz m))
+                         (zeta (mk_usize 66 +! mk_usize 4 *! sz m))
+                         (zeta (mk_usize 67 +! mk_usize 4 *! sz m))
+
+#push-options "--z3rlimit 300 --fuel 0 --ifuel 1"
+let lemma_ntt_multiply_chunk_eq
+    (#vV: Type0) {| iop: T.t_Operations vV |}
+    (myself rhs out: V.t_PolynomialRingElement vV) (m: nat {m < 16})
+  : Lemma
+    (requires ntt_multiply_chunk_done #vV myself rhs out m)
+    (ensures
+      (let cm_l = T.f_repr (Seq.index myself.V.f_coefficients m) in
+       let cm_r = T.f_repr (Seq.index rhs.V.f_coefficients m) in
+       let cm_out = T.f_repr (Seq.index out.V.f_coefficients m) in
+       TS.mont_i16_to_spec_array (sz 16) cm_out ==
+         N.ntt_multiply_n (mk_usize 16)
+           (TS.mont_i16_to_spec_array (sz 16) cm_l)
+           (TS.mont_i16_to_spec_array (sz 16) cm_r)
+           (Rust_primitives.unsize
+             (TS.zetas_4_ (zeta (mk_usize 64 +! mk_usize 4 *! sz m))
+                          (zeta (mk_usize 65 +! mk_usize 4 *! sz m))
+                          (zeta (mk_usize 66 +! mk_usize 4 *! sz m))
+                          (zeta (mk_usize 67 +! mk_usize 4 *! sz m))))))
+  = let z0 = zeta (mk_usize 64 +! mk_usize 4 *! sz m) in
+    let z1 = zeta (mk_usize 65 +! mk_usize 4 *! sz m) in
+    let z2 = zeta (mk_usize 66 +! mk_usize 4 *! sz m) in
+    let z3 = zeta (mk_usize 67 +! mk_usize 4 *! sz m) in
+    let lhs = Seq.index myself.V.f_coefficients m in
+    let rhs_v = Seq.index rhs.V.f_coefficients m in
+    assert (Spec.Utils.is_i16b 1664 z0 /\ Spec.Utils.is_i16b 1664 z1 /\
+            Spec.Utils.is_i16b 1664 z2 /\ Spec.Utils.is_i16b 1664 z3);
+    reveal_opaque (`%TS.is_i16b_array_opaque) (TS.is_i16b_array_opaque 3328 (T.f_repr lhs));
+    reveal_opaque (`%TS.is_i16b_array_opaque) (TS.is_i16b_array_opaque 3328 (T.f_repr rhs_v));
+    assert (TS.ntt_multiply_pre (T.f_repr lhs) (T.f_repr rhs_v) z0 z1 z2 z3);
+    CH.lemma_ntt_multiply_chunk_commutes #vV lhs rhs_v z0 z1 z2 z3
+#pop-options
+
+#push-options "--z3rlimit 400 --fuel 0 --ifuel 1 --split_queries always"
+let lemma_ntt_multiply_to_hacspec
+    (#vV: Type0) {| iop: T.t_Operations vV |}
+    (myself rhs out: V.t_PolynomialRingElement vV)
+  : Lemma
+    (requires (forall (m: nat). m < 16 ==> ntt_multiply_chunk_done #vV myself rhs out m))
+    (ensures
+      CH.to_spec_poly_mont #vV out ==
+        Poly.ntt_multiply (CH.to_spec_poly_mont #vV myself)
+                          (CH.to_spec_poly_mont #vV rhs))
+  = let p1 = CH.to_spec_poly_mont #vV myself in
+    let p2 = CH.to_spec_poly_mont #vV rhs in
+    let target = N.ntt_multiply_n (mk_usize 256) p1 p2 zetas_mul_slice in
+    lemma_zetas_mul_slice_len ();
+    assert (Poly.ntt_multiply p1 p2 == target)
+      by (FStar.Tactics.norm
+            [delta_only [`%Poly.ntt_multiply; `%N.multiply_ntts]; iota;
+             FStar.NormSteps.zeta; primops];
+          FStar.Tactics.trefl ());
+    let out_lift = CH.to_spec_poly_mont #vV out in
+    let aux (i: nat) : Lemma (i < 256 ==> Seq.index out_lift i == Seq.index target i)
+      = if i < 256 then begin
+          let m : nat = i / 16 in
+          FStar.Math.Lemmas.lemma_div_le i 255 16;
+          assert (m < 16);
+          lemma_ntt_multiply_chunk_eq #vV myself rhs out m;
+          lemma_ntt_multiply_poly_lane #vV myself rhs out i
+        end
+    in
+    Classical.forall_intro aux;
+    Seq.lemma_eq_intro out_lift target
+#pop-options
+"#)]
 #[hax_lib::requires(spec::is_bounded_poly(3328, &myself) & (spec::is_bounded_poly(3328, &rhs)))]
-#[hax_lib::ensures(|result| spec::is_bounded_poly(3328, &result))]
+#[hax_lib::ensures(|result|
+    spec::is_bounded_poly(3328, &result)
+    & fstar!(r#"
+        Hacspec_ml_kem.Commute.Chunk.to_spec_poly_mont #$:Vector ${result}
+          == Hacspec_ml_kem.Polynomial.ntt_multiply
+               (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_mont #$:Vector ${myself})
+               (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_mont #$:Vector ${rhs})
+      "#))]
 fn ntt_multiply<Vector: Operations>(
     myself: &PolynomialRingElement<Vector>,
     rhs: &PolynomialRingElement<Vector>,
@@ -1147,7 +1729,11 @@ fn ntt_multiply<Vector: Operations>(
 
     for i in 0..VECTORS_IN_RING_ELEMENT {
         hax_lib::loop_invariant!(|i: usize| hax_lib::forall(|j: usize| {
-            hax_lib::implies(j < i, spec::is_bounded_vector(3328, &out.coefficients[j]))
+            hax_lib::implies(j < i, spec::is_bounded_vector(3328, &out.coefficients[j])
+              & fstar!(r#"
+                  ntt_multiply_chunk_done #$:Vector
+                    ${myself} ${rhs} ${out} (v $j)
+                "#))
         }));
 
         out.coefficients[i] = Vector::ntt_multiply(
@@ -1158,7 +1744,19 @@ fn ntt_multiply<Vector: Operations>(
             zeta(64 + 4 * i + 2),
             zeta(64 + 4 * i + 3),
         );
+
+        // Establish ntt_multiply_chunk_done for the just-written chunk i.
+        hax_lib::fstar!(r#"
+            lemma_is_i16b_repr_of_bounded #v_Vector
+              (Seq.index ${myself}.f_coefficients (v $i)) (mk_usize 3328);
+            lemma_is_i16b_repr_of_bounded #v_Vector
+              (Seq.index ${rhs}.f_coefficients (v $i)) (mk_usize 3328)
+          "#);
     }
+
+    hax_lib::fstar!(r#"
+        lemma_ntt_multiply_to_hacspec #v_Vector $myself $rhs out
+      "#);
 
     out
 }
