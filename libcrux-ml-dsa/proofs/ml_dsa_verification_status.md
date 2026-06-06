@@ -47,11 +47,11 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 | _Portable_ | vector_type       |    1 |   3 |   0 |     |   3 |    0 |      0 |       0 |
 |            | arithmetic        |    1 |  21 |   0 |     |   2 |    3 |      1 |      15 |
 |            | ntt               |    1 |  18 |   0 |     |   0 |    0 |      9 |       9 |
-|            | invntt            |    1 |  21 |   0 |     |   4 |    0 |     17 |       0 |
+|            | invntt            |    1 |  22 |   0 |     |   4 |    0 |     10 |       8 |
 |            | sample            |    1 |   3 |   0 |     |   0 |    3 |      0 |       0 |
 |            | encoding          |    6 |  19 |   0 |     |   0 |   19 |      0 |       0 |
 |            | simd (top)        |    1 |  33 |   1 |     |   1 |   15 |      3 |      13 |
-|            | **Portable total** | **12** | **118** | **1** |     | **10** | **40** | **30** |  **37** |
+|            | **Portable total** | **12** | **119** | **1** |     | **10** | **40** | **23** |  **45** |
 |            |                   |      |     |     |     |     |      |        |         |
 | _Avx2_     | vector_type       |    1 |   3 |   0 |     |   3 |    0 |      0 |       0 |
 |            | arithmetic        |    1 |  14 |   0 |     |   2 |    4 |      1 |       7 |
@@ -65,21 +65,21 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 ## Summary
 
 - **Total modules**: 58
-- **Total functions**: 595
-- **Lax** (admitted): 42 (7.1%)
+- **Total functions**: 596
+- **Lax** (admitted): 42 (7.0%)
 - **Unverified** (not extracted): 6 (1.0%)
-- **Panic-safe** (PF + Math + Bounds + Hacspec): 547 (91.9%)
+- **Panic-safe** (PF + Math + Bounds + Hacspec): 548 (91.9%)
   - Panic-free only (no further proof): 284 (47.7%)
   - Math (non-trivial ensures, no bounds/spec match): 135 (22.7%)
-  - Bounds (range/interval ensures): 58 (9.7%)
-  - Hacspec (cites high-level spec): 70 (11.8%)
+  - Bounds (range/interval ensures): 51 (8.6%)
+  - Hacspec (cites high-level spec): 78 (13.1%)
 
 ### Modules per category
 
 | Category     | Modules |  Fns | Lax | Unv |  PF | Math | Bounds | Hacspec |
 | ------------ | ------- | ---- | --- | --- | --- | ---- | ------ | ------- |
 | Generic      |      31 |  360 |  24 |   6 | 253 |   42 |     25 |      10 |
-| Portable     |      12 |  118 |   1 |   0 |  10 |   40 |     30 |      37 |
+| Portable     |      12 |  119 |   1 |   0 |  10 |   40 |     23 |      45 |
 | Avx2         |      15 |  117 |  17 |   0 |  21 |   53 |      3 |      23 |
 
 ## Unverified Rust modules (not extracted to F\*)
