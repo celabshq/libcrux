@@ -294,7 +294,6 @@ pub(crate) fn generate_keypair<
         Err(_) => true,
     }
 )]
-#[hax_lib::fstar::verification_status(panic_free)]
 #[inline(always)]
 pub(crate) fn encapsulate<
     const K: usize,
@@ -348,10 +347,14 @@ pub(crate) fn encapsulate<
         Hasher,
     >(public_key.as_slice(), &randomness, pseudorandomness);
 
-    (
+    let result = (
         MlKemCiphertext::from(ciphertext),
         Scheme::kdf::<K, CIPHERTEXT_SIZE, Hasher>(shared_secret, &ciphertext),
-    )
+    );
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Ind_cca_bridge.lemma_encapsulate_post $K $PUBLIC_KEY_SIZE $C1_SIZE $C2_SIZE $CIPHERTEXT_SIZE ${public_key}.f_value $randomness $to_hash $shared_secret $pseudorandomness $ciphertext $result"#
+    );
+    result
 }
 
 /// This code verifies on some machines, runs out of memory on others

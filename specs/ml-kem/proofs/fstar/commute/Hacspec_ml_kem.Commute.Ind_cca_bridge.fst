@@ -313,3 +313,173 @@ let lemma_generate_keypair_post
             (Seq.append (HF.v_H (ek <: t_Slice u8)) (z <: t_Slice u8))))
   | Core_models.Result.Result_Err _ -> ()
 #pop-options
+
+(* FO-glue hash-spec consistency for G: the impl/Hash-trait side is specced vs
+   the abstract Spec.Utils.v_G; the hacspec reference uses HF.v_G. Both denote
+   SHA3-512. Sibling to lemma_v_H_bridge — same sanctioned, admitted glue. *)
+let lemma_v_G_bridge (x: t_Slice u8)
+  : Lemma (ensures SU.v_G x == HF.v_G x)
+  = admit ()
+
+(* ─────────────────────────────────────────────────────────────────────────
+   CONSTRUCTION BRIDGE for encaps: encaps_internal's 2-way update_at build of
+   to_hash (repeat 0; write m into [0,32); write h into [32,64)) equals the
+   2-way Seq.append (m ‖ h).  2-way analog of lemma_dk_build; the construction
+   term is copied VERBATIM from encaps_internal so it matches definitionally.
+   ───────────────────────────────────────────────────────────────────────── *)
+#push-options "--fuel 2 --ifuel 1 --z3rlimit 300"
+let lemma_to_hash_build (m h: t_Array u8 (mk_usize 32))
+  : Lemma
+    (ensures
+      (let th0:t_Array u8 (mk_usize 64) = Rust_primitives.Hax.repeat (mk_u8 0) (mk_usize 64) in
+       let th1:t_Array u8 (mk_usize 64) =
+         Rust_primitives.Hax.Monomorphized_update_at.update_at_range_to th0
+           ({ Core_models.Ops.Range.f_end = mk_usize 32 } <: Core_models.Ops.Range.t_RangeTo usize)
+           (Core_models.Slice.impl__copy_from_slice #u8
+               (th0.[ { Core_models.Ops.Range.f_end = mk_usize 32 }
+                   <: Core_models.Ops.Range.t_RangeTo usize ] <: t_Slice u8)
+               (m <: t_Slice u8) <: t_Slice u8)
+       in
+       let th2:t_Array u8 (mk_usize 64) =
+         Rust_primitives.Hax.Monomorphized_update_at.update_at_range_from th1
+           ({ Core_models.Ops.Range.f_start = mk_usize 32 } <: Core_models.Ops.Range.t_RangeFrom usize)
+           (Core_models.Slice.impl__copy_from_slice #u8
+               (th1.[ { Core_models.Ops.Range.f_start = mk_usize 32 }
+                   <: Core_models.Ops.Range.t_RangeFrom usize ] <: t_Slice u8)
+               (h <: t_Slice u8) <: t_Slice u8)
+       in
+       th2 == Rust_primitives.Arrays.concat (m <: t_Slice u8) (h <: t_Slice u8)))
+  =
+  let th0:t_Array u8 (mk_usize 64) = Rust_primitives.Hax.repeat (mk_u8 0) (mk_usize 64) in
+  let c1:t_Slice u8 =
+    Core_models.Slice.impl__copy_from_slice #u8
+      (th0.[ { Core_models.Ops.Range.f_end = mk_usize 32 }
+          <: Core_models.Ops.Range.t_RangeTo usize ] <: t_Slice u8)
+      (m <: t_Slice u8)
+  in
+  assert (c1 == (m <: t_Slice u8));
+  let th1:t_Array u8 (mk_usize 64) =
+    Rust_primitives.Hax.Monomorphized_update_at.update_at_range_to th0
+      ({ Core_models.Ops.Range.f_end = mk_usize 32 } <: Core_models.Ops.Range.t_RangeTo usize) c1
+  in
+  let c2:t_Slice u8 =
+    Core_models.Slice.impl__copy_from_slice #u8
+      (th1.[ { Core_models.Ops.Range.f_start = mk_usize 32 }
+          <: Core_models.Ops.Range.t_RangeFrom usize ] <: t_Slice u8)
+      (h <: t_Slice u8)
+  in
+  assert (c2 == (h <: t_Slice u8));
+  let th2:t_Array u8 (mk_usize 64) =
+    Rust_primitives.Hax.Monomorphized_update_at.update_at_range_from th1
+      ({ Core_models.Ops.Range.f_start = mk_usize 32 } <: Core_models.Ops.Range.t_RangeFrom usize) c2
+  in
+  assert (Seq.length th2 == 64);
+  assert (Seq.slice th1 0 32 == c1);
+  assert (Seq.slice th2 0 32 == Seq.slice th1 0 32);
+  assert (Seq.slice th2 32 (Seq.length th2) == c2);
+  assert (Seq.slice th2 0 32 `Seq.equal` (m <: t_Slice u8));
+  assert (Seq.slice th2 32 64 `Seq.equal` (h <: t_Slice u8));
+  Rust_primitives.Arrays.lemma_slice_append (th2 <: t_Slice u8) (m <: t_Slice u8) (h <: t_Slice u8)
+#pop-options
+
+(* ─────────────────────────────────────────────────────────────────────────
+   Rank facts: from is_rank v_K, the named size functions equal the du/dv
+   arithmetic forms that the SPEC encrypt / encaps_internal preconditions check,
+   and rank_to_params's eta fields are concrete {2,3}.  Proven by case-split on
+   v_K ∈ {2,3,4} (everything ground per branch).  This is the named→du bridge
+   the spec preconditions need; consumers call it once.
+   ───────────────────────────────────────────────────────────────────────── *)
+#push-options "--fuel 4 --ifuel 2 --z3rlimit 300"
+let lemma_rank_encrypt_facts (v_K: usize)
+  : Lemma (requires P.is_rank v_K)
+    (ensures
+      (let params = P.rank_to_params v_K in
+       params.Hacspec_ml_kem.Parameters.f_rank == v_K /\
+       (params.Hacspec_ml_kem.Parameters.f_eta1 == mk_usize 2 \/
+        params.Hacspec_ml_kem.Parameters.f_eta1 == mk_usize 3) /\
+       (params.Hacspec_ml_kem.Parameters.f_eta2 == mk_usize 2 \/
+        params.Hacspec_ml_kem.Parameters.f_eta2 == mk_usize 3) /\
+       P.c1_size v_K ==
+         (((v_K *! P.v_COEFFICIENTS_IN_RING_ELEMENT <: usize)
+              *! params.Hacspec_ml_kem.Parameters.f_du <: usize) /! mk_usize 8) /\
+       P.c2_size v_K ==
+         ((P.v_COEFFICIENTS_IN_RING_ELEMENT *! params.Hacspec_ml_kem.Parameters.f_dv <: usize)
+              /! mk_usize 8) /\
+       P.cpa_public_key_size v_K == ((v_K *! P.v_BYTES_PER_RING_ELEMENT <: usize) +! mk_usize 32) /\
+       P.cpa_ciphertext_size v_K == ((P.c1_size v_K <: usize) +! (P.c2_size v_K <: usize))))
+  = ()
+#pop-options
+
+(* ─────────────────────────────────────────────────────────────────────────
+   encapsulate: ind_cca's (MlKemCiphertext, shared_secret) relates to the spec's
+   encaps_internal (shared, ciphertext).  Consumer-facing: takes the impl-body
+   facts (to_hash construction, the split, the Ind_cpa.encrypt contract
+   conclusion, the result-wrap facts) as hypotheses, produces the ind_cca post.
+
+   `m` is the message (= the entropy_preprocess output, which equals the original
+   randomness param via the identity post — the call site passes the shadowed
+   randomness and F* bridges by congruence).
+   ───────────────────────────────────────────────────────────────────────── *)
+#push-options "--fuel 2 --ifuel 1 --z3rlimit 400"
+let lemma_encapsulate_post
+      (v_K v_PUBLIC_KEY_SIZE v_C1_SIZE v_C2_SIZE v_CIPHERTEXT_SIZE: usize)
+      (pk_value: t_Array u8 v_PUBLIC_KEY_SIZE)
+      (m: t_Array u8 (mk_usize 32))
+      (to_hash: t_Array u8 (mk_usize 64))
+      (shared_secret pseudorandomness: t_Slice u8)
+      (ciphertext: t_Array u8 v_CIPHERTEXT_SIZE)
+      (result: (Libcrux_ml_kem.Types.t_MlKemCiphertext v_CIPHERTEXT_SIZE & t_Array u8 (mk_usize 32)))
+  : Lemma
+    (requires
+      P.is_rank v_K /\
+      v_PUBLIC_KEY_SIZE == P.cpa_public_key_size v_K /\
+      v_C1_SIZE == P.c1_size v_K /\
+      v_C2_SIZE == P.c2_size v_K /\
+      v_CIPHERTEXT_SIZE == P.cpa_ciphertext_size v_K /\
+      to_hash == Rust_primitives.Arrays.concat (m <: t_Slice u8) (SU.v_H (pk_value <: t_Slice u8)) /\
+      Core_models.Slice.impl__split_at #u8 (SU.v_G (to_hash <: t_Slice u8) <: t_Slice u8) (mk_usize 32)
+        == (shared_secret, pseudorandomness) /\
+      (match HCP.encrypt v_K v_C1_SIZE v_C2_SIZE v_CIPHERTEXT_SIZE (P.rank_to_params v_K)
+               (pk_value <: t_Slice u8) m pseudorandomness
+       with
+       | Core_models.Result.Result_Ok e -> ciphertext == e
+       | Core_models.Result.Result_Err _ -> True) /\
+      (result._1).Libcrux_ml_kem.Types.f_value == ciphertext /\
+      result._2 == shared_secret)
+    (ensures
+      (match HC.encapsulate v_K v_PUBLIC_KEY_SIZE v_C1_SIZE v_C2_SIZE v_CIPHERTEXT_SIZE
+               (P.rank_to_params v_K) pk_value m
+       with
+       | Core_models.Result.Result_Ok (shared, ct) ->
+         (result._1).Libcrux_ml_kem.Types.f_value == ct /\ result._2 == shared
+       | Core_models.Result.Result_Err _ -> True))
+  =
+  let ek:t_Slice u8 = pk_value <: t_Slice u8 in
+  (* (0) named→du size + concrete eta facts so the spec encrypt/encaps_internal preconditions discharge. *)
+  lemma_rank_encrypt_facts v_K;
+  (* (1) spec encaps_internal's to_hash construction == concat m (HF.v_H ek). *)
+  lemma_to_hash_build m (HF.v_H ek);
+  (* (2) hash glue SU.v_H pk_value == HF.v_H ek  ⇒  to_hash == concat m (HF.v_H ek) == to_hash_s. *)
+  lemma_v_H_bridge ek;
+  assert (SU.v_H (pk_value <: t_Slice u8) == HF.v_H ek);
+  assert (to_hash == Rust_primitives.Arrays.concat (m <: t_Slice u8) (HF.v_H ek));
+  (* (3) v_G glue: spec hashed_s = HF.v_G to_hash_s == SU.v_G to_hash. *)
+  lemma_v_G_bridge to_hash;
+  (* (4) split projections + lengths: shared_secret/pseudorandomness are the 32-byte halves. *)
+  assert (Seq.length (SU.v_G to_hash <: t_Slice u8) == 64);
+  assert (shared_secret == Seq.slice (SU.v_G to_hash <: t_Slice u8) 0 32);
+  assert (pseudorandomness == Seq.slice (SU.v_G to_hash <: t_Slice u8) 32 64);
+  assert (Seq.length shared_secret == 32);
+  assert (Seq.length pseudorandomness == 32);
+  (* (5) r coercion: encaps_internal's r_s = try_into(pr_s[..32]) == pseudorandomness.
+     pr_s[..32] == pr_s (ground via slice_slice, not extensionality). *)
+  Seq.slice_slice (SU.v_G to_hash <: t_Slice u8) 32 64 0 32;
+  assert (Seq.slice pseudorandomness 0 32 == pseudorandomness);
+  lemma_slice_to_array_id_32 (Seq.slice pseudorandomness 0 32 <: t_Slice u8);
+  lemma_slice_to_array_id_32 pseudorandomness;
+  (* (6) align the Ind_cpa.encrypt match; copy_from_slice(zeros 32, shared_secret) == shared_secret. *)
+  match HCP.encrypt v_K v_C1_SIZE v_C2_SIZE v_CIPHERTEXT_SIZE (P.rank_to_params v_K) ek m pseudorandomness
+  with
+  | Core_models.Result.Result_Ok c -> ()
+  | Core_models.Result.Result_Err _ -> ()
+#pop-options
