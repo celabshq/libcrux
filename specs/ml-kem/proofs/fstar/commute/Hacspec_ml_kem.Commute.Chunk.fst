@@ -2308,6 +2308,288 @@ let lemma_add_error_reduce_commute
 (* (lemma_add_error_reduce_scaled_eq is defined at end of file, after
    lemma_subtract_reduce_scaled_eq which it mirrors.) *)
 
+(* ===================================================================== *)
+(* add_message_error_reduce family — 3-operand analogue of                *)
+(* add_error_reduce.                                                       *)
+(*                                                                         *)
+(* `add_message_error_reduce(myself, message, result)` computes, lane-wise:*)
+(*   cnf  = mont_mul(result, 1441)                                          *)
+(*   sum1 = myself + message                                                *)
+(*   sum2 = cnf + sum1                                                      *)
+(*   red  = barrett(sum2)                                                   *)
+(* `result` is the MONT-scaled operand (·R⁻¹ form, gets the fused          *)
+(* `mont_mul(_, 1441)` finalize); `myself` and `message` are PLAIN.        *)
+(* The spec `HP.add_message_error_reduce e2 m ntt` groups as               *)
+(* `(e2 + m + ntt) % q` — so the chunk finalize groups the two plain       *)
+(* operands first, then adds the scaled operand.                           *)
+(* ===================================================================== *)
+
+(* Opaque per-vector wrapper for the per-lane FE finalize relation.  Bundles
+   16 per-lane equations into a single opaque atom (mirror of
+   add_error_reduce_finalize_chunk; 2 → 3 operands: two PLAIN inputs
+   `myself`, `message` summed first, then the SCALED `result`). *)
+[@@ "opaque_to_smt"]
+let add_message_error_reduce_finalize_chunk
+    (myself_chunk message_chunk red_chunk result_chunk: t_Array i16 (mk_usize 16)) : prop =
+  forall (k: nat). k < 16 ==>
+    i16_to_spec_fe (Seq.index red_chunk k) ==
+      P.impl_FieldElement__add
+        (P.impl_FieldElement__add
+          (i16_to_spec_fe (Seq.index myself_chunk k))
+          (i16_to_spec_fe (Seq.index message_chunk k)))
+        (P.impl_FieldElement__mul (mont_i16_to_spec_fe (Seq.index result_chunk k)) fe_1441)
+
+let lemma_add_message_error_reduce_finalize_chunk_reveal
+    (myself_chunk message_chunk red_chunk result_chunk: t_Array i16 (mk_usize 16)) :
+    Lemma (requires add_message_error_reduce_finalize_chunk
+                      myself_chunk message_chunk red_chunk result_chunk)
+          (ensures
+            forall (k: nat). k < 16 ==>
+              i16_to_spec_fe (Seq.index red_chunk k) ==
+                P.impl_FieldElement__add
+                  (P.impl_FieldElement__add
+                    (i16_to_spec_fe (Seq.index myself_chunk k))
+                    (i16_to_spec_fe (Seq.index message_chunk k)))
+                  (P.impl_FieldElement__mul (mont_i16_to_spec_fe (Seq.index result_chunk k)) fe_1441))
+  = reveal_opaque (`%add_message_error_reduce_finalize_chunk)
+                  (add_message_error_reduce_finalize_chunk
+                     myself_chunk message_chunk red_chunk result_chunk)
+
+let lemma_add_message_error_reduce_finalize_chunk_intro
+    (myself_chunk message_chunk red_chunk result_chunk: t_Array i16 (mk_usize 16)) :
+    Lemma (requires
+            forall (k: nat). k < 16 ==>
+              i16_to_spec_fe (Seq.index red_chunk k) ==
+                P.impl_FieldElement__add
+                  (P.impl_FieldElement__add
+                    (i16_to_spec_fe (Seq.index myself_chunk k))
+                    (i16_to_spec_fe (Seq.index message_chunk k)))
+                  (P.impl_FieldElement__mul (mont_i16_to_spec_fe (Seq.index result_chunk k)) fe_1441))
+          (ensures add_message_error_reduce_finalize_chunk
+                     myself_chunk message_chunk red_chunk result_chunk)
+  = reveal_opaque (`%add_message_error_reduce_finalize_chunk)
+                  (add_message_error_reduce_finalize_chunk
+                     myself_chunk message_chunk red_chunk result_chunk)
+
+(* Per-element finalize core.  `cnf` is the mont-scaled `result`, `sum1` is
+   `myself + message`, `sum2 = cnf + sum1`, `red ≡ sum2 (mod q)`.  Proves the
+   spec-grouped FE equation `(myself + message) + (result_scaled)`. *)
+let lemma_add_message_error_reduce_finalize_fe
+    (myself message result cnf sum1 sum2 red: i16) :
+    Lemma
+      (requires
+        v cnf % 3329 == (v result * 1441 * 169) % 3329 /\
+        v sum1 == v myself + v message /\
+        v sum2 == v cnf + v sum1 /\
+        v red % 3329 == v sum2 % 3329)
+      (ensures
+        i16_to_spec_fe red ==
+          P.impl_FieldElement__add
+            (P.impl_FieldElement__add
+              (i16_to_spec_fe myself)
+              (i16_to_spec_fe message))
+            (P.impl_FieldElement__mul (mont_i16_to_spec_fe result) fe_1441))
+  = let q : pos = 3329 in
+    let myself_lift = i16_to_spec_fe myself in
+    let message_lift = i16_to_spec_fe message in
+    let result_lift = mont_i16_to_spec_fe result in
+    let mul = P.impl_FieldElement__mul result_lift fe_1441 in
+    let add_mm = P.impl_FieldElement__add myself_lift message_lift in
+    let res = P.impl_FieldElement__add add_mm mul in
+    (* Step 1: v mul.f_val == (v result * 1441 * 169) % q == v cnf % q *)
+    lemma_impl_mul_v_val result_lift fe_1441;
+    assert (v fe_1441.P.f_val == 1441);
+    assert (v result_lift.P.f_val == (v result * 169) % q);
+    L.lemma_mod_mul_distr_l (v result * 169) 1441 q;
+    assert (v mul.P.f_val == (v result * 169 * 1441) % q);
+    assert (v result * 169 * 1441 == v result * 1441 * 169);
+    assert (v mul.P.f_val == v cnf % q);
+    (* Step 2: v add_mm.f_val == (v myself + v message) % q == v sum1 % q *)
+    lemma_impl_add_v_val myself_lift message_lift;
+    assert (v myself_lift.P.f_val == v myself % q);
+    assert (v message_lift.P.f_val == v message % q);
+    L.lemma_mod_add_distr (v message % q) (v myself) q;
+    L.lemma_mod_add_distr (v myself) (v message % q) q;
+    assert (v add_mm.P.f_val == (v myself + v message) % q);
+    assert (v add_mm.P.f_val == v sum1 % q);
+    (* Step 3: v res.f_val == (v sum1 + v cnf) % q == v sum2 % q *)
+    lemma_impl_add_v_val add_mm mul;
+    L.lemma_mod_add_distr (v cnf % q) (v sum1) q;
+    L.lemma_mod_add_distr (v sum1) (v cnf % q) q;
+    assert (v res.P.f_val == (v sum1 + v cnf) % q);
+    assert (v sum1 + v cnf == v sum2);
+    assert (v res.P.f_val == v sum2 % q);
+    (* Step 4: v red % q == v sum2 % q == v res.f_val *)
+    ()
+
+(* Per-iteration helper for add_message_error_reduce body proof.  Takes the
+   trait posts (mont_mul, add (×2), barrett) at the i16-array (chunk) level and
+   produces the opaque chunk-level finalize predicate.  Mirror of
+   lemma_add_error_reduce_iter with the extra plain-add for `sum1`. *)
+let lemma_add_message_error_reduce_iter
+    (myself_chunk message_chunk result_chunk cnf_chunk sum1_chunk sum2_chunk red_chunk:
+        t_Array i16 (mk_usize 16)) :
+    Lemma
+      (requires
+        TS.montgomery_multiply_by_constant_post result_chunk (mk_i16 1441) cnf_chunk /\
+        TS.add_post myself_chunk message_chunk sum1_chunk /\
+        TS.add_post cnf_chunk sum1_chunk sum2_chunk /\
+        TS.barrett_reduce_post sum2_chunk red_chunk)
+      (ensures
+        add_message_error_reduce_finalize_chunk
+          myself_chunk message_chunk red_chunk result_chunk)
+  = reveal_opaque (`%TS.montgomery_multiply_lane_post) (TS.montgomery_multiply_lane_post);
+    reveal_opaque (`%TS.barrett_reduce_lane_post) (TS.barrett_reduce_lane_post);
+    let aux (k: nat) : Lemma (k < 16 ==>
+        i16_to_spec_fe (Seq.index red_chunk k) ==
+          P.impl_FieldElement__add
+            (P.impl_FieldElement__add
+              (i16_to_spec_fe (Seq.index myself_chunk k))
+              (i16_to_spec_fe (Seq.index message_chunk k)))
+            (P.impl_FieldElement__mul (mont_i16_to_spec_fe (Seq.index result_chunk k)) fe_1441))
+      = if k < 16 then begin
+          (* mont_mul post: v cnf % 3329 == (v result * 1441 * 169) % 3329. *)
+          lemma_mod_q_eq_unfold
+            (v (Seq.index cnf_chunk k))
+            (v (Seq.index result_chunk k) * v (mk_i16 1441) * 169);
+          (* add posts are plain equalities (sum1, sum2); barrett post mod_q. *)
+          lemma_mod_q_eq_unfold
+            (v (Seq.index red_chunk k))
+            (v (Seq.index sum2_chunk k));
+          lemma_add_message_error_reduce_finalize_fe
+            (Seq.index myself_chunk k)
+            (Seq.index message_chunk k)
+            (Seq.index result_chunk k)
+            (Seq.index cnf_chunk k)
+            (Seq.index sum1_chunk k)
+            (Seq.index sum2_chunk k)
+            (Seq.index red_chunk k)
+        end
+    in
+    Classical.forall_intro aux;
+    lemma_add_message_error_reduce_finalize_chunk_intro
+      myself_chunk message_chunk red_chunk result_chunk
+
+(* Helper form of HP.add_message_error_reduce that avoids the heavy createi-
+   with-inline-cast-arithmetic body.  Each lane is
+   `impl_FE__add (impl_FE__add a[j] b[j]) c[j]`.  Mirror of
+   add_error_reduce_helper, 3 operands. *)
+let add_message_error_reduce_helper
+    (a b c: t_Array P.t_FieldElement (mk_usize 256))
+    : t_Array P.t_FieldElement (mk_usize 256) =
+  P.createi #P.t_FieldElement (mk_usize 256)
+    #(usize -> P.t_FieldElement)
+    (fun (j: usize {j <. mk_usize 256}) ->
+      P.impl_FieldElement__add
+        (P.impl_FieldElement__add (Seq.index a (v j)) (Seq.index b (v j)))
+        (Seq.index c (v j)))
+
+#push-options "--z3rlimit 200 --ext context_pruning"
+let lemma_add_message_error_reduce_eq_helper
+    (a b c: t_Array P.t_FieldElement (mk_usize 256)) :
+    Lemma (HP.add_message_error_reduce a b c == add_message_error_reduce_helper a b c)
+  = let lhs = HP.add_message_error_reduce a b c in
+    let rhs = add_message_error_reduce_helper a b c in
+    let aux (j: nat) : Lemma (j < 256 ==> Seq.index lhs j == Seq.index rhs j)
+      = if j < 256 then begin
+          P.createi_lemma #P.t_FieldElement (mk_usize 256)
+            #(usize -> P.t_FieldElement)
+            (fun (jj: usize {jj <. mk_usize 256}) ->
+              P.impl_FieldElement__add
+                (P.impl_FieldElement__add (Seq.index a (v jj)) (Seq.index b (v jj)))
+                (Seq.index c (v jj)))
+            (sz j);
+          P.createi_lemma #P.t_FieldElement (mk_usize 256)
+            #(usize -> P.t_FieldElement)
+            (fun (jj: usize { jj <. mk_usize 256 }) ->
+              P.impl_FieldElement__new
+                (cast ((((cast ((Seq.index a (v jj)).P.f_val <: u16) <: u32) +!
+                         (cast ((Seq.index b (v jj)).P.f_val <: u16) <: u32)
+                         <: u32) +!
+                        (cast ((Seq.index c (v jj)).P.f_val <: u16) <: u32)
+                        <: u32) %!
+                       (cast P.v_FIELD_MODULUS <: u32)
+                       <: u32)
+                 <: u16)
+              <: P.t_FieldElement)
+            (sz j)
+        end in
+    Classical.forall_intro aux;
+    Seq.lemma_eq_intro lhs rhs
+#pop-options
+
+(* Per-poly commute lemma for add_message_error_reduce.  Produces the
+   polynomial-level equation in helper-form.  Mirror of
+   lemma_add_error_reduce_commute: the PLAIN operands are `myself`, `message`
+   (lifted via to_spec_poly_plain) and the SCALED operand is `result` (lifted
+   via to_spec_poly_mont then scaled by fe_1441). *)
+#push-options "--z3rlimit 200 --ext context_pruning --split_queries always"
+let lemma_add_message_error_reduce_commute
+    (#vV: Type0) {| i: T.t_Operations vV |}
+    (myself message result_input myself_post: V.t_PolynomialRingElement vV) :
+    Lemma
+      (requires
+        forall (k: nat). k < 16 ==>
+          add_message_error_reduce_finalize_chunk
+            (T.f_repr (Seq.index myself.V.f_coefficients k))
+            (T.f_repr (Seq.index message.V.f_coefficients k))
+            (T.f_repr (Seq.index myself_post.V.f_coefficients k))
+            (T.f_repr (Seq.index result_input.V.f_coefficients k)))
+      (ensures
+        to_spec_poly_plain myself_post ==
+        add_message_error_reduce_helper
+          (to_spec_poly_plain myself)
+          (to_spec_poly_plain message)
+          (P.createi #P.t_FieldElement (mk_usize 256)
+             #(usize -> P.t_FieldElement)
+             (fun (j: usize {j <. mk_usize 256}) ->
+               P.impl_FieldElement__mul
+                 (Seq.index (to_spec_poly_mont result_input) (v j))
+                 fe_1441)))
+  = let myself_lift = to_spec_poly_plain myself in
+    let message_lift = to_spec_poly_plain message in
+    let mont_r = to_spec_poly_mont result_input in
+    let scaled_r : t_Array P.t_FieldElement (mk_usize 256) =
+      P.createi #P.t_FieldElement (mk_usize 256)
+        #(usize -> P.t_FieldElement)
+        (fun (j: usize {j <. mk_usize 256}) ->
+          P.impl_FieldElement__mul (Seq.index mont_r (v j)) fe_1441) in
+    let r_poly = to_spec_poly_plain myself_post in
+    let hp = add_message_error_reduce_helper myself_lift message_lift scaled_r in
+    let aux (j: nat) : Lemma (j < 256 ==>
+        Seq.index r_poly j == Seq.index hp j)
+      = if j < 256 then begin
+          let chunk : nat = j / 16 in
+          let lane  : nat = j % 16 in
+          let m_arr = T.f_repr (Seq.index myself.V.f_coefficients chunk) in
+          let msg_arr = T.f_repr (Seq.index message.V.f_coefficients chunk) in
+          let r_arr = T.f_repr (Seq.index result_input.V.f_coefficients chunk) in
+          let mp_arr = T.f_repr (Seq.index myself_post.V.f_coefficients chunk) in
+          lemma_add_message_error_reduce_finalize_chunk_reveal m_arr msg_arr mp_arr r_arr;
+          poly_lane_plain myself_post j;
+          poly_lane_plain myself j;
+          poly_lane_plain message j;
+          poly_lane_mont result_input j;
+          P.createi_lemma #P.t_FieldElement (mk_usize 256)
+            #(usize -> P.t_FieldElement)
+            (fun (jj: usize { jj <. mk_usize 256 }) ->
+              P.impl_FieldElement__mul (Seq.index mont_r (v jj)) fe_1441)
+            (sz j);
+          P.createi_lemma #P.t_FieldElement (mk_usize 256)
+            #(usize -> P.t_FieldElement)
+            (fun (jj: usize { jj <. mk_usize 256 }) ->
+              P.impl_FieldElement__add
+                (P.impl_FieldElement__add (Seq.index myself_lift (v jj)) (Seq.index message_lift (v jj)))
+                (Seq.index scaled_r (v jj)))
+            (sz j)
+        end in
+    Classical.forall_intro aux;
+    Seq.lemma_eq_intro r_poly hp
+#pop-options
+
+(* (lemma_add_message_error_reduce_scaled_eq is defined at end of file, after
+   lemma_subtract_reduce_scaled_eq which it mirrors.) *)
+
 (*** Phase 7a Step 7 — to_standard_domain finalization (matrix-mul track) ***)
 
 (* The standard-domain track is the post-matrix-multiply analogue of the
@@ -3719,6 +4001,31 @@ let lemma_subtract_reduce_scaled_eq
    subtract_reduce post's scaled operand, so this delegates to
    lemma_subtract_reduce_scaled_eq. *)
 let lemma_add_error_reduce_scaled_eq
+    (#vV: Type0) {| i: T.t_Operations vV |}
+    (p q: V.t_PolynomialRingElement vV) :
+    Lemma (requires p.V.f_coefficients == q.V.f_coefficients)
+          (ensures
+            (P.createi #P.t_FieldElement (mk_usize 256)
+               #(usize -> P.t_FieldElement)
+               (fun (j: usize {j <. mk_usize 256}) ->
+                 P.impl_FieldElement__mul
+                   (Seq.index (to_spec_poly_mont p) (v j))
+                   fe_1441))
+            ==
+            (P.createi #P.t_FieldElement (mk_usize 256)
+               #(usize -> P.t_FieldElement)
+               (fun (j: usize {j <. mk_usize 256}) ->
+                 P.impl_FieldElement__mul
+                   (Seq.index (to_spec_poly_mont q) (v j))
+                   fe_1441)))
+  = lemma_subtract_reduce_scaled_eq p q
+
+(* Createi-equality bridge for the add_message_error_reduce-family post.
+   Given two ring elements that share `f_coefficients`, the per-lane
+   scaled-createi expressions coincide.  The createi shape is identical to the
+   subtract_reduce post's scaled operand, so this delegates to
+   lemma_subtract_reduce_scaled_eq. *)
+let lemma_add_message_error_reduce_scaled_eq
     (#vV: Type0) {| i: T.t_Operations vV |}
     (p q: V.t_PolynomialRingElement vV) :
     Lemma (requires p.V.f_coefficients == q.V.f_coefficients)

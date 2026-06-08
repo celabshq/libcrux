@@ -440,3 +440,35 @@ let lemma_v_finalize
   Br.poly_to_spec_eq_to_spec_poly_plain #vV message;
   Br.poly_to_spec_eq_to_spec_poly_plain #vV t_final
 #pop-options
+
+(* ════ impl-form wrapper for compute_ring_element_v's finalize: takes
+   t_final == impl__add_message_error_reduce error_2 message re_future, calls the impl__ bridge
+   INTERNALLY (createi_lemma available here) + bridges the inlined createi to scaled_mont
+   (mirror lemma_message_done_finalize / Compute_u_bridge.lemma_u_row_done_finalize). ════ *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 200"
+let lemma_v_done_finalize
+    (#vV: Type0) {| iop: T.t_Operations vV |} (#v_K: usize)
+    (tt r: t_Array (VV.t_PolynomialRingElement vV) v_K)
+    (error_2 message t_pre re_future t_final: VV.t_PolynomialRingElement vV)
+  : Lemma
+    (requires
+      vdot_done t_pre tt r (v v_K) /\
+      Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #vV (mk_usize 3328) error_2 /\
+      Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #vV (mk_usize 3328) message /\
+      CH.to_spec_poly_mont #vV re_future
+        == IN.ntt_inverse_butterflies (CH.to_spec_poly_mont #vV t_pre) /\
+      t_final == Poly.impl__add_message_error_reduce #vV error_2 message re_future)
+    (ensures
+      VS.poly_to_spec #vV t_final
+        == MX.compute_ring_element_v v_K (VS.vector_to_spec v_K #vV tt) (VS.vector_to_spec v_K #vV r)
+                                         (VS.poly_to_spec #vV error_2) (VS.poly_to_spec #vV message))
+= Poly.lemma_impl_add_message_error_reduce_spec #vV error_2 message re_future;
+  Seq.lemma_eq_intro (CU.scaled_mont #vV re_future)
+    (Hacspec_ml_kem.Parameters.createi #Hacspec_ml_kem.Parameters.t_FieldElement (mk_usize 256)
+       #(usize -> Hacspec_ml_kem.Parameters.t_FieldElement)
+       (fun (j: usize {j <. mk_usize 256}) ->
+          Hacspec_ml_kem.Parameters.impl_FieldElement__mul
+            (Seq.index (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_mont #vV re_future) (v j))
+            Hacspec_ml_kem.Commute.Chunk.fe_1441));
+  lemma_v_finalize #vV tt r error_2 message t_pre re_future t_final
+#pop-options

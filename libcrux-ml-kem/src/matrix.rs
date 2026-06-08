@@ -184,8 +184,7 @@ pub(crate) fn compute_message<const K: usize, Vector: Operations>(
 
 /// Compute InverseNTT(tᵀ ◦ r̂) + e₂ + message
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
-#[hax_lib::fstar::options("--z3rlimit 200 --ext context_pruning")]
+#[hax_lib::fstar::options("--z3rlimit 400 --fuel 1 --ifuel 1 --ext context_pruning --using_facts_from '* -Hacspec_ml_kem.Parameters.createi_lemma -Libcrux_ml_kem.Polynomial.Spec'")]
 #[hax_lib::requires((K <= 4).to_prop() & (
         spec::is_bounded_poly(3328, message) & (
             spec::is_bounded_poly(3328, error_2) & (
@@ -206,17 +205,45 @@ pub(crate) fn compute_ring_element_v<const K: usize, Vector: Operations>(
     error_2: &PolynomialRingElement<Vector>,
     message: &PolynomialRingElement<Vector>,
 ) -> PolynomialRingElement<Vector> {
+    // Ghost spec target (functional postcondition value).  Kept behind the opaque `vdot_done`
+    // atom in the loop invariant (see Compute_dot_bridge) so the createi-heavy spec terms never
+    // enter the loop-body VCs.
+    #[cfg(hax)]
+    let target = hacspec_ml_kem::matrix::compute_ring_element_v::<K>(
+        &crate::vector::spec::vector_to_spec(&t_as_ntt),
+        &crate::vector::spec::vector_to_spec(&r_as_ntt),
+        &crate::vector::spec::poly_to_spec(&error_2),
+        &crate::vector::spec::poly_to_spec(&message),
+    );
+
     let mut result = PolynomialRingElement::<Vector>::ZERO();
 
-    for i in 0..K {
-        hax_lib::loop_invariant!(|i: usize| spec::is_bounded_poly(i * 3328, &result));
+    hax_lib::assert_prop!(spec::is_bounded_poly(0, &result));
+    hax_lib::fstar!(r#"Hacspec_ml_kem.Commute.Compute_dot_bridge.lemma_vdot_base
+        ${t_as_ntt} ${r_as_ntt} ${result}"#);
 
+    for i in 0..K {
+        hax_lib::loop_invariant!(|i: usize| spec::is_bounded_poly(i * 3328, &result)
+            & fstar!(r#"Hacspec_ml_kem.Commute.Compute_dot_bridge.vdot_done
+                ${result} ${t_as_ntt} ${r_as_ntt} (v $i)"#));
+
+        hax_lib::fstar!(r#"assert (v $i < v v_K); assert (v v_K <= 4)"#);
+        #[cfg(hax)]
+        let acc_old = result;
         let product = t_as_ntt[i].ntt_multiply(&r_as_ntt[i]);
         result.add_to_ring_element(&product, i * 3328);
+        hax_lib::fstar!(r#"Hacspec_ml_kem.Commute.Compute_dot_bridge.lemma_vdot_step_full
+            ${t_as_ntt} ${r_as_ntt} $i ${acc_old} ${product} ${result} ($i *! mk_usize 3328)"#);
     }
 
+    #[cfg(hax)]
+    let t_pre = result;
     invert_ntt_montgomery::<K, Vector>(&mut result);
+    #[cfg(hax)]
+    let re_future = result;
     result = error_2.add_message_error_reduce(message, result);
+    hax_lib::fstar!(r#"Hacspec_ml_kem.Commute.Compute_dot_bridge.lemma_v_done_finalize
+        ${t_as_ntt} ${r_as_ntt} ${error_2} ${message} ${t_pre} ${re_future} ${result}"#);
 
     result
 }
