@@ -261,11 +261,13 @@ let pow2_more_values (x:nat) =
   assert_norm(pow2( 254 ) == 28948022309329048855892746252171976963317496166410141009864396001978282409984 );
   assert_norm(pow2( 255 ) == 57896044618658097711785492504343953926634992332820282019728792003956564819968 )
 
-let rec repeati #acc l f acc0 =
-    if l = 0 then acc0 else
-    f (l -! sz 1) (repeati #acc (l -! sz 1) acc0)
+let rec repeati #acc l f acc0 : Tot acc (decreases (v l)) =
+    if l = sz 0 then acc0 else
+    f (l -! sz 1) (repeati #acc (l -! sz 1) f acc0)
 
+#push-options "--fuel 1 --ifuel 1"
 let eq_repeati0 #a n f acc0 = ()
+#pop-options
 
 let unfold_repeati #a n f acc0 i = admit ()
 
