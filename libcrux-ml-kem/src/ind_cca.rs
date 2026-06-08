@@ -225,7 +225,6 @@ pub(crate) fn validate_private_key_only<
         Err(_) => true,
     }
 )]
-#[hax_lib::fstar::verification_status(panic_free)]
 #[inline(always)]
 pub(crate) fn generate_keypair<
     const K: usize,
@@ -262,7 +261,11 @@ pub(crate) fn generate_keypair<
     let private_key: MlKemPrivateKey<PRIVATE_KEY_SIZE> =
         MlKemPrivateKey::from(secret_key_serialized);
 
-    MlKemKeyPair::from(private_key, MlKemPublicKey::from(public_key))
+    let keypair = MlKemKeyPair::from(private_key, MlKemPublicKey::from(public_key));
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Ind_cca_bridge.lemma_generate_keypair_post $K $PUBLIC_KEY_SIZE $PRIVATE_KEY_SIZE $CPA_PRIVATE_KEY_SIZE $randomness $ind_cpa_private_key $public_key $secret_key_serialized"#
+    );
+    keypair
 }
 
 #[hax_lib::fstar::options("--z3rlimit 300")]
