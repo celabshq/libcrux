@@ -19,6 +19,7 @@ module CU  = Hacspec_ml_kem.Commute.Compute_u_bridge
 module MZ  = Hacspec_ml_kem.Commute.Matrix_zerolift
 module Br  = Hacspec_ml_kem.Commute.Bridges
 module F   = Rust_primitives.Hax.Folds
+module ML  = FStar.Math.Lemmas
 
 (* ════════════════════════════════════════════════════════════════════
    Vector-dot inner bridge.  compute_message / compute_ring_element_v share a
@@ -342,4 +343,100 @@ let lemma_message_done_finalize
             (Seq.index (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_mont #vV re_future) (v j))
             Hacspec_ml_kem.Commute.Chunk.fe_1441));
   lemma_message_finalize #vV vp secret u t_pre re_future t_final
+#pop-options
+
+(* ════════════════ Part 4: compute_ring_element_v finalize ════════════════ *)
+
+(* per-lane value of HP.add_message_error_reduce: single mod of the 3-sum *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_add_msg_err_lane (e2 m ip: t_Array P.t_FieldElement (mk_usize 256)) (j: nat {j < 256}) : Lemma
+  (v (Seq.index (HP.add_message_error_reduce e2 m ip) j).P.f_val
+     == ((v (Seq.index e2 j).P.f_val + v (Seq.index m j).P.f_val) + v (Seq.index ip j).P.f_val) % 3329)
+= P.createi_lemma #P.t_FieldElement (mk_usize 256) #(usize -> P.t_FieldElement)
+    (fun (i: usize {i <. mk_usize 256}) ->
+       P.impl_FieldElement__new (cast ((((cast ((e2.[ i ] <: P.t_FieldElement).P.f_val <: u16) <: u32) +!
+             (cast ((m.[ i ] <: P.t_FieldElement).P.f_val <: u16) <: u32) <: u32) +!
+             (cast ((ip.[ i ] <: P.t_FieldElement).P.f_val <: u16) <: u32) <: u32) %!
+           (cast (P.v_FIELD_MODULUS <: u16) <: u32) <: u32) <: u16)
+       <: P.t_FieldElement)
+    (sz j)
+#pop-options
+
+(* 3-operand mod-assoc identity (needs NO bounds; holds for arbitrary FE arrays):
+   HP.add_message_error_reduce e2 m ip == add_polynomials (add_polynomials ip e2) m *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 150"
+let lemma_add_msg_err_eq_add_poly (e2 m ip: t_Array P.t_FieldElement (mk_usize 256)) : Lemma
+  (HP.add_message_error_reduce e2 m ip == MX.add_polynomials (MX.add_polynomials ip e2) m)
+= let lhs = HP.add_message_error_reduce e2 m ip in
+  let rhs = MX.add_polynomials (MX.add_polynomials ip e2) m in
+  let aux (j: nat {j < 256}) : Lemma (Seq.index lhs j == Seq.index rhs j) =
+    let a = v (Seq.index e2 j).P.f_val in
+    let b = v (Seq.index m j).P.f_val in
+    let c = v (Seq.index ip j).P.f_val in
+    lemma_add_msg_err_lane e2 m ip j;
+    (* v(lhs[j]) == (a+b+c)%3329 *)
+    MB.lemma_add_poly_lane (MX.add_polynomials ip e2) m (sz j);
+    MB.lemma_add_poly_lane ip e2 (sz j);
+    SB.add_val (Seq.index ip j) (Seq.index e2 j);
+    SB.add_val (Seq.index (MX.add_polynomials ip e2) j) (Seq.index m j);
+    (* v(rhs[j]) == ((c+a)%3329 + b)%3329 *)
+    ML.lemma_mod_add_distr b (c + a) 3329;
+    (* ((c+a)%q + b)%q == (c+a+b)%q == (a+b+c)%q *)
+    SB.fe_eq (Seq.index lhs j) (Seq.index rhs j)
+  in
+  Classical.forall_intro aux;
+  Seq.lemma_eq_intro lhs rhs
+#pop-options
+
+(* spec unfold of compute_ring_element_v *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 150"
+let lemma_compute_ring_element_v_unfold
+    (#v_K: usize)
+    (tt r: t_Array (t_Array P.t_FieldElement (mk_usize 256)) v_K)
+    (e2 m: t_Array P.t_FieldElement (mk_usize 256))
+  : Lemma
+    (MX.compute_ring_element_v v_K tt r e2 m
+     == MX.add_polynomials (MX.add_polynomials (IN.ntt_inverse (MX.multiply_vectors v_K tt r)) e2) m)
+= ()
+#pop-options
+
+(* MAIN finalize: takes the add_message_error_reduce FUNCTIONAL post as a hypothesis.
+   plain(t_final) == HP.add_message_error_reduce (plain error_2) (plain message) (scaled_mont re_future). *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 300"
+let lemma_v_finalize
+    (#vV: Type0) {| iop: T.t_Operations vV |} (#v_K: usize)
+    (tt r: t_Array (VV.t_PolynomialRingElement vV) v_K)
+    (error_2 message t_pre re_future t_final: VV.t_PolynomialRingElement vV)
+  : Lemma
+    (requires
+      vdot_done t_pre tt r (v v_K) /\
+      CH.to_spec_poly_mont #vV re_future
+        == IN.ntt_inverse_butterflies (CH.to_spec_poly_mont #vV t_pre) /\
+      CH.to_spec_poly_plain #vV t_final
+        == HP.add_message_error_reduce (CH.to_spec_poly_plain #vV error_2)
+                                       (CH.to_spec_poly_plain #vV message)
+                                       (CU.scaled_mont #vV re_future))
+    (ensures
+      VS.poly_to_spec #vV t_final
+        == MX.compute_ring_element_v v_K (VS.vector_to_spec v_K #vV tt)
+                                         (VS.vector_to_spec v_K #vV r)
+                                         (VS.poly_to_spec #vV error_2)
+                                         (VS.poly_to_spec #vV message))
+= let mv = MX.multiply_vectors v_K (VS.vector_to_spec v_K #vV tt) (VS.vector_to_spec v_K #vV r) in
+  (* std(t_pre) == part == multiply_vectors *)
+  reveal_opaque (`%vdot_done) (vdot_done t_pre tt r (v v_K));
+  lemma_part_eq_multiply_vectors #v_K (VS.vector_to_spec v_K #vV tt) (VS.vector_to_spec v_K #vV r);
+  (* scaled operand == ntt_inverse (std t_pre) == ntt_inverse mv *)
+  CU.lemma_scaled_operand_eq_ntt_inverse #vV t_pre re_future;
+  (* 3-op identity *)
+  lemma_add_msg_err_eq_add_poly (CH.to_spec_poly_plain #vV error_2)
+                                (CH.to_spec_poly_plain #vV message)
+                                (IN.ntt_inverse mv);
+  (* unfold compute_ring_element_v *)
+  lemma_compute_ring_element_v_unfold #v_K (VS.vector_to_spec v_K #vV tt) (VS.vector_to_spec v_K #vV r)
+                                            (VS.poly_to_spec #vV error_2) (VS.poly_to_spec #vV message);
+  (* poly_to_spec == plain for error_2, message, t_final *)
+  Br.poly_to_spec_eq_to_spec_poly_plain #vV error_2;
+  Br.poly_to_spec_eq_to_spec_poly_plain #vV message;
+  Br.poly_to_spec_eq_to_spec_poly_plain #vV t_final
 #pop-options
