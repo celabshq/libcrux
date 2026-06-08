@@ -358,7 +358,6 @@ pub(crate) fn encapsulate<
 }
 
 /// This code verifies on some machines, runs out of memory on others
-#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::fstar::options("--z3rlimit 500")]
 #[hax_lib::requires(
     hacspec_ml_kem::parameters::is_rank(K)
@@ -493,12 +492,18 @@ pub(crate) fn decapsulate<
     let shared_secret =
         Scheme::kdf::<K, CIPHERTEXT_SIZE, Hasher>(shared_secret, ciphertext.as_slice());
 
-    compare_ciphertexts_select_shared_secret_in_constant_time(
+    let result = compare_ciphertexts_select_shared_secret_in_constant_time(
         ciphertext.as_ref(),
         &expected_ciphertext,
         &shared_secret,
         &implicit_rejection_shared_secret,
-    )
+    );
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Ind_cca_bridge.lemma_rank_encrypt_facts $K;
+        Hacspec_ml_kem.Commute.Ind_cca_bridge.lemma_rank_decaps_facts $K;
+        Hacspec_ml_kem.Commute.Ind_cca_bridge.lemma_decapsulate_post $K $PUBLIC_KEY_SIZE $SECRET_KEY_SIZE $CPA_SECRET_KEY_SIZE $C1_SIZE $C2_SIZE $CIPHERTEXT_SIZE $IMPLICIT_REJECTION_HASH_INPUT_SIZE ${private_key}.f_value ${ciphertext}.f_value $ind_cpa_secret_key $ind_cpa_public_key $ind_cpa_public_key_hash $implicit_rejection_value $decrypted $hashed $shared_secret $pseudorandomness $expected_ciphertext $implicit_rejection_shared_secret $result"#
+    );
+    result
 }
 
 /// Types for the unpacked API.

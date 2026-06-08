@@ -483,3 +483,256 @@ let lemma_encapsulate_post
   | Core_models.Result.Result_Ok c -> ()
   | Core_models.Result.Result_Err _ -> ()
 #pop-options
+
+(* ════════════════════════════════════════════════════════════════════════
+   decapsulate bridges (Phase 1).
+   ════════════════════════════════════════════════════════════════════════ *)
+
+(* FO-glue hash-spec consistency for J (implicit rejection): the impl/Hash-trait
+   side specs the implicit-rejection PRF as Spec.Utils.v_PRF (len 32); the hacspec
+   reference uses HF.v_J (len 32). Both denote SHAKE256-32. Same sanctioned,
+   admitted glue as lemma_v_H_bridge / lemma_v_G_bridge. *)
+let lemma_v_PRF_J_32 (x: t_Slice u8)
+  : Lemma (ensures SU.v_PRF (mk_usize 32) x == HF.v_J (mk_usize 32) x)
+  = admit ()
+
+(* ─────────────────────────────────────────────────────────────────────────
+   CONSTRUCTION BRIDGE for decaps: decaps_internal's 2-way update_at build of
+   j_input (repeat 0 v_J_INPUT_SIZE; write z into [0,32); write c into [32,..))
+   equals the 2-way Seq.append (z ‖ c).  2-way analog of lemma_to_hash_build but
+   with a variable-length second part `c` of size v_CT_SIZE and total size
+   v_J_INPUT_SIZE = 32 + v_CT_SIZE.  The construction term is copied VERBATIM
+   from decaps_internal (lines 430-455) so it matches definitionally.
+   ───────────────────────────────────────────────────────────────────────── *)
+#push-options "--fuel 2 --ifuel 1 --z3rlimit 300"
+let lemma_j_input_build
+      (v_CT_SIZE v_J_INPUT_SIZE: usize)
+      (z: t_Slice u8)
+      (c: t_Array u8 v_CT_SIZE)
+  : Lemma
+    (requires
+      Seq.length z == 32 /\
+      v v_J_INPUT_SIZE == 32 + v v_CT_SIZE)
+    (ensures
+      (let ji0:t_Array u8 v_J_INPUT_SIZE = Rust_primitives.Hax.repeat (mk_u8 0) v_J_INPUT_SIZE in
+       let ji1:t_Array u8 v_J_INPUT_SIZE =
+         Rust_primitives.Hax.Monomorphized_update_at.update_at_range_to ji0
+           ({ Core_models.Ops.Range.f_end = mk_usize 32 } <: Core_models.Ops.Range.t_RangeTo usize)
+           (Core_models.Slice.impl__copy_from_slice #u8
+               (ji0.[ { Core_models.Ops.Range.f_end = mk_usize 32 }
+                   <: Core_models.Ops.Range.t_RangeTo usize ] <: t_Slice u8)
+               z <: t_Slice u8)
+       in
+       let ji2:t_Array u8 v_J_INPUT_SIZE =
+         Rust_primitives.Hax.Monomorphized_update_at.update_at_range_from ji1
+           ({ Core_models.Ops.Range.f_start = mk_usize 32 } <: Core_models.Ops.Range.t_RangeFrom usize)
+           (Core_models.Slice.impl__copy_from_slice #u8
+               (ji1.[ { Core_models.Ops.Range.f_start = mk_usize 32 }
+                   <: Core_models.Ops.Range.t_RangeFrom usize ] <: t_Slice u8)
+               (c <: t_Slice u8) <: t_Slice u8)
+       in
+       ji2 == Rust_primitives.Arrays.concat z (c <: t_Slice u8)))
+  =
+  let ji0:t_Array u8 v_J_INPUT_SIZE = Rust_primitives.Hax.repeat (mk_u8 0) v_J_INPUT_SIZE in
+  assert (Seq.length (c <: t_Slice u8) == v v_CT_SIZE);
+  assert (Seq.length ji0 == v v_J_INPUT_SIZE);
+  let c1:t_Slice u8 =
+    Core_models.Slice.impl__copy_from_slice #u8
+      (ji0.[ { Core_models.Ops.Range.f_end = mk_usize 32 }
+          <: Core_models.Ops.Range.t_RangeTo usize ] <: t_Slice u8)
+      z
+  in
+  assert (c1 == z);
+  let ji1:t_Array u8 v_J_INPUT_SIZE =
+    Rust_primitives.Hax.Monomorphized_update_at.update_at_range_to ji0
+      ({ Core_models.Ops.Range.f_end = mk_usize 32 } <: Core_models.Ops.Range.t_RangeTo usize) c1
+  in
+  let c2:t_Slice u8 =
+    Core_models.Slice.impl__copy_from_slice #u8
+      (ji1.[ { Core_models.Ops.Range.f_start = mk_usize 32 }
+          <: Core_models.Ops.Range.t_RangeFrom usize ] <: t_Slice u8)
+      (c <: t_Slice u8)
+  in
+  assert (c2 == (c <: t_Slice u8));
+  let ji2:t_Array u8 v_J_INPUT_SIZE =
+    Rust_primitives.Hax.Monomorphized_update_at.update_at_range_from ji1
+      ({ Core_models.Ops.Range.f_start = mk_usize 32 } <: Core_models.Ops.Range.t_RangeFrom usize) c2
+  in
+  assert (Seq.length ji2 == v v_J_INPUT_SIZE);
+  assert (Seq.slice ji1 0 32 == c1);
+  assert (Seq.slice ji2 0 32 == Seq.slice ji1 0 32);
+  assert (Seq.slice ji2 32 (Seq.length ji2) == c2);
+  assert (Seq.slice ji2 0 32 `Seq.equal` z);
+  assert (Seq.slice ji2 32 (Seq.length ji2) `Seq.equal` (c <: t_Slice u8));
+  Rust_primitives.Arrays.lemma_slice_append (ji2 <: t_Slice u8) z (c <: t_Slice u8)
+#pop-options
+
+(* ─────────────────────────────────────────────────────────────────────────
+   Decaps-specific named→du size facts (companion to lemma_rank_encrypt_facts).
+   From is_rank v_K, the dk-side size functions equal the arithmetic forms the
+   SPEC decrypt / decaps_internal / decapsulate preconditions check (the encrypt
+   ones come from lemma_rank_encrypt_facts).  cpa_private/public/cca_private and
+   implicit_rejection_hash_input unfold definitionally; the decrypt single-division
+   ct form needs the v_K∈{2,3,4} case-split (ground per branch).
+   ───────────────────────────────────────────────────────────────────────── *)
+#push-options "--fuel 4 --ifuel 2 --z3rlimit 300"
+let lemma_rank_decaps_facts (v_K: usize)
+  : Lemma (requires P.is_rank v_K)
+    (ensures
+      (let params = P.rank_to_params v_K in
+       P.cpa_private_key_size v_K == (v_K *! P.v_BYTES_PER_RING_ELEMENT) /\
+       P.cpa_public_key_size v_K == ((v_K *! P.v_BYTES_PER_RING_ELEMENT) +! mk_usize 32) /\
+       P.cca_private_key_size v_K ==
+         (((P.cpa_private_key_size v_K +! P.cpa_public_key_size v_K) +! HF.v_H_DIGEST_SIZE)
+            +! mk_usize 32) /\
+       P.implicit_rejection_hash_input_size v_K == (mk_usize 32 +! P.cpa_ciphertext_size v_K) /\
+       P.cpa_ciphertext_size v_K ==
+         ((((v_K *! P.v_COEFFICIENTS_IN_RING_ELEMENT) *! params.Hacspec_ml_kem.Parameters.f_du)
+            +! (P.v_COEFFICIENTS_IN_RING_ELEMENT *! params.Hacspec_ml_kem.Parameters.f_dv))
+            /! mk_usize 8)))
+  = ()
+#pop-options
+
+(* ─────────────────────────────────────────────────────────────────────────
+   decapsulate: ind_cca's shared_secret relates to the spec's decaps_internal.
+   Consumer-facing: takes the impl-body facts (unpack slices, decrypt/encrypt
+   contracts, to_hash1 construction, the split, the PRF post, the compare-select
+   post) as hypotheses, produces the ind_cca functional post.  Same shape as
+   lemma_encapsulate_post, just bigger.
+   ───────────────────────────────────────────────────────────────────────── *)
+#push-options "--fuel 4 --ifuel 2 --z3rlimit 800"
+let lemma_decapsulate_post
+      (v_K v_PUBLIC_KEY_SIZE v_SECRET_KEY_SIZE v_CPA_SECRET_KEY_SIZE
+       v_C1_SIZE v_C2_SIZE v_CIPHERTEXT_SIZE v_IMPLICIT_REJECTION_HASH_INPUT_SIZE: usize)
+      (dk: t_Array u8 v_SECRET_KEY_SIZE)
+      (c: t_Array u8 v_CIPHERTEXT_SIZE)
+      (ind_cpa_secret_key ind_cpa_public_key ind_cpa_public_key_hash implicit_rejection_value: t_Slice u8)
+      (decrypted: t_Array u8 (mk_usize 32))
+      (hashed: t_Array u8 (mk_usize 64))
+      (shared_secret pseudorandomness: t_Slice u8)
+      (expected_ciphertext: t_Array u8 v_CIPHERTEXT_SIZE)
+      (implicit_rejection_shared_secret: t_Array u8 (mk_usize 32))
+      (result: t_Array u8 (mk_usize 32))
+  : Lemma
+    (requires
+      P.is_rank v_K /\
+      (* du-form facts == HC.decapsulate's precondition verbatim, so the ensures
+         well-formedness discharges directly (no inline named→du case-split). The
+         named forms below additionally feed the body via lemma_rank_*_facts. *)
+      (P.rank_to_params v_K).Hacspec_ml_kem.Parameters.f_rank == v_K /\
+      v_PUBLIC_KEY_SIZE == ((v_K *! P.v_BYTES_PER_RING_ELEMENT) +! mk_usize 32) /\
+      v_CPA_SECRET_KEY_SIZE == (v_K *! P.v_BYTES_PER_RING_ELEMENT) /\
+      v_SECRET_KEY_SIZE ==
+        (((v_CPA_SECRET_KEY_SIZE +! v_PUBLIC_KEY_SIZE) +! HF.v_H_DIGEST_SIZE) +! mk_usize 32) /\
+      v_C1_SIZE ==
+        (((v_K *! P.v_COEFFICIENTS_IN_RING_ELEMENT)
+            *! (P.rank_to_params v_K).Hacspec_ml_kem.Parameters.f_du) /! mk_usize 8) /\
+      v_C2_SIZE ==
+        ((P.v_COEFFICIENTS_IN_RING_ELEMENT
+            *! (P.rank_to_params v_K).Hacspec_ml_kem.Parameters.f_dv) /! mk_usize 8) /\
+      v_CIPHERTEXT_SIZE == (v_C1_SIZE +! v_C2_SIZE) /\
+      v_IMPLICIT_REJECTION_HASH_INPUT_SIZE == (mk_usize 32 +! v_CIPHERTEXT_SIZE) /\
+      ((P.rank_to_params v_K).Hacspec_ml_kem.Parameters.f_eta1 == mk_usize 2 \/
+       (P.rank_to_params v_K).Hacspec_ml_kem.Parameters.f_eta1 == mk_usize 3) /\
+      ((P.rank_to_params v_K).Hacspec_ml_kem.Parameters.f_eta2 == mk_usize 2 \/
+       (P.rank_to_params v_K).Hacspec_ml_kem.Parameters.f_eta2 == mk_usize 3) /\
+      v_PUBLIC_KEY_SIZE == P.cpa_public_key_size v_K /\
+      v_CPA_SECRET_KEY_SIZE == P.cpa_private_key_size v_K /\
+      v_SECRET_KEY_SIZE == P.cca_private_key_size v_K /\
+      v_C1_SIZE == P.c1_size v_K /\
+      v_C2_SIZE == P.c2_size v_K /\
+      v_CIPHERTEXT_SIZE == P.cpa_ciphertext_size v_K /\
+      v_IMPLICIT_REJECTION_HASH_INPUT_SIZE == P.implicit_rejection_hash_input_size v_K /\
+      (* unpack slices (spec decaps_internal's dk_pke/ek/h/z; impl values) *)
+      ind_cpa_secret_key == Seq.slice (dk <: t_Slice u8) 0 (v v_CPA_SECRET_KEY_SIZE) /\
+      ind_cpa_public_key ==
+        Seq.slice (dk <: t_Slice u8) (v v_CPA_SECRET_KEY_SIZE)
+          (v v_CPA_SECRET_KEY_SIZE + v v_PUBLIC_KEY_SIZE) /\
+      ind_cpa_public_key_hash ==
+        Seq.slice (dk <: t_Slice u8) (v v_CPA_SECRET_KEY_SIZE + v v_PUBLIC_KEY_SIZE)
+          (v v_CPA_SECRET_KEY_SIZE + v v_PUBLIC_KEY_SIZE + 32) /\
+      implicit_rejection_value ==
+        Seq.slice (dk <: t_Slice u8) (v v_CPA_SECRET_KEY_SIZE + v v_PUBLIC_KEY_SIZE + 32)
+          (v v_SECRET_KEY_SIZE) /\
+      (* decrypt contract conclusion *)
+      decrypted ==
+        HCP.decrypt v_K (P.rank_to_params v_K) ind_cpa_secret_key (c <: t_Slice u8) /\
+      (* G hash of to_hash1 = concat decrypted h *)
+      hashed ==
+        SU.v_G (Rust_primitives.Arrays.concat (decrypted <: t_Slice u8) ind_cpa_public_key_hash) /\
+      (* split of hashed at 32 *)
+      Core_models.Slice.impl__split_at #u8 (hashed <: t_Slice u8) (mk_usize 32)
+        == (shared_secret, pseudorandomness) /\
+      (* encrypt contract conclusion *)
+      (match HCP.encrypt v_K v_C1_SIZE v_C2_SIZE v_CIPHERTEXT_SIZE (P.rank_to_params v_K)
+               ind_cpa_public_key decrypted pseudorandomness
+       with
+       | Core_models.Result.Result_Ok e -> expected_ciphertext == e
+       | Core_models.Result.Result_Err _ -> True) /\
+      (* implicit-rejection PRF post (impl proves vs Spec.Utils.v_PRF) *)
+      implicit_rejection_shared_secret ==
+        SU.v_PRF (mk_usize 32)
+          (Rust_primitives.Arrays.concat implicit_rejection_value (c <: t_Slice u8)) /\
+      (* compare-ciphertexts-select post *)
+      result ==
+        (if (c <: t_Slice u8) =. (expected_ciphertext <: t_Slice u8)
+         then shared_secret
+         else (implicit_rejection_shared_secret <: t_Slice u8)))
+    (ensures
+      (match HC.decapsulate v_K v_PUBLIC_KEY_SIZE v_SECRET_KEY_SIZE v_CPA_SECRET_KEY_SIZE
+               v_C1_SIZE v_C2_SIZE v_CIPHERTEXT_SIZE v_IMPLICIT_REJECTION_HASH_INPUT_SIZE
+               (P.rank_to_params v_K) dk c
+       with
+       | Core_models.Result.Result_Ok expected -> result == expected
+       | Core_models.Result.Result_Err _ -> True))
+  =
+  (* (0) named→du size + concrete eta facts so the spec decaps_internal/encrypt/
+     decrypt preconditions discharge. *)
+  lemma_rank_encrypt_facts v_K;
+  lemma_rank_decaps_facts v_K;
+  (* unpacked-slice lengths + the dk-length bounds so the spec decaps_internal's
+     dk_pke/ek = slice dk 0 .. have KNOWN length (for spec decrypt dk-length). *)
+  assert (Seq.length (dk <: t_Slice u8) == v v_SECRET_KEY_SIZE);
+  assert (v v_CPA_SECRET_KEY_SIZE <= v v_SECRET_KEY_SIZE);
+  assert (v v_CPA_SECRET_KEY_SIZE + v v_PUBLIC_KEY_SIZE <= v v_SECRET_KEY_SIZE);
+  assert (Seq.length (Seq.slice (dk <: t_Slice u8) 0 (v v_CPA_SECRET_KEY_SIZE))
+            == v v_CPA_SECRET_KEY_SIZE);
+  assert (Seq.length ind_cpa_secret_key == v v_CPA_SECRET_KEY_SIZE);
+  assert (Seq.length ind_cpa_public_key == v v_PUBLIC_KEY_SIZE);
+  (* (1) j_input construction == concat z c; bridge SU.v_PRF -> HF.v_J. *)
+  lemma_j_input_build v_CIPHERTEXT_SIZE v_IMPLICIT_REJECTION_HASH_INPUT_SIZE
+    implicit_rejection_value c;
+  lemma_v_PRF_J_32
+    (Rust_primitives.Arrays.concat implicit_rejection_value (c <: t_Slice u8));
+  (* (2) to_hash1 construction == concat decrypted h; bridge SU.v_G -> HF.v_G. *)
+  lemma_to_hash_build decrypted ind_cpa_public_key_hash;
+  lemma_v_G_bridge (Rust_primitives.Arrays.concat (decrypted <: t_Slice u8) ind_cpa_public_key_hash);
+  (* (3) split projections + lengths: shared_secret/pseudorandomness are the 32-byte halves. *)
+  assert (Seq.length (hashed <: t_Slice u8) == 64);
+  assert (shared_secret == Seq.slice (hashed <: t_Slice u8) 0 32);
+  assert (pseudorandomness == Seq.slice (hashed <: t_Slice u8) 32 64);
+  assert (Seq.length pseudorandomness == 32);
+  (* (4) r_prime coercion: r_prime = try_into(pseudorandomness[..32]) == pseudorandomness.
+     pseudorandomness[..32] == pseudorandomness (ground via slice_slice). *)
+  Seq.slice_slice (hashed <: t_Slice u8) 32 64 0 32;
+  assert (Seq.slice pseudorandomness 0 32 == pseudorandomness);
+  lemma_slice_to_array_id_32 (Seq.slice pseudorandomness 0 32 <: t_Slice u8);
+  lemma_slice_to_array_id_32 pseudorandomness;
+  (* (4b) re-establish the spec decrypt precondition facts (dk_pke / c lengths in
+     rank*BYTES / single-division forms) as EQUALITIES right before the match, so
+     they survive full-build query-splitting (the dk-length bound is an inequality
+     that simplex-saturates in heavy host context; visible only in the full build). *)
+  lemma_rank_decaps_facts v_K;
+  assert (v v_CPA_SECRET_KEY_SIZE <= v v_SECRET_KEY_SIZE);
+  assert (Seq.length (Seq.slice (dk <: t_Slice u8) 0 (v v_CPA_SECRET_KEY_SIZE))
+            == v v_CPA_SECRET_KEY_SIZE);
+  assert (Seq.length (Seq.slice (dk <: t_Slice u8) 0 (v v_CPA_SECRET_KEY_SIZE))
+            == v (v_K *! P.v_BYTES_PER_RING_ELEMENT));
+  assert (Seq.length (c <: t_Slice u8) == v v_CIPHERTEXT_SIZE);
+  (* (5) align the Ind_cpa.encrypt match; copy_from_slice(zeros 32, success_ss) == success_ss. *)
+  match HCP.encrypt v_K v_C1_SIZE v_C2_SIZE v_CIPHERTEXT_SIZE (P.rank_to_params v_K)
+          ind_cpa_public_key decrypted pseudorandomness
+  with
+  | Core_models.Result.Result_Ok c_prime -> ()
+  | Core_models.Result.Result_Err _ -> ()
+#pop-options
