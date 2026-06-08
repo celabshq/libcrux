@@ -2033,6 +2033,24 @@ val lemma_impl_add_error_reduce_spec
                   (Seq.index (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_mont #v_Vector self) (v j))
                   Hacspec_ml_kem.Commute.Chunk.fe_1441))
            (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #v_Vector error))
+
+val lemma_impl_subtract_reduce_spec
+    (#v_Vector: Type0)
+    (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+    (myself b: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
+  : Lemma
+    (requires Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector (mk_usize 4095) myself)
+    (ensures
+      Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #v_Vector (impl__subtract_reduce #v_Vector myself b)
+      == Hacspec_ml_kem.Polynomial.subtract_reduce
+           (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #v_Vector myself)
+           (Hacspec_ml_kem.Parameters.createi #Hacspec_ml_kem.Parameters.t_FieldElement
+              (mk_usize 256)
+              #(usize -> Hacspec_ml_kem.Parameters.t_FieldElement)
+              (fun (j: usize{j <. mk_usize 256}) ->
+                Hacspec_ml_kem.Parameters.impl_FieldElement__mul
+                  (Seq.index (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_mont #v_Vector b) (v j))
+                  Hacspec_ml_kem.Commute.Chunk.fe_1441)))
 "#))]
 #[cfg_attr(hax, hax_lib::fstar::after(r#"
 let lemma_impl_ntt_multiply_spec
@@ -2095,6 +2113,25 @@ let lemma_impl_add_error_reduce_spec
                   Hacspec_ml_kem.Commute.Chunk.fe_1441))
            (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #v_Vector error))
 = let _ = add_error_reduce #v_Vector self error in ()
+
+let lemma_impl_subtract_reduce_spec
+    (#v_Vector: Type0)
+    (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+    (myself b: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
+  : Lemma
+    (requires Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector (mk_usize 4095) myself)
+    (ensures
+      Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #v_Vector (impl__subtract_reduce #v_Vector myself b)
+      == Hacspec_ml_kem.Polynomial.subtract_reduce
+           (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #v_Vector myself)
+           (Hacspec_ml_kem.Parameters.createi #Hacspec_ml_kem.Parameters.t_FieldElement
+              (mk_usize 256)
+              #(usize -> Hacspec_ml_kem.Parameters.t_FieldElement)
+              (fun (j: usize{j <. mk_usize 256}) ->
+                Hacspec_ml_kem.Parameters.impl_FieldElement__mul
+                  (Seq.index (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_mont #v_Vector b) (v j))
+                  Hacspec_ml_kem.Commute.Chunk.fe_1441)))
+= let _ = subtract_reduce #v_Vector myself b in ()
 "#))]
 fn _impl_functional_bridges_anchor<Vector: Operations>(
     p: PolynomialRingElement<Vector>,
