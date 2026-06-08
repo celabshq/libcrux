@@ -946,28 +946,86 @@ fn add_message_error_reduce<Vector: Operations>(
 /// `mont_mul(myself, 1441)` brings `myself` to plain (fused finalize), then
 /// `plain + plain → plain`, Barrett-reduced.
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always")]
+#[hax_lib::fstar::options("--z3rlimit 800 --ext context_pruning --split_queries always")]
 #[hax_lib::requires(spec::is_bounded_poly(7, &error))]
-#[hax_lib::ensures(|result| spec::is_bounded_poly(3328, &future(myself)))]
+#[hax_lib::ensures(|result|
+    spec::is_bounded_poly(3328, &future(myself))
+    & fstar!(r#"
+        Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #$:Vector ${myself}_future
+          == Hacspec_ml_kem.Polynomial.add_error_reduce
+               (Hacspec_ml_kem.Parameters.createi
+                  #Hacspec_ml_kem.Parameters.t_FieldElement
+                  (mk_usize 256)
+                  #(usize -> Hacspec_ml_kem.Parameters.t_FieldElement)
+                  (fun (j: usize {j <. mk_usize 256}) ->
+                    Hacspec_ml_kem.Parameters.impl_FieldElement__mul
+                      (Seq.index
+                         (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_mont #$:Vector ${myself}) (v j))
+                      Hacspec_ml_kem.Commute.Chunk.fe_1441))
+               (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #$:Vector ${error})
+      "#))]
 fn add_error_reduce<Vector: Operations>(
     myself: &mut PolynomialRingElement<Vector>,
     error: &PolynomialRingElement<Vector>,
 ) {
     #[cfg(hax)]
     let _myself = myself.coefficients;
+    // Snapshot the ORIGINAL `myself` ring element under a name that survives
+    // the loop's rebinding of `myself` (hax desugars the `&mut` mutation into
+    // `let myself = fold_range ... myself ...`, shadowing the input).  The
+    // post references the INPUT `myself`; the post-loop bridge needs to name
+    // it, so we keep `myself_orig` (= input value).  Mirror of subtract_reduce
+    // keeping the immutable `b` nameable via a fresh `b_acc` accumulator.
+    #[cfg(hax)]
+    let myself_orig = *myself;
+
+    // Seed F1 (scoped to the ORIGINAL `myself`, snapshotted as `_myself`):
+    //   to_spec_poly_mont (orig myself) == to_spec_poly_mont_arr _myself.
+    // The post-loop bridge chains via `lemma_add_error_reduce_scaled_eq` on
+    // the original `myself_orig` and the constructed `myself_input` (both share
+    // `f_coefficients == _myself`).  Mirror of subtract_reduce's seed.
+    hax_lib::fstar!(r#"
+        Hacspec_ml_kem.Commute.Chunk.lemma_to_spec_poly_mont_unfold #v_Vector ${myself}
+      "#);
 
     for j in 0..VECTORS_IN_RING_ELEMENT {
+        // Loop invariant: for already-processed chunks, the OPAQUE per-chunk
+        // finalize atom keyed on the ORIGINAL (snapshot) `_myself` chunk (the
+        // mont-scaled operand) and the PLAIN `error` chunk; for unprocessed
+        // chunks, the chunk is still equal to the original.  Mirror of
+        // subtract_reduce's invariant (SUB → ADD, swapped operand roles).
         hax_lib::loop_invariant!(|i: usize| hax_lib::forall(|j: usize| {
             if j < 16 {
                 if j < i {
                     spec::is_bounded_vector(3328, &myself.coefficients[j])
+                        & fstar!(r#"
+                            Hacspec_ml_kem.Commute.Chunk.add_error_reduce_finalize_chunk
+                              (Libcrux_ml_kem.Vector.Traits.f_repr #$:Vector
+                                (Seq.index ${_myself} (v $j)))
+                              (Libcrux_ml_kem.Vector.Traits.f_repr #$:Vector
+                                (Seq.index ${myself}.f_coefficients (v $j)))
+                              (Libcrux_ml_kem.Vector.Traits.f_repr #$:Vector
+                                (Seq.index ${error}.f_coefficients (v $j)))
+                          "#)
                 } else {
-                    true.to_prop()
+                    fstar!(r#"
+                        Seq.index ${myself}.f_coefficients (v $j) == Seq.index ${_myself} (v $j)
+                      "#)
                 }
             } else {
                 true.to_prop()
             }
         }));
+
+        hax_lib::fstar!(
+            r#"
+          assert (v $j < 16);
+          assert_norm (1441 < pow2 15);
+          assert_norm (1664 < pow2 15);
+          assert_norm (mk_i16 1441 <. mk_i16 1664);
+          assert(Spec.Utils.is_i16b 1664 (mk_i16 1441))
+        "#
+        );
 
         let coefficient_normal_form =
             Vector::montgomery_multiply_by_constant(myself.coefficients[j], 1441);
@@ -980,8 +1038,50 @@ fn add_error_reduce<Vector: Operations>(
 
         let red = Vector::barrett_reduce(sum);
         hax_lib::assert_prop!(spec::is_bounded_vector(3328, &red));
+
+        // Encapsulated per-iteration helper: takes the trait posts of
+        // mont_mul, add, barrett at chunk j and produces the opaque
+        // chunk-level finalize predicate (mirror of lemma_subtract_reduce_iter).
+        hax_lib::fstar!(r#"
+            Hacspec_ml_kem.Commute.Chunk.lemma_add_error_reduce_iter
+              (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector
+                (Seq.index ${_myself} (v $j)))
+              (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector
+                (Seq.index ${error}.f_coefficients (v $j)))
+              (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector ${coefficient_normal_form})
+              (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector ${sum})
+              (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector ${red})
+          "#);
+
         myself.coefficients[j] = red;
     }
+
+    // Post-loop bridge: lift the 16 per-chunk opaque finalize predicates
+    // (from the loop invariant at j = 16) to the polynomial-level equation
+    // citing HP.add_error_reduce.  The commute lemma produces the helper-
+    // form `add_error_reduce_helper`; the eq-helper lemma chains it to
+    // HP.add_error_reduce.  The scaled-eq lemma bridges the lemma's
+    // `myself_input` (sharing `f_coefficients == _myself`) to the original
+    // `myself` referenced by the post.  Mirror of subtract_reduce's bridge.
+    hax_lib::fstar!(r#"
+        let myself_input : Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector =
+          { Libcrux_ml_kem.Vector.f_coefficients = ${_myself} } in
+        Hacspec_ml_kem.Commute.Chunk.lemma_add_error_reduce_commute
+          #v_Vector myself_input ${error} ${myself};
+        let error_lift = Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #v_Vector ${error} in
+        let scaled_myself = Hacspec_ml_kem.Parameters.createi
+                         #Hacspec_ml_kem.Parameters.t_FieldElement
+                         (mk_usize 256)
+                         #(usize -> Hacspec_ml_kem.Parameters.t_FieldElement)
+                         (fun (j: usize {j <. mk_usize 256}) ->
+                           Hacspec_ml_kem.Parameters.impl_FieldElement__mul
+                             (Seq.index
+                                (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_mont #v_Vector myself_input)
+                                (v j))
+                             Hacspec_ml_kem.Commute.Chunk.fe_1441) in
+        Hacspec_ml_kem.Commute.Chunk.lemma_add_error_reduce_eq_helper scaled_myself error_lift;
+        Hacspec_ml_kem.Commute.Chunk.lemma_add_error_reduce_scaled_eq #v_Vector ${myself_orig} myself_input
+      "#);
 }
 
 #[inline(always)]
@@ -1915,6 +2015,24 @@ val lemma_impl_add_standard_error_reduce_spec
       == Hacspec_ml_kem.Polynomial.add_standard_error_reduce
            (to_spec_poly_standard #v_Vector self)
            (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #v_Vector error))
+
+val lemma_impl_add_error_reduce_spec
+    (#v_Vector: Type0)
+    (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+    (self error: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
+  : Lemma
+    (requires Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector (mk_usize 7) error)
+    (ensures
+      Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #v_Vector (impl__add_error_reduce #v_Vector self error)
+      == Hacspec_ml_kem.Polynomial.add_error_reduce
+           (Hacspec_ml_kem.Parameters.createi #Hacspec_ml_kem.Parameters.t_FieldElement
+              (mk_usize 256)
+              #(usize -> Hacspec_ml_kem.Parameters.t_FieldElement)
+              (fun (j: usize{j <. mk_usize 256}) ->
+                Hacspec_ml_kem.Parameters.impl_FieldElement__mul
+                  (Seq.index (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_mont #v_Vector self) (v j))
+                  Hacspec_ml_kem.Commute.Chunk.fe_1441))
+           (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #v_Vector error))
 "#))]
 #[cfg_attr(hax, hax_lib::fstar::after(r#"
 let lemma_impl_ntt_multiply_spec
@@ -1958,6 +2076,25 @@ let lemma_impl_add_standard_error_reduce_spec
            (to_spec_poly_standard #v_Vector self)
            (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #v_Vector error))
 = let _ = add_standard_error_reduce #v_Vector self error in ()
+
+let lemma_impl_add_error_reduce_spec
+    (#v_Vector: Type0)
+    (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+    (self error: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
+  : Lemma
+    (requires Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector (mk_usize 7) error)
+    (ensures
+      Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #v_Vector (impl__add_error_reduce #v_Vector self error)
+      == Hacspec_ml_kem.Polynomial.add_error_reduce
+           (Hacspec_ml_kem.Parameters.createi #Hacspec_ml_kem.Parameters.t_FieldElement
+              (mk_usize 256)
+              #(usize -> Hacspec_ml_kem.Parameters.t_FieldElement)
+              (fun (j: usize{j <. mk_usize 256}) ->
+                Hacspec_ml_kem.Parameters.impl_FieldElement__mul
+                  (Seq.index (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_mont #v_Vector self) (v j))
+                  Hacspec_ml_kem.Commute.Chunk.fe_1441))
+           (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #v_Vector error))
+= let _ = add_error_reduce #v_Vector self error in ()
 "#))]
 fn _impl_functional_bridges_anchor<Vector: Operations>(
     p: PolynomialRingElement<Vector>,

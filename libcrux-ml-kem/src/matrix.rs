@@ -198,8 +198,7 @@ pub(crate) fn compute_ring_element_v<const K: usize, Vector: Operations>(
 
 /// Compute u := InvertNTT(Aᵀ ◦ r̂) + e₁
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
-#[hax_lib::fstar::options("--z3rlimit 200 --ext context_pruning")]
+#[hax_lib::fstar::options("--z3rlimit 400 --fuel 1 --ifuel 1 --ext context_pruning --using_facts_from '* -Hacspec_ml_kem.Parameters.createi_lemma -Libcrux_ml_kem.Polynomial.Spec'")]
 #[hax_lib::requires((K <= 4).to_prop() & (
         hax_lib::forall(|i:usize| hax_lib::implies(i < K,
             spec::is_bounded_poly(7, &error_1[i]) & (
@@ -218,6 +217,16 @@ pub(crate) fn compute_vector_u<const K: usize, Vector: Operations>(
     r_as_ntt: &[PolynomialRingElement<Vector>; K],
     error_1: &[PolynomialRingElement<Vector>; K],
 ) -> [PolynomialRingElement<Vector>; K] {
+    // Ghost spec target (functional postcondition value).  Kept behind opaque `row_done` atoms in
+    // the loop invariants (see Matrix_bridge / Compute_u_bridge) so the createi-heavy spec terms
+    // never enter the loop-body VCs.
+    #[cfg(hax)]
+    let target = hacspec_ml_kem::matrix::compute_vector_u::<K>(
+        &crate::vector::spec::matrix_to_spec(&a_as_ntt),
+        &crate::vector::spec::vector_to_spec(&r_as_ntt),
+        &crate::vector::spec::vector_to_spec(&error_1),
+    );
+
     let mut result = core::array::from_fn(|_i| PolynomialRingElement::<Vector>::ZERO());
 
     for i in 0..K {
@@ -231,23 +240,53 @@ pub(crate) fn compute_vector_u<const K: usize, Vector: Operations>(
             } else {
                 true.to_prop()
             }
-        }));
+        }) & fstar!(r#"(forall (j: nat). j < v $i /\ j < v v_K ==>
+            Hacspec_ml_kem.Commute.Matrix_bridge.row_done (Seq.index ${result} j) ${target} j)"#));
 
         #[cfg(hax)]
         let _result = result;
+
+        hax_lib::fstar!(r#"Hacspec_ml_kem.Commute.Matrix_bridge.lemma_inner_done_base
+            ${a_as_ntt} ${r_as_ntt} $i (${result}.[ $i ])"#);
 
         for j in 0..K {
             hax_lib::loop_invariant!(|j: usize| spec::is_bounded_poly(j * 3328, &result[i])
                 & (hax_lib::forall(|k: usize| {
                     hax_lib::implies(k < K && k != i, hax_lib::eq(&result[k], &_result[k]))
-                })));
+                }))
+                & (hax_lib::forall(|k: usize| hax_lib::implies(
+                    k < i,
+                    spec::is_bounded_poly(3328, &result[k])
+                )))
+                & fstar!(r#"(forall (k: nat). k < v $i /\ k < v v_K ==>
+                    Hacspec_ml_kem.Commute.Matrix_bridge.row_done (Seq.index ${result} k) ${target} k)"#)
+                & fstar!(r#"Hacspec_ml_kem.Commute.Matrix_bridge.inner_done
+                    (${result}.[ $i ]) ${a_as_ntt} ${r_as_ntt} $i (v $j)"#));
 
+            hax_lib::fstar!(r#"assert (v $j < v v_K); assert (v v_K <= 4)"#);
+            #[cfg(hax)]
+            let tt_old = result;
             let product = a_as_ntt[i][j].ntt_multiply(&r_as_ntt[j]);
             result[i].add_to_ring_element(&product, j * 3328);
+            hax_lib::fstar!(r#"Hacspec_ml_kem.Commute.Matrix_bridge.lemma_inner_step_full
+                ${a_as_ntt} ${r_as_ntt} $i $j ${tt_old} ${target}"#);
         }
+
+        #[cfg(hax)]
+        let t_pre = result[i];
         invert_ntt_montgomery::<K, Vector>(&mut result[i]);
+        #[cfg(hax)]
+        let re_future = result[i];
         result[i].add_error_reduce(&error_1[i]);
+        hax_lib::fstar!(r#"Hacspec_ml_kem.Commute.Compute_u_bridge.lemma_u_row_done_finalize
+            ${a_as_ntt} ${r_as_ntt} ${error_1} ${t_pre} ${re_future} (${result}.[ $i ]) $i ${target}"#);
+        // Frame for the outer-invariant maintenance: invert_ntt + add_error_reduce only touch
+        // result[i], so all other rows equal the iteration-start snapshot; this lets the bound
+        // (for the from_fn-ZERO future rows) and row_done carry without a full re-derivation.
+        hax_lib::fstar!(r#"assert (forall (k: nat). k < v v_K /\ k <> v $i ==>
+            Seq.index ${result} k == Seq.index ${_result} k)"#);
     }
+    hax_lib::fstar!(r#"Hacspec_ml_kem.Commute.Matrix_bridge.lemma_rows_assemble ${result} ${target}"#);
     result
 }
 
