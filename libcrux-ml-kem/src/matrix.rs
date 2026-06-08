@@ -14,11 +14,17 @@ use crate::polynomial::spec;
 // restructured so it verifies reliably. Currently in SLOW_MODULES (admitted by default).
 #[inline(always)]
 #[allow(non_snake_case)]
+#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::fstar::options("--z3rlimit 400 --ext context_pruning --split_queries always")]
 #[hax_lib::requires(K <= 4)]
 #[hax_lib::ensures(|res| hax_lib::forall(|i:usize| hax_lib::implies(i < K,
                             hax_lib::forall(|j:usize| hax_lib::implies(j < K,
-                                spec::is_bounded_poly(3328, &(future(A_transpose)[i][j])))))))]
+                                spec::is_bounded_poly(3328, &(future(A_transpose)[i][j]))))))
+    & (match hacspec_ml_kem::matrix::sample_matrix_A::<K>(&seed[..32], transpose) {
+        Ok(sampled_matrix) =>
+            crate::vector::spec::matrix_to_spec(&future(A_transpose)) == sampled_matrix,
+        Err(_) => true,
+    }).to_prop())]
 pub(crate) fn sample_matrix_A<const K: usize, Vector: Operations, Hasher: Hash<K>>(
     A_transpose: &mut [[PolynomialRingElement<Vector>; K]; K],
     seed: &[u8; 34],
@@ -115,6 +121,7 @@ pub(crate) fn sample_matrix_A<const K: usize, Vector: Operations, Hasher: Hash<K
 
 /// Compute v − InverseNTT(sᵀ ◦ NTT(u))
 #[inline(always)]
+#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::fstar::options("--z3rlimit 200 --ext context_pruning")]
 #[hax_lib::requires((K <= 4).to_prop() & (
         spec::is_bounded_poly(4095, v) & (
@@ -122,7 +129,12 @@ pub(crate) fn sample_matrix_A<const K: usize, Vector: Operations, Hasher: Hash<K
                 spec::is_bounded_poly(3328, &secret_as_ntt[i]) & (
                     spec::is_bounded_poly(3328, &u_as_ntt[i])
 ))))))]
-#[hax_lib::ensures(|result| spec::is_bounded_poly(3328, &result))]
+#[hax_lib::ensures(|result| spec::is_bounded_poly(3328, &result)
+    & (crate::vector::spec::poly_to_spec(&result)
+        == hacspec_ml_kem::matrix::compute_message::<K>(
+            &crate::vector::spec::poly_to_spec(&v),
+            &crate::vector::spec::vector_to_spec(&secret_as_ntt),
+            &crate::vector::spec::vector_to_spec(&u_as_ntt))).to_prop())]
 pub(crate) fn compute_message<const K: usize, Vector: Operations>(
     v: &PolynomialRingElement<Vector>,
     secret_as_ntt: &[PolynomialRingElement<Vector>; K],
@@ -147,6 +159,7 @@ pub(crate) fn compute_message<const K: usize, Vector: Operations>(
 
 /// Compute InverseNTT(tᵀ ◦ r̂) + e₂ + message
 #[inline(always)]
+#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::fstar::options("--z3rlimit 200 --ext context_pruning")]
 #[hax_lib::requires((K <= 4).to_prop() & (
         spec::is_bounded_poly(3328, message) & (
@@ -155,7 +168,13 @@ pub(crate) fn compute_message<const K: usize, Vector: Operations>(
                     spec::is_bounded_poly(3328, &t_as_ntt[i]) & (
                         spec::is_bounded_poly(3328, &r_as_ntt[i])
 )))))))]
-#[hax_lib::ensures(|result| spec::is_bounded_poly(3328, &result))]
+#[hax_lib::ensures(|result| spec::is_bounded_poly(3328, &result)
+    & (crate::vector::spec::poly_to_spec(&result)
+        == hacspec_ml_kem::matrix::compute_ring_element_v::<K>(
+            &crate::vector::spec::vector_to_spec(&t_as_ntt),
+            &crate::vector::spec::vector_to_spec(&r_as_ntt),
+            &crate::vector::spec::poly_to_spec(&error_2),
+            &crate::vector::spec::poly_to_spec(&message))).to_prop())]
 pub(crate) fn compute_ring_element_v<const K: usize, Vector: Operations>(
     t_as_ntt: &[PolynomialRingElement<Vector>; K],
     r_as_ntt: &[PolynomialRingElement<Vector>; K],
@@ -179,6 +198,7 @@ pub(crate) fn compute_ring_element_v<const K: usize, Vector: Operations>(
 
 /// Compute u := InvertNTT(Aᵀ ◦ r̂) + e₁
 #[inline(always)]
+#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::fstar::options("--z3rlimit 200 --ext context_pruning")]
 #[hax_lib::requires((K <= 4).to_prop() & (
         hax_lib::forall(|i:usize| hax_lib::implies(i < K,
@@ -187,7 +207,12 @@ pub(crate) fn compute_ring_element_v<const K: usize, Vector: Operations>(
                     hax_lib::forall(|j:usize| hax_lib::implies(j < K,
                         spec::is_bounded_poly(3328, &a_as_ntt[i][j])))))))))]
 #[hax_lib::ensures(|result| hax_lib::forall(|i:usize| hax_lib::implies(i < K,
-                                spec::is_bounded_poly(3328, &result[i]))))]
+                                spec::is_bounded_poly(3328, &result[i])))
+    & (crate::vector::spec::vector_to_spec(&result)
+        == hacspec_ml_kem::matrix::compute_vector_u::<K>(
+            &crate::vector::spec::matrix_to_spec(&a_as_ntt),
+            &crate::vector::spec::vector_to_spec(&r_as_ntt),
+            &crate::vector::spec::vector_to_spec(&error_1))).to_prop())]
 pub(crate) fn compute_vector_u<const K: usize, Vector: Operations>(
     a_as_ntt: &[[PolynomialRingElement<Vector>; K]; K],
     r_as_ntt: &[PolynomialRingElement<Vector>; K],
@@ -229,7 +254,7 @@ pub(crate) fn compute_vector_u<const K: usize, Vector: Operations>(
 /// Compute Â ◦ ŝ + ê
 #[inline(always)]
 #[allow(non_snake_case)]
-#[hax_lib::fstar::options("--z3rlimit 200 --ext context_pruning")]
+#[hax_lib::fstar::options("--z3rlimit 400 --fuel 1 --ifuel 1 --ext context_pruning --using_facts_from '* -Hacspec_ml_kem.Parameters.createi_lemma -Libcrux_ml_kem.Polynomial.Spec'")]
 #[hax_lib::requires((K <= 4).to_prop() & (
         hax_lib::forall(|i:usize| hax_lib::implies(i < K,
             spec::is_bounded_poly(3328, &error_as_ntt[i]) & (
@@ -237,32 +262,70 @@ pub(crate) fn compute_vector_u<const K: usize, Vector: Operations>(
                     hax_lib::forall(|j:usize| hax_lib::implies(j < K,
                         spec::is_bounded_poly(3328, &matrix_A[i][j])))))))))]
 #[hax_lib::ensures(|result| hax_lib::forall(|i:usize| hax_lib::implies(i < K,
-                                spec::is_bounded_poly(3328, &future(t_as_ntt)[i]))))]
+                                spec::is_bounded_poly(3328, &future(t_as_ntt)[i])))
+    & (crate::vector::spec::vector_to_spec(&future(t_as_ntt))
+        == hacspec_ml_kem::matrix::compute_As_plus_e::<K>(
+            // NOTE (2026-06-07): the impl computes t[i] = Σⱼ matrix_A[i][j]·s[j]
+            // (row i of matrix_A), whereas the hacspec `multiply_matrix_by_column`
+            // indexes `matrix[j][i]`. `matrix_to_spec` is index-preserving, so the
+            // spec must receive the TRANSPOSE for the post to be true. This matches
+            // keygen, which samples A with transpose=true and whose own post
+            // (ind_cpa.rs generate_keypair_unpacked) relates via `transpose(&A_as_ntt)`.
+            &hacspec_ml_kem::matrix::transpose(&crate::vector::spec::matrix_to_spec(&matrix_A)),
+            &crate::vector::spec::vector_to_spec(&s_as_ntt),
+            &crate::vector::spec::vector_to_spec(&error_as_ntt))).to_prop())]
 pub(crate) fn compute_As_plus_e<const K: usize, Vector: Operations>(
     t_as_ntt: &mut [PolynomialRingElement<Vector>; K],
     matrix_A: &[[PolynomialRingElement<Vector>; K]; K],
     s_as_ntt: &[PolynomialRingElement<Vector>; K],
     error_as_ntt: &[PolynomialRingElement<Vector>; K],
 ) {
+    // Ghost spec value of the result (the function's functional postcondition target).  Kept
+    // behind opaque `row_done`/`inner_done` atoms in the loop invariants (see Matrix_bridge) so
+    // the createi-heavy spec terms never enter the loop-body VCs.
+    #[cfg(hax)]
+    let target = hacspec_ml_kem::matrix::compute_As_plus_e::<K>(
+        &hacspec_ml_kem::matrix::transpose(&crate::vector::spec::matrix_to_spec(&matrix_A)),
+        &crate::vector::spec::vector_to_spec(&s_as_ntt),
+        &crate::vector::spec::vector_to_spec(&error_as_ntt),
+    );
+
     for i in 0..K {
         hax_lib::loop_invariant!(|i: usize| hax_lib::forall(|j: usize| hax_lib::implies(
             j < i,
             spec::is_bounded_poly(3328, &t_as_ntt[j])
-        )));
+        )) & fstar!(r#"(forall (j: nat). j < v $i /\ j < v v_K ==>
+            Hacspec_ml_kem.Commute.Matrix_bridge.row_done (Seq.index ${t_as_ntt} j) ${target} j)"#));
 
         t_as_ntt[i] = PolynomialRingElement::<Vector>::ZERO();
+        hax_lib::fstar!(r#"Hacspec_ml_kem.Commute.Matrix_bridge.lemma_inner_done_base
+            ${matrix_A} ${s_as_ntt} $i (${t_as_ntt}.[ $i ])"#);
 
         for j in 0..K {
             hax_lib::loop_invariant!(|j: usize| spec::is_bounded_poly(j * 3328, &t_as_ntt[i])
                 & (hax_lib::forall(|k: usize| hax_lib::implies(
                     k < i,
                     spec::is_bounded_poly(3328, &t_as_ntt[k])
-                ))));
+                )))
+                & fstar!(r#"(forall (k: nat). k < v $i /\ k < v v_K ==>
+                    Hacspec_ml_kem.Commute.Matrix_bridge.row_done (Seq.index ${t_as_ntt} k) ${target} k)"#)
+                & fstar!(r#"Hacspec_ml_kem.Commute.Matrix_bridge.inner_done
+                    (${t_as_ntt}.[ $i ]) ${matrix_A} ${s_as_ntt} $i (v $j)"#));
 
+            hax_lib::fstar!(r#"assert (v $j < v v_K); assert (v v_K <= 4)"#);
+            #[cfg(hax)]
+            let tt_old = *t_as_ntt;
             let product = matrix_A[i][j].ntt_multiply(&s_as_ntt[j]);
             t_as_ntt[i].add_to_ring_element(&product, j * 3328);
+            hax_lib::fstar!(r#"Hacspec_ml_kem.Commute.Matrix_bridge.lemma_inner_step_full
+                ${matrix_A} ${s_as_ntt} $i $j ${tt_old} ${target}"#);
         }
 
+        #[cfg(hax)]
+        let t_pre = t_as_ntt[i];
         t_as_ntt[i].add_standard_error_reduce(&error_as_ntt[i]);
+        hax_lib::fstar!(r#"Hacspec_ml_kem.Commute.Matrix_bridge.lemma_row_done_finalize
+            ${matrix_A} ${s_as_ntt} ${error_as_ntt} ${t_pre} (${t_as_ntt}.[ $i ]) $i ${target}"#);
     }
+    hax_lib::fstar!(r#"Hacspec_ml_kem.Commute.Matrix_bridge.lemma_rows_assemble ${t_as_ntt} ${target}"#);
 }

@@ -154,6 +154,80 @@ let poly_to_spec_index
 
     /// Lift a K×K matrix of impl polynomials to the spec
     /// `[[Polynomial; K]; K]` matrix.
+    ///
+    /// Per-index decomposition lemmas for the (opaque-to-consumers)
+    /// `vector_to_spec` / `matrix_to_spec` lifts — mirroring `poly_to_spec_index`.
+    /// They are proven here (where the `createi` bodies are visible) and let
+    /// callers in `Matrix` / `Ind_cpa` decompose the lifts per row/poly without
+    /// relying on the opaque `val`s.  No SMTPat (called explicitly).
+    #[cfg_attr(hax, hax_lib::fstar::after(interface, r#"
+val vector_to_spec_index
+      (v_RANK: usize)
+      (#v_V: Type0)
+      {| i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_V |}
+      (v_vec: t_Array (Libcrux_ml_kem.Vector.t_PolynomialRingElement v_V) v_RANK)
+      (j: nat)
+    : Lemma
+      (requires j < v v_RANK)
+      (ensures
+        Seq.index (vector_to_spec v_RANK #v_V v_vec) j == poly_to_spec #v_V (Seq.index v_vec j))
+
+val matrix_to_spec_index
+      (v_RANK: usize)
+      (#v_V: Type0)
+      {| i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_V |}
+      (m: t_Array (t_Array (Libcrux_ml_kem.Vector.t_PolynomialRingElement v_V) v_RANK) v_RANK)
+      (j: nat)
+    : Lemma
+      (requires j < v v_RANK)
+      (ensures
+        Seq.index (matrix_to_spec v_RANK #v_V m) j == vector_to_spec v_RANK #v_V (Seq.index m j))
+"#))]
+    #[cfg_attr(hax, hax_lib::fstar::after(r#"
+#push-options "--z3rlimit 100"
+let vector_to_spec_index
+      (v_RANK: usize)
+      (#v_V: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_V)
+      (v_vec: t_Array (Libcrux_ml_kem.Vector.t_PolynomialRingElement v_V) v_RANK)
+      (j: nat)
+    : Lemma
+      (requires j < v v_RANK)
+      (ensures
+        Seq.index (vector_to_spec v_RANK #v_V v_vec) j == poly_to_spec #v_V (Seq.index v_vec j))
+  = Hacspec_ml_kem.Parameters.createi_lemma
+      #(t_Array Hacspec_ml_kem.Parameters.t_FieldElement (mk_usize 256))
+      v_RANK
+      #(usize -> t_Array Hacspec_ml_kem.Parameters.t_FieldElement (mk_usize 256))
+      (fun (i: usize { i <. v_RANK }) ->
+          poly_to_spec #v_V (v_vec.[ i ] <: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_V)
+          <: t_Array Hacspec_ml_kem.Parameters.t_FieldElement (mk_usize 256))
+      (mk_usize j)
+#pop-options
+
+#push-options "--z3rlimit 100"
+let matrix_to_spec_index
+      (v_RANK: usize)
+      (#v_V: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_V)
+      (m: t_Array (t_Array (Libcrux_ml_kem.Vector.t_PolynomialRingElement v_V) v_RANK) v_RANK)
+      (j: nat)
+    : Lemma
+      (requires j < v v_RANK)
+      (ensures
+        Seq.index (matrix_to_spec v_RANK #v_V m) j
+        == vector_to_spec v_RANK #v_V (Seq.index m j))
+  = Hacspec_ml_kem.Parameters.createi_lemma
+      #(t_Array (t_Array Hacspec_ml_kem.Parameters.t_FieldElement (mk_usize 256)) v_RANK)
+      v_RANK
+      #(usize -> t_Array (t_Array Hacspec_ml_kem.Parameters.t_FieldElement (mk_usize 256)) v_RANK)
+      (fun (i: usize { i <. v_RANK }) ->
+          vector_to_spec v_RANK #v_V
+            (m.[ i ] <: t_Array (Libcrux_ml_kem.Vector.t_PolynomialRingElement v_V) v_RANK)
+          <: t_Array (t_Array Hacspec_ml_kem.Parameters.t_FieldElement (mk_usize 256)) v_RANK)
+      (mk_usize j)
+#pop-options
+"#))]
     pub fn matrix_to_spec<const RANK: usize, V: Operations>(
         m: &[[PolynomialRingElement<V>; RANK]; RANK],
     ) -> [[[FieldElement; 256]; RANK]; RANK] {

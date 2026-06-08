@@ -1859,6 +1859,112 @@ impl<Vector: Operations> PolynomialRingElement<Vector> {
     }
 }
 
+// Placement anchor + functional bridges for the `impl__` method wrappers.
+//
+// The `impl__`-prefixed method wrappers (`impl__ntt_multiply`, `impl__add_to_ring_element`,
+// `impl__add_standard_error_reduce`) extract to one-line dispatchers whose `.fsti` vals carry
+// only the panic-freedom bound; the functional `to_spec_poly_*` posts live on the FREE
+// functions.  The bridge lemmas in the `fstar::after` blocks below expose the functional post
+// at the wrapper level so consumers (e.g. `Matrix.fst`'s `compute_As_plus_e`) can compose
+// them; they are proven here because the dispatcher bodies are visible only inside
+// `Libcrux_ml_kem.Polynomial`.
+//
+// This `#[cfg(hax)]`-only function exists purely to ANCHOR those `fstar::after` blocks: by
+// referencing `impl__ntt_multiply` (the last `impl__` wrapper in source order), hax is forced
+// (def-before-use) to emit this item — and hence the appended lemmas — after all three wrapper
+// definitions.  It is fully verified (panic-free): the only obligation is `ntt_multiply`'s
+// precondition, supplied by the `requires`.
+#[cfg(hax)]
+#[hax_lib::requires(spec::is_bounded_poly(3328, &p))]
+#[cfg_attr(hax, hax_lib::fstar::after(interface, r#"
+val lemma_impl_ntt_multiply_spec
+    (#v_Vector: Type0)
+    (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+    (self rhs: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
+  : Lemma
+    (requires Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector (mk_usize 3328) self /\
+              Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector (mk_usize 3328) rhs)
+    (ensures
+      Hacspec_ml_kem.Commute.Chunk.to_spec_poly_mont #v_Vector (impl__ntt_multiply #v_Vector self rhs)
+      == Hacspec_ml_kem.Polynomial.ntt_multiply
+           (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_mont #v_Vector self)
+           (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_mont #v_Vector rhs))
+
+val lemma_impl_add_to_ring_element_spec
+    (#v_Vector: Type0)
+    (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+    (self rhs: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector) (e_b: usize)
+  : Lemma
+    (requires (e_b <=. (mk_usize 4 *! mk_usize 3328 <: usize)) /\
+              Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector e_b self /\
+              Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector (mk_usize 3328) rhs)
+    (ensures
+      Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #v_Vector (impl__add_to_ring_element #v_Vector self rhs e_b)
+      == Hacspec_ml_kem.Polynomial.add_to_ring_element
+           (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #v_Vector self)
+           (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #v_Vector rhs))
+
+val lemma_impl_add_standard_error_reduce_spec
+    (#v_Vector: Type0)
+    (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+    (self error: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
+  : Lemma
+    (requires Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector (mk_usize 3328) error)
+    (ensures
+      Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #v_Vector (impl__add_standard_error_reduce #v_Vector self error)
+      == Hacspec_ml_kem.Polynomial.add_standard_error_reduce
+           (to_spec_poly_standard #v_Vector self)
+           (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #v_Vector error))
+"#))]
+#[cfg_attr(hax, hax_lib::fstar::after(r#"
+let lemma_impl_ntt_multiply_spec
+    (#v_Vector: Type0)
+    (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+    (self rhs: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
+  : Lemma
+    (requires Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector (mk_usize 3328) self /\
+              Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector (mk_usize 3328) rhs)
+    (ensures
+      Hacspec_ml_kem.Commute.Chunk.to_spec_poly_mont #v_Vector (impl__ntt_multiply #v_Vector self rhs)
+      == Hacspec_ml_kem.Polynomial.ntt_multiply
+           (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_mont #v_Vector self)
+           (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_mont #v_Vector rhs))
+= let _ = ntt_multiply #v_Vector self rhs in ()
+
+let lemma_impl_add_to_ring_element_spec
+    (#v_Vector: Type0)
+    (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+    (self rhs: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector) (e_b: usize)
+  : Lemma
+    (requires (e_b <=. (mk_usize 4 *! mk_usize 3328 <: usize)) /\
+              Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector e_b self /\
+              Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector (mk_usize 3328) rhs)
+    (ensures
+      Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #v_Vector (impl__add_to_ring_element #v_Vector self rhs e_b)
+      == Hacspec_ml_kem.Polynomial.add_to_ring_element
+           (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #v_Vector self)
+           (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #v_Vector rhs))
+= let _ = add_to_ring_element #v_Vector self rhs e_b in ()
+
+let lemma_impl_add_standard_error_reduce_spec
+    (#v_Vector: Type0)
+    (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+    (self error: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
+  : Lemma
+    (requires Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector (mk_usize 3328) error)
+    (ensures
+      Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #v_Vector (impl__add_standard_error_reduce #v_Vector self error)
+      == Hacspec_ml_kem.Polynomial.add_standard_error_reduce
+           (to_spec_poly_standard #v_Vector self)
+           (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #v_Vector error))
+= let _ = add_standard_error_reduce #v_Vector self error in ()
+"#))]
+fn _impl_functional_bridges_anchor<Vector: Operations>(
+    p: PolynomialRingElement<Vector>,
+) -> PolynomialRingElement<Vector> {
+    p.ntt_multiply(&p)
+}
+
 #[cfg(test)]
 mod tests {
     use crate::vector::portable::PortableVector;
