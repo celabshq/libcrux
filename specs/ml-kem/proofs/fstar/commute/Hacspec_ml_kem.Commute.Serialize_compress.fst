@@ -275,7 +275,7 @@ let lemma_compress_index
 let lemma_compress_value_match_one
     (#v_Vector: Type0)
     (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: VT.t_Operations v_Vector)
-    (d: usize{v d == 4 \/ v d == 5 \/ v d == 10 \/ v d == 11})
+    (d: usize{v d > 0 /\ v d < 12})
     (re: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
     (g inp: t_Array i16 (mk_usize 16)) (j: nat{j < 16}) (l: nat{l < 16})
   : Lemma
@@ -304,7 +304,7 @@ let lemma_compress_value_match_one
 let lemma_chunk_byte_enc_intro_compress
     (#v_Vector: Type0)
     (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: VT.t_Operations v_Vector)
-    (d: usize{v d == 4 \/ v d == 5 \/ v d == 10 \/ v d == 11})
+    (d: usize{v d > 0 /\ v d < 12})
     (out_len: usize{v out_len == 32 * v d})
     (serialized: t_Array u8 out_len)
     (re: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
@@ -436,13 +436,15 @@ let lemma_slice_to_array_id (n: usize) (array: t_Slice u8)
     Seq.lemma_eq_intro a array
 #pop-options
 
-(* byte_decode_dyn b d == byte_decode (32d) (256d) b d, for d in {10,11}. *)
+(* byte_decode_dyn b d == byte_decode (32d) (256d) b d, for d in {4,5,10,11}. *)
 #push-options "--fuel 1 --ifuel 1 --z3rlimit 150"
-let lemma_byte_decode_dyn_eq (serialized: t_Slice u8) (d: usize{v d == 10 \/ v d == 11})
+let lemma_byte_decode_dyn_eq (serialized: t_Slice u8) (d: usize{v d == 4 \/ v d == 5 \/ v d == 10 \/ v d == 11})
   : Lemma (requires Seq.length serialized == 32 * v d)
           (ensures S.byte_decode_dyn serialized d
                    == S.byte_decode (mk_usize (32 * v d)) (mk_usize (256 * v d)) serialized d)
-  = if v d = 10 then lemma_slice_to_array_id (mk_usize 320) serialized
+  = if v d = 4 then lemma_slice_to_array_id (mk_usize 128) serialized
+    else if v d = 5 then lemma_slice_to_array_id (mk_usize 160) serialized
+    else if v d = 10 then lemma_slice_to_array_id (mk_usize 320) serialized
     else lemma_slice_to_array_id (mk_usize 352) serialized
 #pop-options
 
@@ -774,7 +776,7 @@ let lemma_decompress_post_lanes
    which would re-trigger the byte_decode-ensures instantiation in the def's
    well-formedness).  The per-index reduction lives in the intro. *)
 [@@ "opaque_to_smt"]
-let chunk_decompressed_d (d: usize{v d == 10 \/ v d == 11})
+let chunk_decompressed_d (d: usize{v d > 0 /\ v d < 12})
     (serialized: t_Array u8 (mk_usize (32 * v d)))
     (g: t_Array i16 (mk_usize 16)) (j: nat) : prop =
   j < 16 /\
@@ -786,7 +788,7 @@ let chunk_decompressed_d (d: usize{v d == 10 \/ v d == 11})
 (* intro from the byte-bridge (grp <-> bytes) + the decompress value form (g <-> grp). *)
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 200 --split_queries always"
 let lemma_chunk_decompressed_intro_d
-    (d: usize{v d == 10 \/ v d == 11})
+    (d: usize{v d > 0 /\ v d < 12})
     (serialized: t_Array u8 (mk_usize (32 * v d)))
     (grp g: t_Array i16 (mk_usize 16)) (j: nat)
   : Lemma
@@ -827,8 +829,8 @@ let lemma_is_i16b_array_opaque_of_bounded (g: t_Array i16 (mk_usize 16))
 (* intro from the RAW trait `decompress_ciphertext_coefficient_post`. *)
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 300 --split_queries always"
 let lemma_chunk_decompressed_intro_post_d
-    (d: usize{v d == 10 \/ v d == 11})
-    (cb: i32{v cb == v d})
+    (d: usize{v d > 0 /\ v d < 12})
+    (cb: i32{(v cb == 4 \/ v cb == 5 \/ v cb == 10 \/ v cb == 11) /\ v cb == v d})
     (serialized: t_Array u8 (mk_usize (32 * v d)))
     (grp g: t_Array i16 (mk_usize 16)) (j: nat)
   : Lemma
@@ -848,7 +850,7 @@ let lemma_chunk_decompressed_intro_post_d
 
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
 let lemma_chunk_decompressed_unfold_d
-    (d: usize{v d == 10 \/ v d == 11})
+    (d: usize{v d > 0 /\ v d < 12})
     (serialized: t_Array u8 (mk_usize (32 * v d)))
     (g: t_Array i16 (mk_usize 16)) (j: nat{j < 16})
   : Lemma
@@ -863,7 +865,7 @@ let lemma_chunk_decompressed_unfold_d
 (* expose the bound conjunct of the atom *)
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
 let lemma_chunk_decompressed_bound_d
-    (d: usize{v d == 10 \/ v d == 11})
+    (d: usize{v d > 0 /\ v d < 12})
     (serialized: t_Array u8 (mk_usize (32 * v d)))
     (g: t_Array i16 (mk_usize 16)) (j: nat{j < 16})
   : Lemma
@@ -877,7 +879,7 @@ let lemma_chunk_decompressed_bound_d
 let lemma_poly_to_spec_eq_decompress
     (#v_Vector: Type0)
     (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: VT.t_Operations v_Vector)
-    (d: usize{v d == 10 \/ v d == 11})
+    (d: usize{v d > 0 /\ v d < 12})
     (serialized: t_Array u8 (mk_usize (32 * v d)))
     (re: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
   : Lemma
@@ -908,7 +910,7 @@ let lemma_poly_to_spec_eq_decompress
 let lemma_is_bounded_poly_of_chunks
     (#v_Vector: Type0)
     (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: VT.t_Operations v_Vector)
-    (d: usize{v d == 10 \/ v d == 11})
+    (d: usize{v d > 0 /\ v d < 12})
     (serialized: t_Array u8 (mk_usize (32 * v d)))
     (re: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
   : Lemma

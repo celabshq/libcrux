@@ -779,7 +779,12 @@ pub(super) fn deserialize_then_decompress_ring_element_u<
 #[hax_lib::requires(
     serialized.len() == 128
 )]
-#[hax_lib::ensures(|result| spec::is_bounded_poly(4095, &result))]
+#[hax_lib::ensures(|result|
+    spec::is_bounded_poly(3328, &result)
+    & fstar!(r#"${poly_to_spec::<Vector>} $result ==
+        Hacspec_ml_kem.Compress.decompress
+            (Hacspec_ml_kem.Serialize.byte_decode_dyn $serialized (sz 4)) (sz 4)"#)
+)]
 fn deserialize_then_decompress_4<Vector: Operations>(
     serialized: &[u8],
 ) -> PolynomialRingElement<Vector> {
@@ -787,15 +792,19 @@ fn deserialize_then_decompress_4<Vector: Operations>(
         r#"assert (v ((${crate::constants::COEFFICIENTS_IN_RING_ELEMENT} *! sz 4) /! sz 8) == 128)"#
     );
     let mut re = PolynomialRingElement::<Vector>::ZERO();
-    // Lift `is_bounded_poly 0 re` (from ZERO ensures) to
-    // `is_bounded_poly 4095 re` so the loop invariant holds on entry.
-    #[cfg(hax)]
-    spec::is_bounded_poly_higher(&re, 0, 4095);
 
     cloop! {
         for (i, bytes) in serialized.chunks_exact(8).enumerate() {
-            hax_lib::loop_invariant!(|_i: usize| {
-                spec::is_bounded_poly(4095, &re)
+            // Loop invariant: each completed coefficient vector carries the opaque
+            // per-chunk decompressed atom (`chunk_decompressed_d` at d=4).
+            hax_lib::loop_invariant!(|i: usize| {
+                fstar!(
+                    r#"v $i <= 16 /\ Seq.length $serialized == 128 /\
+                    (forall (j: nat). j < v $i ==>
+                      Hacspec_ml_kem.Commute.Serialize_compress.chunk_decompressed_d (sz 4) $serialized
+                        (Libcrux_ml_kem.Vector.Traits.f_to_i16_array
+                          (Seq.index ${re}.Libcrux_ml_kem.Vector.f_coefficients j)) j)"#
+                )
             });
             let coefficient = Vector::deserialize_4(bytes);
             // Intro: deserialize_4 post `forall j. bounded c[j] 4` -> trait pre
@@ -807,14 +816,31 @@ fn deserialize_then_decompress_4<Vector: Operations>(
                      (Libcrux_ml_kem.Vector.Traits.f_repr ${coefficient})"#
             );
             re.coefficients[i] = Vector::decompress_ciphertext_coefficient::<4>(coefficient);
-            // Lift the strengthened trait post `bounded_i16_array 0 3328
-            // (f_repr re.coefficients[i])` to `is_bounded_vector 4095
-            // (re.coefficients[i])` so the loop invariant on `re` is
-            // preserved by this iteration.
-            #[cfg(hax)]
-            spec::lemma_decompress_post_to_is_bounded_vector(&re.coefficients[i], 4095);
+            // Establish chunk `i`'s decompressed atom from the deserialize_4 +
+            // decompress_ciphertext_coefficient posts (byte-bridge + decompress
+            // value-match are sealed inside the commute lemma).
+            hax_lib::fstar!(
+                r#"let grp = Libcrux_ml_kem.Vector.Traits.f_repr $coefficient in
+                   let g = Libcrux_ml_kem.Vector.Traits.f_to_i16_array
+                             (Seq.index ${re}.Libcrux_ml_kem.Vector.f_coefficients (v $i)) in
+                   let ii = v $i in
+                   assert (Libcrux_ml_kem.Vector.Traits.Spec.decompress_ciphertext_coefficient_post
+                             grp (mk_i32 4) g);
+                   assert (Seq.slice $serialized (8 * ii) (8 * ii + 8) == $bytes);
+                   assert (BitVecEq.int_t_array_bitwise_eq
+                             (Seq.slice $serialized (8 * ii) (8 * ii + 8) <: t_Array u8 (mk_usize 8)) 8 grp 4);
+                   Hacspec_ml_kem.Commute.Serialize_compress.lemma_chunk_decompressed_intro_post_d
+                     (sz 4) (mk_i32 4) $serialized grp g ii"#
+            );
         }
     }
+    // Finalize: poly_to_spec re == decompress (byte_decode_dyn serialized 4) 4
+    // and is_bounded_poly 3328 re, from the per-chunk atoms.
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Serialize_compress.lemma_byte_decode_dyn_eq $serialized (sz 4);
+           Hacspec_ml_kem.Commute.Serialize_compress.lemma_poly_to_spec_eq_decompress (sz 4) $serialized $re;
+           Hacspec_ml_kem.Commute.Serialize_compress.lemma_is_bounded_poly_of_chunks (sz 4) $serialized $re"#
+    );
     re
 }
 
@@ -823,7 +849,12 @@ fn deserialize_then_decompress_4<Vector: Operations>(
 #[hax_lib::requires(
     serialized.len() == 160
 )]
-#[hax_lib::ensures(|result| spec::is_bounded_poly(4095, &result))]
+#[hax_lib::ensures(|result|
+    spec::is_bounded_poly(3328, &result)
+    & fstar!(r#"${poly_to_spec::<Vector>} $result ==
+        Hacspec_ml_kem.Compress.decompress
+            (Hacspec_ml_kem.Serialize.byte_decode_dyn $serialized (sz 5)) (sz 5)"#)
+)]
 fn deserialize_then_decompress_5<Vector: Operations>(
     serialized: &[u8],
 ) -> PolynomialRingElement<Vector> {
@@ -831,15 +862,19 @@ fn deserialize_then_decompress_5<Vector: Operations>(
         r#"assert (v ((${crate::constants::COEFFICIENTS_IN_RING_ELEMENT} *! sz 5) /! sz 8) == 160)"#
     );
     let mut re = PolynomialRingElement::<Vector>::ZERO();
-    // Lift `is_bounded_poly 0 re` (from ZERO ensures) to
-    // `is_bounded_poly 4095 re` so the loop invariant holds on entry.
-    #[cfg(hax)]
-    spec::is_bounded_poly_higher(&re, 0, 4095);
 
     cloop! {
         for (i, bytes) in serialized.chunks_exact(10).enumerate() {
-            hax_lib::loop_invariant!(|_i: usize| {
-                spec::is_bounded_poly(4095, &re)
+            // Loop invariant: each completed coefficient vector carries the opaque
+            // per-chunk decompressed atom (`chunk_decompressed_d` at d=5).
+            hax_lib::loop_invariant!(|i: usize| {
+                fstar!(
+                    r#"v $i <= 16 /\ Seq.length $serialized == 160 /\
+                    (forall (j: nat). j < v $i ==>
+                      Hacspec_ml_kem.Commute.Serialize_compress.chunk_decompressed_d (sz 5) $serialized
+                        (Libcrux_ml_kem.Vector.Traits.f_to_i16_array
+                          (Seq.index ${re}.Libcrux_ml_kem.Vector.f_coefficients j)) j)"#
+                )
             });
             let coefficient = Vector::deserialize_5(bytes);
             // Intro: deserialize_5 post `forall j. bounded c[j] 5` -> trait pre
@@ -851,20 +886,37 @@ fn deserialize_then_decompress_5<Vector: Operations>(
                      (Libcrux_ml_kem.Vector.Traits.f_repr ${coefficient})"#
             );
             re.coefficients[i] = Vector::decompress_ciphertext_coefficient::<5>(coefficient);
-            // Lift the strengthened trait post `bounded_i16_array 0 3328
-            // (f_repr re.coefficients[i])` to `is_bounded_vector 4095
-            // (re.coefficients[i])` so the loop invariant on `re` is
-            // preserved by this iteration.
-            #[cfg(hax)]
-            spec::lemma_decompress_post_to_is_bounded_vector(&re.coefficients[i], 4095);
+            // Establish chunk `i`'s decompressed atom from the deserialize_5 +
+            // decompress_ciphertext_coefficient posts (byte-bridge + decompress
+            // value-match are sealed inside the commute lemma).
+            hax_lib::fstar!(
+                r#"let grp = Libcrux_ml_kem.Vector.Traits.f_repr $coefficient in
+                   let g = Libcrux_ml_kem.Vector.Traits.f_to_i16_array
+                             (Seq.index ${re}.Libcrux_ml_kem.Vector.f_coefficients (v $i)) in
+                   let ii = v $i in
+                   assert (Libcrux_ml_kem.Vector.Traits.Spec.decompress_ciphertext_coefficient_post
+                             grp (mk_i32 5) g);
+                   assert (Seq.slice $serialized (10 * ii) (10 * ii + 10) == $bytes);
+                   assert (BitVecEq.int_t_array_bitwise_eq
+                             (Seq.slice $serialized (10 * ii) (10 * ii + 10) <: t_Array u8 (mk_usize 10)) 8 grp 5);
+                   Hacspec_ml_kem.Commute.Serialize_compress.lemma_chunk_decompressed_intro_post_d
+                     (sz 5) (mk_i32 5) $serialized grp g ii"#
+            );
         }
     }
+    // Finalize: poly_to_spec re == decompress (byte_decode_dyn serialized 5) 5
+    // and is_bounded_poly 3328 re, from the per-chunk atoms.
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Serialize_compress.lemma_byte_decode_dyn_eq $serialized (sz 5);
+           Hacspec_ml_kem.Commute.Serialize_compress.lemma_poly_to_spec_eq_decompress (sz 5) $serialized $re;
+           Hacspec_ml_kem.Commute.Serialize_compress.lemma_is_bounded_poly_of_chunks (sz 5) $serialized $re"#
+    );
     re
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
-#[hax_lib::requires(fstar!(r#"Hacspec_ml_kem.Parameters.is_rank $K /\ 
+#[hax_lib::fstar::options("--fuel 1 --ifuel 1 --z3rlimit 300")]
+#[hax_lib::requires(fstar!(r#"Hacspec_ml_kem.Parameters.is_rank $K /\
     $COMPRESSION_FACTOR == Hacspec_ml_kem.Parameters.vector_v_compression_factor $K /\
     Seq.length $serialized == 32 * v $COMPRESSION_FACTOR"#)
 )]
@@ -884,16 +936,32 @@ pub(super) fn deserialize_then_decompress_ring_element_v<
 >(
     serialized: &[u8],
 ) -> PolynomialRingElement<Vector> {
+    // `vector_v_compression_factor K in {4,5}` (since `is_rank K`), hence the
+    // match below is exhaustive over the live values.
     hax_lib::fstar!(
-        r#"assert (
+        r#"assert (Hacspec_ml_kem.Parameters.is_rank $K);
+           assert (v $COMPRESSION_FACTOR == 4 \/ v $COMPRESSION_FACTOR == 5);
+           assert (
         (v (cast $COMPRESSION_FACTOR <: u32) == 4) \/
         (v (cast $COMPRESSION_FACTOR <: u32) == 5))"#
     );
-    match COMPRESSION_FACTOR as u32 {
+    let result = match COMPRESSION_FACTOR as u32 {
         4 => deserialize_then_decompress_4(serialized),
         5 => deserialize_then_decompress_5(serialized),
         _ => unreachable!(),
-    }
+    };
+    // Lift the tight callee bound 3328 to the dispatcher's 4095, and unfold the
+    // thin spec wrapper `deserialize_then_decompress_v` to the
+    // `decompress (byte_decode_dyn ...)` form the branch posts establish.
+    #[cfg(hax)]
+    spec::is_bounded_poly_higher(&result, 3328, 4095);
+    hax_lib::fstar!(
+        r#"assert (Hacspec_ml_kem.Serialize.deserialize_then_decompress_v $serialized $COMPRESSION_FACTOR ==
+             Hacspec_ml_kem.Compress.decompress
+               (Hacspec_ml_kem.Serialize.byte_decode_dyn $serialized $COMPRESSION_FACTOR)
+               $COMPRESSION_FACTOR)"#
+    );
+    result
 }
 
 #[cfg(test)]
