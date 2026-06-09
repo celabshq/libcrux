@@ -17,6 +17,7 @@ concurrency:
 
 jobs:
   build-nostd:
+    runs-on: ubuntu-latest
     strategy:
         matrix:
             target: [thumbv7em-none-eabihf, thumbv7em-none-eabi, thumbv8m.main-none-eabihf, riscv64gc-unknown-none-elf]
@@ -47,6 +48,7 @@ jobs:
           cargo build --release --target ${{ matrix.target }}
 
   test:
+    runs-on: ubuntu-latest
     strategy:
         fail-fast: false
         matrix:
