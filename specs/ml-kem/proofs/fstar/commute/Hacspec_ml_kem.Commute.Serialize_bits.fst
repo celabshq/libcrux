@@ -427,3 +427,387 @@ let lemma_chunk_decoded_byte_decode
   = reveal_opaque (`%chunk_decoded_12) chunk_decoded_12;
     lemma_deserialize_chunk_eq_byte_decode_12 serialized g j
 #pop-options
+
+(* ================================================================== *)
+(* ENCODE-12: byte_encode side (inverse of decode).                    *)
+(*   byte_encode 384 3072 p 12                                          *)
+(*     = bits_to_bytes 384 3072 (bitvector_from_bounded_ints 256 3072   *)
+(*         (createi 256 (fun i -> (p[i]).f_val)) 12)                    *)
+(* Mirror of the decode chain but in the encode direction.             *)
+(* ================================================================== *)
+
+(* and-1 for u16 (u8 version above is lemma_val_and1) *)
+#push-options "--fuel 2 --ifuel 1 --z3rlimit 100"
+let lemma_val_and1_u16 (y: u16) : Lemma (v (y &. mk_u16 1) == get_bit y (sz 0))
+  = let z = y &. mk_u16 1 in
+    logand_lemma y (mk_u16 1);
+    assert (v z < pow2 1);
+    lemma_recon_nat (v z) 1;
+    lemma_get_bit_nat_eq z (sz 0);
+    lemma_get_bit_nat_eq y (sz 0)
+#pop-options
+
+(* E1: bitvector_from_bounded_ints index (direct createi, no fold) *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 200"
+let lemma_bitvec_from_bounded_index
+    (input: t_Array u16 (mk_usize 256)) (p: nat{p < 3072})
+  : Lemma (Seq.index (S.bitvector_from_bounded_ints (mk_usize 256) (mk_usize 3072) input (mk_usize 12)) p
+           == (get_bit_nat (v (Seq.index input (p / 12))) (p % 12) = 1))
+  = let pp = mk_usize p in
+    assert (p == v pp);
+    assert (Seq.index (S.bitvector_from_bounded_ints (mk_usize 256) (mk_usize 3072) input (mk_usize 12)) (v pp)
+            == ((((input.[ pp /! mk_usize 12 <: usize ] <: u16) >>! (pp %! mk_usize 12 <: usize) <: u16)
+                 &. mk_u16 1 <: u16) =. mk_u16 1))
+      by (FStar.Tactics.norm [delta_only [`%S.bitvector_from_bounded_ints]; zeta; iota; primops];
+          FStar.Tactics.l_to_r [`P.createi_lemma];
+          FStar.Tactics.trefl ());
+    let idx = v (pp /! mk_usize 12 <: usize) in
+    let sh  = pp %! mk_usize 12 in
+    assert (idx == p / 12);
+    assert (v sh == p % 12);
+    let byte = Seq.index input idx in
+    lemma_val_and1_u16 (byte >>! sh);     // v ((byte>>!sh)&.1) == get_bit (byte>>!sh) 0
+    lemma_get_bit_nat_eq byte sh          // get_bit byte sh == get_bit_nat (v byte) (p%12)
+    // get_bit_shr SMTPat: get_bit (byte>>!sh) 0 == get_bit byte (sz (0 + v sh))
+#pop-options
+
+(* cast (b:bool) <: u8 == (if b then mk_u8 1 else mk_u8 0); its bits *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 100"
+let lemma_get_bit_cast_bool (b: bool) (j: usize{v j < 8})
+  : Lemma (get_bit (Rust_primitives.cast #bool #u8 b) j == (if b && v j = 0 then 1 else 0))
+          [SMTPat (get_bit (Rust_primitives.cast #bool #u8 b) j)]
+  = let c : u8 = Rust_primitives.cast #bool #u8 b in
+    assert (v c == (if b then 1 else 0));
+    assert_norm (pow2 1 == 2);
+    assert (bounded c 1);                 // v c < 2 = pow2 1
+    if v j = 0 then begin
+      lemma_get_bit_nat_eq c j;           // get_bit c 0 == get_bit_nat (v c) 0 == v c
+      assert_norm (pow2 0 == 1)
+    end
+    // else: lemma_get_bit_bounded SMTPat fires (bounded c 1 /\ v j >= 1) ==> get_bit c j == 0
+#pop-options
+
+(* E2: bits_to_bytes bit — bit t of byte m equals bv[8m+t] *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 300"
+let lemma_bits_to_bytes_bit
+    (bv: t_Array bool (mk_usize 3072)) (m: nat{m < 384}) (t: nat{t < 8})
+  : Lemma (get_bit (Seq.index (S.bits_to_bytes (mk_usize 384) (mk_usize 3072) bv) m) (sz t)
+           == (if Seq.index bv (8 * m + t) then 1 else 0))
+  = let mm = mk_usize m in
+    assert (m == v mm);
+    assert (Seq.index (S.bits_to_bytes (mk_usize 384) (mk_usize 3072) bv) (v mm)
+            == ((((((((Rust_primitives.cast #bool #u8 (bv.[ mk_usize 8 *! mm <: usize ] <: bool) <: u8) |.
+                      ((Rust_primitives.cast #bool #u8 (bv.[ (mk_usize 8 *! mm <: usize) +! mk_usize 1 <: usize ] <: bool) <: u8) <<! mk_i32 1 <: u8) <: u8) |.
+                      ((Rust_primitives.cast #bool #u8 (bv.[ (mk_usize 8 *! mm <: usize) +! mk_usize 2 <: usize ] <: bool) <: u8) <<! mk_i32 2 <: u8) <: u8) |.
+                      ((Rust_primitives.cast #bool #u8 (bv.[ (mk_usize 8 *! mm <: usize) +! mk_usize 3 <: usize ] <: bool) <: u8) <<! mk_i32 3 <: u8) <: u8) |.
+                      ((Rust_primitives.cast #bool #u8 (bv.[ (mk_usize 8 *! mm <: usize) +! mk_usize 4 <: usize ] <: bool) <: u8) <<! mk_i32 4 <: u8) <: u8) |.
+                      ((Rust_primitives.cast #bool #u8 (bv.[ (mk_usize 8 *! mm <: usize) +! mk_usize 5 <: usize ] <: bool) <: u8) <<! mk_i32 5 <: u8) <: u8) |.
+                      ((Rust_primitives.cast #bool #u8 (bv.[ (mk_usize 8 *! mm <: usize) +! mk_usize 6 <: usize ] <: bool) <: u8) <<! mk_i32 6 <: u8) <: u8) |.
+                      ((Rust_primitives.cast #bool #u8 (bv.[ (mk_usize 8 *! mm <: usize) +! mk_usize 7 <: usize ] <: bool) <: u8) <<! mk_i32 7 <: u8) <: u8))
+      by (FStar.Tactics.norm [delta_only [`%S.bits_to_bytes]; zeta; iota; primops];
+          FStar.Tactics.l_to_r [`P.createi_lemma];
+          FStar.Tactics.trefl ());
+    // index arithmetic: 8*m + s for each s
+    assert (v (mk_usize 8 *! mm <: usize) == 8 * m);
+    assert (forall (s: nat). s < 8 ==> v ((mk_usize 8 *! mm <: usize) +! mk_usize s <: usize) == 8 * m + s)
+#pop-options
+
+(* byte_encode bit: bit t of output byte m == bit (p'%12) of (p[p'/12]).f_val, p'=8m+t *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 200"
+let lemma_byte_encode_bit
+    (p: t_Array P.t_FieldElement (mk_usize 256)) (m: nat{m < 384}) (t: nat{t < 8})
+  : Lemma
+    (get_bit (Seq.index (S.byte_encode (mk_usize 384) (mk_usize 3072) p (mk_usize 12)) m) (sz t)
+     == get_bit_nat (v (Seq.index p ((8 * m + t) / 12)).Hacspec_ml_kem.Parameters.f_val) ((8 * m + t) % 12))
+  = let praw : t_Array u16 (mk_usize 256) =
+      P.createi #u16 (mk_usize 256) #(usize -> u16)
+        (fun i -> let i:usize = i in (p.[ i ] <: P.t_FieldElement).Hacspec_ml_kem.Parameters.f_val) in
+    let bv = S.bitvector_from_bounded_ints (mk_usize 256) (mk_usize 3072) praw (mk_usize 12) in
+    assert (S.byte_encode (mk_usize 384) (mk_usize 3072) p (mk_usize 12)
+            == S.bits_to_bytes (mk_usize 384) (mk_usize 3072) bv)
+      by (FStar.Tactics.norm [delta_only [`%S.byte_encode]; zeta; iota; primops];
+          FStar.Tactics.trefl ());
+    let p' = 8 * m + t in
+    lemma_bits_to_bytes_bit bv m t;            // get_bit byte m t == (if bv[8m+t] then 1 else 0)
+    lemma_bitvec_from_bounded_index praw p';   // bv[p'] == (get_bit_nat (v praw[p'/12]) (p'%12) = 1)
+    let kk = mk_usize (p' / 12) in
+    assert (p' / 12 < 256);
+    assert (Seq.index praw (v kk) == (p.[ kk ] <: P.t_FieldElement).Hacspec_ml_kem.Parameters.f_val)
+      by (FStar.Tactics.l_to_r [`P.createi_lemma]; FStar.Tactics.trefl ())
+#pop-options
+
+(* per-byte bridge: output byte (24i+r) == byte_encode byte, via bit extensionality.
+   value-match hypothesis (v coefficient[l] == (p[16i+l]).f_val) supplied by the composer
+   (to_unsigned_representative post + poly_to_spec_index). *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 300 --split_queries always"
+let lemma_serialize_byte_eq
+    (serialized: t_Array u8 (mk_usize 384))
+    (coefficient: t_Array i16 (mk_usize 16))
+    (p: t_Array P.t_FieldElement (mk_usize 256))
+    (i: nat{i < 16}) (r: nat{r < 24})
+  : Lemma
+    (requires
+      BV.int_t_array_bitwise_eq coefficient 12 (Seq.slice serialized (24 * i) (24 * i + 24) <: t_Array u8 (mk_usize 24)) 8 /\
+      (forall (l: nat). l < 16 ==> bounded (Seq.index coefficient l) 12) /\
+      (forall (l: nat). l < 16 ==> v (Seq.index coefficient l)
+                                  == v (Seq.index p (16 * i + l)).Hacspec_ml_kem.Parameters.f_val))
+    (ensures
+      Seq.index serialized (24 * i + r)
+      == Seq.index (S.byte_encode (mk_usize 384) (mk_usize 3072) p (mk_usize 12)) (24 * i + r))
+  = let m = 24 * i + r in
+    let chunk : t_Array u8 (mk_usize 24) = Seq.slice serialized (24 * i) (24 * i + 24) in
+    let be = S.byte_encode (mk_usize 384) (mk_usize 3072) p (mk_usize 12) in
+    let aux (t: nat{t < 8}) : Lemma (get_bit (Seq.index serialized m) (sz t) == get_bit (Seq.index be m) (sz t)) =
+      let pp = 8 * r + t in
+      let l' = pp / 12 in
+      assert (pp < 192);
+      assert (l' < 16);
+      // serialize side: get_bit serialized[m] t == get_bit coefficient[l'] (pp%12)
+      assert (bit_vec_of_int_t_array coefficient 12 pp == get_bit (Seq.index coefficient l') (mk_usize (pp % 12)));
+      assert (bit_vec_of_int_t_array coefficient 12 pp == bit_vec_of_int_t_array chunk 8 pp);
+      BV.int_t_seq_slice_to_bv_sub_lemma serialized (24 * i) (mk_usize 24) 8;
+      assert (bit_vec_of_int_t_array chunk 8 pp
+              == BV.bit_vec_sub (bit_vec_of_int_t_array serialized 8) ((24 * i) * 8) (24 * 8) pp);
+      assert (BV.bit_vec_sub (bit_vec_of_int_t_array serialized 8) ((24 * i) * 8) (24 * 8) pp
+              == bit_vec_of_int_t_array serialized 8 (192 * i + pp));
+      assert (192 * i + pp == 8 * m + t);
+      assert (bit_vec_of_int_t_array serialized 8 (8 * m + t) == get_bit (Seq.index serialized m) (sz t));
+      lemma_get_bit_nat_eq (Seq.index coefficient l') (mk_usize (pp % 12));
+      // byte_encode side
+      lemma_byte_encode_bit p m t;
+      assert ((8 * m + t) / 12 == 16 * i + l');
+      assert ((8 * m + t) % 12 == pp % 12)
+    in
+    FStar.Classical.forall_intro aux;
+    introduce forall (j: usize {v j < 8}).
+        get_bit (Seq.index serialized m) j == get_bit (Seq.index be m) j
+    with aux (v j);
+    lemma_int_t_eq_via_bits (Seq.index serialized m) (Seq.index be m)
+#pop-options
+
+(* per-chunk: all 24 bytes of chunk i agree with byte_encode *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200"
+let lemma_serialize_chunk_eq_byte_encode_12
+    (serialized: t_Array u8 (mk_usize 384))
+    (coefficient: t_Array i16 (mk_usize 16))
+    (p: t_Array P.t_FieldElement (mk_usize 256))
+    (i: nat{i < 16})
+  : Lemma
+    (requires
+      BV.int_t_array_bitwise_eq coefficient 12 (Seq.slice serialized (24 * i) (24 * i + 24) <: t_Array u8 (mk_usize 24)) 8 /\
+      (forall (l: nat). l < 16 ==> bounded (Seq.index coefficient l) 12) /\
+      (forall (l: nat). l < 16 ==> v (Seq.index coefficient l)
+                                  == v (Seq.index p (16 * i + l)).Hacspec_ml_kem.Parameters.f_val))
+    (ensures
+      (forall (r: nat). r < 24 ==>
+        Seq.index serialized (24 * i + r)
+        == Seq.index (S.byte_encode (mk_usize 384) (mk_usize 3072) p (mk_usize 12)) (24 * i + r)))
+  = let aux (r: nat) : Lemma (r < 24 ==>
+        Seq.index serialized (24 * i + r)
+        == Seq.index (S.byte_encode (mk_usize 384) (mk_usize 3072) p (mk_usize 12)) (24 * i + r)) =
+      if r < 24 then lemma_serialize_byte_eq serialized coefficient p i r
+    in
+    FStar.Classical.forall_intro aux
+#pop-options
+
+(* ------------------------------------------------------------------ *)
+(* opaque per-chunk atom (mirrors chunk_decoded_12) — keeps the         *)
+(* bit-vector equality + value-match OUT of the composer's loop VC.     *)
+(* ------------------------------------------------------------------ *)
+
+[@@ "opaque_to_smt"]
+let chunk_encoded_12 (serialized: t_Array u8 (mk_usize 384))
+                     (g: t_Array i16 (mk_usize 16))
+                     (p: t_Array P.t_FieldElement (mk_usize 256))
+                     (j: nat) : prop =
+  j < 16 /\
+  BV.int_t_array_bitwise_eq g 12 (Seq.slice serialized (24 * j) (24 * j + 24) <: t_Array u8 (mk_usize 24)) 8 /\
+  (forall (l: nat). l < 16 ==> bounded (Seq.index g l) 12) /\
+  (forall (l: nat). l < 16 ==> v (Seq.index g l)
+                              == v (Seq.index p (16 * j + l)).Hacspec_ml_kem.Parameters.f_val)
+
+let lemma_chunk_encoded_intro
+    (serialized: t_Array u8 (mk_usize 384)) (g: t_Array i16 (mk_usize 16))
+    (p: t_Array P.t_FieldElement (mk_usize 256)) (j: nat)
+  : Lemma
+    (requires
+      j < 16 /\
+      BV.int_t_array_bitwise_eq g 12 (Seq.slice serialized (24 * j) (24 * j + 24) <: t_Array u8 (mk_usize 24)) 8 /\
+      (forall (l: nat). l < 16 ==> bounded (Seq.index g l) 12) /\
+      (forall (l: nat). l < 16 ==> v (Seq.index g l)
+                                  == v (Seq.index p (16 * j + l)).Hacspec_ml_kem.Parameters.f_val))
+    (ensures chunk_encoded_12 serialized g p j)
+  = reveal_opaque (`%chunk_encoded_12) chunk_encoded_12
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200"
+let lemma_chunk_encoded_byte_encode
+    (serialized: t_Array u8 (mk_usize 384)) (g: t_Array i16 (mk_usize 16))
+    (p: t_Array P.t_FieldElement (mk_usize 256)) (j: nat{j < 16})
+  : Lemma
+    (requires chunk_encoded_12 serialized g p j)
+    (ensures
+      (forall (r: nat). r < 24 ==>
+        Seq.index serialized (24 * j + r)
+        == Seq.index (S.byte_encode (mk_usize 384) (mk_usize 3072) p (mk_usize 12)) (24 * j + r)))
+  = reveal_opaque (`%chunk_encoded_12) chunk_encoded_12;
+    lemma_serialize_chunk_eq_byte_encode_12 serialized g p j
+#pop-options
+
+(* mod_q_eq (v x) (v y) ==> i16_to_spec_fe x == i16_to_spec_fe y.
+   Used by to_unsigned_field_modulus to expose the value relation the
+   encode composers need (the wrapper's bounds-only post drops it). *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 50"
+let lemma_i16_to_spec_fe_mod_q_eq (x y: i16)
+  : Lemma (requires Hacspec_ml_kem.ModQ.mod_q_eq (v x) (v y))
+          (ensures VTS.i16_to_spec_fe x == VTS.i16_to_spec_fe y)
+  = Hacspec_ml_kem.ModQ.lemma_mod_q_eq_unfold (v x) (v y);
+    assert (v (VTS.i16_to_spec_fe x).Hacspec_ml_kem.Parameters.f_val == v x % 3329);
+    assert (v (VTS.i16_to_spec_fe y).Hacspec_ml_kem.Parameters.f_val == v y % 3329)
+#pop-options
+
+(* ------------------------------------------------------------------ *)
+(* byte-level opaque atom for the serialize_uncompressed composer.      *)
+(* Keeps `byte_encode` (heavy transparent `let`) ENTIRELY out of the    *)
+(* composer's loop context — the precondition check + createi unfolding *)
+(* of byte_encode saturate the per-iteration VC otherwise.  Carries     *)
+(* only `serialized` + `p` (poly_to_spec re, an opaque val), no g_j.     *)
+(* ------------------------------------------------------------------ *)
+
+[@@ "opaque_to_smt"]
+let chunk_byte_enc (serialized: t_Array u8 (mk_usize 384))
+                   (p: t_Array P.t_FieldElement (mk_usize 256)) (j: nat) : prop =
+  j < 16 /\
+  (forall (r: nat). r < 24 ==>
+    Seq.index serialized (24 * j + r)
+    == Seq.index (S.byte_encode (mk_usize 384) (mk_usize 3072) p (mk_usize 12)) (24 * j + r))
+
+(* intro from the bit-vector eq + value-match (delegates to the chunk bridge) *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200"
+let lemma_chunk_byte_enc_intro
+    (serialized: t_Array u8 (mk_usize 384)) (g: t_Array i16 (mk_usize 16))
+    (p: t_Array P.t_FieldElement (mk_usize 256)) (j: nat)
+  : Lemma
+    (requires
+      j < 16 /\
+      BV.int_t_array_bitwise_eq g 12 (Seq.slice serialized (24 * j) (24 * j + 24) <: t_Array u8 (mk_usize 24)) 8 /\
+      (forall (l: nat). l < 16 ==> bounded (Seq.index g l) 12) /\
+      (forall (l: nat). l < 16 ==> v (Seq.index g l)
+                                  == v (Seq.index p (16 * j + l)).Hacspec_ml_kem.Parameters.f_val))
+    (ensures chunk_byte_enc serialized p j)
+  = reveal_opaque (`%chunk_byte_enc) chunk_byte_enc;
+    lemma_serialize_chunk_eq_byte_encode_12 serialized g p j
+#pop-options
+
+(* frame: chunk j's bytes lie within [0,bound), and s_new agrees with s_old on that prefix.
+   bound is refined <=384 so the slice requires is well-formed; base=24*j is refined so the
+   per-byte index bound 24*j+r<384 stays LINEAR (no nonlinear 24*j reasoning in the proof). *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_chunk_byte_enc_frame
+    (s_old s_new: t_Array u8 (mk_usize 384))
+    (p: t_Array P.t_FieldElement (mk_usize 256)) (j: nat{j < 16}) (bound: nat{bound <= 384})
+  : Lemma
+    (requires
+      chunk_byte_enc s_old p j /\ 24 * j + 24 <= bound /\
+      Seq.slice s_new 0 bound == Seq.slice s_old 0 bound)
+    (ensures chunk_byte_enc s_new p j)
+  = reveal_opaque (`%chunk_byte_enc) chunk_byte_enc;
+    FStar.Math.Lemmas.lemma_mult_le_left 24 j 15;       // 24*j <= 360
+    let base : (b: nat{b + 24 <= 384}) = 24 * j in
+    let be = S.byte_encode (mk_usize 384) (mk_usize 3072) p (mk_usize 12) in
+    introduce forall (r: nat). r < 24 ==> Seq.index s_new (base + r) == Seq.index be (base + r)
+    with introduce _ ==> _
+    with _. (Seq.lemma_index_slice s_new 0 bound (base + r);
+             Seq.lemma_index_slice s_old 0 bound (base + r))
+#pop-options
+
+(* extend the per-chunk invariant from [0,i) to [0,i+1) after a sub-slice update.
+   Done as a TOP-LEVEL lemma (clean context) so the opaque-atom forall e-matching
+   does not saturate in the composer's heavy loop VC (skill: opaque carryover after
+   update). The composer just supplies the old invariant + frame + the new chunk. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_chunk_byte_enc_extend
+    (s_old s_new: t_Array u8 (mk_usize 384))
+    (p: t_Array P.t_FieldElement (mk_usize 256)) (i: nat{i < 16})
+  : Lemma
+    (requires
+      (forall (j: nat). j < i ==> chunk_byte_enc s_old p j) /\
+      Seq.slice s_new 0 (24 * i) == Seq.slice s_old 0 (24 * i) /\
+      chunk_byte_enc s_new p i)
+    (ensures (forall (j: nat). j < i + 1 ==> chunk_byte_enc s_new p j))
+  = FStar.Math.Lemmas.lemma_mult_le_left 24 i 16;          // 24*i <= 384
+    let aux (j: nat{j < i + 1}) : Lemma (chunk_byte_enc s_new p j) =
+      if j < i then begin
+        FStar.Math.Lemmas.lemma_mult_le_left 24 (j + 1) i;  // 24*(j+1) <= 24*i, i.e. 24*j+24 <= 24*i
+        lemma_chunk_byte_enc_frame s_old s_new p j (24 * i)
+      end
+    in
+    FStar.Classical.forall_intro aux
+#pop-options
+
+(* per-lane value match, TOP-LEVEL + clean context (single l, NO forall hypothesis):
+   seals the `poly_to_spec_index` createi cascade away from the consumer's forall
+   (feedback_standalone_lane_cong_createi_cascade). *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_enc_value_match_one
+    (#v_Vector: Type0)
+    (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+    (re: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
+    (g: t_Array i16 (mk_usize 16)) (j: nat{j < 16}) (l: nat{l < 16})
+  : Lemma
+    (requires
+      v (Seq.index g l) >= 0 /\ v (Seq.index g l) < 3329 /\
+      VTS.i16_to_spec_fe (Seq.index g l)
+      == VTS.i16_to_spec_fe (Seq.index (Libcrux_ml_kem.Vector.Traits.f_repr
+            (Seq.index re.Libcrux_ml_kem.Vector.f_coefficients j)) l))
+    (ensures
+      bounded (Seq.index g l) 12 /\
+      v (Seq.index g l)
+      == v (Seq.index (Libcrux_ml_kem.Vector.Spec.poly_to_spec re) (16 * j + l)).Hacspec_ml_kem.Parameters.f_val)
+  = FStar.Math.Lemmas.lemma_div_plus l j 16;
+    FStar.Math.Lemmas.lemma_mod_plus l j 16;
+    Libcrux_ml_kem.Vector.Spec.poly_to_spec_index re (16 * j + l)
+#pop-options
+
+(* intro_re: prove chunk_byte_enc from `re` + the to_unsigned-style per-lane FE relation.
+   poly_to_spec_index is sealed inside lemma_enc_value_match_one (clean context), so its
+   createi cascade never meets this lemma's forall hypothesis. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_chunk_byte_enc_intro_re
+    (#v_Vector: Type0)
+    (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+    (serialized: t_Array u8 (mk_usize 384))
+    (re: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
+    (g: t_Array i16 (mk_usize 16)) (j: nat)
+  : Lemma
+    (requires
+      j < 16 /\
+      BV.int_t_array_bitwise_eq g 12 (Seq.slice serialized (24 * j) (24 * j + 24) <: t_Array u8 (mk_usize 24)) 8 /\
+      (forall (l: nat). l < 16 ==> v (Seq.index g l) >= 0 /\ v (Seq.index g l) < 3329) /\
+      (forall (l: nat). l < 16 ==>
+        VTS.i16_to_spec_fe (Seq.index g l)
+        == VTS.i16_to_spec_fe (Seq.index (Libcrux_ml_kem.Vector.Traits.f_repr
+              (Seq.index re.Libcrux_ml_kem.Vector.f_coefficients j)) l)))
+    (ensures chunk_byte_enc serialized (Libcrux_ml_kem.Vector.Spec.poly_to_spec re) j)
+  = let p = Libcrux_ml_kem.Vector.Spec.poly_to_spec re in
+    let aux (l: nat{l < 16}) : Lemma
+      (bounded (Seq.index g l) 12 /\
+       v (Seq.index g l) == v (Seq.index p (16 * j + l)).Hacspec_ml_kem.Parameters.f_val) =
+      lemma_enc_value_match_one re g j l
+    in
+    FStar.Classical.forall_intro aux;
+    lemma_chunk_byte_enc_intro serialized g p j
+#pop-options
+
+(* unfold: the per-byte equality (for the composer finalize) *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_chunk_byte_enc_unfold
+    (serialized: t_Array u8 (mk_usize 384))
+    (p: t_Array P.t_FieldElement (mk_usize 256)) (j: nat{j < 16})
+  : Lemma
+    (requires chunk_byte_enc serialized p j)
+    (ensures
+      (forall (r: nat). r < 24 ==>
+        Seq.index serialized (24 * j + r)
+        == Seq.index (S.byte_encode (mk_usize 384) (mk_usize 3072) p (mk_usize 12)) (24 * j + r)))
+  = reveal_opaque (`%chunk_byte_enc) chunk_byte_enc
+#pop-options

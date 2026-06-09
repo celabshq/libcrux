@@ -14,11 +14,29 @@ use crate::polynomial::spec;
 
 #[inline(always)]
 #[hax_lib::requires(fstar!(r#"Libcrux_ml_kem.Polynomial.Spec.is_bounded_vector (sz 3328) $a"#))]
-#[hax_lib::ensures(|result| fstar!(r#"forall (i:nat). i < 16 ==>
+#[hax_lib::ensures(|result| fstar!(r#"(forall (i:nat). i < 16 ==>
     v (Seq.index (Libcrux_ml_kem.Vector.Traits.f_to_i16_array $result) i) >= 0 /\
-    v (Seq.index (Libcrux_ml_kem.Vector.Traits.f_to_i16_array $result) i) < v ${crate::vector::FIELD_MODULUS}"#))]
+    v (Seq.index (Libcrux_ml_kem.Vector.Traits.f_to_i16_array $result) i) < v ${crate::vector::FIELD_MODULUS}) /\
+    (forall (i:nat). i < 16 ==>
+       v (Seq.index (Libcrux_ml_kem.Vector.Traits.f_repr $result) i) >= 0 /\
+       v (Seq.index (Libcrux_ml_kem.Vector.Traits.f_repr $result) i) < 3329 /\
+       Libcrux_ml_kem.Vector.Traits.Spec.i16_to_spec_fe (Seq.index (Libcrux_ml_kem.Vector.Traits.f_repr $result) i)
+         == Libcrux_ml_kem.Vector.Traits.Spec.i16_to_spec_fe (Seq.index (Libcrux_ml_kem.Vector.Traits.f_repr $a) i))"#))]
 pub(super) fn to_unsigned_field_modulus<Vector: Operations>(a: Vector) -> Vector {
-    Vector::to_unsigned_representative(a)
+    let result = Vector::to_unsigned_representative(a);
+    // Expose the value relation (`i16_to_spec_fe result[i] == i16_to_spec_fe a[i]`)
+    // that the encode composers need; the trait post carries it as `mod_q_eq`,
+    // which the wrapper would otherwise drop behind a bounds-only ensures.
+    hax_lib::fstar!(
+        r#"let aux (i:nat{i<16}) : Lemma
+             (Libcrux_ml_kem.Vector.Traits.Spec.i16_to_spec_fe (Seq.index (Libcrux_ml_kem.Vector.Traits.f_repr $result) i)
+              == Libcrux_ml_kem.Vector.Traits.Spec.i16_to_spec_fe (Seq.index (Libcrux_ml_kem.Vector.Traits.f_repr $a) i)) =
+             Hacspec_ml_kem.Commute.Serialize_bits.lemma_i16_to_spec_fe_mod_q_eq
+               (Seq.index (Libcrux_ml_kem.Vector.Traits.f_repr $result) i)
+               (Seq.index (Libcrux_ml_kem.Vector.Traits.f_repr $a) i) in
+           FStar.Classical.forall_intro aux"#
+    );
+    result
 }
 
 #[inline(always)]
@@ -94,7 +112,7 @@ pub(super) fn deserialize_then_decompress_message<Vector: Operations>(
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always")]
 #[hax_lib::requires(fstar!(r#"Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3328) $re"#))]
 #[hax_lib::ensures(|result|
     fstar!(r#"$result ==
@@ -106,18 +124,55 @@ pub(super) fn serialize_uncompressed_ring_element<Vector: Operations>(
     hax_lib::fstar!(r#"assert_norm (pow2 12 == 4096)"#);
     let mut serialized = [0u8; BYTES_PER_RING_ELEMENT];
     for i in 0..VECTORS_IN_RING_ELEMENT {
+        // Loop invariant: each completed chunk carries the opaque per-chunk encode
+        // atom (`chunk_byte_enc`) — keeps `byte_encode` (a heavy transparent `let`)
+        // and `poly_to_spec_index`'s createi cascade out of the loop-body VC.
         hax_lib::loop_invariant!(|i: usize| {
             fstar!(
-                r#"v $i >= 0 /\ v $i <= 16 /\
-            v $i < 16 ==> Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3328) $re"#
+                r#"v $i >= 0 /\ v $i <= 16 /\ Seq.length $serialized == 384 /\
+                (v $i < 16 ==> Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3328) $re) /\
+                (forall (j: nat). j < v $i ==>
+                  Hacspec_ml_kem.Commute.Serialize_bits.chunk_byte_enc $serialized
+                    (Libcrux_ml_kem.Vector.Spec.poly_to_spec $re) j)"#
             )
         });
         hax_lib::fstar!(r#"assert (24 * v $i + 24 <= 384)"#);
+        #[cfg(hax)]
+        let serialized_old = serialized;
         let coefficient = to_unsigned_field_modulus(re.coefficients[i]);
 
         let bytes = Vector::serialize_12(coefficient);
         serialized[24 * i..24 * i + 24].copy_from_slice(&bytes);
+        // Establish chunk `i`'s atom (intro_re seals poly_to_spec_index's createi
+        // cascade in a clean lemma), then extend the invariant to i+1 (a clean
+        // standalone lemma — the opaque-atom forall must not run in this VC).
+        hax_lib::fstar!(
+            r#"let g = Libcrux_ml_kem.Vector.Traits.f_repr $coefficient in
+               let ii = v $i in
+               assert (Seq.slice $serialized (24 * ii) (24 * ii + 24) == $bytes);
+               assert (BitVecEq.int_t_array_bitwise_eq g 12
+                         (Seq.slice $serialized (24 * ii) (24 * ii + 24) <: t_Array u8 (mk_usize 24)) 8);
+               Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_byte_enc_intro_re $serialized $re g ii;
+               assert (Seq.slice $serialized 0 (24 * ii) == Seq.slice $serialized_old 0 (24 * ii));
+               Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_byte_enc_extend $serialized_old
+                 $serialized (Libcrux_ml_kem.Vector.Spec.poly_to_spec $re) ii"#
+        );
     }
+    // Finalize: unpack each chunk atom into its 24 per-byte equalities, then
+    // conclude array equality with `byte_encode`.
+    hax_lib::fstar!(
+        r#"let p = Libcrux_ml_kem.Vector.Spec.poly_to_spec $re in
+           let be = Hacspec_ml_kem.Serialize.byte_encode (sz 384) (sz 3072) p (sz 12) in
+           let aux_final (k:nat) : Lemma (k < 384 ==> Seq.index $serialized k == Seq.index be k) =
+             if k < 384 then begin
+               Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_byte_enc_unfold $serialized p (k / 24);
+               assert (24 * (k / 24) + k % 24 == k);
+               assert (k % 24 < 24);
+               assert (k / 24 < 16)
+             end in
+           FStar.Classical.forall_intro aux_final;
+           Seq.lemma_eq_intro $serialized be"#
+    );
     serialized
 }
 
