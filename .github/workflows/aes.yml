@@ -17,7 +17,19 @@ concurrency:
 
 jobs:
   build:
-    runs-on: linux
+    strategy:
+      fail-fast: false
+      matrix:
+        bits: [32, 64]
+        os:
+          - macos-latest # macos-15 on apple silicon
+          - ubuntu-latest
+          - windows-latest
+        exclude:
+          - bits: 32
+            os: "macos-latest"
+
+    runs-on: ${{ matrix.os }}
     defaults:
       run:
         shell: bash
@@ -25,44 +37,115 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+      - uses: taiki-e/install-action@cargo-hack
 
       - name: Update dependencies
         run: cargo update
+
+      - run: echo "RUST_TARGET_FLAG=" > $GITHUB_ENV
+        if: ${{ matrix.bits == 64 }}
+
+      - run: echo 'EXCLUDE_FEATURES=--exclude-features simd256' > $GITHUB_ENV
+        if: ${{ matrix.os == 'macos-latest' }}
+
+      - run: echo 'EXCLUDE_FEATURES=--exclude-features simd128' > $GITHUB_ENV
+        if: ${{ matrix.os != 'macos-latest' }}
+
+      - name: 🛠️ Setup Rust Nightly
+        run: rustup toolchain install nightly
+
+      - name: 🛠️ Setup Ubuntu x86
+        if: ${{ matrix.bits == 32 &&  matrix.os == 'ubuntu-latest' }}
+        run: |
+          rustup target add i686-unknown-linux-gnu
+          sudo apt-get update
+          sudo apt-get install -y gcc-multilib g++-multilib
+
+      # Set up 32 bit systems
+
+      - name: 🛠️ Config Windows x86
+        run: echo "RUST_TARGET_FLAG=--target=i686-pc-windows-msvc" > $GITHUB_ENV
+        if: ${{ matrix.bits == 32 && matrix.os == 'windows-latest' }}
+
+      - name: 🛠️ Config Linux x86
+        run: |
+          echo "RUST_TARGET_FLAG=--target=i686-unknown-linux-gnu" > $GITHUB_ENV
+        if: ${{ matrix.bits == 32 && matrix.os == 'ubuntu-latest' }}
 
       # Build ...
 
       - name: 🔨 Build
         run: |
           rustc --print=cfg
-          cargo build --lib --examples --benches --verbose
+          cargo build --lib --examples --benches --verbose $RUST_TARGET_FLAG
 
       - name: 🔨 Build Release
-        run: cargo build --lib --examples --benches --verbose --release
+        run: cargo build --lib --examples --benches --verbose --release $RUST_TARGET_FLAG
+
+      - name: 🏃🏻 Asan MacOS
+        if: ${{ matrix.os == 'macos-latest' }}
+        run: RUSTDOCFLAGS=-Zsanitizer=address RUSTFLAGS=-Zsanitizer=address cargo +nightly test --release --target aarch64-apple-darwin
 
       # Test ...
 
       - name: 🏃🏻‍♀️ Test
         run: |
           cargo clean
-          cargo test --verbose
+          cargo test --verbose $RUST_TARGET_FLAG
 
       - name: 🏃🏻‍♀️ Test Release
         run: |
           cargo clean
-          cargo test --verbose --release
+          cargo test --verbose --release $RUST_TARGET_FLAG
 
       - name: 🏃🏻‍♀️ Test Portable
         run: |
           cargo clean
-          LIBCRUX_DISABLE_SIMD128=1 LIBCRUX_DISABLE_SIMD256=1 cargo test --verbose
+          LIBCRUX_DISABLE_SIMD128=1 LIBCRUX_DISABLE_SIMD256=1 cargo test --verbose $RUST_TARGET_FLAG
 
       - name: 🏃🏻‍♀️ Test Portable Release
         run: |
           cargo clean
-          LIBCRUX_DISABLE_SIMD128=1 LIBCRUX_DISABLE_SIMD256=1 cargo test --verbose --release
+          LIBCRUX_DISABLE_SIMD128=1 LIBCRUX_DISABLE_SIMD256=1 cargo test --verbose --release $RUST_TARGET_FLAG
+
+      - name: 🏃🏻‍♀️ Test Kyber
+        run: |
+          cargo clean
+          cargo test ,kyber --verbose $RUST_TARGET_FLAG
+
+      - name: 🏃🏻‍♀️ Cargo Test Features
+        if: ${{ matrix.bits == 64 }}
+        run: |
+          cargo clean
+          cargo hack test --each-feature $EXCLUDE_FEATURES --verbose $RUST_TARGET_FLAG
+
+  build-intel-macos:
+    runs-on: macos-15-intel
+    defaults:
+      run:
+        shell: bash
+        working-directory: crates/algorithms/aesgcm
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Update dependencies
+        run: cargo update
+
+      - name: 🔨 Build
+        run: |
+          rustc --print=cfg
+          cargo build --lib --examples --benches --verbose
 
   fuzz:
-    runs-on: linux
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-latest # macos-15
+          - ubuntu-latest
+
+    runs-on: ${{ matrix.os }}
     defaults:
       run:
         shell: bash

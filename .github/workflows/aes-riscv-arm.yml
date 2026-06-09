@@ -17,7 +17,6 @@ concurrency:
 
 jobs:
   build-nostd:
-    runs-on: linux
     strategy:
         matrix:
             target: [thumbv7em-none-eabihf, thumbv7em-none-eabi, thumbv8m.main-none-eabihf, riscv64gc-unknown-none-elf]
@@ -52,7 +51,6 @@ jobs:
         fail-fast: false
         matrix:
             target: [riscv64gc-unknown-linux-gnu, armv7-unknown-linux-gnueabihf]
-    runs-on: linux
     defaults:
       run:
         shell: bash

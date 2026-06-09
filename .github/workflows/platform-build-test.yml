@@ -18,7 +18,22 @@ concurrency:
 jobs:
   platform:
     if: ${{ github.event_name != 'merge_group' }}
-    runs-on: linux
+    strategy:
+      fail-fast: false
+      matrix:
+        bits: [32, 64]
+        os:
+          - macos-15-intel # Intel mac
+          - macos-latest # macos-15 on apple silicon
+          - ubuntu-latest
+          - windows-latest
+        exclude:
+          - bits: 32
+            os: "macos-latest"
+          - bits: 32
+            os: "macos-15-intel"
+
+    runs-on: ${{ matrix.os }}
     defaults:
       run:
         shell: bash
@@ -39,10 +54,54 @@ jobs:
       - name: 🏃🏻‍♀️ Test Release
         run: cargo test --verbose --release -- --nocapture
 
+      - name: 🛠️ Setup Linux x86
+        if: ${{ matrix.bits == 32 &&  matrix.os == 'ubuntu-latest' }}
+        run: |
+          rustup target add i686-unknown-linux-gnu
+          sudo apt-get update
+          sudo apt-get install -y gcc-multilib g++-multilib
+
+      - name: 🏃🏻‍♀️ Test Linux x86
+        if: ${{ matrix.bits == 32 &&  matrix.os == 'ubuntu-latest' }}
+        run: cargo test --verbose --target i686-unknown-linux-gnu -- --nocapture
+
+      - name: 🏃🏻‍♀️ Test Release Linux x86
+        if: ${{ matrix.bits == 32 &&  matrix.os == 'ubuntu-latest' }}
+        run: cargo test --verbose --release --target i686-unknown-linux-gnu -- --nocapture
+
+      - name: 🏃🏻‍♀️ Test Windows x86
+        if: ${{ matrix.bits == 32 &&  matrix.os == 'windows-latest' }}
+        run: cargo test --verbose --target i686-pc-windows-msvc -- --nocapture
+
+      - name: 🏃🏻‍♀️ Test Release Windows x86
+        if: ${{ matrix.bits == 32 &&  matrix.os == 'windows-latest' }}
+        run: cargo test --verbose --release --target i686-pc-windows-msvc -- --nocapture
+
+  build-no_std:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: crates/sys/platform
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Add no_std target
+        run: rustup target add thumbv6m-none-eabi
+        
+      - name: Update dependencies
+        run: cargo update
+
+      - name: 🔨 Build
+        run: |
+          rustc --print=cfg
+          cargo check --lib --verbose --target thumbv6m-none-eabi
+          
   platform-build-test-status:
     if: ${{ always() }}
-    needs: [platform]
-    runs-on: linux
+    needs: [platform, build-no_std]
+    runs-on: ubuntu-latest
     steps:
       - name: Successful
         if: ${{ !(contains(needs.*.result, 'failure')) }} 

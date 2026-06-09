@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: dorny/paths-filter@v3
+      - uses: dorny/paths-filter@v4
         id: changes
         with:
           filters: |
@@ -73,7 +73,7 @@ jobs:
           ./extract.sh
 
       - name: Upload C extraction
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: c-extraction-ml-kem
           path: libcrux-ml-kem/extracts/c/generated
@@ -99,7 +99,7 @@ jobs:
           ./extract.sh
 
       - name: Upload C extraction (header only)
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: c-ho-extraction-ml-kem
           path: libcrux-ml-kem/extracts/c_header_only/generated
@@ -125,7 +125,7 @@ jobs:
           ./extract.sh --no-clean
 
       - name: Upload C++ extraction
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: cpp-ho-extraction-ml-kem
           path: libcrux-ml-kem/extracts/cpp_header_only/generated
@@ -140,11 +140,11 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: cpp-ho-extraction-ml-kem
           path: ~/mlkem-cpp-extraction
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: c-ho-extraction-ml-kem
           path: ~/mlkem-c-extraction
@@ -177,7 +177,7 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: c-extraction-ml-kem
 
@@ -222,7 +222,7 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: c-ho-extraction-ml-kem
 
@@ -259,7 +259,7 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: cpp-ho-extraction-ml-kem
 

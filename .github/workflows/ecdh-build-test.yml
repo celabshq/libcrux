@@ -108,10 +108,31 @@ jobs:
         run: |
           cargo clean
           LIBCRUX_DISABLE_SIMD128=1 LIBCRUX_DISABLE_SIMD256=1 cargo test --verbose --release $RUST_TARGET_FLAG
+
+  build-no_std:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: libcrux-ecdh
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Add no_std target
+        run: rustup target add thumbv6m-none-eabi
+        
+      - name: Update dependencies
+        run: cargo update
+
+      - name: 🔨 Build
+        run: |
+          rustc --print=cfg
+          cargo check --lib --no-default-features --verbose --target thumbv6m-none-eabi
   
   ecdh-build-test-status:
     if: ${{ always() }}
-    needs: [build]
+    needs: [build, build-no_std]
     runs-on: ubuntu-latest
     steps:
       - name: Successful

@@ -41,14 +41,13 @@ jobs:
       - uses: hacspec/hax-actions@main
         with:
           hax_reference: ${{ github.event.inputs.hax_ref || needs.get-hax-ref.outputs.hax_ref }}
-          fstar: v2025.02.17
 
       - name: 🏃 Extract ML-KEM crate
         working-directory: libcrux-ml-kem
         run: ./hax.py extract
 
       - name: ↑ Upload F* extraction
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: fstar-extractions
           path: "**/proofs/fstar"
@@ -67,9 +66,9 @@ jobs:
       - uses: hacspec/hax-actions@main
         with:
           hax_reference: ${{ github.event.inputs.hax_ref || needs.get-hax-ref.outputs.hax_ref }}
-          fstar: v2025.02.17
+          fstar: v2025.10.06 # using an older version here because of https://github.com/cryspen/hax/issues/1878
 
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: fstar-extractions
           path: .
@@ -94,9 +93,9 @@ jobs:
         run: |
           nix profile install ./hax
       - name: ⤵ Install FStar
-        run: nix profile install github:FStarLang/FStar/v2025.02.17
+        run: nix profile install github:FStarLang/FStar/v2025.10.06
 
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: fstar-extractions
           path: .
