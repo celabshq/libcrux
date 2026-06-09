@@ -607,8 +607,15 @@ pub(super) fn compress_then_serialize_ring_element_v<
 }
 
 #[inline(always)]
+#[hax_lib::fstar::options("--z3rlimit 400 --ext context_pruning --split_queries always")]
 #[hax_lib::requires(
     serialized.len() == 320
+)]
+#[hax_lib::ensures(|result|
+    spec::is_bounded_poly(3328, &result)
+    & fstar!(r#"${poly_to_spec::<Vector>} $result ==
+        Hacspec_ml_kem.Compress.decompress
+            (Hacspec_ml_kem.Serialize.byte_decode_dyn $serialized (sz 10)) (sz 10)"#)
 )]
 fn deserialize_then_decompress_10<Vector: Operations>(
     serialized: &[u8],
@@ -620,6 +627,17 @@ fn deserialize_then_decompress_10<Vector: Operations>(
 
     cloop! {
         for (i, bytes) in serialized.chunks_exact(20).enumerate() {
+            // Loop invariant: each completed coefficient vector carries the opaque
+            // per-chunk decompressed atom (`chunk_decompressed_d` at d=10).
+            hax_lib::loop_invariant!(|i: usize| {
+                fstar!(
+                    r#"v $i <= 16 /\ Seq.length $serialized == 320 /\
+                    (forall (j: nat). j < v $i ==>
+                      Hacspec_ml_kem.Commute.Serialize_compress.chunk_decompressed_d (sz 10) $serialized
+                        (Libcrux_ml_kem.Vector.Traits.f_to_i16_array
+                          (Seq.index ${re}.Libcrux_ml_kem.Vector.f_coefficients j)) j)"#
+                )
+            });
             let coefficient = Vector::deserialize_10(bytes);
             // Intro: deserialize_10 post `forall j. bounded c[j] 10` -> trait pre
             // `bounded_pos_i16_array 10` (= `bounded_i16_array 0 1023`).
@@ -630,14 +648,44 @@ fn deserialize_then_decompress_10<Vector: Operations>(
                      (Libcrux_ml_kem.Vector.Traits.f_repr ${coefficient})"#
             );
             re.coefficients[i] = Vector::decompress_ciphertext_coefficient::<10>(coefficient);
+            // Establish chunk `i`'s decompressed atom from the deserialize_10 +
+            // decompress_ciphertext_coefficient posts (byte-bridge + decompress
+            // value-match are sealed inside the commute lemma).
+            hax_lib::fstar!(
+                r#"let grp = Libcrux_ml_kem.Vector.Traits.f_repr $coefficient in
+                   let g = Libcrux_ml_kem.Vector.Traits.f_to_i16_array
+                             (Seq.index ${re}.Libcrux_ml_kem.Vector.f_coefficients (v $i)) in
+                   let ii = v $i in
+                   assert (Libcrux_ml_kem.Vector.Traits.Spec.decompress_ciphertext_coefficient_post
+                             grp (mk_i32 10) g);
+                   assert (Seq.slice $serialized (20 * ii) (20 * ii + 20) == $bytes);
+                   assert (BitVecEq.int_t_array_bitwise_eq
+                             (Seq.slice $serialized (20 * ii) (20 * ii + 20) <: t_Array u8 (mk_usize 20)) 8 grp 10);
+                   Hacspec_ml_kem.Commute.Serialize_compress.lemma_chunk_decompressed_intro_post_d
+                     (sz 10) (mk_i32 10) $serialized grp g ii"#
+            );
         }
     }
+    // Finalize: poly_to_spec re == decompress (byte_decode_dyn serialized 10) 10
+    // and is_bounded_poly 3328 re, from the per-chunk atoms.
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Serialize_compress.lemma_byte_decode_dyn_eq $serialized (sz 10);
+           Hacspec_ml_kem.Commute.Serialize_compress.lemma_poly_to_spec_eq_decompress (sz 10) $serialized $re;
+           Hacspec_ml_kem.Commute.Serialize_compress.lemma_is_bounded_poly_of_chunks (sz 10) $serialized $re"#
+    );
     re
 }
 
 #[inline(always)]
+#[hax_lib::fstar::options("--z3rlimit 400 --ext context_pruning --split_queries always")]
 #[hax_lib::requires(
     serialized.len() == 352
+)]
+#[hax_lib::ensures(|result|
+    spec::is_bounded_poly(3328, &result)
+    & fstar!(r#"${poly_to_spec::<Vector>} $result ==
+        Hacspec_ml_kem.Compress.decompress
+            (Hacspec_ml_kem.Serialize.byte_decode_dyn $serialized (sz 11)) (sz 11)"#)
 )]
 fn deserialize_then_decompress_11<Vector: Operations>(
     serialized: &[u8],
@@ -649,6 +697,15 @@ fn deserialize_then_decompress_11<Vector: Operations>(
 
     cloop! {
         for (i, bytes) in serialized.chunks_exact(22).enumerate() {
+            hax_lib::loop_invariant!(|i: usize| {
+                fstar!(
+                    r#"v $i <= 16 /\ Seq.length $serialized == 352 /\
+                    (forall (j: nat). j < v $i ==>
+                      Hacspec_ml_kem.Commute.Serialize_compress.chunk_decompressed_d (sz 11) $serialized
+                        (Libcrux_ml_kem.Vector.Traits.f_to_i16_array
+                          (Seq.index ${re}.Libcrux_ml_kem.Vector.f_coefficients j)) j)"#
+                )
+            });
             let coefficient = Vector::deserialize_11(bytes);
             // Intro: deserialize_11 post `forall j. bounded c[j] 11` -> trait pre
             // `bounded_pos_i16_array 11` (= `bounded_i16_array 0 2047`).
@@ -659,14 +716,31 @@ fn deserialize_then_decompress_11<Vector: Operations>(
                      (Libcrux_ml_kem.Vector.Traits.f_repr ${coefficient})"#
             );
             re.coefficients[i] = Vector::decompress_ciphertext_coefficient::<11>(coefficient);
+            hax_lib::fstar!(
+                r#"let grp = Libcrux_ml_kem.Vector.Traits.f_repr $coefficient in
+                   let g = Libcrux_ml_kem.Vector.Traits.f_to_i16_array
+                             (Seq.index ${re}.Libcrux_ml_kem.Vector.f_coefficients (v $i)) in
+                   let ii = v $i in
+                   assert (Libcrux_ml_kem.Vector.Traits.Spec.decompress_ciphertext_coefficient_post
+                             grp (mk_i32 11) g);
+                   assert (Seq.slice $serialized (22 * ii) (22 * ii + 22) == $bytes);
+                   assert (BitVecEq.int_t_array_bitwise_eq
+                             (Seq.slice $serialized (22 * ii) (22 * ii + 22) <: t_Array u8 (mk_usize 22)) 8 grp 11);
+                   Hacspec_ml_kem.Commute.Serialize_compress.lemma_chunk_decompressed_intro_post_d
+                     (sz 11) (mk_i32 11) $serialized grp g ii"#
+            );
         }
     }
-
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Serialize_compress.lemma_byte_decode_dyn_eq $serialized (sz 11);
+           Hacspec_ml_kem.Commute.Serialize_compress.lemma_poly_to_spec_eq_decompress (sz 11) $serialized $re;
+           Hacspec_ml_kem.Commute.Serialize_compress.lemma_is_bounded_poly_of_chunks (sz 11) $serialized $re"#
+    );
     re
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::fstar::options("--z3rlimit 300")]
 #[hax_lib::requires(
     (COMPRESSION_FACTOR == 10 || COMPRESSION_FACTOR == 11) &&
     serialized.len() == 32 * COMPRESSION_FACTOR
