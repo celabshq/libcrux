@@ -122,7 +122,7 @@ pub(super) fn serialize_uncompressed_ring_element<Vector: Operations>(
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::fstar::options("--z3rlimit 400 --ext context_pruning --split_queries always")]
 #[hax_lib::requires(
     serialized.len() == BYTES_PER_RING_ELEMENT
 )]
@@ -138,9 +138,51 @@ pub(super) fn deserialize_to_uncompressed_ring_element<Vector: Operations>(
 
     cloop! {
         for (i, bytes) in serialized.chunks_exact(24).enumerate() {
+            // Loop invariant: each processed chunk's coefficient vector carries the
+            // opaque per-chunk decode atom (`chunk_decoded_12`) — keeps the heavy
+            // bit-vector equality out of the loop-body VC.
+            hax_lib::loop_invariant!(|i: usize| {
+                fstar!(
+                    r#"v $i <= 16 /\ Seq.length $serialized == 384 /\
+                    (forall (j: nat). j < v $i ==>
+                      Hacspec_ml_kem.Commute.Serialize_bits.chunk_decoded_12 $serialized
+                        (Libcrux_ml_kem.Vector.Traits.f_to_i16_array
+                          (Seq.index ${re}.Libcrux_ml_kem.Vector.f_coefficients j)) j)"#
+                )
+            });
             re.coefficients[i] = Vector::deserialize_12(bytes);
+            // Establish the opaque atom for chunk `i` from deserialize_12's post.
+            hax_lib::fstar!(
+                r#"assert (Seq.index ${re}.Libcrux_ml_kem.Vector.f_coefficients (v $i) ==
+                        Libcrux_ml_kem.Vector.Traits.f_deserialize_12_ #v_Vector ${bytes});
+                   assert (Seq.slice $serialized (24 * v $i) (24 * v $i + 24) == ${bytes});
+                   Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_intro $serialized
+                     (Libcrux_ml_kem.Vector.Traits.f_to_i16_array
+                       (Seq.index ${re}.Libcrux_ml_kem.Vector.f_coefficients (v $i))) (v $i)"#
+            );
         }
     }
+
+    hax_lib::fstar!(
+        r#"let result = re in
+           assert (Seq.length (Libcrux_ml_kem.Vector.Spec.poly_to_spec result) == 256);
+           assert (Seq.length (Hacspec_ml_kem.Serialize.byte_decode (sz 384) (sz 3072) $serialized (sz 12)) == 256);
+           let aux (k: nat{k < 256}) : Lemma
+             (ensures Seq.index (Libcrux_ml_kem.Vector.Spec.poly_to_spec result) k ==
+                      Seq.index (Hacspec_ml_kem.Serialize.byte_decode (sz 384) (sz 3072) $serialized (sz 12)) k) =
+             assert (k / 16 < 16);
+             assert (Hacspec_ml_kem.Commute.Serialize_bits.chunk_decoded_12 $serialized
+                       (Libcrux_ml_kem.Vector.Traits.f_to_i16_array
+                         (Seq.index result.Libcrux_ml_kem.Vector.f_coefficients (k / 16))) (k / 16));
+             Libcrux_ml_kem.Vector.Spec.poly_to_spec_index result k;
+             Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_byte_decode $serialized
+               (Libcrux_ml_kem.Vector.Traits.f_to_i16_array
+                 (Seq.index result.Libcrux_ml_kem.Vector.f_coefficients (k / 16))) (k / 16)
+           in
+           FStar.Classical.forall_intro aux;
+           Seq.lemma_eq_intro (Libcrux_ml_kem.Vector.Spec.poly_to_spec result)
+             (Hacspec_ml_kem.Serialize.byte_decode (sz 384) (sz 3072) $serialized (sz 12))"#
+    );
 
     re
 }
