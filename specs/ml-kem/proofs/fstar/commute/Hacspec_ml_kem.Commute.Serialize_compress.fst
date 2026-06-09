@@ -1086,3 +1086,71 @@ let lemma_chunk_decompressed_intro_1_post
     lemma_is_i16b_array_opaque_of_bounded g;
     lemma_chunk_decompressed_intro_d d1 serialized grp g j
 #pop-options
+
+(* ================================================================== *)
+(* B2 finalize (deserialize_ring_elements_reduced): vector_to_spec pk  *)
+(* == vector_decode_12_ from the per-row byte_decode invariant.        *)
+(* Standalone clean-context lemmas — the in-function lemma_post shape  *)
+(* fails its own statement WF ("incomplete quantifiers" on Seq.index   *)
+(* bounds) under the saturated composer VC.                            *)
+(* ================================================================== *)
+
+(* per-row: vector_decode_12_'s createi row reduces to byte_decode of the
+   row's 384-byte slice (try_into chunk == slice via lemma_slice_to_array_id). *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 300 --z3refresh"
+let lemma_vector_decode_12_index
+    (v_K: usize{v v_K == 2 \/ v v_K == 3 \/ v v_K == 4})
+    (public_key: t_Slice u8)
+    (j: nat{j < v v_K})
+  : Lemma
+    (requires Seq.length public_key == v v_K * 384)
+    (ensures
+      Seq.index (S.vector_decode_12_ v_K public_key) j ==
+      S.byte_decode (mk_usize 384) (mk_usize 3072)
+        (Seq.slice public_key (j * 384) (j * 384 + 384)) (mk_usize 12))
+  = let jj : usize = mk_usize j in
+    let start : usize = jj *! P.v_BYTES_PER_RING_ELEMENT in
+    assert (v start == j * 384);
+    assert (v (start +! mk_usize 384) == j * 384 + 384);
+    let slice : t_Slice u8 = public_key.[ {
+        Core_models.Ops.Range.f_start = start;
+        Core_models.Ops.Range.f_end = start +! mk_usize 384 <: usize }
+      <: Core_models.Ops.Range.t_Range usize ] in
+    assert (slice == Seq.slice public_key (j * 384) (j * 384 + 384));
+    lemma_slice_to_array_id (mk_usize 384) slice;
+    assert (j == v jj);
+    assert (Seq.index (S.vector_decode_12_ v_K public_key) (v jj) ==
+            S.byte_decode (mk_usize 384) (mk_usize 3072)
+              (Core_models.Result.impl__unwrap #(t_Array u8 (mk_usize 384))
+                #Core_models.Array.t_TryFromSliceError
+                (Core_models.Convert.f_try_into #(t_Slice u8) #(t_Array u8 (mk_usize 384))
+                  #FStar.Tactics.Typeclasses.solve slice)) (mk_usize 12))
+#pop-options
+
+(* whole-vector finalize *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200"
+let lemma_vector_to_spec_decode_12_finalize
+    (#v_Vector: Type0)
+    (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: VT.t_Operations v_Vector)
+    (v_K: usize{v v_K == 2 \/ v v_K == 3 \/ v v_K == 4})
+    (public_key: t_Slice u8)
+    (pk: t_Array (Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector) v_K)
+  : Lemma
+    (requires
+      Seq.length public_key == v v_K * 384 /\
+      (forall (j: nat). j < v v_K ==>
+        VS.poly_to_spec (Seq.index pk j) ==
+          S.byte_decode (mk_usize 384) (mk_usize 3072)
+            (Seq.slice public_key (j * 384) (j * 384 + 384)) (mk_usize 12)))
+    (ensures VS.vector_to_spec v_K pk == S.vector_decode_12_ v_K public_key)
+  = let target = S.vector_decode_12_ v_K public_key in
+    assert (Seq.length (VS.vector_to_spec v_K pk) == v v_K);
+    assert (Seq.length target == v v_K);
+    let aux (j: nat{j < v v_K}) : Lemma
+      (Seq.index (VS.vector_to_spec v_K pk) j == Seq.index target j) =
+      VS.vector_to_spec_index v_K #v_Vector pk j;
+      lemma_vector_decode_12_index v_K public_key j
+    in
+    FStar.Classical.forall_intro aux;
+    Seq.lemma_eq_intro (VS.vector_to_spec v_K pk) target
+#pop-options

@@ -206,7 +206,8 @@ pub fn shift_right<const SHIFT_BY: i32>(mut vec: PortableVector) -> PortableVect
     let x = Seq.index ${vec}.f_elements i in
     let y = Seq.index ${result}.f_elements i in
     ((v y == v x - 3329 \/ v y == v x) /\
-     (v y % 3329 == v x % 3329))"#))]
+     (v y % 3329 == v x % 3329) /\
+     v y == (if v x >= 3329 then v x - 3329 else v x))"#))]
 pub fn cond_subtract_3329(mut vec: PortableVector) -> PortableVector {
     #[cfg(hax)]
     let _vec0 = vec;
@@ -231,7 +232,8 @@ pub fn cond_subtract_3329(mut vec: PortableVector) -> PortableVector {
           (let x = Seq.index ${_vec0}.f_elements j in
            let y = Seq.index ${vec}.f_elements j in
            ((v y == v x - 3329 \/ v y == v x) /\
-            (v y % 3329 == v x % 3329))))
+            (v y % 3329 == v x % 3329) /\
+            v y == (if v x >= 3329 then v x - 3329 else v x))))
           = if j < 16 then begin
               let x = Seq.index ${_vec0}.f_elements j in
               if x >=. mk_i16 3329 then

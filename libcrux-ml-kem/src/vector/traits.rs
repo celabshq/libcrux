@@ -751,12 +751,17 @@ let ntt_multiply_branch_post
         // residue equation directly (the same shape barrett_reduce uses).
         // Mod-q residue is wrapped in the opaque `mod_q_eq` to keep raw
         // `% 3329` from leaking above the trait — see Hacspec_ml_kem.ModQ.
+        // The exact conditional conjunct (all backends compute exactly
+        // this) gives consumers the output range: for 0 <= x < 4096 the
+        // result lands in [0, 3328], which `deserialize_to_reduced_ring_element`
+        // needs for its `is_bounded_poly 3328` post (Serialize Track B).
         hax_lib::fstar_prop_expr!(
             r#"forall i.
                 let x = Seq.index $vec i in
                 let y = Seq.index $result i in
                 ((v y == v x - 3329 \/ v y == v x) /\
-                 Hacspec_ml_kem.ModQ.mod_q_eq (v y) (v x))"#
+                 Hacspec_ml_kem.ModQ.mod_q_eq (v y) (v x) /\
+                 v y == (if v x >= 3329 then v x - 3329 else v x))"#
         )
     }
 

@@ -333,9 +333,14 @@ pub(super) fn deserialize_to_uncompressed_ring_element<Vector: Operations>(
 ///
 /// This MUST NOT be used with secret inputs, like its caller `deserialize_ring_elements_reduced`.
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::fstar::options("--z3rlimit 400 --ext context_pruning --split_queries always")]
 #[hax_lib::requires(
     serialized.len() == BYTES_PER_RING_ELEMENT
+)]
+#[hax_lib::ensures(|result|
+    fstar!(r#"${poly_to_spec::<Vector>} $result ==
+        Hacspec_ml_kem.Serialize.byte_decode (sz 384) (sz 3072) $serialized (sz 12) /\
+        Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3328) $result"#)
 )]
 fn deserialize_to_reduced_ring_element<Vector: Operations>(
     serialized: &[u8],
@@ -345,13 +350,62 @@ fn deserialize_to_reduced_ring_element<Vector: Operations>(
 
     cloop! {
         for (i, bytes) in serialized.chunks_exact(24).enumerate() {
+            // Loop invariant: each processed chunk's (cond-subtracted) coefficient
+            // vector carries the opaque per-chunk atom `chunk_decoded_12_red`
+            // (functional byte_decode eq + the 3328 lane bound) — keeps the heavy
+            // bit-vector equality out of the loop-body VC.
+            hax_lib::loop_invariant!(|i: usize| {
+                fstar!(
+                    r#"v $i <= 16 /\ Seq.length $serialized == 384 /\
+                    (forall (j: nat). j < v $i ==>
+                      Hacspec_ml_kem.Commute.Serialize_bits.chunk_decoded_12_red $serialized
+                        (Libcrux_ml_kem.Vector.Traits.f_to_i16_array
+                          (Seq.index ${re}.Libcrux_ml_kem.Vector.f_coefficients j)) j)"#
+                )
+            });
             let coefficient = Vector::deserialize_12(bytes);
+            // deserialize_12's post bounds each lane by 2^12 - 1, discharging
+            // cond_subtract_3329's opaque precondition.
             hax_lib::fstar!(
                 r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque 4095)"#
         )   ;
             re.coefficients[i] = Vector::cond_subtract_3329(coefficient);
+            // Establish the opaque atom for chunk `i` from deserialize_12's
+            // byte-bridge facts (over the raw chunk) + cond_subtract's post.
+            hax_lib::fstar!(
+                r#"assert (Seq.index ${re}.Libcrux_ml_kem.Vector.f_coefficients (v $i) ==
+                        Libcrux_ml_kem.Vector.Traits.f_cond_subtract_3329_ #v_Vector ${coefficient});
+                   assert (Seq.slice $serialized (24 * v $i) (24 * v $i + 24) == ${bytes});
+                   Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro $serialized
+                     (Libcrux_ml_kem.Vector.Traits.f_to_i16_array ${coefficient})
+                     (Libcrux_ml_kem.Vector.Traits.f_to_i16_array
+                       (Seq.index ${re}.Libcrux_ml_kem.Vector.f_coefficients (v $i))) (v $i)"#
+            );
         }
     }
+
+    hax_lib::fstar!(
+        r#"let result = re in
+           assert (Seq.length (Libcrux_ml_kem.Vector.Spec.poly_to_spec result) == 256);
+           assert (Seq.length (Hacspec_ml_kem.Serialize.byte_decode (sz 384) (sz 3072) $serialized (sz 12)) == 256);
+           let aux (k: nat{k < 256}) : Lemma
+             (ensures Seq.index (Libcrux_ml_kem.Vector.Spec.poly_to_spec result) k ==
+                      Seq.index (Hacspec_ml_kem.Serialize.byte_decode (sz 384) (sz 3072) $serialized (sz 12)) k) =
+             assert (k / 16 < 16);
+             assert (Hacspec_ml_kem.Commute.Serialize_bits.chunk_decoded_12_red $serialized
+                       (Libcrux_ml_kem.Vector.Traits.f_to_i16_array
+                         (Seq.index result.Libcrux_ml_kem.Vector.f_coefficients (k / 16))) (k / 16));
+             Libcrux_ml_kem.Vector.Spec.poly_to_spec_index result k;
+             Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_byte_decode $serialized
+               (Libcrux_ml_kem.Vector.Traits.f_to_i16_array
+                 (Seq.index result.Libcrux_ml_kem.Vector.f_coefficients (k / 16))) (k / 16)
+           in
+           FStar.Classical.forall_intro aux;
+           Seq.lemma_eq_intro (Libcrux_ml_kem.Vector.Spec.poly_to_spec result)
+             (Hacspec_ml_kem.Serialize.byte_decode (sz 384) (sz 3072) $serialized (sz 12));
+           Hacspec_ml_kem.Commute.Serialize_bits.lemma_is_bounded_poly_of_red_chunks $serialized result"#
+    );
+
     re
 }
 
@@ -360,13 +414,15 @@ fn deserialize_to_reduced_ring_element<Vector: Operations>(
 ///
 /// This function MUST NOT be used on secret inputs.
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::fstar::options("--z3rlimit 300")]
 #[hax_lib::requires(
-    fstar!(r#"Hacspec_ml_kem.Parameters.is_rank v_K /\ 
+    fstar!(r#"Hacspec_ml_kem.Parameters.is_rank v_K /\
             Seq.length public_key == v (Hacspec_ml_kem.Parameters.tt_as_ntt_encoded_size v_K)"#)
 )]
 #[hax_lib::ensures(|result|
-    fstar!(r#"(forall (i:nat). i < v $K ==>
+    fstar!(r#"${vector_to_spec::<K, Vector>} $K $result ==
+        Hacspec_ml_kem.Serialize.vector_decode_12_ $K $public_key /\
+        (forall (i:nat). i < v $K ==>
         Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3328) (Seq.index $result i)) /\
         Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector $K #$:Vector (sz 3328) $result"#)
 )]
@@ -375,14 +431,20 @@ pub(super) fn deserialize_ring_elements_reduced_out<const K: usize, Vector: Oper
 ) -> [PolynomialRingElement<Vector>; K] {
     let mut deserialized_pk = core::array::from_fn(|_i| PolynomialRingElement::<Vector>::ZERO());
     deserialize_ring_elements_reduced::<K, Vector>(public_key, &mut deserialized_pk);
+    // Fold the per-element bound forall into the opaque
+    // is_bounded_polynomial_vector atom required by the ensures.
+    hax_lib::fstar!(
+        r#"Libcrux_ml_kem.Polynomial.Spec.lemma_is_bounded_polynomial_vector_intro
+            $K #$:Vector $deserialized_pk (sz 3328)"#
+    );
     deserialized_pk
 }
 
 /// See [deserialize_ring_elements_reduced_out].
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::fstar::options("--z3rlimit 400 --ext context_pruning --split_queries always")]
 #[hax_lib::requires(
-    fstar!(r#"Hacspec_ml_kem.Parameters.is_rank v_K /\ 
+    fstar!(r#"Hacspec_ml_kem.Parameters.is_rank v_K /\
             Seq.length public_key == v (Hacspec_ml_kem.Parameters.tt_as_ntt_encoded_size v_K)"#)
 )]
 #[hax_lib::ensures(|_|
@@ -395,14 +457,46 @@ pub(super) fn deserialize_ring_elements_reduced<const K: usize, Vector: Operatio
     public_key: &[u8],
     deserialized_pk: &mut [PolynomialRingElement<Vector>; K],
 ) {
+    hax_lib::fstar!(r#"assert (Seq.length $public_key == v $K * 384)"#);
     cloop! {
         for (i, ring_element) in public_key
             .chunks_exact(BYTES_PER_RING_ELEMENT)
             .enumerate()
         {
+            // Loop invariant: each completed row carries its functional
+            // byte_decode equality (over the row's 384-byte chunk) + the
+            // 3328 bound — exactly deserialize_to_reduced_ring_element's post.
+            hax_lib::loop_invariant!(|i: usize| {
+                fstar!(
+                    r#"v $i <= v $K /\ Seq.length $public_key == v $K * 384 /\
+                    (forall (j: nat). j < v $i ==>
+                      Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3328)
+                        (Seq.index deserialized_pk j) /\
+                      Libcrux_ml_kem.Vector.Spec.poly_to_spec (Seq.index deserialized_pk j) ==
+                        Hacspec_ml_kem.Serialize.byte_decode (sz 384) (sz 3072)
+                          (Seq.slice $public_key (j * 384) (j * 384 + 384)) (sz 12))"#
+                )
+            });
+            #[cfg(hax)]
+            let _pk_old = *deserialized_pk;
             deserialized_pk[i] = deserialize_to_reduced_ring_element(ring_element);
+            // Invariant extension i -> i+1 is a standalone clean-context lemma
+            // (inline maintenance saturates the fold-body VC).
+            hax_lib::fstar!(
+                r#"assert (Seq.index deserialized_pk (v $i) ==
+                       deserialize_to_reduced_ring_element #v_Vector ${ring_element});
+                   assert (Seq.slice $public_key (v $i * 384) (v $i * 384 + 384) == ${ring_element});
+                   Hacspec_ml_kem.Commute.Serialize_bits.lemma_row_decoded_maintain $K $public_key
+                     e_pk_old deserialized_pk ${ring_element} $i"#
+            );
         }
     };
+    // Finalize: standalone clean-context lemma (the inline lemma_post shape
+    // fails its own statement WF under the saturated composer VC).
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Serialize_compress.lemma_vector_to_spec_decode_12_finalize
+            $K $public_key deserialized_pk"#
+    );
     ()
 }
 

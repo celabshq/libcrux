@@ -811,3 +811,148 @@ let lemma_chunk_byte_enc_unfold
         == Seq.index (S.byte_encode (mk_usize 384) (mk_usize 3072) p (mk_usize 12)) (24 * j + r)))
   = reveal_opaque (`%chunk_byte_enc) chunk_byte_enc
 #pop-options
+
+(* ================================================================== *)
+(* DECODE-12-REDUCED (Track B): deserialize_12 then cond_subtract_3329.*)
+(* The reduced composer stores g = cond_subtract_3329 (deserialize_12  *)
+(* bytes): mod-q congruence (the trait post's mod_q_eq) preserves the  *)
+(* i16_to_spec_fe image, so the chunk still decodes to byte_decode;    *)
+(* the exact conditional conjunct bounds the output lanes by 3328.     *)
+(* Mirrors chunk_decompressed_d (Serialize_compress): the atom carries *)
+(* the bound + the functional whole-array eq.                          *)
+(* ================================================================== *)
+
+[@@ "opaque_to_smt"]
+let chunk_decoded_12_red (serialized: t_Array u8 (mk_usize 384))
+                         (g: t_Array i16 (mk_usize 16)) (j: nat) : prop =
+  j < 16 /\
+  VTS.is_i16b_array_opaque 3328 g /\
+  (forall (l: nat). l < 16 ==>
+    VTS.i16_to_spec_fe (Seq.index g l)
+    == Seq.index (S.byte_decode (mk_usize 384) (mk_usize 3072) serialized (mk_usize 12)) (16 * j + l))
+
+(* intro from deserialize_12's byte-bridge facts (over the RAW decoded
+   chunk g0) + the cond_subtract_3329 trait post relating g to g0. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200 --split_queries always --z3refresh"
+let lemma_chunk_decoded_red_intro
+    (serialized: t_Array u8 (mk_usize 384)) (g0 g: t_Array i16 (mk_usize 16)) (j: nat)
+  : Lemma
+    (requires
+      j < 16 /\
+      BV.int_t_array_bitwise_eq (Seq.slice serialized (24 * j) (24 * j + 24) <: t_Array u8 (mk_usize 24)) 8 g0 12 /\
+      (forall (ll: nat). ll < 16 ==> bounded (Seq.index g0 ll) 12) /\
+      VTS.cond_subtract_3329_post g0 g)
+    (ensures chunk_decoded_12_red serialized g j)
+  = reveal_opaque (`%chunk_decoded_12_red) chunk_decoded_12_red;
+    reveal_opaque (`%VTS.is_i16b_array_opaque) (VTS.is_i16b_array_opaque 3328 g);
+    lemma_deserialize_chunk_eq_byte_decode_12 serialized g0 j;
+    assert_norm (mk_usize 384 == mk_usize 32 *! mk_usize 12);
+    assert_norm (mk_usize 3072 == mk_usize 256 *! mk_usize 12);
+    let bd = S.byte_decode (mk_usize 384) (mk_usize 3072) serialized (mk_usize 12) in
+    let aux (l: nat{l < 16}) : Lemma
+      (VTS.i16_to_spec_fe (Seq.index g l) == Seq.index bd (16 * j + l) /\
+       VTS.is_i16b 3328 (Seq.index g l)) =
+      lemma_i16_to_spec_fe_mod_q_eq (Seq.index g l) (Seq.index g0 l)
+    in
+    FStar.Classical.forall_intro aux
+#pop-options
+
+(* unfold: the per-lane spec equality (for the composer finalize) *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_chunk_decoded_red_byte_decode
+    (serialized: t_Array u8 (mk_usize 384)) (g: t_Array i16 (mk_usize 16)) (j: nat{j < 16})
+  : Lemma
+    (requires chunk_decoded_12_red serialized g j)
+    (ensures
+      (forall (l: nat). l < 16 ==>
+        VTS.i16_to_spec_fe (Seq.index g l)
+        == Seq.index (S.byte_decode (mk_usize 384) (mk_usize 3072) serialized (mk_usize 12)) (16 * j + l)))
+  = reveal_opaque (`%chunk_decoded_12_red) chunk_decoded_12_red
+#pop-options
+
+(* the per-chunk bound conjunct *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_chunk_decoded_red_bound
+    (serialized: t_Array u8 (mk_usize 384)) (g: t_Array i16 (mk_usize 16)) (j: nat{j < 16})
+  : Lemma
+    (requires chunk_decoded_12_red serialized g j)
+    (ensures VTS.is_i16b_array_opaque 3328 g)
+  = reveal_opaque (`%chunk_decoded_12_red) chunk_decoded_12_red
+#pop-options
+
+(* is_bounded_poly 3328 re from the per-chunk bound conjuncts
+   (mirror of Serialize_compress.lemma_is_bounded_poly_of_chunks) *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_is_bounded_poly_of_red_chunks
+    (#v_Vector: Type0)
+    (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+    (serialized: t_Array u8 (mk_usize 384))
+    (re: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
+  : Lemma
+    (requires
+      (forall (j: nat). j < 16 ==>
+        chunk_decoded_12_red serialized
+          (Libcrux_ml_kem.Vector.Traits.f_to_i16_array
+            (Seq.index re.Libcrux_ml_kem.Vector.f_coefficients j)) j))
+    (ensures Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (mk_usize 3328) re)
+  = reveal_opaque (`%Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly)
+      (Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector (mk_usize 3328) re);
+    let aux (i: nat{i < 16}) : Lemma
+      (Libcrux_ml_kem.Polynomial.Spec.is_bounded_vector (mk_usize 3328)
+        (re.Libcrux_ml_kem.Vector.f_coefficients.[ sz i ])) =
+      lemma_chunk_decoded_red_bound serialized
+        (Libcrux_ml_kem.Vector.Traits.f_to_i16_array
+          (Seq.index re.Libcrux_ml_kem.Vector.f_coefficients i)) i
+    in
+    FStar.Classical.forall_intro aux
+#pop-options
+
+(* ------------------------------------------------------------------ *)
+(* B2 (deserialize_ring_elements_reduced): standalone loop-step lemma. *)
+(* Extends the per-row invariant (bound + byte_decode eq over the      *)
+(* row's 384-byte chunk) from i to i+1 after the row-i update.  Inline *)
+(* maintenance in the fold body saturates the function VC (canceled at *)
+(* full rlimit 400) — clean-context standalone lemma per the campaign  *)
+(* composer recipe.                                                    *)
+(* ------------------------------------------------------------------ *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200"
+let lemma_row_decoded_maintain
+    (#v_Vector: Type0)
+    (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+    (v_K: usize)
+    (public_key: t_Slice u8)
+    (pk_old pk_new: t_Array (Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector) v_K)
+    (chunk: t_Slice u8)
+    (i: usize)
+  : Lemma
+    (requires
+      v i < v v_K /\
+      Seq.length public_key == v v_K * 384 /\
+      Seq.length chunk == 384 /\
+      chunk == Seq.slice public_key (v i * 384) (v i * 384 + 384) /\
+      (forall (j: nat). j < v i ==>
+        Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (mk_usize 3328) (Seq.index pk_old j) /\
+        Libcrux_ml_kem.Vector.Spec.poly_to_spec (Seq.index pk_old j) ==
+          S.byte_decode (mk_usize 384) (mk_usize 3072)
+            (Seq.slice public_key (j * 384) (j * 384 + 384)) (mk_usize 12)) /\
+      (forall (k: nat). k < v v_K /\ k <> v i ==> Seq.index pk_new k == Seq.index pk_old k) /\
+      Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (mk_usize 3328) (Seq.index pk_new (v i)) /\
+      Libcrux_ml_kem.Vector.Spec.poly_to_spec (Seq.index pk_new (v i)) ==
+        S.byte_decode (mk_usize 384) (mk_usize 3072) chunk (mk_usize 12))
+    (ensures
+      (forall (j: nat). j < v i + 1 ==>
+        Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (mk_usize 3328) (Seq.index pk_new j) /\
+        Libcrux_ml_kem.Vector.Spec.poly_to_spec (Seq.index pk_new j) ==
+          S.byte_decode (mk_usize 384) (mk_usize 3072)
+            (Seq.slice public_key (j * 384) (j * 384 + 384)) (mk_usize 12)))
+  = let aux (j: nat{j < v i + 1}) : Lemma
+      (Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (mk_usize 3328) (Seq.index pk_new j) /\
+       Libcrux_ml_kem.Vector.Spec.poly_to_spec (Seq.index pk_new j) ==
+         S.byte_decode (mk_usize 384) (mk_usize 3072)
+           (Seq.slice public_key (j * 384) (j * 384 + 384)) (mk_usize 12)) =
+      if j < v i
+      then assert (Seq.index pk_new j == Seq.index pk_old j)
+      else assert (j == v i)
+    in
+    FStar.Classical.forall_intro aux
+#pop-options

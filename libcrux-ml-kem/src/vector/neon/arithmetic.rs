@@ -97,7 +97,8 @@ pub(crate) fn shift_right<const SHIFT_BY: i32>(mut vec: SIMD128Vector) -> SIMD12
     (let x = Seq.index (repr ${vec}) i in
      let y = Seq.index (repr ${result}) i in
      ((v y == v x - 3329 \/ v y == v x) /\
-      (v y % 3329 == v x % 3329)))"#))]
+      (v y % 3329 == v x % 3329) /\
+      v y == (if v x >= 3329 then v x - 3329 else v x)))"#))]
 pub(crate) fn cond_subtract_3329(mut vec: SIMD128Vector) -> SIMD128Vector {
     #[cfg(hax)]
     let _vec0 = vec;
@@ -119,7 +120,8 @@ pub(crate) fn cond_subtract_3329(mut vec: SIMD128Vector) -> SIMD128Vector {
     (let x = Seq.index (repr ${_vec0}) j in
      let y = Seq.index (repr ${vec}) j in
      ((v y == v x - 3329 \/ v y == v x) /\
-      (v y % 3329 == v x % 3329)))
+      (v y % 3329 == v x % 3329) /\
+      v y == (if v x >= 3329 then v x - 3329 else v x)))
 with begin
   if j < 8 then begin
     Rust_primitives.Integers.logand_lemma (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${c} j) (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${rm0} j)
