@@ -671,7 +671,7 @@ fn sbox_inv(s: u8) -> u8 {
     }
 }
 
-use rand_core::RngCore as _;
+use rand::Rng as _;
 
 use crate::platform::portable::aes_core::transpose_u8x16;
 

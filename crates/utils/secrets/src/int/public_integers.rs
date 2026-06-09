@@ -16,7 +16,7 @@ pub type U128 = u128;
 
 /// Construct a public integer (identity)
 #[inline(always)]
-pub const fn secret<T>(x: T) -> T {
+pub fn secret<T>(x: T) -> T {
     x
 }
 

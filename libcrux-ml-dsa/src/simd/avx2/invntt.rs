@@ -1,7 +1,7 @@
+use libcrux_intrinsics::avx2::*;
+
 use super::{arithmetic, AVX2RingElement};
 use crate::simd::{avx2::AVX2SIMDUnit, traits::COEFFICIENTS_IN_SIMD_UNIT};
-
-use libcrux_intrinsics::avx2::*;
 
 #[inline(always)]
 #[allow(unsafe_code)]
@@ -604,4 +604,52 @@ unsafe fn invert_ntt_at_layer_7(re: &mut AVX2RingElement) {
     const STEP_BY: usize = 16; // step / COEFFICIENTS_IN_SIMD_UNIT;
 
     outer_3_plus::<{ (0 * STEP * 2) / COEFFICIENTS_IN_SIMD_UNIT }, STEP_BY, 25847>(re);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        polynomial::PolynomialRingElement,
+        simd::traits::{Operations, FIELD_MODULUS, SIMD_UNITS_IN_RING_ELEMENT},
+    };
+
+    fn poly_reduce_from_value<SIMDUnit: Operations>(value: i32) -> PolynomialRingElement<SIMDUnit> {
+        let mut re = PolynomialRingElement::<SIMDUnit>::zero();
+
+        PolynomialRingElement::<SIMDUnit>::from_i32_array(
+            &[value; SIMD_UNITS_IN_RING_ELEMENT * COEFFICIENTS_IN_SIMD_UNIT],
+            &mut re,
+        );
+
+        re.barrett_reduce();
+
+        let _ = core::hint::black_box(SIMDUnit::invert_ntt_montgomery(&mut re.simd_units));
+
+        re
+    }
+
+    #[test]
+    fn inv_ntt_unreduced_max() {
+        let value = FIELD_MODULUS + (FIELD_MODULUS / 1024) + 6;
+        let re_portable = poly_reduce_from_value::<crate::simd::portable::PortableSIMDUnit>(value);
+        let re_avx2 = poly_reduce_from_value::<AVX2SIMDUnit>(value);
+        assert_eq!(re_portable.to_i32_array(), re_avx2.to_i32_array());
+    }
+
+    #[test]
+    fn inv_ntt_reduced() {
+        let value = FIELD_MODULUS + (FIELD_MODULUS / 1024) + 7;
+        let re_portable = poly_reduce_from_value::<crate::simd::portable::PortableSIMDUnit>(value);
+        let re_avx2 = poly_reduce_from_value::<AVX2SIMDUnit>(value);
+        assert_eq!(re_portable.to_i32_array(), re_avx2.to_i32_array());
+    }
+
+    #[test]
+    fn inv_ntt_reduced_large() {
+        let value = FIELD_MODULUS * 8;
+        let re_portable = poly_reduce_from_value::<crate::simd::portable::PortableSIMDUnit>(value);
+        let re_avx2 = poly_reduce_from_value::<AVX2SIMDUnit>(value);
+        assert_eq!(re_portable.to_i32_array(), re_avx2.to_i32_array());
+    }
 }

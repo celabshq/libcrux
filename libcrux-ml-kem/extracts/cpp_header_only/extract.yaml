@@ -22,12 +22,10 @@ files:
         - [libcrux_sha3, avx2, "*"]
         - [libcrux_sha3, simd, avx2, "*"]
         - [libcrux_sha3, generic_keccak, simd256, "*"]
-        - [Eurydice, arr_c0]
-        - [Eurydice, arr_05]
       monomorphizations_exact:
-        - [libcrux_sha3, generic_keccak, KeccakState_55]
-        - [Eurydice, arr_c0]
-        - [Eurydice, arr_05]
+        - [libcrux_sha3, generic_keccak, KeccakState_7d]
+        - [Eurydice, arr_50]
+        - [Eurydice, arr_c40]
       monomorphizations_of:
         - [libcrux_sha3, avx2, "*"]
         - [libcrux_sha3, simd, avx2, "*"]
@@ -97,6 +95,8 @@ files:
         - [ Eurydice_dst_ref uint8_t size_t_x2]
         - [ "Eurydice_slice uint8_t_x4" ]
         - [ "Eurydice_slice uint8_t_x2" ]
+        - [Eurydice_borrow_slice_u8_x4]
+        - [Eurydice_borrow_slice_u8_x2]
 
   # MLKEM-768
 

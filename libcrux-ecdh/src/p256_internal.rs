@@ -1,10 +1,10 @@
 use alloc::format;
-use rand::{CryptoRng, Rng, TryRngCore};
 
-// P256 we only have in HACL
-use crate::hacl::p256;
+use rand::{CryptoRng, Rng};
 
 use super::Error;
+// P256 we only have in HACL
+use crate::hacl::p256;
 
 pub struct PrivateKey(pub [u8; 32]);
 

@@ -1,13 +1,13 @@
 use std::time::Duration;
 
 use criterion::{criterion_group, criterion_main, BatchSize, Criterion};
-
 use libcrux::primitives::{kem, kem::Algorithm};
-use rand_core::{OsRng, RngCore, TryRngCore};
+use rand::{rngs::SysRng, Rng, TryRng};
+use rand_core::UnwrapErr;
 
 pub fn comparisons_key_generation(c: &mut Criterion) {
-    let mut os_rng = OsRng;
-    let mut rng = os_rng.unwrap_mut();
+    let mut rng = UnwrapErr(SysRng);
+
     let mut group = c.benchmark_group("Kyber768 Key Generation");
     group.measurement_time(Duration::from_secs(10));
 
@@ -34,7 +34,7 @@ pub fn comparisons_key_generation(c: &mut Criterion) {
         })
     });
 
-    group.bench_function("libcrux portable (OsRng)", |b| {
+    group.bench_function("libcrux portable (SysRng)", |b| {
         b.iter(|| {
             let (_secret_key, _public_key) = kem::key_gen(Algorithm::MlKem768, &mut rng).unwrap();
         })
@@ -65,7 +65,7 @@ pub fn comparisons_key_generation(c: &mut Criterion) {
 }
 
 pub fn comparisons_pk_validation(c: &mut Criterion) {
-    let mut rng = OsRng;
+    let mut rng = SysRng;
     let mut group = c.benchmark_group("Kyber768 PK Validation");
     group.measurement_time(Duration::from_secs(10));
 
@@ -88,9 +88,9 @@ pub fn comparisons_encapsulation(c: &mut Criterion) {
 
     group.bench_function("libcrux portable (external random)", |b| {
         let mut seed1 = [0; 64];
-        OsRng.try_fill_bytes(&mut seed1).unwrap();
+        SysRng.try_fill_bytes(&mut seed1).unwrap();
         let mut seed2 = [0; 32];
-        OsRng.try_fill_bytes(&mut seed2).unwrap();
+        SysRng.try_fill_bytes(&mut seed2).unwrap();
         b.iter_batched(
             || libcrux_kem::deterministic::mlkem768_generate_keypair_derand(seed1),
             |keypair| {
@@ -107,34 +107,30 @@ pub fn comparisons_encapsulation(c: &mut Criterion) {
     group.bench_function("libcrux portable", |b| {
         b.iter_batched(
             || {
-                let mut os_rng = OsRng;
-                let mut rng = os_rng.unwrap_mut();
+                let mut rng = UnwrapErr(SysRng);
                 let (_secret_key, public_key) =
                     libcrux_kem::key_gen(Algorithm::MlKem768, &mut rng).unwrap();
 
-                (os_rng, public_key)
+                (rng, public_key)
             },
-            |(mut os_rng, public_key)| {
-                let mut rng = os_rng.unwrap_mut();
+            |(mut rng, public_key)| {
                 let (_shared_secret, _ciphertext) = public_key.encapsulate(&mut rng).unwrap();
             },
             BatchSize::SmallInput,
         )
     });
 
-    group.bench_function("libcrux portable OsRng", |b| {
+    group.bench_function("libcrux portable SysRng", |b| {
         b.iter_batched(
             || {
-                let mut os_rng = OsRng;
-                let mut drbg = os_rng.unwrap_mut();
+                let mut drbg = UnwrapErr(SysRng);
                 let (_secret_key, public_key) =
                     libcrux_kem::key_gen(Algorithm::MlKem768, &mut drbg).unwrap();
 
                 public_key
             },
             |public_key| {
-                let mut os_rng = OsRng;
-                let mut rng = os_rng.unwrap_mut();
+                let mut rng = UnwrapErr(SysRng);
                 let (_shared_secret, _ciphertext) = public_key.encapsulate(&mut rng).unwrap();
             },
             BatchSize::SmallInput,
@@ -160,7 +156,7 @@ pub fn comparisons_encapsulation(c: &mut Criterion) {
     group.bench_function("libjade kyber avx2", |b| {
         b.iter_batched(
             || {
-                let mut rng = OsRng;
+                let mut rng = SysRng;
                 let mut seed = [0; 64];
                 rng.try_fill_bytes(&mut seed).unwrap();
                 let mut public_key = [0u8; 1184];
@@ -203,8 +199,8 @@ pub fn comparisons_decapsulation(c: &mut Criterion) {
     group.bench_function("libcrux portable", |b| {
         b.iter_batched(
             || {
-                let mut os_rng = OsRng;
-                let mut rng = os_rng.unwrap_mut();
+                let mut rng = UnwrapErr(SysRng);
+
                 let (secret_key, public_key) =
                     libcrux_kem::key_gen(Algorithm::MlKem768, &mut rng).unwrap();
                 let (_shared_secret, ciphertext) = public_key.encapsulate(&mut rng).unwrap();
@@ -222,11 +218,11 @@ pub fn comparisons_decapsulation(c: &mut Criterion) {
     //     b.iter_batched(
     //         || {
     //             let mut seed = [0; 64];
-    //             OsRng.try_fill_bytes(&mut seed).unwrap();
+    //             SysRng.try_fill_bytes(&mut seed).unwrap();
     //             let (sk_state, pubkey) = libcrux_ml_kem::mlkem768::generate_key_pair_unpacked(seed);
 
     //             let mut rand = [0; 32];
-    //             OsRng.try_fill_bytes(&mut rand).unwrap();
+    //             SysRng.try_fill_bytes(&mut rand).unwrap();
     //             let (ciphertext, _) = libcrux_ml_kem::mlkem768::encapsulate(&pubkey, rand);
     //             (sk_state, ciphertext)
     //         },
@@ -259,7 +255,7 @@ pub fn comparisons_decapsulation(c: &mut Criterion) {
     group.bench_function("libjade kyber avx2", |b| {
         b.iter_batched(
             || {
-                let mut rng = OsRng;
+                let mut rng = SysRng;
                 let mut seed = [0; 64];
                 rng.try_fill_bytes(&mut seed).unwrap();
                 let mut public_key = [0u8; 1184];

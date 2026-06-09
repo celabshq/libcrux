@@ -2,12 +2,14 @@ mod util;
 
 #[cfg(feature = "rand")]
 mod rand {
-    use crate::util::*;
     use libcrux_ecdsa::{
         p256::{Nonce, PrivateKey, PublicKey},
         *,
     };
-    use rand_core::OsRng;
+    use rand::rngs::SysRng;
+    use rand_core::UnwrapErr;
+
+    use crate::util::*;
 
     #[test]
     fn test_self() {
@@ -15,9 +17,7 @@ mod rand {
         const PK_HEX: &str = "0460FED4BA255A9D31C961EB74C6356D68C049B8923B61FA6CE669622E60F29FB67903FE1008B8BC99A41AE9E95628BC64F2F1B20C2D7E9F5177A3C294D4462299";
         const SK_HEX: &str = "C9AFA9D845BA75166B5C215767B1D6934E50C3DB36E89B127B8A622B120F6721";
 
-        use rand::TryRngCore;
-        let mut os_rng = OsRng;
-        let mut rng = os_rng.unwrap_mut();
+        let mut rng = UnwrapErr(SysRng);
 
         let pk = hex_str_to_bytes(PK_HEX);
         let pk = PublicKey::try_from(pk.as_slice()).unwrap();

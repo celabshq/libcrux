@@ -1,19 +1,17 @@
 mod test_util;
+use libcrux_ecdh::{self, key_gen, Algorithm, Error};
+use rand::rngs::SysRng;
+use rand_core::UnwrapErr;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use test_util::*;
-
-use rand_core::{OsRng, TryRngCore};
-
-use libcrux_ecdh::{self, key_gen, Algorithm, Error};
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 #[test]
 fn derive() {
     let _ = pretty_env_logger::try_init();
 
-    let mut os_rng = OsRng;
-    let mut rng = os_rng.unwrap_mut();
+    let mut rng = UnwrapErr(SysRng);
 
     let (private_a, public_a) = key_gen(Algorithm::X25519, &mut rng).unwrap();
     let (private_b, public_b) = key_gen(Algorithm::X25519, &mut rng).unwrap();
@@ -76,35 +74,47 @@ fn wycheproof() {
                 "public key = 0" => false,
                 "public key = 1" => false,
                 "public key with low order" => false,
-                "public key = 57896044618658097711785492504343953926634992332820282019728792003956564819949" => false,
-                "public key = 57896044618658097711785492504343953926634992332820282019728792003956564819950" => false,
-                "public key = 57896044618658097711785492504343953926634992332820282019728792003956564819968" => false,
-                "public key = 57896044618658097711785492504343953926634992332820282019728792003956564819969" => false,
+                "public key = \
+                 57896044618658097711785492504343953926634992332820282019728792003956564819949" => {
+                    false
+                }
+                "public key = \
+                 57896044618658097711785492504343953926634992332820282019728792003956564819950" => {
+                    false
+                }
+                "public key = \
+                 57896044618658097711785492504343953926634992332820282019728792003956564819968" => {
+                    false
+                }
+                "public key = \
+                 57896044618658097711785492504343953926634992332820282019728792003956564819969" => {
+                    false
+                }
                 "special case public key" => {
                     (test.flags.contains(&"Twist".to_owned()) && test.tcId != 154)
-                       || test.tcId == 120
-                       || test.tcId == 122
-                       || test.tcId == 123
-                       || test.tcId == 125
-                       || test.tcId == 128
-                       || test.tcId == 131
-                       || test.tcId == 132
-                       || test.tcId == 134
-                       || test.tcId == 135
-                       || test.tcId == 137
-                       || test.tcId == 138
-                       || test.tcId == 141
-                       || test.tcId == 142
-                       || test.tcId == 143
-                       || test.tcId == 144
-                       || test.tcId == 145
-                       || test.tcId == 146
-                       || test.tcId == 149
-                       || test.tcId == 150
-                       || test.tcId == 151
-                       || test.tcId == 152
-                       || test.tcId == 153
-                },
+                        || test.tcId == 120
+                        || test.tcId == 122
+                        || test.tcId == 123
+                        || test.tcId == 125
+                        || test.tcId == 128
+                        || test.tcId == 131
+                        || test.tcId == 132
+                        || test.tcId == 134
+                        || test.tcId == 135
+                        || test.tcId == 137
+                        || test.tcId == 138
+                        || test.tcId == 141
+                        || test.tcId == 142
+                        || test.tcId == 143
+                        || test.tcId == 144
+                        || test.tcId == 145
+                        || test.tcId == 146
+                        || test.tcId == 149
+                        || test.tcId == 150
+                        || test.tcId == 151
+                        || test.tcId == 152
+                        || test.tcId == 153
+                }
                 "D = 0 in multiplication by 2" => false,
                 _ => valid,
             };

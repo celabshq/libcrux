@@ -1,7 +1,6 @@
-use crate::simd::traits::{Operations, COEFFICIENTS_IN_SIMD_UNIT, SIMD_UNITS_IN_RING_ELEMENT};
-
 #[cfg(hax)]
 use crate::simd::traits::specs::*;
+use crate::simd::traits::{Operations, COEFFICIENTS_IN_SIMD_UNIT, SIMD_UNITS_IN_RING_ELEMENT};
 
 #[derive(Clone, Copy)]
 #[hax_lib::fstar::after("open Libcrux_ml_dsa.Simd.Traits.Specs")]
@@ -11,6 +10,14 @@ pub(crate) struct PolynomialRingElement<SIMDUnit: Operations> {
 
 #[hax_lib::attributes]
 impl<SIMDUnit: Operations> PolynomialRingElement<SIMDUnit> {
+    #[inline(always)]
+    // Barrett reduce all coefficients.
+    pub(crate) fn barrett_reduce(&mut self) {
+        for i in 0..self.simd_units.len() {
+            SIMDUnit::barrett_reduce_simd_unit(&mut self.simd_units[i]);
+        }
+    }
+
     pub(crate) fn zero() -> Self {
         Self {
             simd_units: [SIMDUnit::zero(); SIMD_UNITS_IN_RING_ELEMENT],
@@ -53,10 +60,32 @@ impl<SIMDUnit: Operations> PolynomialRingElement<SIMDUnit> {
         (forall i. Spec.Utils.is_i32b_array_opaque 
             (v ${FIELD_MAX}) 
             (i0._super_i2.f_repr (Seq.index self.f_simd_units i)))"#))]
+    /// CAUTION: This function must only be called with inputs for
+    /// which it is safe to leak the index of a violating coefficient.
+    ///
+    /// For all norm checks during ML-DSA signature generation it is
+    /// safe to leak the index of a violating coefficient.
     pub(crate) fn infinity_norm_exceeds(&self, bound: i32) -> bool {
         let mut result = false;
         for i in 0..self.simd_units.len() {
-            result = result || SIMDUnit::infinity_norm_exceeds(&self.simd_units[i], bound);
+            let coeff_exceeds = SIMDUnit::infinity_norm_exceeds(&self.simd_units[i], bound);
+            // Declassification: It is safe to leak the index of a
+            // violating coefficient during ML-DSA signature
+            // generation.
+            //
+            // See section 5.5 of the Dilithium Specification for
+            // Round 3 of the NIST Post-Quantum Cryptography
+            // Standardization.
+            // (https://pq-crystals.org/dilithium/data/dilithium-specification-round3-20210208.pdf)
+            libcrux_secrets::mem_requests::ct_declassify(&coeff_exceeds);
+            // XXX: We can't use the non-short-circuiting
+            // core::ops::BitOr here, because of an issue in hax-lib
+            // v0.3.6.
+            // (cf. https://github.com/cryspen/libcrux/issues/1437)
+            //
+            // Using the short-circuiting OR is safe, see comment on
+            // declassification above.
+            result = result || coeff_exceeds;
         }
 
         result

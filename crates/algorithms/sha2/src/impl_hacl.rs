@@ -1,5 +1,4 @@
 use super::*;
-use libcrux_hacl_rs::prelude::*;
 use libcrux_traits::Digest;
 
 /// The different Sha2 algorithms.
@@ -110,7 +109,7 @@ macro_rules! impl_hash {
             #[inline(always)]
             fn update(&mut self, payload: &[u8]) {
                 let payload_len = payload.len().try_into().unwrap();
-                $update(self.state.as_mut(), payload, payload_len);
+                $update(&mut self.state, payload, payload_len);
             }
 
             /// Get the digest.
@@ -119,13 +118,13 @@ macro_rules! impl_hash {
             /// digest.
             #[inline(always)]
             fn finish(&self, digest: &mut [u8; $digest_size]) {
-                $finish(self.state.as_ref(), digest);
+                $finish(&self.state, digest);
             }
 
             /// Reset the digest state.
             #[inline(always)]
             fn reset(&mut self) {
-                $reset(self.state.as_mut());
+                $reset(&mut self.state);
             }
         }
 
@@ -140,7 +139,7 @@ macro_rules! impl_hash {
             #[inline(always)]
             fn clone(&self) -> Self {
                 Self {
-                    state: $copy(self.state.as_ref()),
+                    state: $copy(&self.state),
                 }
             }
         }
@@ -150,7 +149,7 @@ macro_rules! impl_hash {
 impl_hash!(
     Sha256,
     32,
-    Box<[libcrux_hacl_rs::streaming_types::state_32]>,
+    libcrux_hacl_rs::streaming_types::state_32,
     crate::hacl::malloc_256,
     crate::hacl::reset_256,
     crate::hacl::update_256,
@@ -161,7 +160,7 @@ impl_hash!(
 impl_hash!(
     Sha224,
     28,
-    Box<[libcrux_hacl_rs::streaming_types::state_32]>,
+    libcrux_hacl_rs::streaming_types::state_32,
     crate::hacl::malloc_224,
     crate::hacl::reset_224,
     crate::hacl::update_224,
@@ -173,7 +172,7 @@ impl_hash!(
 impl_hash!(
     Sha512,
     64,
-    Box<[libcrux_hacl_rs::streaming_types::state_64]>,
+    libcrux_hacl_rs::streaming_types::state_64,
     crate::hacl::malloc_512,
     crate::hacl::reset_512,
     crate::hacl::update_512,
@@ -184,7 +183,7 @@ impl_hash!(
 impl_hash!(
     Sha384,
     48,
-    Box<[libcrux_hacl_rs::streaming_types::state_64]>,
+    libcrux_hacl_rs::streaming_types::state_64,
     crate::hacl::malloc_384,
     crate::hacl::reset_384,
     crate::hacl::update_384,

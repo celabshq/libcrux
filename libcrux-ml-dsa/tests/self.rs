@@ -1,14 +1,14 @@
 use libcrux_ml_dsa::{ml_dsa_44, ml_dsa_65, ml_dsa_87};
-use rand::{rngs::OsRng, Rng, TryRngCore};
+use rand::{rngs::SysRng, RngExt, TryRng};
 
 fn random_array<const L: usize>() -> [u8; L] {
-    let mut rng = OsRng;
+    let mut rng = SysRng;
     let mut seed = [0; L];
     rng.try_fill_bytes(&mut seed).unwrap();
     seed
 }
 fn random_message() -> Vec<u8> {
-    let mut rng = OsRng;
+    let mut rng = SysRng;
 
     let mut length = [0u8; 2];
     rng.try_fill_bytes(&mut length).unwrap();

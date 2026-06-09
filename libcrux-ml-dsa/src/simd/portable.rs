@@ -1,6 +1,6 @@
 use crate::{
     constants::{Eta, Gamma2},
-    simd::traits::*,
+    simd::{portable::arithmetic::barrett_reduce_simd_unit, traits::*},
 };
 
 mod arithmetic;
@@ -137,9 +137,7 @@ impl Operations for Coefficients {
         invntt::invert_ntt_montgomery(simd_units)
     }
 
-    fn reduce(simd_units: &mut [Self; SIMD_UNITS_IN_RING_ELEMENT]) {
-        for i in 0..simd_units.len() {
-            shift_left_then_reduce::<0>(&mut simd_units[i]);
-        }
+    fn barrett_reduce_simd_unit(simd_unit: &mut Self) {
+        barrett_reduce_simd_unit(simd_unit);
     }
 }

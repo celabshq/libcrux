@@ -17,7 +17,6 @@ macro_rules! impl_hmac {
     };
 }
 
-impl_hmac!(hmac_sha1, crate::hacl::hmac::compute_sha1, 20);
 impl_hmac!(hmac_sha2_256, crate::hacl::hmac::compute_sha2_256, 32);
 impl_hmac!(hmac_sha2_384, crate::hacl::hmac::compute_sha2_384, 48);
 impl_hmac!(hmac_sha2_512, crate::hacl::hmac::compute_sha2_512, 64);

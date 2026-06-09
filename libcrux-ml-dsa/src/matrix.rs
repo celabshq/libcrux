@@ -1,7 +1,7 @@
 use crate::{
     arithmetic::shift_left_then_reduce,
     constants::BITS_IN_LOWER_PART_OF_T,
-    ntt::{invert_ntt_montgomery, ntt, ntt_multiply_montgomery, reduce},
+    ntt::{invert_ntt_montgomery, ntt, ntt_multiply_montgomery},
     polynomial::PolynomialRingElement,
     simd::traits::Operations,
 };
@@ -30,7 +30,7 @@ pub(crate) fn compute_as1_plus_s2<SIMDUnit: Operations>(
         // `columns_in_a` additions might be as large as `columns_in_a
         // * FIELD_MODULUS`, and `invert_ntt_montgomery` expects
         // coefficients of size at most `FIELD_MODULUS`.
-        reduce(&mut result[i]);
+        result[i].barrett_reduce();
         invert_ntt_montgomery::<SIMDUnit>(&mut result[i]);
         PolynomialRingElement::add(&mut result[i], &s1_s2[columns_in_a + i]);
     }
@@ -58,7 +58,7 @@ pub(crate) fn compute_matrix_x_mask<SIMDUnit: Operations>(
         // `columns_in_a` additions might be as large as `columns_in_a
         // * FIELD_MODULUS`, and `invert_ntt_montgomery` expects
         // coefficients of size at most `FIELD_MODULUS`.
-        reduce(&mut result[i]);
+        result[i].barrett_reduce();
         invert_ntt_montgomery(&mut result[i]);
     }
 }
@@ -123,7 +123,7 @@ pub(crate) fn compute_w_approx<SIMDUnit: Operations>(
         // `columns_in_a` additions might be as large as `columns_in_a
         // * FIELD_MODULUS`, and `invert_ntt_montgomery` expects
         // coefficients of size at most `FIELD_MODULUS`.
-        reduce(&mut t1[i]);
+        t1[i].barrett_reduce();
         invert_ntt_montgomery(&mut t1[i]);
     }
 }

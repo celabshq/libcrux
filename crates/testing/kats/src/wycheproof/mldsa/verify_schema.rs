@@ -73,7 +73,7 @@ pub struct Test {
     pub sig: Vec<u8>,
 
     /// Test result
-    pub result: VerifyResult,
+    pub result: TestResult,
 
     /// A list of flags
     pub flags: Vec<Flag>,
@@ -91,12 +91,6 @@ pub enum Flag {
     ModifiedSignature,
     ValidSignature,
     ZeroPublicKey,
-}
-
-#[derive(PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum VerifyResult {
-    Invalid,
-
-    Valid,
+    InfinityNormViolation,
+    InvalidSignature,
 }

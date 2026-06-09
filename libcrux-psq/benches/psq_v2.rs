@@ -1,5 +1,4 @@
 use criterion::{criterion_group, criterion_main, BatchSize, Criterion};
-
 use libcrux_ml_kem::mlkem768::MlKem768KeyPair;
 #[cfg(feature = "classic-mceliece")]
 use libcrux_psq::classic_mceliece::KeyPair;
@@ -15,11 +14,10 @@ use libcrux_psq::{
 use rand::CryptoRng;
 
 pub fn randombytes(n: usize) -> Vec<u8> {
-    use rand::rngs::OsRng;
-    use rand::TryRngCore;
+    use rand::{rngs::SysRng, TryRng};
 
     let mut bytes = vec![0u8; n];
-    OsRng.try_fill_bytes(&mut bytes).unwrap();
+    SysRng.try_fill_bytes(&mut bytes).unwrap();
     bytes
 }
 
@@ -276,7 +274,10 @@ fn registration(c: &mut Criterion, suite_i: CiphersuiteName, suite_r: Ciphersuit
 
     // Send first message
     c.bench_function(
-        &format!("[Registration] Initiator send registration ; Initiator({suite_i:?}) Responder({suite_r:?})"),
+        &format!(
+            "[Registration] Initiator send registration ; Initiator({suite_i:?}) \
+             Responder({suite_r:?})"
+        ),
         |b| {
             b.iter_batched_ref(
                 || {
@@ -434,7 +435,10 @@ fn registration(c: &mut Criterion, suite_i: CiphersuiteName, suite_r: Ciphersuit
 
     // IntoTransport transform Initiator
     c.bench_function(
-        &format!("[Registration] IntoTransport Responder ; Initiator({suite_i:?}) Responder({suite_r:?})"),
+        &format!(
+            "[Registration] IntoTransport Responder ; Initiator({suite_i:?}) \
+             Responder({suite_r:?})"
+        ),
         |b| {
             b.iter_batched(
                 || {
@@ -477,7 +481,10 @@ fn registration(c: &mut Criterion, suite_i: CiphersuiteName, suite_r: Ciphersuit
 
     // IntoTransport transform Initiator
     c.bench_function(
-        &format!("[Registration] IntoTransport Initiator ; Initiator({suite_i:?}) Responder({suite_r:?})"),
+        &format!(
+            "[Registration] IntoTransport Initiator ; Initiator({suite_i:?}) \
+             Responder({suite_r:?})"
+        ),
         |b| {
             b.iter_batched(
                 || {

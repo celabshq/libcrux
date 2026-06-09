@@ -1,0 +1,47 @@
+name: Libcrux - Constant Time Tests
+
+on:
+  merge_group:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions: {}
+
+env:
+  CARGO_TERM_COLOR: always
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+
+jobs:
+  ct-test:
+    name: Constant Time Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      
+      - name: Install valgrind / libclang-dev
+        run: sudo apt-get update && sudo apt-get install -y valgrind libclang-dev
+
+      - name: Compile ctgrind-test crate
+        env:
+          # needed for the ML-DSA CT tests
+          RUSTFLAGS: '--cfg valgrind_ct_test'
+        run: cargo build --package ctgrind-test --profile release-debug --bins
+
+      - name: Run valgrind ML-DSA
+        run: valgrind --tool=memcheck --error-exitcode=1 --track-origins=yes target/release-debug/mldsa
+
+      - name: Run valgrind ML-KEM
+        run: valgrind --tool=memcheck --error-exitcode=1 --track-origins=yes target/release-debug/mlkem
+
+      - name: Run valgrind SHA-3
+        run: valgrind --tool=memcheck --error-exitcode=1 --track-origins=yes target/release-debug/sha3
+

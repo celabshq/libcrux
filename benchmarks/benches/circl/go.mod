@@ -2,7 +2,7 @@ module benchmarks
 
 go 1.24.0
 
-require github.com/cloudflare/circl v1.6.1
+require github.com/cloudflare/circl v1.6.3
 
 require (
 	golang.org/x/crypto v0.45.0 // indirect

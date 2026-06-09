@@ -1,8 +1,10 @@
 mod util;
 use libcrux_ecdsa::{
     p256::{self, PublicKey},
-    DigestAlgorithm, Error,
+    DigestAlgorithm,
 };
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use util::*;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

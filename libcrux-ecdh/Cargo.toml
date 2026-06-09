@@ -1,6 +1,6 @@
 [package]
 name = "libcrux-ecdh"
-version = "0.0.6"
+version = "0.0.7"
 description = "Libcrux ECDH implementation"
 readme = "Readme.md"
 
@@ -14,7 +14,7 @@ repository.workspace = true
 path = "src/ecdh.rs"
 
 [dependencies]
-rand = { version = "0.9", default-features = false }
+rand = { version = "0.10", default-features = false }
 libcrux-curve25519 = { workspace = true, default-features = true }
 libcrux-p256 = { workspace = true, default-features = true, features = [
     "expose-hacl",
@@ -29,7 +29,8 @@ std = ["rand/std"]
 codec = ["dep:tls_codec"]
 
 [dev-dependencies]
-rand_core = { version = "0.9", features = ["os_rng"] }
+rand = { version = "0.10", features = ["sys_rng"] }
+rand_core = { version = "0.10" }
 hex = { version = "0.4.3", features = ["serde"] }
 serde_json = { version = "1.0" }
 serde = { version = "1.0", features = ["derive"] }

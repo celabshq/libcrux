@@ -8,7 +8,6 @@ use classic_mceliece_rust::{
     SecretKey as Sk, SharedSecret as Ss, CRYPTO_PUBLICKEYBYTES as MCELIECE_PUBLIC_KEY_LEN,
     CRYPTO_SECRETKEYBYTES as MCELIECE_SECRET_KEY_LEN,
 };
-
 use libcrux_traits::kem::{KEMError, KeyPair as KEMKeyPair, KEM};
 use tls_codec::{Deserialize, Serialize, SerializeBytes, Size, VLByteSlice, VLBytes};
 
@@ -140,9 +139,6 @@ impl<'a> Serialize for SharedSecret<'a> {
 /// A code-based KEM based on the McEliece cryptosystem.
 pub struct ClassicMcEliece;
 
-#[cfg(feature = "v1")]
-impl crate::v1::traits::private::Seal for ClassicMcEliece {}
-
 // This is only here because `classic-mceliece-rust` still depends on
 // `rand` version `0.8.0`.
 pub(crate) struct McElieceRng<'a, T: rand::CryptoRng> {
@@ -209,29 +205,5 @@ impl KEM for ClassicMcEliece {
     ) -> Result<Self::SharedSecret, KEMError> {
         let ss = decapsulate_boxed(&ctxt.0, dk);
         Ok(SharedSecret(ss))
-    }
-}
-
-#[cfg(feature = "v1")]
-impl crate::v1::traits::PSQ for ClassicMcEliece {
-    type InnerKEM = Self;
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::v1::traits::PSQ;
-
-    #[test]
-    #[cfg(feature = "v1")]
-    fn simple_classic_mceliece() {
-        let mut rng = rand::rng();
-        let (sk, pk) = ClassicMcEliece::generate_key_pair(&mut rng).unwrap();
-        let sctx = b"test context";
-        let (psk_initiator, message) =
-            ClassicMcEliece::encapsulate_psq(&pk, sctx, &mut rng).unwrap();
-
-        let psk_responder = ClassicMcEliece::decapsulate_psq(&sk, &pk, &message, sctx).unwrap();
-        assert_eq!(psk_initiator, psk_responder);
     }
 }

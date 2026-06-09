@@ -13,7 +13,7 @@ version.workspace = true
 bench = false # so libtest doesn't eat the arguments for criterion
 
 [dependencies]
-rand = { version = "0.9" }
+rand = { version = "0.10" }
 
 [dev-dependencies]
 libcrux = { path = "../", features = ["rand", "tests"] }
@@ -26,15 +26,15 @@ libcrux-ml-kem = { path = "../libcrux-ml-kem" }
 libcrux-rsa = { path = "../crates/algorithms/rsa" }
 libcrux-sha2 = { path = "../crates/algorithms/sha2" }
 
-rand_core = { version = "0.9" }
+rand_core = { version = "0.10" }
 rand_core_old = { version = "0.6", package = "rand_core" }
 
 # Benchmarking "RustCrypto"
 chacha20poly1305 = "0.10"
 ed25519-dalek = { version = "2.1.1", features = ["rand_core"] }
 p256 = { version = "0.13", features = ["ecdh"] }
-sha2 = "0.10"
-sha3 = "0.10"
+sha2 = "0.11"
+sha3 = "0.12"
 x25519-dalek-ng = "1.1"
 
 # Benchmarking "Ring"
@@ -51,7 +51,7 @@ x25519-dalek = "2.0.1"
 curve25519-dalek = "4.1.2"
 
 # helpers needed for key conversion
-der = "0.8"
+der = "0.7"
 pkcs1 = "0.7.5"
 
 # We always link this on linux, even if it may not be built.
@@ -71,7 +71,7 @@ pqcrypto-kyber = { version = "0.8.0" }
 openssl = "0.10"
 
 [target.'cfg(all(not(target_os = "windows"), target_arch = "x86_64"))'.dev-dependencies]
-libjade-sys = { version = "=0.0.3", path = "../crates/sys/libjade" }
+libjade-sys = { version = "=0.0.4", path = "../crates/sys/libjade" }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(crypto_lib25519)'] }

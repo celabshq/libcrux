@@ -55,27 +55,27 @@ pub(crate) const CPA_SERIALIZED_KEY_LEN: usize = CPA_PKE_SECRET_KEY_SIZE
 
 #[allow(non_snake_case)]
 pub(crate) mod hash_functions {
-    use libcrux::digest::{self, digest_size, Algorithm};
+    use libcrux::algorithms::sha3::{self, digest_size, Algorithm};
 
-    pub(crate) fn G(input: &[u8]) -> [u8; digest_size(Algorithm::Sha3_512)] {
-        digest::sha3_512(input)
+    pub(crate) fn G(input: &[u8]) -> [u8; digest_size(Algorithm::Sha512)] {
+        sha3::sha512(input)
     }
 
-    pub(crate) const H_DIGEST_SIZE: usize = digest_size(Algorithm::Sha3_256);
+    pub(crate) const H_DIGEST_SIZE: usize = digest_size(Algorithm::Sha256);
     pub(crate) fn H(input: &[u8]) -> [u8; H_DIGEST_SIZE] {
-        libcrux::digest::sha3_256(input)
+        sha3::sha256(input)
     }
 
     pub(crate) fn PRF<const LEN: usize>(input: &[u8]) -> [u8; LEN] {
-        digest::shake256::<LEN>(input)
+        sha3::shake256::<LEN>(input)
     }
 
     pub(crate) fn XOF<const LEN: usize>(input: &[u8]) -> [u8; LEN] {
-        digest::shake128::<LEN>(input)
+        sha3::shake128::<LEN>(input)
     }
 
     pub(crate) fn J<const LEN: usize>(input: &[u8]) -> [u8; LEN] {
-        digest::shake256::<LEN>(input)
+        sha3::shake256::<LEN>(input)
     }
 }
 

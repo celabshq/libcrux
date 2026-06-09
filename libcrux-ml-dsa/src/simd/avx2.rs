@@ -1,6 +1,6 @@
 use crate::{
     constants::{Eta, Gamma2},
-    simd::traits::*,
+    simd::{avx2::arithmetic::barrett_reduce_simd_unit, traits::*},
 };
 
 mod arithmetic;
@@ -157,10 +157,7 @@ impl Operations for AVX2SIMDUnit {
     }
 
     #[inline(always)]
-    fn reduce(simd_units: &mut [Self; SIMD_UNITS_IN_RING_ELEMENT]) {
-        shift_left_then_reduce::<0>(&mut simd_units[0].value);
-        shift_left_then_reduce::<0>(&mut simd_units[8].value);
-        shift_left_then_reduce::<0>(&mut simd_units[16].value);
-        shift_left_then_reduce::<0>(&mut simd_units[24].value);
+    fn barrett_reduce_simd_unit(simd_unit: &mut Self) {
+        barrett_reduce_simd_unit(&mut simd_unit.value);
     }
 }

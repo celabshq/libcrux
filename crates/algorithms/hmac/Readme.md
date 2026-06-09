@@ -1,6 +1,6 @@
 # HMAC
 
-This crate implements HMAC on SHA 1 and SHA 2 (except for SHA 224).
+This crate implements HMAC on SHA 2 (except for SHA 224).
 
 ## `no_std` support
 

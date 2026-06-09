@@ -9,7 +9,7 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.4"
-rand = "0.9"
+rand = "0.10"
 libcrux-ml-kem = { workspace = true, default-features = true, features = ["rand"] }
 
 [dependencies.libcrux-psq]

@@ -1,4 +1,5 @@
 use criterion::{criterion_group, criterion_main, BatchSize, Criterion};
+use rand_core::UnwrapErr;
 
 fn derive(c: &mut Criterion) {
     // Comparing libcrux performance for different payload sizes and other implementations.
@@ -7,9 +8,8 @@ fn derive(c: &mut Criterion) {
     group.bench_function("libcrux", |b| {
         b.iter_batched(
             || {
-                use rand_core::{OsRng, TryRngCore};
-                let mut os_rng = OsRng;
-                let mut rng = os_rng.unwrap_mut();
+                use rand::rngs::SysRng;
+                let mut rng = UnwrapErr(SysRng);
                 let (_, pk1) = libcrux_ecdh::x25519_key_gen(&mut rng).unwrap();
                 let sk2 = libcrux_ecdh::x25519_generate_secret(&mut rng).unwrap();
 
@@ -51,9 +51,11 @@ fn derive(c: &mut Criterion) {
 
     #[cfg(all(not(windows), not(target_arch = "wasm32"), not(target_arch = "x86")))]
     group.bench_function("OpenSSL", |b| {
-        use openssl::derive::Deriver;
-        use openssl::pkey::{Id, PKey};
-        use openssl::pkey_ctx::PkeyCtx;
+        use openssl::{
+            derive::Deriver,
+            pkey::{Id, PKey},
+            pkey_ctx::PkeyCtx,
+        };
 
         b.iter_batched(
             || {
@@ -95,18 +97,17 @@ fn derive(c: &mut Criterion) {
     });
 
     group.bench_function("Dalek Ristretto", |b| {
-        use curve25519_dalek::ristretto::RistrettoPoint;
-        use curve25519_dalek::scalar::Scalar;
-        use rand_core::{OsRng, TryRngCore};
+        use curve25519_dalek::{ristretto::RistrettoPoint, scalar::Scalar};
+        use rand::{rngs::SysRng, TryRng};
 
         b.iter_batched(
             || {
                 let mut sk1_b = [0u8; 32];
-                OsRng.try_fill_bytes(&mut sk1_b).unwrap();
+                SysRng.try_fill_bytes(&mut sk1_b).unwrap();
                 let sk1 = Scalar::from_bytes_mod_order(sk1_b);
                 let pk1 = RistrettoPoint::mul_base(&sk1);
                 let mut sk2_b = [0u8; 32];
-                OsRng.try_fill_bytes(&mut sk2_b).unwrap();
+                SysRng.try_fill_bytes(&mut sk2_b).unwrap();
                 let sk2 = Scalar::from_bytes_mod_order(sk2_b);
                 (pk1, sk2)
             },
@@ -147,9 +148,8 @@ fn secret_to_public(c: &mut Criterion) {
     group.bench_function("libcrux", |b| {
         b.iter_batched(
             || {
-                use rand_core::{OsRng, TryRngCore};
-                let mut os_rng = OsRng;
-                let mut rng = os_rng.unwrap_mut();
+                use rand::rngs::SysRng;
+                let mut rng = UnwrapErr(SysRng);
                 let sk = libcrux_ecdh::x25519_generate_secret(&mut rng).unwrap();
                 sk
             },
@@ -181,8 +181,7 @@ fn secret_to_public(c: &mut Criterion) {
 
     #[cfg(all(not(windows), not(target_arch = "wasm32"), not(target_arch = "x86")))]
     group.bench_function("OpenSSL", |b| {
-        use openssl::pkey::Id;
-        use openssl::pkey_ctx::PkeyCtx;
+        use openssl::{pkey::Id, pkey_ctx::PkeyCtx};
 
         b.iter_batched(
             || {},
@@ -214,14 +213,13 @@ fn secret_to_public(c: &mut Criterion) {
     });
 
     group.bench_function("Dalek Ristretto", |b| {
-        use curve25519_dalek::ristretto::RistrettoPoint;
-        use curve25519_dalek::scalar::Scalar;
-        use rand_core::{OsRng, TryRngCore};
+        use curve25519_dalek::{ristretto::RistrettoPoint, scalar::Scalar};
+        use rand::{rngs::SysRng, TryRng};
 
         b.iter_batched(
             || {
                 let mut sk_b = [0u8; 32];
-                OsRng.try_fill_bytes(&mut sk_b).unwrap();
+                SysRng.try_fill_bytes(&mut sk_b).unwrap();
                 let sk = Scalar::from_bytes_mod_order(sk_b);
                 sk
             },
@@ -255,9 +253,8 @@ fn nym_outfox_create(c: &mut Criterion) {
     group.bench_function("libcrux", |b| {
         b.iter_batched(
             || {
-                use rand_core::{OsRng, TryRngCore};
-                let mut os_rng = OsRng;
-                let mut rng = os_rng.unwrap_mut();
+                use rand::rngs::SysRng;
+                let mut rng = UnwrapErr(SysRng);
 
                 let (_, pk1) = libcrux_ecdh::x25519_key_gen(&mut rng).unwrap();
 
@@ -349,9 +346,11 @@ fn nym_outfox_create(c: &mut Criterion) {
 
     #[cfg(all(not(windows), not(target_arch = "wasm32"), not(target_arch = "x86")))]
     group.bench_function("OpenSSL", |b| {
-        use openssl::derive::Deriver;
-        use openssl::pkey::{Id, PKey};
-        use openssl::pkey_ctx::PkeyCtx;
+        use openssl::{
+            derive::Deriver,
+            pkey::{Id, PKey},
+            pkey_ctx::PkeyCtx,
+        };
 
         b.iter_batched(
             || {
@@ -424,18 +423,17 @@ fn nym_outfox_create(c: &mut Criterion) {
     });
 
     group.bench_function("Dalek Ristretto", |b| {
-        use curve25519_dalek::ristretto::RistrettoPoint;
-        use curve25519_dalek::scalar::Scalar;
-        use rand_core::{OsRng, TryRngCore};
+        use curve25519_dalek::{ristretto::RistrettoPoint, scalar::Scalar};
+        use rand::{rngs::SysRng, TryRng};
 
         b.iter_batched(
             || {
                 let mut sk1_b = [0u8; 32];
-                OsRng.try_fill_bytes(&mut sk1_b).unwrap();
+                SysRng.try_fill_bytes(&mut sk1_b).unwrap();
                 let sk1 = Scalar::from_bytes_mod_order(sk1_b);
                 let pk1 = RistrettoPoint::mul_base(&sk1);
                 let mut sk2_b = [0u8; 32];
-                OsRng.try_fill_bytes(&mut sk2_b).unwrap();
+                SysRng.try_fill_bytes(&mut sk2_b).unwrap();
                 let sk2a = Scalar::from_bytes_mod_order(sk2_b);
                 let sk2b = Scalar::from_bytes_mod_order(sk2_b);
                 let sk2c = Scalar::from_bytes_mod_order(sk2_b);
@@ -512,9 +510,8 @@ fn nym_outfox_process(c: &mut Criterion) {
     group.bench_function("libcrux", |b| {
         b.iter_batched(
             || {
-                use rand_core::{OsRng, TryRngCore};
-                let mut os_rng = OsRng;
-                let mut rng = os_rng.unwrap_mut();
+                use rand::rngs::SysRng;
+                let mut rng = UnwrapErr(SysRng);
 
                 let (_, pk1) = libcrux_ecdh::x25519_key_gen(&mut rng).unwrap();
                 let sk2 = libcrux_ecdh::x25519_generate_secret(&mut rng).unwrap();
@@ -557,9 +554,11 @@ fn nym_outfox_process(c: &mut Criterion) {
 
     #[cfg(all(not(windows), not(target_arch = "wasm32"), not(target_arch = "x86")))]
     group.bench_function("OpenSSL", |b| {
-        use openssl::derive::Deriver;
-        use openssl::pkey::{Id, PKey};
-        use openssl::pkey_ctx::PkeyCtx;
+        use openssl::{
+            derive::Deriver,
+            pkey::{Id, PKey},
+            pkey_ctx::PkeyCtx,
+        };
 
         b.iter_batched(
             || {
@@ -602,18 +601,17 @@ fn nym_outfox_process(c: &mut Criterion) {
     });
 
     group.bench_function("Dalek Ristretto", |b| {
-        use curve25519_dalek::ristretto::RistrettoPoint;
-        use curve25519_dalek::scalar::Scalar;
-        use rand_core::{OsRng, TryRngCore};
+        use curve25519_dalek::{ristretto::RistrettoPoint, scalar::Scalar};
+        use rand::{rngs::SysRng, TryRng};
 
         b.iter_batched(
             || {
                 let mut sk1_b = [0u8; 32];
-                OsRng.try_fill_bytes(&mut sk1_b).unwrap();
+                SysRng.try_fill_bytes(&mut sk1_b).unwrap();
                 let sk1 = Scalar::from_bytes_mod_order(sk1_b);
                 let pk1 = RistrettoPoint::mul_base(&sk1);
                 let mut sk2_b = [0u8; 32];
-                OsRng.try_fill_bytes(&mut sk2_b).unwrap();
+                SysRng.try_fill_bytes(&mut sk2_b).unwrap();
                 let sk2 = Scalar::from_bytes_mod_order(sk2_b);
                 (pk1, sk2)
             },
@@ -654,9 +652,8 @@ fn nym_sphinx_create(c: &mut Criterion) {
     group.bench_function("libcrux", |b| {
         b.iter_batched(
             || {
-                use rand_core::{OsRng, TryRngCore};
-                let mut os_rng = OsRng;
-                let mut rng = os_rng.unwrap_mut();
+                use rand::rngs::SysRng;
+                let mut rng = UnwrapErr(SysRng);
                 let (_, pk1) = libcrux_ecdh::x25519_key_gen(&mut rng).unwrap();
                 let sk2 = libcrux_ecdh::x25519_generate_secret(&mut rng).unwrap();
 
@@ -743,9 +740,11 @@ fn nym_sphinx_create(c: &mut Criterion) {
 
     #[cfg(all(not(windows), not(target_arch = "wasm32"), not(target_arch = "x86")))]
     group.bench_function("OpenSSL", |b| {
-        use openssl::derive::Deriver;
-        use openssl::pkey::{Id, PKey};
-        use openssl::pkey_ctx::PkeyCtx;
+        use openssl::{
+            derive::Deriver,
+            pkey::{Id, PKey},
+            pkey_ctx::PkeyCtx,
+        };
 
         b.iter_batched(
             || {
@@ -821,18 +820,17 @@ fn nym_sphinx_create(c: &mut Criterion) {
     });
 
     group.bench_function("Dalek Ristretto", |b| {
-        use curve25519_dalek::ristretto::RistrettoPoint;
-        use curve25519_dalek::scalar::Scalar;
-        use rand_core::{OsRng, TryRngCore};
+        use curve25519_dalek::{ristretto::RistrettoPoint, scalar::Scalar};
+        use rand::{rngs::SysRng, TryRng};
 
         b.iter_batched(
             || {
                 let mut sk1_b = [0u8; 32];
-                OsRng.try_fill_bytes(&mut sk1_b).unwrap();
+                SysRng.try_fill_bytes(&mut sk1_b).unwrap();
                 let sk1 = Scalar::from_bytes_mod_order(sk1_b);
                 let pk1 = RistrettoPoint::mul_base(&sk1);
                 let mut sk2_b = [0u8; 32];
-                OsRng.try_fill_bytes(&mut sk2_b).unwrap();
+                SysRng.try_fill_bytes(&mut sk2_b).unwrap();
                 let sk2a = Scalar::from_bytes_mod_order(sk2_b);
                 (pk1, sk2a)
             },
@@ -903,10 +901,8 @@ fn nym_sphinx_process(c: &mut Criterion) {
     group.bench_function("libcrux", |b| {
         b.iter_batched(
             || {
-                use rand_core::{OsRng, TryRngCore};
-                let mut os_rng = OsRng;
-                let mut rng = os_rng.unwrap_mut();
-
+                use rand::rngs::SysRng;
+                let mut rng = UnwrapErr(SysRng);
                 let (_, pk1) = libcrux_ecdh::x25519_key_gen(&mut rng).unwrap();
                 let sk2 = libcrux_ecdh::x25519_generate_secret(&mut rng).unwrap();
 
@@ -961,9 +957,11 @@ fn nym_sphinx_process(c: &mut Criterion) {
 
     #[cfg(all(not(windows), not(target_arch = "wasm32"), not(target_arch = "x86")))]
     group.bench_function("OpenSSL", |b| {
-        use openssl::derive::Deriver;
-        use openssl::pkey::{Id, PKey};
-        use openssl::pkey_ctx::PkeyCtx;
+        use openssl::{
+            derive::Deriver,
+            pkey::{Id, PKey},
+            pkey_ctx::PkeyCtx,
+        };
 
         b.iter_batched(
             || {
@@ -1014,18 +1012,17 @@ fn nym_sphinx_process(c: &mut Criterion) {
     });
 
     group.bench_function("Dalek Ristretto", |b| {
-        use curve25519_dalek::ristretto::RistrettoPoint;
-        use curve25519_dalek::scalar::Scalar;
-        use rand_core::{OsRng, TryRngCore};
+        use curve25519_dalek::{ristretto::RistrettoPoint, scalar::Scalar};
+        use rand::{rngs::SysRng, TryRng};
 
         b.iter_batched(
             || {
                 let mut sk1_b = [0u8; 32];
-                OsRng.try_fill_bytes(&mut sk1_b).unwrap();
+                SysRng.try_fill_bytes(&mut sk1_b).unwrap();
                 let sk1 = Scalar::from_bytes_mod_order(sk1_b);
                 let pk1 = RistrettoPoint::mul_base(&sk1);
                 let mut sk2_b = [0u8; 32];
-                OsRng.try_fill_bytes(&mut sk2_b).unwrap();
+                SysRng.try_fill_bytes(&mut sk2_b).unwrap();
                 let sk2 = Scalar::from_bytes_mod_order(sk2_b);
                 let pk2 = RistrettoPoint::mul_base(&sk2);
                 (sk1, pk1, sk2, pk2)

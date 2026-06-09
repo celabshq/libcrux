@@ -538,11 +538,12 @@ pub fn decapsulate(
 /// Decapsulation is not provided in this module as it does not require randomness.
 #[cfg(all(not(eurydice), feature = "rand"))]
 pub mod rand {
+    use ::rand::CryptoRng;
+
     use super::{
         MlKem768Ciphertext, MlKem768KeyPair, MlKem768PublicKey, MlKemSharedSecret,
         KEY_GENERATION_SEED_SIZE, SHARED_SECRET_SIZE,
     };
-    use ::rand::CryptoRng;
 
     /// Generate ML-KEM 768 Key Pair
     ///
@@ -668,37 +669,37 @@ pub(crate) mod kyber {
 /// ```
 /// #[cfg(feature = "rand")]
 /// {
-/// use libcrux_ml_kem::mlkem768::incremental::*;
+///     use libcrux_ml_kem::mlkem768::incremental::*;
 ///
-/// // USE ONLY CRYPTOGRAPHICALLY SECURE RANDOMNESS OR `generate`
-/// let randomness = [0x13; 64];
-/// let key_pair = KeyPairBytes::from_seed(randomness);
+///     // USE ONLY CRYPTOGRAPHICALLY SECURE RANDOMNESS OR `generate`
+///     let randomness = [0x13; 64];
+///     let key_pair = KeyPairBytes::from_seed(randomness);
 ///
-/// // Get pk1 and pk2 to send to the other party.
-/// let pk1 = key_pair.pk1();
-/// let pk2 = key_pair.pk2();
+///     // Get pk1 and pk2 to send to the other party.
+///     let pk1 = key_pair.pk1();
+///     let pk2 = key_pair.pk2();
 ///
-/// // On the receiver, encapsulate to the public keys.
-/// // Check the public key for consistency.
-/// assert!(validate_pk_bytes(pk1, pk2).is_ok());
+///     // On the receiver, encapsulate to the public keys.
+///     // Check the public key for consistency.
+///     assert!(validate_pk_bytes(pk1, pk2).is_ok());
 ///
-/// let mut encaps_state = [0u8; encaps_state_len()];
-/// let mut encaps_shared_secret = [0u8; shared_secret_size()];
-/// let randomness = [0xAF; 32];
-/// let ct1 = encapsulate1(
-///     pk1,
-///     randomness,
-///     &mut encaps_state,
-///     &mut encaps_shared_secret,
-/// )
-/// .unwrap();
+///     let mut encaps_state = [0u8; encaps_state_len()];
+///     let mut encaps_shared_secret = [0u8; shared_secret_size()];
+///     let randomness = [0xAF; 32];
+///     let ct1 = encapsulate1(
+///         pk1,
+///         randomness,
+///         &mut encaps_state,
+///         &mut encaps_shared_secret,
+///     )
+///     .unwrap();
 ///
-/// let ct2 = encapsulate2(&encaps_state, &pk2);
+///     let ct2 = encapsulate2(&encaps_state, &pk2);
 ///
-/// // Decapsulate the shared secret after receiving ct1 and ct2.
-/// let shared_secret = decapsulate_incremental_key(key_pair.as_ref(), &ct1, &ct2).unwrap();
+///     // Decapsulate the shared secret after receiving ct1 and ct2.
+///     let shared_secret = decapsulate_incremental_key(key_pair.as_ref(), &ct1, &ct2).unwrap();
 ///
-/// assert_eq!(shared_secret, encaps_shared_secret);
+///     assert_eq!(shared_secret, encaps_shared_secret);
 /// }
 /// ```
 ///
@@ -706,38 +707,33 @@ pub(crate) mod kyber {
 /// ```
 /// #[cfg(feature = "rand")]
 /// {
-/// use libcrux_ml_kem::mlkem768::incremental::*;
+///     use libcrux_ml_kem::mlkem768::incremental::*;
 ///
-/// // Use a n RNG that is safe to use for cryptography.
-/// // THIS ONE IS NOT!
-/// let mut rng = ::rand::rng();
+///     // Use a n RNG that is safe to use for cryptography.
+///     // THIS ONE IS NOT!
+///     let mut rng = ::rand::rng();
 ///
-/// let key_pair = KeyPairCompressedBytes::generate(&mut rng);
+///     let key_pair = KeyPairCompressedBytes::generate(&mut rng);
 ///
-/// // Get pk1 and pk2 to send to the other party.
-/// let pk1 = key_pair.pk1();
-/// let pk2 = key_pair.pk2();
+///     // Get pk1 and pk2 to send to the other party.
+///     let pk1 = key_pair.pk1();
+///     let pk2 = key_pair.pk2();
 ///
-/// // On the receiver, encapsulate to the public keys.
-/// // Check the public key for consistency.
-/// assert!(validate_pk_bytes(pk1, pk2).is_ok());
+///     // On the receiver, encapsulate to the public keys.
+///     // Check the public key for consistency.
+///     assert!(validate_pk_bytes(pk1, pk2).is_ok());
 ///
-/// let mut encaps_state = [0u8; encaps_state_len()];
-/// let mut encaps_shared_secret = [0u8; shared_secret_size()];
-/// let ct1 = rand::encapsulate1(
-///     pk1,
-///     &mut rng,
-///     &mut encaps_state,
-///     &mut encaps_shared_secret,
-/// )
-/// .unwrap();
+///     let mut encaps_state = [0u8; encaps_state_len()];
+///     let mut encaps_shared_secret = [0u8; shared_secret_size()];
+///     let ct1 = rand::encapsulate1(pk1, &mut rng, &mut encaps_state, &mut encaps_shared_secret)
+///         .unwrap();
 ///
-/// let ct2 = encapsulate2(&encaps_state, pk2);
+///     let ct2 = encapsulate2(&encaps_state, pk2);
 ///
-/// // Decapsulate the shared secret after receiving ct1 and ct2.
-/// let shared_secret = decapsulate_compressed_key(key_pair.sk(), &ct1, &ct2);
+///     // Decapsulate the shared secret after receiving ct1 and ct2.
+///     let shared_secret = decapsulate_compressed_key(key_pair.sk(), &ct1, &ct2);
 ///
-/// assert_eq!(shared_secret, encaps_shared_secret);
+///     assert_eq!(shared_secret, encaps_shared_secret);
 /// }
 /// ```
 #[cfg(all(not(eurydice), feature = "incremental"))]
@@ -749,7 +745,7 @@ pub mod incremental {
 
 #[cfg(test)]
 mod tests {
-    use rand::{rngs::OsRng, TryRngCore};
+    use rand::{rngs::SysRng, TryRng};
 
     use super::{
         mlkem768::{generate_key_pair, validate_public_key},
@@ -759,7 +755,7 @@ mod tests {
     #[test]
     fn pk_validation() {
         let mut randomness = [0u8; KEY_GENERATION_SEED_SIZE];
-        OsRng.try_fill_bytes(&mut randomness).unwrap();
+        SysRng.try_fill_bytes(&mut randomness).unwrap();
 
         let key_pair = generate_key_pair(randomness);
         assert!(validate_public_key(&key_pair.pk));

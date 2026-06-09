@@ -1,9 +1,9 @@
+use libcrux_intrinsics::avx2::*;
+
 use crate::{
     constants::{Gamma2, BITS_IN_LOWER_PART_OF_T, GAMMA2_V261_888, GAMMA2_V95_232},
     simd::traits::{FIELD_MODULUS, INVERSE_OF_MODULUS_MOD_MONTGOMERY_R},
 };
-
-use libcrux_intrinsics::avx2::*;
 
 #[inline]
 #[hax_lib::fstar::before(r#"open Spec.Intrinsics"#)]
@@ -142,15 +142,25 @@ pub(super) fn montgomery_multiply(lhs: &mut Vec256, rhs: &Vec256) {
 pub(super) fn shift_left_then_reduce<const SHIFT_BY: i32>(simd_unit: &mut Vec256) {
     hax_lib::fstar!("reveal_opaque (`%Spec.MLDSA.Math.barrett_red) (Spec.MLDSA.Math.barrett_red)");
 
-    let shifted = mm256_slli_epi32::<SHIFT_BY>(*simd_unit);
+    let mut shifted = mm256_slli_epi32::<SHIFT_BY>(*simd_unit);
 
-    let quotient = mm256_add_epi32(shifted, mm256_set1_epi32(1 << 22));
+    barrett_reduce_simd_unit(&mut shifted);
+    *simd_unit = shifted;
+}
+
+#[inline]
+#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
+#[hax_lib::ensures(|_| fstar!(r#"
+    (forall i. to_i32x8 ${simd_unit}_future i ==
+        Spec.MLDSA.Math.barrett_red (to_i32x8 ${simd_unit} i))"#))]
+pub(super) fn barrett_reduce_simd_unit(simd_unit: &mut Vec256) {
+    let quotient = mm256_add_epi32(*simd_unit, mm256_set1_epi32(1 << 22));
     let quotient = mm256_srai_epi32::<23>(quotient);
 
     let quotient_times_field_modulus =
         mm256_mullo_epi32(quotient, mm256_set1_epi32(FIELD_MODULUS as i32));
 
-    *simd_unit = mm256_sub_epi32(shifted, quotient_times_field_modulus);
+    *simd_unit = mm256_sub_epi32(*simd_unit, quotient_times_field_modulus);
 }
 
 #[inline]
@@ -304,12 +314,13 @@ pub(super) fn use_hint(gamma2: Gamma2, r: &Vec256, hint: &mut Vec256) {
 
     let all_zeros = mm256_setzero_si256();
 
-    // If r0 is negative, we have to subtract the hint, whereas if it is positive,
+    // If r0 is <=0, we have to subtract the hint, whereas if it is > 0,
     // we have to add the hint. We thus add signs to the hint vector accordingly:
     //
     // With this step, |negate_hints| will match |hint| in only those lanes in
-    // which the corresponding r0 value is negative, and will be 0 elsewhere.
-    let negate_hints = vec256_blendv_epi32(all_zeros, *hint, r0);
+    // which the corresponding r0 value is <= 0, and will be 0 elsewhere.
+    let r0_gt_zero = mm256_cmpgt_epi32(r0, all_zeros);
+    let negate_hints = vec256_blendv_epi32(*hint, all_zeros, r0_gt_zero);
 
     // If a lane in |negate_hints| is 1, it means the corresponding hint was 1,
     // and the lane value will be doubled. It will remain 0 otherwise.

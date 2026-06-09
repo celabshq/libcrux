@@ -7,7 +7,7 @@ use libcrux_psq::{
     session::{Session, SessionBinding, SessionError},
     Channel, IntoSession,
 };
-use rand::Rng;
+use rand::RngExt;
 
 struct CommonSetup {
     pub responder_mlkem_keys: MlKem768KeyPair,

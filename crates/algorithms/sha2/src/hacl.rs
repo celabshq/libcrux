@@ -612,17 +612,16 @@ pub type state_t_512 = streaming_types::state_64;
 Allocate initial state for the SHA2_256 hash. The state is to be freed by
 calling `free_256`.
 */
-pub fn malloc_256() -> Box<[streaming_types::state_32]> {
-    let buf: Box<[u8]> = vec![0u8; 64usize].into_boxed_slice();
-    let mut block_state: Box<[u32]> = vec![0u32; 8usize].into_boxed_slice();
+pub fn malloc_256() -> streaming_types::state_32 {
+    let buf = [0u8; 64usize];
+    let mut block_state = [0u32; 8usize];
     crate::hacl::sha256_init(&mut block_state);
     let s: streaming_types::state_32 = streaming_types::state_32 {
         block_state,
         buf,
         total_len: 0u32 as u64,
     };
-    let p: Box<[streaming_types::state_32]> = vec![s].into_boxed_slice();
-    p
+    s
 }
 
 /**
@@ -631,41 +630,40 @@ The state is to be freed by calling `free_256`. Cloning the state this way is
 useful, for instance, if your control-flow diverges and you need to feed
 more (different) data into the hash in each branch.
 */
-pub fn copy_256(state: &[streaming_types::state_32]) -> Box<[streaming_types::state_32]> {
-    let block_state0: &[u32] = &(state[0usize]).block_state;
-    let buf0: &[u8] = &(state[0usize]).buf;
-    let total_len0: u64 = (state[0usize]).total_len;
-    let mut buf: Box<[u8]> = vec![0u8; 64usize].into_boxed_slice();
+pub fn copy_256(state: &streaming_types::state_32) -> streaming_types::state_32 {
+    let block_state0: &[u32] = &state.block_state;
+    let buf0: &[u8] = &state.buf;
+    let total_len0: u64 = state.total_len;
+    let mut buf = [0u8; 64usize];
     ((&mut buf)[0usize..64usize]).copy_from_slice(&buf0[0usize..64usize]);
-    let mut block_state: Box<[u32]> = vec![0u32; 8usize].into_boxed_slice();
+    let mut block_state = [0u32; 8usize];
     ((&mut block_state)[0usize..8usize]).copy_from_slice(&block_state0[0usize..8usize]);
     let s: streaming_types::state_32 = streaming_types::state_32 {
         block_state,
         buf,
         total_len: total_len0,
     };
-    let p: Box<[streaming_types::state_32]> = vec![s].into_boxed_slice();
-    p
+    s
 }
 
 /**
 Reset an existing state to the initial hash state with empty data.
 */
-pub fn reset_256(state: &mut [streaming_types::state_32]) {
-    let block_state: &mut [u32] = &mut (state[0usize]).block_state;
+pub fn reset_256(state: &mut streaming_types::state_32) {
+    let block_state: &mut [u32] = &mut state.block_state;
     crate::hacl::sha256_init(block_state);
     let total_len: u64 = 0u32 as u64;
-    (state[0usize]).total_len = total_len
+    state.total_len = total_len
 }
 
 #[inline]
 fn update_224_256(
-    state: &mut [streaming_types::state_32],
+    state: &mut streaming_types::state_32,
     chunk: &[u8],
     chunk_len: u32,
 ) -> streaming_types::error_code {
-    let block_state: &mut [u32] = &mut (state[0usize]).block_state;
-    let total_len: u64 = (state[0usize]).total_len;
+    let block_state: &mut [u32] = &mut state.block_state;
+    let total_len: u64 = state.total_len;
     if chunk_len as u64 > 2305843009213693951u64.wrapping_sub(total_len) {
         streaming_types::error_code::MaximumLengthExceeded
     } else {
@@ -675,8 +673,8 @@ fn update_224_256(
             total_len.wrapping_rem(64u32 as u64) as u32
         };
         if chunk_len <= 64u32.wrapping_sub(sz) {
-            let buf: &mut [u8] = &mut (state[0usize]).buf;
-            let total_len1: u64 = (state[0usize]).total_len;
+            let buf: &mut [u8] = &mut state.buf;
+            let total_len1: u64 = state.total_len;
             let sz1: u32 = if total_len1.wrapping_rem(64u32 as u64) == 0u64 && total_len1 > 0u64 {
                 64u32
             } else {
@@ -686,10 +684,10 @@ fn update_224_256(
             (buf2.1[0usize..chunk_len as usize])
                 .copy_from_slice(&chunk[0usize..chunk_len as usize]);
             let total_len2: u64 = total_len1.wrapping_add(chunk_len as u64);
-            (state[0usize]).total_len = total_len2
+            state.total_len = total_len2
         } else if sz == 0u32 {
-            let buf: &mut [u8] = &mut (state[0usize]).buf;
-            let total_len1: u64 = (state[0usize]).total_len;
+            let buf: &mut [u8] = &mut state.buf;
+            let total_len1: u64 = state.total_len;
             let sz1: u32 = if total_len1.wrapping_rem(64u32 as u64) == 0u64 && total_len1 > 0u64 {
                 64u32
             } else {
@@ -718,13 +716,13 @@ fn update_224_256(
             let dst: (&mut [u8], &mut [u8]) = buf.split_at_mut(0usize);
             (dst.1[0usize..data2_len as usize])
                 .copy_from_slice(&data2.1[0usize..data2_len as usize]);
-            (state[0usize]).total_len = total_len1.wrapping_add(chunk_len as u64)
+            state.total_len = total_len1.wrapping_add(chunk_len as u64)
         } else {
             let diff: u32 = 64u32.wrapping_sub(sz);
             let chunk1: (&[u8], &[u8]) = chunk.split_at(0usize);
             let chunk2: (&[u8], &[u8]) = chunk1.1.split_at(diff as usize);
-            let buf: &mut [u8] = &mut (state[0usize]).buf;
-            let total_len1: u64 = (state[0usize]).total_len;
+            let buf: &mut [u8] = &mut state.buf;
+            let total_len1: u64 = state.total_len;
             let sz1: u32 = if total_len1.wrapping_rem(64u32 as u64) == 0u64 && total_len1 > 0u64 {
                 64u32
             } else {
@@ -733,9 +731,9 @@ fn update_224_256(
             let buf2: (&mut [u8], &mut [u8]) = buf.split_at_mut(sz1 as usize);
             (buf2.1[0usize..diff as usize]).copy_from_slice(&chunk2.0[0usize..diff as usize]);
             let total_len2: u64 = total_len1.wrapping_add(diff as u64);
-            (state[0usize]).total_len = total_len2;
-            let buf0: &mut [u8] = &mut (state[0usize]).buf;
-            let total_len10: u64 = (state[0usize]).total_len;
+            state.total_len = total_len2;
+            let buf0: &mut [u8] = &mut state.buf;
+            let total_len10: u64 = state.total_len;
             let sz10: u32 = if total_len10.wrapping_rem(64u32 as u64) == 0u64 && total_len10 > 0u64
             {
                 64u32
@@ -769,8 +767,7 @@ fn update_224_256(
             let dst: (&mut [u8], &mut [u8]) = buf0.split_at_mut(0usize);
             (dst.1[0usize..data2_len as usize])
                 .copy_from_slice(&data2.1[0usize..data2_len as usize]);
-            (state[0usize]).total_len =
-                total_len10.wrapping_add(chunk_len.wrapping_sub(diff) as u64)
+            state.total_len = total_len10.wrapping_add(chunk_len.wrapping_sub(diff) as u64)
         };
         streaming_types::error_code::Success
     }
@@ -784,7 +781,7 @@ success, or 1 if the combined length of all of the data passed to `update_256`
 This function is identical to the update function for SHA2_224.
 */
 pub fn update_256(
-    state: &mut [streaming_types::state_32],
+    state: &mut streaming_types::state_32,
     input: &[u8],
     input_len: u32,
 ) -> streaming_types::error_code {
@@ -797,10 +794,10 @@ valid after a call to `digest_256`, meaning the user may feed more data into
 the hash via `update_256`. (The digest_256 function operates on an internal copy of
 the state and therefore does not invalidate the client-held state `p`.)
 */
-pub fn digest_256(state: &[streaming_types::state_32], output: &mut [u8]) {
-    let block_state: &[u32] = &(state[0usize]).block_state;
-    let buf_: &[u8] = &(state[0usize]).buf;
-    let total_len: u64 = (state[0usize]).total_len;
+pub fn digest_256(state: &streaming_types::state_32, output: &mut [u8]) {
+    let block_state: &[u32] = &state.block_state;
+    let buf_: &[u8] = &state.buf;
+    let total_len: u64 = state.total_len;
     let r: u32 = if total_len.wrapping_rem(64u32 as u64) == 0u64 && total_len > 0u64 {
         64u32
     } else {
@@ -845,28 +842,27 @@ pub fn hash_256(output: &mut [u8], input: &[u8], input_len: u32) {
     crate::hacl::sha256_finish(&st, rb)
 }
 
-pub fn malloc_224() -> Box<[streaming_types::state_32]> {
-    let buf: Box<[u8]> = vec![0u8; 64usize].into_boxed_slice();
-    let mut block_state: Box<[u32]> = vec![0u32; 8usize].into_boxed_slice();
+pub fn malloc_224() -> streaming_types::state_32 {
+    let buf = [0u8; 64usize];
+    let mut block_state = [0u32; 8usize];
     crate::hacl::sha224_init(&mut block_state);
     let s: streaming_types::state_32 = streaming_types::state_32 {
         block_state,
         buf,
         total_len: 0u32 as u64,
     };
-    let p: Box<[streaming_types::state_32]> = vec![s].into_boxed_slice();
-    p
+    s
 }
 
-pub fn reset_224(state: &mut [streaming_types::state_32]) {
-    let block_state: &mut [u32] = &mut (state[0usize]).block_state;
+pub fn reset_224(state: &mut streaming_types::state_32) {
+    let block_state: &mut [u32] = &mut state.block_state;
     crate::hacl::sha224_init(block_state);
     let total_len: u64 = 0u32 as u64;
-    (state[0usize]).total_len = total_len
+    state.total_len = total_len
 }
 
 pub fn update_224(
-    state: &mut [streaming_types::state_32],
+    state: &mut streaming_types::state_32,
     input: &[u8],
     input_len: u32,
 ) -> streaming_types::error_code {
@@ -878,10 +874,10 @@ Write the resulting hash into `output`, an array of 28 bytes. The state remains
 valid after a call to `digest_224`, meaning the user may feed more data into
 the hash via `update_224`.
 */
-pub fn digest_224(state: &[streaming_types::state_32], output: &mut [u8]) {
-    let block_state: &[u32] = &(state[0usize]).block_state;
-    let buf_: &[u8] = &(state[0usize]).buf;
-    let total_len: u64 = (state[0usize]).total_len;
+pub fn digest_224(state: &streaming_types::state_32, output: &mut [u8]) {
+    let block_state: &[u32] = &state.block_state;
+    let buf_: &[u8] = &state.buf;
+    let total_len: u64 = state.total_len;
     let r: u32 = if total_len.wrapping_rem(64u32 as u64) == 0u64 && total_len > 0u64 {
         64u32
     } else {
@@ -926,17 +922,16 @@ pub fn hash_224(output: &mut [u8], input: &[u8], input_len: u32) {
     crate::hacl::sha224_finish(&st, rb)
 }
 
-pub fn malloc_512() -> Box<[streaming_types::state_64]> {
-    let buf: Box<[u8]> = vec![0u8; 128usize].into_boxed_slice();
-    let mut block_state: Box<[u64]> = vec![0u64; 8usize].into_boxed_slice();
+pub fn malloc_512() -> streaming_types::state_64 {
+    let buf = [0u8; 128usize];
+    let mut block_state = [0u64; 8usize];
     crate::hacl::sha512_init(&mut block_state);
     let s: streaming_types::state_64 = streaming_types::state_64 {
         block_state,
         buf,
         total_len: 0u32 as u64,
     };
-    let p: Box<[streaming_types::state_64]> = vec![s].into_boxed_slice();
-    p
+    s
 }
 
 /**
@@ -945,38 +940,37 @@ The state is to be freed by calling `free_512`. Cloning the state this way is
 useful, for instance, if your control-flow diverges and you need to feed
 more (different) data into the hash in each branch.
 */
-pub fn copy_512(state: &[streaming_types::state_64]) -> Box<[streaming_types::state_64]> {
-    let block_state0: &[u64] = &(state[0usize]).block_state;
-    let buf0: &[u8] = &(state[0usize]).buf;
-    let total_len0: u64 = (state[0usize]).total_len;
-    let mut buf: Box<[u8]> = vec![0u8; 128usize].into_boxed_slice();
+pub fn copy_512(state: &streaming_types::state_64) -> streaming_types::state_64 {
+    let block_state0: &[u64] = &state.block_state;
+    let buf0: &[u8] = &state.buf;
+    let total_len0: u64 = state.total_len;
+    let mut buf = [0u8; 128usize];
     ((&mut buf)[0usize..128usize]).copy_from_slice(&buf0[0usize..128usize]);
-    let mut block_state: Box<[u64]> = vec![0u64; 8usize].into_boxed_slice();
+    let mut block_state = [0u64; 8usize];
     ((&mut block_state)[0usize..8usize]).copy_from_slice(&block_state0[0usize..8usize]);
     let s: streaming_types::state_64 = streaming_types::state_64 {
         block_state,
         buf,
         total_len: total_len0,
     };
-    let p: Box<[streaming_types::state_64]> = vec![s].into_boxed_slice();
-    p
+    s
 }
 
-pub fn reset_512(state: &mut [streaming_types::state_64]) {
-    let block_state: &mut [u64] = &mut (state[0usize]).block_state;
+pub fn reset_512(state: &mut streaming_types::state_64) {
+    let block_state: &mut [u64] = &mut state.block_state;
     crate::hacl::sha512_init(block_state);
     let total_len: u64 = 0u32 as u64;
-    (state[0usize]).total_len = total_len
+    state.total_len = total_len
 }
 
 #[inline]
 fn update_384_512(
-    state: &mut [streaming_types::state_64],
+    state: &mut streaming_types::state_64,
     chunk: &[u8],
     chunk_len: u32,
 ) -> streaming_types::error_code {
-    let block_state: &mut [u64] = &mut (state[0usize]).block_state;
-    let total_len: u64 = (state[0usize]).total_len;
+    let block_state: &mut [u64] = &mut state.block_state;
+    let total_len: u64 = state.total_len;
     if chunk_len as u64 > 18446744073709551615u64.wrapping_sub(total_len) {
         streaming_types::error_code::MaximumLengthExceeded
     } else {
@@ -986,8 +980,8 @@ fn update_384_512(
             total_len.wrapping_rem(128u32 as u64) as u32
         };
         if chunk_len <= 128u32.wrapping_sub(sz) {
-            let buf: &mut [u8] = &mut (state[0usize]).buf;
-            let total_len1: u64 = (state[0usize]).total_len;
+            let buf: &mut [u8] = &mut state.buf;
+            let total_len1: u64 = state.total_len;
             let sz1: u32 = if total_len1.wrapping_rem(128u32 as u64) == 0u64 && total_len1 > 0u64 {
                 128u32
             } else {
@@ -997,10 +991,10 @@ fn update_384_512(
             (buf2.1[0usize..chunk_len as usize])
                 .copy_from_slice(&chunk[0usize..chunk_len as usize]);
             let total_len2: u64 = total_len1.wrapping_add(chunk_len as u64);
-            (state[0usize]).total_len = total_len2
+            state.total_len = total_len2
         } else if sz == 0u32 {
-            let buf: &mut [u8] = &mut (state[0usize]).buf;
-            let total_len1: u64 = (state[0usize]).total_len;
+            let buf: &mut [u8] = &mut state.buf;
+            let total_len1: u64 = state.total_len;
             let sz1: u32 = if total_len1.wrapping_rem(128u32 as u64) == 0u64 && total_len1 > 0u64 {
                 128u32
             } else {
@@ -1029,13 +1023,13 @@ fn update_384_512(
             let dst: (&mut [u8], &mut [u8]) = buf.split_at_mut(0usize);
             (dst.1[0usize..data2_len as usize])
                 .copy_from_slice(&data2.1[0usize..data2_len as usize]);
-            (state[0usize]).total_len = total_len1.wrapping_add(chunk_len as u64)
+            state.total_len = total_len1.wrapping_add(chunk_len as u64)
         } else {
             let diff: u32 = 128u32.wrapping_sub(sz);
             let chunk1: (&[u8], &[u8]) = chunk.split_at(0usize);
             let chunk2: (&[u8], &[u8]) = chunk1.1.split_at(diff as usize);
-            let buf: &mut [u8] = &mut (state[0usize]).buf;
-            let total_len1: u64 = (state[0usize]).total_len;
+            let buf: &mut [u8] = &mut state.buf;
+            let total_len1: u64 = state.total_len;
             let sz1: u32 = if total_len1.wrapping_rem(128u32 as u64) == 0u64 && total_len1 > 0u64 {
                 128u32
             } else {
@@ -1044,9 +1038,9 @@ fn update_384_512(
             let buf2: (&mut [u8], &mut [u8]) = buf.split_at_mut(sz1 as usize);
             (buf2.1[0usize..diff as usize]).copy_from_slice(&chunk2.0[0usize..diff as usize]);
             let total_len2: u64 = total_len1.wrapping_add(diff as u64);
-            (state[0usize]).total_len = total_len2;
-            let buf0: &mut [u8] = &mut (state[0usize]).buf;
-            let total_len10: u64 = (state[0usize]).total_len;
+            state.total_len = total_len2;
+            let buf0: &mut [u8] = &mut state.buf;
+            let total_len10: u64 = state.total_len;
             let sz10: u32 = if total_len10.wrapping_rem(128u32 as u64) == 0u64 && total_len10 > 0u64
             {
                 128u32
@@ -1080,8 +1074,7 @@ fn update_384_512(
             let dst: (&mut [u8], &mut [u8]) = buf0.split_at_mut(0usize);
             (dst.1[0usize..data2_len as usize])
                 .copy_from_slice(&data2.1[0usize..data2_len as usize]);
-            (state[0usize]).total_len =
-                total_len10.wrapping_add(chunk_len.wrapping_sub(diff) as u64)
+            state.total_len = total_len10.wrapping_add(chunk_len.wrapping_sub(diff) as u64)
         };
         streaming_types::error_code::Success
     }
@@ -1095,7 +1088,7 @@ success, or 1 if the combined length of all of the data passed to `update_512`
 This function is identical to the update function for SHA2_384.
 */
 pub fn update_512(
-    state: &mut [streaming_types::state_64],
+    state: &mut streaming_types::state_64,
     input: &[u8],
     input_len: u32,
 ) -> streaming_types::error_code {
@@ -1108,10 +1101,10 @@ valid after a call to `digest_512`, meaning the user may feed more data into
 the hash via `update_512`. (The digest_512 function operates on an internal copy of
 the state and therefore does not invalidate the client-held state `p`.)
 */
-pub fn digest_512(state: &[streaming_types::state_64], output: &mut [u8]) {
-    let block_state: &[u64] = &(state[0usize]).block_state;
-    let buf_: &[u8] = &(state[0usize]).buf;
-    let total_len: u64 = (state[0usize]).total_len;
+pub fn digest_512(state: &streaming_types::state_64, output: &mut [u8]) {
+    let block_state: &[u64] = &state.block_state;
+    let buf_: &[u8] = &state.buf;
+    let total_len: u64 = state.total_len;
     let r: u32 = if total_len.wrapping_rem(128u32 as u64) == 0u64 && total_len > 0u64 {
         128u32
     } else {
@@ -1159,28 +1152,27 @@ pub fn hash_512(output: &mut [u8], input: &[u8], input_len: u32) {
     crate::hacl::sha512_finish(&st, rb)
 }
 
-pub fn malloc_384() -> Box<[streaming_types::state_64]> {
-    let buf: Box<[u8]> = vec![0u8; 128usize].into_boxed_slice();
-    let mut block_state: Box<[u64]> = vec![0u64; 8usize].into_boxed_slice();
+pub fn malloc_384() -> streaming_types::state_64 {
+    let buf = [0u8; 128usize];
+    let mut block_state = [0u64; 8usize];
     crate::hacl::sha384_init(&mut block_state);
     let s: streaming_types::state_64 = streaming_types::state_64 {
         block_state,
         buf,
         total_len: 0u32 as u64,
     };
-    let p: Box<[streaming_types::state_64]> = vec![s].into_boxed_slice();
-    p
+    s
 }
 
-pub fn reset_384(state: &mut [streaming_types::state_64]) {
-    let block_state: &mut [u64] = &mut (state[0usize]).block_state;
+pub fn reset_384(state: &mut streaming_types::state_64) {
+    let block_state: &mut [u64] = &mut state.block_state;
     crate::hacl::sha384_init(block_state);
     let total_len: u64 = 0u32 as u64;
-    (state[0usize]).total_len = total_len
+    state.total_len = total_len
 }
 
 pub fn update_384(
-    state: &mut [streaming_types::state_64],
+    state: &mut streaming_types::state_64,
     input: &[u8],
     input_len: u32,
 ) -> streaming_types::error_code {
@@ -1192,10 +1184,10 @@ Write the resulting hash into `output`, an array of 48 bytes. The state remains
 valid after a call to `digest_384`, meaning the user may feed more data into
 the hash via `update_384`.
 */
-pub fn digest_384(state: &[streaming_types::state_64], output: &mut [u8]) {
-    let block_state: &[u64] = &(state[0usize]).block_state;
-    let buf_: &[u8] = &(state[0usize]).buf;
-    let total_len: u64 = (state[0usize]).total_len;
+pub fn digest_384(state: &streaming_types::state_64, output: &mut [u8]) {
+    let block_state: &[u64] = &state.block_state;
+    let buf_: &[u8] = &state.buf;
+    let total_len: u64 = state.total_len;
     let r: u32 = if total_len.wrapping_rem(128u32 as u64) == 0u64 && total_len > 0u64 {
         128u32
     } else {

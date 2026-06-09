@@ -6,9 +6,8 @@ use libcrux_p256::{
     validate_private_key, validate_public_key,
 };
 
-use crate::DigestAlgorithm;
-
 use super::Error;
+use crate::DigestAlgorithm;
 
 /// A P-256 Signature
 #[derive(Clone, Default)]
@@ -195,10 +194,10 @@ fn validate_private_key_slice(scalar: &[u8]) -> Result<PrivateKey, Error> {
 /// Prepare the nonce for EcDSA and validate the key
 #[cfg(feature = "rand")]
 pub mod rand {
-    use crate::RAND_LIMIT;
+    use ::rand::CryptoRng;
 
     use super::*;
-    use ::rand::{CryptoRng, RngCore, TryRngCore};
+    use crate::RAND_LIMIT;
 
     /// Generate a random scalar for ECDSA.
     ///
@@ -206,7 +205,7 @@ pub mod rand {
     ///
     /// Use [`Nonce::random`] or [`PrivateKey::random`] to generate a nonce or
     /// a private key instead.
-    pub fn random_scalar(rng: &mut (impl CryptoRng + RngCore)) -> Result<[u8; 32], Error> {
+    pub fn random_scalar(rng: &mut impl CryptoRng) -> Result<[u8; 32], Error> {
         let mut value = [0u8; 32];
         for _ in 0..RAND_LIMIT {
             rng.try_fill_bytes(&mut value)
@@ -222,14 +221,14 @@ pub mod rand {
 
     impl Nonce {
         /// Generate a random nonce for ECDSA.
-        pub fn random(rng: &mut (impl CryptoRng + RngCore)) -> Result<Self, Error> {
+        pub fn random(rng: &mut impl CryptoRng) -> Result<Self, Error> {
             random_scalar(rng).map(|s| Self(s))
         }
     }
 
     impl PrivateKey {
         /// Generate a random [`PrivateKey`] for ECDSA.
-        pub fn random(rng: &mut (impl CryptoRng + RngCore)) -> Result<Self, Error> {
+        pub fn random(rng: &mut impl CryptoRng) -> Result<Self, Error> {
             random_scalar(rng).map(|s| Self(s))
         }
     }
@@ -239,7 +238,7 @@ pub mod rand {
         hash: DigestAlgorithm,
         payload: &[u8],
         private_key: &PrivateKey,
-        rng: &mut (impl CryptoRng + RngCore),
+        rng: &mut impl CryptoRng,
     ) -> Result<Signature, Error> {
         let nonce = Nonce(random_scalar(rng)?);
 

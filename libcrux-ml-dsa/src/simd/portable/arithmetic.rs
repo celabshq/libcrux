@@ -1,13 +1,12 @@
 use super::vector_type::{Coefficients, FieldElement};
+#[cfg(hax)]
+use crate::simd::traits::{specs::*, COEFFICIENTS_IN_SIMD_UNIT};
 use crate::{
     constants::{Gamma2, BITS_IN_LOWER_PART_OF_T, GAMMA2_V261_888, GAMMA2_V95_232},
     simd::traits::{
         FieldElementTimesMontgomeryR, FIELD_MODULUS, INVERSE_OF_MODULUS_MOD_MONTGOMERY_R,
     },
 };
-
-#[cfg(hax)]
-use crate::simd::traits::{specs::*, COEFFICIENTS_IN_SIMD_UNIT};
 
 pub(crate) const MONTGOMERY_SHIFT: u8 = 32;
 
@@ -424,7 +423,7 @@ pub(super) fn infinity_norm_exceeds(simd_unit: &Coefficients, bound: i32) -> boo
 #[hax_lib::requires(fstar!(r#"Spec.Utils.is_i32b 2143289343 $fe"#))]
 #[hax_lib::ensures(|result| fstar!(r#"Spec.Utils.is_i32b 8380416 $result /\
     Spec.MLDSA.Math.mod_q (v $result) == Spec.MLDSA.Math.mod_q (v $fe)"#))]
-fn reduce_element(fe: FieldElement) -> FieldElement {
+fn barrett_reduce_element(fe: FieldElement) -> FieldElement {
     let quotient = (fe + (1 << 22)) >> 23;
     let result = fe - (quotient * FIELD_MODULUS);
 
@@ -446,6 +445,31 @@ fn reduce_element(fe: FieldElement) -> FieldElement {
     result
 }
 
+#[inline]
+#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
+#[hax_lib::requires(fstar!(r#"Spec.Utils.is_i32b_array_opaque 2143289343 (${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values)"#))]
+#[hax_lib::ensures(|_| fstar!(r#"
+    Spec.Utils.is_i32b_array_opaque 8380416 (${simd_unit}_future.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values) /\
+    (forall i. i < 8 ==> Spec.MLDSA.Math.(
+        mod_q (v (Seq.index ${simd_unit}_future.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i)) ==
+        mod_q (v (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i)))))"#))
+]
+pub(crate) fn barrett_reduce_simd_unit(simd_unit: &mut Coefficients) {
+    #[cfg(hax)]
+    let _simd_unit0 = simd_unit.clone();
+
+    for i in 0..simd_unit.values.len() {
+        hax_lib::loop_invariant!(|i: usize| fstar!(
+            r#"
+                (forall j. j < v i ==> (Spec.Utils.is_i32b 8380416 (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values j) /\
+                                        Spec.MLDSA.Math.mod_q (v (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values j))
+                                        == Spec.MLDSA.Math.mod_q (v (Seq.index ${_simd_unit0}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values j)))) /\
+                (forall j. j >= v i ==> Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values j == Seq.index ${_simd_unit0}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values j)"#
+        ));
+
+        simd_unit.values[i] = barrett_reduce_element(simd_unit.values[i]);
+    }
+}
 #[inline(always)]
 #[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
 #[hax_lib::requires(fstar!(r#"v $SHIFT_BY == 13 /\ 
@@ -466,14 +490,15 @@ pub(super) fn shift_left_then_reduce<const SHIFT_BY: i32>(simd_unit: &mut Coeffi
     for i in 0..simd_unit.values.len() {
         hax_lib::loop_invariant!(|i: usize| fstar!(
             r#"
-                (forall j. j < v i ==> (Spec.Utils.is_i32b 8380416 (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values j) /\
-                    Spec.MLDSA.Math.mod_q (v (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values j)) == 
-                    Spec.MLDSA.Math.mod_q (v ((Seq.index ${_simd_unit0}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values j) <<! v_SHIFT_BY)))) /\
+                (forall j. j < v i ==> Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values j == 
+                                       (Seq.index ${_simd_unit0}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values j <<! v_SHIFT_BY)) /\
                 (forall j. j >= v i ==> Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values j == Seq.index ${_simd_unit0}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values j)"#
         ));
 
-        simd_unit.values[i] = reduce_element(simd_unit.values[i] << SHIFT_BY);
+        simd_unit.values[i] = simd_unit.values[i] << SHIFT_BY;
     }
+
+    barrett_reduce_simd_unit(simd_unit);
 }
 
 #[inline(always)]

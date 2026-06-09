@@ -5,7 +5,7 @@ use std::{
 
 use clap::{Parser, Subcommand};
 use libcrux::primitives::kem;
-use rand::SeedableRng;
+use rand::{rngs::SysRng, SeedableRng};
 use rand_chacha::ChaCha20Rng;
 
 #[derive(Subcommand)]
@@ -85,7 +85,7 @@ fn main() {
         kem::Algorithm::MlKem768
     };
 
-    let mut rng = ChaCha20Rng::from_os_rng();
+    let mut rng = ChaCha20Rng::try_from_rng(&mut SysRng).unwrap();
 
     match cli.cmd {
         GenerateCli::GenerateKey { out: file } => {

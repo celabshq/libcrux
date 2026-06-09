@@ -8,7 +8,7 @@ license.workspace = true
 name = "libcrux-aes"
 readme = "README.md"
 repository.workspace = true
-version = "0.0.7"
+version = "0.0.8"
 
 [lib]
 bench = false # so libtest doesn't eat the arguments to criterion
@@ -19,11 +19,8 @@ libcrux-platform.workspace = true
 libcrux-traits.workspace = true
 libcrux-secrets.workspace = true
 
-rand = { version = "0.9", optional = true }
-
 [features]
 default = []
-rand = ["dep:rand"]
 std = []
 
 # Hardware features can be force enabled.
@@ -38,12 +35,10 @@ name = "aesgcm"
 
 [dev-dependencies]
 aes-gcm = "0.10.3"
-cavp = { path = "../../../cavp" }
 criterion = "0.8.0"
 hex = "0.4.3"
 pretty_env_logger = "0.5.0"
-rand = "0.9"
-rand_core = { version = "0.9" }
+rand = "0.10"
 wycheproof = "0.6.0"
 
 

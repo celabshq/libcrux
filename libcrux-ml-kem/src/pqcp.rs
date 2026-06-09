@@ -30,7 +30,7 @@ macro_rules! pqcp_api {
         /// Common APIs shared between PQCP implementations.
         ///
         /// ```
-        /// use rand::RngCore;
+        /// use rand::Rng;
         #[doc = $use_mod]
         ///
         /// // Key Generation
@@ -61,13 +61,12 @@ macro_rules! pqcp_api {
         /// ```
         #[cfg(all(not(eurydice), feature = "pqcp"))]
         pub mod pqcp {
-            use crate::pqcp::PQCPError;
-            use libcrux_traits::kem::arrayref::Kem;
-
             #[cfg(feature = "rand")]
             use ::rand::CryptoRng;
+            use libcrux_traits::kem::arrayref::Kem;
 
             use super::*;
+            use crate::pqcp::PQCPError;
 
             /// Length of the public key in bytes.
             pub const PK_LEN: usize = CPA_PKE_PUBLIC_KEY_SIZE;
@@ -171,7 +170,14 @@ macro_rules! pqcp_api {
 ///   space in front and one after, e.g. " 512 ". It is used only for
 ///   generating documentation.
 macro_rules! pqcp_unpacked_api {
-    ($sk_type_unpacked:ty, $pk_type_unpacked:ty, $sk_type_packed:ty, $pk_type_packed:ty, $ct_type:ty, $variant:literal) => {
+    (
+        $sk_type_unpacked:ty,
+        $pk_type_unpacked:ty,
+        $sk_type_packed:ty,
+        $pk_type_packed:ty,
+        $ct_type:ty,
+        $variant:literal
+    ) => {
         /// Common APIs shared between PQCP implementations.
         #[cfg(all(not(eurydice), feature = "pqcp"))]
         pub mod pqcp {

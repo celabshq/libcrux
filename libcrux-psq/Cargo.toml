@@ -1,7 +1,7 @@
 [package]
 name = "libcrux-psq"
 description = "Libcrux Pre-Shared post-Quantum key establishement protocol"
-version = "0.0.8"
+version = "0.0.9"
 readme = "README.md"
 
 authors.workspace = true
@@ -27,7 +27,7 @@ classic-mceliece-rust = { version = "3.1.0", features = [
     "mceliece460896f",
     "zeroize",
 ], optional = true }
-rand = { version = "0.9" }
+rand = { version = "0.10" }
 rand_old = { version = "0.8", package = "rand", optional = true }
 libcrux-ecdh = { workspace = true, default-features = true }
 libcrux-ml-kem = { workspace = true, default-features = true, features = [
@@ -43,7 +43,7 @@ libcrux-ml-dsa = { workspace = true, features = ["codec"] }
 libcrux-aes.workspace = true
 
 [dev-dependencies]
-libcrux-psq = { path = ".", features = ["test-utils"] }
+rand_core = { version = "0.10" }
 clap = { version = "4.5.30", features = ["derive"] }
 criterion = "0.8"
 log = "0.4.26"
@@ -57,20 +57,7 @@ classic-mceliece = ["dep:classic-mceliece-rust", "rand_old"]
 # ⚠️ CAUTION! Enabling this makes it the responsibility of the application to avoid nonce re-use.
 nonce-control = []
 
-# DO NOT USE: This feature enables implementations backed
-# by non-post-quantum KEMs and should only be used for
-# testing purposes and benchmark baselines.
-test-utils = ["v1"]
-
-[[bench]]
-name = "psq"
-harness = false
-required-features = ["v1", "classic-mceliece", "test-utils"]
-
 [[bench]]
 name = "psq_v2"
 harness = false
 
-[[example]]
-name = "psq"
-required-features = ["v1"]

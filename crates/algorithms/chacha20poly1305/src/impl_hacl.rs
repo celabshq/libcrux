@@ -59,8 +59,9 @@ pub fn encrypt<'a>(
 ) -> Result<(&'a [u8], &'a [u8; TAG_LEN]), AeadError> {
     let (ptxt_len, aad_len) = encrypt_checks(ptxt, ctxt, aad, NOT_DETACHED)?;
 
-    // ensure destination slice has just the right length
-    let (ctxt_cpa, tag) = ctxt.split_at_mut(ptxt_len as usize);
+    let (ctxt_cpa, rest) = ctxt.split_at_mut(ptxt_len as usize);
+    // The ciphertext buffer may be longer than ptxt_len + TAG_LEN.
+    let (tag, _rest) = rest.split_at_mut(TAG_LEN);
     let tag: &mut [u8; TAG_LEN] = tag.try_into().unwrap();
 
     crate::hacl::aead_chacha20poly1305::encrypt(

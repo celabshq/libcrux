@@ -1,13 +1,11 @@
+use benchmarks::util::*;
 use chacha20poly1305::{AeadCore, AeadInPlace, KeyInit};
 use criterion::{criterion_group, criterion_main, BatchSize, BenchmarkId, Criterion, Throughput};
-
 use libcrux_chacha20poly1305::*;
-
-use benchmarks::util::*;
-use rand::RngCore;
+use rand::Rng;
 use ring::aead::UnboundKey;
 
-fn randbuf<const LEN: usize>(drbg: &mut impl RngCore) -> [u8; LEN] {
+fn randbuf<const LEN: usize>(drbg: &mut impl Rng) -> [u8; LEN] {
     let mut buf = [0; LEN];
     drbg.fill_bytes(&mut buf);
     buf

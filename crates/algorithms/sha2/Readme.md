@@ -2,7 +2,7 @@
 
 ## `no_std` support
 
-This crate supports `no_std` targets, but requires the presence of a global allocator.
+This crate supports `no_std` targets and is free of heap allocations.
 
 ## Verification
 ![verified-hacl]

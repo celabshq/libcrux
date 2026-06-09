@@ -1677,14 +1677,13 @@ fn sha512_pre_msg(hash: &mut [u8], prefix: &[u8], len: u32, input: &[u8]) {
     let buf: [u8; 128] = [0u8; 128usize];
     let mut block_state: [u64; 8] = [0u64; 8usize];
     libcrux_sha2::hacl::sha512_init(&mut block_state);
-    let s: libcrux_hacl_rs::streaming_types::state_64 =
+    let mut s: libcrux_hacl_rs::streaming_types::state_64 =
         libcrux_hacl_rs::streaming_types::state_64 {
-            block_state: Box::new(block_state),
-            buf: Box::new(buf),
+            block_state: block_state,
+            buf: buf,
             total_len: 0u32 as u64,
         };
-    let mut p: [libcrux_hacl_rs::streaming_types::state_64; 1] = [s; 1usize];
-    let st: &mut [libcrux_hacl_rs::streaming_types::state_64] = &mut p;
+    let st = &mut s;
     let err0: libcrux_hacl_rs::streaming_types::error_code =
         libcrux_sha2::hacl::update_512(st, prefix, 32u32);
     let err1: libcrux_hacl_rs::streaming_types::error_code =
@@ -1699,14 +1698,13 @@ fn sha512_pre_pre2_msg(hash: &mut [u8], prefix: &[u8], prefix2: &[u8], len: u32,
     let buf: [u8; 128] = [0u8; 128usize];
     let mut block_state: [u64; 8] = [0u64; 8usize];
     libcrux_sha2::hacl::sha512_init(&mut block_state);
-    let s: libcrux_hacl_rs::streaming_types::state_64 =
+    let mut s: libcrux_hacl_rs::streaming_types::state_64 =
         libcrux_hacl_rs::streaming_types::state_64 {
-            block_state: Box::new(block_state),
-            buf: Box::new(buf),
+            block_state: block_state,
+            buf: buf,
             total_len: 0u32 as u64,
         };
-    let mut p: [libcrux_hacl_rs::streaming_types::state_64; 1] = [s; 1usize];
-    let st: &mut [libcrux_hacl_rs::streaming_types::state_64] = &mut p;
+    let st = &mut s;
     let err0: libcrux_hacl_rs::streaming_types::error_code =
         libcrux_sha2::hacl::update_512(st, prefix, 32u32);
     let err1: libcrux_hacl_rs::streaming_types::error_code =

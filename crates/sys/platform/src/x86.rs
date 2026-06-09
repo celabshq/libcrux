@@ -3,9 +3,9 @@
 #![allow(non_upper_case_globals)]
 
 #[cfg(target_arch = "x86")]
-use core::arch::x86::{CpuidResult, __cpuid, __cpuid_count};
+use core::arch::x86::{__cpuid, __cpuid_count, CpuidResult};
 #[cfg(target_arch = "x86_64")]
-use core::arch::x86_64::{CpuidResult, __cpuid, __cpuid_count};
+use core::arch::x86_64::{__cpuid, __cpuid_count, CpuidResult};
 use core::sync::atomic::{AtomicBool, Ordering};
 
 #[allow(non_camel_case_types)]

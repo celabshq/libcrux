@@ -1,12 +1,11 @@
 extern crate hacspec_kyber;
 
+use std::{fs::File, io::BufReader};
+
 use hacspec_kyber::generate_keypair;
+use libcrux::algorithms::sha3;
 use serde::Deserialize;
 use serde_json;
-
-use libcrux::digest;
-
-use std::{fs::File, io::BufReader};
 
 #[derive(Deserialize)]
 struct Kyber768NISTKAT {
@@ -40,12 +39,12 @@ fn kyber768_known_answer_tests() {
     for kat in nist_kats {
         let key_pair = generate_keypair(kat.key_generation_seed).unwrap();
 
-        let public_key_hash = digest::sha3_256(key_pair.pk());
+        let public_key_hash = sha3::sha256(key_pair.pk());
         for i in 0..public_key_hash.len() {
             assert_eq!(public_key_hash[i], kat.sha3_256_hash_of_public_key[i]);
         }
 
-        let secret_key_hash = digest::sha3_256(key_pair.sk());
+        let secret_key_hash = sha3::sha256(key_pair.sk());
         for i in 0..secret_key_hash.len() {
             assert_eq!(secret_key_hash[i], kat.sha3_256_hash_of_secret_key[i]);
         }
@@ -53,7 +52,7 @@ fn kyber768_known_answer_tests() {
         let (ciphertext, shared_secret) =
             hacspec_kyber::encapsulate(key_pair.pk().clone(), kat.encapsulation_seed).unwrap();
 
-        let ciphertext_hash = digest::sha3_256(&ciphertext);
+        let ciphertext_hash = sha3::sha256(&ciphertext);
         for i in 0..ciphertext_hash.len() {
             assert_eq!(ciphertext_hash[i], kat.sha3_256_hash_of_ciphertext[i]);
         }

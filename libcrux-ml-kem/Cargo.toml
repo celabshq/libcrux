@@ -1,6 +1,6 @@
 [package]
 name = "libcrux-ml-kem"
-version = "0.0.8"
+version = "0.0.9"
 authors.workspace = true
 license.workspace = true
 homepage.workspace = true
@@ -22,7 +22,7 @@ exclude = [
 bench = false # so libtest doesn't eat the arguments to criterion
 
 [dependencies]
-rand = { version = "0.9", optional = true, default-features = false }
+rand = { version = "0.10", optional = true, default-features = false }
 libcrux-platform.workspace = true
 libcrux-sha3.workspace = true
 libcrux-intrinsics.workspace = true
@@ -76,7 +76,7 @@ check-secret-independence = [
 pqcp = []
 
 [dev-dependencies]
-rand = { version = "0.9", features = ["thread_rng"] }
+rand = { version = "0.10", features = ["thread_rng"] }
 serde_json = { version = "1.0" }
 serde = { version = "1.0", features = ["derive"] }
 hex = { version = "0.4.3", features = ["serde"] }

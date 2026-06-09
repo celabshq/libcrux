@@ -43,7 +43,7 @@ while [ $# -gt 0 ]; do
         --config) config="$2"; shift ;;
         --out) out="$2"; shift ;;
         --glue) glue="$2"; shift ;;
-        --mldsa65) features="${features} --cargo-arg=--no-default-features --cargo-arg=--features=mldsa65" ;;
+        --mldsa65) features="${features} --no-default-features --features=mldsa65" ;;
         --no-glue) eurydice_glue=0 ;;
         --no-karamel_include) karamel_include=0 ;;
         --no-unrolling) unrolling=0 ;;
@@ -61,21 +61,21 @@ fi
 if [[ "$no_charon" = 0 ]]; then
     # Because of a Charon bug we have to clean the sha3 crate.
     cargo clean -p libcrux-sha3
-    rm -rf $repo_root/libcrux_ml_dsa.llbc $repo_root/libcrux_sha3.llbc
+    rm -rf $repo_root/libcrux_ml_dsa.llbc $repo_root/libcrux_sha3.llbc $repo_root/libcrux_secrets.llbc
 
-    flags=
+    flags="-- "
     if [[ $(uname -m) == "arm64" ]]; then
-        flags+="-- --target=x86_64-apple-darwin"
+        flags+="--target=x86_64-apple-darwin "
     fi
 
     echo "Running charon (all) ..."
     RUSTFLAGS="--cfg eurydice" $CHARON_HOME/bin/charon cargo \
-                                    $features \
                                     --preset eurydice \
                                     --include 'libcrux_sha3' \
                                     --start-from libcrux_ml_dsa --start-from libcrux_sha3 \
                                     --include 'core::num::*::BITS' --include 'core::num::*::MAX' \
-                                    --rustc-arg=-Cdebug-assertions=no $flags
+                                    --include 'libcrux_secrets' \
+                                    --rustc-arg=-Cdebug-assertions=no $flags $features
     if ! [[ -f $repo_root/libcrux_ml_dsa.llbc ]]; then
         echo "😱😱😱 You are the victim of a bug."
         echo "Suggestion: rm -rf ../target or cargo clean"
@@ -101,10 +101,12 @@ fi
 [[ -z "$EURYDICE_REV" && -d $EURYDICE_HOME/.git ]] && export EURYDICE_REV=$(git -C $EURYDICE_HOME rev-parse HEAD)
 [[ -z "$KRML_REV" && -d $KRML_HOME/.git ]] && export KRML_REV=$(git -C $KRML_HOME rev-parse HEAD)
 [[ -z "$LIBCRUX_REV" ]] && export LIBCRUX_REV=$(git rev-parse HEAD)
-if [[ -z "$FSTAR_REV" && -d $FSTAR_HOME/.git ]]; then
-    export FSTAR_REV=$(git -C $FSTAR_HOME rev-parse HEAD)
-else
-    export FSTAR_REV=$(fstar.exe --version | grep commit | sed 's/commit=\(.*\)/\1/')
+if [[ -z "$FSTAR_REV" ]]; then
+    if [[ -d $FSTAR_HOME/.git ]]; then
+        export FSTAR_REV=$(git -C $FSTAR_HOME rev-parse HEAD)
+    else
+        export FSTAR_REV=$(fstar.exe --version | grep commit | sed 's/commit=\(.*\)/\1/')
+    fi
 fi
 rm -f code_gen.txt
 echo "This code was generated with the following revisions:" >> code_gen.txt

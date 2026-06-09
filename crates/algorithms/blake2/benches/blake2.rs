@@ -2,11 +2,10 @@ use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Through
 use libcrux_blake2::{Blake2bBuilder, Blake2sBuilder};
 
 pub fn randombytes(n: usize) -> Vec<u8> {
-    use rand::rngs::OsRng;
-    use rand::TryRngCore;
+    use rand::{rngs::SysRng, TryRng};
 
     let mut bytes = vec![0u8; n];
-    OsRng.try_fill_bytes(&mut bytes).unwrap();
+    SysRng.try_fill_bytes(&mut bytes).unwrap();
     bytes
 }
 

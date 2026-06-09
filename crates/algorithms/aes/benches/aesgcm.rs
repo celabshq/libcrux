@@ -20,7 +20,9 @@ pub fn fmt(x: usize) -> String {
 }
 
 macro_rules! impl_comp {
-    ($fun:ident, $keylen:expr, $portable:ident, $neon:ident, $intel:ident, $rustcrypto_fun:expr) => {
+    (
+        $fun:ident, $keylen:expr, $portable:ident, $neon:ident, $intel:ident, $rustcrypto_fun:expr
+    ) => {
         // Comparing libcrux performance for different payload sizes and other implementations.
         fn $fun(c: &mut Criterion) {
             const PAYLOAD_SIZES: [usize; 3] = [128, 1024, 1024 * 1024 * 10];
@@ -157,7 +159,7 @@ use aes_gcm::{
     aead::{Aead, KeyInit, Payload},
     Aes128Gcm, Aes256Gcm,
 };
-use rand::RngCore;
+use rand::Rng;
 
 fn rustcrypto_aes128_gcm_encrypt(
     key: &[u8],

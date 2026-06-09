@@ -1,7 +1,5 @@
 #![cfg(feature = "rand")]
 
-use std::eprintln;
-
 use libcrux_ed25519::{generate_key_pair, sign, verify};
 
 #[test]

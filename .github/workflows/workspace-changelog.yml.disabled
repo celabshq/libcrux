@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Check for [skip changelog] tag in PR body
         id: skip_check
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const body = context.payload.pull_request.body || "";
@@ -62,7 +62,7 @@ jobs:
 
       - name: Fail with markdown error
         if: failure()
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const msg = require('fs').readFileSync('error-message', 'utf8');

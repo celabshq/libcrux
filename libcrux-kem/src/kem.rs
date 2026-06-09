@@ -15,11 +15,10 @@
 //!
 //! ```
 //! use libcrux_kem::*;
-//! use rand::TryRngCore;
-//! use rand::rngs::OsRng;
+//! use rand::rngs::SysRng;
+//! use rand_core::UnwrapErr;
 //!
-//! let mut os_rng = OsRng;
-//! let mut rng = os_rng.unwrap_mut();
+//! let mut rng = UnwrapErr(SysRng);
 //!
 //! let (sk_a, pk_a) = key_gen(Algorithm::MlKem768, &mut rng).unwrap();
 //! let received_pk = pk_a.encode();
@@ -39,20 +38,16 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
-
-use rand::{CryptoRng, TryRngCore};
-
-use libcrux_ecdh::{p256_derive, p256_secret_to_public, x25519_derive, x25519_secret_to_public};
-use libcrux_ecdh::{
-    P256PrivateKey, P256PublicKey, P256SharedSecret, X25519PrivateKey, X25519PublicKey,
-    X25519SharedSecret,
-};
-use libcrux_sha3 as sha3;
-
-use libcrux_ml_kem::{mlkem1024, mlkem512, mlkem768};
-
 #[cfg(feature = "codec")]
 use std::format;
+
+use libcrux_ecdh::{
+    p256_derive, p256_secret_to_public, x25519_derive, x25519_secret_to_public, P256PrivateKey,
+    P256PublicKey, P256SharedSecret, X25519PrivateKey, X25519PublicKey, X25519SharedSecret,
+};
+use libcrux_ml_kem::{mlkem1024, mlkem512, mlkem768};
+use libcrux_sha3 as sha3;
+use rand::CryptoRng;
 #[cfg(feature = "codec")]
 use tls_codec::{TlsDeserialize, TlsSerialize, TlsSize};
 
@@ -66,38 +61,39 @@ extern crate std;
 // https://github.com/cryspen/libcrux/issues/36
 #[cfg(feature = "tests")]
 pub mod deterministic {
-    pub use libcrux_ml_kem::mlkem1024::decapsulate as mlkem1024_decapsulate_derand;
-    pub use libcrux_ml_kem::mlkem1024::encapsulate as mlkem1024_encapsulate_derand;
-    pub use libcrux_ml_kem::mlkem1024::generate_key_pair as mlkem1024_generate_keypair_derand;
-    pub use libcrux_ml_kem::mlkem512::decapsulate as mlkem512_decapsulate_derand;
-    pub use libcrux_ml_kem::mlkem512::encapsulate as mlkem512_encapsulate_derand;
-    pub use libcrux_ml_kem::mlkem512::generate_key_pair as mlkem512_generate_keypair_derand;
-    pub use libcrux_ml_kem::mlkem768::decapsulate as mlkem768_decapsulate_derand;
-    pub use libcrux_ml_kem::mlkem768::encapsulate as mlkem768_encapsulate_derand;
-    pub use libcrux_ml_kem::mlkem768::generate_key_pair as mlkem768_generate_keypair_derand;
+    pub use libcrux_ml_kem::{
+        mlkem1024::{
+            decapsulate as mlkem1024_decapsulate_derand,
+            encapsulate as mlkem1024_encapsulate_derand,
+            generate_key_pair as mlkem1024_generate_keypair_derand,
+        },
+        mlkem512::{
+            decapsulate as mlkem512_decapsulate_derand, encapsulate as mlkem512_encapsulate_derand,
+            generate_key_pair as mlkem512_generate_keypair_derand,
+        },
+        mlkem768::{
+            decapsulate as mlkem768_decapsulate_derand, encapsulate as mlkem768_encapsulate_derand,
+            generate_key_pair as mlkem768_generate_keypair_derand,
+        },
+    };
 }
 
 pub use libcrux_curve25519::X25519;
-pub use libcrux_ml_kem::mlkem1024::MlKem1024;
-pub use libcrux_ml_kem::mlkem512::MlKem512;
-pub use libcrux_ml_kem::mlkem768::MlKem768;
-pub use libcrux_p256::P256;
-pub use xwing::XWing;
-
 use libcrux_ml_kem::MlKemSharedSecret;
-pub use libcrux_ml_kem::{
-    mlkem1024::{MlKem1024Ciphertext, MlKem1024PrivateKey, MlKem1024PublicKey},
-    mlkem512::{MlKem512Ciphertext, MlKem512PrivateKey, MlKem512PublicKey},
-    mlkem768::{MlKem768Ciphertext, MlKem768PrivateKey, MlKem768PublicKey},
-    MlKemCiphertext, MlKemKeyPair,
-};
-
 #[cfg(feature = "tests")]
 pub use libcrux_ml_kem::{
     mlkem1024::validate_public_key as ml_kem1024_validate_public_key,
     mlkem512::validate_public_key as ml_kem512_validate_public_key,
     mlkem768::validate_public_key as ml_kem768_validate_public_key,
 };
+pub use libcrux_ml_kem::{
+    mlkem1024::{MlKem1024, MlKem1024Ciphertext, MlKem1024PrivateKey, MlKem1024PublicKey},
+    mlkem512::{MlKem512, MlKem512Ciphertext, MlKem512PrivateKey, MlKem512PublicKey},
+    mlkem768::{MlKem768, MlKem768Ciphertext, MlKem768PrivateKey, MlKem768PublicKey},
+    MlKemCiphertext, MlKemKeyPair,
+};
+pub use libcrux_p256::P256;
+pub use xwing::XWing;
 use xwing::XWingSharedSecret;
 
 /// KEM Algorithms

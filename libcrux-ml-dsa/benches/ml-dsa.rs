@@ -1,12 +1,11 @@
 use std::time::Duration;
 
 use criterion::{criterion_group, criterion_main, Criterion};
-use rand::{rngs::OsRng, TryRngCore};
-
 use libcrux_ml_dsa::ml_dsa_65;
+use rand::{rngs::SysRng, TryRng};
 
 pub fn comparisons_key_generation(c: &mut Criterion) {
-    let mut rng = OsRng;
+    let mut rng = SysRng;
     let mut group = c.benchmark_group("ML-DSA-65 Key Generation");
     group.measurement_time(Duration::from_secs(10));
 
@@ -28,7 +27,7 @@ pub fn comparisons_key_generation(c: &mut Criterion) {
 }
 
 pub fn comparisons_signing(c: &mut Criterion) {
-    let mut rng = OsRng;
+    let mut rng = SysRng;
     let mut group = c.benchmark_group("ML-DSA-65 Signing");
     group.measurement_time(Duration::from_secs(10));
 
@@ -59,7 +58,7 @@ pub fn comparisons_signing(c: &mut Criterion) {
 }
 
 pub fn comparisons_verification(c: &mut Criterion) {
-    let mut rng = OsRng;
+    let mut rng = SysRng;
     let mut group = c.benchmark_group("ML-DSA-65 Verification");
     group.measurement_time(Duration::from_secs(10));
 

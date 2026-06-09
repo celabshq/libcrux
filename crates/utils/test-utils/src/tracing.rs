@@ -102,7 +102,7 @@ pub trait Trace: Sized {
 
     /// Emits an event of type [EventType::SpanOpen] and returns a [`SpanHandle`] that emits another
     /// [`EventType::SpanClose`] when dropped.
-    fn emit_span(&self, label: Self::Label) -> SpanHandle<Self> {
+    fn emit_span(&self, label: Self::Label) -> SpanHandle<'_, Self> {
         let event = TraceEvent {
             ty: EventType::SpanOpen,
             at: Self::TimeStamp::now(),
