@@ -929,3 +929,160 @@ let lemma_is_bounded_poly_of_chunks
     in
     FStar.Classical.forall_intro aux
 #pop-options
+
+(* ================================================================== *)
+(* E (message) bridge: d=1 lane extraction + intros for compress_1 /  *)
+(* decompress_1.  Their lane posts (compress_1_lane_post /            *)
+(* decompress_1_lane_post) are separate from the d-in-{4,5,10,11}     *)
+(* family, so they need their own targeted reveals; the generic       *)
+(* chunk atoms / frame / unfold / finalize machinery above is already *)
+(* symbolic in d and covers d=1.                                      *)
+(* ================================================================== *)
+
+(* targeted (per-application) reveal of compress_1_lane_post (clean VC) *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 50"
+let lemma_compress_1_lane_eq (input result: i16)
+  : Lemma (requires VTS.compress_1_lane_post input result)
+          (ensures VTS.i16_to_spec_fe result == C.compress_d (VTS.i16_to_spec_fe input) (mk_usize 1))
+  = reveal_opaque (`%VTS.compress_1_lane_post) (VTS.compress_1_lane_post input result)
+#pop-options
+
+(* extract the per-lane compress_1 equations + bounds from `compress_1_post`
+   in a MINIMAL context (16-arm match dispatch, mirror of
+   lemma_compress_post_lanes).  The bound comes from the post's
+   `bounded_pos_i16_array 1` conjunct via a targeted reveal. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 300 --split_queries always"
+let lemma_compress_1_post_lanes (inp g: t_Array i16 (mk_usize 16))
+  : Lemma
+    (requires VTS.compress_1_post inp g)
+    (ensures
+      (forall (l: nat). l < 16 ==> v (Seq.index g l) >= 0 /\ v (Seq.index g l) < pow2 1) /\
+      (forall (l: nat). l < 16 ==>
+        VTS.i16_to_spec_fe (Seq.index g l)
+        == C.compress_d (VTS.i16_to_spec_fe (Seq.index inp l)) (mk_usize 1)))
+  = assert_norm (pow2 1 - 1 == 1);
+    assert_norm (pow2 1 == 2);
+    reveal_opaque (`%VTS.bounded_i16_array)
+      (VTS.bounded_i16_array (mk_i16 0) (mk_i16 (pow2 1 - 1)) g);
+    let aux_eq (l: nat{l < 16}) : Lemma
+      (VTS.i16_to_spec_fe (Seq.index g l)
+       == C.compress_d (VTS.i16_to_spec_fe (Seq.index inp l)) (mk_usize 1)) =
+      (match l with
+       | 0  -> lemma_compress_1_lane_eq (Seq.index inp 0)  (Seq.index g 0)
+       | 1  -> lemma_compress_1_lane_eq (Seq.index inp 1)  (Seq.index g 1)
+       | 2  -> lemma_compress_1_lane_eq (Seq.index inp 2)  (Seq.index g 2)
+       | 3  -> lemma_compress_1_lane_eq (Seq.index inp 3)  (Seq.index g 3)
+       | 4  -> lemma_compress_1_lane_eq (Seq.index inp 4)  (Seq.index g 4)
+       | 5  -> lemma_compress_1_lane_eq (Seq.index inp 5)  (Seq.index g 5)
+       | 6  -> lemma_compress_1_lane_eq (Seq.index inp 6)  (Seq.index g 6)
+       | 7  -> lemma_compress_1_lane_eq (Seq.index inp 7)  (Seq.index g 7)
+       | 8  -> lemma_compress_1_lane_eq (Seq.index inp 8)  (Seq.index g 8)
+       | 9  -> lemma_compress_1_lane_eq (Seq.index inp 9)  (Seq.index g 9)
+       | 10 -> lemma_compress_1_lane_eq (Seq.index inp 10) (Seq.index g 10)
+       | 11 -> lemma_compress_1_lane_eq (Seq.index inp 11) (Seq.index g 11)
+       | 12 -> lemma_compress_1_lane_eq (Seq.index inp 12) (Seq.index g 12)
+       | 13 -> lemma_compress_1_lane_eq (Seq.index inp 13) (Seq.index g 13)
+       | 14 -> lemma_compress_1_lane_eq (Seq.index inp 14) (Seq.index g 14)
+       | _  -> lemma_compress_1_lane_eq (Seq.index inp 15) (Seq.index g 15))
+    in
+    FStar.Classical.forall_intro aux_eq
+#pop-options
+
+(* d=1 intro from the RAW trait `compress_1_post` (mirror of
+   lemma_chunk_byte_enc_intro_compress_post at the message width).
+   `d1`/`out_len` are refined PARAMETERS (not inline literals), exactly
+   like the {10,11} sibling — inlining `sz 1`/`mk_usize 32` makes the
+   ensures-WF and call-arg subtyping VCs fire as ground sub-queries
+   inside this decl's heavy hypothesis context, where they saturate. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 300 --split_queries always"
+let lemma_chunk_byte_enc_intro_compress_1_post
+    (#v_Vector: Type0)
+    (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: VT.t_Operations v_Vector)
+    (d1: usize{v d1 == 1 /\ d1 == mk_usize 1})
+    (out_len: usize{v out_len == 32 * v d1})
+    (serialized: t_Array u8 out_len)
+    (re: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
+    (inp g: t_Array i16 (mk_usize 16)) (j: nat)
+  : Lemma
+    (requires
+      j < 16 /\
+      BV.int_t_array_bitwise_eq g (v d1) (Seq.slice serialized (2 * v d1 * j) (2 * v d1 * j + 2 * v d1) <: t_Array u8 (mk_usize (2 * v d1))) 8 /\
+      VTS.compress_1_post inp g /\
+      (forall (l: nat). l < 16 ==>
+        VTS.i16_to_spec_fe (Seq.index inp l)
+        == VTS.i16_to_spec_fe (Seq.index (VT.f_repr
+              (Seq.index re.Libcrux_ml_kem.Vector.f_coefficients j)) l)))
+    (ensures chunk_byte_enc_d d1 out_len serialized
+               (C.compress (VS.poly_to_spec re) d1) j)
+  = lemma_compress_1_post_lanes inp g;
+    lemma_chunk_byte_enc_intro_compress d1 out_len serialized re inp g j
+#pop-options
+
+(* targeted (per-application) reveal of decompress_1_lane_post (clean VC) *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 50"
+let lemma_decompress_1_lane_eq (input result: i16)
+  : Lemma (requires VTS.decompress_1_lane_post input result /\ v input >= 0 /\ v input < 2)
+          (ensures VTS.i16_to_spec_fe result == C.decompress_d (VTS.i16_to_spec_fe input) (mk_usize 1))
+  = reveal_opaque (`%VTS.decompress_1_lane_post) (VTS.decompress_1_lane_post input result)
+#pop-options
+
+(* per-lane decompress_1 value equations from `decompress_1_post`
+   (16-arm match dispatch, mirror of lemma_decompress_post_lanes). *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 300 --split_queries always"
+let lemma_decompress_1_post_lanes (grp g: t_Array i16 (mk_usize 16))
+  : Lemma
+    (requires VTS.decompress_1_post grp g /\
+              (forall (l: nat). l < 16 ==> v (Seq.index grp l) >= 0 /\ v (Seq.index grp l) < 2))
+    (ensures
+      (forall (l: nat). l < 16 ==>
+        VTS.i16_to_spec_fe (Seq.index g l)
+        == C.decompress_d (VTS.i16_to_spec_fe (Seq.index grp l)) (mk_usize 1)))
+  = let aux_eq (l: nat{l < 16}) : Lemma
+      (VTS.i16_to_spec_fe (Seq.index g l)
+       == C.decompress_d (VTS.i16_to_spec_fe (Seq.index grp l)) (mk_usize 1)) =
+      (match l with
+       | 0  -> lemma_decompress_1_lane_eq (Seq.index grp 0)  (Seq.index g 0)
+       | 1  -> lemma_decompress_1_lane_eq (Seq.index grp 1)  (Seq.index g 1)
+       | 2  -> lemma_decompress_1_lane_eq (Seq.index grp 2)  (Seq.index g 2)
+       | 3  -> lemma_decompress_1_lane_eq (Seq.index grp 3)  (Seq.index g 3)
+       | 4  -> lemma_decompress_1_lane_eq (Seq.index grp 4)  (Seq.index g 4)
+       | 5  -> lemma_decompress_1_lane_eq (Seq.index grp 5)  (Seq.index g 5)
+       | 6  -> lemma_decompress_1_lane_eq (Seq.index grp 6)  (Seq.index g 6)
+       | 7  -> lemma_decompress_1_lane_eq (Seq.index grp 7)  (Seq.index g 7)
+       | 8  -> lemma_decompress_1_lane_eq (Seq.index grp 8)  (Seq.index g 8)
+       | 9  -> lemma_decompress_1_lane_eq (Seq.index grp 9)  (Seq.index g 9)
+       | 10 -> lemma_decompress_1_lane_eq (Seq.index grp 10) (Seq.index g 10)
+       | 11 -> lemma_decompress_1_lane_eq (Seq.index grp 11) (Seq.index g 11)
+       | 12 -> lemma_decompress_1_lane_eq (Seq.index grp 12) (Seq.index g 12)
+       | 13 -> lemma_decompress_1_lane_eq (Seq.index grp 13) (Seq.index g 13)
+       | 14 -> lemma_decompress_1_lane_eq (Seq.index grp 14) (Seq.index g 14)
+       | _  -> lemma_decompress_1_lane_eq (Seq.index grp 15) (Seq.index g 15))
+    in
+    FStar.Classical.forall_intro aux_eq
+#pop-options
+
+(* d=1 intro from the RAW trait `decompress_1_post` (mirror of
+   lemma_chunk_decompressed_intro_post_d).  The bound conjunct
+   `bounded_i16_array 0 3328 g` is supplied by the (strengthened)
+   decompress_1_post itself.  `d1` is a refined PARAMETER (not an inline
+   `sz 1` literal), exactly like the {4,5,10,11} sibling — inlining the
+   literal makes the callee-arg subtyping/requires VCs fire as ground
+   sub-queries inside this decl's heavy hypothesis context, where they
+   saturate (same failure mode the compress-side d=1 intro had). *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 300 --split_queries always"
+let lemma_chunk_decompressed_intro_1_post
+    (d1: usize{v d1 == 1 /\ d1 == mk_usize 1})
+    (serialized: t_Array u8 (mk_usize (32 * v d1)))
+    (grp g: t_Array i16 (mk_usize 16)) (j: nat)
+  : Lemma
+    (requires
+      j < 16 /\
+      BV.int_t_array_bitwise_eq (Seq.slice serialized (2 * v d1 * j) (2 * v d1 * j + 2 * v d1) <: t_Array u8 (mk_usize (2 * v d1))) 8 grp (v d1) /\
+      (forall (ll: nat). ll < 16 ==> bounded (Seq.index grp ll) (v d1)) /\
+      VTS.decompress_1_post grp g)
+    (ensures chunk_decompressed_d d1 serialized g j)
+  = assert_norm (pow2 1 == 2);
+    lemma_decompress_1_post_lanes grp g;
+    lemma_is_i16b_array_opaque_of_bounded g;
+    lemma_chunk_decompressed_intro_d d1 serialized grp g j
+#pop-options

@@ -323,12 +323,30 @@ fn op_compress<const COEFFICIENT_BITS: i32>(a: PortableVector) -> PortableVector
 }
 
 #[hax_lib::fstar::options("--z3rlimit 200 --split_queries always")]
+// Clean-context bridge: the inner `decompress_1`'s per-lane `{0, 1665}` disjunction
+// to the opaque `[0, 3328]` bound atom that the (2026-06-09 strengthened)
+// `decompress_1_post` carries.  Standalone top-level lemma so the literal range
+// checks + the opaque-atom intro stay out of `op_decompress_1`'s heavy VC context
+// (inline, even the trivial `mk_i16 3328` range sub-query saturates at rlimit 200
+// under `--split_queries always`).
+#[hax_lib::fstar::before(
+    r#"let lemma_decompress_1_bound (x: t_Array i16 (mk_usize 16))
+    : Lemma
+      (requires
+        forall (i: nat). i < 16 ==> (v (Seq.index x i) == 0 \/ v (Seq.index x i) == 1665))
+      (ensures Libcrux_ml_kem.Vector.Traits.Spec.bounded_i16_array (mk_i16 0) (mk_i16 3328) x) =
+  Libcrux_ml_kem.Vector.Traits.Spec.lemma_bounded_i16_array_intro (mk_i16 0)
+    (mk_i16 3328)
+    x"#
+)]
 #[hax_lib::requires(fstar!(r#"${spec::decompress_1_pre} ${a}.f_elements"#))]
 #[hax_lib::ensures(|out| fstar!(r#"${spec::decompress_1_post} ${a}.f_elements ${out}.f_elements"#))]
 fn op_decompress_1(a: PortableVector) -> PortableVector {
     hax_lib::fstar!(
         r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.bounded_i16_array)
-                    (Libcrux_ml_kem.Vector.Traits.Spec.bounded_i16_array);
+                    (Libcrux_ml_kem.Vector.Traits.Spec.bounded_i16_array (mk_i16 0)
+                        (mk_i16 (pow2 1 - 1))
+                        ${a}.f_elements);
            assert_norm (pow2 1 - 1 == 1);
            assert(forall (i: nat). {:pattern Seq.index a.f_elements i} i < 16 ==>
                      v (Seq.index a.f_elements i) >= 0 /\
@@ -343,25 +361,25 @@ fn op_decompress_1(a: PortableVector) -> PortableVector {
           "#
     );
     let result = decompress_1(a);
+    // Bound conjunct via the clean-context bridge lemma; lane posts via a single
+    // per-lane lemma with a TARGETED reveal (Rule SD4) + `Classical.forall_intro`
+    // (the previous universal `decompress_1_lane_post` reveal + 16 manual `aux j`
+    // calls saturated once the bound conjunct joined the post).
     hax_lib::fstar!(
-        r#"let aux (j: nat) :
-              Lemma (requires j < 16)
-                    (ensures (Libcrux_ml_kem.Vector.Traits.Spec.i16_to_spec_fe
-                       (Seq.index ${result}.f_elements j) ==
-                     Hacspec_ml_kem.Compress.decompress_d
-                       (Libcrux_ml_kem.Vector.Traits.Spec.i16_to_spec_fe
-                          (Seq.index ${a}.f_elements j))
-                       (mk_usize 1))) =
+        r#"lemma_decompress_1_bound ${result}.f_elements;
+           let aux (j: nat{j < 16}) :
+              Lemma (Libcrux_ml_kem.Vector.Traits.Spec.decompress_1_lane_post
+                       (Seq.index ${a}.f_elements j)
+                       (Seq.index ${result}.f_elements j)) =
+             reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.decompress_1_lane_post)
+               (Libcrux_ml_kem.Vector.Traits.Spec.decompress_1_lane_post
+                  (Seq.index ${a}.f_elements j)
+                  (Seq.index ${result}.f_elements j));
              Hacspec_ml_kem.Commute.Chunk.lemma_decompress_1_fe_commute_int
                (Seq.index ${a}.f_elements j)
                (Seq.index ${result}.f_elements j)
            in
-           aux 0;  aux 1;  aux 2;  aux 3;
-           aux 4;  aux 5;  aux 6;  aux 7;
-           aux 8;  aux 9;  aux 10; aux 11;
-           aux 12; aux 13; aux 14; aux 15;
-           reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.decompress_1_lane_post)
-                    Libcrux_ml_kem.Vector.Traits.Spec.decompress_1_lane_post"#
+           Classical.forall_intro aux"#
     );
     result
 }

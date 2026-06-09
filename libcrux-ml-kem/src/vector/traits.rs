@@ -863,8 +863,16 @@ let ntt_multiply_branch_post
     }
 
     pub(crate) fn decompress_1_post(vec: &[i16; 16], result: &[i16; 16]) -> hax_lib::Prop {
+        // Strengthened 2026-06-09 (mirror of decompress_ciphertext_coefficient_post's
+        // 2026-05-02 strengthening): expose the i16 result bound `[0, 3328]` that all
+        // impls naturally maintain (Portable's decompress_1 returns lanes in {0, 1665};
+        // Avx2/Neon wrappers admit panic-freedom hence also satisfy this).  Needed by
+        // `deserialize_then_decompress_message`, whose ensures carries
+        // `is_bounded_poly 3328`; without it the trait post is strictly the mod-3329
+        // FE equality, which cannot pin the i16 result range.
         hax_lib::fstar_prop_expr!(
-            r#"Spec.Utils.forall16 (fun (i: nat{i < 16}) ->
+            r#"bounded_i16_array (mk_i16 0) (mk_i16 3328) ${result} /\
+               Spec.Utils.forall16 (fun (i: nat{i < 16}) ->
                  decompress_1_lane_post (Seq.index ${vec} i) (Seq.index ${result} i))"#
         )
     }
