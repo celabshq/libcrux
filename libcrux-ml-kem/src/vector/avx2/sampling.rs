@@ -4,6 +4,39 @@ use super::{
     *,
 };
 
+#[hax_lib::fstar::before(
+    r#"
+(* Trusted axiom (Track I, 2026-06-10): semantics of the dynamic-mask byte
+   shuffle. `BitVec.Intrinsics.mm_shuffle_epi8`'s tactic routes masks that are
+   not `mm_set_epi8` literals (such as the `mm_loadu_si128`-loaded
+   REJECTION_SAMPLE_SHUFFLE_TABLE rows below) to the uninterpreted
+   `BitVec.Intrinsics.mm_shuffle_epi8_no_semantics`. This axiom gives that
+   symbol the PSHUFB hardware semantics, transcribed from the executable
+   core-models reference `crates/utils/core-models/src/core_arch/x86.rs`
+   (`extra::mm_shuffle_epi8_u8_array`, the model behind
+   `ssse3::_mm_shuffle_epi8`):
+
+     result bit i = let nth = i / 8 in
+                    let idx = byte `nth` of the mask (bits LSB-first) in
+                    if idx > 127 then 0 else a ((idx % 16) * 8 + i % 8)
+
+   Validated against core-models by the differential test
+   `track_i_axiom_transcription_tests::shuffle_epi8_dynamic_mask_formula` in
+   `crates/utils/core-models/src/core_arch/x86/interpretations.rs`. Kept
+   ml-kem-local (not in the shared BitVec.Intrinsics.fsti) to avoid a
+   stale-cascade into the sha3 / ml-dsa proof trees. *)
+assume val mm_shuffle_epi8_no_semantics_lemma (a b: bit_vec 128) (i: nat{i < 128})
+  : Lemma
+    (BitVec.Intrinsics.mm_shuffle_epi8_no_semantics a b i ==
+      (let nth = i / 8 in
+       let idx: nat =
+         b (8 * nth) + 2 * b (8 * nth + 1) + 4 * b (8 * nth + 2) + 8 * b (8 * nth + 3) +
+         16 * b (8 * nth + 4) + 32 * b (8 * nth + 5) + 64 * b (8 * nth + 6) +
+         128 * b (8 * nth + 7)
+       in
+       if idx > 127 then 0 else a ((idx % 16) * 8 + i % 8)))
+"#
+)]
 #[inline(always)]
 #[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::requires(input.len() == 24 && output.len() == 16)]

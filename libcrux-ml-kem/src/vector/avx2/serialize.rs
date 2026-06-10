@@ -1,9 +1,15 @@
 use super::*;
 use crate::vector::portable::PortableVector;
 
+// NOTE (Track I, 2026-06-10): this function previously required
+// `forall i. i % 16 >= 1 ==> vector i == 0`. That requires is semantically
+// unnecessary — the body's first operation `mm256_slli_epi16::<15>` discards
+// bits 1..15 of every lane, so the post holds for ARBITRARY input — and it is
+// no longer satisfiable at rejection_sample's call site now that
+// `mm256_cmpgt_epi16` carries its true hardware semantics (whole lane set on
+// a true compare).
 #[inline(always)]
 #[hax_lib::fstar::options("--ext context_pruning --compat_pre_core 0 --split_queries always --z3rlimit 400")]
-#[hax_lib::requires(fstar!(r#"forall i. i % 16 >= 1 ==> vector i == 0"#))]
 #[hax_lib::ensures(|result| fstar!(r#"forall i. bit_vec_of_int_t_array $result 8 i == $vector (i * 16)"#))]
 pub(crate) fn serialize_1(vector: Vec256) -> [u8; 2] {
     // Suppose |vector| is laid out as follows (superscript number indicates the

@@ -39,6 +39,22 @@ pub struct Vec256(u8);
 unfold type $:{Vec128} = bit_vec 128
 val vec128_as_i16x8 (x: bit_vec 128) : t_Array i16 (sz 8)
 let get_lane128 (v: bit_vec 128) (i:nat{i < 8}) = Seq.index (vec128_as_i16x8 v) i
+
+(* The bit-level decomposition of `vec128_as_i16x8`: bit i of the
+   underlying `bit_vec 128` corresponds to bit `i % d` of the i16
+   lane at index `i / d` (for the packed d-bit view; lanes are 16 bits
+   apart). Mirror of `bit_vec_of_int_t_array_vec256_as_i16x16_lemma`
+   below — `vec128_as_i16x8` is the canonical LSB-first 16-bit lane
+   decomposition of a 128-bit vector, matching the executable
+   core-models view (`BitVec::to_vec::<i16>()` /
+   `crates/utils/core-models/src/core_arch/x86.rs` `mm_storeu_bytes_si128`);
+   validated by `track_i_axiom_transcription_tests::vec128_lane_bit_decomposition`
+   in crates/utils/core-models/src/core_arch/x86/interpretations.rs. *)
+val bit_vec_of_int_t_array_vec128_as_i16x8_lemma
+      (v: bit_vec 128) (d: nat{d > 0 /\ d <= 16}) (i: nat{i < 8 * d})
+    : Lemma (Rust_primitives.BitVectors.bit_vec_of_int_t_array
+              (vec128_as_i16x8 v) d i
+             == v ((i / d) * 16 + i % d))
 "#
 )]
 pub struct Vec128(u8);
@@ -83,9 +99,27 @@ pub fn mm256_storeu_si256_i32(output: &mut [i32], vector: Vec256) {
     unimplemented!()
 }
 
+// Hardware semantics of MOVDQU (16-byte store): writes the 8 i16 lanes of
+// `vector` to `output[0..8]` and leaves every later element untouched.
+//
+// Anchored to the executable core-models reference
+// `crates/utils/core-models/src/core_arch/x86.rs` (`other::_mm_storeu_si128`:
+// `*output = a`, i.e. exactly the 16 bytes / 8 LSB-first i16 lanes of `a`,
+// via `extra::mm_storeu_bytes_si128`). The lane order / endianness of the
+// transcription is validated against that model by
+// `track_i_axiom_transcription_tests::storeu_si128_lane_formula` in
+// `crates/utils/core-models/src/core_arch/x86/interpretations.rs`.
 #[inline(always)]
 #[hax_lib::requires(output.len() >= 8)]
-#[hax_lib::ensures(|_| future(output).len() == output.len())]
+#[hax_lib::ensures(|_| fstar!(r#"
+    Core_models.Slice.impl__len #i16 (output_future <: t_Slice i16) ==
+      Core_models.Slice.impl__len #i16 ${output} /\
+    (Seq.slice ((output_future <: t_Slice i16) <: Seq.seq i16) 0 8 ==
+       (vec128_as_i16x8 ${vector} <: Seq.seq i16)) /\
+    (forall (i: nat). (8 <= i /\ i < Seq.length (${output} <: Seq.seq i16)) ==>
+       Seq.index ((output_future <: t_Slice i16) <: Seq.seq i16) i ==
+       Seq.index ((${output} <: t_Slice i16) <: Seq.seq i16) i)
+"#))]
 pub fn mm_storeu_si128(output: &mut [i16], vector: Vec128) {
     debug_assert!(output.len() >= 8);
     unimplemented!()
@@ -368,8 +402,26 @@ pub fn mm_mullo_epi16(lhs: Vec128, rhs: Vec128) -> Vec128 {
     unimplemented!()
 }
 
+// Hardware semantics of VPCMPGTW: per-lane signed 16-bit compare; when
+// `lhs.lane > rhs.lane` the WHOLE 16-bit lane of the result is set to 0xFFFF
+// (every bit 1), otherwise the whole lane is 0. Stated bit-level: bit i of the
+// result is 1 iff the compare of lane i/16 is true.
+//
+// Anchored to the executable core-models reference
+// `crates/utils/core-models/src/core_arch/x86/interpretations.rs`
+// (`int_vec::_mm256_cmpgt_epi16`: `i16x16::from_fn(|i| if a[i] > b[i] { -1 } else { 0 })`),
+// itself hardware-validated by the `mk!(_mm256_cmpgt_epi16 ...)` differential test
+// in that file. The bit-level transcription below is validated against that model
+// by `track_i_axiom_transcription_tests::cmpgt_epi16_bit_level_formula` (same file).
+//
+// (The previous axiom here — `forall i. i % 16 >= 1 ==> result i == 0` — claimed
+// bits 1..15 of every lane are always 0, which is FALSE on hardware for true
+// lanes; it was tailored to feed serialize_1's former requires and was unsound.)
 #[inline(always)]
-#[hax_lib::ensures(|result| fstar!(r#"forall i. i % 16 >= 1 ==> result i == 0"#))]
+#[hax_lib::ensures(|result| fstar!(r#"forall (i: nat{i < 256}).
+    $result i ==
+    (if Seq.index (vec256_as_i16x16 $lhs) (i / 16) >. Seq.index (vec256_as_i16x16 $rhs) (i / 16)
+     then 1 else 0)"#))]
 pub fn mm256_cmpgt_epi16(lhs: Vec256, rhs: Vec256) -> Vec256 {
     unimplemented!()
 }

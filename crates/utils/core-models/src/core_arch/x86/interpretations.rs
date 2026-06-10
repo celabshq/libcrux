@@ -873,3 +873,205 @@ assume val _mm256_set_epi32_interp: e7: i32 -> e6: i32 -> e5: i32 -> e4: i32 -> 
         mk!([100]_mm256_permute2x128_si256{<0>,<1>,<2>,<3>,<4>,<5>,<6>,<7>,<8>,<9>,<10>,<11>,<12>,<13>,<14>,<15>,<16>,<17>,<18>,<19>,<20>,<21>,<22>,<23>,<24>,<25>,<26>,<27>,<28>,<29>,<30>,<31>,<32>,<33>,<34>,<35>,<36>,<37>,<38>,<39>,<40>,<41>,<42>,<43>,<44>,<45>,<46>,<47>,<48>,<49>,<50>,<51>,<52>,<53>,<54>,<55>,<56>,<57>,<58>,<59>,<60>,<61>,<62>,<63>,<64>,<65>,<66>,<67>,<68>,<69>,<70>,<71>,<72>,<73>,<74>,<75>,<76>,<77>,<78>,<79>,<80>,<81>,<82>,<83>,<84>,<85>,<86>,<87>,<88>,<89>,<90>,<91>,<92>,<93>,<94>,<95>,<96>,<97>,<98>,<99>,<100>,<101>,<102>,<103>,<104>,<105>,<106>,<107>,<108>,<109>,<110>,<111>,<112>,<113>,<114>,<115>,<116>,<117>,<118>,<119>,<120>,<121>,<122>,<123>,<124>,<125>,<126>,<127>,<128>,<129>,<130>,<131>,<132>,<133>,<134>,<135>,<136>,<137>,<138>,<139>,<140>,<141>,<142>,<143>,<144>,<145>,<146>,<147>,<148>,<149>,<150>,<151>,<152>,<153>,<154>,<155>,<156>,<157>,<158>,<159>,<160>,<161>,<162>,<163>,<164>,<165>,<166>,<167>,<168>,<169>,<170>,<171>,<172>,<173>,<174>,<175>,<176>,<177>,<178>,<179>,<180>,<181>,<182>,<183>,<184>,<185>,<186>,<187>,<188>,<189>,<190>,<191>,<192>,<193>,<194>,<195>,<196>,<197>,<198>,<199>,<200>,<201>,<202>,<203>,<204>,<205>,<206>,<207>,<208>,<209>,<210>,<211>,<212>,<213>,<214>,<215>,<216>,<217>,<218>,<219>,<220>,<221>,<222>,<223>,<224>,<225>,<226>,<227>,<228>,<229>,<230>,<231>,<232>,<233>,<234>,<235>,<236>,<237>,<238>,<239>,<240>,<241>,<242>,<243>,<244>,<245>,<246>,<247>,<248>,<249>,<250>,<251>,<252>,<253>,<254>,<255>}(a: BitVec, b: BitVec));
     }
 }
+
+/// Track I (2026-06-10): differential validation of the F* TRUST AXIOMS added/fixed
+/// for the ML-KEM AVX2 rejection-sampling proof, against the executable core-models
+/// reference semantics in this file / `x86.rs` (which are themselves hardware-validated
+/// by the `mk!` differential tests above, on x86 hosts).
+///
+/// Each test transcribes the F* axiom's formula literally to Rust and compares it with
+/// the core-models model on randomized + edge inputs. Pure Rust: runs on any host
+/// (no `upstream`, no x86 needed).
+///
+/// Axioms validated (see the cross-references at the axiom sites):
+/// - `mm256_cmpgt_epi16` ensures
+///   (`crates/utils/intrinsics/src/avx2_extract.rs`)
+/// - `mm_storeu_si128` content+frame ensures
+///   (`crates/utils/intrinsics/src/avx2_extract.rs`)
+/// - `bit_vec_of_int_t_array_vec128_as_i16x8_lemma`
+///   (`crates/utils/intrinsics/src/avx2_extract.rs`)
+/// - `mm_shuffle_epi8_no_semantics_lemma`
+///   (`libcrux-ml-kem/src/vector/avx2/sampling.rs`)
+#[cfg(test)]
+mod track_i_axiom_transcription_tests {
+    use super::int_vec;
+    use crate::abstractions::{bit::Bit, bitvec::BitVec, funarr::FunArray};
+    use crate::core_arch::x86::{extra, ssse3};
+
+    /// F* axiom: `forall (i: nat{i < 256}). result i ==
+    ///   (if Seq.index (vec256_as_i16x16 lhs) (i/16) >. Seq.index (vec256_as_i16x16 rhs) (i/16)
+    ///    then 1 else 0)`
+    /// vs the model `int_vec::_mm256_cmpgt_epi16` (interpretations.rs:
+    /// `i16x16::from_fn(|i| if a[i] > b[i] { -1 } else { 0 })`).
+    fn check_cmpgt(a: BitVec<256>, b: BitVec<256>) {
+        let model: BitVec<256> = BitVec::from_i16x16(int_vec::_mm256_cmpgt_epi16(
+            BitVec::to_i16x16(a),
+            BitVec::to_i16x16(b),
+        ));
+        let la: Vec<i16> = a.to_vec();
+        let lb: Vec<i16> = b.to_vec();
+        let formula = BitVec::<256>::from_fn(|i| {
+            if la[(i / 16) as usize] > lb[(i / 16) as usize] {
+                Bit::One
+            } else {
+                Bit::Zero
+            }
+        });
+        assert_eq!(model, formula);
+    }
+
+    #[test]
+    fn cmpgt_epi16_bit_level_formula() {
+        for _ in 0..1000 {
+            check_cmpgt(BitVec::rand(), BitVec::rand());
+        }
+        // Edge lanes: equal / greater / less, including INT16_MIN/MAX and the
+        // FIELD_MODULUS values the rejection sampler compares against.
+        let specials: [i16; 9] = [i16::MIN, i16::MIN + 1, -1, 0, 1, 3328, 3329, i16::MAX - 1, i16::MAX];
+        for &x in specials.iter() {
+            for &y in specials.iter() {
+                let a = BitVec::<256>::from_slice(&[x; 16], 16);
+                let b = BitVec::<256>::from_slice(&[y; 16], 16);
+                check_cmpgt(a, b);
+            }
+        }
+        // Mixed lanes (per-lane independence).
+        for _ in 0..100 {
+            let mut xs = [0i16; 16];
+            let mut ys = [0i16; 16];
+            for k in 0..16 {
+                xs[k] = specials[(k * 7 + 3) % specials.len()];
+                ys[k] = specials[(k * 5 + 1) % specials.len()];
+            }
+            check_cmpgt(
+                BitVec::<256>::from_slice(&xs, 16),
+                BitVec::<256>::from_slice(&ys, 16),
+            );
+        }
+    }
+
+    /// F* axiom: `mm_storeu_si128` stores exactly the 8 LSB-first i16 lanes
+    /// (`vec128_as_i16x8 vector`) to `output[0..8]`, framing the rest.
+    /// Model anchor: `other::_mm_storeu_si128` / `extra::mm_storeu_bytes_si128`
+    /// (x86.rs): the store writes exactly the 16 bytes of the vector (`*output = a`),
+    /// i.e. 8 little-endian i16 lanes — and nothing else (the frame clause).
+    #[test]
+    fn storeu_si128_lane_formula() {
+        for _ in 0..1000 {
+            let vec: BitVec<128> = BitVec::rand();
+            let mut bytes = [0u8; 16];
+            extra::mm_storeu_bytes_si128(&mut bytes, vec);
+            // model: the 16 stored bytes, read back as 8 LE i16 lanes
+            let model: Vec<i16> = bytes
+                .chunks(2)
+                .map(|c| i16::from_le_bytes([c[0], c[1]]))
+                .collect();
+            // F* formula: output_future[0..8] == vec128_as_i16x8 vector,
+            // where vec128_as_i16x8 is the canonical LSB-first 16-bit lane view
+            // (= BitVec::to_vec::<i16>, as pinned by vec128_lane_bit_decomposition below)
+            let formula: Vec<i16> = vec.to_vec();
+            assert_eq!(model, formula);
+        }
+    }
+
+    /// F* axiom: `bit_vec_of_int_t_array (vec128_as_i16x8 v) d i == v ((i/d)*16 + i%d)`
+    /// for `0 < d <= 16`, `i < 8*d` — i.e. lane k of the canonical i16x8 view occupies
+    /// bits `16k..16k+15` of the bit-vector, LSB-first (two's complement bits).
+    /// Model anchor: `BitVec::to_vec::<i16>` chunking (abstractions/bitvec.rs), the
+    /// same lane view used by `BitVec::to_i16x8` and `mm_storeu_bytes_si128`.
+    #[test]
+    fn vec128_lane_bit_decomposition() {
+        for _ in 0..1000 {
+            let v: BitVec<128> = BitVec::rand();
+            let lanes: Vec<i16> = v.to_vec();
+            for d in 1..=16u64 {
+                for i in 0..(8 * d) {
+                    let lane = lanes[(i / d) as usize] as u16;
+                    let lane_bit = (lane >> (i % d)) & 1;
+                    let v_bit: u16 = u16::from(v[(i / d) * 16 + i % d]);
+                    assert_eq!(lane_bit, v_bit, "d={d} i={i}");
+                }
+            }
+        }
+    }
+
+    /// PLANNED F* axiom (`count_ones_u8_popcount8`, Track I M2 — not yet landed in
+    /// ml-kem sampling.rs): `v (count_ones_u8 x) == popcount8 (v x)` with
+    /// `popcount8 g = if g = 0 then 0 else g % 2 + popcount8 (g / 2)`.
+    /// Model anchor: Rust core's `u8::count_ones` — the operation that
+    /// `Rust_primitives.Arithmetic.count_ones_u8` (an uninterpreted F* val) models.
+    /// Exhaustive over all 256 inputs.
+    #[test]
+    fn count_ones_popcount8_formula() {
+        fn popcount8(g: u32) -> u32 {
+            if g == 0 {
+                0
+            } else {
+                g % 2 + popcount8(g / 2)
+            }
+        }
+        for x in 0..=255u8 {
+            assert_eq!(x.count_ones(), popcount8(x as u32));
+        }
+    }
+
+    /// F* axiom (`mm_shuffle_epi8_no_semantics_lemma`, ml-kem sampling.rs):
+    ///   `result i == (let nth = i / 8 in
+    ///                 let idx = sum_k b (8*nth+k) * 2^k in
+    ///                 if idx > 127 then 0 else a ((idx % 16) * 8 + i % 8))`
+    /// vs the model `ssse3::_mm_shuffle_epi8` / `extra::mm_shuffle_epi8_u8_array`
+    /// (x86.rs:1107: `if index > 127 { Zero } else { vector[(index % 16)*8 + i%8] }`).
+    ///
+    /// The mask bit-vector `b` is built with the same byte->bit mapping as
+    /// `BitVec.Intrinsics.mm_loadu_si128` (`get_bit bytes[i/8] (i%8)`), which is
+    /// `BitVec::from_slice(bytes, 8)` — so this also validates the byte-decode
+    /// (`idx = sum_k b(8*nth+k)*2^k`) used in the F* axiom.
+    fn check_shuffle(a: BitVec<128>, mask_bytes: [u8; 16]) {
+        let b = BitVec::<128>::from_slice(&mask_bytes, 8);
+        // model via the ssse3 entry point (FunArray<16, u8> indexes)
+        let model_ssse3 = ssse3::_mm_shuffle_epi8(a, b);
+        // model via the array primitive directly
+        let indexes = FunArray::<16, u8>::from_fn(|i| mask_bytes[i as usize]);
+        let model_extra = extra::mm_shuffle_epi8_u8_array(a, indexes);
+        assert_eq!(model_ssse3, model_extra);
+        // F* formula transcription
+        let formula = BitVec::<128>::from_fn(|i| {
+            let nth = i / 8;
+            let idx: u64 = (0..8u64).map(|k| u64::from(b[8 * nth + k]) << k).sum();
+            if idx > 127 {
+                Bit::Zero
+            } else {
+                a[(idx % 16) * 8 + i % 8]
+            }
+        });
+        assert_eq!(model_extra, formula);
+    }
+
+    #[test]
+    fn shuffle_epi8_dynamic_mask_formula() {
+        // randomized masks (uniform over all byte values incl. MSB-set)
+        for _ in 0..1000 {
+            let a: BitVec<128> = BitVec::rand();
+            let mask_bv: BitVec<128> = BitVec::rand();
+            let mask_bytes: [u8; 16] = mask_bv.to_vec::<u8>().try_into().unwrap();
+            check_shuffle(a, mask_bytes);
+        }
+        // exhaustive index coverage: every mask byte value 0..=255
+        // (covers idx <= 127 with %16 wrap, and idx > 127 => zero)
+        for v in 0..=255u8 {
+            let a: BitVec<128> = BitVec::rand();
+            check_shuffle(a, [v; 16]);
+        }
+        // REJECTION_SAMPLE_SHUFFLE_TABLE-shaped masks: pairs (2k, 2k+1) + 0xff fill
+        for _ in 0..100 {
+            let a: BitVec<128> = BitVec::rand();
+            let mut mask = [0xffu8; 16];
+            for j in 0..8 {
+                let k = (j * 3) % 8;
+                mask[2 * j] = (2 * k) as u8;
+                mask[2 * j + 1] = (2 * k + 1) as u8;
+            }
+            check_shuffle(a, mask);
+        }
+    }
+}
