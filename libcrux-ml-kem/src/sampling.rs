@@ -97,10 +97,18 @@ fn sample_from_uniform_distribution_next<Vector: Operations, const K: usize, con
 // accepted), so it has no decreasing measure and is not provably terminating —
 // `panic_free` does not exempt the termination obligation. The inner
 // `sample_from_uniform_distribution_next` (bounded `for` loops) IS verified.
+// The ensures below is therefore an admitted trust axiom: it states the
+// per-element functional spec (`sample_ntt ∘ XOF`, conditional on the spec's
+// fixed 840-byte buffer sufficing) that `sample_matrix_A`'s post needs.
 #[inline(always)]
 #[hax_lib::fstar::verification_status(lax)]
 #[hax_lib::ensures(|result| hax_lib::forall(|i:usize| hax_lib::implies(i < K,
-                                spec::is_bounded_poly(3328, &result[i]))))]
+    spec::is_bounded_poly(3328, &result[i]).and(
+        (match hacspec_ml_kem::sampling::sample_ntt::<70, 560, 840, 6720>(
+            hacspec_ml_kem::parameters::hash_functions::XOF::<840>(&seeds[i])) {
+            Ok(s) => poly_to_spec(&result[i]) == s,
+            Err(_) => true,
+        }).to_prop()))))]
 pub(super) fn sample_from_xof<const K: usize, Vector: Operations, Hasher: Hash<K>>(
     seeds: &[[u8; 34]; K],
 ) -> [PolynomialRingElement<Vector>; K] {
