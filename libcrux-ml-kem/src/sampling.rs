@@ -182,13 +182,11 @@ pub(super) fn sample_from_xof<const K: usize, Vector: Operations, Hasher: Hash<K
 /// The NIST FIPS 203 standard can be found at
 /// <https://csrc.nist.gov/pubs/fips/203/ipd>.
 #[hax_lib::requires(randomness.len() == 2 * 64)]
-// TODO: Remove or replace with something that works and is useful for the proof.
-// #[cfg_attr(hax, hax_lib::ensures(|result|
-//     hax_lib::forall(|i:usize|
-//         hax_lib::implies(i < result.coefficients.len(), || result.coefficients[i].abs() <= 2
-// ))))]
+#[hax_lib::ensures(|result| fstar!(r#"Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3) ${result} /\
+    ${poly_to_spec::<Vector>} $result ==
+        Hacspec_ml_kem.Sampling.sample_poly_cbd (sz 128) (sz 1024) (sz 2) $randomness"#))]
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 800")]
+#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always")]
 fn sample_from_binomial_distribution_2<Vector: Operations>(
     randomness: &[u8],
 ) -> PolynomialRingElement<Vector> {
@@ -200,6 +198,16 @@ fn sample_from_binomial_distribution_2<Vector: Operations>(
 
     cloop! {
         for (chunk_number, byte_chunk) in randomness.chunks_exact(4).enumerate() {
+            // Loop invariant: every processed coefficient carries the opaque
+            // per-coefficient CBD atom (Hacspec_ml_kem.Commute.Sampling_cbd).
+            hax_lib::loop_invariant!(|chunk_number: usize| {
+                fstar!(
+                    r#"Seq.length $randomness == 128 /\
+                    (forall (j: nat). j < 8 * v $chunk_number ==>
+                      Hacspec_ml_kem.Commute.Sampling_cbd.cbd_coeff_2 $randomness
+                        (Seq.index ${sampled_i16s} j) j)"#
+                )
+            });
             let random_bits_as_u32: u32 = (byte_chunk[0] as u32)
                 | (byte_chunk[1] as u32) << 8
                 | (byte_chunk[2] as u32) << 16
@@ -213,6 +221,15 @@ fn sample_from_binomial_distribution_2<Vector: Operations>(
 
             cloop! {
                 for outcome_set in (0..32u32).step_by(4) { // u32::BITS
+                    hax_lib::loop_invariant!(|outcome_set: u32| {
+                        fstar!(
+                            r#"Seq.length $randomness == 128 /\
+                            v $outcome_set % 4 == 0 /\
+                            (forall (j: nat). j < 8 * v $chunk_number + v $outcome_set / 4 ==>
+                              Hacspec_ml_kem.Commute.Sampling_cbd.cbd_coeff_2 $randomness
+                                (Seq.index ${sampled_i16s} j) j)"#
+                        )
+                    });
                     let outcome_1 = ((coin_toss_outcomes >> outcome_set) & 0x3) as i16;
                     let outcome_2 = ((coin_toss_outcomes >> (outcome_set + 2)) & 0x3) as i16;
                     hax_lib::fstar!(r#"logand_lemma ($coin_toss_outcomes >>! $outcome_set <: u32) (mk_u32 3);
@@ -224,22 +241,56 @@ fn sample_from_binomial_distribution_2<Vector: Operations>(
                         assert (v (cast ($outcome_set >>! (mk_i32 2) <: u32) <: usize) <= 7)"#);
 
                     let offset = (outcome_set >> 2) as usize;
+                    #[cfg(hax)]
+                    let sampled_old = sampled_i16s;
                     sampled_i16s[8 * chunk_number + offset] = outcome_1 - outcome_2;
+                    // Establish the atom for the freshly written coefficient and
+                    // extend the loop invariant (standalone commute lemmas).
+                    hax_lib::fstar!(
+                        r#"assert (Seq.length $byte_chunk == 4);
+                        assert (Seq.slice $randomness (4 * v $chunk_number) (4 * v $chunk_number + 4) == ${byte_chunk});
+                        Seq.lemma_index_slice $randomness (4 * v $chunk_number) (4 * v $chunk_number + 4) 0;
+                        Seq.lemma_index_slice $randomness (4 * v $chunk_number) (4 * v $chunk_number + 4) 1;
+                        Seq.lemma_index_slice $randomness (4 * v $chunk_number) (4 * v $chunk_number + 4) 2;
+                        Seq.lemma_index_slice $randomness (4 * v $chunk_number) (4 * v $chunk_number + 4) 3;
+                        assert (v $outcome_1 == v (($coin_toss_outcomes >>! $outcome_set <: u32) &. mk_u32 3));
+                        assert (v $outcome_2 == v (($coin_toss_outcomes >>! ($outcome_set +! (mk_u32 2) <: u32) <: u32) &. mk_u32 3));
+                        Hacspec_ml_kem.Commute.Sampling_cbd.lemma_cbd2_coeff $randomness
+                          (Seq.index ${byte_chunk} 0) (Seq.index ${byte_chunk} 1)
+                          (Seq.index ${byte_chunk} 2) (Seq.index ${byte_chunk} 3)
+                          $random_bits_as_u32 $coin_toss_outcomes $outcome_set
+                          ($outcome_1 -! $outcome_2 <: i16) (v $chunk_number);
+                        assert (${sampled_i16s} ==
+                          Seq.upd ${sampled_old} (8 * v $chunk_number + v $outcome_set / 4)
+                            ($outcome_1 -! $outcome_2 <: i16));
+                        Hacspec_ml_kem.Commute.Sampling_cbd.lemma_cbd2_extend $randomness
+                          ${sampled_old} ${sampled_i16s}
+                          (8 * v $chunk_number + v $outcome_set / 4)
+                          ($outcome_1 -! $outcome_2 <: i16)"#
+                    );
                 }
             }
+            hax_lib::fstar!(
+                r#"assert (forall (j: nat). j < 8 * (v $chunk_number + 1) ==>
+                  Hacspec_ml_kem.Commute.Sampling_cbd.cbd_coeff_2 $randomness
+                    (Seq.index ${sampled_i16s} j) j)"#
+            );
         }
     }
-    PolynomialRingElement::from_i16_array(&sampled_i16s)
+    let result = PolynomialRingElement::from_i16_array(&sampled_i16s);
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Sampling_cbd.lemma_cbd2_finalize #$:Vector $randomness
+          ${sampled_i16s} ${result}"#
+    );
+    result
 }
 
 #[hax_lib::requires(randomness.len() == 3 * 64)]
-// TODO: Remove or replace with something that works and is useful for the proof.
-// #[cfg_attr(hax, hax_lib::ensures(|result|
-//     hax_lib::forall(|i:usize|
-//         hax_lib::implies(i < result.coefficients.len(), || result.coefficients[i].abs() <= 3
-// ))))]
+#[hax_lib::ensures(|result| fstar!(r#"Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3) ${result} /\
+    ${poly_to_spec::<Vector>} $result ==
+        Hacspec_ml_kem.Sampling.sample_poly_cbd (sz 192) (sz 1536) (sz 3) $randomness"#))]
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 800")]
+#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always")]
 fn sample_from_binomial_distribution_3<Vector: Operations>(
     randomness: &[u8],
 ) -> PolynomialRingElement<Vector> {
@@ -251,6 +302,16 @@ fn sample_from_binomial_distribution_3<Vector: Operations>(
 
     cloop! {
         for (chunk_number, byte_chunk) in randomness.chunks_exact(3).enumerate() {
+            // Loop invariant: every processed coefficient carries the opaque
+            // per-coefficient CBD atom (Hacspec_ml_kem.Commute.Sampling_cbd).
+            hax_lib::loop_invariant!(|chunk_number: usize| {
+                fstar!(
+                    r#"Seq.length $randomness == 192 /\
+                    (forall (j: nat). j < 4 * v $chunk_number ==>
+                      Hacspec_ml_kem.Commute.Sampling_cbd.cbd_coeff_3 $randomness
+                        (Seq.index ${sampled_i16s} j) j)"#
+                )
+            });
             let random_bits_as_u24: u32 =
                 (byte_chunk[0] as u32) | (byte_chunk[1] as u32) << 8 | (byte_chunk[2] as u32) << 16;
 
@@ -265,6 +326,15 @@ fn sample_from_binomial_distribution_3<Vector: Operations>(
 
             cloop! {
                 for outcome_set in (0..24).step_by(6) {
+                    hax_lib::loop_invariant!(|outcome_set: i32| {
+                        fstar!(
+                            r#"Seq.length $randomness == 192 /\
+                            v $outcome_set >= 0 /\ v $outcome_set % 6 == 0 /\
+                            (forall (j: nat). j < 4 * v $chunk_number + v $outcome_set / 6 ==>
+                              Hacspec_ml_kem.Commute.Sampling_cbd.cbd_coeff_3 $randomness
+                                (Seq.index ${sampled_i16s} j) j)"#
+                        )
+                    });
                     let outcome_1 = ((coin_toss_outcomes >> outcome_set) & 0x7) as i16;
                     let outcome_2 = ((coin_toss_outcomes >> (outcome_set + 3)) & 0x7) as i16;
                     hax_lib::fstar!(r#"logand_lemma ($coin_toss_outcomes >>! $outcome_set <: u32) (mk_u32 7);
@@ -276,16 +346,51 @@ fn sample_from_binomial_distribution_3<Vector: Operations>(
                         assert (v (cast ($outcome_set /! (mk_i32 6) <: i32) <: usize) <= 3)"#);
 
                     let offset = (outcome_set / 6) as usize;
+                    #[cfg(hax)]
+                    let sampled_old = sampled_i16s;
                     sampled_i16s[4 * chunk_number + offset] = outcome_1 - outcome_2;
+                    // Establish the atom for the freshly written coefficient and
+                    // extend the loop invariant (standalone commute lemmas).
+                    hax_lib::fstar!(
+                        r#"assert (Seq.length $byte_chunk == 3);
+                        assert (Seq.slice $randomness (3 * v $chunk_number) (3 * v $chunk_number + 3) == ${byte_chunk});
+                        Seq.lemma_index_slice $randomness (3 * v $chunk_number) (3 * v $chunk_number + 3) 0;
+                        Seq.lemma_index_slice $randomness (3 * v $chunk_number) (3 * v $chunk_number + 3) 1;
+                        Seq.lemma_index_slice $randomness (3 * v $chunk_number) (3 * v $chunk_number + 3) 2;
+                        assert (v $outcome_1 == v (($coin_toss_outcomes >>! $outcome_set <: u32) &. mk_u32 7));
+                        assert (v $outcome_2 == v (($coin_toss_outcomes >>! ($outcome_set +! (mk_i32 3) <: i32) <: u32) &. mk_u32 7));
+                        Hacspec_ml_kem.Commute.Sampling_cbd.lemma_cbd3_coeff $randomness
+                          (Seq.index ${byte_chunk} 0) (Seq.index ${byte_chunk} 1)
+                          (Seq.index ${byte_chunk} 2)
+                          $random_bits_as_u24 $coin_toss_outcomes $outcome_set
+                          ($outcome_1 -! $outcome_2 <: i16) (v $chunk_number);
+                        assert (${sampled_i16s} ==
+                          Seq.upd ${sampled_old} (4 * v $chunk_number + v $outcome_set / 6)
+                            ($outcome_1 -! $outcome_2 <: i16));
+                        Hacspec_ml_kem.Commute.Sampling_cbd.lemma_cbd3_extend $randomness
+                          ${sampled_old} ${sampled_i16s}
+                          (4 * v $chunk_number + v $outcome_set / 6)
+                          ($outcome_1 -! $outcome_2 <: i16)"#
+                    );
                 }
             }
+            hax_lib::fstar!(
+                r#"assert (forall (j: nat). j < 4 * (v $chunk_number + 1) ==>
+                  Hacspec_ml_kem.Commute.Sampling_cbd.cbd_coeff_3 $randomness
+                    (Seq.index ${sampled_i16s} j) j)"#
+            );
         }
     }
-    PolynomialRingElement::from_i16_array(&sampled_i16s)
+    let result = PolynomialRingElement::from_i16_array(&sampled_i16s);
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Sampling_cbd.lemma_cbd3_finalize #$:Vector $randomness
+          ${sampled_i16s} ${result}"#
+    );
+    result
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::fstar::options("--fuel 0 --ifuel 1 --z3rlimit 300")]
 #[hax_lib::requires((ETA == 2 || ETA == 3) && randomness.len() == ETA * 64)]
 #[hax_lib::ensures(|result| fstar!(r#"Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3) ${result} /\
     ${poly_to_spec::<Vector>} $result ==
