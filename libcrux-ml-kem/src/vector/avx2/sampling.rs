@@ -32,20 +32,6 @@ pub(crate) fn rejection_sample(input: &[u8], output: &mut [i16]) -> usize {
     // each lane in the register to tell us what coefficients to keep and what
     // to throw-away. Combine all the bits (there are 16) into two bytes.
     let good = serialize_1(compare_with_field_modulus);
-    hax_lib::fstar!(
-        r#"assert (v (cast (${good}.[ sz 0 ] <: u8) <: usize) < 256);
-        assert (v (cast (${good}.[ sz 1 ] <: u8) <: usize) < 256);
-        // count_ones_u8 returns r:u32{v r <= 8} (refinement type), so the
-        // <= 8 bound is provable as `assert` (not `assume`).
-        assert (v (cast (${u8::count_ones} ${good}.[ sz 0 ]) <: usize) <= 8);
-        assert (v (cast (${u8::count_ones} ${good}.[ sz 1 ]) <: usize) <= 8);
-        // The remaining `assume` is the slice-range pre for output[..]
-        // — see panic-freedom comment on the `let _:Prims.unit = admit ()`
-        // hax inserts at the end of the function body for this admit.
-        assume (Core_models.Ops.Index.f_index_pre output ({
-                    Core_models.Ops.Range.f_start = cast (${u8::count_ones} ${good}.[ sz 0 ]) <: usize;
-                    Core_models.Ops.Range.f_end = (cast (${u8::count_ones} ${good}.[ sz 0 ]) <: usize) +! sz 8 }))"#
-    );
 
     // Each bit (and its corresponding position) represents an element we
     // want to sample. We'd like all such elements to be next to each other starting
