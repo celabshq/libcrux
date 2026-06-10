@@ -995,9 +995,11 @@ mod track_i_axiom_transcription_tests {
         }
     }
 
-    /// PLANNED F* axiom (`count_ones_u8_popcount8`, Track I M2 — not yet landed in
-    /// ml-kem sampling.rs): `v (count_ones_u8 x) == popcount8 (v x)` with
-    /// `popcount8 g = if g = 0 then 0 else g % 2 + popcount8 (g / 2)`.
+    /// F* axiom `count_ones_u8_popcount8` (Track I M2, landed in the
+    /// `fstar::before` block of `libcrux-ml-kem/src/vector/avx2/sampling.rs`):
+    /// `v (count_ones_u8 x) == popcount8 (v x)` with
+    /// `popcount8 g = if g = 0 then 0 else g % 2 + popcount8 (g / 2)`
+    /// (defined in `Hacspec_ml_kem.Commute.Rej_table`).
     /// Model anchor: Rust core's `u8::count_ones` — the operation that
     /// `Rust_primitives.Arithmetic.count_ones_u8` (an uninterpreted F* val) models.
     /// Exhaustive over all 256 inputs.
