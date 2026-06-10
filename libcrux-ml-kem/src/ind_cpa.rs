@@ -104,7 +104,7 @@ pub(crate) fn serialize_public_key<
 
 /// Concatenate `t` and `ρ` into the public key.
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::fstar::options("--z3rlimit 300 --ext context_pruning")]
 #[hax_lib::requires(
     (hacspec_ml_kem::parameters::is_rank(K)
         && PUBLIC_KEY_SIZE == hacspec_ml_kem::parameters::cpa_public_key_size(K)
@@ -130,11 +130,21 @@ pub(crate) fn serialize_public_key_mut<
     );
 
     serialized[ranked_bytes_per_ring_element(K)..].copy_from_slice(seed_for_a);
+
+    hax_lib::fstar!(
+        r#"assert (Libcrux_ml_kem.Constants.ranked_bytes_per_ring_element $K ==
+                    $K *! Hacspec_ml_kem.Parameters.v_BYTES_PER_RING_ELEMENT);
+           assert (v $PUBLIC_KEY_SIZE ==
+                    v $K * v Hacspec_ml_kem.Parameters.v_BYTES_PER_RING_ELEMENT + 32);
+           Hacspec_ml_kem.Commute.Ind_cpa_serialize.lemma_serialize_public_key_mut_finalize
+             $K $PUBLIC_KEY_SIZE $serialized
+             (${vector_to_spec::<K, Vector>} $K $t_as_ntt)
+             $seed_for_a"#
+    );
 }
 
 /// Call [`serialize_uncompressed_ring_element`] for each ring element.
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::fstar::options("--z3rlimit 800 --ext context_pruning")]
 #[hax_lib::requires(
     (hacspec_ml_kem::parameters::is_rank(K)
@@ -176,6 +186,13 @@ pub(crate) fn serialize_vector<const K: usize, Vector: Operations>(
             );
         }
     }
+
+    hax_lib::fstar!(
+        r#"assert (v $K > 0 /\ v $K <= 4);
+           assert (Seq.length $out == v $K * v $BYTES_PER_RING_ELEMENT);
+           Hacspec_ml_kem.Commute.Ind_cpa_serialize.lemma_serialize_vector_finalize
+             $K #$:Vector $out $key"#
+    );
 }
 
 /// Sample a vector of ring elements from a centered binomial distribution.
@@ -452,7 +469,6 @@ pub(crate) fn generate_keypair<
 }
 
 /// Serialize the secret key from the unpacked key pair generation.
-#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::requires(
     (hacspec_ml_kem::parameters::is_rank(K)
         && PUBLIC_KEY_SIZE == hacspec_ml_kem::parameters::cpa_public_key_size(K)
