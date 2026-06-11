@@ -443,20 +443,23 @@ fn inside_out_shuffle(
 ) -> bool {
     let mut done = false;
 
-    cloop! {
-        for byte in randomness.iter() {
-            if !done {
-                let sample_at = *byte as usize;
-                if sample_at <= *out_index {
-                    result[*out_index] = result[sample_at];
-                    *out_index += 1;
+    for i in 0..randomness.len() {
+        hax_lib::loop_invariant!(|i: usize| fstar!(
+            r#"v ${out_index} <= 256 /\
+               (${done} \/ v ${out_index} < 256)"#
+        ));
+        let byte = randomness[i];
+        if !done {
+            let sample_at = byte as usize;
+            if sample_at <= *out_index {
+                result[*out_index] = result[sample_at];
+                *out_index += 1;
 
-                    result[sample_at] = 1 - 2 * ((*signs & 1) as i32);
-                    *signs >>= 1;
-                }
-
-                done = *out_index == result.len();
+                result[sample_at] = 1 - 2 * ((*signs & 1) as i32);
+                *signs >>= 1;
             }
+
+            done = *out_index == result.len();
         }
     }
 

@@ -81,7 +81,7 @@ pub(crate) fn power2round_vector<SIMDUnit: Operations>(
         )
         .and(forall(|j: usize| implies(
             j >= i && j < old_t.len(),
-            fstar!(r#"${t[j]} == ${old_t[j]} /\ ${t1[j]} == ${old_t1[j]}"#)
+            fstar!(r#"${t[j]} == ${old_t.as_slice()[j]} /\ ${t1[j]} == ${old_t1.as_slice()[j]}"#)
         ))));
 
         for j in 0..t[i].simd_units.len() {
@@ -90,14 +90,16 @@ pub(crate) fn power2round_vector<SIMDUnit: Operations>(
             )
             .and(forall(|j: usize| implies(
                 j > i && j < old_t.len(),
-                fstar!(r#"${t[j]} == ${old_t[j]} /\ ${t1[j]} == ${old_t1[j]}"#)
+                fstar!(
+                    r#"${t[j]} == ${old_t.as_slice()[j]} /\ ${t1[j]} == ${old_t1.as_slice()[j]}"#
+                )
             )))
             .and(forall(|k: usize| implies(
                 k >= j && k < crate::simd::traits::SIMD_UNITS_IN_RING_ELEMENT,
                 fstar!(
                     r#"
-                        ${t[i].simd_units[k]} == ${old_t[i].simd_units[k]} /\
-                        ${t1[i].simd_units[k]} == ${old_t1[i].simd_units[k]}
+                        ${t[i].simd_units[k]} == ${old_t.as_slice()[i].simd_units[k]} /\
+                        ${t1[i].simd_units[k]} == ${old_t1.as_slice()[i].simd_units[k]}
                     "#
                 )
             ))));
@@ -201,7 +203,9 @@ pub(crate) fn use_hint<SIMDUnit: Operations>(
     re_vector: &mut [PolynomialRingElement<SIMDUnit>],
 ) {
     #[cfg(hax)]
-    let old_re_vector = re_vector.to_vec();
+    let old_re_vector_vec = re_vector.to_vec();
+    #[cfg(hax)]
+    let old_re_vector = old_re_vector_vec.as_slice();
 
     for i in 0..re_vector.len() {
         hax_lib::loop_invariant!(|i: usize| fstar!(
