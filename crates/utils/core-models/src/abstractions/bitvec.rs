@@ -92,9 +92,10 @@ fn int_from_bit_slice<T: TryFrom<i128> + MachineInteger + Copy>(bits: &[Bit]) ->
     r#"
 let ${BitVec::<0>::from_fn::<fn(u64)->Bit>}
     (v_N: u64)
+    (#_v_F: Type0)
     (f: (i: u64 {v i < v v_N}) -> $:{Bit})
-    : t_BitVec v_N = 
-    ${BitVec::<0>}(${FunArray::<0,()>::from_fn::<fn(u64)->()>} v_N f)
+    : t_BitVec v_N =
+    ${BitVec::<0>}(${FunArray::<0,()>::from_fn::<fn(u64)->()>} v_N #$:{Bit} #(u64 -> $:{Bit}) f)
 "#
 )]
 const _: () = ();
