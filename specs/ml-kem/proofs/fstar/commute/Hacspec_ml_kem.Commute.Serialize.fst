@@ -200,3 +200,98 @@ let serialize_public_key_seed_eq
   FStar.Classical.forall_intro aux';
   FStar.Seq.lemma_eq_intro (Seq.slice pk b (b + 32)) (Seq.slice seed 0 32)
 #pop-options
+
+(* ------------------------------------------------------------------ *)
+(* ek construction bridge: spec's update_at chain == serialize_public_key *)
+(* ------------------------------------------------------------------ *)
+
+/// The spec `generate_keypair`'s inline `ek` construction
+///   ek0 = repeat 0 EK_SIZE
+///   ek1 = update_at_range_to ek0 [..DK]  (copy_from_slice (ek0[..DK]) tt_encoded)
+///   ek2 = update_at_range_from ek1 [DK..] (copy_from_slice (ek1[DK..]) seed)
+/// where tt_encoded = serialize_secret_key v_K DK tt_as_ntt, DK = v_K*384,
+/// equals `serialize_public_key v_K EK_SIZE tt_as_ntt seed`.
+/// Both denote `concat tt_encoded seed`.
+#push-options "--z3rlimit 300"
+let lemma_ek_eq_serialize_public_key
+      (v_K: usize)
+      (tt_as_ntt: t_Array (t_Array P.t_FieldElement (mk_usize 256)) v_K)
+      (seed: t_Slice u8)
+    : Lemma
+      (requires
+        v v_K <= 4 /\
+        (Core_models.Slice.impl__len #u8 seed <: usize) =. mk_usize 32)
+      (ensures
+        (let v_DK_PKE_SIZE = v_K *! P.v_BYTES_PER_RING_ELEMENT in
+         let v_EK_SIZE = v_DK_PKE_SIZE +! mk_usize 32 in
+         let tt_encoded:t_Array u8 v_DK_PKE_SIZE =
+           S.serialize_secret_key v_K v_DK_PKE_SIZE tt_as_ntt
+         in
+         let ek0:t_Array u8 v_EK_SIZE = Rust_primitives.Hax.repeat (mk_u8 0) v_EK_SIZE in
+         let ek1:t_Array u8 v_EK_SIZE =
+           Rust_primitives.Hax.Monomorphized_update_at.update_at_range_to ek0
+             ({ Core_models.Ops.Range.f_end = v_DK_PKE_SIZE } <: Core_models.Ops.Range.t_RangeTo usize)
+             (Core_models.Slice.impl__copy_from_slice #u8
+                 (ek0.[ { Core_models.Ops.Range.f_end = v_DK_PKE_SIZE }
+                     <: Core_models.Ops.Range.t_RangeTo usize ] <: t_Slice u8)
+                 (tt_encoded <: t_Slice u8)
+               <: t_Slice u8)
+         in
+         let ek2:t_Array u8 v_EK_SIZE =
+           Rust_primitives.Hax.Monomorphized_update_at.update_at_range_from ek1
+             ({ Core_models.Ops.Range.f_start = v_DK_PKE_SIZE } <: Core_models.Ops.Range.t_RangeFrom usize)
+             (Core_models.Slice.impl__copy_from_slice #u8
+                 (ek1.[ { Core_models.Ops.Range.f_start = v_DK_PKE_SIZE }
+                     <: Core_models.Ops.Range.t_RangeFrom usize ] <: t_Slice u8)
+                 (seed <: t_Slice u8)
+               <: t_Slice u8)
+         in
+         ek2 == S.serialize_public_key v_K v_EK_SIZE tt_as_ntt seed))
+    =
+  let v_DK_PKE_SIZE = v_K *! P.v_BYTES_PER_RING_ELEMENT in
+  let v_EK_SIZE = v_DK_PKE_SIZE +! mk_usize 32 in
+  let dk = v v_DK_PKE_SIZE in
+  let tt_encoded:t_Array u8 v_DK_PKE_SIZE = S.serialize_secret_key v_K v_DK_PKE_SIZE tt_as_ntt in
+  let ek0:t_Array u8 v_EK_SIZE = Rust_primitives.Hax.repeat (mk_u8 0) v_EK_SIZE in
+  (* copy_from_slice out src == src (lengths match). *)
+  let c1:t_Slice u8 =
+    Core_models.Slice.impl__copy_from_slice #u8
+      (ek0.[ { Core_models.Ops.Range.f_end = v_DK_PKE_SIZE }
+          <: Core_models.Ops.Range.t_RangeTo usize ] <: t_Slice u8)
+      (tt_encoded <: t_Slice u8)
+  in
+  assert (c1 == tt_encoded);
+  let ek1:t_Array u8 v_EK_SIZE =
+    Rust_primitives.Hax.Monomorphized_update_at.update_at_range_to ek0
+      ({ Core_models.Ops.Range.f_end = v_DK_PKE_SIZE } <: Core_models.Ops.Range.t_RangeTo usize)
+      c1
+  in
+  let c2:t_Slice u8 =
+    Core_models.Slice.impl__copy_from_slice #u8
+      (ek1.[ { Core_models.Ops.Range.f_start = v_DK_PKE_SIZE }
+          <: Core_models.Ops.Range.t_RangeFrom usize ] <: t_Slice u8)
+      (seed <: t_Slice u8)
+  in
+  assert (c2 == seed);
+  let ek2:t_Array u8 v_EK_SIZE =
+    Rust_primitives.Hax.Monomorphized_update_at.update_at_range_from ek1
+      ({ Core_models.Ops.Range.f_start = v_DK_PKE_SIZE } <: Core_models.Ops.Range.t_RangeFrom usize)
+      c2
+  in
+  let pk = S.serialize_public_key v_K v_EK_SIZE tt_as_ntt seed in
+  (* ek2 halves *)
+  (* update_at_range_to post: slice ek1 0 dk == c1 == tt_encoded *)
+  assert (Seq.slice ek1 0 dk == tt_encoded);
+  (* update_at_range_from post: slice ek2 0 dk == slice ek1 0 dk; slice ek2 dk EK == c2 == seed *)
+  assert (Seq.slice ek2 0 dk == Seq.slice ek1 0 dk);
+  assert (Seq.slice ek2 0 dk == tt_encoded);
+  assert (Seq.slice ek2 dk (v v_EK_SIZE) == seed);
+  Rust_primitives.Arrays.lemma_slice_append (ek2 <: t_Slice u8) tt_encoded seed;
+  (* pk halves: vector part == serialize_secret_key == tt_encoded; seed part == slice seed 0 32 == seed *)
+  serialize_public_key_vector_eq v_K tt_as_ntt seed;
+  serialize_public_key_seed_eq v_K tt_as_ntt seed;
+  assert (Seq.slice pk 0 dk == tt_encoded);
+  FStar.Seq.lemma_eq_intro (Seq.slice seed 0 32) seed;
+  assert (Seq.slice pk dk (v v_EK_SIZE) == seed);
+  Rust_primitives.Arrays.lemma_slice_append (pk <: t_Slice u8) tt_encoded seed
+#pop-options

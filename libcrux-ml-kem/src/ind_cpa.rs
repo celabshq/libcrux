@@ -533,7 +533,7 @@ pub(crate) fn generate_keypair_unpacked<
         Err(_) => true,
     }
 )]
-#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::fstar::options("--z3rlimit 200 --ext context_pruning")]
 #[inline(always)]
 pub(crate) fn generate_keypair<
     const K: usize,
@@ -556,10 +556,34 @@ pub(crate) fn generate_keypair<
         &mut public_key,
     );
 
-    serialize_unpacked_secret_key::<K, PRIVATE_KEY_SIZE, PUBLIC_KEY_SIZE, Vector>(
+    let result = serialize_unpacked_secret_key::<K, PRIVATE_KEY_SIZE, PUBLIC_KEY_SIZE, Vector>(
         &public_key,
         &private_key,
-    )
+    );
+
+    // The spec's `ek` is built from `serialize_secret_key(tt_as_ntt) || seed_for_A`;
+    // the impl serializes via `serialize_public_key`.  Bridge the two, and connect the
+    // unpacked outputs (vector_to_spec t̂/ŝ, seed_for_A) to the spec's unpacked result.
+    hax_lib::fstar!(
+        r#"
+    (match
+        Hacspec_ml_kem.Ind_cpa.generate_keypair_unpacked $K
+          (Hacspec_ml_kem.Parameters.rank_to_params $K)
+          $key_generation_seed
+      with
+      | Core_models.Result.Result_Ok (secret_as_ntt, tt_as_ntt, e_A, seed_for_A) ->
+        assert (Seq.length seed_for_A == 32);
+        assert (Libcrux_ml_kem.Vector.Spec.vector_to_spec $K #$:Vector
+                  ${public_key}.Libcrux_ml_kem.Ind_cpa.Unpacked.f_tt_as_ntt == tt_as_ntt);
+        assert (${public_key}.Libcrux_ml_kem.Ind_cpa.Unpacked.f_seed_for_A == seed_for_A);
+        assert (Libcrux_ml_kem.Vector.Spec.vector_to_spec $K #$:Vector
+                  ${private_key}.Libcrux_ml_kem.Ind_cpa.Unpacked.f_secret_as_ntt == secret_as_ntt);
+        Hacspec_ml_kem.Commute.Serialize.lemma_ek_eq_serialize_public_key $K tt_as_ntt seed_for_A
+      | Core_models.Result.Result_Err _ -> ())
+"#
+    );
+
+    result
 }
 
 /// Serialize the secret key from the unpacked key pair generation.
@@ -570,6 +594,17 @@ pub(crate) fn generate_keypair<
     & crate::polynomial::spec::is_bounded_polynomial_vector(3328, &public_key.t_as_ntt)
     & crate::polynomial::spec::is_bounded_polynomial_vector(3328, &private_key.secret_as_ntt)
 )]
+#[hax_lib::ensures(|result| fstar!(r#"
+    ${result}._1 ==
+      Hacspec_ml_kem.Serialize.serialize_secret_key $K ($K *! sz 384)
+        (Libcrux_ml_kem.Vector.Spec.vector_to_spec $K #$:Vector
+          ${private_key}.Libcrux_ml_kem.Ind_cpa.Unpacked.f_secret_as_ntt) /\
+    ${result}._2 ==
+      Hacspec_ml_kem.Serialize.serialize_public_key $K $PUBLIC_KEY_SIZE
+        (Libcrux_ml_kem.Vector.Spec.vector_to_spec $K #$:Vector
+          ${public_key}.Libcrux_ml_kem.Ind_cpa.Unpacked.f_tt_as_ntt)
+        (${public_key}.Libcrux_ml_kem.Ind_cpa.Unpacked.f_seed_for_A <: t_Slice u8)
+"#))]
 pub(crate) fn serialize_unpacked_secret_key<
     const K: usize,
     const PRIVATE_KEY_SIZE: usize,
