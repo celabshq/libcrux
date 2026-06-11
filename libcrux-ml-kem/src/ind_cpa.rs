@@ -827,7 +827,6 @@ pub(crate) fn encrypt_unpacked<
     ciphertext
 }
 
-#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::fstar::options("--z3rlimit 400 --ext context_pruning --split_queries always")]
 #[hax_lib::requires(
     hacspec_ml_kem::parameters::is_rank(K).to_prop()
@@ -927,6 +926,12 @@ pub(crate) fn encrypt_c1<
 
     // c_1 := Encode_{du}(Compress_q(u,d_u))
     compress_then_serialize_u::<K, C1_LEN, U_COMPRESSION_FACTOR, BLOCK_LEN, Vector>(u, ciphertext);
+
+    // Widen error_2's per-element bound from 3 (sampler post) to 3328 (the
+    // returned-value ensures, matching encrypt_c2's t_as_ntt/r_as_ntt bound).
+    hax_lib::fstar!(
+        r#"Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly_higher #$:Vector $error_2 (sz 3) (sz 3328)"#
+    );
 
     (r_as_ntt, error_2)
 }
