@@ -36,7 +36,20 @@ function prove() {
     go_to "crates/algorithms/sha3"
     JOBS="${JOBS:-$(nproc --all)}"
     JOBS="${JOBS:-4}"
-    make -C proofs/fstar/extraction -j $JOBS "$@"
+    # `-k`: keep going past failures so a single run reports every failing
+    # module (not just the first). Capture output to print an F* error summary
+    # at the end, so failures don't have to be grepped out of the full log.
+    local log; log="$(mktemp)"
+    set +e
+    make -k -C proofs/fstar/extraction -j $JOBS "$@" 2>&1 | tee "$log"
+    local rc=${PIPESTATUS[0]}
+    set -e
+    echo ""
+    echo "================ F* ERROR SUMMARY ================"
+    grep -E "\* Error [0-9]+ at|\*\*\* \[|failed \{reason-unknown" "$log" || echo "(no F* errors)"
+    echo "================================================="
+    rm -f "$log"
+    return $rc
 }
 
 function init_vars() {

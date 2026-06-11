@@ -137,7 +137,35 @@ class proveAction(argparse.Action):
         admit_env = {}
         if args.admit:
             admit_env = {"OTHERFLAGS": "--admit_smt_queries true"}
-        shell(["make", "-j4", "-C", "proofs/fstar/extraction/"], env=admit_env)
+        os_env = os.environ.copy()
+        os_env.update(admit_env)
+        # `-k`: keep going past failures so a single run reports every failing
+        # module (not just the first). Capture output to print an F* error
+        # summary at the end, so failures don't have to be grepped out of the log.
+        cmd = ["make", "-k", "-j4", "-C", "proofs/fstar/extraction/"]
+        print("Command: {}".format(" ".join(cmd)))
+        proc = subprocess.Popen(
+            cmd, env=os_env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
+        )
+        captured = []
+        for line in proc.stdout:
+            sys.stdout.write(line)
+            captured.append(line)
+        proc.wait()
+        errors = [
+            line.rstrip("\n")
+            for line in captured
+            if "* Error " in line
+            or ("*** [" in line and "Error" in line)
+            or "failed {reason-unknown" in line
+        ]
+        if errors:
+            print("\n================ F* ERROR SUMMARY ================")
+            for line in errors:
+                print(line)
+            print("================ {} error line(s) ================".format(len(errors)))
+        if proc.returncode != 0:
+            sys.exit(proc.returncode)
         return None
 
 
