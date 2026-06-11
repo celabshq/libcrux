@@ -390,9 +390,8 @@ fn sample_vector_cbd_then_ntt<
 /// The NIST FIPS 203 standard can be found at
 /// <https://csrc.nist.gov/pubs/fips/203/ipd>.
 #[allow(non_snake_case)]
-#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::fstar::before(r#"[@ "opaque_to_smt"]"#)]
-#[hax_lib::fstar::options("--z3rlimit 500 --ext context_pruning")]
+#[hax_lib::fstar::options("--z3rlimit 500 --ext context_pruning --using_facts_from '* -Hacspec_ml_kem.Matrix -Hacspec_ml_kem.Ind_cpa.sample_vector_cbd_then_ntt'")]
 // Use .to_prop() & to create logical (l_and) conjunction so F* can propagate
 // is_rank(K) as a hypothesis when type-checking eta1_randomness_size(K)'s precondition.
 #[hax_lib::requires(
@@ -471,6 +470,49 @@ pub(crate) fn generate_keypair_unpacked<
     // For encapsulation, we need to store A not Aˆ, and so we untranspose A
     // However, we pass A_transpose here and let the IND-CCA layer do the untranspose.
     // We could do it here, but then we would pay the performance cost (if any) for the packed API as well.
+
+    // Discharge the functional ensures: the impl matrix A is the transpose of the
+    // spec's (false) sample_matrix_A, and the spec re-transposes — so both the A
+    // and tt conjuncts collapse onto lemma_sample_matrix_A_transpose; bounds folded
+    // into the opaque is_bounded_polynomial_{vector,matrix} atoms.
+    hax_lib::fstar!(
+        r#"(* (1) hashed (impl) == hashed_spec: Variant post gives hashed == SU.v_G(seed++[K]);
+       lemma_v_G_bridge: SU.v_G == HF.v_G; lemma_g_input_build: spec's g_input == seed++[K]. *)
+    Hacspec_ml_kem.Commute.Ind_cca_bridge.lemma_v_G_bridge
+      (Seq.append $key_generation_seed (Seq.create 1 (cast $K <: u8)));
+    Hacspec_ml_kem.Commute.Keygen_bridge.lemma_g_input_build $K $key_generation_seed;
+    (* (2) seed_for_A field: unwrap(try_into s) == copy_from_slice(repeat 0 32, s). *)
+    Hacspec_ml_kem.Commute.Keygen_bridge.lemma_seed_for_A_eq $seed_for_A;
+    (* (3) sample_matrix_A TRUE == transpose(sample_matrix_A FALSE) + is_Ok coupling. *)
+    Hacspec_ml_kem.Commute.Keygen_bridge.lemma_sample_matrix_A_transpose $K $seed_for_A;
+    (* (4) transpose involutive on the FALSE result (for the tt-conjunct). *)
+    (match Hacspec_ml_kem.Matrix.sample_matrix_A $K $seed_for_A false with
+      | Core_models.Result.Result_Ok aF ->
+        Hacspec_ml_kem.Commute.Keygen_bridge.lemma_transpose_involutive $K aF
+      | Core_models.Result.Result_Err _ -> ());
+    (* (5) bounds: tt_as_ntt vector intro. *)
+    Libcrux_ml_kem.Polynomial.Spec.lemma_is_bounded_polynomial_vector_intro $K
+      #$:Vector
+      (${public_key}.Libcrux_ml_kem.Ind_cpa.Unpacked.f_tt_as_ntt)
+      (mk_usize 3328);
+    (* (6) bounds: A matrix intro (per-row then matrix), as in build_unpacked_public_key_mut. *)
+    (let aux (i: usize { v i < v $K })
+          : Lemma
+          (Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector $K
+              #$:Vector
+              (mk_usize 3328)
+              (${public_key}.Libcrux_ml_kem.Ind_cpa.Unpacked.f_A.[ i ])) =
+        Libcrux_ml_kem.Polynomial.Spec.lemma_is_bounded_polynomial_vector_intro $K
+          #$:Vector
+          (${public_key}.Libcrux_ml_kem.Ind_cpa.Unpacked.f_A.[ i ])
+          (mk_usize 3328)
+      in
+      FStar.Classical.forall_intro aux);
+    Libcrux_ml_kem.Polynomial.Spec.lemma_is_bounded_polynomial_matrix_intro $K
+      #$:Vector
+      (${public_key}.Libcrux_ml_kem.Ind_cpa.Unpacked.f_A)
+      (mk_usize 3328)"#
+    );
 }
 
 #[allow(non_snake_case)]
