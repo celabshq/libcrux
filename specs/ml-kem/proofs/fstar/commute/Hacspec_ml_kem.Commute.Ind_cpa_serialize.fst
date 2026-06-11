@@ -418,13 +418,21 @@ let lemma_cts_fold_len
   assert (cts_inv v_K du fold_res v_K)
 #pop-options
 
-(* NOTE: the whole-array assembly (out == compress_then_serialize_u_into) is
-   CLIFFED — see agent-status/ind-cpa-cluster2-status.md.  The fold-term
-   (F.fold_range ... cts_step) has no first-order congruence, so transporting
-   a per-chunk equality from `F.fold_range` onto an opaque `cts_fold` atom (or
-   onto `compress_then_serialize_u_into` via the trefl bridge) saturates with
-   "incomplete quantifiers" at low rlimit.  The leaf chunk lemmas above
-   (lemma_cts_fold_chunk and friends, lemma_cts_into_eq_fold, lemma_cts_into_chunk,
-   lemma_cts_fold_len) all verify and are the reusable substrate for a future
-   opaque-atom + per-index-lookup retry.  compress_then_serialize_u stays
-   panic_free for now. *)
+(* NOTE (2026-06-11): the whole-array assembly (out == compress_then_serialize_u_into)
+   remains CLIFFED at the LEAF fold->spec-fn chunk transport.  Progress this session:
+   - lemma_compress_then_serialize_u_finalize VERIFIES (monolithic, rlimit ~15) when
+     phrased over the spec-fn APPLICATION `compress_then_serialize_u_into` (opaque to
+     Z3) and fed per-chunk facts about that application — an exact mirror of the proven
+     lemma_serialize_vector_finalize.
+   - The missing leaf is `lemma_cts_spec_chunk`: transporting one chunk fact from
+     `F.fold_range (cts_inv) (cts_step)` (lemma_cts_into_chunk) onto the spec fn via the
+     `compress_then_serialize_u_into == F.fold_range` equation (lemma_cts_into_eq_fold).
+     Every attempt (fuel 0/1, calc, lemma_mult_le_right, fold_len) fails: referencing the
+     raw `F.fold_range ... cts_step` term in consumer code reintroduces the cts_inv-refined
+     t_Slice/seq subtyping friction ("Subtyping check failed / incomplete quantifiers",
+     rlimit ~6-9 — Z3 gives up, not budget).
+   Next attempt: prove the spec-fn-phrased chunk lemma INSIDE the cts substrate via the
+   same `norm [delta_only ...]; trefl` tactic that lemma_cts_into_eq_fold uses, so the
+   fold term is never named in consumer position; OR wrap the fold in an opaque atom.
+   compress_then_serialize_u stays panic_free for now (only consumed by encrypt_c1, which
+   is itself deferred as a value+&mut tuple-return).  The leaf chunk lemmas above all verify. *)

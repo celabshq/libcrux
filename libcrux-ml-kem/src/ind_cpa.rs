@@ -196,10 +196,16 @@ pub(crate) fn serialize_vector<const K: usize, Vector: Operations>(
 }
 
 /// Sample a vector of ring elements from a centered binomial distribution.
+//
+// NOTE (2026-06-11): `panic_free` — body (incl. the cascade-fixed scaffold: cbd_prefix_done opaque
+// loop invariant + prefix init/step + finalize lemma) IS verified; only the functional return-post is
+// admitted. That post is NOT yet proven — it fails as "incomplete quantifiers" (the inlined
+// tuple-return projector-matching problem; see proofs/agent-status/ind_cpa-sample_ring_element_cbd-status.md).
+// To resume: remove `verification_status(panic_free)` and close the return-post.
 #[inline(always)]
 #[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::fstar::options(
-    "--max_fuel 15 --z3rlimit 400 --ext context_pruning --split_queries always"
+    "--z3rlimit 300 --ext context_pruning --split_queries always --z3refresh --using_facts_from '* -Hacspec_ml_kem.Parameters.createi_lemma -Libcrux_ml_kem.Polynomial.Spec'"
 )]
 #[hax_lib::requires(
     (hacspec_ml_kem::parameters::is_rank(K)
@@ -208,13 +214,15 @@ pub(crate) fn serialize_vector<const K: usize, Vector: Operations>(
         && (domain_separator as usize) < 2 * K
         && (domain_separator as usize) + K < 256).to_prop()
 )]
-#[hax_lib::ensures(|ds|
-    (ds == domain_separator + (K as u8)).to_prop()
-    & crate::polynomial::spec::is_bounded_polynomial_vector(3, future(error_1))
-    & (crate::vector::spec::vector_to_spec(future(error_1)) ==
-        hacspec_ml_kem::ind_cpa::sample_vector_cbd::<K>(
-            ETA2, &prf_input[..32], domain_separator)).to_prop()
-)]
+#[hax_lib::ensures(|ds| fstar!(r#"
+    b2t ($ds =. ($domain_separator +! (cast ($K <: usize) <: u8) <: u8)) /\
+    Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector $K #$:Vector (mk_usize 3) error_1_future /\
+    b2t ((Libcrux_ml_kem.Vector.Spec.vector_to_spec $K #$:Vector error_1_future
+            <: t_Array (t_Array Hacspec_ml_kem.Parameters.t_FieldElement (mk_usize 256)) $K) =.
+         (Hacspec_ml_kem.Ind_cpa.sample_vector_cbd $K $ETA2
+            (${prf_input}.[ { Core_models.Ops.Range.f_end = mk_usize 32 } <: Core_models.Ops.Range.t_RangeTo usize ] <: t_Slice u8)
+            $domain_separator
+            <: t_Array (t_Array Hacspec_ml_kem.Parameters.t_FieldElement (mk_usize 256)) $K))"#))]
 fn sample_ring_element_cbd<
     const K: usize,
     const ETA2_RANDOMNESS_SIZE: usize,
@@ -223,32 +231,76 @@ fn sample_ring_element_cbd<
     Hasher: Hash<K>,
 >(
     prf_input: &[u8; 33],
-    mut domain_separator: u8,
+    domain_separator: u8,
     error_1: &mut [PolynomialRingElement<Vector>; K],
 ) -> u8 {
     let mut prf_inputs = [prf_input.clone(); K];
 
-    #[cfg(hax)]
-    let _domain_separator_init = domain_separator;
-
-    domain_separator = prf_input_inc::<K>(&mut prf_inputs, domain_separator);
+    // Unshadow domain_separator: bind the incremented result to a fresh name so the
+    // parameter (= initial ds, used by the ensures' sample_vector_cbd) stays nameable post-loop.
+    let domain_separator_future = prf_input_inc::<K>(&mut prf_inputs, domain_separator);
+    hax_lib::fstar!(
+        r#"assert (v $domain_separator_future == v $domain_separator + v $K);
+           Hacspec_ml_kem.Commute.Ind_cpa_sampling.lemma_prf_inputs_struct
+             $K $prf_input $prf_inputs $domain_separator"#
+    );
     let prf_outputs: [[u8; ETA2_RANDOMNESS_SIZE]; K] = Hasher::PRFxN(&prf_inputs);
+    // Establish the opaque loop-invariant atom at the empty prefix (vacuous).
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Ind_cpa_sampling.lemma_cbd_prefix_init
+             $K ${error_1}
+             (Hacspec_ml_kem.Ind_cpa.sample_vector_cbd $K $ETA2
+                (${prf_input}.[ { Core_models.Ops.Range.f_end = mk_usize 32 } <: Core_models.Ops.Range.t_RangeTo usize ] <: t_Slice u8) $domain_separator)"#
+    );
     for i in 0..K {
+        // Invariant carries ONE opaque atom (cbd_prefix_done) wrapping the `forall j` — so hax does
+        // NOT bake a raw forall into the fold-accumulator refinement type (that re-fires ~20k times
+        // in the whole-function post VC → "incomplete quantifiers").  See Ind_cpa_sampling.fst.
         hax_lib::loop_invariant!(|i: usize| {
             fstar!(
-                r#"
-                forall (j:nat). j < v $i ==>
-                    Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (sz 3) (Seq.index ${error_1} j)"#
+                r#"Hacspec_ml_kem.Commute.Ind_cpa_sampling.cbd_prefix_done $K ${error_1}
+                    (Hacspec_ml_kem.Ind_cpa.sample_vector_cbd $K $ETA2
+                       (${prf_input}.[ { Core_models.Ops.Range.f_end = mk_usize 32 } <: Core_models.Ops.Range.t_RangeTo usize ] <: t_Slice u8) $domain_separator) (v $i)"#
             )
         });
-        error_1[i] = sample_from_binomial_distribution::<ETA2, Vector>(&prf_outputs[i]);
+        #[cfg(hax)]
+        let error_1_old = *error_1;
+        let sampled = sample_from_binomial_distribution::<ETA2, Vector>(&prf_outputs[i]);
+        error_1[i] = sampled;
+        hax_lib::fstar!(
+            r#"Hacspec_ml_kem.Commute.Ind_cpa_sampling.lemma_per_index_cbd
+                 #$:Vector $K $ETA2 (${prf_input}.[ { Core_models.Ops.Range.f_end = mk_usize 32 } <: Core_models.Ops.Range.t_RangeTo usize ] <: t_Slice u8)
+                 $domain_separator $ETA2_RANDOMNESS_SIZE $prf_inputs $prf_outputs $sampled (v $i);
+               Hacspec_ml_kem.Commute.Ind_cpa_sampling.lemma_cbd_row_intro
+                 $K $sampled
+                 (Hacspec_ml_kem.Ind_cpa.sample_vector_cbd $K $ETA2
+                    (${prf_input}.[ { Core_models.Ops.Range.f_end = mk_usize 32 } <: Core_models.Ops.Range.t_RangeTo usize ] <: t_Slice u8) $domain_separator) (v $i);
+               Hacspec_ml_kem.Commute.Ind_cpa_sampling.lemma_cbd_prefix_step
+                 #$:Vector $K
+                 (Hacspec_ml_kem.Ind_cpa.sample_vector_cbd $K $ETA2
+                    (${prf_input}.[ { Core_models.Ops.Range.f_end = mk_usize 32 } <: Core_models.Ops.Range.t_RangeTo usize ] <: t_Slice u8) $domain_separator)
+                 $error_1_old $i $sampled"#
+        );
     }
 
-    domain_separator
+    // Single full-post establisher: yields the exact ensures (all 3 conjuncts as one opaque atom)
+    // from the loop-exit opaque prefix atom + the ds increment value-fact (asserted above).
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Ind_cpa_sampling.lemma_sample_ring_element_cbd_post
+             #$:Vector $K $ETA2 (${prf_input}.[ { Core_models.Ops.Range.f_end = mk_usize 32 } <: Core_models.Ops.Range.t_RangeTo usize ] <: t_Slice u8)
+             $domain_separator $domain_separator_future $error_1"#
+    );
+
+    domain_separator_future
 }
 
 /// Sample a vector of ring elements from a centered binomial distribution and
 /// convert them into their NTT representations.
+//
+// NOTE (2026-06-11): `panic_free` — body verified, functional post admitted. Same value+&mut
+// tuple-return-post wall as sample_ring_element_cbd (see
+// proofs/agent-status/ind_cpa-sample_ring_element_cbd-status.md), and additionally needs ntt.rs
+// strengthened to a functional NTT post. Deferred to the tuple-return follow-up.
 #[inline(always)]
 #[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::fstar::options(
@@ -911,7 +963,6 @@ pub(crate) fn encrypt<
     >(&unpacked_public_key, message, randomness)
 }
 
-#[hax_lib::fstar::verification_status(panic_free)]
 #[inline(always)]
 #[hax_lib::requires(
     hacspec_ml_kem::parameters::is_rank(K)
@@ -968,7 +1019,6 @@ fn build_unpacked_public_key<
         Err(_) => true,
     }).to_prop()
 })]
-#[hax_lib::fstar::verification_status(panic_free)]
 pub(crate) fn build_unpacked_public_key_mut<
     const K: usize,
     const T_AS_NTT_ENCODED_SIZE: usize,
@@ -999,6 +1049,26 @@ pub(crate) fn build_unpacked_public_key_mut<
         &mut unpacked_public_key.A,
         &into_padded_array(seed),
         false,
+    );
+
+    // Fold the callee posts' per-element bounds into the opaque
+    // is_bounded_polynomial_{vector,matrix} atoms required by the ensures.
+    // (The functional vector_to_spec / matrix_to_spec equalities flow straight
+    // from the callee posts; the seed-slice eq_intro above bridges the A spec.)
+    hax_lib::fstar!(
+        r#"Libcrux_ml_kem.Polynomial.Spec.lemma_is_bounded_polynomial_vector_intro $K #$:Vector
+             (${unpacked_public_key}.Libcrux_ml_kem.Ind_cpa.Unpacked.f_tt_as_ntt) (mk_usize 3328);
+           (let aux (i: usize { v i < v $K })
+               : Lemma
+                 (Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector $K #$:Vector
+                    (mk_usize 3328)
+                    (${unpacked_public_key}.Libcrux_ml_kem.Ind_cpa.Unpacked.f_A.[ i ])) =
+             Libcrux_ml_kem.Polynomial.Spec.lemma_is_bounded_polynomial_vector_intro $K #$:Vector
+               (${unpacked_public_key}.Libcrux_ml_kem.Ind_cpa.Unpacked.f_A.[ i ]) (mk_usize 3328)
+           in
+           FStar.Classical.forall_intro aux);
+           Libcrux_ml_kem.Polynomial.Spec.lemma_is_bounded_polynomial_matrix_intro $K #$:Vector
+             (${unpacked_public_key}.Libcrux_ml_kem.Ind_cpa.Unpacked.f_A) (mk_usize 3328)"#
     );
 }
 
