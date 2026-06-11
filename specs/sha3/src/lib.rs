@@ -1,3 +1,5 @@
+#![cfg_attr(hax_backend_lean, feature(register_tool))]
+#![cfg_attr(hax_backend_lean, register_tool(charon))]
 /// Keccak-f[1600] permutation — exposed for cross-spec testing.
 pub mod keccak_f;
 mod sha3;
@@ -16,7 +18,13 @@ let createi
     = Rust_primitives.Arrays.createi v_N f
 "#
 )]
+#[cfg(not(hax_backend_lean))] // https://github.com/AeneasVerif/aeneas/issues/924
 pub(crate) fn createi<T, const N: usize, F: Fn(usize) -> T>(f: F) -> [T; N] {
+    core::array::from_fn(f)
+}
+
+#[cfg(hax_backend_lean)]
+pub(crate) fn createi<T, const N: usize, F: FnMut(usize) -> T>(f: F) -> [T; N] {
     core::array::from_fn(f)
 }
 

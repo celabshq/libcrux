@@ -12,4 +12,7 @@ proptest = "1.2.0"
 libcrux-sha3 = { path = "../../crates/algorithms/sha3" }
 
 [lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = ['cfg(hax)'] }
+unexpected_cfgs = { level = "warn", check-cfg = [
+    'cfg(hax)',
+    'cfg(hax_backend_lean)',
+] }
