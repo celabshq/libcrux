@@ -931,7 +931,6 @@ pub(crate) fn encrypt_c1<
     (r_as_ntt, error_2)
 }
 
-#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::fstar::options("--z3rlimit 400 --ext context_pruning --split_queries always")]
 #[hax_lib::requires(
     hacspec_ml_kem::parameters::is_rank(K).to_prop()
