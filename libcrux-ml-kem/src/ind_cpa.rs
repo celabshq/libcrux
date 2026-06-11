@@ -946,7 +946,15 @@ pub(crate) fn encrypt_c1<
     & crate::polynomial::spec::is_bounded_polynomial_vector(3328, r_as_ntt)
     & crate::polynomial::spec::is_bounded_poly(3328, error_2)
 )]
-#[hax_lib::ensures(|()| future(ciphertext).len() == ciphertext.len())]
+#[hax_lib::ensures(|()| (future(ciphertext).len() == ciphertext.len()).to_prop()
+    & fstar!(r#"${ciphertext}_future ==
+        Hacspec_ml_kem.Serialize.compress_then_serialize_v $C2_LEN
+          (Hacspec_ml_kem.Matrix.compute_ring_element_v $K
+              (Libcrux_ml_kem.Vector.Spec.vector_to_spec $K $t_as_ntt)
+              (Libcrux_ml_kem.Vector.Spec.vector_to_spec $K $r_as_ntt)
+              (Libcrux_ml_kem.Vector.Spec.poly_to_spec $error_2)
+              (Hacspec_ml_kem.Serialize.deserialize_then_decompress_message $message))
+          $V_COMPRESSION_FACTOR"#))]
 #[inline(always)]
 pub(crate) fn encrypt_c2<
     const K: usize,
@@ -968,6 +976,19 @@ pub(crate) fn encrypt_c2<
     // c_2 := Encode_{dv}(Compress_q(v,d_v))
     compress_then_serialize_ring_element_v::<K, V_COMPRESSION_FACTOR, C2_LEN, Vector>(
         v, ciphertext,
+    );
+    // Functional post: compose compress_then_serialize_ring_element_v's post
+    // (out == compress_then_serialize_v(poly_to_spec v)) with compute_ring_element_v's
+    // (poly_to_spec v == Hacspec.compute_ring_element_v(...)) — all proven callees.
+    hax_lib::fstar!(
+        r#"assert (${ciphertext} ==
+        Hacspec_ml_kem.Serialize.compress_then_serialize_v $C2_LEN
+          (Hacspec_ml_kem.Matrix.compute_ring_element_v $K
+              (Libcrux_ml_kem.Vector.Spec.vector_to_spec $K $t_as_ntt)
+              (Libcrux_ml_kem.Vector.Spec.vector_to_spec $K $r_as_ntt)
+              (Libcrux_ml_kem.Vector.Spec.poly_to_spec $error_2)
+              (Hacspec_ml_kem.Serialize.deserialize_then_decompress_message $message))
+          $V_COMPRESSION_FACTOR)"#
     );
 }
 
