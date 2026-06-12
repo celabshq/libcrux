@@ -734,13 +734,14 @@ fn compress_then_serialize_u<
 /// The NIST FIPS 203 standard can be found at
 /// <https://csrc.nist.gov/pubs/fips/203/ipd>.
 #[allow(non_snake_case)]
-// FUNCTIONAL POST PROVEN COMPOSITIONALLY but kept `panic_free` here: the body wiring
-// (the c1/c2 byte-segment slice asserts + `Encrypt_bridge.lemma_encrypt_unpacked_finalize`)
-// VERIFIES under `admit_except` (rlimit ~400, auto-split ~405/800) but SATURATES in the
-// full no-admit build's heavier ambient context (the `Seq.slice ciphertext == tmp0`-through-
-// two-`update_at` reasoning is the cliff, NOT the spec terms). Composition is done and lives
-// in `Hacspec_ml_kem.Commute.Encrypt_bridge`; closing this fn needs a cheaper body proof.
-#[hax_lib::fstar::verification_status(panic_free)]
+// FUNCTIONAL POST, proven compositionally via `Encrypt_bridge.lemma_encrypt_unpacked_finalize`
+// (CONCAT form): it takes the two byte segments DIRECTLY (`tmp0` = encrypt_c1's c1 write, and
+// the c2 segment as `Seq.slice ciphertext C1_LEN CIPHERTEXT_SIZE` — a single-`update_at` slice)
+// plus `ciphertext` in its raw two-`update_at`-write form, and discharges `ciphertext == Ok-value`
+// via `lemma_impl_concat` + `lemma_spec_concat`.  The earlier slice-form finalize (which required
+// `Seq.slice ciphertext 0 C1_LEN == compress_u`, i.e. slicing the c1 segment THROUGH the second
+// update) saturated the full no-admit build; passing `tmp0` directly moves that reasoning into the
+// bridge (where the segments are explicit), so encrypt_unpacked now verifies at rlimit ~132.
 #[hax_lib::fstar::options("--z3rlimit 400 --split_queries always")]
 #[hax_lib::requires(
     hacspec_ml_kem::parameters::is_rank(K).to_prop()
@@ -828,6 +829,21 @@ pub(crate) fn encrypt_unpacked<
         &error_2,
         message,
         &mut ciphertext[C1_LEN..],
+    );
+
+    // Compose encrypt_c1's c1 segment (`tmp0`, the &mut write) + encrypt_c2's c2 segment
+    // (the tail slice of the final `ciphertext`) into `c == c1 ‖ c2 == Hacspec.encrypt_unpacked(...)`.
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Encrypt_bridge.lemma_encrypt_unpacked_finalize
+             $K $C1_LEN $C2_LEN $CIPHERTEXT_SIZE $U_COMPRESSION_FACTOR $V_COMPRESSION_FACTOR
+             (Libcrux_ml_kem.Vector.Spec.vector_to_spec $K
+                ${public_key}.Libcrux_ml_kem.Ind_cpa.Unpacked.f_tt_as_ntt)
+             (Libcrux_ml_kem.Vector.Spec.matrix_to_spec $K
+                ${public_key}.Libcrux_ml_kem.Ind_cpa.Unpacked.f_A)
+             $message $randomness
+             tmp0
+             (Seq.slice ${ciphertext} (v $C1_LEN) (v $CIPHERTEXT_SIZE))
+             ${ciphertext}"#
     );
 
     ciphertext
@@ -1066,7 +1082,11 @@ pub(crate) fn encrypt_c2<
 }
 
 #[allow(non_snake_case)]
-#[hax_lib::fstar::verification_status(panic_free)]
+// FORWARDER (functional): composes `build_unpacked_public_key`'s posts
+// (`vector_to_spec t̂ == vector_decode_12_(pk[..T_ENC])`, `matrix_to_spec A == sample_matrix_A(pk[T_ENC..],false)`)
+// with `encrypt_unpacked`'s functional post.  `Encrypt_bridge.lemma_rank_to_params` supplies the
+// param-field facts so the spec's `impl_MlKemParams__tt_as_ntt_encoded_size(rank_to_params K)` and
+// `deserialize_ring_elements_reduced (== vector_decode_12_)` line up; the rest is delta-reduction.
 #[hax_lib::fstar::options("--z3rlimit 500 --ext context_pruning")]
 #[hax_lib::requires(
     hacspec_ml_kem::parameters::is_rank(K).to_prop()
@@ -1119,8 +1139,8 @@ pub(crate) fn encrypt<
     let unpacked_public_key =
         build_unpacked_public_key::<K, T_AS_NTT_ENCODED_SIZE, Vector, Hasher>(public_key);
 
-    // After unpacking the public key we can now call the unpacked decryption.
-    encrypt_unpacked::<
+    // After unpacking the public key we can now call the unpacked encryption.
+    let result = encrypt_unpacked::<
         K,
         CIPHERTEXT_SIZE,
         T_AS_NTT_ENCODED_SIZE,
@@ -1135,7 +1155,14 @@ pub(crate) fn encrypt<
         ETA2_RANDOMNESS_SIZE,
         Vector,
         Hasher,
-    >(&unpacked_public_key, message, randomness)
+    >(&unpacked_public_key, message, randomness);
+
+    // The spec `Hacspec.encrypt` decodes t̂ (== build_unpacked) then matches `sample_matrix_A`
+    // (== build_unpacked) and forwards to `encrypt_unpacked`; the param-field facts make the two
+    // line up (deserialize_ring_elements_reduced == vector_decode_12_ is definitional).
+    hax_lib::fstar!("Hacspec_ml_kem.Commute.Encrypt_bridge.lemma_rank_to_params $K");
+
+    result
 }
 
 #[inline(always)]

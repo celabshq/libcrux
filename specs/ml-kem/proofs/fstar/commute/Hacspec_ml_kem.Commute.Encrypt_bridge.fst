@@ -129,10 +129,16 @@ let lemma_spec_concat (v_CT_SIZE v_U_SIZE: usize) (c1_spec c2_spec: t_Slice u8)
     Rust_primitives.Arrays.lemma_slice_append c2 c1_spec c2_spec
 #pop-options
 
-(* ── the finalize: result == Ok-value of the spec ──
-   `result` is the impl's final ciphertext; its two byte-segments are pinned to
-   the encrypt_c1/encrypt_c2 functional posts (as `Seq.slice` facts, so the
-   caller need not name the hax-internal in-place `&mut` tmp binders). ── *)
+(* ── the finalize (CONCAT form): result == Ok-value of the spec ──
+   Takes the two byte-segments `c1_bytes`/`c2_bytes` DIRECTLY (= the impl's
+   `tmp0` from encrypt_c1 and the encrypt_c2 result) plus `result` in its raw
+   two-`update_at`-write form.  This makes the CALLER's preconditions cheap:
+   `c1_bytes == compress_then_serialize_u …` is encrypt_c1's post on `tmp0`
+   directly, `c2_bytes == compress_then_serialize_v …` is encrypt_c2's post
+   directly, and `result == update_at_range_from (update_at_range …) …` is
+   DEFINITIONAL from the body's two writes.  The slice-through-two-updates
+   reasoning (the PERF CLIFF) is discharged HERE via `lemma_impl_concat`, where
+   `c1_bytes`/`c2_bytes` are explicit, instead of in the heavy caller context. ── *)
 #push-options "--fuel 1 --ifuel 1 --z3rlimit 300"
 let lemma_encrypt_unpacked_finalize
       (v_K v_C1_LEN v_C2_LEN v_CT_SIZE v_U_COMP v_V_COMP: usize)
@@ -140,6 +146,7 @@ let lemma_encrypt_unpacked_finalize
       (a_spec: t_Array (t_Array poly v_K) v_K)
       (message: t_Array u8 (mk_usize 32))
       (randomness: t_Slice u8)
+      (c1_bytes c2_bytes: t_Slice u8)
       (result: t_Array u8 v_CT_SIZE)
     : Lemma
       (requires
@@ -150,13 +157,15 @@ let lemma_encrypt_unpacked_finalize
         v_V_COMP == P.vector_v_compression_factor v_K /\
         Seq.length randomness == 32 /\
         v v_C1_LEN + v v_C2_LEN == v v_CT_SIZE /\
-        Seq.slice result 0 (v v_C1_LEN) ==
+        Seq.length c1_bytes == v v_C1_LEN /\
+        Seq.length c2_bytes == v v_CT_SIZE - v v_C1_LEN /\
+        c1_bytes ==
           HS.compress_then_serialize_u v_K v_C1_LEN
             (HM.compute_vector_u v_K a_spec
                (HI.sample_vector_cbd_then_ntt v_K (P.eta1 v_K) randomness (mk_u8 0))
                (HI.sample_vector_cbd v_K (P.eta2 v_K) randomness (cast v_K <: u8)))
             v_U_COMP /\
-        Seq.slice result (v v_C1_LEN) (v v_CT_SIZE) ==
+        c2_bytes ==
           HS.compress_then_serialize_v v_C2_LEN
             (HM.compute_ring_element_v v_K tt_spec
                (HI.sample_vector_cbd_then_ntt v_K (P.eta1 v_K) randomness (mk_u8 0))
@@ -164,7 +173,12 @@ let lemma_encrypt_unpacked_finalize
                   (U.update_at_usize (Libcrux_ml_kem.Utils.into_padded_array (mk_usize 33) randomness)
                      (mk_usize 32) (cast (v_K *! mk_usize 2) <: u8)))
                (HS.deserialize_then_decompress_message message))
-            v_V_COMP)
+            v_V_COMP /\
+        result ==
+          U.update_at_range_from
+            (U.update_at_range (Rust_primitives.Hax.repeat (mk_u8 0) v_CT_SIZE)
+               ({ R.f_start = mk_usize 0; R.f_end = v_C1_LEN } <: R.t_Range usize) c1_bytes)
+            ({ R.f_start = v_C1_LEN } <: R.t_RangeFrom usize) c2_bytes)
       (ensures
         (match HI.encrypt_unpacked v_K v_C1_LEN v_C2_LEN v_CT_SIZE (P.rank_to_params v_K)
                  tt_spec a_spec message randomness with
@@ -172,8 +186,6 @@ let lemma_encrypt_unpacked_finalize
          | Core_models.Result.Result_Err _ -> true))
   = lemma_rank_to_params v_K;
     lemma_encrypt_prf_input randomness (cast (v_K *! mk_usize 2) <: u8);
-    let c1_spec = Seq.slice result 0 (v v_C1_LEN) in
-    let c2_spec = Seq.slice result (v v_C1_LEN) (v v_CT_SIZE) in
-    Rust_primitives.Arrays.lemma_slice_append result c1_spec c2_spec;
-    lemma_spec_concat v_CT_SIZE v_C1_LEN c1_spec c2_spec
+    lemma_impl_concat v_CT_SIZE v_C1_LEN c1_bytes c2_bytes;
+    lemma_spec_concat v_CT_SIZE v_C1_LEN c1_bytes c2_bytes
 #pop-options
