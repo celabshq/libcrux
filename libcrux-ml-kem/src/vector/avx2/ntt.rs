@@ -465,14 +465,76 @@ let lemma_mm256_castsi256_si128 (v: Libcrux_intrinsics.Avx2_extract.t_Vec256) : 
     Seq.index (Libcrux_intrinsics.Avx2_extract.vec128_as_i16x8
                  (Libcrux_intrinsics.Avx2_extract.mm256_castsi256_si128 v)) i ==
     Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 v) i))
-  = admit ()
+  = let aux (i: nat {i < 8})
+      : Lemma (Seq.index (Libcrux_intrinsics.Avx2_extract.vec128_as_i16x8
+                            (Libcrux_intrinsics.Avx2_extract.mm256_castsi256_si128 v)) i ==
+               Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 v) i) =
+      let a = Seq.index (Libcrux_intrinsics.Avx2_extract.vec128_as_i16x8
+                           (Libcrux_intrinsics.Avx2_extract.mm256_castsi256_si128 v)) i in
+      let b = Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 v) i in
+      let auxb (nth: usize {Rust_primitives.Integers.v nth < 16})
+        : Lemma (get_bit a nth == get_bit b nth) =
+        let nthv = Rust_primitives.Integers.v nth in
+        FStar.Math.Lemmas.lemma_mult_le_left 16 i 7;
+        let k : nat = 16 * i + nthv in
+        assert (k < 128);
+        FStar.Math.Lemmas.small_div nthv 16;
+        FStar.Math.Lemmas.small_mod nthv 16;
+        FStar.Math.Lemmas.lemma_div_plus nthv i 16;
+        FStar.Math.Lemmas.lemma_mod_plus nthv i 16;
+        Libcrux_intrinsics.Avx2_extract.bit_vec_of_int_t_array_vec128_as_i16x8_lemma
+          (Libcrux_intrinsics.Avx2_extract.mm256_castsi256_si128 v) 16 k;
+        Libcrux_intrinsics.Avx2_extract.bit_vec_of_int_t_array_vec256_as_i16x16_lemma v 16 k;
+        assert (k / 16 == i);
+        assert (k % 16 == nthv);
+        assert (Libcrux_intrinsics.Avx2_extract.mm256_castsi256_si128 v k == v k)
+      in
+      Classical.forall_intro auxb;
+      Rust_primitives.Integers.lemma_int_t_eq_via_bits a b
+    in
+    Classical.forall_intro aux
 
 let lemma_mm256_extracti128_si256_1 (v: Libcrux_intrinsics.Avx2_extract.t_Vec256) : Lemma
   (ensures (forall (i: nat). i < 8 ==>
     Seq.index (Libcrux_intrinsics.Avx2_extract.vec128_as_i16x8
                  (Libcrux_intrinsics.Avx2_extract.mm256_extracti128_si256 (mk_i32 1) v)) i ==
     Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 v) (i + 8)))
-  = admit ()
+  = let aux (i: nat {i < 8})
+      : Lemma (Seq.index (Libcrux_intrinsics.Avx2_extract.vec128_as_i16x8
+                            (Libcrux_intrinsics.Avx2_extract.mm256_extracti128_si256 (mk_i32 1) v)) i ==
+               Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 v) (i + 8)) =
+      let a = Seq.index (Libcrux_intrinsics.Avx2_extract.vec128_as_i16x8
+                           (Libcrux_intrinsics.Avx2_extract.mm256_extracti128_si256 (mk_i32 1) v)) i in
+      let b = Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 v) (i + 8) in
+      let auxb (nth: usize {Rust_primitives.Integers.v nth < 16})
+        : Lemma (get_bit a nth == get_bit b nth) =
+        let nthv = Rust_primitives.Integers.v nth in
+        FStar.Math.Lemmas.lemma_mult_le_left 16 i 7;
+        FStar.Math.Lemmas.lemma_mult_le_left 16 (i + 8) 15;
+        let k : nat = 16 * i + nthv in
+        let k' : nat = 16 * (i + 8) + nthv in
+        assert (k < 128);
+        assert (k' < 256);
+        assert (k' == k + 128);
+        FStar.Math.Lemmas.small_div nthv 16;
+        FStar.Math.Lemmas.small_mod nthv 16;
+        FStar.Math.Lemmas.lemma_div_plus nthv i 16;
+        FStar.Math.Lemmas.lemma_mod_plus nthv i 16;
+        FStar.Math.Lemmas.lemma_div_plus nthv (i + 8) 16;
+        FStar.Math.Lemmas.lemma_mod_plus nthv (i + 8) 16;
+        Libcrux_intrinsics.Avx2_extract.bit_vec_of_int_t_array_vec128_as_i16x8_lemma
+          (Libcrux_intrinsics.Avx2_extract.mm256_extracti128_si256 (mk_i32 1) v) 16 k;
+        Libcrux_intrinsics.Avx2_extract.bit_vec_of_int_t_array_vec256_as_i16x16_lemma v 16 k';
+        assert (k / 16 == i);
+        assert (k % 16 == nthv);
+        assert (k' / 16 == i + 8);
+        assert (k' % 16 == nthv);
+        assert (Libcrux_intrinsics.Avx2_extract.mm256_extracti128_si256 (mk_i32 1) v k == v (k + 128))
+      in
+      Classical.forall_intro auxb;
+      Rust_primitives.Integers.lemma_int_t_eq_via_bits a b
+    in
+    Classical.forall_intro aux
 
 let lemma_mm256_castsi128_si256_lo (v: Libcrux_intrinsics.Avx2_extract.t_Vec128) : Lemma
   (ensures (forall (i: nat). i < 8 ==>
@@ -1234,11 +1296,11 @@ let lemma_nttmul_permute_d8_lane (vv: ZI.t_Vec256) (k: nat{k < 16}) : Lemma
 
 let lemma_nttmul_cast_lane (vv: ZI.t_Vec256) (j: nat{j < 8}) : Lemma
   (ZI.get_lane128 (ZI.mm256_castsi256_si128 vv) j == ZI.get_lane vv j)
-  = admit ()
+  = lemma_mm256_castsi256_si128 vv
 
 let lemma_nttmul_extract1_lane (vv: ZI.t_Vec256) (j: nat{j < 8}) : Lemma
   (ZI.get_lane128 (ZI.mm256_extracti128_si256 (mk_i32 1) vv) j == ZI.get_lane vv (j + 8))
-  = admit ()
+  = lemma_mm256_extracti128_si256_1 vv
 
 let lemma_nttmul_cvt_lane (x: ZI.t_Vec128) (j: nat{j < 8}) : Lemma
   (ZA.lane32 (ZI.mm256_cvtepi16_epi32 x) j == v (ZI.get_lane128 x j))
