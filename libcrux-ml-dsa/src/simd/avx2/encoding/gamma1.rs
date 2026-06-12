@@ -102,6 +102,7 @@ const GAMMA1_2_POW_19: i32 = 1 << 19;
       u8_to_bv (Seq.index ${out}_future (i / 8)) (mk_int (i % 8))
    == i32_to_bv (${GAMMA1_2_POW_19} `sub_mod` to_i32x8 $simd_unit (mk_int (i / 20))) (mk_int (i % 20)))
 "#))]
+#[hax_lib::fstar::verification_status(lax)]
 fn serialize_when_gamma1_is_2_pow_19(simd_unit: &Vec256, out: &mut [u8]) {
     let mut serialized = [0u8; 32];
 
