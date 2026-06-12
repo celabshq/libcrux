@@ -1302,7 +1302,14 @@ pub(crate) fn build_unpacked_public_key_mut<
 // SMTPat'd elim/intro/higher lemmas — breaks ~10 functions across
 // Ntt/Invert_ntt that need explicit reveal+intro updates; deferred to a
 // separate sprint.
-#[hax_lib::fstar::options("--z3rlimit 400 --ext context_pruning --split_queries always --using_facts_from '* -Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly -Rust_primitives.Slice.array_from_fn'")]
+// The functional conjunct below is stated as a TRUST BOUNDARY (kept `panic_free`, so admitted):
+// the impl fuses deserialize+decompress+NTT per element, matching the spec's
+// `vector_ntt ∘ deserialize_then_decompress_u`.  Consumed by `decrypt_unpacked`.  (Provable for
+// real via a per-element functional loop invariant + the poly_to_spec ↔ to_spec_poly_plain bridge;
+// deferred.)  The Hacspec spec modules are added to the `using_facts_from` prune list because the
+// functional conjunct's spec-function references otherwise pollute the band-aided loop sub-query and
+// make it saturate cold (rlimit 400/canceled); the body is admitted so pruning their facts is sound.
+#[hax_lib::fstar::options("--z3rlimit 400 --ext context_pruning --split_queries always --using_facts_from '* -Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly -Rust_primitives.Slice.array_from_fn -Hacspec_ml_kem.Serialize -Hacspec_ml_kem.Ntt -Hacspec_ml_kem.Compress'")]
 #[hax_lib::requires(
     hacspec_ml_kem::parameters::is_rank(K)
     && CIPHERTEXT_SIZE == hacspec_ml_kem::parameters::cpa_ciphertext_size(K)
@@ -1310,14 +1317,11 @@ pub(crate) fn build_unpacked_public_key_mut<
 )]
 #[hax_lib::ensures(|res|
     spec::is_bounded_polynomial_vector(3328, &res)
-    // FOLLOW-UP: functional conjunct deferred — re-add once the
-    // poly_to_spec ↔ to_spec_poly_plain bridge is wired through the loop
-    // invariant.
-    // & (crate::vector::spec::vector_to_spec(&res)
-    //     == hacspec_ml_kem::serialize::deserialize_then_decompress_u_then_ntt::<K>(
-    //         &ciphertext[..hacspec_ml_kem::parameters::c1_size(K)],
-    //         U_COMPRESSION_FACTOR,
-    //     ))
+    & (crate::vector::spec::vector_to_spec(&res)
+        == hacspec_ml_kem::serialize::deserialize_then_decompress_u_then_ntt::<K>(
+            &ciphertext[..hacspec_ml_kem::parameters::c1_size(K)],
+            U_COMPRESSION_FACTOR,
+        ))
 )]
 fn deserialize_then_decompress_u<
     const K: usize,
@@ -1447,7 +1451,6 @@ pub(crate) fn deserialize_vector<const K: usize, Vector: Operations>(
         ciphertext,
     )
 )]
-#[hax_lib::fstar::verification_status(panic_free)]
 #[inline(always)]
 pub(crate) fn decrypt_unpacked<
     const K: usize,
@@ -1483,7 +1486,27 @@ pub(crate) fn decrypt_unpacked<
 
     // m := Encode_1(Compress_q(v − NTT^{−1}(sˆT ◦ NTT(u)) , 1))
     let message = compute_message(&v, &secret_key.secret_as_ntt, &u_as_ntt);
-    compress_then_serialize_message(message)
+    let result = compress_then_serialize_message(message);
+
+    // Compose the four callee functional posts into `result == Hacspec.decrypt_unpacked(...)`:
+    // deserialize_then_decompress_u (u), deserialize_then_decompress_ring_element_v (v),
+    // compute_message (w), compress_then_serialize_message.  `lemma_rank_to_params` supplies the
+    // param-field facts; the assert_norms equate the spec's `u_encoded_size` with `c1_size`
+    // (`Rust_primitives.Integers.v` is fully-qualified because the local `v` binder shadows it).
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Encrypt_bridge.lemma_rank_to_params $K;
+        assert_norm (Rust_primitives.Integers.v (Hacspec_ml_kem.Parameters.impl_MlKemParams__u_encoded_size
+                (Hacspec_ml_kem.Parameters.rank_to_params (mk_usize 2))) ==
+            Rust_primitives.Integers.v (Hacspec_ml_kem.Parameters.c1_size (mk_usize 2)));
+        assert_norm (Rust_primitives.Integers.v (Hacspec_ml_kem.Parameters.impl_MlKemParams__u_encoded_size
+                (Hacspec_ml_kem.Parameters.rank_to_params (mk_usize 3))) ==
+            Rust_primitives.Integers.v (Hacspec_ml_kem.Parameters.c1_size (mk_usize 3)));
+        assert_norm (Rust_primitives.Integers.v (Hacspec_ml_kem.Parameters.impl_MlKemParams__u_encoded_size
+                (Hacspec_ml_kem.Parameters.rank_to_params (mk_usize 4))) ==
+            Rust_primitives.Integers.v (Hacspec_ml_kem.Parameters.c1_size (mk_usize 4)))"#
+    );
+
+    result
 }
 
 #[allow(non_snake_case)]
