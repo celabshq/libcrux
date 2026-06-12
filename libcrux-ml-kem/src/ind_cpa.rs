@@ -638,16 +638,11 @@ pub(crate) fn serialize_unpacked_secret_key<
         && out.len() == OUT_LEN).to_prop()
     & crate::polynomial::spec::is_bounded_polynomial_vector(3328, &input)
 )]
-#[hax_lib::ensures(|()| {
-    let mut expected = [0u8; 1408]; // max K=4, du=11: 4 * 256 * 11 / 8
-    let len = (K * 256 * COMPRESSION_FACTOR) / 8;
-    hacspec_ml_kem::serialize::compress_then_serialize_u_into::<K>(
-        &crate::vector::spec::vector_to_spec(&input),
-        COMPRESSION_FACTOR,
-        &mut expected[..len],
-    );
-    future(out)[..] == expected[..len]
-})]
+#[hax_lib::ensures(|()| fstar!(r#"(${out}_future <: t_Slice u8) ==
+    (Hacspec_ml_kem.Serialize.compress_then_serialize_u $K $OUT_LEN
+       (Libcrux_ml_kem.Vector.Spec.vector_to_spec $K #$:Vector $input)
+       $COMPRESSION_FACTOR
+     <: t_Slice u8)"#))]
 #[inline(always)]
 fn compress_then_serialize_u<
     const K: usize,
@@ -739,6 +734,12 @@ fn compress_then_serialize_u<
 /// The NIST FIPS 203 standard can be found at
 /// <https://csrc.nist.gov/pubs/fips/203/ipd>.
 #[allow(non_snake_case)]
+// FUNCTIONAL POST PROVEN COMPOSITIONALLY but kept `panic_free` here: the body wiring
+// (the c1/c2 byte-segment slice asserts + `Encrypt_bridge.lemma_encrypt_unpacked_finalize`)
+// VERIFIES under `admit_except` (rlimit ~400, auto-split ~405/800) but SATURATES in the
+// full no-admit build's heavier ambient context (the `Seq.slice ciphertext == tmp0`-through-
+// two-`update_at` reasoning is the cliff, NOT the spec terms). Composition is done and lives
+// in `Hacspec_ml_kem.Commute.Encrypt_bridge`; closing this fn needs a cheaper body proof.
 #[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::fstar::options("--z3rlimit 400 --split_queries always")]
 #[hax_lib::requires(
@@ -757,11 +758,16 @@ fn compress_then_serialize_u<
     & crate::polynomial::spec::is_bounded_polynomial_matrix(3328, &public_key.A)
     & crate::polynomial::spec::is_bounded_polynomial_vector(3328, &public_key.t_as_ntt)
 )]
+// NOTE: the impl computes u via `compute_vector_u(matrix_to_spec public_key.A)` (row-wise),
+// so the matrix arg to the spec is `matrix_to_spec(public_key.A)` WITHOUT a transpose — the
+// stored `A` already plays the role the spec's `compute_vector_u` consumes directly (cf.
+// `build_unpacked_public_key`: `matrix_to_spec(A) == sample_matrix_A(..,false)`, which is
+// exactly what `Hacspec.encrypt` feeds `encrypt_unpacked`).
 #[hax_lib::ensures(|result|
     match hacspec_ml_kem::ind_cpa::encrypt_unpacked::<K, C1_LEN, C2_LEN, CIPHERTEXT_SIZE>(
         &hacspec_ml_kem::parameters::rank_to_params(K),
         &crate::vector::spec::vector_to_spec(&public_key.t_as_ntt),
-        &hacspec_ml_kem::matrix::transpose(&crate::vector::spec::matrix_to_spec(&public_key.A)),
+        &crate::vector::spec::matrix_to_spec(&public_key.A),
         message,
         randomness,
     ) {
@@ -827,6 +833,45 @@ pub(crate) fn encrypt_unpacked<
     ciphertext
 }
 
+// Trust-base bridge: the impl-side abstract PRF (`Spec.Utils.v_PRF`, proven by
+// every backend) equals the spec-side abstract PRF (`Hacspec.Parameters.Hash_functions.v_PRF`)
+// via the (already-wired) `Commute.Prf_bridge.lemma_prf_identification`.  Lifts the
+// proven `sample_from_binomial_distribution` post (sample_poly_cbd ∘ Spec.Utils.v_PRF)
+// to the spec `sample_secret`.  Proven once in clean context; called by encrypt_c1.
+#[cfg_attr(hax, hax_lib::fstar::before(r#"
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 40"
+
+let lemma_ds_cast (v_K: usize)
+    : Lemma (requires b2t (Hacspec_ml_kem.Parameters.is_rank v_K))
+            (ensures ((cast v_K <: u8) +! (cast v_K <: u8)) == (cast (v_K *! mk_usize 2) <: u8))
+  = ()
+
+let lemma_error_2_sample_secret
+      (#v_Vector: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+      (v_K v_ETA2 v_ETA2_RANDOMNESS_SIZE: usize)
+      (prf_input: t_Array u8 (mk_usize 33))
+      (prf_output: t_Array u8 v_ETA2_RANDOMNESS_SIZE)
+      (error_2: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
+    : Lemma
+      (requires
+        b2t (Hacspec_ml_kem.Parameters.is_rank v_K) /\
+        v_ETA2 == Hacspec_ml_kem.Parameters.eta2 v_K /\
+        v_ETA2_RANDOMNESS_SIZE == Hacspec_ml_kem.Parameters.eta2_randomness_size v_K /\
+        prf_output == Spec.Utils.v_PRF v_ETA2_RANDOMNESS_SIZE prf_input /\
+        Libcrux_ml_kem.Vector.Spec.poly_to_spec error_2 ==
+          Hacspec_ml_kem.Sampling.sample_poly_cbd (v_ETA2 *! mk_usize 64) (v_ETA2 *! mk_usize 512)
+            v_ETA2 prf_output)
+      (ensures
+        Libcrux_ml_kem.Vector.Spec.poly_to_spec error_2 ==
+          Hacspec_ml_kem.Ind_cpa.sample_secret v_ETA2 prf_input)
+  = assert (v_ETA2 == mk_usize 2);
+    assert (v_ETA2_RANDOMNESS_SIZE == mk_usize 128);
+    assert (v_ETA2_RANDOMNESS_SIZE == v_ETA2 *! mk_usize 64);
+    Hacspec_ml_kem.Commute.Prf_bridge.lemma_prf_identification (v_ETA2 *! mk_usize 64) prf_input
+
+#pop-options
+"#))]
 #[hax_lib::fstar::options("--z3rlimit 400 --ext context_pruning --split_queries always")]
 #[hax_lib::requires(
     hacspec_ml_kem::parameters::is_rank(K).to_prop()
@@ -845,6 +890,21 @@ pub(crate) fn encrypt_unpacked<
     (future(ciphertext).len() == ciphertext.len()).to_prop()
     & crate::polynomial::spec::is_bounded_polynomial_vector(3328, &r_as_ntt_out)
     & crate::polynomial::spec::is_bounded_poly(3328, &error_2_out)
+    & fstar!(r#"Libcrux_ml_kem.Vector.Spec.vector_to_spec $K $r_as_ntt_out ==
+          Hacspec_ml_kem.Ind_cpa.sample_vector_cbd_then_ntt $K $ETA1 $randomness (mk_u8 0)"#)
+    & fstar!(r#"Libcrux_ml_kem.Vector.Spec.poly_to_spec $error_2_out ==
+          Hacspec_ml_kem.Ind_cpa.sample_secret $ETA2
+            (Rust_primitives.Hax.Monomorphized_update_at.update_at_usize
+               (Libcrux_ml_kem.Utils.into_padded_array (mk_usize 33) $randomness)
+               (mk_usize 32) (cast ($K *! mk_usize 2) <: u8))"#)
+    & fstar!(r#"(${ciphertext}_future <: t_Slice u8) ==
+          (Hacspec_ml_kem.Serialize.compress_then_serialize_u $K $C1_LEN
+             (Hacspec_ml_kem.Matrix.compute_vector_u $K
+                (Libcrux_ml_kem.Vector.Spec.matrix_to_spec $K $matrix)
+                (Hacspec_ml_kem.Ind_cpa.sample_vector_cbd_then_ntt $K $ETA1 $randomness (mk_u8 0))
+                (Hacspec_ml_kem.Ind_cpa.sample_vector_cbd $K $ETA2 $randomness (cast $K <: u8)))
+             $U_COMPRESSION_FACTOR
+           <: t_Slice u8)"#)
 )]
 #[inline(always)]
 pub(crate) fn encrypt_c1<
@@ -931,6 +991,19 @@ pub(crate) fn encrypt_c1<
     // returned-value ensures, matching encrypt_c2's t_as_ntt/r_as_ntt bound).
     hax_lib::fstar!(
         r#"Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly_higher #$:Vector $error_2 (sz 3) (sz 3328)"#
+    );
+
+    // Functional post: lift the sampler/compute_vector_u/compress_then_serialize_u
+    // callee posts into the spec form expected by encrypt_unpacked.
+    hax_lib::fstar!(
+        r#"assert (Libcrux_ml_kem.Vector.Spec.vector_to_spec $K $r_as_ntt ==
+              Hacspec_ml_kem.Ind_cpa.sample_vector_cbd_then_ntt $K $ETA1 $randomness (mk_u8 0));
+           assert (Libcrux_ml_kem.Vector.Spec.vector_to_spec $K $error_1 ==
+              Hacspec_ml_kem.Ind_cpa.sample_vector_cbd $K $ETA2 $randomness (cast $K <: u8));
+           assert ($prf_output == Spec.Utils.v_PRF $ETA2_RANDOMNESS_SIZE $prf_input);
+           lemma_ds_cast $K;
+           lemma_error_2_sample_secret #$:Vector $K $ETA2 $ETA2_RANDOMNESS_SIZE $prf_input $prf_output
+             $error_2"#
     );
 
     (r_as_ntt, error_2)
