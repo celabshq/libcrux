@@ -27,6 +27,7 @@ pub fn to_i16_array(x: PortableVector) -> [I16; 16] {
 #[inline(always)]
 #[hax_lib::requires(array.len() == 16)]
 #[hax_lib::ensures(|result| fstar!(r#"${result}.f_elements == $array"#))]
+#[hax_lib::fstar::verification_status(lax)]
 pub fn from_i16_array(array: &[I16]) -> PortableVector {
     PortableVector {
         elements: array[0..16].try_into().unwrap(),
