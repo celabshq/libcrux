@@ -8,7 +8,7 @@ use libcrux_intrinsics::avx2::*;
 #[hax_lib::fstar::options("--z3rlimit 400 --split_queries always --z3refresh")]
 #[hax_lib::requires(fstar!(r#"T.is_i32b_poly_avx2 8380416 $re"#))]
 #[hax_lib::ensures(|result| fstar!(r#"
-T.is_i32b_poly_avx2 8380416 ${re}_future /\
+T.is_i32b_poly_avx2 4211177 ${re}_future /\
 (let in_flat = C.simd_units_to_array (T.chunks_of_re_avx2 $re) in
  let out_flat = C.simd_units_to_array (T.chunks_of_re_avx2 ${re}_future) in
  forall (i: nat). i < 256 ==>
@@ -21,7 +21,7 @@ pub(crate) fn invert_ntt_montgomery(re: &mut AVX2RingElement) {
     #[hax_lib::fstar::options("--z3rlimit 400 --split_queries always --z3refresh")]
     #[hax_lib::requires(fstar!(r#"T.is_i32b_poly_avx2 8380416 $re"#))]
     #[hax_lib::ensures(|result| fstar!(r#"
-T.is_i32b_poly_avx2 8380416 ${re}_future /\
+T.is_i32b_poly_avx2 4211177 ${re}_future /\
 (let in_flat = C.simd_units_to_array (T.chunks_of_re_avx2 $re) in
  let out_flat = C.simd_units_to_array (T.chunks_of_re_avx2 ${re}_future) in
  forall (i: nat). i < 256 ==>
@@ -3645,6 +3645,34 @@ let lemma_inv_l7_sealed (fin fout: t_Array Libcrux_ml_dsa.Simd.Avx2.Vector_type.
   = lemma_inv_l7_full_avx2 fin fout bnd; lemma_inv_layer_done_intro 7 fin fout
 #pop-options
 
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100 --z3refresh"
+(* TIGHT per-lane bound for the final scale-back multiply.  The inverse-NTT
+   layers leave each lane bounded by 256*FIELD_MAX; the `montgomery_multiply_by_constant(_, 41978)`
+   then reduces it to the centered bound 4211177 = q/2 + ceil(256*FIELD_MAX*41978/2^32)
+   via `Spec.MLDSA.Math.lemma_mont_red_bound_256_field_max_times_41978`. *)
+let lemma_mont_mul_tight_bound_256 (x c: i32)
+    : Lemma
+        (requires Spec.Utils.is_i32b (256 * 8380416) x /\ v c == 41978)
+        (ensures Spec.Utils.is_i32b 4211177 (mont_mul x c))
+  = Spec.Intrinsics.reveal_opaque_arithmetic_ops #i32_inttype;
+    Spec.Intrinsics.reveal_opaque_arithmetic_ops #i64_inttype;
+    Spec.Intrinsics.reveal_opaque_cast_ops #i32_inttype #i64_inttype;
+    reveal_opaque (`%i32_mul) (i32_mul);
+    let prod : int = v x * v c in
+    assert_norm ((256 * 8380416) * 41978 < pow2 63);
+    Spec.Utils.lemma_range_at_percent (v x) (pow2 64);
+    Spec.Utils.lemma_range_at_percent (v c) (pow2 64);
+    let cast_x : i64 = cast x <: i64 in
+    let cast_y : i64 = cast c <: i64 in
+    assert (v cast_x == v x /\ v cast_y == v c);
+    let value : i64 = i32_mul x c in
+    Spec.Utils.lemma_range_at_percent prod (pow2 64);
+    assert (v value == prod);
+    FStar.Math.Lemmas.lemma_abs_mul (v x) (v c);
+    assert (Spec.Utils.is_i64b (256 * 8380416 * 41978) value);
+    lemma_mont_red_bound_256_field_max_times_41978 value
+#pop-options
+
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 300 --split_queries always --z3refresh"
 (* Per-iteration scaling step: re is the post-update array (re[i] = mont_mul-by-FACTOR
    of orig_unit); establishes the new chunk_scaled atom + per-lane FM bound for index i.
@@ -3662,14 +3690,16 @@ let lemma_inv_scale_step
                  orig_unit.Libcrux_ml_dsa.Simd.Avx2.Vector_type.f_value
                  scale_montgomery_avx2__v_FACTOR }
            <: Libcrux_ml_dsa.Simd.Avx2.Vector_type.t_Vec256) /\
-        orig_unit == Seq.index s8 (v i))
+        orig_unit == Seq.index s8 (v i) /\
+        T.is_i32b_poly_avx2 (256 * 8380416) s8)
       (ensures
         (forall (l:nat). l < 8 ==>
-           Spec.Utils.is_i32b 8380416 (to_i32x8 (Seq.index re (v i)).f_value (mk_u64 l))) /\
+           Spec.Utils.is_i32b 4211177 (to_i32x8 (Seq.index re (v i)).f_value (mk_u64 l))) /\
         PI.chunk_scaled (Seq.index (T.chunks_of_re_avx2 s8) (v i))
                         (Seq.index (T.chunks_of_re_avx2 re) (v i)))
   = (* Trigger the mont-by-const post (opaque_to_smt fn): its post fires on the
        application term, giving the per-lane mont_mul equality. *)
+    assert_norm (v scale_montgomery_avx2__v_FACTOR == 41978);
     let mont_res = Libcrux_ml_dsa.Simd.Avx2.Arithmetic.montgomery_multiply_by_constant
                      orig_unit.Libcrux_ml_dsa.Simd.Avx2.Vector_type.f_value
                      scale_montgomery_avx2__v_FACTOR in
@@ -3677,13 +3707,16 @@ let lemma_inv_scale_step
               Spec.MLDSA.Math.mont_mul (to_i32x8 orig_unit.Libcrux_ml_dsa.Simd.Avx2.Vector_type.f_value l)
                 scale_montgomery_avx2__v_FACTOR);
     assert ((Seq.index re (v i)).f_value == mont_res);
-    (* per-lane bound + mont_mul -> mod_q form *)
+    (* per-lane: tight 4211177 bound (from the 256*FIELD_MAX input) + mont_mul -> mod_q form *)
     let bridge (l:nat{l<8}) : Lemma
-        (Spec.Utils.is_i32b 8380416 (to_i32x8 (Seq.index re (v i)).f_value (mk_u64 l)) /\
+        (Spec.Utils.is_i32b 4211177 (to_i32x8 (Seq.index re (v i)).f_value (mk_u64 l)) /\
          to_i32x8 (Seq.index re (v i)).f_value (mk_u64 l) ==
          Spec.MLDSA.Math.mont_mul (to_i32x8 (Seq.index s8 (v i)).f_value (mk_u64 l))
            scale_montgomery_avx2__v_FACTOR) =
       C.lemma_mont_mul_bound_and_mod_q (to_i32x8 (Seq.index s8 (v i)).f_value (mk_u64 l))
+        scale_montgomery_avx2__v_FACTOR;
+      T.lemma_is_i32b_poly_avx2_elim (256 * 8380416) s8 (v i) l;
+      lemma_mont_mul_tight_bound_256 (to_i32x8 (Seq.index s8 (v i)).f_value (mk_u64 l))
         scale_montgomery_avx2__v_FACTOR
     in Classical.forall_intro bridge;
     lemma_establish_chunk_scaled_avx2 s8 re (v i)
@@ -3698,16 +3731,16 @@ let lemma_inv_scale_finalize
       (requires
         (forall (k:nat). k < 32 ==>
            (forall (l:nat). l < 8 ==>
-              Spec.Utils.is_i32b 8380416 (to_i32x8 (Seq.index re k).f_value (mk_u64 l))) /\
+              Spec.Utils.is_i32b 4211177 (to_i32x8 (Seq.index re k).f_value (mk_u64 l))) /\
            PI.chunk_scaled (Seq.index (T.chunks_of_re_avx2 s8) k)
                            (Seq.index (T.chunks_of_re_avx2 re) k)))
       (ensures
-        T.is_i32b_poly_avx2 8380416 re /\
+        T.is_i32b_poly_avx2 4211177 re /\
         (let in_flat = C.simd_units_to_array (T.chunks_of_re_avx2 s8) in
          let out_flat = C.simd_units_to_array (T.chunks_of_re_avx2 re) in
          forall (j:nat). j < 256 ==>
            (v (Seq.index out_flat j)) % 8380417 == (16382 * v (Seq.index in_flat j)) % 8380417))
-  = T.lemma_is_i32b_poly_avx2_intro 8380416 re;
+  = T.lemma_is_i32b_poly_avx2_intro 4211177 re;
     lemma_scale_driver_avx2 s8 re
 #pop-options
 
@@ -3741,17 +3774,17 @@ let lemma_inv_scale_carryover
       (requires
         (forall (k:nat). k < v i ==>
            (forall (l:nat). l < 8 ==>
-              Spec.Utils.is_i32b 8380416 (to_i32x8 (Seq.index re_old k).f_value (mk_u64 l))) /\
+              Spec.Utils.is_i32b 4211177 (to_i32x8 (Seq.index re_old k).f_value (mk_u64 l))) /\
            PI.chunk_scaled (Seq.index (T.chunks_of_re_avx2 s8) k) (Seq.index (T.chunks_of_re_avx2 re_old) k)) /\
         (forall (k:nat). (k >= v i /\ k < 32) ==> Seq.index re_old k == Seq.index s8 k) /\
         (forall (k:nat). k < 32 /\ k <> v i ==> Seq.index re_new k == Seq.index re_old k) /\
         (forall (l:nat). l < 8 ==>
-           Spec.Utils.is_i32b 8380416 (to_i32x8 (Seq.index re_new (v i)).f_value (mk_u64 l))) /\
+           Spec.Utils.is_i32b 4211177 (to_i32x8 (Seq.index re_new (v i)).f_value (mk_u64 l))) /\
         PI.chunk_scaled (Seq.index (T.chunks_of_re_avx2 s8) (v i)) (Seq.index (T.chunks_of_re_avx2 re_new) (v i)))
       (ensures
         (forall (k:nat). k < v i + 1 ==>
            (forall (l:nat). l < 8 ==>
-              Spec.Utils.is_i32b 8380416 (to_i32x8 (Seq.index re_new k).f_value (mk_u64 l))) /\
+              Spec.Utils.is_i32b 4211177 (to_i32x8 (Seq.index re_new k).f_value (mk_u64 l))) /\
            PI.chunk_scaled (Seq.index (T.chunks_of_re_avx2 s8) k) (Seq.index (T.chunks_of_re_avx2 re_new) k)) /\
         (forall (k:nat). (k >= v i + 1 /\ k < 32) ==> Seq.index re_new k == Seq.index s8 k))
   = let aux_lo (k:nat{k < v i + 1}) : Lemma
@@ -3767,8 +3800,11 @@ let lemma_inv_scale_carryover
 
 "#)]
 #[hax_lib::fstar::options("--z3rlimit 400 --split_queries always --z3refresh")]
+// Input bound 256*FIELD_MAX (the inverse-NTT layers' accumulated bound); the
+// final ·41978 Montgomery multiply reduces it to the tight centered 4211177.
+#[hax_lib::requires(fstar!(r#"T.is_i32b_poly_avx2 (256 * 8380416) $re"#))]
 #[hax_lib::ensures(|result| fstar!(r#"
-T.is_i32b_poly_avx2 8380416 ${re}_future /\
+T.is_i32b_poly_avx2 4211177 ${re}_future /\
 (let in_flat = C.simd_units_to_array (T.chunks_of_re_avx2 $re) in
  let out_flat = C.simd_units_to_array (T.chunks_of_re_avx2 ${re}_future) in
  forall (j: nat). j < 256 ==>
@@ -3780,8 +3816,9 @@ unsafe fn scale_montgomery_avx2(re: &mut AVX2RingElement) {
     let s8 = re.clone();
     for i in 0..re.len() {
         hax_lib::loop_invariant!(|i: usize| fstar!(r#"
+T.is_i32b_poly_avx2 (256 * 8380416) s8 /\
 (forall (k:nat). k < v $i ==>
-   (forall (l:nat). l < 8 ==> Spec.Utils.is_i32b 8380416 (to_i32x8 (Seq.index ${re} k).f_value (mk_u64 l))) /\
+   (forall (l:nat). l < 8 ==> Spec.Utils.is_i32b 4211177 (to_i32x8 (Seq.index ${re} k).f_value (mk_u64 l))) /\
    PI.chunk_scaled (Seq.index (T.chunks_of_re_avx2 s8) k) (Seq.index (T.chunks_of_re_avx2 ${re}) k)) /\
 (forall (k:nat). (k >= v $i /\ k < 32) ==> (Seq.index ${re} k) == (Seq.index s8 k))
 "#));

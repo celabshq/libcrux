@@ -515,6 +515,62 @@ pub(crate) fn reduce_with_proof(simd_units: &mut [AVX2SIMDUnit; SIMD_UNITS_IN_RI
 // State (b) forallN + split_queries was 38s/245q.
 // State (c) forallN + no-split + rlimit 80 fails at 15.5s rlimit-sat.
 #[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 400"))]
+// View bridges between the per-`f_repr` trait view (forall32 of
+// `is_i32b_array_opaque b (f_repr re[i])`) and the AVX2 chunked view
+// (`Avx2NttTheory.is_i32b_poly_avx2 b re`, = every lane of every unit is
+// |·|<b over `to_i32x8 re[u].f_value`).  The two are the same property; the
+// per-lane link is the AVX2 `Repr` instance's `f_repr` evaluating (via
+// `to_coefficient_array`) to a length-8 array whose lanes equal `to_i32x8`.
+// These let the `ntt` / `invert_ntt_montgomery` trait methods discharge their
+// `f_repr`-view pre/post against the free fns' `is_i32b_poly_avx2` spec.
+#[cfg_attr(hax, hax_lib::fstar::before(r#"
+let lemma_forall32_elim_avx2 (p:(x:nat{x<32}->Type0))
+  : Lemma (requires Spec.Utils.forall32 p) (ensures forall (u:nat{u<32}). p u) = ()
+
+let lemma_forall32_intro_avx2 (p:(x:nat{x<32}->Type0))
+  : Lemma (requires forall (u:nat{u<32}). p u) (ensures Spec.Utils.forall32 p) = ()
+
+let lemma_frepr_lane_avx2 (u: Libcrux_ml_dsa.Simd.Avx2.Vector_type.t_Vec256)
+  : Lemma (Seq.length (Libcrux_ml_dsa.Simd.Traits.f_repr u) == 8 /\
+           (forall (l:nat). l < 8 ==>
+             Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr u) l ==
+             Spec.Intrinsics.to_i32x8 u.Libcrux_ml_dsa.Simd.Avx2.Vector_type.f_value (mk_u64 l)))
+  = let _r = Libcrux_ml_dsa.Simd.Traits.f_repr u in ()
+
+let lemma_freprs_to_poly_avx2 (b:nat) (re: t_Array Libcrux_ml_dsa.Simd.Avx2.Vector_type.t_Vec256 (mk_usize 32))
+  : Lemma (requires Spec.Utils.forall32 (fun (i: nat{i < 32}) ->
+              Spec.Utils.is_i32b_array_opaque b (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index re i))))
+          (ensures Avx2NttTheory.is_i32b_poly_avx2 b re)
+  = lemma_forall32_elim_avx2 (fun (i: nat{i < 32}) ->
+              Spec.Utils.is_i32b_array_opaque b (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index re i)));
+    let aux (u:nat{u<32}) (l:nat{l<8})
+      : Lemma (Spec.Utils.is_i32b b (Spec.Intrinsics.to_i32x8 (Seq.index re u).Libcrux_ml_dsa.Simd.Avx2.Vector_type.f_value (mk_u64 l)))
+      = lemma_frepr_lane_avx2 (Seq.index re u);
+        reveal_opaque (`%Spec.Utils.is_i32b_array_opaque)
+          (Spec.Utils.is_i32b_array_opaque b (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index re u)))
+    in
+    Classical.forall_intro_2 aux;
+    Avx2NttTheory.lemma_is_i32b_poly_avx2_intro b re
+
+let lemma_poly_avx2_to_freprs (b:nat) (re: t_Array Libcrux_ml_dsa.Simd.Avx2.Vector_type.t_Vec256 (mk_usize 32))
+  : Lemma (requires Avx2NttTheory.is_i32b_poly_avx2 b re)
+          (ensures Spec.Utils.forall32 (fun (i: nat{i < 32}) ->
+              Spec.Utils.is_i32b_array_opaque b (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index re i))))
+  = let aux (u:nat{u<32})
+      : Lemma (Spec.Utils.is_i32b_array_opaque b (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index re u)))
+      = lemma_frepr_lane_avx2 (Seq.index re u);
+        let inner (l:nat{l<8})
+          : Lemma (Spec.Utils.is_i32b b (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index re u)) l))
+          = Avx2NttTheory.lemma_is_i32b_poly_avx2_elim b re u l
+        in
+        Classical.forall_intro inner;
+        reveal_opaque (`%Spec.Utils.is_i32b_array_opaque)
+          (Spec.Utils.is_i32b_array_opaque b (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index re u)))
+    in
+    Classical.forall_intro aux;
+    lemma_forall32_intro_avx2 (fun (i: nat{i < 32}) ->
+              Spec.Utils.is_i32b_array_opaque b (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index re i)))
+"#))]
 #[hax_lib::attributes]
 impl Operations for AVX2SIMDUnit {
     #[inline(always)]
@@ -915,15 +971,20 @@ impl Operations for AVX2SIMDUnit {
             (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index ${simd_units}_future i)))
     "#))]
     fn ntt(simd_units: &mut AVX2RingElement) {
-        // BLOCKER (spec-only scope): the inner avx2 ntt::ntt and its layer/round
-        // helpers carry NO bound ensures (the whole avx2/ntt.rs proves only the
-        // ntt_step functional equality, zero is_i32b facts). Dropping this admit
-        // and proving NTT_OUTPUT_BOUND would require building the full per-layer
-        // bound-accumulation proof on avx2 (Portable has it via is_i32b_polynomial;
-        // avx2 does not). That is beyond a spec-only restatement, so this admit
-        // stays. The post above IS truthful (matches the widened trait post).
-        hax_lib::fstar!("admit ()");
+        // Bridge the trait's per-`f_repr` pre into the free `ntt::ntt`'s
+        // `is_i32b_poly_avx2 8380416` pre (NTT_BASE_BOUND = FIELD_MAX = 8380416).
+        hax_lib::fstar!(
+            r#"assert_norm (v Libcrux_ml_dsa.Simd.Traits.Specs.v_NTT_BASE_BOUND == 8380416);
+            lemma_freprs_to_poly_avx2 (v Libcrux_ml_dsa.Simd.Traits.Specs.v_NTT_BASE_BOUND) ${simd_units}"#
+        );
         ntt::ntt(simd_units);
+        // Bridge the free fn's `is_i32b_poly_avx2 (9*FIELD_MAX)` post back to the
+        // trait's per-`f_repr` post (NTT_OUTPUT_BOUND = 9*FIELD_MAX); bounds match
+        // exactly, so this is a pure view translation.
+        hax_lib::fstar!(
+            r#"assert_norm (v Libcrux_ml_dsa.Simd.Traits.Specs.v_NTT_OUTPUT_BOUND == 8380416 + 8 * 8380416);
+            lemma_poly_avx2_to_freprs (v Libcrux_ml_dsa.Simd.Traits.Specs.v_NTT_OUTPUT_BOUND) ${simd_units}"#
+        );
     }
 
     #[inline(always)]
@@ -938,8 +999,16 @@ impl Operations for AVX2SIMDUnit {
             (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index ${simd_units}_future i)))
     "#))]
     fn invert_ntt_montgomery(simd_units: &mut AVX2RingElement) {
-        hax_lib::fstar!("admit ()");
+        // Bridge the trait's per-`f_repr` pre into the free fn's
+        // `is_i32b_poly_avx2 8380416` pre (FIELD_MAX = 8380416).
+        hax_lib::fstar!(
+            r#"lemma_freprs_to_poly_avx2 (v Libcrux_ml_dsa.Simd.Traits.Specs.v_FIELD_MAX) ${simd_units};
+            assert_norm (v Libcrux_ml_dsa.Simd.Traits.Specs.v_FIELD_MAX == 8380416)"#
+        );
         invntt::invert_ntt_montgomery(simd_units);
+        // Bridge the free fn's tight `is_i32b_poly_avx2 4211177` post back to the
+        // trait's per-`f_repr` 4211177 post.
+        hax_lib::fstar!(r#"lemma_poly_avx2_to_freprs 4211177 ${simd_units}"#);
     }
 
     #[inline(always)]
