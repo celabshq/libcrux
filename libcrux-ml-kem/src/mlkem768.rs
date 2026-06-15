@@ -551,7 +551,6 @@ pub mod rand {
     /// to sample the required randomness internally.
     ///
     /// This function returns an [`MlKem768KeyPair`].
-    #[hax_lib::fstar::verification_status(lax)]
     pub fn generate_key_pair(rng: &mut impl CryptoRng) -> MlKem768KeyPair {
         let mut randomness = [0u8; KEY_GENERATION_SEED_SIZE];
         rng.fill_bytes(&mut randomness);
@@ -565,7 +564,6 @@ pub mod rand {
     /// The input is a reference to an [`MlKem768PublicKey`].
     /// The random number generator `rng` needs to implement `CryptoRng`
     /// to sample the required randomness internally.
-    #[hax_lib::fstar::verification_status(lax)]
     pub fn encapsulate(
         public_key: &MlKem768PublicKey,
         rng: &mut impl CryptoRng,

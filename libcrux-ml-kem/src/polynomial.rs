@@ -235,7 +235,6 @@ fn poly_barrett_reduce<Vector: Operations>(myself: &mut PolynomialRingElement<Ve
 #[hax_lib::fstar::options("--z3rlimit 300")]
 #[hax_lib::requires(fstar!(r#"is_bounded_poly (pow2 12 - 1) ${myself}"#))]
 #[hax_lib::ensures(|result| fstar!(r#"is_bounded_poly 3328 ${result}"#))]
-#[hax_lib::fstar::verification_status(lax)]
 fn subtract_reduce<Vector: Operations>(
     myself: &PolynomialRingElement<Vector>,
     mut b: PolynomialRingElement<Vector>,

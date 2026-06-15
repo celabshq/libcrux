@@ -10,7 +10,6 @@ use libcrux_intrinsics::avx2::*;
      i < 80 ==>
        ${simd_unit}.(mk_int (32*(i/10) + (i%10))) == (u8_to_bv (Seq.index ${out}_future (i/8)))(mk_int (i % 8)))
 "))]
-#[hax_lib::fstar::verification_status(panic_free)]
 pub(crate) fn serialize(simd_unit: &Vec256, out: &mut [u8]) {
     #[cfg(not(eurydice))]
     debug_assert!(out.len() == 10);

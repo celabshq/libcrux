@@ -66,7 +66,7 @@ jobs:
       - uses: hacspec/hax-actions@main
         with:
           hax_reference: ${{ github.event.inputs.hax_ref || needs.get-hax-ref.outputs.hax_ref }}
-          fstar: v2026.03.24
+          fstar: v2025.12.15
 
       - uses: actions/download-artifact@v8
         with:
@@ -93,7 +93,7 @@ jobs:
         run: |
           nix profile install ./hax
       - name: ⤵ Install FStar
-        run: nix profile install github:FStarLang/FStar/v2026.03.24
+        run: nix profile install github:FStarLang/FStar/v2025.12.15
 
       - uses: actions/download-artifact@v8
         with:

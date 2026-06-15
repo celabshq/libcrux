@@ -53,7 +53,6 @@ const ETA_2: i32 = 2;
   /\ (forall (i:nat{i < 24}). u8_to_bv (Seq.index ${out}_future (i / 8)) (mk_int (i % 8))
                    == i32_to_bv ($ETA_2 -! to_i32x8 $simd_unit (mk_int (i / 3))) (mk_int (i % 3)))
 "#))]
-#[hax_lib::fstar::verification_status(lax)]
 fn serialize_when_eta_is_2(simd_unit: &Vec256, out: &mut [u8]) {
     let mut serialized = [0u8; 16];
 
@@ -62,6 +61,9 @@ fn serialize_when_eta_is_2(simd_unit: &Vec256, out: &mut [u8]) {
     hax_lib::fstar!("reveal_opaque_arithmetic_ops #I32");
     hax_lib::fstar!("i32_lt_pow2_n_to_bit_zero_lemma 3 $simd_unit_shifted");
     let adjacent_6_combined = serialize_when_eta_is_2_aux(simd_unit_shifted);
+
+    hax_lib::fstar!("assert(forall (i:nat{i < 24}). to_i32x8 $simd_unit_shifted (mk_int (i / 3)) == mk_int 2 `sub_mod` to_i32x8 $simd_unit (mk_int (i / 3)))");
+    hax_lib::fstar!("assert(forall i. mk_int 2 `sub_mod` to_i32x8 simd_unit i == mk_int 2 -! to_i32x8 simd_unit i)");
 
     mm_storeu_bytes_si128(&mut serialized[0..16], adjacent_6_combined);
     out.copy_from_slice(&serialized[0..3]);
@@ -105,7 +107,7 @@ const ETA_4: i32 = 4;
   /\ (forall (i:nat{i < 32}). u8_to_bv (Seq.index ${out}_future (i / 8)) (mk_int (i % 8))
                    == i32_to_bv ($ETA_4 -! to_i32x8 $simd_unit (mk_int (i / 4))) (mk_int (i % 4)))
 "#))]
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::fstar::options("--split_queries always")]
 fn serialize_when_eta_is_4(simd_unit: &Vec256, out: &mut [u8]) {
     let mut serialized = [0u8; 16];
 

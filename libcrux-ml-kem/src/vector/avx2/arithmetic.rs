@@ -424,7 +424,6 @@ pub(crate) fn montgomery_multiply_m128i_by_constants(vec: Vec128, constants: Vec
                                         let y = Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $result) i in
                                         (v y >= 0 /\ v y <= 3328 /\ (v y % 3329 == v x % 3329)))"#))]
 #[inline(always)]
-#[hax_lib::fstar::verification_status(lax)]
 pub(crate) fn to_unsigned_representative(a: Vec256) -> Vec256 {
     let t = shift_right::<15>(a);
 

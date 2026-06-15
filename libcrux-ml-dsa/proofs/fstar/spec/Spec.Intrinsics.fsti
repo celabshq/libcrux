@@ -393,7 +393,6 @@ val mm256_add_epi64_lemma lhs rhs (i: u64 {v i < 256})
     (ensures (Bit_Zero? lhs.(i) ==> (I.mm256_add_epi64 lhs rhs).(i) == rhs.(i))
            /\ (Bit_Zero? rhs.(i) ==> (I.mm256_add_epi64 lhs rhs).(i) == lhs.(i)))
 
-#push-options "--z3rlimit 80"
 val mm256_madd_epi16_specialized_lemma vec i:
   Lemma
   (requires
@@ -426,7 +425,6 @@ val mm256_madd_epi16_specialized_lemma vec i:
   [SMTPat ((I.mm256_madd_epi16 vec (I.mm256_set_epi16 (mk_i16 0) (mk_i16 0) (mk_i16 0) (mk_i16 0)
           (mk_i16 0) (mk_i16 0) (mk_i16 1 <<! mk_i32 6 <: i16) (mk_i16 1) (mk_i16 0) (mk_i16 0)
           (mk_i16 0) (mk_i16 0) (mk_i16 0) (mk_i16 0) (mk_i16 1 <<! mk_i32 6 <: i16) (mk_i16 1))).(i))]
-#pop-options
 
 val i32_to_bv_add_bv_lemma x y i
   : Lemma (requires forall j. Bit_Zero? (i32_to_bv x j) \/ Bit_Zero? (i32_to_bv y j))
@@ -677,7 +675,6 @@ val mm256_set_m128i_lemma (hi lo: bv128) (i:u64{v i < 8}):
           i32))
   [SMTPat (to_i32x8 (Libcrux_intrinsics.Avx2.mm256_set_m128i hi lo) i)]
 
-#push-options "--z3rlimit 80"
 val mm256_permute2x128_si256_lemma_i32x4 (imm8: i32) (a b: bv256) (j:u64{v j < 8}):
   Lemma (to_i32x8 (Libcrux_intrinsics.Avx2.mm256_permute2x128_si256 imm8 a b) j ==
         (
@@ -695,7 +692,6 @@ val mm256_permute2x128_si256_lemma_i32x4 (imm8: i32) (a b: bv256) (j:u64{v j < 8
             )
         )
   [SMTPat (to_i32x8 (Libcrux_intrinsics.Avx2.mm256_permute2x128_si256 imm8 a b) j)]
-#pop-options
 
 val mm256_castsi256_si128_lemma (a: bv256) (i:u64{v i < 4}):
   Lemma (to_i32x4 (Libcrux_intrinsics.Avx2.mm256_castsi256_si128 a) i == to_i32x8 a i)

@@ -90,10 +90,9 @@ pub(super) fn montgomery_multiply_by_constant(lhs: Vec256, constant: i32) -> Vec
     ))
 )]
 #[hax_lib::ensures(|_| fstar!(r#"
-    forall i. to_i32x8 ${lhs}_future i ==
+    forall i. to_i32x8 ${lhs}_future i == 
               Spec.MLDSA.Math.mont_mul (to_i32x8 ${lhs} i) (to_i32x8 ${rhs} i)
 "#))]
-#[hax_lib::fstar::verification_status(panic_free)]
 pub(super) fn montgomery_multiply_aux(
     field_modulus: Vec256,
     inverse_of_modulus_mod_montgomery_r: Vec256,
@@ -154,7 +153,6 @@ pub(super) fn shift_left_then_reduce<const SHIFT_BY: i32>(simd_unit: &mut Vec256
 #[hax_lib::ensures(|_| fstar!(r#"
     (forall i. to_i32x8 ${simd_unit}_future i ==
         Spec.MLDSA.Math.barrett_red (to_i32x8 ${simd_unit} i))"#))]
-#[hax_lib::fstar::verification_status(panic_free)]
 pub(super) fn barrett_reduce_simd_unit(simd_unit: &mut Vec256) {
     let quotient = mm256_add_epi32(*simd_unit, mm256_set1_epi32(1 << 22));
     let quotient = mm256_srai_epi32::<23>(quotient);
