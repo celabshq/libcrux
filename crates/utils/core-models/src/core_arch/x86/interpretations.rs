@@ -957,6 +957,53 @@ mod track_i_axiom_transcription_tests {
         }
     }
 
+    /// F* axiom (`mm256_cvtepi16_epi32` ensures, avx2_extract.rs): sign-extends
+    /// each of the 8 i16 lanes of `vector` to an i32 lane of the result.  On the
+    /// i16x16 view of the result: `get_lane result (2j) == get_lane128 vector j`
+    /// and `get_lane result (2j+1) == (if v (get_lane128 vector j) < 0 then
+    /// mk_i16 (-1) else mk_i16 0)` (the sign fill, 0xffff/0x0000).
+    /// Model anchor: `int_vec::_mm256_cvtepi16_epi32`
+    /// (`i32x8::from_fn(|i| a[i] as i32)` — Rust `as i32` sign-extends).
+    fn check_cvt(a: BitVec<128>) {
+        let model: Vec<i16> =
+            BitVec::<256>::from_i32x8(int_vec::_mm256_cvtepi16_epi32(BitVec::to_i16x8(a))).to_vec();
+        let input: Vec<i16> = a.to_vec();
+        let formula: Vec<i16> = (0..16usize)
+            .map(|i| {
+                let j = i / 2;
+                if i % 2 == 0 {
+                    input[j]
+                } else if input[j] < 0 {
+                    -1i16
+                } else {
+                    0i16
+                }
+            })
+            .collect();
+        assert_eq!(model, formula);
+    }
+
+    #[test]
+    fn cvtepi16_epi32_lane_formula() {
+        for _ in 0..1000 {
+            check_cvt(BitVec::rand());
+        }
+        // Edge lanes incl. INT16_MIN/MAX and the FIELD_MODULUS neighbourhood.
+        let specials: [i16; 9] =
+            [i16::MIN, i16::MIN + 1, -1, 0, 1, 3328, 3329, i16::MAX - 1, i16::MAX];
+        for &x in specials.iter() {
+            check_cvt(BitVec::<128>::from_slice(&[x; 8], 16));
+        }
+        // Mixed lanes (per-lane independence).
+        for _ in 0..100 {
+            let mut xs = [0i16; 8];
+            for k in 0..8 {
+                xs[k] = specials[(k * 7 + 3) % specials.len()];
+            }
+            check_cvt(BitVec::<128>::from_slice(&xs, 16));
+        }
+    }
+
     /// F* axiom: `mm_storeu_si128` stores exactly the 8 LSB-first i16 lanes
     /// (`vec128_as_i16x8 vector`) to `output[0..8]`, framing the rest.
     /// Model anchor: `other::_mm_storeu_si128` / `extra::mm_storeu_bytes_si128`

@@ -1302,9 +1302,21 @@ let lemma_nttmul_extract1_lane (vv: ZI.t_Vec256) (j: nat{j < 8}) : Lemma
   (ZI.get_lane128 (ZI.mm256_extracti128_si256 (mk_i32 1) vv) j == ZI.get_lane vv (j + 8))
   = lemma_mm256_extracti128_si256_1 vv
 
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 60"
 let lemma_nttmul_cvt_lane (x: ZI.t_Vec128) (j: nat{j < 8}) : Lemma
   (ZA.lane32 (ZI.mm256_cvtepi16_epi32 x) j == v (ZI.get_lane128 x j))
-  = admit ()
+  = let cx = ZI.mm256_cvtepi16_epi32 x in
+    let lo = ZI.get_lane128 x j in
+    assert (ZI.get_lane cx (2*j) == lo /\
+            ZI.get_lane cx (2*j+1) == (if v lo < 0 then mk_i16 (-1) else mk_i16 0));
+    (if v lo >= 0
+     then FStar.Math.Lemmas.small_mod (v lo) 65536
+     else (FStar.Math.Lemmas.lemma_mod_plus (v lo) 1 65536;
+           FStar.Math.Lemmas.small_mod (v lo + 65536) 65536));
+    assert (ZA.lane32 cx j ==
+            (v (ZI.get_lane cx (2*j)) % 65536) + 65536 * v (ZI.get_lane cx (2*j+1)))
+        by (FStar.Tactics.norm [delta_only [`%ZA.lane32]]; FStar.Tactics.trefl ())
+#pop-options
 
 let lemma_nttmul_mullo32_lane (a b: ZI.t_Vec256) (bnd_a bnd_b: nat) (j: nat{j < 8}) : Lemma
   (requires bnd_a * bnd_b < pow2 31 /\

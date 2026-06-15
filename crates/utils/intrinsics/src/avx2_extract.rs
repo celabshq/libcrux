@@ -626,6 +626,16 @@ pub fn mm256_castsi128_si256(vector: Vec128) -> Vec256 {
     unimplemented!()
 }
 
+// Sign-extends each of the 8 low i16 lanes of `vector` to an i32 lane of the
+// result.  Stated on the i16 (vec256_as_i16x16) view of the result: the even
+// i16 lane (2j) is the original i16, and the odd i16 lane (2j+1) is the sign
+// fill (0xffff = mk_i16 (-1) when negative, else 0).  Trusted axiom — validated
+// by the core-models `_mm256_cvtepi16_epi32` differential test + the
+// `cvtepi16_epi32` transcription test in interpretations.rs.
+#[hax_lib::ensures(|result| fstar!(r#"forall (j: nat). j < 8 ==>
+    get_lane $result (2 * j) == get_lane128 $vector j /\
+    get_lane $result (2 * j + 1) ==
+      (if v (get_lane128 $vector j) < 0 then mk_i16 (-1) else mk_i16 0)"#))]
 pub fn mm256_cvtepi16_epi32(vector: Vec128) -> Vec256 {
     unimplemented!()
 }
