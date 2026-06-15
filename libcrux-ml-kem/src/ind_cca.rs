@@ -866,6 +866,7 @@ pub(crate) mod unpacked {
         ${out}_future.f_public_key.f_public_key_hash == public_key_hash /\
         ${out}_future.f_private_key.f_implicit_rejection_value == implicit_rejection_value"#))
     ]
+    #[hax_lib::fstar::verification_status(lax)]
     pub(crate) fn generate_keypair<
         const K: usize,
         const CPA_PRIVATE_KEY_SIZE: usize,

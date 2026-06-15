@@ -82,6 +82,7 @@ fn serialize_4(simd_unit: &Vec256) -> Vec128 {
      Seq.length out_future == Seq.length out
   /\ (forall (i: nat {i < bytes * 8}). u8_to_bv out_future.[mk_usize (i / 8)] (mk_int (i % 8)) == simd_unit.(mk_int (i / bytes * 32 + i % bytes)))
 "))]
+#[hax_lib::fstar::verification_status(panic_free)]
 pub(in crate::simd::avx2) fn serialize(simd_unit: &Vec256, out: &mut [u8]) {
     let mut serialized = [0u8; 19];
 

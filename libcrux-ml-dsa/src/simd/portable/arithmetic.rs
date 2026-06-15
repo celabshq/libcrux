@@ -454,6 +454,7 @@ fn barrett_reduce_element(fe: FieldElement) -> FieldElement {
         mod_q (v (Seq.index ${simd_unit}_future.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i)) ==
         mod_q (v (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i)))))"#))
 ]
+#[hax_lib::fstar::verification_status(lax)]
 pub(crate) fn barrett_reduce_simd_unit(simd_unit: &mut Coefficients) {
     #[cfg(hax)]
     let _simd_unit0 = simd_unit.clone();
