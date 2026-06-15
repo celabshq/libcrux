@@ -504,25 +504,18 @@ pub(crate) fn reduce_with_proof(simd_units: &mut [AVX2SIMDUnit; SIMD_UNITS_IN_RI
     "#);
 }
 
-/// Implementing the [`Operations`] for AVX2.
-// 2026-05-08: `--z3rlimit 400` (state (d)) — keeps the monolithic VC
-// (faster than --split_queries always's per-conjunct fragmentation under
-// forallN macros) but raises the budget to fit the bigger forall8/32 unfold.
-// rlimit 200 saturates at 32.9s; bumped to 400 for headroom.  Portable's
-// equivalent impl block fits at rlimit 200, but Avx2's has more inline
-// body code (Track B less deeply factored than Portable's).
-// State (a) bare-forall + split_queries was 11.8s/40q.
-// State (b) forallN + split_queries was 38s/245q.
-// State (c) forallN + no-split + rlimit 80 fails at 15.5s rlimit-sat.
-#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 400"))]
-// View bridges between the per-`f_repr` trait view (forall32 of
-// `is_i32b_array_opaque b (f_repr re[i])`) and the AVX2 chunked view
-// (`Avx2NttTheory.is_i32b_poly_avx2 b re`, = every lane of every unit is
-// |·|<b over `to_i32x8 re[u].f_value`).  The two are the same property; the
-// per-lane link is the AVX2 `Repr` instance's `f_repr` evaluating (via
-// `to_coefficient_array`) to a length-8 array whose lanes equal `to_i32x8`.
-// These let the `ntt` / `invert_ntt_montgomery` trait methods discharge their
-// `f_repr`-view pre/post against the free fns' `is_i32b_poly_avx2` spec.
+// Functional NTT surfacing (Track B) for AVX2.  `ntt_with_proof` carries the
+// strong trait `ntt` post — the bound clause AND the functional clause (output
+// ≡ Hacspec ntt mod q in the `ntt_poly_view` flat view) — and the impl `ntt`
+// method dispatches to it, so the discharge gets its own un-split VC (the free
+// `ntt::ntt`'s functional `forall` stays in scope for `lemma_ntt_func_transport`).
+//
+// The view-bridge helpers (`lemma_frepr_lane_avx2` etc.) are defined here rather
+// than on the impl block, so this free fn — which precedes the impl — can see
+// them; the impl's `invert_ntt_montgomery` method still uses them too.
+// `lemma_ntt_view_avx2` bridges `ntt_poly_view re` (createi over `f_repr`) to
+// `simd_units_to_array (chunks_of_re_avx2 re)`; both reduce per-lane to
+// `to_i32x8 (re[j/8]).f_value (j%8)`.
 #[cfg_attr(hax, hax_lib::fstar::before(r#"
 let lemma_forall32_elim_avx2 (p:(x:nat{x<32}->Type0))
   : Lemma (requires Spec.Utils.forall32 p) (ensures forall (u:nat{u<32}). p u) = ()
@@ -570,7 +563,72 @@ let lemma_poly_avx2_to_freprs (b:nat) (re: t_Array Libcrux_ml_dsa.Simd.Avx2.Vect
     Classical.forall_intro aux;
     lemma_forall32_intro_avx2 (fun (i: nat{i < 32}) ->
               Spec.Utils.is_i32b_array_opaque b (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index re i)))
+
+let lemma_ntt_view_avx2
+      (re: t_Array Libcrux_ml_dsa.Simd.Avx2.Vector_type.t_Vec256 (mk_usize 32))
+    : Lemma (Libcrux_ml_dsa.Simd.Traits.ntt_poly_view re ==
+             Hacspec_ml_dsa.Commute.Chunk.simd_units_to_array (Avx2NttTheory.chunks_of_re_avx2 re))
+  = reveal_opaque (`%Libcrux_ml_dsa.Simd.Traits.ntt_poly_view)
+      (Libcrux_ml_dsa.Simd.Traits.ntt_poly_view re);
+    let lhs = Libcrux_ml_dsa.Simd.Traits.ntt_poly_view re in
+    let rhs = Hacspec_ml_dsa.Commute.Chunk.simd_units_to_array (Avx2NttTheory.chunks_of_re_avx2 re) in
+    let aux (j: nat{j < 256}) : Lemma (Seq.index lhs j == Seq.index rhs j) =
+      let b: nat = j / 8 in
+      let l: nat = j % 8 in
+      FStar.Math.Lemmas.euclidean_division_definition j 8;
+      Hacspec_ml_dsa.Commute.Chunk.lemma_simd_units_to_array_reveal
+        (Avx2NttTheory.chunks_of_re_avx2 re) b l;
+      Avx2NttTheory.lemma_chunks_of_re_avx2_index re b l;
+      Hacspec_ml_dsa.createi_lemma #i32 (mk_usize 256)
+        #(usize -> i32)
+        (fun (j': usize{j' <. mk_usize 256}) ->
+           Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index re (v j' / 8))) (v j' % 8))
+        (mk_usize j);
+      lemma_frepr_lane_avx2 (Seq.index re b)
+    in
+    Classical.forall_intro aux;
+    Seq.lemma_eq_intro lhs rhs
 "#))]
+#[hax_lib::requires(fstar!(r#"
+    Spec.Utils.forall32 (fun (i: nat{i < 32}) ->
+        Spec.Utils.is_i32b_array_opaque
+        (v ${specs::NTT_BASE_BOUND})
+        (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index ${simd_units} i)))
+"#))]
+#[hax_lib::ensures(|_| fstar!(r#"
+    Spec.Utils.forall32 (fun (i: nat{i < 32}) ->
+        Spec.Utils.is_i32b_array_opaque (v ${specs::NTT_OUTPUT_BOUND})
+        (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index ${simd_units}_future i))) /\
+    Libcrux_ml_dsa.Simd.Traits.ntt_func_post ${simd_units} ${simd_units}_future
+"#))]
+#[inline(always)]
+pub(crate) fn ntt_with_proof(simd_units: &mut AVX2RingElement) {
+    #[cfg(hax)]
+    let _orig = simd_units.clone();
+    hax_lib::fstar!(
+        r#"assert_norm (v Libcrux_ml_dsa.Simd.Traits.Specs.v_NTT_BASE_BOUND == 8380416);
+        lemma_freprs_to_poly_avx2 (v Libcrux_ml_dsa.Simd.Traits.Specs.v_NTT_BASE_BOUND) ${simd_units}"#
+    );
+    ntt::ntt(simd_units);
+    hax_lib::fstar!(
+        r#"assert_norm (v Libcrux_ml_dsa.Simd.Traits.Specs.v_NTT_OUTPUT_BOUND == 8380416 + 8 * 8380416);
+        lemma_poly_avx2_to_freprs (v Libcrux_ml_dsa.Simd.Traits.Specs.v_NTT_OUTPUT_BOUND) ${simd_units};
+        lemma_ntt_view_avx2 ${_orig};
+        lemma_ntt_view_avx2 ${simd_units};
+        Libcrux_ml_dsa.Simd.Traits.lemma_ntt_func_post_intro ${_orig} ${simd_units}
+          (Hacspec_ml_dsa.Commute.Chunk.simd_units_to_array (Avx2NttTheory.chunks_of_re_avx2 ${_orig}))
+          (Hacspec_ml_dsa.Commute.Chunk.simd_units_to_array (Avx2NttTheory.chunks_of_re_avx2 ${simd_units}))"#
+    );
+}
+
+/// Implementing the [`Operations`] for AVX2.
+// 2026-06-15: `--z3rlimit 400 --split_queries always`.  The functional `ntt`
+// post made the monolithic impl_1 record query saturate COLD at rlimit 400
+// (re-extraction invalidates its hint → cold re-prove).  Splitting makes each
+// field its own sub-query; the opaque `ntt_func_post` atom keeps the split
+// f_ntt sub-query free of a prunable raw `forall`.  (Was `--z3rlimit 400`
+// monolithic, state (d), which fit only WARM via the recorded hint.)
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 400 --split_queries always"))]
 #[hax_lib::attributes]
 impl Operations for AVX2SIMDUnit {
     #[inline(always)]
@@ -968,23 +1026,11 @@ impl Operations for AVX2SIMDUnit {
     #[ensures(|_| fstar!(r#"
         Spec.Utils.forall32 (fun (i: nat{i < 32}) ->
             Spec.Utils.is_i32b_array_opaque (v ${specs::NTT_OUTPUT_BOUND})
-            (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index ${simd_units}_future i)))
+            (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index ${simd_units}_future i))) /\
+        Libcrux_ml_dsa.Simd.Traits.ntt_func_post ${simd_units} ${simd_units}_future
     "#))]
     fn ntt(simd_units: &mut AVX2RingElement) {
-        // Bridge the trait's per-`f_repr` pre into the free `ntt::ntt`'s
-        // `is_i32b_poly_avx2 8380416` pre (NTT_BASE_BOUND = FIELD_MAX = 8380416).
-        hax_lib::fstar!(
-            r#"assert_norm (v Libcrux_ml_dsa.Simd.Traits.Specs.v_NTT_BASE_BOUND == 8380416);
-            lemma_freprs_to_poly_avx2 (v Libcrux_ml_dsa.Simd.Traits.Specs.v_NTT_BASE_BOUND) ${simd_units}"#
-        );
-        ntt::ntt(simd_units);
-        // Bridge the free fn's `is_i32b_poly_avx2 (9*FIELD_MAX)` post back to the
-        // trait's per-`f_repr` post (NTT_OUTPUT_BOUND = 9*FIELD_MAX); bounds match
-        // exactly, so this is a pure view translation.
-        hax_lib::fstar!(
-            r#"assert_norm (v Libcrux_ml_dsa.Simd.Traits.Specs.v_NTT_OUTPUT_BOUND == 8380416 + 8 * 8380416);
-            lemma_poly_avx2_to_freprs (v Libcrux_ml_dsa.Simd.Traits.Specs.v_NTT_OUTPUT_BOUND) ${simd_units}"#
-        );
+        ntt_with_proof(simd_units)
     }
 
     #[inline(always)]

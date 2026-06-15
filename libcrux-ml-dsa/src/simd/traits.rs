@@ -32,6 +32,59 @@ pub(crate) trait Repr: Copy + Clone {
 #[cfg(not(hax))]
 pub trait Repr {}
 
+// Functional NTT view + post atom (Track B): surface the free NTT functional
+// posts through the SIMD trait.  `ntt_poly_view` flattens the 32 SIMD units to
+// the abstract 256-coefficient i32 array (via the `Repr` projector `f_repr`),
+// matching the `simd_units_to_array (chunks_of_re_*)` view the free `ntt`/`invert`
+// fns prove their functional correctness against.  Emitted between `Repr` and
+// `Operations`, so `t_Repr` / `f_repr` are in scope.
+//
+// `ntt_func_post` is an OPAQUE atom wrapping the functional spec (output ≡
+// Hacspec ntt mod q).  Keeping it opaque is what lets the impl `ntt` method
+// dispatch (`ntt_with_proof`) propagate the post WITHOUT quantifier
+// instantiation: a raw `forall` in the trait post either saturates the
+// monolithic `impl_1` record query or gets pruned out of the split f_ntt
+// sub-query ("incomplete quantifiers").  `lemma_ntt_func_post_intro` seals the
+// raw forall (proven by the backend bridges, in a clean context that defeats the
+// view-mismatch trigger problem) into the atom; consumers only ever carry the atom.
+#[cfg_attr(hax, hax_lib::fstar::before(r#"
+[@@ "opaque_to_smt"]
+let ntt_poly_view
+      (#v_SIMDUnit: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: t_Repr v_SIMDUnit)
+      (simd_units: t_Array v_SIMDUnit (mk_usize 32))
+    : t_Array i32 (mk_usize 256)
+  = Hacspec_ml_dsa.createi #i32 (mk_usize 256)
+      #(usize -> i32)
+      (fun (j: usize{j <. mk_usize 256}) ->
+         Seq.index (f_repr (Seq.index simd_units (v j / 8))) (v j % 8))
+
+[@@ "opaque_to_smt"]
+let ntt_func_post
+      (#v_SIMDUnit: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: t_Repr v_SIMDUnit)
+      (pre post: t_Array v_SIMDUnit (mk_usize 32))
+    : Type0
+  = (let in_flat = ntt_poly_view pre in
+     let out_flat = ntt_poly_view post in
+     forall (j: nat). j < 256 ==>
+       (v (Seq.index out_flat j)) % 8380417 ==
+       (v (Seq.index (Hacspec_ml_dsa.Ntt.ntt in_flat) j)) % 8380417)
+
+let lemma_ntt_func_post_intro
+      (#v_SIMDUnit: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: t_Repr v_SIMDUnit)
+      (pre post: t_Array v_SIMDUnit (mk_usize 32))
+      (xpre xpost: t_Array i32 (mk_usize 256))
+    : Lemma
+      (requires
+        ntt_poly_view pre == xpre /\ ntt_poly_view post == xpost /\
+        (forall (j: nat). j < 256 ==>
+          (v (Seq.index xpost j)) % 8380417 ==
+          (v (Seq.index (Hacspec_ml_dsa.Ntt.ntt xpre) j)) % 8380417))
+      (ensures ntt_func_post pre post)
+  = reveal_opaque (`%ntt_func_post) (ntt_func_post pre post)
+"#))]
 #[hax_lib::attributes]
 pub(crate) trait Operations: Copy + Clone + Repr {
     #[hax_lib::requires(true)]
@@ -353,7 +406,8 @@ pub(crate) trait Operations: Copy + Clone + Repr {
     #[hax_lib::ensures(|_| fstar!(r#"
         Spec.Utils.forall32 (fun (i: nat{i < 32}) ->
             Spec.Utils.is_i32b_array_opaque (v ${specs::NTT_OUTPUT_BOUND})
-            (f_repr (Seq.index ${simd_units}_future i)))
+            (f_repr (Seq.index ${simd_units}_future i))) /\
+        Libcrux_ml_dsa.Simd.Traits.ntt_func_post ${simd_units} ${simd_units}_future
     "#))]
     fn ntt(simd_units: &mut [Self; SIMD_UNITS_IN_RING_ELEMENT]);
 

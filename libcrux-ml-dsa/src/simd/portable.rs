@@ -237,8 +237,90 @@ pub(crate) fn reduce_with_proof(simd_units: &mut [Coefficients; SIMD_UNITS_IN_RI
     "#);
 }
 
-// 2026-05-08: `--z3rlimit 200` (state (d)) — see Avx2 sibling comment.
-#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 200"))]
+// Functional NTT surfacing (Track B).  `ntt_with_proof` carries the strong
+// trait `ntt` post — the bound clause (NTT_OUTPUT_BOUND) AND the functional
+// clause (output ≡ Hacspec ntt mod q, in the `ntt_poly_view` flat view) — and
+// the impl `ntt` method below dispatches to it.  Extracting the discharge into
+// this free fn gives it its OWN un-split VC, so the free `ntt::ntt`'s functional
+// `forall` stays in scope and `lemma_ntt_func_transport` can rewrite it onto
+// `ntt_poly_view` (in the combined `impl_1` query the auto-split prunes that
+// hypothesis out of the f_ntt sub-query → "incomplete quantifiers").
+//
+// `lemma_ntt_view_portable` bridges the two flat views: `ntt_poly_view re`
+// (createi over `f_repr`) equals `simd_units_to_array (chunks_of_re re)` (the
+// view the free fn proves against).  For Portable `f_repr c == c.f_values`
+// (defeq), so both reduce element-wise to `(re[j/8]).f_values[j%8]`.
+#[cfg_attr(hax, hax_lib::fstar::before(r#"
+let lemma_ntt_view_portable
+      (re: t_Array Libcrux_ml_dsa.Simd.Portable.Vector_type.t_Coefficients (mk_usize 32))
+    : Lemma (Libcrux_ml_dsa.Simd.Traits.ntt_poly_view re ==
+             Hacspec_ml_dsa.Commute.Chunk.simd_units_to_array
+               (Libcrux_ml_dsa.Simd.Portable.Ntt.chunks_of_re re))
+  = reveal_opaque (`%Libcrux_ml_dsa.Simd.Traits.ntt_poly_view)
+      (Libcrux_ml_dsa.Simd.Traits.ntt_poly_view re);
+    let lhs = Libcrux_ml_dsa.Simd.Traits.ntt_poly_view re in
+    let rhs = Hacspec_ml_dsa.Commute.Chunk.simd_units_to_array
+                (Libcrux_ml_dsa.Simd.Portable.Ntt.chunks_of_re re) in
+    let aux (j: nat{j < 256}) : Lemma (Seq.index lhs j == Seq.index rhs j) =
+      let b: nat = j / 8 in
+      let l: nat = j % 8 in
+      FStar.Math.Lemmas.euclidean_division_definition j 8;
+      Hacspec_ml_dsa.Commute.Chunk.lemma_simd_units_to_array_reveal
+        (Libcrux_ml_dsa.Simd.Portable.Ntt.chunks_of_re re) b l;
+      Hacspec_ml_dsa.createi_lemma #(t_Array i32 (mk_usize 8)) (mk_usize 32)
+        #(usize -> t_Array i32 (mk_usize 8))
+        (fun (b': usize{b' <. mk_usize 32}) ->
+           (Seq.index re (v b')).Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values)
+        (mk_usize b);
+      Hacspec_ml_dsa.createi_lemma #i32 (mk_usize 256)
+        #(usize -> i32)
+        (fun (j': usize{j' <. mk_usize 256}) ->
+           Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index re (v j' / 8))) (v j' % 8))
+        (mk_usize j)
+    in
+    Classical.forall_intro aux;
+    Seq.lemma_eq_intro lhs rhs
+"#))]
+#[hax_lib::requires(fstar!(r#"
+    Spec.Utils.forall32 (fun (i: nat{i < 32}) ->
+        Spec.Utils.is_i32b_array_opaque
+        (v ${specs::NTT_BASE_BOUND})
+        (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index ${simd_units} i)))
+"#))]
+#[hax_lib::ensures(|_| fstar!(r#"
+    Spec.Utils.forall32 (fun (i: nat{i < 32}) ->
+        Spec.Utils.is_i32b_array_opaque (v ${specs::NTT_OUTPUT_BOUND})
+        (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index ${simd_units}_future i))) /\
+    Libcrux_ml_dsa.Simd.Traits.ntt_func_post ${simd_units} ${simd_units}_future
+"#))]
+pub(crate) fn ntt_with_proof(simd_units: &mut [Coefficients; SIMD_UNITS_IN_RING_ELEMENT]) {
+    #[cfg(hax)]
+    let _orig = simd_units.clone();
+    ntt::ntt(simd_units);
+    hax_lib::fstar!(
+        r#"reveal_opaque (`%Libcrux_ml_dsa.Simd.Portable.Ntt.is_i32b_polynomial)
+             (Libcrux_ml_dsa.Simd.Portable.Ntt.is_i32b_polynomial
+                (v ${specs::NTT_BASE_BOUND} + 8 * v ${specs::FIELD_MAX}) ${simd_units});
+           assert_norm (v ${specs::NTT_OUTPUT_BOUND} == v ${specs::NTT_BASE_BOUND} + 8 * v ${specs::FIELD_MAX});
+           lemma_ntt_view_portable ${_orig};
+           lemma_ntt_view_portable ${simd_units};
+           Libcrux_ml_dsa.Simd.Traits.lemma_ntt_func_post_intro ${_orig} ${simd_units}
+             (Hacspec_ml_dsa.Commute.Chunk.simd_units_to_array
+                (Libcrux_ml_dsa.Simd.Portable.Ntt.chunks_of_re ${_orig}))
+             (Hacspec_ml_dsa.Commute.Chunk.simd_units_to_array
+                (Libcrux_ml_dsa.Simd.Portable.Ntt.chunks_of_re ${simd_units}))"#
+    );
+}
+
+// 2026-06-15: `--z3rlimit 200 --split_queries always`.  TWO fixes are needed
+// together for the functional `ntt` post: (1) `--split_queries always` — the
+// monolithic impl_1 record query doesn't fit COLD (after re-extraction shifts
+// lines, its hint goes stale and it re-proves cold → saturates at rlimit 200);
+// splitting makes each field its own small sub-query.  (2) the opaque
+// `ntt_func_post` atom — under split, a raw `forall` in the f_ntt post is pruned
+// from its sub-query ("incomplete quantifiers"); wrapping it in the opaque atom
+// makes the f_ntt dispatch propagate one atomic term.  Neither alone suffices.
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 200 --split_queries always"))]
 #[hax_lib::attributes]
 impl Operations for Coefficients {
     #[ensures(|result| result.repr() == [0i32; COEFFICIENTS_IN_SIMD_UNIT])]
@@ -684,20 +766,11 @@ impl Operations for Coefficients {
     #[ensures(|_| fstar!(r#"
         Spec.Utils.forall32 (fun (i: nat{i < 32}) ->
             Spec.Utils.is_i32b_array_opaque (v ${specs::NTT_OUTPUT_BOUND})
-            (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index ${simd_units}_future i)))
+            (Libcrux_ml_dsa.Simd.Traits.f_repr (Seq.index ${simd_units}_future i))) /\
+        Libcrux_ml_dsa.Simd.Traits.ntt_func_post ${simd_units} ${simd_units}_future
     "#))]
     fn ntt(simd_units: &mut [Coefficients; SIMD_UNITS_IN_RING_ELEMENT]) {
-        // Bridge inner ntt::ntt's `is_i32b_polynomial (NTT_BASE_BOUND + 8*FIELD_MAX)`
-        // post to the trait post `forall32 ... is_i32b_array_opaque NTT_OUTPUT_BOUND`.
-        // is_i32b_polynomial is opaque; reveal it, then NTT_OUTPUT_BOUND ==
-        // NTT_BASE_BOUND + 8*FIELD_MAX (both concrete) and f_repr c == c.f_values (defeq).
-        ntt::ntt(simd_units);
-        hax_lib::fstar!(
-            r#"reveal_opaque (`%Libcrux_ml_dsa.Simd.Portable.Ntt.is_i32b_polynomial)
-                 (Libcrux_ml_dsa.Simd.Portable.Ntt.is_i32b_polynomial
-                    (v ${specs::NTT_BASE_BOUND} + 8 * v ${specs::FIELD_MAX}) ${simd_units});
-               assert_norm (v ${specs::NTT_OUTPUT_BOUND} == v ${specs::NTT_BASE_BOUND} + 8 * v ${specs::FIELD_MAX})"#
-        );
+        ntt_with_proof(simd_units)
     }
 
     #[requires(fstar!(r#"
