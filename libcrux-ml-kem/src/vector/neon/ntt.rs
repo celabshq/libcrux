@@ -45,6 +45,72 @@ let lemma_neon_sub_lane (lhs rhs: NI.t_e_int16x8_t) (i:nat{i < 8}) : Lemma
   [SMTPat (v (NI.get_lane_i16x8 lhs i -. NI.get_lane_i16x8 rhs i))]
   = ()
 
+(* ---- Reinterpret round-trip identities (pure crate-helper facts, NO trust) ----
+   The cross-width repacks i16<->i32<->i64 invert: packing i16 lanes into a wider
+   lane and reading them back recovers the originals.  Proven bit-for-bit from the
+   Rust_primitives bit lemmas (get_bit_or/shl/cast SMTPats + lemma_int_t_eq_via_bits);
+   used to discharge the trn-reinterpret lane permutations from the crate op ensures.
+   No new trust axiom (only transparent crate helpers), so no differential test. *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 200"
+
+let lemma_i16_bits_as_u32_bit (a: i16) (i: usize {v i < 32}) : Lemma
+  (ensures get_bit (NI.i16_bits_as_u32 a) i ==
+           (if v i < 16 then get_bit a i else 0))
+  = let w = Rust_primitives.Integers.cast_mod #Rust_primitives.Integers.i16_inttype
+              #Rust_primitives.Integers.u16_inttype a in
+    FStar.Math.Lemmas.small_mod (v w) (pow2 32);
+    assert (NI.i16_bits_as_u32 a ==
+            Rust_primitives.Integers.cast_mod #Rust_primitives.Integers.u16_inttype
+              #Rust_primitives.Integers.u32_inttype w)
+
+let lemma_i16_bits_as_u64_bit (a: i16) (i: usize {v i < 64}) : Lemma
+  (ensures get_bit (NI.i16_bits_as_u64 a) i ==
+           (if v i < 16 then get_bit a i else 0))
+  = let w = NI.i16_bits_as_u32 a in
+    FStar.Math.Lemmas.small_mod (v w) (pow2 64);
+    assert (NI.i16_bits_as_u64 a ==
+            Rust_primitives.Integers.cast_mod #Rust_primitives.Integers.u32_inttype
+              #Rust_primitives.Integers.u64_inttype w);
+    if v i < 32 then lemma_i16_bits_as_u32_bit a i
+
+let lemma_i16x2_as_i32_lo (a b: i16) : Lemma
+  (ensures NI.i32_lo16_as_i16 (NI.i16x2_as_i32 a b) == a)
+  = let r = NI.i32_lo16_as_i16 (NI.i16x2_as_i32 a b) in
+    let aux (i: usize {v i < 16}) : Lemma (get_bit r i == get_bit a i) =
+      lemma_i16_bits_as_u32_bit a i in
+    Classical.forall_intro aux;
+    Rust_primitives.Integers.lemma_int_t_eq_via_bits r a
+
+let lemma_i16x2_as_i32_hi (a b: i16) : Lemma
+  (ensures NI.i32_hi16_as_i16 (NI.i16x2_as_i32 a b) == b)
+  = let r = NI.i32_hi16_as_i16 (NI.i16x2_as_i32 a b) in
+    let aux (i: usize {v i < 16}) : Lemma (get_bit r i == get_bit b i) =
+      lemma_i16_bits_as_u32_bit a (sz (v i + 16));
+      lemma_i16_bits_as_u32_bit b i in
+    Classical.forall_intro aux;
+    Rust_primitives.Integers.lemma_int_t_eq_via_bits r b
+
+let lemma_i16x4_as_i64_lane (a b c d: i16) (j: nat{j < 4}) : Lemma
+  (ensures NI.i64_i16lane (NI.i16x4_as_i64 a b c d) j ==
+           (match j with | 0 -> a | 1 -> b | 2 -> c | _ -> d))
+  = let target : i16 = (match j with | 0 -> a | 1 -> b | 2 -> c | _ -> d) in
+    let r = NI.i64_i16lane (NI.i16x4_as_i64 a b c d) j in
+    let aux (i: usize {v i < 16}) : Lemma (get_bit r i == get_bit target i) =
+      (match j with
+       | 0 -> lemma_i16_bits_as_u64_bit a i
+       | 1 -> lemma_i16_bits_as_u64_bit a (sz (v i + 16));
+              lemma_i16_bits_as_u64_bit b i
+       | 2 -> lemma_i16_bits_as_u64_bit a (sz (v i + 32));
+              lemma_i16_bits_as_u64_bit b (sz (v i + 16));
+              lemma_i16_bits_as_u64_bit c i
+       | _ -> lemma_i16_bits_as_u64_bit a (sz (v i + 48));
+              lemma_i16_bits_as_u64_bit b (sz (v i + 32));
+              lemma_i16_bits_as_u64_bit c (sz (v i + 16));
+              lemma_i16_bits_as_u64_bit d i) in
+    Classical.forall_intro aux;
+    Rust_primitives.Integers.lemma_int_t_eq_via_bits r target
+#pop-options
+
 (* Transpose+reinterpret lane permutations for the ntt layer-1 (s32) / layer-2
    (s64) butterflies.  Each composes two cross-width reinterprets around a
    `trn1`/`trn2` and yields the resulting i16 lane permutation.  Admitted as
@@ -64,7 +130,26 @@ let lemma_trn1_s32_reinterpret (lo hi: NI.t_e_int16x8_t) : Lemma
      NI.get_lane_i16x8 r 5 == NI.get_lane_i16x8 lo 5 /\
      NI.get_lane_i16x8 r 6 == NI.get_lane_i16x8 hi 4 /\
      NI.get_lane_i16x8 r 7 == NI.get_lane_i16x8 hi 5))
-  = admit ()
+  = let lo32 = NI.e_vreinterpretq_s32_s16 lo in
+    let hi32 = NI.e_vreinterpretq_s32_s16 hi in
+    let t = NI.e_vtrn1q_s32 lo32 hi32 in
+    let r = NI.e_vreinterpretq_s16_s32 t in
+    assert (NI.get_lane_i32x4 lo32 0 == NI.i16x2_as_i32 (NI.get_lane_i16x8 lo 0) (NI.get_lane_i16x8 lo 1));
+    assert (NI.get_lane_i32x4 lo32 2 == NI.i16x2_as_i32 (NI.get_lane_i16x8 lo 4) (NI.get_lane_i16x8 lo 5));
+    assert (NI.get_lane_i32x4 hi32 0 == NI.i16x2_as_i32 (NI.get_lane_i16x8 hi 0) (NI.get_lane_i16x8 hi 1));
+    assert (NI.get_lane_i32x4 hi32 2 == NI.i16x2_as_i32 (NI.get_lane_i16x8 hi 4) (NI.get_lane_i16x8 hi 5));
+    assert (NI.get_lane_i32x4 t 0 == NI.get_lane_i32x4 lo32 0);
+    assert (NI.get_lane_i32x4 t 1 == NI.get_lane_i32x4 hi32 0);
+    assert (NI.get_lane_i32x4 t 2 == NI.get_lane_i32x4 lo32 2);
+    assert (NI.get_lane_i32x4 t 3 == NI.get_lane_i32x4 hi32 2);
+    lemma_i16x2_as_i32_lo (NI.get_lane_i16x8 lo 0) (NI.get_lane_i16x8 lo 1);
+    lemma_i16x2_as_i32_hi (NI.get_lane_i16x8 lo 0) (NI.get_lane_i16x8 lo 1);
+    lemma_i16x2_as_i32_lo (NI.get_lane_i16x8 hi 0) (NI.get_lane_i16x8 hi 1);
+    lemma_i16x2_as_i32_hi (NI.get_lane_i16x8 hi 0) (NI.get_lane_i16x8 hi 1);
+    lemma_i16x2_as_i32_lo (NI.get_lane_i16x8 lo 4) (NI.get_lane_i16x8 lo 5);
+    lemma_i16x2_as_i32_hi (NI.get_lane_i16x8 lo 4) (NI.get_lane_i16x8 lo 5);
+    lemma_i16x2_as_i32_lo (NI.get_lane_i16x8 hi 4) (NI.get_lane_i16x8 hi 5);
+    lemma_i16x2_as_i32_hi (NI.get_lane_i16x8 hi 4) (NI.get_lane_i16x8 hi 5)
 
 let lemma_trn2_s32_reinterpret (lo hi: NI.t_e_int16x8_t) : Lemma
   (ensures (let r = NI.e_vreinterpretq_s16_s32
@@ -78,8 +163,32 @@ let lemma_trn2_s32_reinterpret (lo hi: NI.t_e_int16x8_t) : Lemma
      NI.get_lane_i16x8 r 5 == NI.get_lane_i16x8 lo 7 /\
      NI.get_lane_i16x8 r 6 == NI.get_lane_i16x8 hi 6 /\
      NI.get_lane_i16x8 r 7 == NI.get_lane_i16x8 hi 7))
-  = admit ()
+  = let lo32 = NI.e_vreinterpretq_s32_s16 lo in
+    let hi32 = NI.e_vreinterpretq_s32_s16 hi in
+    let t = NI.e_vtrn2q_s32 lo32 hi32 in
+    let r = NI.e_vreinterpretq_s16_s32 t in
+    assert (NI.get_lane_i32x4 lo32 1 == NI.i16x2_as_i32 (NI.get_lane_i16x8 lo 2) (NI.get_lane_i16x8 lo 3));
+    assert (NI.get_lane_i32x4 lo32 3 == NI.i16x2_as_i32 (NI.get_lane_i16x8 lo 6) (NI.get_lane_i16x8 lo 7));
+    assert (NI.get_lane_i32x4 hi32 1 == NI.i16x2_as_i32 (NI.get_lane_i16x8 hi 2) (NI.get_lane_i16x8 hi 3));
+    assert (NI.get_lane_i32x4 hi32 3 == NI.i16x2_as_i32 (NI.get_lane_i16x8 hi 6) (NI.get_lane_i16x8 hi 7));
+    assert (NI.get_lane_i32x4 t 0 == NI.get_lane_i32x4 lo32 1);
+    assert (NI.get_lane_i32x4 t 1 == NI.get_lane_i32x4 hi32 1);
+    assert (NI.get_lane_i32x4 t 2 == NI.get_lane_i32x4 lo32 3);
+    assert (NI.get_lane_i32x4 t 3 == NI.get_lane_i32x4 hi32 3);
+    lemma_i16x2_as_i32_lo (NI.get_lane_i16x8 lo 2) (NI.get_lane_i16x8 lo 3);
+    lemma_i16x2_as_i32_hi (NI.get_lane_i16x8 lo 2) (NI.get_lane_i16x8 lo 3);
+    lemma_i16x2_as_i32_lo (NI.get_lane_i16x8 hi 2) (NI.get_lane_i16x8 hi 3);
+    lemma_i16x2_as_i32_hi (NI.get_lane_i16x8 hi 2) (NI.get_lane_i16x8 hi 3);
+    lemma_i16x2_as_i32_lo (NI.get_lane_i16x8 lo 6) (NI.get_lane_i16x8 lo 7);
+    lemma_i16x2_as_i32_hi (NI.get_lane_i16x8 lo 6) (NI.get_lane_i16x8 lo 7);
+    lemma_i16x2_as_i32_lo (NI.get_lane_i16x8 hi 6) (NI.get_lane_i16x8 hi 7);
+    lemma_i16x2_as_i32_hi (NI.get_lane_i16x8 hi 6) (NI.get_lane_i16x8 hi 7)
 
+(* Keep the wide packs atomic: the round-trip lane lemma relates i16x4_as_i64 and
+   i64_i16lane as opaque atoms, so unfolding their nested OR/shift/cast bodies here
+   only saturates Z3 (canceled at full rlimit). Excluding their definitional facts
+   makes the composition a pure congruence over the op-ensures + lane-lemma posts. *)
+#push-options "--z3rlimit 100 --split_queries always --using_facts_from '* -Libcrux_intrinsics.Arm64_extract.i16x4_as_i64 -Libcrux_intrinsics.Arm64_extract.i64_i16lane'"
 let lemma_trn1_s64_reinterpret (lo hi: NI.t_e_int16x8_t) : Lemma
   (ensures (let r = NI.e_vreinterpretq_s16_s64
                       (NI.e_vtrn1q_s64 (NI.e_vreinterpretq_s64_s16 lo)
@@ -92,7 +201,32 @@ let lemma_trn1_s64_reinterpret (lo hi: NI.t_e_int16x8_t) : Lemma
      NI.get_lane_i16x8 r 5 == NI.get_lane_i16x8 hi 1 /\
      NI.get_lane_i16x8 r 6 == NI.get_lane_i16x8 hi 2 /\
      NI.get_lane_i16x8 r 7 == NI.get_lane_i16x8 hi 3))
-  = admit ()
+  = let lo64 = NI.e_vreinterpretq_s64_s16 lo in
+    let hi64 = NI.e_vreinterpretq_s64_s16 hi in
+    let t = NI.e_vtrn1q_s64 lo64 hi64 in
+    let r = NI.e_vreinterpretq_s16_s64 t in
+    assert (NI.get_lane_i64x2 lo64 0 == NI.i16x4_as_i64 (NI.get_lane_i16x8 lo 0) (NI.get_lane_i16x8 lo 1)
+                                                        (NI.get_lane_i16x8 lo 2) (NI.get_lane_i16x8 lo 3));
+    assert (NI.get_lane_i64x2 hi64 0 == NI.i16x4_as_i64 (NI.get_lane_i16x8 hi 0) (NI.get_lane_i16x8 hi 1)
+                                                        (NI.get_lane_i16x8 hi 2) (NI.get_lane_i16x8 hi 3));
+    assert (NI.get_lane_i64x2 t 0 == NI.get_lane_i64x2 lo64 0);
+    assert (NI.get_lane_i64x2 t 1 == NI.get_lane_i64x2 hi64 0);
+    assert (NI.get_lane_i16x8 r 0 == NI.i64_i16lane (NI.get_lane_i64x2 t 0) 0);
+    assert (NI.get_lane_i16x8 r 1 == NI.i64_i16lane (NI.get_lane_i64x2 t 0) 1);
+    assert (NI.get_lane_i16x8 r 2 == NI.i64_i16lane (NI.get_lane_i64x2 t 0) 2);
+    assert (NI.get_lane_i16x8 r 3 == NI.i64_i16lane (NI.get_lane_i64x2 t 0) 3);
+    assert (NI.get_lane_i16x8 r 4 == NI.i64_i16lane (NI.get_lane_i64x2 t 1) 0);
+    assert (NI.get_lane_i16x8 r 5 == NI.i64_i16lane (NI.get_lane_i64x2 t 1) 1);
+    assert (NI.get_lane_i16x8 r 6 == NI.i64_i16lane (NI.get_lane_i64x2 t 1) 2);
+    assert (NI.get_lane_i16x8 r 7 == NI.i64_i16lane (NI.get_lane_i64x2 t 1) 3);
+    lemma_i16x4_as_i64_lane (NI.get_lane_i16x8 lo 0) (NI.get_lane_i16x8 lo 1) (NI.get_lane_i16x8 lo 2) (NI.get_lane_i16x8 lo 3) 0;
+    lemma_i16x4_as_i64_lane (NI.get_lane_i16x8 lo 0) (NI.get_lane_i16x8 lo 1) (NI.get_lane_i16x8 lo 2) (NI.get_lane_i16x8 lo 3) 1;
+    lemma_i16x4_as_i64_lane (NI.get_lane_i16x8 lo 0) (NI.get_lane_i16x8 lo 1) (NI.get_lane_i16x8 lo 2) (NI.get_lane_i16x8 lo 3) 2;
+    lemma_i16x4_as_i64_lane (NI.get_lane_i16x8 lo 0) (NI.get_lane_i16x8 lo 1) (NI.get_lane_i16x8 lo 2) (NI.get_lane_i16x8 lo 3) 3;
+    lemma_i16x4_as_i64_lane (NI.get_lane_i16x8 hi 0) (NI.get_lane_i16x8 hi 1) (NI.get_lane_i16x8 hi 2) (NI.get_lane_i16x8 hi 3) 0;
+    lemma_i16x4_as_i64_lane (NI.get_lane_i16x8 hi 0) (NI.get_lane_i16x8 hi 1) (NI.get_lane_i16x8 hi 2) (NI.get_lane_i16x8 hi 3) 1;
+    lemma_i16x4_as_i64_lane (NI.get_lane_i16x8 hi 0) (NI.get_lane_i16x8 hi 1) (NI.get_lane_i16x8 hi 2) (NI.get_lane_i16x8 hi 3) 2;
+    lemma_i16x4_as_i64_lane (NI.get_lane_i16x8 hi 0) (NI.get_lane_i16x8 hi 1) (NI.get_lane_i16x8 hi 2) (NI.get_lane_i16x8 hi 3) 3
 
 let lemma_trn2_s64_reinterpret (lo hi: NI.t_e_int16x8_t) : Lemma
   (ensures (let r = NI.e_vreinterpretq_s16_s64
@@ -106,8 +240,34 @@ let lemma_trn2_s64_reinterpret (lo hi: NI.t_e_int16x8_t) : Lemma
      NI.get_lane_i16x8 r 5 == NI.get_lane_i16x8 hi 5 /\
      NI.get_lane_i16x8 r 6 == NI.get_lane_i16x8 hi 6 /\
      NI.get_lane_i16x8 r 7 == NI.get_lane_i16x8 hi 7))
-  = admit ()
+  = let lo64 = NI.e_vreinterpretq_s64_s16 lo in
+    let hi64 = NI.e_vreinterpretq_s64_s16 hi in
+    let t = NI.e_vtrn2q_s64 lo64 hi64 in
+    let r = NI.e_vreinterpretq_s16_s64 t in
+    assert (NI.get_lane_i64x2 lo64 1 == NI.i16x4_as_i64 (NI.get_lane_i16x8 lo 4) (NI.get_lane_i16x8 lo 5)
+                                                        (NI.get_lane_i16x8 lo 6) (NI.get_lane_i16x8 lo 7));
+    assert (NI.get_lane_i64x2 hi64 1 == NI.i16x4_as_i64 (NI.get_lane_i16x8 hi 4) (NI.get_lane_i16x8 hi 5)
+                                                        (NI.get_lane_i16x8 hi 6) (NI.get_lane_i16x8 hi 7));
+    assert (NI.get_lane_i64x2 t 0 == NI.get_lane_i64x2 lo64 1);
+    assert (NI.get_lane_i64x2 t 1 == NI.get_lane_i64x2 hi64 1);
+    assert (NI.get_lane_i16x8 r 0 == NI.i64_i16lane (NI.get_lane_i64x2 t 0) 0);
+    assert (NI.get_lane_i16x8 r 1 == NI.i64_i16lane (NI.get_lane_i64x2 t 0) 1);
+    assert (NI.get_lane_i16x8 r 2 == NI.i64_i16lane (NI.get_lane_i64x2 t 0) 2);
+    assert (NI.get_lane_i16x8 r 3 == NI.i64_i16lane (NI.get_lane_i64x2 t 0) 3);
+    assert (NI.get_lane_i16x8 r 4 == NI.i64_i16lane (NI.get_lane_i64x2 t 1) 0);
+    assert (NI.get_lane_i16x8 r 5 == NI.i64_i16lane (NI.get_lane_i64x2 t 1) 1);
+    assert (NI.get_lane_i16x8 r 6 == NI.i64_i16lane (NI.get_lane_i64x2 t 1) 2);
+    assert (NI.get_lane_i16x8 r 7 == NI.i64_i16lane (NI.get_lane_i64x2 t 1) 3);
+    lemma_i16x4_as_i64_lane (NI.get_lane_i16x8 lo 4) (NI.get_lane_i16x8 lo 5) (NI.get_lane_i16x8 lo 6) (NI.get_lane_i16x8 lo 7) 0;
+    lemma_i16x4_as_i64_lane (NI.get_lane_i16x8 lo 4) (NI.get_lane_i16x8 lo 5) (NI.get_lane_i16x8 lo 6) (NI.get_lane_i16x8 lo 7) 1;
+    lemma_i16x4_as_i64_lane (NI.get_lane_i16x8 lo 4) (NI.get_lane_i16x8 lo 5) (NI.get_lane_i16x8 lo 6) (NI.get_lane_i16x8 lo 7) 2;
+    lemma_i16x4_as_i64_lane (NI.get_lane_i16x8 lo 4) (NI.get_lane_i16x8 lo 5) (NI.get_lane_i16x8 lo 6) (NI.get_lane_i16x8 lo 7) 3;
+    lemma_i16x4_as_i64_lane (NI.get_lane_i16x8 hi 4) (NI.get_lane_i16x8 hi 5) (NI.get_lane_i16x8 hi 6) (NI.get_lane_i16x8 hi 7) 0;
+    lemma_i16x4_as_i64_lane (NI.get_lane_i16x8 hi 4) (NI.get_lane_i16x8 hi 5) (NI.get_lane_i16x8 hi 6) (NI.get_lane_i16x8 hi 7) 1;
+    lemma_i16x4_as_i64_lane (NI.get_lane_i16x8 hi 4) (NI.get_lane_i16x8 hi 5) (NI.get_lane_i16x8 hi 6) (NI.get_lane_i16x8 hi 7) 2;
+    lemma_i16x4_as_i64_lane (NI.get_lane_i16x8 hi 4) (NI.get_lane_i16x8 hi 5) (NI.get_lane_i16x8 hi 6) (NI.get_lane_i16x8 hi 7) 3
 
+#pop-options
 (* Bound preservation across the s64 transpose dance.  A consequence of the
    admitted lane permutation (lemma_trn{1,2}_s64_reinterpret) + the input bound:
    each output lane is some input lane, so the bound carries.  Admitted directly
@@ -129,7 +289,10 @@ let lemma_trn_s64_bound
   (ensures
     NS.forall8 (fun i -> NS.is_i16b b (NI.get_lane_i16x8 aa i)) /\
     NS.forall8 (fun i -> NS.is_i16b b (NI.get_lane_i16x8 bb i)))
-  = admit ()
+  = let f_low = vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low in
+    let f_high = vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high in
+    lemma_trn1_s64_reinterpret f_low f_high;
+    lemma_trn2_s64_reinterpret f_low f_high
 
 (* Per-lane exactness of a vector add when both operands are bounded — proven in
    clean context (just the requires), so the 8-lane lane-add reasoning never
@@ -159,6 +322,43 @@ let lemma_vadd_bound (aa bb summ: NI.t_e_int16x8_t) (b: nat) : Lemma
    lemma_fwd_l2_resultv which composes its (admitted) shuffle with the add: the
    transpose permutation is the admitted bit-layout fact, the lane add/sub is
    exact under the 3328 input bound (sum/diff <= 7*3328 < 2^15). *)
+(* Asymmetric per-lane add/sub bound (mirror of lemma_vadd_bound for distinct
+   operand bounds): summ = aa +/- bb with |aa|<=b1, |bb|<=b2 stays |.|<=b1+b2
+   when b1+b2 < 2^15.  Clean per-lane, no SIMD machinery. *)
+#push-options "--z3rlimit 200 --split_queries always"
+let lemma_vadd_bound_asym (aa bb summ: NI.t_e_int16x8_t) (b1 b2: nat) : Lemma
+  (requires summ == NI.e_vaddq_s16 aa bb /\ b1 + b2 < pow2 15 /\
+    NS.forall8 (fun i -> NS.is_i16b b1 (NI.get_lane_i16x8 aa i)) /\
+    NS.forall8 (fun i -> NS.is_i16b b2 (NI.get_lane_i16x8 bb i)))
+  (ensures NS.forall8 (fun i -> NS.is_i16b (b1 + b2) (NI.get_lane_i16x8 summ i)))
+  = ()
+
+let lemma_vsub_bound_asym (aa bb diff: NI.t_e_int16x8_t) (b1 b2: nat) : Lemma
+  (requires diff == NI.e_vsubq_s16 aa bb /\ b1 + b2 < pow2 15 /\
+    NS.forall8 (fun i -> NS.is_i16b b1 (NI.get_lane_i16x8 aa i)) /\
+    NS.forall8 (fun i -> NS.is_i16b b2 (NI.get_lane_i16x8 bb i)))
+  (ensures NS.forall8 (fun i -> NS.is_i16b (b1 + b2) (NI.get_lane_i16x8 diff i)))
+  = ()
+#pop-options
+
+(* Output-array bound for the forward layer-2 result: res.f_low/f_high are the
+   trn1/trn2 of (a,b), so every repr entry is some a/b lane — bound carries.
+   The dual of lemma_trn_s64_bound (a,b are the inputs, res the trn output). *)
+#push-options "--z3rlimit 300 --split_queries always --using_facts_from '* -Libcrux_intrinsics.Arm64_extract.i16x4_as_i64 -Libcrux_intrinsics.Arm64_extract.i64_i16lane'"
+let lemma_fwd_l2_outbound
+    (res: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector)
+    (a b: NI.t_e_int16x8_t) (bnd: nat) : Lemma
+  (requires
+    NS.forall8 (fun i -> NS.is_i16b bnd (NI.get_lane_i16x8 a i)) /\
+    NS.forall8 (fun i -> NS.is_i16b bnd (NI.get_lane_i16x8 b i)) /\
+    res.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low == NI.e_vreinterpretq_s16_s64
+      (NI.e_vtrn1q_s64 (NI.e_vreinterpretq_s64_s16 a) (NI.e_vreinterpretq_s64_s16 b)) /\
+    res.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high == NI.e_vreinterpretq_s16_s64
+      (NI.e_vtrn2q_s64 (NI.e_vreinterpretq_s64_s16 a) (NI.e_vreinterpretq_s64_s16 b)))
+  (ensures NS.is_i16b_array bnd (repr res))
+  = lemma_trn1_s64_reinterpret a b;
+    lemma_trn2_s64_reinterpret a b
+
 let lemma_fwd_l2_resultv
     (vec res: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector)
     (dup_a t a b: NI.t_e_int16x8_t) : Lemma
@@ -192,7 +392,21 @@ let lemma_fwd_l2_resultv
     v (Seq.index (repr res) 13) == v (Seq.index (repr vec) 9)  - v (NI.get_lane_i16x8 t 5) /\
     v (Seq.index (repr res) 14) == v (Seq.index (repr vec) 10) - v (NI.get_lane_i16x8 t 6) /\
     v (Seq.index (repr res) 15) == v (Seq.index (repr vec) 11) - v (NI.get_lane_i16x8 t 7))
-  = admit ()
+  = let f_low = vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low in
+    let f_high = vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high in
+    let bb_dummy = NI.e_vreinterpretq_s16_s64
+      (NI.e_vtrn2q_s64 (NI.e_vreinterpretq_s64_s16 f_low) (NI.e_vreinterpretq_s64_s16 f_high)) in
+    (* dup_a lanes are repr vec entries 0..3,8..11 (value eqs) + bound 6*3328 *)
+    lemma_trn1_s64_reinterpret f_low f_high;
+    lemma_trn_s64_bound vec dup_a bb_dummy (6 * 3328);
+    (* res.f_low = trn1(a,b) [a0..3,b0..3]; res.f_high = trn2(a,b) [a4..7,b4..7] *)
+    lemma_trn1_s64_reinterpret a b;
+    lemma_trn2_s64_reinterpret a b;
+    assert (NS.forall8 (fun i -> NS.is_i16b 3328 (NI.get_lane_i16x8 t i)));
+    lemma_vadd_bound_asym dup_a t a (6 * 3328) 3328;
+    lemma_vsub_bound_asym dup_a t b (6 * 3328) 3328;
+    lemma_fwd_l2_outbound res a b (7 * 3328)
+#pop-options
 
 (* Clean-context post-helper: the mod-3329 butterfly congruence + output bound
    from the plain per-lane value equations.  Keeping the 16 modadd/modsub
@@ -377,6 +591,7 @@ let lemma_neon_inv_l1_post
    (lemma_trn{1,2}_s64_reinterpret, lemma_trn_s64_bound): it is the admitted lane
    permutation composed with an exact integer subtract (each diff is iv_j - iv_k,
    |.| <= 2*3328 < 2^15, so vsubq is exact). *)
+#push-options "--z3rlimit 200 --split_queries always --using_facts_from '* -Libcrux_intrinsics.Arm64_extract.i16x4_as_i64 -Libcrux_intrinsics.Arm64_extract.i64_i16lane'"
 let lemma_inv_l2_bdiff
     (vec: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector)
     (aa bb b_minus_a: NI.t_e_int16x8_t) : Lemma
@@ -398,7 +613,13 @@ let lemma_inv_l2_bdiff
     v (NI.get_lane_i16x8 b_minus_a 5) == v (Seq.index (repr vec) 13) - v (Seq.index (repr vec) 9)  /\
     v (NI.get_lane_i16x8 b_minus_a 6) == v (Seq.index (repr vec) 14) - v (Seq.index (repr vec) 10) /\
     v (NI.get_lane_i16x8 b_minus_a 7) == v (Seq.index (repr vec) 15) - v (Seq.index (repr vec) 11))
-  = admit ()
+  = let f_low = vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low in
+    let f_high = vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high in
+    (* aa = trn1(f_low,f_high) [repr 0..3,8..11]; bb = trn2(...) [repr 4..7,12..15];
+       b_minus_a = bb -. aa per lane (exact: both lanes are repr entries, |.|<=3328) *)
+    lemma_trn1_s64_reinterpret f_low f_high;
+    lemma_trn2_s64_reinterpret f_low f_high
+#pop-options
 
 #push-options "--z3rlimit 400 --split_queries always"
 let lemma_neon_inv_l2_post
