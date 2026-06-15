@@ -47,23 +47,56 @@ fn serialize_when_eta_is_2_aux(simd_unit_shifted: Vec256) -> Vec128 {
 const ETA_2: i32 = 2;
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
-#[hax_lib::requires(fstar!("forall i. let x = (v $ETA_2 - v (to_i32x8 simd_unit i)) in x >= 0 && x <= 7"))]
+#[hax_lib::fstar::before(r#"
+#push-options "--ifuel 0 --z3rlimit 400"
+let lemma_error_serialize_post_eta_2
+      (out: t_Slice u8)
+      (adjacent: Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 128))
+      (simd_unit_shifted simd_unit: Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 256))
+    : Lemma
+      (requires
+        Seq.length out == 3 /\
+        (forall (k: nat{k < 3}). Seq.index out k == to_u8x16 adjacent (mk_int k)) /\
+        (forall (i: nat{i < 24}).
+            adjacent.(mk_int i) == simd_unit_shifted.(mk_int ((i / 3) * 32 + i % 3))) /\
+        (forall (j: u64{v j < 8}).
+            to_i32x8 simd_unit_shifted j == v_ETA_2_ `sub_mod` to_i32x8 simd_unit j))
+      (ensures
+        (forall (i: nat{i < 24}).
+            u8_to_bv (Seq.index out (i / 8)) (mk_int (i % 8)) ==
+            i32_to_bv (v_ETA_2_ `sub_mod` (to_i32x8 simd_unit (mk_int (i / 3)))) (mk_int (i % 3)))) =
+  introduce forall (i: nat{i < 24}).
+      u8_to_bv (Seq.index out (i / 8)) (mk_int (i % 8)) ==
+      i32_to_bv (v_ETA_2_ `sub_mod` (to_i32x8 simd_unit (mk_int (i / 3)))) (mk_int (i % 3))
+  with (
+    FStar.Math.Lemmas.lemma_div_le i 23 3;
+    FStar.Math.Lemmas.euclidean_division_definition i 3
+  )
+#pop-options
+"#)]
+#[hax_lib::fstar::options("--ifuel 0 --z3rlimit 340 --split_queries always")]
+#[hax_lib::requires(fstar!(r#"Seq.length $out == 3 /\ (forall i. let x = (v $ETA_2 - v (to_i32x8 simd_unit i)) in x >= 0 && x <= 7)"#))]
 #[hax_lib::ensures(|_result| fstar!(r#"
      Seq.length ${out}_future == 3
   /\ (forall (i:nat{i < 24}). u8_to_bv (Seq.index ${out}_future (i / 8)) (mk_int (i % 8))
-                   == i32_to_bv ($ETA_2 -! to_i32x8 $simd_unit (mk_int (i / 3))) (mk_int (i % 3)))
+                   == i32_to_bv ($ETA_2 `sub_mod` to_i32x8 $simd_unit (mk_int (i / 3))) (mk_int (i % 3)))
 "#))]
 fn serialize_when_eta_is_2(simd_unit: &Vec256, out: &mut [u8]) {
-    hax_lib::fstar!("admit ()");
     let mut serialized = [0u8; 16];
 
     let simd_unit_shifted = mm256_sub_epi32(mm256_set1_epi32(ETA_2), *simd_unit);
+
+    hax_lib::fstar!(r#"reveal_opaque_arithmetic_ops #I32;
+        assert (forall (j: u64{v j < 8}).
+                  v (to_i32x8 $simd_unit_shifted j) >= 0 /\
+                  v (to_i32x8 $simd_unit_shifted j) <= pow2 3 - 1);
+        i32_lt_pow2_n_to_bit_zero_lemma 3 $simd_unit_shifted"#);
 
     let adjacent_6_combined = serialize_when_eta_is_2_aux(simd_unit_shifted);
 
     mm_storeu_bytes_si128(&mut serialized[0..16], adjacent_6_combined);
     out.copy_from_slice(&serialized[0..3]);
+    hax_lib::fstar!(r#"lemma_error_serialize_post_eta_2 $out $adjacent_6_combined $simd_unit_shifted $simd_unit"#);
 }
 
 #[inline(always)]
@@ -98,27 +131,61 @@ fn serialize_when_eta_is_4_aux(simd_unit_shifted: Vec256) -> Vec128 {
 const ETA_4: i32 = 4;
 
 #[inline(always)]
-#[hax_lib::requires(fstar!("forall i. let x = (v $ETA_4 - v (to_i32x8 simd_unit i)) in x >= 0 && x <= 15"))]
+#[hax_lib::fstar::before(r#"
+#push-options "--ifuel 0 --z3rlimit 400"
+let lemma_error_serialize_post_eta_4
+      (out: t_Slice u8)
+      (adjacent: Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 128))
+      (simd_unit_shifted simd_unit: Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 256))
+    : Lemma
+      (requires
+        Seq.length out == 4 /\
+        (forall (k: nat{k < 4}). Seq.index out k == to_u8x16 adjacent (mk_int k)) /\
+        (forall (i: nat{i < 32}).
+            adjacent.(mk_int i) == simd_unit_shifted.(mk_int ((i / 4) * 32 + i % 4))) /\
+        (forall (j: u64{v j < 8}).
+            to_i32x8 simd_unit_shifted j == v_ETA_4_ `sub_mod` to_i32x8 simd_unit j))
+      (ensures
+        (forall (i: nat{i < 32}).
+            u8_to_bv (Seq.index out (i / 8)) (mk_int (i % 8)) ==
+            i32_to_bv (v_ETA_4_ `sub_mod` (to_i32x8 simd_unit (mk_int (i / 4)))) (mk_int (i % 4)))) =
+  introduce forall (i: nat{i < 32}).
+      u8_to_bv (Seq.index out (i / 8)) (mk_int (i % 8)) ==
+      i32_to_bv (v_ETA_4_ `sub_mod` (to_i32x8 simd_unit (mk_int (i / 4)))) (mk_int (i % 4))
+  with (
+    FStar.Math.Lemmas.lemma_div_le i 31 4;
+    FStar.Math.Lemmas.euclidean_division_definition i 4
+  )
+#pop-options
+"#)]
+#[hax_lib::requires(fstar!(r#"Seq.length $out == 4 /\ (forall i. let x = (v $ETA_4 - v (to_i32x8 simd_unit i)) in x >= 0 && x <= 15)"#))]
 #[hax_lib::ensures(|_result| fstar!(r#"
      Seq.length ${out}_future == 4
   /\ (forall (i:nat{i < 32}). u8_to_bv (Seq.index ${out}_future (i / 8)) (mk_int (i % 8))
-                   == i32_to_bv ($ETA_4 -! to_i32x8 $simd_unit (mk_int (i / 4))) (mk_int (i % 4)))
+                   == i32_to_bv ($ETA_4 `sub_mod` to_i32x8 $simd_unit (mk_int (i / 4))) (mk_int (i % 4)))
 "#))]
-#[hax_lib::fstar::options("--split_queries always")]
+#[hax_lib::fstar::options("--ifuel 0 --z3rlimit 340 --split_queries always")]
 fn serialize_when_eta_is_4(simd_unit: &Vec256, out: &mut [u8]) {
-    hax_lib::fstar!("admit ()");
     let mut serialized = [0u8; 16];
 
     let simd_unit_shifted = mm256_sub_epi32(mm256_set1_epi32(ETA_4), *simd_unit);
+
+    hax_lib::fstar!(r#"reveal_opaque_arithmetic_ops #I32;
+        assert (forall (j: u64{v j < 8}).
+                  v (to_i32x8 $simd_unit_shifted j) >= 0 /\
+                  v (to_i32x8 $simd_unit_shifted j) <= pow2 4 - 1);
+        i32_lt_pow2_n_to_bit_zero_lemma 4 $simd_unit_shifted"#);
+
     let adjacent_4_combined = serialize_when_eta_is_4_aux(simd_unit_shifted);
 
     mm_storeu_bytes_si128(&mut serialized[0..16], adjacent_4_combined);
 
-    out.copy_from_slice(&serialized[0..4])
+    out.copy_from_slice(&serialized[0..4]);
+    hax_lib::fstar!(r#"lemma_error_serialize_post_eta_4 $out $adjacent_4_combined $simd_unit_shifted $simd_unit"#);
 }
 
 #[hax_lib::requires(
-    fstar!("forall i. let x = (v (${eta as u8}) - v (to_i32x8 simd_unit i)) in x >= 0 && x <= (pow2 (v (${eta as u8})) - 1)")
+    fstar!(r#"(Seq.length $serialized == (match $eta <: Libcrux_ml_dsa.Constants.t_Eta with | Libcrux_ml_dsa.Constants.Eta_Two -> 3 | Libcrux_ml_dsa.Constants.Eta_Four -> 4)) /\ (forall i. let x = (v (${eta as u8}) - v (to_i32x8 simd_unit i)) in x >= 0 && x <= (pow2 (v (${eta as u8})) - 1))"#)
 )]
 #[hax_lib::ensures(|_result| {
     let bytes = match eta {
@@ -129,9 +196,10 @@ fn serialize_when_eta_is_4(simd_unit: &Vec256, out: &mut [u8]) {
           Seq.length ${serialized}_future == v $bytes
        /\ (forall (i:nat{i < v $bytes * 8}).
               u8_to_bv (Seq.index ${serialized}_future (i / 8)) (mk_int (i % 8))
-           == i32_to_bv ((${eta as i32}) -! to_i32x8 $simd_unit (mk_int (i / v $bytes))) (mk_int (i % v $bytes)))
+           == i32_to_bv ((${eta as i32}) `sub_mod` to_i32x8 $simd_unit (mk_int (i / v $bytes))) (mk_int (i % v $bytes)))
     "#)
 })]
+#[hax_lib::fstar::options("--ifuel 2 --z3rlimit 300 --split_queries always")]
 #[inline(always)]
 pub fn serialize(eta: Eta, simd_unit: &Vec256, serialized: &mut [u8]) {
     // [eurydice] injects an unused variable here in the C code for some reason.
