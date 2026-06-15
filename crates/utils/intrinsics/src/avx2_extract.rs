@@ -27,6 +27,13 @@ val bit_vec_of_int_t_array_vec256_as_i16x16_lemma
     : Lemma (Rust_primitives.BitVectors.bit_vec_of_int_t_array
               (vec256_as_i16x16 v) d i
              == v ((i / d) * 16 + i % d))
+
+(* The signed value of the 32-bit lane `j` (the j-th pair of i16 lanes,
+   low half = lane 2j, high half = lane 2j+1).  Mirrors the ml-kem-side
+   `Libcrux_ml_kem.Vector.Avx2.Arithmetic.lane32`. *)
+let lane32 (vec: bit_vec 256) (j: nat{j < 8}) : int =
+  (Rust_primitives.Integers.v (get_lane vec (2 * j)) % 65536) +
+  65536 * Rust_primitives.Integers.v (get_lane vec (2 * j + 1))
 "#
 )]
 pub struct Vec256(u8);
@@ -357,6 +364,10 @@ pub fn mm256_add_epi16(lhs: Vec256, rhs: Vec256) -> Vec256 {
 pub fn mm256_madd_epi16(lhs: Vec256, rhs: Vec256) -> Vec256 {
     unimplemented!()
 }
+// 32-bit lanewise wrapping add.  Trusted axiom — validated by the core-models
+// `_mm256_add_epi32` differential test + the `add_epi32` transcription test.
+#[hax_lib::ensures(|result| fstar!(r#"forall (j: nat). j < 8 ==>
+    lane32 $result j == (lane32 $lhs j + lane32 $rhs j) @% 4294967296"#))]
 #[inline(always)]
 pub fn mm256_add_epi32(lhs: Vec256, rhs: Vec256) -> Vec256 {
     unimplemented!()
@@ -456,6 +467,12 @@ pub fn mm_mulhi_epi16(lhs: Vec128, rhs: Vec128) -> Vec128 {
     unimplemented!()
 }
 
+// 32-bit lanewise wrapping (low-32) multiply.  Trusted axiom — validated by the
+// core-models `_mm256_mullo_epi32` differential test + the `mullo_epi32`
+// transcription test.
+#[hax_lib::ensures(|result| fstar!(r#"forall (j: nat). j < 8 ==>
+    lane32 $result j == (lane32 $lhs j * lane32 $rhs j) @% 4294967296"#))]
+#[inline(always)]
 pub fn mm256_mullo_epi32(lhs: Vec256, rhs: Vec256) -> Vec256 {
     unimplemented!()
 }

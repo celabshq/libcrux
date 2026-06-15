@@ -1318,13 +1318,33 @@ let lemma_nttmul_cvt_lane (x: ZI.t_Vec128) (j: nat{j < 8}) : Lemma
         by (FStar.Tactics.norm [delta_only [`%ZA.lane32]]; FStar.Tactics.trefl ())
 #pop-options
 
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 60"
+let lemma_at_percent_id_32 (k:int) : Lemma (requires -2147483648 <= k /\ k < 2147483648)
+                                          (ensures (k @% 4294967296) == k) =
+  if k >= 0 then FStar.Math.Lemmas.small_mod k 4294967296
+  else (FStar.Math.Lemmas.lemma_mod_plus k 1 4294967296;
+        FStar.Math.Lemmas.small_mod (k + 4294967296) 4294967296)
+
+(* The crate's lane32 (Libcrux_intrinsics.Avx2_extract) and the ml-kem-side
+   lane32 (ZA) have identical bodies; bridge by unfolding both. *)
+let lemma_lane32_eq (vv: ZI.t_Vec256) (j: nat{j < 8}) : Lemma (ZA.lane32 vv j == ZI.lane32 vv j)
+  = assert (ZA.lane32 vv j == ZI.lane32 vv j)
+      by (FStar.Tactics.norm [delta_only [`%ZA.lane32; `%ZI.lane32]]; FStar.Tactics.trefl ())
+
 let lemma_nttmul_mullo32_lane (a b: ZI.t_Vec256) (bnd_a bnd_b: nat) (j: nat{j < 8}) : Lemma
   (requires bnd_a * bnd_b < pow2 31 /\
             Spec.Utils.is_intb bnd_a (ZA.lane32 a j) /\
             Spec.Utils.is_intb bnd_b (ZA.lane32 b j))
   (ensures ZA.lane32 (ZI.mm256_mullo_epi32 a b) j == ZA.lane32 a j * ZA.lane32 b j /\
            Spec.Utils.is_intb (bnd_a * bnd_b) (ZA.lane32 (ZI.mm256_mullo_epi32 a b) j))
-  = admit ()
+  = let r = ZI.mm256_mullo_epi32 a b in
+    assert (ZI.lane32 r j == (ZI.lane32 a j * ZI.lane32 b j) @% 4294967296);
+    lemma_lane32_eq r j;
+    lemma_lane32_eq a j;
+    lemma_lane32_eq b j;
+    Spec.Utils.lemma_mul_intb bnd_a bnd_b (ZA.lane32 a j) (ZA.lane32 b j);
+    assert_norm (pow2 31 == 2147483648);
+    lemma_at_percent_id_32 (ZA.lane32 a j * ZA.lane32 b j)
 
 let lemma_nttmul_add32_lane (a b: ZI.t_Vec256) (bnd_a bnd_b: nat) (j: nat{j < 8}) : Lemma
   (requires bnd_a + bnd_b < pow2 31 /\
@@ -1332,7 +1352,14 @@ let lemma_nttmul_add32_lane (a b: ZI.t_Vec256) (bnd_a bnd_b: nat) (j: nat{j < 8}
             Spec.Utils.is_intb bnd_b (ZA.lane32 b j))
   (ensures ZA.lane32 (ZI.mm256_add_epi32 a b) j == ZA.lane32 a j + ZA.lane32 b j /\
            Spec.Utils.is_intb (bnd_a + bnd_b) (ZA.lane32 (ZI.mm256_add_epi32 a b) j))
-  = admit ()
+  = let r = ZI.mm256_add_epi32 a b in
+    assert (ZI.lane32 r j == (ZI.lane32 a j + ZI.lane32 b j) @% 4294967296);
+    lemma_lane32_eq r j;
+    lemma_lane32_eq a j;
+    lemma_lane32_eq b j;
+    assert_norm (pow2 31 == 2147483648);
+    lemma_at_percent_id_32 (ZA.lane32 a j + ZA.lane32 b j)
+#pop-options
 
 let lemma_nttmul_madd_lane (a b: ZI.t_Vec256) (bnd_a bnd_b: nat) (j: nat{j < 8}) : Lemma
   (requires 2 * (bnd_a * bnd_b) < pow2 31 /\

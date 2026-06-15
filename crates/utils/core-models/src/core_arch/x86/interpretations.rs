@@ -1004,6 +1004,69 @@ mod track_i_axiom_transcription_tests {
         }
     }
 
+    /// The F* `lane32 v j` (avx2_extract.rs / ml-kem Arithmetic): the signed
+    /// value of the j-th 32-bit lane, reconstructed from the i16x16 view as
+    /// `(v (lane 2j) % 65536) + 65536 * v (lane 2j+1)` (low unsigned + high
+    /// signed).  Computed here from the canonical i16 lane view, NOT from
+    /// `to_i32x8` — so the tests below genuinely validate that this i16-pair
+    /// reconstruction equals the 32-bit-lane arithmetic of the model.
+    fn lane32_recon(v: &BitVec<256>) -> Vec<i32> {
+        let lanes: Vec<i16> = v.to_vec();
+        (0..8)
+            .map(|j| {
+                let lo = lanes[2 * j] as u16 as i64; // v (lane 2j) % 65536
+                let hi = lanes[2 * j + 1] as i64; // v (lane 2j+1)
+                (lo + 65536 * hi) as i32
+            })
+            .collect()
+    }
+
+    /// F* axiom (`mm256_add_epi32` ensures): `lane32 result j ==
+    /// (lane32 lhs j + lane32 rhs j) @% 2^32` (32-bit wrapping add).
+    /// Model anchor: `int_vec::_mm256_add_epi32` (`a[i].wrapping_add(b[i])`).
+    fn check_add32(a: BitVec<256>, b: BitVec<256>) {
+        let model: BitVec<256> =
+            BitVec::from_i32x8(int_vec::_mm256_add_epi32(BitVec::to_i32x8(a), BitVec::to_i32x8(b)));
+        let la = lane32_recon(&a);
+        let lb = lane32_recon(&b);
+        let formula: Vec<i32> = (0..8).map(|j| la[j].wrapping_add(lb[j])).collect();
+        assert_eq!(lane32_recon(&model), formula);
+    }
+
+    /// F* axiom (`mm256_mullo_epi32` ensures): `lane32 result j ==
+    /// (lane32 lhs j * lane32 rhs j) @% 2^32` (32-bit wrapping low multiply).
+    /// Model anchor: `int_vec::_mm256_mullo_epi32` (`a[i].wrapping_mul(b[i])`).
+    fn check_mullo32(a: BitVec<256>, b: BitVec<256>) {
+        let model: BitVec<256> = BitVec::from_i32x8(int_vec::_mm256_mullo_epi32(
+            BitVec::to_i32x8(a),
+            BitVec::to_i32x8(b),
+        ));
+        let la = lane32_recon(&a);
+        let lb = lane32_recon(&b);
+        let formula: Vec<i32> = (0..8).map(|j| la[j].wrapping_mul(lb[j])).collect();
+        assert_eq!(lane32_recon(&model), formula);
+    }
+
+    #[test]
+    fn add32_mullo32_lane_formula() {
+        for _ in 0..1000 {
+            check_add32(BitVec::rand(), BitVec::rand());
+            check_mullo32(BitVec::rand(), BitVec::rand());
+        }
+        // Edge 32-bit lanes (INT32 extremes, the no-wrap NTT bound 3328^2, and
+        // values straddling the i16-half boundary to exercise the reconstruction).
+        let specials: [i32; 8] =
+            [i32::MIN, i32::MIN + 1, -1, 0, 1, 3328, 3328 * 3328, i32::MAX];
+        for &x in specials.iter() {
+            for &y in specials.iter() {
+                let a = BitVec::<256>::from_slice(&[x; 8], 32);
+                let b = BitVec::<256>::from_slice(&[y; 8], 32);
+                check_add32(a, b);
+                check_mullo32(a, b);
+            }
+        }
+    }
+
     /// F* axiom: `mm_storeu_si128` stores exactly the 8 LSB-first i16 lanes
     /// (`vec128_as_i16x8 vector`) to `output[0..8]`, framing the rest.
     /// Model anchor: `other::_mm_storeu_si128` / `extra::mm_storeu_bytes_si128`
