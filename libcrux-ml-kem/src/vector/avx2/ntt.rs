@@ -1334,12 +1334,99 @@ let lemma_nttmul_madd_lane (a b: ZI.t_Vec256) (bnd_a bnd_b: nat) (j: nat{j < 8})
            Spec.Utils.is_intb (2 * (bnd_a * bnd_b)) (ZA.lane32 (ZI.mm256_madd_epi16 a b) j))
   = admit ()
 
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 50"
+let lemma_set32_at_percent_mod (a:int) : Lemma ((a @% 65536) % 65536 == a % 65536) =
+  FStar.Math.Lemmas.small_mod (a % 65536) 65536;
+  FStar.Math.Lemmas.lemma_mod_plus (a % 65536) (-1) 65536
+
+let lemma_set32_at_percent_id (k:int) : Lemma (requires -32768 <= k /\ k <= 32767)
+                                        (ensures (k @% 65536) == k) =
+  if k >= 0 then FStar.Math.Lemmas.small_mod k 65536
+  else (FStar.Math.Lemmas.lemma_mod_plus k 1 65536;
+        FStar.Math.Lemmas.small_mod (k + 65536) 65536)
+
+(* An i32 x equals (low16 unsigned) + 65536*(high16 signed), where lo/hi are
+   i16 lanes that agree bit-for-bit with x's two halves.  This is exactly the
+   `lane32` reconstruction once lo/hi are the two i16 sub-lanes of a 32-bit
+   lane carrying value x. *)
+let lemma_set32_i16x2_to_i32 (lo hi: i16) (x: i32)
+  : Lemma (requires (forall (n:nat{n < 16}). get_bit lo (sz n) == get_bit x (sz n)) /\
+                    (forall (n:nat{n < 16}). get_bit hi (sz n) == get_bit x (sz (16+n))))
+          (ensures (v lo % 65536) + 65536 * v hi == v x)
+  = let lo' : i16 = Rust_primitives.Integers.cast_mod #_ #_ x in
+    let hi' : i16 = Rust_primitives.Integers.cast_mod #_ #_ (x >>! mk_i32 16) in
+    let aux_lo (i: usize {v i < 16}) : Lemma (get_bit lo i == get_bit lo' i) =
+      assert (sz (v i) == i);
+      assert (get_bit lo (sz (v i)) == get_bit x (sz (v i))) in
+    Classical.forall_intro aux_lo;
+    Rust_primitives.Integers.lemma_int_t_eq_via_bits lo lo';
+    let aux_hi (i: usize {v i < 16}) : Lemma (get_bit hi i == get_bit hi' i) =
+      assert (sz (v i) == i);
+      assert (get_bit hi (sz (v i)) == get_bit x (sz (16 + v i)));
+      Rust_primitives.Integers.get_bit_shr #_ #_ x (mk_i32 16) i in
+    Classical.forall_intro aux_hi;
+    Rust_primitives.Integers.lemma_int_t_eq_via_bits hi hi';
+    assert_norm (pow2 16 == 65536);
+    assert (v lo == v x @% 65536);
+    assert (v hi == (v x / 65536) @% 65536);
+    lemma_set32_at_percent_mod (v x);
+    lemma_set32_at_percent_id (v x / 65536);
+    FStar.Math.Lemmas.euclidean_division_definition (v x) 65536
+#pop-options
+
+#push-options "--fuel 1 --ifuel 2 --z3rlimit 100"
 let lemma_nttmul_set32_lane (e7 e6 e5 e4 e3 e2 e1 e0: i32) (j: nat{j < 8}) : Lemma
   (ZA.lane32 (ZI.mm256_set_epi32 e7 e6 e5 e4 e3 e2 e1 e0) j ==
    v (if j = 0 then e0 else if j = 1 then e1 else if j = 2 then e2
       else if j = 3 then e3 else if j = 4 then e4 else if j = 5 then e5
       else if j = 6 then e6 else e7))
-  = admit ()
+  = let vv = ZI.mm256_set_epi32 e7 e6 e5 e4 e3 e2 e1 e0 in
+    let ej : i32 = (if j = 0 then e0 else if j = 1 then e1 else if j = 2 then e2
+      else if j = 3 then e3 else if j = 4 then e4 else if j = 5 then e5
+      else if j = 6 then e6 else e7) in
+    let lo = ZI.get_lane vv (2*j) in
+    let hi = ZI.get_lane vv (2*j+1) in
+    let aux_lo (n: nat{n < 16}) : Lemma (get_bit lo (sz n) == get_bit ej (sz n)) =
+      let k : nat = 16 * (2*j) + n in
+      FStar.Math.Lemmas.lemma_mult_le_left 32 j 7;
+      FStar.Math.Lemmas.small_div n 16;
+      FStar.Math.Lemmas.small_mod n 16;
+      FStar.Math.Lemmas.lemma_div_plus n (2*j) 16;
+      FStar.Math.Lemmas.lemma_mod_plus n (2*j) 16;
+      ZI.bit_vec_of_int_t_array_vec256_as_i16x16_lemma vv 16 k;
+      assert (k / 16 == 2*j /\ k % 16 == n);
+      assert (get_bit lo (sz n) == vv k);
+      FStar.Math.Lemmas.small_div n 32;
+      FStar.Math.Lemmas.small_mod n 32;
+      FStar.Math.Lemmas.lemma_div_plus n j 32;
+      FStar.Math.Lemmas.lemma_mod_plus n j 32;
+      assert (k / 32 == j /\ k % 32 == n);
+      (match j with | 0 -> () | 1 -> () | 2 -> () | 3 -> ()
+                    | 4 -> () | 5 -> () | 6 -> () | 7 -> () | _ -> ()) in
+    Classical.forall_intro aux_lo;
+    let aux_hi (n: nat{n < 16}) : Lemma (get_bit hi (sz n) == get_bit ej (sz (16 + n))) =
+      let k : nat = 16 * (2*j+1) + n in
+      FStar.Math.Lemmas.lemma_mult_le_left 32 j 7;
+      FStar.Math.Lemmas.small_div n 16;
+      FStar.Math.Lemmas.small_mod n 16;
+      FStar.Math.Lemmas.lemma_div_plus n (2*j+1) 16;
+      FStar.Math.Lemmas.lemma_mod_plus n (2*j+1) 16;
+      ZI.bit_vec_of_int_t_array_vec256_as_i16x16_lemma vv 16 k;
+      assert (k / 16 == 2*j+1 /\ k % 16 == n);
+      assert (get_bit hi (sz n) == vv k);
+      FStar.Math.Lemmas.small_div (16+n) 32;
+      FStar.Math.Lemmas.small_mod (16+n) 32;
+      FStar.Math.Lemmas.lemma_div_plus (16+n) j 32;
+      FStar.Math.Lemmas.lemma_mod_plus (16+n) j 32;
+      assert (k / 32 == j /\ k % 32 == 16 + n);
+      (match j with | 0 -> () | 1 -> () | 2 -> () | 3 -> ()
+                    | 4 -> () | 5 -> () | 6 -> () | 7 -> () | _ -> ()) in
+    Classical.forall_intro aux_hi;
+    lemma_set32_i16x2_to_i32 lo hi ej;
+    assert (ZA.lane32 vv j ==
+            (v (ZI.get_lane vv (2*j)) % 65536) + 65536 * v (ZI.get_lane vv (2*j+1)))
+        by (FStar.Tactics.norm [delta_only [`%ZA.lane32]]; FStar.Tactics.trefl ())
+#pop-options
 
 let lemma_nttmul_slli16_lane (vv: ZI.t_Vec256) (k: nat{k < 16}) : Lemma
   (ZI.get_lane (ZI.mm256_slli_epi32 (mk_i32 16) vv) k ==
