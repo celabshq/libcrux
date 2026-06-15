@@ -4,16 +4,46 @@ use generic_keccak::xof::KeccakXofState;
 #[cfg(hax)]
 use crate::proof_utils::keccak_xof_state_inv;
 
+// Bring the proof-only invariant predicate into scope so its method can be
+// named in `CShake` contracts on the concrete `CShakeIncremental` type.
+#[cfg(hax)]
+use private::CShakeInv;
+
 mod cshake;
 pub use cshake::{left_encode, left_encode_byte, right_encode};
 
 mod private {
+    #[cfg(hax)]
+    use crate::proof_utils::keccak_xof_state_inv;
+
     pub trait Sealed {}
 
     impl Sealed for super::Shake128Xof {}
     impl Sealed for super::Shake256Xof {}
     impl Sealed for super::CShake128 {}
     impl Sealed for super::CShake256 {}
+
+    /// Proof-only supertrait of [`super::CShake`] carrying the internal Keccak
+    /// XOF state invariant as a ghost predicate. It is implemented generically
+    /// for every `RATE`, so the generic `CShake` impl can unfold it, while
+    /// `kmac` (generic over `CShake`) sees it abstractly. No runtime meaning.
+    #[hax_lib::attributes]
+    pub trait CShakeInv {
+        #[cfg(hax)]
+        #[hax_lib::requires(true)]
+        #[hax_lib::ensures(|_| true)]
+        fn cshake_inv(&self) -> bool;
+    }
+
+    #[hax_lib::attributes]
+    impl<const RATE: usize> CShakeInv for super::CShakeIncremental<RATE> {
+        #[cfg(hax)]
+        #[hax_lib::requires(true)]
+        #[hax_lib::ensures(|_| true)]
+        fn cshake_inv(&self) -> bool {
+            keccak_xof_state_inv(RATE, self.state.buf_len)
+        }
+    }
 }
 
 /// SHAKE128 Xof state
@@ -29,21 +59,25 @@ pub struct Shake256Xof {
 #[hax_lib::attributes]
 /// A trait for portable, incremental CSHAKE implementations
 // XXX: The names here have the `_cshake` suffix to work around an F* extraction name clash bug.
-pub trait CShake<const RATE: usize>: private::Sealed {
+pub trait CShake<const RATE: usize>: private::Sealed + private::CShakeInv {
     /// Create new absorb state
     #[requires(RATE == 136 || RATE == 168)]
+    #[hax_lib::ensures(|result| result.cshake_inv())]
     fn new_cshake(name: &[u8], customization: &[u8]) -> Self;
 
     /// Absorb input
-    #[requires(true)]
+    #[hax_lib::requires(self.cshake_inv())]
+    #[hax_lib::ensures(|_| future(self).cshake_inv())]
     fn absorb_cshake(&mut self, input: &[u8]);
 
-    #[requires(true)]
     /// Absorb final input (may be empty)
+    #[hax_lib::requires(self.cshake_inv())]
+    #[hax_lib::ensures(|_| future(self).cshake_inv())]
     fn absorb_final_cshake(&mut self, input: &[u8]);
 
     /// Squeeze output bytes
-    #[requires(true)]
+    #[hax_lib::requires(self.cshake_inv())]
+    #[hax_lib::ensures(|_| future(self).cshake_inv())]
     fn squeeze_cshake(&mut self, out: &mut [u8]);
 }
 
@@ -94,8 +128,10 @@ impl Xof<168> for Shake128Xof {
     }
 }
 
+#[hax_lib::attributes]
 impl Xof<168> for CShake128 {
     /// CShake128 new state
+    #[hax_lib::ensures(|result| keccak_xof_state_inv(168, result.state.buf_len))]
     fn new() -> Self {
         Self {
             state: KeccakXofState::<1, 168, u64>::new(),
@@ -103,6 +139,8 @@ impl Xof<168> for CShake128 {
     }
 
     /// CShake128 absorb
+    #[hax_lib::requires(keccak_xof_state_inv(168, self.state.buf_len))]
+    #[hax_lib::ensures(|_| keccak_xof_state_inv(168, future(self).state.buf_len))]
     fn absorb(&mut self, input: &[u8]) {
         self.state.absorb(&[input]);
     }
@@ -113,10 +151,17 @@ impl Xof<168> for CShake128 {
     //     self.state.squeeze(out);
     // }
 
+    #[hax_lib::requires(keccak_xof_state_inv(168, self.state.buf_len))]
+    #[hax_lib::ensures(|_| keccak_xof_state_inv(168, future(self).state.buf_len))]
     fn absorb_final(&mut self, input: &[u8]) {
         self.state.absorb_final::<0x4u8>(&[input]);
     }
 
+    #[hax_lib::requires(keccak_xof_state_inv(168, self.state.buf_len))]
+    #[hax_lib::ensures(|_|
+            keccak_xof_state_inv(168, self.state.buf_len) &&
+            future(out).len() == out.len()
+        )]
     fn squeeze(&mut self, out: &mut [u8]) {
         self.state.squeeze(out);
     }
@@ -158,8 +203,10 @@ impl Xof<136> for Shake256Xof {
     }
 }
 
+#[hax_lib::attributes]
 impl Xof<136> for CShake256 {
     /// CShake256 new state
+    #[hax_lib::ensures(|result| keccak_xof_state_inv(136, result.state.buf_len))]
     fn new() -> Self {
         Self {
             state: KeccakXofState::<1, 136, u64>::new(),
@@ -167,6 +214,8 @@ impl Xof<136> for CShake256 {
     }
 
     /// CShake256 absorb
+    #[hax_lib::requires(keccak_xof_state_inv(136, self.state.buf_len))]
+    #[hax_lib::ensures(|_| keccak_xof_state_inv(136, future(self).state.buf_len))]
     fn absorb(&mut self, input: &[u8]) {
         self.state.absorb(&[input]);
     }
@@ -177,10 +226,17 @@ impl Xof<136> for CShake256 {
     //     self.state.squeeze(out);
     // }
 
+    #[hax_lib::requires(keccak_xof_state_inv(136, self.state.buf_len))]
+    #[hax_lib::ensures(|_| keccak_xof_state_inv(136, future(self).state.buf_len))]
     fn absorb_final(&mut self, input: &[u8]) {
         self.state.absorb_final::<0x4u8>(&[input]);
     }
 
+    #[hax_lib::requires(keccak_xof_state_inv(136, self.state.buf_len))]
+    #[hax_lib::ensures(|_|
+            keccak_xof_state_inv(136, self.state.buf_len) &&
+            future(out).len() == out.len()
+        )]
     fn squeeze(&mut self, out: &mut [u8]) {
         self.state.squeeze(out);
     }
@@ -275,6 +331,7 @@ where
     CShakeIncremental<RATE>: private::Sealed,
 {
     #[requires(RATE == 136 || RATE == 168)]
+    #[hax_lib::ensures(|result| result.cshake_inv())]
     fn new_cshake(name: &[u8], customization: &[u8]) -> Self {
         let mut state = KeccakXofState::<1, RATE, u64>::new();
 
@@ -314,14 +371,20 @@ where
         Self { state }
     }
 
+    #[hax_lib::requires(self.cshake_inv())]
+    #[hax_lib::ensures(|_| future(self).cshake_inv())]
     fn absorb_cshake(&mut self, input: &[u8]) {
         self.state.absorb(&[input]);
     }
 
+    #[hax_lib::requires(self.cshake_inv())]
+    #[hax_lib::ensures(|_| future(self).cshake_inv())]
     fn absorb_final_cshake(&mut self, input: &[u8]) {
         self.state.absorb_final::<0x4u8>(&[input]);
     }
 
+    #[hax_lib::requires(self.cshake_inv())]
+    #[hax_lib::ensures(|_| future(self).cshake_inv())]
     fn squeeze_cshake(&mut self, out: &mut [u8]) {
         self.state.squeeze(out);
     }
