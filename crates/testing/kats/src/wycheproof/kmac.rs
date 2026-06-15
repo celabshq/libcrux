@@ -28,14 +28,12 @@ pub enum Algorithm {
 
 impl KmacTests {
     fn kmac128() -> Self {
-        let data: &str =
-            include_str!("../../wycheproof/kmac128_no_customization_test.json");
+        let data: &str = include_str!("../../wycheproof/kmac128_no_customization_test.json");
         serde_json::from_str(data).expect("Could not deserialize KAT file.")
     }
 
     fn kmac256() -> Self {
-        let data: &str =
-            include_str!("../../wycheproof/kmac256_no_customization_test.json");
+        let data: &str = include_str!("../../wycheproof/kmac256_no_customization_test.json");
         serde_json::from_str(data).expect("Could not deserialize KAT file.")
     }
 
