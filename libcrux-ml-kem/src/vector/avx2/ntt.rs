@@ -31,6 +31,72 @@ let lemma_get_lane_mullo (a b: FI.t_Vec256) (i:nat{i < 16}) : Lemma
   (ensures FI.get_lane (FI.mm256_mullo_epi16 a b) i == mul_mod (FI.get_lane a i) (FI.get_lane b i))
   = ()
 
+// ───────────────────────────────────────────────────────────────────────────
+// B' lane-permutation value lemmas: each reveals the (opaque) crate index
+// helper in a clean context and pins the per-field result for one concrete
+// control via a literal match.  Consumers call these to obtain ground
+// shuffle32_src/permute64_src/blend_sel facts, then the op-ensures forall
+// (pattern (get_lane result k)) maps each output lane to its source lane.
+// ───────────────────────────────────────────────────────────────────────────
+#push-options "--fuel 2 --ifuel 2 --z3rlimit 50"
+let shuf245 (j:nat{j<8}) : Lemma
+  (FI.shuffle32_src (mk_i32 245) j ==
+   (if j=0 then 1 else if j=1 then 1 else if j=2 then 3 else if j=3 then 3
+    else if j=4 then 5 else if j=5 then 5 else if j=6 then 7 else 7))
+  = reveal_opaque (`%FI.shuffle32_src) (FI.shuffle32_src (mk_i32 245));
+    (match j with |0->()|1->()|2->()|3->()|4->()|5->()|6->()|7->()|_->())
+
+let shuf160 (j:nat{j<8}) : Lemma
+  (FI.shuffle32_src (mk_i32 160) j ==
+   (if j=0 then 0 else if j=1 then 0 else if j=2 then 2 else if j=3 then 2
+    else if j=4 then 4 else if j=5 then 4 else if j=6 then 6 else 6))
+  = reveal_opaque (`%FI.shuffle32_src) (FI.shuffle32_src (mk_i32 160));
+    (match j with |0->()|1->()|2->()|3->()|4->()|5->()|6->()|7->()|_->())
+
+let shuf238 (j:nat{j<8}) : Lemma
+  (FI.shuffle32_src (mk_i32 238) j ==
+   (if j=0 then 2 else if j=1 then 3 else if j=2 then 2 else if j=3 then 3
+    else if j=4 then 6 else if j=5 then 7 else if j=6 then 6 else 7))
+  = reveal_opaque (`%FI.shuffle32_src) (FI.shuffle32_src (mk_i32 238));
+    (match j with |0->()|1->()|2->()|3->()|4->()|5->()|6->()|7->()|_->())
+
+let shuf68 (j:nat{j<8}) : Lemma
+  (FI.shuffle32_src (mk_i32 68) j ==
+   (if j=0 then 0 else if j=1 then 1 else if j=2 then 0 else if j=3 then 1
+    else if j=4 then 4 else if j=5 then 5 else if j=6 then 4 else 5))
+  = reveal_opaque (`%FI.shuffle32_src) (FI.shuffle32_src (mk_i32 68));
+    (match j with |0->()|1->()|2->()|3->()|4->()|5->()|6->()|7->()|_->())
+
+let perm245 (q:nat{q<4}) : Lemma
+  (FI.permute64_src (mk_i32 245) q == (if q=0 then 1 else if q=1 then 1 else if q=2 then 3 else 3))
+  = reveal_opaque (`%FI.permute64_src) (FI.permute64_src (mk_i32 245));
+    (match q with |0->()|1->()|2->()|3->()|_->())
+
+let perm160 (q:nat{q<4}) : Lemma
+  (FI.permute64_src (mk_i32 160) q == (if q=0 then 0 else if q=1 then 0 else if q=2 then 2 else 2))
+  = reveal_opaque (`%FI.permute64_src) (FI.permute64_src (mk_i32 160));
+    (match q with |0->()|1->()|2->()|3->()|_->())
+
+let perm216 (q:nat{q<4}) : Lemma
+  (FI.permute64_src (mk_i32 216) q == (if q=0 then 0 else if q=1 then 2 else if q=2 then 1 else 3))
+  = reveal_opaque (`%FI.permute64_src) (FI.permute64_src (mk_i32 216));
+    (match q with |0->()|1->()|2->()|3->()|_->())
+
+let blendsel204 (k:nat{k<16}) : Lemma
+  (FI.blend_sel (mk_i32 204) k == (k%8=2 || k%8=3 || k%8=6 || k%8=7))
+  = reveal_opaque (`%FI.blend_sel) (FI.blend_sel (mk_i32 204));
+    (match k%8 with |0->()|1->()|2->()|3->()|4->()|5->()|6->()|7->()|_->())
+
+let blendsel240 (k:nat{k<16}) : Lemma
+  (FI.blend_sel (mk_i32 240) k == (k%8=4 || k%8=5 || k%8=6 || k%8=7))
+  = reveal_opaque (`%FI.blend_sel) (FI.blend_sel (mk_i32 240));
+    (match k%8 with |0->()|1->()|2->()|3->()|4->()|5->()|6->()|7->()|_->())
+
+let blendsel170 (k:nat{k<16}) : Lemma (FI.blend_sel (mk_i32 170) k == (k%2=1))
+  = reveal_opaque (`%FI.blend_sel) (FI.blend_sel (mk_i32 170));
+    (match k%8 with |0->()|1->()|2->()|3->()|4->()|5->()|6->()|7->()|_->())
+#pop-options
+
 let fwd_shuffle_245 (vv: FI.t_Vec256) : Lemma
   (ensures (let r = FI.mm256_shuffle_epi32 (mk_i32 245) vv in
      FI.get_lane r 0 == FI.get_lane vv 2 /\ FI.get_lane r 1 == FI.get_lane vv 3 /\
@@ -41,7 +107,8 @@ let fwd_shuffle_245 (vv: FI.t_Vec256) : Lemma
      FI.get_lane r 10 == FI.get_lane vv 10 /\ FI.get_lane r 11 == FI.get_lane vv 11 /\
      FI.get_lane r 12 == FI.get_lane vv 14 /\ FI.get_lane r 13 == FI.get_lane vv 15 /\
      FI.get_lane r 14 == FI.get_lane vv 14 /\ FI.get_lane r 15 == FI.get_lane vv 15))
-  = admit ()
+  = let r = FI.mm256_shuffle_epi32 (mk_i32 245) vv in
+    shuf245 0; shuf245 1; shuf245 2; shuf245 3; shuf245 4; shuf245 5; shuf245 6; shuf245 7
 
 let fwd_shuffle_160 (vv: FI.t_Vec256) : Lemma
   (ensures (let r = FI.mm256_shuffle_epi32 (mk_i32 160) vv in
@@ -53,12 +120,16 @@ let fwd_shuffle_160 (vv: FI.t_Vec256) : Lemma
      FI.get_lane r 10 == FI.get_lane vv 8 /\ FI.get_lane r 11 == FI.get_lane vv 9 /\
      FI.get_lane r 12 == FI.get_lane vv 12 /\ FI.get_lane r 13 == FI.get_lane vv 13 /\
      FI.get_lane r 14 == FI.get_lane vv 12 /\ FI.get_lane r 15 == FI.get_lane vv 13))
-  = admit ()
+  = let r = FI.mm256_shuffle_epi32 (mk_i32 160) vv in
+    shuf160 0; shuf160 1; shuf160 2; shuf160 3; shuf160 4; shuf160 5; shuf160 6; shuf160 7
 
 let fwd_shuffle_preserves_bound (c: i32) (vv: FI.t_Vec256) (b: nat) : Lemma
   (requires FS.is_i16b_array b (FI.vec256_as_i16x16 vv))
   (ensures FS.is_i16b_array b (FI.vec256_as_i16x16 (FI.mm256_shuffle_epi32 c vv)))
-  = admit ()
+  = let r = FI.mm256_shuffle_epi32 c vv in
+    let aux (i:nat{i<16}) : Lemma (FS.is_i16b b (Seq.index (FI.vec256_as_i16x16 r) i)) =
+      assert (FI.get_lane r i == FI.get_lane vv (2 * FI.shuffle32_src c (i/2) + i%2)) in
+    Classical.forall_intro aux
 
 #push-options "--z3rlimit 400 --split_queries always"
 let lemma_fwd_l1_add (lhs rhs result: FI.t_Vec256) : Lemma
@@ -261,7 +332,8 @@ let fwd2_shuffle_238 (vv: FI.t_Vec256) : Lemma
      FI.get_lane r 10 == FI.get_lane vv 14 /\ FI.get_lane r 11 == FI.get_lane vv 15 /\
      FI.get_lane r 12 == FI.get_lane vv 12 /\ FI.get_lane r 13 == FI.get_lane vv 13 /\
      FI.get_lane r 14 == FI.get_lane vv 14 /\ FI.get_lane r 15 == FI.get_lane vv 15))
-  = admit ()
+  = let r = FI.mm256_shuffle_epi32 (mk_i32 238) vv in
+    shuf238 0; shuf238 1; shuf238 2; shuf238 3; shuf238 4; shuf238 5; shuf238 6; shuf238 7
 
 let fwd2_shuffle_68 (vv: FI.t_Vec256) : Lemma
   (ensures (let r = FI.mm256_shuffle_epi32 (mk_i32 68) vv in
@@ -273,12 +345,16 @@ let fwd2_shuffle_68 (vv: FI.t_Vec256) : Lemma
      FI.get_lane r 10 == FI.get_lane vv 10 /\ FI.get_lane r 11 == FI.get_lane vv 11 /\
      FI.get_lane r 12 == FI.get_lane vv 8 /\ FI.get_lane r 13 == FI.get_lane vv 9 /\
      FI.get_lane r 14 == FI.get_lane vv 10 /\ FI.get_lane r 15 == FI.get_lane vv 11))
-  = admit ()
+  = let r = FI.mm256_shuffle_epi32 (mk_i32 68) vv in
+    shuf68 0; shuf68 1; shuf68 2; shuf68 3; shuf68 4; shuf68 5; shuf68 6; shuf68 7
 
 let fwd2_shuffle_preserves_bound (c: i32) (vv: FI.t_Vec256) (b: nat) : Lemma
   (requires FS.is_i16b_array b (FI.vec256_as_i16x16 vv))
   (ensures FS.is_i16b_array b (FI.vec256_as_i16x16 (FI.mm256_shuffle_epi32 c vv)))
-  = admit ()
+  = let r = FI.mm256_shuffle_epi32 c vv in
+    let aux (i:nat{i<16}) : Lemma (FS.is_i16b b (Seq.index (FI.vec256_as_i16x16 r) i)) =
+      assert (FI.get_lane r i == FI.get_lane vv (2 * FI.shuffle32_src c (i/2) + i%2)) in
+    Classical.forall_intro aux
 
 #push-options "--z3rlimit 400 --split_queries always"
 let lemma_fwd_l2_add (lhs rhs result: FI.t_Vec256) : Lemma
@@ -541,7 +617,11 @@ let lemma_mm256_castsi128_si256_lo (v: Libcrux_intrinsics.Avx2_extract.t_Vec128)
     Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16
                  (Libcrux_intrinsics.Avx2_extract.mm256_castsi128_si256 v)) i ==
     Seq.index (Libcrux_intrinsics.Avx2_extract.vec128_as_i16x8 v) i))
-  = admit ()
+  = let r = FI.mm256_castsi128_si256 v in
+    let aux (i:nat{i<8}) : Lemma
+      (Seq.index (FI.vec256_as_i16x16 r) i == Seq.index (FI.vec128_as_i16x8 v) i) =
+      assert (FI.get_lane r i == FI.get_lane128 v i) in
+    Classical.forall_intro aux
 
 let lemma_mm256_inserti128_si256_1
     (a: Libcrux_intrinsics.Avx2_extract.t_Vec256)
@@ -555,7 +635,15 @@ let lemma_mm256_inserti128_si256_1
       Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16
                    (Libcrux_intrinsics.Avx2_extract.mm256_inserti128_si256 (mk_i32 1) a b)) (i + 8) ==
       Seq.index (Libcrux_intrinsics.Avx2_extract.vec128_as_i16x8 b) i))
-  = admit ()
+  = let r = FI.mm256_inserti128_si256 (mk_i32 1) a b in
+    let aux1 (i:nat{i<8}) : Lemma
+      (Seq.index (FI.vec256_as_i16x16 r) i == Seq.index (FI.vec256_as_i16x16 a) i) =
+      assert (FI.get_lane r i == FI.get_lane a i) in
+    Classical.forall_intro aux1;
+    let aux2 (i:nat{i<8}) : Lemma
+      (Seq.index (FI.vec256_as_i16x16 r) (i + 8) == Seq.index (FI.vec128_as_i16x8 b) i) =
+      assert (FI.get_lane r (i + 8) == FI.get_lane128 b ((i + 8) - 8)) in
+    Classical.forall_intro aux2
 
 let lemma_add_i_128
     (lhs rhs: Libcrux_intrinsics.Avx2_extract.t_Vec128) (i: nat) : Lemma
@@ -700,7 +788,8 @@ let lemma_shuffle_245 (vv: ZI.t_Vec256) : Lemma
      ZI.get_lane r 10 == ZI.get_lane vv 10 /\ ZI.get_lane r 11 == ZI.get_lane vv 11 /\
      ZI.get_lane r 12 == ZI.get_lane vv 14 /\ ZI.get_lane r 13 == ZI.get_lane vv 15 /\
      ZI.get_lane r 14 == ZI.get_lane vv 14 /\ ZI.get_lane r 15 == ZI.get_lane vv 15))
-  = admit ()
+  = let r = ZI.mm256_shuffle_epi32 (mk_i32 245) vv in
+    shuf245 0; shuf245 1; shuf245 2; shuf245 3; shuf245 4; shuf245 5; shuf245 6; shuf245 7
 
 let lemma_shuffle_160 (vv: ZI.t_Vec256) : Lemma
   (ensures (let r = ZI.mm256_shuffle_epi32 (mk_i32 160) vv in
@@ -712,12 +801,16 @@ let lemma_shuffle_160 (vv: ZI.t_Vec256) : Lemma
      ZI.get_lane r 10 == ZI.get_lane vv 8 /\ ZI.get_lane r 11 == ZI.get_lane vv 9 /\
      ZI.get_lane r 12 == ZI.get_lane vv 12 /\ ZI.get_lane r 13 == ZI.get_lane vv 13 /\
      ZI.get_lane r 14 == ZI.get_lane vv 12 /\ ZI.get_lane r 15 == ZI.get_lane vv 13))
-  = admit ()
+  = let r = ZI.mm256_shuffle_epi32 (mk_i32 160) vv in
+    shuf160 0; shuf160 1; shuf160 2; shuf160 3; shuf160 4; shuf160 5; shuf160 6; shuf160 7
 
 let lemma_shuffle_preserves_bound (c: i32) (vv: ZI.t_Vec256) (b: nat) : Lemma
   (requires ZS.is_i16b_array b (ZI.vec256_as_i16x16 vv))
   (ensures ZS.is_i16b_array b (ZI.vec256_as_i16x16 (ZI.mm256_shuffle_epi32 c vv)))
-  = admit ()
+  = let r = ZI.mm256_shuffle_epi32 c vv in
+    let aux (i:nat{i<16}) : Lemma (ZS.is_i16b b (Seq.index (ZI.vec256_as_i16x16 r) i)) =
+      assert (ZI.get_lane r i == ZI.get_lane vv (2 * ZI.shuffle32_src c (i/2) + i%2)) in
+    Classical.forall_intro aux
 
 let lemma_blend_204 (a b: ZI.t_Vec256) : Lemma
   (ensures (let r = ZI.mm256_blend_epi16 (mk_i32 204) a b in
@@ -729,7 +822,11 @@ let lemma_blend_204 (a b: ZI.t_Vec256) : Lemma
      ZI.get_lane r 10 == ZI.get_lane b 10 /\ ZI.get_lane r 11 == ZI.get_lane b 11 /\
      ZI.get_lane r 12 == ZI.get_lane a 12 /\ ZI.get_lane r 13 == ZI.get_lane a 13 /\
      ZI.get_lane r 14 == ZI.get_lane b 14 /\ ZI.get_lane r 15 == ZI.get_lane b 15))
-  = admit ()
+  = let r = ZI.mm256_blend_epi16 (mk_i32 204) a b in
+    blendsel204 0; blendsel204 1; blendsel204 2; blendsel204 3;
+    blendsel204 4; blendsel204 5; blendsel204 6; blendsel204 7;
+    blendsel204 8; blendsel204 9; blendsel204 10; blendsel204 11;
+    blendsel204 12; blendsel204 13; blendsel204 14; blendsel204 15
 
 #push-options "--z3rlimit 400 --split_queries always"
 let lemma_inv_l1_sums (lhs rhs0 mult rhs sum: ZI.t_Vec256) : Lemma
@@ -932,7 +1029,8 @@ let lemma_permute_245 (vv: ZI.t_Vec256) : Lemma
      ZI.get_lane r 10 == ZI.get_lane vv 14 /\ ZI.get_lane r 11 == ZI.get_lane vv 15 /\
      ZI.get_lane r 12 == ZI.get_lane vv 12 /\ ZI.get_lane r 13 == ZI.get_lane vv 13 /\
      ZI.get_lane r 14 == ZI.get_lane vv 14 /\ ZI.get_lane r 15 == ZI.get_lane vv 15))
-  = admit ()
+  = let r = ZI.mm256_permute4x64_epi64 (mk_i32 245) vv in
+    perm245 0; perm245 1; perm245 2; perm245 3
 
 let lemma_permute_160 (vv: ZI.t_Vec256) : Lemma
   (ensures (let r = ZI.mm256_permute4x64_epi64 (mk_i32 160) vv in
@@ -944,12 +1042,16 @@ let lemma_permute_160 (vv: ZI.t_Vec256) : Lemma
      ZI.get_lane r 10 == ZI.get_lane vv 10 /\ ZI.get_lane r 11 == ZI.get_lane vv 11 /\
      ZI.get_lane r 12 == ZI.get_lane vv 8 /\ ZI.get_lane r 13 == ZI.get_lane vv 9 /\
      ZI.get_lane r 14 == ZI.get_lane vv 10 /\ ZI.get_lane r 15 == ZI.get_lane vv 11))
-  = admit ()
+  = let r = ZI.mm256_permute4x64_epi64 (mk_i32 160) vv in
+    perm160 0; perm160 1; perm160 2; perm160 3
 
 let lemma_permute_preserves_bound (c: i32) (vv: ZI.t_Vec256) (b: nat) : Lemma
   (requires ZS.is_i16b_array b (ZI.vec256_as_i16x16 vv))
   (ensures ZS.is_i16b_array b (ZI.vec256_as_i16x16 (ZI.mm256_permute4x64_epi64 c vv)))
-  = admit ()
+  = let r = ZI.mm256_permute4x64_epi64 c vv in
+    let aux (i:nat{i<16}) : Lemma (ZS.is_i16b b (Seq.index (ZI.vec256_as_i16x16 r) i)) =
+      assert (ZI.get_lane r i == ZI.get_lane vv (4 * ZI.permute64_src c (i/4) + i%4)) in
+    Classical.forall_intro aux
 
 let lemma_blend_240 (a b: ZI.t_Vec256) : Lemma
   (ensures (let r = ZI.mm256_blend_epi16 (mk_i32 240) a b in
@@ -961,7 +1063,11 @@ let lemma_blend_240 (a b: ZI.t_Vec256) : Lemma
      ZI.get_lane r 10 == ZI.get_lane a 10 /\ ZI.get_lane r 11 == ZI.get_lane a 11 /\
      ZI.get_lane r 12 == ZI.get_lane b 12 /\ ZI.get_lane r 13 == ZI.get_lane b 13 /\
      ZI.get_lane r 14 == ZI.get_lane b 14 /\ ZI.get_lane r 15 == ZI.get_lane b 15))
-  = admit ()
+  = let r = ZI.mm256_blend_epi16 (mk_i32 240) a b in
+    blendsel240 0; blendsel240 1; blendsel240 2; blendsel240 3;
+    blendsel240 4; blendsel240 5; blendsel240 6; blendsel240 7;
+    blendsel240 8; blendsel240 9; blendsel240 10; blendsel240 11;
+    blendsel240 12; blendsel240 13; blendsel240 14; blendsel240 15
 
 // Createi-free under 0.3.7: a per-lane forall-aux calls lemma_get_lane_mullo /
 // lemma_get_lane_add (above) explicitly, paying the map2/createi reasoning once
@@ -1289,10 +1395,14 @@ let lemma_nttmul_swap_lane (vv m: ZI.t_Vec256) (k: nat{k < 16}) : Lemma
   = admit ()
 
 (* 64-bit qword permute, control 0xD8 = [q0, q2, q1, q3]. *)
+#push-options "--fuel 1 --ifuel 2 --z3rlimit 100"
 let lemma_nttmul_permute_d8_lane (vv: ZI.t_Vec256) (k: nat{k < 16}) : Lemma
   (ZI.get_lane (ZI.mm256_permute4x64_epi64 (mk_i32 216) vv) k ==
    ZI.get_lane vv (if k < 4 then k else if k < 8 then k+4 else if k < 12 then k-4 else k))
-  = admit ()
+  = let r = ZI.mm256_permute4x64_epi64 (mk_i32 216) vv in
+    perm216 0; perm216 1; perm216 2; perm216 3;
+    (match k/4 with |0->()|1->()|2->()|3->()|_->())
+#pop-options
 
 let lemma_nttmul_cast_lane (vv: ZI.t_Vec256) (j: nat{j < 8}) : Lemma
   (ZI.get_lane128 (ZI.mm256_castsi256_si128 vv) j == ZI.get_lane vv j)
@@ -1470,12 +1580,13 @@ let lemma_nttmul_set32_lane (e7 e6 e5 e4 e3 e2 e1 e0: i32) (j: nat{j < 8}) : Lem
 let lemma_nttmul_slli16_lane (vv: ZI.t_Vec256) (k: nat{k < 16}) : Lemma
   (ZI.get_lane (ZI.mm256_slli_epi32 (mk_i32 16) vv) k ==
    (if k % 2 = 0 then mk_i16 0 else ZI.get_lane vv (k-1)))
-  = admit ()
+  = let r = ZI.mm256_slli_epi32 (mk_i32 16) vv in ()
 
 let lemma_nttmul_blend_aa_lane (a b: ZI.t_Vec256) (k: nat{k < 16}) : Lemma
   (ZI.get_lane (ZI.mm256_blend_epi16 (mk_i32 170) a b) k ==
    (if k % 2 = 0 then ZI.get_lane a k else ZI.get_lane b k))
-  = admit ()
+  = let r = ZI.mm256_blend_epi16 (mk_i32 170) a b in
+    blendsel170 k
 
 #push-options "--z3rlimit 200"
 let lemma_nttmul_even_chain (p r z ab: int) : Lemma

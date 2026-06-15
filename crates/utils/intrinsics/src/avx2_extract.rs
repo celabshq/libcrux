@@ -34,6 +34,36 @@ val bit_vec_of_int_t_array_vec256_as_i16x16_lemma
 let lane32 (vec: bit_vec 256) (j: nat{j < 8}) : int =
   (Rust_primitives.Integers.v (get_lane vec (2 * j)) % 65536) +
   65536 * Rust_primitives.Integers.v (get_lane vec (2 * j + 1))
+
+(* Lane-permutation index helpers for the control-driven AVX2 shuffles below.
+   Each masks the control to its imm8 byte (% 256, Euclidean — sound for any
+   control value) and reads the relevant 2-bit / 1-bit field by literal
+   division (pow2-free, so consumers reduce them at concrete controls without
+   fuel). Validated by the core-models transcription tests. *)
+
+(* mm256_shuffle_epi32 control c: source 32-bit lane of output 32-bit lane `l`
+   (within each 128-bit half: out lane i = in lane ((c >> 2i) & 3)).
+   Opaque to SMT: it appears under the op-ensures forall, so keeping it atomic
+   prevents a per-lane unfold cascade; consumers `reveal_opaque` it inside small
+   clean per-control value lemmas. *)
+[@@ "opaque_to_smt"]
+let shuffle32_src (c: i32) (l: nat{l < 8}) : (s:nat{s < 8}) =
+  let cb = (Rust_primitives.Integers.v c) % 256 in
+  (l / 4) * 4 + ((match l % 4 with | 0 -> cb | 1 -> cb / 4 | 2 -> cb / 16 | _ -> cb / 64) % 4)
+
+(* mm256_permute4x64_epi64 control c: source 64-bit qword of output qword `q`
+   (q_i = in qword ((c >> 2i) & 3)). *)
+[@@ "opaque_to_smt"]
+let permute64_src (c: i32) (q: nat{q < 4}) : (s:nat{s < 4}) =
+  let cb = (Rust_primitives.Integers.v c) % 256 in
+  (match q with | 0 -> cb | 1 -> cb / 4 | 2 -> cb / 16 | _ -> cb / 64) % 4
+
+(* mm256_blend_epi16 control c: at i16-lane k, pick rhs iff bit (k%8) of c set. *)
+[@@ "opaque_to_smt"]
+let blend_sel (c: i32) (k: nat{k < 16}) : bool =
+  let cb = (Rust_primitives.Integers.v c) % 256 in
+  ((match k % 8 with | 0 -> cb | 1 -> cb / 2 | 2 -> cb / 4 | 3 -> cb / 8
+                     | 4 -> cb / 16 | 5 -> cb / 32 | 6 -> cb / 64 | _ -> cb / 128) % 2) = 1
 "#
 )]
 pub struct Vec256(u8);
@@ -597,6 +627,12 @@ pub fn mm256_slli_epi16<const SHIFT_BY: i32>(vector: Vec256) -> Vec256 {
     unimplemented!()
 }
 
+// 32-bit lanewise logical left shift.  For the only shift used by ml-kem
+// (16), each 32-bit lane << 16 maps i16 lane 2j -> 0 and 2j+1 -> old lane 2j.
+// Trusted axiom — validated by the core-models `_mm256_slli_epi32` differential
+// test + the `slli_epi32` transcription test in interpretations.rs.
+#[hax_lib::ensures(|result| fstar!(r#"(v ${SHIFT_BY} == 16) ==> (forall (k: nat). {:pattern (get_lane $result k)} k < 16 ==>
+    get_lane $result k == (if k % 2 = 0 then mk_i16 0 else get_lane $vector (k - 1)))"#))]
 pub fn mm256_slli_epi32<const SHIFT_BY: i32>(vector: Vec256) -> Vec256 {
     debug_assert!(SHIFT_BY >= 0 && SHIFT_BY < 32);
     unimplemented!()
@@ -610,11 +646,21 @@ pub fn mm_shuffle_epi8(vector: Vec128, control: Vec128) -> Vec128 {
 pub fn mm256_shuffle_epi8(vector: Vec256, control: Vec256) -> Vec256 {
     unimplemented!()
 }
+// 32-bit lanewise shuffle within each 128-bit half.  Trusted axiom — validated
+// by the core-models `_mm256_shuffle_epi32` differential test + the
+// `shuffle_epi32` transcription test in interpretations.rs.
+#[hax_lib::ensures(|result| fstar!(r#"forall (k: nat). {:pattern (get_lane $result k)} k < 16 ==>
+    get_lane $result k == get_lane $vector (2 * shuffle32_src ${CONTROL} (k / 2) + k % 2)"#))]
 pub fn mm256_shuffle_epi32<const CONTROL: i32>(vector: Vec256) -> Vec256 {
     debug_assert!(CONTROL >= 0 && CONTROL < 256);
     unimplemented!()
 }
 
+// 64-bit qword permute across the whole 256-bit vector.  Trusted axiom —
+// validated by the core-models `_mm256_permute4x64_epi64` differential test +
+// the `permute4x64_epi64` transcription test in interpretations.rs.
+#[hax_lib::ensures(|result| fstar!(r#"forall (k: nat). {:pattern (get_lane $result k)} k < 16 ==>
+    get_lane $result k == get_lane $vector (4 * permute64_src ${CONTROL} (k / 4) + k % 4)"#))]
 pub fn mm256_permute4x64_epi64<const CONTROL: i32>(vector: Vec256) -> Vec256 {
     debug_assert!(CONTROL >= 0 && CONTROL < 256);
     unimplemented!()
@@ -639,6 +685,12 @@ pub fn mm256_unpackhi_epi32(lhs: Vec256, rhs: Vec256) -> Vec256 {
 pub fn mm256_castsi256_si128(vector: Vec256) -> Vec128 {
     unimplemented!()
 }
+// Casts a 128-bit vector to 256 bits: the low 128 bits are `vector`, the high
+// 128 bits are undefined.  Stated only on the (defined) low 8 i16 lanes.
+// Trusted axiom — validated by the core-models `_mm256_castsi128_si256`
+// differential test + the `castsi128_si256` transcription test.
+#[hax_lib::ensures(|result| fstar!(r#"forall (k: nat). {:pattern (get_lane $result k)} k < 8 ==>
+    get_lane $result k == get_lane128 $vector k"#))]
 pub fn mm256_castsi128_si256(vector: Vec128) -> Vec256 {
     unimplemented!()
 }
@@ -677,12 +729,26 @@ pub fn mm256_extracti128_si256<const CONTROL: i32>(vector: Vec256) -> Vec128 {
     unimplemented!()
 }
 
+// Inserts a 128-bit vector into a copy of `vector` at the half selected by the
+// low bit of CONTROL (1 -> high half, 0 -> low half); the other half is kept.
+// Trusted axiom — validated by the core-models `_mm256_inserti128_si256`
+// differential test + the `inserti128_si256` transcription test.
+#[hax_lib::ensures(|result| fstar!(r#"forall (k: nat). {:pattern (get_lane $result k)} k < 16 ==>
+    get_lane $result k ==
+      (if (v ${CONTROL}) % 2 = 1
+       then (if k < 8 then get_lane $vector k else get_lane128 $vector_i128 (k - 8))
+       else (if k < 8 then get_lane128 $vector_i128 k else get_lane $vector k))"#))]
 pub fn mm256_inserti128_si256<const CONTROL: i32>(vector: Vec256, vector_i128: Vec128) -> Vec256 {
     debug_assert!(CONTROL == 0 || CONTROL == 1);
     unimplemented!()
 }
 
+// Per i16-lane blend of `lhs`/`rhs` selected by the control byte.  Trusted
+// axiom — validated by the core-models `_mm256_blend_epi16` differential test +
+// the `blend_epi16` transcription test in interpretations.rs.
 #[inline(always)]
+#[hax_lib::ensures(|result| fstar!(r#"forall (k: nat). {:pattern (get_lane $result k)} k < 16 ==>
+    get_lane $result k == (if blend_sel ${CONTROL} k then get_lane $rhs k else get_lane $lhs k)"#))]
 pub fn mm256_blend_epi16<const CONTROL: i32>(lhs: Vec256, rhs: Vec256) -> Vec256 {
     debug_assert!(CONTROL >= 0 && CONTROL < 256);
     unimplemented!()

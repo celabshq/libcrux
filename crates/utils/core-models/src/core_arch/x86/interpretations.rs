@@ -1004,6 +1004,168 @@ mod track_i_axiom_transcription_tests {
         }
     }
 
+    // ─── B' lane-permutation axiom transcription tests ───────────────────────
+    // Validate the F* crate ensures (avx2_extract.rs) for the control-driven
+    // AVX2 lane shuffles against the executable int_vec models, on the i16x16
+    // lane view.  Each *_rs helper mirrors the corresponding F* index helper
+    // (shuffle32_src / permute64_src / blend_sel) byte-for-byte.  Controls
+    // tested = those ml-kem uses + edge controls to catch formula bugs.
+
+    /// Mirrors F* `shuffle32_src c l` (source 32-bit lane within a 128-bit half).
+    fn shuffle32_src_rs(c: i32, l: usize) -> usize {
+        let cb = c.rem_euclid(256) as usize;
+        (l / 4) * 4 + ((match l % 4 { 0 => cb, 1 => cb / 4, 2 => cb / 16, _ => cb / 64 }) % 4)
+    }
+    fn check_shuffle32<const C: i32>(a: BitVec<256>) {
+        let model: Vec<i16> =
+            BitVec::from_i32x8(int_vec::_mm256_shuffle_epi32::<C>(BitVec::to_i32x8(a))).to_vec();
+        let input: Vec<i16> = a.to_vec();
+        let formula: Vec<i16> =
+            (0..16).map(|k| input[2 * shuffle32_src_rs(C, k / 2) + k % 2]).collect();
+        assert_eq!(model, formula);
+    }
+
+    /// Mirrors F* `permute64_src c q` (source 64-bit qword).
+    fn permute64_src_rs(c: i32, q: usize) -> usize {
+        let cb = c.rem_euclid(256) as usize;
+        (match q { 0 => cb, 1 => cb / 4, 2 => cb / 16, _ => cb / 64 }) % 4
+    }
+    fn check_permute64<const C: i32>(a: BitVec<256>) {
+        let model: Vec<i16> =
+            BitVec::from_i64x4(int_vec::_mm256_permute4x64_epi64::<C>(BitVec::to_i64x4(a))).to_vec();
+        let input: Vec<i16> = a.to_vec();
+        let formula: Vec<i16> =
+            (0..16).map(|k| input[4 * permute64_src_rs(C, k / 4) + k % 4]).collect();
+        assert_eq!(model, formula);
+    }
+
+    /// Mirrors F* `blend_sel c k` (true => pick rhs at i16-lane k).
+    fn blend_sel_rs(c: i32, k: usize) -> bool {
+        let cb = c.rem_euclid(256) as usize;
+        ((match k % 8 {
+            0 => cb, 1 => cb / 2, 2 => cb / 4, 3 => cb / 8,
+            4 => cb / 16, 5 => cb / 32, 6 => cb / 64, _ => cb / 128,
+        }) % 2)
+            == 1
+    }
+    fn check_blend16<const C: i32>(a: BitVec<256>, b: BitVec<256>) {
+        let model: Vec<i16> = BitVec::from_i16x16(int_vec::_mm256_blend_epi16::<C>(
+            BitVec::to_i16x16(a),
+            BitVec::to_i16x16(b),
+        ))
+        .to_vec();
+        let la: Vec<i16> = a.to_vec();
+        let lb: Vec<i16> = b.to_vec();
+        let formula: Vec<i16> =
+            (0..16).map(|k| if blend_sel_rs(C, k) { lb[k] } else { la[k] }).collect();
+        assert_eq!(model, formula);
+    }
+
+    /// F* axiom (`mm256_slli_epi32` ensures, shift 16): i16 lane 2j -> 0,
+    /// 2j+1 -> old lane 2j (the 32-bit lane << 16).
+    fn check_slli32_16(a: BitVec<256>) {
+        let model: Vec<i16> =
+            BitVec::from_i32x8(int_vec::_mm256_slli_epi32::<16>(BitVec::to_i32x8(a))).to_vec();
+        let input: Vec<i16> = a.to_vec();
+        let formula: Vec<i16> =
+            (0..16).map(|k| if k % 2 == 0 { 0i16 } else { input[k - 1] }).collect();
+        assert_eq!(model, formula);
+    }
+
+    /// F* axiom (`mm256_castsi128_si256` ensures): the low 8 i16 lanes equal the
+    /// input vec128 lanes (high 128 undefined, so only the low 8 are asserted).
+    fn check_castsi128(a: BitVec<128>) {
+        let model: Vec<i16> = int_vec::_mm256_castsi128_si256(a).to_vec();
+        let input: Vec<i16> = a.to_vec();
+        for k in 0..8 {
+            assert_eq!(model[k], input[k]);
+        }
+    }
+
+    /// F* axiom (`mm256_inserti128_si256` ensures, control 1): low 8 i16 lanes
+    /// from `vector`, high 8 from `vector_i128`.
+    fn check_inserti128_1(a: BitVec<256>, b: BitVec<128>) {
+        let model: Vec<i16> = BitVec::from_i128x2(int_vec::_mm256_inserti128_si256::<1>(
+            BitVec::to_i128x2(a),
+            BitVec::to_i128x1(b),
+        ))
+        .to_vec();
+        let la: Vec<i16> = a.to_vec();
+        let lb: Vec<i16> = b.to_vec();
+        let formula: Vec<i16> = (0..16).map(|k| if k < 8 { la[k] } else { lb[k - 8] }).collect();
+        assert_eq!(model, formula);
+    }
+
+    #[test]
+    fn shuffle_epi32_lane_formula() {
+        for _ in 0..200 {
+            check_shuffle32::<245>(BitVec::rand());
+            check_shuffle32::<160>(BitVec::rand());
+            check_shuffle32::<238>(BitVec::rand());
+            check_shuffle32::<68>(BitVec::rand());
+            check_shuffle32::<0b11_10_01_00>(BitVec::rand()); // identity
+            check_shuffle32::<0>(BitVec::rand());
+            check_shuffle32::<255>(BitVec::rand());
+            check_shuffle32::<27>(BitVec::rand());
+        }
+    }
+
+    #[test]
+    fn permute4x64_epi64_lane_formula() {
+        for _ in 0..200 {
+            check_permute64::<245>(BitVec::rand());
+            check_permute64::<160>(BitVec::rand());
+            check_permute64::<216>(BitVec::rand());
+            check_permute64::<0b11_10_01_00>(BitVec::rand()); // identity
+            check_permute64::<0>(BitVec::rand());
+            check_permute64::<255>(BitVec::rand());
+            check_permute64::<27>(BitVec::rand());
+        }
+    }
+
+    #[test]
+    fn blend_epi16_lane_formula() {
+        for _ in 0..200 {
+            check_blend16::<204>(BitVec::rand(), BitVec::rand());
+            check_blend16::<240>(BitVec::rand(), BitVec::rand());
+            check_blend16::<170>(BitVec::rand(), BitVec::rand());
+            check_blend16::<0>(BitVec::rand(), BitVec::rand());
+            check_blend16::<255>(BitVec::rand(), BitVec::rand());
+            check_blend16::<85>(BitVec::rand(), BitVec::rand());
+        }
+    }
+
+    #[test]
+    fn slli_epi32_16_lane_formula() {
+        for _ in 0..1000 {
+            check_slli32_16(BitVec::rand());
+        }
+    }
+
+    #[test]
+    fn castsi128_si256_lane_formula() {
+        for _ in 0..1000 {
+            check_castsi128(BitVec::rand());
+        }
+    }
+
+    #[test]
+    fn inserti128_si256_1_lane_formula() {
+        // inserti128 is pure lane placement (value-agnostic).  We use distinct
+        // NON-NEGATIVE i16 lanes (so the top i16 of each 128-bit half is >= 0,
+        // i.e. bit 127 clear) because the `to_i128x2`/`to_i128x1` interpretation
+        // overflows i128 on a half whose sign bit is set.  Distinct per-lane
+        // values still detect any mis-mapping; shifted variants add coverage.
+        for s in 0..256i16 {
+            let av: [i16; 16] = core::array::from_fn(|k| (k as i16) * 100 + s);
+            let bv: [i16; 8] = core::array::from_fn(|k| 5000 + (k as i16) * 13 + s);
+            check_inserti128_1(
+                BitVec::<256>::from_slice(&av, 16),
+                BitVec::<128>::from_slice(&bv, 16),
+            );
+        }
+    }
+
     /// The F* `lane32 v j` (avx2_extract.rs / ml-kem Arithmetic): the signed
     /// value of the j-th 32-bit lane, reconstructed from the i16x16 view as
     /// `(v (lane 2j) % 65536) + 65536 * v (lane 2j+1)` (low unsigned + high
