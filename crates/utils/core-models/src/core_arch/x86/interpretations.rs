@@ -475,9 +475,16 @@ pub mod int_vec {
 
     pub fn _mm256_bsrli_epi128<const IMM8: i32>(a: i128x2) -> i128x2 {
         i128x2::from_fn(|i| {
+            // Intel spec: a byte-shift amount > 15 clears the lane (the count is
+            // clamped to 16), it is NOT taken modulo 16. The old `tmp % 16` here
+            // mirrored a Rust core bug whose fix we upstreamed, so the model must
+            // follow the spec rather than the (now-corrected) implementation.
             let tmp = IMM8 % 256;
-            let tmp = tmp % 16;
-            ((a[i] as u128) >> (tmp * 8)) as i128
+            if tmp > 15 {
+                0
+            } else {
+                ((a[i] as u128) >> (tmp * 8)) as i128
+            }
         })
     }
 
