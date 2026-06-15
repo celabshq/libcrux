@@ -21,6 +21,7 @@ function extract_all() {
         into -i "+**" \
         -i "-**::avx2::**" \
         -i "-**::neon::**" \
+        -i "-**::arm64::**" \
         -i "-**::simd128::**" \
         -i "-**::simd256::**" \
         fstar --z3rlimit 80
