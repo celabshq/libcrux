@@ -1411,4 +1411,99 @@ mod track_i_axiom_transcription_tests {
             check_shuffle(a, mask);
         }
     }
+
+    /// F* axiom (`mm256_shuffle_epi8_no_semantics_lemma`, ml-kem ntt.rs): the 256-bit
+    /// PSHUFB per-bit semantics — same shape as the 128-bit one but indexing stays
+    /// WITHIN the 128-bit half of bit `i` (`+ (i/128)*128`), and the byte index is a
+    /// SIGNED i8 (MSB set => zero, i.e. unsigned `idx > 127`):
+    ///   `result i == (let nth = i/8 in let idx = sum_k b(8*nth+k)*2^k in
+    ///                 if idx > 127 then 0 else a ((idx%16)*8 + i%8 + (i/128)*128))`
+    /// vs the model `extra::mm256_shuffle_epi8_i8_array` (x86.rs:1161).
+    fn check_shuffle256(a: BitVec<256>, mask_bytes: [i8; 32]) {
+        let b = BitVec::<256>::from_slice(&mask_bytes, 8);
+        let indexes = FunArray::<32, i8>::from_fn(|i| mask_bytes[i as usize]);
+        let model = extra::mm256_shuffle_epi8_i8_array(a, indexes);
+        let formula = BitVec::<256>::from_fn(|i| {
+            let nth = i / 8;
+            let idx: u64 = (0..8u64).map(|k| u64::from(b[8 * nth + k]) << k).sum();
+            if idx > 127 {
+                Bit::Zero
+            } else {
+                a[(idx % 16) * 8 + i % 8 + (i / 128) * 128]
+            }
+        });
+        assert_eq!(model, formula);
+    }
+
+    #[test]
+    fn shuffle256_epi8_dynamic_mask_formula() {
+        for _ in 0..1000 {
+            let a: BitVec<256> = BitVec::rand();
+            let mb: BitVec<256> = BitVec::rand();
+            let mask_bytes: [i8; 32] = mb
+                .to_vec::<u8>()
+                .iter()
+                .map(|&x| x as i8)
+                .collect::<Vec<_>>()
+                .try_into()
+                .unwrap();
+            check_shuffle256(a, mask_bytes);
+        }
+        for v in -128..=127i8 {
+            let a: BitVec<256> = BitVec::rand();
+            check_shuffle256(a, [v; 32]);
+        }
+    }
+
+    /// Validates the lemma facts (`lemma_nttmul_shuffle_group_lane` /
+    /// `lemma_nttmul_swap_lane`, ml-kem ntt.rs) at the i16-lane level: the two
+    /// concrete `mm256_set_epi8` masks realize the stated permutations.  The byte
+    /// arrays below are exactly what `mm256_set_epi8 (mk_i8 a0)...(mk_i8 a31)`
+    /// produces (byte `nth` = arg `a_(31-nth)`).
+    #[test]
+    fn shuffle256_epi8_group_swap_lane_perms() {
+        // grouping mask: out i16-lane k = in lane sigma_group(k)
+        let group_bytes: [i8; 32] = [
+            0, 1, 4, 5, 8, 9, 12, 13, 2, 3, 6, 7, 10, 11, 14, 15, // low 128
+            0, 1, 4, 5, 8, 9, 12, 13, 2, 3, 6, 7, 10, 11, 14, 15, // high 128
+        ];
+        let sigma_group = |k: usize| -> usize {
+            if k < 4 {
+                2 * k
+            } else if k < 8 {
+                2 * (k - 4) + 1
+            } else if k < 12 {
+                2 * (k - 8) + 8
+            } else {
+                2 * (k - 12) + 9
+            }
+        };
+        // adjacent-pair swap mask: out lane k = in lane (k xor 1)
+        let swap_bytes: [i8; 32] = [
+            2, 3, 0, 1, 6, 7, 4, 5, 10, 11, 8, 9, 14, 15, 12, 13, // low 128
+            2, 3, 0, 1, 6, 7, 4, 5, 10, 11, 8, 9, 14, 15, 12, 13, // high 128
+        ];
+        let sigma_swap = |k: usize| -> usize { if k % 2 == 0 { k + 1 } else { k - 1 } };
+
+        for _ in 0..1000 {
+            let a: BitVec<256> = BitVec::rand();
+            let ain: Vec<i16> = a.to_vec();
+            let g = extra::mm256_shuffle_epi8_i8_array(
+                a,
+                FunArray::<32, i8>::from_fn(|i| group_bytes[i as usize]),
+            );
+            let gv: Vec<i16> = g.to_vec();
+            for k in 0..16 {
+                assert_eq!(gv[k], ain[sigma_group(k)]);
+            }
+            let s = extra::mm256_shuffle_epi8_i8_array(
+                a,
+                FunArray::<32, i8>::from_fn(|i| swap_bytes[i as usize]),
+            );
+            let sv: Vec<i16> = s.to_vec();
+            for k in 0..16 {
+                assert_eq!(sv[k], ain[sigma_swap(k)]);
+            }
+        }
+    }
 }

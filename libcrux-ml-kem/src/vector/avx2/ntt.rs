@@ -1366,8 +1366,74 @@ pub(crate) fn inv_ntt_layer_3_step(vector: Vec256, zeta: i16) -> Vec256 {
 // bit-exact simulation (2000 random trials).
 // ─────────────────────────────────────────────────────────────────────────
 
+// ── shuffle_epi8 dynamic-mask (no_semantics) closure ───────────────────────
+// The grouping/swap masks are NOT `mm256_set_epi8` syntactic literals at the
+// shuffle call (threaded as the free var `m`), so `BitVec.Intrinsics`'s tactic
+// routes them to the uninterpreted `mm256_shuffle_epi8_no_semantics`.  Trusted
+// axiom (256-bit PSHUFB, the analog of sampling.rs's 128-bit one): per result
+// bit i, byte nth=i/8 of the mask selects input byte (idx%16) WITHIN i's
+// 128-bit half (idx>127 => 0).  Validated against the executable core-models
+// model by `shuffle256_epi8_dynamic_mask_formula` in interpretations.rs.
+// Kept ml-kem-local (not in shared BitVec.Intrinsics.fsti) to avoid a
+// stale-cascade into the sha3 / ml-dsa proof trees.
+assume val mm256_shuffle_epi8_no_semantics_lemma (a b: bit_vec 256) (i: nat{i < 256})
+  : Lemma
+    (BitVec.Intrinsics.mm256_shuffle_epi8_no_semantics a b i ==
+      (let nth = i / 8 in
+       let idx: nat =
+         b (8 * nth) + 2 * b (8 * nth + 1) + 4 * b (8 * nth + 2) + 8 * b (8 * nth + 3) +
+         16 * b (8 * nth + 4) + 32 * b (8 * nth + 5) + 64 * b (8 * nth + 6) +
+         128 * b (8 * nth + 7)
+       in
+       if idx > 127 then 0 else a ((idx % 16) * 8 + i % 8 + (i / 128) * 128)))
+
+// The unsigned value of mask byte `n` (8 bits LSB-first), = the axiom's `idx`.
+let mbv (g: bit_vec 256) (n:nat{n<32}) : nat =
+  g (8*n) + 2 * g (8*n+1) + 4 * g (8*n+2) + 8 * g (8*n+3) +
+  16 * g (8*n+4) + 32 * g (8*n+5) + 64 * g (8*n+6) + 128 * g (8*n+7)
+
+// Generic per-lane bridge: if mask bytes 2k/2k+1 select (within k's half) the
+// two bytes of input i16-lane `sg`, then output i16-lane k == input lane sg.
+// No `match k` (symbolic k, minimal context) — the dispatchers below pin k.
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 100 --split_queries always"
+let lemma_shuffle8_lane (vv m: ZI.t_Vec256) (k: nat{k<16}) (sg: nat{sg<16}) : Lemma
+  (requires
+     (let h = k/8 in
+      mbv m (2*k) <= 127 /\ mbv m (2*k+1) <= 127 /\
+      mbv m (2*k) % 16 == 2*(sg - h*8) /\ mbv m (2*k+1) % 16 == 2*(sg - h*8) + 1 /\
+      sg / 8 == h))
+  (ensures ZI.get_lane (BitVec.Intrinsics.mm256_shuffle_epi8_no_semantics vv m) k
+           == ZI.get_lane vv sg)
+  = let r = BitVec.Intrinsics.mm256_shuffle_epi8_no_semantics vv m in
+    let aux (bb: usize{v bb < 16}) : Lemma
+      (get_bit (ZI.get_lane r k) bb == get_bit (ZI.get_lane vv sg) bb) =
+      let b = v bb in
+      ZI.bit_vec_of_int_t_array_vec256_as_i16x16_lemma r 16 (16*k+b);
+      ZI.bit_vec_of_int_t_array_vec256_as_i16x16_lemma vv 16 (16*sg+b);
+      mm256_shuffle_epi8_no_semantics_lemma vv m (16*k+b);
+      (if b < 8 then () else ())
+    in
+    Classical.forall_intro aux;
+    Rust_primitives.Integers.lemma_int_t_eq_via_bits (ZI.get_lane r k) (ZI.get_lane vv sg)
+#pop-options
+
+let group_mask8 : ZI.t_Vec256 =
+  ZI.mm256_set_epi8 (mk_i8 15) (mk_i8 14) (mk_i8 11) (mk_i8 10) (mk_i8 7) (mk_i8 6)
+  (mk_i8 3) (mk_i8 2) (mk_i8 13) (mk_i8 12) (mk_i8 9) (mk_i8 8) (mk_i8 5) (mk_i8 4)
+  (mk_i8 1) (mk_i8 0) (mk_i8 15) (mk_i8 14) (mk_i8 11) (mk_i8 10) (mk_i8 7) (mk_i8 6)
+  (mk_i8 3) (mk_i8 2) (mk_i8 13) (mk_i8 12) (mk_i8 9) (mk_i8 8) (mk_i8 5) (mk_i8 4)
+  (mk_i8 1) (mk_i8 0)
+
+let swap_mask8 : ZI.t_Vec256 =
+  ZI.mm256_set_epi8 (mk_i8 13) (mk_i8 12) (mk_i8 15) (mk_i8 14) (mk_i8 9) (mk_i8 8)
+  (mk_i8 11) (mk_i8 10) (mk_i8 5) (mk_i8 4) (mk_i8 7) (mk_i8 6) (mk_i8 1) (mk_i8 0)
+  (mk_i8 3) (mk_i8 2) (mk_i8 13) (mk_i8 12) (mk_i8 15) (mk_i8 14) (mk_i8 9) (mk_i8 8)
+  (mk_i8 11) (mk_i8 10) (mk_i8 5) (mk_i8 4) (mk_i8 7) (mk_i8 6) (mk_i8 1) (mk_i8 0)
+  (mk_i8 3) (mk_i8 2)
+
 (* Evens/odds grouping shuffle at the concrete mask (passed as `m`):
    out half-lane k takes input half-lane sigma(k), sigma = [0,2,4,6,1,3,5,7]. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 150 --split_queries always"
 let lemma_nttmul_shuffle_group_lane (vv m: ZI.t_Vec256) (k: nat{k < 16}) : Lemma
   (requires m ==
       (ZI.mm256_set_epi8 (mk_i8 15) (mk_i8 14) (mk_i8 11) (mk_i8 10) (mk_i8 7) (mk_i8 6)
@@ -1380,9 +1446,29 @@ let lemma_nttmul_shuffle_group_lane (vv m: ZI.t_Vec256) (k: nat{k < 16}) : Lemma
                    else if k < 8 then 2*(k-4)+1
                    else if k < 12 then 2*(k-8)+8
                    else 2*(k-12)+9))
-  = admit ()
+  = assert (m == group_mask8);
+    (match k with
+     | 0  -> assert_norm (mbv group_mask8 0 == 0);  assert_norm (mbv group_mask8 1 == 1);  lemma_shuffle8_lane vv m 0 0
+     | 1  -> assert_norm (mbv group_mask8 2 == 4);  assert_norm (mbv group_mask8 3 == 5);  lemma_shuffle8_lane vv m 1 2
+     | 2  -> assert_norm (mbv group_mask8 4 == 8);  assert_norm (mbv group_mask8 5 == 9);  lemma_shuffle8_lane vv m 2 4
+     | 3  -> assert_norm (mbv group_mask8 6 == 12); assert_norm (mbv group_mask8 7 == 13); lemma_shuffle8_lane vv m 3 6
+     | 4  -> assert_norm (mbv group_mask8 8 == 2);  assert_norm (mbv group_mask8 9 == 3);  lemma_shuffle8_lane vv m 4 1
+     | 5  -> assert_norm (mbv group_mask8 10 == 6); assert_norm (mbv group_mask8 11 == 7); lemma_shuffle8_lane vv m 5 3
+     | 6  -> assert_norm (mbv group_mask8 12 == 10);assert_norm (mbv group_mask8 13 == 11);lemma_shuffle8_lane vv m 6 5
+     | 7  -> assert_norm (mbv group_mask8 14 == 14);assert_norm (mbv group_mask8 15 == 15);lemma_shuffle8_lane vv m 7 7
+     | 8  -> assert_norm (mbv group_mask8 16 == 0); assert_norm (mbv group_mask8 17 == 1); lemma_shuffle8_lane vv m 8 8
+     | 9  -> assert_norm (mbv group_mask8 18 == 4); assert_norm (mbv group_mask8 19 == 5); lemma_shuffle8_lane vv m 9 10
+     | 10 -> assert_norm (mbv group_mask8 20 == 8); assert_norm (mbv group_mask8 21 == 9); lemma_shuffle8_lane vv m 10 12
+     | 11 -> assert_norm (mbv group_mask8 22 == 12);assert_norm (mbv group_mask8 23 == 13);lemma_shuffle8_lane vv m 11 14
+     | 12 -> assert_norm (mbv group_mask8 24 == 2); assert_norm (mbv group_mask8 25 == 3); lemma_shuffle8_lane vv m 12 9
+     | 13 -> assert_norm (mbv group_mask8 26 == 6); assert_norm (mbv group_mask8 27 == 7); lemma_shuffle8_lane vv m 13 11
+     | 14 -> assert_norm (mbv group_mask8 28 == 10);assert_norm (mbv group_mask8 29 == 11);lemma_shuffle8_lane vv m 14 13
+     | 15 -> assert_norm (mbv group_mask8 30 == 14);assert_norm (mbv group_mask8 31 == 15);lemma_shuffle8_lane vv m 15 15
+     | _ -> ())
+#pop-options
 
 (* Adjacent-pair swap (mask passed as `m`): out lane k = in lane (k xor 1). *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 150 --split_queries always"
 let lemma_nttmul_swap_lane (vv m: ZI.t_Vec256) (k: nat{k < 16}) : Lemma
   (requires m ==
       (ZI.mm256_set_epi8 (mk_i8 13) (mk_i8 12) (mk_i8 15) (mk_i8 14) (mk_i8 9) (mk_i8 8)
@@ -1392,7 +1478,26 @@ let lemma_nttmul_swap_lane (vv m: ZI.t_Vec256) (k: nat{k < 16}) : Lemma
       (mk_i8 3) (mk_i8 2)))
   (ensures ZI.get_lane (ZI.mm256_shuffle_epi8 vv m) k ==
    ZI.get_lane vv (if k % 2 = 0 then k+1 else k-1))
-  = admit ()
+  = assert (m == swap_mask8);
+    (match k with
+     | 0  -> assert_norm (mbv swap_mask8 0 == 2);  assert_norm (mbv swap_mask8 1 == 3);  lemma_shuffle8_lane vv m 0 1
+     | 1  -> assert_norm (mbv swap_mask8 2 == 0);  assert_norm (mbv swap_mask8 3 == 1);  lemma_shuffle8_lane vv m 1 0
+     | 2  -> assert_norm (mbv swap_mask8 4 == 6);  assert_norm (mbv swap_mask8 5 == 7);  lemma_shuffle8_lane vv m 2 3
+     | 3  -> assert_norm (mbv swap_mask8 6 == 4);  assert_norm (mbv swap_mask8 7 == 5);  lemma_shuffle8_lane vv m 3 2
+     | 4  -> assert_norm (mbv swap_mask8 8 == 10); assert_norm (mbv swap_mask8 9 == 11); lemma_shuffle8_lane vv m 4 5
+     | 5  -> assert_norm (mbv swap_mask8 10 == 8); assert_norm (mbv swap_mask8 11 == 9); lemma_shuffle8_lane vv m 5 4
+     | 6  -> assert_norm (mbv swap_mask8 12 == 14);assert_norm (mbv swap_mask8 13 == 15);lemma_shuffle8_lane vv m 6 7
+     | 7  -> assert_norm (mbv swap_mask8 14 == 12);assert_norm (mbv swap_mask8 15 == 13);lemma_shuffle8_lane vv m 7 6
+     | 8  -> assert_norm (mbv swap_mask8 16 == 2); assert_norm (mbv swap_mask8 17 == 3); lemma_shuffle8_lane vv m 8 9
+     | 9  -> assert_norm (mbv swap_mask8 18 == 0); assert_norm (mbv swap_mask8 19 == 1); lemma_shuffle8_lane vv m 9 8
+     | 10 -> assert_norm (mbv swap_mask8 20 == 6); assert_norm (mbv swap_mask8 21 == 7); lemma_shuffle8_lane vv m 10 11
+     | 11 -> assert_norm (mbv swap_mask8 22 == 4); assert_norm (mbv swap_mask8 23 == 5); lemma_shuffle8_lane vv m 11 10
+     | 12 -> assert_norm (mbv swap_mask8 24 == 10);assert_norm (mbv swap_mask8 25 == 11);lemma_shuffle8_lane vv m 12 13
+     | 13 -> assert_norm (mbv swap_mask8 26 == 8); assert_norm (mbv swap_mask8 27 == 9); lemma_shuffle8_lane vv m 13 12
+     | 14 -> assert_norm (mbv swap_mask8 28 == 14);assert_norm (mbv swap_mask8 29 == 15);lemma_shuffle8_lane vv m 14 15
+     | 15 -> assert_norm (mbv swap_mask8 30 == 12);assert_norm (mbv swap_mask8 31 == 13);lemma_shuffle8_lane vv m 15 14
+     | _ -> ())
+#pop-options
 
 (* 64-bit qword permute, control 0xD8 = [q0, q2, q1, q3]. *)
 #push-options "--fuel 1 --ifuel 2 --z3rlimit 100"
