@@ -1481,7 +1481,17 @@ let lemma_nttmul_madd_lane (a b: ZI.t_Vec256) (bnd_a bnd_b: nat) (j: nat{j < 8})
              v (ZI.get_lane a (2*j)) * v (ZI.get_lane b (2*j)) +
              v (ZI.get_lane a (2*j+1)) * v (ZI.get_lane b (2*j+1)) /\
            Spec.Utils.is_intb (2 * (bnd_a * bnd_b)) (ZA.lane32 (ZI.mm256_madd_epi16 a b) j))
-  = admit ()
+  = let r = ZI.mm256_madd_epi16 a b in
+    ZI.lemma_madd_epi16_lane32 a b;
+    assert (ZI.lane32 r j ==
+            (v (ZI.get_lane a (2*j)) * v (ZI.get_lane b (2*j)) +
+             v (ZI.get_lane a (2*j+1)) * v (ZI.get_lane b (2*j+1))) @% 4294967296);
+    lemma_lane32_eq r j;
+    Spec.Utils.lemma_mul_intb bnd_a bnd_b (v (ZI.get_lane a (2*j))) (v (ZI.get_lane b (2*j)));
+    Spec.Utils.lemma_mul_intb bnd_a bnd_b (v (ZI.get_lane a (2*j+1))) (v (ZI.get_lane b (2*j+1)));
+    assert_norm (pow2 31 == 2147483648);
+    lemma_at_percent_id_32 (v (ZI.get_lane a (2*j)) * v (ZI.get_lane b (2*j)) +
+                            v (ZI.get_lane a (2*j+1)) * v (ZI.get_lane b (2*j+1)))
 
 #push-options "--fuel 1 --ifuel 1 --z3rlimit 50"
 let lemma_set32_at_percent_mod (a:int) : Lemma ((a @% 65536) % 65536 == a % 65536) =

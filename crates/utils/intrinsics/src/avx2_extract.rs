@@ -386,9 +386,25 @@ pub fn mm256_add_epi16(lhs: Vec256, rhs: Vec256) -> Vec256 {
     unimplemented!()
 }
 
+// VPMADDWD.  Keep the BitVec model (`mm256_concat_pairs_n` in serialize.rs is a
+// `fstar::replace(interface, include ...)` whose .fst BODY calls madd and proves
+// its bitvec interface FROM madd's bitvec semantics — so the include must stay).
+// Relocate the lane32 arithmetic fact (proving it from bits is the cliff) to a
+// trusted `admit()` lemma here — the proper B′ home — validated by the core-models
+// `_mm256_madd_epi16` differential test + the `madd_epi16_lane_formula`
+// transcription test in interpretations.rs.  Called explicitly (no SMTPat).
 #[hax_lib::fstar::replace(
     interface,
-    "include BitVec.Intrinsics {mm256_madd_epi16 as ${mm256_madd_epi16}}"
+    r#"
+include BitVec.Intrinsics {mm256_madd_epi16 as ${mm256_madd_epi16}}
+let lemma_madd_epi16_lane32 (lhs rhs: t_Vec256)
+  : Lemma (ensures forall (j: nat). j < 8 ==>
+      lane32 (${mm256_madd_epi16} lhs rhs) j ==
+        (Rust_primitives.Integers.v (get_lane lhs (2*j)) * Rust_primitives.Integers.v (get_lane rhs (2*j)) +
+         Rust_primitives.Integers.v (get_lane lhs (2*j+1)) * Rust_primitives.Integers.v (get_lane rhs (2*j+1)))
+        @% 4294967296)
+    = admit ()
+"#
 )]
 #[inline(always)]
 pub fn mm256_madd_epi16(lhs: Vec256, rhs: Vec256) -> Vec256 {

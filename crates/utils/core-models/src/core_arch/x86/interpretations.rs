@@ -159,6 +159,19 @@ pub mod int_vec {
         i32x8::from_fn(|i| a[i].overflowing_mul(b[i]).0)
     }
 
+    /// VPMADDWD: per 32-bit lane j, the sum of the two adjacent signed i16xi16
+    /// products `a[2j]*b[2j] + a[2j+1]*b[2j+1]`.  Each product fits i32 (|i16| <
+    /// 2^15 so |product| <= 2^30); the horizontal sum can reach 2^31 (e.g. both
+    /// pairs i16::MIN^2), which wraps (madd does NOT saturate) — hence
+    /// `wrapping_add`.
+    pub fn _mm256_madd_epi16(a: i16x16, b: i16x16) -> i32x8 {
+        i32x8::from_fn(|j| {
+            let p0 = (a[2 * j] as i32) * (b[2 * j] as i32);
+            let p1 = (a[2 * j + 1] as i32) * (b[2 * j + 1] as i32);
+            p0.wrapping_add(p1)
+        })
+    }
+
     #[hax_lib::fstar::verification_status(lax)]
     pub fn _mm256_mulhi_epi16(a: i16x16, b: i16x16) -> i16x16 {
         i16x16::from_fn(|i| ((a[i] as i32) * (b[i] as i32) >> 16) as i16)
@@ -776,6 +789,7 @@ assume val _mm256_set_epi32_interp: e7: i32 -> e6: i32 -> e5: i32 -> e4: i32 -> 
         mk!(_mm_add_epi16(a: BitVec, b: BitVec));
         mk!(_mm256_add_epi16(a: BitVec, b: BitVec));
         mk!(_mm256_add_epi32(a: BitVec, b: BitVec));
+        mk!(_mm256_madd_epi16(a: BitVec, b: BitVec));
         mk!(_mm256_add_epi64(a: BitVec, b: BitVec));
         mk!(_mm256_abs_epi32(a: BitVec));
         #[test]
@@ -1226,6 +1240,47 @@ mod track_i_axiom_transcription_tests {
                 let b = BitVec::<256>::from_slice(&[y; 8], 32);
                 check_add32(a, b);
                 check_mullo32(a, b);
+            }
+        }
+    }
+
+    /// F* axiom (`mm256_madd_epi16` ensures): `lane32 result j ==
+    /// (v (get_lane lhs (2j)) * v (get_lane rhs (2j)) +
+    ///  v (get_lane lhs (2j+1)) * v (get_lane rhs (2j+1))) @% 2^32`.
+    /// Model anchor: `int_vec::_mm256_madd_epi16` (adjacent i16xi16 products,
+    /// wrapping horizontal add).  Inputs are the i16x16 lane view directly.
+    fn check_madd(a: BitVec<256>, b: BitVec<256>) {
+        let model: BitVec<256> = BitVec::from_i32x8(int_vec::_mm256_madd_epi16(
+            BitVec::to_i16x16(a),
+            BitVec::to_i16x16(b),
+        ));
+        let la: Vec<i16> = a.to_vec();
+        let lb: Vec<i16> = b.to_vec();
+        let formula: Vec<i32> = (0..8)
+            .map(|j| {
+                let p0 = (la[2 * j] as i32) * (lb[2 * j] as i32);
+                let p1 = (la[2 * j + 1] as i32) * (lb[2 * j + 1] as i32);
+                p0.wrapping_add(p1)
+            })
+            .collect();
+        assert_eq!(lane32_recon(&model), formula);
+    }
+
+    #[test]
+    fn madd_epi16_lane_formula() {
+        for _ in 0..1000 {
+            check_madd(BitVec::rand(), BitVec::rand());
+        }
+        // Edge i16 lanes incl. INT16 extremes (so a pair hits the 2^31 wrap) and
+        // the NTT bound neighbourhood.
+        let specials: [i16; 9] =
+            [i16::MIN, i16::MIN + 1, -1, 0, 1, 3328, 3329, i16::MAX - 1, i16::MAX];
+        for &x in specials.iter() {
+            for &y in specials.iter() {
+                check_madd(
+                    BitVec::<256>::from_slice(&[x; 16], 16),
+                    BitVec::<256>::from_slice(&[y; 16], 16),
+                );
             }
         }
     }
