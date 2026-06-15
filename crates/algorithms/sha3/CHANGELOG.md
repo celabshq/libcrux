@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [1454](https://github.com/cryspen/libcrux/pull/1454): `debug_assert` that generic `LEN` matches algorithm in `hash` function
 
+### Added
+
+- [#1292](https://github.com/cryspen/libcrux/pull/1292): Add support for incremental CShake
+
 ## [0.0.9] (2026-05-13)
 
 ### Changed
