@@ -23,7 +23,6 @@ pub(crate) fn from_coefficient_array(coefficient_array: &[i32], out: &mut Vec256
 
 /// Write out the coefficient to an `i32` array
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::ensures(|_| fstar!(r#"
     Seq.length ${out}_future == Seq.length ${out} /\
     (Seq.length ${out} == 8 ==>

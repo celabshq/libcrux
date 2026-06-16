@@ -31,7 +31,6 @@ fn bytestream_to_potential_coefficients(serialized: &[u8]) -> Vec256 {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::requires(input.len() == 24 && output.len() >= 8)]
 #[hax_lib::ensures(|result| future(output).len() == output.len() && result <= 8)]
 pub(crate) fn sample(input: &[u8], output: &mut [i32]) -> usize {
@@ -61,10 +60,12 @@ pub(crate) fn sample(input: &[u8], output: &mut [i32]) -> usize {
     let good_upper_half = good >> 4;
 
     hax_lib::fstar!(
-        r#"assume (v (Core_models.Num.impl_i32__count_ones $good_lower_half) <= 4);
-           assume (v (Core_models.Num.impl_i32__count_ones $good_upper_half) <= 4);
-           assume (v $good_lower_half >= 0 /\ v $good_lower_half < 16);
-           assume (v $good_upper_half >= 0 /\ v $good_upper_half < 16)"#
+        r#"Libcrux_ml_dsa.Proof_utils.lemma_movemask_ps_bound (Libcrux_intrinsics.Avx2.mm256_castsi256_ps $compare_with_field_modulus);
+           logand_mask_lemma $good 4;
+           assert (v $good_lower_half >= 0 /\ v $good_lower_half < 16);
+           assert (v $good_upper_half >= 0 /\ v $good_upper_half < 16);
+           Libcrux_ml_dsa.Proof_utils.lemma_count_ones_nibble $good_lower_half;
+           Libcrux_ml_dsa.Proof_utils.lemma_count_ones_nibble $good_upper_half"#
     );
 
     // Each bit (and its corresponding position) represents an element we
