@@ -117,7 +117,7 @@ impl<const PARALLEL_LANES: usize, const RATE: usize, STATE: KeccakItem<PARALLEL_
             )
         } else {
             future(self).buf_len == RATE &&
-            consumed == RATE - self.buf_len
+            consumed.to_int() == RATE.to_int() - self.buf_len.to_int()
         }
     )]
     pub(crate) fn fill_buffer(&mut self, inputs: &[&[u8]; PARALLEL_LANES]) -> usize {
