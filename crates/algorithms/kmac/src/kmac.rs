@@ -14,6 +14,7 @@ use libcrux_sha3::portable::incremental::{CShake128, CShake256};
 ///
 /// C.f. [NIST SP 800-185](https://csrc.nist.gov/pubs/sp/800/185/final),
 /// section 4.
+#[hax_lib::requires(key.len() >= 16)]
 pub fn kmac_128<'a>(tag: &'a mut [u8], key: &[u8], data: &[u8], customization: &[u8]) -> &'a [u8] {
     // Assert that key is long enough, i.e. at least 128 bits
     assert!(key.len() >= 16);
@@ -25,6 +26,7 @@ pub fn kmac_128<'a>(tag: &'a mut [u8], key: &[u8], data: &[u8], customization: &
 ///
 /// C.f. [NIST SP 800-185](https://csrc.nist.gov/pubs/sp/800/185/final),
 /// section 4.
+#[hax_lib::requires(key.len() >= 32)]
 pub fn kmac_256<'a>(tag: &'a mut [u8], key: &[u8], data: &[u8], customization: &[u8]) -> &'a [u8] {
     // Assert that key is long enough, i.e. at least 256 bits
     assert!(key.len() >= 32);
