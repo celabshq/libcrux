@@ -1,0 +1,13 @@
+# This cargo configuration provides linker and runner configuration
+# for testing on RISC-V and ARMv7 targets.
+#
+# NOTE: You may have to adapt the exact paths for the GNU toolchain
+# and qemu-binaries to your specific system.
+
+[target.riscv64gc-unknown-linux-gnu]
+linker = "riscv64-linux-gnu-gcc"
+runner = "qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64"
+
+[target.armv7-unknown-linux-gnueabihf]
+linker = "arm-linux-gnueabihf-gcc"
+runner = "qemu-arm -L /usr/arm-none-linux-gnueabihf/libc"

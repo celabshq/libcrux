@@ -1,7 +1,7 @@
 //! # Cryptographic Algorithms
 
-#[cfg(feature = "aes_gcm")]
-pub mod aes_gcm;
+#[cfg(feature = "aes_aead")]
+pub mod aes_aead;
 
 #[cfg(feature = "blake2")]
 pub mod blake2;

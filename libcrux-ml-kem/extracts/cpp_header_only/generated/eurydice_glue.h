@@ -498,4 +498,3 @@ static inline char *malloc_and_init(size_t sz, char *init) {
 #define alloc_boxed__alloc__boxed__Box_T___try_new(init, t, t_ret) \
   ((t_ret){.tag = core_result_Ok,                                  \
            .f0 = (t *)malloc_and_init(sizeof(t), (char *)(&init))})
-
