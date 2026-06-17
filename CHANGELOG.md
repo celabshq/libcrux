@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- [#1481](https://github.com/cryspen/libcrux/pull/1481): Improved models for SIMD intrinsics: unify the AVX2/NEON F* trust axioms and reference models across the ML-KEM/SHA-3/ML-DSA proof branches, add hardware differential-test tooling, and prove the ARM64 NEON SHA3 fallback implementations
+- [#1481](https://github.com/cryspen/libcrux/pull/1481): Improved models for SIMD intrinsics
 - [#1478](https://github.com/cryspen/libcrux/pull/1478): Upgrade hax-lib to 0.3.7 and bump the F* verification toolchain to v2026.03.24
 - (libcrux-secrets) [#1446](https://github.com/cryspen/libcrux/pull/1446): Remove const qualifier of secret types constructors
 - (libcrux-secrets) [#1462](https://github.com/cryspen/libcrux/pull/1462): More robust casts instead of transmutes when checking secret independence
