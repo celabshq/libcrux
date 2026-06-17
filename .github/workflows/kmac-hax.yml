@@ -47,7 +47,7 @@ jobs:
       - uses: hacspec/hax-actions@main
         with:
           hax_reference: ${{ github.event.inputs.hax_ref || needs.get-hax-ref.outputs.hax_ref }}
-          fstar: v2025.12.15
+          fstar: v2026.03.24
 
       - name: 🏃 Extract KMAC crate (portable)
         working-directory: crates/algorithms/kmac
@@ -75,7 +75,7 @@ jobs:
       - uses: hacspec/hax-actions@main
         with:
           hax_reference: ${{ github.event.inputs.hax_ref || needs.get-hax-ref.outputs.hax_ref }}
-          fstar: v2025.12.15
+          fstar: v2026.03.24
 
       - uses: actions/download-artifact@v8
         with:
@@ -100,7 +100,7 @@ jobs:
       - uses: hacspec/hax-actions@main
         with:
           hax_reference: ${{ github.event.inputs.hax_ref || needs.get-hax-ref.outputs.hax_ref }}
-          fstar: v2025.02.17
+          fstar: v2026.03.24
 
       - uses: actions/download-artifact@v8
         with:
