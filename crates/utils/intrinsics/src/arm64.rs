@@ -1,5 +1,11 @@
 #![allow(non_camel_case_types, unsafe_code)]
+#![cfg_attr(hax, allow(unused_unsafe))]
+
+#[cfg(all(target_arch = "aarch64", not(hax)))]
 use core::arch::aarch64::*;
+
+#[cfg(hax)]
+pub use core_models::arch::arm::*;
 
 pub type _int16x8_t = int16x8_t;
 pub type _uint32x4_t = uint32x4_t;
@@ -49,6 +55,13 @@ pub fn _vld1q_u64(array: &[u64]) -> uint64x2_t {
 #[inline(always)]
 pub fn _vst1q_u64(out: &mut [u64], v: uint64x2_t) {
     unsafe { vst1q_u64(out.as_mut_ptr(), v) }
+}
+
+#[inline(always)]
+pub fn get_lane_u64(vec: uint64x2_t, lane: usize) -> u64 {
+    let mut tmp = [0u64; 2];
+    _vst1q_u64(&mut tmp, vec);
+    tmp[lane]
 }
 
 #[inline(always)]

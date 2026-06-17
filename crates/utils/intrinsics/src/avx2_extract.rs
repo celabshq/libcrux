@@ -4,6 +4,9 @@
 #![allow(unused_variables, non_camel_case_types, dead_code)]
 
 #[cfg(hax)]
+use hax_lib::prop::*;
+
+#[cfg(hax)]
 #[derive(Clone, Copy, Debug)]
 #[hax_lib::fstar::replace(
     interface,
@@ -11,6 +14,70 @@
 unfold type $:{Vec256} = bit_vec 256
 val vec256_as_i16x16 (x: bit_vec 256) : t_Array i16 (sz 16)
 let get_lane (v: bit_vec 256) (i:nat{i < 16}) = Seq.index (vec256_as_i16x16 v) i
+
+(* NB (PR2 union, F* interface-ordering): sha3's u64x4 lane view
+   (`vec256_as_u64x4` / `get_lane_u64x4` / the `[SMTPat]`-bearing
+   `lemma_get_lane_u64x4_bit`) is NOT declared here.  Placing an
+   interface `val ... [SMTPat]` between `vec256_as_i16x16` and the
+   struct's auto-generated `[@@tcinstance]` Copy/Debug realizations
+   (`impl_1`/`impl_2`) makes F* reject the `.fst` with Error 233
+   ("Expected the definition of vec256_as_i16x16 to precede [impl_1]").
+   The u64x4 view is instead emitted via a `fstar::before(interface)`
+   block on `get_lane_u64` below, so it lands AFTER the Vec256/Vec128
+   instances but before every u64x4 consumer. *)
+
+(* The bit-level decomposition of `vec256_as_i16x16`: bit i of the
+   underlying `bit_vec 256` corresponds to bit `i % 16` of the i16
+   lane at index `i / 16`.  Since `vec256_as_i16x16` is the canonical
+   lane-decomposition isomorphism, this property axiomatises that
+   the lane-decomposition is bit-exact at every supported `d`.
+
+   Used by AVX2 op_serialize_N / op_deserialize_N bridge lemmas to
+   bridge the primitive-level BitVec lane post (in terms of `v`
+   directly) to the trait's array-form post (in terms of
+   `bit_vec_of_int_t_array (vec256_as_i16x16 v) N`). *)
+val bit_vec_of_int_t_array_vec256_as_i16x16_lemma
+      (v: bit_vec 256) (d: nat{d > 0 /\ d <= 16}) (i: nat{i < 16 * d})
+    : Lemma (Rust_primitives.BitVectors.bit_vec_of_int_t_array
+              (vec256_as_i16x16 v) d i
+             == v ((i / d) * 16 + i % d))
+
+(* The signed value of the 32-bit lane `j` (the j-th pair of i16 lanes,
+   low half = lane 2j, high half = lane 2j+1).  Mirrors the ml-kem-side
+   `Libcrux_ml_kem.Vector.Avx2.Arithmetic.lane32`. *)
+let lane32 (vec: bit_vec 256) (j: nat{j < 8}) : int =
+  (Rust_primitives.Integers.v (get_lane vec (2 * j)) % 65536) +
+  65536 * Rust_primitives.Integers.v (get_lane vec (2 * j + 1))
+
+(* Lane-permutation index helpers for the control-driven AVX2 shuffles below.
+   Each masks the control to its imm8 byte (% 256, Euclidean — sound for any
+   control value) and reads the relevant 2-bit / 1-bit field by literal
+   division (pow2-free, so consumers reduce them at concrete controls without
+   fuel). Validated by the core-models transcription tests. *)
+
+(* mm256_shuffle_epi32 control c: source 32-bit lane of output 32-bit lane `l`
+   (within each 128-bit half: out lane i = in lane ((c >> 2i) & 3)).
+   Opaque to SMT: it appears under the op-ensures forall, so keeping it atomic
+   prevents a per-lane unfold cascade; consumers `reveal_opaque` it inside small
+   clean per-control value lemmas. *)
+[@@ "opaque_to_smt"]
+let shuffle32_src (c: i32) (l: nat{l < 8}) : (s:nat{s < 8}) =
+  let cb = (Rust_primitives.Integers.v c) % 256 in
+  (l / 4) * 4 + ((match l % 4 with | 0 -> cb | 1 -> cb / 4 | 2 -> cb / 16 | _ -> cb / 64) % 4)
+
+(* mm256_permute4x64_epi64 control c: source 64-bit qword of output qword `q`
+   (q_i = in qword ((c >> 2i) & 3)). *)
+[@@ "opaque_to_smt"]
+let permute64_src (c: i32) (q: nat{q < 4}) : (s:nat{s < 4}) =
+  let cb = (Rust_primitives.Integers.v c) % 256 in
+  (match q with | 0 -> cb | 1 -> cb / 4 | 2 -> cb / 16 | _ -> cb / 64) % 4
+
+(* mm256_blend_epi16 control c: at i16-lane k, pick rhs iff bit (k%8) of c set. *)
+[@@ "opaque_to_smt"]
+let blend_sel (c: i32) (k: nat{k < 16}) : bool =
+  let cb = (Rust_primitives.Integers.v c) % 256 in
+  ((match k % 8 with | 0 -> cb | 1 -> cb / 2 | 2 -> cb / 4 | 3 -> cb / 8
+                     | 4 -> cb / 16 | 5 -> cb / 32 | 6 -> cb / 64 | _ -> cb / 128) % 2) = 1
 "#
 )]
 pub struct Vec256(u8);
@@ -23,6 +90,22 @@ pub struct Vec256(u8);
 unfold type $:{Vec128} = bit_vec 128
 val vec128_as_i16x8 (x: bit_vec 128) : t_Array i16 (sz 8)
 let get_lane128 (v: bit_vec 128) (i:nat{i < 8}) = Seq.index (vec128_as_i16x8 v) i
+
+(* The bit-level decomposition of `vec128_as_i16x8`: bit i of the
+   underlying `bit_vec 128` corresponds to bit `i % d` of the i16
+   lane at index `i / d` (for the packed d-bit view; lanes are 16 bits
+   apart). Mirror of `bit_vec_of_int_t_array_vec256_as_i16x16_lemma`
+   below — `vec128_as_i16x8` is the canonical LSB-first 16-bit lane
+   decomposition of a 128-bit vector, matching the executable
+   core-models view (`BitVec::to_vec::<i16>()` /
+   `crates/utils/core-models/src/core_arch/x86.rs` `mm_storeu_bytes_si128`);
+   validated by `track_i_axiom_transcription_tests::vec128_lane_bit_decomposition`
+   in crates/utils/core-models/src/core_arch/x86/interpretations.rs. *)
+val bit_vec_of_int_t_array_vec128_as_i16x8_lemma
+      (v: bit_vec 128) (d: nat{d > 0 /\ d <= 16}) (i: nat{i < 8 * d})
+    : Lemma (Rust_primitives.BitVectors.bit_vec_of_int_t_array
+              (vec128_as_i16x8 v) d i
+             == v ((i / d) * 16 + i % d))
 "#
 )]
 pub struct Vec128(u8);
@@ -33,13 +116,118 @@ pub type Vec256 = u8;
 pub type Vec128 = u8;
 pub type Vec256Float = u8;
 
+// NB: the equality with `get_lane_u64x4` is exposed via a separate
+// SMTPat lemma instead of an ensures-refinement on the return type.
+// The refinement-interpretation of `Pure u64 (ensures result == ...)`
+// fires on every value of the refined type and was triggering a
+// quantifier cascade in load_block proofs (~1M instantiations).
+// SMTPat-trigger fires only when `get_lane_u64 vec lane` actually
+// appears in the goal — controlled instantiation, no cascade.
+// Trust footprint unchanged: the lemma body is `admit ()` because
+// `get_lane_u64` is `unimplemented!()` (axiomatic), same as before.
 #[inline(always)]
+#[hax_lib::lean::replace_body("sorry")]
+#[hax_lib::requires(lane < 4)]
+#[hax_lib::fstar::before(
+    interface,
+    r#"
+(* sha3's u64x4 lane view, relocated out of the `Vec256` `fstar::replace`
+   block (see the NB there).  Declared here so it follows the Vec256/Vec128
+   struct typeclass instances (`impl_1`..`impl_5`) in the interface, yet
+   precedes every u64x4 consumer (`get_lane_u64`/`get_lane_u64_post`, the
+   `mm256_{storeu,loadu}_si256_u8` ensures, and the `lemma_mm256_*_u64x4`
+   discharges). *)
+val vec256_as_u64x4 (x: bit_vec 256) : t_Array u64 (sz 4)
+let get_lane_u64x4 (v: bit_vec 256) (i: nat{i < 4}) : u64 =
+  Seq.index (vec256_as_u64x4 v) i
+
+(** Bridge admit: relates the [b]-th bit of the [lane]-th u64 lane to
+    the corresponding bit of the underlying 256-bit vector.  This is
+    the only "trust" axiom relating [get_lane_u64x4] (defined via the
+    opaque [vec256_as_u64x4]) to the bit-level form.  All six
+    [lemma_mm256_*_u64x4] discharges below derive from this bridge
+    plus the per-bit operator semantics
+    ([get_bit_and]/[get_bit_or]/[get_bit_xor]/[get_bit_cast]) and
+    [Rust_primitives.Integers.lemma_int_t_eq_via_bits]. *)
+val lemma_get_lane_u64x4_bit
+      (vec: bit_vec 256) (lane: nat{lane < 4})
+      (b: Rust_primitives.Integers.usize {Rust_primitives.Integers.v b < 64})
+  : Lemma (Rust_primitives.Integers.get_bit (get_lane_u64x4 vec lane) b
+           == vec (64 * lane + Rust_primitives.Integers.v b))
+        [SMTPat (Rust_primitives.Integers.get_bit (get_lane_u64x4 vec lane) b)]
+"#
+)]
+#[hax_lib::fstar::after(
+    interface,
+    r#"
+val get_lane_u64_post (vec: t_Vec256) (lane: usize{v lane < 4})
+  : Lemma (get_lane_u64 vec lane == get_lane_u64x4 vec (v lane))
+    [SMTPat (get_lane_u64 vec lane)]
+"#
+)]
+#[hax_lib::fstar::after(
+    r#"
+let get_lane_u64_post (vec: t_Vec256) (lane: usize{v lane < 4})
+  : Lemma (get_lane_u64 vec lane == get_lane_u64x4 vec (v lane))
+    [SMTPat (get_lane_u64 vec lane)]
+  = admit ()
+"#
+)]
+pub fn get_lane_u64(vec: Vec256, lane: usize) -> u64 {
+    unimplemented!()
+}
+
+// NOTE (PR2 union): ml-kem-proofs also specs this fn with a bit_vec view
+// (`bit_vec_of_int_t_array output 8 == vector`). hax allows one ensures/fn;
+// kept sha3's u64-lane ensures + byte SMTPat lemma (Keccak-load-bearing).
+#[inline(always)]
+#[hax_lib::requires(output.len() == 32)]
+#[hax_lib::ensures(|()| (future(output).len() == output.len()).to_prop()
+    & hax_lib::forall(|i: usize|
+        if i < 4 {
+            u64::from_le_bytes(future(output)[i*8..i*8+8].try_into().unwrap())
+              == get_lane_u64(vector, i)
+        } else { true }))]
+#[hax_lib::fstar::after(
+    interface,
+    r#"
+val lemma_mm256_storeu_si256_u8_byte (output: t_Slice u8) (vector: t_Vec256) (k: nat)
+  : Lemma
+      (requires
+        Seq.length output == 32 /\ k < 32)
+      (ensures
+        Seq.index (mm256_storeu_si256_u8 output vector <: t_Slice u8) k ==
+        Seq.index
+          (Core_models.Num.impl_u64__to_le_bytes (get_lane_u64 vector (mk_usize (k / 8))))
+          (k % 8))
+"#
+)]
+#[hax_lib::fstar::after(
+    r#"
+let lemma_mm256_storeu_si256_u8_byte (output: t_Slice u8) (vector: t_Vec256) (k: nat)
+  : Lemma
+      (requires
+        Seq.length output == 32 /\ k < 32)
+      (ensures
+        Seq.index (mm256_storeu_si256_u8 output vector <: t_Slice u8) k ==
+        Seq.index
+          (Core_models.Num.impl_u64__to_le_bytes (get_lane_u64 vector (mk_usize (k / 8))))
+          (k % 8))
+  = admit ()
+"#
+)]
 pub fn mm256_storeu_si256_u8(output: &mut [u8], vector: Vec256) {
     debug_assert_eq!(output.len(), 32);
     unimplemented!()
 }
 
-#[hax_lib::ensures(|()| future(output).len() == output.len())]
+#[hax_lib::ensures(|()| fstar!(r#"
+    Core_models.Slice.impl__len #i16 (output_future <: t_Slice i16) ==
+      Core_models.Slice.impl__len #i16 ${output} /\
+    (Core_models.Slice.impl__len #i16 ${output} == mk_usize 16 ==>
+     ((output_future <: t_Slice i16) <: Seq.seq i16) ==
+     (vec256_as_i16x16 ${vector} <: Seq.seq i16))
+"#))]
 #[inline(always)]
 pub fn mm256_storeu_si256_i16(output: &mut [i16], vector: Vec256) {
     debug_assert_eq!(output.len(), 16);
@@ -52,9 +240,27 @@ pub fn mm256_storeu_si256_i32(output: &mut [i32], vector: Vec256) {
     unimplemented!()
 }
 
+// Hardware semantics of MOVDQU (16-byte store): writes the 8 i16 lanes of
+// `vector` to `output[0..8]` and leaves every later element untouched.
+//
+// Anchored to the executable core-models reference
+// `crates/utils/core-models/src/core_arch/x86.rs` (`other::_mm_storeu_si128`:
+// `*output = a`, i.e. exactly the 16 bytes / 8 LSB-first i16 lanes of `a`,
+// via `extra::mm_storeu_bytes_si128`). The lane order / endianness of the
+// transcription is validated against that model by
+// `track_i_axiom_transcription_tests::storeu_si128_lane_formula` in
+// `crates/utils/core-models/src/core_arch/x86/interpretations.rs`.
 #[inline(always)]
 #[hax_lib::requires(output.len() >= 8)]
-#[hax_lib::ensures(|_| future(output).len() == output.len())]
+#[hax_lib::ensures(|_| fstar!(r#"
+    Core_models.Slice.impl__len #i16 (output_future <: t_Slice i16) ==
+      Core_models.Slice.impl__len #i16 ${output} /\
+    (Seq.slice ((output_future <: t_Slice i16) <: Seq.seq i16) 0 8 ==
+       (vec128_as_i16x8 ${vector} <: Seq.seq i16)) /\
+    (forall (i: nat). (8 <= i /\ i < Seq.length (${output} <: Seq.seq i16)) ==>
+       Seq.index ((output_future <: t_Slice i16) <: Seq.seq i16) i ==
+       Seq.index ((${output} <: t_Slice i16) <: Seq.seq i16) i)
+"#))]
 pub fn mm_storeu_si128(output: &mut [i16], vector: Vec128) {
     debug_assert!(output.len() >= 8);
     unimplemented!()
@@ -80,12 +286,24 @@ pub fn mm_loadu_si128(input: &[u8]) -> Vec128 {
     unimplemented!()
 }
 
+// NOTE (PR2 union): ml-kem-proofs also specs this fn with a bit_vec view;
+// kept sha3's u64-lane ensures (hax allows one ensures/fn).
 #[inline(always)]
+#[hax_lib::requires(input.len() == 32)]
+#[hax_lib::ensures(|result| hax_lib::forall(|i: usize|
+    if i < 4 {
+        get_lane_u64(result, i)
+          == u64::from_le_bytes(input[i*8..i*8+8].try_into().unwrap())
+    } else { true }))]
 pub fn mm256_loadu_si256_u8(input: &[u8]) -> Vec256 {
     debug_assert_eq!(input.len(), 32);
     unimplemented!()
 }
 
+#[hax_lib::ensures(|result| fstar!(r#"
+    Core_models.Slice.impl__len #i16 ${input} == mk_usize 16 ==>
+    (vec256_as_i16x16 ${result} <: Seq.seq i16) == (${input} <: Seq.seq i16)
+"#))]
 #[inline(always)]
 pub fn mm256_loadu_si256_i16(input: &[i16]) -> Vec256 {
     debug_assert_eq!(input.len(), 16);
@@ -273,14 +491,34 @@ pub fn mm256_add_epi16(lhs: Vec256, rhs: Vec256) -> Vec256 {
     unimplemented!()
 }
 
+// VPMADDWD.  Keep the BitVec model (`mm256_concat_pairs_n` in serialize.rs is a
+// `fstar::replace(interface, include ...)` whose .fst BODY calls madd and proves
+// its bitvec interface FROM madd's bitvec semantics — so the include must stay).
+// Relocate the lane32 arithmetic fact (proving it from bits is the cliff) to a
+// trusted `admit()` lemma here — the proper B′ home — validated by the core-models
+// `_mm256_madd_epi16` differential test + the `madd_epi16_lane_formula`
+// transcription test in interpretations.rs.  Called explicitly (no SMTPat).
 #[hax_lib::fstar::replace(
     interface,
-    "include BitVec.Intrinsics {mm256_madd_epi16 as ${mm256_madd_epi16}}"
+    r#"
+include BitVec.Intrinsics {mm256_madd_epi16 as ${mm256_madd_epi16}}
+let lemma_madd_epi16_lane32 (lhs rhs: t_Vec256)
+  : Lemma (ensures forall (j: nat). j < 8 ==>
+      lane32 (${mm256_madd_epi16} lhs rhs) j ==
+        (Rust_primitives.Integers.v (get_lane lhs (2*j)) * Rust_primitives.Integers.v (get_lane rhs (2*j)) +
+         Rust_primitives.Integers.v (get_lane lhs (2*j+1)) * Rust_primitives.Integers.v (get_lane rhs (2*j+1)))
+        @% 4294967296)
+    = admit ()
+"#
 )]
 #[inline(always)]
 pub fn mm256_madd_epi16(lhs: Vec256, rhs: Vec256) -> Vec256 {
     unimplemented!()
 }
+// 32-bit lanewise wrapping add.  Trusted axiom — validated by the core-models
+// `_mm256_add_epi32` differential test + the `add_epi32` transcription test.
+#[hax_lib::ensures(|result| fstar!(r#"forall (j: nat). j < 8 ==>
+    lane32 $result j == (lane32 $lhs j + lane32 $rhs j) @% 4294967296"#))]
 #[inline(always)]
 pub fn mm256_add_epi32(lhs: Vec256, rhs: Vec256) -> Vec256 {
     unimplemented!()
@@ -326,8 +564,26 @@ pub fn mm_mullo_epi16(lhs: Vec128, rhs: Vec128) -> Vec128 {
     unimplemented!()
 }
 
+// Hardware semantics of VPCMPGTW: per-lane signed 16-bit compare; when
+// `lhs.lane > rhs.lane` the WHOLE 16-bit lane of the result is set to 0xFFFF
+// (every bit 1), otherwise the whole lane is 0. Stated bit-level: bit i of the
+// result is 1 iff the compare of lane i/16 is true.
+//
+// Anchored to the executable core-models reference
+// `crates/utils/core-models/src/core_arch/x86/interpretations.rs`
+// (`int_vec::_mm256_cmpgt_epi16`: `i16x16::from_fn(|i| if a[i] > b[i] { -1 } else { 0 })`),
+// itself hardware-validated by the `mk!(_mm256_cmpgt_epi16 ...)` differential test
+// in that file. The bit-level transcription below is validated against that model
+// by `track_i_axiom_transcription_tests::cmpgt_epi16_bit_level_formula` (same file).
+//
+// (The previous axiom here — `forall i. i % 16 >= 1 ==> result i == 0` — claimed
+// bits 1..15 of every lane are always 0, which is FALSE on hardware for true
+// lanes; it was tailored to feed serialize_1's former requires and was unsound.)
 #[inline(always)]
-#[hax_lib::ensures(|result| fstar!(r#"forall i. i % 16 >= 1 ==> result i == 0"#))]
+#[hax_lib::ensures(|result| fstar!(r#"forall (i: nat{i < 256}).
+    $result i ==
+    (if Seq.index (vec256_as_i16x16 $lhs) (i / 16) >. Seq.index (vec256_as_i16x16 $rhs) (i / 16)
+     then 1 else 0)"#))]
 pub fn mm256_cmpgt_epi16(lhs: Vec256, rhs: Vec256) -> Vec256 {
     unimplemented!()
 }
@@ -362,6 +618,12 @@ pub fn mm_mulhi_epi16(lhs: Vec128, rhs: Vec128) -> Vec128 {
     unimplemented!()
 }
 
+// 32-bit lanewise wrapping (low-32) multiply.  Trusted axiom — validated by the
+// core-models `_mm256_mullo_epi32` differential test + the `mullo_epi32`
+// transcription test.
+#[hax_lib::ensures(|result| fstar!(r#"forall (j: nat). j < 8 ==>
+    lane32 $result j == (lane32 $lhs j * lane32 $rhs j) @% 4294967296"#))]
+#[inline(always)]
 pub fn mm256_mullo_epi32(lhs: Vec256, rhs: Vec256) -> Vec256 {
     unimplemented!()
 }
@@ -397,6 +659,24 @@ pub fn mm256_and_si256(lhs: Vec256, rhs: Vec256) -> Vec256 {
     unimplemented!()
 }
 
+#[hax_lib::fstar::replace(
+    interface,
+    r#"
+include BitVec.Intrinsics {mm256_or_si256 as mm256_or_si256}
+let lemma_mm256_or_si256_u64x4 (a b: t_Vec256)
+  : Lemma (forall (i: nat{i < 4}).
+             get_lane_u64x4 (mm256_or_si256 a b) i ==
+             (get_lane_u64x4 a i |. get_lane_u64x4 b i))
+        [SMTPat (mm256_or_si256 a b)]
+  = let aux (i: nat{i < 4})
+      : Lemma (get_lane_u64x4 (mm256_or_si256 a b) i ==
+               (get_lane_u64x4 a i |. get_lane_u64x4 b i)) =
+      Rust_primitives.Integers.lemma_int_t_eq_via_bits
+        (get_lane_u64x4 (mm256_or_si256 a b) i)
+        (get_lane_u64x4 a i |. get_lane_u64x4 b i)
+    in FStar.Classical.forall_intro aux
+"#
+)]
 #[inline(always)]
 pub fn mm256_or_si256(a: Vec256, b: Vec256) -> Vec256 {
     unimplemented!()
@@ -406,6 +686,39 @@ pub fn mm256_testz_si256(lhs: Vec256, rhs: Vec256) -> i32 {
     unimplemented!()
 }
 
+#[hax_lib::fstar::replace(
+    interface,
+    r#"
+include BitVec.Intrinsics {mm256_xor_si256 as mm256_xor_si256}
+let lemma_mm256_xor_si256_u64x4 (lhs rhs: t_Vec256)
+  : Lemma (forall (i: nat{i < 4}).
+             get_lane_u64x4 (mm256_xor_si256 lhs rhs) i ==
+             (get_lane_u64x4 lhs i ^. get_lane_u64x4 rhs i))
+        [SMTPat (mm256_xor_si256 lhs rhs)]
+  = let aux (i: nat{i < 4})
+      : Lemma (get_lane_u64x4 (mm256_xor_si256 lhs rhs) i ==
+               (get_lane_u64x4 lhs i ^. get_lane_u64x4 rhs i)) =
+      Rust_primitives.Integers.lemma_int_t_eq_via_bits
+        (get_lane_u64x4 (mm256_xor_si256 lhs rhs) i)
+        (get_lane_u64x4 lhs i ^. get_lane_u64x4 rhs i)
+    in FStar.Classical.forall_intro aux
+
+(* ml-kem i16-view characterization (called explicitly by
+   Libcrux_ml_kem.Vector.Avx2.Compress). Restored here so the union is a
+   faithful superset of ml-kem's verified Avx2_extract interface: ml-kem
+   declared this as an assumed `val` trust axiom (over its then-abstract
+   mm256_xor_si256); here mm256_xor_si256 is BitVec.Intrinsics' concrete
+   bitwise xor, for which `vec256_as_i16x16 (xor) == map2 (^.) ...` holds, so
+   the axiom is no less sound. Coexists with the u64x4 lemma above: the two
+   describe disjoint lane views (i16 vs u64) of the same value; sha3 never
+   takes the i16-view, so this SMTPat never fires in sha3 proofs. *)
+val lemma_mm256_xor_si256 (lhs rhs: t_Vec256)
+  : Lemma (   vec256_as_i16x16 (mm256_xor_si256 lhs rhs)
+           == Spec.Utils.map2 (^.) (vec256_as_i16x16 lhs) (vec256_as_i16x16 rhs)
+          )
+          [SMTPat (vec256_as_i16x16 (mm256_xor_si256 lhs rhs))]
+"#
+)]
 pub fn mm256_xor_si256(lhs: Vec256, rhs: Vec256) -> Vec256 {
     unimplemented!()
 }
@@ -422,9 +735,23 @@ pub fn mm256_srai_epi32<const SHIFT_BY: i32>(vector: Vec256) -> Vec256 {
     unimplemented!()
 }
 
+// ml-kem i16-view characterization (called explicitly by
+// Libcrux_ml_kem.Vector.Avx2.Compress, e.g. `lemma_mm256_srli_epi16_15`).
+// Restored alongside the BitVec.Intrinsics include so the union is a faithful
+// superset of ml-kem's verified interface; assumed `val` matching ml-kem's
+// trust footprint. sha3 never uses srli_epi16's i16-view.
 #[hax_lib::fstar::replace(
     interface,
-    "include BitVec.Intrinsics {mm256_srli_epi16 as ${mm256_srli_epi16::<0>}}"
+    r#"
+include BitVec.Intrinsics {mm256_srli_epi16 as ${mm256_srli_epi16::<0>}}
+val lemma_mm256_srli_epi16 (v_SHIFT_BY: i32 {v v_SHIFT_BY >= 0 /\ v v_SHIFT_BY < 16}) (vector: t_Vec256)
+  : Lemma (   vec256_as_i16x16 (${mm256_srli_epi16::<0>} v_SHIFT_BY vector)
+           == Spec.Utils.map_array (fun (x:i16) ->
+                  cast ((cast x <: u16) >>! v_SHIFT_BY) <: i16)
+                (vec256_as_i16x16 vector)
+          )
+          [SMTPat (vec256_as_i16x16 (${mm256_srli_epi16::<0>} v_SHIFT_BY vector))]
+"#
 )]
 pub fn mm256_srli_epi16<const SHIFT_BY: i32>(vector: Vec256) -> Vec256 {
     debug_assert!(SHIFT_BY >= 0 && SHIFT_BY < 16);
@@ -442,7 +769,24 @@ pub fn mm_srli_epi64<const SHIFT_BY: i32>(vector: Vec128) -> Vec128 {
 
 #[hax_lib::fstar::replace(
     interface,
-    "include BitVec.Intrinsics {mm256_srli_epi64 as ${mm256_srli_epi64::<0>}}"
+    r#"
+include BitVec.Intrinsics {mm256_srli_epi64 as ${mm256_srli_epi64::<0>}}
+let lemma_mm256_srli_epi64_u64x4 (v_SHIFT_BY: i32) (vector: t_Vec256)
+  : Lemma
+      (requires v v_SHIFT_BY >= 0 /\ v v_SHIFT_BY < 64)
+      (ensures
+        forall (i: nat{i < 4}).
+          get_lane_u64x4 (mm256_srli_epi64 v_SHIFT_BY vector) i ==
+          (get_lane_u64x4 vector i >>! v_SHIFT_BY))
+        [SMTPat (mm256_srli_epi64 v_SHIFT_BY vector)]
+  = let aux (i: nat{i < 4})
+      : Lemma (get_lane_u64x4 (mm256_srli_epi64 v_SHIFT_BY vector) i ==
+               (get_lane_u64x4 vector i >>! v_SHIFT_BY)) =
+      Rust_primitives.Integers.lemma_int_t_eq_via_bits
+        (get_lane_u64x4 (mm256_srli_epi64 v_SHIFT_BY vector) i)
+        (get_lane_u64x4 vector i >>! v_SHIFT_BY)
+    in FStar.Classical.forall_intro aux
+"#
 )]
 pub fn mm256_srli_epi64<const SHIFT_BY: i32>(vector: Vec256) -> Vec256 {
     debug_assert!(SHIFT_BY >= 0 && SHIFT_BY < 64);
@@ -458,6 +802,12 @@ pub fn mm256_slli_epi16<const SHIFT_BY: i32>(vector: Vec256) -> Vec256 {
     unimplemented!()
 }
 
+// 32-bit lanewise logical left shift.  For the only shift used by ml-kem
+// (16), each 32-bit lane << 16 maps i16 lane 2j -> 0 and 2j+1 -> old lane 2j.
+// Trusted axiom — validated by the core-models `_mm256_slli_epi32` differential
+// test + the `slli_epi32` transcription test in interpretations.rs.
+#[hax_lib::ensures(|result| fstar!(r#"(v ${SHIFT_BY} == 16) ==> (forall (k: nat). {:pattern (get_lane $result k)} k < 16 ==>
+    get_lane $result k == (if k % 2 = 0 then mk_i16 0 else get_lane $vector (k - 1)))"#))]
 pub fn mm256_slli_epi32<const SHIFT_BY: i32>(vector: Vec256) -> Vec256 {
     debug_assert!(SHIFT_BY >= 0 && SHIFT_BY < 32);
     unimplemented!()
@@ -471,16 +821,44 @@ pub fn mm_shuffle_epi8(vector: Vec128, control: Vec128) -> Vec128 {
 pub fn mm256_shuffle_epi8(vector: Vec256, control: Vec256) -> Vec256 {
     unimplemented!()
 }
+// 32-bit lanewise shuffle within each 128-bit half.  Trusted axiom — validated
+// by the core-models `_mm256_shuffle_epi32` differential test + the
+// `shuffle_epi32` transcription test in interpretations.rs.
+#[hax_lib::ensures(|result| fstar!(r#"forall (k: nat). {:pattern (get_lane $result k)} k < 16 ==>
+    get_lane $result k == get_lane $vector (2 * shuffle32_src ${CONTROL} (k / 2) + k % 2)"#))]
 pub fn mm256_shuffle_epi32<const CONTROL: i32>(vector: Vec256) -> Vec256 {
     debug_assert!(CONTROL >= 0 && CONTROL < 256);
     unimplemented!()
 }
 
+// 64-bit qword permute across the whole 256-bit vector.  Trusted axiom —
+// validated by the core-models `_mm256_permute4x64_epi64` differential test +
+// the `permute4x64_epi64` transcription test in interpretations.rs.
+#[hax_lib::ensures(|result| fstar!(r#"forall (k: nat). {:pattern (get_lane $result k)} k < 16 ==>
+    get_lane $result k == get_lane $vector (4 * permute64_src ${CONTROL} (k / 4) + k % 4)"#))]
 pub fn mm256_permute4x64_epi64<const CONTROL: i32>(vector: Vec256) -> Vec256 {
     debug_assert!(CONTROL >= 0 && CONTROL < 256);
     unimplemented!()
 }
 
+#[hax_lib::fstar::replace(
+    interface,
+    r#"
+include BitVec.Intrinsics {mm256_unpackhi_epi64 as mm256_unpackhi_epi64}
+let lemma_mm256_unpackhi_epi64_u64x4 (lhs rhs: t_Vec256)
+  : Lemma (
+      get_lane_u64x4 (mm256_unpackhi_epi64 lhs rhs) 0 == get_lane_u64x4 lhs 1 /\
+      get_lane_u64x4 (mm256_unpackhi_epi64 lhs rhs) 1 == get_lane_u64x4 rhs 1 /\
+      get_lane_u64x4 (mm256_unpackhi_epi64 lhs rhs) 2 == get_lane_u64x4 lhs 3 /\
+      get_lane_u64x4 (mm256_unpackhi_epi64 lhs rhs) 3 == get_lane_u64x4 rhs 3)
+    [SMTPat (mm256_unpackhi_epi64 lhs rhs)]
+  = let r = mm256_unpackhi_epi64 lhs rhs in
+    Rust_primitives.Integers.lemma_int_t_eq_via_bits (get_lane_u64x4 r 0) (get_lane_u64x4 lhs 1);
+    Rust_primitives.Integers.lemma_int_t_eq_via_bits (get_lane_u64x4 r 1) (get_lane_u64x4 rhs 1);
+    Rust_primitives.Integers.lemma_int_t_eq_via_bits (get_lane_u64x4 r 2) (get_lane_u64x4 lhs 3);
+    Rust_primitives.Integers.lemma_int_t_eq_via_bits (get_lane_u64x4 r 3) (get_lane_u64x4 rhs 3)
+"#
+)]
 pub fn mm256_unpackhi_epi64(lhs: Vec256, rhs: Vec256) -> Vec256 {
     unimplemented!()
 }
@@ -500,10 +878,26 @@ pub fn mm256_unpackhi_epi32(lhs: Vec256, rhs: Vec256) -> Vec256 {
 pub fn mm256_castsi256_si128(vector: Vec256) -> Vec128 {
     unimplemented!()
 }
+// Casts a 128-bit vector to 256 bits: the low 128 bits are `vector`, the high
+// 128 bits are undefined.  Stated only on the (defined) low 8 i16 lanes.
+// Trusted axiom — validated by the core-models `_mm256_castsi128_si256`
+// differential test + the `castsi128_si256` transcription test.
+#[hax_lib::ensures(|result| fstar!(r#"forall (k: nat). {:pattern (get_lane $result k)} k < 8 ==>
+    get_lane $result k == get_lane128 $vector k"#))]
 pub fn mm256_castsi128_si256(vector: Vec128) -> Vec256 {
     unimplemented!()
 }
 
+// Sign-extends each of the 8 low i16 lanes of `vector` to an i32 lane of the
+// result.  Stated on the i16 (vec256_as_i16x16) view of the result: the even
+// i16 lane (2j) is the original i16, and the odd i16 lane (2j+1) is the sign
+// fill (0xffff = mk_i16 (-1) when negative, else 0).  Trusted axiom — validated
+// by the core-models `_mm256_cvtepi16_epi32` differential test + the
+// `cvtepi16_epi32` transcription test in interpretations.rs.
+#[hax_lib::ensures(|result| fstar!(r#"forall (j: nat). j < 8 ==>
+    get_lane $result (2 * j) == get_lane128 $vector j /\
+    get_lane $result (2 * j + 1) ==
+      (if v (get_lane128 $vector j) < 0 then mk_i16 (-1) else mk_i16 0)"#))]
 pub fn mm256_cvtepi16_epi32(vector: Vec128) -> Vec256 {
     unimplemented!()
 }
@@ -528,12 +922,26 @@ pub fn mm256_extracti128_si256<const CONTROL: i32>(vector: Vec256) -> Vec128 {
     unimplemented!()
 }
 
+// Inserts a 128-bit vector into a copy of `vector` at the half selected by the
+// low bit of CONTROL (1 -> high half, 0 -> low half); the other half is kept.
+// Trusted axiom — validated by the core-models `_mm256_inserti128_si256`
+// differential test + the `inserti128_si256` transcription test.
+#[hax_lib::ensures(|result| fstar!(r#"forall (k: nat). {:pattern (get_lane $result k)} k < 16 ==>
+    get_lane $result k ==
+      (if (v ${CONTROL}) % 2 = 1
+       then (if k < 8 then get_lane $vector k else get_lane128 $vector_i128 (k - 8))
+       else (if k < 8 then get_lane128 $vector_i128 k else get_lane $vector k))"#))]
 pub fn mm256_inserti128_si256<const CONTROL: i32>(vector: Vec256, vector_i128: Vec128) -> Vec256 {
     debug_assert!(CONTROL == 0 || CONTROL == 1);
     unimplemented!()
 }
 
+// Per i16-lane blend of `lhs`/`rhs` selected by the control byte.  Trusted
+// axiom — validated by the core-models `_mm256_blend_epi16` differential test +
+// the `blend_epi16` transcription test in interpretations.rs.
 #[inline(always)]
+#[hax_lib::ensures(|result| fstar!(r#"forall (k: nat). {:pattern (get_lane $result k)} k < 16 ==>
+    get_lane $result k == (if blend_sel ${CONTROL} k then get_lane $rhs k else get_lane $lhs k)"#))]
 pub fn mm256_blend_epi16<const CONTROL: i32>(lhs: Vec256, rhs: Vec256) -> Vec256 {
     debug_assert!(CONTROL >= 0 && CONTROL < 256);
     unimplemented!()
@@ -587,6 +995,28 @@ pub fn mm256_sllv_epi32(vector: Vec256, counts: Vec256) -> Vec256 {
     unimplemented!()
 }
 
+#[hax_lib::fstar::replace(
+    interface,
+    r#"
+include BitVec.Intrinsics {mm256_slli_epi64 as ${mm256_slli_epi64::<0>}}
+let lemma_mm256_slli_epi64_u64x4 (v_LEFT: i32) (x: t_Vec256)
+  : Lemma
+      (requires v v_LEFT >= 0 /\ v v_LEFT < 64)
+      (ensures
+        forall (i: nat{i < 4}).
+          get_lane_u64x4 (mm256_slli_epi64 v_LEFT x) i ==
+          (get_lane_u64x4 x i <<! v_LEFT))
+        [SMTPat (mm256_slli_epi64 v_LEFT x)]
+  = let aux (i: nat{i < 4})
+      : Lemma (get_lane_u64x4 (mm256_slli_epi64 v_LEFT x) i ==
+               (get_lane_u64x4 x i <<! v_LEFT)) =
+      Rust_primitives.Integers.lemma_int_t_eq_via_bits
+        (get_lane_u64x4 (mm256_slli_epi64 v_LEFT x) i)
+        (get_lane_u64x4 x i <<! v_LEFT)
+    in FStar.Classical.forall_intro aux
+"#
+)]
+#[hax_lib::requires(LEFT >= 0 && LEFT <= 64)]
 #[inline(always)]
 pub fn mm256_slli_epi64<const LEFT: i32>(x: Vec256) -> Vec256 {
     unimplemented!()
@@ -598,25 +1028,134 @@ pub fn mm256_bsrli_epi128<const SHIFT_BY: i32>(x: Vec256) -> Vec256 {
     unimplemented!()
 }
 
+#[hax_lib::fstar::replace(
+    interface,
+    r#"
+include BitVec.Intrinsics {mm256_andnot_si256 as mm256_andnot_si256}
+let lemma_mm256_andnot_si256_u64x4 (a b: t_Vec256)
+  : Lemma (forall (i: nat{i < 4}).
+             get_lane_u64x4 (mm256_andnot_si256 a b) i ==
+             (get_lane_u64x4 b i &. (~. (get_lane_u64x4 a i))))
+        [SMTPat (mm256_andnot_si256 a b)]
+  = let aux (i: nat{i < 4})
+      : Lemma (get_lane_u64x4 (mm256_andnot_si256 a b) i ==
+               (get_lane_u64x4 b i &. (~. (get_lane_u64x4 a i)))) =
+      Rust_primitives.Integers.lemma_int_t_eq_via_bits
+        (get_lane_u64x4 (mm256_andnot_si256 a b) i)
+        (get_lane_u64x4 b i &. (~. (get_lane_u64x4 a i)))
+    in FStar.Classical.forall_intro aux
+"#
+)]
 #[inline(always)]
 pub fn mm256_andnot_si256(a: Vec256, b: Vec256) -> Vec256 {
     unimplemented!()
 }
 
+#[hax_lib::fstar::replace(
+    interface,
+    r#"
+include BitVec.Intrinsics {mm256_set1_epi64x as mm256_set1_epi64x}
+let lemma_mm256_set1_epi64x_u64x4 (a: i64)
+  : Lemma (forall (i: nat{i < 4}).
+             get_lane_u64x4 (mm256_set1_epi64x a) i == (cast_mod #i64_inttype #u64_inttype a))
+        [SMTPat (mm256_set1_epi64x a)]
+  = let aux (i: nat{i < 4})
+      : Lemma (get_lane_u64x4 (mm256_set1_epi64x a) i ==
+               (cast_mod #i64_inttype #u64_inttype a)) =
+      Rust_primitives.Integers.lemma_int_t_eq_via_bits
+        (get_lane_u64x4 (mm256_set1_epi64x a) i)
+        (cast_mod #i64_inttype #u64_inttype a)
+    in FStar.Classical.forall_intro aux
+"#
+)]
 #[inline(always)]
 pub fn mm256_set1_epi64x(a: i64) -> Vec256 {
     unimplemented!()
 }
+#[hax_lib::fstar::replace(
+    interface,
+    r#"
+include BitVec.Intrinsics {mm256_set_epi64x as mm256_set_epi64x}
+let lemma_mm256_set_epi64x_u64x4 (input3 input2 input1 input0: i64)
+  : Lemma (
+      get_lane_u64x4 (mm256_set_epi64x input3 input2 input1 input0) 0 == cast_mod #i64_inttype #u64_inttype input0 /\
+      get_lane_u64x4 (mm256_set_epi64x input3 input2 input1 input0) 1 == cast_mod #i64_inttype #u64_inttype input1 /\
+      get_lane_u64x4 (mm256_set_epi64x input3 input2 input1 input0) 2 == cast_mod #i64_inttype #u64_inttype input2 /\
+      get_lane_u64x4 (mm256_set_epi64x input3 input2 input1 input0) 3 == cast_mod #i64_inttype #u64_inttype input3)
+    [SMTPat (mm256_set_epi64x input3 input2 input1 input0)]
+  = let r = mm256_set_epi64x input3 input2 input1 input0 in
+    Rust_primitives.Integers.lemma_int_t_eq_via_bits
+      (get_lane_u64x4 r 0) (cast_mod #i64_inttype #u64_inttype input0);
+    Rust_primitives.Integers.lemma_int_t_eq_via_bits
+      (get_lane_u64x4 r 1) (cast_mod #i64_inttype #u64_inttype input1);
+    Rust_primitives.Integers.lemma_int_t_eq_via_bits
+      (get_lane_u64x4 r 2) (cast_mod #i64_inttype #u64_inttype input2);
+    Rust_primitives.Integers.lemma_int_t_eq_via_bits
+      (get_lane_u64x4 r 3) (cast_mod #i64_inttype #u64_inttype input3)
+"#
+)]
 #[inline(always)]
 pub fn mm256_set_epi64x(input3: i64, input2: i64, input1: i64, input0: i64) -> Vec256 {
     unimplemented!()
 }
 
+#[hax_lib::fstar::replace(
+    interface,
+    r#"
+include BitVec.Intrinsics {mm256_unpacklo_epi64 as mm256_unpacklo_epi64}
+let lemma_mm256_unpacklo_epi64_u64x4 (a b: t_Vec256)
+  : Lemma (
+      get_lane_u64x4 (mm256_unpacklo_epi64 a b) 0 == get_lane_u64x4 a 0 /\
+      get_lane_u64x4 (mm256_unpacklo_epi64 a b) 1 == get_lane_u64x4 b 0 /\
+      get_lane_u64x4 (mm256_unpacklo_epi64 a b) 2 == get_lane_u64x4 a 2 /\
+      get_lane_u64x4 (mm256_unpacklo_epi64 a b) 3 == get_lane_u64x4 b 2)
+    [SMTPat (mm256_unpacklo_epi64 a b)]
+  = let r = mm256_unpacklo_epi64 a b in
+    Rust_primitives.Integers.lemma_int_t_eq_via_bits (get_lane_u64x4 r 0) (get_lane_u64x4 a 0);
+    Rust_primitives.Integers.lemma_int_t_eq_via_bits (get_lane_u64x4 r 1) (get_lane_u64x4 b 0);
+    Rust_primitives.Integers.lemma_int_t_eq_via_bits (get_lane_u64x4 r 2) (get_lane_u64x4 a 2);
+    Rust_primitives.Integers.lemma_int_t_eq_via_bits (get_lane_u64x4 r 3) (get_lane_u64x4 b 2)
+"#
+)]
 #[inline(always)]
 pub fn mm256_unpacklo_epi64(a: Vec256, b: Vec256) -> Vec256 {
     unimplemented!()
 }
 
+#[hax_lib::requires(IMM8 == 0x20 || IMM8 == 0x31)]
+#[hax_lib::fstar::replace(
+    interface,
+    r#"
+include BitVec.Intrinsics {mm256_permute2x128_si256 as ${mm256_permute2x128_si256::<0>}}
+let lemma_mm256_permute2x128_si256_u64x4 (v_IMM8: i32) (a b: t_Vec256)
+  : Lemma
+      (requires v v_IMM8 == 0x20 \/ v v_IMM8 == 0x31)
+      (ensures
+        (v v_IMM8 == 0x20 ==>
+          get_lane_u64x4 (mm256_permute2x128_si256 v_IMM8 a b) 0 == get_lane_u64x4 a 0 /\
+          get_lane_u64x4 (mm256_permute2x128_si256 v_IMM8 a b) 1 == get_lane_u64x4 a 1 /\
+          get_lane_u64x4 (mm256_permute2x128_si256 v_IMM8 a b) 2 == get_lane_u64x4 b 0 /\
+          get_lane_u64x4 (mm256_permute2x128_si256 v_IMM8 a b) 3 == get_lane_u64x4 b 1) /\
+        (v v_IMM8 == 0x31 ==>
+          get_lane_u64x4 (mm256_permute2x128_si256 v_IMM8 a b) 0 == get_lane_u64x4 a 2 /\
+          get_lane_u64x4 (mm256_permute2x128_si256 v_IMM8 a b) 1 == get_lane_u64x4 a 3 /\
+          get_lane_u64x4 (mm256_permute2x128_si256 v_IMM8 a b) 2 == get_lane_u64x4 b 2 /\
+          get_lane_u64x4 (mm256_permute2x128_si256 v_IMM8 a b) 3 == get_lane_u64x4 b 3))
+    [SMTPat (mm256_permute2x128_si256 v_IMM8 a b)]
+  = let r = mm256_permute2x128_si256 v_IMM8 a b in
+    if v v_IMM8 = 0x20 then begin
+      Rust_primitives.Integers.lemma_int_t_eq_via_bits (get_lane_u64x4 r 0) (get_lane_u64x4 a 0);
+      Rust_primitives.Integers.lemma_int_t_eq_via_bits (get_lane_u64x4 r 1) (get_lane_u64x4 a 1);
+      Rust_primitives.Integers.lemma_int_t_eq_via_bits (get_lane_u64x4 r 2) (get_lane_u64x4 b 0);
+      Rust_primitives.Integers.lemma_int_t_eq_via_bits (get_lane_u64x4 r 3) (get_lane_u64x4 b 1)
+    end else begin
+      Rust_primitives.Integers.lemma_int_t_eq_via_bits (get_lane_u64x4 r 0) (get_lane_u64x4 a 2);
+      Rust_primitives.Integers.lemma_int_t_eq_via_bits (get_lane_u64x4 r 1) (get_lane_u64x4 a 3);
+      Rust_primitives.Integers.lemma_int_t_eq_via_bits (get_lane_u64x4 r 2) (get_lane_u64x4 b 2);
+      Rust_primitives.Integers.lemma_int_t_eq_via_bits (get_lane_u64x4 r 3) (get_lane_u64x4 b 3)
+    end
+"#
+)]
 #[inline(always)]
 pub fn mm256_permute2x128_si256<const IMM8: i32>(a: Vec256, b: Vec256) -> Vec256 {
     unimplemented!()
