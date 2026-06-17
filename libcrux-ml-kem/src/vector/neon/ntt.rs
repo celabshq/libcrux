@@ -1195,9 +1195,86 @@ let lemma_nttmul_montval_snd
       v (Seq.index iv_l 14) * v (Seq.index iv_r 15) + v (Seq.index iv_l 15) * v (Seq.index iv_r 14))
   = admit ()
 
-(* OUTPUT ASSEMBLY (admit; trn(fst,snd) -> trn_s32 -> vqtbl1q_u8 permute).
-   res.f_low (low2) / res.f_high (high2) lanes in terms of fst/snd lanes. *)
-let lemma_nttmul_out (low2 high2 fst snd: NI.t_e_int16x8_t) : Lemma
+(* u8<->s16 byte round-trip: reassembling an i16 from its two little-endian
+   bytes recovers it.  Reduce to the u16 reassembly w == (cast_mod x : u16), then
+   cast_identity_lemma (SMTPat) gives cast_mod #u16 #i16 w == x.  The u16 reassembly
+   is bit-level via get_bit_* SMTPats, bridging the u8->u16 widening `cast` to
+   `cast_mod` (small_mod) so those SMTPats fire (mirror lemma_i16_bits_as_u32_bit). *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 200"
+let lemma_u8x2_i16_byte (x: i16) : Lemma
+  (ensures NI.u8x2_as_i16 (NI.i16_byte x 0) (NI.i16_byte x 1) == x)
+  = let b0 = NI.i16_byte x 0 in
+    let b1 = NI.i16_byte x 1 in
+    let ux:u16 = Rust_primitives.Integers.cast_mod #Rust_primitives.Integers.i16_inttype
+                   #Rust_primitives.Integers.u16_inttype x in
+    FStar.Math.Lemmas.small_mod (v b0) (pow2 16);
+    FStar.Math.Lemmas.small_mod (v b1) (pow2 16);
+    assert (Rust_primitives.Integers.cast #Rust_primitives.Integers.u8_inttype
+              #Rust_primitives.Integers.u16_inttype b0 ==
+            Rust_primitives.Integers.cast_mod #Rust_primitives.Integers.u8_inttype
+              #Rust_primitives.Integers.u16_inttype b0);
+    assert (Rust_primitives.Integers.cast #Rust_primitives.Integers.u8_inttype
+              #Rust_primitives.Integers.u16_inttype b1 ==
+            Rust_primitives.Integers.cast_mod #Rust_primitives.Integers.u8_inttype
+              #Rust_primitives.Integers.u16_inttype b1);
+    let w = NI.u8x2_as_u16 b0 b1 in
+    let aux (i: usize {v i < 16}) : Lemma (get_bit w i == get_bit ux i) = () in
+    Classical.forall_intro aux;
+    Rust_primitives.Integers.lemma_int_t_eq_via_bits w ux
+#pop-options
+
+(* One output lane of the vqtbl1q deinterleave, proven in CLEAN context (the byte
+   bit-reasoning stays here, off the main lemma's WP).  res = s16<-u8 reinterpret of
+   the table-lookup of the u8<-s16 reinterpret of src; if index pair (2i,2i+1) selects
+   bytes (2p,2p+1) then res lane i == src lane p (byte round-trip). *)
+#push-options "--fuel 0 --ifuel 0 --z3rlimit 100 --split_queries always --z3refresh"
+let lemma_out_u8lane
+    (src res: NI.t_e_int16x8_t) (index: NI.t_e_uint8x16_t) (i: nat{i < 8}) (p: nat{p < 8}) : Lemma
+  (requires
+    res == NI.e_vreinterpretq_s16_u8 (NI.e_vqtbl1q_u8 (NI.e_vreinterpretq_u8_s16 src) index) /\
+    v (NI.get_lane_u8x16 index (2*i))   == 2*p /\
+    v (NI.get_lane_u8x16 index (2*i+1)) == 2*p+1)
+  (ensures NI.get_lane_i16x8 res i == NI.get_lane_i16x8 src p)
+  = let su8 = NI.e_vreinterpretq_u8_s16 src in
+    let pu8 = NI.e_vqtbl1q_u8 su8 index in
+    let rc  = NI.e_vreinterpretq_s16_u8 pu8 in
+    (* div/mod facts so the u8<-s16 forall (i16_byte (a (k/2)) (k%2)) reduces at k=2p,2p+1 *)
+    FStar.Math.Lemmas.cancel_mul_div p 2;
+    FStar.Math.Lemmas.cancel_mul_mod p 2;
+    assert ((2*p)/2 == p /\ (2*p)%2 == 0);
+    assert ((2*p+1)/2 == p /\ (2*p+1)%2 == 1);
+    assert (NI.get_lane_u8x16 su8 (2*p)   == NI.i16_byte (NI.get_lane_i16x8 src p) 0);
+    assert (NI.get_lane_u8x16 su8 (2*p+1) == NI.i16_byte (NI.get_lane_i16x8 src p) 1);
+    assert (NI.get_lane_u8x16 pu8 (2*i)   == NI.get_lane_u8x16 su8 (2*p));
+    assert (NI.get_lane_u8x16 pu8 (2*i+1) == NI.get_lane_u8x16 su8 (2*p+1));
+    assert (NI.get_lane_i16x8 rc i ==
+              NI.u8x2_as_i16 (NI.get_lane_u8x16 pu8 (2*i)) (NI.get_lane_u8x16 pu8 (2*i+1)));
+    lemma_u8x2_i16_byte (NI.get_lane_i16x8 src p)
+#pop-options
+
+(* OUTPUT ASSEMBLY (trn(fst,snd) -> trn_s32 -> vqtbl1q_u8 permute).
+   res.f_low (low2) / res.f_high (high2) lanes in terms of fst/snd lanes,
+   composed from the proven trn-s32 lemmas + lemma_out_u8lane. *)
+#push-options "--z3rlimit 300 --split_queries always --z3refresh"
+let lemma_nttmul_out
+    (fst snd low1 high1 low2 high2: NI.t_e_int16x8_t)
+    (low0 high0: NI.t_e_int32x4_t)
+    (index: NI.t_e_uint8x16_t) : Lemma
+  (requires
+    low0 == NI.e_vreinterpretq_s32_s16 (NI.e_vtrn1q_s16 fst snd) /\
+    high0 == NI.e_vreinterpretq_s32_s16 (NI.e_vtrn2q_s16 fst snd) /\
+    low1 == NI.e_vreinterpretq_s16_s32 (NI.e_vtrn1q_s32 low0 high0) /\
+    high1 == NI.e_vreinterpretq_s16_s32 (NI.e_vtrn2q_s32 low0 high0) /\
+    low2 == NI.e_vreinterpretq_s16_u8 (NI.e_vqtbl1q_u8 (NI.e_vreinterpretq_u8_s16 low1) index) /\
+    high2 == NI.e_vreinterpretq_s16_u8 (NI.e_vqtbl1q_u8 (NI.e_vreinterpretq_u8_s16 high1) index) /\
+    v (NI.get_lane_u8x16 index 0)  == 0  /\ v (NI.get_lane_u8x16 index 1)  == 1  /\
+    v (NI.get_lane_u8x16 index 2)  == 2  /\ v (NI.get_lane_u8x16 index 3)  == 3  /\
+    v (NI.get_lane_u8x16 index 4)  == 8  /\ v (NI.get_lane_u8x16 index 5)  == 9  /\
+    v (NI.get_lane_u8x16 index 6)  == 10 /\ v (NI.get_lane_u8x16 index 7)  == 11 /\
+    v (NI.get_lane_u8x16 index 8)  == 4  /\ v (NI.get_lane_u8x16 index 9)  == 5  /\
+    v (NI.get_lane_u8x16 index 10) == 6  /\ v (NI.get_lane_u8x16 index 11) == 7  /\
+    v (NI.get_lane_u8x16 index 12) == 12 /\ v (NI.get_lane_u8x16 index 13) == 13 /\
+    v (NI.get_lane_u8x16 index 14) == 14 /\ v (NI.get_lane_u8x16 index 15) == 15)
   (ensures
     NI.get_lane_i16x8 low2 0 == NI.get_lane_i16x8 fst 0 /\
     NI.get_lane_i16x8 low2 1 == NI.get_lane_i16x8 snd 0 /\
@@ -1215,7 +1292,26 @@ let lemma_nttmul_out (low2 high2 fst snd: NI.t_e_int16x8_t) : Lemma
     NI.get_lane_i16x8 high2 5 == NI.get_lane_i16x8 snd 3 /\
     NI.get_lane_i16x8 high2 6 == NI.get_lane_i16x8 fst 7 /\
     NI.get_lane_i16x8 high2 7 == NI.get_lane_i16x8 snd 7)
-  = admit ()
+  = let t1 = NI.e_vtrn1q_s16 fst snd in
+    let t2 = NI.e_vtrn2q_s16 fst snd in
+    lemma_trn1_s32_reinterpret t1 t2;
+    lemma_trn2_s32_reinterpret t1 t2;
+    let it1 (i: nat{i < 4}) : Lemma
+      (NI.get_lane_i16x8 t1 (2*i)   == NI.get_lane_i16x8 fst (2*i) /\
+       NI.get_lane_i16x8 t1 (2*i+1) == NI.get_lane_i16x8 snd (2*i)) = () in
+    let it2 (i: nat{i < 4}) : Lemma
+      (NI.get_lane_i16x8 t2 (2*i)   == NI.get_lane_i16x8 fst (2*i+1) /\
+       NI.get_lane_i16x8 t2 (2*i+1) == NI.get_lane_i16x8 snd (2*i+1)) = () in
+    it1 0; it1 1; it1 2; it1 3; it2 0; it2 1; it2 2; it2 3;
+    lemma_out_u8lane low1 low2 index 0 0; lemma_out_u8lane low1 low2 index 1 1;
+    lemma_out_u8lane low1 low2 index 2 4; lemma_out_u8lane low1 low2 index 3 5;
+    lemma_out_u8lane low1 low2 index 4 2; lemma_out_u8lane low1 low2 index 5 3;
+    lemma_out_u8lane low1 low2 index 6 6; lemma_out_u8lane low1 low2 index 7 7;
+    lemma_out_u8lane high1 high2 index 0 0; lemma_out_u8lane high1 high2 index 1 1;
+    lemma_out_u8lane high1 high2 index 2 4; lemma_out_u8lane high1 high2 index 3 5;
+    lemma_out_u8lane high1 high2 index 4 2; lemma_out_u8lane high1 high2 index 5 3;
+    lemma_out_u8lane high1 high2 index 6 6; lemma_out_u8lane high1 high2 index 7 7
+#pop-options
 
 (* The honest per-pair core, proven in clean context.  Threads in the two
    montgomery_reduce posts and the a1b1 congruence as `requires`, and concludes the
@@ -1359,6 +1455,224 @@ let lemma_nttmul_assemble (iv_l iv_r ov: t_Array i16 (mk_usize 16)) (z1 z2 z3 z4
   reveal_opaque (`%NS.ntt_multiply_butterfly_post)
     (NS.ntt_multiply_butterfly_post iv_l iv_r ov z1 z2 z3 z4)
 #pop-options
+
+(* array_of_list -> per-lane Seq.index facts, in a high-fuel helper (List.length 16 +
+   seq_of_list indexing need fuel ~16; isolated here so the fuel never touches a heavy
+   proof).  ntt_multiply discharges the requires definitionally (indexes IS that array). *)
+#push-options "--fuel 20 --ifuel 2 --z3rlimit 80"
+let lemma_indexes_vals (indexes: t_Array u8 (mk_usize 16)) : Lemma
+  (requires
+    indexes == Rust_primitives.Hax.array_of_list 16
+      [mk_u8 0; mk_u8 1; mk_u8 2; mk_u8 3; mk_u8 8; mk_u8 9; mk_u8 10; mk_u8 11;
+       mk_u8 4; mk_u8 5; mk_u8 6; mk_u8 7; mk_u8 12; mk_u8 13; mk_u8 14; mk_u8 15])
+  (ensures
+    Seq.index indexes 0  == mk_u8 0  /\ Seq.index indexes 1  == mk_u8 1  /\
+    Seq.index indexes 2  == mk_u8 2  /\ Seq.index indexes 3  == mk_u8 3  /\
+    Seq.index indexes 4  == mk_u8 8  /\ Seq.index indexes 5  == mk_u8 9  /\
+    Seq.index indexes 6  == mk_u8 10 /\ Seq.index indexes 7  == mk_u8 11 /\
+    Seq.index indexes 8  == mk_u8 4  /\ Seq.index indexes 9  == mk_u8 5  /\
+    Seq.index indexes 10 == mk_u8 6  /\ Seq.index indexes 11 == mk_u8 7  /\
+    Seq.index indexes 12 == mk_u8 12 /\ Seq.index indexes 13 == mk_u8 13 /\
+    Seq.index indexes 14 == mk_u8 14 /\ Seq.index indexes 15 == mk_u8 15)
+  = ()
+#pop-options
+
+(* 16 vqtbl1q index byte values from per-lane Seq.index facts (ntt_multiply supplies those
+   via lemma_indexes_vals) + e_vld1q_u8's forall.  Keeps array_of_list normalization off the
+   ntt_multiply WP. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 50"
+let lemma_nttmul_index (index: NI.t_e_uint8x16_t) (indexes: t_Array u8 (mk_usize 16)) : Lemma
+  (requires
+    index == NI.e_vld1q_u8 (indexes <: t_Slice u8) /\ Seq.length indexes == 16 /\
+    Seq.index indexes 0  == mk_u8 0  /\ Seq.index indexes 1  == mk_u8 1  /\
+    Seq.index indexes 2  == mk_u8 2  /\ Seq.index indexes 3  == mk_u8 3  /\
+    Seq.index indexes 4  == mk_u8 8  /\ Seq.index indexes 5  == mk_u8 9  /\
+    Seq.index indexes 6  == mk_u8 10 /\ Seq.index indexes 7  == mk_u8 11 /\
+    Seq.index indexes 8  == mk_u8 4  /\ Seq.index indexes 9  == mk_u8 5  /\
+    Seq.index indexes 10 == mk_u8 6  /\ Seq.index indexes 11 == mk_u8 7  /\
+    Seq.index indexes 12 == mk_u8 12 /\ Seq.index indexes 13 == mk_u8 13 /\
+    Seq.index indexes 14 == mk_u8 14 /\ Seq.index indexes 15 == mk_u8 15)
+  (ensures
+    v (NI.get_lane_u8x16 index 0)  == 0  /\ v (NI.get_lane_u8x16 index 1)  == 1  /\
+    v (NI.get_lane_u8x16 index 2)  == 2  /\ v (NI.get_lane_u8x16 index 3)  == 3  /\
+    v (NI.get_lane_u8x16 index 4)  == 8  /\ v (NI.get_lane_u8x16 index 5)  == 9  /\
+    v (NI.get_lane_u8x16 index 6)  == 10 /\ v (NI.get_lane_u8x16 index 7)  == 11 /\
+    v (NI.get_lane_u8x16 index 8)  == 4  /\ v (NI.get_lane_u8x16 index 9)  == 5  /\
+    v (NI.get_lane_u8x16 index 10) == 6  /\ v (NI.get_lane_u8x16 index 11) == 7  /\
+    v (NI.get_lane_u8x16 index 12) == 12 /\ v (NI.get_lane_u8x16 index 13) == 13 /\
+    v (NI.get_lane_u8x16 index 14) == 14 /\ v (NI.get_lane_u8x16 index 15) == 15)
+  = let idx = NI.e_vld1q_u8 (indexes <: t_Slice u8) in ()
+#pop-options
+
+(* zeta-side mirror of lemma_indexes_vals: the 8 zetas array element values from the
+   array_of_list construction.  fuel 20 to normalize List.index of the 8-elem literal list. *)
+#push-options "--fuel 20 --ifuel 1 --z3rlimit 80"
+let lemma_zetas_vals (zetas: t_Array i16 (mk_usize 8)) (zeta1 zeta2 zeta3 zeta4: i16) : Lemma
+  (requires
+    NS.is_i16b 1664 zeta1 /\ NS.is_i16b 1664 zeta2 /\ NS.is_i16b 1664 zeta3 /\ NS.is_i16b 1664 zeta4 /\
+    zetas == Rust_primitives.Hax.array_of_list 8
+      [zeta1; zeta3; Rust_primitives.Arithmetic.neg zeta1; Rust_primitives.Arithmetic.neg zeta3;
+       zeta2; zeta4; Rust_primitives.Arithmetic.neg zeta2; Rust_primitives.Arithmetic.neg zeta4])
+  (ensures
+    Seq.index zetas 0 == zeta1 /\ Seq.index zetas 1 == zeta3 /\
+    Seq.index zetas 2 == Rust_primitives.Arithmetic.neg zeta1 /\
+    Seq.index zetas 3 == Rust_primitives.Arithmetic.neg zeta3 /\
+    Seq.index zetas 4 == zeta2 /\ Seq.index zetas 5 == zeta4 /\
+    Seq.index zetas 6 == Rust_primitives.Arithmetic.neg zeta2 /\
+    Seq.index zetas 7 == Rust_primitives.Arithmetic.neg zeta4)
+  = ()
+#pop-options
+
+(* zeta-side mirror of lemma_nttmul_index: the 8 get_lane values from per-lane Seq.index
+   facts (ntt_multiply supplies those via lemma_zetas_vals) + e_vld1q_s16's forall.  Keeps
+   array_of_list normalization off the ntt_multiply WP. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 50"
+let lemma_nttmul_zeta (zeta: NI.t_e_int16x8_t) (zetas: t_Array i16 (mk_usize 8))
+    (zeta1 zeta2 zeta3 zeta4: i16) : Lemma
+  (requires
+    NS.is_i16b 1664 zeta1 /\ NS.is_i16b 1664 zeta2 /\ NS.is_i16b 1664 zeta3 /\ NS.is_i16b 1664 zeta4 /\
+    zeta == NI.e_vld1q_s16 (zetas <: t_Slice i16) /\ Seq.length zetas == 8 /\
+    Seq.index zetas 0 == zeta1 /\ Seq.index zetas 1 == zeta3 /\
+    Seq.index zetas 2 == Rust_primitives.Arithmetic.neg zeta1 /\
+    Seq.index zetas 3 == Rust_primitives.Arithmetic.neg zeta3 /\
+    Seq.index zetas 4 == zeta2 /\ Seq.index zetas 5 == zeta4 /\
+    Seq.index zetas 6 == Rust_primitives.Arithmetic.neg zeta2 /\
+    Seq.index zetas 7 == Rust_primitives.Arithmetic.neg zeta4)
+  (ensures
+    NI.get_lane_i16x8 zeta 0 == zeta1 /\ NI.get_lane_i16x8 zeta 1 == zeta3 /\
+    NI.get_lane_i16x8 zeta 2 == Rust_primitives.Arithmetic.neg zeta1 /\
+    NI.get_lane_i16x8 zeta 3 == Rust_primitives.Arithmetic.neg zeta3 /\
+    NI.get_lane_i16x8 zeta 4 == zeta2 /\ NI.get_lane_i16x8 zeta 5 == zeta4 /\
+    NI.get_lane_i16x8 zeta 6 == Rust_primitives.Arithmetic.neg zeta2 /\
+    NI.get_lane_i16x8 zeta 7 == Rust_primitives.Arithmetic.neg zeta4)
+  = let z = NI.e_vld1q_s16 (zetas <: t_Slice i16) in ()
+#pop-options
+
+(* `unfold` wrapper so the t_Array i16 16 -> t_Slice i16 coercion that is_i16b_array needs
+   is discharged HERE in a clean top-level context, not inside lemma_nttmul_compute's ensures
+   where the ~27-let recompute spine + context_pruning starves the `v (sz 16) <= max_usize`
+   VC.  Unfolds back to is_i16b_array for ntt_multiply's trait post. *)
+unfold let is_i16b_arr16 (l: nat) (x: t_Array i16 (mk_usize 16))
+  = NS.is_i16b_array l (x <: t_Slice i16)
+
+(* The ENTIRE ntt_multiply functional proof, factored into a top-level Lemma so it gets
+   its own rlimit budget (a Lemma VC encodes as implications, immune to the Pure-function
+   WP ceiling that ntt_multiply's ~28-let spine otherwise imposes).  ntt_multiply computes
+   the locals, supplies the index byte facts (assert_norm + lemma_nttmul_index), and calls
+   this once with reflexive construction `requires`. *)
+#push-options "--z3rlimit 400 --split_queries always --z3refresh"
+(* AVX2 lemma_nttmul_main pattern: take ONLY the source words (lhs rhs) + the two
+   already-loaded const vectors (zeta index, with their per-lane value facts) and RECOMPUTE
+   the entire ~27-let SIMD spine INTERNALLY, both in the `ensures` `let ... in` and in the
+   body.  ntt_multiply's own `res` then matches the ensures' recomputed `res` DEFINITIONALLY
+   (delta/iota, not SMT), so ntt_multiply discharges NO op-ensures construction — only the
+   cheap per-lane value facts (via lemma_nttmul_index/lemma_nttmul_zeta) + this call.  That
+   keeps the per-lane-forall op-ensures soup out of ntt_multiply's Pure-function WP. *)
+let lemma_nttmul_compute
+      (lhs rhs: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector)
+      (zeta: NI.t_e_int16x8_t)
+      (index: NI.t_e_uint8x16_t)
+      (zeta1 zeta2 zeta3 zeta4: i16) : Lemma
+  (requires
+    NS.is_i16b_array 3328 (repr lhs) /\ NS.is_i16b_array 3328 (repr rhs) /\
+    NS.is_i16b 1664 zeta1 /\ NS.is_i16b 1664 zeta2 /\ NS.is_i16b 1664 zeta3 /\ NS.is_i16b 1664 zeta4 /\
+    NI.get_lane_i16x8 zeta 0 == zeta1 /\
+    NI.get_lane_i16x8 zeta 1 == zeta3 /\
+    NI.get_lane_i16x8 zeta 2 == Rust_primitives.Arithmetic.neg zeta1 /\
+    NI.get_lane_i16x8 zeta 3 == Rust_primitives.Arithmetic.neg zeta3 /\
+    NI.get_lane_i16x8 zeta 4 == zeta2 /\
+    NI.get_lane_i16x8 zeta 5 == zeta4 /\
+    NI.get_lane_i16x8 zeta 6 == Rust_primitives.Arithmetic.neg zeta2 /\
+    NI.get_lane_i16x8 zeta 7 == Rust_primitives.Arithmetic.neg zeta4 /\
+    v (NI.get_lane_u8x16 index 0)  == 0  /\ v (NI.get_lane_u8x16 index 1)  == 1  /\
+    v (NI.get_lane_u8x16 index 2)  == 2  /\ v (NI.get_lane_u8x16 index 3)  == 3  /\
+    v (NI.get_lane_u8x16 index 4)  == 8  /\ v (NI.get_lane_u8x16 index 5)  == 9  /\
+    v (NI.get_lane_u8x16 index 6)  == 10 /\ v (NI.get_lane_u8x16 index 7)  == 11 /\
+    v (NI.get_lane_u8x16 index 8)  == 4  /\ v (NI.get_lane_u8x16 index 9)  == 5  /\
+    v (NI.get_lane_u8x16 index 10) == 6  /\ v (NI.get_lane_u8x16 index 11) == 7  /\
+    v (NI.get_lane_u8x16 index 12) == 12 /\ v (NI.get_lane_u8x16 index 13) == 13 /\
+    v (NI.get_lane_u8x16 index 14) == 14 /\ v (NI.get_lane_u8x16 index 15) == 15)
+  (ensures
+    (let a0 = NI.e_vtrn1q_s16 lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+                             lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high in
+     let a1 = NI.e_vtrn2q_s16 lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+                             lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high in
+     let b0 = NI.e_vtrn1q_s16 rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+                             rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high in
+     let b1 = NI.e_vtrn2q_s16 rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+                             rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high in
+     let a1b1 = Libcrux_ml_kem.Vector.Neon.Arithmetic.montgomery_multiply_int16x8_t a1 b1 in
+     let a1b1_low = NI.e_vmull_s16 (NI.e_vget_low_s16 a1b1) (NI.e_vget_low_s16 zeta) in
+     let a1b1_high = NI.e_vmull_high_s16 a1b1 zeta in
+     let fst_low = NI.e_vreinterpretq_s16_s32 (NI.e_vmlal_s16 a1b1_low (NI.e_vget_low_s16 a0) (NI.e_vget_low_s16 b0)) in
+     let fst_high = NI.e_vreinterpretq_s16_s32 (NI.e_vmlal_high_s16 a1b1_high a0 b0) in
+     let a0b1_low = NI.e_vmull_s16 (NI.e_vget_low_s16 a0) (NI.e_vget_low_s16 b1) in
+     let a0b1_high = NI.e_vmull_high_s16 a0 b1 in
+     let snd_low = NI.e_vreinterpretq_s16_s32 (NI.e_vmlal_s16 a0b1_low (NI.e_vget_low_s16 a1) (NI.e_vget_low_s16 b0)) in
+     let snd_high = NI.e_vreinterpretq_s16_s32 (NI.e_vmlal_high_s16 a0b1_high a1 b0) in
+     let fst_low16 = NI.e_vtrn1q_s16 fst_low fst_high in
+     let fst_high16 = NI.e_vtrn2q_s16 fst_low fst_high in
+     let snd_low16 = NI.e_vtrn1q_s16 snd_low snd_high in
+     let snd_high16 = NI.e_vtrn2q_s16 snd_low snd_high in
+     let fst = Libcrux_ml_kem.Vector.Neon.Arithmetic.montgomery_reduce_int16x8_t fst_low16 fst_high16 in
+     let snd = Libcrux_ml_kem.Vector.Neon.Arithmetic.montgomery_reduce_int16x8_t snd_low16 snd_high16 in
+     let low0 = NI.e_vreinterpretq_s32_s16 (NI.e_vtrn1q_s16 fst snd) in
+     let high0 = NI.e_vreinterpretq_s32_s16 (NI.e_vtrn2q_s16 fst snd) in
+     let low1 = NI.e_vreinterpretq_s16_s32 (NI.e_vtrn1q_s32 low0 high0) in
+     let high1 = NI.e_vreinterpretq_s16_s32 (NI.e_vtrn2q_s32 low0 high0) in
+     let low2 = NI.e_vreinterpretq_s16_u8 (NI.e_vqtbl1q_u8 (NI.e_vreinterpretq_u8_s16 low1) index) in
+     let high2 = NI.e_vreinterpretq_s16_u8 (NI.e_vqtbl1q_u8 (NI.e_vreinterpretq_u8_s16 high1) index) in
+     let res = ({ Libcrux_ml_kem.Vector.Neon.Vector_type.f_low = low2;
+                  Libcrux_ml_kem.Vector.Neon.Vector_type.f_high = high2 }
+                <: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector) in
+     is_i16b_arr16 3328 (repr res) /\
+     NS.ntt_multiply_butterfly_post (repr lhs) (repr rhs) (repr res) zeta1 zeta2 zeta3 zeta4))
+  = let a0 = NI.e_vtrn1q_s16 lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+                            lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high in
+    let a1 = NI.e_vtrn2q_s16 lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+                            lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high in
+    let b0 = NI.e_vtrn1q_s16 rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+                            rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high in
+    let b1 = NI.e_vtrn2q_s16 rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+                            rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high in
+    let a1b1 = Libcrux_ml_kem.Vector.Neon.Arithmetic.montgomery_multiply_int16x8_t a1 b1 in
+    let a1b1_low = NI.e_vmull_s16 (NI.e_vget_low_s16 a1b1) (NI.e_vget_low_s16 zeta) in
+    let a1b1_high = NI.e_vmull_high_s16 a1b1 zeta in
+    let fst_low = NI.e_vreinterpretq_s16_s32 (NI.e_vmlal_s16 a1b1_low (NI.e_vget_low_s16 a0) (NI.e_vget_low_s16 b0)) in
+    let fst_high = NI.e_vreinterpretq_s16_s32 (NI.e_vmlal_high_s16 a1b1_high a0 b0) in
+    let a0b1_low = NI.e_vmull_s16 (NI.e_vget_low_s16 a0) (NI.e_vget_low_s16 b1) in
+    let a0b1_high = NI.e_vmull_high_s16 a0 b1 in
+    let snd_low = NI.e_vreinterpretq_s16_s32 (NI.e_vmlal_s16 a0b1_low (NI.e_vget_low_s16 a1) (NI.e_vget_low_s16 b0)) in
+    let snd_high = NI.e_vreinterpretq_s16_s32 (NI.e_vmlal_high_s16 a0b1_high a1 b0) in
+    let fst_low16 = NI.e_vtrn1q_s16 fst_low fst_high in
+    let fst_high16 = NI.e_vtrn2q_s16 fst_low fst_high in
+    let snd_low16 = NI.e_vtrn1q_s16 snd_low snd_high in
+    let snd_high16 = NI.e_vtrn2q_s16 snd_low snd_high in
+    let fst = Libcrux_ml_kem.Vector.Neon.Arithmetic.montgomery_reduce_int16x8_t fst_low16 fst_high16 in
+    let snd = Libcrux_ml_kem.Vector.Neon.Arithmetic.montgomery_reduce_int16x8_t snd_low16 snd_high16 in
+    let low0 = NI.e_vreinterpretq_s32_s16 (NI.e_vtrn1q_s16 fst snd) in
+    let high0 = NI.e_vreinterpretq_s32_s16 (NI.e_vtrn2q_s16 fst snd) in
+    let low1 = NI.e_vreinterpretq_s16_s32 (NI.e_vtrn1q_s32 low0 high0) in
+    let high1 = NI.e_vreinterpretq_s16_s32 (NI.e_vtrn2q_s32 low0 high0) in
+    let low2 = NI.e_vreinterpretq_s16_u8 (NI.e_vqtbl1q_u8 (NI.e_vreinterpretq_u8_s16 low1) index) in
+    let high2 = NI.e_vreinterpretq_s16_u8 (NI.e_vqtbl1q_u8 (NI.e_vreinterpretq_u8_s16 high1) index) in
+    let res = ({ Libcrux_ml_kem.Vector.Neon.Vector_type.f_low = low2;
+                 Libcrux_ml_kem.Vector.Neon.Vector_type.f_high = high2 }
+               <: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector) in
+    assert_norm (pow2 15 == 32768);
+    assert_norm (pow2 31 == 2147483648);
+    lemma_nttmul_in 3328 lhs rhs a1 b1 zeta zeta1 zeta2 zeta3 zeta4;
+    introduce forall (i: nat{i < 8}) . Spec.Utils.is_intb (3326 * pow2 15)
+      (v (NI.get_lane_i16x8 a1 i) * v (NI.get_lane_i16x8 b1 i))
+    with Spec.Utils.lemma_mul_i16b 3328 3328 (NI.get_lane_i16x8 a1 i) (NI.get_lane_i16x8 b1 i);
+    assert (forall (i: nat{i < 8}).
+          v (NI.get_lane_i16x8 a1b1 i) % 3329 ==
+          (v (NI.get_lane_i16x8 a1 i) * v (NI.get_lane_i16x8 b1 i) * 169) % 3329);
+    lemma_nttmul_fstsnd (repr lhs) (repr rhs) a1 b1 a1b1 zeta fst_low16 fst_high16 snd_low16
+      snd_high16 fst snd zeta1 zeta2 zeta3 zeta4;
+    lemma_nttmul_out fst snd low1 high1 low2 high2 low0 high0 index;
+    lemma_nttmul_assemble (repr lhs) (repr rhs) (repr res) zeta1 zeta2 zeta3 zeta4
+#pop-options
 "#
 )]
 #[inline(always)]
@@ -1434,18 +1748,11 @@ pub(crate) fn ntt_multiply(
         high: high2,
     };
     hax_lib::fstar!(
-        r#"assert_norm (pow2 15 == 32768);
-    assert_norm (pow2 31 == 2147483648);
-    lemma_nttmul_in 3328 ${lhs} ${rhs} ${a1} ${b1} ${zeta} zeta1 zeta2 zeta3 zeta4;
-    introduce forall (i: nat{i < 8}). Spec.Utils.is_intb (3326 * pow2 15)
-        (v (NI.get_lane_i16x8 ${a1} i) * v (NI.get_lane_i16x8 ${b1} i))
-    with Spec.Utils.lemma_mul_i16b 3328 3328 (NI.get_lane_i16x8 ${a1} i) (NI.get_lane_i16x8 ${b1} i);
-    assert (forall (i: nat{i < 8}). v (NI.get_lane_i16x8 ${a1b1} i) % 3329 ==
-        (v (NI.get_lane_i16x8 ${a1} i) * v (NI.get_lane_i16x8 ${b1} i) * 169) % 3329);
-    lemma_nttmul_fstsnd (repr ${lhs}) (repr ${rhs}) ${a1} ${b1} ${a1b1} ${zeta}
-        ${fst_low16} ${fst_high16} ${snd_low16} ${snd_high16} ${fst} ${snd} zeta1 zeta2 zeta3 zeta4;
-    lemma_nttmul_out ${low2} ${high2} ${fst} ${snd};
-    lemma_nttmul_assemble (repr ${lhs}) (repr ${rhs}) (repr ${res}) zeta1 zeta2 zeta3 zeta4"#
+        r#"lemma_indexes_vals ${indexes};
+    lemma_nttmul_index ${index} ${indexes};
+    lemma_zetas_vals ${zetas} zeta1 zeta2 zeta3 zeta4;
+    lemma_nttmul_zeta ${zeta} ${zetas} zeta1 zeta2 zeta3 zeta4;
+    lemma_nttmul_compute ${lhs} ${rhs} ${zeta} ${index} zeta1 zeta2 zeta3 zeta4"#
     );
     res
 }
