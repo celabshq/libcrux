@@ -327,10 +327,11 @@ pub(crate) fn multiply_by_constant_bounded<Vector: Operations>(
     hax_lib::fstar!(
         r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)"#
     );
-    // TODO: the following assume should be removed once hax_lib is updated to latest version
-    hax_lib::fstar!(
-        r#"assume (if v c >= 0 then Rust_primitives.Arithmetic.abs_i16 c = c else v (Rust_primitives.Arithmetic.abs_i16 c) = 0 - v c)"#
-    );
+    // `i16::abs` (Rust_primitives.Arithmetic.abs_i16) is left uninterpreted by the
+    // pinned hax-lib, so its spec is the single trusted primitive axiom
+    // `Proof_utils.lemma_abs_i16` (a MIN-guarded i16-abs spec, to be upstreamed to
+    // hax-lib; once abs_i16 carries it there this call and the axiom can be dropped).
+    hax_lib::fstar!(r#"Proof_utils.lemma_abs_i16 c"#);
     Vector::multiply_by_constant(vec, c)
 }
 
