@@ -9,13 +9,17 @@ use hax_lib::prop::ToProp;
 #[cfg(hax)]
 use crate::polynomial::spec;
 
-// TODO: The F* proof of sample_matrix_A is flaky (Z3 uses ~393/400 rlimit).
-// The loop invariant for the inner j-loop should be simplified or the proof
-// restructured so it verifies reliably. Currently in SLOW_MODULES (admitted by default).
+// The boundedness loop invariant now verifies reliably (≤49/400 rlimit) by making
+// `is_bounded_poly` atomic — pruning Libcrux_ml_kem.Polynomial.Spec (and the createi
+// SMTPat), the same idiom the compute_* functions use.  Without that pruning the
+// nested forall unfolds is_bounded_poly's 256-coeff forall and Z3 saturates (>800).
+// Still `panic_free`: the functional postcondition (matrix_to_spec == hacspec) needs a
+// functional loop invariant (a Compute_dot_bridge-style atom) that isn't wired yet.
+// Kept in SLOW_MODULES (the module's compute_* proofs are heavy).
 #[inline(always)]
 #[allow(non_snake_case)]
 #[hax_lib::fstar::verification_status(panic_free)]
-#[hax_lib::fstar::options("--z3rlimit 400 --ext context_pruning --split_queries always")]
+#[hax_lib::fstar::options("--z3rlimit 400 --ext context_pruning --split_queries always --using_facts_from '* -Hacspec_ml_kem.Parameters.createi_lemma -Libcrux_ml_kem.Polynomial.Spec'")]
 #[hax_lib::requires(K <= 4)]
 #[hax_lib::ensures(|res| hax_lib::forall(|i:usize| hax_lib::implies(i < K,
                             hax_lib::forall(|j:usize| hax_lib::implies(j < K,
