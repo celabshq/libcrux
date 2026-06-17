@@ -1,0 +1,95 @@
+name: Intrinsics - hax
+
+# Verifies the four REAL ARM64 NEON SHA3-extension *fallback* implementations
+# in crates/utils/intrinsics/src/arm64_extract.rs
+#   _veor3q_u64 / _vbcaxq_u64 / _vrax1q_u64 / _vxarq_u64
+# against their #[hax_lib::ensures] specs. These are not unimplemented!() model
+# ops — they have real bodies — but until now only the .fsti interface was
+# built in any consumer, so their specs were trusted as axioms. This job
+# actually proves them, in isolation, via the hand-written proof modules under
+# fstar-helpers/fstar-bitvec/ (rooted by crates/utils/intrinsics/proofs/fstar/Makefile).
+
+on:
+  merge_group:
+    paths:
+      - "crates/utils/intrinsics/**"
+      - "fstar-helpers/fstar-bitvec/Bitvec.U64Rotate.fst"
+      - "fstar-helpers/fstar-bitvec/Bitvec.VxarqProof.fst"
+      - "fstar-helpers/fstar-bitvec/Bitvec.Sha3FallbackProof.fst"
+      - ".github/workflows/intrinsics-hax.yml"
+  pull_request:
+    branches: ["dev", "main"]
+    paths:
+      - "crates/utils/intrinsics/**"
+      - "fstar-helpers/fstar-bitvec/Bitvec.U64Rotate.fst"
+      - "fstar-helpers/fstar-bitvec/Bitvec.VxarqProof.fst"
+      - "fstar-helpers/fstar-bitvec/Bitvec.Sha3FallbackProof.fst"
+      - ".github/workflows/intrinsics-hax.yml"
+
+  schedule:
+    - cron: "0 0 * * *"
+
+  workflow_dispatch:
+    inputs:
+      hax_ref:
+        description: "The hax revision you want this job to use"
+        required: false
+        type: string
+
+env:
+  CARGO_TERM_COLOR: always
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Pin hax to the revision matching the hax-lib version in Cargo.toml.
+  get-hax-ref:
+    uses: ./.github/workflows/get-hax-ref.yml
+
+  verify-fallbacks:
+    runs-on: ubuntu-latest
+    needs:
+      - get-hax-ref
+    steps:
+      - uses: actions/checkout@v6
+      - uses: hacspec/hax-actions@main
+        with:
+          hax_reference: ${{ github.event.inputs.hax_ref || needs.get-hax-ref.outputs.hax_ref }}
+          fstar: v2026.03.24
+
+      - name: 🏃 Extract intrinsics crate (NEON SHA3 fallbacks)
+        working-directory: crates/utils/intrinsics
+        run: |
+          # Same invocation as `extract crates/utils/intrinsics` in
+          # crates/algorithms/sha3/hax.sh: `--cfg pre_core_models` routes the
+          # AVX2 backend to the bit_vec stub, `-i "-core_models::**"` keeps the
+          # core-models crate external (its `Core_models.*` model is provided by
+          # the hax proof-libs), and `--interfaces "+**"` emits the .fsti specs.
+          RUSTFLAGS="--cfg pre_core_models" cargo hax \
+            -C --features simd128,simd256 ";" \
+            into -i "-core_models::**" \
+            fstar --z3rlimit 80 --interfaces "+**"
+          # Mirror the canonical extract() rename (no-op for Arm64_extract.fsti,
+          # kept for fidelity with sha3/hax.sh).
+          sed -i \
+            -e 's/Core_models\.Abstractions/Libcrux_core_models.Abstractions/g' \
+            -e 's/Core_models\.Core_arch/Libcrux_core_models.Core_arch/g' \
+            proofs/fstar/extraction/*.fst proofs/fstar/extraction/*.fsti
+
+      - name: 🏃 Verify NEON SHA3 fallback proofs (F*)
+        working-directory: crates/utils/intrinsics/proofs/fstar
+        run: make verify -j "$(nproc)"
+
+  intrinsics-hax-status:
+    if: ${{ always() }}
+    needs: [get-hax-ref, verify-fallbacks]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Successful
+        if: ${{ !(contains(needs.*.result, 'failure')) }}
+        run: exit 0
+      - name: Failing
+        if: ${{ (contains(needs.*.result, 'failure')) }}
+        run: exit 1
