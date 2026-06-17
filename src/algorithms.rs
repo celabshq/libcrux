@@ -33,6 +33,9 @@ pub mod hkdf;
 #[cfg(feature = "hmac")]
 pub mod hmac;
 
+#[cfg(feature = "kmac")]
+pub mod kmac;
+
 #[cfg(feature = "mlkem")]
 pub mod mlkem;
 

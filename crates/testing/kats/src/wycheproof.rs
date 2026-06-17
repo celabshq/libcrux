@@ -18,5 +18,8 @@ pub mod mlkem;
 #[cfg(feature = "hmac")]
 pub mod hmac;
 
+#[cfg(feature = "kmac")]
+pub mod kmac;
+
 pub mod schema_common;
 pub use schema_common::TestResult;

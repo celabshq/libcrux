@@ -1,10 +1,13 @@
-name: SHA3 - hax
+name: KMAC - hax
+
+permissions: {}
 
 on:
   merge_group:
   pull_request:
     branches: ["dev", "main"]
     paths:
+      - "crates/algorithms/kmac/**"
       - "crates/algorithms/sha3/**"
 
   schedule:
@@ -38,14 +41,17 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
       - uses: hacspec/hax-actions@main
         with:
           hax_reference: ${{ github.event.inputs.hax_ref || needs.get-hax-ref.outputs.hax_ref }}
           fstar: v2026.03.24
 
-      - name: 🏃 Extract SHA3 crate (portable)
-        working-directory: crates/algorithms/sha3
-        run: ./hax.sh extract
+      - name: 🏃 Extract KMAC crate (portable)
+        working-directory: crates/algorithms/kmac
+        run: ./hax.py extract
 
       - name: ↑ Upload F* extraction (standard)
         uses: actions/upload-artifact@v7
@@ -63,6 +69,9 @@ jobs:
     if: ${{ github.event_name != 'merge_group' }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
       - uses: hacspec/hax-actions@main
         with:
           hax_reference: ${{ github.event.inputs.hax_ref || needs.get-hax-ref.outputs.hax_ref }}
@@ -73,9 +82,9 @@ jobs:
           name: fstar-extractions-portable
           path: .
 
-      - name: 🏃 Lax SHA3 crate (portable)
-        working-directory: crates/algorithms/sha3
-        run: ./hax.sh prove --admit
+      - name: 🏃 Lax KMAC crate (portable)
+        working-directory: crates/algorithms/kmac
+        run: ./hax.py prove --admit
 
   type-check-portable:
     runs-on: ubuntu-latest
@@ -85,6 +94,9 @@ jobs:
     if: ${{ github.event_name != 'merge_group' }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
       - uses: hacspec/hax-actions@main
         with:
           hax_reference: ${{ github.event.inputs.hax_ref || needs.get-hax-ref.outputs.hax_ref }}
@@ -95,11 +107,11 @@ jobs:
           name: fstar-extractions-portable
           path: .
 
-      - name: 🏃 Full type check SHA3 crate (portable)
-        working-directory: crates/algorithms/sha3
-        run: ./hax.sh prove
+      - name: 🏃 Full type check KMAC crate (portable)
+        working-directory: crates/algorithms/kmac
+        run: ./hax.py prove
 
-  sha3-extract-hax-status:
+  kmac-extract-hax-status:
     if: ${{ always() }}
     needs: [get-hax-ref, extract-portable]
     runs-on: ubuntu-latest
@@ -111,7 +123,7 @@ jobs:
         if: ${{ (contains(needs.*.result, 'failure')) }}
         run: exit 1
 
-  sha3-type-check-portable-hax-status:
+  kmac-type-check-portable-hax-status:
     if: ${{ always() }}
     needs: [get-hax-ref, lax-portable, type-check-portable]
     runs-on: ubuntu-latest
