@@ -7,6 +7,7 @@ use libcrux_intrinsics::avx2::*;
 
 #[inline]
 #[hax_lib::fstar::before(r#"open Spec.Intrinsics"#)]
+#[hax_lib::fstar::before(r#"open Libcrux_core_models.Core_arch.X86.Interpretations.Int_vec"#)]
 #[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
 #[hax_lib::requires(true)]
 #[hax_lib::ensures(|result| fstar!(r#"
@@ -298,13 +299,46 @@ pub(super) fn decompose(gamma2: Gamma2, r: &Vec256, r0: &mut Vec256, r1: &mut Ve
 
 // Not using inline always here regresses performance significantly.
 #[inline(always)]
+// Proof helpers for compute_hint's per-lane functional post.  `lemma_or_and_mask_bit`
+// closes the `(mask_a |. mask_c) &. 1` truth table for mask values (ones/zero) via the
+// logor/logand value lemmas; `lemma_and_one_binary` gives `x &. 1 ∈ {0,1}` for any x.
+#[hax_lib::fstar::before(
+    r#"
+let lemma_ones_zero_v (_: unit)
+    : Lemma (v (ones #i32_inttype) == - 1 /\ v (zero #i32_inttype) == 0) =
+  lognot_lemma_forall #i32_inttype
+
+let lemma_and_one_binary (x: i32)
+    : Lemma (v (x &. mk_i32 1) == 0 \/ v (x &. mk_i32 1) == 1) =
+  logand_mask_lemma x 1
+
+let lemma_or_and_mask_bit (a c: i32)
+    : Lemma
+      (requires (a == zero \/ a == ones) /\ (c == zero \/ c == ones))
+      (ensures v ((a |. c <: i32) &. mk_i32 1) == (if (a = ones) || (c = ones) then 1 else 0)) =
+  logor_lemma a c;
+  logand_lemma (mk_i32 1) (mk_i32 1);
+  lemma_ones_zero_v ()
+"#
+)]
 #[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"v $gamma2 == v $GAMMA2_V261_888 \/ v $gamma2 == v $GAMMA2_V95_232"#))]
+#[hax_lib::requires(fstar!(r#"
+    (v $gamma2 == v $GAMMA2_V261_888 \/ v $gamma2 == v $GAMMA2_V95_232) /\
+    (forall i. Spec.Utils.is_i32b (v $FIELD_MODULUS - 1) (to_i32x8 $low i)) /\
+    (forall i. Spec.Utils.is_i32b (v $FIELD_MODULUS - 1) (to_i32x8 $high i))"#))]
+#[hax_lib::ensures(|result| fstar!(r#"
+    v $result <= 8 /\
+    (forall (i: u64{v i < 8}). {:pattern (to_i32x8 ${hint}_future i)}
+        v (to_i32x8 ${hint}_future i) == 0 \/ v (to_i32x8 ${hint}_future i) == 1) /\
+    (forall (i: u64{v i < 8}). {:pattern (to_i32x8 ${hint}_future i)}
+        (v (to_i32x8 $high i) >= 0 /\ v (to_i32x8 $high i) < 8380417) ==>
+        v (to_i32x8 ${hint}_future i) ==
+        Spec.MLDSA.Math.compute_one_hint (v (to_i32x8 $low i)) (v (to_i32x8 $high i)) (v $gamma2))"#))]
 pub(super) fn compute_hint(low: &Vec256, high: &Vec256, gamma2: i32, hint: &mut Vec256) -> usize {
     let minus_gamma2 = mm256_set1_epi32(-gamma2);
-    let gamma2 = mm256_set1_epi32(gamma2);
+    let gamma2_vec = mm256_set1_epi32(gamma2);
 
-    let low_within_bound = mm256_cmpgt_epi32(mm256_abs_epi32(*low), gamma2);
+    let low_within_bound = mm256_cmpgt_epi32(mm256_abs_epi32(*low), gamma2_vec);
     let low_equals_minus_gamma2 = mm256_cmpeq_epi32(*low, minus_gamma2);
 
     // If a lane in |high| is 0, the corresponding output will be 0; the output
@@ -320,7 +354,32 @@ pub(super) fn compute_hint(low: &Vec256, high: &Vec256, gamma2: i32, hint: &mut 
     let hints_mask = mm256_movemask_ps(mm256_castsi256_ps(*hint));
     *hint = mm256_and_si256(*hint, mm256_set1_epi32(0x1));
 
-    hints_mask.count_ones() as usize
+    let result = hints_mask.count_ones() as usize;
+    hax_lib::fstar!(
+        r#"
+        Libcrux_ml_dsa.Proof_utils.lemma_movemask_ps_bound
+          (Libcrux_intrinsics.Avx2.mm256_castsi256_ps
+            (Libcrux_intrinsics.Avx2.mm256_or_si256 ${low_within_bound}
+                ${low_equals_minus_gamma2_and_high_is_nonzero}));
+        Libcrux_ml_dsa.Proof_utils.lemma_count_ones_byte ${hints_mask};
+        let aux (i: u64{v i < 8}) : Lemma
+          (ensures
+            (v (to_i32x8 ${hint} i) == 0 \/ v (to_i32x8 ${hint} i) == 1) /\
+            ((v (to_i32x8 ${high} i) >= 0 /\ v (to_i32x8 ${high} i) < 8380417) ==>
+              v (to_i32x8 ${hint} i) ==
+              Spec.MLDSA.Math.compute_one_hint (v (to_i32x8 ${low} i)) (v (to_i32x8 ${high} i)) (v $gamma2))) =
+          lemma_and_one_binary ((to_i32x8 ${low_within_bound} i) |.
+              (to_i32x8 ${low_equals_minus_gamma2_and_high_is_nonzero} i));
+          lemma_ones_zero_v ();
+          if (v (to_i32x8 ${high} i) >= 0 && v (to_i32x8 ${high} i) < 8380417)
+          then
+            lemma_or_and_mask_bit (to_i32x8 ${low_within_bound} i)
+              (to_i32x8 ${low_equals_minus_gamma2_and_high_is_nonzero} i)
+          else () in
+        Classical.forall_intro aux
+    "#
+    );
+    result
 }
 
 // Not using inline always here regresses performance significantly.

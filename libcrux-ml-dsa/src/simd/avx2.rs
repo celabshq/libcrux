@@ -397,8 +397,47 @@ pub(crate) fn compute_hint_with_proof(
     gamma2: i32,
     hint: &mut AVX2SIMDUnit,
 ) -> usize {
-    hax_lib::fstar!("admit ()");
-    arithmetic::compute_hint(&low.value, &high.value, gamma2, &mut hint.value)
+    // Derive the leaf precondition (per-lane FIELD_MAX bound) from the trait precondition.
+    hax_lib::fstar!(
+        r#"
+        let _:t_Array i32 (mk_usize 8) = Libcrux_ml_dsa.Simd.Traits.f_repr ${low} in
+        let _:t_Array i32 (mk_usize 8) = Libcrux_ml_dsa.Simd.Traits.f_repr ${high} in
+        reveal_opaque (`%Spec.Utils.is_i32b_array_opaque)
+          (Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX})
+              (Libcrux_ml_dsa.Simd.Traits.f_repr ${low}));
+        reveal_opaque (`%Spec.Utils.is_i32b_array_opaque)
+          (Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX})
+              (Libcrux_ml_dsa.Simd.Traits.f_repr ${high}))"#
+    );
+    let result = arithmetic::compute_hint(&low.value, &high.value, gamma2, &mut hint.value);
+    // Lift the leaf's (to_i32x8) per-lane functional post to the trait's f_repr lane posts.
+    hax_lib::fstar!(
+        r#"
+        let bridge (u: Libcrux_ml_dsa.Simd.Avx2.Vector_type.t_Vec256) (kk: nat{kk < 8})
+            : Lemma (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr u) kk ==
+                Spec.Intrinsics.to_i32x8 u.Libcrux_ml_dsa.Simd.Avx2.Vector_type.f_value (mk_u64 kk)) =
+          let _:t_Array i32 (mk_usize 8) = Libcrux_ml_dsa.Simd.Traits.f_repr u in () in
+        let pf (k: nat{k < 8}) : Lemma
+            (ensures Libcrux_ml_dsa.Simd.Traits.Specs.compute_hint_lane_post $gamma2
+                (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${low}) k)
+                (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${high}) k)
+                (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${hint}) k)) =
+          bridge ${low} k; bridge ${high} k; bridge ${hint} k;
+          Libcrux_ml_dsa.Simd.Traits.Specs.lemma_compute_hint_lane_intro $gamma2
+            (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${low}) k)
+            (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${high}) k)
+            (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${hint}) k) in
+        Classical.forall_intro pf;
+        let pf_bin (k: nat{k < 8}) : Lemma
+            (v (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${hint}) k) == 0 \/
+             v (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${hint}) k) == 1) =
+          bridge ${hint} k in
+        Classical.forall_intro pf_bin;
+        reveal_opaque (`%Libcrux_ml_dsa.Simd.Traits.Specs.is_binary_array_8_opaque)
+          (Libcrux_ml_dsa.Simd.Traits.Specs.is_binary_array_8_opaque
+              (Libcrux_ml_dsa.Simd.Traits.f_repr ${hint}))"#
+    );
+    result
 }
 
 #[inline(always)]

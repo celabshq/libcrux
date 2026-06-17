@@ -34,6 +34,11 @@ assume
 val lemma_count_ones_nibble (x: i32)
     : Lemma (requires v x >= 0 /\ v x < 16)
       (ensures v (Core_models.Num.impl_i32__count_ones x) <= 4)
+
+assume
+val lemma_count_ones_byte (x: i32)
+    : Lemma (requires v x >= 0 /\ v x < 256)
+      (ensures v (Core_models.Num.impl_i32__count_ones x) <= 8)
 "#
 )]
 pub(crate) fn proof_utils_module_marker() -> bool {

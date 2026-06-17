@@ -811,3 +811,26 @@ val lemma_from_i32x8_def_pt (f: (i:u64{v i < 8}) -> i32): Lemma (forall i. to_i3
 let mk_i32x8 (f: (i:u64{v i < 8}) -> i32): r: bv256 {forall i. to_i32x8 r i == f i}
  = lemma_from_i32x8_def_pt f;
    from_i32x8 (FStar.FunctionalExtensionality.on (n:u64{v n < 8}) f)
+
+(* Faithful per-lane models of the comparison / bitwise / sign intrinsics (mirror
+   mm256_cmpgt_epi32_lemma / mm256_and_si256_lemma above). Cross-validated against a
+   bit-exact Python sim (mldsa-sample-hint-sim). Used by the compute_hint functional proof. *)
+val mm256_cmpeq_epi32_lemma (a b: bv256) (i:u64{v i < 8}):
+  Lemma (to_i32x8 (Libcrux_intrinsics.Avx2.mm256_cmpeq_epi32 a b) i ==
+         (if (to_i32x8 a i = to_i32x8 b i) then ones else zero))
+  [SMTPat (to_i32x8 (Libcrux_intrinsics.Avx2.mm256_cmpeq_epi32 a b) i)]
+
+val mm256_or_si256_lemma (a b: bv256) (i:u64{v i < 8}):
+  Lemma (to_i32x8 (Libcrux_intrinsics.Avx2.mm256_or_si256 a b) i ==
+         ((to_i32x8 a i) |. (to_i32x8 b i)))
+  [SMTPat (to_i32x8 (Libcrux_intrinsics.Avx2.mm256_or_si256 a b) i)]
+
+(* _mm256_sign_epi32: lane = (b<0 ? wrapping_neg a : (b==0 ? 0 : a)).  Wrapping neg
+   (mk_i32 0 -. a) is the faithful model (a=INT_MIN stays INT_MIN). *)
+val mm256_sign_epi32_lemma (a b: bv256) (i:u64{v i < 8}):
+  Lemma (to_i32x8 (Libcrux_intrinsics.Avx2.mm256_sign_epi32 a b) i ==
+         (let bi = to_i32x8 b i in
+          if bi <. zero then (mk_i32 0 -. (to_i32x8 a i))
+          else if bi = zero then zero
+          else to_i32x8 a i))
+  [SMTPat (to_i32x8 (Libcrux_intrinsics.Avx2.mm256_sign_epi32 a b) i)]
