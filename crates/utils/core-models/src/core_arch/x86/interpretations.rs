@@ -620,68 +620,176 @@ pub mod int_vec {
 
     // _mm_set_epi8: lane-wise set, low-to-high.
     pub fn _mm_set_epi8(
-        e15: i8, e14: i8, e13: i8, e12: i8,
-        e11: i8, e10: i8, e9: i8, e8: i8,
-        e7: i8, e6: i8, e5: i8, e4: i8,
-        e3: i8, e2: i8, e1: i8, e0: i8,
+        e15: i8,
+        e14: i8,
+        e13: i8,
+        e12: i8,
+        e11: i8,
+        e10: i8,
+        e9: i8,
+        e8: i8,
+        e7: i8,
+        e6: i8,
+        e5: i8,
+        e4: i8,
+        e3: i8,
+        e2: i8,
+        e1: i8,
+        e0: i8,
     ) -> i8x16 {
         i8x16::from_fn(|i| match i {
-            0 => e0, 1 => e1, 2 => e2, 3 => e3,
-            4 => e4, 5 => e5, 6 => e6, 7 => e7,
-            8 => e8, 9 => e9, 10 => e10, 11 => e11,
-            12 => e12, 13 => e13, 14 => e14, 15 => e15,
+            0 => e0,
+            1 => e1,
+            2 => e2,
+            3 => e3,
+            4 => e4,
+            5 => e5,
+            6 => e6,
+            7 => e7,
+            8 => e8,
+            9 => e9,
+            10 => e10,
+            11 => e11,
+            12 => e12,
+            13 => e13,
+            14 => e14,
+            15 => e15,
             _ => unreachable!(),
         })
     }
 
     // _mm256_set_epi8.
     pub fn _mm256_set_epi8(
-        e31: i8, e30: i8, e29: i8, e28: i8,
-        e27: i8, e26: i8, e25: i8, e24: i8,
-        e23: i8, e22: i8, e21: i8, e20: i8,
-        e19: i8, e18: i8, e17: i8, e16: i8,
-        e15: i8, e14: i8, e13: i8, e12: i8,
-        e11: i8, e10: i8, e9: i8, e8: i8,
-        e7: i8, e6: i8, e5: i8, e4: i8,
-        e3: i8, e2: i8, e1: i8, e0: i8,
+        e31: i8,
+        e30: i8,
+        e29: i8,
+        e28: i8,
+        e27: i8,
+        e26: i8,
+        e25: i8,
+        e24: i8,
+        e23: i8,
+        e22: i8,
+        e21: i8,
+        e20: i8,
+        e19: i8,
+        e18: i8,
+        e17: i8,
+        e16: i8,
+        e15: i8,
+        e14: i8,
+        e13: i8,
+        e12: i8,
+        e11: i8,
+        e10: i8,
+        e9: i8,
+        e8: i8,
+        e7: i8,
+        e6: i8,
+        e5: i8,
+        e4: i8,
+        e3: i8,
+        e2: i8,
+        e1: i8,
+        e0: i8,
     ) -> i8x32 {
         i8x32::from_fn(|i| match i {
-            0 => e0, 1 => e1, 2 => e2, 3 => e3,
-            4 => e4, 5 => e5, 6 => e6, 7 => e7,
-            8 => e8, 9 => e9, 10 => e10, 11 => e11,
-            12 => e12, 13 => e13, 14 => e14, 15 => e15,
-            16 => e16, 17 => e17, 18 => e18, 19 => e19,
-            20 => e20, 21 => e21, 22 => e22, 23 => e23,
-            24 => e24, 25 => e25, 26 => e26, 27 => e27,
-            28 => e28, 29 => e29, 30 => e30, 31 => e31,
+            0 => e0,
+            1 => e1,
+            2 => e2,
+            3 => e3,
+            4 => e4,
+            5 => e5,
+            6 => e6,
+            7 => e7,
+            8 => e8,
+            9 => e9,
+            10 => e10,
+            11 => e11,
+            12 => e12,
+            13 => e13,
+            14 => e14,
+            15 => e15,
+            16 => e16,
+            17 => e17,
+            18 => e18,
+            19 => e19,
+            20 => e20,
+            21 => e21,
+            22 => e22,
+            23 => e23,
+            24 => e24,
+            25 => e25,
+            26 => e26,
+            27 => e27,
+            28 => e28,
+            29 => e29,
+            30 => e30,
+            31 => e31,
             _ => unreachable!(),
         })
     }
 
     // _mm256_set_epi16.
     pub fn _mm256_set_epi16(
-        e15: i16, e14: i16, e13: i16, e12: i16,
-        e11: i16, e10: i16, e9: i16, e8: i16,
-        e7: i16, e6: i16, e5: i16, e4: i16,
-        e3: i16, e2: i16, e1: i16, e0: i16,
+        e15: i16,
+        e14: i16,
+        e13: i16,
+        e12: i16,
+        e11: i16,
+        e10: i16,
+        e9: i16,
+        e8: i16,
+        e7: i16,
+        e6: i16,
+        e5: i16,
+        e4: i16,
+        e3: i16,
+        e2: i16,
+        e1: i16,
+        e0: i16,
     ) -> i16x16 {
         i16x16::from_fn(|i| match i {
-            0 => e0, 1 => e1, 2 => e2, 3 => e3,
-            4 => e4, 5 => e5, 6 => e6, 7 => e7,
-            8 => e8, 9 => e9, 10 => e10, 11 => e11,
-            12 => e12, 13 => e13, 14 => e14, 15 => e15,
+            0 => e0,
+            1 => e1,
+            2 => e2,
+            3 => e3,
+            4 => e4,
+            5 => e5,
+            6 => e6,
+            7 => e7,
+            8 => e8,
+            9 => e9,
+            10 => e10,
+            11 => e11,
+            12 => e12,
+            13 => e13,
+            14 => e14,
+            15 => e15,
             _ => unreachable!(),
         })
     }
 
     // _mm256_set_epi32.
     pub fn _mm256_set_epi32(
-        e7: i32, e6: i32, e5: i32, e4: i32,
-        e3: i32, e2: i32, e1: i32, e0: i32,
+        e7: i32,
+        e6: i32,
+        e5: i32,
+        e4: i32,
+        e3: i32,
+        e2: i32,
+        e1: i32,
+        e0: i32,
     ) -> i32x8 {
         i32x8::from_fn(|i| match i {
-            0 => e0, 1 => e1, 2 => e2, 3 => e3,
-            4 => e4, 5 => e5, 6 => e6, 7 => e7,
+            0 => e0,
+            1 => e1,
+            2 => e2,
+            3 => e3,
+            4 => e4,
+            5 => e5,
+            6 => e6,
+            7 => e7,
             _ => unreachable!(),
         })
     }
@@ -774,7 +882,6 @@ pub mod int_vec {
             }
         })
     }
-
 
     // _mm256_extracti128_si256<IMM8>: low 128 if IMM8==0, high 128 else.
     pub fn _mm256_extracti128_si256<const IMM8: i32>(a: BitVec<256>) -> BitVec<128> {
@@ -1360,7 +1467,9 @@ assume val _mm256_set_epi32_interp: e7: i32 -> e6: i32 -> e5: i32 -> e4: i32 -> 
                 let bytes: Vec<u8> = bv.to_vec();
                 let loaded = unsafe { upstream::_mm_loadu_si128(bytes.as_ptr() as *const _) };
                 let mut out = [0u8; 16];
-                unsafe { upstream::_mm_storeu_si128(out.as_mut_ptr() as *mut _, loaded); }
+                unsafe {
+                    upstream::_mm_storeu_si128(out.as_mut_ptr() as *mut _, loaded);
+                }
                 assert_eq!(&bytes[..], &out[..]);
             }
         }
@@ -1372,7 +1481,9 @@ assume val _mm256_set_epi32_interp: e7: i32 -> e6: i32 -> e5: i32 -> e4: i32 -> 
                 let bytes: Vec<u8> = bv.to_vec();
                 let loaded = unsafe { upstream::_mm_loadu_si128(bytes.as_ptr() as *const _) };
                 let mut out = [0u8; 16];
-                unsafe { upstream::_mm_storeu_si128(out.as_mut_ptr() as *mut _, loaded); }
+                unsafe {
+                    upstream::_mm_storeu_si128(out.as_mut_ptr() as *mut _, loaded);
+                }
                 assert_eq!(&bytes[..], &out[..]);
             }
         }
@@ -1384,7 +1495,9 @@ assume val _mm256_set_epi32_interp: e7: i32 -> e6: i32 -> e5: i32 -> e4: i32 -> 
                 let bytes: Vec<u8> = bv.to_vec();
                 let loaded = unsafe { upstream::_mm256_loadu_si256(bytes.as_ptr() as *const _) };
                 let mut out = [0u8; 32];
-                unsafe { upstream::_mm256_storeu_si256(out.as_mut_ptr() as *mut _, loaded); }
+                unsafe {
+                    upstream::_mm256_storeu_si256(out.as_mut_ptr() as *mut _, loaded);
+                }
                 assert_eq!(&bytes[..], &out[..]);
             }
         }
@@ -1396,7 +1509,9 @@ assume val _mm256_set_epi32_interp: e7: i32 -> e6: i32 -> e5: i32 -> e4: i32 -> 
                 let bytes: Vec<u8> = bv.to_vec();
                 let loaded = unsafe { upstream::_mm256_loadu_si256(bytes.as_ptr() as *const _) };
                 let mut out = [0u8; 32];
-                unsafe { upstream::_mm256_storeu_si256(out.as_mut_ptr() as *mut _, loaded); }
+                unsafe {
+                    upstream::_mm256_storeu_si256(out.as_mut_ptr() as *mut _, loaded);
+                }
                 assert_eq!(&bytes[..], &out[..]);
             }
         }
@@ -1410,7 +1525,9 @@ assume val _mm256_set_epi32_interp: e7: i32 -> e6: i32 -> e5: i32 -> e4: i32 -> 
                 let data: Vec<i16> = (0..16).map(|_| rand::random::<i16>()).collect();
                 let loaded = unsafe { upstream::_mm256_loadu_si256(data.as_ptr() as *const _) };
                 let mut out = [0i16; 16];
-                unsafe { upstream::_mm256_storeu_si256(out.as_mut_ptr() as *mut _, loaded); }
+                unsafe {
+                    upstream::_mm256_storeu_si256(out.as_mut_ptr() as *mut _, loaded);
+                }
                 assert_eq!(&data[..], &out[..]);
             }
         }
@@ -1421,7 +1538,9 @@ assume val _mm256_set_epi32_interp: e7: i32 -> e6: i32 -> e5: i32 -> e4: i32 -> 
                 let data: Vec<i32> = (0..8).map(|_| rand::random::<i32>()).collect();
                 let loaded = unsafe { upstream::_mm256_loadu_si256(data.as_ptr() as *const _) };
                 let mut out = [0i32; 8];
-                unsafe { upstream::_mm256_storeu_si256(out.as_mut_ptr() as *mut _, loaded); }
+                unsafe {
+                    upstream::_mm256_storeu_si256(out.as_mut_ptr() as *mut _, loaded);
+                }
                 assert_eq!(&data[..], &out[..]);
             }
         }
@@ -1432,7 +1551,9 @@ assume val _mm256_set_epi32_interp: e7: i32 -> e6: i32 -> e5: i32 -> e4: i32 -> 
                 let data: Vec<u8> = (0..32).map(|_| rand::random::<u8>()).collect();
                 let loaded = unsafe { upstream::_mm256_loadu_si256(data.as_ptr() as *const _) };
                 let mut out = [0u8; 32];
-                unsafe { upstream::_mm256_storeu_si256(out.as_mut_ptr() as *mut _, loaded); }
+                unsafe {
+                    upstream::_mm256_storeu_si256(out.as_mut_ptr() as *mut _, loaded);
+                }
                 assert_eq!(&data[..], &out[..]);
             }
         }
@@ -1443,7 +1564,9 @@ assume val _mm256_set_epi32_interp: e7: i32 -> e6: i32 -> e5: i32 -> e4: i32 -> 
                 let data: Vec<u8> = (0..32).map(|_| rand::random::<u8>()).collect();
                 let loaded = unsafe { upstream::_mm256_loadu_si256(data.as_ptr() as *const _) };
                 let mut out = [0u8; 32];
-                unsafe { upstream::_mm256_storeu_si256(out.as_mut_ptr() as *mut _, loaded); }
+                unsafe {
+                    upstream::_mm256_storeu_si256(out.as_mut_ptr() as *mut _, loaded);
+                }
                 assert_eq!(&data[..], &out[..]);
             }
         }
@@ -1454,7 +1577,9 @@ assume val _mm256_set_epi32_interp: e7: i32 -> e6: i32 -> e5: i32 -> e4: i32 -> 
                 let data: Vec<i32> = (0..8).map(|_| rand::random::<i32>()).collect();
                 let loaded = unsafe { upstream::_mm256_loadu_si256(data.as_ptr() as *const _) };
                 let mut out = [0i32; 8];
-                unsafe { upstream::_mm256_storeu_si256(out.as_mut_ptr() as *mut _, loaded); }
+                unsafe {
+                    upstream::_mm256_storeu_si256(out.as_mut_ptr() as *mut _, loaded);
+                }
                 assert_eq!(&data[..], &out[..]);
             }
         }
@@ -1514,7 +1639,17 @@ mod track_i_axiom_transcription_tests {
         }
         // Edge lanes: equal / greater / less, including INT16_MIN/MAX and the
         // FIELD_MODULUS values the rejection sampler compares against.
-        let specials: [i16; 9] = [i16::MIN, i16::MIN + 1, -1, 0, 1, 3328, 3329, i16::MAX - 1, i16::MAX];
+        let specials: [i16; 9] = [
+            i16::MIN,
+            i16::MIN + 1,
+            -1,
+            0,
+            1,
+            3328,
+            3329,
+            i16::MAX - 1,
+            i16::MAX,
+        ];
         for &x in specials.iter() {
             for &y in specials.iter() {
                 let a = BitVec::<256>::from_slice(&[x; 16], 16);
@@ -1569,8 +1704,17 @@ mod track_i_axiom_transcription_tests {
             check_cvt(BitVec::rand());
         }
         // Edge lanes incl. INT16_MIN/MAX and the FIELD_MODULUS neighbourhood.
-        let specials: [i16; 9] =
-            [i16::MIN, i16::MIN + 1, -1, 0, 1, 3328, 3329, i16::MAX - 1, i16::MAX];
+        let specials: [i16; 9] = [
+            i16::MIN,
+            i16::MIN + 1,
+            -1,
+            0,
+            1,
+            3328,
+            3329,
+            i16::MAX - 1,
+            i16::MAX,
+        ];
         for &x in specials.iter() {
             check_cvt(BitVec::<128>::from_slice(&[x; 8], 16));
         }
@@ -1594,28 +1738,42 @@ mod track_i_axiom_transcription_tests {
     /// Mirrors F* `shuffle32_src c l` (source 32-bit lane within a 128-bit half).
     fn shuffle32_src_rs(c: i32, l: usize) -> usize {
         let cb = c.rem_euclid(256) as usize;
-        (l / 4) * 4 + ((match l % 4 { 0 => cb, 1 => cb / 4, 2 => cb / 16, _ => cb / 64 }) % 4)
+        (l / 4) * 4
+            + ((match l % 4 {
+                0 => cb,
+                1 => cb / 4,
+                2 => cb / 16,
+                _ => cb / 64,
+            }) % 4)
     }
     fn check_shuffle32<const C: i32>(a: BitVec<256>) {
         let model: Vec<i16> =
             BitVec::from_i32x8(int_vec::_mm256_shuffle_epi32::<C>(BitVec::to_i32x8(a))).to_vec();
         let input: Vec<i16> = a.to_vec();
-        let formula: Vec<i16> =
-            (0..16).map(|k| input[2 * shuffle32_src_rs(C, k / 2) + k % 2]).collect();
+        let formula: Vec<i16> = (0..16)
+            .map(|k| input[2 * shuffle32_src_rs(C, k / 2) + k % 2])
+            .collect();
         assert_eq!(model, formula);
     }
 
     /// Mirrors F* `permute64_src c q` (source 64-bit qword).
     fn permute64_src_rs(c: i32, q: usize) -> usize {
         let cb = c.rem_euclid(256) as usize;
-        (match q { 0 => cb, 1 => cb / 4, 2 => cb / 16, _ => cb / 64 }) % 4
+        (match q {
+            0 => cb,
+            1 => cb / 4,
+            2 => cb / 16,
+            _ => cb / 64,
+        }) % 4
     }
     fn check_permute64<const C: i32>(a: BitVec<256>) {
         let model: Vec<i16> =
-            BitVec::from_i64x4(int_vec::_mm256_permute4x64_epi64::<C>(BitVec::to_i64x4(a))).to_vec();
+            BitVec::from_i64x4(int_vec::_mm256_permute4x64_epi64::<C>(BitVec::to_i64x4(a)))
+                .to_vec();
         let input: Vec<i16> = a.to_vec();
-        let formula: Vec<i16> =
-            (0..16).map(|k| input[4 * permute64_src_rs(C, k / 4) + k % 4]).collect();
+        let formula: Vec<i16> = (0..16)
+            .map(|k| input[4 * permute64_src_rs(C, k / 4) + k % 4])
+            .collect();
         assert_eq!(model, formula);
     }
 
@@ -1623,8 +1781,14 @@ mod track_i_axiom_transcription_tests {
     fn blend_sel_rs(c: i32, k: usize) -> bool {
         let cb = c.rem_euclid(256) as usize;
         ((match k % 8 {
-            0 => cb, 1 => cb / 2, 2 => cb / 4, 3 => cb / 8,
-            4 => cb / 16, 5 => cb / 32, 6 => cb / 64, _ => cb / 128,
+            0 => cb,
+            1 => cb / 2,
+            2 => cb / 4,
+            3 => cb / 8,
+            4 => cb / 16,
+            5 => cb / 32,
+            6 => cb / 64,
+            _ => cb / 128,
         }) % 2)
             == 1
     }
@@ -1636,8 +1800,9 @@ mod track_i_axiom_transcription_tests {
         .to_vec();
         let la: Vec<i16> = a.to_vec();
         let lb: Vec<i16> = b.to_vec();
-        let formula: Vec<i16> =
-            (0..16).map(|k| if blend_sel_rs(C, k) { lb[k] } else { la[k] }).collect();
+        let formula: Vec<i16> = (0..16)
+            .map(|k| if blend_sel_rs(C, k) { lb[k] } else { la[k] })
+            .collect();
         assert_eq!(model, formula);
     }
 
@@ -1647,8 +1812,9 @@ mod track_i_axiom_transcription_tests {
         let model: Vec<i16> =
             BitVec::from_i32x8(int_vec::_mm256_slli_epi32::<16>(BitVec::to_i32x8(a))).to_vec();
         let input: Vec<i16> = a.to_vec();
-        let formula: Vec<i16> =
-            (0..16).map(|k| if k % 2 == 0 { 0i16 } else { input[k - 1] }).collect();
+        let formula: Vec<i16> = (0..16)
+            .map(|k| if k % 2 == 0 { 0i16 } else { input[k - 1] })
+            .collect();
         assert_eq!(model, formula);
     }
 
@@ -1672,7 +1838,9 @@ mod track_i_axiom_transcription_tests {
         .to_vec();
         let la: Vec<i16> = a.to_vec();
         let lb: Vec<i16> = b.to_vec();
-        let formula: Vec<i16> = (0..16).map(|k| if k < 8 { la[k] } else { lb[k - 8] }).collect();
+        let formula: Vec<i16> = (0..16)
+            .map(|k| if k < 8 { la[k] } else { lb[k - 8] })
+            .collect();
         assert_eq!(model, formula);
     }
 
@@ -1767,8 +1935,10 @@ mod track_i_axiom_transcription_tests {
     /// (lane32 lhs j + lane32 rhs j) @% 2^32` (32-bit wrapping add).
     /// Model anchor: `int_vec::_mm256_add_epi32` (`a[i].wrapping_add(b[i])`).
     fn check_add32(a: BitVec<256>, b: BitVec<256>) {
-        let model: BitVec<256> =
-            BitVec::from_i32x8(int_vec::_mm256_add_epi32(BitVec::to_i32x8(a), BitVec::to_i32x8(b)));
+        let model: BitVec<256> = BitVec::from_i32x8(int_vec::_mm256_add_epi32(
+            BitVec::to_i32x8(a),
+            BitVec::to_i32x8(b),
+        ));
         let la = lane32_recon(&a);
         let lb = lane32_recon(&b);
         let formula: Vec<i32> = (0..8).map(|j| la[j].wrapping_add(lb[j])).collect();
@@ -1797,8 +1967,16 @@ mod track_i_axiom_transcription_tests {
         }
         // Edge 32-bit lanes (INT32 extremes, the no-wrap NTT bound 3328^2, and
         // values straddling the i16-half boundary to exercise the reconstruction).
-        let specials: [i32; 8] =
-            [i32::MIN, i32::MIN + 1, -1, 0, 1, 3328, 3328 * 3328, i32::MAX];
+        let specials: [i32; 8] = [
+            i32::MIN,
+            i32::MIN + 1,
+            -1,
+            0,
+            1,
+            3328,
+            3328 * 3328,
+            i32::MAX,
+        ];
         for &x in specials.iter() {
             for &y in specials.iter() {
                 let a = BitVec::<256>::from_slice(&[x; 8], 32);
@@ -1838,8 +2016,17 @@ mod track_i_axiom_transcription_tests {
         }
         // Edge i16 lanes incl. INT16 extremes (so a pair hits the 2^31 wrap) and
         // the NTT bound neighbourhood.
-        let specials: [i16; 9] =
-            [i16::MIN, i16::MIN + 1, -1, 0, 1, 3328, 3329, i16::MAX - 1, i16::MAX];
+        let specials: [i16; 9] = [
+            i16::MIN,
+            i16::MIN + 1,
+            -1,
+            0,
+            1,
+            3328,
+            3329,
+            i16::MAX - 1,
+            i16::MAX,
+        ];
         for &x in specials.iter() {
             for &y in specials.iter() {
                 check_madd(
@@ -2048,7 +2235,13 @@ mod track_i_axiom_transcription_tests {
             2, 3, 0, 1, 6, 7, 4, 5, 10, 11, 8, 9, 14, 15, 12, 13, // low 128
             2, 3, 0, 1, 6, 7, 4, 5, 10, 11, 8, 9, 14, 15, 12, 13, // high 128
         ];
-        let sigma_swap = |k: usize| -> usize { if k % 2 == 0 { k + 1 } else { k - 1 } };
+        let sigma_swap = |k: usize| -> usize {
+            if k % 2 == 0 {
+                k + 1
+            } else {
+                k - 1
+            }
+        };
 
         for _ in 0..1000 {
             let a: BitVec<256> = BitVec::rand();

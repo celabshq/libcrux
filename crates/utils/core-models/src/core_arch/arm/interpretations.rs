@@ -335,7 +335,11 @@ pub mod int_vec {
             } else if s >= 0 {
                 ((a[i] as u16).wrapping_shl(s as u32)) as i16
             } else if s <= -16 {
-                if a[i] < 0 { -1 } else { 0 }
+                if a[i] < 0 {
+                    -1
+                } else {
+                    0
+                }
             } else {
                 a[i].wrapping_shr((-s) as u32)
             }
@@ -363,7 +367,11 @@ pub mod int_vec {
             // NEON immediate is in 1..=lane_width; but at lane_width the
             // result is the sign bit replicated (i.e., shr by 15 for i16).
             if N >= 16 {
-                if a[i] < 0 { -1 } else { 0 }
+                if a[i] < 0 {
+                    -1
+                } else {
+                    0
+                }
             } else if N <= 0 {
                 a[i]
             } else {
@@ -434,11 +442,7 @@ pub mod int_vec {
             } else if N >= 64 || N < 0 {
                 a[i]
             } else {
-                let mask: i64 = if N == 63 {
-                    i64::MAX
-                } else {
-                    (1i64 << N) - 1
-                };
+                let mask: i64 = if N == 63 { i64::MAX } else { (1i64 << N) - 1 };
                 let kept = a[i] & mask;
                 let shifted = ((b[i] as u64).wrapping_shl(N as u32)) as i64;
                 kept | shifted
@@ -452,7 +456,11 @@ pub mod int_vec {
     pub fn vextq_u32<const N: i32>(a: u32x4, b: u32x4) -> u32x4 {
         u32x4::from_fn(|i| {
             let idx = ((N as u64) & 3) + i;
-            if idx < 4 { a[idx] } else { b[idx - 4] }
+            if idx < 4 {
+                a[idx]
+            } else {
+                b[idx - 4]
+            }
         })
     }
 
@@ -489,7 +497,11 @@ pub mod int_vec {
     pub fn vqtbl1q_u8(t: u8x16, idx: u8x16) -> u8x16 {
         u8x16::from_fn(|i| {
             let k = idx[i];
-            if (k as u64) < 16 { t[k as u64] } else { 0 }
+            if (k as u64) < 16 {
+                t[k as u64]
+            } else {
+                0
+            }
         })
     }
 
@@ -553,7 +565,11 @@ pub mod int_vec {
     fn aes_xtime(x: u8) -> u8 {
         let high_bit = x & 0x80;
         let shifted = x << 1;
-        if high_bit != 0 { shifted ^ 0x1b } else { shifted }
+        if high_bit != 0 {
+            shifted ^ 0x1b
+        } else {
+            shifted
+        }
     }
 
     /// AES S-box (forward direction). Standard FIPS 197 table.
@@ -622,6 +638,8 @@ pub mod int_vec {
         use super::*;
 
         #[cfg(hax)]
+        use crate::abstractions::bitvec::BitVec;
+        #[cfg(hax)]
         use crate::core_arch::arm as upstream;
         #[cfg(hax)]
         use crate::core_arch::arm::{
@@ -629,8 +647,6 @@ pub mod int_vec {
             uint16x4_t, uint16x8_t, uint32x2_t, uint32x4_t, uint64x1_t, uint64x2_t, uint8x16_t,
             uint8x8_t,
         };
-        #[cfg(hax)]
-        use crate::abstractions::bitvec::BitVec;
 
         /// An F* attribute that marks an item as being a lifting lemma.
         #[allow(dead_code)]
@@ -1044,7 +1060,9 @@ pub mod int_vec {
                 });
                 let loaded = unsafe { upstream::vld1q_s16(arr.as_ptr()) };
                 let mut out = [0i16; 8];
-                unsafe { upstream::vst1q_s16(out.as_mut_ptr(), loaded); }
+                unsafe {
+                    upstream::vst1q_s16(out.as_mut_ptr(), loaded);
+                }
                 assert_eq!(arr, out);
             }
         }
@@ -1063,7 +1081,9 @@ pub mod int_vec {
                 // simpler: use vreinterpretq_s16_u16 and then vst1q_s16.
                 let reint = unsafe { upstream::vreinterpretq_s16_u16(loaded) };
                 let mut out_s16 = [0i16; 8];
-                unsafe { upstream::vst1q_s16(out_s16.as_mut_ptr(), reint); }
+                unsafe {
+                    upstream::vst1q_s16(out_s16.as_mut_ptr(), reint);
+                }
                 let out: [u16; 8] = core::array::from_fn(|i| out_s16[i] as u16);
                 assert_eq!(arr, out);
             }
@@ -1081,7 +1101,9 @@ pub mod int_vec {
                 // Round-trip via reinterpret to u64 then vst1q_u64.
                 let reint = unsafe { upstream::vreinterpretq_u64_u32(loaded) };
                 let mut out_u64 = [0u64; 2];
-                unsafe { upstream::vst1q_u64(out_u64.as_mut_ptr(), reint); }
+                unsafe {
+                    upstream::vst1q_u64(out_u64.as_mut_ptr(), reint);
+                }
                 // Reinterpret bytes back to [u32; 4] via to_le_bytes.
                 let bytes: [u8; 16] = unsafe { core::mem::transmute(out_u64) };
                 let out: [u32; 4] = core::array::from_fn(|i| {
@@ -1106,7 +1128,9 @@ pub mod int_vec {
                 });
                 let loaded = unsafe { upstream::vld1q_u64(arr.as_ptr()) };
                 let mut out = [0u64; 2];
-                unsafe { upstream::vst1q_u64(out.as_mut_ptr(), loaded); }
+                unsafe {
+                    upstream::vst1q_u64(out.as_mut_ptr(), loaded);
+                }
                 assert_eq!(arr, out);
             }
         }
@@ -1121,7 +1145,9 @@ pub mod int_vec {
                 });
                 let loaded = unsafe { upstream::vld1q_u8(arr.as_ptr()) };
                 let mut out = [0u8; 16];
-                unsafe { upstream::vst1q_u8(out.as_mut_ptr(), loaded); }
+                unsafe {
+                    upstream::vst1q_u8(out.as_mut_ptr(), loaded);
+                }
                 assert_eq!(arr, out);
             }
         }
@@ -1136,7 +1162,9 @@ pub mod int_vec {
                 });
                 let loaded = unsafe { upstream::vld1q_s16(arr.as_ptr()) };
                 let mut out = [0i16; 8];
-                unsafe { upstream::vst1q_s16(out.as_mut_ptr(), loaded); }
+                unsafe {
+                    upstream::vst1q_s16(out.as_mut_ptr(), loaded);
+                }
                 assert_eq!(arr, out);
             }
         }
@@ -1151,7 +1179,9 @@ pub mod int_vec {
                 });
                 let loaded = unsafe { upstream::vld1q_u64(arr.as_ptr()) };
                 let mut out = [0u64; 2];
-                unsafe { upstream::vst1q_u64(out.as_mut_ptr(), loaded); }
+                unsafe {
+                    upstream::vst1q_u64(out.as_mut_ptr(), loaded);
+                }
                 assert_eq!(arr, out);
             }
         }
@@ -1166,7 +1196,9 @@ pub mod int_vec {
                 });
                 let loaded = unsafe { upstream::vld1q_u8(arr.as_ptr()) };
                 let mut out = [0u8; 16];
-                unsafe { upstream::vst1q_u8(out.as_mut_ptr(), loaded); }
+                unsafe {
+                    upstream::vst1q_u8(out.as_mut_ptr(), loaded);
+                }
                 assert_eq!(arr, out);
             }
         }

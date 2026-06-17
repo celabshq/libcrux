@@ -811,8 +811,9 @@ pub fn mm_aeskeygenassist_si128<const RCON: i32>(a: Vec128) -> Vec128 {
 #[inline(always)]
 pub fn get_lane_u64(vec: Vec256, lane: usize) -> u64 {
     let mut tmp = [0u64; 4];
-    mm256_storeu_si256_u8(unsafe {
-        core::slice::from_raw_parts_mut(tmp.as_mut_ptr() as *mut u8, 32)
-    }, vec);
+    mm256_storeu_si256_u8(
+        unsafe { core::slice::from_raw_parts_mut(tmp.as_mut_ptr() as *mut u8, 32) },
+        vec,
+    );
     tmp[lane]
 }
