@@ -808,6 +808,11 @@ pub fn mm_aeskeygenassist_si128<const RCON: i32>(a: Vec128) -> Vec128 {
     unsafe { _mm_aeskeygenassist_si128(a, RCON) }
 }
 
+// Opaque to hax like the other raw-pointer store/load wrappers above: the body
+// reinterprets a `[u64; 4]` as `&mut [u8]` via `from_raw_parts_mut`, which hax
+// rejects (`reject_RawOrMutPointer`). Marking it opaque extracts it as an
+// uninterpreted `val` (consumers that need a spec use the `avx2_extract` model).
+#[hax_lib::opaque]
 #[inline(always)]
 pub fn get_lane_u64(vec: Vec256, lane: usize) -> u64 {
     let mut tmp = [0u64; 4];
