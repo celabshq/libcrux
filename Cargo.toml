@@ -191,10 +191,7 @@ digest = []
 kem = []
 
 # Protocols
-# `hpke` disabled for the hax-lib 0.3.7 migration: hpke-rs depends on a crates.io
-# `libcrux` pinned to hax-lib 0.3.6, which conflicts with the workspace 0.3.7 pin.
-# Re-add "hpke" once hpke-rs supports hax-lib 0.3.7.
-all_protocols = ["psq"]
+all_protocols = ["hpke", "psq"]
 hpke = []
 psq = []
 
@@ -205,9 +202,7 @@ getrandom = { version = "0.4", optional = true }
 hax-lib.workspace = true
 
 # External Cryspen code.
-# Disabled for the hax-lib 0.3.7 migration (pulls a crates.io `libcrux` pinned to
-# hax-lib 0.3.6, conflicting with the 0.3.7 pin). Restore when hpke-rs is on 0.3.7.
-# hpke-rs = { version = "0.6", features = ["libcrux"] }
+hpke-rs = { version = "0.6", features = ["libcrux"] }
 
 # Primitives
 libcrux-aead.workspace = true
@@ -272,9 +267,6 @@ strip = false
 # XXX: Not needed anymore, but nice for test speed
 # [profile.dev.package."libcrux-ml-dsa"]
 # opt-level = 1
-
-[patch.crates-io]
-hax-lib = { git = "https://github.com/cryspen/hax", tag = "cargo-hax-v0.3.7" }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = [
