@@ -611,6 +611,16 @@ val mm256_cmpgt_epi32_lemma (a b: bv256) (i:u64{v i < 8}):
          (if (to_i32x8 a i >. to_i32x8 b i) then ones else zero))
   [SMTPat (to_i32x8 (Libcrux_intrinsics.Avx2.mm256_cmpgt_epi32 a b) i)]
 
+// Faithful model of _mm256_blendv_ps-based 32-bit lane select: the result lane
+// is `b` when the mask lane's sign bit (MSB) is set (i.e. mask lane < 0) and
+// `a` otherwise.  (blendv selects on the float sign bit = bit 31 = the i32 sign
+// bit.)  Cross-validated bit-exactly against the documented Intel semantics in
+// the ML-DSA use_hint Python sim (mldsa-uuse-hint-sim).
+val vec256_blendv_epi32_lemma (a b mask: bv256) (i:u64{v i < 8}):
+  Lemma (to_i32x8 (Libcrux_intrinsics.Avx2.vec256_blendv_epi32 a b mask) i ==
+         (if to_i32x8 mask i <. mk_i32 0 then to_i32x8 b i else to_i32x8 a i))
+  [SMTPat (to_i32x8 (Libcrux_intrinsics.Avx2.vec256_blendv_epi32 a b mask) i)]
+
 val mm256_testz_si256_lemma (a b: bv256):
   Lemma (let result = Libcrux_intrinsics.Avx2.mm256_testz_si256 a b in
          let conjunct = Libcrux_intrinsics.Avx2.mm256_and_si256 a b in

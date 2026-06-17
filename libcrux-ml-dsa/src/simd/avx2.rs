@@ -457,13 +457,63 @@ pub(crate) fn compute_hint_with_proof(
         (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${simd_unit}) i)
         (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${hint}) i)
         (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${hint}_future) i))"#))]
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 300 --split_queries always --fuel 1 --ifuel 1 --using_facts_from '* -Spec.MLDSA.Math.use_one_hint -Spec.MLDSA.Math.decompose_spec -Spec.MLDSA.Math.decompose -Spec.MLDSA.Math.mod_p'"))]
 pub(crate) fn use_hint_with_proof(
     gamma2: Gamma2,
     simd_unit: &AVX2SIMDUnit,
     hint: &mut AVX2SIMDUnit,
 ) {
-    hax_lib::fstar!("admit ()");
+    #[cfg(hax)]
+    let hint_orig = *hint;
+    // Derive the leaf preconditions (per-lane FIELD_MAX bound; binary hint) from
+    // the trait precondition.
+    hax_lib::fstar!(
+        r#"
+        let _:t_Array i32 (mk_usize 8) = Libcrux_ml_dsa.Simd.Traits.f_repr ${simd_unit} in
+        let _:t_Array i32 (mk_usize 8) = Libcrux_ml_dsa.Simd.Traits.f_repr ${hint} in
+        reveal_opaque (`%Spec.Utils.is_i32b_array_opaque)
+          (Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX})
+              (Libcrux_ml_dsa.Simd.Traits.f_repr ${simd_unit}));
+        reveal_opaque (`%Libcrux_ml_dsa.Simd.Traits.Specs.is_binary_array_8_opaque)
+          (Libcrux_ml_dsa.Simd.Traits.Specs.is_binary_array_8_opaque
+              (Libcrux_ml_dsa.Simd.Traits.f_repr ${hint}))"#
+    );
     arithmetic::use_hint(gamma2, &simd_unit.value, &mut hint.value);
+    // Lift the leaf's (to_i32x8) per-lane functional post (== use_one_hint's
+    // formula over decompose_spec) to the trait's use_hint_lane_post, via the
+    // use_one_hint bridge + the commute lemma.
+    hax_lib::fstar!(
+        r#"
+        let bridge (u: Libcrux_ml_dsa.Simd.Avx2.Vector_type.t_Vec256) (kk: nat{kk < 8})
+            : Lemma (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr u) kk ==
+                Spec.Intrinsics.to_i32x8 u.Libcrux_ml_dsa.Simd.Avx2.Vector_type.f_value (mk_u64 kk)) =
+          let _:t_Array i32 (mk_usize 8) = Libcrux_ml_dsa.Simd.Traits.f_repr u in () in
+        let pf (k: nat{k < 8}) : Lemma
+            (ensures Libcrux_ml_dsa.Simd.Traits.Specs.use_hint_lane_post $gamma2
+                (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${simd_unit}) k)
+                (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${hint_orig}) k)
+                (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${hint}) k)) =
+          bridge ${simd_unit} k; bridge ${hint_orig} k; bridge ${hint} k;
+          Libcrux_ml_dsa.Simd.Avx2.Arithmetic.lemma_use_one_hint_via_spec $gamma2
+            (Spec.Intrinsics.to_i32x8 ${simd_unit}.Libcrux_ml_dsa.Simd.Avx2.Vector_type.f_value (mk_u64 k))
+            (Spec.Intrinsics.to_i32x8 ${hint_orig}.Libcrux_ml_dsa.Simd.Avx2.Vector_type.f_value (mk_u64 k));
+          Hacspec_ml_dsa.Commute.Chunk.lemma_use_hint_lane_commute_conditional $gamma2
+            (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${simd_unit}) k)
+            (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${hint_orig}) k)
+            (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${hint}) k) in
+        Classical.forall_intro pf;
+        let pf_bound (k: nat{k < 8}) : Lemma
+            ((v $gamma2 == 95232 ==>
+                Spec.Utils.is_i32b 44 (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${hint}) k)) /\
+             (v $gamma2 == 261888 ==>
+                Spec.Utils.is_i32b 16 (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${hint}) k))) =
+          bridge ${hint} k in
+        Classical.forall_intro pf_bound;
+        reveal_opaque (`%Spec.Utils.is_i32b_array_opaque)
+          (Spec.Utils.is_i32b_array_opaque 44 (Libcrux_ml_dsa.Simd.Traits.f_repr ${hint}));
+        reveal_opaque (`%Spec.Utils.is_i32b_array_opaque)
+          (Spec.Utils.is_i32b_array_opaque 16 (Libcrux_ml_dsa.Simd.Traits.f_repr ${hint}))"#
+    );
 }
 
 #[inline(always)]

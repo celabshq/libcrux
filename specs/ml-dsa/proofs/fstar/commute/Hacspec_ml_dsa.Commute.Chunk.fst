@@ -606,38 +606,6 @@ let lemma_compute_hint_lane_commute_conditional
   = reveal_opaque (`%TS.compute_hint_lane_post)
                   (TS.compute_hint_lane_post gamma2 low high hint_future)
 
-(* === Step 12 Track B: AVX2 decompose impl-side bridge === *)
-
-(* Bridge: AVX2 SIMD-shape `Spec.MLDSA.Math.decompose_spec` agrees in
-   v-image with the canonical `Spec.MLDSA.Math.decompose` for any
-   `v r` in i32-bounded trait range and valid gamma2.  The
-   decompose_spec body normalizes negatives via `if r < 0 then r + q`,
-   so r' = if v r >= 0 then v r else v r + q ∈ [0, q-1].  This is the
-   same value as `(v r) % q` (Euclidean), which is the input that
-   `Spec.MLDSA.Math.decompose` consumes.  So the two agree
-   unconditionally for v r ∈ [-(q-1), q-1].
-
-   Body: full proof requires showing the bit-trick approximation
-   `(r' * 11275 + 2^23) >> 24` (for gamma2 = 95232) and
-   `(r' * 1025 + 2^21) >> 22` (for gamma2 = 261888) compute exactly
-   `r' / (2*gamma2)` (with the special-case correction at boundary).
-   This is a non-trivial bit-trick / interval analysis (~150-200 lines).
-   Step 12 lands the structural template with `admit ()` body; the math
-   close is deferred to a USER-lane session matching Track 4 mont_mul's
-   depth.  Once closed, the AVX2 `Operations::decompose` impl-method
-   body (`src/simd/avx2.rs:376`) carries a real proof modulo this
-   admit. *)
-let lemma_decompose_spec_eq_decompose (gamma2 r: i32)
-    : Lemma
-        (requires
-          (v gamma2 == 95232 \/ v gamma2 == 261888) /\
-          Spec.Utils.is_i32b 8380416 r)
-        (ensures
-          (let (r0_s_avx, r1_s_avx) = Spec.MLDSA.Math.decompose_spec gamma2 r in
-           let (r0_int, r1_int, _) = Spec.MLDSA.Math.decompose (v gamma2) (v r) in
-           v r0_s_avx == r0_int /\ v r1_s_avx == r1_int))
-  = admit ()
-
 (* === Track 4 (Step 9.6 AVX2 montgomery_multiply) === *)
 
 (* Bound + mod-q congruence for `Spec.MLDSA.Math.mont_mul`.
@@ -3870,3 +3838,422 @@ let lemma_intt_layer_7_cross_to_hacspec_poly
     Classical.forall_intro aux
 #pop-options
 
+
+(* === Step 12 Track B: AVX2 decompose impl-side bridge === *)
+
+(* --- Bit-trick correctness, integer level ---
+
+   The AVX2 decompose computes the high part `r1` with a reciprocal
+   multiply-shift.  For both gamma2 values the chain is:
+     c      = (r' + 127) / 128            (= ceil(r'/128))
+     result = (c * coef + addc) / 2^sh
+   where (coef, sh, addc) = (11275, 24, 2^23) for gamma2 = 95232 and
+   (1025, 22, 2^21) for gamma2 = 261888.  The CLAIM proven here is the
+   exact floor identity
+        result == (r' + g - 1) / (2*g)
+   for r' ∈ [0, q-1], g = gamma2.
+
+   Key algebra (validated against an exhaustive Python sim over the
+   whole [0,q) range):  let alpha = 2*g, d = 128*2^sh - alpha*coef,
+   rem = c*coef + addc - result*2^sh ∈ [0, 2^sh).  The constants satisfy
+        alpha*coef = 128*2^sh - d      (d = 2048 / 512)
+        alpha*addc = g*2^sh            (since addc = 2^(sh-1))
+   from which, with E := 128*c + g - result*alpha,
+        E * 2^sh == d*c + alpha*rem.
+   Then:
+     * E ≡ 0 (mod 128)   (128*c, g, alpha all ≡ 0 mod 128),
+     * E*2^sh = d*c + alpha*rem > 0   ⇒ E ≥ 1   ⇒ (mod 128) E ≥ 128,
+     * the floor lower bound result*2^sh ≥ c*coef+addc-2^sh+1 gives
+       result*alpha > 128c+g-128-alpha ⇒ E < 128+alpha ⇒ (mod128) E ≤ alpha.
+   So E ∈ [128, alpha], and with r' ∈ [128c-127, 128c] the residue
+   F := r'+g-1-result*alpha = (r'-128c) + (E-1) ∈ [0, alpha-1], which is
+   exactly the `division_definition` certificate for result = (r'+g-1)/alpha. *)
+
+#push-options "--fuel 0 --ifuel 0 --z3rlimit 400"
+let lemma_decompose_bittrick_div
+      (rp g coef sh addc : int)
+    : Lemma
+        (requires
+          ((g == 95232 /\ coef == 11275 /\ sh == 24 /\ addc == 8388608) \/
+           (g == 261888 /\ coef == 1025 /\ sh == 22 /\ addc == 2097152)) /\
+          0 <= rp /\ rp <= 8380416)
+        (ensures
+          (let c = (rp + 127) / 128 in
+           let result = (c * coef + addc) / pow2 sh in
+           result == (rp + g - 1) / (2 * g)))
+  = let alpha = 2 * g in
+    let twosh = pow2 sh in
+    assert_norm (pow2 24 == 16777216);
+    assert_norm (pow2 22 == 4194304);
+    // d = 128*2^sh - alpha*coef.
+    let d = 128 * twosh - alpha * coef in
+    assert (d == 2048 \/ d == 512);
+    assert (alpha * coef == 128 * twosh - d);
+    assert (alpha * addc == g * twosh);   // addc = 2^(sh-1)
+    // c bounds: 128c ≤ rp+127 < 128c+128, i.e. rp-127 ≤ 128c ≤ rp ... centered as rp ∈ [128c-127,128c].
+    let c = (rp + 127) / 128 in
+    L.lemma_div_mod (rp + 127) 128;
+    L.lemma_mod_lt (rp + 127) 128;
+    assert (128 * c <= rp + 127 /\ rp + 127 < 128 * c + 128);
+    assert (128 * c - 127 <= rp /\ rp <= 128 * c);
+    // result floor: result*2^sh ≤ c*coef+addc < (result+1)*2^sh.
+    let result = (c * coef + addc) / twosh in
+    L.lemma_div_mod (c * coef + addc) twosh;
+    L.lemma_mod_lt (c * coef + addc) twosh;
+    let rem = (c * coef + addc) - result * twosh in
+    assert (0 <= rem /\ rem < twosh);
+    assert (result * twosh + rem == c * coef + addc);
+    // E := 128c + g - result*alpha.  E*2^sh == d*c + alpha*rem.
+    let e = 128 * c + g - result * alpha in
+    // result*alpha*2^sh = alpha*(result*2^sh) = alpha*(c*coef+addc-rem)
+    //   = (128*2^sh-d)*c + g*2^sh - alpha*rem
+    // so e*2^sh = (128c+g)*2^sh - result*alpha*2^sh = d*c + alpha*rem.
+    assert (result * alpha * twosh == alpha * (result * twosh));
+    assert (alpha * (result * twosh) == alpha * (c * coef + addc - rem));
+    assert (alpha * (c * coef + addc - rem)
+            == (128 * twosh - d) * c + g * twosh - alpha * rem);
+    assert (e * twosh == d * c + alpha * rem);
+    // E ≥ 0 (E*2^sh ≥ 0, 2^sh>0) and E ≥ 1 (E*2^sh > 0).
+    assert (d * c >= 0 /\ alpha * rem >= 0);
+    assert (e * twosh >= 0);
+    // strict: e*2^sh > 0.  If c = 0 then rem = addc mod 2^sh = addc (>0) so alpha*rem>0;
+    //         if c > 0 then d*c > 0.
+    assert (c == 0 ==> rem == addc /\ addc > 0);
+    assert (c > 0 ==> d * c > 0);
+    assert (e * twosh > 0);
+    assert (e >= 1);
+    // E ≡ 0 (mod 128): 128c ≡ 0, g ≡ 0, alpha ≡ 0 (mod 128).
+    assert (g % 128 == 0 /\ alpha % 128 == 0);
+    L.lemma_mod_mul_distr_l result alpha 128;   // (result*alpha) % 128
+    assert ((result * alpha) % 128 == 0);
+    assert ((128 * c) % 128 == 0);
+    L.lemma_mod_plus_distr_l (128 * c + g) (- (result * alpha)) 128;
+    assert (e % 128 == 0);
+    // E ≥ 1 ∧ E ≡ 0 (mod 128) ⇒ E ≥ 128.
+    assert (e >= 128);
+    // floor LOWER: result*2^sh ≥ c*coef+addc-2^sh+1.
+    assert (result * twosh >= c * coef + addc - twosh + 1);
+    // ⇒ result*alpha*2^sh ≥ alpha*(c*coef+addc-2^sh+1) ⇒ e*2^sh < (128+alpha)*2^sh ⇒ e < 128+alpha.
+    assert (alpha * (result * twosh) >= alpha * (c * coef + addc - twosh + 1));
+    assert (e * twosh <= d * c + alpha * (twosh - 1));
+    // e < 128 + alpha:  e*2^sh = d*c+alpha*rem, rem ≤ 2^sh-1, and the strict floor bound.
+    // Use: e*2^sh ≤ d*c + alpha*(2^sh-1).  Combined with e ≡0 mod128 below pins e ≤ alpha.
+    // Establish e ≤ 127 + alpha via the linear LO directly:
+    //   result*alpha > 128c+g-128-alpha  ⟺  e < 128+alpha.
+    assert (result * alpha * twosh >= (128 * twosh - d) * c + g * twosh - alpha * (twosh - 1));
+    assert ((result * alpha) * twosh > (128 * c + g - 128 - alpha) * twosh);
+    assert (result * alpha > 128 * c + g - 128 - alpha);
+    assert (e < 128 + alpha);
+    // E ≡ 0 (mod 128) ∧ E < 128+alpha ∧ alpha ≡ 0 (mod 128) ⇒ E ≤ alpha.
+    assert (e <= alpha);
+    // F := rp+g-1 - result*alpha = (rp-128c) + (e-1) ∈ [0, alpha-1].
+    let f = rp + g - 1 - result * alpha in
+    assert (f == (rp - 128 * c) + (e - 1));
+    assert (- 127 <= rp - 128 * c /\ rp - 128 * c <= 0);
+    assert (0 <= f /\ f < alpha);
+    // division_definition: result == (rp+g-1) / alpha.
+    assert (result * alpha <= rp + g - 1 /\ rp + g - 1 < result * alpha + alpha);
+    L.division_definition (rp + g - 1) alpha result;
+    assert (result == (rp + g - 1) / alpha)
+#pop-options
+
+(* Uniqueness of the centered residue `mod_p`: if y ≡ x (mod p) and
+   y ∈ (-p/2, p/2], then mod_p x p == y.  (p even, p > 0.) *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200"
+let lemma_mod_p_unique (x y p: int)
+    : Lemma
+        (requires p > 0 /\ p % 2 == 0 /\
+                  (x - y) % p == 0 /\ - (p / 2) < y /\ y <= p / 2)
+        (ensures Spec.Utils.mod_p x p == y)
+  = let m = x % p in
+    L.lemma_mod_lt x p;
+    assert (0 <= m /\ m < p);
+    // y ≡ x (mod p), so m == y % p.
+    L.lemma_mod_sub x p ((x - y) / p);
+    L.lemma_div_mod (x - y) p;
+    assert (x - y == p * ((x - y) / p));
+    assert (x == y + p * ((x - y) / p));
+    L.lemma_mod_plus y ((x - y) / p) p;
+    assert (m == y % p);
+    if y >= 0 then begin
+      L.modulo_lemma y p;
+      assert (m == y)
+    end else begin
+      L.lemma_mod_plus y 1 p;
+      L.modulo_lemma (y + p) p;
+      assert (m == y + p)
+    end
+#pop-options
+
+(* Clamp for gamma2 = 95232:  given `v result ∈ [0, 44]`, the masked
+   chain `result &. ((result ^. ((43 - result) >> 31)))` yields
+   `result` when result ≤ 43 and 0 when result = 44. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200"
+let lemma_clamp_95232 (result: i32)
+    : Lemma
+        (requires v result >= 0 /\ v result <= 44)
+        (ensures
+          (let mask = Spec.Intrinsics.shift_right_opaque
+                        (Spec.Intrinsics.sub_mod_opaque (mk_i32 43) result) (mk_i32 31) in
+           let not_result = result ^. mask in
+           let r1 = result &. not_result in
+           v r1 == (if v result <= 43 then v result else 0)))
+  = Spec.Intrinsics.reveal_opaque_arithmetic_ops #i32_inttype;
+    let diff = sub_mod (mk_i32 43) result in
+    assert (v diff == 43 - v result);
+    let mask = shift_right diff (mk_i32 31) in
+    assert (v mask == (43 - v result) / pow2 31);
+    assert_norm (pow2 31 == 2147483648);
+    if v result <= 43 then begin
+      // diff ∈ [-1, 43], here ≥ 0 ⇒ mask = 0.
+      L.small_div (43 - v result) (pow2 31);
+      assert (v mask == 0);
+      assert (mask == mk_i32 0);
+      logxor_lemma result mask;
+      assert ((result ^. mask) == result);            // a ^. zero == a
+      logand_lemma result result;
+      assert ((result &. result) == result)            // a == a ⇒ logand == a
+    end else begin
+      // result = 44 ⇒ diff = -1 ⇒ mask = -1 = ones.
+      assert (v diff == -1);
+      assert ((-1) / pow2 31 == -1);
+      assert (v mask == -1);
+      assert (mask == mk_i32 (-1));
+      logxor_lemma result mask;                       // a ^. ones == lognot a
+      assert ((result ^. mask) == lognot result);
+      logand_lemma result (lognot result);            // b == lognot a ⇒ logand == zero
+      assert ((result &. (lognot result)) == mk_i32 0)
+    end
+#pop-options
+
+(* Clamp for gamma2 = 261888:  given `v result ∈ [0, 16]`, `result &. 15`
+   yields `result` when result ≤ 15 and 0 when result = 16. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200"
+let lemma_clamp_261888 (result: i32)
+    : Lemma
+        (requires v result >= 0 /\ v result <= 16)
+        (ensures v (result &. (mk_i32 15)) == (if v result <= 15 then v result else 0))
+  = assert_norm (pow2 4 == 16);
+    assert (mk_i32 15 == sub (mk_i32 (pow2 4)) (mk_i32 1));
+    logand_mask_lemma result 4;
+    assert (v (result &. (mk_i32 15)) == v result % pow2 4);
+    if v result <= 15 then L.small_mod (v result) (pow2 4)
+    else assert (v result % pow2 4 == 0)
+#pop-options
+
+(* Pure-integer bridge for decompose: given the bit-trick high part
+   `result_int == (rp + g - 1) / (2g)` for normalized `rp ∈ [0, q-1]`,
+   establishes ALL the integer-level facts the v-image proof needs —
+   `result_int*(2g) == rp - r_g`, the clamp value `r1_int`, and the
+   r0 value/mask conditions.  Proven in a CLEAN context (no i32/module
+   ambient), so the heavy nonlinear division/mod_p reasoning does not
+   combine with the host module's `t_Array` refinement cascade. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 300"
+let lemma_decompose_int_bridge (rp g result_int: int)
+    : Lemma
+        (requires
+          (g == 95232 \/ g == 261888) /\
+          0 <= rp /\ rp <= 8380416 /\
+          result_int == (rp + g - 1) / (2 * g))
+        (ensures
+          (let alpha = 2 * g in
+           let r_g = Spec.Utils.mod_p rp alpha in
+           let m = 8380416 / alpha in
+           let special = (rp - r_g = 8380416) in
+           let r1_int = if special then 0 else (rp - r_g) / alpha in
+           // r1 facts
+           result_int * alpha == rp - r_g /\
+           0 <= result_int /\ result_int <= m /\
+           (special <==> result_int == m) /\
+           (if result_int < m then result_int else 0) == r1_int /\
+           0 <= r1_int /\ r1_int <= 44 /\
+           // r0 facts
+           - g < r_g /\ r_g <= g /\
+           (special ==> rp - r1_int * alpha == 8380416 + r_g) /\
+           ((not special) ==> rp - r1_int * alpha == r_g)))
+  = let q : pos = 8380417 in
+    let alpha = 2 * g in
+    let r_g = Spec.Utils.mod_p rp alpha in
+    L.lemma_mod_lt rp alpha;
+    assert (- g < r_g /\ r_g <= g);
+    // result_int*alpha == rp - r_g via centered-division uniqueness.
+    L.lemma_div_mod (rp + g - 1) alpha;
+    L.lemma_mod_lt (rp + g - 1) alpha;
+    let fres = (rp + g - 1) - result_int * alpha in
+    assert (0 <= fres /\ fres < alpha);
+    assert (rp - result_int * alpha == fres - g + 1);
+    assert (- g < (rp - result_int * alpha) /\ (rp - result_int * alpha) <= g);
+    L.lemma_mod_mul_distr_l result_int alpha alpha;
+    assert ((rp - (rp - result_int * alpha) - result_int * alpha) == 0);
+    lemma_mod_p_unique rp (rp - result_int * alpha) alpha;
+    assert (r_g == rp - result_int * alpha);
+    assert (result_int * alpha == rp - r_g);
+    let m = 8380416 / alpha in
+    assert (m == 44 \/ m == 16);
+    lemma_spec_decompose_r1_bound g rp;
+    // result_int ∈ [0, m]; special ⟺ result_int == m.
+    assert (0 <= result_int /\ result_int <= m);
+    let special = (rp - r_g = 8380416) in
+    // special ⟺ rp-r_g == q-1 == m*alpha ⟺ result_int == m.
+    assert (m * alpha == 8380416);
+    assert (special <==> result_int == m)
+#pop-options
+
+(* Bridge: AVX2 SIMD-shape `Spec.MLDSA.Math.decompose_spec` agrees in
+   v-image with the canonical `Spec.MLDSA.Math.decompose` for any
+   `v r` in i32-bounded trait range and valid gamma2.  The
+   decompose_spec body normalizes negatives via `if r < 0 then r + q`,
+   so r' = if v r >= 0 then v r else v r + q ∈ [0, q-1].  This is the
+   same value as `(v r) % q` (Euclidean), which is the input that
+   `Spec.MLDSA.Math.decompose` consumes.  So the two agree
+   unconditionally for v r ∈ [-(q-1), q-1].
+
+   The bit-trick correctness `result == (r'+g-1)/(2g)` is
+   `lemma_decompose_bittrick_div`; the integer-level reconciliation is
+   `lemma_decompose_int_bridge` (proven in a clean context); this lemma
+   just does the i32↔int bridging + clamp/mask bit-ops. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 400 --using_facts_from 'Prims FStar Rust_primitives Core_models Spec.Utils Spec.Intrinsics Spec.MLDSA Hacspec_ml_dsa.Commute.Chunk.lemma_decompose_bittrick_div Hacspec_ml_dsa.Commute.Chunk.lemma_mod_p_unique Hacspec_ml_dsa.Commute.Chunk.lemma_clamp_95232 Hacspec_ml_dsa.Commute.Chunk.lemma_clamp_261888 Hacspec_ml_dsa.Commute.Chunk.lemma_decompose_int_bridge Hacspec_ml_dsa.Commute.Chunk.lemma_spec_decompose_r1_bound'"
+let lemma_decompose_spec_eq_decompose (gamma2 r: i32)
+    : Lemma
+        (requires
+          (v gamma2 == 95232 \/ v gamma2 == 261888) /\
+          Spec.Utils.is_i32b 8380416 r)
+        (ensures
+          (let (r0_s_avx, r1_s_avx) = Spec.MLDSA.Math.decompose_spec gamma2 r in
+           let (r0_int, r1_int, _) = Spec.MLDSA.Math.decompose (v gamma2) (v r) in
+           v r0_s_avx == r0_int /\ v r1_s_avx == r1_int))
+  = Spec.Intrinsics.reveal_opaque_arithmetic_ops #i32_inttype;
+    let q : pos = 8380417 in
+    let g = v gamma2 in
+    let alpha_int = 2 * g in
+    assert_norm (pow2 31 == 2147483648);
+    // --- r' = normalized r ∈ [0, q-1], equals (v r) % q ---
+    let rp_i : i32 = if r <. mk_i32 0 then add_mod r Spec.MLDSA.Math.v_FIELD_MODULUS else r in
+    let rp = v rp_i in
+    if v r < 0 then begin
+      assert (v rp_i == v r + q);
+      L.lemma_mod_plus (v r) 1 q;
+      L.modulo_lemma (v r + q) q
+    end else L.modulo_lemma (v r) q;
+    assert (rp == (v r) % q);
+    assert (0 <= rp /\ rp <= q - 1);
+    let r_q = (v r) % q in
+    assert (r_q == rp);
+    // decompose's r_g, r1_int, r0_int.
+    let r_g = Spec.Utils.mod_p r_q alpha_int in
+    let special = (r_q - r_g = q - 1) in
+    let r1_int = if special then 0 else (r_q - r_g) / alpha_int in
+    let r0_int = if special then r_g - 1 else r_g in
+    let m = (q - 1) / alpha_int in
+    // --- c = ceil(rp/128) ---
+    let c_i : i32 = Spec.Intrinsics.shift_right_opaque
+                      (Spec.Intrinsics.add_mod_opaque rp_i (mk_i32 127)) (mk_i32 7) in
+    assert (v c_i == (rp + 127) / pow2 7);
+    assert (pow2 7 == 128);
+    let c = (rp + 127) / 128 in
+    assert (v c_i == c);
+    L.lemma_div_mod (rp + 127) 128;
+    L.lemma_mod_lt (rp + 127) 128;
+    assert (128 * c - 127 <= rp /\ rp <= 128 * c);
+    // --- the bit-trick result value (per gamma2) ---
+    let coef = if g = 95232 then 11275 else 1025 in
+    let sh = if g = 95232 then 24 else 22 in
+    let addc = if g = 95232 then 8388608 else 2097152 in
+    let result_int = (c * coef + addc) / pow2 sh in
+    lemma_decompose_bittrick_div rp g coef sh addc;
+    assert (result_int == (rp + g - 1) / alpha_int);
+    // ALL integer-level facts (nonlinear/mod_p) via the clean-context bridge.
+    lemma_decompose_int_bridge rp g result_int;
+    assert (result_int * alpha_int == r_q - r_g);
+    assert (0 <= result_int /\ result_int <= m);
+    assert (special <==> result_int == m);
+    assert ((if result_int < m then result_int else 0) == r1_int);
+    assert (0 <= r1_int /\ r1_int <= 44);
+    assert (- g < r_g /\ r_g <= g);
+    // --- compute r1 (the spec) per gamma2 (light: clamp bit-ops) ---
+    let r1_i : i32 =
+      if v gamma2 = 95232 then begin
+        let result = Spec.Intrinsics.mul_mod_opaque c_i (mk_i32 11275) in
+        assert (v result == c * 11275);
+        let result = Spec.Intrinsics.add_mod_opaque result (mk_i32 1 <<! mk_i32 23 <: i32) in
+        assert (v (mk_i32 1 <<! mk_i32 23 <: i32) == pow2 23);
+        assert (v result == c * 11275 + 8388608);
+        let result = Spec.Intrinsics.shift_right_opaque result (mk_i32 24) in
+        assert (v result == (c * 11275 + 8388608) / pow2 24);
+        assert (v result == result_int);
+        assert (v result >= 0 /\ v result <= 44);
+        lemma_clamp_95232 result;
+        let mask = Spec.Intrinsics.shift_right_opaque
+                     (Spec.Intrinsics.sub_mod_opaque (mk_i32 43) result) (mk_i32 31) in
+        let not_result = result ^. mask in
+        result &. not_result
+      end else begin
+        let result = Spec.Intrinsics.mul_mod_opaque c_i (mk_i32 1025) in
+        assert (v result == c * 1025);
+        let result = Spec.Intrinsics.add_mod_opaque result (mk_i32 1 <<! mk_i32 21 <: i32) in
+        assert (v (mk_i32 1 <<! mk_i32 21 <: i32) == pow2 21);
+        assert (v result == c * 1025 + 2097152);
+        let result = Spec.Intrinsics.shift_right_opaque result (mk_i32 22) in
+        assert (v result == (c * 1025 + 2097152) / pow2 22);
+        assert (v result == result_int);
+        assert (v result >= 0 /\ v result <= 16);
+        lemma_clamp_261888 result;
+        result &. (mk_i32 15)
+      end
+    in
+    assert (v r1_i == (if result_int < m then result_int else 0));
+    assert (v r1_i == r1_int);
+    // --- r0 finalize (light: i32 arithmetic + mask, values from the bridge) ---
+    let alpha_i : i32 = gamma2 *! (mk_i32 2) in
+    assert (v alpha_i == alpha_int);
+    assert (r1_int * alpha_int <= 8380416);
+    let prod = Spec.Intrinsics.mul_mod_opaque r1_i alpha_i in
+    assert (v prod == r1_int * alpha_int);
+    let r0_tmp = Spec.Intrinsics.sub_mod_opaque rp_i prod in
+    assert (v r0_tmp == rp - r1_int * alpha_int);
+    // value of r0_tmp from the bridge:
+    //   special ⇒ rp - r1_int*alpha == q-1+r_g; else == r_g.
+    assert (special ==> v r0_tmp == q - 1 + r_g);
+    assert ((not special) ==> v r0_tmp == r_g);
+    let half : i32 = mk_i32 ((v Spec.MLDSA.Math.v_FIELD_MODULUS - 1) / 2) in
+    assert (v half == (q - 1) / 2);
+    let mask0 = Spec.Intrinsics.sub_mod_opaque half r0_tmp in
+    assert (v mask0 == (q - 1) / 2 - v r0_tmp);
+    let mask = Spec.Intrinsics.shift_right_opaque mask0 (mk_i32 31) in
+    assert (v mask == ((q - 1) / 2 - v r0_tmp) / pow2 31);
+    let fmm = mask &. Spec.MLDSA.Math.v_FIELD_MODULUS in
+    let r0_i = Spec.Intrinsics.sub_mod_opaque r0_tmp fmm in
+    if special then begin
+      // r0_tmp = q-1+r_g, (q-1)/2 - r0_tmp = -(q-1)/2 - r_g < 0 ⇒ mask = -1, fmm = q.
+      assert (v mask0 == (q - 1) / 2 - (q - 1 + r_g));
+      assert (v mask0 < 0 /\ v mask0 >= - pow2 31);
+      assert (v mask0 / pow2 31 == -1);
+      assert (v mask == -1);
+      assert (mask == ones);
+      logand_lemma Spec.MLDSA.Math.v_FIELD_MODULUS mask;     // logand ones a == a
+      assert (logand ones Spec.MLDSA.Math.v_FIELD_MODULUS == Spec.MLDSA.Math.v_FIELD_MODULUS);
+      assert (fmm == Spec.MLDSA.Math.v_FIELD_MODULUS);
+      assert (v fmm == q);
+      assert (v r0_i == (q - 1 + r_g) - q);
+      assert (v r0_i == r_g - 1);
+      assert (r0_int == r_g - 1)
+    end else begin
+      // r0_tmp = r_g ∈ (-g, g], (q-1)/2 - r_g > 0 ⇒ mask = 0, fmm = 0.
+      assert (v r0_tmp == r_g);
+      assert (- g < r_g /\ r_g <= g);
+      assert (v mask0 == (q - 1) / 2 - r_g);
+      assert (v mask0 > 0 /\ v mask0 < pow2 31);
+      L.small_div (v mask0) (pow2 31);
+      assert (v mask == 0);
+      assert (mask == zero);
+      logand_lemma Spec.MLDSA.Math.v_FIELD_MODULUS mask;     // logand zero a == zero
+      assert (logand zero Spec.MLDSA.Math.v_FIELD_MODULUS == zero);
+      assert (fmm == zero);
+      assert (v fmm == 0);
+      assert (v r0_i == r_g);
+      assert (r0_int == r_g)
+    end;
+    assert (v r0_i == r0_int);
+    // tie the let-bound terms back to decompose_spec's outputs.
+    assert (Spec.MLDSA.Math.decompose_spec gamma2 r == (r0_i, r1_i))
+#pop-options
