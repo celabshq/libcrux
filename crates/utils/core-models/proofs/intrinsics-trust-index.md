@@ -5,22 +5,22 @@ See `crates/utils/core-models/INTRINSICS-TRUST-PLAN.md` for the trust-ladder def
 
 ## D6 sub-percentages over T1
 
-`T1 = 193` (`T1_avx2 = 99`, `T1_arm64 = 94`)
+`T1 = 194` (`T1_avx2 = 100`, `T1_arm64 = 94`)
 
 | Sub-dim | Today (this run) | Avx2 | Arm64 | Target after sprint |
 |---|---:|---:|---:|---:|
-| **D6.1** Rust-model coverage | 93.3% (180/193) | 87.9% (87/99) | 98.9% (93/94) | 100% |
-| **D6.2** Test coverage | 93.3% (180/193) | 87.9% (87/99) | 98.9% (93/94) | 100% |
-| **D6.3** F\* spec coverage | 76.7% (148/193) | 74.7% (74/99) | 78.7% (74/94) | 100% |
-| **D6.4** Audit consistency | 62.2% (120/193) | — | — | 100% |
-| **D6.5** F\* spec proven | 0.0% (0/193) | — | — | 0% (deferred) |
+| **D6.1** Rust-model coverage | 92.8% (180/194) | 87.0% (87/100) | 98.9% (93/94) | 100% |
+| **D6.2** Test coverage | 92.8% (180/194) | 87.0% (87/100) | 98.9% (93/94) | 100% |
+| **D6.3** F\* spec coverage | 86.6% (168/194) | 81.0% (81/100) | 92.6% (87/94) | 100% |
+| **D6.4** Audit consistency | 61.9% (120/194) | — | — | 100% |
+| **D6.5** F\* spec proven | 0.0% (0/194) | — | — | 0% (deferred) |
 
 ## Trust-level distribution over T1
 
 - `L0-nospec`: 4 (2.1%)
-- `L0`: 9 (4.7%)
-- `L2`: 60 (31.1%)
-- `L3`: 120 (62.2%)
+- `L0`: 10 (5.2%)
+- `L2`: 60 (30.9%)
+- `L3`: 120 (61.9%)
 
 ## Difference sets
 
@@ -40,8 +40,10 @@ See `crates/utils/core-models/INTRINSICS-TRUST-PLAN.md` for the trust-ladder def
 - `|T2 \ T1|_arm64 = 0` — core-models NEON intrinsics not used by libcrux (none expected pre-sprint):
   - (none)
 
-- `|T3 \ T1| = 1` — Spec.Intrinsics.fsti SMTPat lemmas not referenced by any libcrux underlying:
+- `|T3 \ T1| = 3` — Spec.Intrinsics.fsti SMTPat lemmas not referenced by any libcrux underlying:
   - `mm256_madd_epi16_specialized`
+  - `mm256_storeu_si256_i32_len`
+  - `mm_storeu_si128_i32_len`
 
 ## Per-intrinsic CSV
 
