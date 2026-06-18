@@ -18,7 +18,6 @@ use crate::polynomial::spec;
 // Kept in SLOW_MODULES (the module's compute_* proofs are heavy).
 #[inline(always)]
 #[allow(non_snake_case)]
-#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::fstar::options("--z3rlimit 400 --ext context_pruning --split_queries always --using_facts_from '* -Hacspec_ml_kem.Parameters.createi_lemma -Libcrux_ml_kem.Polynomial.Spec'")]
 #[hax_lib::requires(K <= 4)]
 #[hax_lib::ensures(|res| hax_lib::forall(|i:usize| hax_lib::implies(i < K,
@@ -34,8 +33,15 @@ pub(crate) fn sample_matrix_A<const K: usize, Vector: Operations, Hasher: Hash<K
     seed: &[u8; 34],
     transpose: bool,
 ) {
+    // The functional postcondition is tracked through an opaque (i,j)-prefix atom `sma_done_ij`
+    // (Sample_matrix_bridge), so the createi-heavy hacspec spec terms never enter the loop-body VCs.
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_base ${A_transpose}
+        (${seed}.[ { Core_models.Ops.Range.f_end = mk_usize 32 } <: Core_models.Ops.Range.t_RangeTo usize ] <: t_Slice u8)
+        $transpose"#
+    );
     for i in 0..K {
-        hax_lib::loop_invariant!(|i: usize| if transpose {
+        hax_lib::loop_invariant!(|i: usize| (if transpose {
             hax_lib::forall(|k: usize| {
                 hax_lib::implies(
                     k < K,
@@ -67,16 +73,31 @@ pub(crate) fn sample_matrix_A<const K: usize, Vector: Operations, Hasher: Hash<K
                     }),
                 )
             })
-        });
+        }) & fstar!(
+            r#"Hacspec_ml_kem.Commute.Sample_matrix_bridge.sma_done_ij ${A_transpose}
+            (${seed}.[ { Core_models.Ops.Range.f_end = mk_usize 32 } <: Core_models.Ops.Range.t_RangeTo usize ] <: t_Slice u8)
+            $transpose (v $i) 0"#
+        ));
 
         let mut seeds = [seed.clone(); K];
         for j in 0..K {
+            hax_lib::loop_invariant!(|j: usize| fstar!(
+                r#"(forall (j2: usize). v j2 < v v_K ==>
+                (if v j2 < v $j
+                 then Seq.index ${seeds} (v j2)
+                      == Hacspec_ml_kem.Commute.Sample_matrix_bridge.sma_xof_input
+                           (${seed}.[ { Core_models.Ops.Range.f_end = mk_usize 32 } <: Core_models.Ops.Range.t_RangeTo usize ] <: t_Slice u8) $i j2
+                 else Seq.index ${seeds} (v j2) == ${seed}))"#
+            ));
             seeds[j][32] = i as u8;
             seeds[j][33] = j as u8;
+            hax_lib::fstar!(
+                r#"Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_seeds_step ${seed} $i $j"#
+            );
         }
         let sampled = sample_from_xof::<K, Vector, Hasher>(&seeds);
         for j in 0..K {
-            hax_lib::loop_invariant!(|j: usize| if transpose {
+            hax_lib::loop_invariant!(|j: usize| (if transpose {
                 hax_lib::forall(|k: usize| {
                     hax_lib::implies(
                         k < K,
@@ -108,15 +129,37 @@ pub(crate) fn sample_matrix_A<const K: usize, Vector: Operations, Hasher: Hash<K
                         }),
                     )
                 })
-            });
+            }) & fstar!(
+                r#"Hacspec_ml_kem.Commute.Sample_matrix_bridge.sma_done_ij ${A_transpose}
+                (${seed}.[ { Core_models.Ops.Range.f_end = mk_usize 32 } <: Core_models.Ops.Range.t_RangeTo usize ] <: t_Slice u8)
+                $transpose (v $i) (v $j)"#
+            ));
+            #[cfg(hax)]
+            let a_old = *A_transpose;
             // A[i][j] = A_transpose[j][i]
             if transpose {
                 A_transpose[j][i] = sampled[j];
             } else {
                 A_transpose[i][j] = sampled[j];
             }
+            hax_lib::fstar!(
+                r#"Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_inner_step
+                ${a_old} ${A_transpose} ${sampled} (${seeds}.[ $j ])
+                (${seed}.[ { Core_models.Ops.Range.f_end = mk_usize 32 } <: Core_models.Ops.Range.t_RangeTo usize ] <: t_Slice u8)
+                $transpose $i $j"#
+            );
         }
+        hax_lib::fstar!(
+            r#"Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_outer_row ${A_transpose}
+            (${seed}.[ { Core_models.Ops.Range.f_end = mk_usize 32 } <: Core_models.Ops.Range.t_RangeTo usize ] <: t_Slice u8)
+            $transpose $i"#
+        );
     }
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_finalize ${A_transpose}
+        (${seed}.[ { Core_models.Ops.Range.f_end = mk_usize 32 } <: Core_models.Ops.Range.t_RangeTo usize ] <: t_Slice u8)
+        $transpose"#
+    );
 }
 
 /// The following functions compute various expressions involving
@@ -156,22 +199,30 @@ pub(crate) fn compute_message<const K: usize, Vector: Operations>(
     let mut result = PolynomialRingElement::<Vector>::ZERO();
 
     hax_lib::assert_prop!(spec::is_bounded_poly(0, &result));
-    hax_lib::fstar!(r#"Hacspec_ml_kem.Commute.Compute_dot_bridge.lemma_vdot_base
-        ${secret_as_ntt} ${u_as_ntt} ${result}"#);
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Compute_dot_bridge.lemma_vdot_base
+        ${secret_as_ntt} ${u_as_ntt} ${result}"#
+    );
 
     for i in 0..K {
         hax_lib::loop_invariant!(|i: usize| spec::is_bounded_poly(i * 3328, &result)
-            & fstar!(r#"Hacspec_ml_kem.Commute.Compute_dot_bridge.vdot_done
-                ${result} ${secret_as_ntt} ${u_as_ntt} (Rust_primitives.Integers.v $i)"#));
+            & fstar!(
+                r#"Hacspec_ml_kem.Commute.Compute_dot_bridge.vdot_done
+                ${result} ${secret_as_ntt} ${u_as_ntt} (Rust_primitives.Integers.v $i)"#
+            ));
 
-        hax_lib::fstar!(r#"assert (Rust_primitives.Integers.v $i < Rust_primitives.Integers.v v_K);
-            assert (Rust_primitives.Integers.v v_K <= 4)"#);
+        hax_lib::fstar!(
+            r#"assert (Rust_primitives.Integers.v $i < Rust_primitives.Integers.v v_K);
+            assert (Rust_primitives.Integers.v v_K <= 4)"#
+        );
         #[cfg(hax)]
         let acc_old = result;
         let product = secret_as_ntt[i].ntt_multiply(&u_as_ntt[i]);
         result.add_to_ring_element(&product, i * 3328);
-        hax_lib::fstar!(r#"Hacspec_ml_kem.Commute.Compute_dot_bridge.lemma_vdot_step_full
-            ${secret_as_ntt} ${u_as_ntt} $i ${acc_old} ${product} ${result} ($i *! mk_usize 3328)"#);
+        hax_lib::fstar!(
+            r#"Hacspec_ml_kem.Commute.Compute_dot_bridge.lemma_vdot_step_full
+            ${secret_as_ntt} ${u_as_ntt} $i ${acc_old} ${product} ${result} ($i *! mk_usize 3328)"#
+        );
     }
 
     #[cfg(hax)]
@@ -180,8 +231,10 @@ pub(crate) fn compute_message<const K: usize, Vector: Operations>(
     #[cfg(hax)]
     let re_future = result;
     result = v.subtract_reduce(result);
-    hax_lib::fstar!(r#"Hacspec_ml_kem.Commute.Compute_dot_bridge.lemma_message_done_finalize
-        ${v} ${secret_as_ntt} ${u_as_ntt} ${t_pre} ${re_future} ${result}"#);
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Compute_dot_bridge.lemma_message_done_finalize
+        ${v} ${secret_as_ntt} ${u_as_ntt} ${t_pre} ${re_future} ${result}"#
+    );
 
     result
 }
@@ -223,21 +276,27 @@ pub(crate) fn compute_ring_element_v<const K: usize, Vector: Operations>(
     let mut result = PolynomialRingElement::<Vector>::ZERO();
 
     hax_lib::assert_prop!(spec::is_bounded_poly(0, &result));
-    hax_lib::fstar!(r#"Hacspec_ml_kem.Commute.Compute_dot_bridge.lemma_vdot_base
-        ${t_as_ntt} ${r_as_ntt} ${result}"#);
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Compute_dot_bridge.lemma_vdot_base
+        ${t_as_ntt} ${r_as_ntt} ${result}"#
+    );
 
     for i in 0..K {
         hax_lib::loop_invariant!(|i: usize| spec::is_bounded_poly(i * 3328, &result)
-            & fstar!(r#"Hacspec_ml_kem.Commute.Compute_dot_bridge.vdot_done
-                ${result} ${t_as_ntt} ${r_as_ntt} (v $i)"#));
+            & fstar!(
+                r#"Hacspec_ml_kem.Commute.Compute_dot_bridge.vdot_done
+                ${result} ${t_as_ntt} ${r_as_ntt} (v $i)"#
+            ));
 
         hax_lib::fstar!(r#"assert (v $i < v v_K); assert (v v_K <= 4)"#);
         #[cfg(hax)]
         let acc_old = result;
         let product = t_as_ntt[i].ntt_multiply(&r_as_ntt[i]);
         result.add_to_ring_element(&product, i * 3328);
-        hax_lib::fstar!(r#"Hacspec_ml_kem.Commute.Compute_dot_bridge.lemma_vdot_step_full
-            ${t_as_ntt} ${r_as_ntt} $i ${acc_old} ${product} ${result} ($i *! mk_usize 3328)"#);
+        hax_lib::fstar!(
+            r#"Hacspec_ml_kem.Commute.Compute_dot_bridge.lemma_vdot_step_full
+            ${t_as_ntt} ${r_as_ntt} $i ${acc_old} ${product} ${result} ($i *! mk_usize 3328)"#
+        );
     }
 
     #[cfg(hax)]
@@ -246,8 +305,10 @@ pub(crate) fn compute_ring_element_v<const K: usize, Vector: Operations>(
     #[cfg(hax)]
     let re_future = result;
     result = error_2.add_message_error_reduce(message, result);
-    hax_lib::fstar!(r#"Hacspec_ml_kem.Commute.Compute_dot_bridge.lemma_v_done_finalize
-        ${t_as_ntt} ${r_as_ntt} ${error_2} ${message} ${t_pre} ${re_future} ${result}"#);
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Compute_dot_bridge.lemma_v_done_finalize
+        ${t_as_ntt} ${r_as_ntt} ${error_2} ${message} ${t_pre} ${re_future} ${result}"#
+    );
 
     result
 }
@@ -296,14 +357,18 @@ pub(crate) fn compute_vector_u<const K: usize, Vector: Operations>(
             } else {
                 true.to_prop()
             }
-        }) & fstar!(r#"(forall (j: nat). j < v $i /\ j < v v_K ==>
-            Hacspec_ml_kem.Commute.Matrix_bridge.row_done (Seq.index ${result} j) ${target} j)"#));
+        }) & fstar!(
+            r#"(forall (j: nat). j < v $i /\ j < v v_K ==>
+            Hacspec_ml_kem.Commute.Matrix_bridge.row_done (Seq.index ${result} j) ${target} j)"#
+        ));
 
         #[cfg(hax)]
         let _result = result;
 
-        hax_lib::fstar!(r#"Hacspec_ml_kem.Commute.Matrix_bridge.lemma_inner_done_base
-            ${a_as_ntt} ${r_as_ntt} $i (${result}.[ $i ])"#);
+        hax_lib::fstar!(
+            r#"Hacspec_ml_kem.Commute.Matrix_bridge.lemma_inner_done_base
+            ${a_as_ntt} ${r_as_ntt} $i (${result}.[ $i ])"#
+        );
 
         for j in 0..K {
             hax_lib::loop_invariant!(|j: usize| spec::is_bounded_poly(j * 3328, &result[i])
@@ -314,18 +379,24 @@ pub(crate) fn compute_vector_u<const K: usize, Vector: Operations>(
                     k < i,
                     spec::is_bounded_poly(3328, &result[k])
                 )))
-                & fstar!(r#"(forall (k: nat). k < v $i /\ k < v v_K ==>
-                    Hacspec_ml_kem.Commute.Matrix_bridge.row_done (Seq.index ${result} k) ${target} k)"#)
-                & fstar!(r#"Hacspec_ml_kem.Commute.Matrix_bridge.inner_done
-                    (${result}.[ $i ]) ${a_as_ntt} ${r_as_ntt} $i (v $j)"#));
+                & fstar!(
+                    r#"(forall (k: nat). k < v $i /\ k < v v_K ==>
+                    Hacspec_ml_kem.Commute.Matrix_bridge.row_done (Seq.index ${result} k) ${target} k)"#
+                )
+                & fstar!(
+                    r#"Hacspec_ml_kem.Commute.Matrix_bridge.inner_done
+                    (${result}.[ $i ]) ${a_as_ntt} ${r_as_ntt} $i (v $j)"#
+                ));
 
             hax_lib::fstar!(r#"assert (v $j < v v_K); assert (v v_K <= 4)"#);
             #[cfg(hax)]
             let tt_old = result;
             let product = a_as_ntt[i][j].ntt_multiply(&r_as_ntt[j]);
             result[i].add_to_ring_element(&product, j * 3328);
-            hax_lib::fstar!(r#"Hacspec_ml_kem.Commute.Matrix_bridge.lemma_inner_step_full
-                ${a_as_ntt} ${r_as_ntt} $i $j ${tt_old} ${target}"#);
+            hax_lib::fstar!(
+                r#"Hacspec_ml_kem.Commute.Matrix_bridge.lemma_inner_step_full
+                ${a_as_ntt} ${r_as_ntt} $i $j ${tt_old} ${target}"#
+            );
         }
 
         #[cfg(hax)]
@@ -334,15 +405,21 @@ pub(crate) fn compute_vector_u<const K: usize, Vector: Operations>(
         #[cfg(hax)]
         let re_future = result[i];
         result[i].add_error_reduce(&error_1[i]);
-        hax_lib::fstar!(r#"Hacspec_ml_kem.Commute.Compute_u_bridge.lemma_u_row_done_finalize
-            ${a_as_ntt} ${r_as_ntt} ${error_1} ${t_pre} ${re_future} (${result}.[ $i ]) $i ${target}"#);
+        hax_lib::fstar!(
+            r#"Hacspec_ml_kem.Commute.Compute_u_bridge.lemma_u_row_done_finalize
+            ${a_as_ntt} ${r_as_ntt} ${error_1} ${t_pre} ${re_future} (${result}.[ $i ]) $i ${target}"#
+        );
         // Frame for the outer-invariant maintenance: invert_ntt + add_error_reduce only touch
         // result[i], so all other rows equal the iteration-start snapshot; this lets the bound
         // (for the from_fn-ZERO future rows) and row_done carry without a full re-derivation.
-        hax_lib::fstar!(r#"assert (forall (k: nat). k < v v_K /\ k <> v $i ==>
-            Seq.index ${result} k == Seq.index ${_result} k)"#);
+        hax_lib::fstar!(
+            r#"assert (forall (k: nat). k < v v_K /\ k <> v $i ==>
+            Seq.index ${result} k == Seq.index ${_result} k)"#
+        );
     }
-    hax_lib::fstar!(r#"Hacspec_ml_kem.Commute.Matrix_bridge.lemma_rows_assemble ${result} ${target}"#);
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Matrix_bridge.lemma_rows_assemble ${result} ${target}"#
+    );
     result
 }
 
@@ -389,12 +466,16 @@ pub(crate) fn compute_As_plus_e<const K: usize, Vector: Operations>(
         hax_lib::loop_invariant!(|i: usize| hax_lib::forall(|j: usize| hax_lib::implies(
             j < i,
             spec::is_bounded_poly(3328, &t_as_ntt[j])
-        )) & fstar!(r#"(forall (j: nat). j < v $i /\ j < v v_K ==>
-            Hacspec_ml_kem.Commute.Matrix_bridge.row_done (Seq.index ${t_as_ntt} j) ${target} j)"#));
+        )) & fstar!(
+            r#"(forall (j: nat). j < v $i /\ j < v v_K ==>
+            Hacspec_ml_kem.Commute.Matrix_bridge.row_done (Seq.index ${t_as_ntt} j) ${target} j)"#
+        ));
 
         t_as_ntt[i] = PolynomialRingElement::<Vector>::ZERO();
-        hax_lib::fstar!(r#"Hacspec_ml_kem.Commute.Matrix_bridge.lemma_inner_done_base
-            ${matrix_A} ${s_as_ntt} $i (${t_as_ntt}.[ $i ])"#);
+        hax_lib::fstar!(
+            r#"Hacspec_ml_kem.Commute.Matrix_bridge.lemma_inner_done_base
+            ${matrix_A} ${s_as_ntt} $i (${t_as_ntt}.[ $i ])"#
+        );
 
         for j in 0..K {
             hax_lib::loop_invariant!(|j: usize| spec::is_bounded_poly(j * 3328, &t_as_ntt[i])
@@ -402,25 +483,35 @@ pub(crate) fn compute_As_plus_e<const K: usize, Vector: Operations>(
                     k < i,
                     spec::is_bounded_poly(3328, &t_as_ntt[k])
                 )))
-                & fstar!(r#"(forall (k: nat). k < v $i /\ k < v v_K ==>
-                    Hacspec_ml_kem.Commute.Matrix_bridge.row_done (Seq.index ${t_as_ntt} k) ${target} k)"#)
-                & fstar!(r#"Hacspec_ml_kem.Commute.Matrix_bridge.inner_done
-                    (${t_as_ntt}.[ $i ]) ${matrix_A} ${s_as_ntt} $i (v $j)"#));
+                & fstar!(
+                    r#"(forall (k: nat). k < v $i /\ k < v v_K ==>
+                    Hacspec_ml_kem.Commute.Matrix_bridge.row_done (Seq.index ${t_as_ntt} k) ${target} k)"#
+                )
+                & fstar!(
+                    r#"Hacspec_ml_kem.Commute.Matrix_bridge.inner_done
+                    (${t_as_ntt}.[ $i ]) ${matrix_A} ${s_as_ntt} $i (v $j)"#
+                ));
 
             hax_lib::fstar!(r#"assert (v $j < v v_K); assert (v v_K <= 4)"#);
             #[cfg(hax)]
             let tt_old = *t_as_ntt;
             let product = matrix_A[i][j].ntt_multiply(&s_as_ntt[j]);
             t_as_ntt[i].add_to_ring_element(&product, j * 3328);
-            hax_lib::fstar!(r#"Hacspec_ml_kem.Commute.Matrix_bridge.lemma_inner_step_full
-                ${matrix_A} ${s_as_ntt} $i $j ${tt_old} ${target}"#);
+            hax_lib::fstar!(
+                r#"Hacspec_ml_kem.Commute.Matrix_bridge.lemma_inner_step_full
+                ${matrix_A} ${s_as_ntt} $i $j ${tt_old} ${target}"#
+            );
         }
 
         #[cfg(hax)]
         let t_pre = t_as_ntt[i];
         t_as_ntt[i].add_standard_error_reduce(&error_as_ntt[i]);
-        hax_lib::fstar!(r#"Hacspec_ml_kem.Commute.Matrix_bridge.lemma_row_done_finalize
-            ${matrix_A} ${s_as_ntt} ${error_as_ntt} ${t_pre} (${t_as_ntt}.[ $i ]) $i ${target}"#);
+        hax_lib::fstar!(
+            r#"Hacspec_ml_kem.Commute.Matrix_bridge.lemma_row_done_finalize
+            ${matrix_A} ${s_as_ntt} ${error_as_ntt} ${t_pre} (${t_as_ntt}.[ $i ]) $i ${target}"#
+        );
     }
-    hax_lib::fstar!(r#"Hacspec_ml_kem.Commute.Matrix_bridge.lemma_rows_assemble ${t_as_ntt} ${target}"#);
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Matrix_bridge.lemma_rows_assemble ${t_as_ntt} ${target}"#
+    );
 }
