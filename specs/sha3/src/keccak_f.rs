@@ -4,7 +4,7 @@
 /// Lane `A[x, y]` maps to flat index `5*y + x`, matching the natural
 /// flat indexing induced by FIPS 202 §3.1.2 (`A[x, y, z] = S[w(5y + x) + z]`)
 /// and the Keccak reference implementation.
-use crate::array_from_fn;
+use crate::createi;
 
 /// Keccak-f[1600] state: 5×5 lanes of 64-bit words.
 /// Keccak state type, exposed for cross-crate verification.
@@ -71,29 +71,29 @@ pub const RHO_OFFSETS: [u32; 25] = [
 ///   D[x]    = C[x−1 mod 5] ⊕ rot(C[x+1 mod 5], 1)
 ///   A′[x,y] = A[x,y] ⊕ D[x]
 pub fn theta(state: State) -> State {
-    let c: [u64; 5] = array_from_fn(|x| {
+    let c: [u64; 5] = createi(|x| {
         get(&state, x, 0)
             ^ get(&state, x, 1)
             ^ get(&state, x, 2)
             ^ get(&state, x, 3)
             ^ get(&state, x, 4)
     });
-    let d: [u64; 5] = array_from_fn(|x| c[(x + 4) % 5] ^ c[(x + 1) % 5].rotate_left(1));
-    array_from_fn(|idx| state[idx] ^ d[idx % 5])
+    let d: [u64; 5] = createi(|x| c[(x + 4) % 5] ^ c[(x + 1) % 5].rotate_left(1));
+    createi(|idx| state[idx] ^ d[idx % 5])
 }
 
 /// ρ step — FIPS 202, Algorithm 2.
 ///
 ///   A′[x,y] = rot(A[x,y], offset(x,y))
 pub fn rho(state: State) -> State {
-    array_from_fn(|idx| state[idx].rotate_left(RHO_OFFSETS[idx]))
+    createi(|idx| state[idx].rotate_left(RHO_OFFSETS[idx]))
 }
 
 /// π step — FIPS 202, Algorithm 3.
 ///
 ///   A′[x,y] = A[(x + 3y) mod 5, x]
 pub fn pi(state: State) -> State {
-    array_from_fn(|idx| {
+    createi(|idx| {
         let y = idx / 5;
         let x = idx % 5;
         get(&state, (x + 3 * y) % 5, x)
@@ -104,7 +104,7 @@ pub fn pi(state: State) -> State {
 ///
 ///   A′[x,y] = A[x,y] ⊕ (¬A[(x+1) mod 5, y] ∧ A[(x+2) mod 5, y])
 pub fn chi(state: State) -> State {
-    array_from_fn(|idx| {
+    createi(|idx| {
         let y = idx / 5;
         let x = idx % 5;
         get(&state, x, y) ^ (!get(&state, (x + 1) % 5, y) & get(&state, (x + 2) % 5, y))
