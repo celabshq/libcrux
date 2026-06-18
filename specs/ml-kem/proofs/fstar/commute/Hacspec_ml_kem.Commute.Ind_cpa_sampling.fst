@@ -40,6 +40,9 @@ module VS  = Libcrux_ml_kem.Vector.Spec
 module VV  = Libcrux_ml_kem.Vector
 module PB  = Hacspec_ml_kem.Commute.Prf_bridge
 module U   = Rust_primitives.Hax.Monomorphized_update_at
+module N   = Hacspec_ml_kem.Ntt
+module Br  = Hacspec_ml_kem.Commute.Bridges
+module CH  = Hacspec_ml_kem.Commute.Chunk
 
 (* ------------------------------------------------------------------ *)
 (* STRUCTURAL: the prf_input_inc post + clone-is-identity + repeat      *)
@@ -466,4 +469,243 @@ let lemma_cbd_prefix_done_post_smtpat
     in
     Classical.forall_intro auxv;
     Seq.lemma_eq_intro (VS.vector_to_spec v_K #vV error_1) target
+#pop-options
+
+(* ================================================================== *)
+(* CBD + NTT per-row coupling for `sample_vector_cbd_then_ntt`.        *)
+(*   spec = vector_ntt K (sample_vector_cbd K eta seed ds0), so        *)
+(*   row i of the result is `ntt (cbd[i])`.                            *)
+(*   impl: re[i] = ntt_binomially_sampled_ring_element                 *)
+(*                   (sample_from_binomial_distribution prf_outputs[i]).*)
+(* Mirror of the `cbd_*` family above, bound 3328, target =           *)
+(*   sample_vector_cbd_then_ntt.                                       *)
+(* ================================================================== *)
+
+(* (vector_ntt K vec)[i] == ntt (vec[i]) — createi index. *)
+let lemma_vector_ntt_index
+      (v_K: usize{v v_K <= 4})
+      (vec: t_Array (t_Array P.t_FieldElement (mk_usize 256)) v_K)
+      (i: nat{i < v v_K})
+    : Lemma (Seq.index (N.vector_ntt v_K vec) i == N.ntt (vec.[ mk_usize i ]))
+  = P.createi_lemma #(t_Array P.t_FieldElement (mk_usize 256)) v_K
+      #(usize -> t_Array P.t_FieldElement (mk_usize 256))
+      (fun (j: usize{j <. v_K}) -> N.ntt (vec.[ j ]))
+      (mk_usize i)
+
+(* PER-INDEX: poly_to_spec (ntt_binomially sampled_i) == sample_vector_cbd_then_ntt[i].
+   Composes lemma_per_index_cbd (poly_to_spec sampled_i == cbd[i]) with the
+   ntt_binomially functional post (to_spec_poly_plain re_i == N.ntt(to_spec_poly_plain
+   sampled_i)), bridged across the poly_to_spec / to_spec_poly_plain reps. *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 200 --split_queries always"
+let lemma_per_index_cbd_ntt
+      (#vV: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations vV)
+      (v_K: usize{v v_K == 2 \/ v v_K == 3 \/ v v_K == 4})
+      (eta: usize{v eta == 2 \/ v eta == 3})
+      (seed: t_Slice u8{Seq.length seed == 32})
+      (ds0: u8{v ds0 + v v_K < 256})
+      (len_rand: usize{v len_rand == v eta * 64})
+      (prf_inputs: t_Array (t_Array u8 (mk_usize 33)) v_K)
+      (prf_outputs: t_Array (t_Array u8 len_rand) v_K)
+      (sampled_i re_i: VV.t_PolynomialRingElement vV)
+      (i: nat{i < v v_K})
+    : Lemma
+      (requires
+        VS.poly_to_spec #vV sampled_i ==
+          HS.sample_poly_cbd (eta *! mk_usize 64) (eta *! mk_usize 512) eta
+            (prf_outputs.[ mk_usize i ] <: t_Array u8 len_rand) /\
+        prf_outputs == SU.v_PRFxN v_K len_rand prf_inputs /\
+        v (Seq.index (prf_inputs.[ mk_usize i ] <: t_Array u8 (mk_usize 33)) 32) == v ds0 + i /\
+        Seq.slice (prf_inputs.[ mk_usize i ] <: t_Array u8 (mk_usize 33)) 0 32 == (seed <: Seq.seq u8) /\
+        CH.to_spec_poly_plain #vV re_i == N.ntt (CH.to_spec_poly_plain #vV sampled_i))
+      (ensures
+        VS.poly_to_spec #vV re_i ==
+        Seq.index (HI.sample_vector_cbd_then_ntt v_K eta seed ds0) i)
+  = let cbd = HI.sample_vector_cbd v_K eta seed ds0 in
+    lemma_per_index_cbd #vV v_K eta seed ds0 len_rand prf_inputs prf_outputs sampled_i i;
+    assert (VS.poly_to_spec #vV sampled_i == Seq.index cbd i);
+    Br.poly_to_spec_eq_to_spec_poly_plain #vV sampled_i;
+    Br.poly_to_spec_eq_to_spec_poly_plain #vV re_i;
+    assert (CH.to_spec_poly_plain #vV sampled_i == Seq.index cbd i);
+    assert (CH.to_spec_poly_plain #vV re_i == N.ntt (Seq.index cbd i));
+    lemma_vector_ntt_index v_K cbd i;
+    assert (Seq.index (N.vector_ntt v_K cbd) i == N.ntt (cbd.[ mk_usize i ]));
+    assert (cbd.[ mk_usize i ] == Seq.index cbd i);
+    assert (HI.sample_vector_cbd_then_ntt v_K eta seed ds0 == N.vector_ntt v_K cbd)
+#pop-options
+
+(* ----- opaque per-row "done" atom (bound 3328, ntt target) ----- *)
+[@@ "opaque_to_smt"]
+let cbd_ntt_row_done
+      (#vV: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations vV)
+      (v_K: usize)
+      (x: VV.t_PolynomialRingElement vV)
+      (target: t_Array (t_Array P.t_FieldElement (mk_usize 256)) v_K)
+      (j: nat {j < v v_K})
+    : Type0
+  = Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #vV (mk_usize 3328) x /\
+    VS.poly_to_spec #vV x == Seq.index target j
+
+let lemma_cbd_ntt_row_intro
+      (#vV: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations vV)
+      (v_K: usize)
+      (x: VV.t_PolynomialRingElement vV)
+      (target: t_Array (t_Array P.t_FieldElement (mk_usize 256)) v_K)
+      (j: nat {j < v v_K})
+    : Lemma
+      (requires
+        Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #vV (mk_usize 3328) x /\
+        VS.poly_to_spec #vV x == Seq.index target j)
+      (ensures cbd_ntt_row_done v_K x target j)
+  = reveal_opaque (`%cbd_ntt_row_done) (cbd_ntt_row_done v_K x target j)
+
+#push-options "--z3rlimit 100"
+let lemma_cbd_ntt_loop_step
+      (#vV: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations vV)
+      (v_K: usize{v v_K <= 4})
+      (target: t_Array (t_Array P.t_FieldElement (mk_usize 256)) v_K)
+      (re_old: t_Array (VV.t_PolynomialRingElement vV) v_K)
+      (i: usize{v i < v v_K})
+      (x: VV.t_PolynomialRingElement vV)
+    : Lemma
+      (requires
+        (forall (j: nat). j < v i ==> cbd_ntt_row_done v_K (Seq.index re_old j) target j) /\
+        cbd_ntt_row_done v_K x target (v i))
+      (ensures
+        (let re_new = U.update_at_usize re_old i x in
+         (forall (j: nat). j < v i + 1 ==> cbd_ntt_row_done v_K (Seq.index re_new j) target j)))
+  = let re_new = U.update_at_usize re_old i x in
+    let aux (j: nat{j < v i + 1}) : Lemma (cbd_ntt_row_done v_K (Seq.index re_new j) target j) =
+      if j < v i then Seq.lemma_index_upd2 re_old (v i) x j
+      else Seq.lemma_index_upd1 re_old (v i) x
+    in
+    Classical.forall_intro aux
+#pop-options
+
+[@@ "opaque_to_smt"]
+let cbd_ntt_prefix_done
+      (#vV: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations vV)
+      (v_K: usize)
+      (re_as_ntt: t_Array (VV.t_PolynomialRingElement vV) v_K)
+      (target: t_Array (t_Array P.t_FieldElement (mk_usize 256)) v_K)
+      (n: nat{n <= v v_K})
+    : Type0
+  = forall (j: nat). j < n ==> cbd_ntt_row_done v_K (Seq.index re_as_ntt j) target j
+
+let lemma_cbd_ntt_prefix_init
+      (#vV: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations vV)
+      (v_K: usize)
+      (re_as_ntt: t_Array (VV.t_PolynomialRingElement vV) v_K)
+      (target: t_Array (t_Array P.t_FieldElement (mk_usize 256)) v_K)
+    : Lemma (cbd_ntt_prefix_done v_K re_as_ntt target 0)
+  = reveal_opaque (`%cbd_ntt_prefix_done) (cbd_ntt_prefix_done v_K re_as_ntt target 0)
+
+#push-options "--z3rlimit 100"
+let lemma_cbd_ntt_prefix_step
+      (#vV: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations vV)
+      (v_K: usize{v v_K <= 4})
+      (target: t_Array (t_Array P.t_FieldElement (mk_usize 256)) v_K)
+      (re_old: t_Array (VV.t_PolynomialRingElement vV) v_K)
+      (i: usize{v i < v v_K})
+      (x: VV.t_PolynomialRingElement vV)
+    : Lemma
+      (requires
+        cbd_ntt_prefix_done v_K re_old target (v i) /\
+        cbd_ntt_row_done v_K x target (v i))
+      (ensures cbd_ntt_prefix_done v_K (U.update_at_usize re_old i x) target (v i + 1))
+  = reveal_opaque (`%cbd_ntt_prefix_done) (cbd_ntt_prefix_done v_K re_old target (v i));
+    lemma_cbd_ntt_loop_step #vV v_K target re_old i x;
+    reveal_opaque (`%cbd_ntt_prefix_done)
+      (cbd_ntt_prefix_done v_K (U.update_at_usize re_old i x) target (v i + 1))
+#pop-options
+
+(* ----- full-post establishers (explicit + SMTPat tuple-wall fix) ----- *)
+#push-options "--z3rlimit 200"
+let lemma_sample_vector_cbd_then_ntt_post
+      (#vV: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations vV)
+      (v_K: usize{v v_K <= 4})
+      (eta: usize{v eta == 2 \/ v eta == 3})
+      (seed: t_Slice u8{Seq.length seed == 32})
+      (ds0: u8{v ds0 + v v_K < 256})
+      (ds_out: u8)
+      (re_as_ntt: t_Array (VV.t_PolynomialRingElement vV) v_K)
+    : Lemma
+      (requires
+        cbd_ntt_prefix_done v_K re_as_ntt (HI.sample_vector_cbd_then_ntt v_K eta seed ds0) (v v_K) /\
+        v ds_out == v ds0 + v v_K)
+      (ensures
+        b2t (ds_out =. (ds0 +! (cast (v_K <: usize) <: u8) <: u8)) /\
+        Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector v_K #vV (mk_usize 3328) re_as_ntt /\
+        b2t ((VS.vector_to_spec v_K #vV re_as_ntt
+                <: t_Array (t_Array P.t_FieldElement (mk_usize 256)) v_K) =.
+             (HI.sample_vector_cbd_then_ntt v_K eta seed ds0
+                <: t_Array (t_Array P.t_FieldElement (mk_usize 256)) v_K)))
+  = let target = HI.sample_vector_cbd_then_ntt v_K eta seed ds0 in
+    reveal_opaque (`%cbd_ntt_prefix_done) (cbd_ntt_prefix_done v_K re_as_ntt target (v v_K));
+    let aux (j: nat{j < v v_K}) : Lemma
+      (Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #vV (mk_usize 3328) (Seq.index re_as_ntt j) /\
+       VS.poly_to_spec #vV (Seq.index re_as_ntt j) == Seq.index target j) =
+      reveal_opaque (`%cbd_ntt_row_done) (cbd_ntt_row_done v_K (Seq.index re_as_ntt j) target j)
+    in
+    Classical.forall_intro aux;
+    let arr_bound (i: usize{v i < v v_K}) : Lemma
+      (Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (mk_usize 3328)
+        (re_as_ntt.[ i ] <: VV.t_PolynomialRingElement vV)) = () in
+    Classical.forall_intro arr_bound;
+    Libcrux_ml_kem.Polynomial.Spec.lemma_is_bounded_polynomial_vector_intro v_K #vV re_as_ntt
+      (mk_usize 3328);
+    let auxv (j: nat{j < v v_K}) : Lemma
+      (Seq.index (VS.vector_to_spec v_K #vV re_as_ntt) j == Seq.index target j) =
+      VS.vector_to_spec_index v_K #vV re_as_ntt j
+    in
+    Classical.forall_intro auxv;
+    Seq.lemma_eq_intro (VS.vector_to_spec v_K #vV re_as_ntt) target
+#pop-options
+
+#push-options "--z3rlimit 200"
+let lemma_cbd_ntt_prefix_done_post_smtpat
+      (#vV: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations vV)
+      (v_K: usize{v v_K <= 4})
+      (eta: usize{v eta == 2 \/ v eta == 3})
+      (seed: t_Slice u8{Seq.length seed == 32})
+      (ds0: u8{v ds0 + v v_K < 256})
+      (re_as_ntt: t_Array (VV.t_PolynomialRingElement vV) v_K)
+    : Lemma
+      (requires
+        cbd_ntt_prefix_done v_K re_as_ntt (HI.sample_vector_cbd_then_ntt v_K eta seed ds0) (v v_K))
+      (ensures
+        Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector v_K #vV (mk_usize 3328) re_as_ntt /\
+        b2t ((VS.vector_to_spec v_K #vV re_as_ntt
+                <: t_Array (t_Array P.t_FieldElement (mk_usize 256)) v_K) =.
+             (HI.sample_vector_cbd_then_ntt v_K eta seed ds0
+                <: t_Array (t_Array P.t_FieldElement (mk_usize 256)) v_K)))
+      [SMTPat (cbd_ntt_prefix_done v_K re_as_ntt (HI.sample_vector_cbd_then_ntt v_K eta seed ds0) (v v_K))]
+  = let target = HI.sample_vector_cbd_then_ntt v_K eta seed ds0 in
+    reveal_opaque (`%cbd_ntt_prefix_done) (cbd_ntt_prefix_done v_K re_as_ntt target (v v_K));
+    let aux (j: nat{j < v v_K}) : Lemma
+      (Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #vV (mk_usize 3328) (Seq.index re_as_ntt j) /\
+       VS.poly_to_spec #vV (Seq.index re_as_ntt j) == Seq.index target j) =
+      reveal_opaque (`%cbd_ntt_row_done) (cbd_ntt_row_done v_K (Seq.index re_as_ntt j) target j)
+    in
+    Classical.forall_intro aux;
+    let arr_bound (i: usize{v i < v v_K}) : Lemma
+      (Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (mk_usize 3328)
+        (re_as_ntt.[ i ] <: VV.t_PolynomialRingElement vV)) = () in
+    Classical.forall_intro arr_bound;
+    Libcrux_ml_kem.Polynomial.Spec.lemma_is_bounded_polynomial_vector_intro v_K #vV re_as_ntt
+      (mk_usize 3328);
+    let auxv (j: nat{j < v v_K}) : Lemma
+      (Seq.index (VS.vector_to_spec v_K #vV re_as_ntt) j == Seq.index target j) =
+      VS.vector_to_spec_index v_K #vV re_as_ntt j
+    in
+    Classical.forall_intro auxv;
+    Seq.lemma_eq_intro (VS.vector_to_spec v_K #vV re_as_ntt) target
 #pop-options

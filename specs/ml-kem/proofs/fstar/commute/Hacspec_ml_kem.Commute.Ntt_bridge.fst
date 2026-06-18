@@ -1037,3 +1037,154 @@ let lemma_cross_vec_frame_fwd
   = reveal_opaque (`%cross_vec_hyp_fwd) (cross_vec_hyp_fwd #vV cin cout1 step_vec zs m l);
     reveal_opaque (`%cross_vec_hyp_fwd) (cross_vec_hyp_fwd #vV cin cout2 step_vec zs m l)
 #pop-options
+
+(* =====================================================================
+   LAYER-7 zeta value: (v(zeta 1) * 169) % 3329 == 1729 (== v_ZETAS[1]).
+   The forward layer-7 butterfly multiplies by the plain constant -1600;
+   -1600 == zeta(1) mod q because (v(zeta 1)*169) % 3329 == 1729 == -1600 mod q.
+   The whole 128-entry v_ZETAS list is reproduced so `lemma_seq_of_list_index`
+   can index it (Seq is abstract; assert_norm cannot reduce the index).
+   ===================================================================== *)
+let vzetas_lits : list P.t_FieldElement =
+  [
+    P.impl_FieldElement__new (mk_u16 1);
+    P.impl_FieldElement__new (mk_u16 1729);
+    P.impl_FieldElement__new (mk_u16 2580);
+    P.impl_FieldElement__new (mk_u16 3289);
+    P.impl_FieldElement__new (mk_u16 2642);
+    P.impl_FieldElement__new (mk_u16 630);
+    P.impl_FieldElement__new (mk_u16 1897);
+    P.impl_FieldElement__new (mk_u16 848);
+    P.impl_FieldElement__new (mk_u16 1062);
+    P.impl_FieldElement__new (mk_u16 1919);
+    P.impl_FieldElement__new (mk_u16 193);
+    P.impl_FieldElement__new (mk_u16 797);
+    P.impl_FieldElement__new (mk_u16 2786);
+    P.impl_FieldElement__new (mk_u16 3260);
+    P.impl_FieldElement__new (mk_u16 569);
+    P.impl_FieldElement__new (mk_u16 1746);
+    P.impl_FieldElement__new (mk_u16 296);
+    P.impl_FieldElement__new (mk_u16 2447);
+    P.impl_FieldElement__new (mk_u16 1339);
+    P.impl_FieldElement__new (mk_u16 1476);
+    P.impl_FieldElement__new (mk_u16 3046);
+    P.impl_FieldElement__new (mk_u16 56);
+    P.impl_FieldElement__new (mk_u16 2240);
+    P.impl_FieldElement__new (mk_u16 1333);
+    P.impl_FieldElement__new (mk_u16 1426);
+    P.impl_FieldElement__new (mk_u16 2094);
+    P.impl_FieldElement__new (mk_u16 535);
+    P.impl_FieldElement__new (mk_u16 2882);
+    P.impl_FieldElement__new (mk_u16 2393);
+    P.impl_FieldElement__new (mk_u16 2879);
+    P.impl_FieldElement__new (mk_u16 1974);
+    P.impl_FieldElement__new (mk_u16 821);
+    P.impl_FieldElement__new (mk_u16 289);
+    P.impl_FieldElement__new (mk_u16 331);
+    P.impl_FieldElement__new (mk_u16 3253);
+    P.impl_FieldElement__new (mk_u16 1756);
+    P.impl_FieldElement__new (mk_u16 1197);
+    P.impl_FieldElement__new (mk_u16 2304);
+    P.impl_FieldElement__new (mk_u16 2277);
+    P.impl_FieldElement__new (mk_u16 2055);
+    P.impl_FieldElement__new (mk_u16 650);
+    P.impl_FieldElement__new (mk_u16 1977);
+    P.impl_FieldElement__new (mk_u16 2513);
+    P.impl_FieldElement__new (mk_u16 632);
+    P.impl_FieldElement__new (mk_u16 2865);
+    P.impl_FieldElement__new (mk_u16 33);
+    P.impl_FieldElement__new (mk_u16 1320);
+    P.impl_FieldElement__new (mk_u16 1915);
+    P.impl_FieldElement__new (mk_u16 2319);
+    P.impl_FieldElement__new (mk_u16 1435);
+    P.impl_FieldElement__new (mk_u16 807);
+    P.impl_FieldElement__new (mk_u16 452);
+    P.impl_FieldElement__new (mk_u16 1438);
+    P.impl_FieldElement__new (mk_u16 2868);
+    P.impl_FieldElement__new (mk_u16 1534);
+    P.impl_FieldElement__new (mk_u16 2402);
+    P.impl_FieldElement__new (mk_u16 2647);
+    P.impl_FieldElement__new (mk_u16 2617);
+    P.impl_FieldElement__new (mk_u16 1481);
+    P.impl_FieldElement__new (mk_u16 648);
+    P.impl_FieldElement__new (mk_u16 2474);
+    P.impl_FieldElement__new (mk_u16 3110);
+    P.impl_FieldElement__new (mk_u16 1227);
+    P.impl_FieldElement__new (mk_u16 910);
+    P.impl_FieldElement__new (mk_u16 17);
+    P.impl_FieldElement__new (mk_u16 2761);
+    P.impl_FieldElement__new (mk_u16 583);
+    P.impl_FieldElement__new (mk_u16 2649);
+    P.impl_FieldElement__new (mk_u16 1637);
+    P.impl_FieldElement__new (mk_u16 723);
+    P.impl_FieldElement__new (mk_u16 2288);
+    P.impl_FieldElement__new (mk_u16 1100);
+    P.impl_FieldElement__new (mk_u16 1409);
+    P.impl_FieldElement__new (mk_u16 2662);
+    P.impl_FieldElement__new (mk_u16 3281);
+    P.impl_FieldElement__new (mk_u16 233);
+    P.impl_FieldElement__new (mk_u16 756);
+    P.impl_FieldElement__new (mk_u16 2156);
+    P.impl_FieldElement__new (mk_u16 3015);
+    P.impl_FieldElement__new (mk_u16 3050);
+    P.impl_FieldElement__new (mk_u16 1703);
+    P.impl_FieldElement__new (mk_u16 1651);
+    P.impl_FieldElement__new (mk_u16 2789);
+    P.impl_FieldElement__new (mk_u16 1789);
+    P.impl_FieldElement__new (mk_u16 1847);
+    P.impl_FieldElement__new (mk_u16 952);
+    P.impl_FieldElement__new (mk_u16 1461);
+    P.impl_FieldElement__new (mk_u16 2687);
+    P.impl_FieldElement__new (mk_u16 939);
+    P.impl_FieldElement__new (mk_u16 2308);
+    P.impl_FieldElement__new (mk_u16 2437);
+    P.impl_FieldElement__new (mk_u16 2388);
+    P.impl_FieldElement__new (mk_u16 733);
+    P.impl_FieldElement__new (mk_u16 2337);
+    P.impl_FieldElement__new (mk_u16 268);
+    P.impl_FieldElement__new (mk_u16 641);
+    P.impl_FieldElement__new (mk_u16 1584);
+    P.impl_FieldElement__new (mk_u16 2298);
+    P.impl_FieldElement__new (mk_u16 2037);
+    P.impl_FieldElement__new (mk_u16 3220);
+    P.impl_FieldElement__new (mk_u16 375);
+    P.impl_FieldElement__new (mk_u16 2549);
+    P.impl_FieldElement__new (mk_u16 2090);
+    P.impl_FieldElement__new (mk_u16 1645);
+    P.impl_FieldElement__new (mk_u16 1063);
+    P.impl_FieldElement__new (mk_u16 319);
+    P.impl_FieldElement__new (mk_u16 2773);
+    P.impl_FieldElement__new (mk_u16 757);
+    P.impl_FieldElement__new (mk_u16 2099);
+    P.impl_FieldElement__new (mk_u16 561);
+    P.impl_FieldElement__new (mk_u16 2466);
+    P.impl_FieldElement__new (mk_u16 2594);
+    P.impl_FieldElement__new (mk_u16 2804);
+    P.impl_FieldElement__new (mk_u16 1092);
+    P.impl_FieldElement__new (mk_u16 403);
+    P.impl_FieldElement__new (mk_u16 1026);
+    P.impl_FieldElement__new (mk_u16 1143);
+    P.impl_FieldElement__new (mk_u16 2150);
+    P.impl_FieldElement__new (mk_u16 2775);
+    P.impl_FieldElement__new (mk_u16 886);
+    P.impl_FieldElement__new (mk_u16 1722);
+    P.impl_FieldElement__new (mk_u16 1212);
+    P.impl_FieldElement__new (mk_u16 1874);
+    P.impl_FieldElement__new (mk_u16 1029);
+    P.impl_FieldElement__new (mk_u16 2110);
+    P.impl_FieldElement__new (mk_u16 2935);
+    P.impl_FieldElement__new (mk_u16 885);
+    P.impl_FieldElement__new (mk_u16 2154)
+  ]
+
+#push-options "--fuel 0 --ifuel 0 --z3rlimit 100"
+let lemma_zeta1_val (_:unit)
+  : Lemma ((v (Libcrux_ml_kem.Polynomial.zeta (mk_usize 1)) * 169) % 3329 == 1729)
+  = assert_norm (List.Tot.length vzetas_lits == 128);
+    assert_norm (N.v_ZETAS == Rust_primitives.Hax.array_of_list 128 vzetas_lits);
+    FStar.Seq.Properties.lemma_seq_of_list_index vzetas_lits 1;
+    assert_norm (List.Tot.index vzetas_lits 1 == P.impl_FieldElement__new (mk_u16 1729));
+    assert ((N.v_ZETAS.[ mk_usize 1 ] <: P.t_FieldElement) == P.impl_FieldElement__new (mk_u16 1729));
+    assert_norm (v (P.impl_FieldElement__new (mk_u16 1729)).P.f_val == 1729);
+    lemma_zeta_eq_vzetas (mk_usize 1)
+#pop-options

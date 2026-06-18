@@ -318,7 +318,10 @@ pub(crate) fn sub_bounded<Vector: Operations>(
           b2t (abs_c >=. mk_i16 0 && abs_c <=. mk_i16 32767) /\
           Libcrux_ml_kem.Polynomial.Spec.is_bounded_vector #$:Vector
             (mk_usize (v $_b * v abs_c))
-            $result"#))]
+            $result /\
+          Libcrux_ml_kem.Vector.Traits.Spec.multiply_by_constant_post
+            (Libcrux_ml_kem.Vector.Traits.f_repr $vec) $c
+            (Libcrux_ml_kem.Vector.Traits.f_repr $result)"#))]
 pub(crate) fn multiply_by_constant_bounded<Vector: Operations>(
     vec: Vector,
     _b: usize,
@@ -2181,6 +2184,17 @@ val lemma_impl_add_message_error_reduce_spec
                 Hacspec_ml_kem.Parameters.impl_FieldElement__mul
                   (Seq.index (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_mont #v_Vector result) (v j))
                   Hacspec_ml_kem.Commute.Chunk.fe_1441)))
+
+val lemma_impl__poly_barrett_reduce_spec
+    (#v_Vector: Type0)
+    (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+    (self: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
+  : Lemma
+    (requires Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector (mk_usize 28296) self)
+    (ensures
+      Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #v_Vector (impl__poly_barrett_reduce #v_Vector self)
+      == Hacspec_ml_kem.Polynomial.poly_barrett_reduce
+           (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #v_Vector self))
 "#))]
 #[cfg_attr(hax, hax_lib::fstar::after(r#"
 let lemma_impl_ntt_multiply_spec
@@ -2283,6 +2297,18 @@ let lemma_impl_add_message_error_reduce_spec
                   (Seq.index (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_mont #v_Vector result) (v j))
                   Hacspec_ml_kem.Commute.Chunk.fe_1441)))
 = let _ = add_message_error_reduce #v_Vector myself message result in ()
+
+let lemma_impl__poly_barrett_reduce_spec
+    (#v_Vector: Type0)
+    (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+    (self: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
+  : Lemma
+    (requires Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector (mk_usize 28296) self)
+    (ensures
+      Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #v_Vector (impl__poly_barrett_reduce #v_Vector self)
+      == Hacspec_ml_kem.Polynomial.poly_barrett_reduce
+           (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #v_Vector self))
+= let _ = poly_barrett_reduce #v_Vector self in ()
 "#))]
 fn _impl_functional_bridges_anchor<Vector: Operations>(
     p: PolynomialRingElement<Vector>,

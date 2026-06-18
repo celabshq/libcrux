@@ -298,14 +298,14 @@ fn sample_ring_element_cbd<
 /// Sample a vector of ring elements from a centered binomial distribution and
 /// convert them into their NTT representations.
 //
-// NOTE (2026-06-11): `panic_free` — body verified, functional post admitted. Same value+&mut
-// tuple-return-post wall as sample_ring_element_cbd (see
-// proofs/agent-status/ind_cpa-sample_ring_element_cbd-status.md), and additionally needs ntt.rs
-// strengthened to a functional NTT post. Deferred to the tuple-return follow-up.
+// Functional post: `vector_to_spec re_as_ntt == sample_vector_cbd_then_ntt`.  Same
+// value+&mut tuple-return-post pattern as `sample_ring_element_cbd` (the post discharges
+// via the SMTPat-on-the-loop-exit-invariant `lemma_cbd_ntt_prefix_done_post_smtpat`),
+// composed with the forward-NTT functional post of `ntt_binomially_sampled_ring_element`
+// (per row: `vector_to_spec re[i] == ntt(cbd[i])`, via `lemma_per_index_cbd_ntt`).
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::fstar::options(
-    "--max_fuel 25 --z3rlimit 400 --ext context_pruning --split_queries always"
+    "--max_fuel 25 --z3rlimit 400 --ext context_pruning --split_queries always --using_facts_from '* -Hacspec_ml_kem.Ntt -Hacspec_ml_kem.Matrix -Hacspec_ml_kem.Sampling -Hacspec_ml_kem.Ind_cpa.sample_vector_cbd_then_ntt'"
 )]
 #[hax_lib::requires(
     (hacspec_ml_kem::parameters::is_rank(K)
@@ -330,26 +330,67 @@ fn sample_vector_cbd_then_ntt<
 >(
     re_as_ntt: &mut [PolynomialRingElement<Vector>; K],
     prf_input: &[u8; 33],
-    mut domain_separator: u8,
+    domain_separator: u8,
 ) -> u8 {
     let mut prf_inputs = [prf_input.clone(); K];
 
-    #[cfg(hax)]
-    let _domain_separator_init = domain_separator;
-
-    domain_separator = prf_input_inc::<K>(&mut prf_inputs, domain_separator);
+    // Unshadow domain_separator: bind the incremented result to a fresh name so the
+    // parameter (= initial ds, used by the ensures' spec) stays nameable post-loop.
+    let domain_separator_future = prf_input_inc::<K>(&mut prf_inputs, domain_separator);
+    hax_lib::fstar!(
+        r#"assert (v $domain_separator_future == v $domain_separator + v $K);
+           Hacspec_ml_kem.Commute.Ind_cpa_sampling.lemma_prf_inputs_struct
+             $K $prf_input $prf_inputs $domain_separator"#
+    );
     let prf_outputs: [[u8; ETA_RANDOMNESS_SIZE]; K] = Hasher::PRFxN(&prf_inputs);
+    // Establish the opaque loop-invariant atom at the empty prefix (vacuous).
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Ind_cpa_sampling.lemma_cbd_ntt_prefix_init
+             $K ${re_as_ntt}
+             (Hacspec_ml_kem.Ind_cpa.sample_vector_cbd_then_ntt $K $ETA
+                (${prf_input}.[ { Core_models.Ops.Range.f_end = mk_usize 32 } <: Core_models.Ops.Range.t_RangeTo usize ] <: t_Slice u8) $domain_separator)"#
+    );
     for i in 0..K {
         hax_lib::loop_invariant!(|i: usize| {
             fstar!(
-                r#"forall (j:nat). j < v $i ==>
-            Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #$:Vector (sz 3328) re_as_ntt.[ sz j ]"#
+                r#"Hacspec_ml_kem.Commute.Ind_cpa_sampling.cbd_ntt_prefix_done $K ${re_as_ntt}
+                    (Hacspec_ml_kem.Ind_cpa.sample_vector_cbd_then_ntt $K $ETA
+                       (${prf_input}.[ { Core_models.Ops.Range.f_end = mk_usize 32 } <: Core_models.Ops.Range.t_RangeTo usize ] <: t_Slice u8) $domain_separator) (v $i)"#
             )
         });
-        re_as_ntt[i] = sample_from_binomial_distribution::<ETA, Vector>(&prf_outputs[i]);
-        ntt_binomially_sampled_ring_element(&mut re_as_ntt[i]);
+        #[cfg(hax)]
+        let re_as_ntt_old = *re_as_ntt;
+        let sampled = sample_from_binomial_distribution::<ETA, Vector>(&prf_outputs[i]);
+        // Compute the forward NTT into a local + a single write (so the loop step is one
+        // `update_at` matching `lemma_cbd_ntt_prefix_step`, and the per-row NTT post couples
+        // `ntt_val` to `sampled` directly).  Semantically identical to an in-place reduce.
+        let mut ntt_val = sampled;
+        ntt_binomially_sampled_ring_element(&mut ntt_val);
+        re_as_ntt[i] = ntt_val;
+        hax_lib::fstar!(
+            r#"Hacspec_ml_kem.Commute.Ind_cpa_sampling.lemma_per_index_cbd_ntt
+                 #$:Vector $K $ETA (${prf_input}.[ { Core_models.Ops.Range.f_end = mk_usize 32 } <: Core_models.Ops.Range.t_RangeTo usize ] <: t_Slice u8)
+                 $domain_separator $ETA_RANDOMNESS_SIZE $prf_inputs $prf_outputs $sampled $ntt_val (v $i);
+               Hacspec_ml_kem.Commute.Ind_cpa_sampling.lemma_cbd_ntt_row_intro
+                 #$:Vector $K $ntt_val
+                 (Hacspec_ml_kem.Ind_cpa.sample_vector_cbd_then_ntt $K $ETA
+                    (${prf_input}.[ { Core_models.Ops.Range.f_end = mk_usize 32 } <: Core_models.Ops.Range.t_RangeTo usize ] <: t_Slice u8) $domain_separator) (v $i);
+               Hacspec_ml_kem.Commute.Ind_cpa_sampling.lemma_cbd_ntt_prefix_step
+                 #$:Vector $K
+                 (Hacspec_ml_kem.Ind_cpa.sample_vector_cbd_then_ntt $K $ETA
+                    (${prf_input}.[ { Core_models.Ops.Range.f_end = mk_usize 32 } <: Core_models.Ops.Range.t_RangeTo usize ] <: t_Slice u8) $domain_separator)
+                 $re_as_ntt_old $i $ntt_val"#
+        );
     }
-    domain_separator
+
+    // Single full-post establisher (the SMTPat variant also fires on the loop-exit atom).
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Ind_cpa_sampling.lemma_sample_vector_cbd_then_ntt_post
+             #$:Vector $K $ETA (${prf_input}.[ { Core_models.Ops.Range.f_end = mk_usize 32 } <: Core_models.Ops.Range.t_RangeTo usize ] <: t_Slice u8)
+             $domain_separator $domain_separator_future $re_as_ntt"#
+    );
+
+    domain_separator_future
 }
 
 /// This function implements most of <strong>Algorithm 12</strong> of the
@@ -392,7 +433,10 @@ fn sample_vector_cbd_then_ntt<
 /// <https://csrc.nist.gov/pubs/fips/203/ipd>.
 #[allow(non_snake_case)]
 #[hax_lib::fstar::before(r#"[@ "opaque_to_smt"]"#)]
-#[hax_lib::fstar::options("--z3rlimit 500 --ext context_pruning --using_facts_from '* -Hacspec_ml_kem.Matrix -Hacspec_ml_kem.Ind_cpa.sample_vector_cbd_then_ntt'")]
+// `--split_queries always` (and rlimit 800) so the whole-function VC splits into per-conjunct
+// sub-queries that verify cold — `sample_vector_cbd_then_ntt`'s now-discharged functional post
+// (previously `panic_free`) thickens this caller's context enough to saturate the monolithic VC.
+#[hax_lib::fstar::options("--z3rlimit 800 --ext context_pruning --split_queries always --using_facts_from '* -Hacspec_ml_kem.Matrix -Hacspec_ml_kem.Ind_cpa.sample_vector_cbd_then_ntt'")]
 // Use .to_prop() & to create logical (l_and) conjunction so F* can propagate
 // is_rank(K) as a hypothesis when type-checking eta1_randomness_size(K)'s precondition.
 #[hax_lib::requires(

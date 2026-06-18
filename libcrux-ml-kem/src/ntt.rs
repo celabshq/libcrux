@@ -1210,13 +1210,135 @@ pub(crate) fn ntt_at_layer_4_plus<Vector: Operations>(
     );
 }
 
+// Layer-7 forward NTT functional post (`poly_step`).  The layer-7 fold is structurally
+// `ntt_at_layer_4_plus(layer=7)`'s inner fold (groups=1, step_vec=8) but uses the plain
+// `multiply_by_constant_bounded(b, -1600)` butterfly instead of the generic montgomery
+// `ntt_layer_int_vec_step`.  `-1600 == zeta(1) mod q` (`(v(zeta 1)*169)%3329 == 1729 == -1600`,
+// via `Ntt_bridge.lemma_zeta1_val`), so the plain multiply discharges the same Montgomery-form
+// `ntt_step_post` the forward inner-fold scaffold consumes.
+#[cfg_attr(hax, hax_lib::fstar::before(r#"
+(* int core: (v(zeta 1)*169)%q == 1729 (== -1600 mod q) bridges plain mult by -1600 to
+   the montgomery-mont butterfly precondition. *)
+#push-options "--fuel 0 --ifuel 0 --z3rlimit 100"
+let lemma_l7_mul_core (zz bb: int)
+  : Lemma (requires (zz * 169) % 3329 == 1729)
+          (ensures (bb * (-1600)) % 3329 == (zz * bb * 169) % 3329)
+  = let q : pos = 3329 in
+    FStar.Math.Lemmas.lemma_mod_mul_distr_l (zz * 169) bb q;
+    assert (zz * bb * 169 == (zz * 169) * bb);
+    assert ((((zz * 169) % q) * bb) % q == (1729 * bb) % q);
+    FStar.Math.Lemmas.lemma_mod_plus ((-1600) * bb) bb q;
+    assert ((-1600) * bb + bb * q == 1729 * bb);
+    assert (bb * (-1600) == (-1600) * bb)
+#pop-options
+
+(* establish ntt_step_post for the layer-7 butterfly from the leaf-op posts:
+   t = mult_by_const(b, -1600), x = add(a, t), y = sub(a, t).  Mirror of
+   ntt_layer_int_vec_step's aux0/aux1, with the plain-multiply core for the t step. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 300 --split_queries always"
+let lemma_layer7_step_post
+      (#v_Vector: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()]
+          i0:
+          Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+      (a b t x y: v_Vector)
+    : Lemma
+      (requires
+        Libcrux_ml_kem.Vector.Traits.Spec.multiply_by_constant_post
+          (Libcrux_ml_kem.Vector.Traits.f_repr b) (mk_i16 (-1600))
+          (Libcrux_ml_kem.Vector.Traits.f_repr t) /\
+        Libcrux_ml_kem.Vector.Traits.Spec.add_post
+          (Libcrux_ml_kem.Vector.Traits.f_repr a) (Libcrux_ml_kem.Vector.Traits.f_repr t)
+          (Libcrux_ml_kem.Vector.Traits.f_repr x) /\
+        Libcrux_ml_kem.Vector.Traits.Spec.sub_post
+          (Libcrux_ml_kem.Vector.Traits.f_repr a) (Libcrux_ml_kem.Vector.Traits.f_repr t)
+          (Libcrux_ml_kem.Vector.Traits.f_repr y))
+      (ensures
+        ntt_step_post #v_Vector a b x y (Libcrux_ml_kem.Polynomial.zeta (mk_usize 1)))
+  = let zeta_r = Libcrux_ml_kem.Polynomial.zeta (mk_usize 1) in
+    let a_arr = Libcrux_ml_kem.Vector.Traits.f_to_i16_array a in
+    let b_arr = Libcrux_ml_kem.Vector.Traits.f_to_i16_array b in
+    let t_arr = Libcrux_ml_kem.Vector.Traits.f_to_i16_array t in
+    let x_arr = Libcrux_ml_kem.Vector.Traits.f_to_i16_array x in
+    let y_arr = Libcrux_ml_kem.Vector.Traits.f_to_i16_array y in
+    assert (a_arr == Libcrux_ml_kem.Vector.Traits.f_repr a);
+    assert (b_arr == Libcrux_ml_kem.Vector.Traits.f_repr b);
+    assert (t_arr == Libcrux_ml_kem.Vector.Traits.f_repr t);
+    assert (x_arr == Libcrux_ml_kem.Vector.Traits.f_repr x);
+    assert (y_arr == Libcrux_ml_kem.Vector.Traits.f_repr y);
+    Hacspec_ml_kem.Commute.Ntt_bridge.lemma_zeta1_val ();
+    assert ((v zeta_r * 169) % 3329 == 1729);
+    let aux0 (i: nat)
+        : Lemma
+        (i < 16 ==>
+          Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index x_arr i) ==
+          Hacspec_ml_kem.Parameters.impl_FieldElement__add
+            (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index a_arr i))
+            (Hacspec_ml_kem.Parameters.impl_FieldElement__mul
+               (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe zeta_r)
+               (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index b_arr i)))) =
+      if i < 16 then begin
+        lemma_l7_mul_core (v zeta_r) (v (Seq.index b_arr i));
+        Hacspec_ml_kem.Commute.Chunk.lemma_mont_mul_fe_commute_mont_mont zeta_r
+          (Seq.index b_arr i) (Seq.index t_arr i);
+        Hacspec_ml_kem.Commute.Chunk.lemma_add_fe_commute_mont
+          (Seq.index a_arr i) (Seq.index t_arr i) (Seq.index x_arr i)
+      end
+    in
+    Classical.forall_intro aux0;
+    let aux1 (i: nat)
+        : Lemma
+        (i < 16 ==>
+          Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index y_arr i) ==
+          Hacspec_ml_kem.Parameters.impl_FieldElement__sub
+            (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index a_arr i))
+            (Hacspec_ml_kem.Parameters.impl_FieldElement__mul
+               (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe zeta_r)
+               (Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe (Seq.index b_arr i)))) =
+      if i < 16 then begin
+        lemma_l7_mul_core (v zeta_r) (v (Seq.index b_arr i));
+        Hacspec_ml_kem.Commute.Chunk.lemma_mont_mul_fe_commute_mont_mont zeta_r
+          (Seq.index b_arr i) (Seq.index t_arr i);
+        Hacspec_ml_kem.Commute.Chunk.lemma_sub_fe_commute_mont
+          (Seq.index a_arr i) (Seq.index t_arr i) (Seq.index y_arr i)
+      end
+    in
+    Classical.forall_intro aux1;
+    reveal_opaque (`%ntt_step_post) (ntt_step_post #v_Vector a b x y zeta_r)
+#pop-options
+"#))]
 #[inline(always)]
 #[hax_lib::fstar::options("--z3rlimit 200 --ext context_pruning")]
 #[hax_lib::fstar::options("--z3rlimit 300 --ext context_pruning --split_queries always")]
 #[hax_lib::requires(spec::is_bounded_poly(3, re))]
-#[hax_lib::ensures(|result| spec::is_bounded_poly(4803, future(re)))]
+#[hax_lib::ensures(|result| spec::is_bounded_poly(4803, future(re)) & fstar!(r#"
+    Hacspec_ml_kem.Commute.Ntt_bridge.poly_step #$:Vector ${re} ${re}_future (mk_usize 7)"#))]
 pub(crate) fn ntt_at_layer_7<Vector: Operations>(re: &mut PolynomialRingElement<Vector>) {
+    #[cfg(hax)]
+    let _re0 = *re;
+    #[cfg(hax)]
+    let _re_init = re.coefficients;
     let step = VECTORS_IN_RING_ELEMENT / 2;
+
+    // Layer 7 has a single butterfly group (groups=1, round=0, offset_vec=0, step_vec=8,
+    // coefficient-step=128).  Weaken the input bound 3 -> 1475 (so the scaffold's DONE bound
+    // `1475+3328 == 4803` matches the plain-multiply butterfly output) and init inner_inv_fwd.
+    hax_lib::fstar!(
+        r#"(let auxw (i: usize)
+              : Lemma (i <. mk_usize 16 ==>
+                  Libcrux_ml_kem.Polynomial.Spec.is_bounded_vector #$:Vector (mk_usize 1475)
+                    (${re}.f_coefficients.[ i ])) =
+            if i <. mk_usize 16 then
+              Libcrux_ml_kem.Polynomial.Spec.is_bounded_vector_higher #$:Vector
+                (${re}.f_coefficients.[ i ]) (mk_usize 3) (mk_usize 1475)
+          in Classical.forall_intro auxw);
+          lemma_outer_inv_fwd_init #$:Vector ${_re_init} ${re}.f_coefficients
+            8 (zs_of_fwd (mk_usize 1) (mk_usize 0)) (mk_usize 1475) (mk_usize 128);
+          lemma_inner_inv_fwd_init #$:Vector ${_re_init} ${re}.f_coefficients
+            8 (zs_of_fwd (mk_usize 1) (mk_usize 0)) (mk_usize 1475) (mk_usize 0) (mk_usize 128)
+            (mk_usize 0) ${step}"#
+    );
+
     for j in 0..step {
         hax_lib::loop_invariant!(|j: usize| {
             hax_lib::forall(|i: usize| {
@@ -1229,20 +1351,70 @@ pub(crate) fn ntt_at_layer_7<Vector: Operations>(re: &mut PolynomialRingElement<
                 } else {
                     true.to_prop()
                 }
-            })
+            }) & fstar!(
+                r#"inner_inv_fwd #$:Vector ${_re_init} ${re}.f_coefficients 8
+                     (zs_of_fwd (mk_usize 1) (mk_usize 0)) (mk_usize 1475) (mk_usize 0) (mk_usize 8) ${j}"#
+            )
         });
 
         // Help Z3 compute the bound from multiply_by_constant_bounded's ensures.
         // `abs_i16` is an abstract `val`, so assert_norm can't compute it; cite the
         // pre-existing library axiom `Spec.Utils.impl_i16__abs_value` instead.
         hax_lib::fstar!(r#"Spec.Utils.impl_i16__abs_value (mk_i16 (-1600))"#);
+        #[cfg(hax)]
+        let _re_body_in = *re;
         let t = multiply_by_constant_bounded(re.coefficients[j + step], 3, -1600);
         hax_lib::fstar!(
             r#"assert (Libcrux_ml_kem.Polynomial.Spec.is_bounded_vector #$:Vector (mk_usize 4800) $t)"#
         );
-        re.coefficients[j + step] = sub_bounded(re.coefficients[j], 3, &t, 4800);
-        re.coefficients[j] = add_bounded(re.coefficients[j], 3, &t, 4800);
+        // Precompute the butterfly outputs from the (unmodified) input lane re[j], then write
+        // re[j] then re[j+step] (matching ntt_at_layer_4_plus's write order = the maintains lemma).
+        let y = sub_bounded(re.coefficients[j], 3, &t, 4800);
+        let x = add_bounded(re.coefficients[j], 3, &t, 4800);
+        re.coefficients[j] = x;
+        re.coefficients[j + step] = y;
+        hax_lib::fstar!(
+            r#"FStar.Seq.Base.init_index_ (v (mk_usize 1))
+                 (fun (r: nat{r < v (mk_usize 1)}) ->
+                    Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+                      (Libcrux_ml_kem.Polynomial.zeta (mk_usize 0 +! mk_usize 1 +! mk_usize r)))
+                 (v (mk_usize 0));
+               lemma_layer7_step_post #$:Vector
+                 (${_re_body_in}.f_coefficients.[ ${j} ])
+                 (${_re_body_in}.f_coefficients.[ ${j} +! ${step} ])
+                 $t $x $y;
+               lemma_inner_step_maintains_fwd #$:Vector ${_re_init}
+                 ${_re_body_in}.f_coefficients ${re}.f_coefficients 8
+                 (zs_of_fwd (mk_usize 1) (mk_usize 0)) (mk_usize 1475) (mk_usize 0) (mk_usize 8) ${j}
+                 (v (mk_usize 0)) (Libcrux_ml_kem.Polynomial.zeta (mk_usize 1)) $x $y"#
+        );
     }
+
+    // groups=1: the single inner fold == the whole layer.  Lift to outer_inv at round=1
+    // (all vectors DONE), bridge to the cross_vec_hyp_fwd forall + the ascending-zeta
+    // correspondence, then discharge the PLAIN poly_step for layer 7.
+    hax_lib::fstar!(
+        r#"lemma_inner_to_outer_fwd #$:Vector ${_re_init} ${re}.f_coefficients 8
+             (zs_of_fwd (mk_usize 1) (mk_usize 0)) (mk_usize 1475) (mk_usize 0) (mk_usize 128) (mk_usize 0)
+             (mk_usize 8) (mk_usize 1) (mk_usize 0 +! mk_usize 8);
+           lemma_postloop_cross_vec_fwd #$:Vector ${_re_init} ${re}.f_coefficients 8
+             (zs_of_fwd (mk_usize 1) (mk_usize 0)) (mk_usize 1475) (mk_usize 1) (mk_usize 128);
+           (let aux (round: nat)
+              : Lemma (round < v (mk_usize 1) ==>
+                  Seq.index (zs_of_fwd (mk_usize 1) (mk_usize 0)) round ==
+                  Hacspec_ml_kem.Ntt.v_ZETAS.[ sz (v (mk_usize 1) + round) ]) =
+            if round < v (mk_usize 1) then begin
+              FStar.Seq.Base.init_index_ (v (mk_usize 1))
+                (fun (r: nat{r < v (mk_usize 1)}) ->
+                   Libcrux_ml_kem.Vector.Traits.Spec.mont_i16_to_spec_fe
+                     (Libcrux_ml_kem.Polynomial.zeta (mk_usize 0 +! mk_usize 1 +! mk_usize r)))
+                round;
+              Hacspec_ml_kem.Commute.Bridges.lemma_zeta_eq_vzetas (mk_usize 0 +! mk_usize 1 +! mk_usize round);
+              assert (v (mk_usize 0 +! mk_usize 1 +! mk_usize round) == v (mk_usize 1) + round)
+            end in Classical.forall_intro aux);
+           Hacspec_ml_kem.Commute.Ntt_bridge.lemma_layer_4_plus_to_poly_step #$:Vector
+             ${_re0} ${re} (mk_usize 7) (mk_usize 128) 8 (zs_of_fwd (mk_usize 1) (mk_usize 0))"#
+    );
 }
 
 /// Forward NTT of a CBD-sampled polynomial.
@@ -1257,14 +1429,18 @@ pub(crate) fn ntt_at_layer_7<Vector: Operations>(re: &mut PolynomialRingElement<
 /// Cross-spec runtime evidence: `ntt_matches_spec` test in this file
 /// `assert_eq!`s `lift_poly(impl_after_ntt) == hacspec_ntt(plain_input)`,
 /// confirming the impl preserves plain form through the full forward NTT.
+// Forward NTT functional post (mirror of `ntt_vector_u`): the 7 per-layer `poly_step`
+// atoms compose into the polynomial-level `Hacspec_ml_kem.Ntt.ntt` equality via
+// `lemma_compose_7`.  Layer 7's `poly_step` comes from `ntt_at_layer_7`'s strengthened
+// post; layers 6/5/4 from `ntt_at_layer_4_plus`; layers 3/2/1 from
+// `lemma_layer{1,2,3}_to_poly_step`; barrett value-preservation via the free
+// `poly_barrett_reduce`'s post + `lemma_poly_barrett_reduce_id`.
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 200")]
+#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always")]
 #[hax_lib::requires(spec::is_bounded_poly(3, re))]
-#[hax_lib::ensures(|result| spec::is_bounded_poly(3328, future(re)))]
-// #[hax_lib::ensures(|_| fstar!(r#"
-//     Libcrux_ml_kem.Polynomial.to_spec_poly_t #$:Vector ${re}_future ==
-//     Hacspec_ml_kem.Ntt.ntt (Libcrux_ml_kem.Polynomial.to_spec_poly_t #$:Vector $re) /\
-//     Libcrux_ml_kem.Polynomial.is_bounded_poly #$:Vector 3328 ${re}_future"#)]
+#[hax_lib::ensures(|result| spec::is_bounded_poly(3328, future(re)) & fstar!(r#"
+    Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #$:Vector ${re}_future ==
+    Hacspec_ml_kem.Ntt.ntt (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #$:Vector $re)"#))]
 pub(crate) fn ntt_binomially_sampled_ring_element<Vector: Operations>(
     re: &mut PolynomialRingElement<Vector>,
 ) {
@@ -1272,9 +1448,19 @@ pub(crate) fn ntt_binomially_sampled_ring_element<Vector: Operations>(
         .into_iter()
         .all(|coefficient| coefficient.abs() <= 3));
 
+    #[cfg(hax)]
+    let re0 = *re;
+    // Pre-bind + anchor the barrett bound 28296 in CLEAN context (early ghost use) so its
+    // usize range-check is range-checked here, not floated down into the polluted post-layer
+    // quantifier context (where it saturates).  Mirrors ntt_vector_u.
+    #[cfg(hax)]
+    let bnd28296: usize = 28296;
+    hax_lib::fstar!(r#"assert (v ${bnd28296} == 28296)"#);
     // Due to the small coefficient bound, we can skip the first round of
-    // Montgomery reductions.
+    // Montgomery reductions (plain-multiply layer-7 butterfly): poly_step re0 re1 7.
     ntt_at_layer_7(re);
+    #[cfg(hax)]
+    let re1 = *re;
 
     let mut zeta_i = 1;
 
@@ -1282,16 +1468,50 @@ pub(crate) fn ntt_binomially_sampled_ring_element<Vector: Operations>(
     spec::is_bounded_poly_higher(re, 4803, 2 * 3328);
 
     ntt_at_layer_4_plus(&mut zeta_i, re, 6, 2 * 3328);
+    #[cfg(hax)]
+    let re2 = *re;
     ntt_at_layer_4_plus(&mut zeta_i, re, 5, 3 * 3328);
+    #[cfg(hax)]
+    let re3 = *re;
     ntt_at_layer_4_plus(&mut zeta_i, re, 4, 4 * 3328);
+    #[cfg(hax)]
+    let re4 = *re;
     ntt_at_layer_3(&mut zeta_i, re, 5 * 3328);
+    #[cfg(hax)]
+    let re5 = *re;
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Ntt_bridge.lemma_layer3_to_poly_step #$:Vector ${re4} ${re5}"#
+    );
     ntt_at_layer_2(&mut zeta_i, re, 6 * 3328);
+    #[cfg(hax)]
+    let re6 = *re;
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Ntt_bridge.lemma_layer2_to_poly_step #$:Vector ${re5} ${re6}"#
+    );
     ntt_at_layer_1(&mut zeta_i, re, 7 * 3328);
+    #[cfg(hax)]
+    let re7 = *re;
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Ntt_bridge.lemma_layer1_to_poly_step #$:Vector ${re6} ${re7}"#
+    );
+
+    // compose the 7 poly_step atoms into the N.ntt equality (driver post).
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Ntt_bridge.lemma_compose_7 #$:Vector ${re0} ${re1} ${re2} ${re3} ${re4} ${re5} ${re6} ${re7}"#
+    );
 
     #[cfg(hax)]
-    spec::is_bounded_poly_higher(re, 8 * 3328, 28296);
+    spec::is_bounded_poly_higher(re, 8 * 3328, bnd28296);
 
-    re.poly_barrett_reduce()
+    // Method wrapper carries a bounds-only post; the bridge `lemma_impl__poly_barrett_reduce_spec`
+    // exposes the same value-preservation as the free `poly_barrett_reduce`, then
+    // `lemma_poly_barrett_reduce_id` (barrett is the plain identity) discharges the N.ntt equality.
+    re.poly_barrett_reduce();
+    hax_lib::fstar!(
+        r#"Libcrux_ml_kem.Polynomial.lemma_impl__poly_barrett_reduce_spec #$:Vector ${re7};
+           Hacspec_ml_kem.Commute.Chunk.lemma_poly_barrett_reduce_id
+             (Hacspec_ml_kem.Commute.Chunk.to_spec_poly_plain #$:Vector ${re7})"#
+    );
 }
 
 /// Forward NTT of a decompressed ciphertext-u polynomial.  Same scaling
