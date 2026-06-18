@@ -90,16 +90,15 @@ pub fn absorb_final(
 
 /// Recursively absorb the remaining bytes of `message`: peel off one full
 /// `rate`-byte block, XOR it into the state, apply Keccak-f, then recurse on
-/// the tail slice. Once fewer than `rate` bytes remain, pad and absorb the
-/// partial final block.
+/// the tail slice. Once fewer than `rate` bytes remain, stop.
 #[hax_lib::requires(rate > 0 && rate <= 200 && rate % 8 == 0)]
 #[hax_lib::decreases(message.len().to_int())]
-pub fn absorb_rec(state: State, rate: usize, delim: u8, message: &[u8]) -> State {
+pub fn absorb_rec(state: State, rate: usize, message: &[u8]) -> State {
     if message.len() < rate {
-        absorb_final(state, message, 0, message.len(), rate, delim)
+        state
     } else {
         let state = absorb_block(state, &message[0..rate], rate);
-        absorb_rec(state, rate, delim, &message[rate..])
+        absorb_rec(state, rate, &message[rate..])
     }
 }
 
@@ -112,7 +111,10 @@ pub fn absorb_rec(state: State, rate: usize, delim: u8, message: &[u8]) -> State
 /// absorbed.
 #[hax_lib::requires(rate > 0 && rate <= 200 && rate % 8 == 0)]
 pub fn absorb(rate: usize, delim: u8, message: &[u8]) -> State {
-    absorb_rec([0u64; 25], rate, delim, message)
+    let state = absorb_rec([0u64; 25], rate, message);
+    let remaining = message.len() % rate;
+    let msg_offset = message.len() - remaining;
+    absorb_final(state, message, msg_offset, remaining, rate, delim)
 }
 
 /// Apply Keccak-f to `state` exactly `n` times.

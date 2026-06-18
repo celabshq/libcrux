@@ -7,6 +7,7 @@ mod sha3;
 pub mod sponge;
 
 /// Utility function to create an array of size `N` by applying a function `f` to each index.
+/// This is needed to inject our custom F* implementation below.
 #[hax_lib::fstar::replace(
     r#"
 let createi

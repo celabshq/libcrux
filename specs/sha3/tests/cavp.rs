@@ -122,7 +122,7 @@ fn parse_shake_variable_out_rsp(path: &Path) -> (usize, Vec<ShakeVariableOutTest
 }
 
 // ---------------------------------------------------------------------------
-// Path to the test vector files (shared with reference implementation)
+// Path to the test vector files (shared with implementation)
 // ---------------------------------------------------------------------------
 
 fn tv_path(name: &str) -> std::path::PathBuf {

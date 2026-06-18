@@ -427,7 +427,7 @@ mod cross_spec_tests {
         crate::simd::portable::store_block::<136>(&state, &mut impl_out, 0, 136);
         let mut spec_out = [0u8; 200];
         spec_out = spec_sponge::squeeze_state(&state, spec_out, 0, 136);
-        assert_eq!(impl_out[..136], spec_out[..136]);
+        assert_eq!(impl_out, spec_out);
     }
 
     #[test]
@@ -479,11 +479,7 @@ mod cross_spec_tests {
             crate::simd::portable::store_block::<136>(&state, &mut impl_out, 0, len);
             let mut spec_out = [0u8; 200];
             spec_out = spec_sponge::squeeze_state(&state, spec_out, 0, len);
-            assert_eq!(
-                impl_out[..len],
-                spec_out[..len],
-                "store_block mismatch at len={len}"
-            );
+            assert_eq!(impl_out, spec_out, "store_block mismatch at len={len}");
         }
     }
 
@@ -496,10 +492,7 @@ mod cross_spec_tests {
         crate::simd::portable::store_block::<136>(&state, &mut impl_out, offset, len);
         let mut spec_out = [0u8; 200];
         spec_out = spec_sponge::squeeze_state(&state, spec_out, offset, len);
-        assert_eq!(
-            impl_out[offset..offset + len],
-            spec_out[offset..offset + len]
-        );
+        assert_eq!(impl_out, spec_out);
     }
 }
 
