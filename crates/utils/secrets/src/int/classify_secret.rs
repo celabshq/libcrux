@@ -8,6 +8,10 @@ use crate::{secret, traits::*};
 use core::ptr;
 
 /// A type for secret values
+///
+/// Note that this type is marked public so that it can be used in the public trait implementations, but
+/// it is not exported and therefore not nameable by dependents. These should only use the type aliases
+/// from `public_integers.rs` or `secret_integers.rs`.
 #[repr(transparent)]
 pub struct Secret<T>(pub(crate) T);
 
