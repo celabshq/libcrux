@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - (libcrux-secrets) [#1446](https://github.com/cryspen/libcrux/pull/1446): Remove const qualifier of secret types constructors
 - (libcrux-secrets) [#1462](https://github.com/cryspen/libcrux/pull/1462): More robust casts instead of transmutes when checking secret independence
 - (libcrux-sha3) [1454](https://github.com/cryspen/libcrux/pull/1454): `debug_assert` that generic `LEN` matches algorithm in `hash` function
+- (libcrux-secrets) [#1484](https://github.com/cryspen/libcrux/pull/1484): seal scalar trait and synchronize De-/Classify trait impls for public/secret types
 
 ### Added
 
