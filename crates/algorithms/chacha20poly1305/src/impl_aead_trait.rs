@@ -66,7 +66,7 @@ mod impl_chachapoly {
         }
 
         fn decrypt(
-            mut plaintext: &mut [U8],
+            plaintext: &mut [U8],
             key: &[U8; KEY_LEN],
             nonce: &[U8; NONCE_LEN],
             aad: &[u8],

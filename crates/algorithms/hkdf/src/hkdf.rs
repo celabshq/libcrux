@@ -359,7 +359,7 @@ macro_rules! impl_hkdf {
             /// [`u32::MAX`] bytes.
             #[inline(always)]
             pub fn expand_arrayref(
-                mut okm: &mut [U8],
+                okm: &mut [U8],
                 prk: &[U8; $hash_len],
                 info: &[u8],
             ) -> Result<(), ArrayReferenceExpandError> {
