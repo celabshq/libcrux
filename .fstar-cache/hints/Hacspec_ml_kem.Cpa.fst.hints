@@ -1,0 +1,31 @@
+[
+  "73fc838edf258003c6441f0fbd504c55",
+  [
+    [
+      "Hacspec_ml_kem.Cpa.ind_cpa_generate_keypair_unpacked",
+      1,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Rust_primitives.Integers.mk_int",
+        "equation_Rust_primitives.Integers.mk_usize",
+        "equation_Rust_primitives.Integers.range",
+        "equation_Rust_primitives.Integers.range_t",
+        "equation_Rust_primitives.Integers.sz",
+        "equation_Rust_primitives.Integers.usize",
+        "equation_Rust_primitives.Integers.v",
+        "equation_Spec.MLKEM.v_CPA_KEY_GENERATION_SEED_SIZE",
+        "proj_equation_Rust_primitives.Integers.MkInt_@_0",
+        "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
+        "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
+        "typing_Rust_primitives.Integers.v",
+        "typing_Spec.MLKEM.v_CPA_KEY_GENERATION_SEED_SIZE",
+        "typing_tok_Rust_primitives.Integers.USIZE@tok"
+      ],
+      0,
+      "b42c0da7fc8419a95747249098a7c509"
+    ]
+  ]
+]

@@ -14,7 +14,15 @@ Cargo.lock
 *.bak
 
 # F*
-.fstar-cache
+# .fstar-cache is a build cache (ignored).  EXCEPTION: the ml-kem proof's stable F* hints
+# are committed so an accidental hint clobber (e.g. a bare `--record_hints` run that
+# overwrites instead of merges) is recoverable via `git checkout`.  checked/ and other
+# crates' hints stay ignored.  See libcrux-ml-kem/proofs/fstar/HINTS.md.
+/.fstar-cache/*
+!/.fstar-cache/hints/
+/.fstar-cache/hints/*
+!/.fstar-cache/hints/Libcrux_ml_kem.*.hints
+!/.fstar-cache/hints/Hacspec_ml_kem.*.hints
 .depend
 /proofs/fstar/*/#*#
 /proofs/fstar/*/.#*
