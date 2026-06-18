@@ -420,3 +420,50 @@ let lemma_sample_ring_element_cbd_post
     Classical.forall_intro auxv;
     Seq.lemma_eq_intro (VS.vector_to_spec v_K #vV error_1) target
 #pop-options
+
+(* ★ SMTPat variant of the finalize establisher.  Fires on the fold's OWN exit-invariant
+   hypothesis `cbd_prefix_done v_K error_1 target (v v_K)` (which F* states about the abstract
+   fold-result in the SAME representation as the return-post goal), producing the two vector
+   post conjuncts.  This avoids the explicit-lemma-call representation divergence (the call
+   substitutes a STRIPPED fold-step term into the ensures, which Z3 cannot equate with the
+   return goal's FULL fold-step term — see ind_cpa-sample_ring_element_cbd-status.md). *)
+#push-options "--z3rlimit 200"
+let lemma_cbd_prefix_done_post_smtpat
+      (#vV: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations vV)
+      (v_K: usize{v v_K <= 4})
+      (eta: usize{v eta == 2 \/ v eta == 3})
+      (seed: t_Slice u8{Seq.length seed == 32})
+      (ds0: u8{v ds0 + v v_K < 256})
+      (error_1: t_Array (VV.t_PolynomialRingElement vV) v_K)
+    : Lemma
+      (requires
+        cbd_prefix_done v_K error_1 (HI.sample_vector_cbd v_K eta seed ds0) (v v_K))
+      (ensures
+        Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector v_K #vV (mk_usize 3) error_1 /\
+        b2t ((VS.vector_to_spec v_K #vV error_1
+                <: t_Array (t_Array P.t_FieldElement (mk_usize 256)) v_K) =.
+             (HI.sample_vector_cbd v_K eta seed ds0
+                <: t_Array (t_Array P.t_FieldElement (mk_usize 256)) v_K)))
+      [SMTPat (cbd_prefix_done v_K error_1 (HI.sample_vector_cbd v_K eta seed ds0) (v v_K))]
+  = let target = HI.sample_vector_cbd v_K eta seed ds0 in
+    reveal_opaque (`%cbd_prefix_done) (cbd_prefix_done v_K error_1 target (v v_K));
+    let aux (j: nat{j < v v_K}) : Lemma
+      (Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #vV (mk_usize 3) (Seq.index error_1 j) /\
+       VS.poly_to_spec #vV (Seq.index error_1 j) == Seq.index target j) =
+      reveal_opaque (`%cbd_row_done) (cbd_row_done v_K (Seq.index error_1 j) target j)
+    in
+    Classical.forall_intro aux;
+    let arr_bound (i: usize{v i < v v_K}) : Lemma
+      (Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (mk_usize 3)
+        (error_1.[ i ] <: VV.t_PolynomialRingElement vV)) = () in
+    Classical.forall_intro arr_bound;
+    Libcrux_ml_kem.Polynomial.Spec.lemma_is_bounded_polynomial_vector_intro v_K #vV error_1
+      (mk_usize 3);
+    let auxv (j: nat{j < v v_K}) : Lemma
+      (Seq.index (VS.vector_to_spec v_K #vV error_1) j == Seq.index target j) =
+      VS.vector_to_spec_index v_K #vV error_1 j
+    in
+    Classical.forall_intro auxv;
+    Seq.lemma_eq_intro (VS.vector_to_spec v_K #vV error_1) target
+#pop-options

@@ -197,13 +197,14 @@ pub(crate) fn serialize_vector<const K: usize, Vector: Operations>(
 
 /// Sample a vector of ring elements from a centered binomial distribution.
 //
-// NOTE (2026-06-11): `panic_free` — body (incl. the cascade-fixed scaffold: cbd_prefix_done opaque
-// loop invariant + prefix init/step + finalize lemma) IS verified; only the functional return-post is
-// admitted. That post is NOT yet proven — it fails as "incomplete quantifiers" (the inlined
-// tuple-return projector-matching problem; see proofs/agent-status/ind_cpa-sample_ring_element_cbd-status.md).
-// To resume: remove `verification_status(panic_free)` and close the return-post.
+// FULLY VERIFIED (2026-06-18): functional return-post proven; `panic_free` removed.
+// The tuple-return wall (post on the `&mut error_1` future array-component failing
+// "incomplete quantifiers" — F* matched the goal's full fold-step term against the finalize
+// lemma's stripped one) is closed by `Ind_cpa_sampling.lemma_cbd_prefix_done_post_smtpat`:
+// an SMTPat keyed on the loop's `cbd_prefix_done` exit-invariant, which fires on the fold's
+// OWN exit hypothesis (same representation as the return goal), producing the vector post
+// conjuncts directly — no explicit-call representation divergence.
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::fstar::options(
     "--z3rlimit 300 --ext context_pruning --split_queries always --z3refresh --using_facts_from '* -Hacspec_ml_kem.Parameters.createi_lemma -Libcrux_ml_kem.Polynomial.Spec'"
 )]
