@@ -1,7 +1,7 @@
 //! # Cryptographic Algorithms
 
-#[cfg(feature = "aes_gcm")]
-pub mod aes_gcm;
+#[cfg(feature = "aes_aead")]
+pub mod aes_aead;
 
 #[cfg(feature = "blake2")]
 pub mod blake2;
@@ -33,6 +33,9 @@ pub mod hkdf;
 #[cfg(feature = "hmac")]
 pub mod hmac;
 
+#[cfg(feature = "kmac")]
+pub mod kmac;
+
 #[cfg(feature = "mlkem")]
 pub mod mlkem;
 
@@ -44,3 +47,6 @@ pub mod rsapss;
 
 #[cfg(feature = "poly1305")]
 pub mod poly1305;
+
+#[cfg(feature = "hmac_drbg")]
+pub mod hmac_drbg;

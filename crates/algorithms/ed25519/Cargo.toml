@@ -1,7 +1,7 @@
 [package]
 name = "libcrux-ed25519"
 description = "Formally verified ed25519 signature library"
-version = "0.0.7"
+version = "0.0.8"
 readme = "Readme.md"
 
 authors.workspace = true
@@ -11,7 +11,7 @@ edition.workspace = true
 repository.workspace = true
 
 [dependencies]
-libcrux-hacl-rs = { version = "=0.0.4", path = "../../utils/hacl-rs/" }
+libcrux-hacl-rs.workspace = true
 libcrux-sha2 = { workspace = true, features = [
     "expose-hacl",
 ] }

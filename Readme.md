@@ -20,7 +20,8 @@ Libcrux is organized in different sub-crates which implement cryptographic algor
 |                                               | X25519 ECDH                                                                                             | [`libcrux-curve25519`](https://github.com/cryspen/libcrux/tree/main/crates/algorithms/curve25519)             |
 |                                               | [X25519MlKem768Draft00](https://www.ietf.org/archive/id/draft-westerbaan-cfrg-hpke-xyber768d00-00.html) | [`libcrux-kem`](https://github.com/cryspen/libcrux/tree/main/libcrux-kem)                                     |
 |                                               | [XWing](https://www.ietf.org/archive/id/draft-connolly-cfrg-xwing-kem-06.html)                          | [`libcrux-kem`](https://github.com/cryspen/libcrux/tree/main/libcrux-kem)                                     |
-| AEAD                                          | AES-GCM                                                                                                 | [`libcrux-aesgcm`](https://github.com/cryspen/libcrux/tree/main/crates/algorithms/aesgcm)                     |
+| AEAD                                          | AES-GCM 128/256                                                                                         | [`libcrux-aes`](https://github.com/cryspen/libcrux/tree/main/crates/algorithms/aes)                           |
+|                                               | AES-CCM 128/256                                                                                         | [`libcrux-aes`](https://github.com/cryspen/libcrux/tree/main/crates/algorithms/aes)                           |
 |                                               | ChaCha20Poly1305                                                                                        | [`libcrux-chacha20poly1305`](https://github.com/cryspen/libcrux/tree/main/crates/algorithms/chacha20poly1305) |
 |                                               | XChaCha20Poly1305                                                                                       | [`libcrux-chacha20poly1305`](https://github.com/cryspen/libcrux/tree/main/crates/algorithms/chacha20poly1305) |
 | Hash                                          | BLAKE2                                                                                                  | [`libcrux-blake2`](https://github.com/cryspen/libcrux/tree/main/crates/algorithms/blake2)                     |
@@ -42,8 +43,8 @@ This repository also contains a `libcrux` crate, which is a simple re-exporter o
 
 ## Minimum Supported Rust Version (MSRV)
 
-The default feature set has a MSRV of `1.78.0`. `no_std` environments
-are supported starting from Rust version `1.81.0`.
+The default feature set has a MSRV of `1.89.0`. `no_std` environments
+are supported starting from Rust version `1.89.0`.
 
 ## `no_std` support
 `libcrux` and the individual primitive crates it depends on support

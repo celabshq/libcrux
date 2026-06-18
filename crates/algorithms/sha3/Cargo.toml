@@ -1,6 +1,6 @@
 [package]
 name = "libcrux-sha3"
-version = "0.0.8"
+version = "0.0.9"
 authors.workspace = true
 license.workspace = true
 homepage.workspace = true
@@ -8,7 +8,7 @@ edition.workspace = true
 repository.workspace = true
 readme = "README.md"
 description = "Libcrux SHA-3 implementation"
-exclude = ["/proofs", "/c.sh", "/c.yaml", "/tests/tv", "tests/cavp.rs", "hax.py"]
+exclude = ["/proofs", "/c.sh", "/c.yaml", "tests/cavp.rs", "hax.py"]
 
 [lib]
 bench = false # so libtest doesn't eat the arguments to criterion
@@ -31,7 +31,7 @@ harness = false
 criterion = "0.8.0"
 hex = "0.4.3"
 rand = "0.10"
-cavp = { path = "../../../cavp" }
+libcrux-kats = { workspace = true, features = ["sha3"] }
 pretty_env_logger = "0.5.0"
 clap = { version = "4.5.39", features = ["derive"] }
 hacspec_sha3 = { path = "../../../specs/sha3" }

@@ -26,7 +26,7 @@ pub struct Test {
     pub sig: Vec<u8>,
 
     /// Test result
-    pub result: SignResult,
+    pub result: TestResult,
 
     /// A list of flags
     pub flags: Vec<Flag>,
@@ -40,12 +40,4 @@ pub enum Flag {
     InvalidContext,
     ManySteps,
     ValidSignature,
-}
-
-#[derive(PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum SignResult {
-    Invalid,
-
-    Valid,
 }

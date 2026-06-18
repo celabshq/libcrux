@@ -1,7 +1,5 @@
 //! Wycheproof ML-DSA Known Answer Tests
 //!
-//! The JSON files for ML-DSA were taken from <https://github.com/C2SP/wycheproof>, as of commit [cd136e97040de0842c3a198670b1c5e4f423c940](https://github.com/C2SP/wycheproof/tree/cd136e97040de0842c3a198670b1c5e4f423c940).
-//!
 //! ### Example usage
 //! ```rust
 //! use libcrux_kats::wycheproof::mldsa::{ParameterSet, MlDsaSignTestsNoSeed};

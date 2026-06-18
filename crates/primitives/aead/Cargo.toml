@@ -2,7 +2,7 @@
 description = "Formally verified AEAD library"
 name = "libcrux-aead"
 readme = "Readme.md"
-version = "0.0.7"
+version = "0.0.8"
 
 authors.workspace = true
 edition.workspace = true
@@ -12,7 +12,7 @@ repository.workspace = true
 
 [dependencies]
 libcrux-chacha20poly1305 = { workspace = true, optional = true }
-libcrux-aesgcm = {workspace = true, optional = true }
+libcrux-aes = {workspace = true, optional = true }
 libcrux-secrets.workspace = true
 libcrux-traits = { workspace = true, optional = true }
 
@@ -20,8 +20,8 @@ libcrux-traits = { workspace = true, optional = true }
 chacha20poly1305 = ["dep:libcrux-chacha20poly1305", "dep:libcrux-traits"]
 default = ["chacha20poly1305", "xchacha20poly1305", "aesgcm128", "aesgcm256"]
 xchacha20poly1305 = ["dep:libcrux-chacha20poly1305", "dep:libcrux-traits"]
-aesgcm128 = ["dep:libcrux-aesgcm", "dep:libcrux-traits"]
-aesgcm256 = ["dep:libcrux-aesgcm", "dep:libcrux-traits"]   
+aesgcm128 = ["dep:libcrux-aes", "dep:libcrux-traits"]
+aesgcm256 = ["dep:libcrux-aes", "dep:libcrux-traits"]   
 check-secret-independence = [
     "libcrux-secrets/check-secret-independence",
     "libcrux-traits/check-secret-independence",

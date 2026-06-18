@@ -34,7 +34,7 @@ chacha20poly1305 = "0.10"
 ed25519-dalek = { version = "2.1.1", features = ["rand_core"] }
 p256 = { version = "0.13", features = ["ecdh"] }
 sha2 = "0.11"
-sha3 = "0.11"
+sha3 = "0.12"
 x25519-dalek-ng = "1.1"
 
 # Benchmarking "Ring"
@@ -71,7 +71,7 @@ pqcrypto-kyber = { version = "0.8.0" }
 openssl = "0.10"
 
 [target.'cfg(all(not(target_os = "windows"), target_arch = "x86_64"))'.dev-dependencies]
-libjade-sys = { version = "=0.0.3", path = "../crates/sys/libjade" }
+libjade-sys = { version = "=0.0.4", path = "../crates/sys/libjade" }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(crypto_lib25519)'] }

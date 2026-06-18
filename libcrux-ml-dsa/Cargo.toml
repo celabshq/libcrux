@@ -1,7 +1,7 @@
 [package]
 name = "libcrux-ml-dsa"
 description = "Libcrux ML-DSA implementation"
-version = "0.0.8"
+version = "0.0.9"
 readme = "README.md"
 
 authors.workspace = true
@@ -30,6 +30,7 @@ libcrux-sha3.workspace = true
 libcrux-intrinsics.workspace = true
 libcrux-platform.workspace = true
 libcrux-macros.workspace = true
+libcrux-secrets.workspace = true
 hax-lib.workspace = true
 tls_codec = { version = "0.4.2", features = [
     "derive",
@@ -49,7 +50,7 @@ libcrux-kats = { workspace = true, features = ["mldsa"] }
 pqcrypto-mldsa = { version = "0.1.0" } #, default-features = false
 
 [target.'cfg(hax)'.dependencies]
-core-models = { path = "../crates/utils/core-models", version = "0.0.5" }
+core-models = { path = "../crates/utils/core-models", version = "0.0.6" }
 
 [features]
 default = ["std", "mldsa44", "mldsa65", "mldsa87"]
@@ -86,4 +87,4 @@ name = "ml-dsa"
 harness = false
 
 [lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = ['cfg(hax)'] }
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(hax)', 'cfg(valgrind_ct_test)'] }

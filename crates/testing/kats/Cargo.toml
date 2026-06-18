@@ -12,13 +12,24 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
-cavp = { workspace = true, optional = true }
 hex = { version = "0.4.3", features = ["serde"] }
+log = { version = "0.4.22", optional = true }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0" }
 
+[dev-dependencies]
+pretty_env_logger = "0.5.0"
+
 [features]
+cavp = ["dep:log"]
+chacha20poly1305 = []
+ecdh = []
+ecdsa = []
+kmac = []
 mldsa = []
 mlkem = []
-sha2 = ["dep:cavp"]
+hmac = []
+drbg = ["cavp"]
 poly1305 = []
+sha2 = ["cavp"]
+sha3 = ["cavp"]

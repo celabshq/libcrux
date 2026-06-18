@@ -16,12 +16,12 @@ mod public_integers;
 #[cfg(not(feature = "check-secret-independence"))]
 pub use public_integers::*;
 
-// A macro defining const constructors for secret/public integers
+// A macro defining constructors for secret/public integers
 macro_rules! impl_new {
     ($name:ident, $t:ty, $st:ty) => {
         #[allow(non_snake_case)]
         #[inline(always)]
-        pub const fn $name(v: $t) -> $st {
+        pub fn $name(v: $t) -> $st {
             secret(v)
         }
     };
@@ -130,6 +130,9 @@ pub trait Swap {
     /// Depending on `selector`, keep everything as is, or swap `self` and `other`.
     ///
     /// If `selector == 0`, the values are unchanged, otherwise swap.
+    ///
+    /// # Panics
+    /// If `self.len() != other.len()`.
     fn cswap(&mut self, other: &mut Self, selector: U8);
 }
 
@@ -140,41 +143,56 @@ pub trait Select {
     ///
     /// If `selector != 0`, select `other`, otherwise
     /// `self` is unchanged.
+    ///
+    /// # Panics
+    /// If `self.len() != other.len()`.
     fn select(&mut self, other: &Self, selector: U8);
 }
 
 #[cfg(any(hax, not(target_arch = "aarch64")))]
 mod portable {
     use super::{Select, Swap};
-    use crate::{traits::Declassify, U8};
+    use crate::Declassify;
     #[cfg(feature = "check-secret-independence")]
-    use crate::{traits::*, U16, U32, U64};
+    use crate::IntOps;
+    use crate::{CastOps, U16, U32, U64, U8};
+    use core::hint::black_box;
 
+    /// Mask for constant time swapping/selecting
+    ///
+    /// If selector == 0 -> mask = 0b111..11
+    /// If selector != 0 -> mask = 0b000..00
     // Don't inline this to avoid that the compiler optimizes this out.
     #[inline(never)]
-    fn is_non_zero_32(selector: u8) -> u32 {
-        core::hint::black_box(
-            ((!(core::hint::black_box(selector) as u32)).wrapping_add(1) >> 31) & 1,
-        )
+    fn ct_mask32(selector: U8) -> U32 {
+        let selector = black_box(selector);
+        let is_non_zero = (!selector.as_u32()).wrapping_add(U32(1)) >> 31;
+        let is_non_zero = black_box(is_non_zero);
+        let mask = is_non_zero.wrapping_sub(1);
+        mask.as_u32()
     }
 
-    // Don't inline this to avoid that the compiler optimizes this out.
     #[inline(never)]
-    fn is_non_zero_64(selector: u8) -> u64 {
-        core::hint::black_box(
-            ((!(core::hint::black_box(selector) as u64)).wrapping_add(1) >> 63) & 1,
-        )
+    fn ct_mask64(selector: U8) -> U64 {
+        let selector = black_box(selector);
+        let is_non_zero = (!selector.as_u64()).wrapping_add(U64(1)) >> 63;
+        let is_non_zero = black_box(is_non_zero);
+        let mask = is_non_zero.wrapping_sub(1);
+        mask.as_u64()
     }
 
     /// This macro implements `Select` for public integer type
     /// `&[$ty]` and its secret version `&[$secret_ty]`.
     macro_rules! impl_select {
-        ($ty:ty, $secret_ty:ty, $is_non_zero:ident) => {
+        ($ty:ty, $secret_ty:ident, $mask_fn:ident, $cast:path) => {
             impl Select for [$ty] {
                 fn select(&mut self, other: &Self, selector: crate::U8) {
-                    let mask = ($is_non_zero(selector.declassify()) as $ty).wrapping_sub(1);
+                    assert_eq!(self.len(), other.len());
+                    let mask: $secret_ty = $cast($mask_fn(selector));
                     for i in 0..self.len() {
-                        self[i] = (self[i] & mask) | (other[i] & !mask);
+                        // if selector == 0, then mask is 0b111..11 and we select self[i],
+                        // otherwise mask is 0b000..00 and we select other[i]
+                        self[i] = ((mask & self[i]) | (!mask & other[i])).declassify();
                     }
                 }
             }
@@ -182,55 +200,39 @@ mod portable {
             #[cfg(feature = "check-secret-independence")]
             impl Select for [$secret_ty] {
                 fn select(&mut self, other: &Self, selector: crate::U8) {
-                    let lhs = self.declassify_ref_mut();
-                    let rhs = other.declassify_ref();
-                    lhs.select(rhs, selector);
+                    assert_eq!(self.len(), other.len());
+                    let mask: $secret_ty = $cast($mask_fn(selector));
+                    for i in 0..self.len() {
+                        self[i] = (mask & self[i]) | (!mask & other[i]);
+                    }
                 }
             }
         };
     }
 
-    impl_select!(u8, U8, is_non_zero_32);
-    impl_select!(u16, U16, is_non_zero_32);
-    impl_select!(u32, U32, is_non_zero_32);
-    impl_select!(u64, U64, is_non_zero_64);
-
-    macro_rules! swap64 {
-        ($t:ty, $lhs:expr, $rhs:expr, $selector:expr) => {
-            let mask = core::hint::black_box(
-                ((((!($selector as u64)).wrapping_add(1) >> 63) & 1) as $t).wrapping_sub(1),
-            );
-            for i in 0..$lhs.len() {
-                let dummy = !mask & ($lhs[i] ^ $rhs[i]);
-                $lhs[i] ^= dummy;
-                $rhs[i] ^= dummy;
-            }
-        };
-    }
-
-    macro_rules! swap32 {
-        ($t:ty, $lhs:expr, $rhs:expr, $selector:expr) => {
-            let mask = core::hint::black_box(
-                ((((!(core::hint::black_box($selector) as u32)).wrapping_add(1) >> 31) & 1) as $t)
-                    .wrapping_sub(1),
-            );
-            for i in 0..$lhs.len() {
-                let dummy = !mask & ($lhs[i] ^ $rhs[i]);
-                $lhs[i] ^= dummy;
-                $rhs[i] ^= dummy;
-            }
-        };
-    }
+    impl_select!(u8, U8, ct_mask32, CastOps::as_u8);
+    impl_select!(u16, U16, ct_mask32, CastOps::as_u16);
+    impl_select!(u32, U32, ct_mask32, CastOps::as_u32);
+    impl_select!(u64, U64, ct_mask64, CastOps::as_u64);
 
     /// This macro implements `Swap` for public integer type
     /// `&[$ty]` and its secret version `&[$secret_ty]`.
     macro_rules! impl_swap {
-        ($ty:ty, $secret_ty:ty, $swap:ident) => {
+        ($ty:ty, $secret_ty:ty, $mask_fn:ident, $cast:expr) => {
             impl Swap for [$ty] {
                 #[inline]
                 fn cswap(&mut self, other: &mut Self, selector: U8) {
-                    debug_assert_eq!(self.len(), other.len());
-                    $swap!($ty, self, other, selector.declassify());
+                    assert_eq!(self.len(), other.len());
+                    let mask: $secret_ty = $cast($mask_fn(selector));
+                    for i in 0..self.len() {
+                        // if selector == 0, then mask == 0b111..11
+                        // then dummy = 0 and we don't swap
+                        // otherwise, dummy = (self[i] ^ other[i])
+                        // and we swap
+                        let dummy: $secret_ty = !mask & (self[i] ^ other[i]);
+                        self[i] = (dummy ^ self[i]).declassify();
+                        other[i] = (dummy ^ other[i]).declassify();
+                    }
                 }
             }
 
@@ -238,34 +240,42 @@ mod portable {
             impl Swap for [$secret_ty] {
                 #[inline]
                 fn cswap(&mut self, other: &mut Self, selector: U8) {
-                    debug_assert_eq!(self.len(), other.len());
-                    let lhs = self.declassify_ref_mut();
-                    let rhs = other.declassify_ref_mut();
-                    $swap!($ty, lhs, rhs, selector.declassify());
+                    assert_eq!(self.len(), other.len());
+                    let mask: $secret_ty = $cast($mask_fn(selector));
+                    for i in 0..self.len() {
+                        let dummy: $secret_ty = !mask & (self[i] ^ other[i]);
+                        self[i] = dummy ^ self[i];
+                        other[i] = dummy ^ other[i];
+                    }
                 }
             }
         };
     }
 
-    impl_swap!(u8, U8, swap32);
-    impl_swap!(u16, U16, swap32);
-    impl_swap!(u32, U32, swap32);
-    impl_swap!(u64, U64, swap64);
+    impl_swap!(u8, U8, ct_mask32, CastOps::as_u8);
+    impl_swap!(u16, U16, ct_mask32, CastOps::as_u16);
+    impl_swap!(u32, U32, ct_mask32, CastOps::as_u32);
+    impl_swap!(u64, U64, ct_mask64, CastOps::as_u64);
 }
 
 #[cfg(all(not(hax), target_arch = "aarch64"))]
 mod aarch64 {
-    use core::arch::asm;
-
     use super::*;
+    use crate::mem_requests::{ct_classify, ct_declassify};
+
+    use core::arch::asm;
 
     macro_rules! select64 {
         ($lhs:expr, $rhs:expr, $selector:expr) => {
-            // Using https://developer.arm.com/documentation/ddi0602/2021-12/Base-Instructions/CSEL--Conditional-Select-
+            // Using https://developer.arm.com/documentation/ddi0602/2026-03/Base-Instructions/TST--immediate---Test-bits--immediate---an-alias-of-ANDS--immediate--
+            // and https://developer.arm.com/documentation/ddi0602/2026-03/Base-Instructions/CSEL--Conditional-select-
             #[allow(unsafe_code)]
             unsafe {
+                // We use the `tst` instruction to only check the lower byte of the cond register.
+                // $selector has type `u8`, so the bits [8..32] of the cond register are unspecified.
+                // See https://doc.rust-lang.org/reference/inline-assembly.html#r-asm.register-operands.smaller-value
                 asm! {
-                    "cmp {cond:w}, 0",
+                    "tst {cond:w}, 0xff",
                     "csel {lhs:x}, {rhs:x}, {lhs:x}, NE",
                     cond = in(reg) $selector,
                     lhs = inlateout(reg) *$lhs,
@@ -278,11 +288,15 @@ mod aarch64 {
 
     macro_rules! select32 {
         ($lhs:expr, $rhs:expr, $selector:expr) => {
-            // Using https://developer.arm.com/documentation/ddi0602/2021-12/Base-Instructions/CSEL--Conditional-Select-
+            // Using https://developer.arm.com/documentation/ddi0602/2026-03/Base-Instructions/TST--immediate---Test-bits--immediate---an-alias-of-ANDS--immediate--
+            // and https://developer.arm.com/documentation/ddi0602/2026-03/Base-Instructions/CSEL--Conditional-select-
             #[allow(unsafe_code)]
             unsafe {
+                // We use the `tst` instruction to only check the lower byte of the cond register.
+                // $selector has type `u8`, so the bits [8..32] of the cond register are unspecified.
+                // See https://doc.rust-lang.org/reference/inline-assembly.html#r-asm.register-operands.smaller-value
                 asm! {
-                    "cmp {cond:w}, 0",
+                    "tst {cond:w}, 0xff",
                     "csel {lhs:w}, {rhs:w}, {lhs:w}, NE",
                     cond = in(reg) $selector,
                     lhs = inlateout(reg) *$lhs,
@@ -302,7 +316,15 @@ mod aarch64 {
             impl Select for $ty {
                 #[inline]
                 fn select(&mut self, other: &Self, selector: U8) {
-                    $select!(self, other, selector.declassify());
+                    let selector = selector.declassify();
+                    // Reclassify the selector for valgrind check
+                    ct_classify(&selector);
+                    $select!(self, other, selector);
+                    // Because the selector is classified, this also taints
+                    // self and other. As these are not secret types, it is
+                    // okay to declassify them
+                    ct_declassify(self);
+                    ct_declassify(other);
                 }
             }
 
@@ -310,9 +332,13 @@ mod aarch64 {
             impl Select for $secret_ty {
                 #[inline]
                 fn select(&mut self, other: &Self, selector: U8) {
+                    let selector = selector.declassify();
+                    ct_classify(&selector);
                     let lhs = self.declassify_ref_mut();
                     let rhs = other.declassify_ref();
-                    lhs.select(rhs, selector);
+                    ct_classify(lhs);
+                    ct_classify(rhs);
+                    $select!(lhs, rhs, selector);
                 }
             }
         };
@@ -321,7 +347,7 @@ mod aarch64 {
     impl<T: Select> Select for [T] {
         #[inline]
         fn select(&mut self, other: &Self, selector: U8) {
-            debug_assert_eq!(self.len(), other.len());
+            assert_eq!(self.len(), other.len());
             for i in 0..self.len() {
                 (&mut self[i]).select(&other[i], selector);
             }
@@ -335,11 +361,15 @@ mod aarch64 {
 
     macro_rules! swap64 {
         ($lhs:expr, $rhs:expr, $selector:expr) => {
-            // Using https://developer.arm.com/documentation/ddi0602/2021-12/Base-Instructions/CSEL--Conditional-Select-
+            // Using https://developer.arm.com/documentation/ddi0602/2026-03/Base-Instructions/TST--immediate---Test-bits--immediate---an-alias-of-ANDS--immediate--
+            // and https://developer.arm.com/documentation/ddi0602/2026-03/Base-Instructions/CSEL--Conditional-select-
             #[allow(unsafe_code)]
             unsafe {
+                // We use the `tst` instruction to only check the lower byte of the cond register.
+                // $selector has type `u8`, so the bits [8..32] of the cond register are unspecified.
+                // See https://doc.rust-lang.org/reference/inline-assembly.html#r-asm.register-operands.smaller-value
                 asm! {
-                    "cmp {cond:w}, 0",
+                    "tst {cond:w}, 0xff",
                     "csel {tmp}, {b:x}, {a:x}, NE",
                     "csel {b:x}, {a:x}, {b:x}, NE",
                     "mov {a:x}, {tmp}",
@@ -355,11 +385,15 @@ mod aarch64 {
 
     macro_rules! swap32 {
         ($lhs:expr, $rhs:expr, $selector:expr) => {
-            // Using https://developer.arm.com/documentation/ddi0602/2021-12/Base-Instructions/CSEL--Conditional-Select-
+            // Using https://developer.arm.com/documentation/ddi0602/2026-03/Base-Instructions/TST--immediate---Test-bits--immediate---an-alias-of-ANDS--immediate--
+            // and https://developer.arm.com/documentation/ddi0602/2026-03/Base-Instructions/CSEL--Conditional-select-
             #[allow(unsafe_code)]
             unsafe {
+                // We use the `tst` instruction to only check the lower byte of the cond register.
+                // $selector has type `u8`, so the bits [8..32] of the cond register are unspecified.
+                // See https://doc.rust-lang.org/reference/inline-assembly.html#r-asm.register-operands.smaller-value
                 asm! {
-                    "cmp {cond:w}, 0",
+                    "tst {cond:w}, 0xff",
                     "csel {tmp:w}, {b:w}, {a:w}, NE",
                     "csel {b:w}, {a:w}, {b:w}, NE",
                     "mov {a:w}, {tmp:w}",
@@ -382,7 +416,14 @@ mod aarch64 {
             impl Swap for $ty {
                 #[inline]
                 fn cswap(&mut self, other: &mut Self, selector: U8) {
-                    $swap!(self, other, selector.declassify());
+                    let selector = selector.declassify();
+                    ct_classify(&selector);
+                    $swap!(self, other, selector);
+                    // Because the selector is classified, this also taints
+                    // self and other. As these are not secret types, it is
+                    // okay to declassify them
+                    ct_declassify(self);
+                    ct_declassify(other);
                 }
             }
 
@@ -390,9 +431,13 @@ mod aarch64 {
             impl Swap for $secret_ty {
                 #[inline]
                 fn cswap(&mut self, other: &mut Self, selector: U8) {
+                    let selector = selector.declassify();
+                    ct_classify(&selector);
                     let lhs = self.declassify_ref_mut();
                     let rhs = other.declassify_ref_mut();
-                    lhs.cswap(rhs, selector);
+                    ct_classify(lhs);
+                    ct_classify(rhs);
+                    $swap!(lhs, rhs, selector);
                 }
             }
         };
@@ -406,6 +451,7 @@ mod aarch64 {
     impl<T: Swap> Swap for [T] {
         #[inline]
         fn cswap(&mut self, other: &mut Self, selector: U8) {
+            assert_eq!(self.len(), other.len());
             for i in 0..self.len() {
                 (&mut self[i]).cswap(&mut other[i], selector);
             }
@@ -427,8 +473,11 @@ mod select {
         [T]: Select,
     {
         let selector: u8 = rng.random::<u8>() & 1;
-        // XXX: Setting `selector` as follows will break the selection in release mode on `aarch64`.
-        // let selector = if selector { 0 } else { rng.next_u32() as u8 };
+        let selector = if selector == 0 {
+            0
+        } else {
+            rng.next_u32() as u8
+        };
         let mut lhs = [T::default(); 256];
         rng.fill(&mut lhs);
         let mut rhs = [T::default(); 256];
@@ -468,8 +517,11 @@ mod select {
         macro_rules! secret_test {
             ($ty:ty, $rng:expr) => {{
                 let selector: u8 = $rng.random::<u8>() & 1;
-                // XXX: Setting `selector` as follows will break the selection in release mode on `aarch64`.
-                // let selector = if selector { 0 } else { rng.next_u32() as u8 };
+                let selector = if selector == 0 {
+                    0
+                } else {
+                    $rng.next_u32() as u8
+                };
                 let mut lhs = [<$ty>::default(); 256];
                 $rng.fill(&mut lhs);
                 let mut rhs = [<$ty>::default(); 256];
@@ -522,8 +574,11 @@ mod swap {
         [T]: Swap,
     {
         let selector = rng.random::<u8>() & 1;
-        // XXX: Setting `selector` as follows will break the swap in release mode on `aarch64`.
-        // let selector = if selector { 0 } else { rng.next_u32() as u8 };
+        let selector = if selector == 0 {
+            0
+        } else {
+            rng.next_u32() as u8
+        };
         let mut lhs = [T::default(); 256];
         rng.fill(&mut lhs);
         let mut rhs = [T::default(); 256];
@@ -561,8 +616,11 @@ mod swap {
         macro_rules! secret_test {
             ($ty:ty, $rng:expr) => {{
                 let selector = $rng.random::<u8>() & 1;
-                // XXX: Setting `selector` as follows will break the swap in release mode on `aarch64`.
-                // let selector = if selector { 0 } else { $rng.next_u32() as u8 };
+                let selector = if selector == 0 {
+                    0
+                } else {
+                    $rng.next_u32() as u8
+                };
                 let mut lhs = [<$ty>::default(); 256];
                 $rng.fill(&mut lhs);
                 let mut rhs = [<$ty>::default(); 256];

@@ -5,10 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.0.7] (2026-05-13)
 
 ### Changed
 
+- [#1434](https://github.com/cryspen/libcrux/pull/1434): Update dependencies: `libcrux-curve25519`
+- [#1433](https://github.com/cryspen/libcrux/pull/1433): Update dependencies: `libcrux-p256`, `libcrux-curve25519`
 - [#1385](https://github.com/cryspen/libcrux/pull/1385): Update RNG trait bounds on key generation functions from rand v0.9 `Rng` trait to rand v0.10 `Rng` trait
 
 ## [0.0.6] (2026-02-12)

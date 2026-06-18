@@ -1,6 +1,6 @@
 [package]
 name = "libcrux-intrinsics"
-version = "0.0.6"
+version = "0.0.7"
 authors.workspace = true
 license.workspace = true
 homepage.workspace = true
@@ -14,7 +14,7 @@ exclude = ["/proofs"]
 hax-lib.workspace = true
 
 [target.'cfg(hax)'.dependencies]
-core-models = { path = "../core-models", version = "0.0.5" }
+core-models = { path = "../core-models", version = "0.0.6" }
 
 [features]
 simd128 = []
