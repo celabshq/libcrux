@@ -21,8 +21,17 @@ Cargo.lock
 /.fstar-cache/*
 !/.fstar-cache/hints/
 /.fstar-cache/hints/*
+# ml-kem extraction (generated) + Hacspec_ml_kem specs/commute bridges (hand-written):
 !/.fstar-cache/hints/Libcrux_ml_kem.*.hints
 !/.fstar-cache/hints/Hacspec_ml_kem.*.hints
+# hand-written proof-lib helpers in ml-kem's dependency closure:
+!/.fstar-cache/hints/Spec.Utils.*.hints
+!/.fstar-cache/hints/Proof_utils.*.hints
+!/.fstar-cache/hints/MkSeq.*.hints
+!/.fstar-cache/hints/BitVec.*.hints
+!/.fstar-cache/hints/Bitvec.*.hints
+!/.fstar-cache/hints/BitVecEq.*.hints
+!/.fstar-cache/hints/Tactics.*.hints
 .depend
 /proofs/fstar/*/#*#
 /proofs/fstar/*/.#*

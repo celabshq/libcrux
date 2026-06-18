@@ -7,10 +7,16 @@ against a 400 limit), so their recorded hint is what keeps the build reliably gr
 
 ## What is committed
 
-The ML-KEM proof's stable hints under `/.fstar-cache/hints/` are **git-tracked**
-(`Libcrux_ml_kem.*.hints`, `Hacspec_ml_kem.*.hints`) via a `.gitignore` exception. Everything
-else in `.fstar-cache/` (the `checked/` cache, other crates' hints, scratch-module hints) stays
-ignored. This makes an accidental hint clobber recoverable:
+The ML-KEM proof's stable hints under `/.fstar-cache/hints/` are **git-tracked** via a
+`.gitignore` exception:
+- `Libcrux_ml_kem.*.hints` — the ml-kem extraction (generated modules), and
+- `Hacspec_ml_kem.*.hints` — the hand-written specs + commute bridges (e.g. `Chunk`,
+  `Bridges`, `Keygen_bridge`, `Sample_matrix_bridge`), plus
+- the hand-written proof-lib helpers in ml-kem's dependency closure: `Spec.Utils.*`,
+  `Proof_utils.*`, `MkSeq.*`, `BitVec.*`, `Bitvec.*`, `BitVecEq.*`, `Tactics.*`.
+
+Everything else in `.fstar-cache/` (the `checked/` cache, other crates' hints, scratch-module
+hints such as `Scratch*`) stays ignored. This makes an accidental hint clobber recoverable:
 
 ```sh
 git checkout -- .fstar-cache/hints/        # restore the stable hint snapshot
