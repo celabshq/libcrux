@@ -4,7 +4,7 @@
 /// With the state stored as `state[5·y + x]` (FIPS 202 §3.1.2), byte-lane
 /// `l` lives directly at `state[l]`, so no lane-index permutation is
 /// needed here.
-use crate::createi;
+use crate::array_from_fn;
 use crate::keccak_f::{keccak_f, State};
 
 #[cfg(hax)]
@@ -15,7 +15,7 @@ use hax_lib::int::*;
 /// Corresponds to the `S ⊕ (Pi || 0^c)` step of Algorithm 8.
 #[hax_lib::requires(rate <= 200 && rate % 8 == 0 && block.len() >= rate)]
 pub fn xor_block_into_state(state: State, block: &[u8], rate: usize) -> State {
-    createi(|i| {
+    array_from_fn(|i| {
         if i < rate / 8 {
             // The slice is exactly 8 bytes (since `i < rate / 8` and
             // `block.len() >= rate`), so `try_into::<[u8; 8]>` cannot fail.
@@ -36,7 +36,7 @@ pub fn squeeze_state<const OUTPUT_LEN: usize>(
     out_offset: usize,
     len: usize,
 ) -> [u8; OUTPUT_LEN] {
-    let bytes: [u8; 200] = createi(|i| state[i / 8].to_le_bytes()[i % 8]);
+    let bytes: [u8; 200] = array_from_fn(|i| state[i / 8].to_le_bytes()[i % 8]);
     output[out_offset..out_offset + len].copy_from_slice(&bytes[0..len]);
     output
 }
@@ -142,7 +142,7 @@ pub fn iterate_keccak_f(n: usize, state: State) -> State {
 /// keccak_f before extracting `OUTPUT_LEN mod rate` bytes.
 #[hax_lib::requires(rate > 0 && rate <= 200 && rate % 8 == 0 && OUTPUT_LEN < usize::MAX - 200)]
 pub fn squeeze<const OUTPUT_LEN: usize>(state: State, rate: usize) -> [u8; OUTPUT_LEN] {
-    createi(|k| {
+    array_from_fn(|k| {
         let b = k / rate;
         let j = k - b * rate;
         let state_b = iterate_keccak_f(b, state);

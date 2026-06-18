@@ -897,7 +897,7 @@ pub(crate) mod unpacked {
             Spec.MLKEM.ind_cpa_generate_keypair_unpacked $K ind_cpa_keypair_randomness in
         let m_v_A = Libcrux_ml_kem.Polynomial.to_spec_matrix_t #$K #$:Vector $A in
         let m_f_A = Libcrux_ml_kem.Polynomial.to_spec_matrix_t #$K #$:Vector out.f_public_key.f_ind_cpa_public_key.f_A in
-        let m_A:Spec.MLKEM.matrix $K = createi $K (Spec.MLKEM.matrix_A_as_ntt_i matrix_A_as_ntt) in
+        let m_A:Spec.MLKEM.matrix $K = array_from_fn $K (Spec.MLKEM.matrix_A_as_ntt_i matrix_A_as_ntt) in
         assert (forall (i: nat). i < v $K ==>
             (forall (j: nat). j < v $K ==>
             Seq.index (Seq.index m_v_A i) j ==

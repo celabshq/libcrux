@@ -201,7 +201,7 @@ pub(crate) fn serialize_vector<const K: usize, Vector: Operations>(
           v_ETA2_RANDOMNESS_SIZE == Spec.MLKEM.v_ETA2_RANDOMNESS_SIZE v_K /\
           v domain_separator < 2 * v v_K /\ 
           (let prf_outputs = Spec.MLKEM.v_PRFxN v_K v_ETA2_RANDOMNESS_SIZE
-            (createi v_K (Spec.MLKEM.sample_vector_cbd2_prf_input #v_K
+            (array_from_fn v_K (Spec.MLKEM.sample_vector_cbd2_prf_input #v_K
               (Seq.slice prf_input 0 32) (sz (v domain_separator)))) in 
           forall (i: nat). i < v v_K ==>
             Libcrux_ml_kem.Polynomial.to_spec_poly_t #v_Vector error_1.[ sz i ] ==
@@ -227,7 +227,7 @@ pub(crate) fn serialize_vector<const K: usize, Vector: Operations>(
           (forall (i: nat). i < v v_K ==>
             v (Seq.index (Seq.index prf_inputs i) 32) == v domain_separator + i /\
             Seq.slice (Seq.index prf_inputs i) 0 32 == Seq.slice prf_input 0 32))
-        (ensures prf_inputs == createi v_K
+        (ensures prf_inputs == array_from_fn v_K
           (Spec.MLKEM.sample_vector_cbd2_prf_input #v_K
             (Seq.slice prf_input 0 32) (sz (v domain_separator))))
     =
@@ -240,7 +240,7 @@ pub(crate) fn serialize_vector<const K: usize, Vector: Operations>(
     in
     Classical.forall_intro lemma_aux;
     eq_intro prf_inputs
-      (createi v_K (Spec.MLKEM.sample_vector_cbd2_prf_input #v_K
+      (array_from_fn v_K (Spec.MLKEM.sample_vector_cbd2_prf_input #v_K
         (Seq.slice prf_input 0 32) (sz (v domain_separator))))"#
     )
 )]
@@ -316,7 +316,7 @@ fn sample_ring_element_cbd<
           v_ETA_RANDOMNESS_SIZE == Spec.MLKEM.v_ETA1_RANDOMNESS_SIZE v_K /\
           v domain_separator < 2 * v v_K /\ 
           (let prf_outputs = Spec.MLKEM.v_PRFxN v_K v_ETA_RANDOMNESS_SIZE
-            (createi v_K (Spec.MLKEM.sample_vector_cbd1_prf_input #v_K
+            (array_from_fn v_K (Spec.MLKEM.sample_vector_cbd1_prf_input #v_K
               (Seq.slice prf_input 0 32) (sz (v domain_separator)))) in 
           forall (i: nat). i < v v_K ==>
             Libcrux_ml_kem.Polynomial.to_spec_poly_t #v_Vector re_as_ntt.[ sz i ] ==
@@ -342,7 +342,7 @@ fn sample_ring_element_cbd<
           (forall (i: nat). i < v v_K ==>
             v (Seq.index (Seq.index prf_inputs i) 32) == v domain_separator + i /\
             Seq.slice (Seq.index prf_inputs i) 0 32 == Seq.slice prf_input 0 32))
-        (ensures prf_inputs == createi v_K
+        (ensures prf_inputs == array_from_fn v_K
           (Spec.MLKEM.sample_vector_cbd1_prf_input #v_K
             (Seq.slice prf_input 0 32) (sz (v domain_separator))))
     =
@@ -355,7 +355,7 @@ fn sample_ring_element_cbd<
     in
     Classical.forall_intro lemma_aux;
     eq_intro prf_inputs
-      (createi v_K (Spec.MLKEM.sample_vector_cbd1_prf_input #v_K
+      (array_from_fn v_K (Spec.MLKEM.sample_vector_cbd1_prf_input #v_K
         (Seq.slice prf_input 0 32) (sz (v domain_separator))))"#
     )
 )]
