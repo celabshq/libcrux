@@ -35,7 +35,7 @@ pub trait DeclassifyRefMut {
 }
 
 /// Marker trait for scalar types (machine integers)
-pub trait Scalar: Copy {}
+pub trait Scalar: Copy + private::Sealed {}
 
 impl Scalar for u8 {}
 impl Scalar for u16 {}
@@ -139,3 +139,48 @@ impl Scalar for core::arch::aarch64::uint64x1_t {}
 
 #[cfg(target_arch = "aarch64")]
 impl Scalar for core::arch::aarch64::uint64x2_t {}
+
+mod private {
+    pub trait Sealed {}
+
+    macro_rules! impl_sealed {
+        ($($type:ty), *) => {
+            $(
+                impl Sealed for $type {}
+            )*
+        };
+    }
+
+    impl_sealed!(u8, u16, u32, u64, u128, i8, i16, i32, i64, i128);
+    #[cfg(target_arch = "x86")]
+    impl_sealed!(
+        core::arch::x86::__m128i,
+        core::arch::x86::__m256i,
+        core::arch::x86::__m256
+    );
+    #[cfg(target_arch = "x86_64")]
+    impl_sealed!(
+        core::arch::x86_64::__m128i,
+        core::arch::x86_64::__m256i,
+        core::arch::x86_64::__m256
+    );
+    #[cfg(target_arch = "aarch64")]
+    impl_sealed!(
+        core::arch::aarch64::int8x8_t,
+        core::arch::aarch64::int8x16_t,
+        core::arch::aarch64::int16x4_t,
+        core::arch::aarch64::int16x8_t,
+        core::arch::aarch64::int32x2_t,
+        core::arch::aarch64::int32x4_t,
+        core::arch::aarch64::int64x1_t,
+        core::arch::aarch64::int64x2_t,
+        core::arch::aarch64::uint8x8_t,
+        core::arch::aarch64::uint8x16_t,
+        core::arch::aarch64::uint16x4_t,
+        core::arch::aarch64::uint16x8_t,
+        core::arch::aarch64::uint32x2_t,
+        core::arch::aarch64::uint32x4_t,
+        core::arch::aarch64::uint64x1_t,
+        core::arch::aarch64::uint64x2_t
+    );
+}

@@ -19,7 +19,7 @@ impl<T: Clone> Clone for Secret<T> {
 }
 
 // Any type can be classified
-impl<T> From<T> for Secret<T> {
+impl<T: Scalar> From<T> for Secret<T> {
     fn from(x: T) -> Secret<T> {
         ct_classify(&x);
         Secret(x)

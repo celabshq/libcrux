@@ -27,7 +27,7 @@ impl<'a, T: Scalar> DeclassifyRef for &'a [T] {
 
 // Classify any mutable reference (identity)
 #[hax_lib::exclude]
-impl<'a, T> ClassifyRefMut for &'a mut T {
+impl<'a, T: Scalar> ClassifyRefMut for &'a mut T {
     type ClassifiedRefMut = &'a mut T;
     #[inline(always)]
     fn classify_ref_mut(self) -> &'a mut T {
@@ -37,7 +37,7 @@ impl<'a, T> ClassifyRefMut for &'a mut T {
 
 // Declassify any mutable reference (identity)
 #[hax_lib::exclude]
-impl<'a, T> DeclassifyRefMut for &'a mut T {
+impl<'a, T: Scalar> DeclassifyRefMut for &'a mut T {
     type DeclassifiedRefMut = &'a mut T;
     #[inline(always)]
     fn declassify_ref_mut(self) -> &'a mut T {

@@ -16,12 +16,12 @@ pub type U128 = u128;
 
 /// Construct a public integer (identity)
 #[inline(always)]
-pub fn secret<T>(x: T) -> T {
+pub fn secret<T: Scalar>(x: T) -> T {
     x
 }
 
 // Classify any type (identity)
-impl<T> Classify for T {
+impl<T: Scalar> Classify for T {
     type Classified = T;
     #[inline(always)]
     fn classify(self) -> Self {
@@ -30,7 +30,7 @@ impl<T> Classify for T {
 }
 
 // Delassify any type (identity)
-impl<T> Declassify for T {
+impl<T: Scalar> Declassify for T {
     type Declassified = T;
     #[inline(always)]
     fn declassify(self) -> T {
@@ -39,7 +39,7 @@ impl<T> Declassify for T {
 }
 
 // Classify any reference (identity)
-impl<'a, T> ClassifyRef for &'a T {
+impl<'a, T: Scalar> ClassifyRef for &'a T {
     type ClassifiedRef = &'a T;
     #[inline(always)]
     fn classify_ref(self) -> &'a T {
@@ -48,7 +48,7 @@ impl<'a, T> ClassifyRef for &'a T {
 }
 
 // Delassify any reference (identity)
-impl<'a, T> DeclassifyRef for &'a T {
+impl<'a, T: Scalar> DeclassifyRef for &'a T {
     type DeclassifiedRef = &'a T;
     #[inline(always)]
     fn declassify_ref(self) -> &'a T {
@@ -59,12 +59,12 @@ impl<'a, T> DeclassifyRef for &'a T {
 /// Classify a mutable slice (identity)
 /// We define a separate function for this because hax has limited support for &mut-returning functions
 #[inline(always)]
-pub fn classify_mut_slice<T>(x: T) -> T {
+pub fn classify_mut_slice<T: Scalar>(x: T) -> T {
     x
 }
 /// Classify a mutable slice (identity)
 /// We define a separate function for this because hax has limited support for &mut-returning functions
 #[inline(always)]
-pub fn declassify_mut_slice<T>(x: T) -> T {
+pub fn declassify_mut_slice<T: Scalar>(x: T) -> T {
     x
 }
