@@ -901,3 +901,21 @@ val mm256_movemask_ps_lemma (a: bv256)
            (if to_i32x8 a (mk_u64 5) <. mk_i32 0 then 32 else 0) +
            (if to_i32x8 a (mk_u64 6) <. mk_i32 0 then 64 else 0) +
            (if to_i32x8 a (mk_u64 7) <. mk_i32 0 then 128 else 0))
+
+(* NEW (D6.3): the masked 3-byte coefficient's bit decomposition. Analog of
+   shl_casted_u8_bv_lemma (2-byte); matches rejection_sample_coefficient_lemma. *)
+val coeff_gather_bv_lemma (a b c: u8) (i: u64{v i<32})
+  : Lemma (i32_to_bv (((((cast c <: i32) <<! mk_i32 16 <: i32) |. ((cast b <: i32) <<! mk_i32 8 <: i32) <: i32)
+                       |. (cast a <: i32) <: i32) &. mk_i32 8388607 <: i32) i
+        == (if v i >= 23 then Bit_Zero
+            else if v i >= 16 then u8_to_bv c (mk_int (v i - 16))
+            else if v i >= 8 then u8_to_bv b (mk_int (v i - 8))
+            else u8_to_bv a i))
+
+(* NEW (D6.3): u8-nibble bit lemmas (u8_to_bv abstract). low nibble (& 15) keeps
+   bits 0..3, zeroes 4..7; high nibble (>> 4) moves bits 4..7 to 0..3, zeroes 4..7. *)
+val u8_to_bv_logand15_lemma (x: u8) (i: u64{v i < 8})
+  : Lemma (u8_to_bv (x &. mk_u8 15) i == (if v i < 4 then u8_to_bv x i else Bit_Zero))
+
+val u8_to_bv_shr4_lemma (x: u8) (i: u64{v i < 8})
+  : Lemma (u8_to_bv (x >>! mk_u8 4) i == (if v i < 4 then u8_to_bv x (mk_int (v i + 4)) else Bit_Zero))
