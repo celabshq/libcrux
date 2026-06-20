@@ -172,7 +172,7 @@ pub(crate) fn sample_matrix_A<const K: usize, Vector: Operations, Hasher: Hash<K
 #[hax_lib::requires((K <= 4).to_prop() & (
         spec::is_bounded_poly(4095, v) & (
             hax_lib::forall(|i:usize| hax_lib::implies(i < K,
-                spec::is_bounded_poly(3328, &secret_as_ntt[i]) & (
+                spec::is_bounded_poly(4096, &secret_as_ntt[i]) & (
                     spec::is_bounded_poly(3328, &u_as_ntt[i])
 ))))))]
 #[hax_lib::ensures(|result| spec::is_bounded_poly(3328, &result)
@@ -246,7 +246,7 @@ pub(crate) fn compute_message<const K: usize, Vector: Operations>(
         spec::is_bounded_poly(3328, message) & (
             spec::is_bounded_poly(3328, error_2) & (
                 hax_lib::forall(|i:usize| hax_lib::implies(i < K,
-                    spec::is_bounded_poly(3328, &t_as_ntt[i]) & (
+                    spec::is_bounded_poly(4096, &t_as_ntt[i]) & (
                         spec::is_bounded_poly(3328, &r_as_ntt[i])
 )))))))]
 #[hax_lib::ensures(|result| spec::is_bounded_poly(3328, &result)
@@ -315,7 +315,12 @@ pub(crate) fn compute_ring_element_v<const K: usize, Vector: Operations>(
 
 /// Compute u := InvertNTT(Aᵀ ◦ r̂) + e₁
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 400 --fuel 1 --ifuel 1 --ext context_pruning --using_facts_from '* -Hacspec_ml_kem.Parameters.createi_lemma -Libcrux_ml_kem.Polynomial.Spec'")]
+// rlimit 700 (no split_queries; cap is 800): the honest-4096 cascade weakened
+// ntt_multiply's `self` pre to is_bounded_poly 4096, so this all-sampled-3328 path
+// widens A explicitly per multiply, pushing cold cost to ~498 (>400). rlimit is a
+// CAP not a target — the passing run still stops at ~498; this just removes the
+// 400-saturation cliff and avoids a fragile budget-bound hint that won't replay.
+#[hax_lib::fstar::options("--z3rlimit 700 --fuel 1 --ifuel 1 --ext context_pruning --using_facts_from '* -Hacspec_ml_kem.Parameters.createi_lemma -Libcrux_ml_kem.Polynomial.Spec'")]
 #[hax_lib::requires((K <= 4).to_prop() & (
         hax_lib::forall(|i:usize| hax_lib::implies(i < K,
             spec::is_bounded_poly(7, &error_1[i]) & (
@@ -391,6 +396,12 @@ pub(crate) fn compute_vector_u<const K: usize, Vector: Operations>(
             hax_lib::fstar!(r#"assert (v $j < v v_K); assert (v v_K <= 4)"#);
             #[cfg(hax)]
             let tt_old = result;
+            // ntt_multiply's `self` pre is now is_bounded_poly 4096 (to accept the
+            // unreduced deserialized keys via compute_message/compute_ring_element_v);
+            // the matrix A here is sampled (3328), so widen explicitly (Polynomial.Spec
+            // is pruned, so the dual-pattern bump can't fire — the call's post is local).
+            #[cfg(hax)]
+            spec::is_bounded_poly_higher(&a_as_ntt[i][j], 3328, 4096);
             let product = a_as_ntt[i][j].ntt_multiply(&r_as_ntt[j]);
             result[i].add_to_ring_element(&product, j * 3328);
             hax_lib::fstar!(
@@ -495,6 +506,10 @@ pub(crate) fn compute_As_plus_e<const K: usize, Vector: Operations>(
             hax_lib::fstar!(r#"assert (v $j < v v_K); assert (v v_K <= 4)"#);
             #[cfg(hax)]
             let tt_old = *t_as_ntt;
+            // ntt_multiply's `self` pre is now is_bounded_poly 4096 (unreduced keys);
+            // matrix A here is sampled (3328), so widen explicitly (Polynomial.Spec pruned).
+            #[cfg(hax)]
+            spec::is_bounded_poly_higher(&matrix_A[i][j], 3328, 4096);
             let product = matrix_A[i][j].ntt_multiply(&s_as_ntt[j]);
             t_as_ntt[i].add_to_ring_element(&product, j * 3328);
             hax_lib::fstar!(

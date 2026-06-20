@@ -546,7 +546,7 @@ let lemma_inner_done_step
   : Lemma
     (requires
       inner_done acc matrix_A s i (v j) /\
-      Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #vV (mk_usize 3328)
+      Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #vV (mk_usize 4096)
         (Seq.index (Seq.index matrix_A (v i)) (v j)) /\
       Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #vV (mk_usize 3328) (Seq.index s (v j)) /\
       Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #vV e_b acc /\
@@ -621,7 +621,7 @@ let lemma_inner_step_full
   : Lemma
     (requires
       v v_K <= 4 /\
-      Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #vV (mk_usize 3328)
+      Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #vV (mk_usize 4096)
         (Seq.index (Seq.index matrix_A (v i)) (v j)) /\
       Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #vV (mk_usize 3328) (Seq.index s (v j)) /\
       Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #vV (j *! mk_usize 3328 <: usize)

@@ -1,5 +1,5 @@
 [
-  "8b332463dc9c4a3152e862e95fff7a3a",
+  "307817b58c7b583f653b3ba270e20123",
   [
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_std_arr_plain",
@@ -62,7 +62,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "25b6915fe2e986254ace5aff9cc2d9cf"
+      "5be6f1fe2401a7a7d3b07ddeeaaf89db"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_add_poly_lane",
@@ -136,7 +136,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "cbe69a7760a5ec595452d242d309d532"
+      "3ad5474974387fd743969059a933c369"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_add_poly_lane",
@@ -166,7 +166,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "36b97dae19fc9fa16f32d82a934c4597"
+      "98b81b3f5b160b7190161f4a7acda56d"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_add_poly_eq_HP_add",
@@ -207,7 +207,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "9773db89a83cfe62ca6e6758a5fa188e"
+      "8c431726cad73258bed8c26870b1c753"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_add_poly_eq_HP_add",
@@ -237,7 +237,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "9a3b7b95ac25b613b52f65033f1e1580"
+      "53c6dd2dd2bd13746a045286a20007d0"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_add_std_err_eq_add_poly",
@@ -278,7 +278,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "0a1d6723d58200b2997ee52c574f8098"
+      "7cd3025de0410e5206d599ce48bab863"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_add_std_err_eq_add_poly",
@@ -308,7 +308,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "1e33216826cb465a17f6370994f2af0e"
+      "79e0e550c0ec72b1a53bd54280921758"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_scale_add",
@@ -362,7 +362,7 @@
         "typing_tok_Rust_primitives.Integers.U16@tok"
       ],
       0,
-      "5b2eb83360837a23ab839a3498896bf7"
+      "8488dc097a85c76675d565d9ff0e03c3"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_scale_add",
@@ -405,7 +405,7 @@
         "typing_tok_Rust_primitives.Integers.U16@tok"
       ],
       0,
-      "d31e9c88ad40004e10ad2dc73234cfb4"
+      "c2b7995aab7414ca56e07ecbfc440768"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_inner_step",
@@ -447,7 +447,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "67edd042a3041ce9240d6c6cd9aa1a27"
+      "74c5048380db5a0727fc8ba5659a4cb4"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_inner_step",
@@ -490,7 +490,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e4465ce07b7ba8f68ed19ac189bb774b"
+      "787dedc15e2c14c53ac442907319cf5b"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.zero_poly",
@@ -538,7 +538,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "569098381210ec2ee6da59976d4b8f06"
+      "61937ce60b76e242413c61c086864916"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.part",
@@ -585,7 +585,7 @@
         "well-founded-ordering-on-nat"
       ],
       0,
-      "c95dbe30bb1f84a4904d4c2ed2bb2e1d"
+      "d0d74068e04cf38308249792338e82a1"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.part",
@@ -616,7 +616,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "620b80d1a6f2a38ecbe66650619f3b4e"
+      "98963fdac98a390816d8f6a32b3c22d6"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_fold_range_step",
@@ -669,7 +669,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "64c806dd34778f66361ffd0ae096fea2"
+      "a4641063924b9692f92fa8cd1d070d87"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_fold_range_step",
@@ -700,7 +700,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "cb49a976e3d3be694cec2d16eb8ada03"
+      "09a7daa681301931fd937339a5e8f462"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.mmbc_inv",
@@ -730,7 +730,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "b462ccaa643ab0e8908e7a5f2b2abac4"
+      "72d4f8218d9a97b4c5b4f7d1653be08d"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.mmbc_inv",
@@ -760,7 +760,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "adb920ee024da02e19764e93d7b5ff2d"
+      "29a8bccb67a47668e01a4f2bdd4c6e30"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.mmbc_step",
@@ -811,7 +811,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "36655346bdaacfd02a760cb0fd1af2fa"
+      "26459a90536d1c79ff3dc1eebcf13eef"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.mmbc_step",
@@ -841,7 +841,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "d77bae3e84a7c6ccead7a18e7d96ea9a"
+      "6ca0a2c724d7d98ed80f0896e05c7407"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_mmbc_aux",
@@ -934,7 +934,7 @@
         "well-founded-ordering-on-nat"
       ],
       0,
-      "9aeac341192b2ecaeb505e882f922f77"
+      "4ed131d3ec863469b817a8c8d3a64a54"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_mmbc_aux",
@@ -978,7 +978,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "954a4a0f07210debf8f706296fc5e95b"
+      "b1b6b361db5eaa51d3004f449cac53b7"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_transpose_bridge",
@@ -1041,7 +1041,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "b9412b25f413a616cd1aabb36c196b19"
+      "1a496794364e6baa5d45cdb759574c4f"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_fold_range_cong",
@@ -1107,7 +1107,7 @@
         "well-founded-ordering-on-nat"
       ],
       0,
-      "90a6d0007e7e0ec53da6980b6947bd45"
+      "8244270419cec55f086f067955ca616c"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_fold_range_cong",
@@ -1142,7 +1142,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "fd2ccb02256e1c431ac00eb8c03f0881"
+      "77720fa76ee91c634ddadfd7e24179e3"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_mmbc_index",
@@ -1203,7 +1203,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "79f4dfd28c4185590f5e256f931227e0"
+      "346830f2833927819a6dc53628b4557b"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_mmbc_index",
@@ -1217,7 +1217,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "34ff55187dbfa91fbd417942cabc71cc"
+      "63fe2fa4aac2e3e6987b8649e0f8efca"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_mmbc_index",
@@ -1254,7 +1254,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "57609b273e9e5cdccb8dd157a4292c17"
+      "9c8a546b6913e92be6e4480a58df3365"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_part_eq_mmbc",
@@ -1313,7 +1313,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "53ccc1f4089e862001697cc57ee5dc2f"
+      "f7ce5d7585041199c03b633c52fcb57c"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_inner_maintain",
@@ -1372,7 +1372,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "402903287530ff09aa584998f31c0c03"
+      "25f15b4bfdaa805b0b7b67d1195f4206"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_outer_row",
@@ -1449,7 +1449,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4811f18d022c4b13931a11c243b132d4"
+      "04c54f10a10d7b596dc4a23ea019f23b"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_final_assemble",
@@ -1493,7 +1493,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "18f0cb69da56f044e50ea3ff80623e0f"
+      "7c07dc60391be69f95f9cf34d6cf51b8"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_final_assemble",
@@ -1522,7 +1522,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f301bca377e9465723366ce969a11b4e"
+      "cd091fc9966e2c2716cba05bc6d1464f"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.inner_done",
@@ -1574,7 +1574,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "1443e86b0d81fa5180153d07b60aa5e0"
+      "d3868f0ad3a285932ef81d3cc1306faa"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.row_done",
@@ -1625,7 +1625,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "ea823f95932e182593f567984198ddf1"
+      "11d4a9fb697d24941f558d63c623fbf7"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.row_done",
@@ -1668,7 +1668,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "10da9c3e46dfbffc0b892d06f059ff8f"
+      "4b657c4566dba6ea0f6562439cc92744"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_inner_done_base",
@@ -1716,7 +1716,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "ea5a0b9bc6441517e2333c6e9050c781"
+      "336d7ce4cae5d7aa3519dd722bd4ec2b"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_inner_done_step",
@@ -1749,6 +1749,7 @@
         "fuel_guarded_inversion_Rust_primitives.Integers.int_t",
         "int_inversion", "int_typing",
         "kinding_Libcrux_ml_kem.Vector.t_PolynomialRingElement@tok",
+        "lemma_Libcrux_ml_kem.Polynomial.Spec.lemma_is_bounded_poly_3328_to_4096",
         "lemma_Rust_primitives.Integers.pow2_values",
         "lemma_Spec.Utils.pow2_more_values", "primitive_Prims.op_Addition",
         "primitive_Prims.op_AmpAmp", "primitive_Prims.op_LessThanOrEqual",
@@ -1773,7 +1774,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4006b6c65f212289f527d109a3b6d83a"
+      "01f2e65b1253e3a402457d3284b90a7e"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_row_done_finalize",
@@ -1826,7 +1827,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "45d812fd6a40dcec7a4761aec4b73052"
+      "2747f157ac4c87c9f742bacce659938b"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_row_done_finalize",
@@ -1876,7 +1877,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "458db03fa92984e9a9064c5dabebe0d1"
+      "f1230e7b1226f31f9e5e8199d556c277"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_rows_assemble",
@@ -1914,7 +1915,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "473fd1477de0fe605301fa7364616d55"
+      "42f54c97603b9019f11770b3b6e2ef4b"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_rows_assemble",
@@ -1943,7 +1944,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "525ecd6cdc1ac64653862e20b19dc6f3"
+      "0865d77777d2002bfa330c94acf383ab"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_inner_step_full",
@@ -1996,10 +1997,10 @@
         "refinement_interpretation_Tm_refine_22893ae23f5377657165437e54e27ac0",
         "refinement_interpretation_Tm_refine_4db50ccdbdddfab8cea00db47865f5eb",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_7a4333dd007bb3e79671bb7ab84bf520",
         "refinement_interpretation_Tm_refine_93e0761b597ef916fc7e6cdb30f01235",
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
         "refinement_interpretation_Tm_refine_b045b04f0bb15cd7c94a2ec78d3283ce",
-        "refinement_interpretation_Tm_refine_d496dcc9a9e68422ad03494c50542d6e",
         "typing_FStar.Seq.Base.index",
         "typing_Rust_primitives.Arrays.t_Array",
         "typing_Rust_primitives.Integers.bits",
@@ -2009,7 +2010,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4c7ce57fad8c400f2f0ba32d2b6119d6"
+      "b5acdab585f6f096bb4fdb2df0a1f6db"
     ],
     [
       "Hacspec_ml_kem.Commute.Matrix_bridge.lemma_inner_step_full",
@@ -2048,7 +2049,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "689063c89a42fd67bd1c57e7544cd978"
+      "013e4cf02e8def1b63fed5727a1ec479"
     ]
   ]
 ]

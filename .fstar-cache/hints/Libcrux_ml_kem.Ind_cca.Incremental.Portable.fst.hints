@@ -33,7 +33,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "7e9c51d3f2e010caffc54d31567fdb12"
+      "acdbb1febc5f37c13c2671f954974ec4"
     ],
     [
       "Libcrux_ml_kem.Ind_cca.Incremental.Portable.generate_keypair",
@@ -62,7 +62,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e8bcec6ccad837b4337b7bf620f74ed9"
+      "303911dd1c043cb2fb599f476b17cb02"
     ],
     [
       "Libcrux_ml_kem.Ind_cca.Incremental.Portable.generate_keypair",
@@ -91,7 +91,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "89698f591329acdc233e9e6802518b32"
+      "a1d0a3aa17aa82554a58c8eb4b9c154c"
     ],
     [
       "Libcrux_ml_kem.Ind_cca.Incremental.Portable.generate_keypair_serialized",
@@ -148,7 +148,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "2792086d3b206c2d5289c9a77ec58939"
+      "85212f8a69629812a195dbd710977963"
     ],
     [
       "Libcrux_ml_kem.Ind_cca.Incremental.Portable.generate_keypair_serialized",
@@ -182,7 +182,7 @@
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0"
       ],
       0,
-      "1bec856397a7965ab7138397c4ef7c8f"
+      "ae2a1c271d5d3e10815e95649a6b3d3a"
     ],
     [
       "Libcrux_ml_kem.Ind_cca.Incremental.Portable.generate_keypair_serialized",
@@ -211,7 +211,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "cbeb935ce9ec5dce748372bc49517e50"
+      "21b075ae38fc0f55183ec765e82f63da"
     ],
     [
       "Libcrux_ml_kem.Ind_cca.Incremental.Portable.generate_keypair_compressed",
@@ -245,7 +245,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "82673128ca80ca4979c580ff51a5575b"
+      "a1cdfc718f73b406419224abe064b2a9"
     ],
     [
       "Libcrux_ml_kem.Ind_cca.Incremental.Portable.generate_keypair_compressed",
@@ -274,7 +274,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "8c2a1e97492e11d63098ff61e0c2af4d"
+      "aca2c60d9653ca64fbf492d4b5ac1ff1"
     ],
     [
       "Libcrux_ml_kem.Ind_cca.Incremental.Portable.generate_keypair_compressed",
@@ -303,7 +303,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "c2d9a3274e44dc73ad76d853dd967c7c"
+      "329b42e29a552b3520c8f6f38a1b1fd6"
     ],
     [
       "Libcrux_ml_kem.Ind_cca.Incremental.Portable.validate_pk",
@@ -322,7 +322,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "a455cd423a31f9255ba4688adf575049"
+      "692ba29af560b95a3d8aafab521c60ab"
     ],
     [
       "Libcrux_ml_kem.Ind_cca.Incremental.Portable.validate_pk",
@@ -331,7 +331,7 @@
       1,
       [ "@query" ],
       0,
-      "ee99de316b1639ae4927cd74cdca0b2a"
+      "ee29b1eafc38396000e3204cf2e8228c"
     ],
     [
       "Libcrux_ml_kem.Ind_cca.Incremental.Portable.validate_pk_bytes",
@@ -350,7 +350,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "ffc8453f7a2359dd6d4518057980151c"
+      "28e79c5a0d20ae86253aebc567768bbd"
     ],
     [
       "Libcrux_ml_kem.Ind_cca.Incremental.Portable.validate_pk_bytes",
@@ -359,7 +359,7 @@
       1,
       [ "@query" ],
       0,
-      "d5c2295f13278de0531d00c6a7313cf1"
+      "c9638bfc358d8506da08dcd7f29ae293"
     ],
     [
       "Libcrux_ml_kem.Ind_cca.Incremental.Portable.encapsulate1",
@@ -410,7 +410,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "456a6858605d3bcbec154c34dfcace57"
+      "a2cedea7ebb1b84bc098b82685ae5c42"
     ],
     [
       "Libcrux_ml_kem.Ind_cca.Incremental.Portable.encapsulate1",
@@ -452,7 +452,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "a9b5032144a08d1205b71dfc9f9de931"
+      "bf58a6fb825d401af60ff487c1b8c488"
     ],
     [
       "Libcrux_ml_kem.Ind_cca.Incremental.Portable.encapsulate1",
@@ -494,7 +494,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "19dc5b5c1d78e4b0cd6692ab435a69bb"
+      "beef0e8997d7a8fab015bb7ebd0ca567"
     ],
     [
       "Libcrux_ml_kem.Ind_cca.Incremental.Portable.encapsulate1_serialized",
@@ -552,7 +552,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "93412bd2a551da7fcccb9a29e944413f"
+      "22fd842f3d74bea73cf93a7dfb17b85e"
     ],
     [
       "Libcrux_ml_kem.Ind_cca.Incremental.Portable.encapsulate1_serialized",
@@ -565,7 +565,7 @@
         "projection_inverse_FStar.Pervasives.Native.Mktuple3_@_3"
       ],
       0,
-      "0b4a08e3b2632617d89418e0d984be9d"
+      "285ec703d1a736500b7c0a91fe926404"
     ],
     [
       "Libcrux_ml_kem.Ind_cca.Incremental.Portable.encapsulate1_serialized",
@@ -607,7 +607,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4ab2d0bfad97409f0fdd28bf28050346"
+      "66bab54f9dd9cadc8573aa77ae140ba0"
     ],
     [
       "Libcrux_ml_kem.Ind_cca.Incremental.Portable.encapsulate2",
@@ -663,7 +663,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "b0cca818a018096f971dbe1974168f2c"
+      "1b1f5f20a9b681b23d29203b58b151f9"
     ],
     [
       "Libcrux_ml_kem.Ind_cca.Incremental.Portable.encapsulate2",
@@ -672,7 +672,7 @@
       1,
       [ "@query" ],
       0,
-      "cc752e5eb4ca66576ad2dea02611b81b"
+      "2cab2eacb7eb1e847354e41b775f2efc"
     ],
     [
       "Libcrux_ml_kem.Ind_cca.Incremental.Portable.encapsulate2_serialized",
@@ -722,7 +722,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e37e43629cf36b74db3e0de41fc44d4e"
+      "ea1dda9485d52c9baddd510ebecc85f4"
     ],
     [
       "Libcrux_ml_kem.Ind_cca.Incremental.Portable.encapsulate2_serialized",
@@ -731,7 +731,7 @@
       1,
       [ "@query" ],
       0,
-      "25c9da4ce6c60079d86a68ccf429915d"
+      "9020a7584ce9f437d8cfa3df9090e171"
     ],
     [
       "Libcrux_ml_kem.Ind_cca.Incremental.Portable.decapsulate",
@@ -765,16 +765,33 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "80c9d6590c2af347798409ddd342c207"
+      "cabdd6154c78f08a6f1bf06750d2b763"
     ],
     [
       "Libcrux_ml_kem.Ind_cca.Incremental.Portable.decapsulate",
       2,
       0,
       1,
-      [ "@query" ],
+      [
+        "@MaxIFuel_assumption", "@query",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Rust_primitives.Integers.usize",
+        "fuel_guarded_inversion_Libcrux_ml_kem.Vector.Traits.t_Operations",
+        "fuel_guarded_inversion_Rust_primitives.Integers.int_t",
+        "kinding_Libcrux_ml_kem.Vector.Portable.Vector_type.t_PortableVector@tok",
+        "lemma_Libcrux_ml_kem.Polynomial.Spec.lemma_is_bounded_polynomial_vector_3328_to_4096",
+        "proj_equation_Libcrux_ml_kem.Ind_cpa.Unpacked.Mkt_IndCpaPrivateKeyUnpacked_@f_secret_as_ntt",
+        "proj_equation_Libcrux_ml_kem.Ind_cpa.Unpacked.Mkt_IndCpaPublicKeyUnpacked_@f_tt_as_ntt",
+        "typing_Libcrux_ml_kem.Ind_cca.Unpacked.__proj__Mkt_MlKemKeyPairUnpacked__item__f_private_key",
+        "typing_Libcrux_ml_kem.Ind_cca.Unpacked.__proj__Mkt_MlKemKeyPairUnpacked__item__f_public_key",
+        "typing_Libcrux_ml_kem.Ind_cca.Unpacked.__proj__Mkt_MlKemPrivateKeyUnpacked__item__f_ind_cpa_private_key",
+        "typing_Libcrux_ml_kem.Ind_cca.Unpacked.__proj__Mkt_MlKemPublicKeyUnpacked__item__f_ind_cpa_public_key",
+        "typing_Libcrux_ml_kem.Ind_cpa.Unpacked.__proj__Mkt_IndCpaPrivateKeyUnpacked__item__f_secret_as_ntt",
+        "typing_Libcrux_ml_kem.Ind_cpa.Unpacked.__proj__Mkt_IndCpaPublicKeyUnpacked__item__f_tt_as_ntt",
+        "typing_Libcrux_ml_kem.Vector.Portable.impl_1"
+      ],
       0,
-      "9f2f1393aae5e211296b6b3714cfd3a6"
+      "9af299b8d92c4507bd2df0c21272f2f5"
     ],
     [
       "Libcrux_ml_kem.Ind_cca.Incremental.Portable.decapsulate_incremental_key",
@@ -836,7 +853,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "ca6bbece619a50f3977414eb712b11ab"
+      "b6d086b2bf826f22276e49f11fd958ce"
     ],
     [
       "Libcrux_ml_kem.Ind_cca.Incremental.Portable.decapsulate_incremental_key",
@@ -845,7 +862,7 @@
       1,
       [ "@query" ],
       0,
-      "13eea5615f8985db1e08e3f43ab8b9c2"
+      "6cd0477ef92a49ff118a6ec555a8c799"
     ],
     [
       "Libcrux_ml_kem.Ind_cca.Incremental.Portable.decapsulate_compressed_key",
@@ -883,7 +900,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "d4a7a726acc0d485c1424291b8983621"
+      "0bfc1d011f97128b609aeb0b5cfc6cbe"
     ],
     [
       "Libcrux_ml_kem.Ind_cca.Incremental.Portable.decapsulate_compressed_key",
@@ -892,7 +909,7 @@
       1,
       [ "@query" ],
       0,
-      "0274e1232e84b205dc06702ec198a539"
+      "81571e0804a23b3e2ded4435154959b6"
     ]
   ]
 ]

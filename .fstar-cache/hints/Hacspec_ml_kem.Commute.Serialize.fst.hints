@@ -1,5 +1,5 @@
 [
-  "af5036eb914ae303510d4713338e6365",
+  "3258a26c8df76c1bce73c98cc0700c97",
   [
     [
       "Hacspec_ml_kem.Commute.Serialize.serialize_secret_key_chunk_eq",
@@ -82,7 +82,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "3abbdfe880ba1c466823427ed0308a7d"
+      "b05b2d23a5d30f1ee1ebfc6e5baa78f3"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize.serialize_secret_key_chunk_eq",
@@ -111,7 +111,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "33733e2fada0b1be42202ae0e4b0bebc"
+      "9f3e78dca96a9148102bd15231b21e89"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize.serialize_secret_key_all_chunks_eq",
@@ -170,7 +170,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "83497e38af0271423f0c8cbd21ab6349"
+      "9b7705b4d504bdda8616bd125ab8c4a1"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize.serialize_secret_key_all_chunks_eq",
@@ -199,7 +199,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "51f7678f6fc88a76386928ed28e4d60c"
+      "125d8223b73174e1e0854fc2cbbd722f"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize.serialize_public_key_vector_eq",
@@ -279,7 +279,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "8a001d47ba9e7b98da5333e6d993452a"
+      "cf3fc5ced76894c1455308ec37564659"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize.serialize_public_key_vector_eq",
@@ -308,7 +308,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "eb1faa8c536cc97f57c8f16c86da7562"
+      "18ab5dab57153c5d0e995ea76ccc8d0b"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize.serialize_public_key_seed_eq",
@@ -401,7 +401,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "134545b3c8f04c92b4edb6a86da17e36"
+      "7269343d03d77e0977eefdb7f7160d5a"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize.serialize_public_key_seed_eq",
@@ -430,7 +430,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4c02f312e897b407b287b92656f7084b"
+      "bed64a8553b4f856ab4a84b840a73e48"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize.lemma_ek_eq_serialize_public_key",
@@ -547,7 +547,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "1de8ca225317cc698b79096068d8f6e8"
+      "4bc62c47d35aadf3c6a04a6a0ee0d686"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize.lemma_ek_eq_serialize_public_key",
@@ -576,7 +576,135 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "fb970eeba704a3bf61f79b88048da0c1"
+      "6de37cfc0455ae499cd8d56f4ed54a6c"
+    ],
+    [
+      "Hacspec_ml_kem.Commute.Serialize.lemma_vector_decode_12_index",
+      1,
+      1,
+      1,
+      [
+        "@MaxFuel_assumption", "@MaxIFuel_assumption",
+        "@fuel_correspondence_Prims.pow2.fuel_instrumented",
+        "@fuel_irrelevance_Prims.pow2.fuel_instrumented", "@query",
+        "Core_models.Array_interpretation_Tm_arrow_bf71e124d232d47c997d72c21e536b9a",
+        "Core_models.Array_pretyping_021c672696f5e9f609e038383b21c92a",
+        "Hacspec_ml_kem.Ntt_interpretation_Tm_arrow_22769b44c15593e0bf8c35c487497683",
+        "assumption_Rust_primitives.Integers.int_t__uu___haseq",
+        "bool_inversion", "bool_typing",
+        "constructor_distinct_Core_models.Bundle.Result_Ok",
+        "constructor_distinct_Rust_primitives.Integers.USIZE",
+        "data_elim_Core_models.Bundle.Result_Ok",
+        "data_elim_Rust_primitives.Integers.MkInt",
+        "equality_tok_Core_models.Array.TryFromSliceError@tok",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Core_models.Bundle.impl__is_ok",
+        "equation_Core_models.Bundle.impl__unwrap__from__result",
+        "equation_Core_models.Convert.f_try_from",
+        "equation_Core_models.Convert.f_try_into",
+        "equation_Core_models.Convert.impl_2",
+        "equation_Core_models.Convert.impl_3",
+        "equation_Core_models.Ops.Index.f_index",
+        "equation_Core_models.Slice.impl_7",
+        "equation_Core_models.Slice.impl__len",
+        "equation_Hacspec_ml_kem.Parameters.v_BITS_PER_COEFFICIENT",
+        "equation_Hacspec_ml_kem.Parameters.v_BITS_PER_RING_ELEMENT",
+        "equation_Hacspec_ml_kem.Parameters.v_BYTES_PER_RING_ELEMENT",
+        "equation_Hacspec_ml_kem.Parameters.v_COEFFICIENTS_IN_RING_ELEMENT",
+        "equation_Hacspec_ml_kem.Serialize.vector_decode_12_",
+        "equation_Prims.nat", "equation_Rust_primitives.Arrays.t_Array",
+        "equation_Rust_primitives.Arrays.t_Slice",
+        "equation_Rust_primitives.Integers.add",
+        "equation_Rust_primitives.Integers.bits",
+        "equation_Rust_primitives.Integers.div",
+        "equation_Rust_primitives.Integers.gt",
+        "equation_Rust_primitives.Integers.lt",
+        "equation_Rust_primitives.Integers.lte",
+        "equation_Rust_primitives.Integers.max_usize",
+        "equation_Rust_primitives.Integers.maxint",
+        "equation_Rust_primitives.Integers.minint",
+        "equation_Rust_primitives.Integers.mk_int",
+        "equation_Rust_primitives.Integers.mk_usize",
+        "equation_Rust_primitives.Integers.mul",
+        "equation_Rust_primitives.Integers.range",
+        "equation_Rust_primitives.Integers.range_t",
+        "equation_Rust_primitives.Integers.sz",
+        "equation_Rust_primitives.Integers.u8",
+        "equation_Rust_primitives.Integers.unsigned",
+        "equation_Rust_primitives.Integers.usize",
+        "equation_Rust_primitives.Integers.v",
+        "equation_Rust_primitives.Notations.op_String_Access",
+        "equation_Rust_primitives.Slice.slice_length",
+        "equation_Rust_primitives.Slice.slice_slice",
+        "fuel_guarded_inversion_Rust_primitives.Integers.int_t",
+        "function_token_typing_Rust_primitives.Integers.u8", "int_inversion",
+        "int_typing",
+        "interpretation_Tm_abs_1d709e63779e3e89e6b2fd1f48140985",
+        "interpretation_Tm_abs_1e630b19a2b7591b533efaa336871811",
+        "interpretation_Tm_abs_22c6c2ffb4a72755ce2c4ad78e79506c",
+        "interpretation_Tm_abs_27e7afaf6678ea7d45fad0fb6bdfd18a",
+        "interpretation_Tm_abs_4ab552b3415220d2b607f7d57c958117",
+        "interpretation_Tm_abs_51762efa3be1265f3c7bdabdd668aa88",
+        "interpretation_Tm_abs_900369f04b4ab299c3cdf8970be0a9f8",
+        "interpretation_Tm_abs_980890d309e44a6414a8daa8213a5301",
+        "kinding_Hacspec_ml_kem.Parameters.t_FieldElement@tok",
+        "kinding_Tm_arrow_1382ab4c164a457c427ddf27c0147fa9",
+        "lemma_FStar.Seq.Base.lemma_len_slice",
+        "lemma_Hacspec_ml_kem.Parameters.createi_lemma",
+        "lemma_Rust_primitives.Integers.pow2_values",
+        "primitive_Prims.op_Addition", "primitive_Prims.op_AmpAmp",
+        "primitive_Prims.op_Division", "primitive_Prims.op_Equality",
+        "primitive_Prims.op_GreaterThan", "primitive_Prims.op_LessThan",
+        "primitive_Prims.op_LessThanOrEqual", "primitive_Prims.op_Multiply",
+        "primitive_Prims.op_Subtraction",
+        "proj_equation_Core_models.Convert.Mkt_TryFrom_@f_Error",
+        "proj_equation_Core_models.Convert.Mkt_TryInto_@f_Error",
+        "proj_equation_Core_models.Convert.Mkt_TryInto_@f_try_into_pre",
+        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "proj_equation_Rust_primitives.Integers.MkInt_@_0",
+        "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Core_models.Bundle.Result_Ok_@_0",
+        "projection_inverse_Core_models.Bundle.Result_Ok_@v_E",
+        "projection_inverse_Core_models.Bundle.Result_Ok_@v_T",
+        "projection_inverse_Core_models.Convert.Mkt_TryFrom_@f_Error",
+        "projection_inverse_Core_models.Convert.Mkt_TryFrom_@f_try_from",
+        "projection_inverse_Core_models.Convert.Mkt_TryInto_@f_Error",
+        "projection_inverse_Core_models.Convert.Mkt_TryInto_@f_try_into",
+        "projection_inverse_Core_models.Convert.Mkt_TryInto_@f_try_into_pre",
+        "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index",
+        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
+        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
+        "refinement_interpretation_Tm_refine_160fe7faad9a466b3cae8455bac5be60",
+        "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
+        "refinement_interpretation_Tm_refine_46ca041eb45839ee5d1e1c89be165832",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_5a92b6e4e7af9363bc35e43d9d7f3f13",
+        "refinement_interpretation_Tm_refine_8cb1b74240544787cc8ed4d16da01c46",
+        "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
+        "refinement_interpretation_Tm_refine_b045b04f0bb15cd7c94a2ec78d3283ce",
+        "refinement_interpretation_Tm_refine_eea4a7aaf0d9fd792b6bd561042bfd5e",
+        "refinement_interpretation_Tm_refine_efea55bc918d5de3bfb92b5aabd566f9",
+        "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca",
+        "token_correspondence_Core_models.Convert.__proj__Mkt_TryInto__item__f_try_into_pre",
+        "token_correspondence_Core_models.Convert.f_try_from",
+        "token_correspondence_Core_models.Convert.f_try_into",
+        "token_correspondence_Core_models.Ops.Index.f_index", "true_interp",
+        "typing_Hacspec_ml_kem.Parameters.v_BITS_PER_RING_ELEMENT",
+        "typing_Hacspec_ml_kem.Parameters.v_COEFFICIENTS_IN_RING_ELEMENT",
+        "typing_Hacspec_ml_kem.Serialize.vector_decode_12_",
+        "typing_Rust_primitives.Arrays.t_Array",
+        "typing_Rust_primitives.Integers.bits",
+        "typing_Rust_primitives.Integers.size_bits",
+        "typing_Rust_primitives.Integers.v",
+        "typing_Tm_abs_22c6c2ffb4a72755ce2c4ad78e79506c",
+        "typing_tok_Core_models.Array.TryFromSliceError@tok",
+        "typing_tok_Rust_primitives.Integers.USIZE@tok"
+      ],
+      0,
+      "ea5951a5bd7cdd8a9884f638f47f3d68"
     ]
   ]
 ]

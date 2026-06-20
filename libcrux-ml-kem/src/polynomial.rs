@@ -267,6 +267,27 @@ let lemma_is_bounded_polynomial_vector_higher
   Classical.forall_intro aux;
   lemma_is_bounded_polynomial_vector_intro v_RANK #v_Vector arr b2
 #pop-options
+
+(* Bump 3328 -> 4096 (the unreduced ByteDecode_12 bound).  Lets a genuinely-3328
+   vector (reduced public key / keygen output / validated key) auto-satisfy a 4096
+   precondition through the opaque atom — mirrors the chunk-level
+   lemma_nttmul_opaque_3328_to_4096.  DUAL trigger: fires ONLY when BOTH the 3328
+   hypothesis and the 4096 goal for the SAME arr are in scope (a genuine bridge
+   site).  It therefore does NOT fire where only the 4096 atom exists (e.g.
+   deserialize_vector builds is_bounded_polynomial_vector 4096 directly), so it
+   cannot open the dead "prove the false 3328" path that saturated that proof. *)
+let lemma_is_bounded_polynomial_vector_3328_to_4096
+      (v_RANK: usize)
+      (#v_Vector: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()]
+          i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+      (arr: t_Array (Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector) v_RANK)
+    : Lemma (requires is_bounded_polynomial_vector v_RANK #v_Vector (mk_usize 3328) arr)
+            (ensures is_bounded_polynomial_vector v_RANK #v_Vector (mk_usize 4096) arr)
+            [SMTPat (is_bounded_polynomial_vector v_RANK #v_Vector (mk_usize 3328) arr);
+             SMTPat (is_bounded_polynomial_vector v_RANK #v_Vector (mk_usize 4096) arr)]
+  = lemma_is_bounded_polynomial_vector_higher v_RANK #v_Vector arr (mk_usize 3328) (mk_usize 4096)
+
 "#
         )
     )]
@@ -1922,7 +1943,7 @@ unfold
 let ntt_multiply_chunk_done
     (#vV: Type0) {| iop: T.t_Operations vV |}
     (myself rhs out: V.t_PolynomialRingElement vV) (m: nat {m < 16}) : prop =
-  TS.is_i16b_array_opaque 3328 (T.f_repr (Seq.index myself.V.f_coefficients m)) /\
+  TS.is_i16b_array_opaque 4096 (T.f_repr (Seq.index myself.V.f_coefficients m)) /\
   TS.is_i16b_array_opaque 3328 (T.f_repr (Seq.index rhs.V.f_coefficients m)) /\
   Seq.index out.V.f_coefficients m ==
     T.f_ntt_multiply #vV (Seq.index myself.V.f_coefficients m)
@@ -2000,7 +2021,7 @@ let lemma_ntt_multiply_to_hacspec
     Seq.lemma_eq_intro out_lift target
 #pop-options
 "#)]
-#[hax_lib::requires(spec::is_bounded_poly(3328, &myself) & (spec::is_bounded_poly(3328, &rhs)))]
+#[hax_lib::requires(spec::is_bounded_poly(4096, &myself) & (spec::is_bounded_poly(3328, &rhs)))]
 #[hax_lib::ensures(|result|
     spec::is_bounded_poly(3328, &result)
     & fstar!(r#"
@@ -2042,7 +2063,7 @@ fn ntt_multiply<Vector: Operations>(
         hax_lib::fstar!(
             r#"
             lemma_is_i16b_repr_of_bounded #v_Vector
-              (Seq.index ${myself}.f_coefficients (v $i)) (mk_usize 3328);
+              (Seq.index ${myself}.f_coefficients (v $i)) (mk_usize 4096);
             lemma_is_i16b_repr_of_bounded #v_Vector
               (Seq.index ${rhs}.f_coefficients (v $i)) (mk_usize 3328)
           "#
@@ -2153,7 +2174,7 @@ impl<Vector: Operations> PolynomialRingElement<Vector> {
     }
 
     #[inline(always)]
-    #[requires(spec::is_bounded_poly(3328, &self) & (spec::is_bounded_poly(3328, &rhs)))]
+    #[requires(spec::is_bounded_poly(4096, &self) & (spec::is_bounded_poly(3328, &rhs)))]
     #[ensures(|result| spec::is_bounded_poly(3328, &result))]
     pub(crate) fn ntt_multiply(&self, rhs: &Self) -> Self {
         ntt_multiply(self, rhs)
@@ -2183,7 +2204,7 @@ val lemma_impl_ntt_multiply_spec
     (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
     (self rhs: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
   : Lemma
-    (requires Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector (mk_usize 3328) self /\
+    (requires Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector (mk_usize 4096) self /\
               Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector (mk_usize 3328) rhs)
     (ensures
       Hacspec_ml_kem.Commute.Chunk.to_spec_poly_mont #v_Vector (impl__ntt_multiply #v_Vector self rhs)
@@ -2290,7 +2311,7 @@ let lemma_impl_ntt_multiply_spec
     (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
     (self rhs: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
   : Lemma
-    (requires Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector (mk_usize 3328) self /\
+    (requires Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector (mk_usize 4096) self /\
               Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector (mk_usize 3328) rhs)
     (ensures
       Hacspec_ml_kem.Commute.Chunk.to_spec_poly_mont #v_Vector (impl__ntt_multiply #v_Vector self rhs)

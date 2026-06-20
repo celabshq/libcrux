@@ -141,7 +141,10 @@ impl<const LEN: usize> PublicKey2<LEN> {
     /// Deserialize the public key.
     #[requires(hacspec_ml_kem::parameters::is_rank(K)
         && LEN == hacspec_ml_kem::parameters::cpa_private_key_size(K))]
-    #[ensures(|result| crate::polynomial::spec::is_bounded_polynomial_vector(3328, &result))]
+    // Honest bound: `deserialize_vector` runs the non-reduced ByteDecode_12
+    // (lanes [0,4095] = is_i16b 4096), so this public-key vector is 4096-,
+    // not 3328-bounded; the encap consumer (compute_ring_element_v) accepts it.
+    #[ensures(|result| crate::polynomial::spec::is_bounded_polynomial_vector(4096, &result))]
     pub(crate) fn deserialize<const K: usize, Vector: Operations>(
         &self,
     ) -> [PolynomialRingElement<Vector>; K] {
@@ -606,8 +609,11 @@ impl<const K: usize, const PK2_LEN: usize, Vector: Operations> KeyPair<K, PK2_LE
             3328,
             &result.public_key.ind_cpa_public_key.A,
         )
+        // t_as_ntt is deserialized non-reduced (ByteDecode_12, lanes [0,4095]):
+        // honest 4096 bound.  secret_as_ntt (from validated self.sk) and A
+        // (keygen-sampled) remain genuinely 3328.
         & crate::polynomial::spec::is_bounded_polynomial_vector(
-            3328,
+            4096,
             &result.public_key.ind_cpa_public_key.t_as_ntt,
         )
     )]

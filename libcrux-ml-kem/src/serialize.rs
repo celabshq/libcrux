@@ -269,7 +269,8 @@ pub(super) fn serialize_uncompressed_ring_element<Vector: Operations>(
     serialized.len() == BYTES_PER_RING_ELEMENT
 )]
 #[hax_lib::ensures(|result|
-    fstar!(r#"${poly_to_spec::<Vector>} $result ==
+    spec::is_bounded_poly(4096, &result)
+    & fstar!(r#"${poly_to_spec::<Vector>} $result ==
         Hacspec_ml_kem.Serialize.byte_decode (sz 384) (sz 3072) $serialized (sz 12)"#)
 )]
 pub(super) fn deserialize_to_uncompressed_ring_element<Vector: Operations>(
@@ -305,6 +306,12 @@ pub(super) fn deserialize_to_uncompressed_ring_element<Vector: Operations>(
         }
     }
 
+    // Expose the honest [0,4095] = is_i16b 4096 lane bound on the unreduced
+    // ByteDecode_12 output, assembled from the per-chunk `chunk_decoded_12`
+    // atoms the loop established.
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Serialize_bits.lemma_is_bounded_poly_of_chunks_12 #v_Vector $serialized re"#
+    );
     hax_lib::fstar!(
         r#"let result = re in
            assert (Seq.length (Libcrux_ml_kem.Vector.Spec.poly_to_spec result) == 256);
@@ -846,7 +853,8 @@ fn compress_then_serialize_5<Vector: Operations>(
 // `compress_then_serialize_v` unfolds (via `byte_encode_into` + the
 // `copy_from_slice s src == src` identity) to exactly the `byte_encode` the
 // callees `_4`/`_5` establish.
-#[hax_lib::fstar::before(r#"
+#[hax_lib::fstar::before(
+    r#"
 #push-options "--fuel 1 --ifuel 2 --z3rlimit 100"
 let lemma_compress_then_serialize_v_eq
       (out_len: usize)
@@ -859,7 +867,8 @@ let lemma_compress_then_serialize_v_eq
           (Hacspec_ml_kem.Compress.compress p dv) dv) =
   ()
 #pop-options
-"#)]
+"#
+)]
 #[hax_lib::requires(fstar!(r#"Hacspec_ml_kem.Parameters.is_rank v_K /\
     $COMPRESSION_FACTOR == Hacspec_ml_kem.Parameters.vector_v_compression_factor v_K /\
     Seq.length $out == v $OUT_LEN /\ v $OUT_LEN == 32 * v $COMPRESSION_FACTOR /\

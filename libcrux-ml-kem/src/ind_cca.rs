@@ -1061,9 +1061,9 @@ pub(crate) mod unpacked {
         && IMPLICIT_REJECTION_HASH_INPUT_SIZE
             == hacspec_ml_kem::parameters::implicit_rejection_hash_input_size(K))
         .to_prop()
-        & crate::polynomial::spec::is_bounded_polynomial_vector(3328, &key_pair.private_key.ind_cpa_private_key.secret_as_ntt)
+        & crate::polynomial::spec::is_bounded_polynomial_vector(4096, &key_pair.private_key.ind_cpa_private_key.secret_as_ntt)
         & crate::polynomial::spec::is_bounded_polynomial_matrix(3328, &key_pair.public_key.ind_cpa_public_key.A)
-        & crate::polynomial::spec::is_bounded_polynomial_vector(3328, &key_pair.public_key.ind_cpa_public_key.t_as_ntt)
+        & crate::polynomial::spec::is_bounded_polynomial_vector(4096, &key_pair.public_key.ind_cpa_public_key.t_as_ntt)
     )]
     #[hax_lib::ensures(|result|
         match hacspec_ml_kem::ind_cca_unpack_decapsulate::<

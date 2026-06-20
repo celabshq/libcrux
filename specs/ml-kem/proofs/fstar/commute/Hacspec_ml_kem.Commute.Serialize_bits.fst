@@ -956,3 +956,56 @@ let lemma_row_decoded_maintain
     in
     FStar.Classical.forall_intro aux
 #pop-options
+
+(* ================================================================== *)
+(* UNCOMPRESSED-12 bound: the honest [0,4095] lane bound carried by    *)
+(* `chunk_decoded_12` (`bounded (g l) 12`) lifts to is_i16b 4096        *)
+(* ([0,4095] subset [-4096,4096]).  Mirrors lemma_chunk_decoded_red_*   *)
+(* but for the NON-reduced atom (no cond_subtract_3329).  Consumed by   *)
+(* deserialize_to_uncompressed_ring_element to expose a 4096 bound on   *)
+(* the deserialized (unreduced) ByteDecode_12 output.                   *)
+(* ================================================================== *)
+
+(* the per-chunk bound conjunct: bounded 12 (lanes in [0,4095]) =>
+   is_i16b_array_opaque 4096 *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_chunk_decoded_bound
+    (serialized: t_Array u8 (mk_usize 384)) (g: t_Array i16 (mk_usize 16)) (j: nat{j < 16})
+  : Lemma
+    (requires chunk_decoded_12 serialized g j)
+    (ensures VTS.is_i16b_array_opaque 4096 g)
+  = reveal_opaque (`%chunk_decoded_12) chunk_decoded_12;
+    reveal_opaque (`%VTS.is_i16b_array_opaque) (VTS.is_i16b_array_opaque 4096 g);
+    assert_norm (pow2 12 == 4096);
+    let aux (l: nat{l < 16}) : Lemma (VTS.is_i16b 4096 (Seq.index g l)) =
+      assert (bounded (Seq.index g l) 12)
+    in
+    FStar.Classical.forall_intro aux
+#pop-options
+
+(* is_bounded_poly 4096 re from the per-chunk uncompressed bound conjuncts
+   (mirror of lemma_is_bounded_poly_of_red_chunks at the unreduced 4096 bound) *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_is_bounded_poly_of_chunks_12
+    (#v_Vector: Type0)
+    (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+    (serialized: t_Array u8 (mk_usize 384))
+    (re: Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector)
+  : Lemma
+    (requires
+      (forall (j: nat). j < 16 ==>
+        chunk_decoded_12 serialized
+          (Libcrux_ml_kem.Vector.Traits.f_to_i16_array
+            (Seq.index re.Libcrux_ml_kem.Vector.f_coefficients j)) j))
+    (ensures Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly (mk_usize 4096) re)
+  = reveal_opaque (`%Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly)
+      (Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #v_Vector (mk_usize 4096) re);
+    let aux (i: nat{i < 16}) : Lemma
+      (Libcrux_ml_kem.Polynomial.Spec.is_bounded_vector (mk_usize 4096)
+        (re.Libcrux_ml_kem.Vector.f_coefficients.[ sz i ])) =
+      lemma_chunk_decoded_bound serialized
+        (Libcrux_ml_kem.Vector.Traits.f_to_i16_array
+          (Seq.index re.Libcrux_ml_kem.Vector.f_coefficients i)) i
+    in
+    FStar.Classical.forall_intro aux
+#pop-options

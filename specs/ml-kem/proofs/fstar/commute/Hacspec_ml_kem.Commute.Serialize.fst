@@ -295,3 +295,33 @@ let lemma_ek_eq_serialize_public_key
   assert (Seq.slice pk dk (v v_EK_SIZE) == seed);
   Rust_primitives.Arrays.lemma_slice_append (pk <: t_Slice u8) tt_encoded seed
 #pop-options
+
+(* ------------------------------------------------------------------ *)
+(* vector_decode_12_ (unreduced ByteDecode_12 of a key vector):        *)
+(* per-index decomposition.  vector_decode_12_ is a direct `createi`;   *)
+(* createi_lemma's SMTPat fires once we coerce the nat index j to       *)
+(* `v (mk_usize j)` (same trick as serialize_secret_key_chunk_eq).      *)
+(* Consumed by Ind_cpa.deserialize_vector's factored spec-eq helper.    *)
+(* ------------------------------------------------------------------ *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 200"
+let lemma_vector_decode_12_index (v_RANK: usize) (encoded: t_Slice u8) (j: nat)
+  : Lemma
+    (requires
+      v_RANK <=. mk_usize 4 /\
+      (Core_models.Slice.impl__len encoded <: usize) =. (v_RANK *! P.v_BYTES_PER_RING_ELEMENT) /\
+      j < v v_RANK)
+    (ensures
+      Seq.index (S.vector_decode_12_ v_RANK encoded) j ==
+      S.byte_decode (mk_usize 384) (mk_usize 3072)
+        (Core_models.Result.impl__unwrap #(t_Array u8 (mk_usize 384))
+          #Core_models.Array.t_TryFromSliceError
+          (Core_models.Convert.f_try_into #(t_Slice u8) #(t_Array u8 (mk_usize 384))
+            #FStar.Tactics.Typeclasses.solve
+            (Seq.slice encoded
+              (j * v P.v_BYTES_PER_RING_ELEMENT)
+              (j * v P.v_BYTES_PER_RING_ELEMENT + v P.v_BYTES_PER_RING_ELEMENT))))
+        (mk_usize 12))
+  = assert (j == v (mk_usize j));
+    assert (v (mk_usize j *! P.v_BYTES_PER_RING_ELEMENT) ==
+            j * v P.v_BYTES_PER_RING_ELEMENT)
+#pop-options

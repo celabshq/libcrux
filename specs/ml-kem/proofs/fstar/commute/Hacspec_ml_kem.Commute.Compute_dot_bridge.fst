@@ -219,7 +219,7 @@ let lemma_vdot_step_full
   : Lemma
     (requires
       vdot_done acc x y (v j) /\
-      Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #vV (mk_usize 3328) (Seq.index x (v j)) /\
+      Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #vV (mk_usize 4096) (Seq.index x (v j)) /\
       Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #vV (mk_usize 3328) (Seq.index y (v j)) /\
       Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #vV e_b acc /\
       Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #vV (mk_usize 3328) product /\
