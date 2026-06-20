@@ -337,8 +337,8 @@ pub(crate) fn inv_ntt_layer_3_step(mut vec: PortableVector, zeta: i16) -> Portab
 )]
 #[hax_lib::fstar::before("[@@ \"opaque_to_smt\"]")]
 #[hax_lib::requires(fstar!(r#"v i < 8 /\ Spec.Utils.is_i16b 1664 $zeta /\
-        Spec.Utils.is_i16b_array 3328 ${a}.f_elements /\
-        Spec.Utils.is_i16b_array 3328 ${b}.f_elements /\
+        Spec.Utils.is_i16b_array 4096 ${a}.f_elements /\
+        Spec.Utils.is_i16b_array 4096 ${b}.f_elements /\
         Spec.Utils.is_i16b_array 3328 ${out}.f_elements "#))]
 #[hax_lib::ensures(|()| fstar!(r#"
         Spec.Utils.is_i16b_array 3328 ${out}_future.f_elements /\
@@ -357,22 +357,22 @@ pub(crate) fn ntt_multiply_binomials(
     let bj = b.elements[2 * i + 1];
 
     hax_lib::fstar!(
-        "assert(Spec.Utils.is_i16b 3328 $ai);
-                     assert(Spec.Utils.is_i16b 3328 $bi);
-                     assert(Spec.Utils.is_i16b 3328 $aj);
-                     assert(Spec.Utils.is_i16b 3328 $bj);
-                     assert_norm (3328 * 3328 < pow2 31)"
+        "assert(Spec.Utils.is_i16b 4096 $ai);
+                     assert(Spec.Utils.is_i16b 4096 $bi);
+                     assert(Spec.Utils.is_i16b 4096 $aj);
+                     assert(Spec.Utils.is_i16b 4096 $bj);
+                     assert_norm (4096 * 4096 < pow2 31)"
     );
 
-    hax_lib::fstar!(r#"Spec.Utils.lemma_mul_i16b 3328 3328 $ai $bi"#);
+    hax_lib::fstar!(r#"Spec.Utils.lemma_mul_i16b 4096 4096 $ai $bi"#);
 
     let ai_bi = (ai.as_i32()) * (bi.as_i32());
 
-    hax_lib::fstar!(r#"Spec.Utils.lemma_mul_i16b 3328 3328 $aj $bj"#);
+    hax_lib::fstar!(r#"Spec.Utils.lemma_mul_i16b 4096 4096 $aj $bj"#);
 
     let aj_bj_ = (aj.as_i32()) * (bj.as_i32());
 
-    hax_lib::fstar!(r#"assert_norm (3328 * 3328 <= 3328 * pow2 15)"#);
+    hax_lib::fstar!(r#"assert_norm (4096 * 4096 <= 3328 * pow2 15)"#);
 
     let aj_bj = montgomery_reduce_element(aj_bj_);
 
@@ -381,8 +381,8 @@ pub(crate) fn ntt_multiply_binomials(
     let aj_bj_zeta = (aj_bj.as_i32()) * (zeta.as_i32());
     let ai_bi_aj_bj = ai_bi + aj_bj_zeta;
 
-    hax_lib::fstar!(r#"assert(Spec.Utils.is_i32b (3328*3328 + 3328*1664) $ai_bi_aj_bj)"#);
-    hax_lib::fstar!(r#"assert_norm (3328 * 3328 + 3328 * 1664 <= 3328 * pow2 15)"#);
+    hax_lib::fstar!(r#"assert(Spec.Utils.is_i32b (4096*4096 + 3328*1664) $ai_bi_aj_bj)"#);
+    hax_lib::fstar!(r#"assert_norm (4096 * 4096 + 3328 * 1664 <= 3328 * pow2 15)"#);
 
     let o0 = montgomery_reduce_element(ai_bi_aj_bj);
 
@@ -415,17 +415,17 @@ pub(crate) fn ntt_multiply_binomials(
         (((v $ai * v $bi) + ((v $aj * v $bj * 169 * v $zeta))) * 169) % 3329;
         }"#
     );
-    hax_lib::fstar!(r#"Spec.Utils.lemma_mul_i16b 3328 3328 $ai $bj"#);
+    hax_lib::fstar!(r#"Spec.Utils.lemma_mul_i16b 4096 4096 $ai $bj"#);
 
     let ai_bj = (ai.as_i32()) * (bj.as_i32());
 
-    hax_lib::fstar!(r#"Spec.Utils.lemma_mul_i16b 3328 3328 $aj $bi"#);
+    hax_lib::fstar!(r#"Spec.Utils.lemma_mul_i16b 4096 4096 $aj $bi"#);
 
     let aj_bi = (aj.as_i32()) * (bi.as_i32());
     let ai_bj_aj_bi = ai_bj + aj_bi;
 
-    hax_lib::fstar!(r#"assert(Spec.Utils.is_i32b (3328*3328 + 3328*3328) ai_bj_aj_bi) "#);
-    hax_lib::fstar!(r#"assert_norm (3328 * 3328 + 3328 * 3328 <= 3328 * pow2 15)"#);
+    hax_lib::fstar!(r#"assert(Spec.Utils.is_i32b (4096*4096 + 4096*4096) ai_bj_aj_bi) "#);
+    hax_lib::fstar!(r#"assert_norm (4096 * 4096 + 4096 * 4096 <= 3328 * pow2 15)"#);
 
     let o1 = montgomery_reduce_element(ai_bj_aj_bi);
 
@@ -465,8 +465,8 @@ pub(crate) fn ntt_multiply_binomials(
         Spec.Utils.is_i16b 1664 $zeta1 /\
         Spec.Utils.is_i16b 1664 $zeta2 /\
         Spec.Utils.is_i16b 1664 $zeta3 /\
-        Spec.Utils.is_i16b_array 3328 ${lhs}.f_elements /\
-        Spec.Utils.is_i16b_array 3328 ${rhs}.f_elements "#))]
+        Spec.Utils.is_i16b_array 4096 ${lhs}.f_elements /\
+        Spec.Utils.is_i16b_array 4096 ${rhs}.f_elements "#))]
 #[hax_lib::ensures(|result| fstar!(r#"
         Spec.Utils.is_i16b_array 3328 ${result}.f_elements /\
         Spec.Utils.ntt_multiply_butterfly_post

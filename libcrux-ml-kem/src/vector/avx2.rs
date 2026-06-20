@@ -305,7 +305,9 @@ fn op_compress_1(vector: SIMD256Vector) -> SIMD256Vector {
                     Libcrux_ml_kem.Vector.Traits.Spec.compress_1_lane_post"#
     );
     let result_elements = compress::compress_message_coefficient(vector.elements);
-    let result = SIMD256Vector { elements: result_elements };
+    let result = SIMD256Vector {
+        elements: result_elements,
+    };
     hax_lib::fstar!(
         r#"let aux (j: nat{j < 16}) :
               Lemma (Libcrux_ml_kem.Vector.Traits.Spec.i16_to_spec_fe
@@ -360,7 +362,9 @@ fn op_decompress_1(a: SIMD256Vector) -> SIMD256Vector {
 #[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::requires(fstar!(r#"${spec::decompress_ciphertext_coefficient_pre} (impl.f_repr ${vector}) $COEFFICIENT_BITS"#))]
 #[hax_lib::ensures(|out| fstar!(r#"${spec::decompress_ciphertext_coefficient_post} (impl.f_repr ${vector}) $COEFFICIENT_BITS (impl.f_repr ${out})"#))]
-fn op_decompress_ciphertext_coefficient<const COEFFICIENT_BITS: i32>(vector: SIMD256Vector) -> SIMD256Vector {
+fn op_decompress_ciphertext_coefficient<const COEFFICIENT_BITS: i32>(
+    vector: SIMD256Vector,
+) -> SIMD256Vector {
     hax_lib::fstar!(
         r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.bounded_i16_array)
                     (Libcrux_ml_kem.Vector.Traits.Spec.bounded_i16_array)"#
@@ -759,6 +763,8 @@ fn op_ntt_multiply(
 ) -> SIMD256Vector {
     hax_lib::fstar!(
         r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
+                    (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque 4096);
+           reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
                     (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque 3328)"#
     );
     let elements = ntt::ntt_multiply(lhs.elements, rhs.elements, zeta0, zeta1, zeta2, zeta3);

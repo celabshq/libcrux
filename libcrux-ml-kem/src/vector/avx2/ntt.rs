@@ -1738,42 +1738,42 @@ let lemma_nttmul_prep_evens (orig m sh2 ev: ZI.t_Vec256) (ev128: ZI.t_Vec128) : 
       (mk_i8 1) (mk_i8 0) (mk_i8 15) (mk_i8 14) (mk_i8 11) (mk_i8 10) (mk_i8 7) (mk_i8 6)
       (mk_i8 3) (mk_i8 2) (mk_i8 13) (mk_i8 12) (mk_i8 9) (mk_i8 8) (mk_i8 5) (mk_i8 4)
       (mk_i8 1) (mk_i8 0)) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 0) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 1) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 2) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 3) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 4) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 5) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 6) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 7) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 8) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 9) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 10) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 11) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 12) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 13) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 14) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 15) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 0) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 1) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 2) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 3) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 4) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 5) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 6) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 7) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 8) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 9) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 10) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 11) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 12) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 13) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 14) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 15) /\
      sh2 == ZI.mm256_permute4x64_epi64 (mk_i32 216) (ZI.mm256_shuffle_epi8 orig m) /\
      ev128 == ZI.mm256_castsi256_si128 sh2 /\
      ev == ZI.mm256_cvtepi16_epi32 ev128)
   (ensures
      ZA.lane32 ev 0 == v (ZI.get_lane orig 0) /\
-     Spec.Utils.is_intb 3328 (ZA.lane32 ev 0) /\
+     Spec.Utils.is_intb 4096 (ZA.lane32 ev 0) /\
      ZA.lane32 ev 1 == v (ZI.get_lane orig 2) /\
-     Spec.Utils.is_intb 3328 (ZA.lane32 ev 1) /\
+     Spec.Utils.is_intb 4096 (ZA.lane32 ev 1) /\
      ZA.lane32 ev 2 == v (ZI.get_lane orig 4) /\
-     Spec.Utils.is_intb 3328 (ZA.lane32 ev 2) /\
+     Spec.Utils.is_intb 4096 (ZA.lane32 ev 2) /\
      ZA.lane32 ev 3 == v (ZI.get_lane orig 6) /\
-     Spec.Utils.is_intb 3328 (ZA.lane32 ev 3) /\
+     Spec.Utils.is_intb 4096 (ZA.lane32 ev 3) /\
      ZA.lane32 ev 4 == v (ZI.get_lane orig 8) /\
-     Spec.Utils.is_intb 3328 (ZA.lane32 ev 4) /\
+     Spec.Utils.is_intb 4096 (ZA.lane32 ev 4) /\
      ZA.lane32 ev 5 == v (ZI.get_lane orig 10) /\
-     Spec.Utils.is_intb 3328 (ZA.lane32 ev 5) /\
+     Spec.Utils.is_intb 4096 (ZA.lane32 ev 5) /\
      ZA.lane32 ev 6 == v (ZI.get_lane orig 12) /\
-     Spec.Utils.is_intb 3328 (ZA.lane32 ev 6) /\
+     Spec.Utils.is_intb 4096 (ZA.lane32 ev 6) /\
      ZA.lane32 ev 7 == v (ZI.get_lane orig 14) /\
-     Spec.Utils.is_intb 3328 (ZA.lane32 ev 7))
+     Spec.Utils.is_intb 4096 (ZA.lane32 ev 7))
   = let sh1 = ZI.mm256_shuffle_epi8 orig m in
     lemma_nttmul_cvt_lane ev128 0;
     lemma_nttmul_cast_lane sh2 0;
@@ -1833,42 +1833,42 @@ let lemma_nttmul_prep_odds (orig m sh2 ev: ZI.t_Vec256) (ev128: ZI.t_Vec128) : L
       (mk_i8 1) (mk_i8 0) (mk_i8 15) (mk_i8 14) (mk_i8 11) (mk_i8 10) (mk_i8 7) (mk_i8 6)
       (mk_i8 3) (mk_i8 2) (mk_i8 13) (mk_i8 12) (mk_i8 9) (mk_i8 8) (mk_i8 5) (mk_i8 4)
       (mk_i8 1) (mk_i8 0)) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 0) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 1) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 2) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 3) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 4) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 5) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 6) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 7) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 8) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 9) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 10) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 11) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 12) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 13) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 14) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 15) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 0) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 1) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 2) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 3) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 4) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 5) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 6) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 7) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 8) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 9) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 10) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 11) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 12) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 13) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 14) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 15) /\
      sh2 == ZI.mm256_permute4x64_epi64 (mk_i32 216) (ZI.mm256_shuffle_epi8 orig m) /\
      ev128 == ZI.mm256_extracti128_si256 (mk_i32 1) sh2 /\
      ev == ZI.mm256_cvtepi16_epi32 ev128)
   (ensures
      ZA.lane32 ev 0 == v (ZI.get_lane orig 1) /\
-     Spec.Utils.is_intb 3328 (ZA.lane32 ev 0) /\
+     Spec.Utils.is_intb 4096 (ZA.lane32 ev 0) /\
      ZA.lane32 ev 1 == v (ZI.get_lane orig 3) /\
-     Spec.Utils.is_intb 3328 (ZA.lane32 ev 1) /\
+     Spec.Utils.is_intb 4096 (ZA.lane32 ev 1) /\
      ZA.lane32 ev 2 == v (ZI.get_lane orig 5) /\
-     Spec.Utils.is_intb 3328 (ZA.lane32 ev 2) /\
+     Spec.Utils.is_intb 4096 (ZA.lane32 ev 2) /\
      ZA.lane32 ev 3 == v (ZI.get_lane orig 7) /\
-     Spec.Utils.is_intb 3328 (ZA.lane32 ev 3) /\
+     Spec.Utils.is_intb 4096 (ZA.lane32 ev 3) /\
      ZA.lane32 ev 4 == v (ZI.get_lane orig 9) /\
-     Spec.Utils.is_intb 3328 (ZA.lane32 ev 4) /\
+     Spec.Utils.is_intb 4096 (ZA.lane32 ev 4) /\
      ZA.lane32 ev 5 == v (ZI.get_lane orig 11) /\
-     Spec.Utils.is_intb 3328 (ZA.lane32 ev 5) /\
+     Spec.Utils.is_intb 4096 (ZA.lane32 ev 5) /\
      ZA.lane32 ev 6 == v (ZI.get_lane orig 13) /\
-     Spec.Utils.is_intb 3328 (ZA.lane32 ev 6) /\
+     Spec.Utils.is_intb 4096 (ZA.lane32 ev 6) /\
      ZA.lane32 ev 7 == v (ZI.get_lane orig 15) /\
-     Spec.Utils.is_intb 3328 (ZA.lane32 ev 7))
+     Spec.Utils.is_intb 4096 (ZA.lane32 ev 7))
   = let sh1 = ZI.mm256_shuffle_epi8 orig m in
     lemma_nttmul_cvt_lane ev128 0;
     lemma_nttmul_extract1_lane sh2 0;
@@ -1928,56 +1928,56 @@ let lemma_nttmul_swap_facts (orig m sw: ZI.t_Vec256) : Lemma
       (mk_i8 3) (mk_i8 2) (mk_i8 13) (mk_i8 12) (mk_i8 15) (mk_i8 14) (mk_i8 9) (mk_i8 8)
       (mk_i8 11) (mk_i8 10) (mk_i8 5) (mk_i8 4) (mk_i8 7) (mk_i8 6) (mk_i8 1) (mk_i8 0)
       (mk_i8 3) (mk_i8 2)) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 0) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 1) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 2) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 3) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 4) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 5) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 6) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 7) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 8) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 9) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 10) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 11) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 12) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 13) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 14) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane orig 15) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 0) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 1) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 2) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 3) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 4) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 5) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 6) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 7) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 8) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 9) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 10) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 11) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 12) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 13) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 14) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane orig 15) /\
      sw == ZI.mm256_shuffle_epi8 orig m)
   (ensures
      ZI.get_lane sw 0 == ZI.get_lane orig 1 /\
      ZI.get_lane sw 1 == ZI.get_lane orig 0 /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane sw 0) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane sw 1) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane sw 0) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane sw 1) /\
      ZI.get_lane sw 2 == ZI.get_lane orig 3 /\
      ZI.get_lane sw 3 == ZI.get_lane orig 2 /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane sw 2) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane sw 3) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane sw 2) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane sw 3) /\
      ZI.get_lane sw 4 == ZI.get_lane orig 5 /\
      ZI.get_lane sw 5 == ZI.get_lane orig 4 /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane sw 4) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane sw 5) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane sw 4) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane sw 5) /\
      ZI.get_lane sw 6 == ZI.get_lane orig 7 /\
      ZI.get_lane sw 7 == ZI.get_lane orig 6 /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane sw 6) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane sw 7) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane sw 6) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane sw 7) /\
      ZI.get_lane sw 8 == ZI.get_lane orig 9 /\
      ZI.get_lane sw 9 == ZI.get_lane orig 8 /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane sw 8) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane sw 9) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane sw 8) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane sw 9) /\
      ZI.get_lane sw 10 == ZI.get_lane orig 11 /\
      ZI.get_lane sw 11 == ZI.get_lane orig 10 /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane sw 10) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane sw 11) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane sw 10) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane sw 11) /\
      ZI.get_lane sw 12 == ZI.get_lane orig 13 /\
      ZI.get_lane sw 13 == ZI.get_lane orig 12 /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane sw 12) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane sw 13) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane sw 12) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane sw 13) /\
      ZI.get_lane sw 14 == ZI.get_lane orig 15 /\
      ZI.get_lane sw 15 == ZI.get_lane orig 14 /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane sw 14) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane sw 15))
+     Spec.Utils.is_i16b 4096 (ZI.get_lane sw 14) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane sw 15))
   =
     lemma_nttmul_swap_lane orig m 0;
     lemma_nttmul_swap_lane orig m 1;
@@ -2026,11 +2026,417 @@ let lemma_nttmul_out_bounds (pl prsh: ZI.t_Vec256) : Lemma
 
 #pop-options
 
-(* The whole functional proof.  `m` is the grouping mask as a free var
-   (instantiated with the function's `shuffle_with`); all conclusions land
-   on the function's own spine terms. *)
+(* `neg (cast (zeta <: i16) <: i32)` needs `range (0 - v (cast zeta)) I32`; in the
+   impl's heavy whole-spine VC that ground i16->i32 cast bound gets pruned, so
+   re-supply it by SMTPat.  (left/main are zv-parameterized and carry no cast, so
+   this never fires there.) *)
+let lemma_nttmul_cast_i16_i32_neg (x: i16) : Lemma
+  (ensures Rust_primitives.Integers.range (0 - v (cast x <: i32)) Rust_primitives.Integers.I32)
+  [SMTPat (cast x <: i32)]
+  = ()
+
+(* zv-fact helper: prove the per-lane facts about the zeta multiplier vector
+   `zv = set_epi32 (neg (cast zeta_i)) (cast zeta_i) ...` in a LIGHT context, so the
+   impl can stay a thin two-call wrapper and the `neg` subtyping discharges here
+   rather than in the impl's heavy whole-spine VC. *)
 #push-options "--z3rlimit 400 --split_queries always"
-let lemma_nttmul_main (m ms lhs rhs: ZI.t_Vec256) (zeta0 zeta1 zeta2 zeta3: i16) : Lemma
+let lemma_nttmul_zv (zeta0 zeta1 zeta2 zeta3: i16) (zv: ZI.t_Vec256) : Lemma
+  (requires
+     Spec.Utils.is_i16b 1664 zeta0 /\ Spec.Utils.is_i16b 1664 zeta1 /\
+     Spec.Utils.is_i16b 1664 zeta2 /\ Spec.Utils.is_i16b 1664 zeta3 /\
+     zv == (ZI.mm256_set_epi32 (Rust_primitives.Arithmetic.neg (cast (zeta3 <: i16) <: i32) <: i32)
+      (cast (zeta3 <: i16) <: i32)
+      (Rust_primitives.Arithmetic.neg (cast (zeta2 <: i16) <: i32) <: i32)
+      (cast (zeta2 <: i16) <: i32)
+      (Rust_primitives.Arithmetic.neg (cast (zeta1 <: i16) <: i32) <: i32)
+      (cast (zeta1 <: i16) <: i32)
+      (Rust_primitives.Arithmetic.neg (cast (zeta0 <: i16) <: i32) <: i32)
+      (cast (zeta0 <: i16) <: i32)))
+  (ensures
+     ZA.lane32 zv 0 == (v zeta0) /\
+     ZA.lane32 zv 1 == (- (v zeta0)) /\
+     ZA.lane32 zv 2 == (v zeta1) /\
+     ZA.lane32 zv 3 == (- (v zeta1)) /\
+     ZA.lane32 zv 4 == (v zeta2) /\
+     ZA.lane32 zv 5 == (- (v zeta2)) /\
+     ZA.lane32 zv 6 == (v zeta3) /\
+     ZA.lane32 zv 7 == (- (v zeta3)) /\
+     Spec.Utils.is_intb 1664 (ZA.lane32 zv 0) /\
+     Spec.Utils.is_intb 1664 (ZA.lane32 zv 1) /\
+     Spec.Utils.is_intb 1664 (ZA.lane32 zv 2) /\
+     Spec.Utils.is_intb 1664 (ZA.lane32 zv 3) /\
+     Spec.Utils.is_intb 1664 (ZA.lane32 zv 4) /\
+     Spec.Utils.is_intb 1664 (ZA.lane32 zv 5) /\
+     Spec.Utils.is_intb 1664 (ZA.lane32 zv 6) /\
+     Spec.Utils.is_intb 1664 (ZA.lane32 zv 7))
+  = lemma_nttmul_set32_lane (Rust_primitives.Arithmetic.neg (cast (zeta3 <: i16) <: i32) <: i32) (cast (zeta3 <: i16) <: i32) (Rust_primitives.Arithmetic.neg (cast (zeta2 <: i16) <: i32) <: i32) (cast (zeta2 <: i16) <: i32) (Rust_primitives.Arithmetic.neg (cast (zeta1 <: i16) <: i32) <: i32) (cast (zeta1 <: i16) <: i32) (Rust_primitives.Arithmetic.neg (cast (zeta0 <: i16) <: i32) <: i32) (cast (zeta0 <: i16) <: i32) 0;
+    lemma_nttmul_set32_lane (Rust_primitives.Arithmetic.neg (cast (zeta3 <: i16) <: i32) <: i32) (cast (zeta3 <: i16) <: i32) (Rust_primitives.Arithmetic.neg (cast (zeta2 <: i16) <: i32) <: i32) (cast (zeta2 <: i16) <: i32) (Rust_primitives.Arithmetic.neg (cast (zeta1 <: i16) <: i32) <: i32) (cast (zeta1 <: i16) <: i32) (Rust_primitives.Arithmetic.neg (cast (zeta0 <: i16) <: i32) <: i32) (cast (zeta0 <: i16) <: i32) 1;
+    lemma_nttmul_set32_lane (Rust_primitives.Arithmetic.neg (cast (zeta3 <: i16) <: i32) <: i32) (cast (zeta3 <: i16) <: i32) (Rust_primitives.Arithmetic.neg (cast (zeta2 <: i16) <: i32) <: i32) (cast (zeta2 <: i16) <: i32) (Rust_primitives.Arithmetic.neg (cast (zeta1 <: i16) <: i32) <: i32) (cast (zeta1 <: i16) <: i32) (Rust_primitives.Arithmetic.neg (cast (zeta0 <: i16) <: i32) <: i32) (cast (zeta0 <: i16) <: i32) 2;
+    lemma_nttmul_set32_lane (Rust_primitives.Arithmetic.neg (cast (zeta3 <: i16) <: i32) <: i32) (cast (zeta3 <: i16) <: i32) (Rust_primitives.Arithmetic.neg (cast (zeta2 <: i16) <: i32) <: i32) (cast (zeta2 <: i16) <: i32) (Rust_primitives.Arithmetic.neg (cast (zeta1 <: i16) <: i32) <: i32) (cast (zeta1 <: i16) <: i32) (Rust_primitives.Arithmetic.neg (cast (zeta0 <: i16) <: i32) <: i32) (cast (zeta0 <: i16) <: i32) 3;
+    lemma_nttmul_set32_lane (Rust_primitives.Arithmetic.neg (cast (zeta3 <: i16) <: i32) <: i32) (cast (zeta3 <: i16) <: i32) (Rust_primitives.Arithmetic.neg (cast (zeta2 <: i16) <: i32) <: i32) (cast (zeta2 <: i16) <: i32) (Rust_primitives.Arithmetic.neg (cast (zeta1 <: i16) <: i32) <: i32) (cast (zeta1 <: i16) <: i32) (Rust_primitives.Arithmetic.neg (cast (zeta0 <: i16) <: i32) <: i32) (cast (zeta0 <: i16) <: i32) 4;
+    lemma_nttmul_set32_lane (Rust_primitives.Arithmetic.neg (cast (zeta3 <: i16) <: i32) <: i32) (cast (zeta3 <: i16) <: i32) (Rust_primitives.Arithmetic.neg (cast (zeta2 <: i16) <: i32) <: i32) (cast (zeta2 <: i16) <: i32) (Rust_primitives.Arithmetic.neg (cast (zeta1 <: i16) <: i32) <: i32) (cast (zeta1 <: i16) <: i32) (Rust_primitives.Arithmetic.neg (cast (zeta0 <: i16) <: i32) <: i32) (cast (zeta0 <: i16) <: i32) 5;
+    lemma_nttmul_set32_lane (Rust_primitives.Arithmetic.neg (cast (zeta3 <: i16) <: i32) <: i32) (cast (zeta3 <: i16) <: i32) (Rust_primitives.Arithmetic.neg (cast (zeta2 <: i16) <: i32) <: i32) (cast (zeta2 <: i16) <: i32) (Rust_primitives.Arithmetic.neg (cast (zeta1 <: i16) <: i32) <: i32) (cast (zeta1 <: i16) <: i32) (Rust_primitives.Arithmetic.neg (cast (zeta0 <: i16) <: i32) <: i32) (cast (zeta0 <: i16) <: i32) 6;
+    lemma_nttmul_set32_lane (Rust_primitives.Arithmetic.neg (cast (zeta3 <: i16) <: i32) <: i32) (cast (zeta3 <: i16) <: i32) (Rust_primitives.Arithmetic.neg (cast (zeta2 <: i16) <: i32) <: i32) (cast (zeta2 <: i16) <: i32) (Rust_primitives.Arithmetic.neg (cast (zeta1 <: i16) <: i32) <: i32) (cast (zeta1 <: i16) <: i32) (Rust_primitives.Arithmetic.neg (cast (zeta0 <: i16) <: i32) <: i32) (cast (zeta0 <: i16) <: i32) 7;
+    ()
+#pop-options
+
+(* LEFT phase of avx2 ntt_multiply: even output lanes.  Split out of the old
+   monolithic lemma_nttmul_main so each half cold-verifies at the 4096 input
+   bound.  The zeta multiplier vector `zv` is a FREE PARAMETER (the impl passes
+   its `neg (cast zeta)` set_epi32 and proves the per-lane facts there); keeping
+   `neg` out of this lemma avoids a cold subtyping cascade under split_queries. *)
+#push-options "--z3rlimit 400 --split_queries always"
+let lemma_nttmul_left (m lhs rhs zv: ZI.t_Vec256) (zeta0 zeta1 zeta2 zeta3: i16) : Lemma
+  (requires
+     m ==
+      (ZI.mm256_set_epi8 (mk_i8 15) (mk_i8 14) (mk_i8 11) (mk_i8 10) (mk_i8 7) (mk_i8 6)
+      (mk_i8 3) (mk_i8 2) (mk_i8 13) (mk_i8 12) (mk_i8 9) (mk_i8 8) (mk_i8 5) (mk_i8 4)
+      (mk_i8 1) (mk_i8 0) (mk_i8 15) (mk_i8 14) (mk_i8 11) (mk_i8 10) (mk_i8 7) (mk_i8 6)
+      (mk_i8 3) (mk_i8 2) (mk_i8 13) (mk_i8 12) (mk_i8 9) (mk_i8 8) (mk_i8 5) (mk_i8 4)
+      (mk_i8 1) (mk_i8 0)) /\
+     Spec.Utils.is_i16b 1664 zeta0 /\ Spec.Utils.is_i16b 1664 zeta1 /\
+     Spec.Utils.is_i16b 1664 zeta2 /\ Spec.Utils.is_i16b 1664 zeta3 /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 0) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 1) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 2) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 3) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 4) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 5) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 6) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 7) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 8) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 9) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 10) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 11) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 12) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 13) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 14) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 15) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 0) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 1) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 2) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 3) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 4) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 5) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 6) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 7) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 8) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 9) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 10) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 11) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 12) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 13) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 14) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 15) /\
+     ZA.lane32 zv 0 == (v zeta0) /\
+     ZA.lane32 zv 1 == (- (v zeta0)) /\
+     ZA.lane32 zv 2 == (v zeta1) /\
+     ZA.lane32 zv 3 == (- (v zeta1)) /\
+     ZA.lane32 zv 4 == (v zeta2) /\
+     ZA.lane32 zv 5 == (- (v zeta2)) /\
+     ZA.lane32 zv 6 == (v zeta3) /\
+     ZA.lane32 zv 7 == (- (v zeta3)) /\
+     Spec.Utils.is_intb 1664 (ZA.lane32 zv 0) /\
+     Spec.Utils.is_intb 1664 (ZA.lane32 zv 1) /\
+     Spec.Utils.is_intb 1664 (ZA.lane32 zv 2) /\
+     Spec.Utils.is_intb 1664 (ZA.lane32 zv 3) /\
+     Spec.Utils.is_intb 1664 (ZA.lane32 zv 4) /\
+     Spec.Utils.is_intb 1664 (ZA.lane32 zv 5) /\
+     Spec.Utils.is_intb 1664 (ZA.lane32 zv 6) /\
+     Spec.Utils.is_intb 1664 (ZA.lane32 zv 7))
+  (ensures
+     (let lhs_grouped = ZI.mm256_permute4x64_epi64 (mk_i32 216) (ZI.mm256_shuffle_epi8 lhs m) in
+      let rhs_grouped = ZI.mm256_permute4x64_epi64 (mk_i32 216) (ZI.mm256_shuffle_epi8 rhs m) in
+      let left = ZI.mm256_mullo_epi32
+                   (ZI.mm256_cvtepi16_epi32 (ZI.mm256_castsi256_si128 lhs_grouped))
+                   (ZI.mm256_cvtepi16_epi32 (ZI.mm256_castsi256_si128 rhs_grouped)) in
+      let odd_products = ZI.mm256_mullo_epi32
+                   (ZI.mm256_cvtepi16_epi32 (ZI.mm256_extracti128_si256 (mk_i32 1) lhs_grouped))
+                   (ZI.mm256_cvtepi16_epi32 (ZI.mm256_extracti128_si256 (mk_i32 1) rhs_grouped)) in
+      let odd_products_reduced = Libcrux_ml_kem.Vector.Avx2.Arithmetic.montgomery_reduce_i32s odd_products in
+      let right = ZI.mm256_mullo_epi32 odd_products_reduced zv in
+      let products_left_raw = ZI.mm256_add_epi32 left right in
+      let products_left = Libcrux_ml_kem.Vector.Avx2.Arithmetic.montgomery_reduce_i32s products_left_raw in
+      Spec.Utils.is_intb (3328 * pow2 15) (ZA.lane32 odd_products 0) /\
+      Spec.Utils.is_intb (3328 * pow2 15) (ZA.lane32 odd_products 1) /\
+      Spec.Utils.is_intb (3328 * pow2 15) (ZA.lane32 odd_products 2) /\
+      Spec.Utils.is_intb (3328 * pow2 15) (ZA.lane32 odd_products 3) /\
+      Spec.Utils.is_intb (3328 * pow2 15) (ZA.lane32 odd_products 4) /\
+      Spec.Utils.is_intb (3328 * pow2 15) (ZA.lane32 odd_products 5) /\
+      Spec.Utils.is_intb (3328 * pow2 15) (ZA.lane32 odd_products 6) /\
+      Spec.Utils.is_intb (3328 * pow2 15) (ZA.lane32 odd_products 7) /\
+      Spec.Utils.is_intb (3328 * pow2 15) (ZA.lane32 products_left_raw 0) /\
+      Spec.Utils.is_intb (3328 * pow2 15) (ZA.lane32 products_left_raw 1) /\
+      Spec.Utils.is_intb (3328 * pow2 15) (ZA.lane32 products_left_raw 2) /\
+      Spec.Utils.is_intb (3328 * pow2 15) (ZA.lane32 products_left_raw 3) /\
+      Spec.Utils.is_intb (3328 * pow2 15) (ZA.lane32 products_left_raw 4) /\
+      Spec.Utils.is_intb (3328 * pow2 15) (ZA.lane32 products_left_raw 5) /\
+      Spec.Utils.is_intb (3328 * pow2 15) (ZA.lane32 products_left_raw 6) /\
+      Spec.Utils.is_intb (3328 * pow2 15) (ZA.lane32 products_left_raw 7) /\
+      (v (ZI.get_lane products_left 0) % 3329 ==
+        ((v (ZI.get_lane lhs 0) * v (ZI.get_lane rhs 0) +
+          v (ZI.get_lane lhs 1) * v (ZI.get_lane rhs 1) * (v zeta0) * 169) * 169) % 3329) /\
+      (v (ZI.get_lane products_left 2) % 3329 ==
+        ((v (ZI.get_lane lhs 2) * v (ZI.get_lane rhs 2) +
+          v (ZI.get_lane lhs 3) * v (ZI.get_lane rhs 3) * (- (v zeta0)) * 169) * 169) % 3329) /\
+      (v (ZI.get_lane products_left 4) % 3329 ==
+        ((v (ZI.get_lane lhs 4) * v (ZI.get_lane rhs 4) +
+          v (ZI.get_lane lhs 5) * v (ZI.get_lane rhs 5) * (v zeta1) * 169) * 169) % 3329) /\
+      (v (ZI.get_lane products_left 6) % 3329 ==
+        ((v (ZI.get_lane lhs 6) * v (ZI.get_lane rhs 6) +
+          v (ZI.get_lane lhs 7) * v (ZI.get_lane rhs 7) * (- (v zeta1)) * 169) * 169) % 3329) /\
+      (v (ZI.get_lane products_left 8) % 3329 ==
+        ((v (ZI.get_lane lhs 8) * v (ZI.get_lane rhs 8) +
+          v (ZI.get_lane lhs 9) * v (ZI.get_lane rhs 9) * (v zeta2) * 169) * 169) % 3329) /\
+      (v (ZI.get_lane products_left 10) % 3329 ==
+        ((v (ZI.get_lane lhs 10) * v (ZI.get_lane rhs 10) +
+          v (ZI.get_lane lhs 11) * v (ZI.get_lane rhs 11) * (- (v zeta2)) * 169) * 169) % 3329) /\
+      (v (ZI.get_lane products_left 12) % 3329 ==
+        ((v (ZI.get_lane lhs 12) * v (ZI.get_lane rhs 12) +
+          v (ZI.get_lane lhs 13) * v (ZI.get_lane rhs 13) * (v zeta3) * 169) * 169) % 3329) /\
+      (v (ZI.get_lane products_left 14) % 3329 ==
+        ((v (ZI.get_lane lhs 14) * v (ZI.get_lane rhs 14) +
+          v (ZI.get_lane lhs 15) * v (ZI.get_lane rhs 15) * (- (v zeta3)) * 169) * 169) % 3329)))
+  = assert_norm (pow2 15 == 32768);
+    assert_norm (pow2 31 == 2147483648);
+    let lhs_grouped = ZI.mm256_permute4x64_epi64 (mk_i32 216) (ZI.mm256_shuffle_epi8 lhs m) in
+    let rhs_grouped = ZI.mm256_permute4x64_epi64 (mk_i32 216) (ZI.mm256_shuffle_epi8 rhs m) in
+    let lhs_ev128 = ZI.mm256_castsi256_si128 lhs_grouped in
+    let lhs_evens = ZI.mm256_cvtepi16_epi32 lhs_ev128 in
+    let lhs_od128 = ZI.mm256_extracti128_si256 (mk_i32 1) lhs_grouped in
+    let lhs_odds = ZI.mm256_cvtepi16_epi32 lhs_od128 in
+    let rhs_ev128 = ZI.mm256_castsi256_si128 rhs_grouped in
+    let rhs_evens = ZI.mm256_cvtepi16_epi32 rhs_ev128 in
+    let rhs_od128 = ZI.mm256_extracti128_si256 (mk_i32 1) rhs_grouped in
+    let rhs_odds = ZI.mm256_cvtepi16_epi32 rhs_od128 in
+    lemma_nttmul_prep_evens lhs m lhs_grouped lhs_evens lhs_ev128;
+    lemma_nttmul_prep_odds lhs m lhs_grouped lhs_odds lhs_od128;
+    lemma_nttmul_prep_evens rhs m rhs_grouped rhs_evens rhs_ev128;
+    lemma_nttmul_prep_odds rhs m rhs_grouped rhs_odds rhs_od128;
+    let left = ZI.mm256_mullo_epi32 lhs_evens rhs_evens in
+    let odd_products = ZI.mm256_mullo_epi32 lhs_odds rhs_odds in
+    lemma_nttmul_mullo32_lane lhs_evens rhs_evens 4096 4096 0;
+    lemma_nttmul_mullo32_lane lhs_evens rhs_evens 4096 4096 1;
+    lemma_nttmul_mullo32_lane lhs_evens rhs_evens 4096 4096 2;
+    lemma_nttmul_mullo32_lane lhs_evens rhs_evens 4096 4096 3;
+    lemma_nttmul_mullo32_lane lhs_evens rhs_evens 4096 4096 4;
+    lemma_nttmul_mullo32_lane lhs_evens rhs_evens 4096 4096 5;
+    lemma_nttmul_mullo32_lane lhs_evens rhs_evens 4096 4096 6;
+    lemma_nttmul_mullo32_lane lhs_evens rhs_evens 4096 4096 7;
+    lemma_nttmul_mullo32_lane lhs_odds rhs_odds 4096 4096 0;
+    lemma_nttmul_mullo32_lane lhs_odds rhs_odds 4096 4096 1;
+    lemma_nttmul_mullo32_lane lhs_odds rhs_odds 4096 4096 2;
+    lemma_nttmul_mullo32_lane lhs_odds rhs_odds 4096 4096 3;
+    lemma_nttmul_mullo32_lane lhs_odds rhs_odds 4096 4096 4;
+    lemma_nttmul_mullo32_lane lhs_odds rhs_odds 4096 4096 5;
+    lemma_nttmul_mullo32_lane lhs_odds rhs_odds 4096 4096 6;
+    lemma_nttmul_mullo32_lane lhs_odds rhs_odds 4096 4096 7;
+    let odd_products_reduced = Libcrux_ml_kem.Vector.Avx2.Arithmetic.montgomery_reduce_i32s odd_products in
+    lemma_nttmul_even_chain
+      (v (ZI.get_lane lhs 0) * v (ZI.get_lane rhs 0))
+      (v (ZI.get_lane odd_products_reduced 0)) (v zeta0)
+      (v (ZI.get_lane lhs 1) * v (ZI.get_lane rhs 1));
+    lemma_nttmul_even_chain
+      (v (ZI.get_lane lhs 2) * v (ZI.get_lane rhs 2))
+      (v (ZI.get_lane odd_products_reduced 2)) (- (v zeta0))
+      (v (ZI.get_lane lhs 3) * v (ZI.get_lane rhs 3));
+    lemma_nttmul_even_chain
+      (v (ZI.get_lane lhs 4) * v (ZI.get_lane rhs 4))
+      (v (ZI.get_lane odd_products_reduced 4)) (v zeta1)
+      (v (ZI.get_lane lhs 5) * v (ZI.get_lane rhs 5));
+    lemma_nttmul_even_chain
+      (v (ZI.get_lane lhs 6) * v (ZI.get_lane rhs 6))
+      (v (ZI.get_lane odd_products_reduced 6)) (- (v zeta1))
+      (v (ZI.get_lane lhs 7) * v (ZI.get_lane rhs 7));
+    lemma_nttmul_even_chain
+      (v (ZI.get_lane lhs 8) * v (ZI.get_lane rhs 8))
+      (v (ZI.get_lane odd_products_reduced 8)) (v zeta2)
+      (v (ZI.get_lane lhs 9) * v (ZI.get_lane rhs 9));
+    lemma_nttmul_even_chain
+      (v (ZI.get_lane lhs 10) * v (ZI.get_lane rhs 10))
+      (v (ZI.get_lane odd_products_reduced 10)) (- (v zeta2))
+      (v (ZI.get_lane lhs 11) * v (ZI.get_lane rhs 11));
+    lemma_nttmul_even_chain
+      (v (ZI.get_lane lhs 12) * v (ZI.get_lane rhs 12))
+      (v (ZI.get_lane odd_products_reduced 12)) (v zeta3)
+      (v (ZI.get_lane lhs 13) * v (ZI.get_lane rhs 13));
+    lemma_nttmul_even_chain
+      (v (ZI.get_lane lhs 14) * v (ZI.get_lane rhs 14))
+      (v (ZI.get_lane odd_products_reduced 14)) (- (v zeta3))
+      (v (ZI.get_lane lhs 15) * v (ZI.get_lane rhs 15));
+    lemma_nttmul_mullo32_lane odd_products_reduced zv 3328 1664 0;
+    lemma_nttmul_mullo32_lane odd_products_reduced zv 3328 1664 1;
+    lemma_nttmul_mullo32_lane odd_products_reduced zv 3328 1664 2;
+    lemma_nttmul_mullo32_lane odd_products_reduced zv 3328 1664 3;
+    lemma_nttmul_mullo32_lane odd_products_reduced zv 3328 1664 4;
+    lemma_nttmul_mullo32_lane odd_products_reduced zv 3328 1664 5;
+    lemma_nttmul_mullo32_lane odd_products_reduced zv 3328 1664 6;
+    lemma_nttmul_mullo32_lane odd_products_reduced zv 3328 1664 7;
+    let right = ZI.mm256_mullo_epi32 odd_products_reduced zv in
+    lemma_nttmul_add32_lane left right (4096 * 4096) (3328 * 1664) 0;
+    lemma_nttmul_add32_lane left right (4096 * 4096) (3328 * 1664) 1;
+    lemma_nttmul_add32_lane left right (4096 * 4096) (3328 * 1664) 2;
+    lemma_nttmul_add32_lane left right (4096 * 4096) (3328 * 1664) 3;
+    lemma_nttmul_add32_lane left right (4096 * 4096) (3328 * 1664) 4;
+    lemma_nttmul_add32_lane left right (4096 * 4096) (3328 * 1664) 5;
+    lemma_nttmul_add32_lane left right (4096 * 4096) (3328 * 1664) 6;
+    lemma_nttmul_add32_lane left right (4096 * 4096) (3328 * 1664) 7;
+    let products_left_raw = ZI.mm256_add_epi32 left right in
+    let products_left = Libcrux_ml_kem.Vector.Avx2.Arithmetic.montgomery_reduce_i32s products_left_raw in
+    assert (v (ZI.get_lane products_left 0) % 3329 ==
+      ((v (ZI.get_lane lhs 0) * v (ZI.get_lane rhs 0) +
+        v (ZI.get_lane lhs 1) * v (ZI.get_lane rhs 1) * (v zeta0) * 169) * 169) % 3329);
+    assert (v (ZI.get_lane products_left 2) % 3329 ==
+      ((v (ZI.get_lane lhs 2) * v (ZI.get_lane rhs 2) +
+        v (ZI.get_lane lhs 3) * v (ZI.get_lane rhs 3) * (- (v zeta0)) * 169) * 169) % 3329);
+    assert (v (ZI.get_lane products_left 4) % 3329 ==
+      ((v (ZI.get_lane lhs 4) * v (ZI.get_lane rhs 4) +
+        v (ZI.get_lane lhs 5) * v (ZI.get_lane rhs 5) * (v zeta1) * 169) * 169) % 3329);
+    assert (v (ZI.get_lane products_left 6) % 3329 ==
+      ((v (ZI.get_lane lhs 6) * v (ZI.get_lane rhs 6) +
+        v (ZI.get_lane lhs 7) * v (ZI.get_lane rhs 7) * (- (v zeta1)) * 169) * 169) % 3329);
+    assert (v (ZI.get_lane products_left 8) % 3329 ==
+      ((v (ZI.get_lane lhs 8) * v (ZI.get_lane rhs 8) +
+        v (ZI.get_lane lhs 9) * v (ZI.get_lane rhs 9) * (v zeta2) * 169) * 169) % 3329);
+    assert (v (ZI.get_lane products_left 10) % 3329 ==
+      ((v (ZI.get_lane lhs 10) * v (ZI.get_lane rhs 10) +
+        v (ZI.get_lane lhs 11) * v (ZI.get_lane rhs 11) * (- (v zeta2)) * 169) * 169) % 3329);
+    assert (v (ZI.get_lane products_left 12) % 3329 ==
+      ((v (ZI.get_lane lhs 12) * v (ZI.get_lane rhs 12) +
+        v (ZI.get_lane lhs 13) * v (ZI.get_lane rhs 13) * (v zeta3) * 169) * 169) % 3329);
+    assert (v (ZI.get_lane products_left 14) % 3329 ==
+      ((v (ZI.get_lane lhs 14) * v (ZI.get_lane rhs 14) +
+        v (ZI.get_lane lhs 15) * v (ZI.get_lane rhs 15) * (- (v zeta3)) * 169) * 169) % 3329);
+    ()
+#pop-options
+
+(* RIGHT phase of avx2 ntt_multiply: odd output lanes.  Proves the
+   products_right_raw is_intb bounds + the 8 products_right_reduced residues
+   that feed the odd half of ntt_multiply_butterfly_post. *)
+#push-options "--z3rlimit 400 --split_queries always"
+let lemma_nttmul_right (ms lhs rhs: ZI.t_Vec256) : Lemma
+  (requires
+     ms ==
+      (ZI.mm256_set_epi8 (mk_i8 13) (mk_i8 12) (mk_i8 15) (mk_i8 14) (mk_i8 9) (mk_i8 8)
+      (mk_i8 11) (mk_i8 10) (mk_i8 5) (mk_i8 4) (mk_i8 7) (mk_i8 6) (mk_i8 1) (mk_i8 0)
+      (mk_i8 3) (mk_i8 2) (mk_i8 13) (mk_i8 12) (mk_i8 15) (mk_i8 14) (mk_i8 9) (mk_i8 8)
+      (mk_i8 11) (mk_i8 10) (mk_i8 5) (mk_i8 4) (mk_i8 7) (mk_i8 6) (mk_i8 1) (mk_i8 0)
+      (mk_i8 3) (mk_i8 2)) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 0) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 1) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 2) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 3) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 4) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 5) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 6) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 7) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 8) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 9) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 10) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 11) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 12) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 13) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 14) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 15) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 0) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 1) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 2) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 3) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 4) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 5) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 6) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 7) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 8) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 9) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 10) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 11) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 12) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 13) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 14) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 15))
+  (ensures
+     (let rhs_adjacent_swapped = ZI.mm256_shuffle_epi8 rhs ms in
+      let products_right_raw = ZI.mm256_madd_epi16 lhs rhs_adjacent_swapped in
+      let products_right_reduced = Libcrux_ml_kem.Vector.Avx2.Arithmetic.montgomery_reduce_i32s products_right_raw in
+      Spec.Utils.is_intb (3328 * pow2 15) (ZA.lane32 products_right_raw 0) /\
+      Spec.Utils.is_intb (3328 * pow2 15) (ZA.lane32 products_right_raw 1) /\
+      Spec.Utils.is_intb (3328 * pow2 15) (ZA.lane32 products_right_raw 2) /\
+      Spec.Utils.is_intb (3328 * pow2 15) (ZA.lane32 products_right_raw 3) /\
+      Spec.Utils.is_intb (3328 * pow2 15) (ZA.lane32 products_right_raw 4) /\
+      Spec.Utils.is_intb (3328 * pow2 15) (ZA.lane32 products_right_raw 5) /\
+      Spec.Utils.is_intb (3328 * pow2 15) (ZA.lane32 products_right_raw 6) /\
+      Spec.Utils.is_intb (3328 * pow2 15) (ZA.lane32 products_right_raw 7) /\
+      (v (ZI.get_lane products_right_reduced 0) % 3329 ==
+        ((v (ZI.get_lane lhs 0) * v (ZI.get_lane rhs 1) +
+          v (ZI.get_lane lhs 1) * v (ZI.get_lane rhs 0)) * 169) % 3329) /\
+      (v (ZI.get_lane products_right_reduced 2) % 3329 ==
+        ((v (ZI.get_lane lhs 2) * v (ZI.get_lane rhs 3) +
+          v (ZI.get_lane lhs 3) * v (ZI.get_lane rhs 2)) * 169) % 3329) /\
+      (v (ZI.get_lane products_right_reduced 4) % 3329 ==
+        ((v (ZI.get_lane lhs 4) * v (ZI.get_lane rhs 5) +
+          v (ZI.get_lane lhs 5) * v (ZI.get_lane rhs 4)) * 169) % 3329) /\
+      (v (ZI.get_lane products_right_reduced 6) % 3329 ==
+        ((v (ZI.get_lane lhs 6) * v (ZI.get_lane rhs 7) +
+          v (ZI.get_lane lhs 7) * v (ZI.get_lane rhs 6)) * 169) % 3329) /\
+      (v (ZI.get_lane products_right_reduced 8) % 3329 ==
+        ((v (ZI.get_lane lhs 8) * v (ZI.get_lane rhs 9) +
+          v (ZI.get_lane lhs 9) * v (ZI.get_lane rhs 8)) * 169) % 3329) /\
+      (v (ZI.get_lane products_right_reduced 10) % 3329 ==
+        ((v (ZI.get_lane lhs 10) * v (ZI.get_lane rhs 11) +
+          v (ZI.get_lane lhs 11) * v (ZI.get_lane rhs 10)) * 169) % 3329) /\
+      (v (ZI.get_lane products_right_reduced 12) % 3329 ==
+        ((v (ZI.get_lane lhs 12) * v (ZI.get_lane rhs 13) +
+          v (ZI.get_lane lhs 13) * v (ZI.get_lane rhs 12)) * 169) % 3329) /\
+      (v (ZI.get_lane products_right_reduced 14) % 3329 ==
+        ((v (ZI.get_lane lhs 14) * v (ZI.get_lane rhs 15) +
+          v (ZI.get_lane lhs 15) * v (ZI.get_lane rhs 14)) * 169) % 3329)))
+  = assert_norm (pow2 15 == 32768);
+    assert_norm (pow2 31 == 2147483648);
+    let rhs_adjacent_swapped = ZI.mm256_shuffle_epi8 rhs ms in
+    lemma_nttmul_swap_facts rhs ms rhs_adjacent_swapped;
+    lemma_nttmul_madd_lane lhs rhs_adjacent_swapped 4096 4096 0;
+    lemma_nttmul_madd_lane lhs rhs_adjacent_swapped 4096 4096 1;
+    lemma_nttmul_madd_lane lhs rhs_adjacent_swapped 4096 4096 2;
+    lemma_nttmul_madd_lane lhs rhs_adjacent_swapped 4096 4096 3;
+    lemma_nttmul_madd_lane lhs rhs_adjacent_swapped 4096 4096 4;
+    lemma_nttmul_madd_lane lhs rhs_adjacent_swapped 4096 4096 5;
+    lemma_nttmul_madd_lane lhs rhs_adjacent_swapped 4096 4096 6;
+    lemma_nttmul_madd_lane lhs rhs_adjacent_swapped 4096 4096 7;
+    let products_right_raw = ZI.mm256_madd_epi16 lhs rhs_adjacent_swapped in
+    let products_right_reduced = Libcrux_ml_kem.Vector.Avx2.Arithmetic.montgomery_reduce_i32s products_right_raw in
+    assert (v (ZI.get_lane products_right_reduced 0) % 3329 ==
+      ((v (ZI.get_lane lhs 0) * v (ZI.get_lane rhs 1) +
+        v (ZI.get_lane lhs 1) * v (ZI.get_lane rhs 0)) * 169) % 3329);
+    assert (v (ZI.get_lane products_right_reduced 2) % 3329 ==
+      ((v (ZI.get_lane lhs 2) * v (ZI.get_lane rhs 3) +
+        v (ZI.get_lane lhs 3) * v (ZI.get_lane rhs 2)) * 169) % 3329);
+    assert (v (ZI.get_lane products_right_reduced 4) % 3329 ==
+      ((v (ZI.get_lane lhs 4) * v (ZI.get_lane rhs 5) +
+        v (ZI.get_lane lhs 5) * v (ZI.get_lane rhs 4)) * 169) % 3329);
+    assert (v (ZI.get_lane products_right_reduced 6) % 3329 ==
+      ((v (ZI.get_lane lhs 6) * v (ZI.get_lane rhs 7) +
+        v (ZI.get_lane lhs 7) * v (ZI.get_lane rhs 6)) * 169) % 3329);
+    assert (v (ZI.get_lane products_right_reduced 8) % 3329 ==
+      ((v (ZI.get_lane lhs 8) * v (ZI.get_lane rhs 9) +
+        v (ZI.get_lane lhs 9) * v (ZI.get_lane rhs 8)) * 169) % 3329);
+    assert (v (ZI.get_lane products_right_reduced 10) % 3329 ==
+      ((v (ZI.get_lane lhs 10) * v (ZI.get_lane rhs 11) +
+        v (ZI.get_lane lhs 11) * v (ZI.get_lane rhs 10)) * 169) % 3329);
+    assert (v (ZI.get_lane products_right_reduced 12) % 3329 ==
+      ((v (ZI.get_lane lhs 12) * v (ZI.get_lane rhs 13) +
+        v (ZI.get_lane lhs 13) * v (ZI.get_lane rhs 12)) * 169) % 3329);
+    assert (v (ZI.get_lane products_right_reduced 14) % 3329 ==
+      ((v (ZI.get_lane lhs 14) * v (ZI.get_lane rhs 15) +
+        v (ZI.get_lane lhs 15) * v (ZI.get_lane rhs 14)) * 169) % 3329);
+    ()
+#pop-options
+
+(* Thin composer: delegates the even/odd halves to lemma_nttmul_left /
+   lemma_nttmul_right, then blends + reveals ntt_multiply_butterfly_post.
+   `zv` (the neg/cast zeta vector) is a free parameter, supplied + justified by
+   the ntt_multiply impl, so this lemma stays free of `neg` subtyping. *)
+#push-options "--z3rlimit 400 --split_queries always"
+let lemma_nttmul_main (m ms lhs rhs zv: ZI.t_Vec256) (zeta0 zeta1 zeta2 zeta3: i16) : Lemma
   (requires
      ms ==
       (ZI.mm256_set_epi8 (mk_i8 13) (mk_i8 12) (mk_i8 15) (mk_i8 14) (mk_i8 9) (mk_i8 8)
@@ -2046,38 +2452,54 @@ let lemma_nttmul_main (m ms lhs rhs: ZI.t_Vec256) (zeta0 zeta1 zeta2 zeta3: i16)
       (mk_i8 1) (mk_i8 0)) /\
      Spec.Utils.is_i16b 1664 zeta0 /\ Spec.Utils.is_i16b 1664 zeta1 /\
      Spec.Utils.is_i16b 1664 zeta2 /\ Spec.Utils.is_i16b 1664 zeta3 /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane lhs 0) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane lhs 1) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane lhs 2) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane lhs 3) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane lhs 4) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane lhs 5) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane lhs 6) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane lhs 7) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane lhs 8) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane lhs 9) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane lhs 10) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane lhs 11) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane lhs 12) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane lhs 13) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane lhs 14) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane lhs 15) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane rhs 0) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane rhs 1) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane rhs 2) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane rhs 3) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane rhs 4) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane rhs 5) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane rhs 6) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane rhs 7) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane rhs 8) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane rhs 9) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane rhs 10) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane rhs 11) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane rhs 12) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane rhs 13) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane rhs 14) /\
-     Spec.Utils.is_i16b 3328 (ZI.get_lane rhs 15))
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 0) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 1) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 2) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 3) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 4) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 5) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 6) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 7) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 8) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 9) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 10) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 11) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 12) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 13) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 14) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane lhs 15) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 0) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 1) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 2) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 3) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 4) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 5) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 6) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 7) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 8) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 9) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 10) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 11) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 12) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 13) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 14) /\
+     Spec.Utils.is_i16b 4096 (ZI.get_lane rhs 15) /\
+     ZA.lane32 zv 0 == (v zeta0) /\
+     ZA.lane32 zv 1 == (- (v zeta0)) /\
+     ZA.lane32 zv 2 == (v zeta1) /\
+     ZA.lane32 zv 3 == (- (v zeta1)) /\
+     ZA.lane32 zv 4 == (v zeta2) /\
+     ZA.lane32 zv 5 == (- (v zeta2)) /\
+     ZA.lane32 zv 6 == (v zeta3) /\
+     ZA.lane32 zv 7 == (- (v zeta3)) /\
+     Spec.Utils.is_intb 1664 (ZA.lane32 zv 0) /\
+     Spec.Utils.is_intb 1664 (ZA.lane32 zv 1) /\
+     Spec.Utils.is_intb 1664 (ZA.lane32 zv 2) /\
+     Spec.Utils.is_intb 1664 (ZA.lane32 zv 3) /\
+     Spec.Utils.is_intb 1664 (ZA.lane32 zv 4) /\
+     Spec.Utils.is_intb 1664 (ZA.lane32 zv 5) /\
+     Spec.Utils.is_intb 1664 (ZA.lane32 zv 6) /\
+     Spec.Utils.is_intb 1664 (ZA.lane32 zv 7))
   (ensures
      (let lhs_grouped = ZI.mm256_permute4x64_epi64 (mk_i32 216) (ZI.mm256_shuffle_epi8 lhs m) in
       let rhs_grouped = ZI.mm256_permute4x64_epi64 (mk_i32 216) (ZI.mm256_shuffle_epi8 rhs m) in
@@ -2088,15 +2510,7 @@ let lemma_nttmul_main (m ms lhs rhs: ZI.t_Vec256) (zeta0 zeta1 zeta2 zeta3: i16)
                    (ZI.mm256_cvtepi16_epi32 (ZI.mm256_extracti128_si256 (mk_i32 1) lhs_grouped))
                    (ZI.mm256_cvtepi16_epi32 (ZI.mm256_extracti128_si256 (mk_i32 1) rhs_grouped)) in
       let odd_products_reduced = Libcrux_ml_kem.Vector.Avx2.Arithmetic.montgomery_reduce_i32s odd_products in
-      let right = ZI.mm256_mullo_epi32 odd_products_reduced
-        (ZI.mm256_set_epi32 (Rust_primitives.Arithmetic.neg (cast (zeta3 <: i16) <: i32) <: i32)
-      (cast (zeta3 <: i16) <: i32)
-      (Rust_primitives.Arithmetic.neg (cast (zeta2 <: i16) <: i32) <: i32)
-      (cast (zeta2 <: i16) <: i32)
-      (Rust_primitives.Arithmetic.neg (cast (zeta1 <: i16) <: i32) <: i32)
-      (cast (zeta1 <: i16) <: i32)
-      (Rust_primitives.Arithmetic.neg (cast (zeta0 <: i16) <: i32) <: i32)
-      (cast (zeta0 <: i16) <: i32)) in
+      let right = ZI.mm256_mullo_epi32 odd_products_reduced zv in
       let products_left_raw = ZI.mm256_add_epi32 left right in
       let products_left = Libcrux_ml_kem.Vector.Avx2.Arithmetic.montgomery_reduce_i32s products_left_raw in
       let rhs_adjacent_swapped = ZI.mm256_shuffle_epi8 rhs ms in
@@ -2134,231 +2548,23 @@ let lemma_nttmul_main (m ms lhs rhs: ZI.t_Vec256) (zeta0 zeta1 zeta2 zeta3: i16)
         (ZI.vec256_as_i16x16 out) zeta0 zeta1 zeta2 zeta3))
   = assert_norm (pow2 15 == 32768);
     assert_norm (pow2 31 == 2147483648);
+    lemma_nttmul_left m lhs rhs zv zeta0 zeta1 zeta2 zeta3;
+    lemma_nttmul_right ms lhs rhs;
     let lhs_grouped = ZI.mm256_permute4x64_epi64 (mk_i32 216) (ZI.mm256_shuffle_epi8 lhs m) in
     let rhs_grouped = ZI.mm256_permute4x64_epi64 (mk_i32 216) (ZI.mm256_shuffle_epi8 rhs m) in
-    let lhs_ev128 = ZI.mm256_castsi256_si128 lhs_grouped in
-    let lhs_evens = ZI.mm256_cvtepi16_epi32 lhs_ev128 in
-    let lhs_od128 = ZI.mm256_extracti128_si256 (mk_i32 1) lhs_grouped in
-    let lhs_odds = ZI.mm256_cvtepi16_epi32 lhs_od128 in
-    let rhs_ev128 = ZI.mm256_castsi256_si128 rhs_grouped in
-    let rhs_evens = ZI.mm256_cvtepi16_epi32 rhs_ev128 in
-    let rhs_od128 = ZI.mm256_extracti128_si256 (mk_i32 1) rhs_grouped in
-    let rhs_odds = ZI.mm256_cvtepi16_epi32 rhs_od128 in
-    lemma_nttmul_prep_evens lhs m lhs_grouped lhs_evens lhs_ev128;
-    lemma_nttmul_prep_odds lhs m lhs_grouped lhs_odds lhs_od128;
-    lemma_nttmul_prep_evens rhs m rhs_grouped rhs_evens rhs_ev128;
-    lemma_nttmul_prep_odds rhs m rhs_grouped rhs_odds rhs_od128;
-    let left = ZI.mm256_mullo_epi32 lhs_evens rhs_evens in
-    let odd_products = ZI.mm256_mullo_epi32 lhs_odds rhs_odds in
-    lemma_nttmul_mullo32_lane lhs_evens rhs_evens 3328 3328 0;
-    lemma_nttmul_mullo32_lane lhs_evens rhs_evens 3328 3328 1;
-    lemma_nttmul_mullo32_lane lhs_evens rhs_evens 3328 3328 2;
-    lemma_nttmul_mullo32_lane lhs_evens rhs_evens 3328 3328 3;
-    lemma_nttmul_mullo32_lane lhs_evens rhs_evens 3328 3328 4;
-    lemma_nttmul_mullo32_lane lhs_evens rhs_evens 3328 3328 5;
-    lemma_nttmul_mullo32_lane lhs_evens rhs_evens 3328 3328 6;
-    lemma_nttmul_mullo32_lane lhs_evens rhs_evens 3328 3328 7;
-    lemma_nttmul_mullo32_lane lhs_odds rhs_odds 3328 3328 0;
-    lemma_nttmul_mullo32_lane lhs_odds rhs_odds 3328 3328 1;
-    lemma_nttmul_mullo32_lane lhs_odds rhs_odds 3328 3328 2;
-    lemma_nttmul_mullo32_lane lhs_odds rhs_odds 3328 3328 3;
-    lemma_nttmul_mullo32_lane lhs_odds rhs_odds 3328 3328 4;
-    lemma_nttmul_mullo32_lane lhs_odds rhs_odds 3328 3328 5;
-    lemma_nttmul_mullo32_lane lhs_odds rhs_odds 3328 3328 6;
-    lemma_nttmul_mullo32_lane lhs_odds rhs_odds 3328 3328 7;
+    let left = ZI.mm256_mullo_epi32
+                 (ZI.mm256_cvtepi16_epi32 (ZI.mm256_castsi256_si128 lhs_grouped))
+                 (ZI.mm256_cvtepi16_epi32 (ZI.mm256_castsi256_si128 rhs_grouped)) in
+    let odd_products = ZI.mm256_mullo_epi32
+                 (ZI.mm256_cvtepi16_epi32 (ZI.mm256_extracti128_si256 (mk_i32 1) lhs_grouped))
+                 (ZI.mm256_cvtepi16_epi32 (ZI.mm256_extracti128_si256 (mk_i32 1) rhs_grouped)) in
     let odd_products_reduced = Libcrux_ml_kem.Vector.Avx2.Arithmetic.montgomery_reduce_i32s odd_products in
-    lemma_nttmul_even_chain
-      (v (ZI.get_lane lhs 0) * v (ZI.get_lane rhs 0))
-      (v (ZI.get_lane odd_products_reduced 0)) (v zeta0)
-      (v (ZI.get_lane lhs 1) * v (ZI.get_lane rhs 1));
-    lemma_nttmul_even_chain
-      (v (ZI.get_lane lhs 2) * v (ZI.get_lane rhs 2))
-      (v (ZI.get_lane odd_products_reduced 2)) (- (v zeta0))
-      (v (ZI.get_lane lhs 3) * v (ZI.get_lane rhs 3));
-    lemma_nttmul_even_chain
-      (v (ZI.get_lane lhs 4) * v (ZI.get_lane rhs 4))
-      (v (ZI.get_lane odd_products_reduced 4)) (v zeta1)
-      (v (ZI.get_lane lhs 5) * v (ZI.get_lane rhs 5));
-    lemma_nttmul_even_chain
-      (v (ZI.get_lane lhs 6) * v (ZI.get_lane rhs 6))
-      (v (ZI.get_lane odd_products_reduced 6)) (- (v zeta1))
-      (v (ZI.get_lane lhs 7) * v (ZI.get_lane rhs 7));
-    lemma_nttmul_even_chain
-      (v (ZI.get_lane lhs 8) * v (ZI.get_lane rhs 8))
-      (v (ZI.get_lane odd_products_reduced 8)) (v zeta2)
-      (v (ZI.get_lane lhs 9) * v (ZI.get_lane rhs 9));
-    lemma_nttmul_even_chain
-      (v (ZI.get_lane lhs 10) * v (ZI.get_lane rhs 10))
-      (v (ZI.get_lane odd_products_reduced 10)) (- (v zeta2))
-      (v (ZI.get_lane lhs 11) * v (ZI.get_lane rhs 11));
-    lemma_nttmul_even_chain
-      (v (ZI.get_lane lhs 12) * v (ZI.get_lane rhs 12))
-      (v (ZI.get_lane odd_products_reduced 12)) (v zeta3)
-      (v (ZI.get_lane lhs 13) * v (ZI.get_lane rhs 13));
-    lemma_nttmul_even_chain
-      (v (ZI.get_lane lhs 14) * v (ZI.get_lane rhs 14))
-      (v (ZI.get_lane odd_products_reduced 14)) (- (v zeta3))
-      (v (ZI.get_lane lhs 15) * v (ZI.get_lane rhs 15));
-    lemma_nttmul_set32_lane
-      (Rust_primitives.Arithmetic.neg (cast (zeta3 <: i16) <: i32) <: i32)
-      (cast (zeta3 <: i16) <: i32)
-      (Rust_primitives.Arithmetic.neg (cast (zeta2 <: i16) <: i32) <: i32)
-      (cast (zeta2 <: i16) <: i32)
-      (Rust_primitives.Arithmetic.neg (cast (zeta1 <: i16) <: i32) <: i32)
-      (cast (zeta1 <: i16) <: i32)
-      (Rust_primitives.Arithmetic.neg (cast (zeta0 <: i16) <: i32) <: i32)
-      (cast (zeta0 <: i16) <: i32) 0;
-    lemma_nttmul_set32_lane
-      (Rust_primitives.Arithmetic.neg (cast (zeta3 <: i16) <: i32) <: i32)
-      (cast (zeta3 <: i16) <: i32)
-      (Rust_primitives.Arithmetic.neg (cast (zeta2 <: i16) <: i32) <: i32)
-      (cast (zeta2 <: i16) <: i32)
-      (Rust_primitives.Arithmetic.neg (cast (zeta1 <: i16) <: i32) <: i32)
-      (cast (zeta1 <: i16) <: i32)
-      (Rust_primitives.Arithmetic.neg (cast (zeta0 <: i16) <: i32) <: i32)
-      (cast (zeta0 <: i16) <: i32) 1;
-    lemma_nttmul_set32_lane
-      (Rust_primitives.Arithmetic.neg (cast (zeta3 <: i16) <: i32) <: i32)
-      (cast (zeta3 <: i16) <: i32)
-      (Rust_primitives.Arithmetic.neg (cast (zeta2 <: i16) <: i32) <: i32)
-      (cast (zeta2 <: i16) <: i32)
-      (Rust_primitives.Arithmetic.neg (cast (zeta1 <: i16) <: i32) <: i32)
-      (cast (zeta1 <: i16) <: i32)
-      (Rust_primitives.Arithmetic.neg (cast (zeta0 <: i16) <: i32) <: i32)
-      (cast (zeta0 <: i16) <: i32) 2;
-    lemma_nttmul_set32_lane
-      (Rust_primitives.Arithmetic.neg (cast (zeta3 <: i16) <: i32) <: i32)
-      (cast (zeta3 <: i16) <: i32)
-      (Rust_primitives.Arithmetic.neg (cast (zeta2 <: i16) <: i32) <: i32)
-      (cast (zeta2 <: i16) <: i32)
-      (Rust_primitives.Arithmetic.neg (cast (zeta1 <: i16) <: i32) <: i32)
-      (cast (zeta1 <: i16) <: i32)
-      (Rust_primitives.Arithmetic.neg (cast (zeta0 <: i16) <: i32) <: i32)
-      (cast (zeta0 <: i16) <: i32) 3;
-    lemma_nttmul_set32_lane
-      (Rust_primitives.Arithmetic.neg (cast (zeta3 <: i16) <: i32) <: i32)
-      (cast (zeta3 <: i16) <: i32)
-      (Rust_primitives.Arithmetic.neg (cast (zeta2 <: i16) <: i32) <: i32)
-      (cast (zeta2 <: i16) <: i32)
-      (Rust_primitives.Arithmetic.neg (cast (zeta1 <: i16) <: i32) <: i32)
-      (cast (zeta1 <: i16) <: i32)
-      (Rust_primitives.Arithmetic.neg (cast (zeta0 <: i16) <: i32) <: i32)
-      (cast (zeta0 <: i16) <: i32) 4;
-    lemma_nttmul_set32_lane
-      (Rust_primitives.Arithmetic.neg (cast (zeta3 <: i16) <: i32) <: i32)
-      (cast (zeta3 <: i16) <: i32)
-      (Rust_primitives.Arithmetic.neg (cast (zeta2 <: i16) <: i32) <: i32)
-      (cast (zeta2 <: i16) <: i32)
-      (Rust_primitives.Arithmetic.neg (cast (zeta1 <: i16) <: i32) <: i32)
-      (cast (zeta1 <: i16) <: i32)
-      (Rust_primitives.Arithmetic.neg (cast (zeta0 <: i16) <: i32) <: i32)
-      (cast (zeta0 <: i16) <: i32) 5;
-    lemma_nttmul_set32_lane
-      (Rust_primitives.Arithmetic.neg (cast (zeta3 <: i16) <: i32) <: i32)
-      (cast (zeta3 <: i16) <: i32)
-      (Rust_primitives.Arithmetic.neg (cast (zeta2 <: i16) <: i32) <: i32)
-      (cast (zeta2 <: i16) <: i32)
-      (Rust_primitives.Arithmetic.neg (cast (zeta1 <: i16) <: i32) <: i32)
-      (cast (zeta1 <: i16) <: i32)
-      (Rust_primitives.Arithmetic.neg (cast (zeta0 <: i16) <: i32) <: i32)
-      (cast (zeta0 <: i16) <: i32) 6;
-    lemma_nttmul_set32_lane
-      (Rust_primitives.Arithmetic.neg (cast (zeta3 <: i16) <: i32) <: i32)
-      (cast (zeta3 <: i16) <: i32)
-      (Rust_primitives.Arithmetic.neg (cast (zeta2 <: i16) <: i32) <: i32)
-      (cast (zeta2 <: i16) <: i32)
-      (Rust_primitives.Arithmetic.neg (cast (zeta1 <: i16) <: i32) <: i32)
-      (cast (zeta1 <: i16) <: i32)
-      (Rust_primitives.Arithmetic.neg (cast (zeta0 <: i16) <: i32) <: i32)
-      (cast (zeta0 <: i16) <: i32) 7;
-    let zv = 
-      (ZI.mm256_set_epi32 (Rust_primitives.Arithmetic.neg (cast (zeta3 <: i16) <: i32) <: i32)
-      (cast (zeta3 <: i16) <: i32)
-      (Rust_primitives.Arithmetic.neg (cast (zeta2 <: i16) <: i32) <: i32)
-      (cast (zeta2 <: i16) <: i32)
-      (Rust_primitives.Arithmetic.neg (cast (zeta1 <: i16) <: i32) <: i32)
-      (cast (zeta1 <: i16) <: i32)
-      (Rust_primitives.Arithmetic.neg (cast (zeta0 <: i16) <: i32) <: i32)
-      (cast (zeta0 <: i16) <: i32)) in
-    lemma_nttmul_mullo32_lane odd_products_reduced zv 3328 1664 0;
-    lemma_nttmul_mullo32_lane odd_products_reduced zv 3328 1664 1;
-    lemma_nttmul_mullo32_lane odd_products_reduced zv 3328 1664 2;
-    lemma_nttmul_mullo32_lane odd_products_reduced zv 3328 1664 3;
-    lemma_nttmul_mullo32_lane odd_products_reduced zv 3328 1664 4;
-    lemma_nttmul_mullo32_lane odd_products_reduced zv 3328 1664 5;
-    lemma_nttmul_mullo32_lane odd_products_reduced zv 3328 1664 6;
-    lemma_nttmul_mullo32_lane odd_products_reduced zv 3328 1664 7;
     let right = ZI.mm256_mullo_epi32 odd_products_reduced zv in
-    lemma_nttmul_add32_lane left right (3328 * 3328) (3328 * 1664) 0;
-    lemma_nttmul_add32_lane left right (3328 * 3328) (3328 * 1664) 1;
-    lemma_nttmul_add32_lane left right (3328 * 3328) (3328 * 1664) 2;
-    lemma_nttmul_add32_lane left right (3328 * 3328) (3328 * 1664) 3;
-    lemma_nttmul_add32_lane left right (3328 * 3328) (3328 * 1664) 4;
-    lemma_nttmul_add32_lane left right (3328 * 3328) (3328 * 1664) 5;
-    lemma_nttmul_add32_lane left right (3328 * 3328) (3328 * 1664) 6;
-    lemma_nttmul_add32_lane left right (3328 * 3328) (3328 * 1664) 7;
     let products_left_raw = ZI.mm256_add_epi32 left right in
     let products_left = Libcrux_ml_kem.Vector.Avx2.Arithmetic.montgomery_reduce_i32s products_left_raw in
-    assert (v (ZI.get_lane products_left 0) % 3329 ==
-      ((v (ZI.get_lane lhs 0) * v (ZI.get_lane rhs 0) +
-        v (ZI.get_lane lhs 1) * v (ZI.get_lane rhs 1) * (v zeta0) * 169) * 169) % 3329);
-    assert (v (ZI.get_lane products_left 2) % 3329 ==
-      ((v (ZI.get_lane lhs 2) * v (ZI.get_lane rhs 2) +
-        v (ZI.get_lane lhs 3) * v (ZI.get_lane rhs 3) * (- (v zeta0)) * 169) * 169) % 3329);
-    assert (v (ZI.get_lane products_left 4) % 3329 ==
-      ((v (ZI.get_lane lhs 4) * v (ZI.get_lane rhs 4) +
-        v (ZI.get_lane lhs 5) * v (ZI.get_lane rhs 5) * (v zeta1) * 169) * 169) % 3329);
-    assert (v (ZI.get_lane products_left 6) % 3329 ==
-      ((v (ZI.get_lane lhs 6) * v (ZI.get_lane rhs 6) +
-        v (ZI.get_lane lhs 7) * v (ZI.get_lane rhs 7) * (- (v zeta1)) * 169) * 169) % 3329);
-    assert (v (ZI.get_lane products_left 8) % 3329 ==
-      ((v (ZI.get_lane lhs 8) * v (ZI.get_lane rhs 8) +
-        v (ZI.get_lane lhs 9) * v (ZI.get_lane rhs 9) * (v zeta2) * 169) * 169) % 3329);
-    assert (v (ZI.get_lane products_left 10) % 3329 ==
-      ((v (ZI.get_lane lhs 10) * v (ZI.get_lane rhs 10) +
-        v (ZI.get_lane lhs 11) * v (ZI.get_lane rhs 11) * (- (v zeta2)) * 169) * 169) % 3329);
-    assert (v (ZI.get_lane products_left 12) % 3329 ==
-      ((v (ZI.get_lane lhs 12) * v (ZI.get_lane rhs 12) +
-        v (ZI.get_lane lhs 13) * v (ZI.get_lane rhs 13) * (v zeta3) * 169) * 169) % 3329);
-    assert (v (ZI.get_lane products_left 14) % 3329 ==
-      ((v (ZI.get_lane lhs 14) * v (ZI.get_lane rhs 14) +
-        v (ZI.get_lane lhs 15) * v (ZI.get_lane rhs 15) * (- (v zeta3)) * 169) * 169) % 3329);
     let rhs_adjacent_swapped = ZI.mm256_shuffle_epi8 rhs ms in
-    lemma_nttmul_swap_facts rhs ms rhs_adjacent_swapped;
-    lemma_nttmul_madd_lane lhs rhs_adjacent_swapped 3328 3328 0;
-    lemma_nttmul_madd_lane lhs rhs_adjacent_swapped 3328 3328 1;
-    lemma_nttmul_madd_lane lhs rhs_adjacent_swapped 3328 3328 2;
-    lemma_nttmul_madd_lane lhs rhs_adjacent_swapped 3328 3328 3;
-    lemma_nttmul_madd_lane lhs rhs_adjacent_swapped 3328 3328 4;
-    lemma_nttmul_madd_lane lhs rhs_adjacent_swapped 3328 3328 5;
-    lemma_nttmul_madd_lane lhs rhs_adjacent_swapped 3328 3328 6;
-    lemma_nttmul_madd_lane lhs rhs_adjacent_swapped 3328 3328 7;
     let products_right_raw = ZI.mm256_madd_epi16 lhs rhs_adjacent_swapped in
     let products_right_reduced = Libcrux_ml_kem.Vector.Avx2.Arithmetic.montgomery_reduce_i32s products_right_raw in
-    assert (v (ZI.get_lane products_right_reduced 0) % 3329 ==
-      ((v (ZI.get_lane lhs 0) * v (ZI.get_lane rhs 1) +
-        v (ZI.get_lane lhs 1) * v (ZI.get_lane rhs 0)) * 169) % 3329);
-    assert (v (ZI.get_lane products_right_reduced 2) % 3329 ==
-      ((v (ZI.get_lane lhs 2) * v (ZI.get_lane rhs 3) +
-        v (ZI.get_lane lhs 3) * v (ZI.get_lane rhs 2)) * 169) % 3329);
-    assert (v (ZI.get_lane products_right_reduced 4) % 3329 ==
-      ((v (ZI.get_lane lhs 4) * v (ZI.get_lane rhs 5) +
-        v (ZI.get_lane lhs 5) * v (ZI.get_lane rhs 4)) * 169) % 3329);
-    assert (v (ZI.get_lane products_right_reduced 6) % 3329 ==
-      ((v (ZI.get_lane lhs 6) * v (ZI.get_lane rhs 7) +
-        v (ZI.get_lane lhs 7) * v (ZI.get_lane rhs 6)) * 169) % 3329);
-    assert (v (ZI.get_lane products_right_reduced 8) % 3329 ==
-      ((v (ZI.get_lane lhs 8) * v (ZI.get_lane rhs 9) +
-        v (ZI.get_lane lhs 9) * v (ZI.get_lane rhs 8)) * 169) % 3329);
-    assert (v (ZI.get_lane products_right_reduced 10) % 3329 ==
-      ((v (ZI.get_lane lhs 10) * v (ZI.get_lane rhs 11) +
-        v (ZI.get_lane lhs 11) * v (ZI.get_lane rhs 10)) * 169) % 3329);
-    assert (v (ZI.get_lane products_right_reduced 12) % 3329 ==
-      ((v (ZI.get_lane lhs 12) * v (ZI.get_lane rhs 13) +
-        v (ZI.get_lane lhs 13) * v (ZI.get_lane rhs 12)) * 169) % 3329);
-    assert (v (ZI.get_lane products_right_reduced 14) % 3329 ==
-      ((v (ZI.get_lane lhs 14) * v (ZI.get_lane rhs 15) +
-        v (ZI.get_lane lhs 15) * v (ZI.get_lane rhs 14)) * 169) % 3329);
     lemma_nttmul_slli16_lane products_right_reduced 1;
     lemma_nttmul_slli16_lane products_right_reduced 3;
     lemma_nttmul_slli16_lane products_right_reduced 5;
@@ -2394,38 +2600,38 @@ let lemma_nttmul_main (m ms lhs rhs: ZI.t_Vec256) (zeta0 zeta1 zeta2 zeta3: i16)
 "#)]
 #[hax_lib::requires(fstar!(r#"Spec.Utils.is_i16b 1664 zeta0 /\ Spec.Utils.is_i16b 1664 zeta1 /\
     Spec.Utils.is_i16b 1664 zeta2 /\ Spec.Utils.is_i16b 1664 zeta3 /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 0) /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 1) /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 2) /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 3) /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 4) /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 5) /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 6) /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 7) /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 8) /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 9) /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 10) /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 11) /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 12) /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 13) /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 14) /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 15) /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 0) /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 1) /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 2) /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 3) /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 4) /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 5) /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 6) /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 7) /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 8) /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 9) /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 10) /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 11) /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 12) /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 13) /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 14) /\
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 15)"#))]
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 0) /\
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 1) /\
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 2) /\
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 3) /\
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 4) /\
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 5) /\
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 6) /\
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 7) /\
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 8) /\
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 9) /\
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 10) /\
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 11) /\
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 12) /\
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 13) /\
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 14) /\
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${lhs} 15) /\
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 0) /\
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 1) /\
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 2) /\
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 3) /\
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 4) /\
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 5) /\
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 6) /\
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 7) /\
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 8) /\
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 9) /\
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 10) /\
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 11) /\
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 12) /\
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 13) /\
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 14) /\
+    Spec.Utils.is_i16b 4096 (Libcrux_intrinsics.Avx2_extract.get_lane ${rhs} 15)"#))]
 #[hax_lib::ensures(|result| fstar!(r#"
     Spec.Utils.is_i16b_array 3328 (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}) /\
     Spec.Utils.ntt_multiply_butterfly_post
@@ -2473,27 +2679,28 @@ pub(crate) fn ntt_multiply(
 
     let odd_products = mm256_mullo_epi32(lhs_odds, rhs_odds);
     let odd_products_reduced = arithmetic::montgomery_reduce_i32s(odd_products);
-    let right = mm256_mullo_epi32(
-        odd_products_reduced,
-        mm256_set_epi32(
-            -(zeta3 as i32),
-            zeta3 as i32,
-            -(zeta2 as i32),
-            zeta2 as i32,
-            -(zeta1 as i32),
-            zeta1 as i32,
-            -(zeta0 as i32),
-            zeta0 as i32,
-        ),
+    // Naming the zeta multiplier vector (a no-op vs inlining it in `right`) lets the
+    // functional proof reference it directly; rebuilding `set_epi32(neg ..)` inside the
+    // proof block would re-trigger the `neg` subtyping in the impl's heavy VC.
+    let zeta_multipliers = mm256_set_epi32(
+        -(zeta3 as i32),
+        zeta3 as i32,
+        -(zeta2 as i32),
+        zeta2 as i32,
+        -(zeta1 as i32),
+        zeta1 as i32,
+        -(zeta0 as i32),
+        zeta0 as i32,
     );
+    let right = mm256_mullo_epi32(odd_products_reduced, zeta_multipliers);
 
     let products_left_raw = mm256_add_epi32(left, right);
     let products_left = arithmetic::montgomery_reduce_i32s(products_left_raw);
 
     // Compute the second term of the product
     let swap_with = mm256_set_epi8(
-        13, 12, 15, 14, 9, 8, 11, 10, 5, 4, 7, 6, 1, 0, 3, 2, 13, 12, 15, 14, 9, 8, 11, 10, 5,
-        4, 7, 6, 1, 0, 3, 2,
+        13, 12, 15, 14, 9, 8, 11, 10, 5, 4, 7, 6, 1, 0, 3, 2, 13, 12, 15, 14, 9, 8, 11, 10, 5, 4,
+        7, 6, 1, 0, 3, 2,
     );
     let rhs_adjacent_swapped = mm256_shuffle_epi8(rhs, swap_with);
     let products_right_raw = mm256_madd_epi16(lhs, rhs_adjacent_swapped);
@@ -2503,7 +2710,8 @@ pub(crate) fn ntt_multiply(
     // Combine them into one vector
     let result = mm256_blend_epi16::<0b1_0_1_0_1_0_1_0>(products_left, products_right);
     hax_lib::fstar!(
-        r#"lemma_nttmul_main ${shuffle_with} ${swap_with} ${lhs} ${rhs} zeta0 zeta1 zeta2 zeta3;
+        r#"lemma_nttmul_zv zeta0 zeta1 zeta2 zeta3 ${zeta_multipliers};
+        lemma_nttmul_main ${shuffle_with} ${swap_with} ${lhs} ${rhs} ${zeta_multipliers} zeta0 zeta1 zeta2 zeta3;
         assert (ZS.is_i16b_array 3328 (ZI.vec256_as_i16x16 ${result}));
         assert (Spec.Utils.ntt_multiply_butterfly_post
           (ZI.vec256_as_i16x16 ${lhs}) (ZI.vec256_as_i16x16 ${rhs})

@@ -1,5 +1,5 @@
 [
-  "ee06c16017094eb1127e9164f7b9cea1",
+  "525cfc420f3b57ab1b070948b06cae50",
   [
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_step",
@@ -463,7 +463,7 @@
         "projection_inverse_BoxInt_proj_0",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
-        "refinement_interpretation_Tm_refine_46a564b5c3bbcaeae4cc4a3a20c24276",
+        "refinement_interpretation_Tm_refine_4659abaebba1512262ad2d730ece9b3f",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
         "refinement_interpretation_Tm_refine_b045b04f0bb15cd7c94a2ec78d3283ce",
@@ -475,7 +475,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "ba01f79c61c204d27f4c29f4cd1bb1ed"
+      "b1b55049966edfb754d2da13c3edf729"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -531,7 +531,7 @@
         "refinement_interpretation_Tm_refine_26d768cc241c6628db9e0d45d45d9136",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
         "refinement_interpretation_Tm_refine_774ba3f728d91ead8ef40be66c9802e5",
-        "refinement_interpretation_Tm_refine_895bcefa1fd893008d6a003e6bcab9c6",
+        "refinement_interpretation_Tm_refine_82aa77e0b143639962b084971c7a063a",
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
         "refinement_interpretation_Tm_refine_b045b04f0bb15cd7c94a2ec78d3283ce",
         "refinement_interpretation_Tm_refine_b21f98b6ca50013c6e539e770c013c08",
@@ -544,7 +544,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "b8676c53152969d9648c5ad18d91bc91"
+      "443ef1cde4d93bc79899ec83f1c2af69"
     ]
   ]
 ]

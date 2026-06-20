@@ -833,7 +833,9 @@ pub(crate) fn ntt_layer_3_step(vec: SIMD128Vector, zeta_c: i16) -> SIMD128Vector
     let zeta = _vdupq_n_s16(zeta_c);
     hax_lib::fstar!(r#"assert (forall (i: nat{i < 8}). NI.get_lane_i16x8 ${zeta} i == ${zeta_c})"#);
     let t = montgomery_multiply_int16x8_t(vec.high, zeta);
-    hax_lib::fstar!(r#"assert (forall (i: nat{i < 8}). NS.is_i16b 1664 (NI.get_lane_i16x8 ${zeta} i))"#);
+    hax_lib::fstar!(
+        r#"assert (forall (i: nat{i < 8}). NS.is_i16b 1664 (NI.get_lane_i16x8 ${zeta} i))"#
+    );
     let mut res = vec;
     res.high = _vsubq_s16(vec.low, t);
     res.low = _vaddq_s16(res.low, t);
@@ -1185,7 +1187,7 @@ let lemma_nttmul_montval_fst
     (a1b1_low a1b1_high: NI.t_e_int32x4_t)
     (fst_low fst_high flo fhi: NI.t_e_int16x8_t) : Lemma
   (requires
-    NS.is_i16b_array 3328 (repr lhs) /\ NS.is_i16b_array 3328 (repr rhs) /\
+    NS.is_i16b_array 4096 (repr lhs) /\ NS.is_i16b_array 4096 (repr rhs) /\
     (forall (i: nat{i < 8}). NS.is_i16b 3328 (NI.get_lane_i16x8 a1b1 i)) /\
     (forall (i: nat{i < 8}). NS.is_i16b 1664 (NI.get_lane_i16x8 zeta i)) /\
     a0 == NI.e_vtrn1q_s16 lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
@@ -1277,7 +1279,7 @@ let lemma_nttmul_montval_fst
               ((NI.get_lane_i32x4 a1b1_low i) +.
                ((cast (NI.get_lane_i16x8 a0 i) <: i32) *. (cast (NI.get_lane_i16x8 b0 i) <: i32))));
     lemma_mac32 (NI.get_lane_i16x8 a1b1 i) (NI.get_lane_i16x8 zeta i)
-                (NI.get_lane_i16x8 a0 i) (NI.get_lane_i16x8 b0 i) 3328 1664 3328 3328;
+                (NI.get_lane_i16x8 a0 i) (NI.get_lane_i16x8 b0 i) 3328 1664 4096 4096;
     lemma_cast_lo (NI.get_lane_i16x8 flo (2*i)) (NI.get_lane_i16x8 fhi (2*i));
     lemma_cast_hi (NI.get_lane_i16x8 flo (2*i)) (NI.get_lane_i16x8 fhi (2*i));
     assert (NI.get_lane_i16x8 flo (2*i+1) == NI.get_lane_i16x8 fst_high (2*i));
@@ -1290,7 +1292,7 @@ let lemma_nttmul_montval_fst
               ((NI.get_lane_i32x4 a1b1_high i) +.
                ((cast (NI.get_lane_i16x8 a0 (i+4)) <: i32) *. (cast (NI.get_lane_i16x8 b0 (i+4)) <: i32))));
     lemma_mac32 (NI.get_lane_i16x8 a1b1 (i+4)) (NI.get_lane_i16x8 zeta (i+4))
-                (NI.get_lane_i16x8 a0 (i+4)) (NI.get_lane_i16x8 b0 (i+4)) 3328 1664 3328 3328;
+                (NI.get_lane_i16x8 a0 (i+4)) (NI.get_lane_i16x8 b0 (i+4)) 3328 1664 4096 4096;
     lemma_cast_lo (NI.get_lane_i16x8 flo (2*i+1)) (NI.get_lane_i16x8 fhi (2*i+1));
     lemma_cast_hi (NI.get_lane_i16x8 flo (2*i+1)) (NI.get_lane_i16x8 fhi (2*i+1))
   in
@@ -1307,7 +1309,7 @@ let lemma_nttmul_montval_snd
     (a0b1_low a0b1_high: NI.t_e_int32x4_t)
     (snd_low snd_high slo shi: NI.t_e_int16x8_t) : Lemma
   (requires
-    NS.is_i16b_array 3328 (repr lhs) /\ NS.is_i16b_array 3328 (repr rhs) /\
+    NS.is_i16b_array 4096 (repr lhs) /\ NS.is_i16b_array 4096 (repr rhs) /\
     a0 == NI.e_vtrn1q_s16 lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
                           lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high /\
     a1 == NI.e_vtrn2q_s16 lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
@@ -1412,7 +1414,7 @@ let lemma_nttmul_montval_snd
               ((NI.get_lane_i32x4 a0b1_low i) +.
                ((cast (NI.get_lane_i16x8 a1 i) <: i32) *. (cast (NI.get_lane_i16x8 b0 i) <: i32))));
     lemma_mac32 (NI.get_lane_i16x8 a0 i) (NI.get_lane_i16x8 b1 i)
-                (NI.get_lane_i16x8 a1 i) (NI.get_lane_i16x8 b0 i) 3328 3328 3328 3328;
+                (NI.get_lane_i16x8 a1 i) (NI.get_lane_i16x8 b0 i) 4096 4096 4096 4096;
     lemma_cast_lo (NI.get_lane_i16x8 slo (2*i)) (NI.get_lane_i16x8 shi (2*i));
     lemma_cast_hi (NI.get_lane_i16x8 slo (2*i)) (NI.get_lane_i16x8 shi (2*i));
     assert (NI.get_lane_i16x8 slo (2*i+1) == NI.get_lane_i16x8 snd_high (2*i));
@@ -1425,7 +1427,7 @@ let lemma_nttmul_montval_snd
               ((NI.get_lane_i32x4 a0b1_high i) +.
                ((cast (NI.get_lane_i16x8 a1 (i+4)) <: i32) *. (cast (NI.get_lane_i16x8 b0 (i+4)) <: i32))));
     lemma_mac32 (NI.get_lane_i16x8 a0 (i+4)) (NI.get_lane_i16x8 b1 (i+4))
-                (NI.get_lane_i16x8 a1 (i+4)) (NI.get_lane_i16x8 b0 (i+4)) 3328 3328 3328 3328;
+                (NI.get_lane_i16x8 a1 (i+4)) (NI.get_lane_i16x8 b0 (i+4)) 4096 4096 4096 4096;
     lemma_cast_lo (NI.get_lane_i16x8 slo (2*i+1)) (NI.get_lane_i16x8 shi (2*i+1));
     lemma_cast_hi (NI.get_lane_i16x8 slo (2*i+1)) (NI.get_lane_i16x8 shi (2*i+1))
   in
@@ -1559,7 +1561,7 @@ let lemma_nttmul_fstsnd
     (iv_l iv_r: t_Array i16 (mk_usize 16))
     (a1 b1 a1b1 zeta flo fhi slo shi fst snd: NI.t_e_int16x8_t) (z1 z2 z3 z4: i16) : Lemma
   (requires
-    NS.is_i16b_array 3328 iv_l /\ NS.is_i16b_array 3328 iv_r /\
+    NS.is_i16b_array 4096 iv_l /\ NS.is_i16b_array 4096 iv_r /\
     NS.is_i16b 1664 z1 /\ NS.is_i16b 1664 z2 /\ NS.is_i16b 1664 z3 /\ NS.is_i16b 1664 z4 /\
     (forall (i: nat{i < 8}). NI.get_lane_i16x8 fst i ==
        NI.get_lane_i16x8 fhi i -.
@@ -1866,7 +1868,7 @@ let lemma_nttmul_compute
       (index: NI.t_e_uint8x16_t)
       (zeta1 zeta2 zeta3 zeta4: i16) : Lemma
   (requires
-    NS.is_i16b_array 3328 (repr lhs) /\ NS.is_i16b_array 3328 (repr rhs) /\
+    NS.is_i16b_array 4096 (repr lhs) /\ NS.is_i16b_array 4096 (repr rhs) /\
     NS.is_i16b 1664 zeta1 /\ NS.is_i16b 1664 zeta2 /\ NS.is_i16b 1664 zeta3 /\ NS.is_i16b 1664 zeta4 /\
     NI.get_lane_i16x8 zeta 0 == zeta1 /\
     NI.get_lane_i16x8 zeta 1 == zeta3 /\
@@ -1953,10 +1955,10 @@ let lemma_nttmul_compute
                <: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector) in
     assert_norm (pow2 15 == 32768);
     assert_norm (pow2 31 == 2147483648);
-    lemma_nttmul_in 3328 lhs rhs a1 b1 zeta zeta1 zeta2 zeta3 zeta4;
+    lemma_nttmul_in 4096 lhs rhs a1 b1 zeta zeta1 zeta2 zeta3 zeta4;
     introduce forall (i: nat{i < 8}) . Spec.Utils.is_intb (3326 * pow2 15)
       (v (NI.get_lane_i16x8 a1 i) * v (NI.get_lane_i16x8 b1 i))
-    with Spec.Utils.lemma_mul_i16b 3328 3328 (NI.get_lane_i16x8 a1 i) (NI.get_lane_i16x8 b1 i);
+    with Spec.Utils.lemma_mul_i16b 4096 4096 (NI.get_lane_i16x8 a1 i) (NI.get_lane_i16x8 b1 i);
     assert (forall (i: nat{i < 8}).
           v (NI.get_lane_i16x8 a1b1 i) % 3329 ==
           (v (NI.get_lane_i16x8 a1 i) * v (NI.get_lane_i16x8 b1 i) * 169) % 3329);
@@ -1977,8 +1979,8 @@ let lemma_nttmul_compute
 #[hax_lib::fstar::options("--z3rlimit 400 --split_queries always --z3refresh")]
 #[hax_lib::requires(fstar!(r#"Spec.Utils.is_i16b 1664 zeta1 /\ Spec.Utils.is_i16b 1664 zeta2 /\
                             Spec.Utils.is_i16b 1664 zeta3 /\ Spec.Utils.is_i16b 1664 zeta4 /\
-                            Spec.Utils.is_i16b_array 3328 (repr ${lhs}) /\
-                            Spec.Utils.is_i16b_array 3328 (repr ${rhs})"#))]
+                            Spec.Utils.is_i16b_array 4096 (repr ${lhs}) /\
+                            Spec.Utils.is_i16b_array 4096 (repr ${rhs})"#))]
 #[hax_lib::ensures(|result| fstar!(r#"
     Spec.Utils.is_i16b_array 3328 (repr ${result}) /\
     Spec.Utils.ntt_multiply_butterfly_post (repr ${lhs}) (repr ${rhs}) (repr ${result})

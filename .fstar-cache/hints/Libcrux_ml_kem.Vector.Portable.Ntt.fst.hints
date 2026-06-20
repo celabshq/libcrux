@@ -1,5 +1,5 @@
 [
-  "bc3b62f1c584f744b15fbb4655e519c2",
+  "fa2e9a0ba7e9bc909dd550497a6a1815",
   [
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_step",
@@ -1153,7 +1153,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "92c3e0b60d49036d10d76a9a6bb0e010"
+      "78921e3372547347b0a14ada56f0afd1"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -1196,7 +1196,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "802a69208e8d846b2ae97963feca49e9"
+      "d7fec341f43bbf7707ffd68b644a3d3e"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -1239,7 +1239,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "0b3af0711728eb4fb05722971cdb74ad"
+      "144f2f5479f33b398916aee0798001cc"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -1282,7 +1282,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e194e10747e14ef948bdab3082f5a9bf"
+      "b8cd5d815688ffa542bf13c96babcbc4"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -1325,7 +1325,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "7c5bf6897a55439b99ee93c9b62b15b0"
+      "88f31b5ce1e2bb86df06e52993567bbd"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -1379,7 +1379,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "72c9eaf623993d964abaffa5be53c10a"
+      "f8fbcd554f40163ad88fcb6409c46175"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -1421,7 +1421,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "2f6884cb08d5c0c39c9944a558b34027"
+      "247e2277db84ffe35b0d01dbb05b8586"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -1458,7 +1458,7 @@
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_0f35fb90aa51b4bf32da5f52f8ace9ce",
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
-        "refinement_interpretation_Tm_refine_46a564b5c3bbcaeae4cc4a3a20c24276",
+        "refinement_interpretation_Tm_refine_4659abaebba1512262ad2d730ece9b3f",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f",
@@ -1471,7 +1471,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "9c4afc01e2bfa6e4ffb4bc5a01c0755d"
+      "b19d273f5128e0a97c885e316846065e"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -1490,11 +1490,11 @@
         "projection_inverse_BoxInt_proj_0",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_0f35fb90aa51b4bf32da5f52f8ace9ce",
-        "refinement_interpretation_Tm_refine_46a564b5c3bbcaeae4cc4a3a20c24276",
+        "refinement_interpretation_Tm_refine_4659abaebba1512262ad2d730ece9b3f",
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f"
       ],
       0,
-      "da02b4238e1d7cb37b1c0f1e5b5cd48d"
+      "1223d952a094cb28fea3887a49cfc255"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -1519,7 +1519,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "6369aebd0a1ad845241f75b1fee11199"
+      "6225e0f5f62f650a3b8ff357b1a300c1"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -1544,7 +1544,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "b4bcf20182f3d3d96de9f14b38b0ac3a"
+      "9e3def27ae3198ec048219f00eb843fd"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -1576,7 +1576,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "ef468ba0cca0c0905589eba5dedc611b"
+      "b7d35b9f605e053e91ffb66bd00b3f46"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -1632,7 +1632,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "1b9bb1b96607ab87016f00b41e1bac0f"
+      "f82699a8bdecf276e25a756c2f4695b7"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -1654,13 +1654,13 @@
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_0f35fb90aa51b4bf32da5f52f8ace9ce",
         "refinement_interpretation_Tm_refine_102e3e2ffae46eb544d4497226c91fb5",
-        "refinement_interpretation_Tm_refine_46a564b5c3bbcaeae4cc4a3a20c24276",
+        "refinement_interpretation_Tm_refine_4659abaebba1512262ad2d730ece9b3f",
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f",
         "refinement_interpretation_Tm_refine_c07d6a2bfc5196ba42fbfa885c3efdcd",
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "2c360df4c21dc577323122cf345a8c76"
+      "f7080c64bc5e823cf88906ebe806a395"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -1669,10 +1669,10 @@
       1,
       [
         "@MaxIFuel_assumption", "@query",
-        "refinement_interpretation_Tm_refine_46a564b5c3bbcaeae4cc4a3a20c24276"
+        "refinement_interpretation_Tm_refine_4659abaebba1512262ad2d730ece9b3f"
       ],
       0,
-      "d926017bfd0f1c36b76fb03e8f0105af"
+      "839080ba0c3e81901410afc3b5330d1c"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -1715,7 +1715,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "eaf2ae2badbc1e32b876f8d5960ee373"
+      "5ab22f3a9ebd8115eed5f28281a00187"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -1737,7 +1737,7 @@
         "refinement_interpretation_Tm_refine_c64f2405b85ab7b11cd3469c849b05e8"
       ],
       0,
-      "e88455fb048b6b6008c918737326b632"
+      "fbb974be0170684ec5cb4047c376fbf9"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -1774,7 +1774,7 @@
         "typing_Libcrux_ml_kem.Vector.Portable.Vector_type.__proj__Mkt_PortableVector__item__f_elements"
       ],
       0,
-      "1b995342dabbb5315e762b633f2dc815"
+      "dd08c6b6fc0df8ac822bc6bf635241a9"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -1801,15 +1801,15 @@
         "projection_inverse_BoxInt_proj_0",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1",
-        "refinement_interpretation_Tm_refine_992ab99e6f773a6d3ae9254aac74b79f",
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f",
+        "refinement_interpretation_Tm_refine_b9bf289a9db58b3088198546d714772b",
         "refinement_interpretation_Tm_refine_c64f2405b85ab7b11cd3469c849b05e8",
         "typing_Rust_primitives.Integers.v",
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "3d1d7c0848ea29224341f2db15bf91bb"
+      "658798002ecf738daeb299e1a26c27d6"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -1849,16 +1849,16 @@
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
         "refinement_interpretation_Tm_refine_4c05190b4f3d42d6a4fb5ed4067cd69d",
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1",
-        "refinement_interpretation_Tm_refine_992ab99e6f773a6d3ae9254aac74b79f",
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f",
+        "refinement_interpretation_Tm_refine_b9bf289a9db58b3088198546d714772b",
         "refinement_interpretation_Tm_refine_c64f2405b85ab7b11cd3469c849b05e8",
         "refinement_interpretation_Tm_refine_e30773cd2d93b3fc340e1d13fbe3a16c",
         "token_correspondence_Core_models.Ops.Index.f_index_pre",
         "typing_Libcrux_ml_kem.Vector.Portable.Vector_type.__proj__Mkt_PortableVector__item__f_elements"
       ],
       0,
-      "80e681d73ef75bfaee26dd9094b77bbf"
+      "f44b1414ab76ab010e00f6430ed649db"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -1879,7 +1879,7 @@
         "refinement_interpretation_Tm_refine_c64f2405b85ab7b11cd3469c849b05e8"
       ],
       0,
-      "9ee5ffc32fe40a8e1608da77fb2a7d1a"
+      "4eb496a2df5e62db47d67090ffd1197e"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -1900,7 +1900,7 @@
         "refinement_interpretation_Tm_refine_c64f2405b85ab7b11cd3469c849b05e8"
       ],
       0,
-      "1df75e08495f287832390c3c9fef0850"
+      "3634e5bccab545233e80657b4ad93873"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -1924,7 +1924,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "79b6c608404e46cfb73019a1bfa283dd"
+      "40f77cecf06ec8dc57b351b2b156df7d"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -1948,7 +1948,7 @@
         "refinement_interpretation_Tm_refine_e30773cd2d93b3fc340e1d13fbe3a16c"
       ],
       0,
-      "1469538283d2aad535b779f7f8e26504"
+      "d57cb8979c06fd505b446cacfc6f529a"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -1976,7 +1976,7 @@
         "token_correspondence_Core_models.Ops.Index.f_index_pre"
       ],
       0,
-      "52638cc3c6c5027b0fac9810a739e378"
+      "5fa6cd1895bc78608bc9f94270f50817"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -1997,7 +1997,7 @@
         "refinement_interpretation_Tm_refine_c64f2405b85ab7b11cd3469c849b05e8"
       ],
       0,
-      "6b5d234046502fafa1e1f1723ef24ac9"
+      "c7d31ab0f1ef83dd3bee24150b364e7d"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2018,7 +2018,7 @@
         "refinement_interpretation_Tm_refine_c64f2405b85ab7b11cd3469c849b05e8"
       ],
       0,
-      "81f7954a77f9f5f74d2a7c62f764c768"
+      "3b230591b1b7b227c05bb7ad3d894464"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2042,7 +2042,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "9ab5893fba83ba36ec3a6833477669cc"
+      "7f3d577dc5e22065c362d208246449a1"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2066,7 +2066,7 @@
         "refinement_interpretation_Tm_refine_e30773cd2d93b3fc340e1d13fbe3a16c"
       ],
       0,
-      "cd01dd84c14791a326f3e08818bbfaf2"
+      "b0587876291f818c657073322eea1b49"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2095,7 +2095,7 @@
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f"
       ],
       0,
-      "65b42a2dcfa512ef0322413197708525"
+      "cda270636f6c0dd3f555e4702abfc598"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2139,15 +2139,15 @@
         "refinement_interpretation_Tm_refine_4c05190b4f3d42d6a4fb5ed4067cd69d",
         "refinement_interpretation_Tm_refine_8a912e2e538f94d6b54e5f7d797f4818",
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1",
-        "refinement_interpretation_Tm_refine_992ab99e6f773a6d3ae9254aac74b79f",
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f",
+        "refinement_interpretation_Tm_refine_b9bf289a9db58b3088198546d714772b",
         "refinement_interpretation_Tm_refine_c64f2405b85ab7b11cd3469c849b05e8",
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15",
         "token_correspondence_Core_models.Ops.Index.f_index_pre"
       ],
       0,
-      "0d64b9173ad795d7fcdf4158c49831a5"
+      "d5148ad757d25df34dc2fad653f92b02"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2192,8 +2192,8 @@
         "refinement_interpretation_Tm_refine_5e8af139cbcdf73a0e85d5af5b50c7ea",
         "refinement_interpretation_Tm_refine_7309b15858a131ed891360e2d8b532ec",
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1",
-        "refinement_interpretation_Tm_refine_992ab99e6f773a6d3ae9254aac74b79f",
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f",
+        "refinement_interpretation_Tm_refine_b9bf289a9db58b3088198546d714772b",
         "refinement_interpretation_Tm_refine_c64f2405b85ab7b11cd3469c849b05e8",
         "refinement_interpretation_Tm_refine_e30773cd2d93b3fc340e1d13fbe3a16c",
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15",
@@ -2201,7 +2201,7 @@
         "typing_Libcrux_ml_kem.Vector.Portable.Vector_type.__proj__Mkt_PortableVector__item__f_elements"
       ],
       0,
-      "3eeadf5b7225a8edf8d496c18725268f"
+      "8a3f8cbced877d93e9dd91f8dc286496"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2222,7 +2222,7 @@
         "refinement_interpretation_Tm_refine_c64f2405b85ab7b11cd3469c849b05e8"
       ],
       0,
-      "24ededdeb17a35742647118fa7865dbf"
+      "a9fff929f449404c1724df196e5cfa23"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2243,7 +2243,7 @@
         "refinement_interpretation_Tm_refine_c64f2405b85ab7b11cd3469c849b05e8"
       ],
       0,
-      "e7652890bade35f66abc501c9c3714b8"
+      "51a270cc3dde98d6a7754b1899b401a7"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2265,7 +2265,7 @@
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f"
       ],
       0,
-      "70fdf83fbc1b78473ac4307bf6797dd5"
+      "7105a0b9792503c68c4054b45df86f57"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2290,7 +2290,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "055d36d58927b5ac10c7de09ab0a8267"
+      "9f1f8775209638106b0e6308afcd1e30"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2314,7 +2314,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "d32fe6b52198b773c4718ccf295b04e0"
+      "4101262a3ae69680b7aac3da2ac55a87"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2327,7 +2327,7 @@
         "refinement_interpretation_Tm_refine_7309b15858a131ed891360e2d8b532ec"
       ],
       0,
-      "5673ac708575b38b84a34fb11fb439ff"
+      "3924c474ce5461734a8ce5f729c381f4"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2356,7 +2356,7 @@
         "token_correspondence_Core_models.Ops.Index.f_index_pre"
       ],
       0,
-      "1bf5e3c53ecdc07c33f4ffcfe49b4d47"
+      "943b8f871d74575147fc87057bc8ff0b"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2402,8 +2402,8 @@
         "refinement_interpretation_Tm_refine_5ef7f00ea6e4b2349b92713628ddc30f",
         "refinement_interpretation_Tm_refine_8a912e2e538f94d6b54e5f7d797f4818",
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1",
-        "refinement_interpretation_Tm_refine_992ab99e6f773a6d3ae9254aac74b79f",
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f",
+        "refinement_interpretation_Tm_refine_b9bf289a9db58b3088198546d714772b",
         "refinement_interpretation_Tm_refine_c64f2405b85ab7b11cd3469c849b05e8",
         "refinement_interpretation_Tm_refine_e30773cd2d93b3fc340e1d13fbe3a16c",
         "token_correspondence_Core_models.Ops.Index.f_index",
@@ -2411,7 +2411,7 @@
         "typing_Libcrux_ml_kem.Vector.Portable.Vector_type.__proj__Mkt_PortableVector__item__f_elements"
       ],
       0,
-      "e3cf45aac6b59c266be30658affaa5d2"
+      "fed126f39d0d7d69905a29ac50b91207"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2457,8 +2457,8 @@
         "refinement_interpretation_Tm_refine_5ef7f00ea6e4b2349b92713628ddc30f",
         "refinement_interpretation_Tm_refine_8a912e2e538f94d6b54e5f7d797f4818",
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1",
-        "refinement_interpretation_Tm_refine_992ab99e6f773a6d3ae9254aac74b79f",
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f",
+        "refinement_interpretation_Tm_refine_b9bf289a9db58b3088198546d714772b",
         "refinement_interpretation_Tm_refine_c64f2405b85ab7b11cd3469c849b05e8",
         "refinement_interpretation_Tm_refine_e30773cd2d93b3fc340e1d13fbe3a16c",
         "token_correspondence_Core_models.Ops.Index.f_index",
@@ -2466,7 +2466,7 @@
         "typing_Libcrux_ml_kem.Vector.Portable.Vector_type.__proj__Mkt_PortableVector__item__f_elements"
       ],
       0,
-      "b9afb3da7adb8de425136c70be71fec1"
+      "c1cf4bfc381e571b6db6f93fa416a883"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2513,8 +2513,8 @@
         "refinement_interpretation_Tm_refine_5ef7f00ea6e4b2349b92713628ddc30f",
         "refinement_interpretation_Tm_refine_7309b15858a131ed891360e2d8b532ec",
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1",
-        "refinement_interpretation_Tm_refine_992ab99e6f773a6d3ae9254aac74b79f",
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f",
+        "refinement_interpretation_Tm_refine_b9bf289a9db58b3088198546d714772b",
         "refinement_interpretation_Tm_refine_c64f2405b85ab7b11cd3469c849b05e8",
         "refinement_interpretation_Tm_refine_e30773cd2d93b3fc340e1d13fbe3a16c",
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15",
@@ -2522,7 +2522,7 @@
         "typing_Libcrux_ml_kem.Vector.Portable.Vector_type.__proj__Mkt_PortableVector__item__f_elements"
       ],
       0,
-      "6f83bf643147196f5207c9f7695b53b2"
+      "6961d99217f68465fc65b06bd088ed19"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2569,8 +2569,8 @@
         "refinement_interpretation_Tm_refine_5ef7f00ea6e4b2349b92713628ddc30f",
         "refinement_interpretation_Tm_refine_7309b15858a131ed891360e2d8b532ec",
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1",
-        "refinement_interpretation_Tm_refine_992ab99e6f773a6d3ae9254aac74b79f",
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f",
+        "refinement_interpretation_Tm_refine_b9bf289a9db58b3088198546d714772b",
         "refinement_interpretation_Tm_refine_c64f2405b85ab7b11cd3469c849b05e8",
         "refinement_interpretation_Tm_refine_e30773cd2d93b3fc340e1d13fbe3a16c",
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15",
@@ -2578,7 +2578,7 @@
         "typing_Libcrux_ml_kem.Vector.Portable.Vector_type.__proj__Mkt_PortableVector__item__f_elements"
       ],
       0,
-      "1e9af8e89ca2e7bd43d124e436a3642b"
+      "03c917c3f94a4ddec0c6bd5e97f9e249"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2587,7 +2587,7 @@
       1,
       [ "@query", "b2t_def" ],
       0,
-      "01043b519cdfe20be740ce1071d85593"
+      "30321a863bbdb067cdef6364542ed3c7"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2596,7 +2596,7 @@
       1,
       [ "@query", "b2t_def" ],
       0,
-      "d025e34f111f648cfd36cc7970ae16e7"
+      "1656f133f681edb8b572fae88830cab4"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2608,7 +2608,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "9985fb1c7e993dfab2594da0cb5602ec"
+      "9261c9ddcce5724296b9874433445a2a"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2627,7 +2627,7 @@
         "true_interp"
       ],
       0,
-      "a892af833a5f726298dc3c45c68c6a15"
+      "86e3127dbd82a720549498eb415ec134"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2646,7 +2646,7 @@
         "true_interp"
       ],
       0,
-      "220a2460a7ac2cbb1ae42ee7da6a617e"
+      "44546494c619eb3ab4d752a85f3215b1"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2690,14 +2690,14 @@
         "projection_inverse_Libcrux_secrets.Traits.Mkt_Declassify_@f_declassify",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_Rust_primitives.Mkcast_tc_@cast",
-        "refinement_interpretation_Tm_refine_6d8749704d0baee4bbfbd5079cd275cd",
+        "refinement_interpretation_Tm_refine_67bdea14963e62e26c63ca7b61fe56d1",
         "token_correspondence_Libcrux_secrets.Int.f_as_i32",
         "token_correspondence_Libcrux_secrets.Traits.f_classify",
         "token_correspondence_Libcrux_secrets.Traits.f_declassify",
         "token_correspondence_Rust_primitives.cast"
       ],
       0,
-      "83661cf8563caebe98a6491e3969cbfd"
+      "938a0fec7c24a01c7c526545d3485dc4"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2706,7 +2706,7 @@
       1,
       [ "@query", "b2t_def" ],
       0,
-      "c41efb2f8e94fd49b7a4e0fba05f9329"
+      "84e459b16531038e7e8b759d01b87505"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2715,7 +2715,7 @@
       1,
       [ "@query", "b2t_def" ],
       0,
-      "b050aee4333d65da58b794282e55108e"
+      "9b9440025a5458d50ac7695cc841e2e9"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2727,7 +2727,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "75fa663e4d346327cba2ecddbec7d40a"
+      "1bfa9e32a6da916c597a8bbe97d4550e"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2746,7 +2746,7 @@
         "true_interp"
       ],
       0,
-      "c02496889094565781e7ab3bb3e3416f"
+      "7a9785fb3fad2932e602a7ef88844b7a"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2765,7 +2765,7 @@
         "true_interp"
       ],
       0,
-      "f2bb7d9a2b77c41f432adb046e9f633a"
+      "ebd49207ac856ff1cb5938edef7de6e2"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2809,14 +2809,14 @@
         "projection_inverse_Libcrux_secrets.Traits.Mkt_Declassify_@f_declassify",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_Rust_primitives.Mkcast_tc_@cast",
-        "refinement_interpretation_Tm_refine_4d2197b5ab35c99acd6771386f50de7e",
+        "refinement_interpretation_Tm_refine_a8c1f3ec89154dcf0aecca39104795b9",
         "token_correspondence_Libcrux_secrets.Int.f_as_i32",
         "token_correspondence_Libcrux_secrets.Traits.f_classify",
         "token_correspondence_Libcrux_secrets.Traits.f_declassify",
         "token_correspondence_Rust_primitives.cast"
       ],
       0,
-      "27d694d52acfee512bbceb463b93d0ca"
+      "518641e4b71814a1dbb2426262170f29"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2873,8 +2873,8 @@
         "projection_inverse_Rust_primitives.Mkcast_tc_@cast",
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
         "refinement_interpretation_Tm_refine_24659cdefcbc2b6abb62f104c402d6f2",
-        "refinement_interpretation_Tm_refine_4d2197b5ab35c99acd6771386f50de7e",
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1",
+        "refinement_interpretation_Tm_refine_a8c1f3ec89154dcf0aecca39104795b9",
         "refinement_interpretation_Tm_refine_c64f2405b85ab7b11cd3469c849b05e8",
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15",
         "token_correspondence_Libcrux_secrets.Int.f_as_i32",
@@ -2885,7 +2885,7 @@
         "typing_Libcrux_ml_kem.Vector.Portable.Vector_type.__proj__Mkt_PortableVector__item__f_elements"
       ],
       0,
-      "cd03c1831b3d674cbfbf246c663ab71a"
+      "6e6a370ca11620fde425eef7220d86c4"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2932,15 +2932,15 @@
         "projection_inverse_Rust_primitives.Mkcast_tc_@cast",
         "refinement_interpretation_Tm_refine_1eec6a21213f2262bcae194c63185898",
         "refinement_interpretation_Tm_refine_4b7d1cf8ce802f9677c9c5280cb62faf",
-        "refinement_interpretation_Tm_refine_4d2197b5ab35c99acd6771386f50de7e",
         "refinement_interpretation_Tm_refine_5775fa187f743e75700b2f7666fd68ba",
+        "refinement_interpretation_Tm_refine_a8c1f3ec89154dcf0aecca39104795b9",
         "token_correspondence_Libcrux_secrets.Int.f_as_i32",
         "token_correspondence_Libcrux_secrets.Traits.f_classify",
         "token_correspondence_Libcrux_secrets.Traits.f_declassify",
         "token_correspondence_Rust_primitives.cast"
       ],
       0,
-      "8282e2421844f18357920b32e3005de3"
+      "dcaa4371aeaf768263ec83728e2d9380"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2949,10 +2949,10 @@
       1,
       [
         "@MaxIFuel_assumption", "@query",
-        "refinement_interpretation_Tm_refine_992ab99e6f773a6d3ae9254aac74b79f"
+        "refinement_interpretation_Tm_refine_b9bf289a9db58b3088198546d714772b"
       ],
       0,
-      "de986705bc0d5390348ae1318dbc7280"
+      "a8828924da366d926e7b1b76ec80ea8a"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2965,7 +2965,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "6c6470aaffd8d627dc16edad18c57300"
+      "2a3076ecf292431eb5df3fddfc87721e"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -2984,7 +2984,7 @@
         "true_interp"
       ],
       0,
-      "071702e066aab807fa4ad40e2d098ed2"
+      "28317f3524d55bd0b9c2894b3d9b0fd0"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3004,7 +3004,7 @@
         "true_interp"
       ],
       0,
-      "45a62efbc4425f77847520293b84299c"
+      "61565e6f36e6426d8f1b1e4512471ffe"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3055,7 +3055,7 @@
         "token_correspondence_Rust_primitives.cast"
       ],
       0,
-      "806146e91609308a7665719065340c09"
+      "05efc8beab209c011b3c4a9b7e198929"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3117,7 +3117,7 @@
         "refinement_interpretation_Tm_refine_1eec6a21213f2262bcae194c63185898",
         "refinement_interpretation_Tm_refine_24659cdefcbc2b6abb62f104c402d6f2",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
-        "refinement_interpretation_Tm_refine_6d8749704d0baee4bbfbd5079cd275cd",
+        "refinement_interpretation_Tm_refine_67bdea14963e62e26c63ca7b61fe56d1",
         "refinement_interpretation_Tm_refine_814c873defc1ccbc6c5c106490937a32",
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1",
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15",
@@ -3127,7 +3127,7 @@
         "token_correspondence_Rust_primitives.cast"
       ],
       0,
-      "5c07fae277f51a1902b81783237797d4"
+      "9c4bd89b78f28e7df30e4dc6609d933e"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3174,9 +3174,9 @@
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_Rust_primitives.Mkcast_tc_@cast",
         "refinement_interpretation_Tm_refine_1eec6a21213f2262bcae194c63185898",
-        "refinement_interpretation_Tm_refine_5dcdfd2d652bf48a8b1cc906a9022c01",
-        "refinement_interpretation_Tm_refine_6d8749704d0baee4bbfbd5079cd275cd",
+        "refinement_interpretation_Tm_refine_67bdea14963e62e26c63ca7b61fe56d1",
         "refinement_interpretation_Tm_refine_814c873defc1ccbc6c5c106490937a32",
+        "refinement_interpretation_Tm_refine_852d1feaaad46fe80666b6d165a34750",
         "refinement_interpretation_Tm_refine_906a637c1d4d0db73f4d42db72adeaf4",
         "token_correspondence_Libcrux_secrets.Int.f_as_i32",
         "token_correspondence_Libcrux_secrets.Traits.f_classify",
@@ -3184,7 +3184,7 @@
         "token_correspondence_Rust_primitives.cast"
       ],
       0,
-      "69de18f3bc6bc3f4534dbdc905988d5e"
+      "d68038580b45b79b34b2e7d05e1a1f1f"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3226,7 +3226,7 @@
         "typing_Libcrux_ml_kem.Vector.Portable.Vector_type.__proj__Mkt_PortableVector__item__f_elements"
       ],
       0,
-      "3aff84d20131145ab69e0ef9f41191a4"
+      "5a1f7ff6cf999f46389e65b6c5d6f8fa"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3239,7 +3239,7 @@
         "refinement_interpretation_Tm_refine_b73fa43aa9b43e330e2cf6018afd49be"
       ],
       0,
-      "b6bfc31273b022b0fb875cc291c75b2e"
+      "0ce7270410aeeedc7d9646eca9c1df4b"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3255,7 +3255,7 @@
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0"
       ],
       0,
-      "f18b13376a4c2f8ade6a272d6b0bf220"
+      "59c81b0ac06cc6d53b4e20dafeb6803a"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3267,7 +3267,7 @@
         "refinement_interpretation_Tm_refine_63617acbcae3c439525a1b692ce5d87c"
       ],
       0,
-      "06dbc9430e40e52f4164d9027418f1d3"
+      "5490f91e92fc928d3423e3411b6e504b"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3301,14 +3301,14 @@
         "projection_inverse_Libcrux_secrets.Traits.Mkt_Classify_@f_classify",
         "projection_inverse_Libcrux_secrets.Traits.Mkt_Declassify_@f_declassify",
         "projection_inverse_Rust_primitives.Mkcast_tc_@cast",
-        "refinement_interpretation_Tm_refine_6d8749704d0baee4bbfbd5079cd275cd",
+        "refinement_interpretation_Tm_refine_67bdea14963e62e26c63ca7b61fe56d1",
         "token_correspondence_Libcrux_secrets.Int.f_as_i32",
         "token_correspondence_Libcrux_secrets.Traits.f_classify",
         "token_correspondence_Libcrux_secrets.Traits.f_declassify",
         "token_correspondence_Rust_primitives.cast"
       ],
       0,
-      "fb71cc5796f6d6807139017313cf4b2b"
+      "7bdff27a68ada67b0efc23e66b040829"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3321,7 +3321,7 @@
         "refinement_interpretation_Tm_refine_99f4aa849ea0e3e4b2cdf8937702366c"
       ],
       0,
-      "9172db98a2a7a3faa31508f952760455"
+      "6f203d8cf971c437c4c6ab9bee22a105"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3362,7 +3362,7 @@
         "token_correspondence_Rust_primitives.cast"
       ],
       0,
-      "5889837d50d4b09ef50be6453d0d0f9a"
+      "fbe5db83bb447c7596ac3a932500446e"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3374,7 +3374,7 @@
         "refinement_interpretation_Tm_refine_08de22eed9091fa114b2108189ff7880"
       ],
       0,
-      "a53b1a3937ce1c4c203c6ae5f850ceb7"
+      "0b4e0ccc08a3286ef0423fb51bc2e949"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3386,7 +3386,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "8db41c8433a77699f641218f0be50bf8"
+      "a623e88316f15c5a5e2b00dc0b35b846"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3398,7 +3398,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "e39acfed800165545b222e8fc7b2ad77"
+      "0497e25145b38dda3d38935690a7be4b"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3410,7 +3410,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "1f0a60db1ea304a59fa85fbb3c7f347b"
+      "c3eadd83ae5e701ead1d49051256a8de"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3423,7 +3423,7 @@
         "refinement_interpretation_Tm_refine_4b7d1cf8ce802f9677c9c5280cb62faf"
       ],
       0,
-      "b55db1034547b0bd414bb8c378c78464"
+      "3b75f4e5dcbd643e1e10eb93dbcb11f8"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3435,7 +3435,7 @@
         "refinement_interpretation_Tm_refine_1667e2ea1bc927c158028ca34ac33ae0"
       ],
       0,
-      "bbf4dd7feaa3b11001fe00f96f7537e9"
+      "71c87ddc777fd0b0992cda04d7b13d32"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3469,14 +3469,14 @@
         "projection_inverse_Libcrux_secrets.Traits.Mkt_Classify_@f_classify",
         "projection_inverse_Libcrux_secrets.Traits.Mkt_Declassify_@f_declassify",
         "projection_inverse_Rust_primitives.Mkcast_tc_@cast",
-        "refinement_interpretation_Tm_refine_4d2197b5ab35c99acd6771386f50de7e",
+        "refinement_interpretation_Tm_refine_a8c1f3ec89154dcf0aecca39104795b9",
         "token_correspondence_Libcrux_secrets.Int.f_as_i32",
         "token_correspondence_Libcrux_secrets.Traits.f_classify",
         "token_correspondence_Libcrux_secrets.Traits.f_declassify",
         "token_correspondence_Rust_primitives.cast"
       ],
       0,
-      "c176370e7156c493af5816003bfec037"
+      "b4e2dbc2e84ae3ac93cd8a9ebfc23049"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3488,7 +3488,7 @@
         "refinement_interpretation_Tm_refine_cd2e6276a2c3d5d3da187898b6dd0fe4"
       ],
       0,
-      "014eb254ac99cfc308619176d4f640c1"
+      "0017e9e50030a782cfc95729426e4df7"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3500,7 +3500,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "3336e0a56492d6a914c29df2634c5d96"
+      "cb05f11f041eb24ba3e4d4f451a8cae4"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3512,7 +3512,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "bbfe92651e363436cd6218640677b423"
+      "45ea7fa1949bbb0ccb21304ccf3ee59d"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3524,7 +3524,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "99bc32ff14235f197148da71c64ad442"
+      "63bd1de71ffde29e60c243f77381f625"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3533,7 +3533,7 @@
       1,
       [ "@query" ],
       0,
-      "aa7abbd506a46fdd149bcf60a8fb8a28"
+      "edfbad03284662e972664944c3a7e3bb"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3542,7 +3542,7 @@
       1,
       [ "@query", "b2t_def" ],
       0,
-      "db6bd31dfef7cc47130a0624a2e32e3a"
+      "14232b5377c8e9db66ab2684567a4044"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3551,7 +3551,7 @@
       1,
       [ "@query", "b2t_def" ],
       0,
-      "91f0616609e87576d9af778b10368ffc"
+      "b1150f1bce229a108000b828a71927c4"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3563,7 +3563,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "54dd1fdd56b2dd27f5be6cf2152ec8f9"
+      "9c68f79dd9d62d8011e49466b35783d4"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3582,7 +3582,7 @@
         "true_interp"
       ],
       0,
-      "474d0e3bcbc60492b40573f4dee125e6"
+      "bbfbf421ade65b5dfd95f69f12758fec"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3601,7 +3601,7 @@
         "true_interp"
       ],
       0,
-      "ce2506bda964b1c3b775dcae19ef1bea"
+      "cbdd728e9f509e1ba7e9ca480ff4414c"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3644,15 +3644,15 @@
         "projection_inverse_Libcrux_secrets.Traits.Mkt_Declassify_@f_declassify",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_Rust_primitives.Mkcast_tc_@cast",
-        "refinement_interpretation_Tm_refine_5dcdfd2d652bf48a8b1cc906a9022c01",
-        "refinement_interpretation_Tm_refine_730e71be26915aa9d75e9c8ee8718cf1",
+        "refinement_interpretation_Tm_refine_852d1feaaad46fe80666b6d165a34750",
+        "refinement_interpretation_Tm_refine_d16c5abd9e1aa283188702b2cff616a5",
         "token_correspondence_Libcrux_secrets.Int.f_as_i32",
         "token_correspondence_Libcrux_secrets.Traits.f_classify",
         "token_correspondence_Libcrux_secrets.Traits.f_declassify",
         "token_correspondence_Rust_primitives.cast"
       ],
       0,
-      "0e4edac46c9a3d61f94b7036f585ca99"
+      "e54b515569711d698f7dfa55a6f03ad4"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3661,7 +3661,7 @@
       1,
       [ "@query", "b2t_def" ],
       0,
-      "f00d8d0121fc8a7e80f69269b0d55e08"
+      "b405b6d4ef6f68acd2180cae7fbc21a8"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3670,7 +3670,7 @@
       1,
       [ "@query", "b2t_def" ],
       0,
-      "5de8a1a3cdb2a5313301617cf21400a2"
+      "0e2c421fc1a9a429788e4fcd11feef2e"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3682,7 +3682,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "284961bb01fff2d66e2471f53717f579"
+      "6c68cdbffee524ec1a2602ebee5ed877"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3701,7 +3701,7 @@
         "true_interp"
       ],
       0,
-      "eceaa24edb38bffe65fa6951c8bcbba7"
+      "dee12c5082f200cfdadff1b385740e59"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3720,7 +3720,7 @@
         "true_interp"
       ],
       0,
-      "d097d670a931ce1042fa3b2f2e1d3f64"
+      "762cf900bcc6ce71208e5b7885266dff"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3763,15 +3763,15 @@
         "projection_inverse_Libcrux_secrets.Traits.Mkt_Declassify_@f_declassify",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_Rust_primitives.Mkcast_tc_@cast",
-        "refinement_interpretation_Tm_refine_5dcdfd2d652bf48a8b1cc906a9022c01",
-        "refinement_interpretation_Tm_refine_6331228ed3bd0cedeadffbfbfcc4ab8c",
+        "refinement_interpretation_Tm_refine_852d1feaaad46fe80666b6d165a34750",
+        "refinement_interpretation_Tm_refine_9d140883c684ac9c14e3a83be33f9f0f",
         "token_correspondence_Libcrux_secrets.Int.f_as_i32",
         "token_correspondence_Libcrux_secrets.Traits.f_classify",
         "token_correspondence_Libcrux_secrets.Traits.f_declassify",
         "token_correspondence_Rust_primitives.cast"
       ],
       0,
-      "529e7664a4a5c1315b0f6b44edcf9685"
+      "9e16bd15bc2259df7370912f85c8ad53"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3809,7 +3809,7 @@
         "equation_Rust_primitives.cast",
         "equation_Rust_primitives.cast_tc_integers",
         "equation_Spec.Utils.is_i32b", "equation_Spec.Utils.is_intb",
-        "int_typing",
+        "int_inversion", "int_typing",
         "interpretation_Tm_abs_298702239aa6e65682027257d4d3dc25",
         "interpretation_Tm_abs_4a6fb92fc3aadbdc6543585d1b85d3da",
         "interpretation_Tm_abs_4e41eaf5703de6128b17c2c81e94b989",
@@ -3832,10 +3832,10 @@
         "projection_inverse_Rust_primitives.Mkcast_tc_@cast",
         "refinement_interpretation_Tm_refine_24659cdefcbc2b6abb62f104c402d6f2",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
-        "refinement_interpretation_Tm_refine_5dcdfd2d652bf48a8b1cc906a9022c01",
-        "refinement_interpretation_Tm_refine_6331228ed3bd0cedeadffbfbfcc4ab8c",
-        "refinement_interpretation_Tm_refine_730e71be26915aa9d75e9c8ee8718cf1",
+        "refinement_interpretation_Tm_refine_852d1feaaad46fe80666b6d165a34750",
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1",
+        "refinement_interpretation_Tm_refine_9d140883c684ac9c14e3a83be33f9f0f",
+        "refinement_interpretation_Tm_refine_d16c5abd9e1aa283188702b2cff616a5",
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15",
         "token_correspondence_Libcrux_secrets.Int.f_as_i32",
         "token_correspondence_Libcrux_secrets.Traits.f_classify",
@@ -3843,7 +3843,7 @@
         "token_correspondence_Rust_primitives.cast"
       ],
       0,
-      "904bad28ba42e28d320388db7951b8f1"
+      "45541afa69c42eac7f6e1a0493afb4d4"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3888,9 +3888,9 @@
         "projection_inverse_Libcrux_secrets.Traits.Mkt_Declassify_@f_declassify",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_Rust_primitives.Mkcast_tc_@cast",
-        "refinement_interpretation_Tm_refine_6331228ed3bd0cedeadffbfbfcc4ab8c",
-        "refinement_interpretation_Tm_refine_730e71be26915aa9d75e9c8ee8718cf1",
-        "refinement_interpretation_Tm_refine_b13da0b8d4ea1f9bc0a9e733233fbcc4",
+        "refinement_interpretation_Tm_refine_149aa5c760c37a3c42c2a3f18c2413c6",
+        "refinement_interpretation_Tm_refine_9d140883c684ac9c14e3a83be33f9f0f",
+        "refinement_interpretation_Tm_refine_d16c5abd9e1aa283188702b2cff616a5",
         "refinement_interpretation_Tm_refine_fb5ae3da6e03e7412b7c3e0de64fea04",
         "token_correspondence_Libcrux_secrets.Int.f_as_i32",
         "token_correspondence_Libcrux_secrets.Traits.f_classify",
@@ -3898,7 +3898,7 @@
         "token_correspondence_Rust_primitives.cast"
       ],
       0,
-      "976dfba2f1927e0608bdac845cf3aca8"
+      "10a44b0e2222b405d0b3e4a06f0119fc"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3942,7 +3942,7 @@
         "typing_Libcrux_ml_kem.Vector.Portable.Vector_type.__proj__Mkt_PortableVector__item__f_elements"
       ],
       0,
-      "5a41bf9af5379b3c5d1e3614b3831fe8"
+      "e66005236d5a19dae1743a8206e4e52f"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3955,7 +3955,7 @@
         "refinement_interpretation_Tm_refine_974785b9a7aa4a8044f2405948c8fce7"
       ],
       0,
-      "b5aa4ae73ff6a8e824f8391e1c63ea73"
+      "770f9a22407491b0a1d513eb3e3426ba"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3971,7 +3971,7 @@
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0"
       ],
       0,
-      "ad51a0eb9ab4fe3b525bfca67eec14bb"
+      "cb2b803186c972bb21ed45e0ba7ee328"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -3983,7 +3983,7 @@
         "refinement_interpretation_Tm_refine_b48fe8e3e0437ada8959d3122d20e350"
       ],
       0,
-      "56de86bed49789f62ec64e04cc2f56ce"
+      "e12da686b469f0fade80c81246c9f663"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -4017,14 +4017,14 @@
         "projection_inverse_Libcrux_secrets.Traits.Mkt_Classify_@f_classify",
         "projection_inverse_Libcrux_secrets.Traits.Mkt_Declassify_@f_declassify",
         "projection_inverse_Rust_primitives.Mkcast_tc_@cast",
-        "refinement_interpretation_Tm_refine_730e71be26915aa9d75e9c8ee8718cf1",
+        "refinement_interpretation_Tm_refine_d16c5abd9e1aa283188702b2cff616a5",
         "token_correspondence_Libcrux_secrets.Int.f_as_i32",
         "token_correspondence_Libcrux_secrets.Traits.f_classify",
         "token_correspondence_Libcrux_secrets.Traits.f_declassify",
         "token_correspondence_Rust_primitives.cast"
       ],
       0,
-      "7ef26da665fa5af2657bacd8a8c5087e"
+      "610e4d2f61dee6d3a0900f8764466dd1"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -4037,7 +4037,7 @@
         "refinement_interpretation_Tm_refine_b87b35b2c400ec3792f4f96d31aaeb31"
       ],
       0,
-      "55b0f94d7b4d797fb903360d4e55ef67"
+      "b692284de93af389e557ec5f3266801a"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -4071,14 +4071,14 @@
         "projection_inverse_Libcrux_secrets.Traits.Mkt_Classify_@f_classify",
         "projection_inverse_Libcrux_secrets.Traits.Mkt_Declassify_@f_declassify",
         "projection_inverse_Rust_primitives.Mkcast_tc_@cast",
-        "refinement_interpretation_Tm_refine_6331228ed3bd0cedeadffbfbfcc4ab8c",
+        "refinement_interpretation_Tm_refine_9d140883c684ac9c14e3a83be33f9f0f",
         "token_correspondence_Libcrux_secrets.Int.f_as_i32",
         "token_correspondence_Libcrux_secrets.Traits.f_classify",
         "token_correspondence_Libcrux_secrets.Traits.f_declassify",
         "token_correspondence_Rust_primitives.cast"
       ],
       0,
-      "03ed0ea78db3755eaf17accd850d29a8"
+      "2d17df54e925d4240ac95a823c4e3d30"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -4090,7 +4090,7 @@
         "refinement_interpretation_Tm_refine_8d93ee086b53f7bd53638379d5cac2b5"
       ],
       0,
-      "6dd70951191f28d47c29927b83630c88"
+      "39c2dfcc1d73e52a7d42ca87d20bc654"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -4099,7 +4099,7 @@
       1,
       [ "@query" ],
       0,
-      "5d0b1edb4aa069c8f8d0c282e7133d3f"
+      "cc3e57c7f2783824210b1d77edd619fb"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -4120,7 +4120,7 @@
         "refinement_interpretation_Tm_refine_c64f2405b85ab7b11cd3469c849b05e8"
       ],
       0,
-      "b91f80a98a4c01acfb3336ec4f666d49"
+      "ec43b257d91486bcd6014eab1d6b0b44"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -4149,7 +4149,7 @@
         "refinement_interpretation_Tm_refine_c64f2405b85ab7b11cd3469c849b05e8"
       ],
       0,
-      "1bb53c60e31b0fcb7035d80b6a125e06"
+      "9a861b746a4d6292e21605880fac3a5c"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -4169,7 +4169,7 @@
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f"
       ],
       0,
-      "5747933d5e933812228345a0aa555585"
+      "d2da528be15970018f5cfd681c038ecf"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -4191,7 +4191,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "cf93207ee992abeb568b368357af51bc"
+      "3b4b60513e55030c3e7c71a519a65c13"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -4214,13 +4214,13 @@
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
         "refinement_interpretation_Tm_refine_4c05190b4f3d42d6a4fb5ed4067cd69d",
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1",
-        "refinement_interpretation_Tm_refine_992ab99e6f773a6d3ae9254aac74b79f",
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f",
+        "refinement_interpretation_Tm_refine_b9bf289a9db58b3088198546d714772b",
         "refinement_interpretation_Tm_refine_c64f2405b85ab7b11cd3469c849b05e8",
         "refinement_interpretation_Tm_refine_d1f03005afcf0a59c229fabcda90dc7e"
       ],
       0,
-      "6be3babb66e743a65c8fee06426eb1af"
+      "75ed15597d67e125483a61841762d1b1"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -4246,7 +4246,7 @@
         "refinement_interpretation_Tm_refine_d1f03005afcf0a59c229fabcda90dc7e"
       ],
       0,
-      "137fe5a502f66d62f02deb7ad511b70e"
+      "df0d90f27fdf3cbd9d1f1a3e134776ef"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -4267,7 +4267,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "59a813ca79bc73acc560c26edc6e28a4"
+      "343bd9cee72daa47b7347710d4469cc7"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -4287,7 +4287,7 @@
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f"
       ],
       0,
-      "db7ec39037f3b59b70260f8cee7f1f40"
+      "75b50ac405b6be96f5249dc39aafd3f1"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -4309,7 +4309,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "79b7b5157f453ef61ee785141a1eb9e7"
+      "1f48b54d4860433ad868b271a395899b"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -4332,7 +4332,7 @@
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "9acae52a8692cf9b80faab45b396c351"
+      "c0e01c0c0cc76df76d843f82f765f538"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -4346,7 +4346,7 @@
         "refinement_interpretation_Tm_refine_7309b15858a131ed891360e2d8b532ec"
       ],
       0,
-      "66deb7d4fa7162df7bdb970b6b833248"
+      "6a0953b48ede8a071dd726632a3a5b99"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -4374,15 +4374,15 @@
         "refinement_interpretation_Tm_refine_4c05190b4f3d42d6a4fb5ed4067cd69d",
         "refinement_interpretation_Tm_refine_9714ff5a878287cc821385c404243b50",
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1",
-        "refinement_interpretation_Tm_refine_992ab99e6f773a6d3ae9254aac74b79f",
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f",
+        "refinement_interpretation_Tm_refine_b9bf289a9db58b3088198546d714772b",
         "refinement_interpretation_Tm_refine_c64f2405b85ab7b11cd3469c849b05e8",
         "refinement_interpretation_Tm_refine_d1f03005afcf0a59c229fabcda90dc7e",
         "refinement_interpretation_Tm_refine_e30773cd2d93b3fc340e1d13fbe3a16c",
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "2cc91f88379d9eb9f62d43a615719ec4"
+      "3e0cca61cc82836e982d1691f4134ed1"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -4404,7 +4404,7 @@
         "refinement_interpretation_Tm_refine_d1f03005afcf0a59c229fabcda90dc7e"
       ],
       0,
-      "b9d3b45d418c3f5bfb13206b8e89f59a"
+      "e19dfb974de84f8fe16ffaa7272283c0"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -4429,7 +4429,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "38c83c70f28d14cd23417c1694196a2f"
+      "e1530a4dd3447ffcaaf6ba47d0920b08"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -4465,7 +4465,7 @@
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "d344b69c01b411005b16afdce35447b4"
+      "4f0acb75bd0ee2bd2cd78d1a26fd488b"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -4519,7 +4519,7 @@
         "typing_Libcrux_ml_kem.Vector.Portable.Vector_type.__proj__Mkt_PortableVector__item__f_elements"
       ],
       0,
-      "636d4f844a49b18e2e85be77b8b80e39"
+      "613b6920ed4fc85bfda64ca30bf197b0"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -4535,7 +4535,7 @@
         "refinement_interpretation_Tm_refine_ba4fe32a9fe99d64ac4e2e574c4ec5f8"
       ],
       0,
-      "d07dcf2cd3e479f3aa8e2f4a0c8ce198"
+      "46f18a0da6a94e52648dfe6b6aab80a5"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -4571,7 +4571,7 @@
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "e642f4a9425fe94016d069bc7c66f65d"
+      "4f11059514949dcacc7a58e75769343c"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -4612,7 +4612,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "9139627190692efde8651632fe7eee56"
+      "5fd640ed4fe86e8007a1a54e280e931d"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -4633,7 +4633,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "e80390a42d25a83bc67b40240b5762bd"
+      "e514ef69f4503cbdbe7690ce30bf56e8"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -4672,6 +4672,7 @@
         "projection_inverse_BoxInt_proj_0",
         "projection_inverse_Libcrux_ml_kem.Vector.Portable.Vector_type.Mkt_PortableVector_@f_elements",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
+        "refinement_interpretation_Tm_refine_149aa5c760c37a3c42c2a3f18c2413c6",
         "refinement_interpretation_Tm_refine_160fe7faad9a466b3cae8455bac5be60",
         "refinement_interpretation_Tm_refine_16994e722bd48967f41df3a8deba008d",
         "refinement_interpretation_Tm_refine_1d4e92d4dd60ed4807b3bad398f60dc2",
@@ -4681,20 +4682,19 @@
         "refinement_interpretation_Tm_refine_4c3d71833f13cfae32fd15bc930d45d0",
         "refinement_interpretation_Tm_refine_4da5096fc57d357d5811927e7b70f262",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
-        "refinement_interpretation_Tm_refine_5dcdfd2d652bf48a8b1cc906a9022c01",
         "refinement_interpretation_Tm_refine_5e8af139cbcdf73a0e85d5af5b50c7ea",
         "refinement_interpretation_Tm_refine_5ef7f00ea6e4b2349b92713628ddc30f",
         "refinement_interpretation_Tm_refine_6cba8b694d7fbf759331b42d86bb8cbd",
+        "refinement_interpretation_Tm_refine_852d1feaaad46fe80666b6d165a34750",
         "refinement_interpretation_Tm_refine_9714ff5a878287cc821385c404243b50",
         "refinement_interpretation_Tm_refine_974785b9a7aa4a8044f2405948c8fce7",
         "refinement_interpretation_Tm_refine_97f9c586ca87787e688fd47e993af6dc",
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1",
-        "refinement_interpretation_Tm_refine_992ab99e6f773a6d3ae9254aac74b79f",
         "refinement_interpretation_Tm_refine_9dea8bd71891c06ef62c0a9dff98740a",
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f",
         "refinement_interpretation_Tm_refine_ab3945b93b70e605e0660f2e59ca7f0a",
-        "refinement_interpretation_Tm_refine_b13da0b8d4ea1f9bc0a9e733233fbcc4",
         "refinement_interpretation_Tm_refine_b73fa43aa9b43e330e2cf6018afd49be",
+        "refinement_interpretation_Tm_refine_b9bf289a9db58b3088198546d714772b",
         "refinement_interpretation_Tm_refine_ba4fe32a9fe99d64ac4e2e574c4ec5f8",
         "refinement_interpretation_Tm_refine_bda7d55539f0ccf77cf0aaa5935c402b",
         "refinement_interpretation_Tm_refine_c64f2405b85ab7b11cd3469c849b05e8",
@@ -4708,7 +4708,7 @@
         "typing_Spec.Utils.is_i16b"
       ],
       0,
-      "d7aed710beb7b1c48c644c904a5a5e3a"
+      "04622612583a3a75703c237527b8f5f0"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -4720,7 +4720,7 @@
         "refinement_interpretation_Tm_refine_bb9672ca8067069c25ef13f369911883"
       ],
       0,
-      "fda128ab61fda906e22de4c6e267fda8"
+      "bb4df2030b078e4dc49de6673d85f2de"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -4732,7 +4732,7 @@
         "refinement_interpretation_Tm_refine_bb9672ca8067069c25ef13f369911883"
       ],
       0,
-      "a8ad0d35f2514809f55c4ade76c903d8"
+      "462d6072e56d027cd496cbdcc680f1db"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -4788,7 +4788,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "c83877b32f7a269e7a289847404d47f3"
+      "3c834bc6be57ef038baeec78149b3f6c"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials",
@@ -4802,6 +4802,7 @@
         "bool_inversion",
         "constructor_distinct_Rust_primitives.Integers.I32",
         "constructor_distinct_Rust_primitives.Integers.USIZE",
+        "data_elim_Rust_primitives.Integers.MkInt",
         "equality_tok_Rust_primitives.Integers.I16@tok",
         "equality_tok_Rust_primitives.Integers.I32@tok",
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
@@ -4823,6 +4824,7 @@
         "equation_Rust_primitives.Integers.mk_int",
         "equation_Rust_primitives.Integers.mk_usize",
         "equation_Rust_primitives.Integers.mul",
+        "equation_Rust_primitives.Integers.range_t",
         "equation_Rust_primitives.Integers.sz",
         "equation_Rust_primitives.Integers.unsigned",
         "equation_Rust_primitives.Integers.usize",
@@ -4868,21 +4870,25 @@
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
         "refinement_interpretation_Tm_refine_24659cdefcbc2b6abb62f104c402d6f2",
         "refinement_interpretation_Tm_refine_4c05190b4f3d42d6a4fb5ed4067cd69d",
+        "refinement_interpretation_Tm_refine_4c3d71833f13cfae32fd15bc930d45d0",
         "refinement_interpretation_Tm_refine_4da5096fc57d357d5811927e7b70f262",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
-        "refinement_interpretation_Tm_refine_5dcdfd2d652bf48a8b1cc906a9022c01",
         "refinement_interpretation_Tm_refine_5e8af139cbcdf73a0e85d5af5b50c7ea",
-        "refinement_interpretation_Tm_refine_6331228ed3bd0cedeadffbfbfcc4ab8c",
-        "refinement_interpretation_Tm_refine_730e71be26915aa9d75e9c8ee8718cf1",
+        "refinement_interpretation_Tm_refine_852d1feaaad46fe80666b6d165a34750",
         "refinement_interpretation_Tm_refine_9714ff5a878287cc821385c404243b50",
         "refinement_interpretation_Tm_refine_974785b9a7aa4a8044f2405948c8fce7",
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1",
-        "refinement_interpretation_Tm_refine_992ab99e6f773a6d3ae9254aac74b79f",
+        "refinement_interpretation_Tm_refine_9d140883c684ac9c14e3a83be33f9f0f",
+        "refinement_interpretation_Tm_refine_9dea8bd71891c06ef62c0a9dff98740a",
+        "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f",
+        "refinement_interpretation_Tm_refine_b9bf289a9db58b3088198546d714772b",
+        "refinement_interpretation_Tm_refine_ba4fe32a9fe99d64ac4e2e574c4ec5f8",
         "refinement_interpretation_Tm_refine_bb9672ca8067069c25ef13f369911883",
         "refinement_interpretation_Tm_refine_bda7d55539f0ccf77cf0aaa5935c402b",
         "refinement_interpretation_Tm_refine_beae9a9e01976c7af2ff33cb21ce2448",
         "refinement_interpretation_Tm_refine_c64f2405b85ab7b11cd3469c849b05e8",
+        "refinement_interpretation_Tm_refine_d16c5abd9e1aa283188702b2cff616a5",
         "refinement_interpretation_Tm_refine_d1f03005afcf0a59c229fabcda90dc7e",
         "refinement_interpretation_Tm_refine_db3ee825cbc9cfdaa9d882726d97b650",
         "refinement_interpretation_Tm_refine_dd8de4506a750ce1eab48da46e72d9aa",
@@ -4902,7 +4908,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "09c5fa361b213a9beb3e496685254cf5"
+      "916fd2eab2655aa4e02d3da5681af070"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -4944,7 +4950,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "c80aa53b8d8538f478fcbd341cbb9f74"
+      "b4d1c544bbaee5f4ffdc1aef07a7210e"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -4985,7 +4991,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "28f4437fbdc1895afab6e2e195fb4b85"
+      "e443ccc78176569dab5e0aa7f287fa78"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -5027,7 +5033,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "b4db7c4b957375692332c640c906f898"
+      "d27184ad8c0fe41b2c483fcf4f53914b"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -5068,7 +5074,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "abbc93531ae43fdce677e9e5ad81be64"
+      "f893d03398503c6b761cff39df01754c"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -5110,7 +5116,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "157fcd77464e84f8e3b9b6d7011116a9"
+      "3d6a6291435fc846894d10ba33706cb1"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -5136,7 +5142,7 @@
         "typing_tok_Rust_primitives.Integers.I16@tok"
       ],
       0,
-      "dab4bb615522ab270e02aaa86b005aee"
+      "692fd12b2b683720c473dcc3ee6abf3d"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -5177,13 +5183,13 @@
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
         "refinement_interpretation_Tm_refine_4bb8998fe69acc99b21e814adae749a3",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
-        "refinement_interpretation_Tm_refine_895bcefa1fd893008d6a003e6bcab9c6",
+        "refinement_interpretation_Tm_refine_82aa77e0b143639962b084971c7a063a",
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
         "typing_Rust_primitives.Integers.v",
         "typing_tok_Rust_primitives.Integers.I16@tok"
       ],
       0,
-      "b101fef94b3f146320f7a3fbcba0f478"
+      "faba03ba303ae2cf7c06484fcb15f0a4"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -5207,7 +5213,7 @@
         "typing_tok_Rust_primitives.Integers.I16@tok"
       ],
       0,
-      "4faf69558a55ae54a33123ee4ddcd896"
+      "6e84f42b7d02c5461da5cdf5b884456b"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -5248,13 +5254,13 @@
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
         "refinement_interpretation_Tm_refine_4bb8998fe69acc99b21e814adae749a3",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
-        "refinement_interpretation_Tm_refine_895bcefa1fd893008d6a003e6bcab9c6",
+        "refinement_interpretation_Tm_refine_82aa77e0b143639962b084971c7a063a",
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
         "typing_Rust_primitives.Integers.v",
         "typing_tok_Rust_primitives.Integers.I16@tok"
       ],
       0,
-      "cbc5c1f068b900ca4d9d1fb47f624276"
+      "037379852069ed67dfdbe4f760438879"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -5278,7 +5284,7 @@
         "typing_tok_Rust_primitives.Integers.I16@tok"
       ],
       0,
-      "74c95d364df4b93e34f5aa70f2bc2281"
+      "327dfee97370a1ad88bd9d8005455e29"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -5319,13 +5325,13 @@
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
         "refinement_interpretation_Tm_refine_4bb8998fe69acc99b21e814adae749a3",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
-        "refinement_interpretation_Tm_refine_895bcefa1fd893008d6a003e6bcab9c6",
+        "refinement_interpretation_Tm_refine_82aa77e0b143639962b084971c7a063a",
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
         "typing_Rust_primitives.Integers.v",
         "typing_tok_Rust_primitives.Integers.I16@tok"
       ],
       0,
-      "7ad6cbed5f8312589f56f63dda2a5ce0"
+      "69f19ec96967edbe0696e66c8638d49e"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -5347,7 +5353,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "5cd549c2ae857ff2ea0eafd8c05aa2e0"
+      "b28f4ea9f0fae6c1b7dab26bf4b175e1"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -5388,13 +5394,13 @@
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
         "refinement_interpretation_Tm_refine_4bb8998fe69acc99b21e814adae749a3",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
-        "refinement_interpretation_Tm_refine_895bcefa1fd893008d6a003e6bcab9c6",
+        "refinement_interpretation_Tm_refine_82aa77e0b143639962b084971c7a063a",
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
         "typing_Rust_primitives.Integers.v",
         "typing_tok_Rust_primitives.Integers.I16@tok"
       ],
       0,
-      "8f27a928098703699f65abdf34738c43"
+      "287bf968545e73e003c06f85653c2791"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -5422,7 +5428,7 @@
         "typing_FStar.Seq.Base.seq_of_list"
       ],
       0,
-      "0f7d2927f93b82ac83264b9348d8d930"
+      "37cf9142a121bafaae782da9b1d3a608"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -5469,7 +5475,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "bcab487ce2d15bc4360a2b9f8ef4a7c9"
+      "0e992b26259944a2759d544be2f9b788"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -5489,7 +5495,7 @@
         "refinement_interpretation_Tm_refine_26d768cc241c6628db9e0d45d45d9136"
       ],
       0,
-      "f20398e5635adcb484d3691dac68e392"
+      "7be0772f82fd0b76f5b199ec4ae85b30"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -5529,13 +5535,13 @@
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
-        "refinement_interpretation_Tm_refine_b52b63b29b7a1df74638ca3fe3a09713",
+        "refinement_interpretation_Tm_refine_ba60987f6c90633cb1677b2a17c76d86",
         "typing_Libcrux_ml_kem.Vector.Portable.Vector_type.__proj__Mkt_PortableVector__item__f_elements",
         "typing_Rust_primitives.Integers.v",
         "typing_tok_Rust_primitives.Integers.I16@tok"
       ],
       0,
-      "9fdd4734c4f4b3088be080f4aa0a791e"
+      "e2b86723d41817a6f87cce46cf159a98"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -5575,13 +5581,13 @@
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
-        "refinement_interpretation_Tm_refine_b52b63b29b7a1df74638ca3fe3a09713",
+        "refinement_interpretation_Tm_refine_ba60987f6c90633cb1677b2a17c76d86",
         "typing_Libcrux_ml_kem.Vector.Portable.Vector_type.__proj__Mkt_PortableVector__item__f_elements",
         "typing_Rust_primitives.Integers.v",
         "typing_tok_Rust_primitives.Integers.I16@tok"
       ],
       0,
-      "a08bbf7ca829d7d3dd5d31bfcc949620"
+      "440bc4fd9592365aa24d9c66aabe5646"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -5621,13 +5627,13 @@
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
-        "refinement_interpretation_Tm_refine_b52b63b29b7a1df74638ca3fe3a09713",
+        "refinement_interpretation_Tm_refine_ba60987f6c90633cb1677b2a17c76d86",
         "typing_Libcrux_ml_kem.Vector.Portable.Vector_type.__proj__Mkt_PortableVector__item__f_elements",
         "typing_Rust_primitives.Integers.v",
         "typing_tok_Rust_primitives.Integers.I16@tok"
       ],
       0,
-      "7a3e327c17289517a579be83c2f7c239"
+      "0170d7797a91bd952503bca53e0278dd"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -5667,13 +5673,13 @@
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
-        "refinement_interpretation_Tm_refine_b52b63b29b7a1df74638ca3fe3a09713",
+        "refinement_interpretation_Tm_refine_ba60987f6c90633cb1677b2a17c76d86",
         "typing_Libcrux_ml_kem.Vector.Portable.Vector_type.__proj__Mkt_PortableVector__item__f_elements",
         "typing_Rust_primitives.Integers.v",
         "typing_tok_Rust_primitives.Integers.I16@tok"
       ],
       0,
-      "5e3c0859923c430e9fcca2fc83211e87"
+      "a0c42b416c77ece74da8c29522a538c1"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -5698,10 +5704,10 @@
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_0dee8cb03258a67c2f7ec66427696212",
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e",
-        "refinement_interpretation_Tm_refine_b52b63b29b7a1df74638ca3fe3a09713"
+        "refinement_interpretation_Tm_refine_ba60987f6c90633cb1677b2a17c76d86"
       ],
       0,
-      "573973c67f4841a2d50caba41b1d5d67"
+      "4cb31cf94c069d99d102a62cd4d2b5ec"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -5726,10 +5732,10 @@
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_0dee8cb03258a67c2f7ec66427696212",
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e",
-        "refinement_interpretation_Tm_refine_b52b63b29b7a1df74638ca3fe3a09713"
+        "refinement_interpretation_Tm_refine_ba60987f6c90633cb1677b2a17c76d86"
       ],
       0,
-      "382445d54b9652c17e8df1255c00274b"
+      "327a2daee3ac20c6c4eed9ab72c0aa84"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -5754,10 +5760,10 @@
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_0dee8cb03258a67c2f7ec66427696212",
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e",
-        "refinement_interpretation_Tm_refine_b52b63b29b7a1df74638ca3fe3a09713"
+        "refinement_interpretation_Tm_refine_ba60987f6c90633cb1677b2a17c76d86"
       ],
       0,
-      "fb2564d303efaf39107dd6fe11fd6767"
+      "fd21d1491ee7c764811d3585eb969642"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -5782,10 +5788,10 @@
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_0dee8cb03258a67c2f7ec66427696212",
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e",
-        "refinement_interpretation_Tm_refine_b52b63b29b7a1df74638ca3fe3a09713"
+        "refinement_interpretation_Tm_refine_ba60987f6c90633cb1677b2a17c76d86"
       ],
       0,
-      "d03819171f26db5928d234a82e029a7c"
+      "48ea356d7ffd1bf9ab27ee0457300673"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -5830,7 +5836,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "3336063f4936db266ee1a9aa5bb2636c"
+      "36900b94547e75436e4699e5b11c2d5b"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -5878,7 +5884,7 @@
         "typing_tok_Rust_primitives.Integers.I16@tok"
       ],
       0,
-      "bcfd9297ffd764a5e905871bbb586755"
+      "606d5b04d2df7bd730c246dfd73d4a2a"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -5897,7 +5903,7 @@
         "true_interp"
       ],
       0,
-      "b784d69e5f1beed2c3288ef2fbb33d91"
+      "37e287db4500e1abc476c22ebd367157"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -5924,7 +5930,7 @@
         "typing_FStar.Seq.Base.length"
       ],
       0,
-      "2cf0f032a5d0b9e479c291a0ddb6647b"
+      "2b043508942b437d48ccb99805d6460d"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -5943,7 +5949,7 @@
         "refinement_interpretation_Tm_refine_4bb8998fe69acc99b21e814adae749a3"
       ],
       0,
-      "3e226f41d8d689fbd7ad0d8cdd038728"
+      "34cc28dc792b25c5e1b25030ddddf905"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -5959,11 +5965,11 @@
         "interpretation_Tm_abs_4a6fb92fc3aadbdc6543585d1b85d3da",
         "projection_inverse_Libcrux_secrets.Traits.Mkt_Classify_@f_classify",
         "refinement_interpretation_Tm_refine_0dee8cb03258a67c2f7ec66427696212",
-        "refinement_interpretation_Tm_refine_b52b63b29b7a1df74638ca3fe3a09713",
+        "refinement_interpretation_Tm_refine_ba60987f6c90633cb1677b2a17c76d86",
         "token_correspondence_Libcrux_secrets.Traits.f_classify"
       ],
       0,
-      "b8e9a113ae2a2e501c950c20a6a95bea"
+      "a63428e09e76456e178e4a5b8027d26a"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -5972,10 +5978,10 @@
       1,
       [
         "@MaxIFuel_assumption", "@query",
-        "refinement_interpretation_Tm_refine_b52b63b29b7a1df74638ca3fe3a09713"
+        "refinement_interpretation_Tm_refine_ba60987f6c90633cb1677b2a17c76d86"
       ],
       0,
-      "ea74e1ebe46ed740dbe6829bfbdf76ae"
+      "e096ef5f7c22667dfef81e79b4981a06"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -5984,10 +5990,10 @@
       1,
       [
         "@MaxIFuel_assumption", "@query",
-        "refinement_interpretation_Tm_refine_b52b63b29b7a1df74638ca3fe3a09713"
+        "refinement_interpretation_Tm_refine_ba60987f6c90633cb1677b2a17c76d86"
       ],
       0,
-      "194dce387be2e4b2dbaf83f4f9181436"
+      "3c53aff4d64e6a280ece656cbc23757f"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -5996,7 +6002,7 @@
       1,
       [ "@query" ],
       0,
-      "9ea0bbc42e7d9d475fedf0f7742201e7"
+      "8100e76e3e7c8fa0047de6b15d48c040"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6019,7 +6025,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "7e4810dcc9933a396cb7bdab6f94f089"
+      "1dba8d10f149d90e61a0dbedee8ad9a9"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6032,7 +6038,7 @@
         "refinement_interpretation_Tm_refine_8a4788f3ba0016ac73c908e981037d96"
       ],
       0,
-      "18a794c3391a0d4d37a8d28dce63094c"
+      "d348dea14f125e10a13a9716efbad1cc"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6051,7 +6057,7 @@
         "true_interp"
       ],
       0,
-      "3a1a0a513e648305818a4e0c430f2c7b"
+      "7e9344ae07513f8e887211e9e83aac9e"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6087,7 +6093,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "75c20818bb2a0490942889aacdad7a35"
+      "c912733dcba64b2ae21be045197a8751"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6106,7 +6112,7 @@
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "3cdd924ee9fadd3ceead5be396609657"
+      "ea94122d44ad1f31c480bb7adcd26876"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6125,7 +6131,7 @@
         "token_correspondence_Libcrux_secrets.Traits.f_classify"
       ],
       0,
-      "23a0d5580bcc568ee4be8740cb8286f1"
+      "628d28847791131988f863ae95ea440f"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6134,10 +6140,10 @@
       1,
       [
         "@MaxIFuel_assumption", "@query",
-        "refinement_interpretation_Tm_refine_b52b63b29b7a1df74638ca3fe3a09713"
+        "refinement_interpretation_Tm_refine_ba60987f6c90633cb1677b2a17c76d86"
       ],
       0,
-      "63391072c2935f4f592d61b12c680a03"
+      "9c2d88fd85dbac9efecb17debe4148e0"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6146,10 +6152,10 @@
       1,
       [
         "@MaxIFuel_assumption", "@query",
-        "refinement_interpretation_Tm_refine_b52b63b29b7a1df74638ca3fe3a09713"
+        "refinement_interpretation_Tm_refine_ba60987f6c90633cb1677b2a17c76d86"
       ],
       0,
-      "1cea3940dbbca33743a874f9df7a5c43"
+      "3881cc0055ae717aa9b4b2308b278279"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6158,7 +6164,7 @@
       1,
       [ "@query" ],
       0,
-      "e31186e1ef645341ea584b1f22253e6a"
+      "d442cc6c8a84927816266282ed6f250d"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6181,7 +6187,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "5c5426f89da8d85aba0c954f9d3b5472"
+      "472299c4639f20e23b3cbe6811ab8f75"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6194,7 +6200,7 @@
         "refinement_interpretation_Tm_refine_b6c2ff0e602717747c17f7cd22ae621c"
       ],
       0,
-      "51c8681be0e49585da2ba70a4117d165"
+      "ba4853c6f46534190e660a0b23ef631b"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6218,7 +6224,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "6a8618e0f5b5bae0215c103bb35aceb2"
+      "4a1e7e46784be8195b82b0eb5c7ba979"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6237,7 +6243,7 @@
         "refinement_interpretation_Tm_refine_4bb8998fe69acc99b21e814adae749a3"
       ],
       0,
-      "3e4525f8e71f5301daeb09ece2d55f43"
+      "fec40eb13edf175a3d0417baaafea259"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6281,7 +6287,7 @@
         "token_correspondence_Libcrux_secrets.Traits.f_classify"
       ],
       0,
-      "d5cc60c3864c18740c20d6ee35f69701"
+      "360ad6a3e3d6b822ada1ddb3288a21f3"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6300,7 +6306,7 @@
         "true_interp"
       ],
       0,
-      "38b3e520c88ef2c4ba7816267de8a919"
+      "9b22c871967d0a81bc062aee32893d62"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6336,7 +6342,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "435118cc73211605e9cbf4cdf3c9f5fc"
+      "5dc334bf688057be93008823b06586d7"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6355,7 +6361,7 @@
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f"
       ],
       0,
-      "8ab3ad9157bc79cd1575440a9d0ad4cd"
+      "7f2c3a8da0af51fa597926d6f22019fa"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6371,11 +6377,11 @@
         "interpretation_Tm_abs_4a6fb92fc3aadbdc6543585d1b85d3da",
         "projection_inverse_Libcrux_secrets.Traits.Mkt_Classify_@f_classify",
         "refinement_interpretation_Tm_refine_0dee8cb03258a67c2f7ec66427696212",
-        "refinement_interpretation_Tm_refine_b52b63b29b7a1df74638ca3fe3a09713",
+        "refinement_interpretation_Tm_refine_ba60987f6c90633cb1677b2a17c76d86",
         "token_correspondence_Libcrux_secrets.Traits.f_classify"
       ],
       0,
-      "f095a99913ff24b60d156b4e89567c99"
+      "29a0fed19a44514bcf33a9c6724bac93"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6384,10 +6390,10 @@
       1,
       [
         "@MaxIFuel_assumption", "@query",
-        "refinement_interpretation_Tm_refine_b52b63b29b7a1df74638ca3fe3a09713"
+        "refinement_interpretation_Tm_refine_ba60987f6c90633cb1677b2a17c76d86"
       ],
       0,
-      "390706c6f86d888d95395cd9034ea923"
+      "43bc69be062cbf9698c2d64b32d9f995"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6396,10 +6402,10 @@
       1,
       [
         "@MaxIFuel_assumption", "@query",
-        "refinement_interpretation_Tm_refine_b52b63b29b7a1df74638ca3fe3a09713"
+        "refinement_interpretation_Tm_refine_ba60987f6c90633cb1677b2a17c76d86"
       ],
       0,
-      "734a449dcc9abb85edbcf32f3d9f2b15"
+      "95a9ef9223918158d83d2b2d06fe8c92"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6408,7 +6414,7 @@
       1,
       [ "@query" ],
       0,
-      "ac82a860ed4ef8fd12830755e5f0fcfc"
+      "ea026148e7dae80e6118a40c6ad90f0c"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6431,7 +6437,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "6f1ac8dd29fe0cebb918fd673c50833b"
+      "a83766ee9cd7d94f4191f8f3b855d39e"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6444,7 +6450,7 @@
         "refinement_interpretation_Tm_refine_fa8214f41be7c0c524ba8c0b037ee3d9"
       ],
       0,
-      "0555aa781c248876ea8c5c2db384317c"
+      "5c3696491afed17ae525bddbabfa3a51"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6468,7 +6474,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f415b78afcc5da7cd68f9a81adcdff53"
+      "2c3ee0979b11c2d3b8fab413123f794a"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6481,7 +6487,7 @@
         "refinement_interpretation_Tm_refine_0f63c594cef9931f61fdd61cd332400a"
       ],
       0,
-      "b33f6f534f81077df40ad288ee34f9eb"
+      "bb28800aacd564cbdb5965b663134185"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6515,7 +6521,7 @@
         "refinement_interpretation_Tm_refine_fa8214f41be7c0c524ba8c0b037ee3d9"
       ],
       0,
-      "87f5cd7d8b8a68bddf50da57f542d3ef"
+      "ed34ae0c9b2ef6520cfd04d6a0f364ca"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6539,7 +6545,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "3cf15b16755bc437fbe11abd8d89a84f"
+      "c7b01991a47d20507859724608221ea5"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6558,7 +6564,7 @@
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "b415686b19e562e6e309215e7ac36620"
+      "16319798c0d5c85be04754f2e4534ced"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6603,7 +6609,7 @@
         "token_correspondence_Libcrux_secrets.Traits.f_classify"
       ],
       0,
-      "f3eb7665f68b72a05c3964b3003fbcb9"
+      "ab04e0d347e13e13d117dff846f4f7d1"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6622,7 +6628,7 @@
         "true_interp"
       ],
       0,
-      "2f64d49b5e67a0ed15120440a625ed62"
+      "d5803735fa8de153f4095df51bbbb0f6"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6658,7 +6664,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "c77f20beed4ed4e87cd20a67a8310287"
+      "c6711ec5332d9cfdbb2f2cb3d2aee68f"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6677,7 +6683,7 @@
         "refinement_interpretation_Tm_refine_045feaff96c939e73ccd5d7de8e4a488"
       ],
       0,
-      "0581ccadd9318887c182dba1eb24de03"
+      "066a83889d456f05d716bf72eeb92066"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6696,7 +6702,7 @@
         "token_correspondence_Libcrux_secrets.Traits.f_classify"
       ],
       0,
-      "383c67d82b3929717557693f46a61f54"
+      "8a29fd75376661c70119d7917e73122f"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6705,10 +6711,10 @@
       1,
       [
         "@MaxIFuel_assumption", "@query",
-        "refinement_interpretation_Tm_refine_b52b63b29b7a1df74638ca3fe3a09713"
+        "refinement_interpretation_Tm_refine_ba60987f6c90633cb1677b2a17c76d86"
       ],
       0,
-      "250b7682d047078fcd923b718e8a529e"
+      "b087254d733e746ccc124f3880ce5c91"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6717,10 +6723,10 @@
       1,
       [
         "@MaxIFuel_assumption", "@query",
-        "refinement_interpretation_Tm_refine_b52b63b29b7a1df74638ca3fe3a09713"
+        "refinement_interpretation_Tm_refine_ba60987f6c90633cb1677b2a17c76d86"
       ],
       0,
-      "fdfd2bd1d1b6fe178ecaf875109231bb"
+      "9f831c867c9dfb54093b976f9c1ed23d"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6729,7 +6735,7 @@
       1,
       [ "@query" ],
       0,
-      "9bd79b4691ef99fe9613873a714da030"
+      "a7b0a63714e2c23a1b020ddf55b00156"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6752,7 +6758,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "71808ed163fff2795d82685a1dbe2af2"
+      "aae3bad10f8e456583f19fe7062424ac"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6765,7 +6771,7 @@
         "refinement_interpretation_Tm_refine_e5d49868a5e25a45eaf2326c4437632a"
       ],
       0,
-      "572942caa99d73e0f081ee46630ad1f9"
+      "1e3e581d012a4a8da8305a51adc559fb"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6789,7 +6795,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "8875bb97c921ed71d47303efcfe31f97"
+      "b98303c4066ac6d48cc951d0ee45b4ea"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6802,7 +6808,7 @@
         "refinement_interpretation_Tm_refine_0f63c594cef9931f61fdd61cd332400a"
       ],
       0,
-      "09ad534c763b0829448d8971159fa8f4"
+      "e52aa4e8b6f0e33393cf4b005dd24035"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6838,7 +6844,7 @@
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "2946a83907517fbae16c317d4bdaca9d"
+      "229d7180c6c26268f372be0b5e0770ea"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6862,7 +6868,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "5a805fb4d85336d6748632097863f78e"
+      "73cc0f1bdce41dca1c738e49787644aa"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6875,7 +6881,7 @@
         "refinement_interpretation_Tm_refine_7309b15858a131ed891360e2d8b532ec"
       ],
       0,
-      "34cfda2daf6b69f7a913447c465466ea"
+      "608990497f7afa68206e6039bde57e6b"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6909,7 +6915,7 @@
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "faf467e11de7c54a0552799652e746cf"
+      "7dd367d67bf6d8d6ef817c08aac0edd8"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6933,7 +6939,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "58deeb154c94536684ccc53d3543d13f"
+      "a2b4d6538f2cd06bc8220b6a23fb36ac"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6952,7 +6958,7 @@
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f"
       ],
       0,
-      "7f0ce31bca18d3fa95c58254b1516f70"
+      "c5ad05d4b5a8317bcd4ec82ac4e92a83"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -6998,7 +7004,7 @@
         "token_correspondence_Libcrux_secrets.Traits.f_classify"
       ],
       0,
-      "bc3c5b460e7a7c65a379193780878aee"
+      "029bf1d2ee9caf2b0a8a4542d68943f1"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7017,7 +7023,7 @@
         "true_interp"
       ],
       0,
-      "c7cbf832f3ac49eec8e38c5336627139"
+      "ab2557779f6aedfa5a3dfe5249c3ca5f"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7053,7 +7059,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "53bfd76cdc1e9f2292dbc9be86918cd9"
+      "541470dbf49c7b1be1496d2324fdc8f8"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7072,7 +7078,7 @@
         "refinement_interpretation_Tm_refine_8e275cfa492c73f52b5f32fd4e8a7155"
       ],
       0,
-      "a32aa7e7e44cb3ba26d1d355b6c0cdb9"
+      "d1d215f4bc5e4d5679a21af02899a373"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7088,11 +7094,11 @@
         "interpretation_Tm_abs_4a6fb92fc3aadbdc6543585d1b85d3da",
         "projection_inverse_Libcrux_secrets.Traits.Mkt_Classify_@f_classify",
         "refinement_interpretation_Tm_refine_0dee8cb03258a67c2f7ec66427696212",
-        "refinement_interpretation_Tm_refine_b52b63b29b7a1df74638ca3fe3a09713",
+        "refinement_interpretation_Tm_refine_ba60987f6c90633cb1677b2a17c76d86",
         "token_correspondence_Libcrux_secrets.Traits.f_classify"
       ],
       0,
-      "0dcb89595295f0259e33ecb468b56b21"
+      "7d375b63463972d9e2c6e3789f703f8f"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7101,10 +7107,10 @@
       1,
       [
         "@MaxIFuel_assumption", "@query",
-        "refinement_interpretation_Tm_refine_b52b63b29b7a1df74638ca3fe3a09713"
+        "refinement_interpretation_Tm_refine_ba60987f6c90633cb1677b2a17c76d86"
       ],
       0,
-      "834d335526a12c6217dce1f7cca4d567"
+      "a956803b2f897a963a2e57b21892caef"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7113,10 +7119,10 @@
       1,
       [
         "@MaxIFuel_assumption", "@query",
-        "refinement_interpretation_Tm_refine_b52b63b29b7a1df74638ca3fe3a09713"
+        "refinement_interpretation_Tm_refine_ba60987f6c90633cb1677b2a17c76d86"
       ],
       0,
-      "2209105850e91e8b5d11fc94990007fe"
+      "8f96eb22d575bcd4294b866986dff096"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7125,7 +7131,7 @@
       1,
       [ "@query" ],
       0,
-      "06acb6261d7dae77cf96c7e232f09e94"
+      "81d03cfb213173b0c45b4bca82ae40e4"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7148,7 +7154,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "0e11bea6c585d64d25cf1939cc4e1c7a"
+      "00bdb2247a2e8eb0c13e0b9073d17b2c"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7161,7 +7167,7 @@
         "refinement_interpretation_Tm_refine_7f42e5f8337765d087ef4e09ba0b938f"
       ],
       0,
-      "0eb673f9b2a1f8e820af09aac11420ad"
+      "3c2f8e5df679dc14e38bce7a6ab8db93"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7185,7 +7191,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "6398ea192b3ddb2b91a4e135835a365b"
+      "d379e030751e0ca60a19b9e4b401b83a"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7198,7 +7204,7 @@
         "refinement_interpretation_Tm_refine_0f63c594cef9931f61fdd61cd332400a"
       ],
       0,
-      "ca0996e6e7dd742358209aa7658a8000"
+      "15559161ec08c58e68d9d0e90ee3d4f3"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7234,7 +7240,7 @@
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "9f68baa3d90b1d50e40aba69d5ca9065"
+      "2e1f310b31264b6b4607aea7a595b44c"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7258,7 +7264,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "9e55054fdef640f133d57ef27c4e6959"
+      "7d5e0e1b07f7558eafa8e8b2ab2f466d"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7271,7 +7277,7 @@
         "refinement_interpretation_Tm_refine_7309b15858a131ed891360e2d8b532ec"
       ],
       0,
-      "a94b87bfcf5992a96a3ca4546a542799"
+      "46f6ed6afa1b0210849f3ef935553455"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7307,7 +7313,7 @@
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "12f491f122fe6dd564f5fce1980647ef"
+      "f4777558839113f9acb64952a191c367"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7331,7 +7337,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "b93dfb7091da7ca2dd4af32f4b7fcebf"
+      "53ba86e74733da024b0df04fbc817341"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7344,7 +7350,7 @@
         "refinement_interpretation_Tm_refine_31dc904c98ccdc0b4cbf94c92984b51c"
       ],
       0,
-      "1989186337ff4b2da69851077396eb72"
+      "c8e02ebd5111180313516b3f733822f0"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7378,7 +7384,7 @@
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "6c0b7df0f99b49b3635b603e92fe91d4"
+      "fdef372c0bdb4a589114c0b81679612f"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7402,7 +7408,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "80fbb1b0e3aae1efd489ac252aa0ac85"
+      "efa02bf4c4fb0456998042562dbcfea0"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7421,7 +7427,7 @@
         "refinement_interpretation_Tm_refine_045feaff96c939e73ccd5d7de8e4a488"
       ],
       0,
-      "cdc8668c1dc126638fd73b6fc6da4b79"
+      "f424d92c9d374ae4aa4a7bb0e6283cdf"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7470,7 +7476,7 @@
         "token_correspondence_Libcrux_secrets.Traits.f_classify"
       ],
       0,
-      "28dbfdd563c50ffcbde62ba3d7c35b1d"
+      "4ff3ee13462e257dcddd08eef528abc9"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7489,7 +7495,7 @@
         "true_interp"
       ],
       0,
-      "779265514c19d1db51b06565d3703cc7"
+      "b85704b5861799b93a92cae81aa3c145"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7525,7 +7531,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "ed3bb0e6de5175c3e64a41307ec5894e"
+      "76cd2faea0bb99d1adff918a2a3b2e4a"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7544,7 +7550,7 @@
         "refinement_interpretation_Tm_refine_17842b692fc36ec40a803769d235f928"
       ],
       0,
-      "b0a723b75d99a64dccb5f284f5e95449"
+      "23200f1a03a60c43e390fdc7e1a8da09"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7563,7 +7569,7 @@
         "token_correspondence_Libcrux_secrets.Traits.f_classify"
       ],
       0,
-      "7f093d449afb69bf7179e3e63eafddfd"
+      "19f00ddd961b585461ff88cf00e1e36e"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7572,10 +7578,10 @@
       1,
       [
         "@MaxIFuel_assumption", "@query",
-        "refinement_interpretation_Tm_refine_b52b63b29b7a1df74638ca3fe3a09713"
+        "refinement_interpretation_Tm_refine_ba60987f6c90633cb1677b2a17c76d86"
       ],
       0,
-      "b41598a6a2f146071c7801232d4da4ae"
+      "bc515a7e1615067368624264c84b9783"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7584,10 +7590,10 @@
       1,
       [
         "@MaxIFuel_assumption", "@query",
-        "refinement_interpretation_Tm_refine_b52b63b29b7a1df74638ca3fe3a09713"
+        "refinement_interpretation_Tm_refine_ba60987f6c90633cb1677b2a17c76d86"
       ],
       0,
-      "b945d36f701367a31eb98c8e24f7df9e"
+      "886fd4fb75cb80118453fb0873384db9"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7596,7 +7602,7 @@
       1,
       [ "@query" ],
       0,
-      "7976a3a924bb86510953d5129f68c702"
+      "1d5a198933445fccc2c5f3cad2e1f7fb"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7619,7 +7625,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "5adf30a412dde3a8c9ba3255fecb6475"
+      "a7f2746e82d214d0aaa4406d0b1b4254"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7632,7 +7638,7 @@
         "refinement_interpretation_Tm_refine_f994beccad9786b1b4a11ecf03a97577"
       ],
       0,
-      "f45250bb89a0fc7b4058faad5dbe023c"
+      "01682e011dc63bd6bed4980c1228ce0f"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7656,7 +7662,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e29365083fea4a26261f0146bc206394"
+      "04350e17653aed20e016d02f7f9e75be"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7669,7 +7675,7 @@
         "refinement_interpretation_Tm_refine_0f63c594cef9931f61fdd61cd332400a"
       ],
       0,
-      "1c5a5c1f21fd051ae705a9d1b07b3cfc"
+      "c5ca1f4e0892e59acaf17fbd55838d6d"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7705,7 +7711,7 @@
         "refinement_interpretation_Tm_refine_f994beccad9786b1b4a11ecf03a97577"
       ],
       0,
-      "5f007fab87c25e4ec44054b3556ce0f1"
+      "c7eaa3ce74e0d288a05ec5c3210bdc52"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7729,7 +7735,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "726f4730adf1c22068ad16992eb4474d"
+      "24c40d9e2b22ed86ef76d5952d80f4c1"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7742,7 +7748,7 @@
         "refinement_interpretation_Tm_refine_7309b15858a131ed891360e2d8b532ec"
       ],
       0,
-      "f998973fbc7661403980c84cc3257431"
+      "c3cbf8e60e07b9aa471793a26b6ee5f9"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7778,7 +7784,7 @@
         "refinement_interpretation_Tm_refine_f994beccad9786b1b4a11ecf03a97577"
       ],
       0,
-      "47b6f473e83116b2e8e00255ede0542d"
+      "43e669d057f57f4934f76d63e09223fc"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7802,7 +7808,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "edfe09066e22c9fcac02f04895250411"
+      "7e9c0a1cf3518c7fc806a213a4067ec0"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7815,7 +7821,7 @@
         "refinement_interpretation_Tm_refine_31dc904c98ccdc0b4cbf94c92984b51c"
       ],
       0,
-      "fd311332a2886e7146ed3f6e5f0b5253"
+      "a952b321bd120a130d8b5c5880d0f4cb"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7851,7 +7857,7 @@
         "refinement_interpretation_Tm_refine_f994beccad9786b1b4a11ecf03a97577"
       ],
       0,
-      "6e5a417e0684674856d666d071324f0c"
+      "f3f36a83a7565b28085c2d022cdcf4a3"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7875,7 +7881,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "24b34f8cb615a5e4de1641ae5cbb0a7a"
+      "95672b78fa6709b3646b8f6c171b14da"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7888,7 +7894,7 @@
         "refinement_interpretation_Tm_refine_a6f702a0f44e53939f91d45c60d54b4a"
       ],
       0,
-      "fedfc8cf462b189afd7228a50ceeb312"
+      "884adc4eef184a77cee60a65cee71dd7"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7924,7 +7930,7 @@
         "refinement_interpretation_Tm_refine_f994beccad9786b1b4a11ecf03a97577"
       ],
       0,
-      "deaa39ebdd016a8a84589fddf3e8785e"
+      "482d1f0a2dd36e47fb011f1b7bfc9425"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7948,7 +7954,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "40dc18901daff14be8b3db0e6321e5ff"
+      "15a52cb1d3a91e2ad28b32131e923d35"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -7967,7 +7973,7 @@
         "refinement_interpretation_Tm_refine_8e275cfa492c73f52b5f32fd4e8a7155"
       ],
       0,
-      "cac67d0025810c744d2584bf18848193"
+      "86dab228b6b451b96d325f70a2e4f349"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8015,7 +8021,7 @@
         "token_correspondence_Libcrux_secrets.Traits.f_classify"
       ],
       0,
-      "3d66156090468a7eac47b22dcf12c724"
+      "49d28d8fd5bad0da0533a3ad74ee931a"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8034,7 +8040,7 @@
         "true_interp"
       ],
       0,
-      "d28cec7d0b90b7e9efc1b3b496ce81c2"
+      "e97a61d354e91f5c7e9515ce3abd02b8"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8070,7 +8076,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "74cef5d14137233e3e6128c9f55843d5"
+      "76d55589d5cc8150573d5559f5c9ffe2"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8089,7 +8095,7 @@
         "refinement_interpretation_Tm_refine_bcb4c74dd9c0210c7a566434f6c21fa1"
       ],
       0,
-      "979178c988b0aeb4c42a43127b66c243"
+      "8e0e32f3443bbd9147f5a662cc8aeb74"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8105,11 +8111,11 @@
         "interpretation_Tm_abs_4a6fb92fc3aadbdc6543585d1b85d3da",
         "projection_inverse_Libcrux_secrets.Traits.Mkt_Classify_@f_classify",
         "refinement_interpretation_Tm_refine_0dee8cb03258a67c2f7ec66427696212",
-        "refinement_interpretation_Tm_refine_b52b63b29b7a1df74638ca3fe3a09713",
+        "refinement_interpretation_Tm_refine_ba60987f6c90633cb1677b2a17c76d86",
         "token_correspondence_Libcrux_secrets.Traits.f_classify"
       ],
       0,
-      "0f9bbe18fe756be15c93494cd18341da"
+      "d1297bc247f3ca71c6149cbf1ffbac43"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8118,10 +8124,10 @@
       1,
       [
         "@MaxIFuel_assumption", "@query",
-        "refinement_interpretation_Tm_refine_b52b63b29b7a1df74638ca3fe3a09713"
+        "refinement_interpretation_Tm_refine_ba60987f6c90633cb1677b2a17c76d86"
       ],
       0,
-      "f8e01750ee3da5bf86a45d6a7d9a91c9"
+      "5ae871e6082d7a4df0822256398473b6"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8130,10 +8136,10 @@
       1,
       [
         "@MaxIFuel_assumption", "@query",
-        "refinement_interpretation_Tm_refine_b52b63b29b7a1df74638ca3fe3a09713"
+        "refinement_interpretation_Tm_refine_ba60987f6c90633cb1677b2a17c76d86"
       ],
       0,
-      "8ad42e9d0dcaf3c3291f4def856c8a20"
+      "14eeb1a6db0f1e89aaae71a205212a8a"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8142,7 +8148,7 @@
       1,
       [ "@query" ],
       0,
-      "04b0e01008fbb934397d4464d4a0e65e"
+      "f7a1395e8d4fa96ed52a144ce81d618e"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8165,7 +8171,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "60bfda09aeb1baa3448bf59426fbc0db"
+      "2cfeab13e0ec5f447d06ad7c78f30515"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8178,7 +8184,7 @@
         "refinement_interpretation_Tm_refine_ee60d72a2db4e34cfe8cb64ad95161d1"
       ],
       0,
-      "d8132fc7b28b50d8da2698c44c697363"
+      "70f1852f283fae6323f44b56ec701865"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8202,7 +8208,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "5ac9bccfbc581023316a77b69f52a721"
+      "1b7063e5d0b685c22b129072810b7eff"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8215,7 +8221,7 @@
         "refinement_interpretation_Tm_refine_0f63c594cef9931f61fdd61cd332400a"
       ],
       0,
-      "e3193baf5fa11867398c5452cb2fec64"
+      "3cc4bf705876736c15b771553e0cb25f"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8251,7 +8257,7 @@
         "refinement_interpretation_Tm_refine_ee60d72a2db4e34cfe8cb64ad95161d1"
       ],
       0,
-      "ee078072531fb777c711566cdbc958f3"
+      "0dcd5dab4efedaeaf852951adc72efe6"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8275,7 +8281,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "aceb80915f94e7e32987e5926a910bf2"
+      "73fc7034d371d4ec20701dff40a42829"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8288,7 +8294,7 @@
         "refinement_interpretation_Tm_refine_7309b15858a131ed891360e2d8b532ec"
       ],
       0,
-      "25b34d9078bb3b29749c3c00131b530d"
+      "6a35bf775651cf978524c2d750f75fa1"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8324,7 +8330,7 @@
         "refinement_interpretation_Tm_refine_ee60d72a2db4e34cfe8cb64ad95161d1"
       ],
       0,
-      "9c20668540a3c694b5301b7796d37b81"
+      "1bd0732ea1e8454f2c161acfea806f2f"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8348,7 +8354,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e4ade0e82a88772d3fe710243a9aefb9"
+      "831a33a4b79b40e96dbe6df223600ee9"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8361,7 +8367,7 @@
         "refinement_interpretation_Tm_refine_31dc904c98ccdc0b4cbf94c92984b51c"
       ],
       0,
-      "9e805147c042f652590db3bda2196592"
+      "3571513261b5e44f86ffd50e680c92d3"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8398,7 +8404,7 @@
         "refinement_interpretation_Tm_refine_ee60d72a2db4e34cfe8cb64ad95161d1"
       ],
       0,
-      "900e684baa7d6994b2f0cdb1dbdf816c"
+      "6ced6e7ff814d4dc081d1ff19fb9ac0d"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8422,7 +8428,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "548e6c08f3a8de79b389a9bdd056c554"
+      "d74bcf3018b0467a1ec17d8571a4d41d"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8435,7 +8441,7 @@
         "refinement_interpretation_Tm_refine_a6f702a0f44e53939f91d45c60d54b4a"
       ],
       0,
-      "5eb18f179c81ac94234de11d8c67e4c6"
+      "6942a0f7c9fddedf708ea21fbc52475a"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8471,7 +8477,7 @@
         "refinement_interpretation_Tm_refine_ee60d72a2db4e34cfe8cb64ad95161d1"
       ],
       0,
-      "9191162b2d911ea9c6ea841a50b5795a"
+      "9cccd2ad5c2f7b8b74f33bb319faaace"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8495,7 +8501,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "c1ad5cc4dd7f77a5e6e9aacf3548b55a"
+      "2f554cac7a745119016781608d60eecd"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8508,7 +8514,7 @@
         "refinement_interpretation_Tm_refine_4446ea77436cc601108794a5ec8601d9"
       ],
       0,
-      "a61de2bf860ea1b2b90b75ba9b125fd6"
+      "c7ffed2a7ea37f6308ad76742e8da3b0"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8544,7 +8550,7 @@
         "refinement_interpretation_Tm_refine_ee60d72a2db4e34cfe8cb64ad95161d1"
       ],
       0,
-      "95ece3ef0f2dc53f679590feb9f72b1b"
+      "62a6a60319816204cf1f23c3e6da4c61"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8568,7 +8574,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "06c9da610610e4657db963e2eeff77ab"
+      "4a9fb1fa1487db9b6e40733d4dcd1a24"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8587,7 +8593,7 @@
         "refinement_interpretation_Tm_refine_17842b692fc36ec40a803769d235f928"
       ],
       0,
-      "6b38f4d2abad1e0458814dd55a1294f7"
+      "b0e1189ac05633c92f1feade5d2b8635"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8636,7 +8642,7 @@
         "token_correspondence_Libcrux_secrets.Traits.f_classify"
       ],
       0,
-      "cf8b2f0066056b52c29a587feb3ed553"
+      "3bd600fbd54bf31efba8a54cdeb42348"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8655,7 +8661,7 @@
         "true_interp"
       ],
       0,
-      "765bbcfb3f757ea6dd8042543eb17110"
+      "2204b128e6d2de0f8fa2e3f3b0c125c8"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8691,7 +8697,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "37170219a772b1ef236033981d1eafc5"
+      "4e564b94123815ecf143a970500d7e27"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8710,7 +8716,7 @@
         "refinement_interpretation_Tm_refine_63951cf891d05f4c4ee21aee034efca6"
       ],
       0,
-      "a81abd56b14d5e66af9a3810732471b0"
+      "28e858d7d503ccdb75d4b547bac1913b"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8729,7 +8735,7 @@
         "token_correspondence_Libcrux_secrets.Traits.f_classify"
       ],
       0,
-      "0d23e94211b5eb86741e540d230b1c3c"
+      "170589c0bdfe421013609acf1b1ad8f4"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8738,10 +8744,10 @@
       1,
       [
         "@MaxIFuel_assumption", "@query",
-        "refinement_interpretation_Tm_refine_b52b63b29b7a1df74638ca3fe3a09713"
+        "refinement_interpretation_Tm_refine_ba60987f6c90633cb1677b2a17c76d86"
       ],
       0,
-      "571ec1aac7ec15f86091722902491292"
+      "9e3847f018234d919ca96432db84d176"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8750,10 +8756,10 @@
       1,
       [
         "@MaxIFuel_assumption", "@query",
-        "refinement_interpretation_Tm_refine_b52b63b29b7a1df74638ca3fe3a09713"
+        "refinement_interpretation_Tm_refine_ba60987f6c90633cb1677b2a17c76d86"
       ],
       0,
-      "6a1e4e55a8faa000fb99894a7b3d57e5"
+      "6f35e98d9d7f040f5c9b840d564e0fd1"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8762,7 +8768,7 @@
       1,
       [ "@query" ],
       0,
-      "eb862448f93b7f2bedd2f84a66fc9857"
+      "9566bbc3b8dbf2b65f55e5f661ffccaf"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8785,7 +8791,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "3bae17b956fb39fdc918d8a83e579c17"
+      "75ee03ee0a6d187df05fcf2bf8c90c59"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8798,7 +8804,7 @@
         "refinement_interpretation_Tm_refine_87a49ed954b692af8586a5504f0470b4"
       ],
       0,
-      "c76f0ba3c84f6a182f912be7fe0116c3"
+      "9a2e5186daea91c6681c1f05e15b8311"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8822,7 +8828,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "52db4e9f590b9aba85b83fce79104561"
+      "67317ddc2c680633832164ce3da4ebee"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8835,7 +8841,7 @@
         "refinement_interpretation_Tm_refine_0f63c594cef9931f61fdd61cd332400a"
       ],
       0,
-      "2d4d28264ed184039b7c52ff7c2163eb"
+      "45b9947b38307264761e3240077155bc"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8871,7 +8877,7 @@
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "339ae5222488d0a5391eeae0e7ec6bec"
+      "b49ca0735f784960c501b127c75fe3a5"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8895,7 +8901,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f40927dc91126cecec38566c9b9d2e42"
+      "ad40eb082dcadd4080cd2fa631d226a7"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8908,7 +8914,7 @@
         "refinement_interpretation_Tm_refine_7309b15858a131ed891360e2d8b532ec"
       ],
       0,
-      "00bd98d5cc259cf24198e94d189e6101"
+      "a325ee65625b190d24524b443c5e62c5"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8944,7 +8950,7 @@
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "63e31950109cad76f417bd65ee594e4c"
+      "827ff8c757ba52aee4b06e897c21ec27"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8968,7 +8974,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "cb0fa3e1622c2d7e83d875fa074bbb7d"
+      "1e5714c42a608e228bf3fa0bde71daec"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -8981,7 +8987,7 @@
         "refinement_interpretation_Tm_refine_31dc904c98ccdc0b4cbf94c92984b51c"
       ],
       0,
-      "8d741b96802e7dc9d86d859702a270b6"
+      "ba2d9faf25d742e0309ef3a33badebf1"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -9018,7 +9024,7 @@
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "fcf0ad9991b2ea6acb48343eb177c782"
+      "3fcb00dcbef0c38e02ccd6a7bc5d8ab4"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -9042,7 +9048,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "5970ef9f453261ba8a4782c4eeb83b90"
+      "4179baebbf602d3302d6f701c03df416"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -9055,7 +9061,7 @@
         "refinement_interpretation_Tm_refine_a6f702a0f44e53939f91d45c60d54b4a"
       ],
       0,
-      "129d55dab3e664826019082d5cb39edb"
+      "b606e9fb7fab8983582783900e28a055"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -9093,7 +9099,7 @@
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "313912bbdbc079980e7104d727b11e93"
+      "3750e3f004aee0506ff2e9e2bf549320"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -9117,7 +9123,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "2a05e4b181c5d1ee3f5b8c68007b3b28"
+      "b294459845e7612385d406777ad8a0af"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -9130,7 +9136,7 @@
         "refinement_interpretation_Tm_refine_4446ea77436cc601108794a5ec8601d9"
       ],
       0,
-      "7800f6efcc020358afeda6957e1d8f89"
+      "c6f8563abb678018689dc5ad9a4b9d60"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -9166,7 +9172,7 @@
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "3fd98ffd55046ccd536329a594cfc0a8"
+      "c4eefdb609c3078872f460b96e110ff3"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -9190,7 +9196,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "398835425885c0c130b7bbb72bfc655b"
+      "9313933edcae862ff3eed722c2e1bab4"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -9203,7 +9209,7 @@
         "refinement_interpretation_Tm_refine_66b8f1395466d1c2301ccddc4915d123"
       ],
       0,
-      "b90d4cff49d4b590a8cc17052d791753"
+      "02b7512343770dc299ed5168022f0832"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -9239,7 +9245,7 @@
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "69585d294dd1fca28e2d89df454b45c2"
+      "ad220878eabbbbb73068da1a1f28b2ca"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -9263,7 +9269,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "acde21530ece538bcd81bd974b648434"
+      "a4779d8f99b01ba79a5cb82179276c8b"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -9282,7 +9288,7 @@
         "refinement_interpretation_Tm_refine_bcb4c74dd9c0210c7a566434f6c21fa1"
       ],
       0,
-      "764291f9d958694b724f3d91b982dc66"
+      "7118500a34b1763f1dc6cb39a333805c"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -9330,7 +9336,7 @@
         "token_correspondence_Libcrux_secrets.Traits.f_classify"
       ],
       0,
-      "66b30c54dd5c42a47145e0ec6bf78e7d"
+      "6a17528632f8613321e96d04dfeca4f0"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -9354,7 +9360,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4d9bdae37cb57e33248988442e005a6a"
+      "fc154d4dbee31dc8681c218af8b9c890"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -9373,7 +9379,7 @@
         "refinement_interpretation_Tm_refine_63951cf891d05f4c4ee21aee034efca6"
       ],
       0,
-      "b943a1fdc136f696cc3be920c826d40e"
+      "0569083547dd0555c77bbb5abf896568"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -9395,7 +9401,7 @@
         "token_correspondence_Libcrux_secrets.Traits.f_classify"
       ],
       0,
-      "e83353a9861342db42d11e9690432ab4"
+      "50a9e4c88518b9469c74e2c10a256ecf"
     ],
     [
       "Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply",
@@ -9404,6 +9410,7 @@
       1,
       [
         "@MaxIFuel_assumption", "@query",
+        "constructor_distinct_Rust_primitives.Integers.I16",
         "data_elim_Libcrux_ml_kem.Vector.Portable.Vector_type.Mkt_PortableVector",
         "data_typing_intro_Prims.Cons@tok",
         "data_typing_intro_Prims.Nil@tok",
@@ -9413,8 +9420,8 @@
         "equation_Libcrux_ml_kem.Vector.Portable.Ntt.ntt_multiply_binomials_post",
         "equation_Prims.nat", "equation_Rust_primitives.Arithmetic.neg",
         "equation_Rust_primitives.Arrays.t_Array",
-        "equation_Rust_primitives.Arrays.t_Slice",
         "equation_Rust_primitives.Integers.add",
+        "equation_Rust_primitives.Integers.bits",
         "equation_Rust_primitives.Integers.i16",
         "equation_Rust_primitives.Integers.mk_i16",
         "equation_Rust_primitives.Integers.mk_int",
@@ -9438,27 +9445,25 @@
         "lemma_FStar.Seq.Base.lemma_index_create",
         "lemma_FStar.Seq.Base.lemma_len_append",
         "lemma_FStar.Seq.Base.lemma_seq_of_list_cons",
-        "primitive_Prims.op_Addition", "primitive_Prims.op_Minus",
-        "primitive_Prims.op_Multiply", "primitive_Prims.op_Subtraction",
+        "lemma_Spec.Utils.pow2_more_values", "primitive_Prims.op_Addition",
+        "primitive_Prims.op_Minus", "primitive_Prims.op_Multiply",
+        "primitive_Prims.op_Subtraction",
         "proj_equation_Libcrux_ml_kem.Vector.Portable.Vector_type.Mkt_PortableVector_@f_elements",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxInt_proj_0",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_01738268c1fbe69d563b88aed5c0b5ef",
         "refinement_interpretation_Tm_refine_045feaff96c939e73ccd5d7de8e4a488",
-        "refinement_interpretation_Tm_refine_09995afbd0b19c5a296f76da24e99fa5",
         "refinement_interpretation_Tm_refine_0dee8cb03258a67c2f7ec66427696212",
         "refinement_interpretation_Tm_refine_10d28bb6d8213c7c4ece31643f318282",
         "refinement_interpretation_Tm_refine_160fe7faad9a466b3cae8455bac5be60",
         "refinement_interpretation_Tm_refine_17842b692fc36ec40a803769d235f928",
         "refinement_interpretation_Tm_refine_19225d91f1a64190b7f2b54403539f6f",
-        "refinement_interpretation_Tm_refine_1b275f7f9b028bf6f09b6686c87b3b56",
         "refinement_interpretation_Tm_refine_1d929328bf8a29925d162e191033f920",
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
         "refinement_interpretation_Tm_refine_24659cdefcbc2b6abb62f104c402d6f2",
         "refinement_interpretation_Tm_refine_27533158b6cc8d9d245af01a753b896b",
         "refinement_interpretation_Tm_refine_29543d1de77822fb4fef400a6e04262c",
-        "refinement_interpretation_Tm_refine_35c25de009a0a5c686f85c115fcdaf1a",
         "refinement_interpretation_Tm_refine_399229f57092063c4f866e5ba3dd756f",
         "refinement_interpretation_Tm_refine_3d8a0e483a0934d7376f043d04fcf664",
         "refinement_interpretation_Tm_refine_444061fd0bd0053c4f27fa233082c9ca",
@@ -9469,29 +9474,26 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
         "refinement_interpretation_Tm_refine_55cb77d236cf8608da148febbca8ce70",
         "refinement_interpretation_Tm_refine_63951cf891d05f4c4ee21aee034efca6",
-        "refinement_interpretation_Tm_refine_64ca0e97633d9d24908062e50b77543c",
         "refinement_interpretation_Tm_refine_656f319291919cdde9649661485cb1af",
         "refinement_interpretation_Tm_refine_6df709dedb86440bbe517f0b4711f6ab",
         "refinement_interpretation_Tm_refine_78abff248667be6a3189adc754c1eb44",
         "refinement_interpretation_Tm_refine_7ad263ede56c518d357b6e57266d9163",
         "refinement_interpretation_Tm_refine_7f42e5f8337765d087ef4e09ba0b938f",
         "refinement_interpretation_Tm_refine_87a49ed954b692af8586a5504f0470b4",
-        "refinement_interpretation_Tm_refine_8a4788f3ba0016ac73c908e981037d96",
         "refinement_interpretation_Tm_refine_8e275cfa492c73f52b5f32fd4e8a7155",
         "refinement_interpretation_Tm_refine_8e544ad1b315b1237fab86edadc138cb",
         "refinement_interpretation_Tm_refine_98230d60f0d90b34f72f931e790cbb94",
         "refinement_interpretation_Tm_refine_9b9506dedf87774584321e1a6c8c511e",
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e",
-        "refinement_interpretation_Tm_refine_a28734f3ea2155c00aa3c24ee60d702d",
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f",
         "refinement_interpretation_Tm_refine_b21f98b6ca50013c6e539e770c013c08",
-        "refinement_interpretation_Tm_refine_b52b63b29b7a1df74638ca3fe3a09713",
         "refinement_interpretation_Tm_refine_b5787a7b820ce446d4ed503b37d33dfd",
         "refinement_interpretation_Tm_refine_b6c2ff0e602717747c17f7cd22ae621c",
+        "refinement_interpretation_Tm_refine_ba60987f6c90633cb1677b2a17c76d86",
         "refinement_interpretation_Tm_refine_bcb4c74dd9c0210c7a566434f6c21fa1",
-        "refinement_interpretation_Tm_refine_bd12da9874e6242a0b9a2166877165a7",
         "refinement_interpretation_Tm_refine_bde4847aedffbf97e416d95de209d75a",
         "refinement_interpretation_Tm_refine_c1424615841f28cac7fc34e92b7ff33c",
+        "refinement_interpretation_Tm_refine_c28c3946c7ff0e8322d695ba5fee4c19",
         "refinement_interpretation_Tm_refine_d6ed149e2036fd9b2c5485f9135bf01e",
         "refinement_interpretation_Tm_refine_e5d49868a5e25a45eaf2326c4437632a",
         "refinement_interpretation_Tm_refine_e87cb3d3044919361beed6946e9ef651",
@@ -9500,15 +9502,11 @@
         "refinement_interpretation_Tm_refine_ee60d72a2db4e34cfe8cb64ad95161d1",
         "refinement_interpretation_Tm_refine_f994beccad9786b1b4a11ecf03a97577",
         "refinement_interpretation_Tm_refine_fa8214f41be7c0c524ba8c0b037ee3d9",
-        "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca",
-        "typing_FStar.Seq.Base.create", "typing_FStar.Seq.Base.index",
-        "typing_FStar.Seq.Base.length", "typing_FStar.Seq.Base.seq_of_list",
-        "typing_Libcrux_ml_kem.Vector.Portable.Vector_type.__proj__Mkt_PortableVector__item__f_elements",
-        "typing_Rust_primitives.Integers.zero",
-        "typing_tok_Rust_primitives.Integers.I16@tok"
+        "typing_FStar.Seq.Base.create", "typing_FStar.Seq.Base.length",
+        "typing_FStar.Seq.Base.seq_of_list"
       ],
       0,
-      "665a5abc4069a81db781062fcef9c082"
+      "bab2a4f12a0fb36d1a23e13c841b098d"
     ]
   ]
 ]

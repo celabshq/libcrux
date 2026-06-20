@@ -387,7 +387,9 @@ fn op_decompress_1(a: PortableVector) -> PortableVector {
 #[hax_lib::fstar::options("--z3rlimit 300")]
 #[hax_lib::requires(fstar!(r#"${spec::decompress_ciphertext_coefficient_pre} ${a}.f_elements $COEFFICIENT_BITS"#))]
 #[hax_lib::ensures(|out| fstar!(r#"${spec::decompress_ciphertext_coefficient_post} ${a}.f_elements $COEFFICIENT_BITS ${out}.f_elements"#))]
-fn op_decompress_ciphertext_coefficient<const COEFFICIENT_BITS: i32>(a: PortableVector) -> PortableVector {
+fn op_decompress_ciphertext_coefficient<const COEFFICIENT_BITS: i32>(
+    a: PortableVector,
+) -> PortableVector {
     hax_lib::fstar!(
         r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.bounded_i16_array)
                     (Libcrux_ml_kem.Vector.Traits.Spec.bounded_i16_array);
@@ -447,7 +449,13 @@ fn op_decompress_ciphertext_coefficient<const COEFFICIENT_BITS: i32>(a: Portable
 #[hax_lib::fstar::options("--z3rlimit 400 --fuel 0 --ifuel 1 --split_queries always")]
 #[hax_lib::requires(fstar!(r#"${spec::ntt_layer_1_step_pre} ${a}.f_elements zeta0 zeta1 zeta2 zeta3"#))]
 #[hax_lib::ensures(|out| fstar!(r#"${spec::ntt_layer_1_step_post} ${a}.f_elements zeta0 zeta1 zeta2 zeta3 ${out}.f_elements"#))]
-fn op_ntt_layer_1_step(a: PortableVector, zeta0: i16, zeta1: i16, zeta2: i16, zeta3: i16) -> PortableVector {
+fn op_ntt_layer_1_step(
+    a: PortableVector,
+    zeta0: i16,
+    zeta1: i16,
+    zeta2: i16,
+    zeta3: i16,
+) -> PortableVector {
     hax_lib::fstar!(
         r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
                     (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque (7*3328))"#
@@ -635,7 +643,13 @@ fn op_ntt_layer_3_step(a: PortableVector, zeta: i16) -> PortableVector {
 #[hax_lib::fstar::options("--z3rlimit 400 --fuel 0 --ifuel 1 --split_queries always")]
 #[hax_lib::requires(fstar!(r#"${spec::inv_ntt_layer_1_step_pre} ${a}.f_elements zeta0 zeta1 zeta2 zeta3"#))]
 #[hax_lib::ensures(|out| fstar!(r#"${spec::inv_ntt_layer_1_step_post} ${a}.f_elements zeta0 zeta1 zeta2 zeta3 ${out}.f_elements"#))]
-fn op_inv_ntt_layer_1_step(a: PortableVector, zeta0: i16, zeta1: i16, zeta2: i16, zeta3: i16) -> PortableVector {
+fn op_inv_ntt_layer_1_step(
+    a: PortableVector,
+    zeta0: i16,
+    zeta1: i16,
+    zeta2: i16,
+    zeta3: i16,
+) -> PortableVector {
     hax_lib::fstar!(
         r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
                     (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque (4*3328))"#
@@ -835,6 +849,8 @@ fn op_ntt_multiply(
 ) -> PortableVector {
     hax_lib::fstar!(
         r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
+                    (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque 4096);
+           reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
                     (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque 3328)"#
     );
     let out = ntt_multiply(lhs, rhs, zeta0, zeta1, zeta2, zeta3);

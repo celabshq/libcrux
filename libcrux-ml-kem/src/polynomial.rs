@@ -1,6 +1,6 @@
 pub(crate) use crate::vector::{
-    Operations, PolynomialRingElement, FIELD_MODULUS,
-    MONTGOMERY_R_SQUARED_MOD_FIELD_MODULUS, VECTORS_IN_RING_ELEMENT,
+    Operations, PolynomialRingElement, FIELD_MODULUS, MONTGOMERY_R_SQUARED_MOD_FIELD_MODULUS,
+    VECTORS_IN_RING_ELEMENT,
 };
 
 #[cfg(hax)]
@@ -133,7 +133,6 @@ pub(crate) mod spec {
         );
     }
 
-
     /// Conversion lemma: from the strengthened decompress trait post
     /// `bounded_i16_array (mk_i16 0) (mk_i16 3328) (f_repr v)` derive
     /// `is_bounded_vector b v` for any b >= 3328 (b given as parameter
@@ -145,7 +144,10 @@ pub(crate) mod spec {
             (Libcrux_ml_kem.Vector.Traits.f_repr $vec) /\ v $b >= 3328 /\ v $b < 32768
     "#))]
     #[hax_lib::ensures(|_| is_bounded_vector(b, vec))]
-    #[cfg_attr(hax, hax_lib::fstar::after(r#"
+    #[cfg_attr(
+        hax,
+        hax_lib::fstar::after(
+            r#"
 (* SMTPat'd elim lemmas (consume direction).  The dual-trigger multi-pattern
    `[SMTPat (Seq.index arr i); SMTPat (is_bounded_polynomial_vector ...)]`
    only fires when Z3 has BOTH the indexed access AND the opaque atom in its
@@ -265,7 +267,9 @@ let lemma_is_bounded_polynomial_vector_higher
   Classical.forall_intro aux;
   lemma_is_bounded_polynomial_vector_intro v_RANK #v_Vector arr b2
 #pop-options
-"#))]
+"#
+        )
+    )]
     pub(crate) fn lemma_decompress_post_to_is_bounded_vector<Vector: Operations>(
         vec: &Vector,
         b: usize,
@@ -359,10 +363,12 @@ fn ZERO<Vector: Operations>() -> PolynomialRingElement<Vector> {
 fn from_i16_array<Vector: Operations>(a: &[i16]) -> PolynomialRingElement<Vector> {
     let mut result = ZERO();
     for i in 0..VECTORS_IN_RING_ELEMENT {
-        hax_lib::loop_invariant!(|i: usize| fstar!(r#"forall (j: nat). j < v $i ==>
+        hax_lib::loop_invariant!(|i: usize| fstar!(
+            r#"forall (j: nat). j < v $i ==>
             Libcrux_ml_kem.Vector.Traits.f_repr #$:Vector
               (Seq.index ${result}.Libcrux_ml_kem.Vector.f_coefficients j)
-            == Seq.slice $a (16 * j) (16 * j + 16)"#));
+            == Seq.slice $a (16 * j) (16 * j + 16)"#
+        ));
         result.coefficients[i] = Vector::from_i16_array(&a[i * 16..(i + 1) * 16]);
     }
     result
@@ -463,22 +469,38 @@ fn vector_within_field_bound<Vector: Operations>(vec: &Vector) -> bool {
     let arr = Vector::to_i16_array(*vec);
     // Ground per-lane conjunction (no loop) so the per-lane facts are
     // directly available to fold into the opaque bound atom below.
-    let ok = arr[0] > -FIELD_MODULUS && arr[0] < FIELD_MODULUS
-        && arr[1] > -FIELD_MODULUS && arr[1] < FIELD_MODULUS
-        && arr[2] > -FIELD_MODULUS && arr[2] < FIELD_MODULUS
-        && arr[3] > -FIELD_MODULUS && arr[3] < FIELD_MODULUS
-        && arr[4] > -FIELD_MODULUS && arr[4] < FIELD_MODULUS
-        && arr[5] > -FIELD_MODULUS && arr[5] < FIELD_MODULUS
-        && arr[6] > -FIELD_MODULUS && arr[6] < FIELD_MODULUS
-        && arr[7] > -FIELD_MODULUS && arr[7] < FIELD_MODULUS
-        && arr[8] > -FIELD_MODULUS && arr[8] < FIELD_MODULUS
-        && arr[9] > -FIELD_MODULUS && arr[9] < FIELD_MODULUS
-        && arr[10] > -FIELD_MODULUS && arr[10] < FIELD_MODULUS
-        && arr[11] > -FIELD_MODULUS && arr[11] < FIELD_MODULUS
-        && arr[12] > -FIELD_MODULUS && arr[12] < FIELD_MODULUS
-        && arr[13] > -FIELD_MODULUS && arr[13] < FIELD_MODULUS
-        && arr[14] > -FIELD_MODULUS && arr[14] < FIELD_MODULUS
-        && arr[15] > -FIELD_MODULUS && arr[15] < FIELD_MODULUS;
+    let ok = arr[0] > -FIELD_MODULUS
+        && arr[0] < FIELD_MODULUS
+        && arr[1] > -FIELD_MODULUS
+        && arr[1] < FIELD_MODULUS
+        && arr[2] > -FIELD_MODULUS
+        && arr[2] < FIELD_MODULUS
+        && arr[3] > -FIELD_MODULUS
+        && arr[3] < FIELD_MODULUS
+        && arr[4] > -FIELD_MODULUS
+        && arr[4] < FIELD_MODULUS
+        && arr[5] > -FIELD_MODULUS
+        && arr[5] < FIELD_MODULUS
+        && arr[6] > -FIELD_MODULUS
+        && arr[6] < FIELD_MODULUS
+        && arr[7] > -FIELD_MODULUS
+        && arr[7] < FIELD_MODULUS
+        && arr[8] > -FIELD_MODULUS
+        && arr[8] < FIELD_MODULUS
+        && arr[9] > -FIELD_MODULUS
+        && arr[9] < FIELD_MODULUS
+        && arr[10] > -FIELD_MODULUS
+        && arr[10] < FIELD_MODULUS
+        && arr[11] > -FIELD_MODULUS
+        && arr[11] < FIELD_MODULUS
+        && arr[12] > -FIELD_MODULUS
+        && arr[12] < FIELD_MODULUS
+        && arr[13] > -FIELD_MODULUS
+        && arr[13] < FIELD_MODULUS
+        && arr[14] > -FIELD_MODULUS
+        && arr[14] < FIELD_MODULUS
+        && arr[15] > -FIELD_MODULUS
+        && arr[15] < FIELD_MODULUS;
     // Fold the 16 ground lane bounds into the opaque
     // `is_i16b_array_opaque` atom behind `spec::is_bounded_vector`.
     hax_lib::fstar!(
@@ -772,9 +794,11 @@ fn subtract_reduce<Vector: Operations>(
     // The post-loop bridge then chains via `lemma_subtract_reduce_scaled_eq`
     // on the parameter `b` and the constructed `b_input` (sharing
     // `f_coefficients == e_b`).
-    hax_lib::fstar!(r#"
+    hax_lib::fstar!(
+        r#"
         Hacspec_ml_kem.Commute.Chunk.lemma_to_spec_poly_mont_unfold #v_Vector $b
-      "#);
+      "#
+    );
 
     for i in 0..VECTORS_IN_RING_ELEMENT {
         // Loop invariant uses an OPAQUE per-vector predicate
@@ -785,7 +809,8 @@ fn subtract_reduce<Vector: Operations>(
             if j < 16 {
                 if j < i {
                     spec::is_bounded_vector(3328, &b_acc.coefficients[j])
-                        & fstar!(r#"
+                        & fstar!(
+                            r#"
                             Hacspec_ml_kem.Commute.Chunk.subtract_reduce_finalize_chunk
                               (Libcrux_ml_kem.Vector.Traits.f_repr #$:Vector
                                 (Seq.index ${myself}.f_coefficients (v $j)))
@@ -793,11 +818,14 @@ fn subtract_reduce<Vector: Operations>(
                                 (Seq.index ${b_acc}.f_coefficients (v $j)))
                               (Libcrux_ml_kem.Vector.Traits.f_repr #$:Vector
                                 (Seq.index ${_b} (v $j)))
-                          "#)
+                          "#
+                        )
                 } else {
-                    fstar!(r#"
+                    fstar!(
+                        r#"
                         Seq.index ${b_acc}.f_coefficients (v $j) == Seq.index ${_b} (v $j)
-                      "#)
+                      "#
+                    )
                 }
             } else {
                 true.to_prop()
@@ -830,7 +858,8 @@ fn subtract_reduce<Vector: Operations>(
         // mont_mul, sub, barrett at chunk i and produces the opaque
         // chunk-level finalize predicate.  Single-call interface keeps
         // the loop body's Z3 context small.
-        hax_lib::fstar!(r#"
+        hax_lib::fstar!(
+            r#"
             Hacspec_ml_kem.Commute.Chunk.lemma_subtract_reduce_iter
               (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector
                 (Seq.index ${myself}.f_coefficients (v $i)))
@@ -839,7 +868,8 @@ fn subtract_reduce<Vector: Operations>(
               (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector ${coefficient_normal_form})
               (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector ${diff})
               (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector ${red})
-          "#);
+          "#
+        );
 
         b_acc.coefficients[i] = red;
     }
@@ -857,7 +887,8 @@ fn subtract_reduce<Vector: Operations>(
     // bridge from the lemma's conclusion (uses `b_input`) to the post
     // (uses `b`) without resorting to record extensionality or
     // per-index Seq.lemma_eq_intro inside the body.
-    hax_lib::fstar!(r#"
+    hax_lib::fstar!(
+        r#"
         let b_input : Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector =
           { Libcrux_ml_kem.Vector.f_coefficients = ${_b} } in
         Hacspec_ml_kem.Commute.Chunk.lemma_subtract_reduce_commute
@@ -875,7 +906,8 @@ fn subtract_reduce<Vector: Operations>(
                              Hacspec_ml_kem.Commute.Chunk.fe_1441) in
         Hacspec_ml_kem.Commute.Chunk.lemma_subtract_reduce_eq_helper myself_lift scaled_b;
         Hacspec_ml_kem.Commute.Chunk.lemma_subtract_reduce_scaled_eq #v_Vector $b b_input
-      "#);
+      "#
+    );
 
     b_acc
 }
@@ -929,9 +961,11 @@ fn add_message_error_reduce<Vector: Operations>(
     // The post-loop bridge then chains via `lemma_add_message_error_reduce_scaled_eq`
     // on the parameter `result` and the constructed `result_input` (sharing
     // `f_coefficients == _result`).
-    hax_lib::fstar!(r#"
+    hax_lib::fstar!(
+        r#"
         Hacspec_ml_kem.Commute.Chunk.lemma_to_spec_poly_mont_unfold #v_Vector $result
-      "#);
+      "#
+    );
 
     for i in 0..VECTORS_IN_RING_ELEMENT {
         // Loop invariant uses an OPAQUE per-chunk finalize atom
@@ -944,7 +978,8 @@ fn add_message_error_reduce<Vector: Operations>(
             if j < 16 {
                 if j < i {
                     spec::is_bounded_vector(3328, &result_acc.coefficients[j])
-                        & fstar!(r#"
+                        & fstar!(
+                            r#"
                             Hacspec_ml_kem.Commute.Chunk.add_message_error_reduce_finalize_chunk
                               (Libcrux_ml_kem.Vector.Traits.f_repr #$:Vector
                                 (Seq.index ${myself}.f_coefficients (v $j)))
@@ -954,11 +989,14 @@ fn add_message_error_reduce<Vector: Operations>(
                                 (Seq.index ${result_acc}.f_coefficients (v $j)))
                               (Libcrux_ml_kem.Vector.Traits.f_repr #$:Vector
                                 (Seq.index ${_result} (v $j)))
-                          "#)
+                          "#
+                        )
                 } else {
-                    fstar!(r#"
+                    fstar!(
+                        r#"
                         Seq.index ${result_acc}.f_coefficients (v $j) == Seq.index ${_result} (v $j)
-                      "#)
+                      "#
+                    )
                 }
             } else {
                 true.to_prop()
@@ -994,7 +1032,8 @@ fn add_message_error_reduce<Vector: Operations>(
         // Encapsulated per-iteration helper: takes the trait posts of
         // mont_mul, add (×2), barrett at chunk i and produces the opaque
         // chunk-level finalize predicate.
-        hax_lib::fstar!(r#"
+        hax_lib::fstar!(
+            r#"
             Hacspec_ml_kem.Commute.Chunk.lemma_add_message_error_reduce_iter
               (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector
                 (Seq.index ${myself}.f_coefficients (v $i)))
@@ -1006,7 +1045,8 @@ fn add_message_error_reduce<Vector: Operations>(
               (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector ${sum1})
               (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector ${sum2})
               (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector ${red})
-          "#);
+          "#
+        );
 
         result_acc.coefficients[i] = red;
     }
@@ -1018,7 +1058,8 @@ fn add_message_error_reduce<Vector: Operations>(
     // The scaled-eq lemma bridges the lemma's `result_input` (sharing
     // `f_coefficients == _result`) to the parameter `result` referenced by the
     // post.
-    hax_lib::fstar!(r#"
+    hax_lib::fstar!(
+        r#"
         let result_input : Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector =
           { Libcrux_ml_kem.Vector.f_coefficients = ${_result} } in
         Hacspec_ml_kem.Commute.Chunk.lemma_add_message_error_reduce_commute
@@ -1038,7 +1079,8 @@ fn add_message_error_reduce<Vector: Operations>(
         Hacspec_ml_kem.Commute.Chunk.lemma_add_message_error_reduce_eq_helper
           myself_lift message_lift scaled_result;
         Hacspec_ml_kem.Commute.Chunk.lemma_add_message_error_reduce_scaled_eq #v_Vector $result result_input
-      "#);
+      "#
+    );
 
     result_acc
 }
@@ -1093,9 +1135,11 @@ fn add_error_reduce<Vector: Operations>(
     // The post-loop bridge chains via `lemma_add_error_reduce_scaled_eq` on
     // the original `myself_orig` and the constructed `myself_input` (both share
     // `f_coefficients == _myself`).  Mirror of subtract_reduce's seed.
-    hax_lib::fstar!(r#"
+    hax_lib::fstar!(
+        r#"
         Hacspec_ml_kem.Commute.Chunk.lemma_to_spec_poly_mont_unfold #v_Vector ${myself}
-      "#);
+      "#
+    );
 
     for j in 0..VECTORS_IN_RING_ELEMENT {
         // Loop invariant: for already-processed chunks, the OPAQUE per-chunk
@@ -1107,7 +1151,8 @@ fn add_error_reduce<Vector: Operations>(
             if j < 16 {
                 if j < i {
                     spec::is_bounded_vector(3328, &myself.coefficients[j])
-                        & fstar!(r#"
+                        & fstar!(
+                            r#"
                             Hacspec_ml_kem.Commute.Chunk.add_error_reduce_finalize_chunk
                               (Libcrux_ml_kem.Vector.Traits.f_repr #$:Vector
                                 (Seq.index ${_myself} (v $j)))
@@ -1115,11 +1160,14 @@ fn add_error_reduce<Vector: Operations>(
                                 (Seq.index ${myself}.f_coefficients (v $j)))
                               (Libcrux_ml_kem.Vector.Traits.f_repr #$:Vector
                                 (Seq.index ${error}.f_coefficients (v $j)))
-                          "#)
+                          "#
+                        )
                 } else {
-                    fstar!(r#"
+                    fstar!(
+                        r#"
                         Seq.index ${myself}.f_coefficients (v $j) == Seq.index ${_myself} (v $j)
-                      "#)
+                      "#
+                    )
                 }
             } else {
                 true.to_prop()
@@ -1151,7 +1199,8 @@ fn add_error_reduce<Vector: Operations>(
         // Encapsulated per-iteration helper: takes the trait posts of
         // mont_mul, add, barrett at chunk j and produces the opaque
         // chunk-level finalize predicate (mirror of lemma_subtract_reduce_iter).
-        hax_lib::fstar!(r#"
+        hax_lib::fstar!(
+            r#"
             Hacspec_ml_kem.Commute.Chunk.lemma_add_error_reduce_iter
               (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector
                 (Seq.index ${_myself} (v $j)))
@@ -1160,7 +1209,8 @@ fn add_error_reduce<Vector: Operations>(
               (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector ${coefficient_normal_form})
               (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector ${sum})
               (Libcrux_ml_kem.Vector.Traits.f_repr #v_Vector ${red})
-          "#);
+          "#
+        );
 
         myself.coefficients[j] = red;
     }
@@ -1172,7 +1222,8 @@ fn add_error_reduce<Vector: Operations>(
     // HP.add_error_reduce.  The scaled-eq lemma bridges the lemma's
     // `myself_input` (sharing `f_coefficients == _myself`) to the original
     // `myself` referenced by the post.  Mirror of subtract_reduce's bridge.
-    hax_lib::fstar!(r#"
+    hax_lib::fstar!(
+        r#"
         let myself_input : Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector =
           { Libcrux_ml_kem.Vector.f_coefficients = ${_myself} } in
         Hacspec_ml_kem.Commute.Chunk.lemma_add_error_reduce_commute
@@ -1190,7 +1241,8 @@ fn add_error_reduce<Vector: Operations>(
                              Hacspec_ml_kem.Commute.Chunk.fe_1441) in
         Hacspec_ml_kem.Commute.Chunk.lemma_add_error_reduce_eq_helper scaled_myself error_lift;
         Hacspec_ml_kem.Commute.Chunk.lemma_add_error_reduce_scaled_eq #v_Vector ${myself_orig} myself_input
-      "#);
+      "#
+    );
 }
 
 #[inline(always)]
@@ -1272,7 +1324,11 @@ fn to_standard_domain<T: Operations>(vector: T) -> T {
 // `ensures` below can reference them, WITHOUT touching the hand-maintained
 // `Hacspec_ml_kem.Commute.Chunk` module (editing Chunk invalidates its heavy
 // NTT lane-bridge replay hints and forces a cold pass that saturates).
-#[cfg_attr(hax, hax_lib::fstar::before(interface, r#"
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::before(
+        interface,
+        r#"
 (* Standard-domain per-lane lift: interprets an i16 NTT-domain coefficient
    `m` (in `·R⁻¹` form) as the plain abstract value `α` it represents,
    `α ≡ v m * 2285 ≡ v m * R (mod q)` — exactly the value
@@ -1308,8 +1364,11 @@ let to_spec_poly_standard
                        (Seq.index p.Libcrux_ml_kem.Vector.f_coefficients (v j / 16)))
                      (v j % 16))
          <: Hacspec_ml_kem.Parameters.t_FieldElement))
-"#))]
-#[hax_lib::fstar::before(r#"
+"#
+    )
+)]
+#[hax_lib::fstar::before(
+    r#"
 (* Opaque per-chunk "done" atom: the lane-wise plain FE-add equation for a
    processed chunk, with `red_chunk` the result lane, `myself_chunk` the
    ORIGINAL (pre-to_standard_domain) lane, `error_chunk` the error lane.
@@ -1417,7 +1476,8 @@ let lemma_ntt_product_slice
          <: Hacspec_ml_kem.Parameters.t_FieldElement))
       (sz (k * 16 + l))
 #pop-options
-"#)]
+"#
+)]
 #[hax_lib::requires(spec::is_bounded_poly(3328, &error))]
 #[hax_lib::ensures(|result|
     spec::is_bounded_poly(3328, &future(myself))
@@ -1442,7 +1502,8 @@ fn add_standard_error_reduce<Vector: Operations>(
             if j < 16 {
                 if j < i {
                     spec::is_bounded_vector(3328, &myself.coefficients[j])
-                        & fstar!(r#"
+                        & fstar!(
+                            r#"
                             add_std_chunk_done
                               (Libcrux_ml_kem.Vector.Traits.f_repr #$:Vector
                                 (Seq.index ${_myself} (v $j)))
@@ -1450,11 +1511,14 @@ fn add_standard_error_reduce<Vector: Operations>(
                                 (Seq.index ${error}.f_coefficients (v $j)))
                               (Libcrux_ml_kem.Vector.Traits.f_repr #$:Vector
                                 (Seq.index ${myself}.f_coefficients (v $j)))
-                          "#)
+                          "#
+                        )
                 } else {
-                    fstar!(r#"
+                    fstar!(
+                        r#"
                         Seq.index ${myself}.f_coefficients (v $j) == Seq.index ${_myself} (v $j)
-                      "#)
+                      "#
+                    )
                 }
             } else {
                 true.to_prop()
@@ -1476,7 +1540,8 @@ fn add_standard_error_reduce<Vector: Operations>(
 
         // Establish the per-lane plain FE-add equation for this chunk as the
         // OPAQUE atom keyed on the ORIGINAL `_myself` chunk.
-        hax_lib::fstar!(r#"
+        hax_lib::fstar!(
+            r#"
             lemma_add_std_err_iter #v_Vector
               (Libcrux_ml_kem.Vector.Traits.f_repr (Seq.index ${_myself} (v $j)))
               (Libcrux_ml_kem.Vector.Traits.f_repr ${coefficient_normal_form})
@@ -1484,7 +1549,8 @@ fn add_standard_error_reduce<Vector: Operations>(
                 (${error}.f_coefficients.[ $j ] <: v_Vector))
               (Libcrux_ml_kem.Vector.Traits.f_repr ${sum})
               (Libcrux_ml_kem.Vector.Traits.f_repr ${red})
-          "#);
+          "#
+        );
 
         myself.coefficients[j] = red;
     }
@@ -1492,7 +1558,8 @@ fn add_standard_error_reduce<Vector: Operations>(
     // Post-loop bridge: from the 16 per-chunk opaque atoms (loop invariant at
     // i = 16) assemble the `_commute` precondition for every (k,l), then call
     // the proven Chunk commute lemma against `myself_orig` (= original).
-    hax_lib::fstar!(r#"
+    hax_lib::fstar!(
+        r#"
         let myself_orig : Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector =
           { Libcrux_ml_kem.Vector.f_coefficients = ${_myself} } in
         let ntt_product : t_Array Hacspec_ml_kem.Parameters.t_FieldElement (mk_usize 256) =
@@ -1534,7 +1601,8 @@ fn add_standard_error_reduce<Vector: Operations>(
         Classical.forall_intro aux;
         Hacspec_ml_kem.Commute.Chunk.lemma_add_standard_error_reduce_commute #v_Vector
           myself_orig ${error} ${myself} ntt_product
-      "#);
+      "#
+    );
 }
 
 /// Given two `KyberPolynomialRingElement`s in their NTT representations,
@@ -1839,7 +1907,16 @@ let lemma_ntt_multiply_poly_lane
     lemma_poly_lane_any #vV myself rhs out m l
 #pop-options
 
-
+(* The poly-level inputs to ntt_multiply are 3328-bounded, but the (weakened)
+   low-level f_ntt_multiply pre is now is_i16b_array_opaque 4096.  The chunk_done
+   predicate is a bare prop (no proof steps) so it can't reveal/bump; expose the
+   3328->4096 opaque bump via SMTPat so the predicate's well-formedness (and the
+   impl's f_ntt_multiply call) auto-bridge. *)
+let lemma_nttmul_opaque_3328_to_4096 (x: t_Slice i16) : Lemma
+  (requires TS.is_i16b_array_opaque 3328 x)
+  (ensures TS.is_i16b_array_opaque 4096 x)
+  [SMTPat (TS.is_i16b_array_opaque 4096 x)]
+  = reveal_opaque (`%TS.is_i16b_array_opaque) (TS.is_i16b_array_opaque)
 
 unfold
 let ntt_multiply_chunk_done
@@ -1884,6 +1961,8 @@ let lemma_ntt_multiply_chunk_eq
             Spec.Utils.is_i16b 1664 z2 /\ Spec.Utils.is_i16b 1664 z3);
     reveal_opaque (`%TS.is_i16b_array_opaque) (TS.is_i16b_array_opaque 3328 (T.f_repr lhs));
     reveal_opaque (`%TS.is_i16b_array_opaque) (TS.is_i16b_array_opaque 3328 (T.f_repr rhs_v));
+    reveal_opaque (`%TS.is_i16b_array_opaque) (TS.is_i16b_array_opaque 4096 (T.f_repr lhs));
+    reveal_opaque (`%TS.is_i16b_array_opaque) (TS.is_i16b_array_opaque 4096 (T.f_repr rhs_v));
     assert (TS.ntt_multiply_pre (T.f_repr lhs) (T.f_repr rhs_v) z0 z1 z2 z3);
     CH.lemma_ntt_multiply_chunk_commutes #vV lhs rhs_v z0 z1 z2 z3
 #pop-options
@@ -1938,11 +2017,16 @@ fn ntt_multiply<Vector: Operations>(
 
     for i in 0..VECTORS_IN_RING_ELEMENT {
         hax_lib::loop_invariant!(|i: usize| hax_lib::forall(|j: usize| {
-            hax_lib::implies(j < i, spec::is_bounded_vector(3328, &out.coefficients[j])
-              & fstar!(r#"
+            hax_lib::implies(
+                j < i,
+                spec::is_bounded_vector(3328, &out.coefficients[j])
+                    & fstar!(
+                        r#"
                   ntt_multiply_chunk_done #$:Vector
                     ${myself} ${rhs} ${out} (v $j)
-                "#))
+                "#
+                    ),
+            )
         }));
 
         out.coefficients[i] = Vector::ntt_multiply(
@@ -1955,17 +2039,21 @@ fn ntt_multiply<Vector: Operations>(
         );
 
         // Establish ntt_multiply_chunk_done for the just-written chunk i.
-        hax_lib::fstar!(r#"
+        hax_lib::fstar!(
+            r#"
             lemma_is_i16b_repr_of_bounded #v_Vector
               (Seq.index ${myself}.f_coefficients (v $i)) (mk_usize 3328);
             lemma_is_i16b_repr_of_bounded #v_Vector
               (Seq.index ${rhs}.f_coefficients (v $i)) (mk_usize 3328)
-          "#);
+          "#
+        );
     }
 
-    hax_lib::fstar!(r#"
+    hax_lib::fstar!(
+        r#"
         lemma_ntt_multiply_to_hacspec #v_Vector $myself $rhs out
-      "#);
+      "#
+    );
 
     out
 }

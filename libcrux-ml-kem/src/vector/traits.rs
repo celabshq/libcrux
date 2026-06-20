@@ -910,9 +910,7 @@ let ntt_multiply_branch_post
     }
 
     pub(crate) fn decompress_1_pre(vec: &[i16; 16]) -> hax_lib::Prop {
-        hax_lib::fstar_prop_expr!(
-            r#"bounded_pos_i16_array 1 ${vec}"#
-        )
+        hax_lib::fstar_prop_expr!(r#"bounded_pos_i16_array 1 ${vec}"#)
     }
 
     pub(crate) fn decompress_ciphertext_coefficient_pre(
@@ -1089,11 +1087,17 @@ let ntt_multiply_branch_post
         zeta2: i16,
         zeta3: i16,
     ) -> hax_lib::Prop {
+        // Input bound weakened 3328 -> 4096 so this accepts the unreduced
+        // ByteDecode_12 secret key (lanes in [0,4095] subset [-4096,4096]).  4096
+        // sits well under the Montgomery clean-output limit (2*4096*4096 = 33.5M
+        // <= 3328 * 2^15 = 109M), so the result still satisfies the unchanged
+        // `is_i16b_array_opaque 3328` post, and the large margin keeps the AVX2
+        // split-query proof within rlimit 400.
         hax_lib::fstar_prop_expr!(
             r#" is_i16b 1664 zeta0 /\ is_i16b 1664 zeta1 /\
                 is_i16b 1664 zeta2 /\ is_i16b 1664 zeta3 /\
-                is_i16b_array_opaque 3328 ${lhs} /\
-                is_i16b_array_opaque 3328 ${rhs} "#
+                is_i16b_array_opaque 4096 ${lhs} /\
+                is_i16b_array_opaque 4096 ${rhs} "#
         )
     }
 
