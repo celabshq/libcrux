@@ -1,3 +1,6 @@
-# hax ProVerif extraction output (regenerated; snapshot committed at Phase 4)
+# hax ProVerif extraction output + check-script intermediates (regenerated;
+# the lib.pvl snapshot is committed at Phase 4).
 extraction/lib.pvl
+extraction/lib.clean.pvl
 extraction/missingdecl*.pvl
+extraction/loadcheck.pv

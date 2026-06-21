@@ -1,0 +1,90 @@
+(* ===========================================================================
+   PSQ — symbolic cryptographic model (handwritten)
+   ===========================================================================
+   This file gives the symbolic (Dolev-Yao) model of the crypto primitives that
+   the extracted `lib.pvl` calls into via `#[hax_lib::proverif::replace_body]`
+   annotations on the libcrux-psq crypto wrappers. It is the DIRECT analogue of
+   `psq-design/models/psq_handshake_lib.pvl` (the verified handwritten model),
+   transcribed to the `extern__`-prefixed names the extraction references and to
+   the uniform-bitstring backend (every value is a `bitstring`).
+
+   Loaded by the check script via `-lib`; the auto-declared copies in
+   `missingdecl.pvl` are de-duplicated against the definitions here.
+
+   Boundaries (Rust wrapper  ->  symbolic term):
+     dhkem::DHPrivateKey::new            ->  fresh DH scalar
+     dhkem::DHPrivateKey::to_public      ->  extern__dh_pub(sk)
+     dhkem::DHSharedSecret::derive       ->  extern__dh_shared(sk, pk)
+     transcript::Transcript::add_hash    ->  extern__hash(domsep, old, input)
+     aead::AEADKeyNonce::new             ->  extern__kdf(ikm, info)
+     aead::AEADKeyNonce::handshake_encrypt -> (extern__aead_ct(k,pt,ad),
+                                               extern__aead_tag(k,pt,ad))
+     aead::AEADKeyNonce::handshake_decrypt -> extern__aead_dec(k, ct, tag, ad)
+   =========================================================================== *)
+
+(* ---- Diffie-Hellman (X25519) ------------------------------------------- *)
+(* A public key is dh_pub(sk); a shared secret dh_shared(sk, pk). Honest keys
+   commute via the equation below (the standard symbolic DH abstraction). *)
+fun extern__dh_pub(bitstring): bitstring.
+fun extern__dh_shared(bitstring, bitstring): bitstring.
+equation forall x: bitstring, y: bitstring;
+      extern__dh_shared(x, extern__dh_pub(y)) = extern__dh_shared(y, extern__dh_pub(x)).
+
+(* ---- Transcript hash (SHA-256, running) -------------------------------- *)
+(* One-way, injective in the term algebra (a `fun` with no reduc): the
+   attacker cannot invert it and distinct argument tuples give distinct
+   digests. Arguments mirror `add_hash(old_transcript, input)`; the previous
+   transcript is chained in (None for tx0) and the step inputs are distinctly
+   typed, so the steps stay separated without an explicit domain-separator
+   byte. *)
+fun extern__hash(bitstring, bitstring): bitstring.
+
+(* ---- Key derivation (HKDF-SHA256) -------------------------------------- *)
+(* AEADKeyNonce::new(ikm, info) derives an AEAD key+nonce; one-way in ikm. *)
+fun extern__kdf(bitstring, bitstring): bitstring.
+
+(* ---- AEAD (ChaCha20Poly1305 / AES-128-GCM) ----------------------------- *)
+(* Ciphertext and tag are separate on the wire. Decryption requires BOTH the
+   genuine ciphertext and the genuine tag for the same key/aad: an attacker
+   without the key can produce neither, modelling AEAD confidentiality and
+   integrity. The key already bundles the (single-use) nonce. *)
+fun extern__aead_ct(bitstring, bitstring, bitstring): bitstring.
+fun extern__aead_tag(bitstring, bitstring, bitstring): bitstring.
+reduc forall k: bitstring, pt: bitstring, ad: bitstring;
+      extern__aead_dec(k, extern__aead_ct(k, pt, ad), extern__aead_tag(k, pt, ad), ad) = pt.
+
+(* ===========================================================================
+   Wrapper definitions for crypto functions the engine does not currently emit
+   via `replace_body` (the body replacement applies at the Rust level but no
+   letfun is produced — happens for `&mut rng` key-gen, the stateful SHA-256
+   hasher, and the nested-struct transcript inputs). We give sound definitions
+   for the auto-declared names directly here, so they connect to the term
+   algebra above instead of being marked opaque `[data]` by the missingdecl
+   de-dup. Without this, DH public keys / private keys would be invertible.
+   =========================================================================== *)
+
+(* dhkem::DHPrivateKey::to_public  ->  g^sk (one-way). *)
+letfun libcrux_psq__handshake__dhkem__Impl_6__to_public(sk: bitstring) =
+      extern__dh_pub(sk).
+
+(* dhkem::DHPrivateKey::new(rng)  ->  fresh DH scalar (threads rng unchanged,
+   matching the &mut-rng calling convention: returns (rng, sk)). *)
+letfun libcrux_psq__handshake__dhkem__Impl_6__new_kw(rng: bitstring) =
+      new dh_scalar: bitstring;
+      rust_primitives__hax__Tuple2__Tuple2(rng, dh_scalar).
+
+(* transcript::Transcript::add_hash(old, input)  ->  running hash (one-way). *)
+letfun libcrux_psq__handshake__transcript__Impl__add_hash(old: bitstring, input: bitstring) =
+      extern__hash(old, input).
+
+(* transcript::tx0(context, responder_pk, initiator_pk) = hash(0 | ctx | pkR | pkI). *)
+letfun libcrux_psq__handshake__transcript__tx0(
+        context: bitstring, responder_pk: bitstring, initiator_pk: bitstring) =
+      extern__hash(None, (context, responder_pk, initiator_pk)).
+
+(* transcript::tx1(tx0, authenticator, responder_pq_pk, pq_encaps)
+     = hash(1 | tx0 | auth | [pqek] | [enc_pq]). *)
+letfun libcrux_psq__handshake__transcript__tx1(
+        tx0v: bitstring, authenticator: bitstring,
+        responder_pq_pk: bitstring, pq_encaps: bitstring) =
+      extern__hash(Some(tx0v), (authenticator, responder_pq_pk, pq_encaps)).
