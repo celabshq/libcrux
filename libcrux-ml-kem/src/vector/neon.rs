@@ -102,12 +102,26 @@ fn op_to_unsigned_representative(a: SIMD128Vector) -> SIMD128Vector {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always --z3refresh")]
 #[hax_lib::requires(fstar!(r#"${spec::compress_1_pre} (impl.f_repr $vector)"#))]
 #[hax_lib::ensures(|out| fstar!(r#"${spec::compress_1_post} (impl.f_repr $vector) (impl.f_repr $out)"#))]
 fn op_compress_1(vector: SIMD128Vector) -> SIMD128Vector {
-    hax_lib::fstar!(r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)"#);
-    compress_1(vector)
+    hax_lib::fstar!(r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.compress_1_lane_post) Libcrux_ml_kem.Vector.Traits.Spec.compress_1_lane_post"#);
+    let result = compress_1(vector);
+    hax_lib::fstar!(
+        r#"Libcrux_ml_kem.Vector.Traits.Spec.lemma_bounded_i16_array_intro (mk_i16 0) (mk_i16 1) (impl.f_repr ${result});
+           let aux (j: nat{j < 16}) : Lemma
+             (Libcrux_ml_kem.Vector.Traits.Spec.compress_1_lane_post
+                (Seq.index (impl.f_repr ${vector}) j) (Seq.index (impl.f_repr ${result}) j)) =
+             reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.compress_1_lane_post)
+               (Libcrux_ml_kem.Vector.Traits.Spec.compress_1_lane_post
+                  (Seq.index (impl.f_repr ${vector}) j) (Seq.index (impl.f_repr ${result}) j));
+             Hacspec_ml_kem.Commute.Chunk.lemma_compress_message_coefficient_fe_commute
+               (Seq.index (impl.f_repr ${vector}) j) (Seq.index (impl.f_repr ${result}) j)
+           in
+           Classical.forall_intro aux"#
+    );
+    result
 }
 
 #[inline(always)]
@@ -120,12 +134,35 @@ fn op_compress<const COEFFICIENT_BITS: i32>(vector: SIMD128Vector) -> SIMD128Vec
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always --z3refresh")]
 #[hax_lib::requires(fstar!(r#"${spec::decompress_1_pre} (impl.f_repr $a)"#))]
 #[hax_lib::ensures(|out| fstar!(r#"${spec::decompress_1_post} (impl.f_repr $a) (impl.f_repr $out)"#))]
 fn op_decompress_1(a: SIMD128Vector) -> SIMD128Vector {
-    hax_lib::fstar!(r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)"#);
-    decompress_1(a)
+    hax_lib::fstar!(
+        r#"assert_norm (pow2 1 - 1 == 1);
+           reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.bounded_i16_array)
+             (Libcrux_ml_kem.Vector.Traits.Spec.bounded_i16_array (mk_i16 0) (mk_i16 1) (impl.f_repr ${a}));
+           assert (forall (i: nat). {:pattern Seq.index (impl.f_repr ${a}) i}
+             i < 16 ==> v (Seq.index (impl.f_repr ${a}) i) >= 0 /\ v (Seq.index (impl.f_repr ${a}) i) <= 1);
+           assert (forall (i: nat). {:pattern Seq.index (Libcrux_ml_kem.Vector.Neon.Vector_type.repr ${a}) i}
+             i < 16 ==> (let x = Seq.index (Libcrux_ml_kem.Vector.Neon.Vector_type.repr ${a}) i in
+                         x == mk_i16 0 \/ x == mk_i16 1))"#
+    );
+    let result = decompress_1(a);
+    hax_lib::fstar!(
+        r#"Libcrux_ml_kem.Vector.Traits.Spec.lemma_bounded_i16_array_intro (mk_i16 0) (mk_i16 3328) (impl.f_repr ${result});
+           let aux (j: nat{j < 16}) : Lemma
+             (Libcrux_ml_kem.Vector.Traits.Spec.decompress_1_lane_post
+                (Seq.index (impl.f_repr ${a}) j) (Seq.index (impl.f_repr ${result}) j)) =
+             reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.decompress_1_lane_post)
+               (Libcrux_ml_kem.Vector.Traits.Spec.decompress_1_lane_post
+                  (Seq.index (impl.f_repr ${a}) j) (Seq.index (impl.f_repr ${result}) j));
+             Hacspec_ml_kem.Commute.Chunk.lemma_decompress_1_fe_commute_int
+               (Seq.index (impl.f_repr ${a}) j) (Seq.index (impl.f_repr ${result}) j)
+           in
+           Classical.forall_intro aux"#
+    );
+    result
 }
 
 #[inline(always)]
