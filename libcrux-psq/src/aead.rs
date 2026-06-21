@@ -350,11 +350,15 @@ impl AEADKeyNonce {
     // ProVerif: AEAD open. The reduc in psq_crypto.pvl only fires for a genuine
     // (ciphertext, tag) pair under the same key+aad, so decryption fails (the
     // term has no value, blocking the branch) on any forgery — modelling AEAD
-    // integrity. Bypasses tls deserialization (the recovered payload is the
-    // structured plaintext directly).
+    // integrity. `pv_deserialize` then models the tls deserialization the real
+    // `decrypt_deserialize` performs: the borrowed `…Out` payload the peer
+    // serialized and the owned payload this side parses share one wire encoding,
+    // so the round-trip maps one to the other (identity for payloads read raw).
     #[cfg_attr(
         feature = "hax-pv",
-        hax_lib::proverif::replace_body("extern__aead_dec(self, ciphertext, tag, aad)")
+        hax_lib::proverif::replace_body(
+            "pv_deserialize(extern__aead_dec(self, ciphertext, tag, aad))"
+        )
     )]
     pub(crate) fn handshake_decrypt<T: Deserialize>(
         &mut self,

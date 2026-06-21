@@ -1,0 +1,238 @@
+(* PSQ query-mode shared model: setup, roles, crypto aliases, resolution
+   control. Loaded (via -lib) by analysis.pv (full responder, P1+P4..P11) and
+   analysis_auth.pv (auth-core responder, P2/P3). See those files for queries. *)
+
+(* ===========================================================================
+   PSQ — Query mode: security analysis against the EXTRACTED libcrux-psq model
+   ===========================================================================
+   This file adds a handwritten top-level process and the query-mode security
+   queries (P1–P11) on top of the extracted `lib.pvl` (driven via check-pv.sh,
+   which composes primitives.pvl + psq_crypto.pvl + missingdecl + lib.clean.pvl).
+
+   The process drives the real extracted letfuns:
+     initiator : QueryInitiator::new_kw, write_message_external_encoding,
+                 read_response  (+ derive_k2_query_initiator to expose K_2)
+     responder : Responder::new_kw, read_message_contents
+                 (+ derive_k2_query_responder / handshake_encrypt to produce the
+                  response — the responder's ephemeral is generated INSIDE
+                  prepare_message_contents and is therefore inaccessible from the
+                  process, so the response step is driven one level lower, which
+                  is exactly what prepare_message_contents/query_kw do internally,
+                  and lets the process observe the K_2 it derives.)
+
+   It mirrors psq-design/models/psq_handshake_lib.pvl's query_initiator /
+   query_responder, and reproduces psq_query.pv's P1–P11 verdicts. The threat
+   model is an active Dolev-Yao attacker (everything goes on `c`) plus a phase-1
+   compromise of the responder's long-term DH key (harvest-now-decrypt-later).
+   ProVerif phases are global barriers and the honest roles carry no `phase`
+   instruction, so every honest run completes in phase 0 before the compromise.
+   =========================================================================== *)
+
+type Principal.
+const Bob: Principal.   (* the (single) responder endpoint *)
+
+(* Public, attacker-known protocol parameters (the handshake context + AADs). *)
+const context:  bitstring.
+const init_aad: bitstring.
+const resp_aad: bitstring.
+const rk_bound: bitstring.   (* responder rate-limiter bound (symbolically opaque) *)
+
+(* Secrets. The honest initiator's query token doubles as the responder's
+   application gate (a confidential response is only as secret as the query that
+   requested it). public_response is what every other (incl. attacker) query gets. *)
+free query_secret:    bitstring [private].
+free response_secret: bitstring [private].
+free public_response: bitstring.
+
+(* ---- Responder key tables (authentic distribution of the public key) ---- *)
+table resp_sk(Principal, bitstring).   (* long-term DH scalar priv_R          *)
+table resp_pk(Principal, bitstring).   (* long-term DH public key pub_R        *)
+table resp_cs(Principal, bitstring).   (* the ResponderCiphersuite             *)
+
+(* ---- Events; mirror psq_handshake_lib.pvl ------------------------------- *)
+(* The K_0 events carry (r, context, K_0). The K_2 events additionally carry the
+   responder ephemeral public key epub_R: it is the per-run identifier the two
+   parties agree on (both derive K_2 deterministically from it + the shared k0 /
+   transcript), so the responder-authentication correspondence is stated on
+   epub_R. Keying it on the *derived* K_2 instead is logically equivalent — AEAD
+   integrity makes the accepted K_2 equal the responder's — but forces ProVerif
+   to unify K_2 across the DH-commutativity equation, which does not terminate.
+   K_2 is still carried (4th field) so the key-secrecy queries (P6/P11) keep it. *)
+event QInitSend(Principal, bitstring, bitstring).             (* p, ctx, K_0          *)
+event QRespRecv(Principal, bitstring, bitstring).             (* p, ctx, K_0          *)
+event QRespSend(Principal, bitstring, bitstring, bitstring).  (* p, ctx, epub_R, K_2  *)
+event QInitRecv(Principal, bitstring, bitstring, bitstring).  (* p, ctx, epub_R, K_2  *)
+event CompromiseEndpoint(Principal).
+
+(* =========================================================================
+   Aliases for the extracted names (purely cosmetic — keep the process readable)
+   ========================================================================= *)
+(* tuple projectors *)
+letfun t2_0(t: bitstring) = rust_primitives__hax__Tuple2__Tuple2__0(t).
+letfun t2_1(t: bitstring) = rust_primitives__hax__Tuple2__Tuple2__1(t).
+letfun t3_0(t: bitstring) = rust_primitives__hax__Tuple3__Tuple3__0(t).
+letfun t3_1(t: bitstring) = rust_primitives__hax__Tuple3__Tuple3__1(t).
+letfun t3_2(t: bitstring) = rust_primitives__hax__Tuple3__Tuple3__2(t).
+letfun resp_decrypt_outer(self: bitstring, msg: bitstring) =
+  libcrux_psq__handshake__responder__Impl__decrypt_outer_message(self, msg).
+
+(* initiator entry points *)
+letfun init_new(pkR: bitstring, ctx: bitstring, aad: bitstring, rng: bitstring) =
+  libcrux_psq__handshake__initiator__query_kw__Impl__new_kw(pkR, ctx, aad, rng).
+letfun init_write(self: bitstring, payload: bitstring) =
+  libcrux_psq__handshake__initiator__query_kw__Impl_1__write_message_external_encoding(self, payload).
+letfun init_read_response(self: bitstring, msg: bitstring) =
+  libcrux_psq__handshake__initiator__query_kw__Impl__read_response(self, msg).
+letfun init_derive_k2(k0: bitstring, epubR: bitstring, eprivI: bitstring, pkR: bitstring, tx2: bitstring) =
+  libcrux_psq__handshake__initiator__query_kw__derive_k2_query_initiator(k0, epubR, eprivI, pkR, tx2).
+
+(* QueryInitiator field projectors *)
+letfun qi_k0(qi: bitstring) =
+  libcrux_psq__handshake__initiator__query_kw__QueryInitiator__QueryInitiator__k0(qi).
+letfun qi_tx0(qi: bitstring) =
+  libcrux_psq__handshake__initiator__query_kw__QueryInitiator__QueryInitiator__tx0(qi).
+letfun qi_rpk(qi: bitstring) =
+  libcrux_psq__handshake__initiator__query_kw__QueryInitiator__QueryInitiator__responder_longterm_ecdh_pk(qi).
+letfun qi_ephsk(qi: bitstring) =
+  libcrux_psq__handshake__dhkem__DHKeyPair__DHKeyPair__sk(
+    libcrux_psq__handshake__initiator__query_kw__QueryInitiator__QueryInitiator__initiator_ephemeral_keys(qi)).
+
+(* responder entry points *)
+letfun resp_new(cs: bitstring, ctx: bitstring, aad: bitstring, bound: bitstring, rng: bitstring) =
+  libcrux_psq__handshake__responder__Impl__new_kw(cs, ctx, aad, bound, rng).
+letfun resp_read(self: bitstring, msg: bitstring) =
+  libcrux_psq__handshake__responder__Impl__read_message_contents(self, msg).
+letfun resp_derive_k2(k0: bitstring, epubI: bitstring, eprivR: bitstring, skR: bitstring, tx2: bitstring, at: bitstring) =
+  libcrux_psq__handshake__responder__derive_k2_query_responder(k0, epubI, eprivR, skR, tx2, at).
+
+(* responder state projectors *)
+letfun r_state(self: bitstring) =
+  libcrux_psq__handshake__responder__Responder__Responder__state(self).
+letfun rqs_tx0(s: bitstring) =
+  libcrux_psq__handshake__responder__RespondQueryState__RespondQueryState__tx0(s).
+letfun rqs_k0(s: bitstring) =
+  libcrux_psq__handshake__responder__RespondQueryState__RespondQueryState__k0(s).
+letfun rqs_epubi(s: bitstring) =
+  libcrux_psq__handshake__responder__RespondQueryState__RespondQueryState__initiator_ephemeral_ecdh_pk(s).
+
+(* crypto + message helpers *)
+letfun dh_new(rng: bitstring) = libcrux_psq__handshake__dhkem__Impl_8__new_kw(rng).
+letfun dh_sk(kp: bitstring) = libcrux_psq__handshake__dhkem__DHKeyPair__DHKeyPair__sk(kp).
+letfun dh_pk(kp: bitstring) = libcrux_psq__handshake__dhkem__DHKeyPair__DHKeyPair__pk(kp).
+letfun hs_encrypt(k: bitstring, pt: bitstring, aad: bitstring) =
+  libcrux_psq__aead__Impl_1__handshake_encrypt(k, pt, aad).
+letfun tx2c(prev: bitstring, epubR: bitstring) =
+  libcrux_psq__handshake__transcript__tx2(prev, epubR).
+letfun hm_pk(m: bitstring) =
+  libcrux_psq__handshake__HandshakeMessage__HandshakeMessage__pk(m).
+letfun mk_dhkp(sk: bitstring, pk: bitstring) =
+  libcrux_psq__handshake__dhkem__DHKeyPair__DHKeyPair(sk, pk).
+letfun mk_vlbytes(x: bitstring) = tls_codec__quic_vec__VLByteSlice__VLByteSlice(x).
+letfun mk_respout(x: bitstring) =
+  libcrux_psq__handshake__responder__ResponderQueryPayloadOut__ResponderQueryPayloadOut(x).
+letfun mk_hsmsg(pk: bitstring, ct: bitstring, tag: bitstring, aad: bitstring, cs: bitstring) =
+  libcrux_psq__handshake__HandshakeMessage__HandshakeMessage(pk, ct, tag, aad, cs).
+letfun query_cs() =
+  libcrux_psq__handshake__ciphersuite__Impl__query_ciphersuite(rust_primitives__hax__Tuple0__Tuple0).
+letfun aead_chacha() = libcrux_psq__aead__AeadType__ChaCha20Poly1305().
+letfun mk_resp_cs(kex: bitstring) =
+  libcrux_psq__handshake__ciphersuite__responder__ResponderCiphersuite__ResponderCiphersuite(
+    libcrux_psq__handshake__ciphersuite__CiphersuiteName__X25519_NONE_X25519_CHACHA20POLY1305_HKDFSHA256(),
+    kex,
+    libcrux_psq__handshake__ciphersuite__responder__PqKemKeyPair__None(),
+    libcrux_psq__aead__AeadType__ChaCha20Poly1305()).
+
+(* =========================================================================
+   Setup, roles, compromise
+   ========================================================================= *)
+
+(* Responder long-term key generation + authentic publication of pub_R. *)
+let setup_responder(p: Principal) =
+    new sk_R: bitstring;
+    let pk_R = extern__dh_pub(sk_R) in
+    let cs_R = mk_resp_cs(mk_dhkp(sk_R, pk_R)) in
+    insert resp_sk(p, sk_R);
+    insert resp_pk(p, pk_R);
+    insert resp_cs(p, cs_R);
+    out(c, pk_R).
+
+(* Anonymous, unauthenticated initiator: one query/response round. *)
+let query_initiator(p: Principal) =
+    get resp_pk(=p, pk_R) in
+    new rng_I: bitstring;
+    let qi0 = init_new(pk_R, context, init_aad, rng_I) in
+    let written = init_write(qi0, query_secret) in
+    let qi1 = t2_0(written) in
+    let msg = t2_1(written) in
+    let k0 = qi_k0(qi1) in
+    event QInitSend(p, context, k0);
+    out(c, msg);
+    (* response *)
+    in(c, resp_msg: bitstring);
+    let payload = init_read_response(qi1, resp_msg) in
+    (* read_response succeeds (returns a ResponderQueryPayloadOut) only when the
+       K_2 it derives decrypts the responder ciphertext — i.e. authenticity. *)
+    let libcrux_psq__handshake__responder__ResponderQueryPayloadOut__ResponderQueryPayloadOut(resp_inner) = payload in
+    let epub_R = hm_pk(resp_msg) in
+    let tx2_i = tx2c(qi_tx0(qi1), epub_R) in
+    let k2_i = init_derive_k2(k0, epub_R, qi_ephsk(qi1), pk_R, tx2_i) in
+    event QInitRecv(p, context, epub_R, k2_i).
+
+(* Responder: reads any incoming query (honest or attacker), returns the secret
+   response only for the honest query token, a public one otherwise. *)
+let query_responder(p: Principal) =
+    get resp_sk(=p, sk_R) in
+    get resp_cs(=p, cs_R) in
+    new rng_R0: bitstring;
+    let resp0 = resp_new(cs_R, context, resp_aad, rk_bound, rng_R0) in
+    in(c, msg: bitstring);
+    let rd = resp_read(resp0, msg) in
+    let self1 = t2_0(rd) in
+    let qp = t2_1(rd) in
+    let libcrux_psq__handshake__responder__ResponderState__RespondQuery(rqs) = r_state(self1) in
+    let tx0_r  = rqs_tx0(rqs) in
+    let k0_r   = rqs_k0(rqs) in
+    let epubI_r = rqs_epubi(rqs) in
+    event QRespRecv(p, context, k0_r);
+    (* fresh responder ephemeral (generated here so the process can observe K_2) *)
+    new rng_R1: bitstring;
+    let eph_R = t2_1(dh_new(rng_R1)) in
+    let epub_R  = dh_pk(eph_R) in
+    let epriv_R = dh_sk(eph_R) in
+    let tx2_r = tx2c(tx0_r, epub_R) in
+    let k2_r = resp_derive_k2(k0_r, epubI_r, epriv_R, sk_R, tx2_r, aead_chacha()) in
+    event QRespSend(p, context, epub_R, k2_r);
+    (* application handler: secret response iff the query is the honest token *)
+    if qp = mk_vlbytes(query_secret) then (
+        let enc = hs_encrypt(k2_r, mk_respout(mk_vlbytes(response_secret)), resp_aad) in
+        out(c, mk_hsmsg(epub_R, t2_0(t2_1(enc)), t2_1(t2_1(enc)), resp_aad, query_cs()))
+    ) else (
+        let enc = hs_encrypt(k2_r, mk_respout(mk_vlbytes(public_response)), resp_aad) in
+        out(c, mk_hsmsg(epub_R, t2_0(t2_1(enc)), t2_1(t2_1(enc)), resp_aad, query_cs()))
+    ).
+
+(* Phase-1 compromise of the responder long-term key (HNDL). *)
+let compromise_endpoint(p: Principal) =
+    get resp_sk(=p, sk_R) in
+    event CompromiseEndpoint(p);
+    out(c, sk_R).
+
+(* =========================================================================
+   Resolution control (SOUND — affects only ProVerif's search order/termination,
+   never a verdict). The DH commutativity equation + the attacker freely
+   *building* one-way crypto outputs triggers the classic "decryption-oracle"
+   saturation blow-up (multi-GB, no termination). These nounif hints deprioritise
+   selecting `attacker(<one-way output>)` facts during resolution. Same technique
+   as mandrake / SparsePostQuantumRatchet.
+   ========================================================================= *)
+nounif x: bitstring, y: bitstring;          attacker(extern__kdf(x, y))        / 30000.
+nounif x: bitstring, y: bitstring;          attacker(extern__dh_shared(x, y))  / 30000.
+nounif x: bitstring;                        attacker(extern__dh_pub(x))        / 30000.
+nounif x: bitstring, y: bitstring;          attacker(extern__hash(x, y))       / 30000.
+nounif k: bitstring, p: bitstring, a: bitstring; attacker(extern__aead_ct(k, p, a))  / 30000.
+nounif k: bitstring, p: bitstring, a: bitstring; attacker(extern__aead_tag(k, p, a)) / 30000.
+(* The KDF input wrappers: the attacker building these (folding DH shared secrets
+   the commutativity equation keeps rewriting) is the main correspondence blow-up. *)
+nounif d: bitstring; attacker(libcrux_psq__handshake__derive_k0__K0Ikm__K0Ikm(d)) / 30000.
+nounif k0: bitstring, a: bitstring, b: bitstring;
+       attacker(libcrux_psq__handshake__K2IkmQuery__K2IkmQuery(k0, a, b)) / 30000.

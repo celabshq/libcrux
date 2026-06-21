@@ -1,0 +1,61 @@
+(* PSQ query mode - responder authentication (P2) + replay protection (P3),
+   driven against the auth-core responder. Shared setup/roles/aliases/nounif:
+   -lib psq_query_lib.pvl. *)
+
+(* Auth-core responder: drives decrypt_outer_message directly, skipping the
+   rate-limiter / ciphersuite-coercion / state-machine bookkeeping of
+   read_message_contents (none security-relevant to query-mode authentication).
+   This keeps the responder-authentication correspondence tractable under the
+   DH-commutativity equation (full read_message_contents does not terminate). *)
+let query_responder_core(p: Principal) =
+    get resp_sk(=p, sk_R) in
+    get resp_cs(=p, cs_R) in
+    new rng_R0: bitstring;
+    let resp0 = resp_new(cs_R, context, resp_aad, rk_bound, rng_R0) in
+    in(c, msg: bitstring);
+    let dec = resp_decrypt_outer(resp0, msg) in
+    let initiator_payload = t3_0(dec) in
+    let tx0_r  = t3_1(dec) in
+    let k0_r   = t3_2(dec) in
+    let libcrux_psq__handshake__responder__InitiatorOuterPayload__Query(qp) = initiator_payload in
+    let epubI_r = hm_pk(msg) in
+    event QRespRecv(p, context, k0_r);
+    new rng_R1: bitstring;
+    let eph_R = t2_1(dh_new(rng_R1)) in
+    let epub_R  = dh_pk(eph_R) in
+    let epriv_R = dh_sk(eph_R) in
+    let tx2_r = tx2c(tx0_r, epub_R) in
+    let k2_r = resp_derive_k2(k0_r, epubI_r, epriv_R, sk_R, tx2_r, aead_chacha()) in
+    event QRespSend(p, context, epub_R, k2_r);
+    if qp = mk_vlbytes(query_secret) then (
+        let enc = hs_encrypt(k2_r, mk_respout(mk_vlbytes(response_secret)), resp_aad) in
+        out(c, mk_hsmsg(epub_R, t2_0(t2_1(enc)), t2_1(t2_1(enc)), resp_aad, query_cs()))
+    ) else (
+        let enc = hs_encrypt(k2_r, mk_respout(mk_vlbytes(public_response)), resp_aad) in
+        out(c, mk_hsmsg(epub_R, t2_0(t2_1(enc)), t2_1(t2_1(enc)), resp_aad, query_cs()))
+    ).
+
+(* =========================================================================
+   Responder-authentication queries (P2, P3)
+   ========================================================================= *)
+
+(* P2  Responder authentication, on the per-run id epub_R (= er): every response
+   an honest initiator accepts was produced by the genuine responder for the same
+   run. The accepting initiator only fires QInitRecv AFTER read_response decrypts
+   the responder ciphertext under its own K_2, so by AEAD integrity that K_2
+   equals the responder's - i.e. K_2 agreement is enforced by the AEAD and need
+   not be unified in the query (which would force the non-terminating reasoning
+   through the DH-commutativity equation). Hence the K_2 fields are free vars.
+                                                                 Expected: true *)
+query p: Principal, ctx: bitstring, er: bitstring, k2a: bitstring, k2b: bitstring;
+      event(QInitRecv(p, ctx, er, k2a)) ==> event(QRespSend(p, ctx, er, k2b)).
+
+(* P3  Response authenticity / replay protection (injective).   Expected: true *)
+query p: Principal, ctx: bitstring, er: bitstring, k2a: bitstring, k2b: bitstring;
+      inj-event(QInitRecv(p, ctx, er, k2a)) ==> inj-event(QRespSend(p, ctx, er, k2b)).
+
+process
+    ( setup_responder(Bob)
+    | ( !query_initiator(Bob) )
+    | ( !query_responder_core(Bob) )
+    | ( phase 1; !compromise_endpoint(Bob) ) )

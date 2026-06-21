@@ -53,6 +53,42 @@ fun extern__aead_tag(bitstring, bitstring, bitstring): bitstring.
 reduc forall k: bitstring, pt: bitstring, ad: bitstring;
       extern__aead_dec(k, extern__aead_ct(k, pt, ad), extern__aead_tag(k, pt, ad), ad) = pt.
 
+(* ---- Serialization round-trip across the AEAD boundary ----------------- *)
+(* `handshake_encrypt`/`handshake_decrypt` seal/open the *structured* payload
+   directly (the tls (de)serialization is dropped — see aead.rs). But the
+   initiator serializes the borrowed `InitiatorOuterPayloadOut::Query` while the
+   responder's `read_message_contents` deserializes into the owned
+   `InitiatorOuterPayload::Query`: two distinct hax-generated constructors that
+   share ONE wire encoding, so a real AEAD round-trip turns one into the other.
+   `handshake_decrypt` applies `pv_deserialize` to model exactly that wire
+   round-trip, so the responder recovers the owned form it destructures. Every
+   other payload (e.g. the responder's `ResponderQueryPayloadOut` response, which
+   the initiator reads raw without destructuring) passes through unchanged.
+
+   These two constructors are declared HERE (and stripped from the extracted
+   `lib.pvl` by check-pv.sh, to avoid a duplicate definition) so `pv_deserialize`
+   can reference them without a forward reference — ProVerif requires every name
+   to be declared before use, and `handshake_decrypt` (in lib.pvl) calls
+   `pv_deserialize`, whose body in turn needs these constructors. *)
+fun libcrux_psq__handshake__initiator__InitiatorOuterPayloadOut__Query(bitstring): bitstring [data].
+fun libcrux_psq__handshake__responder__InitiatorOuterPayload__Query(bitstring): bitstring [data].
+fun pv_deserialize(bitstring): bitstring
+reduc forall p: bitstring;
+        pv_deserialize(libcrux_psq__handshake__initiator__InitiatorOuterPayloadOut__Query(p))
+          = libcrux_psq__handshake__responder__InitiatorOuterPayload__Query(p)
+otherwise forall x: bitstring;
+        pv_deserialize(x) = x.
+
+(* ---- core::mem::take(&mut place) --------------------------------------- *)
+(* Returns the old value and resets the place to its `Default`. The hax `&mut`
+   lowering yields `Tuple2(new_place, returned_old)`, i.e. `(default, old)`; the
+   auto-declared opaque unary stub in `missingdecl.pvl` (which would be
+   destructured as a `Tuple2` and fail) is superseded by this definition (the
+   check-pv.sh de-dup drops the stub once this name is defined). The responder's
+   `prepare_message_contents` uses it on `self.state`. *)
+letfun core__mem__take(place: bitstring) =
+      rust_primitives__hax__Tuple2__Tuple2(bitstring_default(), place).
+
 (* ===========================================================================
    Wrapper definitions for crypto functions the engine does not currently emit
    via `replace_body` (the body replacement applies at the Rust level but no

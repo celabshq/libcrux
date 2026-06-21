@@ -34,9 +34,17 @@ cargo hax -C -p libcrux-psq --features hax-pv ';' into -i "$INC" proverif || exi
 #     dependency-free; this fixes the mutual-recursion forward references).
 python3 - "$EX/lib.pvl" > "$EX/lib.clean.pvl" <<'PY'
 import re,sys
+# Constructors re-declared in psq_crypto.pvl (so the pv_deserialize bridge can
+# reference them before lib.pvl loads); strip their `fun … [data].` decls here
+# to avoid a duplicate definition. Their projector reducs + use sites stay and
+# resolve against the psq_crypto declaration (loaded earlier).
+STRIP={'libcrux_psq__handshake__initiator__InitiatorOuterPayloadOut__Query',
+       'libcrux_psq__handshake__responder__InitiatorOuterPayload__Query'}
 stmts=re.split(r'(?<=\.)\n', open(sys.argv[1]).read())
 hoist=[]; body=[]
 for s in stmts:
+    ms=re.match(r'\s*fun\s+([A-Za-z0-9_]+)\s*\(\s*bitstring\s*\)\s*:\s*bitstring\s*\[data\]\.\s*$', s, re.S)
+    if ms and ms.group(1) in STRIP: continue
     m=re.match(r'\s*letfun\s+([A-Za-z0-9_]+)\s*\((.*?)\)\s*=', s, re.S)
     if m and re.search(r'\b'+re.escape(m.group(1))+r'\b', s[m.end():]):
         ar=m.group(2).count(':') if m.group(2).strip() else 0
@@ -71,13 +79,48 @@ for l in open(sys.argv[4]):
 sys.stdout.write(''.join(out))
 PY
 
-# Use analysis.pv (the security queries) if present; else a bare load-check.
-ANALYSIS="$EX/analysis.pv"
-[ -f "$ANALYSIS" ] || { printf 'process\n  0\n' > "$EX/loadcheck.pv"; ANALYSIS="$EX/loadcheck.pv"; }
-LOG=$(mktemp)
-proverif -lib "$PRIM" -lib "$PVD/psq_crypto.pvl" -lib "$EX/missingdecl.dedup.pvl" \
-         -lib "$EX/lib.clean.pvl" "$ANALYSIS" > "$LOG" 2>&1
-NERR=$(grep -c '^Error:' "$LOG")
-if [ "$NERR" -ne 0 ]; then echo "LOAD FAILED ($NERR errors):"; grep '^Error:' "$LOG" | head; exit 1; fi
+# ---------------------------------------------------------------------------
+# Run the two query-mode analyses against the composed model and assert the
+# P1–P11 verdicts from psq-design/models/psq_query.pv. The shared setup/roles/
+# aliases/nounif live in psq_query_lib.pvl; the queries split into:
+#   analysis.pv      full responder (drives read_message_contents): P1, P4–P11
+#   analysis_auth.pv auth-core responder (drives decrypt_outer_message): P2, P3
+# P2/P3 are responder-authentication correspondences; the DH-commutativity model
+# does not terminate through the full read_message_contents bookkeeping (rate
+# limiter / ciphersuite coercion / state machine), so they run against the
+# security-equivalent auth core (cf. mandrake's *_core files).
+LIBS=(-lib "$PRIM" -lib "$PVD/psq_crypto.pvl" -lib "$EX/missingdecl.dedup.pvl"
+      -lib "$EX/lib.clean.pvl" -lib "$EX/psq_query_lib.pvl")
+verdicts () { grep '^RESULT' "$1" | grep -oE 'is (true|false)' | awk '{print $2}' | tr '\n' ' '; }
+
+# If the queries aren't present yet, fall back to a bare load-check.
+if [ ! -f "$EX/analysis.pv" ]; then
+  printf 'process\n  0\n' > "$EX/loadcheck.pv"
+  LOG=$(mktemp); proverif "${LIBS[@]}" "$EX/loadcheck.pv" > "$LOG" 2>&1
+  NERR=$(grep -c '^Error:' "$LOG")
+  [ "$NERR" -eq 0 ] && echo "MODEL LOADS OK (0 errors)." || { echo "LOAD FAILED"; grep '^Error:' "$LOG"|head; exit 1; }
+  echo "(no queries yet)"; exit 0
+fi
+
+LOG_MAIN=$(mktemp); LOG_AUTH=$(mktemp)
+proverif "${LIBS[@]}" "$EX/analysis.pv"      > "$LOG_MAIN" 2>&1
+proverif "${LIBS[@]}" "$EX/analysis_auth.pv" > "$LOG_AUTH" 2>&1
+NERR=$(( $(grep -c '^Error:' "$LOG_MAIN") + $(grep -c '^Error:' "$LOG_AUTH") ))
+if [ "$NERR" -ne 0 ]; then echo "LOAD FAILED ($NERR errors):"; grep '^Error:' "$LOG_MAIN" "$LOG_AUTH" | head; exit 1; fi
+
+# Expected verdicts (psq_query.pv "Expected:" tags).
+#   analysis.pv      P1×4 reachable(false), P4 false, P5–P9 true, P10 false, P11 false
+#   analysis_auth.pv P2 true, P3 true
+EXP_MAIN="false false false false false true true true true true false false "
+EXP_AUTH="true true "
+GOT_MAIN=$(verdicts "$LOG_MAIN"); GOT_AUTH=$(verdicts "$LOG_AUTH")
 echo "MODEL LOADS OK (0 errors)."
-grep -E '^RESULT' "$LOG" || echo "(no queries yet — Phase 3)"
+echo "  P1,P4..P11  got: $GOT_MAIN"
+echo "              exp: $EXP_MAIN"
+echo "  P2,P3       got: $GOT_AUTH"
+echo "              exp: $EXP_AUTH"
+if [ "$GOT_MAIN" = "$EXP_MAIN" ] && [ "$GOT_AUTH" = "$EXP_AUTH" ]; then
+  echo "CHECK PASSED (14/14 query-mode verdicts match psq_query.pv)"
+else
+  echo "CHECK FAILED"; exit 1
+fi

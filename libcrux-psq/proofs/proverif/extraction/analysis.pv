@@ -1,0 +1,51 @@
+(* PSQ query mode - full-responder analysis: reachability (P1), no-initiator-auth
+   (P4/P11), key/payload secrecy + forward secrecy (P5-P10). Drives the real
+   Responder::read_message_contents. The responder-authentication correspondences
+   P2/P3 live in analysis_auth.pv (auth core), which the DH-commutativity model
+   makes intractable through the full read_message_contents bookkeeping.
+   Shared setup/roles/aliases/nounif: -lib psq_query_lib.pvl. *)
+
+(* =========================================================================
+   Security queries (Pn) - Expected verdicts from psq-design/models/psq_query.pv
+   ========================================================================= *)
+
+(* P1  Sanity / reachability: the honest run completes.        Expected: false *)
+query p: Principal, ctx: bitstring, k: bitstring; event(QInitSend(p, ctx, k)).
+query p: Principal, ctx: bitstring, k: bitstring; event(QRespRecv(p, ctx, k)).
+query p: Principal, ctx: bitstring, er: bitstring, k: bitstring; event(QRespSend(p, ctx, er, k)).
+query p: Principal, ctx: bitstring, er: bitstring, k: bitstring; event(QInitRecv(p, ctx, er, k)).
+
+(* P4  NO initiator authentication (deliberate non-goal).      Expected: false *)
+query p: Principal, ctx: bitstring, k0: bitstring;
+      event(QRespRecv(p, ctx, k0)) ==> event(QInitSend(p, ctx, k0)).
+
+(* P5  Key secrecy K_0 ==> endpoint compromise.                 Expected: true *)
+query p: Principal, ctx: bitstring, k0: bitstring;
+      event(QInitSend(p, ctx, k0)) && attacker(k0) ==> event(CompromiseEndpoint(p)).
+
+(* P6  Key secrecy K_2 (honest initiator view) ==> compromise.  Expected: true *)
+query p: Principal, ctx: bitstring, er: bitstring, k2: bitstring;
+      event(QInitRecv(p, ctx, er, k2)) && attacker(k2) ==> event(CompromiseEndpoint(p)).
+
+(* P7  Query-payload confidentiality ==> compromise.            Expected: true *)
+query attacker(query_secret) ==> event(CompromiseEndpoint(Bob)).
+
+(* P8  Response-payload confidentiality ==> compromise.         Expected: true *)
+query attacker(response_secret) ==> event(CompromiseEndpoint(Bob)).
+
+(* P9  Forward secrecy of the RESPONSE (deletion schedule).     Expected: true *)
+query attacker(response_secret).
+
+(* P10 NO forward secrecy of the QUERY.                        Expected: false *)
+query attacker(query_secret).
+
+(* P11 No initiator auth at the key level (responder K_2 not uniformly secret).
+                                                               Expected: false *)
+query p: Principal, ctx: bitstring, er: bitstring, k2: bitstring;
+      event(QRespSend(p, ctx, er, k2)) && attacker(k2) ==> event(CompromiseEndpoint(p)).
+
+process
+    ( setup_responder(Bob)
+    | ( !query_initiator(Bob) )
+    | ( !query_responder(Bob) )
+    | ( phase 1; !compromise_endpoint(Bob) ) )
