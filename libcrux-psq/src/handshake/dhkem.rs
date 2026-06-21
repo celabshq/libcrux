@@ -67,6 +67,12 @@ impl AsRef<[u8]> for DHPrivateKey {
 
 impl DHSharedSecret {
     /// Derive a shared secret, DH-KEM style.
+    // ProVerif: X25519 DH. `extern__dh_shared(sk, pk)` with the commutativity
+    // equation in psq_crypto.pvl is the standard symbolic DH abstraction.
+    #[cfg_attr(
+        feature = "hax-pv",
+        hax_lib::proverif::replace_body("extern__dh_shared(sk, pk)")
+    )]
     pub(crate) fn derive(sk: &DHPrivateKey, pk: &DHPublicKey) -> Result<DHSharedSecret, Error> {
         Ok(DHSharedSecret(
             libcrux_ecdh::derive(Algorithm::X25519, pk.0, &sk.0).map_err(|_| Error::CryptoError)?,
@@ -76,6 +82,12 @@ impl DHSharedSecret {
 
 impl DHPrivateKey {
     /// Creates a new KEM private key.
+    // ProVerif: a fresh DH scalar. `new dh_scalar` gives an independent secret
+    // per call (so distinct ephemerals never coincide), regardless of `rng`.
+    #[cfg_attr(
+        feature = "hax-pv",
+        hax_lib::proverif::replace_body("(new dh_scalar: bitstring; dh_scalar)")
+    )]
     pub fn new(rng: &mut impl CryptoRng) -> Self {
         Self(
             libcrux_ecdh::generate_secret(libcrux_ecdh::Algorithm::X25519, rng)
@@ -84,6 +96,11 @@ impl DHPrivateKey {
     }
 
     /// Compute the KEM public key from the KEM private key.
+    // ProVerif: g^sk.
+    #[cfg_attr(
+        feature = "hax-pv",
+        hax_lib::proverif::replace_body("extern__dh_pub(self)")
+    )]
     pub fn to_public(&self) -> DHPublicKey {
         DHPublicKey(
             secret_to_public(libcrux_ecdh::Algorithm::X25519, &self.0)

@@ -24,6 +24,16 @@ impl Transcript {
         Self::add_hash::<TX0_DOMAIN_SEP>(None, initial_input)
     }
 
+    // ProVerif: running transcript hash. `extern__hash` is one-way and
+    // injective in the term algebra; the chained previous transcript plus the
+    // (distinctly-typed) step input bind each step distinctly — the const
+    // domain separator can't be interpolated into the replace_body text and is
+    // redundant given the chaining. Avoids the stateful SHA-256 hasher
+    // (new/update/finish) the &mut analysis can't model.
+    #[cfg_attr(
+        feature = "hax-pv",
+        hax_lib::proverif::replace_body("extern__hash(old_transcript, input)")
+    )]
     pub(crate) fn add_hash<const DOMAIN_SEPARATOR: u8>(
         old_transcript: Option<&Transcript>,
         input: impl Serialize,

@@ -93,6 +93,13 @@ impl AEADKeyNonce {
         Ok(new_key)
     }
 
+    // ProVerif: HKDF-SHA256 key derivation. `extern__kdf(ikm, info)` is the
+    // derived AEAD key+nonce (K_n); one-way in `ikm`. The AEAD choice
+    // (`aead_type`) is irrelevant to the symbolic abstraction.
+    #[cfg_attr(
+        feature = "hax-pv",
+        hax_lib::proverif::replace_body("extern__kdf(ikm, info)")
+    )]
     pub(crate) fn new(
         ikm: &impl SerializeBytes,
         info: &impl SerializeBytes,
@@ -214,6 +221,18 @@ impl AEADKeyNonce {
         Ok((ciphertext, tag))
     }
 
+    // ProVerif: AEAD seal. Ciphertext and tag are produced from the key, the
+    // (structured) payload and the aad; both are needed to decrypt (see the
+    // reduc in psq_crypto.pvl). Bypasses tls serialization and the nonce
+    // bookkeeping — the single-use key already fixes the nonce.
+    #[cfg_attr(
+        feature = "hax-pv",
+        hax_lib::proverif::replace_body(
+            "rust_primitives__hax__Tuple2__Tuple2(\
+               extern__aead_ct(self, payload, aad), \
+               extern__aead_tag(self, payload, aad))"
+        )
+    )]
     pub(crate) fn handshake_encrypt<T: Serialize>(
         &mut self,
         payload: &T,
@@ -328,6 +347,15 @@ impl AEADKeyNonce {
         T::tls_deserialize_exact(&payload_serialized_buf).map_err(AEADError::Deserialize)
     }
 
+    // ProVerif: AEAD open. The reduc in psq_crypto.pvl only fires for a genuine
+    // (ciphertext, tag) pair under the same key+aad, so decryption fails (the
+    // term has no value, blocking the branch) on any forgery — modelling AEAD
+    // integrity. Bypasses tls deserialization (the recovered payload is the
+    // structured plaintext directly).
+    #[cfg_attr(
+        feature = "hax-pv",
+        hax_lib::proverif::replace_body("extern__aead_dec(self, ciphertext, tag, aad)")
+    )]
     pub(crate) fn handshake_decrypt<T: Deserialize>(
         &mut self,
         ciphertext: &[u8],
