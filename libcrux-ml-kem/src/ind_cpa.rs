@@ -1339,24 +1339,20 @@ pub(crate) fn build_unpacked_public_key_mut<
 //   3. The functional ensures requires loop-invariant maintenance through
 //      both deserialize_then_decompress_ring_element_u AND ntt_vector_u
 //      composing correctly. 60+ min dedicated session.
-#[hax_lib::fstar::verification_status(panic_free)]
+// FULLY VERIFIED (2026-06-21): functional return-post proven; `panic_free` removed.
+// Per-element produce-then-NTT loop, mirror of `sample_vector_cbd_then_ntt`: the loop
+// invariant carries the opaque `cbd_ntt_prefix_done` atom (target-generic, reused from
+// `Commute.Ind_cpa_sampling`) instantiated at `target = deserialize_then_decompress_u_then_ntt
+// K (ciphertext[..c1_size K]) du`.  Per row: `lemma_ddu_slice_eq` bridges the impl block to
+// `ct_c1.[r_block]`, `lemma_ddu_deserialized_eq` (keystone `lemma_ddu_index` via `norm_spec`)
+// turns the deserialize+decompress post into `poly_to_spec == dtdu[i]`, `lemma_ddu_per_index`
+// composes with the NTT post (poly_to_spec↔to_spec_poly_plain bridge), and
+// `lemma_cbd_ntt_prefix_step` extends; `lemma_ddu_finalize` yields the ensures.
 #[inline(always)]
-// Local-suppression band-aid: drop the `is_bounded_poly` equation
-// (whose body cascades on every `Seq.index p.f_coefficients i` access via
-// the array_from_fn refinement, ~66k instantiations in this query) and
-// the `array_from_fn` refinement itself.  Verifies cleanly without
-// these.  The principled fix — making `is_bounded_poly` opaque + adding
-// SMTPat'd elim/intro/higher lemmas — breaks ~10 functions across
-// Ntt/Invert_ntt that need explicit reveal+intro updates; deferred to a
-// separate sprint.
-// The functional conjunct below is stated as a TRUST BOUNDARY (kept `panic_free`, so admitted):
-// the impl fuses deserialize+decompress+NTT per element, matching the spec's
-// `vector_ntt ∘ deserialize_then_decompress_u`.  Consumed by `decrypt_unpacked`.  (Provable for
-// real via a per-element functional loop invariant + the poly_to_spec ↔ to_spec_poly_plain bridge;
-// deferred.)  The Hacspec spec modules are added to the `using_facts_from` prune list because the
-// functional conjunct's spec-function references otherwise pollute the band-aided loop sub-query and
-// make it saturate cold (rlimit 400/canceled); the body is admitted so pruning their facts is sound.
-#[hax_lib::fstar::options("--z3rlimit 400 --ext context_pruning --split_queries always --using_facts_from '* -Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly -Rust_primitives.Slice.array_from_fn -Hacspec_ml_kem.Serialize -Hacspec_ml_kem.Ntt -Hacspec_ml_kem.Compress'")]
+// Prune the heavy spec bodies (byte_decode_dyn/decompress/ntt/vector_ntt/dtdu): the commute
+// lemmas (Ind_cpa_deserialize_u, Ind_cpa_sampling) supply every needed fact as an ensures, so
+// keeping the definitions visible only lets Z3 unfold them and saturate the loop-step VC.
+#[hax_lib::fstar::options("--z3rlimit 400 --ext context_pruning --split_queries always --using_facts_from '* -Hacspec_ml_kem.Serialize -Hacspec_ml_kem.Compress -Hacspec_ml_kem.Ntt'")]
 #[hax_lib::requires(
     hacspec_ml_kem::parameters::is_rank(K)
     && CIPHERTEXT_SIZE == hacspec_ml_kem::parameters::cpa_ciphertext_size(K)
@@ -1380,28 +1376,62 @@ fn deserialize_then_decompress_u<
 ) -> [PolynomialRingElement<Vector>; K] {
     hax_lib::fstar!(
         "assert (v (($COEFFICIENTS_IN_RING_ELEMENT *! $U_COMPRESSION_FACTOR ) /!
-        sz 8) == v (Hacspec_ml_kem.Parameters.c1_block_size $K))"
+        sz 8) == v (Hacspec_ml_kem.Parameters.c1_block_size $K));
+        assert (v (Hacspec_ml_kem.Parameters.c1_size $K) ==
+                v ((($K *! $COEFFICIENTS_IN_RING_ELEMENT) *! $U_COMPRESSION_FACTOR) /! sz 8))"
+    );
+    // Ghost spec target (the functional postcondition value), kept behind the opaque
+    // `cbd_ntt_prefix_done` atom in the loop invariant so its createi terms never enter the VC.
+    #[cfg(hax)]
+    let target = hacspec_ml_kem::serialize::deserialize_then_decompress_u_then_ntt::<K>(
+        &ciphertext[..hacspec_ml_kem::parameters::c1_size(K)],
+        U_COMPRESSION_FACTOR,
     );
     let mut u_as_ntt: [PolynomialRingElement<Vector>; K] =
         hacspec_ml_kem::parameters::createi(|_| PolynomialRingElement::<Vector>::ZERO());
     let block_size = (COEFFICIENTS_IN_RING_ELEMENT * U_COMPRESSION_FACTOR) / 8;
+    // Establish the opaque loop-invariant atom at the empty prefix (vacuous).
+    hax_lib::fstar!(
+        r#"Hacspec_ml_kem.Commute.Ind_cpa_sampling.lemma_cbd_ntt_prefix_init $K ${u_as_ntt} ${target}"#
+    );
     for i in 0..K {
         hax_lib::loop_invariant!(|i: usize| {
             fstar!(
-                r#"forall (j:nat). j < v $i ==>
-          Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #$:Vector (sz 3328) u_as_ntt.[ sz j ]"#
+                r#"Hacspec_ml_kem.Commute.Ind_cpa_sampling.cbd_ntt_prefix_done $K ${u_as_ntt} ${target} (v $i) /\
+                (forall (j:nat). j < v $i ==>
+                  Libcrux_ml_kem.Polynomial.Spec.is_bounded_poly #$:Vector (sz 3328) u_as_ntt.[ sz j ])"#
             )
         });
+        #[cfg(hax)]
+        let u_old = u_as_ntt;
         let u_bytes = &ciphertext[i * block_size..(i + 1) * block_size];
-        u_as_ntt[i] =
+        // Local-temp single write (one `update_at` matching lemma_cbd_ntt_prefix_step), and the
+        // per-row NTT post couples `ntt_val` to `deserialized` directly.
+        let deserialized =
             deserialize_then_decompress_ring_element_u::<U_COMPRESSION_FACTOR, Vector>(u_bytes);
-        ntt_vector_u::<U_COMPRESSION_FACTOR, Vector>(&mut u_as_ntt[i]);
+        let mut ntt_val = deserialized;
+        ntt_vector_u::<U_COMPRESSION_FACTOR, Vector>(&mut ntt_val);
+        u_as_ntt[i] = ntt_val;
+        hax_lib::fstar!(
+            r#"Hacspec_ml_kem.Commute.Ind_cpa_deserialize_u.lemma_ddu_slice_eq
+                 ${ciphertext} $K $U_COMPRESSION_FACTOR (v $i);
+               Hacspec_ml_kem.Commute.Ind_cpa_deserialize_u.lemma_ddu_deserialized_eq
+                 $K $U_COMPRESSION_FACTOR
+                 (${ciphertext}.[ { Core_models.Ops.Range.f_end = Hacspec_ml_kem.Parameters.c1_size $K }
+                                  <: Core_models.Ops.Range.t_RangeTo usize ])
+                 (v $i) ${deserialized};
+               Hacspec_ml_kem.Commute.Ind_cpa_deserialize_u.lemma_ddu_per_index
+                 $K $U_COMPRESSION_FACTOR
+                 (${ciphertext}.[ { Core_models.Ops.Range.f_end = Hacspec_ml_kem.Parameters.c1_size $K }
+                                  <: Core_models.Ops.Range.t_RangeTo usize ])
+                 (v $i) ${deserialized} ${ntt_val};
+               Hacspec_ml_kem.Commute.Ind_cpa_sampling.lemma_cbd_ntt_prefix_step
+                 $K ${target} ${u_old} $i ${ntt_val}"#
+        );
     }
-    // Fold per-element bound forall into the opaque
-    // is_bounded_polynomial_vector atom required by the ensures.
+    // Loop-exit prefix atom (n = K) -> bound + vector_to_spec == target (the ensures).
     hax_lib::fstar!(
-        r#"Libcrux_ml_kem.Polynomial.Spec.lemma_is_bounded_polynomial_vector_intro
-            $K #$:Vector $u_as_ntt (sz 3328)"#
+        r#"Hacspec_ml_kem.Commute.Ind_cpa_deserialize_u.lemma_ddu_finalize $K ${target} ${u_as_ntt}"#
     );
     u_as_ntt
 }
