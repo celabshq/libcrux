@@ -125,7 +125,6 @@ pub(crate) fn compress_message_coefficient(fe: U16) -> U8 {
     res
 }
 
-#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::fstar::options("--z3rlimit 200 --ext context_pruning")]
 #[hax_lib::fstar::before(r#"[@ "opaque_to_smt"]"#)]
 #[cfg_attr(hax,
@@ -139,10 +138,9 @@ pub(crate) fn compress_message_coefficient(fe: U16) -> U8 {
 // `v result == ((v fe * 2 * pow2 D + 3329) / 6658) % pow2 D` where
 // D = v coefficient_bits.  This is the exact NIST FIPS 203
 // Compress_d formula; the impl uses a Barrett-style approximation
-// (magic constant 10_321_340 >> 35 ≈ 1/3329).  Proving the Barrett
-// approximation is *exact* for D ∈ {4,5,10,11} and fe ∈ [0, 3329)
-// requires either case-by-case enumeration (3329 * 4 ≈ 13k cases)
-// or Barrett-reduction theory.  Marked `panic_free` pending that proof.
+// (magic constant 10_321_340 >> 35 ≈ 1/3329).  The Barrett spine equals
+// the exact rounded division via the shared scalar identity
+// `Hacspec_ml_kem.Commute.Chunk.lemma_compress_d_barrett_eq`.
 #[cfg_attr(hax,
      hax_lib::ensures(
      |result| fstar!(r#"v result >= 0 /\ v result < pow2 (v $coefficient_bits) /\
@@ -157,15 +155,59 @@ pub(crate) fn compress_ciphertext_coefficient(coefficient_bits: u8, fe: U16) -> 
     // );
     // hax_debug_assert!(fe <= (FIELD_MODULUS as u16));
 
+    hax_lib::fstar!(
+        r#"assert_norm (pow2 4 == 16);
+        assert_norm (pow2 5 == 32);
+        assert_norm (pow2 10 == 1024);
+        assert_norm (pow2 11 == 2048);
+        assert_norm (pow2 35 == 34359738368)"#
+    );
+    hax_lib::fstar!(
+        r#"assert (pow2 (v $coefficient_bits) <= 2048 /\ pow2 (v $coefficient_bits) >= 1)"#
+    );
+
     // This has to be constant time due to:
     // https://groups.google.com/a/list.nist.gov/g/pqc-forum/c/ldX0ThYJuBo/m/ovODsdY7AwAJ
     let mut compressed = (fe.as_u64()) << coefficient_bits;
+    hax_lib::fstar!(
+        r#"assert (v (Libcrux_secrets.Int.f_as_u64 #u16 #FStar.Tactics.Typeclasses.solve $fe <: u64)
+            == v $fe);
+        FStar.Math.Lemmas.lemma_mult_le_right (pow2 (v $coefficient_bits)) (v $fe) 3328;
+        assert (v $fe * pow2 (v $coefficient_bits) <= 3328 * 2048);
+        assert (v $compressed == (v $fe * pow2 (v $coefficient_bits)) % pow2 64);
+        FStar.Math.Lemmas.small_mod (v $fe * pow2 (v $coefficient_bits)) (pow2 64);
+        assert (v $compressed == v $fe * pow2 (v $coefficient_bits))"#
+    );
     compressed += 1664 as u64;
+    hax_lib::fstar!(r#"assert (v $compressed == v $fe * pow2 (v $coefficient_bits) + 1664)"#);
 
     compressed *= 10_321_340;
+    hax_lib::fstar!(
+        r#"assert (v $compressed == (v $fe * pow2 (v $coefficient_bits) + 1664) * 10321340)"#
+    );
     compressed >>= 35;
+    hax_lib::fstar!(
+        r#"assert (v $compressed ==
+            ((v $fe * pow2 (v $coefficient_bits) + 1664) * 10321340) / pow2 35);
+        FStar.Math.Lemmas.lemma_div_le ((v $fe * pow2 (v $coefficient_bits) + 1664) * 10321340)
+          ((3328 * 2048 + 1664) * 10321340) (pow2 35);
+        assert (v $compressed < pow2 32);
+        assert (v (Libcrux_secrets.Int.f_as_u32 #u64 #FStar.Tactics.Typeclasses.solve $compressed
+                <: u32) == v $compressed)"#
+    );
 
-    get_n_least_significant_bits(coefficient_bits, compressed.as_u32()).as_i16()
+    let result = get_n_least_significant_bits(coefficient_bits, compressed.as_u32()).as_i16();
+    hax_lib::fstar!(
+        r#"FStar.Math.Lemmas.lemma_mod_lt
+            (((v $fe * pow2 (v $coefficient_bits) + 1664) * 10321340) / pow2 35)
+            (pow2 (v $coefficient_bits));
+        assert (v $result == (((v $fe * pow2 (v $coefficient_bits) + 1664) * 10321340) / pow2 35)
+                             % pow2 (v $coefficient_bits));
+        Hacspec_ml_kem.Commute.Chunk.lemma_compress_d_barrett_eq (v $fe) (v $coefficient_bits);
+        assert (v $result == ((v $fe * 2 * pow2 (v $coefficient_bits) + 3329) / 6658)
+                             % pow2 (v $coefficient_bits))"#
+    );
+    result
 }
 
 #[inline(always)]
@@ -179,19 +221,43 @@ let compress_message_coefficient_range_helper (fe: u16) : Lemma
     v (cast (compress_message_coefficient fe) <: i16) < 2) =
   assert (v (cast (compress_message_coefficient fe) <: i16) >= 0 /\
     v (cast (compress_message_coefficient fe) <: i16) < 2)
+
+#push-options "--fuel 0 --ifuel 0 --z3rlimit 100"
+(* Per-lane compression fact, proven in clean context so the loop body
+   stays light: the i16 lane written by compress_1 at index i equals
+   f_as_i16 #u8 (compress_message_coefficient (f_as_u16 #i16 fe)), whose
+   value is the hacspec compress_d _ 1 integer form on v fe. *)
+let compress_1_lane_eq (fe: i16) : Lemma
+  (requires v fe >= 0 /\ v fe < 3329)
+  (ensures
+    (let r:i16 =
+       Libcrux_secrets.Int.f_as_i16 #u8 #FStar.Tactics.Typeclasses.solve
+         (compress_message_coefficient (Libcrux_secrets.Int.f_as_u16 #i16
+                 #FStar.Tactics.Typeclasses.solve fe
+               <: u16)
+           <: u8)
+     in
+     v r >= 0 /\ v r < 2 /\ v r == ((v fe * 4 + 3329) / 6658) % 2)) =
+  let feu:u16 = Libcrux_secrets.Int.f_as_u16 #i16 #FStar.Tactics.Typeclasses.solve fe in
+  assert (v feu == v fe);
+  assert (feu <. (cast (Libcrux_ml_kem.Vector.Traits.v_FIELD_MODULUS) <: u16));
+  let c:u8 = compress_message_coefficient feu in
+  assert (v c == ((v feu * 4 + 3329) / 6658) % 2);
+  compress_message_coefficient_range_helper feu;
+  assert (v c >= 0 /\ v c < 2);
+  assert (v (Libcrux_secrets.Int.f_as_i16 #u8 #FStar.Tactics.Typeclasses.solve c <: i16) == v c)
+#pop-options
 "#
     )
 )]
-#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::fstar::options("--fuel 0 --ifuel 0 --z3rlimit 200")]
 #[hax_lib::requires(fstar!(r#"forall (i:nat). i < 16 ==> v (Seq.index ${a}.f_elements i) >= 0 /\
     v (Seq.index ${a}.f_elements i) < 3329"#))]
 // Hacspec-form post: `v result[i] == ((v a[i] * 4 + 3329) / 6658) % 2`
-// (hacspec `compress_d _ 1` in integer form).  Marked `panic_free` —
-// integer-form loop-invariant body proof attempted (commit message),
-// timed out at rlimit 600 + split_queries on Q82/Q83 (the closing-loop
-// invariant subtype check).  See USER-N "compress_1 chunk-wrapper Z3
-// saturation".
+// (hacspec `compress_d _ 1` in integer form).  The per-lane value is
+// discharged by the clean-context helper `compress_1_lane_eq`; the
+// loop carries a snapshot `a_orig` so the value is stated on the
+// original input lane.
 #[hax_lib::ensures(|result| fstar!(r#"forall (i:nat). i < 16 ==>
     (let res_i = v (${result}.f_elements.[ sz i ] <: i16) in
      let a_i   = v (Seq.index ${a}.f_elements i) in
@@ -203,25 +269,44 @@ pub(crate) fn compress_1(mut a: PortableVector) -> PortableVector {
         (cast ($FIELD_MODULUS) <: u16))"
     );
 
+    #[cfg(hax)]
+    let a_orig = a;
+
     for i in 0..FIELD_ELEMENTS_IN_VECTOR {
         hax_lib::loop_invariant!(|i: usize| {
             fstar!(
                 r#"(v $i < 16 ==> (forall (j:nat). (j >= v $i /\ j < 16) ==>
+            Seq.index ${a}.f_elements j == Seq.index ${a_orig}.f_elements j /\
             v (cast (${a}.f_elements.[ sz j ]) <: u16) < v (cast ($FIELD_MODULUS) <: u16))) /\
             (forall (j:nat). j < v $i ==> v (${a}.f_elements.[ sz j ] <: i16) >= 0 /\
-                v (${a}.f_elements.[ sz j ] <: i16) < 2)"#
+                v (${a}.f_elements.[ sz j ] <: i16) < 2 /\
+                v (${a}.f_elements.[ sz j ] <: i16) ==
+                ((v (Seq.index ${a_orig}.f_elements j) * 4 + 3329) / 6658) % 2)"#
             )
         });
 
         hax_lib::fstar!(
-            "compress_message_coefficient_range_helper (cast (${a}.f_elements.[ $i ]) <: u16)"
+            r#"assert (Seq.index ${a}.f_elements (v $i) == Seq.index ${a_orig}.f_elements (v $i));
+            assert (v (${a}.f_elements.[ $i ] <: i16) >= 0 /\ v (${a}.f_elements.[ $i ] <: i16) < 3329);
+            compress_1_lane_eq (${a}.f_elements.[ $i ] <: i16);
+            compress_message_coefficient_range_helper
+              (Libcrux_secrets.Int.f_as_u16 #i16 #FStar.Tactics.Typeclasses.solve
+                 (${a}.f_elements.[ $i ] <: i16) <: u16)"#
         );
 
         a.elements[i] = compress_message_coefficient(a.elements[i].as_u16()).as_i16();
 
         hax_lib::fstar!(
             r#"assert (v (${a}.f_elements.[ $i ] <: i16) >= 0 /\
-            v (${a}.f_elements.[ $i ] <: i16) < 2)"#
+            v (${a}.f_elements.[ $i ] <: i16) < 2);
+            assert (v (${a}.f_elements.[ $i ] <: i16) ==
+                ((v (Seq.index ${a_orig}.f_elements (v $i)) * 4 + 3329) / 6658) % 2)"#
+        );
+        // Frame: untouched elements still equal the original and satisfy the bound
+        hax_lib::fstar!(
+            r#"assert (forall (j: nat). (j > v $i /\ j < 16) ==>
+                Seq.index ${a}.f_elements j == Seq.index ${a_orig}.f_elements j /\
+                v (cast (${a}.f_elements.[ sz j ]) <: u16) < v (cast ($FIELD_MODULUS) <: u16))"#
         );
     }
 
@@ -234,7 +319,6 @@ pub(crate) fn compress_1(mut a: PortableVector) -> PortableVector {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::fstar::options("--fuel 0 --ifuel 0 --z3rlimit 500")]
 #[hax_lib::requires(fstar!(r#"(v $COEFFICIENT_BITS == 4 \/
         v $COEFFICIENT_BITS == 5 \/
@@ -244,11 +328,10 @@ pub(crate) fn compress_1(mut a: PortableVector) -> PortableVector {
         (v (Seq.index ${a}.f_elements i) >= 0 /\
          v (Seq.index ${a}.f_elements i) < 3329))"#))]
 // Hacspec-form post: `v result[i] == ((v a[i] * 2 * 2^D + 3329) / 6658) % 2^D`
-// (hacspec `compress_d _ D` in integer form).  Marked `panic_free` —
-// body proof deferred per user directive.  Primitive
-// `compress_ciphertext_coefficient` is also `panic_free` (Barrett
-// exactness pending), so the chain doesn't close at the chunk level
-// either; revisit when both come together.
+// (hacspec `compress_d _ D` in integer form).  Discharged by composing
+// the now-functional leaf `compress_ciphertext_coefficient` post (which
+// equals the Barrett spine via `lemma_compress_d_barrett_eq`) through a
+// snapshot-carrying loop invariant.
 #[hax_lib::ensures(|result| fstar!(r#"forall (i:nat). i < 16 ==>
     (let res_i = v (${result}.f_elements.[ sz i ] <: i16) in
      let a_i   = v (Seq.index ${a}.f_elements i) in
@@ -267,15 +350,27 @@ pub(crate) fn compress<const COEFFICIENT_BITS: i32>(mut a: PortableVector) -> Po
             (cast ($FIELD_MODULUS) <: u16))"
     );
 
+    #[cfg(hax)]
+    let a_orig = a;
+
     for i in 0..FIELD_ELEMENTS_IN_VECTOR {
         hax_lib::loop_invariant!(|i: usize| {
             fstar!(
                 r#"((forall (j:nat). (j >= v $i /\ j < 16) ==>
+                      Seq.index ${a}.f_elements j == Seq.index ${a_orig}.f_elements j /\
                       v (cast (${a}.f_elements.[ sz j ]) <: u16) < v (cast ($FIELD_MODULUS) <: u16))) /\
                     (forall (j:nat). j < v $i ==> v (${a}.f_elements.[ sz j ] <: i16) >= 0 /\
-                     v (${a}.f_elements.[ sz j ] <: i16) < pow2 (v $COEFFICIENT_BITS))"#
+                     v (${a}.f_elements.[ sz j ] <: i16) < pow2 (v $COEFFICIENT_BITS) /\
+                     v (${a}.f_elements.[ sz j ] <: i16) ==
+                     ((v (Seq.index ${a_orig}.f_elements j) * 2 * pow2 (v $COEFFICIENT_BITS) + 3329)
+                       / 6658) % pow2 (v $COEFFICIENT_BITS))"#
             )
         });
+
+        hax_lib::fstar!(
+            r#"assert (Seq.index ${a}.f_elements (v $i) == Seq.index ${a_orig}.f_elements (v $i));
+            assert (v (cast (${a}.f_elements.[ $i ]) <: u16) == v (Seq.index ${a_orig}.f_elements (v $i)))"#
+        );
 
         a.elements[i] =
             compress_ciphertext_coefficient(COEFFICIENT_BITS as u8, a.elements[i].as_u16())
@@ -283,11 +378,15 @@ pub(crate) fn compress<const COEFFICIENT_BITS: i32>(mut a: PortableVector) -> Po
 
         hax_lib::fstar!(
             r#"assert (v (${a}.f_elements.[ $i ] <: i16) >= 0 /\
-            v (${a}.f_elements.[ $i ] <: i16) < pow2 (v $COEFFICIENT_BITS))"#
+            v (${a}.f_elements.[ $i ] <: i16) < pow2 (v $COEFFICIENT_BITS));
+            assert (v (${a}.f_elements.[ $i ] <: i16) ==
+                ((v (Seq.index ${a_orig}.f_elements (v $i)) * 2 * pow2 (v $COEFFICIENT_BITS) + 3329)
+                  / 6658) % pow2 (v $COEFFICIENT_BITS))"#
         );
-        // Frame: untouched elements still satisfy the original bound
+        // Frame: untouched elements still equal the original and satisfy the bound
         hax_lib::fstar!(
             r#"assert (forall (j: nat). (j > v $i /\ j < 16) ==>
+                Seq.index ${a}.f_elements j == Seq.index ${a_orig}.f_elements j /\
                 v (cast (${a}.f_elements.[ sz j ]) <: u16) <
                 v (cast ($FIELD_MODULUS) <: u16))"#
         );
@@ -373,7 +472,6 @@ pub(crate) fn decompress_1(a: PortableVector) -> PortableVector {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::fstar::options("--z3rlimit 300 --ext context_pruning")]
 #[hax_lib::requires(fstar!(r#"(v $COEFFICIENT_BITS == 4 \/
         v $COEFFICIENT_BITS == 5 \/
@@ -384,10 +482,8 @@ pub(crate) fn decompress_1(a: PortableVector) -> PortableVector {
 // Hacspec-form post: `v result[i] == (2*v a[i]*3329 + pow2 D) / pow2 (D+1)`,
 // which is exactly `Hacspec_ml_kem.Compress.decompress_d fe D` when fe
 // has val = v a[i] (fe in [0, 2^D) guarantees val < 2^D < 3329 so the
-// u16 mod-3329 normalisation is a no-op).
-// Marked `panic_free` — Z3-walled (rlimit 600 + split_queries times out
-// on Q82/Q83 closing-loop subtype check; same pattern as compress_1
-// chunk wrapper).  See USER-N "compress.rs chunk-wrapper Z3 saturation".
+// u16 mod-3329 normalisation is a no-op).  The exact value is plain
+// integer division (no Barrett); carried through a snapshot loop invariant.
 #[hax_lib::ensures(|result| fstar!(r#"forall (i:nat). i < 16 ==>
         (let res_i = v (Seq.index ${result}.f_elements i) in
          let a_i   = v (Seq.index ${a}.f_elements i) in
@@ -405,17 +501,25 @@ pub(crate) fn decompress_ciphertext_coefficient<const COEFFICIENT_BITS: i32>(
         assert_norm (pow2 11 == 2048)"
     );
 
+    #[cfg(hax)]
+    let a_orig = a;
+
     for i in 0..FIELD_ELEMENTS_IN_VECTOR {
         hax_lib::loop_invariant!(|i: usize| {
             fstar!(
                 r#"(v $i < 16 ==> (forall (j:nat). (j >= v $i /\ j < 16) ==>
+            Seq.index ${a}.f_elements j == Seq.index ${a_orig}.f_elements j /\
             v (Seq.index ${a}.f_elements j) >= 0 /\  v (Seq.index ${a}.f_elements j) < pow2 (v $COEFFICIENT_BITS))) /\
             (forall (j:nat). j < v $i ==>
-                (v (Seq.index ${a}.f_elements j) >= 0 /\ v (Seq.index ${a}.f_elements j) < v $FIELD_MODULUS))"#
+                (v (Seq.index ${a}.f_elements j) >= 0 /\ v (Seq.index ${a}.f_elements j) < v $FIELD_MODULUS /\
+                 v (Seq.index ${a}.f_elements j) ==
+                 (2 * v (Seq.index ${a_orig}.f_elements j) * 3329 + pow2 (v $COEFFICIENT_BITS))
+                 / pow2 (v $COEFFICIENT_BITS + 1)))"#
             )
         });
         hax_lib::fstar!(
-            "assert (v (${a}.f_elements.[ $i ] <: i16) < pow2 11);
+            "assert (Seq.index ${a}.f_elements (v $i) == Seq.index ${a_orig}.f_elements (v $i));
+          assert (v (${a}.f_elements.[ $i ] <: i16) < pow2 11);
           assert (v (${a}.f_elements.[ $i ] <: i16) ==
             v (cast (${a}.f_elements.[ $i ] <: i16) <: i32));
           assert (v ($FIELD_MODULUS <: i16) ==
@@ -447,10 +551,19 @@ pub(crate) fn decompress_ciphertext_coefficient<const COEFFICIENT_BITS: i32>(
 
         hax_lib::fstar!(
             "assert (v $decompressed < v $FIELD_MODULUS);
-          assert (v (cast $decompressed <: i16) < v $FIELD_MODULUS)"
+          assert (v (cast $decompressed <: i16) < v $FIELD_MODULUS);
+          assert (v (cast $decompressed <: i16) ==
+            (2 * v (Seq.index ${a_orig}.f_elements (v $i)) * 3329 + pow2 (v $COEFFICIENT_BITS))
+            / pow2 (v $COEFFICIENT_BITS + 1))"
         );
 
         a.elements[i] = decompressed.as_i16();
+
+        // Frame: untouched elements still equal the original input
+        hax_lib::fstar!(
+            r#"assert (forall (j: nat). (j > v $i /\ j < 16) ==>
+                Seq.index ${a}.f_elements j == Seq.index ${a_orig}.f_elements j)"#
+        );
     }
 
     a
