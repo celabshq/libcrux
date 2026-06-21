@@ -192,12 +192,23 @@ let lemma_byte_encode_into_du
 #pop-options
 
 (* The spec fold, replicated so it delta/beta-reduces to the same term as
-   `compress_then_serialize_u_into`.  `dp = 32*du` is the per-poly chunk size. *)
+   `compress_then_serialize_u_into`.  `dp = 32*du` is the per-poly chunk size.
+   cts_step is OPAQUE: its update_at_range body is exactly the update_at_range_lemma
+   + lambda-typing (typing_Tm_abs) axioms that FLOOD Z3 whenever the raw
+   `fold_range ... cts_step` term is ELABORATED in a consumer position (profiled:
+   ~50k k!61 + a cloud of Tm_abs typings, saturating any consumer that touches the
+   fold).  Opaque, the fold is an uninterpreted application in consumers (no flood);
+   the cts machinery exposes one step's body via `norm_spec [delta_only [cts_step]]`
+   (the keystone -- reduces the FULLY-APPLIED `cts_step .. out i` to update_at_range,
+   beta included, which a plain `reveal_opaque` of the curried fn cannot do).
+   cts_inv stays TRANSPARENT (plain length refinement, no quantifier) so the lemma
+   signatures still discharge cts_step's input refinement when forming step apps. *)
 let cts_inv (v_K du: usize { (v du == 10 \/ v du == 11) /\ v v_K <= 4 })
     (out: t_Slice u8) (i: usize{F.fold_range_wf_index (mk_usize 0) v_K false (v i)}) : Type0 =
   (Core_models.Slice.impl__len #u8 out <: usize)
     =. (((v_K *! P.v_COEFFICIENTS_IN_RING_ELEMENT <: usize) *! du <: usize) /! mk_usize 8 <: usize)
 
+[@@ "opaque_to_smt"]
 let cts_step
       (v_K du: usize { (v du == 10 \/ v du == 11) /\ v v_K <= 4 })
       (u: t_Array (t_Array P.t_FieldElement (mk_usize 256)) v_K)
@@ -228,6 +239,8 @@ let lemma_cts_step_len
       (ensures
         Seq.length (cts_step v_K du u out i) == v v_K * (32 * v du))
     =
+  FStar.Pervasives.norm_spec [delta_only [`%cts_step]; zeta; iota; primops]
+    (cts_step v_K du u out i);
   let dp = (P.v_COEFFICIENTS_IN_RING_ELEMENT *! du <: usize) /! mk_usize 8 in
   assert (v dp == 32 * v du)
 #pop-options
@@ -255,6 +268,9 @@ let lemma_cts_step_chunk
             <: Core_models.Ops.Range.t_Range usize in
   let written =
     S.byte_encode_into (Hacspec_ml_kem.Compress.compress (u.[ i ]) du) du (out.[ r ]) in
+  // cts_step out i reduces to exactly `update_at_range out r written` (opaque body)
+  FStar.Pervasives.norm_spec [delta_only [`%cts_step]; zeta; iota; primops]
+    (cts_step v_K du u out i);
   // update_at_range post: chunk [start,end) == written
   let _ = U.update_at_range out r written in
   assert (Seq.slice (cts_step v_K du u out i) (v i * v dp) ((v i + 1) * v dp) == written);
@@ -281,6 +297,9 @@ let lemma_cts_step_frame
             <: Core_models.Ops.Range.t_Range usize in
   let written =
     S.byte_encode_into (Hacspec_ml_kem.Compress.compress (u.[ i ]) du) du (out.[ r ]) in
+  // cts_step out i reduces to exactly `update_at_range out r written` (opaque body)
+  FStar.Pervasives.norm_spec [delta_only [`%cts_step]; zeta; iota; primops]
+    (cts_step v_K du u out i);
   let res = U.update_at_range out r written in
   // update_at_range post: prefix [0, i*dp) preserved.  chunk j (j<i) lives in [0, i*dp).
   assert (Seq.slice res 0 (v i * v dp) == Seq.slice out 0 (v i * v dp));
@@ -301,7 +320,7 @@ let rec lemma_cts_fold_chunk
       (j: nat { v s <= j /\ j < v v_K })
     : Lemma
       (ensures
-        Seq.slice (F.fold_range s v_K (cts_inv v_K du) out0 (cts_step v_K du u))
+        Seq.slice (F.fold_range #(t_Slice u8) #Rust_primitives.Integers.USIZE s v_K (cts_inv v_K du) out0 (cts_step v_K du u))
           (j * (32 * v du)) ((j + 1) * (32 * v du))
         == S.byte_encode (mk_usize 32 *! du) (mk_usize 256 *! du)
              (Hacspec_ml_kem.Compress.compress (Seq.index u j) du) du)
@@ -314,7 +333,7 @@ let rec lemma_cts_fold_chunk
   let out1 = step out0 s in
   lemma_cts_step_len v_K du u out0 s;
   // fold_range s K out0 == fold_range (s+1) K out1
-  assert (F.fold_range s v_K inv out0 step == F.fold_range s1 v_K inv out1 step);
+  assert (F.fold_range #(t_Slice u8) #Rust_primitives.Integers.USIZE s v_K inv out0 step == F.fold_range #(t_Slice u8) #Rust_primitives.Integers.USIZE s1 v_K inv out1 step);
   let lo = j * (32 * v du) in
   let hi = (j + 1) * (32 * v du) in
   if j = v s then begin
@@ -323,8 +342,8 @@ let rec lemma_cts_fold_chunk
     lemma_cts_step_chunk v_K du u out0 s;
     if v s1 < v v_K
     then lemma_cts_fold_frame v_K du u s1 out1 j
-    else assert (F.fold_range s1 v_K inv out1 step == out1);
-    assert (Seq.slice (F.fold_range s1 v_K inv out1 step) lo hi == Seq.slice out1 lo hi)
+    else assert (F.fold_range #(t_Slice u8) #Rust_primitives.Integers.USIZE s1 v_K inv out1 step == out1);
+    assert (Seq.slice (F.fold_range #(t_Slice u8) #Rust_primitives.Integers.USIZE s1 v_K inv out1 step) lo hi == Seq.slice out1 lo hi)
   end
   else
     lemma_cts_fold_chunk v_K du u s1 out1 j
@@ -339,7 +358,7 @@ and lemma_cts_fold_frame
       (j: nat { j < v s })
     : Lemma
       (ensures
-        Seq.slice (F.fold_range s v_K (cts_inv v_K du) out0 (cts_step v_K du u))
+        Seq.slice (F.fold_range #(t_Slice u8) #Rust_primitives.Integers.USIZE s v_K (cts_inv v_K du) out0 (cts_step v_K du u))
           (j * (32 * v du)) ((j + 1) * (32 * v du))
         == Seq.slice out0 (j * (32 * v du)) ((j + 1) * (32 * v du)))
       (decreases (v v_K - v s))
@@ -349,7 +368,7 @@ and lemma_cts_fold_frame
   if v s < v v_K then begin
     let out1 = step out0 s in
     lemma_cts_step_len v_K du u out0 s;
-    assert (F.fold_range s v_K inv out0 step == F.fold_range (s +! mk_usize 1) v_K inv out1 step);
+    assert (F.fold_range #(t_Slice u8) #Rust_primitives.Integers.USIZE s v_K inv out0 step == F.fold_range #(t_Slice u8) #Rust_primitives.Integers.USIZE (s +! mk_usize 1) v_K inv out1 step);
     // step at s writes chunk s; chunk j (j<s) preserved.
     lemma_cts_step_frame v_K du u out0 s j;
     // recurse: chunk j preserved over [s+1, K).
@@ -392,7 +411,7 @@ let lemma_cts_into_chunk
       (j: nat { j < v v_K })
     : Lemma
       (ensures
-        Seq.slice (F.fold_range (mk_usize 0) v_K (cts_inv v_K du) out0 (cts_step v_K du u))
+        Seq.slice (F.fold_range #(t_Slice u8) #Rust_primitives.Integers.USIZE (mk_usize 0) v_K (cts_inv v_K du) out0 (cts_step v_K du u))
           (j * (32 * v du)) ((j + 1) * (32 * v du))
         == S.byte_encode (mk_usize 32 *! du) (mk_usize 256 *! du)
              (Hacspec_ml_kem.Compress.compress (Seq.index u j) du) du)
@@ -418,21 +437,136 @@ let lemma_cts_fold_len
   assert (cts_inv v_K du fold_res v_K)
 #pop-options
 
-(* NOTE (2026-06-11): the whole-array assembly (out == compress_then_serialize_u_into)
-   remains CLIFFED at the LEAF fold->spec-fn chunk transport.  Progress this session:
-   - lemma_compress_then_serialize_u_finalize VERIFIES (monolithic, rlimit ~15) when
-     phrased over the spec-fn APPLICATION `compress_then_serialize_u_into` (opaque to
-     Z3) and fed per-chunk facts about that application — an exact mirror of the proven
-     lemma_serialize_vector_finalize.
-   - The missing leaf is `lemma_cts_spec_chunk`: transporting one chunk fact from
-     `F.fold_range (cts_inv) (cts_step)` (lemma_cts_into_chunk) onto the spec fn via the
-     `compress_then_serialize_u_into == F.fold_range` equation (lemma_cts_into_eq_fold).
-     Every attempt (fuel 0/1, calc, lemma_mult_le_right, fold_len) fails: referencing the
-     raw `F.fold_range ... cts_step` term in consumer code reintroduces the cts_inv-refined
-     t_Slice/seq subtyping friction ("Subtyping check failed / incomplete quantifiers",
-     rlimit ~6-9 — Z3 gives up, not budget).
-   Next attempt: prove the spec-fn-phrased chunk lemma INSIDE the cts substrate via the
-   same `norm [delta_only ...]; trefl` tactic that lemma_cts_into_eq_fold uses, so the
-   fold term is never named in consumer position; OR wrap the fold in an opaque atom.
-   compress_then_serialize_u stays panic_free for now (only consumed by encrypt_c1, which
-   is itself deferred as a value+&mut tuple-return).  The leaf chunk lemmas above all verify. *)
+(* ================================================================== *)
+(* spec-fn length + per-chunk transport + whole-array finalize         *)
+(* ================================================================== *)
+
+(* Length of the spec-fn output (== K*32du), via into==fold + fold_len.  Supplies
+   the spec fn's length (its post is l_True) so a Seq.slice on it is well-formed. *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 200"
+let lemma_cts_into_len
+      (v_K du: usize { (v du == 10 \/ v du == 11) /\ v v_K <= 4 })
+      (u: t_Array (t_Array P.t_FieldElement (mk_usize 256)) v_K)
+      (out0: t_Slice u8 { Seq.length out0 == v v_K * (32 * v du) })
+    : Lemma
+      (ensures
+        Seq.length (S.compress_then_serialize_u_into v_K u du out0)
+          == v v_K * (32 * v du))
+    =
+  lemma_cts_into_eq_fold v_K du u out0;
+  lemma_cts_fold_len v_K du u out0
+#pop-options
+
+(* Transport ONE chunk fact from the replica fold onto the spec fn `into`.
+   With cts_step OPAQUE the raw `fold_range ... cts_step` term is uninterpreted
+   (no lambda-typing flood), so the spec fn `compress_then_serialize_u_into`
+   delta-reduces to EXACTLY the replica fold -- with the fold_range accumulator
+   type pinned to t_Slice u8 to match the spec fn's `out: t_Slice u8` accumulator
+   AND lemma_cts_into_chunk's (likewise pinned) fold.  The per-chunk slice
+   equality then holds by norm+trefl (`unascribe` strips cts_inv's `<: Type0`),
+   bypassing both the SMT slice-congruence and the t_Slice-vs-seq coercion-path
+   walls that blocked every consumer-level transport.  Length in REQUIRES so the
+   slice on the (l_True-post) spec fn is well-formed at signature time. *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 300"
+let lemma_cts_spec_chunk
+      (v_K du: usize { (v du == 10 \/ v du == 11) /\ v v_K <= 4 })
+      (u: t_Array (t_Array P.t_FieldElement (mk_usize 256)) v_K)
+      (out0: t_Slice u8 { Seq.length out0 == v v_K * (32 * v du) })
+      (j: nat { j < v v_K })
+    : Lemma
+      (requires
+        Seq.length (S.compress_then_serialize_u_into v_K u du out0)
+          == v v_K * (32 * v du))
+      (ensures
+        Seq.slice (S.compress_then_serialize_u_into v_K u du out0)
+          (j * (32 * v du)) ((j + 1) * (32 * v du))
+        == S.byte_encode (mk_usize 32 *! du) (mk_usize 256 *! du)
+             (Hacspec_ml_kem.Compress.compress (Seq.index u j) du) du)
+    =
+  FStar.Math.Lemmas.lemma_mult_le_right (32 * v du) (j + 1) (v v_K);
+  lemma_cts_into_chunk v_K du u out0 j;      // slice fold chunk == byte_encode
+  // into == fold definitionally; the spec fn delta-reduces to exactly the replica
+  // fold (acc-type pinned to t_Slice u8 to match the spec fn's accumulator and the
+  // cts machinery), so the slice equality holds by norm+trefl -- bypassing the SMT
+  // congruence/coercion walls that block the consumer-level transport.
+  assert (Seq.slice (S.compress_then_serialize_u_into v_K u du out0)
+            (j * (32 * v du)) ((j + 1) * (32 * v du))
+          == Seq.slice (F.fold_range #(t_Slice u8) #Rust_primitives.Integers.USIZE
+                          (mk_usize 0) v_K (cts_inv v_K du) out0 (cts_step v_K du u))
+            (j * (32 * v du)) ((j + 1) * (32 * v du)))
+    by (FStar.Tactics.norm [delta_only [`%S.compress_then_serialize_u_into; `%cts_step; `%cts_inv];
+                            zeta; iota; primops; unascribe];
+        FStar.Tactics.trefl ())
+#pop-options
+
+(* Whole-array finalize (mirror of lemma_serialize_vector_finalize): given the
+   loop invariant at i=K -- every 32du-chunk of `out` equals byte_encode of the
+   corresponding compressed impl polynomial -- conclude that `out` equals the spec
+   serializer applied to (vector_to_spec input).  The vector_to_spec[j] ==
+   poly_to_spec input[j] bridge is discharged internally. *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 300"
+let lemma_compress_then_serialize_u_finalize
+      (v_K du: usize)
+      (#v_V: Type0)
+      {| i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_V |}
+      (out out0: t_Slice u8)
+      (input: t_Array (Libcrux_ml_kem.Vector.t_PolynomialRingElement v_V) v_K)
+    : Lemma
+      (requires
+        (v du == 10 \/ v du == 11) /\ v v_K <= 4 /\ v v_K > 0 /\
+        Seq.length out == v v_K * (32 * v du) /\
+        Seq.length out0 == v v_K * (32 * v du) /\
+        (forall (j: nat). j < v v_K ==>
+          Seq.slice out (j * (32 * v du)) ((j + 1) * (32 * v du))
+          == S.byte_encode (mk_usize 32 *! du) (mk_usize 256 *! du)
+               (Hacspec_ml_kem.Compress.compress
+                 (VS.poly_to_spec #v_V (Seq.index input j)) du) du))
+      (ensures
+        out == S.compress_then_serialize_u_into v_K
+                 (VS.vector_to_spec v_K #v_V input) du out0)
+    =
+  let u = VS.vector_to_spec v_K #v_V input in
+  let into = S.compress_then_serialize_u_into v_K u du out0 in
+  lemma_cts_into_len v_K du u out0;            // length into == K*32du
+  let bridge (j: nat) : Lemma (j < v v_K ==>
+        Seq.slice out (j * (32 * v du)) ((j + 1) * (32 * v du))
+        == Seq.slice into (j * (32 * v du)) ((j + 1) * (32 * v du))) =
+    if j < v v_K then begin
+      VS.vector_to_spec_index v_K #v_V input j;
+      lemma_cts_spec_chunk v_K du u out0 j
+    end
+  in
+  FStar.Classical.forall_intro bridge;
+  lemma_chunked_eq out into (v v_K) (32 * v du)
+#pop-options
+
+(* Wrapper concluding over `compress_then_serialize_u` (the impl post): it does the
+   `compress_then_serialize_u == compress_then_serialize_u_into (repeat 0)` unfold
+   INTERNALLY (fuel, with Serialize visible here), so the impl can prune Serialize/
+   Compress from its VC and simply consume this lemma's ground ensures. *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 300"
+let lemma_compress_then_serialize_u_post
+      (v_K v_U_SIZE du: usize)
+      (#v_V: Type0)
+      {| i0: Libcrux_ml_kem.Vector.Traits.t_Operations v_V |}
+      (out: t_Slice u8)
+      (input: t_Array (Libcrux_ml_kem.Vector.t_PolynomialRingElement v_V) v_K)
+    : Lemma
+      (requires
+        (v du == 10 \/ v du == 11) /\ v v_K <= 4 /\ v v_K > 0 /\
+        v v_U_SIZE == v v_K * (32 * v du) /\
+        Seq.length out == v v_K * (32 * v du) /\
+        (forall (j: nat). j < v v_K ==>
+          Seq.slice out (j * (32 * v du)) ((j + 1) * (32 * v du))
+          == S.byte_encode (mk_usize 32 *! du) (mk_usize 256 *! du)
+               (Hacspec_ml_kem.Compress.compress
+                 (VS.poly_to_spec #v_V (Seq.index input j)) du) du))
+      (ensures
+        out == S.compress_then_serialize_u v_K v_U_SIZE (VS.vector_to_spec v_K #v_V input) du)
+    =
+  assert (v P.v_COEFFICIENTS_IN_RING_ELEMENT == 256);
+  assert (v (((v_K *! P.v_COEFFICIENTS_IN_RING_ELEMENT <: usize) *! du <: usize) /! mk_usize 8 <: usize)
+          == v v_K * (32 * v du));
+  lemma_compress_then_serialize_u_finalize v_K du #v_V out
+    (Rust_primitives.Hax.repeat (mk_u8 0) v_U_SIZE) input
+#pop-options

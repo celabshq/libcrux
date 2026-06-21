@@ -672,8 +672,7 @@ pub(crate) fn serialize_unpacked_secret_key<
 }
 
 /// Call [`compress_then_serialize_ring_element_u`] on each ring element.
-#[hax_lib::fstar::verification_status(panic_free)]
-#[hax_lib::fstar::options("--z3rlimit 800 --ext context_pruning")]
+#[hax_lib::fstar::options("--fuel 1 --ifuel 1 --z3rlimit 800 --ext context_pruning --using_facts_from '* -Hacspec_ml_kem.Serialize -Hacspec_ml_kem.Compress'")]
 #[hax_lib::requires(
     (hacspec_ml_kem::parameters::is_rank(K)
         && OUT_LEN == hacspec_ml_kem::parameters::c1_size(K)
@@ -736,6 +735,13 @@ fn compress_then_serialize_u<
             Classical.forall_intro lemma_aux"#);
         }
     };
+    // The loop invariant at i=K gives, per chunk, slice out == byte_encode(compress
+    // (poly_to_spec input[j])); lift to the whole-array spec serializer.  The lemma
+    // does the compress_then_serialize_u unfold internally so Serialize/Compress can
+    // be pruned from this VC.
+    hax_lib::fstar!(r#"assert (v $OUT_LEN == v $K * (32 * v $COMPRESSION_FACTOR));
+        Hacspec_ml_kem.Commute.Ind_cpa_serialize.lemma_compress_then_serialize_u_post
+          $K $OUT_LEN $COMPRESSION_FACTOR #$:Vector out $input"#);
 }
 
 /// This function implements <strong>Algorithm 13</strong> of the
