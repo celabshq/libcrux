@@ -191,6 +191,18 @@ impl<'a, Rng: CryptoRng> RegistrationInitiator<'a, Rng> {
                     aad: VLByteSlice(self.inner_aad),
                     pq_encapsulation: VLByteSlice(&pq_encapsulation_serialized),
                 });
+                // ProVerif: rebind the outer key to a clean owned local so the
+                // &mut-self `handshake_encrypt` receiver is a direct local. `state.k0`
+                // sits behind `&mut Box<InitialState>`, which the hax `&mut` analysis
+                // rejects as an arbitrary lhs (query mode encrypts via `self.k0`, a
+                // direct field of `&mut self`). `.clone()` is the identity in the
+                // symbolic model, so the K_0 key term is preserved.
+                #[cfg(feature = "hax-pv")]
+                let (outer_ciphertext, outer_tag) = {
+                    let mut k0 = state.k0.clone();
+                    k0.handshake_encrypt(&outer_payload, self.outer_aad)?
+                };
+                #[cfg(not(feature = "hax-pv"))]
                 let (outer_ciphertext, outer_tag) =
                     state.k0.handshake_encrypt(&outer_payload, self.outer_aad)?;
 
@@ -225,6 +237,13 @@ impl<'a, Rng: CryptoRng> RegistrationInitiator<'a, Rng> {
                     aad: VLByteSlice(self.inner_aad),
                     pq_encapsulation: VLByteSlice(&pq_encapsulation_serialized),
                 });
+                // ProVerif: rebind to a clean local (see the DH arm above).
+                #[cfg(feature = "hax-pv")]
+                let (outer_ciphertext, outer_tag) = {
+                    let mut k0 = state.k0.clone();
+                    k0.handshake_encrypt(&outer_payload, self.outer_aad)?
+                };
+                #[cfg(not(feature = "hax-pv"))]
                 let (outer_ciphertext, outer_tag) =
                     state.k0.handshake_encrypt(&outer_payload, self.outer_aad)?;
                 (k1, outer_ciphertext, outer_tag)
@@ -235,6 +254,12 @@ impl<'a, Rng: CryptoRng> RegistrationInitiator<'a, Rng> {
 }
 
 impl<'a, Rng: CryptoRng> Channel<Error, HandshakeMessage> for RegistrationInitiator<'a, Rng> {
+    // ProVerif: the buffer-based wire encoding (`tls_serialize` into a caller
+    // `&mut [u8]`) is pure, security-irrelevant serialization that the &mut
+    // analysis rejects. The model drives the protocol via
+    // `write_message_external_encoding` (returns the `HandshakeMessage` term),
+    // so stub this body out for extraction (same as the query initiator).
+    #[cfg_attr(feature = "hax-pv", hax_lib::proverif::replace_body("nat_lit(0)"))]
     fn write_message(&mut self, payload: &[u8], out: &mut [u8]) -> Result<usize, Error> {
         let mut old_state = self.write_state()?;
 

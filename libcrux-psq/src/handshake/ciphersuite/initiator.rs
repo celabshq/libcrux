@@ -66,6 +66,21 @@ impl<'a> From<&'a (Ed25519SigningKey, Ed25519VerificationKey)> for SigningKeyPai
 }
 
 impl<'a> SigningKeyPair<'a> {
+    // ProVerif: EUF-CMA signing. `extern__sign(sk, msg)` is one-way; the matching
+    // `extern__sig_verify` reduc (psq_crypto.pvl) accepts it only under
+    // `vk_of(sk)`. We project the inner signing scalar from the SigningKeyPair so
+    // the verification key the peer recovers (`SignatureVerificationKey` carries
+    // `vk = vk_of(sk)`, set up by the role) binds to the same `sk`.
+    #[cfg_attr(
+        feature = "hax-pv",
+        hax_lib::proverif::replace_body(
+            "let libcrux_psq__handshake__ciphersuite__initiator__SigningKeyPair__Ed25519(sk, vk) = self in \
+               libcrux_psq__handshake__ciphersuite__types__Signature__Ed25519(extern__sign(sk, tx)) \
+             else let libcrux_psq__handshake__ciphersuite__initiator__SigningKeyPair__MlDsa65(sk, vk) = self in \
+               libcrux_psq__handshake__ciphersuite__types__Signature__MlDsa65(extern__sign(sk, tx)) \
+             else bitstring_err()"
+        )
+    )]
     pub(crate) fn sign(
         &self,
         rng: &mut impl CryptoRng,

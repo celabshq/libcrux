@@ -1,0 +1,58 @@
+(* PSQ registration mode (signature auth) — MESSAGE-1 analysis, against the
+   EXTRACTED libcrux-psq model. Mirrors psq-design/models/psq_registration_sig_msg1.pv.
+   Shared setup/roles/aliases/nounif: -lib psq_reg_lib.pvl.
+
+   HEADLINE CONTRAST: signature-based initiator authentication IS PQ-secure
+   (R2a true) — a quantum adversary breaks all classical DH but cannot forge a PQ
+   signature; the same query is FALSE in DH mode (analysis_reg_dh_msg1.pv).
+
+   SOUNDNESS: established on a SOUND honest run (see sanity_reg_passive.pv —
+   InitRegSig+RespRegSig reachable under a passive attacker, K_1 agrees).
+
+   Reproduces psq_registration_sig_msg1.pv EXACTLY:
+     R1 reachable (false)   R2a true   R2c false (replay)
+     R4 true                R6 true    R9 false *)
+
+set reconstructTrace = true.
+
+(* --- R1. Reachability of RespRegSig.                      Expected: false *)
+query i: Principal, r: Principal, ctx: bitstring, k: bitstring;
+      event(RespRegSig(i, r, ctx, k)).
+
+(* --- R2a. Initiator auth, escape only via the initiator's own credential sk_I.
+   Signature-based auth IS PQ-secure.                       Expected: true *)
+query i: Principal, r: Principal, ctx: bitstring, k: bitstring;
+      event(RespRegSig(i, r, ctx, k))
+          ==> event(InitRegSig(i, r, ctx, k)) || event(CompromiseClient(i)).
+
+(* --- R2c. Injective initiator agreement.        Expected: false (replay). *)
+query i: Principal, r: Principal, ctx: bitstring, k: bitstring;
+      inj-event(RespRegSig(i, r, ctx, k))
+          ==> inj-event(InitRegSig(i, r, ctx, k)) || event(CompromiseClient(i)).
+
+(* --- R4. K_1 secrecy: requires the PQ-KEM secret.         Expected: true.
+   Non-vacuous via R9 below (reconstructs the honest K_1 / reg payload). *)
+query i: Principal, r: Principal, ctx: bitstring, k: bitstring;
+      event(InitRegSig(i, r, ctx, k)) && attacker(k)
+          ==> event(CompromiseEndpointPQ(r)).
+
+(* --- R6. HNDL of the registration payload.                Expected: true *)
+query attacker(reg_secret) ==> event(CompromiseEndpointPQ(Bob)).
+
+(* --- R9. Registration payload is NOT forward-secret.       Expected: false.
+   The counterexample reconstructs reg_secret under endpoint compromise with NO
+   ephemeral break — doubles as the leak / non-vacuity control for R4 and R6. *)
+query attacker(reg_secret) ==> event(LeakEphemeral(Bob)).
+
+(* --- Non-vacuity / leak control: reg_secret IS derivable (mandrake lesson). Expected: false *)
+query attacker(reg_secret).
+
+process
+    ( setup_responder(Bob)
+    | create_sig_client(Alice)
+    | ( !m1_sig_initiator(Alice, Bob) )
+    | ( !m1_sig_responder(Bob) )
+    | ( !compromise_endpoint_classical(Bob) )
+    | ( !compromise_sig_client(Alice) )
+    | ( phase 1;
+        ( !compromise_endpoint_pq(Bob) | !leak_ephemeral(Bob) ) ) )

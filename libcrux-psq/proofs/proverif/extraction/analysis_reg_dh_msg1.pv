@@ -1,0 +1,79 @@
+(* PSQ registration mode (DH auth) — MESSAGE-1 analysis, against the EXTRACTED
+   libcrux-psq model. Mirrors psq-design/models/psq_registration_dh_msg1.pv.
+   Shared setup/roles/aliases/nounif: -lib psq_reg_lib.pvl.
+
+   THREAT MODEL: active DY attacker. The classical endpoint key priv_R and the
+   client key priv_I are exposed CONCURRENTLY (phase 0) — a quantum adversary
+   that breaks classical DH during the run is what exposes DH-auth's weakness.
+   The PQ-KEM key and the quantum recovery of recorded ephemerals are deferred to
+   phase 1 (harvest-now-decrypt-later).
+
+   SOUNDNESS: the verdicts below are established on a SOUND honest run — the
+   passive-attacker sanity (sanity_reg_passive.pv) confirms InitRegDH+RespRegDH
+   are reachable WITHOUT attacker help and the responder's K_1 agrees with the
+   honest initiator's. This is the non-vacuity foundation; do not read any verdict
+   here without it.
+
+   Reproduces psq_registration_dh_msg1.pv EXACTLY:
+     R1  reachable (false)         R2a false (DH init-auth NOT PQ-sound)
+     R2b true                      R2c false (replay)
+     R4  true                      R6  true        R9  false *)
+
+set reconstructTrace = true.
+
+(* --- R1. Reachability of RespRegDH.                       Expected: false *)
+query i: Principal, r: Principal, ctx: bitstring, k: bitstring;
+      event(RespRegDH(i, r, ctx, k)).
+
+(* --- R2a. Initiator auth, escape only via the initiator's own credential.
+   A quantum break of priv_R forges without compromising the initiator, so
+   DH-based initiator authentication is NOT PQ-secure.       Expected: false *)
+query i: Principal, r: Principal, ctx: bitstring, k: bitstring;
+      event(RespRegDH(i, r, ctx, k))
+          ==> event(InitRegDH(i, r, ctx, k)) || event(CompromiseClient(i)).
+
+(* --- R2b. Initiator auth, classically sound: with the responder's classical key
+   in the escape set, no forgery while both classical keys stay secret. Expected: true *)
+query i: Principal, r: Principal, ctx: bitstring, k: bitstring;
+      event(RespRegDH(i, r, ctx, k))
+          ==> event(InitRegDH(i, r, ctx, k)) || event(CompromiseClient(i))
+              || event(CompromiseEndpointClassical(r)).
+
+(* --- R2c. Injective initiator agreement.        Expected: false (replay). *)
+query i: Principal, r: Principal, ctx: bitstring, k: bitstring;
+      inj-event(RespRegDH(i, r, ctx, k))
+          ==> inj-event(InitRegDH(i, r, ctx, k)) || event(CompromiseClient(i))
+              || event(CompromiseEndpointClassical(r)).
+
+(* --- R4. K_1 secrecy: requires the PQ-KEM secret.         Expected: true.
+   Non-vacuous: R9 below (false) reconstructs the honest K_1 / reg payload, so
+   `attacker(k)` is genuinely achievable (it requires CompromiseEndpointPQ). *)
+query i: Principal, r: Principal, ctx: bitstring, k: bitstring;
+      event(InitRegDH(i, r, ctx, k)) && attacker(k)
+          ==> event(CompromiseEndpointPQ(r)).
+
+(* --- R6. HNDL of the registration payload.                Expected: true *)
+query attacker(reg_secret) ==> event(CompromiseEndpointPQ(Bob)).
+
+(* --- R9. The registration payload is NOT forward-secret — it falls to long-term
+   endpoint compromise alone, with NO ephemeral break.       Expected: false.
+   The R9 counterexample reconstructs reg_secret under CompromiseEndpointPQ +
+   CompromiseEndpointClassical (no LeakEphemeral) — this DOUBLES as the leak /
+   non-vacuity control for R4 and R6 (the secret is genuinely derivable, so those
+   `=> compromise` queries are not vacuously true). *)
+query attacker(reg_secret) ==> event(LeakEphemeral(Bob)).
+
+(* --- Non-vacuity / leak control. reg_secret IS derivable in this model (under
+   the modeled endpoint compromises) — so the secrecy queries above are not
+   vacuous (mandrake lesson).                                 Expected: false *)
+query attacker(reg_secret).
+
+process
+    ( setup_responder(Bob)
+    | create_dh_client(Alice)
+    | ( !m1_dh_initiator(Alice, Bob) )
+    | ( !m1_dh_responder(Bob) )
+    | ( !compromise_endpoint_classical(Bob) )
+    | ( !compromise_dh_client(Alice) )
+    | ( phase 1;
+        ( !compromise_endpoint_pq(Bob) | !leak_ephemeral(Bob) ) ) )
