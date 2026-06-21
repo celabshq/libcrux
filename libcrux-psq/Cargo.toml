@@ -42,6 +42,12 @@ tls_codec = { version = "0.4.2", features = ["derive"] }
 libcrux-ml-dsa = { workspace = true, features = ["codec"] }
 libcrux-aes.workspace = true
 
+# ProVerif extraction via the hax proverif-rust-backend. The pv_extern /
+# replace_body / opaque macros used for the symbolic-crypto boundary are not in
+# the workspace-pinned crates.io hax-lib 0.3.6, so pin the git rev directly.
+# Optional + gated behind `hax-pv` so normal builds are unaffected.
+hax-lib = { git = "https://github.com/cryspen/hax.git", rev = "1a99a1948d5931026fd0be4e322fbd1b7149927b", optional = true }
+
 [dev-dependencies]
 rand_core = { version = "0.10" }
 clap = { version = "4.5.30", features = ["derive"] }
@@ -52,6 +58,8 @@ pretty_env_logger = "0.5.0"
 [features]
 v1 = []
 classic-mceliece = ["dep:classic-mceliece-rust", "rand_old"]
+# Enables the hax ProVerif-backend symbolic-crypto annotations.
+hax-pv = ["dep:hax-lib"]
 
 # Allows external control over the AEAD nonces of transport channels.
 # ⚠️ CAUTION! Enabling this makes it the responsibility of the application to avoid nonce re-use.

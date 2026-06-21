@@ -438,6 +438,10 @@ impl<'a, Rng: CryptoRng> Responder<'a, Rng> {
 }
 
 impl<'a, Rng: CryptoRng> Channel<Error, HandshakeMessage> for Responder<'a, Rng> {
+    // ProVerif: buffer-based wire encoding is security-irrelevant serialization;
+    // the model uses `write_message_external_encoding` (returns the
+    // `HandshakeMessage` term). Stub the body out for extraction.
+    #[cfg_attr(feature = "hax-pv", hax_lib::proverif::replace_body("nat_lit(0)"))]
     fn write_message(&mut self, payload: &[u8], out: &mut [u8]) -> Result<usize, Error> {
         let (responder_ephemeral_ecdh_pk, message_contents) =
             self.prepare_message_contents(payload)?;
@@ -511,6 +515,15 @@ impl<'a, Rng: CryptoRng> IntoSession for Responder<'a, Rng> {
             return Err(SessionError::IntoSession);
         };
 
+        // ProVerif: `core::mem::take(&mut state.initiator_authenticator)` mutates
+        // through a `&mut` field, which the engine's Arbitrary_lhs phase rejects
+        // (HAX0008). Read the value with `.clone()` instead under extraction —
+        // equivalent for the symbolic model (the post-take `None` is never used).
+        #[cfg(feature = "hax-pv")]
+        let Some(initiator_authenticator) = state.initiator_authenticator.clone() else {
+            return Err(SessionError::IntoSession);
+        };
+        #[cfg(not(feature = "hax-pv"))]
         let Some(initiator_authenticator) = take(&mut state.initiator_authenticator) else {
             return Err(SessionError::IntoSession);
         };
