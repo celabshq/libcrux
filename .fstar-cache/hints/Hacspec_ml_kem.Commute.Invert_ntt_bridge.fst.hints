@@ -56,7 +56,7 @@
         "unit_typing"
       ],
       0,
-      "c268f59abc8454fc6267ecdf54bddeb6"
+      "0d774d340b035d95497d6d7a3777ceda"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_ntt_inverse_layer_unfold_lo",
@@ -180,7 +180,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "1b2a2465b18b2a565516404db09fd330"
+      "aaca7007e59fa3331667bffe0d0ff3cb"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_ntt_inverse_layer_unfold_lo",
@@ -210,7 +210,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "faf6a62b58fbe4253fd658af22813dcc"
+      "e54e0b287822562691a8f820d3bf7b01"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_arith",
@@ -248,7 +248,7 @@
         "unit_typing"
       ],
       0,
-      "3becc0097924e98eba7ed3f49a6e7508"
+      "57851d73df7c153530b838e3b4defb4b"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_idx",
@@ -267,7 +267,7 @@
         "refinement_interpretation_Tm_refine_f87f91915d1149d3dd1d592e60f69bc7"
       ],
       0,
-      "4ca46eedcf3d3386d4c16e9dd53a81e0"
+      "aba97fac3e49dbcbbced1ebbb5dc6cfd"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_div_128_prod_lo",
@@ -282,7 +282,7 @@
         "refinement_interpretation_Tm_refine_8773b5dbe03f26623f033c866a352ca4"
       ],
       0,
-      "830291d6aae1649f52519ac4116c56de"
+      "cdf6275fa0b42dbf8d9de3c08a9a8e3f"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_ntt_inverse_layer_n_16_lane",
@@ -374,7 +374,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "998f8161cb208c54af95b8931db5da57"
+      "768cdfa4f71d8ed66e4e62d2dcade319"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_ntt_inverse_layer_n_16_lane",
@@ -403,7 +403,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f733b1a3d5390fffa8c85acbb24dc884"
+      "873814a762685ca6fc8e7cc92c2c445e"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_partner",
@@ -423,7 +423,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "3fe31af409a701ff8339dd765999f3ca"
+      "a28b998da587e164c1490f8169135794"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_gv_lt",
@@ -462,7 +462,7 @@
         "unit_typing"
       ],
       0,
-      "ece191f0eeebafbc5fe71c571599ed64"
+      "a5e5378616394d6cd3cc65dd234ae2f6"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.pv_post",
@@ -529,7 +529,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "805306d12a69c18464b030032cfd0c9a"
+      "680e5da1730348342693484f2a0bea56"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.pv_post",
@@ -568,7 +568,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4d27736c506673a2ce2198c92db46276"
+      "cf1a8714901fa4ee628e8839e481a185"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.pv_post_intro",
@@ -643,7 +643,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "16aa64bb8dd74ea02a8869d56a7fabaa"
+      "6341312e7f5f6ffb79b57ecbcbb47179"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.pv_post_intro",
@@ -680,7 +680,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "1e00b0920674ed0297b021dc2ac24bba"
+      "20bf0e8085c6688137d2defc2696082b"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.pv_post_elim",
@@ -749,7 +749,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "06ca93927fd6e1f282e7d707e00a1121"
+      "d3e05359ea2445535447a8037edac9f4"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.pv_post_elim",
@@ -785,7 +785,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "c5bc3027fe14948b943be595f18c75fe"
+      "59f004c5f30e554958e52636832bfcce"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_per_coeff",
@@ -874,7 +874,7 @@
         "unit_typing"
       ],
       0,
-      "f318bf59c7fb8a0a7a2fb92ffa5c583a"
+      "75921e8889ade81a425e1d7445aaa6c7"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_per_coeff",
@@ -913,7 +913,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "5ab05443e931bbcce13eeab3ba29ba0c"
+      "a7ee2a87ce798737d22a11a8315bffb2"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -925,7 +925,7 @@
         "refinement_interpretation_Tm_refine_43302777f893ff9a60222ac4198cf903"
       ],
       0,
-      "bf45a516f9904fdf626033993a1c72ee"
+      "6c8ec1b007e5788f8415547d30d0d4f2"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -937,7 +937,7 @@
         "refinement_interpretation_Tm_refine_43302777f893ff9a60222ac4198cf903"
       ],
       0,
-      "a28d700426e822a58e15b15caf320c4a"
+      "f7b1c0ed5d5c27ce66f16ef786b9c63d"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -949,7 +949,7 @@
         "refinement_interpretation_Tm_refine_43302777f893ff9a60222ac4198cf903"
       ],
       0,
-      "a5c11709603a2d9effc6a6cf5e38020f"
+      "bc90c0ee87385b629d62f0aa385e9d9a"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1002,7 +1002,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4eec2561360acab6e5f9876661bba334"
+      "637ba5765051b75ca7990b8d276b299b"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1015,7 +1015,7 @@
         "refinement_interpretation_Tm_refine_3be7f6a380da5243f2f019aab9340e6d"
       ],
       0,
-      "22017208062a7f3865d10ba881a1e750"
+      "db17f34037021a80e2e74a7065cce033"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1030,7 +1030,7 @@
         "refinement_interpretation_Tm_refine_e526546aa7cbfff7a3f0a028fde149a6"
       ],
       0,
-      "a3deeaa09e1356bb84ea94d37e8b4b9c"
+      "5ec0abc7f91e977c6c131cd861caa5ab"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1042,7 +1042,7 @@
         "refinement_interpretation_Tm_refine_cb631f5a3fb7a1ba765dbb95c9ea355e"
       ],
       0,
-      "2bcd445e6b881e91d7a08824acf29739"
+      "cf02ee5fd8ee00086709c2d03dd585d5"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1066,7 +1066,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f021a1b695a8cebff4c509202eb6caf4"
+      "f79d28deb10fc5de87c92656d1e63aa9"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1079,7 +1079,7 @@
         "refinement_interpretation_Tm_refine_3be7f6a380da5243f2f019aab9340e6d"
       ],
       0,
-      "967c384d2e9d7fc2105e213e979a0204"
+      "a97aa9d10714da0946e4435bb851322b"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1100,7 +1100,7 @@
         "refinement_interpretation_Tm_refine_cb631f5a3fb7a1ba765dbb95c9ea355e"
       ],
       0,
-      "0b7a93843944c60b6331a04a59be1dec"
+      "e358a6f3ed18aa9a5b0f9186e63ae70d"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1166,7 +1166,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "6aa062de348592813cd3f7f647738b7b"
+      "eef4a2c697ae3b3e0e878021dec10eec"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1178,7 +1178,7 @@
         "refinement_interpretation_Tm_refine_43302777f893ff9a60222ac4198cf903"
       ],
       0,
-      "a1609d088234d83d67a4893f6d89e55b"
+      "4c5f0e5376b66add30f229efc5c3f6a7"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1192,7 +1192,7 @@
         "refinement_interpretation_Tm_refine_c84515a3dd24cdb61d7703578b6e8b68"
       ],
       0,
-      "348f0d345fe74d4fb3ce744176507758"
+      "ea360a5f1c54be6702b9b6023f3d7477"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1253,7 +1253,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "18fb94772d15a073a885a8cfe782bbb5"
+      "ff6a83602872fdafdf1a6ff55c07beb3"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1275,7 +1275,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "cb509b5d9ad5fb4bfcfd5674f3e14595"
+      "3661e38364f61c9ec213064cc4f4d9b9"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1325,7 +1325,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f9df042e73606c3f91fadd5f1cfbcf95"
+      "6c558ac95f18ed48cb3f91751b206cd3"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1397,7 +1397,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "98090ee9e37655bc99c30a835e513108"
+      "35e6d1d9d99e46732dae73243c0a0cd7"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1406,7 +1406,7 @@
       1,
       [ "@query", "b2t_def" ],
       0,
-      "8ea55940dba966d0cb7e0f7b98f29486"
+      "709b603abc965b691caa00b8d6cb4b67"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1425,7 +1425,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "ea8a8cdfe1cea9cc5ff142ba72a7b39c"
+      "0277dc68d70ff07d00338203f6b11be7"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1437,7 +1437,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "c3c605eaafc73f0839c4745bac569074"
+      "6d16a3afe1a11096b435b4c2672c41c7"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1449,7 +1449,7 @@
         "refinement_interpretation_Tm_refine_43302777f893ff9a60222ac4198cf903"
       ],
       0,
-      "1df8c43c43872de276aed14f31a04b54"
+      "ead690a62f57a85a94f37419b2e9af99"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1461,7 +1461,7 @@
         "refinement_interpretation_Tm_refine_43302777f893ff9a60222ac4198cf903"
       ],
       0,
-      "c8ae5e2b20abe138bfbfb07db44fc963"
+      "58a32cba69128fe374f57ff3f9f0442d"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1473,7 +1473,7 @@
         "refinement_interpretation_Tm_refine_43302777f893ff9a60222ac4198cf903"
       ],
       0,
-      "f3d731a7e52bc3c01ef7ed8500cd7050"
+      "691acc9c91360bf515b65ec978908972"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1526,7 +1526,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "29893b76057c04aa78180bc861b32551"
+      "e89fada0167276ca724995693bb26a56"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1539,7 +1539,7 @@
         "refinement_interpretation_Tm_refine_3be7f6a380da5243f2f019aab9340e6d"
       ],
       0,
-      "bd4d746295484cdf3ec79ce1663c3943"
+      "a52df38595cdeffd716934e7dade9d81"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1554,7 +1554,7 @@
         "refinement_interpretation_Tm_refine_e526546aa7cbfff7a3f0a028fde149a6"
       ],
       0,
-      "b43cc2d9cf95bb026ea29f464f24abcb"
+      "6509cd7bf9210ac39ec337ece97363c1"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1566,7 +1566,7 @@
         "refinement_interpretation_Tm_refine_cb631f5a3fb7a1ba765dbb95c9ea355e"
       ],
       0,
-      "51174d5803df05fdd2c56386b59a5bf7"
+      "77d4ab8939f2a804e2f18a29823477f6"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1590,7 +1590,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "efe9c8322a380fbd042a17d44b3def71"
+      "9fafe7d7f8c35ca09c049face035b6b5"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1603,7 +1603,7 @@
         "refinement_interpretation_Tm_refine_3be7f6a380da5243f2f019aab9340e6d"
       ],
       0,
-      "0d2cfe568e2c20778a5a3a5da0748654"
+      "ef1c92baf5e11e692fffaadb0473b99a"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1624,7 +1624,7 @@
         "refinement_interpretation_Tm_refine_cb631f5a3fb7a1ba765dbb95c9ea355e"
       ],
       0,
-      "ed37966df936ef0c31070d72233e9d50"
+      "05edd924d91c29fb3d288e16e2280334"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1659,7 +1659,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "00f5432e4d2eff5c4ddea80ded58caff"
+      "bbae15912a0432726fd930d4694131d5"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1671,7 +1671,7 @@
         "refinement_interpretation_Tm_refine_43302777f893ff9a60222ac4198cf903"
       ],
       0,
-      "a5c1b6073f2d470adecbc41731ffa959"
+      "ac7eceabdcd702678f123ce75fb35b10"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1685,7 +1685,7 @@
         "refinement_interpretation_Tm_refine_c84515a3dd24cdb61d7703578b6e8b68"
       ],
       0,
-      "d2e1181cdcc35da86d930296f3062cb3"
+      "ca7f3d7302cdf93871d6fefbf55fa810"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1737,7 +1737,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "2816d8e8c4c5ca876c6267db8801e1e3"
+      "36d5e8211bdb262ac240b0cffec5a18f"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1759,7 +1759,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "a3fc73e1e3dc67dee1c135b75f40d558"
+      "adb9c59d44d6bd2a7907a15337d5b115"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1827,7 +1827,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "443253f5729898814b5f9273ea905205"
+      "2d78f94a74f378c33e2319df478ad548"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1871,7 +1871,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "0ac6f25efbca75d1a1a053707d165926"
+      "2aac61a525ba6e8bd4f624ea4e5a3e57"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1880,7 +1880,7 @@
       1,
       [ "@query", "b2t_def" ],
       0,
-      "5c4e2829ed0f85fd49477df8400d06eb"
+      "8e4f6f154a0121173bc407568adc48ba"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1899,7 +1899,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "fe01a7937e8b6598edaed612f78d8dbe"
+      "e05eef369483d41c50baba3a841cd23b"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1911,7 +1911,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "c7299d480ad7665db874bdd638a0a467"
+      "1581d7913994c7b4e4db28ec96272fe4"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1962,7 +1962,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "6638d6b36633ac5044672d26f53ea165"
+      "042b93497bcbba8ad0090928f9f2b87d"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -1984,7 +1984,7 @@
         "refinement_interpretation_Tm_refine_c491a5ec82b17d0850e56968c857c93b"
       ],
       0,
-      "73cfa940951fc950f8a206e05b7c18e9"
+      "05c32e1d161996693cf4b4adccbe73e7"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -2006,7 +2006,7 @@
         "refinement_interpretation_Tm_refine_c491a5ec82b17d0850e56968c857c93b"
       ],
       0,
-      "024e64b121d14fba250cc50ab07039e7"
+      "f6a4b9f3365757fd0132a563dbc4d264"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -2018,7 +2018,7 @@
         "refinement_interpretation_Tm_refine_5af263c645ca0687db6e0714bc15887f"
       ],
       0,
-      "2bb278646ff1cd16a37af99f25d267c3"
+      "88901c5be6e05775123cb9b816892131"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -2031,7 +2031,7 @@
         "refinement_interpretation_Tm_refine_5af263c645ca0687db6e0714bc15887f"
       ],
       0,
-      "93c5bb573b37f3538e6fc87c467d32dc"
+      "bc866c6d67cc8094c59383153221bd24"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -2044,7 +2044,7 @@
         "refinement_interpretation_Tm_refine_cb631f5a3fb7a1ba765dbb95c9ea355e"
       ],
       0,
-      "cb8850f6e6de851d595fd04165fa124c"
+      "e082c2cdfb5a8f56bac63d2d9dff4b36"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -2063,7 +2063,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "f0a8d0d21ef8e7601a34663ca8db0265"
+      "d1da3192e2ed6ab9784f27b95155621c"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -2075,7 +2075,7 @@
         "refinement_interpretation_Tm_refine_43302777f893ff9a60222ac4198cf903"
       ],
       0,
-      "58b7980b86b0cb1661cb6479fdb5fc54"
+      "fc22e22360552620ee221caaaf3e0254"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -2087,7 +2087,7 @@
         "refinement_interpretation_Tm_refine_43302777f893ff9a60222ac4198cf903"
       ],
       0,
-      "52e8d4715a6a747171c064eaa675093b"
+      "ad9fdf674eec54d59c40fe0c7b13283a"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -2127,7 +2127,7 @@
         "refinement_interpretation_Tm_refine_68f5ea7e181e68c410289fcd45c43d8c"
       ],
       0,
-      "55c119d79a4988065f7a31a15cdf2400"
+      "2fed222075768e7c2ced23d587471149"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -2140,7 +2140,7 @@
         "refinement_interpretation_Tm_refine_68f5ea7e181e68c410289fcd45c43d8c"
       ],
       0,
-      "bc420d9fdcfe9ccdf873ac8a50b620e6"
+      "de657b338e5b66c0e775f86b76ff88bf"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -2153,7 +2153,7 @@
         "refinement_interpretation_Tm_refine_68f5ea7e181e68c410289fcd45c43d8c"
       ],
       0,
-      "e5a1e07ddd99ef7cd15ce4e79cf9f34d"
+      "badbd65eca6050594548dd86311043a3"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -2165,7 +2165,7 @@
         "refinement_interpretation_Tm_refine_9f99755e80e25ec275f5fb45e83eb357"
       ],
       0,
-      "a623f8e15a7d9ff1749b9e8b6fe9a02f"
+      "3d1e91ad4d90c62120b7c4b8b77e677a"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -2177,7 +2177,7 @@
         "refinement_interpretation_Tm_refine_9f99755e80e25ec275f5fb45e83eb357"
       ],
       0,
-      "12b1c4c021445431e55dcd507534ec5c"
+      "4171173ad5940f31ea5306e3b49c6c53"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -2189,7 +2189,7 @@
         "refinement_interpretation_Tm_refine_9f99755e80e25ec275f5fb45e83eb357"
       ],
       0,
-      "eb8d8942cbf63d32d3546afdd57f5933"
+      "ee027d80fd06f70e4d1d9ce484567395"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -2201,7 +2201,7 @@
         "refinement_interpretation_Tm_refine_9f99755e80e25ec275f5fb45e83eb357"
       ],
       0,
-      "5d1fd6250fa171fd9fbe54476d0a396b"
+      "0ad24b5359b0aa24b801ec510ba2ffb2"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -2214,7 +2214,7 @@
         "refinement_interpretation_Tm_refine_a450f5a5869f63c9a17dda02d975a9da"
       ],
       0,
-      "5ae1394e6cbde9b66427bc132ea9a53d"
+      "d3474d5e9436ac912db0ba215cd317a8"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -2227,7 +2227,7 @@
         "refinement_interpretation_Tm_refine_a450f5a5869f63c9a17dda02d975a9da"
       ],
       0,
-      "f425132c71b04a92ce2b277e33ef66d3"
+      "571de5b7fc66f194b1d56ded77077dd7"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -2240,7 +2240,7 @@
         "refinement_interpretation_Tm_refine_a450f5a5869f63c9a17dda02d975a9da"
       ],
       0,
-      "bca78eaa2f605a99e9f48a2fdc537bd8"
+      "dd507fcb48e50311a100a213766fe6b6"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -2254,7 +2254,7 @@
         "refinement_interpretation_Tm_refine_a450f5a5869f63c9a17dda02d975a9da"
       ],
       0,
-      "3aaf577ef3d4eea2de10a163c07482ad"
+      "7d310f578bccf8079f346b75955ddd04"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -2268,7 +2268,7 @@
         "refinement_interpretation_Tm_refine_a450f5a5869f63c9a17dda02d975a9da"
       ],
       0,
-      "928baecfca2a09b2c1d707f43d9f0dd0"
+      "44a471e53dec0191699b8dc4fbfb7204"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -2280,7 +2280,7 @@
         "refinement_interpretation_Tm_refine_5af263c645ca0687db6e0714bc15887f"
       ],
       0,
-      "647ec37508f9054f0349636c9999f661"
+      "ca50fcf1a05e0ee29e28bb3d0c77f766"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -2292,7 +2292,7 @@
         "refinement_interpretation_Tm_refine_43302777f893ff9a60222ac4198cf903"
       ],
       0,
-      "32a5be95178794ac01e05671af772fa1"
+      "239c59e284948e41ef2c284d0d69e144"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -2304,7 +2304,7 @@
         "refinement_interpretation_Tm_refine_5af263c645ca0687db6e0714bc15887f"
       ],
       0,
-      "ab4e499090ade14890e99290ed97c57a"
+      "6150630d774a2861e0fa09e2d4297cd9"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -2316,7 +2316,7 @@
         "refinement_interpretation_Tm_refine_5af263c645ca0687db6e0714bc15887f"
       ],
       0,
-      "3d13a0fea6ae2dfa6729fbd5c339e9d2"
+      "1fa70d0c6cefb701a581579b12a6472d"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -2328,7 +2328,7 @@
         "refinement_interpretation_Tm_refine_9f99755e80e25ec275f5fb45e83eb357"
       ],
       0,
-      "4cf0881bc415677ed58de6023fcc02ff"
+      "ca18a3b5e796cd43d98ac45b9a0f4ccb"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -2341,7 +2341,7 @@
         "refinement_interpretation_Tm_refine_5af263c645ca0687db6e0714bc15887f"
       ],
       0,
-      "17531c09172ffae6c6926f1f6728114b"
+      "919b423fd85ce6c06fd7b87e9d764da6"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -2357,7 +2357,7 @@
         "unit_inversion", "unit_typing"
       ],
       0,
-      "f3ea2f54249d294ce1e237ffdc6fca38"
+      "c7c814a1fee50f2f4ac93649009c2b84"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -2369,7 +2369,7 @@
         "refinement_interpretation_Tm_refine_43302777f893ff9a60222ac4198cf903"
       ],
       0,
-      "10c19d33a8a449ae4c862d4caf5896e7"
+      "4e6a2b4d005dc103c066f7afbbd80cbe"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_intra_vec_layer_to_poly",
@@ -2420,7 +2420,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "36b4994a20a3878516589de1e8956858"
+      "8adcfd490270587fc7e29452899f1179"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_ntt_inverse_butterflies_unfold",
@@ -2460,7 +2460,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "41a55d698ddb487865b86de752fde2eb"
+      "9f6cdd624aceaf43b960e73f802f8bc0"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_ntt_inverse_butterflies_unfold",
@@ -2490,7 +2490,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4f4af0c868e077ca2c621cbb9e1173c8"
+      "2dc488fc1ae1e900e5ddd42e50f113bf"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.poly_step",
@@ -2542,7 +2542,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "cc306dbee663cc3ecae2dcb53d19c758"
+      "0dde82d86302364469a26652ecfbd1fa"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_poly_step_intro",
@@ -2588,7 +2588,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "cc8dfe341bdb550d08b3b1c4760c88bd"
+      "52460a713d3c282002ac765557f6275c"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -2629,7 +2629,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "621f712729a2ea942af7e18771277ec0"
+      "56aea22f0de00867e0ad7b017def41eb"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -2647,7 +2647,7 @@
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f"
       ],
       0,
-      "795456289eb1c04d2a191d537ce51acf"
+      "a654136e1ac3e2fc8ed718035a63d91f"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -2695,7 +2695,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "14b3f334ce4700aa2f80edbc670f649e"
+      "daa1cbe1710bafdeb51a8e899df0a325"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -2724,7 +2724,7 @@
         "refinement_interpretation_Tm_refine_c582619aed0f25ab42cbef056b615524"
       ],
       0,
-      "2b117baa565415d91328b99809315093"
+      "a67e62ff124e9486f624c1f423ba6de5"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -2760,7 +2760,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f6b6abea7d5ac9fd735c28822d3826ac"
+      "1316bb890f99a82e7118460b4a4de868"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -2796,7 +2796,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "d126669c52d74767caf50f5ec7028e69"
+      "c69e8c5147bbceb93fde34b7dc2f8744"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -2832,7 +2832,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "2c48f48b42d5cd9207e687e1b2bc2a2e"
+      "8bb611cae34bc295ec2c7ff248c0faa5"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -2885,7 +2885,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "13c12b1939c2bdd525f2a6de43249dea"
+      "7d0f5ff9b31f5317e5f946bba767429a"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -2944,7 +2944,7 @@
         "refinement_interpretation_Tm_refine_c582619aed0f25ab42cbef056b615524"
       ],
       0,
-      "52f08f062627bdf870e87e5c95a0fe56"
+      "f2a1122128ae3d721d47a80588172b72"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -2980,7 +2980,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "d9ab004a8b842b2772abf4440aa4bf49"
+      "8813448fda1bfe8b919b03078cd9708b"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -3033,7 +3033,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "1192b86329a4942093ab235c310993e3"
+      "da5ac82b4169f526d1d4a2c1d8f9b029"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -3093,7 +3093,7 @@
         "refinement_interpretation_Tm_refine_c582619aed0f25ab42cbef056b615524"
       ],
       0,
-      "501ebaa109b9384dac9c4dff6e4b1631"
+      "35c4e7f27a8f6e207766440126b1359e"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -3129,7 +3129,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "603543568b02c76ce355cc569660dea2"
+      "a79370cb6eca0bf2cd1102c0b60e1bdc"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -3182,7 +3182,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "325d0f407d66bfcee90f08487bc8d1b1"
+      "9460506c336773d687a67ccee8e7cf75"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -3242,7 +3242,7 @@
         "refinement_interpretation_Tm_refine_c582619aed0f25ab42cbef056b615524"
       ],
       0,
-      "8a09448b4a28a03c6cbc062ff04921f2"
+      "5f89b8bc7c2a34d2c35a2d567b7d6ef4"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -3278,7 +3278,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "db8be360656d5d081ad1273772056cd2"
+      "1fdacfe88c8c63f673217c6ae12ac8e9"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -3297,7 +3297,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "502b06613106c76bf1b9a6c0124c65e8"
+      "d3de93c1844b7e7189e9c403adc51ba0"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -3338,7 +3338,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "5a279445454cbe7d66b449f1c4454e06"
+      "b1a0cd699f595623e4bf53a7f8b2db08"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -3356,7 +3356,7 @@
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f"
       ],
       0,
-      "e0397bbd580dfbceb9d23d78aebcd53d"
+      "8d95feb1cd643af75137fd002380cb04"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -3404,7 +3404,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "5fe5caf54bdd3d0d836d475be688791e"
+      "40612f7b6f1097b04441620c52a7e78c"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -3433,7 +3433,7 @@
         "refinement_interpretation_Tm_refine_c582619aed0f25ab42cbef056b615524"
       ],
       0,
-      "e11dda616001673610dce19fd367e51e"
+      "4d6129e4e70cc5156d3f57755a3237cd"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -3469,7 +3469,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "586deed5c087f415d9eaad3e9a9c081c"
+      "379e98309c0d2d80a3befb242dacc41e"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -3505,7 +3505,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "baaf4011257e1cff983d3aa22f476f2e"
+      "3dd7652c9ea41958c0bbfe695c880713"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -3541,7 +3541,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "d6424d5e90ce26ebc60e8d290f3c0207"
+      "1591874c1aee620d4ae90e9e5a59fa2f"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -3594,7 +3594,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "b851598a9ff72a7bc132b344bb4735ef"
+      "56d309f00746c394e0c445095296a1ce"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -3653,7 +3653,7 @@
         "refinement_interpretation_Tm_refine_c582619aed0f25ab42cbef056b615524"
       ],
       0,
-      "a4f5101de371b19556c8581de38d57e7"
+      "1e19ab67a490921129a6ee5a3bbe355f"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -3689,7 +3689,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "b6c635c46a5b336f0c962cbd1346940d"
+      "656f645f134bf6128cee2e7c735f1781"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -3742,7 +3742,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "a1d58f49c253c4c2694b49c73fb2d568"
+      "72191b81ff3f8b783a7000327ddc7990"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -3802,7 +3802,7 @@
         "refinement_interpretation_Tm_refine_c582619aed0f25ab42cbef056b615524"
       ],
       0,
-      "4743b62dfea14b9ce7bc01c03d6bd6de"
+      "aded747d1d17ef7fde940560db1dd164"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -3838,7 +3838,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "5b10cb8df9e58ac31d5c2110c534f822"
+      "a2d11d7a22ff87f477d99c63e4d3285a"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -3891,7 +3891,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "6ed0fa564b9f363594b6d42b34cd6f10"
+      "b891538fb32a1c2a59169b6dac1d75fc"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -3951,7 +3951,7 @@
         "refinement_interpretation_Tm_refine_c582619aed0f25ab42cbef056b615524"
       ],
       0,
-      "f9aab0020d60ca3ed9e4cca9f6817153"
+      "e44662763322425c57e56c63b4c549ed"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -3987,7 +3987,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "704aff610ae6642496589cbca46b8c23"
+      "dcbfb18622659077e064dbc4b1bd66fb"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -4006,7 +4006,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "e4ab008bb6abaa4738a3cad4f815277d"
+      "9ec607877341bdd80158e80e17651a2c"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -4047,7 +4047,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e241f0ebf1e5db6cb51d250dff02196e"
+      "7be6fa380e13336316dde477dda71d4f"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -4065,7 +4065,7 @@
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "a0eb12bd17105bcea7c772f2c1d0ba9a"
+      "e8545fd2f7da81d0e400594c8e3941a5"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -4084,7 +4084,7 @@
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "28e6ab8c0bf29b8b581caec05f5ba95f"
+      "38f6fbae57cff5586d28193ff31a19c0"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -4125,7 +4125,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "88d5eb997c37f278c575c7e94c5911c6"
+      "cf41c67f2905c5d2336c9c2b55596dc8"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -4143,7 +4143,7 @@
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "793005f01379129898b0745174e5b293"
+      "fae951aedae5f23d367c9f2aae134983"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -4162,7 +4162,7 @@
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "fa785927b7ded3021871522789c1cf07"
+      "20a9efafda5e77cac982bcd563a98122"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -4199,7 +4199,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "05bd1a13b446b0acdeab57888336cdf4"
+      "ef3bc5606e29cd83f2b605fab254c0d8"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -4216,7 +4216,7 @@
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0"
       ],
       0,
-      "e6f5942aacc5a0d4ba0312ecf9c17848"
+      "d0ab22071251ea04b599508201bc2cec"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -4238,7 +4238,7 @@
         "refinement_interpretation_Tm_refine_f9acd9f7fca7e196d988731df327ae17"
       ],
       0,
-      "9d831c02ce94b7f97976c505635ae462"
+      "bd467dd7b9a9eb5bc424a20575886b7a"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -4251,7 +4251,7 @@
         "refinement_interpretation_Tm_refine_f9acd9f7fca7e196d988731df327ae17"
       ],
       0,
-      "2a44d030f0add7b56ecc7292fef4945d"
+      "da778e1baad1b7b8cea954c6bd77b739"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -4296,7 +4296,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f230847fbef188251de072b1a74a9066"
+      "db988565bf05e46dc3d07ffa008533e5"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -4327,7 +4327,7 @@
         "refinement_interpretation_Tm_refine_c582619aed0f25ab42cbef056b615524"
       ],
       0,
-      "50a842f630415b44a47d1af646220e4e"
+      "1eff20c56694fc9e6f427a811c2a0dbf"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -4362,7 +4362,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "1d41a632f997a2e41805f9649af0a7fe"
+      "ff5602f0607912513755f976bfc0dfd8"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -4391,7 +4391,7 @@
         "refinement_interpretation_Tm_refine_dfb8d5008b2d22f162df60b079a9add1"
       ],
       0,
-      "2ffed9c5c8a48256560f9766d3cb581f"
+      "aa518320e346ca79798729fead5337d3"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -4441,7 +4441,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e8bdb8ea6327c20ae5863b73add4e0fd"
+      "a29fa5c7716499f7248a6d1f0dadf533"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -4464,7 +4464,7 @@
         "refinement_interpretation_Tm_refine_c1424615841f28cac7fc34e92b7ff33c"
       ],
       0,
-      "a8fe36ee3b16fd5dd56be857762d1ba3"
+      "96618ddb43fa066809e8b6eca40c4b9f"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -4490,7 +4490,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "bdbc726a4f35edd7ae0e2c8aa66c4d4c"
+      "008ab7d0215ce1d3b7de785dbdc97a37"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -4539,7 +4539,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "12c68f9f3bdddafc194b3247dc957afe"
+      "f777bee3a2fbea0112e6658a5671338f"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -4565,7 +4565,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "74d51624ac980cd03489cea63c43728e"
+      "c0808d8c46bdf46bb622e23679e82587"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -4596,7 +4596,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "b1ef14ba1a4ab87f14bee97579b29660"
+      "a6e09f99842e53c1e531ba114b5a9ec7"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -4633,7 +4633,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "213d473c29efa8662611530a3c4e3555"
+      "73b43243e732aaff6aceb05b65ac1df4"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -4674,7 +4674,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "01341615946e3979beed0f02697b4a07"
+      "17890fb2cd791d45721a0edecc2c3d35"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -4709,7 +4709,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "5c6b21d78ff6f382a2fe3ca51fff8a73"
+      "96611dd51cf3020d9f3a6cbb1c5dbf96"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -4804,7 +4804,7 @@
         "refinement_interpretation_Tm_refine_d960554f81750c3ede599d859ee49494"
       ],
       0,
-      "0e2714a8ce31e8c1547df982846367d7"
+      "2199ec1d05ab49724454428c62ad3979"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -4843,7 +4843,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "f9ca14ca70b06bbc2373fafb99511cbc"
+      "ef880b9b472020045af5306fda319c97"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -4878,7 +4878,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "ab3bcf0784964ed0f55c97df4b3a9877"
+      "8133bce8277233197e055f6eb37db187"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -4973,7 +4973,7 @@
         "refinement_interpretation_Tm_refine_d960554f81750c3ede599d859ee49494"
       ],
       0,
-      "07e70f8e10d074d3d7a6c29d74a86a85"
+      "558f69c19518bd168f718afb6f79c5e7"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -5012,7 +5012,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "b7d17a547542327c5f2108c6a121bfa0"
+      "44bd7c4693f99b07b84a4d5ff7a3accf"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -5047,7 +5047,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "ff0236a3687a7ee4c06fe77e384fd071"
+      "33abeafe3883e0feb4365ae71b964e78"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -5142,7 +5142,7 @@
         "refinement_interpretation_Tm_refine_d960554f81750c3ede599d859ee49494"
       ],
       0,
-      "34e897cf5ff4fb0e53e117d3eb00c7c3"
+      "feb0e49c5adedf40f187ecb98b479ea4"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -5181,7 +5181,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "836d8331c062f1d086f8ca15bc83649a"
+      "31b211656a39fa0560a5056f73ac5113"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -5216,7 +5216,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "323afff5a30895ed12b8346cbea1c66e"
+      "900906d3e4f6cc09a4a4f1439b1fb3b4"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -5229,7 +5229,7 @@
         "refinement_interpretation_Tm_refine_4e98c564122f719b3da3a0ff819ddd15"
       ],
       0,
-      "11b6a1f04bdd20ba70c8bb6546ef4daf"
+      "10cf3304cbffee63dd558566f203418d"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -5284,7 +5284,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "60f868ba45c2da3e509b8704be9e85fb"
+      "4d7c9bcf38e9db20c74e3c161c698e50"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -5306,7 +5306,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "93d9ad73678ce3abf3a81785f951743a"
+      "cc62d6404dcb8b6157ee1fe1cbabbdf2"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -5337,7 +5337,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "a6cfdb223cee104758d0427ee6ae3206"
+      "ac5eac6e85892fc2784b29a77acd8e59"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -5378,7 +5378,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "57a4e0010b2503d0ba7c39dd536be9cf"
+      "c9c4d38fb803b59682342252c2002680"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -5391,7 +5391,7 @@
         "refinement_interpretation_Tm_refine_4e98c564122f719b3da3a0ff819ddd15"
       ],
       0,
-      "11b6a1f04bdd20ba70c8bb6546ef4daf"
+      "10cf3304cbffee63dd558566f203418d"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -5446,7 +5446,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "60f868ba45c2da3e509b8704be9e85fb"
+      "4d7c9bcf38e9db20c74e3c161c698e50"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -5468,7 +5468,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "93d9ad73678ce3abf3a81785f951743a"
+      "cc62d6404dcb8b6157ee1fe1cbabbdf2"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -5499,7 +5499,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "a6cfdb223cee104758d0427ee6ae3206"
+      "ac5eac6e85892fc2784b29a77acd8e59"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -5540,7 +5540,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "57a4e0010b2503d0ba7c39dd536be9cf"
+      "c9c4d38fb803b59682342252c2002680"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -5587,7 +5587,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "464c4b75c584a629fa61c6a6bd8afded"
+      "f1aafc0f31db3c8f1efcc69c5065e67e"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -5618,7 +5618,7 @@
         "refinement_interpretation_Tm_refine_c582619aed0f25ab42cbef056b615524"
       ],
       0,
-      "fcd71958da74ac9d72f2d433d2dfc7c6"
+      "35d1fcfd2e90a96813a1f2863974fd95"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -5653,7 +5653,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "772aab63fd60fca7fec19e7ab9d2c43e"
+      "dccca000f241ddb617d1b7b5b2902729"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -5682,7 +5682,7 @@
         "refinement_interpretation_Tm_refine_dfb8d5008b2d22f162df60b079a9add1"
       ],
       0,
-      "39bc0c30aa8f6f75f1dfe91c2f17b758"
+      "59f54bcec41b7c75647e8a53b3a9d238"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -5698,7 +5698,7 @@
         "refinement_interpretation_Tm_refine_8adc17a3295d65597cd2af5f12eaebd6"
       ],
       0,
-      "27661d0e0c7a0893d92f1481deb4b693"
+      "518c3e185aa680eb6a088c131bc7e2dd"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -5776,7 +5776,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "d24583d0d226ce674698d65aeb7952c4"
+      "b3fbf6d8e4c73ea2d8379a8ff4684147"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -5849,7 +5849,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "73b790254f5edea6173dcee954ee8858"
+      "f1629dd978d91432b262efccbfaec625"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -5874,7 +5874,7 @@
         "refinement_interpretation_Tm_refine_dfb8d5008b2d22f162df60b079a9add1"
       ],
       0,
-      "204bb4547bcd7eb7509edf25765ec414"
+      "ed194b597b2a6942e302c1be39c111fc"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -5936,7 +5936,7 @@
         "refinement_interpretation_Tm_refine_55e97f4f8aceb3c2436305a00460cf75"
       ],
       0,
-      "2956afc53d9c5baa5b2030e079703c71"
+      "44dda994369d0e9a441e4c68e84e22dd"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -5959,7 +5959,7 @@
         "refinement_interpretation_Tm_refine_dfb8d5008b2d22f162df60b079a9add1"
       ],
       0,
-      "a6abb85009e1b3c49a5fc2a78cf40b25"
+      "875a0a0b62523f94147371c5f217fd60"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -5990,7 +5990,7 @@
         "unit_inversion", "unit_typing"
       ],
       0,
-      "eaa6cbb8356659d7f32b20a0859f9c2f"
+      "4c0aa35a8bdbe013ef941af1a1cbb852"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6007,7 +6007,7 @@
         "unit_inversion", "unit_typing"
       ],
       0,
-      "cc674026df9caf462b3839e6714bd642"
+      "a575a1f12995989844b5220008d9d8b9"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6029,7 +6029,7 @@
         "refinement_interpretation_Tm_refine_f9acd9f7fca7e196d988731df327ae17"
       ],
       0,
-      "acf1e102c7eae64b76ab4ee3dd780892"
+      "6bf3794f3be25fab97bb0b3707718f83"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6045,7 +6045,7 @@
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0"
       ],
       0,
-      "b3e12dbac43e9f5f8227fc51b253a076"
+      "19e73bbe72fb169b0416c1d0fc74ad2e"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6057,7 +6057,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "723d11745fb93c6940232e281726beb6"
+      "40830f6b0f24355b37b1826dd77882ee"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6079,7 +6079,7 @@
         "refinement_interpretation_Tm_refine_f9acd9f7fca7e196d988731df327ae17"
       ],
       0,
-      "acf1e102c7eae64b76ab4ee3dd780892"
+      "6bf3794f3be25fab97bb0b3707718f83"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6095,7 +6095,7 @@
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0"
       ],
       0,
-      "b3e12dbac43e9f5f8227fc51b253a076"
+      "19e73bbe72fb169b0416c1d0fc74ad2e"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6107,7 +6107,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "723d11745fb93c6940232e281726beb6"
+      "40830f6b0f24355b37b1826dd77882ee"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6136,7 +6136,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "cec45214d4288b44ca91101fec209cb0"
+      "92d0b570c255d51bef09c63d09afaa9b"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6145,7 +6145,7 @@
       1,
       [ "@query", "b2t_def" ],
       0,
-      "b119f3d872e7209c69fc174c50abf36c"
+      "f7467026ec68075a888b9e515433fbb7"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6157,7 +6157,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "396f10260f1c6f0333083b2feb6659c3"
+      "bef093f112d0c9b816fd07e27aa672a1"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6176,7 +6176,7 @@
         "refinement_interpretation_Tm_refine_0dee8cb03258a67c2f7ec66427696212"
       ],
       0,
-      "489e54b6934eba30f2621db731cf176e"
+      "fd729f59cf02f19b6ffc1b5e6244b47c"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6192,7 +6192,7 @@
         "refinement_interpretation_Tm_refine_1f0e72f1204a9b8656cdc13adca49241"
       ],
       0,
-      "8ea60703d8b90cf5ba55e6ed6c3327c2"
+      "ecaa86d1ad9936ed3b41b81406826587"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6212,7 +6212,7 @@
         "unit_inversion", "unit_typing"
       ],
       0,
-      "e2fa0e4f42e8883450f9230ae7cfd569"
+      "a26f8c4ac9d54f0a740f5fe29970097d"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6227,7 +6227,7 @@
         "unit_inversion", "unit_typing"
       ],
       0,
-      "44b9581c4fc16baf6915e662883588ec"
+      "7ed5aa4d592a5a8b9ee57c8fc0f41a9b"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6253,7 +6253,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "e3edeafc4befbc97032316c35ea6c1e0"
+      "be9dd2a2569c35566931d4d6fcd014e4"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6276,7 +6276,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "b20abeb393804d1a816a9ab3237d90e0"
+      "364650d571452e78963b029f1e320c67"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6288,7 +6288,7 @@
         "refinement_interpretation_Tm_refine_26a6d67fa0ebf8b6f3b83aad499a7e14"
       ],
       0,
-      "c1d12b09219bd6223422f4fb891dadca"
+      "16718b139308d7f4f86db072bea1c64e"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6315,7 +6315,7 @@
         "refinement_interpretation_Tm_refine_a13ae62be89338521c2e247ac65f7d6c"
       ],
       0,
-      "2855b919de5ae283afce67663a78fb25"
+      "926401e5aedab00710507d25dad35bd7"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6329,7 +6329,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "1a60c6345235c56b9b32f26c8557e2cf"
+      "602357dc46717b87b5dc6384c477d5e3"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6343,7 +6343,7 @@
         "refinement_interpretation_Tm_refine_4e98c564122f719b3da3a0ff819ddd15"
       ],
       0,
-      "a92905e6b296cfb7dc93e8b380aae1ab"
+      "5714c9f23f047d60130bc3f06953811b"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6369,7 +6369,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "e3edeafc4befbc97032316c35ea6c1e0"
+      "be9dd2a2569c35566931d4d6fcd014e4"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6392,7 +6392,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "b20abeb393804d1a816a9ab3237d90e0"
+      "364650d571452e78963b029f1e320c67"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6404,7 +6404,7 @@
         "refinement_interpretation_Tm_refine_26a6d67fa0ebf8b6f3b83aad499a7e14"
       ],
       0,
-      "c1d12b09219bd6223422f4fb891dadca"
+      "16718b139308d7f4f86db072bea1c64e"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6431,7 +6431,7 @@
         "refinement_interpretation_Tm_refine_a13ae62be89338521c2e247ac65f7d6c"
       ],
       0,
-      "2855b919de5ae283afce67663a78fb25"
+      "926401e5aedab00710507d25dad35bd7"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6445,7 +6445,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "1a60c6345235c56b9b32f26c8557e2cf"
+      "602357dc46717b87b5dc6384c477d5e3"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6459,7 +6459,7 @@
         "refinement_interpretation_Tm_refine_4e98c564122f719b3da3a0ff819ddd15"
       ],
       0,
-      "a92905e6b296cfb7dc93e8b380aae1ab"
+      "5714c9f23f047d60130bc3f06953811b"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6506,7 +6506,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "7f372a5d40451371ec9940b85eb16156"
+      "e66b4afa31cf8e44b7a4dceddc90c529"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6532,7 +6532,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "ea393b8fe77f887f722405f07b7e953a"
+      "c55d07075082eaae359998e35b51973a"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6564,7 +6564,7 @@
         "refinement_interpretation_Tm_refine_fbd8abbc1c147a3bea65d6ed322d146c"
       ],
       0,
-      "0609541d3b240bd63dff53735471ae35"
+      "69e7fa8dad13f1e1b4150c174945a3c4"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6618,7 +6618,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "52bd54f4910f2cf4403f842350ca0722"
+      "117f56faab5a3ceee5695ea5b0791cc5"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6660,7 +6660,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "d34fe0726a6cb3ac2945d6e9fa2bcded"
+      "856451cf630e3f8a1a9ed72cd980c379"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6694,7 +6694,7 @@
         "refinement_interpretation_Tm_refine_d960554f81750c3ede599d859ee49494"
       ],
       0,
-      "b887338772c84ee37a842423490b372d"
+      "5be8d440198c91960725cbc4495bef1e"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6789,7 +6789,7 @@
         "refinement_interpretation_Tm_refine_d960554f81750c3ede599d859ee49494"
       ],
       0,
-      "cac1c6e4d0a64285b485e3535bc33249"
+      "2b3f249de71b0924291df756ec07fe89"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6828,7 +6828,7 @@
         "refinement_interpretation_Tm_refine_fbd8abbc1c147a3bea65d6ed322d146c"
       ],
       0,
-      "61a6e84260800c95059990609b38e37e"
+      "b4c7ef2989b4d0d90f20ca5850d90a19"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6862,7 +6862,7 @@
         "refinement_interpretation_Tm_refine_d960554f81750c3ede599d859ee49494"
       ],
       0,
-      "40b1b43d3c1e535869640c560ef65226"
+      "aecf87004667f4666b3f15f724f7d44c"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6957,7 +6957,7 @@
         "refinement_interpretation_Tm_refine_d960554f81750c3ede599d859ee49494"
       ],
       0,
-      "9ad1fcad27c41c32ed73919936009143"
+      "0db1f0fac2f4dc38acefe712eda25f43"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -6998,7 +6998,7 @@
         "refinement_interpretation_Tm_refine_fbd8abbc1c147a3bea65d6ed322d146c"
       ],
       0,
-      "8f23a0950cdbe0181358858f4d4e9770"
+      "09578ba6f63d6d43c5047cc79bcc6b9f"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -7032,7 +7032,7 @@
         "refinement_interpretation_Tm_refine_d960554f81750c3ede599d859ee49494"
       ],
       0,
-      "b967726149ca93f93b300db55e39730f"
+      "7ade42f7996700afdb78e95f0d41e786"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -7070,7 +7070,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "6e67c29ffd5ed81cf11d92120066ae05"
+      "0489c3b6359765da0901c9f5c2dea0fe"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -7134,7 +7134,7 @@
         "refinement_interpretation_Tm_refine_d960554f81750c3ede599d859ee49494"
       ],
       0,
-      "3bd97746aa8fd8c5514eae2aba652969"
+      "5dfdfe13ffd9ec697677d1ee4f1290af"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -7175,7 +7175,7 @@
         "refinement_interpretation_Tm_refine_fbd8abbc1c147a3bea65d6ed322d146c"
       ],
       0,
-      "fb3c33dd50879acfd157f7b210b21e14"
+      "338e65b54178df65533c26adeb3b4028"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -7209,7 +7209,7 @@
         "refinement_interpretation_Tm_refine_d960554f81750c3ede599d859ee49494"
       ],
       0,
-      "f57599dd9369f1d05700b28f87cb8903"
+      "4789a10053f16185fd9628d6da2139dc"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -7240,7 +7240,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "272eed804230b87d113b168dd11c9dc3"
+      "e1d2e2f7d0e0cce5ae8cf928b58435c2"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -7265,7 +7265,7 @@
         "refinement_interpretation_Tm_refine_fbd8abbc1c147a3bea65d6ed322d146c"
       ],
       0,
-      "1eb74c0cef36f35f7c261a9584be158d"
+      "45fdebc3b3d933510325f6f0e622f71d"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -7316,7 +7316,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "3d3e8b1ed9870dc3590cd54a0cd98949"
+      "b14a130fe614dc4ae2fb83bf0153afeb"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -7357,7 +7357,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f1c519cec7117e61e3f548b7c9b608dc"
+      "d6d4ea41b5986244e85931404f365bf2"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -7386,7 +7386,7 @@
         "refinement_interpretation_Tm_refine_dfb8d5008b2d22f162df60b079a9add1"
       ],
       0,
-      "24e7a094b337e34e20ac8709dcfce7b5"
+      "afc5c03a193284ea858b2cd97fb80ab9"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -7400,7 +7400,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "808f589a905224fbe552dadde685afb4"
+      "67cd190ec003796fcd33c7d4751ab6a7"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -7419,7 +7419,7 @@
         "refinement_interpretation_Tm_refine_fbd8abbc1c147a3bea65d6ed322d146c"
       ],
       0,
-      "2be202f1a5e3c22289f369554b2369b8"
+      "abbe4a59ae0a6232476e49d6f9efe400"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -7486,7 +7486,7 @@
         "refinement_interpretation_Tm_refine_fbd8abbc1c147a3bea65d6ed322d146c"
       ],
       0,
-      "3e392f8af06e2616fa48f518ed0d7317"
+      "7469c4f59d87e853e0ab2e7a62652153"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -7531,7 +7531,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "7e731e5289d012ed64fb9025ff2784a1"
+      "9b9cf9f9a2a17cdb54a9a983aebeb831"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -7559,7 +7559,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "8254a068445e8fef90c11cd870b45e4b"
+      "d8c631f76da567ee41c006de9582561f"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -7647,7 +7647,7 @@
         "refinement_interpretation_Tm_refine_d960554f81750c3ede599d859ee49494"
       ],
       0,
-      "82f868e98b867a337dbc758542ebfc06"
+      "a34a8ec0fcd9fbf2af6275b498459ffc"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -7660,7 +7660,7 @@
         "refinement_interpretation_Tm_refine_a59e0d4c19fc95dee4b05b90ef692430"
       ],
       0,
-      "e3934cce1a9c45171e83643fce0dac1e"
+      "fdad21c41954c79e4027214b5d105298"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -7689,7 +7689,7 @@
         "refinement_interpretation_Tm_refine_c582619aed0f25ab42cbef056b615524"
       ],
       0,
-      "2161025019097cebaa6e2449d8ae9310"
+      "b7832c22fbdb3d90a665ecfcc2973c0b"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -7777,7 +7777,7 @@
         "refinement_interpretation_Tm_refine_d960554f81750c3ede599d859ee49494"
       ],
       0,
-      "d8109fc228a353cdebcd16bc4c9cdefa"
+      "367aef07288ba33523ecaf2bf00566d5"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -7790,7 +7790,7 @@
         "refinement_interpretation_Tm_refine_a59e0d4c19fc95dee4b05b90ef692430"
       ],
       0,
-      "6a5414d77de43afd3dcf7a6377cf0edb"
+      "07bd3774df71c57f4d0f7b0693bef4f3"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -7819,7 +7819,7 @@
         "refinement_interpretation_Tm_refine_cd664ce3130322b95580a1f1091e8951"
       ],
       0,
-      "fd52ac55889fd2e2249bdf19ef0d6a30"
+      "d1a8ba63da14d66f96984f346ed4cef8"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -7907,7 +7907,7 @@
         "refinement_interpretation_Tm_refine_d960554f81750c3ede599d859ee49494"
       ],
       0,
-      "d769dfb55de8b469c0c662a97d369130"
+      "d9230feb8f016adf5770811ef291fb5f"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -7920,7 +7920,7 @@
         "refinement_interpretation_Tm_refine_fb411166885ae0b4847fb6f1b91c450e"
       ],
       0,
-      "6cf3c1a4df355e7306f6d2da9144256e"
+      "c72473de7f9e75df763397b28a9f3d60"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -7949,7 +7949,7 @@
         "refinement_interpretation_Tm_refine_a13ae62be89338521c2e247ac65f7d6c"
       ],
       0,
-      "72055b07b2eb11780d94deeb5e55ab84"
+      "6048d1d0269450e1f46f6295cd1cbaec"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -8037,7 +8037,7 @@
         "refinement_interpretation_Tm_refine_d960554f81750c3ede599d859ee49494"
       ],
       0,
-      "e75c37a634e2f29dd82db6d73f263414"
+      "d64bbe0731633366d2121f7c922efea1"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -8050,7 +8050,7 @@
         "refinement_interpretation_Tm_refine_e79196081a9003b1b2e665eb4cb0c98a"
       ],
       0,
-      "f1d59a27ef9b916b2c4c0cf614b04b52"
+      "f21fc7ffaab7725b510ac8edc8261faa"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -8079,7 +8079,7 @@
         "refinement_interpretation_Tm_refine_a13ae62be89338521c2e247ac65f7d6c"
       ],
       0,
-      "9ab1dea124a051b1e19b668431b5a4bf"
+      "93114a3474015140950723376332b104"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -8181,7 +8181,7 @@
         "unit_typing"
       ],
       0,
-      "029fb4771f110ab928daeb018961e514"
+      "98c1b9665ebf36fb35b70d1e49758916"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -8224,7 +8224,7 @@
         "unit_typing"
       ],
       0,
-      "bcc546c375fabfd6b47537159b17cc17"
+      "06634ce98e90a4f25227240b598eac55"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -8237,7 +8237,7 @@
         "refinement_interpretation_Tm_refine_4e98c564122f719b3da3a0ff819ddd15"
       ],
       0,
-      "e626f292b91eaf472a93d418a20b6561"
+      "03c65dd76dc612868373f232835cbe59"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -8292,7 +8292,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "c7afc9167c1d9c483ec7b78b9f201ce1"
+      "0b59a00afb12ca9229333fd62b9654ad"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -8314,7 +8314,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "dd49df6cf85fbbf24745fd3a2caa8bca"
+      "d285222c1f3bed493653df7ad19a5277"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -8345,7 +8345,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "ffc52e0244621f58db98c7e173a85e33"
+      "bcc30501fd04b273107707c02a9a6e28"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -8386,7 +8386,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "89a3b470d254f4d7f9e830675dd85e24"
+      "ba551eed699617f7687df002b44694d2"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -8408,7 +8408,7 @@
         "refinement_interpretation_Tm_refine_f9acd9f7fca7e196d988731df327ae17"
       ],
       0,
-      "5cd3935cc0ea57d727090e633e9dd70b"
+      "5d9b3177eb20aa9acdbc6e494cff02f9"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -8424,7 +8424,7 @@
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0"
       ],
       0,
-      "07b6ad3beb0a5fcd1ed1e230d5cd77c1"
+      "30d9296af5b0f48a983ca249337a79ae"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -8436,7 +8436,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "fe6f66911c57324e1105e83e94f15040"
+      "0ac651d7645b11fd884418ea8e89cfd2"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -8462,7 +8462,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "4b35bdfbbbc45b5b6d0f49c4385a944d"
+      "2fc027ceccb0d09ac62eca1c1b2d5249"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -8485,7 +8485,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "d76f453462c6c295563017201637fefa"
+      "d35c416ead61e7744023fc2be30c76b0"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -8497,7 +8497,7 @@
         "refinement_interpretation_Tm_refine_26a6d67fa0ebf8b6f3b83aad499a7e14"
       ],
       0,
-      "6b699faec1defc5bfd8f4d48f14114aa"
+      "c5c9d8cde73bb6eb4fdfc890baf2c911"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -8525,7 +8525,7 @@
         "refinement_interpretation_Tm_refine_a13ae62be89338521c2e247ac65f7d6c"
       ],
       0,
-      "771e32b7201fd5c9c312d2ac70227ec1"
+      "a0c991afadcf88302a88d25d8e0c2a83"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -8539,7 +8539,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "df7a58d7aedb90fa6e5c6a36aa216b0e"
+      "8d6454bb91e46ed4a0674074e878be30"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -8553,7 +8553,7 @@
         "refinement_interpretation_Tm_refine_4e98c564122f719b3da3a0ff819ddd15"
       ],
       0,
-      "156edee57aca04b17db49b16c4b7e087"
+      "7a11c2cdc1df871661db4e6782a13b8c"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -8600,7 +8600,7 @@
         "refinement_interpretation_Tm_refine_f9acd9f7fca7e196d988731df327ae17"
       ],
       0,
-      "764b2518cde286f97dc7a32c8183517b"
+      "043aeecccf8e00893522558ac6802030"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -8616,7 +8616,7 @@
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0"
       ],
       0,
-      "5397091b9acdd99e11b34af7b159b9c0"
+      "3aaa189a4ead81db4acd3bbe12b9ab3a"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -8629,7 +8629,7 @@
         "refinement_interpretation_Tm_refine_43302777f893ff9a60222ac4198cf903"
       ],
       0,
-      "24af068e11be9f5fb402cdee7c5a6b1a"
+      "ecebea3f598180a7d3280184d2a61332"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -8642,7 +8642,7 @@
         "refinement_interpretation_Tm_refine_6b4fb28ce83430828fc110cd4f52f810"
       ],
       0,
-      "9ad798ef0258569a47ec20f1de77c91c"
+      "7593f3a323e41e56b48c63beb9e2bee3"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -8655,7 +8655,7 @@
         "refinement_interpretation_Tm_refine_1f37b93068000a546f1409ccb9eecf75"
       ],
       0,
-      "8bf7efe086c9e4aa82249fe50a9c7bb9"
+      "e349310012d889a1d2e5515708f0044c"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -8670,7 +8670,7 @@
         "refinement_interpretation_Tm_refine_a13ae62be89338521c2e247ac65f7d6c"
       ],
       0,
-      "54b3426d82f8b48152e400d245c9a9cf"
+      "7897a593b017c52022d34afde5ed0c0b"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -8688,7 +8688,7 @@
         "refinement_interpretation_Tm_refine_fd81ba603b0984b7b40fc373063b6011"
       ],
       0,
-      "5d63af3fcaba8ad1b52e9ac21cbcff58"
+      "b6c109139f88c93662420bec3b57f8f3"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -8706,7 +8706,7 @@
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "09f1b944e659a51d4a3b5e6cf1c62d65"
+      "a4f41e7aa750d07b0ef49d7605c123f2"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -8725,7 +8725,7 @@
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "6a287e203494b37f6960f6fdd1781ad7"
+      "27d6cb4cda0b853f928b62c5541b726d"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer1_to_poly_step",
@@ -8742,7 +8742,7 @@
         "unit_inversion"
       ],
       0,
-      "aae3575eae1e46ee4c9e267106e59e43"
+      "e048675014ae984b534448ed649c6bec"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -8783,7 +8783,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "50c08259541d5351e26a46cde5c54107"
+      "bc7cc06d685eb351c97305fe8d37a15d"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -8801,7 +8801,7 @@
         "refinement_interpretation_Tm_refine_8e275cfa492c73f52b5f32fd4e8a7155"
       ],
       0,
-      "366b2efe61c09197a2b27c50b258d17d"
+      "a785aff929173c251b97a4578511f176"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -8849,7 +8849,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "d8059bc88d342198da4209f6edd53a1d"
+      "e152e00b0bbf587ec8e23bbe60dd5209"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -8878,7 +8878,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "aad24680a466cf086082d61a203a49cf"
+      "60df801c185cde9803255cbf826f60bd"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -8914,7 +8914,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "127af9b6ae72c44666692f99701dac9b"
+      "df8e3d9105707518b244557c766b833d"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -8950,7 +8950,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "1de9baa0a95090fa86fc9a8d16c8d8ca"
+      "35c1441c245a1f2261854d541bf473ae"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -8986,7 +8986,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "69668972aabcd50194f2e4730177cfc3"
+      "509f1387fd14127743a0fd1e791f3740"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -9039,7 +9039,7 @@
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f"
       ],
       0,
-      "5fa400556a0632f3ec51493177325f40"
+      "7b4ed2746d1c2ad8e5ab0811656e3d55"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -9098,7 +9098,7 @@
         "refinement_interpretation_Tm_refine_d0a7771843353dd514c4da541ed7a3c1"
       ],
       0,
-      "9ea495e98f1fbc425b037e280f335254"
+      "23abbcecdde0472a7ff3a35438dfb745"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -9134,7 +9134,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "23e2bb566927bf72a29cfe9e74747814"
+      "a547f0d7ab424fdca4101c3239419c06"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -9153,7 +9153,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "550640bcf35d95c8a1775f1f87ea5002"
+      "581e4a876ea2a24797785aa3d4cbdcc1"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -9194,7 +9194,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e136bdd4b2a45a7d8ea7a22b71807bdc"
+      "6762321b1c8e324a94524a57d482c0f7"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -9212,7 +9212,7 @@
         "refinement_interpretation_Tm_refine_8e275cfa492c73f52b5f32fd4e8a7155"
       ],
       0,
-      "c6a13ab21b83f4d29b1010330fab35c6"
+      "e28d3bcf359f1d90d9455ddf52d161a4"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -9260,7 +9260,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4ffcc17f2320ba050ae06a43ec5aa7d6"
+      "d6eed333dd596d53650fd85884c540e2"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -9289,7 +9289,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "c1ddb958be059ae561c6fa7b53162146"
+      "2c632f1652c25ca8d91eeb382ed8483b"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -9325,7 +9325,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "29a0a30a6a7df8abbcdd5729e3a1fb41"
+      "cab92462d6370390b56f43d81063e793"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -9361,7 +9361,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e3335a36a158318b28b9f53b61da30d8"
+      "e3e19519795c4e38ede0e0c3b98ca4e1"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -9397,7 +9397,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "36f4d74b1705820f95fcac4373f3a440"
+      "b260873a693e9d1fef6b999994d21ff9"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -9450,7 +9450,7 @@
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f"
       ],
       0,
-      "1585ed5078634960b2c93b35bd28174f"
+      "585d706d2472068368ef603b1ee92edd"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -9509,7 +9509,7 @@
         "refinement_interpretation_Tm_refine_d0a7771843353dd514c4da541ed7a3c1"
       ],
       0,
-      "58e7414c925c878d0256b8da3cad171c"
+      "c8f03951b99a46fb2db6cd67ed1e972e"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -9545,7 +9545,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "6875b7c1749009c9b5753ef752dd5b13"
+      "52a210413e6825a47ec9f0de8471d914"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -9564,7 +9564,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "9a8ddc30a084e87355829d6272bd8111"
+      "c1433c20cec64cc4241639d90daf128a"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -9605,7 +9605,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e8dbddf23f17ddeb887bba21ac96cebe"
+      "25a5c631490ba2a34a390511d2aca453"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -9624,7 +9624,7 @@
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f"
       ],
       0,
-      "6871e861b1a811b4d41419192fa776b4"
+      "ba5f57c47024170f6047c471c1456795"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -9643,7 +9643,7 @@
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f"
       ],
       0,
-      "5352d126d8dbcbb086086fdb058518df"
+      "916eaeff8e879a50829f2d0ac4631fa3"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -9684,7 +9684,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "6349db53703c0d13c3e5437d09259ca6"
+      "c496a6506011f631b51ac0db7321bee7"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -9703,7 +9703,7 @@
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f"
       ],
       0,
-      "0f64518095fbd1101d324f64f4a9c669"
+      "3ddac2fc867bee8affb80234571b213e"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -9722,7 +9722,7 @@
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f"
       ],
       0,
-      "2056f0f93ff9b54745862a66b6d19c1d"
+      "b7c385845a396babe170e17a5fd9e84e"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -9759,7 +9759,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "01274df0c11733233e8ed454b35a559a"
+      "323292e9e3f43bc6f5256751430735cc"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -9776,7 +9776,7 @@
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0"
       ],
       0,
-      "d6d10837de4aa715d5b6460db086ef8d"
+      "aacc5cc49b6cab48dbf66e8f324a74ce"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -9798,7 +9798,7 @@
         "refinement_interpretation_Tm_refine_db8380769cac993f978eb1040e94c40c"
       ],
       0,
-      "607f6150f988fdec863784ad3d73e62d"
+      "c4821dc2e5d51c96b82d5dd0108f93f6"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -9811,7 +9811,7 @@
         "refinement_interpretation_Tm_refine_db8380769cac993f978eb1040e94c40c"
       ],
       0,
-      "0122d16e19d798ab2f8943e1999d9495"
+      "c95450e383fe24d626a83902a3e8ffe2"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -9854,7 +9854,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "0c97ac25cc49d9ed0a7a68d34460f870"
+      "1144bc9f8d8243c4e4e90f163b520876"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -9885,7 +9885,7 @@
         "refinement_interpretation_Tm_refine_da1b0dfb8283502ec162998a8bbb6431"
       ],
       0,
-      "5a4bdc36aa98e450204e94258b3381d2"
+      "12fc9a835e7ab84af9b74cb3d9e5e825"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -9920,7 +9920,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f3ff0e3d4096922f0a8d1927e877bba4"
+      "ccd9cb75fd0cee2e6552a0a36cfda7c9"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -9949,7 +9949,7 @@
         "refinement_interpretation_Tm_refine_dfb8d5008b2d22f162df60b079a9add1"
       ],
       0,
-      "abeee5bdf0fc674ef238952a25ee5f44"
+      "277e71729a9e12feb16337162a2ce2bc"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -9997,7 +9997,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "212e703383e747d4bd8d1e5fa1bdf91e"
+      "7a734b058d90cc61053a1963d3b59966"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -10020,7 +10020,7 @@
         "refinement_interpretation_Tm_refine_da1b0dfb8283502ec162998a8bbb6431"
       ],
       0,
-      "334e37b02026704b322aa4df815003ba"
+      "8d5b8c732fcfa39f088edcfd6f84ef28"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -10090,7 +10090,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "8487e32369e8c49c01c38426d8c27247"
+      "a1b7e0c2dc53a271740a3cd6c7a5c350"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -10146,7 +10146,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "83d468039e2d58fb405ac2d40f781aa1"
+      "4fd7119739c3d049a239f2a9293199c9"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -10182,7 +10182,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "a52865bafee21ab5b8f763965248da64"
+      "e6c62a2c75c33ff5c2ba54b8d396ae3d"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -10222,7 +10222,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "98220a3aa25045cbdd7b1b1be4dba5ba"
+      "2ea6e5e6a1358cebdbb5e879f469465b"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -10256,7 +10256,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "4a38d049855cf074c23a0c2c2c68b771"
+      "dece336ff74cb821ae674a496ee41446"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -10294,7 +10294,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "8c5e4756880a4358b2cf6d75249abd94"
+      "489663ae9316e9ad6319dec9946d6ff5"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -10357,7 +10357,7 @@
         "refinement_interpretation_Tm_refine_d960554f81750c3ede599d859ee49494"
       ],
       0,
-      "86a96dc4088164780a302b723b1ef1ae"
+      "642fe3f488aef5b14ff345ae275a030a"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -10395,7 +10395,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "81d0b8e3a16d823cc0d10b7bc1632bb2"
+      "ad8ff9699c23f8294729f67c81289cd3"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -10429,7 +10429,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "95e076a2aacb0cabfb4fa7c61506dce5"
+      "eaafa88cb1e7c8f99486a7e6b9d1cddc"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -10442,7 +10442,7 @@
         "refinement_interpretation_Tm_refine_4f8438a2312ab58d4d0b0401e4a460d2"
       ],
       0,
-      "9924d18cc1424295aab4fdcf9f096042"
+      "14617eff408572c59276eaf1cf7d6fec"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -10485,7 +10485,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "9a65fba0908bb0ff22c3ccb0f68df9f6"
+      "fa7e744a54ca29b4daa9ccf8aec0614e"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -10507,7 +10507,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "e91d728d583012e4f54f8ce6d64c28de"
+      "d5a487802c94d0aa56ed3b7d7b15f554"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -10538,7 +10538,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "ee8de03280ef59db947a874b4722ea9c"
+      "010d25ed03211ed2e40e3efaa5bec3cd"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -10579,7 +10579,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4dbe57e79faeb309c77b6c763c26809f"
+      "7254ba2b24195dd4b0afff873e3ba3de"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -10592,7 +10592,7 @@
         "refinement_interpretation_Tm_refine_4f8438a2312ab58d4d0b0401e4a460d2"
       ],
       0,
-      "9924d18cc1424295aab4fdcf9f096042"
+      "14617eff408572c59276eaf1cf7d6fec"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -10635,7 +10635,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "9a65fba0908bb0ff22c3ccb0f68df9f6"
+      "fa7e744a54ca29b4daa9ccf8aec0614e"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -10657,7 +10657,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "e91d728d583012e4f54f8ce6d64c28de"
+      "d5a487802c94d0aa56ed3b7d7b15f554"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -10688,7 +10688,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "ee8de03280ef59db947a874b4722ea9c"
+      "010d25ed03211ed2e40e3efaa5bec3cd"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -10729,7 +10729,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4dbe57e79faeb309c77b6c763c26809f"
+      "7254ba2b24195dd4b0afff873e3ba3de"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -10772,7 +10772,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "20e1d0de4e26e8a537c373d9f526468b"
+      "20d32d625f449717af22141241b7fd50"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -10803,7 +10803,7 @@
         "refinement_interpretation_Tm_refine_da1b0dfb8283502ec162998a8bbb6431"
       ],
       0,
-      "6a037ed2a6e503fb5cfcd0b58f1ef543"
+      "53744b98faff8e78ca258cc8d5c660f6"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -10838,7 +10838,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "52653baed7c6713933e52c7629f1eebc"
+      "9cebe97f3c781cf72b84eb5b9dd076c7"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -10867,7 +10867,7 @@
         "refinement_interpretation_Tm_refine_dfb8d5008b2d22f162df60b079a9add1"
       ],
       0,
-      "2324bf6ba3a2cdcbd6a7f61b5183ca48"
+      "30bbf6d2162e17f8559ef2cc286df82f"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -10883,7 +10883,7 @@
         "refinement_interpretation_Tm_refine_7c73fcb579e33dbf344629e0a2247c0b"
       ],
       0,
-      "b7f5d09fa33dc777189301d82959cd88"
+      "e5d4f659f2031fdf21f26f0cdee2758f"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -10930,7 +10930,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "bffdf754175ad24c6334b69330311382"
+      "5232972e948a48ca6c7f44651fd4b701"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11003,7 +11003,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f8734054fc963f9edd33771398c8c058"
+      "aaf24a78bd75b6f71511dc834778d55d"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11028,7 +11028,7 @@
         "refinement_interpretation_Tm_refine_dfb8d5008b2d22f162df60b079a9add1"
       ],
       0,
-      "02a4428bef11a681416758ad6fd09b4c"
+      "262391a94e97556183758cfda4315d44"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11090,7 +11090,7 @@
         "refinement_interpretation_Tm_refine_af35d27e1fac0b89eb3b88dd80e8fbf4"
       ],
       0,
-      "8fd46532a9e480bec69249d13b09686a"
+      "308446ec68ffa60671422d7a3eb70b53"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11113,7 +11113,7 @@
         "refinement_interpretation_Tm_refine_dfb8d5008b2d22f162df60b079a9add1"
       ],
       0,
-      "1f11c288e6583361cba603ae668a2be2"
+      "2db1d0f67f3350bbe3c8f01168e42dd6"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11144,7 +11144,7 @@
         "unit_inversion", "unit_typing"
       ],
       0,
-      "0f25199b9eedb196184e39eb935b0485"
+      "9c12db84aafbcf8004f7862b588392bb"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11161,7 +11161,7 @@
         "unit_inversion", "unit_typing"
       ],
       0,
-      "f0a1b697f1ef164a25c481d55dcf58b2"
+      "5b99641c2afffb395e0e46fefa536169"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11183,7 +11183,7 @@
         "refinement_interpretation_Tm_refine_db8380769cac993f978eb1040e94c40c"
       ],
       0,
-      "0a6782990dcfd7ffabd0a9b3395966c4"
+      "c05117a4bd40670df8d3d719c30f85ed"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11199,7 +11199,7 @@
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0"
       ],
       0,
-      "e266b705cb23f41e960d11ba0721692f"
+      "36554ec51172cc512d965042d9d5ea3b"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11211,7 +11211,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "3407eef079be5d2c2dd373b367099a02"
+      "9fe57ccdfb577312888c64d0a935add9"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11233,7 +11233,7 @@
         "refinement_interpretation_Tm_refine_db8380769cac993f978eb1040e94c40c"
       ],
       0,
-      "0a6782990dcfd7ffabd0a9b3395966c4"
+      "c05117a4bd40670df8d3d719c30f85ed"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11249,7 +11249,7 @@
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0"
       ],
       0,
-      "e266b705cb23f41e960d11ba0721692f"
+      "36554ec51172cc512d965042d9d5ea3b"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11261,7 +11261,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "3407eef079be5d2c2dd373b367099a02"
+      "9fe57ccdfb577312888c64d0a935add9"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11290,7 +11290,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "9dfaff46880ca8b2d3de22888a7a83ec"
+      "91be3f46055ee769087fb3ee7558acee"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11299,7 +11299,7 @@
       1,
       [ "@query", "b2t_def" ],
       0,
-      "b725e54da494bd6bbb4f31d52590a425"
+      "b2b19f83b87b95bcf9bb09aa0abd0f4a"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11311,7 +11311,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "e3cd4efaee2442bd23d8d756453a0042"
+      "9e17b321e242cad56fde66fd8514ef39"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11330,7 +11330,7 @@
         "refinement_interpretation_Tm_refine_0dee8cb03258a67c2f7ec66427696212"
       ],
       0,
-      "1b38192daa0fef52ccb5d3cb87206c5d"
+      "484c16bd905a833eaa89a802ada6293e"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11346,7 +11346,7 @@
         "refinement_interpretation_Tm_refine_1f0e72f1204a9b8656cdc13adca49241"
       ],
       0,
-      "ff5d2a34393f1f4a51448bc1178b8e2b"
+      "8980852be242abb5486b88206d26cfd4"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11366,7 +11366,7 @@
         "unit_inversion", "unit_typing"
       ],
       0,
-      "0fc92a4068400c697fd44bbe28663880"
+      "bf2dd224555b9a4aa3a55811a11a67b7"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11381,7 +11381,7 @@
         "unit_inversion", "unit_typing"
       ],
       0,
-      "8606e1795b2ce52e5f9d6c3a93e21bcd"
+      "aacf0e488bd3f126b959a3b2717092f2"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11443,7 +11443,7 @@
         "refinement_interpretation_Tm_refine_d1ac8f4714181b2c32cf1ceb709639f4"
       ],
       0,
-      "afa0442de5278df1eb740e1bd903bbc0"
+      "9ee6ae43b9a761b42cdffaa1e93aa7f6"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11469,7 +11469,7 @@
         "refinement_interpretation_Tm_refine_d1ac8f4714181b2c32cf1ceb709639f4"
       ],
       0,
-      "89f7f01118fafefa41db8da1bcf035bf"
+      "f6f171c0e3f70990f0add276654314c9"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11483,7 +11483,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "5557196f60b6c7a38c9d2b849446007b"
+      "316a7430e7d24b5c759847407501f496"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11497,7 +11497,7 @@
         "refinement_interpretation_Tm_refine_d1ac8f4714181b2c32cf1ceb709639f4"
       ],
       0,
-      "e525f686bc8e753be48fcd4b56dd8ef9"
+      "0b53644a04d8c6adf72d1543f3e59cdc"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11559,7 +11559,7 @@
         "refinement_interpretation_Tm_refine_d1ac8f4714181b2c32cf1ceb709639f4"
       ],
       0,
-      "afa0442de5278df1eb740e1bd903bbc0"
+      "9ee6ae43b9a761b42cdffaa1e93aa7f6"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11585,7 +11585,7 @@
         "refinement_interpretation_Tm_refine_d1ac8f4714181b2c32cf1ceb709639f4"
       ],
       0,
-      "89f7f01118fafefa41db8da1bcf035bf"
+      "f6f171c0e3f70990f0add276654314c9"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11599,7 +11599,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "5557196f60b6c7a38c9d2b849446007b"
+      "316a7430e7d24b5c759847407501f496"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11613,7 +11613,7 @@
         "refinement_interpretation_Tm_refine_d1ac8f4714181b2c32cf1ceb709639f4"
       ],
       0,
-      "e525f686bc8e753be48fcd4b56dd8ef9"
+      "0b53644a04d8c6adf72d1543f3e59cdc"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11658,7 +11658,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "c0cc4f99c7934110eba96f6d1c52419a"
+      "88b859b5e72559b1df7d08dcc67e38a6"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11715,7 +11715,7 @@
         "refinement_interpretation_Tm_refine_ec6cd5690532c8b51db03d29006e22a6"
       ],
       0,
-      "fc95f9b665e0a95bf7610ffef01767e9"
+      "33a6ca0901ef7b13e7bc627e57d6dad6"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11767,7 +11767,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "0f1bed76bf667cd005df008be86456d6"
+      "8aed3aba5d885df27000957f6e0baa9c"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11808,7 +11808,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "80f30f3ef0e3eb46531280fd35f5f500"
+      "302f173a5a48527df8f71891461510bc"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11842,7 +11842,7 @@
         "refinement_interpretation_Tm_refine_d960554f81750c3ede599d859ee49494"
       ],
       0,
-      "12e523e0dee189dfe88389aba0800be5"
+      "4fbc1c0abc55459cf90bf546813eccde"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11880,7 +11880,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "0c25928f5490fd2fc10af079d569978b"
+      "eeb67cc672505c28a406f931a1d38094"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11943,7 +11943,7 @@
         "refinement_interpretation_Tm_refine_d960554f81750c3ede599d859ee49494"
       ],
       0,
-      "da0702ce855a28629b628db62148b2d0"
+      "e8bdbe2beb54de68e940ae4cea561ea1"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -11981,7 +11981,7 @@
         "refinement_interpretation_Tm_refine_ec6cd5690532c8b51db03d29006e22a6"
       ],
       0,
-      "8dcc5ded2ba3a604ac996319b6935813"
+      "c99d6ded88df8fd56e4867d7b08cb79f"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -12015,7 +12015,7 @@
         "refinement_interpretation_Tm_refine_d960554f81750c3ede599d859ee49494"
       ],
       0,
-      "4590068e2e6cf24218deac2b1fe3ff2c"
+      "9dfbc5f388769b3feeb0fa71ebd784d0"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -12045,7 +12045,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "12e1a9c3ddc4fd7603d768a7b6893f2d"
+      "104f05cc1ac81243c08e93b64b3ee01d"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -12069,7 +12069,7 @@
         "refinement_interpretation_Tm_refine_ec6cd5690532c8b51db03d29006e22a6"
       ],
       0,
-      "f991fc167a55390f9e420698d8321d82"
+      "761086f8e0a3d8fa1611b80b750fe103"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -12120,7 +12120,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "0c7ec7ac9f2812254ab86dfe101ebbad"
+      "62df027d171e793226b4a36e2ffab281"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -12161,7 +12161,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "076fd3936f7f44baae65b148b0d2b617"
+      "1b019a4f1da102d34026885a9a4aeac8"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -12190,7 +12190,7 @@
         "refinement_interpretation_Tm_refine_dfb8d5008b2d22f162df60b079a9add1"
       ],
       0,
-      "84e18bb4063e645b7ac2be0e9ac6fdef"
+      "37508aa274485f7b14586b7b99595de8"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -12204,7 +12204,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "1f5cbc56c2e7089f00ebedec8c115716"
+      "ea0d9233404ed8380ee23eeee129eb18"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -12222,7 +12222,7 @@
         "refinement_interpretation_Tm_refine_ec6cd5690532c8b51db03d29006e22a6"
       ],
       0,
-      "6e3c3278b3ca7eb9f691bd4b3a0503ca"
+      "ba9581a5327b69964bd778fd250b0af4"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -12285,7 +12285,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "5abe50f0b7c43842f173f7a9146a66e2"
+      "26613d4b43423e6598fd37fc72845330"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -12329,7 +12329,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "03eb5a4c622be02d5272d25783391087"
+      "4fff82148f06c7a0e830a4a90181462a"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -12357,7 +12357,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "0c0b1b0cfefed191114adf1219c4b3db"
+      "f9a07c798a5c30cc3d0a7dc5df76dfe3"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -12444,7 +12444,7 @@
         "refinement_interpretation_Tm_refine_d960554f81750c3ede599d859ee49494"
       ],
       0,
-      "a6db8728abb47c1fc2271630edc26e0f"
+      "4c5280e9b14a8e1f6f5a028d37cbef92"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -12457,7 +12457,7 @@
         "refinement_interpretation_Tm_refine_af35d27e1fac0b89eb3b88dd80e8fbf4"
       ],
       0,
-      "c2b928510fc668cfd600a6820f17ffc2"
+      "9051d445d3b9df055fa02120e85fccfb"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -12485,7 +12485,7 @@
         "refinement_interpretation_Tm_refine_b8ddf7623d0944f3ea89fb7505baad06"
       ],
       0,
-      "c8fcd549a2839ab389178d80414d4cea"
+      "a2dd80a002a9150e9505628089ca81c5"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -12572,7 +12572,7 @@
         "refinement_interpretation_Tm_refine_d960554f81750c3ede599d859ee49494"
       ],
       0,
-      "e440b611083f9c39b028e196288b9959"
+      "41b3674b9a009817de0a9159cc9a532e"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -12585,7 +12585,7 @@
         "refinement_interpretation_Tm_refine_b441792e6ab3c62bbe49458851823fda"
       ],
       0,
-      "aefed9f8134152006c2f8203c604898e"
+      "cd1ed4444d1a29d8f882dda92bbc1fa8"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -12613,7 +12613,7 @@
         "refinement_interpretation_Tm_refine_d0a7771843353dd514c4da541ed7a3c1"
       ],
       0,
-      "5b95bdc51ead7c0a7c09433b524586e2"
+      "f520ce80809cacabc88baf1546178595"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -12693,7 +12693,7 @@
         "unit_typing"
       ],
       0,
-      "ab6b53a2be7faa5aa8f7a11676db5b0b"
+      "42408917d6bf7668efb03d6dcc853505"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -12735,7 +12735,7 @@
         "unit_typing"
       ],
       0,
-      "cb1c5b6dfa9e05315d06614e58922be0"
+      "5b641dbc55a62e0de70d10139c79aa9b"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -12748,7 +12748,7 @@
         "refinement_interpretation_Tm_refine_4f8438a2312ab58d4d0b0401e4a460d2"
       ],
       0,
-      "ad71164d7f9820a6c78e432cee532277"
+      "116cc782923071d1a78650b79d93a340"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -12791,7 +12791,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "92e6d2182af801d2e1fa903b72862893"
+      "1ddf73f305ca092a7e2fecba13fcd5a1"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -12813,7 +12813,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "cb8717f7708642a07f0dc5a2093a6287"
+      "1491b808b0dc4632549029f6fee7940d"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -12844,7 +12844,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "70396f417c87b3bce2ab6f979b80d7b8"
+      "257d87dd4ba8f67fd15e74eae016e04e"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -12885,7 +12885,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "a75ca163c2a220adb46bb5aa234ef99d"
+      "8f039269e95c984d1d19b7d1193030ad"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -12907,7 +12907,7 @@
         "refinement_interpretation_Tm_refine_db8380769cac993f978eb1040e94c40c"
       ],
       0,
-      "ea4b44c593459d8e4c631c847eea8551"
+      "f10b80f315adba5b05ca2428dd2a6ff2"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -12923,7 +12923,7 @@
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0"
       ],
       0,
-      "691dbb5e69d6f5550210d7bf583b1225"
+      "658fc48b0a6e0d038fcfbdd3b404df50"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -12935,7 +12935,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "bbcaa0e5da667411eae68fd1dbc2272f"
+      "27c6cb63eaf18d6bd9b40f71b3235916"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -12997,7 +12997,7 @@
         "refinement_interpretation_Tm_refine_d1ac8f4714181b2c32cf1ceb709639f4"
       ],
       0,
-      "9055e51728b97b6427eac3a80cacf871"
+      "7cecf905bb5ba3972a442d9c557c1527"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -13024,7 +13024,7 @@
         "refinement_interpretation_Tm_refine_d1ac8f4714181b2c32cf1ceb709639f4"
       ],
       0,
-      "d3264b3b87d0f72062dc290b9fe6e46d"
+      "38c80294f14a5aa73c1a2594182fbca7"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -13038,7 +13038,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "0a957177e6bf70a1d7719a48adc0d1c4"
+      "c9734151229f95f6d5e74bd49f990fd0"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -13052,7 +13052,7 @@
         "refinement_interpretation_Tm_refine_d1ac8f4714181b2c32cf1ceb709639f4"
       ],
       0,
-      "34d65f213d077537f95a8c521481e45c"
+      "c4dc7705df4ef5e1cf11f55579d52e39"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -13099,7 +13099,7 @@
         "refinement_interpretation_Tm_refine_db8380769cac993f978eb1040e94c40c"
       ],
       0,
-      "cb55fd85263e445a7166de8017f61140"
+      "f666cb6c8c61f262783eb42742d4fae6"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -13115,7 +13115,7 @@
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0"
       ],
       0,
-      "dfac6e97b08ef2f26263b34a62c2dddc"
+      "2c2f519d5cd606c7853aebca45051234"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -13128,7 +13128,7 @@
         "refinement_interpretation_Tm_refine_4446ea77436cc601108794a5ec8601d9"
       ],
       0,
-      "990dbc8399e8d5e3e7cfb9d0561121e2"
+      "34c7c589d70d438f851e40ab8dd9e1bc"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -13141,7 +13141,7 @@
         "refinement_interpretation_Tm_refine_4f8438a2312ab58d4d0b0401e4a460d2"
       ],
       0,
-      "c5151fb9f16d1363124673379f20a806"
+      "ec18e3c60f1834e4cbfb82a3bf95e025"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -13154,7 +13154,7 @@
         "refinement_interpretation_Tm_refine_9e6c9ab3020895af6a6670252a2fd0ad"
       ],
       0,
-      "4f138e6bf6b4d35dacb2573868959ef3"
+      "91dcee54ace7083549cd1506e8d768a5"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -13170,7 +13170,7 @@
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f"
       ],
       0,
-      "9b2a9663b23f4d5b399dfa1e198eeb51"
+      "94bc4b61609a2c285e1765ff6819f6e7"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -13188,7 +13188,7 @@
         "refinement_interpretation_Tm_refine_77454d9e6f2e602085d5db8775e4f513"
       ],
       0,
-      "8aecaedac4c8ae4963a9b8383f636d5b"
+      "bc510a207f7776439f9faeae8cb6fe53"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -13206,7 +13206,7 @@
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f"
       ],
       0,
-      "4406fc745bc4bb85bb14159257102437"
+      "33dbf9611ae4f2a4161fd456eb10351d"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -13225,7 +13225,7 @@
         "refinement_interpretation_Tm_refine_a7a18b3d2bbe32ad1d7773e62663094f"
       ],
       0,
-      "215fe0489e72b6bb1f8d58d11d9a0ae8"
+      "e8988674cb4b958a16566546f32f1142"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer2_to_poly_step",
@@ -13242,7 +13242,7 @@
         "unit_inversion"
       ],
       0,
-      "1584114173e19e6fb562cceba2e12cbb"
+      "23a1af1b7cc5a2049394e111a59f9dc5"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -13283,7 +13283,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "6bcd744224e69773eb0a0dec70578254"
+      "041c0906abb85645233a1bfba0a900b3"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -13301,7 +13301,7 @@
         "refinement_interpretation_Tm_refine_d8836626372248741cc7d6582bd93782"
       ],
       0,
-      "9b78984f546d594255ccf0f15ee85664"
+      "b4934278000e30769f0200043f714f8a"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -13349,7 +13349,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f3590f2c44ece3c7c5b77c83104a9f65"
+      "c031e94ebcf30784cb48a45df638b615"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -13382,7 +13382,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "324edb5f6b3b23de3ff555dfa360ed59"
+      "b9de02c9f3b33c8e04134d5d136bfc5f"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -13417,7 +13417,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "022d4b19e5a48228a857213ef733d778"
+      "8ac4b0a5f2acf9fdd8de626d6f6f0d31"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -13436,7 +13436,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "88c80ec43d9de283fab50a702e2dcabb"
+      "048241e5ca0dfa3870a73f71095a244d"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -13477,7 +13477,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "8be4d6dcdccdf3db58bb8503ed76cb3a"
+      "b317a632b3187c291f67f276054796b5"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -13495,7 +13495,7 @@
         "refinement_interpretation_Tm_refine_d8836626372248741cc7d6582bd93782"
       ],
       0,
-      "2579accf9a92a4e2efd4bb7eb7b072a7"
+      "4d946ae03dee47ab5e7c03fa1f7ea9ec"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -13543,7 +13543,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "b8d96195573bc996a35aee72cf95bc73"
+      "c9be9ae37420dfb2d81e39d6ae2910f6"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -13576,7 +13576,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4412ca097547c07f5cdcb957e6bacca0"
+      "7a3830e4cdcc70a3469448939c7891ee"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -13611,7 +13611,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "1f6aad9e5e2f9356ce21fbad88088290"
+      "541211fada7a21ea0e48ea1cc2964090"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -13630,7 +13630,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "8922e99e295f85b207db6ae5283f0d35"
+      "a0a4dcd5734ecc9602c2000004dfc0d6"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -13671,7 +13671,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "dff8a298716c6b41c05da824cf2130f3"
+      "2afcee0ba324cba793a8aba44bac0a43"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -13690,7 +13690,7 @@
         "refinement_interpretation_Tm_refine_045feaff96c939e73ccd5d7de8e4a488"
       ],
       0,
-      "c24488aa5dd11070b24c984660bfdf43"
+      "7632227feb35c3da18578b1699b302f2"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -13709,7 +13709,7 @@
         "refinement_interpretation_Tm_refine_045feaff96c939e73ccd5d7de8e4a488"
       ],
       0,
-      "868350c7333a6318e6f4e09eacbb8736"
+      "b8fd94b3c59e2840435492840db03f7f"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -13750,7 +13750,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "18f4f0a4ffe466b134e791acf7205f46"
+      "969d838059ed098bece8c874b57dd724"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -13769,7 +13769,7 @@
         "refinement_interpretation_Tm_refine_045feaff96c939e73ccd5d7de8e4a488"
       ],
       0,
-      "e1b0ab0c6d71205031ddd298a3cd7d7a"
+      "07e758e965f90aa32c73405a73809589"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -13788,7 +13788,7 @@
         "refinement_interpretation_Tm_refine_045feaff96c939e73ccd5d7de8e4a488"
       ],
       0,
-      "90e45cf5e2f7b5e660a5fbb6b44d5e2f"
+      "0265ca4f2aea56e5fe1edc2eee99190a"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -13825,7 +13825,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "985713da46cd26d52f3b448847a4451f"
+      "71f3e79e65cd6ced6bccc664699b7be7"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -13842,7 +13842,7 @@
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0"
       ],
       0,
-      "b008e5c2d5c8ec6775cd0697efee9b7b"
+      "6f259a7999b437596f4fa848fe17dc6b"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -13864,7 +13864,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "e8eb91b6f4f25402bcb2332b74423ad3"
+      "44bf1490d169fc96d92acb842ca1b47b"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -13877,7 +13877,7 @@
         "refinement_interpretation_Tm_refine_0766302b68bb44ab7aff8c4d8be0b46f"
       ],
       0,
-      "42c31303bf84a6838638e585ee06314c"
+      "e4152239fb3509e31b89a5b4819d30ce"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -13921,7 +13921,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "664320dd8656ad69ef6f0fd3cf5fad65"
+      "29376a68db3864fe378641e31fcf517a"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -13952,7 +13952,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "9687f2959af0dc7a84fc07c65e67c6b2"
+      "da268fae3b73858e1c4383b019208218"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -13987,7 +13987,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "18eae459b4d2bc2769afde4e8c780c41"
+      "7200e89aefffbb31055c15e8f1c461cd"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -14016,7 +14016,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "114f657f61065c27a0bfeb6059924161"
+      "298be48699ec23edee87d7035ec72161"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -14073,7 +14073,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "bd7d3880577f5c0e9d6aa191df50730c"
+      "a096d04cf11c0889d18d3b010d543d1b"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -14107,7 +14107,7 @@
         "typing_Libcrux_ml_kem.Vector.__proj__Mkt_PolynomialRingElement__item__f_coefficients"
       ],
       0,
-      "17f44e77945c4ceab38f887182ce37f9"
+      "c66eaac072dfc955d3570df7c6dd5634"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -14133,7 +14133,7 @@
         "refinement_interpretation_Tm_refine_fdfe5501e1c68aada988d717e7ba9dec"
       ],
       0,
-      "fe6d340aba1b6a6f415f4ed295170865"
+      "0fdde6722fb740d80f3ba83b57ac5b52"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -14177,7 +14177,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "700f04dc2f58c553d8c5f6f4b2eb1743"
+      "8a93b9f9c3eb7021a6ad35cb5e5fd120"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -14208,7 +14208,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "6ccb2e4343b6ec2fab05d4c9acf071cc"
+      "a4b9e98f0b4201546bbb63bf7a9d43d4"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -14244,7 +14244,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "d8f37f29caf3fd00bb270f460674d5fb"
+      "93b7b51f54d667e141bf0170e9d2cc83"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -14274,7 +14274,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "d723d35ae21fe09e550d28851d775615"
+      "e06691cd0411787526bcfcb4a7e36c2f"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -14287,7 +14287,7 @@
         "refinement_interpretation_Tm_refine_fdfe5501e1c68aada988d717e7ba9dec"
       ],
       0,
-      "beb4719b89fad9831a61c6e28bb509ba"
+      "123311ac94e53eb1024906fd0d3b4be8"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -14341,7 +14341,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "169ac9ccbb358b03553ba9f0b0834221"
+      "3783961d933aa6227052dbb72df5ec7a"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -14363,7 +14363,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "895713f91802ce326c3632b58e5ca811"
+      "89848aff727cdef660f393f92e556f93"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -14394,7 +14394,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "745acffb9976d175a4f4d1439ab0d8aa"
+      "16830366595a3c74b1d635f4b12ee8dd"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -14435,7 +14435,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "28b7e7481e274713eaa728a0329e1c6f"
+      "f38b806165961d62a88d81b7fb44de9f"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -14448,7 +14448,7 @@
         "refinement_interpretation_Tm_refine_fdfe5501e1c68aada988d717e7ba9dec"
       ],
       0,
-      "beb4719b89fad9831a61c6e28bb509ba"
+      "123311ac94e53eb1024906fd0d3b4be8"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -14502,7 +14502,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "169ac9ccbb358b03553ba9f0b0834221"
+      "3783961d933aa6227052dbb72df5ec7a"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -14524,7 +14524,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "895713f91802ce326c3632b58e5ca811"
+      "89848aff727cdef660f393f92e556f93"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -14555,7 +14555,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "745acffb9976d175a4f4d1439ab0d8aa"
+      "16830366595a3c74b1d635f4b12ee8dd"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -14596,7 +14596,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "28b7e7481e274713eaa728a0329e1c6f"
+      "f38b806165961d62a88d81b7fb44de9f"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -14640,7 +14640,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e2e8dad974309ba6058eaecc9235439c"
+      "21e69ca58dde864309cadd8d5d54d26e"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -14671,7 +14671,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "6e0eeb7647d85aa79168a331532961b6"
+      "d485d1ef4162545320e5f44cd20fd3ff"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -14706,7 +14706,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4fcfd3a26c823994887143fbc2e062b9"
+      "cf9b79b8d7001d835a185125aabb1f8e"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -14735,7 +14735,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "93cd6dbf4493ecf14b8def3e2e0b2b06"
+      "11d6f2169bc2f77f52760399592fded8"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -14751,7 +14751,7 @@
         "refinement_interpretation_Tm_refine_cb51df2425ee32ea81562551133ecf13"
       ],
       0,
-      "b99125c09f38999464b25d91895c9fe9"
+      "463d30c6493ca78c86582e92c7a0fd68"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -14799,7 +14799,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "74c047c564e1c7e602fe48e6722d8f23"
+      "f761ebf812b09d34ae26056580a2864d"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -14872,7 +14872,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4872d9c47092a879e0164e0d637508cc"
+      "206499bfd133fbfd49051cb88ed603d5"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -14897,7 +14897,7 @@
         "refinement_interpretation_Tm_refine_ea746c3726e91eb3cbf8ca7ec06e34e5"
       ],
       0,
-      "03b552da3f289d11c09251882bf102a1"
+      "c580cf66ec6094b275a08aa8f5c5471c"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -14959,7 +14959,7 @@
         "refinement_interpretation_Tm_refine_bae28430416a0e75e93ec6ef67bf4b17"
       ],
       0,
-      "e9eae84f7be2dff316bb748a6f8d7940"
+      "7386dbb10875968c209aa66eee3ab5fa"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -14982,7 +14982,7 @@
         "refinement_interpretation_Tm_refine_ea746c3726e91eb3cbf8ca7ec06e34e5"
       ],
       0,
-      "9f79bef019bda95d97ff4ffe0d14f5ea"
+      "6c915e04639889a682a6754040ab624c"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15013,7 +15013,7 @@
         "unit_inversion", "unit_typing"
       ],
       0,
-      "ada27cbd39c1429c3978f77cd0256b4c"
+      "1fdc3361bac5824c872a18fca76f05e9"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15030,7 +15030,7 @@
         "unit_inversion", "unit_typing"
       ],
       0,
-      "16c8da57651d38f56343bb19a096bd1e"
+      "2ba6c38a750055efa503e839edff3067"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15052,7 +15052,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "d4b8ad259070e2aa62f9eb7df378ac14"
+      "0c401adecd91554f2c3a2fd390e4166c"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15068,7 +15068,7 @@
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0"
       ],
       0,
-      "e7992113835b79f102d40123e83c3c60"
+      "4b6ccd27fc3b46249041a2f346b6fa7b"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15080,7 +15080,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "621a6e01d59cf020353a74e9e7abe6b4"
+      "141f572969355e736421ab11f65e570a"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15102,7 +15102,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "d4b8ad259070e2aa62f9eb7df378ac14"
+      "0c401adecd91554f2c3a2fd390e4166c"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15118,7 +15118,7 @@
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0"
       ],
       0,
-      "e7992113835b79f102d40123e83c3c60"
+      "4b6ccd27fc3b46249041a2f346b6fa7b"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15130,7 +15130,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "621a6e01d59cf020353a74e9e7abe6b4"
+      "141f572969355e736421ab11f65e570a"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15158,7 +15158,7 @@
         "refinement_interpretation_Tm_refine_fdfe5501e1c68aada988d717e7ba9dec"
       ],
       0,
-      "9e124b9b1a1a4d2d7c7c3fcfd7e606ae"
+      "f29da36a69c179d528f3ed7b09e78915"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15167,7 +15167,7 @@
       1,
       [ "@query", "b2t_def" ],
       0,
-      "ef06008d905568d581a0988353013c61"
+      "888db61c5018c22bdce47578f2f91ce4"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15179,7 +15179,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "708d82ba0a68e7b380b5c2abc1c51bef"
+      "fccde852d11f910cd968437e0ac71bbd"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15198,7 +15198,7 @@
         "refinement_interpretation_Tm_refine_0dee8cb03258a67c2f7ec66427696212"
       ],
       0,
-      "bd4bbf43101b58203e7a3292f06c3566"
+      "7804ecf6480386afe1db5f6868825c3f"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15217,7 +15217,7 @@
         "refinement_interpretation_Tm_refine_cb51df2425ee32ea81562551133ecf13"
       ],
       0,
-      "c495aeac57e59abbbcd16a935989cc96"
+      "5c3d6f34516388ffc1f4de5178df8325"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15237,7 +15237,7 @@
         "unit_inversion", "unit_typing"
       ],
       0,
-      "247a654314236587b51b173b615187aa"
+      "e25adb3519880cb1bfe041342164ce35"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15254,7 +15254,7 @@
         "unit_inversion", "unit_typing"
       ],
       0,
-      "77f6939272dc74ab83df16f4b81d3d55"
+      "adae0dcbed7177664725293b5eabb07e"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15280,7 +15280,7 @@
         "refinement_interpretation_Tm_refine_fdfe5501e1c68aada988d717e7ba9dec"
       ],
       0,
-      "4e1255118564a232036abe3424bfc047"
+      "30dcfeb213e37507b3a12167901e4a69"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15303,7 +15303,7 @@
         "refinement_interpretation_Tm_refine_da0722d516f1f020b6a4e1062411e36a"
       ],
       0,
-      "017bde087202b5b39bca5fb808b6339a"
+      "b3044cb263361e72c9f0e65e2668e20f"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15315,7 +15315,7 @@
         "refinement_interpretation_Tm_refine_2268f874b62930798eaf62451b387b24"
       ],
       0,
-      "694d50001f37d8791bac069da00483cf"
+      "22ec34f142f3d046d918450df1ad382d"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15342,7 +15342,7 @@
         "refinement_interpretation_Tm_refine_da0722d516f1f020b6a4e1062411e36a"
       ],
       0,
-      "10864475c2952afbea636130389d0fd1"
+      "32cc3b441edf5e03030bef366e43918c"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15356,7 +15356,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "ffeec9169485a14bc0fc1b056c702dad"
+      "7de41ab549c5a12722e36b497d79a339"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15370,7 +15370,7 @@
         "refinement_interpretation_Tm_refine_fdfe5501e1c68aada988d717e7ba9dec"
       ],
       0,
-      "23f0f529549a7ba1280e698a6d199e2e"
+      "1211b083a399c0eac180269f107f48ee"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15396,7 +15396,7 @@
         "refinement_interpretation_Tm_refine_fdfe5501e1c68aada988d717e7ba9dec"
       ],
       0,
-      "4e1255118564a232036abe3424bfc047"
+      "30dcfeb213e37507b3a12167901e4a69"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15419,7 +15419,7 @@
         "refinement_interpretation_Tm_refine_da0722d516f1f020b6a4e1062411e36a"
       ],
       0,
-      "017bde087202b5b39bca5fb808b6339a"
+      "b3044cb263361e72c9f0e65e2668e20f"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15431,7 +15431,7 @@
         "refinement_interpretation_Tm_refine_2268f874b62930798eaf62451b387b24"
       ],
       0,
-      "694d50001f37d8791bac069da00483cf"
+      "22ec34f142f3d046d918450df1ad382d"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15458,7 +15458,7 @@
         "refinement_interpretation_Tm_refine_da0722d516f1f020b6a4e1062411e36a"
       ],
       0,
-      "10864475c2952afbea636130389d0fd1"
+      "32cc3b441edf5e03030bef366e43918c"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15472,7 +15472,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "ffeec9169485a14bc0fc1b056c702dad"
+      "7de41ab549c5a12722e36b497d79a339"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15486,7 +15486,7 @@
         "refinement_interpretation_Tm_refine_fdfe5501e1c68aada988d717e7ba9dec"
       ],
       0,
-      "23f0f529549a7ba1280e698a6d199e2e"
+      "1211b083a399c0eac180269f107f48ee"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15530,7 +15530,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "bd9e9818ffa5487097dd4eea6bba1098"
+      "32521b08d824bc020202cd341cdbbe9c"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15564,7 +15564,7 @@
         "refinement_interpretation_Tm_refine_ea746c3726e91eb3cbf8ca7ec06e34e5"
       ],
       0,
-      "dee46c4280c9fa6167593992805de0d1"
+      "05ebbf8213c4cb97ae2f54eb7ee25dd4"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15602,7 +15602,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "1f8bf1c6f2eebf7f87513769dfdcc3e1"
+      "ff0ab31359fba980c42d0f1e90d9b55a"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15631,7 +15631,7 @@
         "refinement_interpretation_Tm_refine_ea746c3726e91eb3cbf8ca7ec06e34e5"
       ],
       0,
-      "a96760650324c655d6653b95edb4b362"
+      "00d34f0037e9992adeccb16df4938b6c"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15662,7 +15662,7 @@
         "refinement_interpretation_Tm_refine_fdfe5501e1c68aada988d717e7ba9dec"
       ],
       0,
-      "b7b61098fcf2b3f9306ced0234f2b39d"
+      "196b4ddf40d0468c00c6f30d4a080c43"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15687,7 +15687,7 @@
         "refinement_interpretation_Tm_refine_da0722d516f1f020b6a4e1062411e36a"
       ],
       0,
-      "9dacf1232d6fe5a896b2f7753fbbabe5"
+      "67ac656aecbcb42dd882972878a63fbb"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15738,7 +15738,7 @@
         "refinement_interpretation_Tm_refine_fdfe5501e1c68aada988d717e7ba9dec"
       ],
       0,
-      "6abf9baf1a647571ac28fedb1253fc99"
+      "6a52402eda1b7bdd611c517088a472e7"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15773,7 +15773,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "fff04dcb4a406615a6d55f622c7852d3"
+      "42ace7a6aa0e9ab00e70fc46784032d1"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15802,7 +15802,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "312acdd324eb3ebc285f3c917e710382"
+      "f4c5081d94cb5fffb28ab4950a60285f"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15816,7 +15816,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "d3cb07f89189f9fde01f79034786dadf"
+      "6b413dedff0b3af44106437135b67624"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15837,7 +15837,7 @@
         "refinement_interpretation_Tm_refine_da0722d516f1f020b6a4e1062411e36a"
       ],
       0,
-      "e14056dd2bee4e7ff25d00b2ba77d930"
+      "cf8d1689060576738f252e418bc34c10"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15900,7 +15900,7 @@
         "refinement_interpretation_Tm_refine_d960554f81750c3ede599d859ee49494"
       ],
       0,
-      "8e46badfefcb0148e06687637545ccdf"
+      "800e245a7c7ab4069e08cfb33668122e"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15924,7 +15924,7 @@
         "refinement_interpretation_Tm_refine_ea746c3726e91eb3cbf8ca7ec06e34e5"
       ],
       0,
-      "66233fae17d94a22f0388b1095efaab9"
+      "8186b17bb5007c0b46af65721da76859"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -15988,7 +15988,7 @@
         "refinement_interpretation_Tm_refine_fdfe5501e1c68aada988d717e7ba9dec"
       ],
       0,
-      "6f200df237a0e9c1361097151109850b"
+      "67fc7783a066c7d57cf3e2cae3f93838"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -16032,7 +16032,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "86b51dec60072aee3369b182c4c43ba8"
+      "069e75afe45541ab85cc640f66ecdd04"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -16070,7 +16070,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "936a91615525b52d9871956f3184d876"
+      "035d7914cce5ac5b7424d7cc07b58666"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -16114,7 +16114,7 @@
         "unit_inversion", "unit_typing"
       ],
       0,
-      "a89fbf5cccda32de6482ddba82a77c2b"
+      "d7a086b2e64db280752c302d9ef42977"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -16157,7 +16157,7 @@
         "unit_typing"
       ],
       0,
-      "cfd9c474c80de9d8993aa2894c29031f"
+      "5a98ace3792e91a8fcf3c2f8fc8a7218"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -16170,7 +16170,7 @@
         "refinement_interpretation_Tm_refine_fdfe5501e1c68aada988d717e7ba9dec"
       ],
       0,
-      "d397285968528b90a05c6c3f5bd35133"
+      "fc6f863cfd53bbb26d102517b0f7c801"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -16224,7 +16224,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "7cdafceac4affe8b282e051e3c47967a"
+      "9211bf5ab6a3ac06dfb128cb4b4797c0"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -16246,7 +16246,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "c55e118f7de47f40cfa6f9b182eea209"
+      "64e8b498f12eeb6111f6617e0831fe43"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -16277,7 +16277,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "c413d75c19d6bf9ef013e17569673a4b"
+      "14e6ea22c1719c271919a5e625d0776d"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -16318,7 +16318,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "b24d9ed632bdc19918ff05813b837070"
+      "c7852563f12a99e2429baddda70abd92"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -16340,7 +16340,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "d41ec3c3645c4c307e74ad28adaa6432"
+      "27e1b12fd34707d22aa633bf51725b88"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -16356,7 +16356,7 @@
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0"
       ],
       0,
-      "c51d40b1abca76f99f7308e9501e5171"
+      "0dead8c87a4477911c419963342ce406"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -16368,7 +16368,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "146f3ca70dd7ac35e679cdfab3155003"
+      "972583ea905177a79048690a7469df0b"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -16394,7 +16394,7 @@
         "refinement_interpretation_Tm_refine_fdfe5501e1c68aada988d717e7ba9dec"
       ],
       0,
-      "1d4974ed52081c840bad3f87bd683a56"
+      "148f24938ffe8b638b66f0e40fb566b2"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -16417,7 +16417,7 @@
         "refinement_interpretation_Tm_refine_da0722d516f1f020b6a4e1062411e36a"
       ],
       0,
-      "06f540fb606b0ae065272e94aa112e78"
+      "48f477c4cadede2f8d34d3cb3331aae0"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -16429,7 +16429,7 @@
         "refinement_interpretation_Tm_refine_2268f874b62930798eaf62451b387b24"
       ],
       0,
-      "7da9a1a416d0a619e79a049e1a297685"
+      "6316ce08fd6f81ca6f74fb4f95f8d4b4"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -16457,7 +16457,7 @@
         "refinement_interpretation_Tm_refine_da0722d516f1f020b6a4e1062411e36a"
       ],
       0,
-      "a610974a504d316119436f9e89c45ccf"
+      "9528281c32cec52f52a5dee3d71c77a2"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -16471,7 +16471,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "3f1609451abb46cfb9aa74f179d46b17"
+      "043eadfeef761bbef13c193daae44d0b"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -16485,7 +16485,7 @@
         "refinement_interpretation_Tm_refine_fdfe5501e1c68aada988d717e7ba9dec"
       ],
       0,
-      "e6cbd43ca4798a1d174e6c7a715aae89"
+      "02ad15449fe7c8176e1afc2be610c9c9"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -16532,7 +16532,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "a5008c859edab506e495e506f51c4b7c"
+      "5d769f3915fdb39bfea95d241695bcaa"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -16548,7 +16548,7 @@
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0"
       ],
       0,
-      "61ceb5fbecabd353d4e9460a8f5c3388"
+      "b0440204581f4e23b417dd331f29a8fa"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -16561,7 +16561,7 @@
         "refinement_interpretation_Tm_refine_5e11e89e044f951ef8840cd15034923c"
       ],
       0,
-      "4a895aafe8961927971f24ab324e71fe"
+      "d8a929a099bd886b3986be432203ac6b"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -16574,7 +16574,7 @@
         "refinement_interpretation_Tm_refine_fdfe5501e1c68aada988d717e7ba9dec"
       ],
       0,
-      "05b2ee5d41dbf32b3c53efa806730bb6"
+      "9d328699ec7b5125288c508c9f3fa11a"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -16587,7 +16587,7 @@
         "refinement_interpretation_Tm_refine_82a61066ace8295b0e3149be681f22b8"
       ],
       0,
-      "f8c86a2ecce9ef243350956ab1c42530"
+      "131ce4edb8836a82793569c80771b06b"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -16602,7 +16602,7 @@
         "refinement_interpretation_Tm_refine_da0722d516f1f020b6a4e1062411e36a"
       ],
       0,
-      "0f7e704123f3e320370ddb50c346c088"
+      "58c998d3204fae7374cb08a2dc918b67"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -16620,7 +16620,7 @@
         "refinement_interpretation_Tm_refine_cb51df2425ee32ea81562551133ecf13"
       ],
       0,
-      "5887e61471209c77cd973e21497d51fa"
+      "b37fd355f59319c29c8031057b4bd549"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -16638,7 +16638,7 @@
         "refinement_interpretation_Tm_refine_045feaff96c939e73ccd5d7de8e4a488"
       ],
       0,
-      "c280bae0535cdf125e3b7f6598f1e916"
+      "17b1fd3a629ab9079e978385d6286d31"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -16657,7 +16657,7 @@
         "refinement_interpretation_Tm_refine_4ba707f00b58b818f227c4d0359e43a3"
       ],
       0,
-      "6f77caf82061916bb819d33f9f7baa5d"
+      "1cf8e4236ce86837caf3ba8829f4eac8"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_layer3_to_poly_step",
@@ -16674,7 +16674,7 @@
         "unit_inversion"
       ],
       0,
-      "7e39cf24e6c33202f8074882c142e78f"
+      "5f31cee20bf58adad38f2b3b56ff0bc1"
     ],
     [
       "Hacspec_ml_kem.Commute.Invert_ntt_bridge.lemma_compose_7",
@@ -16717,7 +16717,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e6523ad6d62c2fa203a49f0f4a29a201"
+      "76b2222ce6f2449c8fdf9054528bcafd"
     ]
   ]
 ]

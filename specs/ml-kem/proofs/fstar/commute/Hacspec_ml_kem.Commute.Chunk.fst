@@ -1125,7 +1125,7 @@ let lemma_decompress_1_chunk_commutes
     (ensures
        (let r = T.f_decompress_1_ vec in
         TS.decompress_1_post (T.f_repr vec) (T.f_repr r)))
-  = admit ()
+  = let _ = T.f_decompress_1_ vec in ()
 
 let lemma_decompress_ciphertext_coefficient_chunk_commutes
     (#vV: Type0) {| i: T.t_Operations vV |}
@@ -1139,7 +1139,7 @@ let lemma_decompress_ciphertext_coefficient_chunk_commutes
        (let r = T.f_decompress_ciphertext_coefficient coefficient_bits vec in
         TS.decompress_ciphertext_coefficient_post
           (T.f_repr vec) coefficient_bits (T.f_repr r)))
-  = admit ()
+  = let _ = T.f_decompress_ciphertext_coefficient coefficient_bits vec in ()
 
 (* ────────────  NTT-layer ops  ────────────
    Hacspec's `ntt_layer_n` at N = 16 takes half-size `len` and a zeta
@@ -4129,3 +4129,45 @@ let zetas_8 (z0 z1 z2 z3 z4 z5 z6 z7: i16)
 (* Layer 5..7 inverse: shared shapes with the existing `zetas_1_/2/4`
    in `Vector.Traits.Spec`.  Layer 5: 4 zetas (zetas_4_); Layer 6: 2
    (zetas_2_); Layer 7: 1 (zetas_1_).  Provided by Spec module already.    *)
+
+(* ════════════════════════════════════════════════════════════════════════
+   Phase 2a — the d-bit compress BARRETT CORE (shared across all backends).
+   The (de)compress SIMD spines all compute, per lane, the portable scalar
+   Barrett formula  ((fe*2^d + 1664) * 10321340) >> 35  mod 2^d  (the magic
+   const 10321340 = ceil(2^35 / 3329)).  This lemma proves that pure integer
+   formula equals compress_d's exact  ((2*fe*2^d + 3329) / 6658) mod 2^d  for
+   the ciphertext d's {4,5,10,11} and fe in [0,3328].  Proven ONCE; each
+   backend body then only shows its lanes compute the LHS (mechanical
+   SIMD==scalar), and the existing *_fe_commute bridge lifts to the FE spec. *)
+#push-options "--z3rlimit 400 --fuel 0 --ifuel 0"
+let lemma_compress_d_barrett_eq (fe: int) (d: nat)
+  : Lemma (requires 0 <= fe /\ fe < 3329 /\ (d == 4 \/ d == 5 \/ d == 10 \/ d == 11))
+          (ensures (((fe * pow2 d + 1664) * 10321340) / pow2 35) % pow2 d
+                   == ((fe * 2 * pow2 d + 3329) / 6658) % pow2 d)
+  = assert_norm (pow2 35 == 34359738368);
+    assert_norm (pow2 11 == 2048);
+    L.pow2_le_compat 11 d;
+    let dd = pow2 d in
+    assert (dd <= 2048 /\ dd >= 1);
+    L.lemma_mult_le_right dd fe 3328;
+    L.lemma_mult_le_left 3328 dd 2048;
+    let nn = fe * dd + 1664 in
+    assert (0 <= nn /\ nn <= 3328 * 2048 + 1664);
+    L.lemma_div_mod nn 3329;
+    let q = nn / 3329 in
+    let r = nn % 3329 in
+    assert (nn == 3329 * q + r /\ 0 <= r /\ r < 3329);
+    assert (q <= 2047);
+    (* (1) exact == q : 6658 = 2*3329 never divides the odd 2*nn+1 *)
+    assert (fe * 2 * dd + 3329 == (2 * r + 1) + 6658 * q);
+    L.lemma_div_plus (2 * r + 1) q 6658;
+    assert ((2 * r + 1) / 6658 == 0);
+    assert ((fe * 2 * dd + 3329) / 6658 == q);
+    (* (2) barrett == q : Barrett bound  q*3492 + r*10321340 < 2^35 *)
+    assert (3329 * 10321340 == 34359740860);
+    assert (nn * 10321340 == q * 34359740860 + r * 10321340);
+    assert (pow2 35 * q <= nn * 10321340);
+    assert (nn * 10321340 < pow2 35 * (q + 1));
+    L.division_definition (nn * 10321340) (pow2 35) q;
+    assert ((fe * pow2 d + 1664) * 10321340 == nn * 10321340)
+#pop-options

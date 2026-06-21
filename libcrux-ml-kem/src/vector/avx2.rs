@@ -345,17 +345,44 @@ fn op_compress<const COEFFICIENT_BITS: i32>(vector: SIMD256Vector) -> SIMD256Vec
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always --z3refresh")]
 #[hax_lib::requires(fstar!(r#"${spec::decompress_1_pre} (impl.f_repr ${a})"#))]
 #[hax_lib::ensures(|out| fstar!(r#"${spec::decompress_1_post} (impl.f_repr ${a}) (impl.f_repr ${out})"#))]
 fn op_decompress_1(a: SIMD256Vector) -> SIMD256Vector {
     hax_lib::fstar!(
-        r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.bounded_i16_array)
-                    (Libcrux_ml_kem.Vector.Traits.Spec.bounded_i16_array)"#
+        r#"assert_norm (pow2 1 - 1 == 1);
+           reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.bounded_i16_array)
+             (Libcrux_ml_kem.Vector.Traits.Spec.bounded_i16_array (mk_i16 0)
+                 (mk_i16 1)
+                 (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${a}.f_elements));
+           assert (forall (i: nat).
+                 {:pattern Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${a}.f_elements) i}
+                 i < 16 ==>
+                 v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${a}.f_elements) i) >= 0 /\
+                 v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${a}.f_elements) i) <= 1)"#
     );
-    SIMD256Vector {
+    let result = SIMD256Vector {
         elements: compress::decompress_1(a.elements),
-    }
+    };
+    hax_lib::fstar!(
+        r#"Libcrux_ml_kem.Vector.Traits.Spec.lemma_bounded_i16_array_intro (mk_i16 0) (mk_i16 3328)
+             (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}.f_elements);
+           let aux (j: nat{j < 16})
+               : Lemma
+               (Libcrux_ml_kem.Vector.Traits.Spec.decompress_1_lane_post
+                   (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${a}.f_elements) j)
+                   (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}.f_elements) j)) =
+             reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.decompress_1_lane_post)
+               (Libcrux_ml_kem.Vector.Traits.Spec.decompress_1_lane_post
+                   (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${a}.f_elements) j)
+                   (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}.f_elements) j));
+             Hacspec_ml_kem.Commute.Chunk.lemma_decompress_1_fe_commute_int
+               (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${a}.f_elements) j)
+               (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}.f_elements) j)
+           in
+           Classical.forall_intro aux"#
+    );
+    result
 }
 
 #[inline(always)]

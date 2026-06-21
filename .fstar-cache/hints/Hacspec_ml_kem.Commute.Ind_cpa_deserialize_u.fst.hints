@@ -157,7 +157,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "00831535ae986fad25e0536f93c2985b"
+      "27ed0f77164068d92d9602c333bd71ef"
     ],
     [
       "Hacspec_ml_kem.Commute.Ind_cpa_deserialize_u.lemma_dtdu_then_ntt_index",
@@ -228,7 +228,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "a80c553277a6f73f13e0d009673cbcf7"
+      "02c5ef04ba6c8866199e64b40aa43f92"
     ],
     [
       "Hacspec_ml_kem.Commute.Ind_cpa_deserialize_u.lemma_ddu_deserialized_eq",
@@ -378,7 +378,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "108b4f3c2906b18028558f1edde94303"
+      "e57b6d9c65b06d64dd372fc196e58167"
     ],
     [
       "Hacspec_ml_kem.Commute.Ind_cpa_deserialize_u.lemma_ddu_per_index",
@@ -784,10 +784,8 @@
         "equation_Rust_primitives.Integers.mk_int",
         "equation_Rust_primitives.Integers.mk_usize",
         "equation_Rust_primitives.Integers.range",
-        "equation_Rust_primitives.Integers.range_t",
         "equation_Rust_primitives.Integers.unsigned",
-        "equation_Rust_primitives.Integers.usize",
-        "equation_Rust_primitives.Integers.v",
+        "equation_Rust_primitives.Integers.v", "int_inversion",
         "lemma_Rust_primitives.Integers.pow2_values",
         "primitive_Prims.op_AmpAmp", "primitive_Prims.op_LessThanOrEqual",
         "primitive_Prims.op_Multiply", "primitive_Prims.op_Subtraction",
@@ -798,12 +796,9 @@
         "refinement_interpretation_Tm_refine_3c519c8afa38c3c934a5bef97a712903",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
         "refinement_interpretation_Tm_refine_9c6eb8e7781b8345ff54e0d0a072c875",
-        "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
         "refinement_interpretation_Tm_refine_b045b04f0bb15cd7c94a2ec78d3283ce",
-        "typing_Hacspec_ml_kem.Parameters.v_COEFFICIENTS_IN_RING_ELEMENT",
         "typing_Rust_primitives.Integers.bits",
         "typing_Rust_primitives.Integers.size_bits",
-        "typing_Rust_primitives.Integers.v",
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
@@ -1636,7 +1631,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "7d2cc76bc06ea1207f12965853608cc2"
+      "1d26132d4c147d31bf99300de3b06ee1"
     ],
     [
       "Hacspec_ml_kem.Commute.Ind_cpa_deserialize_u.lemma_ddu_finalize",
@@ -1665,7 +1660,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "a82f094f3896939bd187a9f2931ca1b5"
+      "eb17f37dc970045d1844ab8382fa5553"
     ],
     [
       "Hacspec_ml_kem.Commute.Ind_cpa_deserialize_u.lemma_ddu_slice_eq",
@@ -1759,7 +1754,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "69d433bd48268d4409ef7535a23edf07"
+      "9902668c52c9c2a281e3997c4076a1e6"
     ]
   ]
 ]

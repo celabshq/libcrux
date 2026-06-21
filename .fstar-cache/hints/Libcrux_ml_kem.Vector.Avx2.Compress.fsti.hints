@@ -1,5 +1,5 @@
 [
-  "ee4ae7f66e04cd542fd06c4f7d6ce1dd",
+  "92629dbd3d5aa7aa2ee9d9513ff1cb88",
   [
     [
       "Libcrux_ml_kem.Vector.Avx2.Compress.compress_message_coefficient",
@@ -67,7 +67,7 @@
       [
         "@MaxFuel_assumption", "@MaxIFuel_assumption",
         "@fuel_correspondence_Prims.pow2.fuel_instrumented", "@query",
-        "bool_inversion", "bool_typing",
+        "bool_inversion",
         "constructor_distinct_Rust_primitives.Integers.I16",
         "constructor_distinct_Rust_primitives.Integers.USIZE",
         "data_elim_Rust_primitives.Integers.MkInt",
@@ -103,13 +103,14 @@
         "refinement_interpretation_Tm_refine_6b2a2434908d8221a6b277919e78ae45",
         "refinement_interpretation_Tm_refine_774ba3f728d91ead8ef40be66c9802e5",
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
+        "refinement_interpretation_Tm_refine_be07640b6647f7fe741c23f6f8f1d64f",
         "typing_FStar.Seq.Base.index", "typing_FStar.Seq.Base.length",
         "typing_Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16",
         "typing_Prims.pow2", "typing_Rust_primitives.Integers.range",
         "typing_tok_Rust_primitives.Integers.I16@tok"
       ],
       0,
-      "439edc0773d47b490ad1ad61f3f6ca85"
+      "27edcb23abc126eb4c222e7507f53a9a"
     ]
   ]
 ]

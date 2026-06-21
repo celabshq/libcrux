@@ -93,6 +93,36 @@ let lemma_i16_xor_zero (x: i16) : Lemma
   (ensures v (x ^. mk_i16 0) == v x)
   [SMTPat (x ^. mk_i16 0)]
   = Rust_primitives.Integers.logxor_lemma x (mk_i16 0)
+
+(* P1: per-lane conditional-not.  When the mask m is all-ones (v m = -1) it
+   flips x to lognot x = -x-1; when all-zeros (v m = 0) it is identity.
+   Mirror of the portable shifted_to_positive xor reasoning. *)
+let lemma_xor_cond_not (m x: i16) : Lemma
+  (requires v m == (if v x < 0 then -1 else 0))
+  (ensures v (m ^. x) == (if v x < 0 then - (v x) - 1 else v x))
+  = Rust_primitives.Integers.mk_int_v_lemma m;
+    Rust_primitives.Integers.logxor_lemma x m;
+    Rust_primitives.Integers.lognot_lemma x
+
+(* P0: the compress-1 integer identity, a mirror of the portable
+   compress_message_coefficient final case-split.  Pure arithmetic fact:
+   for a field element vec_i in [0,3328], floor((vec_i*4+3329)/6658) is
+   0 / 1 / 2 on the three ranges [0,832] / [833,2496] / [2497,3328], whose
+   parities are 0 / 1 / 0 = (if 833<=vec_i<=2496 then 1 else 0). *)
+#push-options "--z3rlimit 200"
+let lemma_compress_message_identity (vec_i: int) : Lemma
+  (requires vec_i >= 0 /\ vec_i < 3329)
+  (ensures ((vec_i * 4 + 3329) / 6658) % 2 == (if 833 <= vec_i && vec_i <= 2496 then 1 else 0))
+  = assert (vec_i < 833 ==> (vec_i * 4 + 3329) >= 3329 /\ (vec_i * 4 + 3329) < 6658);
+    assert (vec_i < 833 ==> (vec_i * 4 + 3329) / 6658 == 0);
+    assert (vec_i < 833 ==> ((vec_i * 4 + 3329) / 6658) % 2 == 0);
+    assert ((vec_i >= 833 && vec_i <= 2496) ==> (vec_i * 4 + 3329) >= 6658 /\ (vec_i * 4 + 3329) < 13316);
+    assert ((vec_i >= 833 && vec_i <= 2496) ==> (vec_i * 4 + 3329) / 6658 == 1);
+    assert ((vec_i >= 833 && vec_i <= 2496) ==> ((vec_i * 4 + 3329) / 6658) % 2 == 1);
+    assert (vec_i > 2496 ==> (vec_i * 4 + 3329) >= 13316 /\ (vec_i * 4 + 3329) < 19974);
+    assert (vec_i > 2496 ==> (vec_i * 4 + 3329) / 6658 == 2);
+    assert (vec_i > 2496 ==> ((vec_i * 4 + 3329) / 6658) % 2 == 0)
+#pop-options
 "#
 )]
 #[hax_lib::fstar::options("--z3rlimit 400 --split_queries always")]
@@ -126,25 +156,34 @@ pub(crate) fn compress_message_coefficient(vector: Vec256) -> Vec256 {
     let shifted_to_positive = mm256_xor_si256(mask, shifted);
     hax_lib::fstar!(
         r#"lemma_mm256_xor_si256_lane ${mask} ${shifted};
-           // TODO: connect lhs ^. rhs to the (-x-1 / x) case split using
-           // lemma_i16_xor_{neg1,zero}.  SMTPat firing on the `mask ^. shifted`
-           // form needs xor commutativity hint.
-           assume (forall (i: nat). i < 16 ==>
+           introduce forall (i: nat). i < 16 ==>
              v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${shifted_to_positive}) i) ==
              (let s = v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${shifted}) i) in
-              if s < 0 then -s - 1 else s))"#
+              if s < 0 then -s - 1 else s)
+           with begin
+             if i < 16 then
+               lemma_xor_cond_not (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${mask}) i)
+                                  (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${shifted}) i)
+           end"#
     );
 
     let shifted_to_positive_in_range =
         mm256_sub_epi16(shifted_to_positive, field_modulus_quartered);
     hax_lib::fstar!(
-        r#"// TODO: chain case-split on shifted < 0 ↔ vec_i > 1664 from the
-           // previous assume + shifted = 1664 - vec_i.  Trivial but Z3
-           // wedges on the forall instantiation.
-           assume (forall (i: nat). i < 16 ==>
+        r#"introduce forall (i: nat). i < 16 ==>
              v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${shifted_to_positive_in_range}) i) ==
              (let vec_i = v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}) i) in
-              if vec_i <= 1664 then 832 - vec_i else vec_i - 2497))"#
+              if vec_i <= 1664 then 832 - vec_i else vec_i - 2497)
+           with begin
+             if i < 16 then begin
+               let vec_i = v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}) i) in
+               let s = v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${shifted}) i) in
+               assert (s == 1664 - vec_i);
+               assert (v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${shifted_to_positive}) i) ==
+                       (if s < 0 then -s - 1 else s));
+               assert (v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${field_modulus_quartered}) i) == 832)
+             end
+           end"#
     );
 
     let result = mm256_srli_epi16::<15>(shifted_to_positive_in_range);
@@ -154,13 +193,15 @@ pub(crate) fn compress_message_coefficient(vector: Vec256) -> Vec256 {
              v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}) i) ==
              (let vec_i = v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}) i) in
               if 833 <= vec_i && vec_i <= 2496 then 1 else 0));
-           // TODO: 3-case integer formula equivalence for compress_d 1.
-           // Math is the same as portable's compress_message_coefficient body
-           // (lines 105-110), case-split on vec_i ∈ [0, 832] / [833, 2496] / [2497, 3328].
-           assume (forall (i: nat). i < 16 ==>
+           introduce forall (i: nat). i < 16 ==>
              (let vec_i = v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}) i) in
               ((vec_i * 4 + 3329) / 6658) % 2 ==
-              (if 833 <= vec_i && vec_i <= 2496 then 1 else 0)))"#
+              (if 833 <= vec_i && vec_i <= 2496 then 1 else 0))
+           with begin
+             if i < 16 then
+               lemma_compress_message_identity
+                 (v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}) i))
+           end"#
     );
     result
 }
@@ -233,8 +274,12 @@ pub(crate) fn compress_ciphertext_coefficient<const COEFFICIENT_BITS: i32>(
 }
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"forall i. let x = Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $a) i in 
+#[hax_lib::requires(fstar!(r#"forall i. let x = Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $a) i in
                                       (x == mk_i16 0 \/ x == mk_i16 1)"#))]
+#[hax_lib::ensures(|result| fstar!(r#"forall (i: nat). i < 16 ==>
+    (let res_i = v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $result) i) in
+     let a_i = v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $a) i) in
+     (res_i == 0 \/ res_i == 1665) /\ res_i == (2 * a_i * 3329 + 2) / 4)"#))]
 pub fn decompress_1(a: Vec256) -> Vec256 {
     let z = mm256_setzero_si256();
 
@@ -257,7 +302,25 @@ pub fn decompress_1(a: Vec256) -> Vec256 {
                             Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $s) i == mk_i16 (-1))"#
     );
 
-    arithmetic::bitwise_and_with_constant(s, 1665)
+    let result = arithmetic::bitwise_and_with_constant(s, 1665);
+
+    hax_lib::fstar!(
+        r#"Rust_primitives.Integers.logand_lemma (mk_i16 1665) (mk_i16 1665);
+           introduce forall (i: nat). i < 16 ==>
+             (let res_i = v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $result) i) in
+              let a_i = v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $a) i) in
+              (res_i == 0 \/ res_i == 1665) /\ res_i == (2 * a_i * 3329 + 2) / 4)
+           with begin
+             if i < 16 then begin
+               let si = Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $s) i in
+               let ai = Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $a) i in
+               assert (v si == - v ai);
+               assert (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $result) i ==
+                       (si &. mk_i16 1665))
+             end
+           end"#
+    );
+    result
 }
 
 #[inline(always)]

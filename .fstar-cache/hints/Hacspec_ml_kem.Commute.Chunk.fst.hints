@@ -1,5 +1,5 @@
 [
-  "bbe5672fa7c87ba143fbb3e9a32a72be",
+  "204687610351603af3213ee40f4b8f05",
   [
     [
       "Hacspec_ml_kem.Commute.Chunk.lemma_i16_to_spec_fe_bounded",
@@ -2924,23 +2924,28 @@
       [
         "@MaxIFuel_assumption", "@query",
         "Core_models.Ops.Function_interpretation_Tm_arrow_527d0c4b8598d265b3ecc95b6df26a30",
+        "Libcrux_ml_kem.Vector.Traits_interpretation_Tm_arrow_646858b70952d2d84d8aa1fbfdb85a0a",
+        "Libcrux_ml_kem.Vector.Traits_interpretation_Tm_arrow_725d9dc8e16bd1ed96dd2624f35640ad",
         "Libcrux_ml_kem.Vector.Traits_interpretation_Tm_arrow_ee7ba7f6dfbb0f1a3682e985d975d18b",
         "data_elim_Libcrux_ml_kem.Vector.Traits.Mkt_Operations",
         "equation_Libcrux_ml_kem.Vector.Traits.uu___4",
         "equation_Prims.squash",
         "fuel_guarded_inversion_Libcrux_ml_kem.Vector.Traits.t_Operations",
+        "function_token_typing_Libcrux_ml_kem.Vector.Traits.__proj__Mkt_Operations__item__f_decompress_1__post",
         "proj_equation_Libcrux_ml_kem.Vector.Traits.Mkt_Operations_@_super_i2",
         "proj_equation_Libcrux_ml_kem.Vector.Traits.Mkt_Operations_@f_decompress_1__pre",
         "refinement_interpretation_Tm_refine_2de20c066034c13bf76e9c0b94f4806c",
         "refinement_interpretation_Tm_refine_48b146cd25d01a8d0caea052b515465f",
+        "refinement_interpretation_Tm_refine_57a00d406a2765cd98a973269f07628c",
         "refinement_interpretation_Tm_refine_e263604a64d343fa5112de970172906b",
+        "token_correspondence_Libcrux_ml_kem.Vector.Traits.__proj__Mkt_Operations__item__f_decompress_1__post",
         "token_correspondence_Libcrux_ml_kem.Vector.Traits.__proj__Mkt_Operations__item__f_decompress_1__pre",
         "token_correspondence_Libcrux_ml_kem.Vector.Traits.__proj__Mkt_Repr__item__f_repr_pre",
         "typing_Libcrux_ml_kem.Vector.Traits.__proj__Mkt_Operations__item___super_i2",
         "typing_Libcrux_ml_kem.Vector.Traits.__proj__Mkt_Repr__item__f_repr_pre"
       ],
       0,
-      "0ac9235b1d98dcd74e002903d35821af"
+      "17dacace1411955a384ff16556c11e22"
     ],
     [
       "Hacspec_ml_kem.Commute.Chunk.lemma_decompress_ciphertext_coefficient_chunk_commutes",
@@ -2950,25 +2955,30 @@
       [
         "@MaxIFuel_assumption", "@query",
         "Core_models.Ops.Function_interpretation_Tm_arrow_527d0c4b8598d265b3ecc95b6df26a30",
+        "Libcrux_ml_kem.Vector.Traits_interpretation_Tm_arrow_4e50785f1c79f2a5a58288f90909f9ad",
         "Libcrux_ml_kem.Vector.Traits_interpretation_Tm_arrow_8fb93d6588a9999571ad8fe864ddf8b0",
+        "Libcrux_ml_kem.Vector.Traits_interpretation_Tm_arrow_d442450a494a318a86ad53c6798075cc",
         "data_elim_Libcrux_ml_kem.Vector.Traits.Mkt_Operations",
         "equality_tok_Rust_primitives.Integers.I32@tok",
         "equation_Libcrux_ml_kem.Vector.Traits.uu___4",
         "equation_Rust_primitives.Integers.i32",
         "fuel_guarded_inversion_Libcrux_ml_kem.Vector.Traits.t_Operations",
         "fuel_guarded_inversion_Rust_primitives.Integers.int_t",
+        "function_token_typing_Libcrux_ml_kem.Vector.Traits.__proj__Mkt_Operations__item__f_decompress_ciphertext_coefficient_post",
         "proj_equation_Libcrux_ml_kem.Vector.Traits.Mkt_Operations_@_super_i2",
         "proj_equation_Libcrux_ml_kem.Vector.Traits.Mkt_Operations_@f_decompress_ciphertext_coefficient_pre",
         "refinement_interpretation_Tm_refine_7616dc1f8d360f37ff421fcb7258a7b7",
         "refinement_interpretation_Tm_refine_79d4f3a4ce62e1ee5ad96204aeabdb1c",
+        "refinement_interpretation_Tm_refine_9794b2c330cd49afcefddbd0a73d4263",
         "refinement_interpretation_Tm_refine_e263604a64d343fa5112de970172906b",
+        "token_correspondence_Libcrux_ml_kem.Vector.Traits.__proj__Mkt_Operations__item__f_decompress_ciphertext_coefficient_post",
         "token_correspondence_Libcrux_ml_kem.Vector.Traits.__proj__Mkt_Operations__item__f_decompress_ciphertext_coefficient_pre",
         "token_correspondence_Libcrux_ml_kem.Vector.Traits.__proj__Mkt_Repr__item__f_repr_pre",
         "typing_Libcrux_ml_kem.Vector.Traits.__proj__Mkt_Operations__item___super_i2",
         "typing_Libcrux_ml_kem.Vector.Traits.__proj__Mkt_Repr__item__f_repr_pre"
       ],
       0,
-      "b3d5057363b968b0dca91e21f6e026ac"
+      "b11c52bee5db77aae62a81da5e0872fa"
     ],
     [
       "Hacspec_ml_kem.Commute.Chunk.lemma_ntt_layer_1_butterfly_to_fe",
@@ -6785,7 +6795,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "21788e64f74f3ad54e6bac42f672eeb0"
+      "6dad7f7935569e1b6bbc3330e9d316ef"
     ],
     [
       "Hacspec_ml_kem.Commute.Chunk.lemma_subtract_reduce_commute",
@@ -21297,7 +21307,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "6123c8fe8d10a441d602c84e394b9490"
+      "5d0ba20089d29b8ac9659fba54de0ed9"
     ],
     [
       "Hacspec_ml_kem.Commute.Chunk.to_spec_poly_mont_arr",
@@ -22127,6 +22137,29 @@
       ],
       0,
       "ba80701fe5865b0c470db01ca14a611c"
+    ],
+    [
+      "Hacspec_ml_kem.Commute.Chunk.lemma_compress_d_barrett_eq",
+      1,
+      0,
+      0,
+      [
+        "@MaxFuel_assumption", "@MaxIFuel_assumption",
+        "@fuel_correspondence_Prims.pow2.fuel_instrumented", "@query",
+        "equation_Prims.nat", "equation_Prims.pos", "int_inversion",
+        "int_typing", "lemma_Rust_primitives.Integers.pow2_values",
+        "lemma_Spec.Utils.pow2_more_values", "primitive_Prims.op_Addition",
+        "primitive_Prims.op_Division", "primitive_Prims.op_LessThan",
+        "primitive_Prims.op_LessThanOrEqual", "primitive_Prims.op_Modulus",
+        "primitive_Prims.op_Multiply", "primitive_Prims.op_Subtraction",
+        "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_BoxInt_proj_0",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_774ba3f728d91ead8ef40be66c9802e5",
+        "typing_Prims.pow2"
+      ],
+      0,
+      "8a60a9e1526e4b8fbb5bcd59b0ab2ba3"
     ]
   ]
 ]
