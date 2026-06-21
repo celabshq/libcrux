@@ -1,0 +1,302 @@
+(* PSQ registration-mode shared model: setup, roles, crypto aliases, resolution
+   control. Loaded (via -lib) by the registration analyses:
+     analysis_reg_dh_msg1.pv   / analysis_reg_sig_msg1.pv    (message 1)
+     analysis_reg_dh_session.pv / analysis_reg_sig_session.pv (response/session)
+   Mirrors psq-design/models/psq_handshake_lib.pvl's reg_dh_* / reg_sig_* roles,
+   driven against the EXTRACTED libcrux-psq registration letfuns. See those files
+   for the R1–R9 queries and the per-process compromise model.
+
+   The responder is driven against an AUTH CORE (decrypt_outer_message +
+   decrypt_inner_message directly), skipping read_message_contents' rate-limiter,
+   ciphersuite coercion and state-machine bookkeeping (none security-relevant to
+   registration authentication, and coerce_compatible has no ML-KEM branch).
+   This mirrors the query-mode analysis_auth core and keeps the DH-heavy
+   correspondences tractable. The auth core reads `working_ciphersuite`, so the
+   Responder is built with it pre-set to the run's ML-KEM ciphersuite name. *)
+
+type Principal.
+const Alice: Principal.   (* initiator / client   *)
+const Bob:   Principal.   (* responder / endpoint *)
+
+(* Public, attacker-known protocol parameters. *)
+const context:    bitstring.
+const inner_aad:  bitstring.
+const outer_aad:  bitstring.
+const resp_aad:   bitstring.
+const rk_bound:   bitstring.   (* responder rate-limiter bound (symbolically opaque) *)
+const recent0:    bitstring.   (* opaque initial recent-keys deque for the auth core *)
+
+(* Secrets. *)
+free reg_secret:  bitstring [private].   (* the registration payload  *)
+free resp_secret: bitstring [private].   (* the responder's response  *)
+
+(* ---- Key tables (authentic key distribution) --------------------------- *)
+table resp_dh(Principal, bitstring, bitstring).   (* sk_R, pk_R           *)
+table resp_pq(Principal, bitstring, bitstring).   (* pqdk_R, pqek_R       *)
+table resp_cs(Principal, bitstring).              (* ResponderCiphersuite *)
+table client_dh(Principal, bitstring, bitstring). (* sk_I, pk_I  (DH auth)*)
+table client_sig(Principal, bitstring, bitstring).(* sk_I, vk_I (sig auth)*)
+table session_eph(Principal, bitstring).          (* a run ephemeral scalar *)
+
+(* ---- Events; mirror psq_handshake_lib.pvl ------------------------------- *)
+(* i, r, context, K_1 *)
+event InitRegDH(Principal, Principal, bitstring, bitstring).
+event RespRegDH(Principal, Principal, bitstring, bitstring).
+event InitRegSig(Principal, Principal, bitstring, bitstring).
+event RespRegSig(Principal, Principal, bitstring, bitstring).
+(* i, r, context, epub_R (per-run id), K_S *)
+event InitSessDH(Principal, Principal, bitstring, bitstring, bitstring).
+event RespSessDH(Principal, Principal, bitstring, bitstring, bitstring).
+event InitSessSig(Principal, Principal, bitstring, bitstring, bitstring).
+event RespSessSig(Principal, Principal, bitstring, bitstring, bitstring).
+
+(* Fine-grained compromise (a quantum adversary breaks all classical DH +
+   ephemerals but not the PQ-KEM decaps key / a PQ signature). *)
+event CompromiseEndpointClassical(Principal).   (* responder long-term DH key   *)
+event CompromiseEndpointPQ(Principal).          (* responder PQ-KEM decaps key  *)
+event CompromiseClient(Principal).              (* initiator long-term DH/sig key *)
+event LeakEphemeral(Principal).                 (* a session ephemeral DH scalar *)
+
+(* =========================================================================
+   Aliases for the extracted names (cosmetic; keep the roles readable).
+   ========================================================================= *)
+(* tuple projectors *)
+letfun t2_0(t: bitstring) = rust_primitives__hax__Tuple2__Tuple2__0(t).
+letfun t2_1(t: bitstring) = rust_primitives__hax__Tuple2__Tuple2__1(t).
+
+(* constructors for the run setup *)
+letfun mk_dhkp(sk: bitstring, pk: bitstring) =
+  libcrux_psq__handshake__dhkem__DHKeyPair__DHKeyPair(sk, pk).
+letfun dh_sk(kp: bitstring) = libcrux_psq__handshake__dhkem__DHKeyPair__DHKeyPair__sk(kp).
+letfun dh_pk(kp: bitstring) = libcrux_psq__handshake__dhkem__DHKeyPair__DHKeyPair__pk(kp).
+letfun aead_chacha() = libcrux_psq__aead__AeadType__ChaCha20Poly1305().
+letfun cs_name_dh() =
+  libcrux_psq__handshake__ciphersuite__CiphersuiteName__X25519_MLKEM768_X25519_CHACHA20POLY1305_HKDFSHA256().
+letfun cs_name_sig() =
+  libcrux_psq__handshake__ciphersuite__CiphersuiteName__X25519_MLKEM768_ED25519_CHACHA20POLY1305_HKDFSHA256().
+
+(* responder ciphersuite: name, kex=DHKeyPair, pq=MlKem(sk,pk), aead *)
+letfun mk_resp_cs(name: bitstring, kex: bitstring, pqdk: bitstring, pqek: bitstring) =
+  libcrux_psq__handshake__ciphersuite__responder__ResponderCiphersuite__ResponderCiphersuite(
+    name, kex,
+    libcrux_psq__handshake__ciphersuite__responder__PqKemKeyPair__MlKem(pqdk, pqek),
+    aead_chacha()).
+
+(* initiator ciphersuite: name, kex=pk_R, pq=MlKem(pqek), auth, aead *)
+letfun mk_init_cs(name: bitstring, pkR: bitstring, pqek: bitstring, auth: bitstring) =
+  libcrux_psq__handshake__ciphersuite__initiator__InitiatorCiphersuite__InitiatorCiphersuite(
+    name, pkR,
+    libcrux_psq__handshake__ciphersuite__initiator__PqKemPublicKey__MlKem(pqek),
+    auth, aead_chacha()).
+letfun auth_dh(kp: bitstring) = libcrux_psq__handshake__ciphersuite__initiator__Auth__DH(kp).
+letfun auth_sig(skp: bitstring) = libcrux_psq__handshake__ciphersuite__initiator__Auth__Sig(skp).
+letfun mk_sig_kp(sk: bitstring, vk: bitstring) =
+  libcrux_psq__handshake__ciphersuite__initiator__SigningKeyPair__Ed25519(sk, vk).
+
+(* initiator entry points *)
+letfun reg_init_new(cs: bitstring, ctx: bitstring, iaad: bitstring, oaad: bitstring, rng: bitstring) =
+  libcrux_psq__handshake__initiator__registration__Impl__new_kw(cs, ctx, iaad, oaad, rng).
+letfun reg_init_write(self: bitstring, payload: bitstring) =
+  libcrux_psq__handshake__initiator__registration__Impl_1__write_message_external_encoding(self, payload).
+letfun reg_init_read(self: bitstring, msg: bitstring) =
+  libcrux_psq__handshake__initiator__registration__Impl_1__read_message_external_encoding(self, msg).
+letfun reg_init_into_session(self: bitstring) =
+  libcrux_psq__handshake__initiator__registration__Impl_2__into_session(self).
+
+(* initiator state projectors: self.state = Waiting(WaitingState(eph_sk, tx1, k1)) *)
+letfun ri_state(self: bitstring) =
+  libcrux_psq__handshake__initiator__registration__RegistrationInitiator__RegistrationInitiator__state(self).
+letfun ws_ephsk(ws: bitstring) =
+  libcrux_psq__handshake__initiator__registration__WaitingState__WaitingState__initiator_ephemeral_ecdh_sk(ws).
+letfun ws_k1(ws: bitstring) =
+  libcrux_psq__handshake__initiator__registration__WaitingState__WaitingState__k1(ws).
+
+(* responder auth-core entry points *)
+letfun resp_new(cs: bitstring, ctx: bitstring, aad: bitstring, bound: bitstring, rng: bitstring) =
+  libcrux_psq__handshake__responder__Impl__new_kw(cs, ctx, aad, bound, rng).
+letfun resp_decrypt_outer(self: bitstring, msg: bitstring) =
+  libcrux_psq__handshake__responder__Impl__decrypt_outer_message(self, msg).
+letfun resp_decrypt_inner(self: bitstring, tx0: bitstring, k0: bitstring, inner: bitstring) =
+  libcrux_psq__handshake__responder__Impl__decrypt_inner_message(self, tx0, k0, inner).
+letfun resp_registration(self: bitstring, payload: bitstring) =
+  libcrux_psq__handshake__responder__Impl__prepare_message_contents(self, payload).
+letfun resp_into_session(self: bitstring) =
+  libcrux_psq__handshake__responder__Impl_2__into_session(self).
+
+(* Build a Responder with working_ciphersuite pre-set (auth core skips coerce):
+   Responder(state=Initial, ciphersuite, working=Some(name), recent_keys,
+             recent_keys_upper_bound, context, aad, rng). *)
+letfun mk_responder(cs: bitstring, name: bitstring, ctx: bitstring, aad: bitstring, rng: bitstring) =
+  libcrux_psq__handshake__responder__Responder__Responder(
+    libcrux_psq__handshake__responder__ResponderState__Initial(),
+    cs, Some(name), recent0, rk_bound, ctx, aad, rng).
+
+(* responder state projectors after the core read: RespondRegistration(rrs) *)
+letfun resp_state(self: bitstring) =
+  libcrux_psq__handshake__responder__Responder__Responder__state(self).
+letfun rrs_tx1(s: bitstring) =
+  libcrux_psq__handshake__responder__RespondRegistrationState__RespondRegistrationState__tx1(s).
+letfun rrs_k1(s: bitstring) =
+  libcrux_psq__handshake__responder__RespondRegistrationState__RespondRegistrationState__k1(s).
+letfun rrs_auth(s: bitstring) =
+  libcrux_psq__handshake__responder__RespondRegistrationState__RespondRegistrationState__initiator_authenticator(s).
+letfun rrs_epubi(s: bitstring) =
+  libcrux_psq__handshake__responder__RespondRegistrationState__RespondRegistrationState__initiator_ephemeral_ecdh_pk(s).
+
+(* =========================================================================
+   Setup + compromise
+   ========================================================================= *)
+let setup_responder(p: Principal) =
+    new sk_R: bitstring;
+    let pk_R = extern__dh_pub(sk_R) in
+    new pqdk_R: bitstring;
+    let pqek_R = extern__kem_pk(pqdk_R) in
+    let cs_R = mk_resp_cs(cs_name_dh(), mk_dhkp(sk_R, pk_R), pqdk_R, pqek_R) in
+    insert resp_dh(p, sk_R, pk_R);
+    insert resp_pq(p, pqdk_R, pqek_R);
+    insert resp_cs(p, cs_R);
+    out(c, (pk_R, pqek_R)).
+
+let create_dh_client(p: Principal) =
+    new sk_I: bitstring;
+    let pk_I = extern__dh_pub(sk_I) in
+    insert client_dh(p, sk_I, pk_I);
+    out(c, pk_I).
+
+let create_sig_client(p: Principal) =
+    new sk_I: bitstring;
+    let vk_I = extern__vk_of(sk_I) in
+    insert client_sig(p, sk_I, vk_I);
+    out(c, vk_I).
+
+let compromise_endpoint_classical(p: Principal) =
+    get resp_dh(=p, sk_R, pk_R) in
+    event CompromiseEndpointClassical(p);
+    out(c, sk_R).
+let compromise_endpoint_pq(p: Principal) =
+    get resp_pq(=p, pqdk_R, pqek_R) in
+    event CompromiseEndpointPQ(p);
+    out(c, pqdk_R).
+let compromise_dh_client(p: Principal) =
+    get client_dh(=p, sk_I, pk_I) in
+    event CompromiseClient(p);
+    out(c, sk_I).
+let compromise_sig_client(p: Principal) =
+    get client_sig(=p, sk_I, vk_I) in
+    event CompromiseClient(p);
+    out(c, sk_I).
+let leak_ephemeral(p: Principal) =
+    get session_eph(=p, e) in
+    event LeakEphemeral(p);
+    out(c, e).
+
+(* =========================================================================
+   Message-1 roles (DH auth). Initiator sends msg 1 and emits InitRegDH;
+   responder processes it through the auth core and emits RespRegDH.
+   ========================================================================= *)
+let m1_dh_initiator(i: Principal, r: Principal) =
+    get resp_dh(=r, sk_R, pk_R) in
+    get resp_pq(=r, pqdk_R, pqek_R) in
+    get client_dh(=i, sk_I, pk_I) in
+    let cs_I = mk_init_cs(cs_name_dh(), pk_R, pqek_R, auth_dh(mk_dhkp(sk_I, pk_I))) in
+    new rng_I: bitstring;
+    let ri0 = reg_init_new(cs_I, context, inner_aad, outer_aad, rng_I) in
+    let written = reg_init_write(ri0, reg_secret) in
+    let ri1 = t2_0(written) in
+    let msg = t2_1(written) in
+    let libcrux_psq__handshake__initiator__registration__RegistrationInitiatorState__Waiting(ws) = ri_state(ri1) in
+    let k1 = ws_k1(ws) in
+    event InitRegDH(i, r, context, k1);
+    out(c, msg).
+
+let m1_dh_responder(r: Principal) =
+    get resp_dh(=r, sk_R, pk_R) in
+    get resp_pq(=r, pqdk_R, pqek_R) in
+    get resp_cs(=r, cs_R) in
+    new rng_R: bitstring;
+    let resp0 = mk_responder(cs_R, cs_name_dh(), context, resp_aad, rng_R) in
+    in(c, msg: bitstring);
+    let dec = resp_decrypt_outer(resp0, msg) in
+    let outer_payload = rust_primitives__hax__Tuple3__Tuple3__0(dec) in
+    let tx0_r = rust_primitives__hax__Tuple3__Tuple3__1(dec) in
+    let k0_r  = rust_primitives__hax__Tuple3__Tuple3__2(dec) in
+    let libcrux_psq__handshake__responder__InitiatorOuterPayload__Registration(inner) = outer_payload in
+    let dim = resp_decrypt_inner(resp0, tx0_r, k0_r, inner) in
+    let k1_r = rust_primitives__hax__Tuple5__Tuple5__2(dim) in
+    let auth_r = rust_primitives__hax__Tuple5__Tuple5__3(dim) in
+    (* out-of-band authentic recovery of the initiator identity: the recovered
+       authenticator must be an honest client's DH public key. *)
+    get client_dh(i, sk_I, =libcrux_psq__handshake__ciphersuite__types__Authenticator__Dh__0(auth_r)) in
+    event RespRegDH(i, r, context, k1_r).
+
+(* =========================================================================
+   Message-1 roles (signature auth).
+   ========================================================================= *)
+let m1_sig_initiator(i: Principal, r: Principal) =
+    get resp_dh(=r, sk_R, pk_R) in
+    get resp_pq(=r, pqdk_R, pqek_R) in
+    get client_sig(=i, sk_I, vk_I) in
+    let cs_I = mk_init_cs(cs_name_sig(), pk_R, pqek_R, auth_sig(mk_sig_kp(sk_I, vk_I))) in
+    new rng_I: bitstring;
+    let ri0 = reg_init_new(cs_I, context, inner_aad, outer_aad, rng_I) in
+    let written = reg_init_write(ri0, reg_secret) in
+    let ri1 = t2_0(written) in
+    let msg = t2_1(written) in
+    let libcrux_psq__handshake__initiator__registration__RegistrationInitiatorState__Waiting(ws) = ri_state(ri1) in
+    let k1 = ws_k1(ws) in
+    event InitRegSig(i, r, context, k1);
+    out(c, msg).
+
+let m1_sig_responder(r: Principal) =
+    get resp_dh(=r, sk_R, pk_R) in
+    get resp_pq(=r, pqdk_R, pqek_R) in
+    get resp_cs(=r, cs_R) in
+    new rng_R: bitstring;
+    (* responder's ciphersuite for sig mode carries the ED25519 name *)
+    let cs_R_sig = mk_resp_cs(cs_name_sig(), mk_dhkp(sk_R, pk_R), pqdk_R, pqek_R) in
+    let resp0 = mk_responder(cs_R_sig, cs_name_sig(), context, resp_aad, rng_R) in
+    in(c, msg: bitstring);
+    let dec = resp_decrypt_outer(resp0, msg) in
+    let outer_payload = rust_primitives__hax__Tuple3__Tuple3__0(dec) in
+    let tx0_r = rust_primitives__hax__Tuple3__Tuple3__1(dec) in
+    let k0_r  = rust_primitives__hax__Tuple3__Tuple3__2(dec) in
+    let libcrux_psq__handshake__responder__InitiatorOuterPayload__Registration(inner) = outer_payload in
+    let dim = resp_decrypt_inner(resp0, tx0_r, k0_r, inner) in
+    let k1_r = rust_primitives__hax__Tuple5__Tuple5__2(dim) in
+    let auth_r = rust_primitives__hax__Tuple5__Tuple5__3(dim) in
+    (* recovered authenticator = Authenticator::Sig(SignatureVerificationKey::Ed25519(vk));
+       project the raw vk to match the client_sig table (stores vk = vk_of(sk)). *)
+    get client_sig(i, sk_I, =libcrux_psq__handshake__ciphersuite__types__SignatureVerificationKey__Ed25519__0(
+          libcrux_psq__handshake__ciphersuite__types__Authenticator__Sig__0(auth_r))) in
+    event RespRegSig(i, r, context, k1_r).
+
+(* =========================================================================
+   Resolution control (SOUND — search order only, never a verdict). The DH
+   commutativity equation + the attacker freely *building* one-way crypto
+   outputs triggers the decryption-oracle saturation blow-up. Deprioritise
+   selecting `attacker(<one-way output>)` facts. Same technique as query mode /
+   mandrake / SparsePostQuantumRatchet.
+   ========================================================================= *)
+nounif x: bitstring, y: bitstring;          attacker(extern__kdf(x, y))        / 30000.
+nounif x: bitstring, y: bitstring;          attacker(extern__dh_shared(x, y))  / 30000.
+nounif x: bitstring;                        attacker(extern__dh_pub(x))        / 30000.
+nounif x: bitstring, y: bitstring;          attacker(extern__hash(x, y))       / 30000.
+nounif k: bitstring, p: bitstring, a: bitstring; attacker(extern__aead_ct(k, p, a))  / 30000.
+nounif k: bitstring, p: bitstring, a: bitstring; attacker(extern__aead_tag(k, p, a)) / 30000.
+nounif pk: bitstring, ss: bitstring;        attacker(extern__kem_encaps(pk, ss)) / 30000.
+nounif sk: bitstring;                       attacker(extern__kem_pk(sk))       / 30000.
+nounif sk: bitstring, m: bitstring;         attacker(extern__sign(sk, m))      / 30000.
+nounif sk: bitstring;                       attacker(extern__vk_of(sk))        / 30000.
+(* KDF input wrappers (the attacker folding DH shared secrets the commutativity
+   equation keeps rewriting is the main correspondence blow-up). *)
+nounif d: bitstring; attacker(libcrux_psq__handshake__derive_k0__K0Ikm__K0Ikm(d)) / 30000.
+nounif a: bitstring, b: bitstring, e: bitstring;
+       attacker(libcrux_psq__handshake__derive_k1_dh__K1IkmDh__K1IkmDh(a, b, e)) / 30000.
+nounif a: bitstring, b: bitstring;
+       attacker(libcrux_psq__handshake__derive_k1_sig__K1IkmSig__K1IkmSig(a, b)) / 30000.
+nounif a: bitstring, b: bitstring;
+       attacker(libcrux_psq__handshake__derive_k1_sig__K1InfoSig__K1InfoSig(a, b)) / 30000.
+nounif a: bitstring, b: bitstring, e: bitstring;
+       attacker(libcrux_psq__handshake__K2IkmRegistrationDh__K2IkmRegistrationDh(a, b, e)) / 30000.
+nounif a: bitstring, b: bitstring;
+       attacker(libcrux_psq__handshake__K2IkmRegistrationSig__K2IkmRegistrationSig(a, b)) / 30000.

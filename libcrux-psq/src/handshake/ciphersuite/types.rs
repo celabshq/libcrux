@@ -81,6 +81,27 @@ pub enum SignatureType {
 }
 
 impl SignatureVerificationKey {
+    // ProVerif: EUF-CMA signature verification, modelled as a PARTIAL destructor
+    // (`extern__sig_verify` in psq_crypto.pvl has a reduc only for a genuine
+    // `sign(sk, m)` under `vk_of(sk)`). The sole caller `verify_tx1` lowers
+    // `vk.verify(..)?` to `let wildcard = verify(..) in <continue> else
+    // bitstring_err()`, so a verification FAILURE (forgery: no matching reduc)
+    // correctly propagates to the else-branch and aborts the responder read —
+    // there is no `assert!`/`not_kw` here to swallow it (cf. the mandrake
+    // sig-verify soundness lesson). We unwrap the key/sig enums and check the
+    // inner terms; mismatched variants fail (== reject).
+    #[cfg_attr(
+        feature = "hax-pv",
+        hax_lib::proverif::replace_body(
+            "let libcrux_psq__handshake__ciphersuite__types__SignatureVerificationKey__Ed25519(vk) = self in \
+               (let libcrux_psq__handshake__ciphersuite__types__Signature__Ed25519(s) = signature in \
+                  extern__sig_verify(vk, tx1, s) else bitstring_err()) \
+             else let libcrux_psq__handshake__ciphersuite__types__SignatureVerificationKey__MlDsa65(vk) = self in \
+               (let libcrux_psq__handshake__ciphersuite__types__Signature__MlDsa65(s) = signature in \
+                  extern__sig_verify(vk, tx1, s) else bitstring_err()) \
+             else bitstring_err()"
+        )
+    )]
     pub(crate) fn verify(
         &self,
         tx1: &Transcript,
