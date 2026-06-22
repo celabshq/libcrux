@@ -1,0 +1,11 @@
+name = "HacspecMlDsa"
+version = "0.1.0"
+defaultTargets = ["HacspecMlDsa"]
+
+[[lean_lib]]
+name = "HacspecMlDsa"
+
+[[require]]
+name = "Hax"
+git = { url = "https://github.com/cryspen/hax-evit", subDir = "hax-lib/proof-libs/aeneas-lean" }
+rev = "ffdf432705d409b62ec025d253a340234b59766f"

@@ -51,6 +51,26 @@ pub(crate) fn bit_rev_8(m: usize) -> usize {
     r
 }
 
+/// Per-index coefficient of a single Cooley-Tukey NTT butterfly layer.
+///
+/// Factored out of `ntt_layer`'s `createi` closure so the closure is a trivial
+/// call: aeneas-lean cannot translate a `createi` closure whose body has
+/// `let`/cast bindings inside `if/else` branches, but it translates a named
+/// helper fn with that body fine (semantics-preserving — see spec-extraction
+/// campaign §2.1).
+fn ntt_layer_coeff(p: &Polynomial, len: usize, k: usize, i: usize) -> i32 {
+    let round = i / (2 * len);
+    let idx = i % (2 * len);
+    let z = ZETAS[round + k] as i64;
+    if idx < len {
+        let t = mod_q(z * p[i + len] as i64);
+        mod_q(p[i] as i64 + t as i64)
+    } else {
+        let t = mod_q(z * p[i] as i64);
+        mod_q(p[i - len] as i64 - t as i64)
+    }
+}
+
 /// Single Cooley-Tukey butterfly layer of the NTT — FIPS 204, Algorithm 41.
 ///
 /// `layer` is the bit-shift exponent: len = 1 << layer.
@@ -61,18 +81,7 @@ pub(crate) fn bit_rev_8(m: usize) -> usize {
 fn ntt_layer(p: Polynomial, layer: usize) -> Polynomial {
     let len = 1 << layer;
     let k = 128 / len; // base zeta index for this layer
-    createi(|i| {
-        let round = i / (2 * len);
-        let idx = i % (2 * len);
-        let z = ZETAS[round + k] as i64;
-        if idx < len {
-            let t = mod_q(z * p[i + len] as i64);
-            mod_q(p[i] as i64 + t as i64)
-        } else {
-            let t = mod_q(z * p[i] as i64);
-            mod_q(p[i - len] as i64 - t as i64)
-        }
-    })
+    createi(|i| ntt_layer_coeff(&p, len, k, i))
 }
 
 /// NTT(w) — FIPS 204, Algorithm 41.
@@ -90,6 +99,22 @@ pub(crate) fn ntt(w: Polynomial) -> Polynomial {
     p
 }
 
+/// Per-index coefficient of a single Gentleman-Sande inverse-NTT butterfly layer.
+///
+/// Factored out of `intt_layer`'s `createi` closure (same aeneas-lean reason as
+/// `ntt_layer_coeff` — semantics-preserving, see spec-extraction campaign §2.1).
+fn intt_layer_coeff(p: &Polynomial, len: usize, k: usize, i: usize) -> i32 {
+    let round = i / (2 * len);
+    let idx = i % (2 * len);
+    if idx < len {
+        mod_q(p[i] as i64 + p[i + len] as i64)
+    } else {
+        // -ζ mod q = q - ζ (for ζ in [0, q-1])
+        let z = (Q as i64 - ZETAS[k - round] as i64) % Q as i64;
+        mod_q(z * (p[i - len] as i64 - p[i] as i64))
+    }
+}
+
 /// Single Gentleman-Sande butterfly layer of the inverse NTT — FIPS 204, Algorithm 42.
 ///
 /// `layer` is the bit-shift exponent: len = 1 << layer.
@@ -100,17 +125,7 @@ pub(crate) fn ntt(w: Polynomial) -> Polynomial {
 fn intt_layer(p: Polynomial, layer: usize) -> Polynomial {
     let len = 1 << layer;
     let k = (256 / len) - 1; // base zeta index for this layer
-    createi(|i| {
-        let round = i / (2 * len);
-        let idx = i % (2 * len);
-        if idx < len {
-            mod_q(p[i] as i64 + p[i + len] as i64)
-        } else {
-            // -ζ mod q = q - ζ (for ζ in [0, q-1])
-            let z = (Q as i64 - ZETAS[k - round] as i64) % Q as i64;
-            mod_q(z * (p[i - len] as i64 - p[i] as i64))
-        }
-    })
+    createi(|i| intt_layer_coeff(&p, len, k, i))
 }
 
 /// Multiply all coefficients by 256⁻¹ mod q = 8347681.
