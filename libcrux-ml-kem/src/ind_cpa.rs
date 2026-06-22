@@ -739,9 +739,11 @@ fn compress_then_serialize_u<
     // (poly_to_spec input[j])); lift to the whole-array spec serializer.  The lemma
     // does the compress_then_serialize_u unfold internally so Serialize/Compress can
     // be pruned from this VC.
-    hax_lib::fstar!(r#"assert (v $OUT_LEN == v $K * (32 * v $COMPRESSION_FACTOR));
+    hax_lib::fstar!(
+        r#"assert (v $OUT_LEN == v $K * (32 * v $COMPRESSION_FACTOR));
         Hacspec_ml_kem.Commute.Ind_cpa_serialize.lemma_compress_then_serialize_u_post
-          $K $OUT_LEN $COMPRESSION_FACTOR #$:Vector out $input"#);
+          $K $OUT_LEN $COMPRESSION_FACTOR #$:Vector out $input"#
+    );
 }
 
 /// This function implements <strong>Algorithm 13</strong> of the

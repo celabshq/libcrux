@@ -50,10 +50,12 @@ pub(crate) fn ntt_at_layer_1<Vector: Operations>(
                     if i < 16 {
                         if i >= round {
                             spec::is_bounded_vector(_initial_coefficient_bound, &re.coefficients[i])
-                                & fstar!(r#"
+                                & fstar!(
+                                    r#"
                                     Seq.index ${re}.f_coefficients (v $i) ==
                                     Seq.index ${_re_init} (v $i)
-                                  "#)
+                                  "#
+                                )
                         } else {
                             // Impl-level (Option B): record only the relationship
                             // re.coefficients[j] == f_ntt_layer_1_step _re_init[j] (parametric zetas).
@@ -61,8 +63,8 @@ pub(crate) fn ntt_at_layer_1<Vector: Operations>(
                             spec::is_bounded_vector(
                                 _initial_coefficient_bound + 3328,
                                 &re.coefficients[i],
-                            )
-                                & fstar!(r#"
+                            ) & fstar!(
+                                r#"
                                     Seq.index ${re}.f_coefficients (v $i) ==
                                     Libcrux_ml_kem.Vector.Traits.f_ntt_layer_1_step #$:Vector
                                       (Seq.index ${_re_init} (v $i))
@@ -70,7 +72,8 @@ pub(crate) fn ntt_at_layer_1<Vector: Operations>(
                                       (Libcrux_ml_kem.Polynomial.zeta (mk_usize 65 +! mk_usize 4 *! $i))
                                       (Libcrux_ml_kem.Polynomial.zeta (mk_usize 66 +! mk_usize 4 *! $i))
                                       (Libcrux_ml_kem.Polynomial.zeta (mk_usize 67 +! mk_usize 4 *! $i))
-                                  "#)
+                                  "#
+                            )
                         }
                     } else {
                         true.to_prop()
@@ -86,12 +89,14 @@ pub(crate) fn ntt_at_layer_1<Vector: Operations>(
         // Hand-holding for the impl-level loop invariant: link local
         // `zeta_i` (just incremented to _zeta_i_init + 4*round + 1 = 64 + 4*round)
         // to the parametric form so the assignment substitutes cleanly.
-        hax_lib::fstar!(r#"
+        hax_lib::fstar!(
+            r#"
             assert (zeta_i == mk_usize 64 +! mk_usize 4 *! round);
             assert (zeta_i +! mk_usize 1 == mk_usize 65 +! mk_usize 4 *! round);
             assert (zeta_i +! mk_usize 2 == mk_usize 66 +! mk_usize 4 *! round);
             assert (zeta_i +! mk_usize 3 == mk_usize 67 +! mk_usize 4 *! round)
-          "#);
+          "#
+        );
 
         re.coefficients[round] = Vector::ntt_layer_1_step(
             re.coefficients[round],
@@ -108,7 +113,8 @@ pub(crate) fn ntt_at_layer_1<Vector: Operations>(
     // its `is_i16b_array_opaque (7*3328)` (from the original `is_bounded_poly`
     // precondition on _re_init), then invoke the bridge to lift the impl
     // equation to the spec function-form equation.
-    hax_lib::fstar!(r#"
+    hax_lib::fstar!(
+        r#"
         let aux (j: nat) : Lemma (j < 16 ==>
             Hacspec_ml_kem.Commute.Ntt_bridge.pv_post #v_Vector
               ${_re_init} re.f_coefficients (mk_usize 2)
@@ -141,7 +147,8 @@ pub(crate) fn ntt_at_layer_1<Vector: Operations>(
             end
         in
         Classical.forall_intro aux
-      "#);
+      "#
+    );
 }
 
 #[inline(always)]
@@ -175,10 +182,12 @@ pub(crate) fn ntt_at_layer_2<Vector: Operations>(
                     if i < 16 {
                         if i >= round {
                             spec::is_bounded_vector(_initial_coefficient_bound, &re.coefficients[i])
-                                & fstar!(r#"
+                                & fstar!(
+                                    r#"
                                     Seq.index ${re}.f_coefficients (v $i) ==
                                     Seq.index ${_re_init} (v $i)
-                                  "#)
+                                  "#
+                                )
                         } else {
                             // Impl-level (Option B): record only the relationship
                             // re.coefficients[j] == f_ntt_layer_2_step _re_init[j] (parametric zetas).
@@ -186,14 +195,15 @@ pub(crate) fn ntt_at_layer_2<Vector: Operations>(
                             spec::is_bounded_vector(
                                 _initial_coefficient_bound + 3328,
                                 &re.coefficients[i],
-                            )
-                                & fstar!(r#"
+                            ) & fstar!(
+                                r#"
                                     Seq.index ${re}.f_coefficients (v $i) ==
                                     Libcrux_ml_kem.Vector.Traits.f_ntt_layer_2_step #$:Vector
                                       (Seq.index ${_re_init} (v $i))
                                       (Libcrux_ml_kem.Polynomial.zeta (mk_usize 32 +! mk_usize 2 *! $i))
                                       (Libcrux_ml_kem.Polynomial.zeta (mk_usize 33 +! mk_usize 2 *! $i))
-                                  "#)
+                                  "#
+                            )
                         }
                     } else {
                         true.to_prop()
@@ -209,10 +219,12 @@ pub(crate) fn ntt_at_layer_2<Vector: Operations>(
         // Hand-holding for the impl-level loop invariant: link local
         // `zeta_i` (just incremented to _zeta_i_init + 2*round + 1 = 32 + 2*round)
         // to the parametric form so the assignment substitutes cleanly.
-        hax_lib::fstar!(r#"
+        hax_lib::fstar!(
+            r#"
             assert (zeta_i == mk_usize 32 +! mk_usize 2 *! round);
             assert (zeta_i +! mk_usize 1 == mk_usize 33 +! mk_usize 2 *! round)
-          "#);
+          "#
+        );
 
         re.coefficients[round] =
             Vector::ntt_layer_2_step(re.coefficients[round], zeta(*zeta_i), zeta(*zeta_i + 1));
@@ -221,7 +233,8 @@ pub(crate) fn ntt_at_layer_2<Vector: Operations>(
     // Phase 7b — Option B: lift the impl-level loop invariant to
     // function-form citation in the ensures via a post-loop forall_intro
     // over the bridge lemma `lemma_ntt_layer_2_step_to_hacspec`.
-    hax_lib::fstar!(r#"
+    hax_lib::fstar!(
+        r#"
         let aux (j: nat) : Lemma (j < 16 ==>
             Hacspec_ml_kem.Commute.Ntt_bridge.pv_post #v_Vector
               ${_re_init} re.f_coefficients (mk_usize 4)
@@ -248,7 +261,8 @@ pub(crate) fn ntt_at_layer_2<Vector: Operations>(
             end
         in
         Classical.forall_intro aux
-      "#);
+      "#
+    );
 }
 
 #[inline(always)]
@@ -281,10 +295,12 @@ pub(crate) fn ntt_at_layer_3<Vector: Operations>(
                     if i < 16 {
                         if i >= round {
                             spec::is_bounded_vector(_initial_coefficient_bound, &re.coefficients[i])
-                                & fstar!(r#"
+                                & fstar!(
+                                    r#"
                                     Seq.index ${re}.f_coefficients (v $i) ==
                                     Seq.index ${_re_init} (v $i)
-                                  "#)
+                                  "#
+                                )
                         } else {
                             // Impl-level (Option B): record only the relationship
                             // re.coefficients[j] == f_ntt_layer_3_step _re_init[j] (single zeta).
@@ -292,13 +308,14 @@ pub(crate) fn ntt_at_layer_3<Vector: Operations>(
                             spec::is_bounded_vector(
                                 _initial_coefficient_bound + 3328,
                                 &re.coefficients[i],
-                            )
-                                & fstar!(r#"
+                            ) & fstar!(
+                                r#"
                                     Seq.index ${re}.f_coefficients (v $i) ==
                                     Libcrux_ml_kem.Vector.Traits.f_ntt_layer_3_step #$:Vector
                                       (Seq.index ${_re_init} (v $i))
                                       (Libcrux_ml_kem.Polynomial.zeta (mk_usize 16 +! $i))
-                                  "#)
+                                  "#
+                            )
                         }
                     } else {
                         true.to_prop()
@@ -313,16 +330,19 @@ pub(crate) fn ntt_at_layer_3<Vector: Operations>(
         );
         // Hand-holding: link local `zeta_i` (just incremented to
         // _zeta_i_init + round + 1 = 16 + round) to the parametric form.
-        hax_lib::fstar!(r#"
+        hax_lib::fstar!(
+            r#"
             assert (zeta_i == mk_usize 16 +! round)
-          "#);
+          "#
+        );
 
         re.coefficients[round] = Vector::ntt_layer_3_step(re.coefficients[round], zeta(*zeta_i));
     }
     // Phase 7b — Option B: lift the impl-level loop invariant to
     // function-form citation in the ensures via a post-loop forall_intro
     // over the bridge lemma `lemma_ntt_layer_3_step_to_hacspec`.
-    hax_lib::fstar!(r#"
+    hax_lib::fstar!(
+        r#"
         let aux (j: nat) : Lemma (j < 16 ==>
             Hacspec_ml_kem.Commute.Ntt_bridge.pv_post #v_Vector
               ${_re_init} re.f_coefficients (mk_usize 8)
@@ -346,7 +366,8 @@ pub(crate) fn ntt_at_layer_3<Vector: Operations>(
             end
         in
         Classical.forall_intro aux
-      "#);
+      "#
+    );
 }
 
 // F-B: opaque per-step forward butterfly functional post (MONT form).  Mirror of
@@ -416,7 +437,8 @@ fn ntt_layer_int_vec_step<Vector: Operations>(
     // `montgomery_multiply_by_constant_post` composed with `add_post`/`sub_post`)
     // to per-lane FE equations under `mont_i16_to_spec_fe`.  No barrett (simpler
     // than the inverse).  Two `forall_intro`s — one per output.
-    hax_lib::fstar!(r#"
+    hax_lib::fstar!(
+        r#"
         let a_arr = Libcrux_ml_kem.Vector.Traits.f_to_i16_array ${_a_in} in
         let b_arr = Libcrux_ml_kem.Vector.Traits.f_to_i16_array ${_b_in} in
         let t_arr = Libcrux_ml_kem.Vector.Traits.f_to_i16_array ${t} in
@@ -460,7 +482,8 @@ fn ntt_layer_int_vec_step<Vector: Operations>(
             end
         in
         Classical.forall_intro aux1
-      "#);
+      "#
+    );
     // Fold the two per-lane foralls into the opaque `ntt_step_post`.
     hax_lib::fstar!(
         r#"reveal_opaque (`%ntt_step_post)
@@ -1216,7 +1239,10 @@ pub(crate) fn ntt_at_layer_4_plus<Vector: Operations>(
 // `ntt_layer_int_vec_step`.  `-1600 == zeta(1) mod q` (`(v(zeta 1)*169)%3329 == 1729 == -1600`,
 // via `Ntt_bridge.lemma_zeta1_val`), so the plain multiply discharges the same Montgomery-form
 // `ntt_step_post` the forward inner-fold scaffold consumes.
-#[cfg_attr(hax, hax_lib::fstar::before(r#"
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::before(
+        r#"
 (* int core: (v(zeta 1)*169)%q == 1729 (== -1600 mod q) bridges plain mult by -1600 to
    the montgomery-mont butterfly precondition. *)
 #push-options "--fuel 0 --ifuel 0 --z3rlimit 100"
@@ -1306,7 +1332,9 @@ let lemma_layer7_step_post
     Classical.forall_intro aux1;
     reveal_opaque (`%ntt_step_post) (ntt_step_post #v_Vector a b x y zeta_r)
 #pop-options
-"#))]
+"#
+    )
+)]
 #[inline(always)]
 #[hax_lib::fstar::options("--z3rlimit 200 --ext context_pruning")]
 #[hax_lib::fstar::options("--z3rlimit 300 --ext context_pruning --split_queries always")]

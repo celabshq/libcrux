@@ -119,8 +119,6 @@ pub(crate) fn ZERO() -> SIMD128Vector {
         low: _vdupq_n_s16(0),
         high: _vdupq_n_s16(0),
     };
-    hax_lib::fstar!(
-        r#"Seq.lemma_eq_intro (repr ${result}) (Seq.create 16 (mk_i16 0))"#
-    );
+    hax_lib::fstar!(r#"Seq.lemma_eq_intro (repr ${result}) (Seq.create 16 (mk_i16 0))"#);
     result
 }

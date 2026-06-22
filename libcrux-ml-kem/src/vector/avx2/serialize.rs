@@ -9,7 +9,9 @@ use crate::vector::portable::PortableVector;
 // `mm256_cmpgt_epi16` carries its true hardware semantics (whole lane set on
 // a true compare).
 #[inline(always)]
-#[hax_lib::fstar::options("--ext context_pruning --compat_pre_core 0 --split_queries always --z3rlimit 400")]
+#[hax_lib::fstar::options(
+    "--ext context_pruning --compat_pre_core 0 --split_queries always --z3rlimit 400"
+)]
 #[hax_lib::ensures(|result| fstar!(r#"forall i. bit_vec_of_int_t_array $result 8 i == $vector (i * 16)"#))]
 pub(crate) fn serialize_1(vector: Vec256) -> [u8; 2] {
     // Suppose |vector| is laid out as follows (superscript number indicates the
@@ -415,8 +417,8 @@ pub(crate) fn serialize_5(vector: Vec256) -> [u8; 10] {
         let adjacent_8_combined = mm256_shuffle_epi8(
             adjacent_4_combined,
             mm256_set_epi8(
-                3, 2, 1, 0, 3, 2, 1, 0, 11, 10, 9, 8, 3, 2, 1, 0, 3, 2, 1, 0, 3, 2, 1, 0, 11, 10, 9,
-                8, 3, 2, 1, 0,
+                3, 2, 1, 0, 3, 2, 1, 0, 11, 10, 9, 8, 3, 2, 1, 0, 3, 2, 1, 0, 3, 2, 1, 0, 11, 10,
+                9, 8, 3, 2, 1, 0,
             ),
         );
         let adjacent_8_combined = mm256_sllv_epi32(
@@ -466,7 +468,9 @@ fn mm256_si256_from_two_si128(lower: Vec128, upper: Vec128) -> Vec256 {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--ext context_pruning --split_queries always --z3rlimit 800 --z3refresh")]
+#[hax_lib::fstar::options(
+    "--ext context_pruning --split_queries always --z3rlimit 800 --z3refresh"
+)]
 #[hax_lib::requires(fstar!(r#"Seq.length bytes == 10"#))]
 #[hax_lib::ensures(|result| fstar!(r#"forall (i: nat{i < 256}).
   $result i = (if i % 16 >= 5 then 0

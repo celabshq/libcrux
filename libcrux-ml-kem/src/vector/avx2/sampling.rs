@@ -104,7 +104,10 @@ let lemma_half_done
             hax_lib::forall(|j: usize|
                 hax_lib::implies(j < result,
                     future(output)[j] >= 0 && future(output)[j] <= 3328))))]
-#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 300 --split_queries always --z3refresh"))]
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::options("--z3rlimit 300 --split_queries always --z3refresh")
+)]
 pub(crate) fn rejection_sample(input: &[u8], output: &mut [i16]) -> usize {
     let field_modulus = mm256_set1_epi16(FIELD_MODULUS);
 

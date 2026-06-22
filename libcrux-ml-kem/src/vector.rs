@@ -75,7 +75,11 @@ pub(crate) mod spec {
     /// Lift one impl `PolynomialRingElement<V>` (16 chunks × 16 lanes)
     /// to the spec `[FieldElement; 256]` polynomial.  Each `i16`
     /// coefficient is reduced via `i16_to_spec_fe` (Euclidean mod q).
-    #[cfg_attr(hax, hax_lib::fstar::after(interface, r#"
+    #[cfg_attr(
+        hax,
+        hax_lib::fstar::after(
+            interface,
+            r#"
 /// Per-lane index fact for `poly_to_spec`: the j-th coefficient equals
 /// `i16_to_spec_fe` applied to the (j%16)-th lane of the (j/16)-th chunk.
 /// Needed to bridge `poly_to_spec` (opaque outside this module) to
@@ -94,8 +98,13 @@ val poly_to_spec_index
             (Libcrux_ml_kem.Vector.Traits.f_repr #v_V
               (Seq.index p.Libcrux_ml_kem.Vector.f_coefficients (j / 16)))
             (j % 16)))
-"#))]
-    #[cfg_attr(hax, hax_lib::fstar::after(r#"
+"#
+        )
+    )]
+    #[cfg_attr(
+        hax,
+        hax_lib::fstar::after(
+            r#"
 #push-options "--z3rlimit 200"
 let poly_to_spec_index
       (#v_V: Type0)
@@ -133,7 +142,9 @@ let poly_to_spec_index
     Libcrux_ml_kem.Vector.Traits.f_repr #v_V
       (Seq.index p.Libcrux_ml_kem.Vector.f_coefficients (j / 16)))
 #pop-options
-"#))]
+"#
+        )
+    )]
     pub fn poly_to_spec<V: Operations>(p: &PolynomialRingElement<V>) -> [FieldElement; 256] {
         let flat: [i16; 256] = createi(|i| {
             let chunk = V::to_i16_array(p.coefficients[i / 16]);
@@ -160,7 +171,11 @@ let poly_to_spec_index
     /// They are proven here (where the `createi` bodies are visible) and let
     /// callers in `Matrix` / `Ind_cpa` decompose the lifts per row/poly without
     /// relying on the opaque `val`s.  No SMTPat (called explicitly).
-    #[cfg_attr(hax, hax_lib::fstar::after(interface, r#"
+    #[cfg_attr(
+        hax,
+        hax_lib::fstar::after(
+            interface,
+            r#"
 val vector_to_spec_index
       (v_RANK: usize)
       (#v_V: Type0)
@@ -182,8 +197,13 @@ val matrix_to_spec_index
       (requires j < v v_RANK)
       (ensures
         Seq.index (matrix_to_spec v_RANK #v_V m) j == vector_to_spec v_RANK #v_V (Seq.index m j))
-"#))]
-    #[cfg_attr(hax, hax_lib::fstar::after(r#"
+"#
+        )
+    )]
+    #[cfg_attr(
+        hax,
+        hax_lib::fstar::after(
+            r#"
 #push-options "--z3rlimit 100"
 let vector_to_spec_index
       (v_RANK: usize)
@@ -227,7 +247,9 @@ let matrix_to_spec_index
           <: t_Array (t_Array Hacspec_ml_kem.Parameters.t_FieldElement (mk_usize 256)) v_RANK)
       (mk_usize j)
 #pop-options
-"#))]
+"#
+        )
+    )]
     pub fn matrix_to_spec<const RANK: usize, V: Operations>(
         m: &[[PolynomialRingElement<V>; RANK]; RANK],
     ) -> [[[FieldElement; 256]; RANK]; RANK] {
