@@ -76,16 +76,20 @@ STRIP_LETFUN={'libcrux_psq__handshake__ciphersuite__types__Impl_2__from',
 stmts=re.split(r'(?<=\.)\n', open(sys.argv[1]).read())
 hoist=[]; body=[]
 for s in stmts:
-    ms=re.match(r'\s*fun\s+([A-Za-z0-9_]+)\s*\(.*?\)\s*:\s*bitstring\s*\[data\]\.\s*$', s, re.S)
+    # The engine now prepends Rust doc comments `(* ... *)` before items. Strip
+    # any leading comment block when CLASSIFYING the statement (fun/letfun/const)
+    # so the statement-start regexes still match; keep `s` intact for output.
+    sc=re.sub(r'^\s*(?:\(\*.*?\*\)\s*)+', '', s, flags=re.S)
+    ms=re.match(r'\s*fun\s+([A-Za-z0-9_]+)\s*\(.*?\)\s*:\s*bitstring\s*\[data\]\.\s*$', sc, re.S)
     if ms and ms.group(1) in STRIP: continue
-    ml=re.match(r'\s*letfun\s+([A-Za-z0-9_]+)\s*\(', s)
+    ml=re.match(r'\s*letfun\s+([A-Za-z0-9_]+)\s*\(', sc)
     if ml and ml.group(1) in STRIP_LETFUN: continue
-    m=re.match(r'\s*letfun\s+([A-Za-z0-9_]+)\s*\((.*?)\)\s*=', s, re.S)
-    if m and re.search(r'\b'+re.escape(m.group(1))+r'\b', s[m.end():]):
+    m=re.match(r'\s*letfun\s+([A-Za-z0-9_]+)\s*\((.*?)\)\s*=', sc, re.S)
+    if m and re.search(r'\b'+re.escape(m.group(1))+r'\b', sc[m.end():]):
         ar=m.group(2).count(':') if m.group(2).strip() else 0
         hoist.append(f'fun {m.group(1)}({", ".join(["bitstring"]*ar)}): bitstring.'); continue
-    m2=re.search(r'(?m)^fun\s+([A-Za-z0-9_]+)\s*\(([^)]*)\)\s*:\s*bitstring\.\s*$', s)
-    if m2 and '[data]' not in s and s.strip().startswith(('fun','(* self-recursive')):
+    m2=re.search(r'(?m)^fun\s+([A-Za-z0-9_]+)\s*\(([^)]*)\)\s*:\s*bitstring\.\s*$', sc)
+    if m2 and '[data]' not in sc and sc.strip().startswith('fun'):
         hoist.append(f'fun {m2.group(1)}({m2.group(2)}): bitstring.'); continue
     body.append(s)
 seen=set(); H=[]
