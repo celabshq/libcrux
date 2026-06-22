@@ -1,0 +1,77 @@
+name: PSQ - ProVerif
+
+# Nightly ProVerif analysis of the libcrux-psq PSQ handshake.
+#
+# This is EXTRACTION-ONLY: unlike the other flagship ProVerif models, PSQ
+# gitignores its extraction snapshot (proofs/proverif/extraction/lib.pvl — see
+# proofs/proverif/.gitignore), so there is NO committed .pvl to diff against and
+# therefore no cheap per-push "verify the committed snapshot" job is possible.
+# The only thing we can do is RE-EXTRACT the handshake via the hax ProVerif
+# backend and then run the full analysis, which requires building the OCaml
+# hax-engine + Rust cargo-hax. That is heavy (~60 min wall clock), so it runs on
+# a nightly schedule (and on manual dispatch) rather than per push/PR.
+#
+# check-pv.sh re-extracts via `cargo hax ... into proverif`, composes lib.pvl
+# with the symbolic crypto model (psq_crypto.pvl), and runs the full ProVerif
+# suite: query mode (14/14), registration msg1 (DH/sig), post-quantum
+# forward-secrecy + authenticity, the DH session (~58 min, backgrounded) and the
+# sig session (~40 min, backgrounded). It prints `CHECK PASSED` (exit 0) on
+# success or `CHECK FAILED` (exit 1).
+
+on:
+  schedule:
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  proverif-psq:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Checkout hax ProVerif backend
+        uses: actions/checkout@v4
+        with:
+          repository: cryspen/hax
+          ref: proverif-rust-backend
+          path: hax-engine
+
+      - name: System deps (opam, jq, node, proverif)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y opam jq nodejs libgtk2.0-dev
+          opam init -y --disable-sandboxing --bare
+          opam install -y proverif
+
+      - name: Rust toolchain (pinned by hax)
+        run: |
+          rustup toolchain install "$(grep -oE 'nightly-[0-9-]+' hax-engine/rust-toolchain.toml | head -1)" \
+            --component rustc-dev --component rust-src --component llvm-tools-preview
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: hax-engine
+
+      - name: Cache opam
+        uses: actions/cache@v4
+        with:
+          path: ~/.opam
+          key: opam-hax-proverif-${{ runner.os }}-${{ hashFiles('hax-engine/engine/**/dune-project') }}
+
+      - name: Build + install the hax engine into a switch
+        run: |
+          opam switch list --short | grep -qx hax-proverif || opam switch create hax-proverif 5.3.0
+          HAX_OPAM_SWITCH=hax-proverif ./hax-engine/setup-local.sh
+
+      - name: Re-extract + run the full ProVerif analysis
+        env:
+          HAX_PROVERIF_DIR: ${{ github.workspace }}/hax-engine
+        run: bash libcrux-psq/proofs/proverif/check-pv.sh
