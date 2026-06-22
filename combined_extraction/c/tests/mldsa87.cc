@@ -12,7 +12,8 @@
 #include <nlohmann/json.hpp>
 #include <vector>
 
-#include "libcrux_mldsa65_portable.h"
+#include "libcrux_mldsa87_portable.h"
+#include "libcrux_sha3_portable.h"
 
 using namespace std;
 
@@ -26,15 +27,12 @@ Eurydice_borrow_slice_u8 mk_borrow_slice_u8(const uint8_t *x, size_t len) {
 }
 
 
-TEST(MlDsa65TestPortable, ConsistencyTest) {
+TEST(MlDsa87TestPortable, ConsistencyTest) {
   // Generate key pair
   Eurydice_arr_ec keygen_rand = {0};
   memset(keygen_rand.data, 0x13, 32);
 
-  Eurydice_arr_24 signing_key = {0};
-  Eurydice_arr_29 verification_key = {0};
-  libcrux_ml_dsa_ml_dsa_65_portable_generate_key_pair_mut(
-      keygen_rand, &signing_key, &verification_key);
+  auto key_pair = libcrux_ml_dsa_ml_dsa_87_portable_generate_key_pair(keygen_rand);
 
   // Sign
   uint8_t msg[79] = {0};
@@ -44,25 +42,26 @@ TEST(MlDsa65TestPortable, ConsistencyTest) {
 
   auto msg_slice = mk_borrow_slice_u8((uint8_t *)msg, 79);
   auto context_slice = mk_borrow_slice_u8((uint8_t *)context, 3);
-  Eurydice_arr_0c signature = {0};
-  auto signature_result = libcrux_ml_dsa_ml_dsa_65_portable_sign_mut(
-      &signing_key, msg_slice, context_slice, sign_rand, &signature);
+  auto signature_result = libcrux_ml_dsa_ml_dsa_87_portable_sign(
+      &key_pair.signing_key, msg_slice, context_slice, sign_rand);
   EXPECT_EQ(signature_result.tag, core_result_Ok);
+  auto signature = signature_result.val.case_Ok;
+
 
   // Verify
-  auto result = libcrux_ml_dsa_ml_dsa_65_portable_verify(
-      &verification_key, msg_slice, context_slice, &signature);
+  auto result = libcrux_ml_dsa_ml_dsa_87_portable_verify(
+      &key_pair.verification_key, msg_slice, context_slice, &signature);
 
   EXPECT_EQ(result.tag, core_result_Ok);
 }
 
 #ifdef LIBCRUX_X64
-#include "libcrux_mldsa65_avx2.h"
+#include "libcrux_mldsa87_avx2.h"
 
-TEST(MlDsa65TestAvx2, ConsistencyTest) {
+TEST(MlDsa87TestAvx2, ConsistencyTest) {
   Eurydice_arr_ec keygen_rand = {0};
   memset(keygen_rand.data, 0x13, 32);
-  auto key_pair = libcrux_ml_dsa_ml_dsa_65_avx2_generate_key_pair(keygen_rand);
+  auto key_pair = libcrux_ml_dsa_ml_dsa_87_avx2_generate_key_pair(keygen_rand);
 
   // Sign
   uint8_t msg[79] = {0};
@@ -72,13 +71,13 @@ TEST(MlDsa65TestAvx2, ConsistencyTest) {
 
   auto msg_slice = mk_borrow_slice_u8((uint8_t *)msg, 79);
   auto context_slice = mk_borrow_slice_u8((uint8_t *)context, 3);
-  auto signature_result = libcrux_ml_dsa_ml_dsa_65_avx2_sign(
+  auto signature_result = libcrux_ml_dsa_ml_dsa_87_avx2_sign(
       &key_pair.signing_key, msg_slice, context_slice, sign_rand);
   EXPECT_EQ(signature_result.tag, core_result_Ok);
   auto signature = signature_result.val.case_Ok;
 
   // Verify
-  auto result = libcrux_ml_dsa_ml_dsa_65_avx2_verify(
+  auto result = libcrux_ml_dsa_ml_dsa_87_avx2_verify(
       &key_pair.verification_key, msg_slice, context_slice, &signature);
 
   EXPECT_EQ(result.tag, core_result_Ok);
@@ -152,9 +151,9 @@ vector<KAT> read_kats(string path) {
   return kats;
 }
 
-TEST(MlDsa65TestPortable, NISTKnownAnswerTest) {
+TEST(MlDsa87TestPortable, NISTKnownAnswerTest) {
   // XXX: This should be done in a portable way.
-  auto kats = read_kats("tests/nistkats-65.json");
+  auto kats = read_kats("tests/nistkats-87.json");
 
   Eurydice_arr_ec keygen_rand = {0};
   Eurydice_arr_ec sign_rand = {0};
@@ -162,19 +161,16 @@ TEST(MlDsa65TestPortable, NISTKnownAnswerTest) {
   for (auto kat : kats) {
     // Generate key pair
     memcpy(keygen_rand.data, kat.key_generation_seed.data(), 32);
-
-    Eurydice_arr_24 signing_key = {0};
-    Eurydice_arr_29 verification_key = {0};
-    libcrux_ml_dsa_ml_dsa_65_portable_generate_key_pair_mut(
-        keygen_rand, &signing_key, &verification_key);
+    
+    auto key_pair = libcrux_ml_dsa_ml_dsa_87_portable_generate_key_pair(keygen_rand);
 
     auto vk_hash =
-        libcrux_sha3_sha256(mk_borrow_slice_u8(verification_key.data, 1952U));
+        libcrux_sha3_sha256(mk_borrow_slice_u8(key_pair.verification_key.data, 2592U));
     EXPECT_EQ(0, memcmp(vk_hash.data,
                         kat.sha3_256_hash_of_verification_key.data(), 32));
 
     auto sk_hash =
-        libcrux_sha3_sha256(mk_borrow_slice_u8(signing_key.data, 4032U));
+        libcrux_sha3_sha256(mk_borrow_slice_u8(key_pair.signing_key.data, 4896U));
     EXPECT_EQ(
         0, memcmp(sk_hash.data, kat.sha3_256_hash_of_signing_key.data(), 32));
 
@@ -183,47 +179,47 @@ TEST(MlDsa65TestPortable, NISTKnownAnswerTest) {
     Eurydice_borrow_slice_u8 context = {0};
 
     auto msg_slice = mk_borrow_slice_u8(kat.message.data(), kat.message.size());
-    Eurydice_arr_0c signature = {0};
-    auto signature_result = libcrux_ml_dsa_ml_dsa_65_portable_sign_mut(
-        &signing_key, msg_slice, context, sign_rand, &signature);
+    auto signature_result = libcrux_ml_dsa_ml_dsa_87_portable_sign(
+      &key_pair.signing_key, msg_slice, context, sign_rand);
     EXPECT_EQ(signature_result.tag, core_result_Ok);
+    auto signature = signature_result.val.case_Ok;
+
 
     auto sig_hash =
-        libcrux_sha3_sha256(mk_borrow_slice_u8(signature.data, 3309U));
+        libcrux_sha3_sha256(mk_borrow_slice_u8(signature.data, 4627U));
     EXPECT_EQ(0,
               memcmp(sig_hash.data, kat.sha3_256_hash_of_signature.data(), 32));
 
     // Verify
-    auto result = libcrux_ml_dsa_ml_dsa_65_portable_verify(
-        &verification_key, msg_slice, context, &signature);
+    auto result = libcrux_ml_dsa_ml_dsa_87_portable_verify(
+      &key_pair.verification_key, msg_slice, context, &signature);
+    
     EXPECT_EQ(result.tag, core_result_Ok);
   }
 }
 
 #ifdef LIBCRUX_X64
-TEST(MlDsa65TestAvx2, NISTKnownAnswerTest) {
+TEST(MlDsa87TestAvx2, NISTKnownAnswerTest) {
   // XXX: This should be done in a portable way.
-  auto kats = read_kats("tests/nistkats-65.json");
+  auto kats = read_kats("tests/nistkats-87.json");
 
   Eurydice_arr_ec keygen_rand = {0};
   Eurydice_arr_ec sign_rand = {0};
 
   for (auto kat : kats) {
+
     // Generate key pair
     memcpy(keygen_rand.data, kat.key_generation_seed.data(), 32);
-
-    Eurydice_arr_24 signing_key = {0};
-    Eurydice_arr_29 verification_key = {0};
-    libcrux_ml_dsa_ml_dsa_65_avx2_generate_key_pair_mut(
-        keygen_rand, &signing_key, &verification_key);
+    
+    auto key_pair = libcrux_ml_dsa_ml_dsa_87_avx2_generate_key_pair(keygen_rand);
 
     auto vk_hash =
-        libcrux_sha3_sha256(mk_borrow_slice_u8(verification_key.data, 1952U));
+        libcrux_sha3_sha256(mk_borrow_slice_u8(key_pair.verification_key.data, 2592U));
     EXPECT_EQ(0, memcmp(vk_hash.data,
                         kat.sha3_256_hash_of_verification_key.data(), 32));
 
     auto sk_hash =
-        libcrux_sha3_sha256(mk_borrow_slice_u8(signing_key.data, 4032U));
+        libcrux_sha3_sha256(mk_borrow_slice_u8(key_pair.signing_key.data, 4896U));
     EXPECT_EQ(
         0, memcmp(sk_hash.data, kat.sha3_256_hash_of_signing_key.data(), 32));
 
@@ -232,19 +228,21 @@ TEST(MlDsa65TestAvx2, NISTKnownAnswerTest) {
     Eurydice_borrow_slice_u8 context = {0};
 
     auto msg_slice = mk_borrow_slice_u8(kat.message.data(), kat.message.size());
-    Eurydice_arr_0c signature = {0};
-    auto signature_result = libcrux_ml_dsa_ml_dsa_65_avx2_sign_mut(
-        &signing_key, msg_slice, context, sign_rand, &signature);
+    auto signature_result = libcrux_ml_dsa_ml_dsa_87_avx2_sign(
+      &key_pair.signing_key, msg_slice, context, sign_rand);
     EXPECT_EQ(signature_result.tag, core_result_Ok);
+    auto signature = signature_result.val.case_Ok;
+
 
     auto sig_hash =
-        libcrux_sha3_sha256(mk_borrow_slice_u8(signature.data, 3309U));
+        libcrux_sha3_sha256(mk_borrow_slice_u8(signature.data, 4627U));
     EXPECT_EQ(0,
               memcmp(sig_hash.data, kat.sha3_256_hash_of_signature.data(), 32));
 
     // Verify
-    auto result = libcrux_ml_dsa_ml_dsa_65_avx2_verify(
-        &verification_key, msg_slice, context, &signature);
+    auto result = libcrux_ml_dsa_ml_dsa_87_avx2_verify(
+      &key_pair.verification_key, msg_slice, context, &signature);
+    
     EXPECT_EQ(result.tag, core_result_Ok);
   }
 }

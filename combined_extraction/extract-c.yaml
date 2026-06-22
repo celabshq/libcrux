@@ -214,7 +214,7 @@ files:
       patterns:
         - [libcrux_ml_dsa, ml_dsa_44, avx2, "*"]
       monomorphizations_of:
-        - [libcrux_ml_dsa, ml_dsa_44, avx2, "*"]
+        - [libcrux_ml_dsa, ml_dsa_44, avx2]
 
   # MLDSA-65
   - name: libcrux_mldsa65_avx2
@@ -225,7 +225,7 @@ files:
       patterns:
         - [libcrux_ml_dsa, ml_dsa_65, avx2, "*"]
       monomorphizations_of:
-        - [libcrux_ml_dsa, ml_dsa_65, avx2, "*"]
+        - [libcrux_ml_dsa, ml_dsa_65, avx2]
 
   # MLDSA-87
   - name: libcrux_mldsa87_avx2
@@ -236,7 +236,7 @@ files:
       patterns:
         - [libcrux_ml_dsa, ml_dsa_87, avx2, "*"]
       monomorphizations_of:
-        - [libcrux_ml_dsa, ml_dsa_87, avx2, "*"]
+        - [libcrux_ml_dsa, ml_dsa_87, avx2]
 
   # MLDSA: AVX2 stuff shared across variants
   - name: libcrux_mldsa_avx2

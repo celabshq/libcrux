@@ -102,10 +102,28 @@ FetchContent_Declare(json
 )
 FetchContent_MakeAvailable(json)
 
-add_executable(ml_dsa_test
+add_executable(ml_dsa_test44
+    ${PROJECT_SOURCE_DIR}/tests/mldsa44.cc
+)
+target_link_libraries(ml_dsa_test44 PRIVATE
+    combined_static
+    gtest_main
+    nlohmann_json::nlohmann_json
+)
+
+add_executable(ml_dsa_test65
     ${PROJECT_SOURCE_DIR}/tests/mldsa65.cc
 )
-target_link_libraries(ml_dsa_test PRIVATE
+target_link_libraries(ml_dsa_test65 PRIVATE
+    combined_static
+    gtest_main
+    nlohmann_json::nlohmann_json
+)
+
+add_executable(ml_dsa_test87
+    ${PROJECT_SOURCE_DIR}/tests/mldsa87.cc
+)
+target_link_libraries(ml_dsa_test87 PRIVATE
     combined_static
     gtest_main
     nlohmann_json::nlohmann_json
