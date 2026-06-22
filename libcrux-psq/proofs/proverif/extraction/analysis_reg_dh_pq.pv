@@ -1,0 +1,74 @@
+(* PSQ registration (DH auth) — POST-QUANTUM forward secrecy & authenticity:
+   a session that COMPLETES before the quantum apocalypse keeps BOTH its secrecy
+   and its authenticity. Against the EXTRACTED libcrux-psq model.
+   Shared setup/roles/aliases/nounif: -lib psq_reg_lib.pvl.
+
+   THE PROPERTY (the point of PSQ's hybrid X25519+ML-KEM construction)
+   ------------------------------------------------------------------
+   Model the quantum apocalypse with PHASES (= timestamps): phase 0 is the honest
+   session under a FULL active Dolev-Yao attacker; phase 1 is the apocalypse, where
+   the attacker derives EVERY classical private key from its public — the responder
+   long-term DH key sk_R, the client long-term DH key sk_I, the session ephemeral
+   epriv_I (and, in signature mode, the classical signing key). We model that by
+   revealing all classical secrets in phase 1, STRICTLY AFTER the phase-0 session.
+   The ML-KEM-768 decapsulation key is revealed in phase 1 too (the apocalypse does
+   NOT break ML-KEM — it is the post-quantum anchor; we expose it only to witness
+   non-vacuity / the leak boundary).
+
+   Claim: classical keys compromised AFTER an accepted session do not break that
+   session — its confidentiality rests on the ML-KEM shared secret folded into K_1,
+   and its authentication completed while the classical keys were still secret.
+
+   FA1  Forward authenticity (phase form): a phase-0 responder acceptance agrees
+        with an honest initiator — the phase-1 apocalypse cannot retroactively
+        forge it.                                              Expected: true
+   FA2  Forward authenticity (TIMESTAMP form): a responder acceptance at t1 agrees
+        with an honest initiator, UNLESS a classical key was compromised BEFORE t1
+        (t2 < t1). I.e. only a compromise that PRECEDES the acceptance can forge.
+        Contrast: the same correspondence WITHOUT the `t2 < t1` guard is R2a in
+        analysis_reg_dh_msg1.pv, which is FALSE (DH-auth is not PQ-secure when the
+        attacker breaks DH DURING the run).                    Expected: true
+   FS1  Forward secrecy of the registration payload: reg_secret stays secret though
+        ALL classical DH keys leak after the session, unless ML-KEM is also
+        compromised.                                           Expected: true
+   FS2  Forward secrecy of the message-1 key K_1.             Expected: true
+   NV   Non-vacuity / leak control: reg_secret IS derivable once the phase-1 ML-KEM
+        compromise fires (so FS1/FS2 are tight, and the honest session really ran). Expected: false *)
+
+set reconstructTrace = true.
+
+(* --- FA1. Forward authenticity, phase form.                 Expected: true *)
+query i: Principal, r: Principal, ctx: bitstring, k: bitstring;
+      event(RespRegDH(i, r, ctx, k)) ==> event(InitRegDH(i, r, ctx, k)).
+
+(* --- FA2. Forward authenticity, timestamp form: accept@t1 => honest, or a
+   classical key was compromised BEFORE t1.                    Expected: true *)
+query i: Principal, r: Principal, ctx: bitstring, k: bitstring, t1: time, t2: time;
+      event(RespRegDH(i, r, ctx, k))@t1
+        ==> event(InitRegDH(i, r, ctx, k))
+            || (event(CompromiseClient(i))@t2 && t2 < t1)
+            || (event(CompromiseEndpointClassical(r))@t2 && t2 < t1).
+
+(* --- FS1. Forward secrecy of reg_secret: ML-KEM is the sole dependency. Expected: true *)
+query attacker(reg_secret) ==> event(CompromiseEndpointPQ(Bob)).
+
+(* --- FS2. Forward secrecy of K_1.                            Expected: true *)
+query i: Principal, r: Principal, ctx: bitstring, k: bitstring;
+      event(InitRegDH(i, r, ctx, k)) && attacker(k)
+          ==> event(CompromiseEndpointPQ(r)).
+
+(* --- NV. Non-vacuity: reg_secret leaks once ML-KEM falls (phase 1).  Expected: false *)
+query attacker(reg_secret).
+
+process
+    ( setup_responder(Bob)
+    | create_dh_client(Alice)
+    | ( !m1_dh_initiator_leaky(Alice, Bob) )   (* phase-0 honest session       *)
+    | ( !m1_dh_responder(Bob) )                (* phase-0 honest session       *)
+    (* QUANTUM APOCALYPSE — strictly AFTER the phase-0 session: every classical
+       private key becomes derivable, plus (to witness the leak boundary) ML-KEM. *)
+    | ( phase 1;
+        ( !compromise_endpoint_classical(Bob)   (* sk_R                         *)
+        | !compromise_dh_client(Alice)           (* sk_I                         *)
+        | !leak_ephemeral(Bob)                   (* epriv_I                      *)
+        | !compromise_endpoint_pq(Bob) ) ) )     (* ML-KEM (non-vacuity witness) *)

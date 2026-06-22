@@ -228,6 +228,26 @@ let m1_dh_initiator(i: Principal, r: Principal) =
     event InitRegDH(i, r, context, k1);
     out(c, msg).
 
+(* Leaky variant: identical to m1_dh_initiator but ALSO tables the run ephemeral
+   scalar (the X25519 epriv_I, projected from the WaitingState) so leak_ephemeral
+   can model a quantum/harvest-now break of the session ephemeral. Used by the
+   PQ-secrecy analysis (compromise ALL classical DH keys at once). *)
+let m1_dh_initiator_leaky(i: Principal, r: Principal) =
+    get resp_dh(=r, sk_R, pk_R) in
+    get resp_pq(=r, pqdk_R, pqek_R) in
+    get client_dh(=i, sk_I, pk_I) in
+    let cs_I = mk_init_cs(cs_name_dh(), pk_R, pqek_R, auth_dh(mk_dhkp(sk_I, pk_I))) in
+    new rng_I: bitstring;
+    let ri0 = reg_init_new(cs_I, context, inner_aad, outer_aad, rng_I) in
+    let written = reg_init_write(ri0, reg_secret) in
+    let ri1 = t2_0(written) in
+    let msg = t2_1(written) in
+    let libcrux_psq__handshake__initiator__registration__RegistrationInitiatorState__Waiting(ws) = ri_state(ri1) in
+    let k1 = ws_k1(ws) in
+    insert session_eph(r, ws_ephsk(ws));
+    event InitRegDH(i, r, context, k1);
+    out(c, msg).
+
 let m1_dh_responder(r: Principal) =
     get resp_dh(=r, sk_R, pk_R) in
     get resp_pq(=r, pqdk_R, pqek_R) in
