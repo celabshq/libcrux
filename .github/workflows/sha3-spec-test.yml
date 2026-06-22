@@ -2,10 +2,6 @@ name: SHA3 Spec - Build & Test
 
 on:
   merge_group:
-    paths:
-      - "specs/sha3/**"
-      - "crates/algorithms/sha3/**"
-      - "crates/testing/kats/**"
   pull_request:
     branches: ["main", "dev"]
     paths:
