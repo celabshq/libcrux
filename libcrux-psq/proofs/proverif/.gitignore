@@ -4,3 +4,4 @@ extraction/lib.pvl
 extraction/lib.clean.pvl
 extraction/missingdecl*.pvl
 extraction/loadcheck.pv
+extraction/*.pvl.map
