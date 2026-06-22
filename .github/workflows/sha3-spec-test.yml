@@ -1,0 +1,49 @@
+name: SHA3 Spec - Build & Test
+
+on:
+  merge_group:
+  pull_request:
+    branches: ["main", "dev"]
+    paths:
+      - "specs/sha3/**"
+      - "crates/algorithms/sha3/**"
+      - "crates/testing/kats/**"
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: specs/sha3
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: 🔨 Build
+        run: cargo build --verbose
+
+      - name: 🏃 Test
+        run: cargo test --verbose
+
+      - name: 🏃 Test Release
+        run: cargo test --verbose --release
+
+  sha3-spec-test-status:
+    if: ${{ always() }}
+    needs: [build-test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Successful
+        if: ${{ !(contains(needs.*.result, 'failure')) }}
+        run: exit 0
+      - name: Failing
+        if: ${{ (contains(needs.*.result, 'failure')) }}
+        run: exit 1

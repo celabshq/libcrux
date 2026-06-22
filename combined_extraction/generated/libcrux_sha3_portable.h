@@ -8,7 +8,7 @@
  * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
  * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
  * F*: unset
- * Libcrux: ae092f4921933e45dec31610a1465191171e5b3f
+ * Libcrux: c5f306978fa7d13b590fd71dbc260386f3936d57
  */
 
 
@@ -185,7 +185,7 @@ static KRML_MUSTINLINE const
 uint64_t
 *libcrux_sha3_traits_get_ij_71(const Eurydice_arr_7c *arr, size_t i, size_t j)
 {
-  return &arr->data[(size_t)5U * j + i];
+  return &arr->data[(size_t)5U * i + j];
 }
 
 /**
@@ -197,7 +197,7 @@ with const generics
 static KRML_MUSTINLINE void
 libcrux_sha3_traits_set_ij_71(Eurydice_arr_7c *arr, size_t i, size_t j, uint64_t value)
 {
-  arr->data[(size_t)5U * j + i] = value;
+  arr->data[(size_t)5U * i + j] = value;
 }
 
 /**

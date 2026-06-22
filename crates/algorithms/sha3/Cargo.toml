@@ -34,6 +34,7 @@ rand = "0.10"
 libcrux-kats = { workspace = true, features = ["sha3"] }
 pretty_env_logger = "0.5.0"
 clap = { version = "4.5.39", features = ["derive"] }
+hacspec_sha3 = { path = "../../../specs/sha3" }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(hax)', 'cfg(eurydice)'] }
