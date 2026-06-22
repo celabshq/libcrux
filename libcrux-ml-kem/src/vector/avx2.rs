@@ -21,7 +21,6 @@ pub struct SIMD256Vector {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::ensures(|result| fstar!(r#"repr ${result} == Seq.create 16 (mk_i16 0)"#))]
 fn vec_zero() -> SIMD256Vector {
     SIMD256Vector {
@@ -30,17 +29,19 @@ fn vec_zero() -> SIMD256Vector {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::ensures(|result| fstar!(r#"${result} == repr ${v}"#))]
 fn vec_to_i16_array(v: SIMD256Vector) -> [i16; 16] {
     let mut output = [0i16; 16];
+    // `output` has length 16; surface that fact so the intrinsic's
+    // length-guarded `ensures` discharges `result == repr v`.
+    hax_lib::fstar!(r#"assert (Core_models.Slice.impl__len #i16 output == mk_usize 16)"#);
     mm256_storeu_si256_i16(&mut output, v.elements);
 
     output
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::requires(array.len() == 16)]
 #[hax_lib::ensures(|result| fstar!(r#"repr ${result} == ${array}"#))]
 fn vec_from_i16_array(array: &[i16]) -> SIMD256Vector {
     SIMD256Vector {
@@ -49,7 +50,6 @@ fn vec_from_i16_array(array: &[i16]) -> SIMD256Vector {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::requires(array.len() >= 32)]
 #[hax_lib::ensures(|result| fstar!(r#"
     Core_models.Slice.impl__len #u8 ${array} >=. mk_usize 32 ==>
@@ -59,9 +59,27 @@ fn vec_from_i16_array(array: &[i16]) -> SIMD256Vector {
        (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}.f_elements))
 "#))]
 pub(super) fn from_bytes(array: &[u8]) -> SIMD256Vector {
-    SIMD256Vector {
+    let result = SIMD256Vector {
         elements: mm256_loadu_si256_u8(&array[0..32]),
-    }
+    };
+    // Bridge the intrinsic's `bit_vec_equal` ensures (bit-vec form) to the
+    // `from_le_bytes_post_N` (i16x16 byte-view) post: the i16x16 view of the
+    // loaded vector is bit-for-bit the loaded vector, so the byte-array and
+    // i16-array views share the same bit vector.
+    hax_lib::fstar!(
+        r#"
+introduce forall (i: nat{i < 256}).
+    Rust_primitives.BitVectors.bit_vec_of_int_t_array
+      (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}.f_elements) 16 i
+    == ${result}.f_elements i
+with Libcrux_intrinsics.Avx2_extract.bit_vec_of_int_t_array_vec256_as_i16x16_lemma
+       ${result}.f_elements 16 i;
+BitVecEq.bit_vec_equal_intro
+  (Rust_primitives.BitVectors.bit_vec_of_int_t_array
+     (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}.f_elements) 16)
+  ${result}.f_elements"#
+    );
+    result
 }
 
 // Carries the trait's `to_le_bytes_post_N` post directly so the trait
@@ -70,7 +88,6 @@ pub(super) fn from_bytes(array: &[u8]) -> SIMD256Vector {
 // strengthened val ensures (bit_vec form) through `update_at_range` to
 // `to_le_bytes_post_N` is admitted at this layer.
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::requires(bytes.len() >= 32)]
 #[hax_lib::ensures(|_| fstar!(r#"
     Core_models.Slice.impl__len #u8 (bytes_future <: t_Slice u8) ==
@@ -82,7 +99,24 @@ pub(super) fn from_bytes(array: &[u8]) -> SIMD256Vector {
         (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${x}.f_elements) head))
 "#))]
 pub(super) fn to_bytes(x: SIMD256Vector, bytes: &mut [u8]) {
-    mm256_storeu_si256_u8(&mut bytes[0..32], x.elements)
+    mm256_storeu_si256_u8(&mut bytes[0..32], x.elements);
+    // `update_at_range`'s post gives `head == stored bytes` and length
+    // preservation; the intrinsic gives `head`'s bit-vec == x.elements; and
+    // the i16x16 view of x.elements is bit-for-bit x.elements — so the i16
+    // and byte views share a bit vector (`to_le_bytes_post_N`).
+    hax_lib::fstar!(
+        r#"
+introduce forall (i: nat{i < 256}).
+    Rust_primitives.BitVectors.bit_vec_of_int_t_array
+      (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${x}.f_elements) 16 i
+    == ${x}.f_elements i
+with Libcrux_intrinsics.Avx2_extract.bit_vec_of_int_t_array_vec256_as_i16x16_lemma
+       ${x}.f_elements 16 i;
+BitVecEq.bit_vec_equal_intro
+  (Rust_primitives.BitVectors.bit_vec_of_int_t_array
+     (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${x}.f_elements) 16)
+  ${x}.f_elements"#
+    );
 }
 
 #[cfg(hax)]
