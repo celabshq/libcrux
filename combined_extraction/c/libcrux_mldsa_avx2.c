@@ -8,7 +8,7 @@
  * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
  * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
  * F*: unset
- * Libcrux: c580de08c2461add5a35427c264aeeacde26bcf5
+ * Libcrux: 9206402bb781ceb075738adf111bd86f9f767cb1
  */
 
 
@@ -18,7 +18,6 @@
 #include "libcrux_sha3_avx2.h"
 #include "libcrux_mldsa_portable.h"
 #include "libcrux_mldsa_core.h"
-#include "libcrux_intrinsics_avx2.h"
 #include "combined_core.h"
 #include "internal/libcrux_mlkem_core.h"
 #include "internal/combined_core.h"

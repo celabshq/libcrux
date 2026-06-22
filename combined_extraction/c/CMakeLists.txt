@@ -67,19 +67,19 @@ file(GLOB SOURCES_vec256
 add_library(combined SHARED ${SOURCES})
 add_library(combined_static STATIC ${SOURCES})
 
-# if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")
-#   message(STATUS "Detected an x64 architecture")
-#   add_compile_definitions(LIBCRUX_X64)
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")
+  message(STATUS "Detected an x64 architecture")
+  add_compile_definitions(LIBCRUX_X64)
 
-#   add_library(combined_vec256 OBJECT ${SOURCES_vec256})
-#   target_sources(combined_static PRIVATE $<TARGET_OBJECTS:combined_vec256>)
-#   target_sources(combined PRIVATE $<TARGET_OBJECTS:combined_vec256>)
-# endif()
+  add_library(combined_vec256 OBJECT ${SOURCES_vec256})
+  target_sources(combined_static PRIVATE $<TARGET_OBJECTS:combined_vec256>)
+  target_sources(combined PRIVATE $<TARGET_OBJECTS:combined_vec256>)
+endif()
 
-# if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|arm64v8" AND DEFINED ENV{LIBCRUX_NEON})
-#     message(STATUS "Detected an arm64 architecture")
-#     add_compile_definitions(LIBCRUX_AARCH64)
-# endif()
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|arm64v8" AND DEFINED ENV{LIBCRUX_NEON})
+    message(STATUS "Detected an arm64 architecture")
+    add_compile_definitions(LIBCRUX_AARCH64)
+endif()
 
 
 # --- Tests
