@@ -1,6 +1,0 @@
-# CMake generated Testfile for 
-# Source directory: /home/jonas/wt/libcrux/wip/combined_extraction/c-header-only/build/_deps/googletest-src/googletest
-# Build directory: /home/jonas/wt/libcrux/wip/combined_extraction/c-header-only/build/_deps/googletest-build/googletest
-# 
-# This file includes the relevant testing commands required for 
-# testing this directory and lists subdirectories to be tested as well.

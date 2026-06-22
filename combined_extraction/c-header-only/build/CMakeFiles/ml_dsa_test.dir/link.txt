@@ -1,1 +1,0 @@
-/usr/bin/clang++ -Xlinker --dependency-file=CMakeFiles/ml_dsa_test.dir/link.d CMakeFiles/ml_dsa_test.dir/tests/mldsa65.cc.o -o ml_dsa_test  lib/libgtest_main.a lib/libgtest.a

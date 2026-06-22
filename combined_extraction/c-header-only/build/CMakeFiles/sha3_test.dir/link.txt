@@ -1,1 +1,0 @@
-/usr/bin/clang++ -Xlinker --dependency-file=CMakeFiles/sha3_test.dir/link.d CMakeFiles/sha3_test.dir/tests/sha3.cc.o -o sha3_test  lib/libgtest_main.a lib/libgtest.a
