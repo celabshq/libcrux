@@ -27,21 +27,25 @@ portable_only=0
 no_hacl=0
 no_charon=0
 clean=0
-config=$extract_root/extract.yaml
-out=generated
+config=$extract_root/extract-c.yaml
+out=c
 glue=$EURYDICE_HOME/include/eurydice_glue.h
 features_mlkem="${features} --no-default-features --features=mlkem768"
-features_mldsa="${features} --no-default-features --features=mldsa65"
+features_mldsa="${features} --no-default-features --features=mldsa65 --features=mldsa44 --features=mldsa87"
 eurydice_glue=1
 karamel_include=1
 unrolling=16
 format=1
-cpp17=-fc++17-compat
+cpp17=
 
 # Parse command line arguments.
 all_args=("$@")
 while [ $# -gt 0 ]; do
     case "$1" in
+        --header-only)
+            config="$extract_root/extract-c-header.yaml"
+            out=c-header-only
+            ;;
         -p | --portable) portable_only=1 ;;
         --no-hacl) no_hacl=1 ;;
         --no-charon) no_charon=1 ;;
