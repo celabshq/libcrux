@@ -2264,4 +2264,319 @@ mod track_i_axiom_transcription_tests {
             }
         }
     }
+
+    // ─── d-bit (de)compress AVX2 lane-axiom transcription tests ──────────────
+    // Validate the F* crate ensures (avx2_extract.rs) added for the AVX2 d-bit
+    // compress spine — mm256_srli_epi32, mm256_slli_epi32 (small shift),
+    // mm256_mul_epu32, mm256_packs_epi32, and the three unpacks used by
+    // mulhi_mm256_epi32 — against the executable int_vec models on the i32/u64
+    // lane views.  Each *formula* transcribes the F* axiom RHS exactly (using
+    // `rem_euclid` for F*'s Euclidean `%` and wrapping i32 for `@%`); `model` is
+    // the hardware-differential-tested interpretation.
+
+    /// Unsigned value of i32-lane j (`lane32 v j % 2^32`), as i64 in [0, 2^32).
+    fn lane32u_of(v: &BitVec<256>, j: usize) -> i64 {
+        (lane32_recon(v)[j] as i64).rem_euclid(1i64 << 32)
+    }
+
+    /// F* axiom (`mm256_srli_epi32` ensures, 0 < s < 32):
+    /// `lane32 result j == (lane32 vector j % 2^32) / 2^s` (logical shift).
+    /// Model anchor: `int_vec::_mm256_srli_epi32` (`((a[i] as u32) >> s) as i32`).
+    fn check_srli32<const S: i32>(a: BitVec<256>) {
+        let model: BitVec<256> =
+            BitVec::from_i32x8(int_vec::_mm256_srli_epi32::<S>(BitVec::to_i32x8(a)));
+        let lm = lane32_recon(&model);
+        for j in 0..8 {
+            let formula = lane32u_of(&a, j) / (1i64 << S);
+            assert_eq!(lm[j] as i64, formula, "srli s={S} j={j}");
+        }
+    }
+
+    /// F* axiom (`mm256_slli_epi32` small-shift ensures, 0 <= s < 32):
+    /// `lane32 result j == (lane32 vector j * 2^s) @% 2^32` (signed wrap).
+    /// Model anchor: `int_vec::_mm256_slli_epi32` (`((a[i] as u32) << s) as i32`).
+    fn check_slli32<const S: i32>(a: BitVec<256>) {
+        let model: BitVec<256> =
+            BitVec::from_i32x8(int_vec::_mm256_slli_epi32::<S>(BitVec::to_i32x8(a)));
+        let la = lane32_recon(&a);
+        let lm = lane32_recon(&model);
+        for j in 0..8 {
+            // (lane * 2^s) reinterpreted into i32 via the low 32 bits == `@% 2^32`.
+            let formula = (((la[j] as i64) << S) as i32) as i64;
+            assert_eq!(lm[j] as i64, formula, "slli s={S} j={j}");
+        }
+    }
+
+    /// F* axiom (`mm256_srai_epi32` ensures, 0 <= s < 32):
+    /// `lane32 result j == (lane32 vector j) / 2^s` (arithmetic shift; F*'s
+    /// integer `/` is Euclidean floor, matching the sign-filling shift).
+    /// Model anchor: `int_vec::_mm256_srai_epi32` (`a[i] >> s`, signed).
+    fn check_srai32<const S: i32>(a: BitVec<256>) {
+        let model: BitVec<256> =
+            BitVec::from_i32x8(int_vec::_mm256_srai_epi32::<S>(BitVec::to_i32x8(a)));
+        let la = lane32_recon(&a);
+        let lm = lane32_recon(&model);
+        for j in 0..8 {
+            // arithmetic shift right == Euclidean floor division by 2^s (F* `/`).
+            let formula = (la[j] as i64).div_euclid(1i64 << S);
+            assert_eq!(lm[j] as i64, formula, "srai s={S} j={j}");
+        }
+    }
+
+    /// F* axiom (`mm256_mul_epu32` ensures, i < 4):
+    /// `lane64u result i == (lane32 lhs (2i) % 2^32) * (lane32 rhs (2i) % 2^32)`.
+    /// Model anchor: `int_vec::_mm256_mul_epu32` (`(a[2i] as u64) * (b[2i] as u64)`).
+    fn check_mul_epu32(a: BitVec<256>, b: BitVec<256>) {
+        let model: BitVec<256> = BitVec::from_u64x4(int_vec::_mm256_mul_epu32(
+            BitVec::to_u32x8(a),
+            BitVec::to_u32x8(b),
+        ));
+        let lane64u_recon = |v: &BitVec<256>, i: usize| -> i128 {
+            (lane32u_of(v, 2 * i) as i128) + (1i128 << 32) * (lane32u_of(v, 2 * i + 1) as i128)
+        };
+        for i in 0..4 {
+            let formula = (lane32u_of(&a, 2 * i) as i128) * (lane32u_of(&b, 2 * i) as i128);
+            assert_eq!(lane64u_recon(&model, i), formula, "mul_epu32 i={i}");
+        }
+    }
+
+    /// F* axiom (`mm256_packs_epi32` ensures): signed-saturating pack with the
+    /// 128-bit-half interleave layout (out lanes 0..3 = sat(lhs 0..3),
+    /// 4..7 = sat(rhs 0..3), 8..11 = sat(lhs 4..7), 12..15 = sat(rhs 4..7)).
+    /// Model anchor: `int_vec::_mm256_packs_epi32`.
+    fn check_packs32(a: BitVec<256>, b: BitVec<256>) {
+        let model: Vec<i16> = BitVec::from_i16x16(int_vec::_mm256_packs_epi32(
+            BitVec::to_i32x8(a),
+            BitVec::to_i32x8(b),
+        ))
+        .to_vec();
+        let la = lane32_recon(&a);
+        let lb = lane32_recon(&b);
+        let sat = |x: i32| -> i16 {
+            if x > 32767 {
+                32767
+            } else if x < -32768 {
+                -32768
+            } else {
+                x as i16
+            }
+        };
+        let formula: Vec<i16> = (0..16)
+            .map(|k| {
+                if k < 4 {
+                    sat(la[k])
+                } else if k < 8 {
+                    sat(lb[k - 4])
+                } else if k < 12 {
+                    sat(la[k - 4])
+                } else {
+                    sat(lb[k - 8])
+                }
+            })
+            .collect();
+        assert_eq!(model, formula);
+    }
+
+    /// F* axiom (`mm256_unpacklo_epi32` ensures): i32 lanes
+    /// [lhs0,rhs0,lhs1,rhs1, lhs4,rhs4,lhs5,rhs5].
+    fn check_unpacklo32(a: BitVec<256>, b: BitVec<256>) {
+        let model = lane32_recon(&BitVec::from_i32x8(int_vec::_mm256_unpacklo_epi32(
+            BitVec::to_i32x8(a),
+            BitVec::to_i32x8(b),
+        )));
+        let la = lane32_recon(&a);
+        let lb = lane32_recon(&b);
+        let formula = vec![la[0], lb[0], la[1], lb[1], la[4], lb[4], la[5], lb[5]];
+        assert_eq!(model, formula);
+    }
+
+    /// F* axiom (`mm256_unpackhi_epi32` ensures): i32 lanes
+    /// [lhs2,rhs2,lhs3,rhs3, lhs6,rhs6,lhs7,rhs7].
+    fn check_unpackhi32(a: BitVec<256>, b: BitVec<256>) {
+        let model = lane32_recon(&BitVec::from_i32x8(int_vec::_mm256_unpackhi_epi32(
+            BitVec::to_i32x8(a),
+            BitVec::to_i32x8(b),
+        )));
+        let la = lane32_recon(&a);
+        let lb = lane32_recon(&b);
+        let formula = vec![la[2], lb[2], la[3], lb[3], la[6], lb[6], la[7], lb[7]];
+        assert_eq!(model, formula);
+    }
+
+    /// F* axiom (`mm256_unpackhi_epi64` ensures): i32 lanes
+    /// [lhs2,lhs3,rhs2,rhs3, lhs6,lhs7,rhs6,rhs7].
+    fn check_unpackhi64(a: BitVec<256>, b: BitVec<256>) {
+        let model = lane32_recon(&BitVec::from_i64x4(int_vec::_mm256_unpackhi_epi64(
+            BitVec::to_i64x4(a),
+            BitVec::to_i64x4(b),
+        )));
+        let la = lane32_recon(&a);
+        let lb = lane32_recon(&b);
+        let formula = vec![la[2], la[3], lb[2], lb[3], la[6], la[7], lb[6], lb[7]];
+        assert_eq!(model, formula);
+    }
+
+    /// F* axiom (`mm256_set1_epi32` ensures): every i32 lane == constant
+    /// (`lane32 result j == v constant`); and for 0 <= constant < 2^16, the
+    /// per-i16-lane decomposition (low = constant, high = 0).
+    /// Model anchor: `int_vec::_mm256_set1_epi32` (`i32x8::from_fn(|_| x)`).
+    fn check_set1_epi32(x: i32) {
+        let model: BitVec<256> = BitVec::from_i32x8(int_vec::_mm256_set1_epi32(x));
+        let lm = lane32_recon(&model);
+        for j in 0..8 {
+            assert_eq!(lm[j], x, "set1 lane32 j={j}");
+        }
+        if 0 <= x && x < (1i32 << 16) {
+            let i16lanes: Vec<i16> = model.to_vec();
+            for j in 0..8 {
+                assert_eq!(i16lanes[2 * j], x as i16, "set1 i16 lo j={j}");
+                assert_eq!(i16lanes[2 * j + 1], 0i16, "set1 i16 hi j={j}");
+            }
+        }
+    }
+
+    #[test]
+    fn set1_epi32_lane_formula() {
+        for _ in 0..200 {
+            for &x in lane32_recon(&BitVec::<256>::rand()).iter() {
+                check_set1_epi32(x);
+            }
+        }
+        let specials: [i32; 14] = [
+            i32::MIN,
+            -1,
+            0,
+            1,
+            15,
+            31,
+            1023,
+            1664,
+            2047,
+            10_321_340,
+            32767,
+            32768,
+            65535,
+            i32::MAX,
+        ];
+        for &x in specials.iter() {
+            check_set1_epi32(x);
+        }
+    }
+
+    #[test]
+    fn srli_epi32_lane_formula() {
+        // s = 3 is the compress consumer's shift; also validate a broad set of
+        // strictly-positive shifts (the axiom's precondition 0 < s < 32) over
+        // random inputs incl. negative lanes, plus i32 edge lanes.
+        macro_rules! over_shifts {
+            ($a:expr) => {{
+                check_srli32::<1>($a);
+                check_srli32::<2>($a);
+                check_srli32::<3>($a);
+                check_srli32::<4>($a);
+                check_srli32::<5>($a);
+                check_srli32::<8>($a);
+                check_srli32::<10>($a);
+                check_srli32::<11>($a);
+                check_srli32::<13>($a);
+                check_srli32::<16>($a);
+                check_srli32::<20>($a);
+                check_srli32::<31>($a);
+            }};
+        }
+        for _ in 0..200 {
+            over_shifts!(BitVec::rand());
+        }
+        let specials: [i32; 8] = [i32::MIN, i32::MIN + 1, -1, 0, 1, 3328, 6_817_408, i32::MAX];
+        for &x in specials.iter() {
+            over_shifts!(BitVec::<256>::from_slice(&[x; 8], 32));
+        }
+    }
+
+    #[test]
+    fn slli_epi32_general_lane_formula() {
+        // Compress uses s in {4,5,10,11}; validate 0 <= s < 32 incl. the s=16
+        // case (must agree with the existing shift-16 lane characterization) and
+        // boundary shifts, over random inputs incl. negative lanes + edges.
+        macro_rules! over_shifts {
+            ($a:expr) => {{
+                check_slli32::<0>($a);
+                check_slli32::<1>($a);
+                check_slli32::<3>($a);
+                check_slli32::<4>($a);
+                check_slli32::<5>($a);
+                check_slli32::<10>($a);
+                check_slli32::<11>($a);
+                check_slli32::<16>($a);
+                check_slli32::<31>($a);
+            }};
+        }
+        for _ in 0..200 {
+            over_shifts!(BitVec::rand());
+        }
+        let specials: [i32; 8] = [i32::MIN, i32::MIN + 1, -1, 0, 1, 3328, 6_817_408, i32::MAX];
+        for &x in specials.iter() {
+            over_shifts!(BitVec::<256>::from_slice(&[x; 8], 32));
+        }
+    }
+
+    #[test]
+    fn srai_epi32_general_lane_formula() {
+        // montgomery_reduce_i32s uses s = 16; validate 0 <= s < 32 over random
+        // inputs incl. negative lanes (arithmetic = sign-fill) + i32 edges.
+        macro_rules! over_shifts {
+            ($a:expr) => {{
+                check_srai32::<0>($a);
+                check_srai32::<1>($a);
+                check_srai32::<15>($a);
+                check_srai32::<16>($a);
+                check_srai32::<17>($a);
+                check_srai32::<31>($a);
+            }};
+        }
+        for _ in 0..200 {
+            over_shifts!(BitVec::rand());
+        }
+        let specials: [i32; 8] = [i32::MIN, i32::MIN + 1, -1, 0, 1, 3328, 6_817_408, i32::MAX];
+        for &x in specials.iter() {
+            over_shifts!(BitVec::<256>::from_slice(&[x; 8], 32));
+        }
+    }
+
+    #[test]
+    fn mul_epu32_packs_unpacks_lane_formula() {
+        for _ in 0..1000 {
+            check_mul_epu32(BitVec::rand(), BitVec::rand());
+            check_packs32(BitVec::rand(), BitVec::rand());
+            check_unpacklo32(BitVec::rand(), BitVec::rand());
+            check_unpackhi32(BitVec::rand(), BitVec::rand());
+            check_unpackhi64(BitVec::rand(), BitVec::rand());
+        }
+        // Edge i32 lanes: the i16-saturation boundaries (for packs), the unsigned
+        // 32-bit extremes (for mul_epu32), and the compress neighbourhood.
+        let specials: [i32; 11] = [
+            i32::MIN,
+            i32::MIN + 1,
+            -32769,
+            -32768,
+            -1,
+            0,
+            1,
+            32767,
+            32768,
+            6_817_408,
+            i32::MAX,
+        ];
+        for &x in specials.iter() {
+            for &y in specials.iter() {
+                let a = BitVec::<256>::from_slice(&[x; 8], 32);
+                let b = BitVec::<256>::from_slice(&[y; 8], 32);
+                check_mul_epu32(a, b);
+                check_packs32(a, b);
+                check_unpacklo32(a, b);
+                check_unpackhi32(a, b);
+                check_unpackhi64(a, b);
+            }
+        }
+    }
 }
