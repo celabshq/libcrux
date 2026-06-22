@@ -198,6 +198,14 @@ if [ -f "$EX/analysis_reg_dh_msg1.pv" ]; then
   proverif "${LIBS_REG[@]}" "$EX/sanity_reg_passive.pv"    > "$LOG_SAN"  2>&1
   proverif "${LIBS_REG[@]}" "$EX/analysis_reg_dh_msg1.pv"  > "$LOG_RDH"  2>&1
   proverif "${LIBS_REG[@]}" "$EX/analysis_reg_sig_msg1.pv" > "$LOG_RSIG" 2>&1
+  # Post-quantum forward secrecy + authenticity: the quantum apocalypse (all
+  # classical DH/sig keys derivable) hits in phase 1, STRICTLY AFTER the phase-0
+  # session. A session accepted before the apocalypse keeps both secrecy (ML-KEM
+  # anchor) and authenticity (timestamp form: only a compromise PRECEDING the
+  # acceptance can forge — contrast R2a, false, where the break is during the run).
+  LOG_PQ=$(mktemp)
+  [ -f "$EX/analysis_reg_dh_pq.pv" ] && \
+    proverif "${LIBS_REG[@]}" "$EX/analysis_reg_dh_pq.pv" > "$LOG_PQ" 2>&1
   # Session passive sanity: the FULL two-message handshake + into_session honest run
   # must reach InitSessDH AND RespSessDH on its own (response/session non-vacuity).
   [ -f "$EX/sanity_session_passive.pv" ] && \
@@ -222,6 +230,14 @@ if [ -f "$EX/analysis_reg_dh_msg1.pv" ]; then
     echo "                         exp: $EXP_SSAN"
     [ "$GOT_SSAN" = "$EXP_SSAN" ] || REG_OK=0
   fi
+  if [ -f "$EX/analysis_reg_dh_pq.pv" ]; then
+    if [ "$(grep -c '^Error:' "$LOG_PQ")" -ne 0 ]; then echo "PQ LOAD FAILED:"; grep '^Error:' "$LOG_PQ" | head; REG_OK=0; fi
+    EXP_PQ="true true true true false "   # FA1, FA2(timestamp), FS1, FS2, NV
+    GOT_PQ=$(verdicts "$LOG_PQ")
+    echo "  pq fwd-sec/auth (FA1 FA2 FS1 FS2 NV) got: $GOT_PQ"
+    echo "                                       exp: $EXP_PQ"
+    [ "$GOT_PQ" = "$EXP_PQ" ] || REG_OK=0
+  fi
   # Collect the backgrounded DH session secrecy (R5 InitSessDH, R5 RespSessDH, R7, R8).
   if [ -n "${DHSESS_PID:-}" ]; then
     echo "  (waiting on DH session secrecy R5/R7/R8 ...)"
@@ -238,7 +254,7 @@ if [ -f "$EX/analysis_reg_dh_msg1.pv" ]; then
 fi
 
 if [ "$QUERY_OK" = 1 ] && [ "$REG_OK" = 1 ]; then
-  echo "CHECK PASSED (query 14/14 + registration msg1 R1/R2a/R2b/R2c/R4/R6/R9 + session R1/R5/R7/R8: DH R2a false / sig R2a true; session key-secret + forward-secret)"
+  echo "CHECK PASSED (query 14/14 + reg msg1 R1/R2a/R2b/R2c/R4/R6/R9 + PQ fwd-sec/auth + session R1/R5/R7/R8: DH R2a false / sig R2a true; post-quantum fwd-secret + fwd-authentic)"
 else
   echo "CHECK FAILED"; exit 1
 fi
