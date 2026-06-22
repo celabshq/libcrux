@@ -5,3 +5,7 @@ proofs/fstar/extraction/*.fst*
 
 # hax.py prove output — regenerated every run
 verification_result.txt
+
+# Campaign status docs / roadmaps / WIP handoffs — kept in place for the
+# active sprint but never committed (canonical home is ~/hax-fstar-mcp/libcrux-notes/).
+proofs/agent-status/
