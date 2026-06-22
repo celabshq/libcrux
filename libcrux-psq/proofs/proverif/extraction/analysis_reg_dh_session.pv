@@ -1,0 +1,69 @@
+(* PSQ registration mode (DH auth) — RESPONSE / SESSION analysis, against the
+   EXTRACTED libcrux-psq model. Mirrors psq-design/models/psq_registration_dh_session.pv.
+   Shared setup/roles/aliases/nounif: -lib psq_reg_lib.pvl.
+
+   Drives the FULL two-message handshake on the real extracted code: the initiator
+   writes msg1, reads the response and into_session (InitSessDH); the responder
+   reads msg1 via the FULL read_message_contents path (rate-limit + coerce +
+   decrypt_outer/inner + state bookkeeping — unblocked by the CiphersuiteBase::name
+   fix), prepares the response and into_session (RespSessDH). The honest run is
+   sound: sanity_session_passive.pv reaches both events under a passive attacker.
+
+   THREAT MODEL: active attacker; phase-1 compromise of the PQ-KEM key and quantum
+   recovery of a recorded session ephemeral (the classical-DH-key leaks belong to
+   the msg1 initiator-auth contrast and are omitted here for tractability).
+
+   PROPERTIES (mirror the spec):
+     R1   Reachability of InitSessDH / RespSessDH.            Expected: reachable (false)
+     R5   Key secrecy of K_S — requires the PQ-KEM secret.    Expected: true
+     R7   HNDL of the response/session payload.               Expected: true
+     R8   Forward secrecy of the session — leaks only if a session ephemeral
+          is broken.                                          Expected: true
+
+   R3/R3i (responder authentication) DO NOT TERMINATE for DH mode (the DH
+   commutativity equation x the response's two DH shared secrets blows up
+   saturation) — exactly as in the spec, which machine-verifies them in the
+   signature mode and argues DH identically (the responder authenticates via the
+   PQ-KEM-derived K_1 in both). Kept commented. *)
+
+set reconstructTrace = false.
+
+(* R1 (reachability of InitSessDH / RespSessDH) is established by the PASSIVE
+   sanity (sanity_session_passive.pv) — the honest run reaches both. Under the
+   ACTIVE attacker the reachability query only yields "cannot be proved" (trace
+   reconstruction is intractable through the full handshake + DH commutativity)
+   and adds ~13 min, so it is NOT re-asserted here; the secrecy queries below run
+   against the same sound run. *)
+
+(* --- R5. Key secrecy of K_S: requires the PQ-KEM secret.   Expected: true *)
+query i: Principal, r: Principal, ctx: bitstring, e: bitstring, k: bitstring;
+      event(InitSessDH(i, r, ctx, e, k)) && attacker(k)
+          ==> event(CompromiseEndpointPQ(r)).
+query i: Principal, r: Principal, ctx: bitstring, e: bitstring, k: bitstring;
+      event(RespSessDH(i, r, ctx, e, k)) && attacker(k)
+          ==> event(CompromiseEndpointPQ(r)).
+
+(* --- R7. HNDL of the response/session payload.             Expected: true *)
+query attacker(resp_secret) ==> event(CompromiseEndpointPQ(Bob)).
+
+(* --- R8. Forward secrecy of the session — the session ephemeral x ephemeral DH
+   in K_2 protects resp_secret even under PQ + long-term compromise, unless a
+   session ephemeral is itself broken.                       Expected: true *)
+query attacker(resp_secret) ==> event(LeakEphemeral(Bob)).
+
+(* R3 / R3i — responder authentication; non-terminating for DH mode (see header).
+query i: Principal, r: Principal, ctx: bitstring, e: bitstring, k: bitstring;
+      event(InitSessDH(i, r, ctx, e, k))
+          ==> event(RespSessDH(i, r, ctx, e, k)) || event(CompromiseEndpointPQ(r)).
+query i: Principal, r: Principal, ctx: bitstring, e: bitstring, k: bitstring;
+      inj-event(InitSessDH(i, r, ctx, e, k))
+          ==> inj-event(RespSessDH(i, r, ctx, e, k)) || event(CompromiseEndpointPQ(r)).
+*)
+
+process
+    ( setup_responder(Bob)
+    | create_dh_client(Alice)
+    | ( !sess_dh_initiator(Alice, Bob) )
+    | ( !sess_dh_responder(Bob) )
+    | ( phase 1;
+        ( !compromise_endpoint_pq(Bob) | !leak_ephemeral(Bob) ) ) )

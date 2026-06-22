@@ -182,17 +182,32 @@ LIBS_REG=(-lib "$PRIM" -lib "$PVD/psq_crypto.pvl" -lib "$EX/missingdecl.dedup.pv
           -lib "$EX/lib.clean.pvl" -lib "$EX/psq_reg_lib.pvl")
 REG_OK=1
 if [ -f "$EX/analysis_reg_dh_msg1.pv" ]; then
+  # The DH session secrecy (R5/R7/R8) drives the FULL handshake + into_session and
+  # is the heaviest run (DH commutativity x the response's two DH shared secrets,
+  # ~20-25 min even with the nounif resolution control). Launch it in the BACKGROUND
+  # now so it overlaps the (faster) msg1 analyses below; collected after them.
+  LOG_DHSESS=$(mktemp)
+  if [ -f "$EX/analysis_reg_dh_session.pv" ]; then
+    proverif "${LIBS_REG[@]}" "$EX/analysis_reg_dh_session.pv" > "$LOG_DHSESS" 2>&1 &
+    DHSESS_PID=$!
+  fi
   LOG_SAN=$(mktemp); LOG_RDH=$(mktemp); LOG_RSIG=$(mktemp)
+  LOG_SSAN=$(mktemp)
   # Passive-first sanity: the honest registration round-trip must complete on its
   # own (no attacker help). Without this the active-attacker verdicts are unsound.
   proverif "${LIBS_REG[@]}" "$EX/sanity_reg_passive.pv"    > "$LOG_SAN"  2>&1
   proverif "${LIBS_REG[@]}" "$EX/analysis_reg_dh_msg1.pv"  > "$LOG_RDH"  2>&1
   proverif "${LIBS_REG[@]}" "$EX/analysis_reg_sig_msg1.pv" > "$LOG_RSIG" 2>&1
+  # Session passive sanity: the FULL two-message handshake + into_session honest run
+  # must reach InitSessDH AND RespSessDH on its own (response/session non-vacuity).
+  [ -f "$EX/sanity_session_passive.pv" ] && \
+    proverif "${LIBS_REG[@]}" "$EX/sanity_session_passive.pv" > "$LOG_SSAN" 2>&1
   NERR=$(( $(grep -c '^Error:' "$LOG_SAN") + $(grep -c '^Error:' "$LOG_RDH") + $(grep -c '^Error:' "$LOG_RSIG") ))
   if [ "$NERR" -ne 0 ]; then echo "REG LOAD FAILED ($NERR errors):"; grep '^Error:' "$LOG_SAN" "$LOG_RDH" "$LOG_RSIG" | head; REG_OK=0; fi
   EXP_SAN="false false false false true true "   # InitReg*/RespReg* reachable + K_1 agreement
   EXP_RDH="false false true false true true false false "
   EXP_RSIG="false true false true true false false "
+  EXP_SSAN="false false "                        # InitSessDH + RespSessDH reachable
   GOT_SAN=$(verdicts "$LOG_SAN"); GOT_RDH=$(verdicts "$LOG_RDH"); GOT_RSIG=$(verdicts "$LOG_RSIG")
   echo "  reg passive sanity got: $GOT_SAN"
   echo "                     exp: $EXP_SAN"
@@ -201,10 +216,29 @@ if [ -f "$EX/analysis_reg_dh_msg1.pv" ]; then
   echo "  reg sig msg1 got: $GOT_RSIG"
   echo "              exp: $EXP_RSIG"
   [ "$GOT_SAN" = "$EXP_SAN" ] && [ "$GOT_RDH" = "$EXP_RDH" ] && [ "$GOT_RSIG" = "$EXP_RSIG" ] || REG_OK=0
+  if [ -f "$EX/sanity_session_passive.pv" ]; then
+    GOT_SSAN=$(verdicts "$LOG_SSAN")
+    echo "  session passive sanity got: $GOT_SSAN"
+    echo "                         exp: $EXP_SSAN"
+    [ "$GOT_SSAN" = "$EXP_SSAN" ] || REG_OK=0
+  fi
+  # Collect the backgrounded DH session secrecy (R5 InitSessDH, R5 RespSessDH, R7, R8).
+  if [ -n "${DHSESS_PID:-}" ]; then
+    echo "  (waiting on DH session secrecy R5/R7/R8 ...)"
+    wait "$DHSESS_PID"
+    if [ "$(grep -c '^Error:' "$LOG_DHSESS")" -ne 0 ]; then
+      echo "  DH SESSION LOAD FAILED:"; grep '^Error:' "$LOG_DHSESS" | head; REG_OK=0
+    fi
+    EXP_DHSESS="true true true true "   # R5(Init), R5(Resp), R7, R8
+    GOT_DHSESS=$(verdicts "$LOG_DHSESS")
+    echo "  dh session R5/R7/R8 got: $GOT_DHSESS"
+    echo "                      exp: $EXP_DHSESS"
+    [ "$GOT_DHSESS" = "$EXP_DHSESS" ] || REG_OK=0
+  fi
 fi
 
 if [ "$QUERY_OK" = 1 ] && [ "$REG_OK" = 1 ]; then
-  echo "CHECK PASSED (query 14/14 + registration msg1 R1/R2a/R2b/R2c/R4/R6/R9: DH R2a false / sig R2a true, replay+fwd-sec both false)"
+  echo "CHECK PASSED (query 14/14 + registration msg1 R1/R2a/R2b/R2c/R4/R6/R9 + session R1/R5/R7/R8: DH R2a false / sig R2a true; session key-secret + forward-secret)"
 else
   echo "CHECK FAILED"; exit 1
 fi

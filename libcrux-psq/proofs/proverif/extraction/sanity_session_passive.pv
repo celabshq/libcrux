@@ -1,0 +1,20 @@
+(* PSQ registration — FULL two-message handshake + into_session, PASSIVE attacker.
+   Non-vacuity foundation for the response/session analysis: under a passive
+   attacker the full handshake must complete on its own (initiator write msg1 ->
+   responder full read_message_contents -> responder response + into_session ->
+   initiator read response + into_session), reaching InitSessDH AND RespSessDH.
+   Roles: sess_dh_{initiator,responder} from psq_reg_lib.pvl (the same roles the
+   active-attacker analysis drives). Confirms the CiphersuiteBase::name fix
+   unblocked the full read path through to the session layer. *)
+set attacker = passive.
+set reconstructTrace = true.
+
+(* Expected: both reachable -> each `event(...)` query `is false`. *)
+query i: Principal, r: Principal, ctx: bitstring, e: bitstring, k: bitstring;
+      event(InitSessDH(i, r, ctx, e, k)).
+query i: Principal, r: Principal, ctx: bitstring, e: bitstring, k: bitstring;
+      event(RespSessDH(i, r, ctx, e, k)).
+
+process
+    ( setup_responder(Bob) | create_dh_client(Alice)
+    | ( !sess_dh_initiator(Alice, Bob) ) | ( !sess_dh_responder(Bob) ) )
