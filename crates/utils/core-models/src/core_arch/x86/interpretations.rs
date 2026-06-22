@@ -1624,6 +1624,22 @@ mod track_i_axiom_transcription_tests {
         }
     }
 
+    /// F* axiom (`mm256_srai_epi32` ensures, 0 <= s < 32):
+    /// `lane32 result j == (lane32 vector j) / 2^s` (arithmetic shift; F*'s
+    /// integer `/` is Euclidean floor, matching the sign-filling shift).
+    /// Model anchor: `int_vec::_mm256_srai_epi32` (`a[i] >> s`, signed).
+    fn check_srai32<const S: i32>(a: BitVec<256>) {
+        let model: BitVec<256> =
+            BitVec::from_i32x8(int_vec::_mm256_srai_epi32::<S>(BitVec::to_i32x8(a)));
+        let la = lane32_recon(&a);
+        let lm = lane32_recon(&model);
+        for j in 0..8 {
+            // arithmetic shift right == Euclidean floor division by 2^s (F* `/`).
+            let formula = (la[j] as i64).div_euclid(1i64 << S);
+            assert_eq!(lm[j] as i64, formula, "srai s={S} j={j}");
+        }
+    }
+
     /// F* axiom (`mm256_mul_epu32` ensures, i < 4):
     /// `lane64u result i == (lane32 lhs (2i) % 2^32) * (lane32 rhs (2i) % 2^32)`.
     /// Model anchor: `int_vec::_mm256_mul_epu32` (`(a[2i] as u64) * (b[2i] as u64)`).
@@ -1810,6 +1826,29 @@ mod track_i_axiom_transcription_tests {
                 check_slli32::<11>($a);
                 check_slli32::<16>($a);
                 check_slli32::<31>($a);
+            }};
+        }
+        for _ in 0..200 {
+            over_shifts!(BitVec::rand());
+        }
+        let specials: [i32; 8] = [i32::MIN, i32::MIN + 1, -1, 0, 1, 3328, 6_817_408, i32::MAX];
+        for &x in specials.iter() {
+            over_shifts!(BitVec::<256>::from_slice(&[x; 8], 32));
+        }
+    }
+
+    #[test]
+    fn srai_epi32_general_lane_formula() {
+        // montgomery_reduce_i32s uses s = 16; validate 0 <= s < 32 over random
+        // inputs incl. negative lanes (arithmetic = sign-fill) + i32 edges.
+        macro_rules! over_shifts {
+            ($a:expr) => {{
+                check_srai32::<0>($a);
+                check_srai32::<1>($a);
+                check_srai32::<15>($a);
+                check_srai32::<16>($a);
+                check_srai32::<17>($a);
+                check_srai32::<31>($a);
             }};
         }
         for _ in 0..200 {

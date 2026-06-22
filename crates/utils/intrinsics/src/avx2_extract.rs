@@ -622,6 +622,17 @@ pub fn mm256_srai_epi16<const SHIFT_BY: i32>(vector: Vec256) -> Vec256 {
     debug_assert!(SHIFT_BY >= 0 && SHIFT_BY < 16);
     unimplemented!()
 }
+// 32-bit lanewise ARITHMETIC (signed, sign-fill) right shift.  For 0 <= s < 32,
+// the signed value of lane j is arithmetic-shifted right by s, which equals the
+// Euclidean floor-division of `lane32 vector j` by 2^s (F*'s integer `/`); the
+// result stays within i32 range.  (Shift 0 is the identity, sound here — unlike
+// the logical `srli`, whose shift 0 differs from the unsigned reduction.)  Used
+// by `montgomery_reduce_i32s` (shift 16, to sign-extend the low i16 lane).
+// Trusted axiom — validated by the core-models `_mm256_srai_epi32` differential
+// test + the `srai_epi32` transcription test in interpretations.rs.
+#[hax_lib::ensures(|result| fstar!(r#"(v ${SHIFT_BY} >= 0 /\ v ${SHIFT_BY} < 32) ==>
+    (forall (j: nat). j < 8 ==>
+        lane32 $result j == (lane32 $vector j) / pow2 (v ${SHIFT_BY}))"#))]
 pub fn mm256_srai_epi32<const SHIFT_BY: i32>(vector: Vec256) -> Vec256 {
     debug_assert!(SHIFT_BY >= 0 && SHIFT_BY < 32);
     unimplemented!()
