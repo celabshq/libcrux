@@ -182,17 +182,22 @@ LIBS_REG=(-lib "$PRIM" -lib "$PVD/psq_crypto.pvl" -lib "$EX/missingdecl.dedup.pv
           -lib "$EX/lib.clean.pvl" -lib "$EX/psq_reg_lib.pvl")
 REG_OK=1
 if [ -f "$EX/analysis_reg_dh_msg1.pv" ]; then
-  # The DH session secrecy (R5/R7/R8) drives the FULL handshake + into_session and
-  # is the heaviest run (DH commutativity x the response's two DH shared secrets,
-  # ~20-25 min even with the nounif resolution control). Launch it in the BACKGROUND
-  # now so it overlaps the (faster) msg1 analyses below; collected after them.
-  LOG_DHSESS=$(mktemp)
+  # The session analyses drive the FULL handshake + into_session and are the
+  # heaviest runs (DH commutativity; the DH session ~58 min, the sig session ~40
+  # min — its responder-auth correspondences R3/R3i are the long poles). Launch
+  # BOTH in the BACKGROUND now so they overlap each other AND the (faster) msg1
+  # analyses below; collected at the end.
+  LOG_DHSESS=$(mktemp); LOG_SIGSESS=$(mktemp)
   if [ -f "$EX/analysis_reg_dh_session.pv" ]; then
     proverif "${LIBS_REG[@]}" "$EX/analysis_reg_dh_session.pv" > "$LOG_DHSESS" 2>&1 &
     DHSESS_PID=$!
   fi
+  if [ -f "$EX/analysis_reg_sig_session.pv" ]; then
+    proverif "${LIBS_REG[@]}" "$EX/analysis_reg_sig_session.pv" > "$LOG_SIGSESS" 2>&1 &
+    SIGSESS_PID=$!
+  fi
   LOG_SAN=$(mktemp); LOG_RDH=$(mktemp); LOG_RSIG=$(mktemp)
-  LOG_SSAN=$(mktemp)
+  LOG_SSAN=$(mktemp); LOG_SSSAN=$(mktemp)
   # Passive-first sanity: the honest registration round-trip must complete on its
   # own (no attacker help). Without this the active-attacker verdicts are unsound.
   proverif "${LIBS_REG[@]}" "$EX/sanity_reg_passive.pv"    > "$LOG_SAN"  2>&1
@@ -210,6 +215,8 @@ if [ -f "$EX/analysis_reg_dh_msg1.pv" ]; then
   # must reach InitSessDH AND RespSessDH on its own (response/session non-vacuity).
   [ -f "$EX/sanity_session_passive.pv" ] && \
     proverif "${LIBS_REG[@]}" "$EX/sanity_session_passive.pv" > "$LOG_SSAN" 2>&1
+  [ -f "$EX/sanity_session_sig_passive.pv" ] && \
+    proverif "${LIBS_REG[@]}" "$EX/sanity_session_sig_passive.pv" > "$LOG_SSSAN" 2>&1
   NERR=$(( $(grep -c '^Error:' "$LOG_SAN") + $(grep -c '^Error:' "$LOG_RDH") + $(grep -c '^Error:' "$LOG_RSIG") ))
   if [ "$NERR" -ne 0 ]; then echo "REG LOAD FAILED ($NERR errors):"; grep '^Error:' "$LOG_SAN" "$LOG_RDH" "$LOG_RSIG" | head; REG_OK=0; fi
   EXP_SAN="false false false false true true "   # InitReg*/RespReg* reachable + K_1 agreement
@@ -229,6 +236,12 @@ if [ -f "$EX/analysis_reg_dh_msg1.pv" ]; then
     echo "  session passive sanity got: $GOT_SSAN"
     echo "                         exp: $EXP_SSAN"
     [ "$GOT_SSAN" = "$EXP_SSAN" ] || REG_OK=0
+  fi
+  if [ -f "$EX/sanity_session_sig_passive.pv" ]; then
+    GOT_SSSAN=$(verdicts "$LOG_SSSAN")
+    echo "  session sig passive sanity got: $GOT_SSSAN"
+    echo "                             exp: $EXP_SSAN"   # InitSessSig + RespSessSig reachable
+    [ "$GOT_SSSAN" = "$EXP_SSAN" ] || REG_OK=0
   fi
   if [ -f "$EX/analysis_reg_dh_pq.pv" ]; then
     if [ "$(grep -c '^Error:' "$LOG_PQ")" -ne 0 ]; then echo "PQ LOAD FAILED:"; grep '^Error:' "$LOG_PQ" | head; REG_OK=0; fi
@@ -251,10 +264,23 @@ if [ -f "$EX/analysis_reg_dh_msg1.pv" ]; then
     echo "                      exp: $EXP_DHSESS"
     [ "$GOT_DHSESS" = "$EXP_DHSESS" ] || REG_OK=0
   fi
+  # Collect the backgrounded sig session (R3 + R3i responder auth, R5x2, R7, R8).
+  if [ -n "${SIGSESS_PID:-}" ]; then
+    echo "  (waiting on sig session R3/R3i/R5/R7/R8 ...)"
+    wait "$SIGSESS_PID"
+    if [ "$(grep -c '^Error:' "$LOG_SIGSESS")" -ne 0 ]; then
+      echo "  SIG SESSION LOAD FAILED:"; grep '^Error:' "$LOG_SIGSESS" | head; REG_OK=0
+    fi
+    EXP_SIGSESS="true true true true true true "   # R3, R3i, R5(Init), R5(Resp), R7, R8
+    GOT_SIGSESS=$(verdicts "$LOG_SIGSESS")
+    echo "  sig session R3/R3i/R5/R7/R8 got: $GOT_SIGSESS"
+    echo "                              exp: $EXP_SIGSESS"
+    [ "$GOT_SIGSESS" = "$EXP_SIGSESS" ] || REG_OK=0
+  fi
 fi
 
 if [ "$QUERY_OK" = 1 ] && [ "$REG_OK" = 1 ]; then
-  echo "CHECK PASSED (query 14/14 + reg msg1 R1/R2a/R2b/R2c/R4/R6/R9 + PQ fwd-sec/auth + session R1/R5/R7/R8: DH R2a false / sig R2a true; post-quantum fwd-secret + fwd-authentic)"
+  echo "CHECK PASSED (query 14/14 + reg msg1 R1/R2a/R2b/R2c/R4/R6/R9 + PQ fwd-sec/auth + DH session R1/R5/R7/R8 + sig session R1/R3/R3i/R5/R7/R8: DH R2a false / sig R2a true; sig responder-auth + post-quantum fwd-secret/authentic)"
 else
   echo "CHECK FAILED"; exit 1
 fi

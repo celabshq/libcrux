@@ -1,0 +1,58 @@
+(* PSQ registration (sig auth) — RESPONSE / SESSION analysis, against the EXTRACTED
+   libcrux-psq model. Mirrors psq-design/models/psq_registration_sig_session.pv.
+   Shared setup/roles/aliases/nounif: -lib psq_reg_lib.pvl.
+
+   Drives the FULL two-message handshake + into_session on the real extracted code
+   in SIGNATURE-auth mode (sess_sig_{initiator,responder}). Unlike DH mode, the
+   response K_2 folds only ONE DH term (responder_eph x initiator_eph), so the
+   responder-authentication correspondences R3/R3i ARE machine-verifiable here.
+   Honest run is sound (sanity_session_sig_passive.pv reaches both events, passive).
+
+   THREAT MODEL: active attacker; phase-1 compromise of the PQ-KEM key + quantum
+   recovery of a recorded session ephemeral.
+
+   R1   Reachability of InitSessSig / RespSessSig.            Expected: reachable (false)
+   R3   Responder authentication, PQ-secure: an initiator's session view implies
+        the responder ran, unless the PQ-KEM key is compromised.  Expected: true
+   R3i  Injective responder agreement.                        Expected: true
+   R5   Key secrecy of K_S — requires the PQ-KEM secret.       Expected: true
+   R7   HNDL of the response/session payload.                  Expected: true
+   R8   Forward secrecy of the session.                        Expected: true *)
+
+set reconstructTrace = false.
+
+(* R1 is established by the PASSIVE sanity (sanity_session_sig_passive.pv). Under
+   the active attacker the reachability query only yields "cannot be proved", so
+   it is not re-asserted here; the queries below run against the same sound run. *)
+
+(* --- R3. Responder authentication, PQ-secure.               Expected: true *)
+query i: Principal, r: Principal, ctx: bitstring, e: bitstring, k: bitstring;
+      event(InitSessSig(i, r, ctx, e, k))
+          ==> event(RespSessSig(i, r, ctx, e, k)) || event(CompromiseEndpointPQ(r)).
+
+(* --- R3i. Injective responder agreement.                    Expected: true *)
+query i: Principal, r: Principal, ctx: bitstring, e: bitstring, k: bitstring;
+      inj-event(InitSessSig(i, r, ctx, e, k))
+          ==> inj-event(RespSessSig(i, r, ctx, e, k)) || event(CompromiseEndpointPQ(r)).
+
+(* --- R5. Key secrecy of K_S: requires the PQ-KEM secret.    Expected: true *)
+query i: Principal, r: Principal, ctx: bitstring, e: bitstring, k: bitstring;
+      event(InitSessSig(i, r, ctx, e, k)) && attacker(k)
+          ==> event(CompromiseEndpointPQ(r)).
+query i: Principal, r: Principal, ctx: bitstring, e: bitstring, k: bitstring;
+      event(RespSessSig(i, r, ctx, e, k)) && attacker(k)
+          ==> event(CompromiseEndpointPQ(r)).
+
+(* --- R7. HNDL of the response/session payload.              Expected: true *)
+query attacker(resp_secret) ==> event(CompromiseEndpointPQ(Bob)).
+
+(* --- R8. Forward secrecy of the session.                    Expected: true *)
+query attacker(resp_secret) ==> event(LeakEphemeral(Bob)).
+
+process
+    ( setup_responder(Bob)
+    | create_sig_client(Alice)
+    | ( !sess_sig_initiator(Alice, Bob) )
+    | ( !sess_sig_responder(Bob) )
+    | ( phase 1;
+        ( !compromise_endpoint_pq(Bob) | !leak_ephemeral(Bob) ) ) )

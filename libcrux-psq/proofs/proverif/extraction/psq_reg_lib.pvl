@@ -359,6 +359,55 @@ let sess_dh_responder(r: Principal) =
     out(c, response).
 
 (* =========================================================================
+   FULL handshake + into_session roles (SIGNATURE auth). Same shape as the DH
+   roles, but the initiator authenticates with a SigningKeyPair (Auth::Sig) and
+   the responder's response K_2 folds only ONE DH term (responder_eph x
+   initiator_eph) — so the responder-authentication correspondences R3/R3i ARE
+   tractable here (unlike DH mode's two response DH terms). Events: InitSessSig /
+   RespSessSig.
+   ========================================================================= *)
+let sess_sig_initiator(i: Principal, r: Principal) =
+    get resp_dh(=r, sk_R, pk_R) in
+    get resp_pq(=r, pqdk_R, pqek_R) in
+    get client_sig(=i, sk_I, vk_I) in
+    let cs_I = mk_init_cs(cs_name_sig(), pk_R, pqek_R, auth_sig(mk_sig_kp(sk_I, vk_I))) in
+    new rng_I: bitstring;
+    let ri0 = reg_init_new(cs_I, context, inner_aad, outer_aad, rng_I) in
+    let written = reg_init_write(ri0, reg_secret) in
+    let ri1 = t2_0(written) in
+    let msg1 = t2_1(written) in
+    let libcrux_psq__handshake__initiator__registration__RegistrationInitiatorState__Waiting(ws) = ri_state(ri1) in
+    insert session_eph(r, ws_ephsk(ws));
+    out(c, msg1);
+    in(c, response: bitstring);
+    let ri2 = t2_0(reg_init_read(ri1, response)) in
+    let sess_I = reg_init_into_session(ri2) in
+    event InitSessSig(i, r, context, hm_pk(response), sess_key(sess_I)).
+
+let sess_sig_responder(r: Principal) =
+    get resp_dh(=r, sk_R, pk_R) in
+    get resp_pq(=r, pqdk_R, pqek_R) in
+    new rng_R: bitstring;
+    (* responder ciphersuite carries the ED25519 name for sig mode *)
+    let cs_R_sig = mk_resp_cs(cs_name_sig(), mk_dhkp(sk_R, pk_R), pqdk_R, pqek_R) in
+    let resp0 = mk_responder_full(cs_R_sig, context, resp_aad, rng_R) in
+    in(c, msg1: bitstring);
+    let self1 = t2_0(resp_read_full(resp0, msg1)) in
+    let libcrux_psq__handshake__responder__ResponderState__RespondRegistration(rrs) = resp_state(self1) in
+    let auth_r = rrs_auth(rrs) in
+    get client_sig(i, sk_I, =libcrux_psq__handshake__ciphersuite__types__SignatureVerificationKey__Ed25519__0(
+          libcrux_psq__handshake__ciphersuite__types__Authenticator__Sig__0(auth_r))) in
+    let prep = resp_registration(self1, resp_secret) in
+    let self2 = t2_0(prep) in
+    let pe_mc = t2_1(prep) in
+    let resp_eph_pk = t2_0(pe_mc) in
+    let mc = t2_1(pe_mc) in
+    let sess_R = resp_into_session(self2) in
+    let response = mk_response_msg(resp_eph_pk, mc, resp_aad, cs_name_sig()) in
+    event RespSessSig(i, r, context, resp_eph_pk, sess_key(sess_R));
+    out(c, response).
+
+(* =========================================================================
    Resolution control (SOUND — search order only, never a verdict). The DH
    commutativity equation + the attacker freely *building* one-way crypto
    outputs triggers the decryption-oracle saturation blow-up. Deprioritise
