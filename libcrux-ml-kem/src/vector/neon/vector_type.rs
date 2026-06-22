@@ -80,7 +80,6 @@ Seq.lemma_eq_intro (repr ${result}) ${array}"#
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::requires(bytes.len() >= 32)]
 #[hax_lib::ensures(|_| fstar!(r#"
     Core_models.Slice.impl__len #u8 (bytes_future <: t_Slice u8) ==
@@ -93,10 +92,36 @@ Seq.lemma_eq_intro (repr ${result}) ${array}"#
 pub(crate) fn to_bytes(v: SIMD128Vector, bytes: &mut [u8]) {
     _vst1q_bytes(&mut bytes[0..16], v.low);
     _vst1q_bytes(&mut bytes[16..32], v.high);
+    // `update_at_range` posts thread the two stored 16-byte halves into
+    // `bytes`; each store's strengthened bit_vec ensures + the i16x8 lane-bit
+    // decomposition discharge `to_le_bytes_post_N`.
+    hax_lib::fstar!(
+        r#"
+let head : t_Array u8 (sz 32) = Seq.slice ${bytes} 0 32 in
+introduce forall (i: nat{i < 256}).
+    Rust_primitives.BitVectors.bit_vec_of_int_t_array (repr ${v}) 16 i ==
+    Rust_primitives.BitVectors.bit_vec_of_int_t_array head 8 i
+with
+  (lemma_repr_index ${v} (i / 16);
+   FStar.Math.Lemmas.euclidean_division_definition i 16;
+   if i < 128
+   then
+     (Libcrux_intrinsics.Arm64_extract.bit_vec_of_int_t_array_vec128_as_i16x8_lemma ${v}.f_low 16 i;
+      Seq.lemma_index_slice ${bytes} 0 16 (i / 8);
+      Seq.lemma_index_slice ${bytes} 0 32 (i / 8))
+   else
+     (Libcrux_intrinsics.Arm64_extract.bit_vec_of_int_t_array_vec128_as_i16x8_lemma ${v}.f_high 16 (i - 128);
+      FStar.Math.Lemmas.euclidean_division_definition (i - 128) 16;
+      Seq.lemma_index_slice ${bytes} 16 32 ((i / 8) - 16);
+      Seq.lemma_index_slice ${bytes} 0 32 (i / 8)));
+BitVecEq.bit_vec_equal_intro
+  (Rust_primitives.BitVectors.bit_vec_of_int_t_array (repr ${v}) 16)
+  (Rust_primitives.BitVectors.bit_vec_of_int_t_array (Seq.slice ${bytes} 0 32 <: t_Array u8 (sz 32)) 8)
+"#
+    );
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::requires(array.len() >= 32)]
 #[hax_lib::ensures(|result| fstar!(r#"
     Core_models.Slice.impl__len #u8 ${array} >=. mk_usize 32 ==>
@@ -105,10 +130,37 @@ pub(crate) fn to_bytes(v: SIMD128Vector, bytes: &mut [u8]) {
        #(mk_usize 16) head (repr ${result}))
 "#))]
 pub(crate) fn from_bytes(array: &[u8]) -> SIMD128Vector {
-    SIMD128Vector {
+    let result = SIMD128Vector {
         low: _vld1q_bytes(&array[0..16]),
         high: _vld1q_bytes(&array[16..32]),
-    }
+    };
+    // Bridge the strengthened `_vld1q_bytes` bit_vec ensures (per 16-byte
+    // half) through the i16x8 lane-bit decomposition to `from_le_bytes_post_N`.
+    hax_lib::fstar!(
+        r#"
+let head : t_Array u8 (sz 32) = Seq.slice ${array} 0 32 in
+introduce forall (i: nat{i < 256}).
+    Rust_primitives.BitVectors.bit_vec_of_int_t_array (repr ${result}) 16 i ==
+    Rust_primitives.BitVectors.bit_vec_of_int_t_array head 8 i
+with
+  (lemma_repr_index ${result} (i / 16);
+   FStar.Math.Lemmas.euclidean_division_definition i 16;
+   if i < 128
+   then
+     (Libcrux_intrinsics.Arm64_extract.bit_vec_of_int_t_array_vec128_as_i16x8_lemma ${result}.f_low 16 i;
+      Seq.lemma_index_slice ${array} 0 16 (i / 8);
+      Seq.lemma_index_slice ${array} 0 32 (i / 8))
+   else
+     (Libcrux_intrinsics.Arm64_extract.bit_vec_of_int_t_array_vec128_as_i16x8_lemma ${result}.f_high 16 (i - 128);
+      FStar.Math.Lemmas.euclidean_division_definition (i - 128) 16;
+      Seq.lemma_index_slice ${array} 16 32 ((i / 8) - 16);
+      Seq.lemma_index_slice ${array} 0 32 (i / 8)));
+BitVecEq.bit_vec_equal_intro
+  (Rust_primitives.BitVectors.bit_vec_of_int_t_array (repr ${result}) 16)
+  (Rust_primitives.BitVectors.bit_vec_of_int_t_array (Seq.slice ${array} 0 32 <: t_Array u8 (sz 32)) 8)
+"#
+    );
+    result
 }
 
 #[allow(non_snake_case)]
