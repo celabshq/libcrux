@@ -1,5 +1,5 @@
 [
-  "7badd3434d03bedb444795fd2c0e936f",
+  "6e32c7e9ab3334824d0eb1844e9da282",
   [
     [
       "Libcrux_ml_kem.Vector.Avx2.Compress.compress_message_coefficient",
@@ -115,6 +115,35 @@
       ],
       0,
       "1452e586b3d8a63936c3730a2de0cfdb"
+    ],
+    [
+      "Libcrux_ml_kem.Vector.Avx2.Compress.decompress_ciphertext_coefficient",
+      1,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "equality_tok_Rust_primitives.Integers.I32@tok",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Prims.pos", "equation_Rust_primitives.Arrays.t_Array",
+        "equation_Rust_primitives.Integers.i16",
+        "equation_Rust_primitives.Integers.i32",
+        "equation_Rust_primitives.Integers.mk_int",
+        "equation_Rust_primitives.Integers.mk_usize",
+        "equation_Rust_primitives.Integers.sz",
+        "equation_Rust_primitives.Integers.v",
+        "fuel_guarded_inversion_Rust_primitives.Integers.int_t",
+        "primitive_Prims.op_Multiply",
+        "proj_equation_Rust_primitives.Integers.MkInt_@_0",
+        "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
+        "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
+        "refinement_interpretation_Tm_refine_3d529634b20f4085d68cc3754bef4162",
+        "refinement_interpretation_Tm_refine_774ba3f728d91ead8ef40be66c9802e5",
+        "typing_Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16"
+      ],
+      0,
+      "6d1945766a7bf7b15cc683ad1ad4691a"
     ]
   ]
 ]

@@ -781,7 +781,136 @@ pub fn decompress_1(a: Vec256) -> Vec256 {
 }
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"v $COEFFICIENT_BITS >= 0 /\ v $COEFFICIENT_BITS < bits i32_inttype"#))]
+#[hax_lib::fstar::before(
+    r##"
+(* ───────────────────────────────────────────────────────────────────────
+   d-bit decompress body: ground per-stage lane lemmas + a per-half spine.
+   EXACT division (no Barrett/mulhi) — the spine cvtepi/mullo/slli<1>/add/
+   srli<d>/srli<1> computes `(2*x*3329 + 2^d) / (2^d*2)`, matching the scalar
+   bridge `lemma_decompress_ciphertext_coefficient_fe_commute` directly.
+   Reuses the compress helpers `cvtepi_lane_nn`, `lemma_atpercent_id`,
+   `packs_lane`, `permute_lane_0xD8`, `lemma_result_lane`, `set1_lane32`,
+   `compress_castsi256_lemma`, `compress_extracti128_lemma` (defined above).
+   ─────────────────────────────────────────────────────────────────────── *)
+
+(* nonlinear bounds, proven in CLEAN context (no SIMD terms). *)
+#push-options "--fuel 0 --ifuel 0 --z3rlimit 80"
+let lemma_decompress_nn_bounds (xv dd: nat)
+  : Lemma (requires xv < pow2 dd /\ (dd == 4 \/ dd == 5 \/ dd == 10 \/ dd == 11))
+          (ensures (xv < 2048 /\
+                    xv * 3329 < 1073741824 /\
+                    2 * xv * 3329 < 2147481600 /\
+                    2 * xv * 3329 + pow2 dd < 2147483648 /\
+                    (2 * xv * 3329 + pow2 dd) / pow2 dd <= 6657 /\
+                    (2 * xv * 3329 + pow2 dd) / (pow2 dd * 2) < 3329))
+  = assert_norm (pow2 4 == 16); assert_norm (pow2 5 == 32);
+    assert_norm (pow2 10 == 1024); assert_norm (pow2 11 == 2048);
+    FStar.Math.Lemmas.pow2_le_compat 11 dd;
+    FStar.Math.Lemmas.lemma_mult_le_right 3329 xv 2047;
+    FStar.Math.Lemmas.lemma_mult_le_right 3329 xv (pow2 dd - 1);
+    let d3 = 2 * xv * 3329 + pow2 dd in
+    assert (d3 < 6658 * pow2 dd);
+    FStar.Math.Lemmas.lemma_div_plus (-1) 6658 (pow2 dd);
+    FStar.Math.Lemmas.lemma_div_le d3 (6658 * pow2 dd - 1) (pow2 dd);
+    assert (d3 / pow2 dd <= 6657);
+    FStar.Math.Lemmas.division_multiplication_lemma d3 (pow2 dd) 2;
+    FStar.Math.Lemmas.lemma_div_le (d3 / pow2 dd) 6657 2
+#pop-options
+
+(* per-stage ground facts (one intrinsic axiom each). *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 60"
+let mullo_lane_nowrap (c1 fm: Iavx.t_Vec256) (j: nat{j < 8})
+  : Lemma (requires Iavx.lane32 fm j == 3329 /\ 0 <= Iavx.lane32 c1 j /\ Iavx.lane32 c1 j < 2048)
+          (ensures Iavx.lane32 (Iavx.mm256_mullo_epi32 c1 fm) j == Iavx.lane32 c1 j * 3329)
+  = FStar.Math.Lemmas.lemma_mult_le_right 3329 (Iavx.lane32 c1 j) 2047;
+    lemma_atpercent_id (Iavx.lane32 c1 j * 3329)
+let slli1_lane_nowrap (d1: Iavx.t_Vec256) (j: nat{j < 8})
+  : Lemma (requires 0 <= Iavx.lane32 d1 j /\ Iavx.lane32 d1 j < 1073741824)
+          (ensures Iavx.lane32 (Iavx.mm256_slli_epi32 (mk_i32 1) d1) j == Iavx.lane32 d1 j * 2)
+  = assert_norm (pow2 1 == 2);
+    lemma_atpercent_id (Iavx.lane32 d1 j * 2)
+let add_lane_2cb (d2 twocb: Iavx.t_Vec256) (j: nat{j < 8}) (pcb: nat)
+  : Lemma (requires Iavx.lane32 twocb j == pcb /\ pcb <= 2048 /\
+                    0 <= Iavx.lane32 d2 j /\ Iavx.lane32 d2 j < 2147481600)
+          (ensures Iavx.lane32 (Iavx.mm256_add_epi32 d2 twocb) j == Iavx.lane32 d2 j + pcb)
+  = lemma_atpercent_id (Iavx.lane32 d2 j + pcb)
+let srli_d_lane (c: Iavx.t_Vec256) (cb: i32) (j: nat{j < 8})
+  : Lemma (requires (v cb == 4 \/ v cb == 5 \/ v cb == 10 \/ v cb == 11) /\
+                    0 <= Iavx.lane32 c j /\ Iavx.lane32 c j < 2147483648)
+          (ensures Iavx.lane32 (Iavx.mm256_srli_epi32 cb c) j == Iavx.lane32 c j / pow2 (v cb)) = ()
+let srli1_lane (c: Iavx.t_Vec256) (j: nat{j < 8})
+  : Lemma (requires 0 <= Iavx.lane32 c j /\ Iavx.lane32 c j < 2147483648)
+          (ensures Iavx.lane32 (Iavx.mm256_srli_epi32 (mk_i32 1) c) j == Iavx.lane32 c j / 2)
+  = assert_norm (pow2 1 == 2)
+#pop-options
+
+(* the d-bit two_pow constant `1 <<! cb` has value `2^d`. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 80"
+let lemma_twopow_val (cb: i32)
+  : Lemma (requires (v cb == 4 \/ v cb == 5 \/ v cb == 10 \/ v cb == 11))
+          (ensures v ((mk_i32 1 <<! cb) <: i32) == pow2 (v cb))
+  = assert_norm (pow2 11 == 2048); assert_norm (pow2 31 == 2147483648);
+    assert_norm (pow2 32 == 4294967296);
+    FStar.Math.Lemmas.pow2_le_compat 11 (v cb)
+#pop-options
+
+(* per-half spine, symbolic in lane j.  Exclude lane32's DEFINITION + the chain
+   intrinsic posts so the products stay atomic; all lane32 equalities supplied
+   by the per-stage lemmas + the clean bounds helper. *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 100 --using_facts_from '* -Libcrux_intrinsics.Avx2_extract.lane32 -Libcrux_intrinsics.Avx2_extract.mm256_cvtepi16_epi32 -Libcrux_intrinsics.Avx2_extract.mm256_mullo_epi32 -Libcrux_intrinsics.Avx2_extract.mm256_slli_epi32 -Libcrux_intrinsics.Avx2_extract.mm256_add_epi32 -Libcrux_intrinsics.Avx2_extract.mm256_srli_epi32 -Libcrux_intrinsics.Avx2_extract.mm256_set1_epi32'"
+let lemma_decompress_half (c0: Iavx.t_Vec128) (cb: i32) (fm twocb: Iavx.t_Vec256) (j: nat{j < 8})
+  : Lemma
+    (requires
+       (v cb == 4 \/ v cb == 5 \/ v cb == 10 \/ v cb == 11) /\
+       0 <= v (Iavx.get_lane128 c0 j) /\ v (Iavx.get_lane128 c0 j) < pow2 (v cb) /\
+       Iavx.lane32 fm j == 3329 /\ Iavx.lane32 twocb j == pow2 (v cb))
+    (ensures
+       (let c1 = Iavx.mm256_cvtepi16_epi32 c0 in
+        let d1 = Iavx.mm256_mullo_epi32 c1 fm in
+        let d2 = Iavx.mm256_slli_epi32 (mk_i32 1) d1 in
+        let d3 = Iavx.mm256_add_epi32 d2 twocb in
+        let d4 = Iavx.mm256_srli_epi32 cb d3 in
+        let d5 = Iavx.mm256_srli_epi32 (mk_i32 1) d4 in
+        let xv = v (Iavx.get_lane128 c0 j) in
+        let dd = v cb in
+        0 <= Iavx.lane32 d5 j /\ Iavx.lane32 d5 j < 3329 /\
+        Iavx.lane32 d5 j == (2 * xv * 3329 + pow2 dd) / (pow2 dd * 2)))
+  = let dd = v cb in
+    let xv = v (Iavx.get_lane128 c0 j) in
+    let c1 = Iavx.mm256_cvtepi16_epi32 c0 in
+    let d1 = Iavx.mm256_mullo_epi32 c1 fm in
+    let d2 = Iavx.mm256_slli_epi32 (mk_i32 1) d1 in
+    let d3 = Iavx.mm256_add_epi32 d2 twocb in
+    let d4 = Iavx.mm256_srli_epi32 cb d3 in
+    assert_norm (pow2 11 == 2048);
+    FStar.Math.Lemmas.pow2_le_compat 11 dd;
+    lemma_decompress_nn_bounds xv dd;
+    cvtepi_lane_nn c0 j;
+    mullo_lane_nowrap c1 fm j;
+    assert (Iavx.lane32 d1 j == xv * 3329);
+    slli1_lane_nowrap d1 j;
+    assert (Iavx.lane32 d2 j == 2 * xv * 3329);
+    add_lane_2cb d2 twocb j (pow2 dd);
+    assert (Iavx.lane32 d3 j == 2 * xv * 3329 + pow2 dd);
+    srli_d_lane d3 cb j;
+    assert (Iavx.lane32 d4 j == (2 * xv * 3329 + pow2 dd) / pow2 dd);
+    srli1_lane d4 j;
+    FStar.Math.Lemmas.division_multiplication_lemma (2 * xv * 3329 + pow2 dd) (pow2 dd) 2
+#pop-options
+"##
+)]
+#[hax_lib::fstar::options("--fuel 1 --ifuel 1 --z3rlimit 300 --split_queries always --using_facts_from '* -Libcrux_intrinsics.Avx2_extract.lane32 -Libcrux_intrinsics.Avx2_extract.mm256_cvtepi16_epi32 -Libcrux_intrinsics.Avx2_extract.mm256_mullo_epi32 -Libcrux_intrinsics.Avx2_extract.mm256_slli_epi32 -Libcrux_intrinsics.Avx2_extract.mm256_add_epi32 -Libcrux_intrinsics.Avx2_extract.mm256_srli_epi32 -Libcrux_intrinsics.Avx2_extract.mm256_set1_epi32'")]
+#[hax_lib::requires(fstar!(r#"(v $COEFFICIENT_BITS == 4 \/ v $COEFFICIENT_BITS == 5 \/
+    v $COEFFICIENT_BITS == 10 \/ v $COEFFICIENT_BITS == 11) /\
+    (forall (i: nat). i < 16 ==>
+      0 <= v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}) i) /\
+      v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}) i) <
+      pow2 (v $COEFFICIENT_BITS))"#))]
+#[hax_lib::ensures(|result| fstar!(r#"forall (i: nat). i < 16 ==>
+    (let ri = v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}) i) in
+     let vi = v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}) i) in
+     0 <= ri /\ ri < 3329 /\
+     ri == (2 * vi * 3329 + pow2 (v $COEFFICIENT_BITS)) / (pow2 (v $COEFFICIENT_BITS) * 2))"#))]
 pub(crate) fn decompress_ciphertext_coefficient<const COEFFICIENT_BITS: i32>(
     vector: Vec256,
 ) -> Vec256 {
@@ -825,5 +954,55 @@ pub(crate) fn decompress_ciphertext_coefficient<const COEFFICIENT_BITS: i32>(
     // To be in the right order, we need to move the |low|s above in position 2 to
     // position 1 and the |high|s in position 1 to position 2, and leave the
     // rest unchanged.
-    mm256_permute4x64_epi64::<0b11_01_10_00>(compressed)
+    let result = mm256_permute4x64_epi64::<0b11_01_10_00>(compressed);
+    hax_lib::fstar!(
+        r#"
+  let dd = v v_COEFFICIENT_BITS in
+  assert_norm (pow2 11 == 2048);
+  FStar.Math.Lemmas.pow2_le_compat 11 dd;
+  compress_castsi256_lemma vector;
+  compress_extracti128_lemma vector;
+  let aux_low (j: nat{j < 8})
+    : Lemma (0 <= Iavx.lane32 decompressed_low j /\ Iavx.lane32 decompressed_low j < 3329 /\
+             Iavx.lane32 decompressed_low j ==
+             (2 * v (Seq.index (Iavx.vec256_as_i16x16 vector) j) * 3329 + pow2 dd) / (pow2 dd * 2)) =
+    set1_lane32 (cast (Libcrux_ml_kem.Vector.Traits.v_FIELD_MODULUS <: i16) <: i32) j;
+    set1_lane32 (mk_i32 1 <<! v_COEFFICIENT_BITS <: i32) j;
+    assert_norm (v (cast (Libcrux_ml_kem.Vector.Traits.v_FIELD_MODULUS <: i16) <: i32) == 3329);
+    lemma_twopow_val v_COEFFICIENT_BITS;
+    lemma_decompress_half (Iavx.mm256_castsi256_si128 vector) v_COEFFICIENT_BITS field_modulus
+      two_pow_coefficient_bits j
+  in
+  Classical.forall_intro aux_low;
+  let aux_high (j: nat{j < 8})
+    : Lemma (0 <= Iavx.lane32 decompressed_high j /\ Iavx.lane32 decompressed_high j < 3329 /\
+             Iavx.lane32 decompressed_high j ==
+             (2 * v (Seq.index (Iavx.vec256_as_i16x16 vector) (j + 8)) * 3329 + pow2 dd)
+             / (pow2 dd * 2)) =
+    set1_lane32 (cast (Libcrux_ml_kem.Vector.Traits.v_FIELD_MODULUS <: i16) <: i32) j;
+    set1_lane32 (mk_i32 1 <<! v_COEFFICIENT_BITS <: i32) j;
+    assert_norm (v (cast (Libcrux_ml_kem.Vector.Traits.v_FIELD_MODULUS <: i16) <: i32) == 3329);
+    lemma_twopow_val v_COEFFICIENT_BITS;
+    lemma_decompress_half (Iavx.mm256_extracti128_si256 (mk_i32 1) vector) v_COEFFICIENT_BITS
+      field_modulus two_pow_coefficient_bits j
+  in
+  Classical.forall_intro aux_high;
+  assert (forall (k: nat). k < 8 ==>
+            0 <= Iavx.lane32 decompressed_low k /\ Iavx.lane32 decompressed_low k < 32768 /\
+            0 <= Iavx.lane32 decompressed_high k /\ Iavx.lane32 decompressed_high k < 32768);
+  let aux_res (i: nat{i < 16})
+    : Lemma (let ri = v (Seq.index (Iavx.vec256_as_i16x16 result) i) in
+             let vi = v (Seq.index (Iavx.vec256_as_i16x16 vector) i) in
+             0 <= ri /\ ri < 3329 /\
+             ri == (2 * vi * 3329 + pow2 dd) / (pow2 dd * 2)) =
+    lemma_result_lane decompressed_low decompressed_high i;
+    if i < 8 then
+      assert (v (Seq.index (Iavx.vec256_as_i16x16 result) i) == Iavx.lane32 decompressed_low i)
+    else
+      assert (v (Seq.index (Iavx.vec256_as_i16x16 result) i) == Iavx.lane32 decompressed_high (i - 8))
+  in
+  Classical.forall_intro aux_res
+"#
+    );
+    result
 }

@@ -417,19 +417,45 @@ fn op_decompress_1(a: SIMD256Vector) -> SIMD256Vector {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always --z3refresh")]
 #[hax_lib::requires(fstar!(r#"${spec::decompress_ciphertext_coefficient_pre} (impl.f_repr ${vector}) $COEFFICIENT_BITS"#))]
 #[hax_lib::ensures(|out| fstar!(r#"${spec::decompress_ciphertext_coefficient_post} (impl.f_repr ${vector}) $COEFFICIENT_BITS (impl.f_repr ${out})"#))]
 fn op_decompress_ciphertext_coefficient<const COEFFICIENT_BITS: i32>(
     vector: SIMD256Vector,
 ) -> SIMD256Vector {
     hax_lib::fstar!(
-        r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.bounded_i16_array)
-                    (Libcrux_ml_kem.Vector.Traits.Spec.bounded_i16_array)"#
+        r#"assert_norm (pow2 11 == 2048);
+           FStar.Math.Lemmas.pow2_le_compat 11 (v $COEFFICIENT_BITS);
+           reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.bounded_i16_array)
+             (Libcrux_ml_kem.Vector.Traits.Spec.bounded_i16_array);
+           assert (forall (i: nat). i < 16 ==>
+                 0 <= v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}.f_elements) i) /\
+                 v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}.f_elements) i) <
+                 pow2 (v $COEFFICIENT_BITS))"#
     );
-    SIMD256Vector {
+    let result = SIMD256Vector {
         elements: compress::decompress_ciphertext_coefficient::<COEFFICIENT_BITS>(vector.elements),
-    }
+    };
+    hax_lib::fstar!(
+        r#"Libcrux_ml_kem.Vector.Traits.Spec.lemma_bounded_i16_array_intro (mk_i16 0) (mk_i16 3328)
+             (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}.f_elements);
+           let aux (j: nat{j < 16})
+               : Lemma
+               (Libcrux_ml_kem.Vector.Traits.Spec.decompress_d_lane_post (mk_usize (v $COEFFICIENT_BITS))
+                   (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}.f_elements) j)
+                   (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}.f_elements) j)) =
+             reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.decompress_d_lane_post)
+               (Libcrux_ml_kem.Vector.Traits.Spec.decompress_d_lane_post (mk_usize (v $COEFFICIENT_BITS))
+                   (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}.f_elements) j)
+                   (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}.f_elements) j));
+             Hacspec_ml_kem.Commute.Chunk.lemma_decompress_ciphertext_coefficient_fe_commute
+               (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}.f_elements) j)
+               (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}.f_elements) j)
+               (mk_usize (v $COEFFICIENT_BITS))
+           in
+           Classical.forall_intro aux"#
+    );
+    result
 }
 
 // NTT-layer bridges: each admitted lemma asserts that the AVX2
