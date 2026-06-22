@@ -1,0 +1,88 @@
+
+---
+events:
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeDetermineSystem.cmake:12 (find_program)"
+      - "CMakeLists.txt:16 (project)"
+    mode: "program"
+    variable: "CMAKE_UNAME"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "uname"
+    candidate_directories:
+      - "/home/jonas/.opam/5.1.1/bin/"
+      - "/home/jonas/extraction/z3/bin/"
+      - "/home/jonas/extraction/fstar/bin/"
+      - "/home/jonas/.guix-profile/bin/"
+      - "/home/jonas/.elan/bin/"
+      - "/home/jonas/.config/guix/current/bin/"
+      - "/home/jonas/.cargo/bin/"
+      - "/home/jonas/.nix-profile/bin/"
+      - "/nix/var/nix/profiles/default/bin/"
+      - "/usr/local/sbin/"
+      - "/usr/local/bin/"
+      - "/usr/bin/"
+      - "/usr/lib/jvm/default/bin/"
+      - "/usr/bin/site_perl/"
+      - "/usr/bin/vendor_perl/"
+      - "/usr/bin/core_perl/"
+      - "/bin/"
+    searched_directories:
+      - "/home/jonas/.opam/5.1.1/bin/uname"
+      - "/home/jonas/extraction/z3/bin/uname"
+      - "/home/jonas/extraction/fstar/bin/uname"
+      - "/home/jonas/.guix-profile/bin/uname"
+      - "/home/jonas/.elan/bin/uname"
+      - "/home/jonas/.config/guix/current/bin/uname"
+      - "/home/jonas/.cargo/bin/uname"
+      - "/home/jonas/.nix-profile/bin/uname"
+      - "/nix/var/nix/profiles/default/bin/uname"
+      - "/usr/local/sbin/uname"
+      - "/usr/local/bin/uname"
+    found: "/usr/bin/uname"
+    search_context:
+      ENV{PATH}:
+        - "/home/jonas/.opam/5.1.1/bin"
+        - "/home/jonas/extraction/z3/bin"
+        - "/home/jonas/extraction/fstar/bin"
+        - "/home/jonas/.guix-profile/bin"
+        - "/home/jonas/.elan/bin"
+        - "/home/jonas/.guix-profile/bin"
+        - "/home/jonas/.config/guix/current/bin"
+        - "/home/jonas/.config/guix/current/bin"
+        - "/home/jonas/.guix-profile/bin"
+        - "/home/jonas/.elan/bin"
+        - "/home/jonas/.cargo/bin"
+        - "/home/jonas/.guix-profile/bin"
+        - "/home/jonas/.config/guix/current/bin"
+        - "/home/jonas/.nix-profile/bin"
+        - "/nix/var/nix/profiles/default/bin"
+        - "/usr/local/sbin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/usr/lib/jvm/default/bin"
+        - "/usr/bin/site_perl"
+        - "/usr/bin/vendor_perl"
+        - "/usr/bin/core_perl"
+        - "/home/jonas/extraction/fstar/bin"
+        - "/home/jonas/extraction/z3/bin"
+        - "/home/jonas/extraction/fstar/bin"
+        - "/home/jonas/extraction/z3/bin"
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeDetermineSystem.cmake:212 (message)"
+      - "CMakeLists.txt:16 (project)"
+    message: |
+      The system is: Linux - 7.0.11-arch1-1 - x86_64
+...

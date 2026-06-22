@@ -1,0 +1,164 @@
+[
+{
+  "directory": "/home/jonas/wt/libcrux/wip/combined_extraction/c/build",
+  "command": "/usr/bin/clang -Dcombined_EXPORTS -I/home/jonas/wt/libcrux/wip/combined_extraction/c -I/home/jonas/wt/libcrux/wip/combined_extraction/c/internal -I/home/jonas/wt/libcrux/wip/combined_extraction/c/karamel -std=gnu11 -fPIC -fcolor-diagnostics -Wall -fstack-usage -Wunused-function -Wno-unused-variable -fdiagnostics-color=always -pedantic -o CMakeFiles/combined.dir/combined_core.c.o -c /home/jonas/wt/libcrux/wip/combined_extraction/c/combined_core.c",
+  "file": "/home/jonas/wt/libcrux/wip/combined_extraction/c/combined_core.c",
+  "output": "CMakeFiles/combined.dir/combined_core.c.o"
+},
+{
+  "directory": "/home/jonas/wt/libcrux/wip/combined_extraction/c/build",
+  "command": "/usr/bin/clang -Dcombined_EXPORTS -I/home/jonas/wt/libcrux/wip/combined_extraction/c -I/home/jonas/wt/libcrux/wip/combined_extraction/c/internal -I/home/jonas/wt/libcrux/wip/combined_extraction/c/karamel -std=gnu11 -fPIC -fcolor-diagnostics -Wall -fstack-usage -Wunused-function -Wno-unused-variable -fdiagnostics-color=always -pedantic -o CMakeFiles/combined.dir/libcrux_ct_ops.c.o -c /home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_ct_ops.c",
+  "file": "/home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_ct_ops.c",
+  "output": "CMakeFiles/combined.dir/libcrux_ct_ops.c.o"
+},
+{
+  "directory": "/home/jonas/wt/libcrux/wip/combined_extraction/c/build",
+  "command": "/usr/bin/clang -Dcombined_EXPORTS -I/home/jonas/wt/libcrux/wip/combined_extraction/c -I/home/jonas/wt/libcrux/wip/combined_extraction/c/internal -I/home/jonas/wt/libcrux/wip/combined_extraction/c/karamel -std=gnu11 -fPIC -fcolor-diagnostics -Wall -fstack-usage -Wunused-function -Wno-unused-variable -fdiagnostics-color=always -pedantic -o CMakeFiles/combined.dir/libcrux_mldsa44_portable.c.o -c /home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_mldsa44_portable.c",
+  "file": "/home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_mldsa44_portable.c",
+  "output": "CMakeFiles/combined.dir/libcrux_mldsa44_portable.c.o"
+},
+{
+  "directory": "/home/jonas/wt/libcrux/wip/combined_extraction/c/build",
+  "command": "/usr/bin/clang -Dcombined_EXPORTS -I/home/jonas/wt/libcrux/wip/combined_extraction/c -I/home/jonas/wt/libcrux/wip/combined_extraction/c/internal -I/home/jonas/wt/libcrux/wip/combined_extraction/c/karamel -std=gnu11 -fPIC -fcolor-diagnostics -Wall -fstack-usage -Wunused-function -Wno-unused-variable -fdiagnostics-color=always -pedantic -o CMakeFiles/combined.dir/libcrux_mldsa65_portable.c.o -c /home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_mldsa65_portable.c",
+  "file": "/home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_mldsa65_portable.c",
+  "output": "CMakeFiles/combined.dir/libcrux_mldsa65_portable.c.o"
+},
+{
+  "directory": "/home/jonas/wt/libcrux/wip/combined_extraction/c/build",
+  "command": "/usr/bin/clang -Dcombined_EXPORTS -I/home/jonas/wt/libcrux/wip/combined_extraction/c -I/home/jonas/wt/libcrux/wip/combined_extraction/c/internal -I/home/jonas/wt/libcrux/wip/combined_extraction/c/karamel -std=gnu11 -fPIC -fcolor-diagnostics -Wall -fstack-usage -Wunused-function -Wno-unused-variable -fdiagnostics-color=always -pedantic -o CMakeFiles/combined.dir/libcrux_mldsa87_portable.c.o -c /home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_mldsa87_portable.c",
+  "file": "/home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_mldsa87_portable.c",
+  "output": "CMakeFiles/combined.dir/libcrux_mldsa87_portable.c.o"
+},
+{
+  "directory": "/home/jonas/wt/libcrux/wip/combined_extraction/c/build",
+  "command": "/usr/bin/clang -Dcombined_EXPORTS -I/home/jonas/wt/libcrux/wip/combined_extraction/c -I/home/jonas/wt/libcrux/wip/combined_extraction/c/internal -I/home/jonas/wt/libcrux/wip/combined_extraction/c/karamel -std=gnu11 -fPIC -fcolor-diagnostics -Wall -fstack-usage -Wunused-function -Wno-unused-variable -fdiagnostics-color=always -pedantic -o CMakeFiles/combined.dir/libcrux_mldsa_core.c.o -c /home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_mldsa_core.c",
+  "file": "/home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_mldsa_core.c",
+  "output": "CMakeFiles/combined.dir/libcrux_mldsa_core.c.o"
+},
+{
+  "directory": "/home/jonas/wt/libcrux/wip/combined_extraction/c/build",
+  "command": "/usr/bin/clang -Dcombined_EXPORTS -I/home/jonas/wt/libcrux/wip/combined_extraction/c -I/home/jonas/wt/libcrux/wip/combined_extraction/c/internal -I/home/jonas/wt/libcrux/wip/combined_extraction/c/karamel -std=gnu11 -fPIC -fcolor-diagnostics -Wall -fstack-usage -Wunused-function -Wno-unused-variable -fdiagnostics-color=always -pedantic -o CMakeFiles/combined.dir/libcrux_mldsa_portable.c.o -c /home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_mldsa_portable.c",
+  "file": "/home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_mldsa_portable.c",
+  "output": "CMakeFiles/combined.dir/libcrux_mldsa_portable.c.o"
+},
+{
+  "directory": "/home/jonas/wt/libcrux/wip/combined_extraction/c/build",
+  "command": "/usr/bin/clang -Dcombined_EXPORTS -I/home/jonas/wt/libcrux/wip/combined_extraction/c -I/home/jonas/wt/libcrux/wip/combined_extraction/c/internal -I/home/jonas/wt/libcrux/wip/combined_extraction/c/karamel -std=gnu11 -fPIC -fcolor-diagnostics -Wall -fstack-usage -Wunused-function -Wno-unused-variable -fdiagnostics-color=always -pedantic -o CMakeFiles/combined.dir/libcrux_mlkem768_portable.c.o -c /home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_mlkem768_portable.c",
+  "file": "/home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_mlkem768_portable.c",
+  "output": "CMakeFiles/combined.dir/libcrux_mlkem768_portable.c.o"
+},
+{
+  "directory": "/home/jonas/wt/libcrux/wip/combined_extraction/c/build",
+  "command": "/usr/bin/clang -Dcombined_EXPORTS -I/home/jonas/wt/libcrux/wip/combined_extraction/c -I/home/jonas/wt/libcrux/wip/combined_extraction/c/internal -I/home/jonas/wt/libcrux/wip/combined_extraction/c/karamel -std=gnu11 -fPIC -fcolor-diagnostics -Wall -fstack-usage -Wunused-function -Wno-unused-variable -fdiagnostics-color=always -pedantic -o CMakeFiles/combined.dir/libcrux_mlkem_core.c.o -c /home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_mlkem_core.c",
+  "file": "/home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_mlkem_core.c",
+  "output": "CMakeFiles/combined.dir/libcrux_mlkem_core.c.o"
+},
+{
+  "directory": "/home/jonas/wt/libcrux/wip/combined_extraction/c/build",
+  "command": "/usr/bin/clang -Dcombined_EXPORTS -I/home/jonas/wt/libcrux/wip/combined_extraction/c -I/home/jonas/wt/libcrux/wip/combined_extraction/c/internal -I/home/jonas/wt/libcrux/wip/combined_extraction/c/karamel -std=gnu11 -fPIC -fcolor-diagnostics -Wall -fstack-usage -Wunused-function -Wno-unused-variable -fdiagnostics-color=always -pedantic -o CMakeFiles/combined.dir/libcrux_sha3_portable.c.o -c /home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_sha3_portable.c",
+  "file": "/home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_sha3_portable.c",
+  "output": "CMakeFiles/combined.dir/libcrux_sha3_portable.c.o"
+},
+{
+  "directory": "/home/jonas/wt/libcrux/wip/combined_extraction/c/build",
+  "command": "/usr/bin/clang  -I/home/jonas/wt/libcrux/wip/combined_extraction/c -I/home/jonas/wt/libcrux/wip/combined_extraction/c/internal -I/home/jonas/wt/libcrux/wip/combined_extraction/c/karamel -std=gnu11 -fcolor-diagnostics -Wall -fstack-usage -Wunused-function -Wno-unused-variable -fdiagnostics-color=always -pedantic -o CMakeFiles/combined_static.dir/combined_core.c.o -c /home/jonas/wt/libcrux/wip/combined_extraction/c/combined_core.c",
+  "file": "/home/jonas/wt/libcrux/wip/combined_extraction/c/combined_core.c",
+  "output": "CMakeFiles/combined_static.dir/combined_core.c.o"
+},
+{
+  "directory": "/home/jonas/wt/libcrux/wip/combined_extraction/c/build",
+  "command": "/usr/bin/clang  -I/home/jonas/wt/libcrux/wip/combined_extraction/c -I/home/jonas/wt/libcrux/wip/combined_extraction/c/internal -I/home/jonas/wt/libcrux/wip/combined_extraction/c/karamel -std=gnu11 -fcolor-diagnostics -Wall -fstack-usage -Wunused-function -Wno-unused-variable -fdiagnostics-color=always -pedantic -o CMakeFiles/combined_static.dir/libcrux_ct_ops.c.o -c /home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_ct_ops.c",
+  "file": "/home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_ct_ops.c",
+  "output": "CMakeFiles/combined_static.dir/libcrux_ct_ops.c.o"
+},
+{
+  "directory": "/home/jonas/wt/libcrux/wip/combined_extraction/c/build",
+  "command": "/usr/bin/clang  -I/home/jonas/wt/libcrux/wip/combined_extraction/c -I/home/jonas/wt/libcrux/wip/combined_extraction/c/internal -I/home/jonas/wt/libcrux/wip/combined_extraction/c/karamel -std=gnu11 -fcolor-diagnostics -Wall -fstack-usage -Wunused-function -Wno-unused-variable -fdiagnostics-color=always -pedantic -o CMakeFiles/combined_static.dir/libcrux_mldsa44_portable.c.o -c /home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_mldsa44_portable.c",
+  "file": "/home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_mldsa44_portable.c",
+  "output": "CMakeFiles/combined_static.dir/libcrux_mldsa44_portable.c.o"
+},
+{
+  "directory": "/home/jonas/wt/libcrux/wip/combined_extraction/c/build",
+  "command": "/usr/bin/clang  -I/home/jonas/wt/libcrux/wip/combined_extraction/c -I/home/jonas/wt/libcrux/wip/combined_extraction/c/internal -I/home/jonas/wt/libcrux/wip/combined_extraction/c/karamel -std=gnu11 -fcolor-diagnostics -Wall -fstack-usage -Wunused-function -Wno-unused-variable -fdiagnostics-color=always -pedantic -o CMakeFiles/combined_static.dir/libcrux_mldsa65_portable.c.o -c /home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_mldsa65_portable.c",
+  "file": "/home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_mldsa65_portable.c",
+  "output": "CMakeFiles/combined_static.dir/libcrux_mldsa65_portable.c.o"
+},
+{
+  "directory": "/home/jonas/wt/libcrux/wip/combined_extraction/c/build",
+  "command": "/usr/bin/clang  -I/home/jonas/wt/libcrux/wip/combined_extraction/c -I/home/jonas/wt/libcrux/wip/combined_extraction/c/internal -I/home/jonas/wt/libcrux/wip/combined_extraction/c/karamel -std=gnu11 -fcolor-diagnostics -Wall -fstack-usage -Wunused-function -Wno-unused-variable -fdiagnostics-color=always -pedantic -o CMakeFiles/combined_static.dir/libcrux_mldsa87_portable.c.o -c /home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_mldsa87_portable.c",
+  "file": "/home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_mldsa87_portable.c",
+  "output": "CMakeFiles/combined_static.dir/libcrux_mldsa87_portable.c.o"
+},
+{
+  "directory": "/home/jonas/wt/libcrux/wip/combined_extraction/c/build",
+  "command": "/usr/bin/clang  -I/home/jonas/wt/libcrux/wip/combined_extraction/c -I/home/jonas/wt/libcrux/wip/combined_extraction/c/internal -I/home/jonas/wt/libcrux/wip/combined_extraction/c/karamel -std=gnu11 -fcolor-diagnostics -Wall -fstack-usage -Wunused-function -Wno-unused-variable -fdiagnostics-color=always -pedantic -o CMakeFiles/combined_static.dir/libcrux_mldsa_core.c.o -c /home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_mldsa_core.c",
+  "file": "/home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_mldsa_core.c",
+  "output": "CMakeFiles/combined_static.dir/libcrux_mldsa_core.c.o"
+},
+{
+  "directory": "/home/jonas/wt/libcrux/wip/combined_extraction/c/build",
+  "command": "/usr/bin/clang  -I/home/jonas/wt/libcrux/wip/combined_extraction/c -I/home/jonas/wt/libcrux/wip/combined_extraction/c/internal -I/home/jonas/wt/libcrux/wip/combined_extraction/c/karamel -std=gnu11 -fcolor-diagnostics -Wall -fstack-usage -Wunused-function -Wno-unused-variable -fdiagnostics-color=always -pedantic -o CMakeFiles/combined_static.dir/libcrux_mldsa_portable.c.o -c /home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_mldsa_portable.c",
+  "file": "/home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_mldsa_portable.c",
+  "output": "CMakeFiles/combined_static.dir/libcrux_mldsa_portable.c.o"
+},
+{
+  "directory": "/home/jonas/wt/libcrux/wip/combined_extraction/c/build",
+  "command": "/usr/bin/clang  -I/home/jonas/wt/libcrux/wip/combined_extraction/c -I/home/jonas/wt/libcrux/wip/combined_extraction/c/internal -I/home/jonas/wt/libcrux/wip/combined_extraction/c/karamel -std=gnu11 -fcolor-diagnostics -Wall -fstack-usage -Wunused-function -Wno-unused-variable -fdiagnostics-color=always -pedantic -o CMakeFiles/combined_static.dir/libcrux_mlkem768_portable.c.o -c /home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_mlkem768_portable.c",
+  "file": "/home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_mlkem768_portable.c",
+  "output": "CMakeFiles/combined_static.dir/libcrux_mlkem768_portable.c.o"
+},
+{
+  "directory": "/home/jonas/wt/libcrux/wip/combined_extraction/c/build",
+  "command": "/usr/bin/clang  -I/home/jonas/wt/libcrux/wip/combined_extraction/c -I/home/jonas/wt/libcrux/wip/combined_extraction/c/internal -I/home/jonas/wt/libcrux/wip/combined_extraction/c/karamel -std=gnu11 -fcolor-diagnostics -Wall -fstack-usage -Wunused-function -Wno-unused-variable -fdiagnostics-color=always -pedantic -o CMakeFiles/combined_static.dir/libcrux_mlkem_core.c.o -c /home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_mlkem_core.c",
+  "file": "/home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_mlkem_core.c",
+  "output": "CMakeFiles/combined_static.dir/libcrux_mlkem_core.c.o"
+},
+{
+  "directory": "/home/jonas/wt/libcrux/wip/combined_extraction/c/build",
+  "command": "/usr/bin/clang  -I/home/jonas/wt/libcrux/wip/combined_extraction/c -I/home/jonas/wt/libcrux/wip/combined_extraction/c/internal -I/home/jonas/wt/libcrux/wip/combined_extraction/c/karamel -std=gnu11 -fcolor-diagnostics -Wall -fstack-usage -Wunused-function -Wno-unused-variable -fdiagnostics-color=always -pedantic -o CMakeFiles/combined_static.dir/libcrux_sha3_portable.c.o -c /home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_sha3_portable.c",
+  "file": "/home/jonas/wt/libcrux/wip/combined_extraction/c/libcrux_sha3_portable.c",
+  "output": "CMakeFiles/combined_static.dir/libcrux_sha3_portable.c.o"
+},
+{
+  "directory": "/home/jonas/wt/libcrux/wip/combined_extraction/c/build",
+  "command": "/usr/bin/clang++  -I/home/jonas/wt/libcrux/wip/combined_extraction/c -I/home/jonas/wt/libcrux/wip/combined_extraction/c/internal -I/home/jonas/wt/libcrux/wip/combined_extraction/c/karamel -I/home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/json-src/include -isystem /home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/googletest-src/googletest/include -isystem /home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/googletest-src/googletest -std=gnu++20 -fcolor-diagnostics -Wall -fstack-usage -Wunused-function -Wno-unused-variable -fdiagnostics-color=always -pedantic -o CMakeFiles/ml_dsa_test.dir/tests/mldsa65.cc.o -c /home/jonas/wt/libcrux/wip/combined_extraction/c/tests/mldsa65.cc",
+  "file": "/home/jonas/wt/libcrux/wip/combined_extraction/c/tests/mldsa65.cc",
+  "output": "CMakeFiles/ml_dsa_test.dir/tests/mldsa65.cc.o"
+},
+{
+  "directory": "/home/jonas/wt/libcrux/wip/combined_extraction/c/build",
+  "command": "/usr/bin/clang++  -I/home/jonas/wt/libcrux/wip/combined_extraction/c -I/home/jonas/wt/libcrux/wip/combined_extraction/c/internal -I/home/jonas/wt/libcrux/wip/combined_extraction/c/karamel -I/home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/json-src/include -isystem /home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/googletest-src/googletest/include -isystem /home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/googletest-src/googletest -std=gnu++20 -fcolor-diagnostics -Wall -fstack-usage -Wunused-function -Wno-unused-variable -fdiagnostics-color=always -pedantic -o CMakeFiles/ml_kem_test768.dir/tests/mlkem768.cc.o -c /home/jonas/wt/libcrux/wip/combined_extraction/c/tests/mlkem768.cc",
+  "file": "/home/jonas/wt/libcrux/wip/combined_extraction/c/tests/mlkem768.cc",
+  "output": "CMakeFiles/ml_kem_test768.dir/tests/mlkem768.cc.o"
+},
+{
+  "directory": "/home/jonas/wt/libcrux/wip/combined_extraction/c/build",
+  "command": "/usr/bin/clang++  -I/home/jonas/wt/libcrux/wip/combined_extraction/c -I/home/jonas/wt/libcrux/wip/combined_extraction/c/internal -I/home/jonas/wt/libcrux/wip/combined_extraction/c/karamel -I/home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/json-src/include -isystem /home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/googletest-src/googletest/include -isystem /home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/googletest-src/googletest -std=gnu++20 -fcolor-diagnostics -Wall -fstack-usage -Wunused-function -Wno-unused-variable -fdiagnostics-color=always -pedantic -o CMakeFiles/sha3_test.dir/tests/sha3.cc.o -c /home/jonas/wt/libcrux/wip/combined_extraction/c/tests/sha3.cc",
+  "file": "/home/jonas/wt/libcrux/wip/combined_extraction/c/tests/sha3.cc",
+  "output": "CMakeFiles/sha3_test.dir/tests/sha3.cc.o"
+},
+{
+  "directory": "/home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/googletest-build/googlemock",
+  "command": "/usr/bin/clang++  -I/home/jonas/wt/libcrux/wip/combined_extraction/c -I/home/jonas/wt/libcrux/wip/combined_extraction/c/internal -I/home/jonas/wt/libcrux/wip/combined_extraction/c/karamel -I/home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/googletest-src/googlemock/include -I/home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/googletest-src/googlemock -isystem /home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/googletest-src/googletest/include -isystem /home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/googletest-src/googletest -std=c++20 -fcolor-diagnostics -Wall -Wshadow -Wconversion -Wundef -DGTEST_HAS_PTHREAD=1 -fexceptions -W -Wpointer-arith -Wreturn-type -Wcast-qual -Wwrite-strings -Wswitch -Wunused-parameter -Wcast-align -Winline -Wredundant-decls -Wchar-subscripts -Wall -fstack-usage -Wunused-function -Wno-unused-variable -fdiagnostics-color=always -pedantic -o CMakeFiles/gmock.dir/src/gmock-all.cc.o -c /home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/googletest-src/googlemock/src/gmock-all.cc",
+  "file": "/home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/googletest-src/googlemock/src/gmock-all.cc",
+  "output": "_deps/googletest-build/googlemock/CMakeFiles/gmock.dir/src/gmock-all.cc.o"
+},
+{
+  "directory": "/home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/googletest-build/googlemock",
+  "command": "/usr/bin/clang++  -isystem /home/jonas/wt/libcrux/wip/combined_extraction/c -isystem /home/jonas/wt/libcrux/wip/combined_extraction/c/internal -isystem /home/jonas/wt/libcrux/wip/combined_extraction/c/karamel -isystem /home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/googletest-src/googlemock/include -isystem /home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/googletest-src/googlemock -isystem /home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/googletest-src/googletest/include -isystem /home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/googletest-src/googletest -std=c++20 -fcolor-diagnostics -Wall -Wshadow -Wconversion -Wundef -DGTEST_HAS_PTHREAD=1 -fexceptions -W -Wpointer-arith -Wreturn-type -Wcast-qual -Wwrite-strings -Wswitch -Wunused-parameter -Wcast-align -Winline -Wredundant-decls -Wchar-subscripts -Wall -fstack-usage -Wunused-function -Wno-unused-variable -fdiagnostics-color=always -pedantic -o CMakeFiles/gmock_main.dir/src/gmock_main.cc.o -c /home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/googletest-src/googlemock/src/gmock_main.cc",
+  "file": "/home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/googletest-src/googlemock/src/gmock_main.cc",
+  "output": "_deps/googletest-build/googlemock/CMakeFiles/gmock_main.dir/src/gmock_main.cc.o"
+},
+{
+  "directory": "/home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/googletest-build/googletest",
+  "command": "/usr/bin/clang++  -I/home/jonas/wt/libcrux/wip/combined_extraction/c -I/home/jonas/wt/libcrux/wip/combined_extraction/c/internal -I/home/jonas/wt/libcrux/wip/combined_extraction/c/karamel -I/home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/googletest-src/googletest/include -I/home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/googletest-src/googletest -std=c++20 -fcolor-diagnostics -Wall -Wshadow -Wconversion -Wundef -DGTEST_HAS_PTHREAD=1 -fexceptions -W -Wpointer-arith -Wreturn-type -Wcast-qual -Wwrite-strings -Wswitch -Wunused-parameter -Wcast-align -Winline -Wredundant-decls -Wchar-subscripts -Wall -fstack-usage -Wunused-function -Wno-unused-variable -fdiagnostics-color=always -pedantic -o CMakeFiles/gtest.dir/src/gtest-all.cc.o -c /home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/googletest-src/googletest/src/gtest-all.cc",
+  "file": "/home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/googletest-src/googletest/src/gtest-all.cc",
+  "output": "_deps/googletest-build/googletest/CMakeFiles/gtest.dir/src/gtest-all.cc.o"
+},
+{
+  "directory": "/home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/googletest-build/googletest",
+  "command": "/usr/bin/clang++  -I/home/jonas/wt/libcrux/wip/combined_extraction/c -I/home/jonas/wt/libcrux/wip/combined_extraction/c/internal -I/home/jonas/wt/libcrux/wip/combined_extraction/c/karamel -isystem /home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/googletest-src/googletest/include -isystem /home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/googletest-src/googletest -std=c++20 -fcolor-diagnostics -Wall -Wshadow -Wconversion -Wundef -DGTEST_HAS_PTHREAD=1 -fexceptions -W -Wpointer-arith -Wreturn-type -Wcast-qual -Wwrite-strings -Wswitch -Wunused-parameter -Wcast-align -Winline -Wredundant-decls -Wchar-subscripts -Wall -fstack-usage -Wunused-function -Wno-unused-variable -fdiagnostics-color=always -pedantic -o CMakeFiles/gtest_main.dir/src/gtest_main.cc.o -c /home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/googletest-src/googletest/src/gtest_main.cc",
+  "file": "/home/jonas/wt/libcrux/wip/combined_extraction/c/build/_deps/googletest-src/googletest/src/gtest_main.cc",
+  "output": "_deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/src/gtest_main.cc.o"
+}
+]

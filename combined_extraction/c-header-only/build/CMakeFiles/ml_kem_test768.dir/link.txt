@@ -1,0 +1,1 @@
+/usr/bin/clang++ -Xlinker --dependency-file=CMakeFiles/ml_kem_test768.dir/link.d CMakeFiles/ml_kem_test768.dir/tests/mlkem768.cc.o -o ml_kem_test768  lib/libgtest_main.a lib/libgtest.a
