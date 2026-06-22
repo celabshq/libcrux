@@ -22,12 +22,66 @@ pub(crate) const ZETAS_TIMES_MONTGOMERY_R: [i16; 128] = {
 };
 
 // A function to retrieve zetas so that we can add a post-condition
+// `zeta_bound` proves the |coeff| <= 1664 bound on the concrete 128-entry
+// table: reproduce the literal list (Seq is abstract, so assert_norm cannot
+// index the table directly), prove the bound on the list by a closed
+// computation, and bridge Seq.index -> List.index via lemma_seq_of_list_index.
+#[hax_lib::fstar::before(
+    r#"
+let zeta_lits: list i16 =
+  [
+    mk_i16 (-1044); mk_i16 (-758); mk_i16 (-359); mk_i16 (-1517); mk_i16 1493; mk_i16 1422;
+    mk_i16 287; mk_i16 202; mk_i16 (-171); mk_i16 622; mk_i16 1577; mk_i16 182; mk_i16 962;
+    mk_i16 (-1202); mk_i16 (-1474); mk_i16 1468; mk_i16 573; mk_i16 (-1325); mk_i16 264;
+    mk_i16 383; mk_i16 (-829); mk_i16 1458; mk_i16 (-1602); mk_i16 (-130); mk_i16 (-681);
+    mk_i16 1017; mk_i16 732; mk_i16 608; mk_i16 (-1542); mk_i16 411; mk_i16 (-205); mk_i16 (-1571);
+    mk_i16 1223; mk_i16 652; mk_i16 (-552); mk_i16 1015; mk_i16 (-1293); mk_i16 1491;
+    mk_i16 (-282); mk_i16 (-1544); mk_i16 516; mk_i16 (-8); mk_i16 (-320); mk_i16 (-666);
+    mk_i16 (-1618); mk_i16 (-1162); mk_i16 126; mk_i16 1469; mk_i16 (-853); mk_i16 (-90);
+    mk_i16 (-271); mk_i16 830; mk_i16 107; mk_i16 (-1421); mk_i16 (-247); mk_i16 (-951);
+    mk_i16 (-398); mk_i16 961; mk_i16 (-1508); mk_i16 (-725); mk_i16 448; mk_i16 (-1065);
+    mk_i16 677; mk_i16 (-1275); mk_i16 (-1103); mk_i16 430; mk_i16 555; mk_i16 843; mk_i16 (-1251);
+    mk_i16 871; mk_i16 1550; mk_i16 105; mk_i16 422; mk_i16 587; mk_i16 177; mk_i16 (-235);
+    mk_i16 (-291); mk_i16 (-460); mk_i16 1574; mk_i16 1653; mk_i16 (-246); mk_i16 778; mk_i16 1159;
+    mk_i16 (-147); mk_i16 (-777); mk_i16 1483; mk_i16 (-602); mk_i16 1119; mk_i16 (-1590);
+    mk_i16 644; mk_i16 (-872); mk_i16 349; mk_i16 418; mk_i16 329; mk_i16 (-156); mk_i16 (-75);
+    mk_i16 817; mk_i16 1097; mk_i16 603; mk_i16 610; mk_i16 1322; mk_i16 (-1285); mk_i16 (-1465);
+    mk_i16 384; mk_i16 (-1215); mk_i16 (-136); mk_i16 1218; mk_i16 (-1335); mk_i16 (-874);
+    mk_i16 220; mk_i16 (-1187); mk_i16 (-1659); mk_i16 (-1185); mk_i16 (-1530); mk_i16 (-1278);
+    mk_i16 794; mk_i16 (-1510); mk_i16 (-854); mk_i16 (-870); mk_i16 478; mk_i16 (-108);
+    mk_i16 (-308); mk_i16 996; mk_i16 991; mk_i16 958; mk_i16 (-1460); mk_i16 1522; mk_i16 1628
+  ]
+
+let rec list_bounded (l: list i16) : prop =
+  match l with
+  | [] -> True
+  | x :: xs -> (v x >= -1664 /\ v x <= 1664) /\ list_bounded xs
+
+#push-options "--fuel 1 --ifuel 1"
+let rec list_bounded_index (l: list i16) (i: nat{i < List.Tot.length l})
+    : Lemma (requires list_bounded l)
+            (ensures (let x:i16 = List.Tot.index l i in v x >= -1664 /\ v x <= 1664))
+            (decreases i) =
+  match l with
+  | x :: xs -> if i = 0 then () else list_bounded_index xs (i - 1)
+#pop-options
+
+let zeta_bound (i: usize{v i < 128})
+    : Lemma (let x:i16 = v_ZETAS_TIMES_MONTGOMERY_R.[ i ] in v x >= -1664 /\ v x <= 1664) =
+  assert_norm (List.Tot.length zeta_lits == 128);
+  assert_norm (list_bounded zeta_lits);
+  assert_norm (v_ZETAS_TIMES_MONTGOMERY_R == Rust_primitives.Hax.array_of_list 128 zeta_lits);
+  FStar.Seq.Properties.lemma_seq_of_list_index zeta_lits (v i);
+  list_bounded_index zeta_lits (v i)
+"#
+)]
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::requires(i < 128)]
 #[hax_lib::ensures(|result| result >= -1664 && result <= 1664)]
 pub fn zeta(i: usize) -> i16 {
-    ZETAS_TIMES_MONTGOMERY_R[i]
+    let result = ZETAS_TIMES_MONTGOMERY_R[i];
+    hax_lib::fstar!(r#"zeta_bound ${i}"#);
+    result
 }
 
 #[cfg(hax)]
