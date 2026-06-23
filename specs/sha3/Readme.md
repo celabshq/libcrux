@@ -19,7 +19,7 @@ Run `hax_fstar.sh extract` to produce the F* files, and `hax_fstar.sh prove` to 
 
 Prerequisites:
 * Hax from `hax-evit`, commit `1f85fc1`
-  https://github.com/cryspen/hax-evit/tree/1f85fc13b9967080cc657863e2000ba5d4aa8647
+  https://github.com/cryspen/hax-evit/tree/ffdf432705d409b62ec025d253a340234b59766f
   (This is a not publicly available yet.)
 * Aeneas `8d2077c`
   (https://github.com/cryspen/aeneas/releases/tag/nightly-2026.06.04)
