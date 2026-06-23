@@ -249,6 +249,68 @@ fn compress_int32x4_t<const COEFFICIENT_BITS: i32>(v: _uint32x4_t) -> _uint32x4_
     compressed
 }
 
+// A3 compress functional proof, part 1: per-u32-lane compress core.  The rest of
+// the proof (deint/assemble/mask + the Barrett post `cmp_compress_post`) is in a
+// `fstar::after` block on `decompress_ciphertext_coefficient` (it reuses the
+// generic deinterleave/reinterpret lemmas defined in that fn's `before` block).
+#[hax_lib::fstar::before(
+    r#"
+module NC = Libcrux_intrinsics.Arm64_extract
+
+(* per-u32-lane compress core: compress_int32x4_t lane k computes the Barrett
+   (unmasked) compression value, bounded below 2^15.  Uses the validated arm64
+   s32<->u32 lane reinterpret bridge NC.e_vreinterpret_i32_u32_lane_bridge. *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 300"
+let cmp_compress_u32_lane (vv: NC.t_e_uint32x4_t) (cb: i32) (k: nat{k < 4}) : Lemma
+  (requires (v cb == 4 \/ v cb == 5 \/ v cb == 10 \/ v cb == 11) /\
+            v (NC.get_lane_u32x4 vv k) < 3329)
+  (ensures
+    (let r = compress_int32x4_t cb vv in
+     let a = v (NC.get_lane_u32x4 vv k) in
+     v (NC.get_lane_u32x4 r k) == (((a * pow2 (v cb) + 1664) * 10321340) / pow2 35) /\
+     0 <= v (NC.get_lane_u32x4 r k) /\ v (NC.get_lane_u32x4 r k) < pow2 15))
+  = let a = v (NC.get_lane_u32x4 vv k) in
+    assert_norm (pow2 11 == 2048);
+    FStar.Math.Lemmas.pow2_le_compat 11 (v cb);
+    let half = NC.e_vdupq_n_u32 (mk_u32 1664) in
+    let c1 = NC.e_vshlq_n_u32 cb vv in
+    let c2 = NC.e_vaddq_u32 c1 half in
+    let s32 = NC.e_vreinterpretq_s32_u32 c2 in
+    let mulres = NC.e_vqdmulhq_n_s32 s32 (mk_i32 10321340) in
+    let u32res = NC.e_vreinterpretq_u32_s32 mulres in
+    let r = NC.e_vshrq_n_u32 (mk_i32 4) u32res in
+    assert (v (NC.get_lane_u32x4 half k) == 1664);
+    FStar.Math.Lemmas.lemma_mult_le_right (pow2 (v cb)) a 3328;
+    assert_norm (3328 * 2048 < pow2 32);
+    assert (a * pow2 (v cb) <= 3328 * 2048);
+    assert (v (NC.get_lane_u32x4 c1 k) == a * pow2 (v cb));
+    let bb = a * pow2 (v cb) + 1664 in
+    assert (v (NC.get_lane_u32x4 c2 k) == bb);
+    assert_norm (pow2 31 == 2147483648);
+    assert (bb < pow2 31);
+    NC.e_vreinterpret_i32_u32_lane_bridge c2 k;
+    assert (s32 == c2);
+    assert (v (NC.get_lane_i32x4 s32 k) == bb);
+    assert_norm (pow2 47 == 140737488355328);
+    FStar.Math.Lemmas.lemma_mult_le_right 10321340 bb (3328 * 2048 + 1664);
+    assert (bb * 10321340 < pow2 47);
+    let pp = (bb * 10321340) / pow2 31 in
+    FStar.Math.Lemmas.lemma_div_lt_nat (bb * 10321340) 47 31;
+    assert (pp < pow2 16);
+    assert ((((cast (NC.get_lane_i32x4 s32 k) <: i64) *. (cast (mk_i32 10321340) <: i64)) >>! (mk_i32 31))
+            == mk_i64 pp);
+    assert (v (NC.get_lane_i32x4 mulres k) == pp);
+    NC.e_vreinterpret_i32_u32_lane_bridge mulres k;
+    FStar.Math.Lemmas.small_mod pp (pow2 32);
+    assert (v (NC.get_lane_u32x4 u32res k) == pp);
+    assert (v (NC.get_lane_u32x4 r k) == pp / pow2 4);
+    FStar.Math.Lemmas.division_multiplication_lemma (bb * 10321340) (pow2 31) (pow2 4);
+    FStar.Math.Lemmas.pow2_plus 31 4;
+    assert (v (NC.get_lane_u32x4 r k) == (bb * 10321340) / pow2 35);
+    FStar.Math.Lemmas.lemma_div_lt_nat (bb * 10321340) 47 35
+#pop-options
+"#
+)]
 #[inline(always)]
 #[hax_lib::requires(fstar!(r#"Rust_primitives.Integers.v $COEFFICIENT_BITS == 4 \/
     Rust_primitives.Integers.v $COEFFICIENT_BITS == 5 \/
@@ -684,6 +746,258 @@ let lemma_decompress_half_out (hv: NA.t_e_int16x8_t) (cb: i32) : Lemma
        v (NA.get_lane_i16x8 out j) ==
          (v (NA.get_lane_i16x8 hv j) * 3329 + pow2 (v cb - 1)) / pow2 (v cb))
     with (if j < 8 then lemma_neon_out_lane hv cb j)
+#pop-options
+"#
+)]
+// A3 compress functional proof, part 2 (after decompress so the generic
+// deinterleave/reinterpret lemmas in decompress's `before` block are in scope):
+// the Barrett-form functional post `cmp_compress_post` for `compress`, which
+// `Vector.Neon.op_compress` calls and bridges to the spec `compress_post`.
+#[hax_lib::fstar::after(
+    interface,
+    r#"
+val cmp_compress_post (cb: i32) (vin: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector)
+    : Lemma
+      (requires
+        (Rust_primitives.Integers.v cb == 4 \/ Rust_primitives.Integers.v cb == 5 \/
+          Rust_primitives.Integers.v cb == 10 \/ Rust_primitives.Integers.v cb == 11) /\
+        (forall (i: nat).
+            i < 16 ==>
+            0 <= Rust_primitives.Integers.v (Seq.index (Libcrux_ml_kem.Vector.Neon.Vector_type.repr vin) i) /\
+            Rust_primitives.Integers.v (Seq.index (Libcrux_ml_kem.Vector.Neon.Vector_type.repr vin) i) < 3329))
+      (ensures
+        (let result = compress cb vin in
+          forall (i: nat).
+            i < 16 ==>
+            (let ri = Rust_primitives.Integers.v (Seq.index (Libcrux_ml_kem.Vector.Neon.Vector_type.repr result) i) in
+              let vi = Rust_primitives.Integers.v (Seq.index (Libcrux_ml_kem.Vector.Neon.Vector_type.repr vin) i) in
+              0 <= ri /\ ri < pow2 (Rust_primitives.Integers.v cb) /\
+              ri == (((vi * pow2 (Rust_primitives.Integers.v cb) + 1664) * 10321340) / pow2 35) %
+                    pow2 (Rust_primitives.Integers.v cb))))
+"#
+)]
+#[hax_lib::fstar::after(
+    r#"
+(* ===================== A3 compress functional post ===================== *)
+
+(* deinterleave for compress: even/odd input lanes (< 3329) extracted to u32 lanes. *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 200"
+let cmp_deint_bounds (hv: NA.t_e_int16x8_t) : Lemma
+  (requires (forall (m: nat). m < 8 ==>
+              0 <= v (NA.get_lane_i16x8 hv m) /\ v (NA.get_lane_i16x8 hv m) < 3329))
+  (ensures
+    (let r = NA.e_vreinterpretq_u32_s16 hv in
+     let l0 = NA.e_vandq_u32 r (NA.e_vdupq_n_u32 (mk_u32 65535)) in
+     let l1 = NA.e_vshrq_n_u32 (mk_i32 16) r in
+     forall (m: nat). m < 4 ==>
+       v (NA.get_lane_u32x4 l0 m) == v (NA.get_lane_i16x8 hv (2 * m)) /\
+       v (NA.get_lane_u32x4 l1 m) == v (NA.get_lane_i16x8 hv (2 * m + 1)) /\
+       v (NA.get_lane_u32x4 l0 m) < 3329 /\ v (NA.get_lane_u32x4 l1 m) < 3329))
+  = let r = NA.e_vreinterpretq_u32_s16 hv in
+    let l0 = NA.e_vandq_u32 r (NA.e_vdupq_n_u32 (mk_u32 65535)) in
+    let l1 = NA.e_vshrq_n_u32 (mk_i32 16) r in
+    let aux (m: nat{m < 4})
+      : Lemma (v (NA.get_lane_u32x4 l0 m) == v (NA.get_lane_i16x8 hv (2 * m)) /\
+               v (NA.get_lane_u32x4 l1 m) == v (NA.get_lane_i16x8 hv (2 * m + 1)) /\
+               v (NA.get_lane_u32x4 l0 m) < 3329 /\ v (NA.get_lane_u32x4 l1 m) < 3329) =
+      assert (2 * m < 8 /\ 2 * m + 1 < 8);
+      lemma_deint_lo (NA.get_lane_i16x8 hv (2 * m)) (NA.get_lane_i16x8 hv (2 * m + 1));
+      lemma_deint_hi (NA.get_lane_i16x8 hv (2 * m)) (NA.get_lane_i16x8 hv (2 * m + 1))
+    in
+    introduce forall (m: nat). m < 4 ==>
+      (v (NA.get_lane_u32x4 l0 m) == v (NA.get_lane_i16x8 hv (2 * m)) /\
+       v (NA.get_lane_u32x4 l1 m) == v (NA.get_lane_i16x8 hv (2 * m + 1)) /\
+       v (NA.get_lane_u32x4 l0 m) < 3329 /\ v (NA.get_lane_u32x4 l1 m) < 3329)
+    with (if m < 4 then aux m)
+#pop-options
+
+(* per-output-lane: deint -> compress_int32x4_t -> reinterpret+vtrn1q computes the
+   Barrett (unmasked) compression value of input lane j, bounded < 2^15. *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 400 --split_queries always --z3refresh"
+let cmp_out_lane (hv: NA.t_e_int16x8_t) (cb: i32) (j: nat{j < 8}) : Lemma
+  (requires (v cb == 4 \/ v cb == 5 \/ v cb == 10 \/ v cb == 11) /\
+            (forall (m: nat). m < 8 ==>
+              0 <= v (NA.get_lane_i16x8 hv m) /\ v (NA.get_lane_i16x8 hv m) < 3329))
+  (ensures
+    (let mask16 = NA.e_vdupq_n_u32 (mk_u32 65535) in
+     let r = NA.e_vreinterpretq_u32_s16 hv in
+     let l0 = NA.e_vandq_u32 r mask16 in
+     let l1 = NA.e_vshrq_n_u32 (mk_i32 16) r in
+     let l0c = compress_int32x4_t cb l0 in
+     let l1c = compress_int32x4_t cb l1 in
+     let out = NA.e_vtrn1q_s16 (NA.e_vreinterpretq_s16_u32 l0c) (NA.e_vreinterpretq_s16_u32 l1c) in
+     0 <= v (NA.get_lane_i16x8 out j) /\ v (NA.get_lane_i16x8 out j) < pow2 15 /\
+     v (NA.get_lane_i16x8 out j) ==
+       (((v (NA.get_lane_i16x8 hv j) * pow2 (v cb) + 1664) * 10321340) / pow2 35)))
+  = let mask16 = NA.e_vdupq_n_u32 (mk_u32 65535) in
+    let r = NA.e_vreinterpretq_u32_s16 hv in
+    let l0 = NA.e_vandq_u32 r mask16 in
+    let l1 = NA.e_vshrq_n_u32 (mk_i32 16) r in
+    let k = j / 2 in
+    FStar.Math.Lemmas.lemma_div_mod j 2;
+    cmp_deint_bounds hv;
+    let l0c = compress_int32x4_t cb l0 in
+    let l1c = compress_int32x4_t cb l1 in
+    cmp_compress_u32_lane l0 cb k;
+    cmp_compress_u32_lane l1 cb k;
+    lemma_assemble_lane l0c l1c j
+#pop-options
+
+(* trivial dispatcher: per-lane lemma keeps the 8-lane forall light. *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 100 --split_queries always --z3refresh"
+let cmp_half_out (hv: NA.t_e_int16x8_t) (cb: i32) : Lemma
+  (requires (v cb == 4 \/ v cb == 5 \/ v cb == 10 \/ v cb == 11) /\
+            (forall (m: nat). m < 8 ==>
+              0 <= v (NA.get_lane_i16x8 hv m) /\ v (NA.get_lane_i16x8 hv m) < 3329))
+  (ensures
+    (let mask16 = NA.e_vdupq_n_u32 (mk_u32 65535) in
+     let r = NA.e_vreinterpretq_u32_s16 hv in
+     let l0 = NA.e_vandq_u32 r mask16 in
+     let l1 = NA.e_vshrq_n_u32 (mk_i32 16) r in
+     let l0c = compress_int32x4_t cb l0 in
+     let l1c = compress_int32x4_t cb l1 in
+     let out = NA.e_vtrn1q_s16 (NA.e_vreinterpretq_s16_u32 l0c) (NA.e_vreinterpretq_s16_u32 l1c) in
+     forall (j: nat). j < 8 ==>
+       0 <= v (NA.get_lane_i16x8 out j) /\ v (NA.get_lane_i16x8 out j) < pow2 15 /\
+       v (NA.get_lane_i16x8 out j) ==
+         (((v (NA.get_lane_i16x8 hv j) * pow2 (v cb) + 1664) * 10321340) / pow2 35)))
+  = introduce forall (j: nat). j < 8 ==>
+      (let mask16 = NA.e_vdupq_n_u32 (mk_u32 65535) in
+       let r = NA.e_vreinterpretq_u32_s16 hv in
+       let l0 = NA.e_vandq_u32 r mask16 in
+       let l1 = NA.e_vshrq_n_u32 (mk_i32 16) r in
+       let l0c = compress_int32x4_t cb l0 in
+       let l1c = compress_int32x4_t cb l1 in
+       let out = NA.e_vtrn1q_s16 (NA.e_vreinterpretq_s16_u32 l0c) (NA.e_vreinterpretq_s16_u32 l1c) in
+       0 <= v (NA.get_lane_i16x8 out j) /\ v (NA.get_lane_i16x8 out j) < pow2 15 /\
+       v (NA.get_lane_i16x8 out j) ==
+         (((v (NA.get_lane_i16x8 hv j) * pow2 (v cb) + 1664) * 10321340) / pow2 35))
+    with (if j < 8 then cmp_out_lane hv cb j)
+#pop-options
+
+(* final mask: x &. (2^cb - 1) == x % 2^cb for x >= 0. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let cmp_mask_lemma (x: i16) (cb: i32) : Lemma
+  (requires (v cb == 4 \/ v cb == 5 \/ v cb == 10 \/ v cb == 11) /\ 0 <= v x)
+  (ensures (let m = mask_n_least_significant_bits (cast (cb <: i32) <: i16) in
+            v (x &. m) == (v x) % pow2 (v cb) /\
+            0 <= (v x) % pow2 (v cb) /\ (v x) % pow2 (v cb) < pow2 (v cb)))
+  = let dd = v cb in
+    assert (v (cast (cb <: i32) <: i16) == v cb);
+    let m = mask_n_least_significant_bits (cast (cb <: i32) <: i16) in
+    assert_norm (pow2 11 == 2048);
+    FStar.Math.Lemmas.pow2_le_compat 11 dd;
+    assert (v m == pow2 dd - 1);
+    assert (m == Rust_primitives.Integers.sub #i16_inttype (mk_i16 (pow2 dd)) (mk_i16 1));
+    Rust_primitives.Integers.logand_mask_lemma x dd
+#pop-options
+
+(* vdupq_n_s16 broadcast lane value (clean context, avoids context-pruning drop). *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 50"
+let cmp_dup_lane (x: i16) (m: nat{m < 8}) : Lemma
+  (ensures NA.get_lane_i16x8 (NA.e_vdupq_n_s16 x) m == x)
+  = FStar.Seq.Base.lemma_index_create 8 x m
+#pop-options
+
+(* clean-context per-lane mask: lane i of (vandq_s16 lowv (vdupq (2^cb-1)))
+   == (lowv lane i) % 2^cb, bounded.  Isolates the dup-broadcast + mask reasoning
+   away from cmp_compress_post's heavy (context-pruned) body. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let cmp_masked_lane (lowv: NA.t_e_int16x8_t) (cb: i32) (i: nat{i < 8}) : Lemma
+  (requires (v cb == 4 \/ v cb == 5 \/ v cb == 10 \/ v cb == 11) /\
+            0 <= v (NA.get_lane_i16x8 lowv i))
+  (ensures
+    (let m = NA.e_vdupq_n_s16 (mask_n_least_significant_bits (cast (cb <: i32) <: i16)) in
+     v (NA.get_lane_i16x8 (NA.e_vandq_s16 lowv m) i) == (v (NA.get_lane_i16x8 lowv i)) % pow2 (v cb) /\
+     0 <= (v (NA.get_lane_i16x8 lowv i)) % pow2 (v cb) /\
+     (v (NA.get_lane_i16x8 lowv i)) % pow2 (v cb) < pow2 (v cb)))
+  = cmp_dup_lane (mask_n_least_significant_bits (cast (cb <: i32) <: i16)) i;
+    cmp_mask_lemma (NA.get_lane_i16x8 lowv i) cb
+#pop-options
+
+(* isolate the (expensive) compress-body unfold: result halves == masked vtrn1q
+   outputs.  Proven once; cmp_compress_post then reasons over `low`/`high`. *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 100"
+let cmp_compress_unfold (cb: i32)
+    (vin: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector) : Lemma
+  (requires v cb == 4 \/ v cb == 5 \/ v cb == 10 \/ v cb == 11)
+  (ensures
+    (let flo = vin.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low in
+     let fhi = vin.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high in
+     let mask = NA.e_vdupq_n_s16 (mask_n_least_significant_bits (cast (cb <: i32) <: i16)) in
+     let mask16 = NA.e_vdupq_n_u32 (mk_u32 65535) in
+     let rlo = NA.e_vreinterpretq_u32_s16 flo in
+     let low = NA.e_vtrn1q_s16
+       (NA.e_vreinterpretq_s16_u32 (compress_int32x4_t cb (NA.e_vandq_u32 rlo mask16)))
+       (NA.e_vreinterpretq_s16_u32 (compress_int32x4_t cb (NA.e_vshrq_n_u32 (mk_i32 16) rlo))) in
+     let rhi = NA.e_vreinterpretq_u32_s16 fhi in
+     let high = NA.e_vtrn1q_s16
+       (NA.e_vreinterpretq_s16_u32 (compress_int32x4_t cb (NA.e_vandq_u32 rhi mask16)))
+       (NA.e_vreinterpretq_s16_u32 (compress_int32x4_t cb (NA.e_vshrq_n_u32 (mk_i32 16) rhi))) in
+     let result = compress cb vin in
+     result.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low == NA.e_vandq_s16 low mask /\
+     result.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high == NA.e_vandq_s16 high mask))
+  = ()
+#pop-options
+
+(* full Barrett-form functional post for `compress`.
+   op_compress (Vector.Neon) calls this, then bridges to the spec compress_post. *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 300 --split_queries always --z3refresh"
+let cmp_compress_post (cb: i32) (vin: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector) : Lemma
+  (requires (v cb == 4 \/ v cb == 5 \/ v cb == 10 \/ v cb == 11) /\
+            (forall (i: nat). i < 16 ==>
+              0 <= v (Seq.index (repr vin) i) /\ v (Seq.index (repr vin) i) < 3329))
+  (ensures
+    (let result = compress cb vin in
+     forall (i: nat). i < 16 ==>
+       (let ri = v (Seq.index (repr result) i) in
+        let vi = v (Seq.index (repr vin) i) in
+        0 <= ri /\ ri < pow2 (v cb) /\
+        ri == (((vi * pow2 (v cb) + 1664) * 10321340) / pow2 35) % pow2 (v cb))))
+  = let flo = vin.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low in
+    let fhi = vin.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high in
+    let result = compress cb vin in
+    let mask = NA.e_vdupq_n_s16 (mask_n_least_significant_bits (cast (cb <: i32) <: i16)) in
+    let mask16 = NA.e_vdupq_n_u32 (mk_u32 65535) in
+    let rlo = NA.e_vreinterpretq_u32_s16 flo in
+    let llo0 = NA.e_vandq_u32 rlo mask16 in
+    let llo1 = NA.e_vshrq_n_u32 (mk_i32 16) rlo in
+    let llo0c = compress_int32x4_t cb llo0 in
+    let llo1c = compress_int32x4_t cb llo1 in
+    let low = NA.e_vtrn1q_s16 (NA.e_vreinterpretq_s16_u32 llo0c) (NA.e_vreinterpretq_s16_u32 llo1c) in
+    let rhi = NA.e_vreinterpretq_u32_s16 fhi in
+    let lhi0 = NA.e_vandq_u32 rhi mask16 in
+    let lhi1 = NA.e_vshrq_n_u32 (mk_i32 16) rhi in
+    let lhi0c = compress_int32x4_t cb lhi0 in
+    let lhi1c = compress_int32x4_t cb lhi1 in
+    let high = NA.e_vtrn1q_s16 (NA.e_vreinterpretq_s16_u32 lhi0c) (NA.e_vreinterpretq_s16_u32 lhi1c) in
+    cmp_compress_unfold cb vin;
+    assert (result.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low == NA.e_vandq_s16 low mask);
+    assert (result.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high == NA.e_vandq_s16 high mask);
+    assert (forall (m: nat). m < 8 ==> Seq.index (repr vin) m == NA.get_lane_i16x8 flo m);
+    assert (forall (m: nat). m < 8 ==> Seq.index (repr vin) (m + 8) == NA.get_lane_i16x8 fhi m);
+    assert (forall (m: nat). m < 8 ==>
+      Seq.index (repr result) m ==
+      NA.get_lane_i16x8 (result.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low) m);
+    assert (forall (m: nat). m < 8 ==>
+      Seq.index (repr result) (m + 8) ==
+      NA.get_lane_i16x8 (result.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high) m);
+    assert (forall (m: nat). m < 8 ==>
+      0 <= v (NA.get_lane_i16x8 flo m) /\ v (NA.get_lane_i16x8 flo m) < 3329);
+    assert (forall (m: nat). m < 8 ==>
+      0 <= v (NA.get_lane_i16x8 fhi m) /\ v (NA.get_lane_i16x8 fhi m) < 3329);
+    cmp_half_out flo cb;
+    cmp_half_out fhi cb;
+    let aux (i: nat{i < 16}) : Lemma
+      (let ri = v (Seq.index (repr result) i) in
+       let vi = v (Seq.index (repr vin) i) in
+       0 <= ri /\ ri < pow2 (v cb) /\
+       ri == (((vi * pow2 (v cb) + 1664) * 10321340) / pow2 35) % pow2 (v cb)) =
+      if i < 8
+      then cmp_masked_lane low cb i
+      else cmp_masked_lane high cb (i - 8)
+    in
+    Classical.forall_intro aux
 #pop-options
 "#
 )]

@@ -130,14 +130,47 @@ fn op_compress_1(vector: SIMD128Vector) -> SIMD128Vector {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always --z3refresh")]
 #[hax_lib::requires(fstar!(r#"${spec::compress_pre} (impl.f_repr $vector) $COEFFICIENT_BITS"#))]
 #[hax_lib::ensures(|out| fstar!(r#"${spec::compress_post} (impl.f_repr $vector) $COEFFICIENT_BITS (impl.f_repr $out)"#))]
 fn op_compress<const COEFFICIENT_BITS: i32>(vector: SIMD128Vector) -> SIMD128Vector {
     hax_lib::fstar!(
-        r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)"#
+        r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.bounded_i16_array)
+             (Libcrux_ml_kem.Vector.Traits.Spec.bounded_i16_array (mk_i16 0)
+                 (mk_i16 3328)
+                 (Libcrux_ml_kem.Vector.Neon.Vector_type.repr ${vector}));
+           assert (forall (i: nat).
+                 {:pattern Seq.index (Libcrux_ml_kem.Vector.Neon.Vector_type.repr ${vector}) i}
+                 i < 16 ==>
+                 v (Seq.index (Libcrux_ml_kem.Vector.Neon.Vector_type.repr ${vector}) i) >= 0 /\
+                 v (Seq.index (Libcrux_ml_kem.Vector.Neon.Vector_type.repr ${vector}) i) < 3329)"#
     );
-    compress::<COEFFICIENT_BITS>(vector)
+    let result = compress::<COEFFICIENT_BITS>(vector);
+    hax_lib::fstar!(
+        r#"Libcrux_ml_kem.Vector.Neon.Compress.cmp_compress_post $COEFFICIENT_BITS ${vector};
+           Libcrux_ml_kem.Vector.Traits.Spec.lemma_bounded_i16_array_intro (mk_i16 0)
+             (mk_i16 (pow2 (v $COEFFICIENT_BITS) - 1))
+             (Libcrux_ml_kem.Vector.Neon.Vector_type.repr ${result});
+           let aux (j: nat{j < 16})
+               : Lemma
+               (Libcrux_ml_kem.Vector.Traits.Spec.compress_d_lane_post (mk_usize (v $COEFFICIENT_BITS))
+                   (Seq.index (Libcrux_ml_kem.Vector.Neon.Vector_type.repr ${vector}) j)
+                   (Seq.index (Libcrux_ml_kem.Vector.Neon.Vector_type.repr ${result}) j)) =
+             reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.compress_d_lane_post)
+               (Libcrux_ml_kem.Vector.Traits.Spec.compress_d_lane_post (mk_usize (v $COEFFICIENT_BITS))
+                   (Seq.index (Libcrux_ml_kem.Vector.Neon.Vector_type.repr ${vector}) j)
+                   (Seq.index (Libcrux_ml_kem.Vector.Neon.Vector_type.repr ${result}) j));
+             Hacspec_ml_kem.Commute.Chunk.lemma_compress_d_barrett_eq
+               (v (Seq.index (Libcrux_ml_kem.Vector.Neon.Vector_type.repr ${vector}) j))
+               (v $COEFFICIENT_BITS);
+             Hacspec_ml_kem.Commute.Chunk.lemma_compress_ciphertext_coefficient_fe_commute
+               (Seq.index (Libcrux_ml_kem.Vector.Neon.Vector_type.repr ${vector}) j)
+               (Seq.index (Libcrux_ml_kem.Vector.Neon.Vector_type.repr ${result}) j)
+               (mk_usize (v $COEFFICIENT_BITS))
+           in
+           Classical.forall_intro aux"#
+    );
+    result
 }
 
 #[inline(always)]
