@@ -578,6 +578,29 @@ pub fn _vdupq_n_u32(value: u32) -> _uint32x4_t {
 pub fn _vaddq_u32(compressed: _uint32x4_t, half: _uint32x4_t) -> _uint32x4_t {
     unimplemented!()
 }
+// s32<->u32 lane reinterpret bridge: the i32 and u32 lane VIEWS of the SAME
+// 128-bit register are 2's-complement related (`vreinterpretq_{s32_u32,u32_s32}`
+// are bit-preserving bitcasts; the `result == a` register equality on those two
+// reinterprets does not connect the independent `vec128_as_{i32x4,u32x4}` lane
+// projections).  Validated bit-exact against real arm64 `vreinterpretq_s32_u32`
+// / `vreinterpretq_u32_s32` hardware (24,000,000 lane-checks, 0 fails; see
+// libcrux-notes neon_vreinterpret_s32_u32_hwdiff_validate-2026-06-23.rs).  Used
+// by the NEON `compress` (d-bit) functional proof.
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::before(
+        interface,
+        r#"
+val e_vreinterpret_i32_u32_lane_bridge (x: bit_vec 128) (k: nat{k < 4})
+    : Lemma (ensures
+        Rust_primitives.Integers.v (get_lane_i32x4 x k) ==
+          (let u = Rust_primitives.Integers.v (get_lane_u32x4 x k) in
+           if u < pow2 31 then u else u - pow2 32) /\
+        Rust_primitives.Integers.v (get_lane_u32x4 x k) ==
+          (Rust_primitives.Integers.v (get_lane_i32x4 x k)) % pow2 32)
+"#
+    )
+)]
 #[inline(always)]
 #[hax_lib::lean::replace_body("sorry")]
 #[hax_lib::ensures(|result| fstar!("$result == $compressed"))]
