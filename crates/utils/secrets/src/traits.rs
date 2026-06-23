@@ -73,6 +73,9 @@ pub trait EncodeOps<T, const N: usize> {
     fn from_be_bytes(x: [T; N]) -> Self;
 }
 
+// XXX These impls for SIMD registers need to be adapted should we want to support hax
+//  extraction with check-secret-independence enabled at some point.
+
 // SIMD values are also scalars
 #[cfg(target_arch = "x86")]
 impl Scalar for core::arch::x86::__m128i {}
