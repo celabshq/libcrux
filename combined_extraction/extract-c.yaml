@@ -135,67 +135,115 @@ files:
         - [Eurydice_borrow_slice_u8_x2]
 
 
-  # MLKEM-768
+  # Shared AVX2 infrastructure for ML-KEM (mirrors eurydice/test/libcrux-ml-kem/c.yaml)
+  - name: libcrux_mlkem_avx2
+    target: "avx2"
+    include_in_h:
+      - '"intrinsics/libcrux_intrinsics_avx2.h"'
+    api:
+      - [libcrux_ml_kem, vector, avx2, "*"]
+      - [libcrux_ml_kem, hash_functions, avx2, "*"]
+    private:
+      monomorphizations_using:
+        - [libcrux_ml_kem, vector, avx2, "*"]
+        - [libcrux_ml_kem, hash_functions, avx2, "*"]
+      monomorphizations_of:
+        - [libcrux_ml_kem, vector, avx2, "*"]
+        - [libcrux_ml_kem, hash_functions, avx2, "*"]
 
+  # Shared portable infrastructure (covers slightly more than just "portable",
+  # but greatly simplifies things — mirrors c.yaml's libcrux_mlkem_portable)
+  - name: libcrux_mlkem_portable
+    api:
+      - [libcrux_ml_kem, vector, "*"]
+      - [libcrux_ml_kem, hash_functions, portable, "*"]
+    private:
+      patterns:
+        - [libcrux_ml_kem, polynomial, "*"]
+      monomorphizations_using:
+        - [libcrux_ml_kem, polynomial, "*"]
+        - [libcrux_ml_kem, vector, "*"]
+        - [libcrux_ml_kem, hash_functions, portable, "*"]
+      monomorphizations_of:
+        - [libcrux_ml_kem, polynomial, "*"]
+        - [libcrux_ml_kem, vector, "*"]
+        - [libcrux_ml_kem, hash_functions, portable, "*"]
+
+  # MLKEM-512
+  - name: libcrux_mlkem512_avx2
+    target: "avx2"
+    include_in_h:
+      - '"intrinsics/libcrux_intrinsics_avx2.h"'
+    api:
+      - [libcrux_ml_kem, mlkem512, avx2]
+    internal:
+      - [libcrux_ml_kem, mlkem512, avx2, unpacked]
+
+  - name: libcrux_mlkem512_portable
+    api:
+      - [libcrux_ml_kem, mlkem512, portable]
+    internal:
+      - [libcrux_ml_kem, mlkem512, portable, unpacked]
+
+  - name: libcrux_mlkem512
+    api:
+      - [libcrux_ml_kem, mlkem512]
+
+  # MLKEM-768
   - name: libcrux_mlkem768_avx2
     target: "avx2"
     include_in_h:
       - '"intrinsics/libcrux_intrinsics_avx2.h"'
     api:
-      patterns:
-        - [libcrux_ml_kem, mlkem768, avx2, "*"]
-      monomorphizations_of:
-        - [libcrux_ml_kem, mlkem768, avx2, "*"]
-    private:
-      patterns:  
-        - [libcrux_ml_kem, vector, rej_sample_table, "*"]
-        - [libcrux_ml_kem, vector, avx2, "*"]
-        - [libcrux_ml_kem, hash_functions, avx2, "*"]
-        - [libcrux_ml_kem, mlkem768, avx2, "*"]
-        - [libcrux_ml_kem, ind_cca, instantiations, avx2, "*"]
-      monomorphizations_of:
-        - [libcrux_ml_kem, vector, avx2, "*"]
-        - [libcrux_ml_kem, hash_functions, avx2, "*"]
-        - [libcrux_ml_kem, mlkem768, avx2, "*"]
-        - [libcrux_ml_kem, ind_cca, instantiations, avx2, "*"]
-      monomorphizations_using:
-        - [libcrux_ml_kem, vector, avx2, "*"]
-        - [libcrux_ml_kem, hash_functions, avx2, "*"]
-      monomorphizations_exact:
-        - [core_core_arch_x86___m128i_x2]  
+      - [libcrux_ml_kem, mlkem768, avx2]
     internal:
       - [libcrux_ml_kem, mlkem768, avx2, unpacked]
 
   - name: libcrux_mlkem768_portable
     api:
-      patterns:
-        - [libcrux_ml_kem, mlkem768, "*"]
-      monomorphizations_of:
-        - [libcrux_ml_kem, mlkem768, portable]
-    private:
-      exact:
-        - [ libcrux_ml_kem, variant, MlKem ]
-        - [ libcrux_ml_kem, variant, Kyber ]
-      patterns:
-        - [libcrux_ml_kem, "*"]
-        - [libcrux_ml_kem, vector, "*"]
-        - [libcrux_ml_kem, hash_functions, portable, "*"]
-        - [libcrux_ml_kem, mlkem768, portable, "*"]
-        - [libcrux_ml_kem, ind_cca, instantiations, portable, "*"]
-      monomorphizations_of:
-        - [libcrux_ml_kem, polynomial, "*" ]
-        - [libcrux_ml_kem, vector, "*"]
-        - [libcrux_ml_kem, hash_functions, portable, "*"]
-        - [libcrux_ml_kem, mlkem768, portable]
-        - [libcrux_ml_kem, ind_cca, instantiations, portable, "*"]
-      monomorphizations_using:
-        - [libcrux_ml_kem, polynomial, "*" ]
-        - [libcrux_ml_kem, vector, "*"]
-        - [libcrux_ml_kem, hash_functions, portable, "*"]
-        - [libcrux_ml_kem, ind_cca, instantiations, portable, "*"]
+      - [libcrux_ml_kem, mlkem768, portable]
     internal:
       - [libcrux_ml_kem, mlkem768, portable, unpacked]
-        
+
+  - name: libcrux_mlkem768
+    api:
+      - [libcrux_ml_kem, mlkem768]
+
+  # MLKEM-1024
+  - name: libcrux_mlkem1024_avx2
+    target: "avx2"
+    include_in_h:
+      - '"intrinsics/libcrux_intrinsics_avx2.h"'
+    api:
+      - [libcrux_ml_kem, mlkem1024, avx2]
+    internal:
+      - [libcrux_ml_kem, mlkem1024, avx2, unpacked]
+
+  - name: libcrux_mlkem1024_portable
+    api:
+      - [libcrux_ml_kem, mlkem1024, portable]
+    internal:
+      - [libcrux_ml_kem, mlkem1024, portable, unpacked]
+
+  - name: libcrux_mlkem1024
+    api:
+      - [libcrux_ml_kem, mlkem1024]
+
+  # Catch-all for remaining ML-KEM helpers.
+  # Needs explicit monomorphizations_of/using because the compact "- [libcrux_ml_kem, "*"]"
+  # form only does one-level pattern matching, missing deeply-nested monomorphizations
+  # like [libcrux_ml_kem, ind_cca, instantiations, avx2, ...] which would otherwise
+  # fall to combined_core and create cycles.
+  - name: libcrux_mlkem_common
+    private:
+      patterns:
+        - [libcrux_ml_kem, "*"]
+      monomorphizations_of:
+        - [libcrux_ml_kem, "*"]
+      monomorphizations_using:
+        - [libcrux_ml_kem, "*"]
+    inline_static: true
+
   # Here, we apply the same strategy that works for bundling:
   # - start with the most specific stuff: MLDSA-XX-AVX2
   # - move on to less specific stuff: MLDSA-AVX2 (the "leftovers", or common

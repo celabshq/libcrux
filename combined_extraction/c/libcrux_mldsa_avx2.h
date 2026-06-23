@@ -4,11 +4,11 @@
  * SPDX-License-Identifier: MIT or Apache-2.0
  *
  * This code was generated with the following revisions:
- * Charon: e656e17bff6ca5efac8ab6919b9b74cb9a8dd8ad
- * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
+ * Charon: 6f058254eb741c12e9b388df07adaf7cc8aac8ed
+ * Eurydice: fca2e9fbd728e49d677f3fc0da0054b55f3b9973
  * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
- * F*: unset
- * Libcrux: 3687467117fe5c6ddf8cdeb78306adc5d11ead2d
+ * F*: 70671ffb81fa30aba09b9d6e2af275dfbccaa8f8
+ * Libcrux: bdbc514c92784f52ed92097e2dfe82c2533df5d0
  */
 
 
@@ -89,10 +89,10 @@ libcrux_ml_dsa_hash_functions_simd256_squeeze_next_block_x4(Eurydice_arr_c40 *st
  Init the state and absorb 4 blocks in parallel.
 */
 /**
-This function found in impl {libcrux_ml_dsa::hash_functions::shake128::XofX4 for libcrux_ml_dsa::hash_functions::simd256::Shake128x4}
+This function found in impl {impl libcrux_ml_dsa::hash_functions::shake128::XofX4 for libcrux_ml_dsa::hash_functions::simd256::Shake128x4}
 */
 Eurydice_arr_c40
-libcrux_ml_dsa_hash_functions_simd256_init_absorb_3b(
+libcrux_ml_dsa_hash_functions_simd256_init_absorb_38(
   Eurydice_borrow_slice_u8 input0,
   Eurydice_borrow_slice_u8 input1,
   Eurydice_borrow_slice_u8 input2,
@@ -100,10 +100,10 @@ libcrux_ml_dsa_hash_functions_simd256_init_absorb_3b(
 );
 
 /**
-This function found in impl {libcrux_ml_dsa::hash_functions::shake128::XofX4 for libcrux_ml_dsa::hash_functions::simd256::Shake128x4}
+This function found in impl {impl libcrux_ml_dsa::hash_functions::shake128::XofX4 for libcrux_ml_dsa::hash_functions::simd256::Shake128x4}
 */
 void
-libcrux_ml_dsa_hash_functions_simd256_squeeze_first_five_blocks_3b(
+libcrux_ml_dsa_hash_functions_simd256_squeeze_first_five_blocks_38(
   Eurydice_arr_c40 *self,
   Eurydice_arr_d10 *out0,
   Eurydice_arr_d10 *out1,
@@ -112,34 +112,34 @@ libcrux_ml_dsa_hash_functions_simd256_squeeze_first_five_blocks_3b(
 );
 
 /**
-This function found in impl {libcrux_ml_dsa::hash_functions::shake128::XofX4 for libcrux_ml_dsa::hash_functions::simd256::Shake128x4}
+This function found in impl {impl libcrux_ml_dsa::hash_functions::shake128::XofX4 for libcrux_ml_dsa::hash_functions::simd256::Shake128x4}
 */
 Eurydice_arr_c5_x4
-libcrux_ml_dsa_hash_functions_simd256_squeeze_next_block_3b(Eurydice_arr_c40 *self);
+libcrux_ml_dsa_hash_functions_simd256_squeeze_next_block_38(Eurydice_arr_c40 *self);
 
 /**
-This function found in impl {libcrux_ml_dsa::hash_functions::shake256::DsaXof for libcrux_ml_dsa::hash_functions::simd256::Shake256}
+This function found in impl {impl libcrux_ml_dsa::hash_functions::shake256::DsaXof for libcrux_ml_dsa::hash_functions::simd256::Shake256}
 */
 Eurydice_arr_7c
-libcrux_ml_dsa_hash_functions_simd256_init_absorb_final_8c(Eurydice_borrow_slice_u8 input);
+libcrux_ml_dsa_hash_functions_simd256_init_absorb_final_21(Eurydice_borrow_slice_u8 input);
 
 /**
-This function found in impl {libcrux_ml_dsa::hash_functions::shake256::DsaXof for libcrux_ml_dsa::hash_functions::simd256::Shake256}
+This function found in impl {impl libcrux_ml_dsa::hash_functions::shake256::DsaXof for libcrux_ml_dsa::hash_functions::simd256::Shake256}
 */
 Eurydice_arr_ff
-libcrux_ml_dsa_hash_functions_simd256_squeeze_first_block_8c(Eurydice_arr_7c *self);
+libcrux_ml_dsa_hash_functions_simd256_squeeze_first_block_21(Eurydice_arr_7c *self);
 
 /**
-This function found in impl {libcrux_ml_dsa::hash_functions::shake256::DsaXof for libcrux_ml_dsa::hash_functions::simd256::Shake256}
+This function found in impl {impl libcrux_ml_dsa::hash_functions::shake256::DsaXof for libcrux_ml_dsa::hash_functions::simd256::Shake256}
 */
 Eurydice_arr_ff
-libcrux_ml_dsa_hash_functions_simd256_squeeze_next_block_8c(Eurydice_arr_7c *self);
+libcrux_ml_dsa_hash_functions_simd256_squeeze_next_block_21(Eurydice_arr_7c *self);
 
 /**
-This function found in impl {libcrux_ml_dsa::hash_functions::shake256::XofX4 for libcrux_ml_dsa::hash_functions::simd256::Shake256x4}
+This function found in impl {impl libcrux_ml_dsa::hash_functions::shake256::XofX4 for libcrux_ml_dsa::hash_functions::simd256::Shake256x4}
 */
 Eurydice_arr_c40
-libcrux_ml_dsa_hash_functions_simd256_init_absorb_x4_ad(
+libcrux_ml_dsa_hash_functions_simd256_init_absorb_x4_39(
   Eurydice_borrow_slice_u8 input0,
   Eurydice_borrow_slice_u8 input1,
   Eurydice_borrow_slice_u8 input2,
@@ -147,16 +147,16 @@ libcrux_ml_dsa_hash_functions_simd256_init_absorb_x4_ad(
 );
 
 /**
-This function found in impl {libcrux_ml_dsa::hash_functions::shake256::XofX4 for libcrux_ml_dsa::hash_functions::simd256::Shake256x4}
+This function found in impl {impl libcrux_ml_dsa::hash_functions::shake256::XofX4 for libcrux_ml_dsa::hash_functions::simd256::Shake256x4}
 */
 Eurydice_arr_ff_x4
-libcrux_ml_dsa_hash_functions_simd256_squeeze_first_block_x4_ad(Eurydice_arr_c40 *self);
+libcrux_ml_dsa_hash_functions_simd256_squeeze_first_block_x4_39(Eurydice_arr_c40 *self);
 
 /**
-This function found in impl {libcrux_ml_dsa::hash_functions::shake256::XofX4 for libcrux_ml_dsa::hash_functions::simd256::Shake256x4}
+This function found in impl {impl libcrux_ml_dsa::hash_functions::shake256::XofX4 for libcrux_ml_dsa::hash_functions::simd256::Shake256x4}
 */
 Eurydice_arr_ff_x4
-libcrux_ml_dsa_hash_functions_simd256_squeeze_next_block_x4_ad(Eurydice_arr_c40 *self);
+libcrux_ml_dsa_hash_functions_simd256_squeeze_next_block_x4_39(Eurydice_arr_c40 *self);
 
 typedef __m256i libcrux_ml_dsa_simd_avx2_vector_type_Vec256;
 
@@ -166,9 +166,9 @@ typedef __m256i libcrux_ml_dsa_simd_avx2_vector_type_Vec256;
 __m256i libcrux_ml_dsa_simd_avx2_vector_type_zero(void);
 
 /**
-This function found in impl {libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
+This function found in impl {impl libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
 */
-__m256i libcrux_ml_dsa_simd_avx2_zero_a2(void);
+__m256i libcrux_ml_dsa_simd_avx2_zero_9a(void);
 
 /**
  Create a coefficient from an `i32` array
@@ -180,10 +180,10 @@ libcrux_ml_dsa_simd_avx2_vector_type_from_coefficient_array(
 );
 
 /**
-This function found in impl {libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
+This function found in impl {impl libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
 */
 void
-libcrux_ml_dsa_simd_avx2_from_coefficient_array_a2(
+libcrux_ml_dsa_simd_avx2_from_coefficient_array_9a(
   Eurydice_dst_ref_shared_83 coefficient_array,
   __m256i *out
 );
@@ -198,10 +198,10 @@ libcrux_ml_dsa_simd_avx2_vector_type_to_coefficient_array(
 );
 
 /**
-This function found in impl {libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
+This function found in impl {impl libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
 */
 void
-libcrux_ml_dsa_simd_avx2_to_coefficient_array_a2(
+libcrux_ml_dsa_simd_avx2_to_coefficient_array_9a(
   const __m256i *value,
   Eurydice_dst_ref_mut_83 out
 );
@@ -209,16 +209,16 @@ libcrux_ml_dsa_simd_avx2_to_coefficient_array_a2(
 void libcrux_ml_dsa_simd_avx2_arithmetic_add(__m256i *lhs, const __m256i *rhs);
 
 /**
-This function found in impl {libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
+This function found in impl {impl libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
 */
-void libcrux_ml_dsa_simd_avx2_add_a2(__m256i *lhs, const __m256i *rhs);
+void libcrux_ml_dsa_simd_avx2_add_9a(__m256i *lhs, const __m256i *rhs);
 
 void libcrux_ml_dsa_simd_avx2_arithmetic_subtract(__m256i *lhs, const __m256i *rhs);
 
 /**
-This function found in impl {libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
+This function found in impl {impl libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
 */
-void libcrux_ml_dsa_simd_avx2_subtract_a2(__m256i *lhs, const __m256i *rhs);
+void libcrux_ml_dsa_simd_avx2_subtract_9a(__m256i *lhs, const __m256i *rhs);
 
 bool
 libcrux_ml_dsa_simd_avx2_arithmetic_infinity_norm_exceeds(
@@ -227,10 +227,10 @@ libcrux_ml_dsa_simd_avx2_arithmetic_infinity_norm_exceeds(
 );
 
 /**
-This function found in impl {libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
+This function found in impl {impl libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
 */
 bool
-libcrux_ml_dsa_simd_avx2_infinity_norm_exceeds_a2(const __m256i *simd_unit, int32_t bound);
+libcrux_ml_dsa_simd_avx2_infinity_norm_exceeds_9a(const __m256i *simd_unit, int32_t bound);
 
 __m256i libcrux_ml_dsa_simd_avx2_arithmetic_to_unsigned_representatives_ret(const __m256i *t);
 
@@ -243,10 +243,10 @@ libcrux_ml_dsa_simd_avx2_arithmetic_decompose(
 );
 
 /**
-This function found in impl {libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
+This function found in impl {impl libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
 */
 void
-libcrux_ml_dsa_simd_avx2_decompose_a2(
+libcrux_ml_dsa_simd_avx2_decompose_9a(
   int32_t gamma2,
   const __m256i *simd_unit,
   __m256i *low,
@@ -262,10 +262,10 @@ libcrux_ml_dsa_simd_avx2_arithmetic_compute_hint(
 );
 
 /**
-This function found in impl {libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
+This function found in impl {impl libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
 */
 size_t
-libcrux_ml_dsa_simd_avx2_compute_hint_a2(
+libcrux_ml_dsa_simd_avx2_compute_hint_9a(
   const __m256i *low,
   const __m256i *high,
   int32_t gamma2,
@@ -276,10 +276,10 @@ void
 libcrux_ml_dsa_simd_avx2_arithmetic_use_hint(int32_t gamma2, const __m256i *r, __m256i *hint);
 
 /**
-This function found in impl {libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
+This function found in impl {impl libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
 */
 void
-libcrux_ml_dsa_simd_avx2_use_hint_a2(int32_t gamma2, const __m256i *simd_unit, __m256i *hint);
+libcrux_ml_dsa_simd_avx2_use_hint_9a(int32_t gamma2, const __m256i *simd_unit, __m256i *hint);
 
 void
 libcrux_ml_dsa_simd_avx2_arithmetic_montgomery_multiply_aux(
@@ -292,9 +292,9 @@ libcrux_ml_dsa_simd_avx2_arithmetic_montgomery_multiply_aux(
 void libcrux_ml_dsa_simd_avx2_arithmetic_montgomery_multiply(__m256i *lhs, const __m256i *rhs);
 
 /**
-This function found in impl {libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
+This function found in impl {impl libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
 */
-void libcrux_ml_dsa_simd_avx2_montgomery_multiply_a2(__m256i *lhs, const __m256i *rhs);
+void libcrux_ml_dsa_simd_avx2_montgomery_multiply_9a(__m256i *lhs, const __m256i *rhs);
 
 void libcrux_ml_dsa_simd_avx2_arithmetic_barrett_reduce_simd_unit(__m256i *simd_unit);
 
@@ -303,9 +303,9 @@ void libcrux_ml_dsa_simd_avx2_arithmetic_to_unsigned_representatives(__m256i *t)
 void libcrux_ml_dsa_simd_avx2_arithmetic_power2round(__m256i *r0, __m256i *r1);
 
 /**
-This function found in impl {libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
+This function found in impl {impl libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
 */
-void libcrux_ml_dsa_simd_avx2_power2round_a2(__m256i *t0, __m256i *t1);
+void libcrux_ml_dsa_simd_avx2_power2round_9a(__m256i *t0, __m256i *t1);
 
 #define LIBCRUX_ML_DSA_SIMD_AVX2_REJECTION_SAMPLE_LESS_THAN_FIELD_MODULUS_BYTESTREAM_TO_POTENTIAL_COEFFICIENTS_COEFFICIENT_MASK ((int32_t)((uint32_t)1 << 23U) - 1)
 
@@ -323,10 +323,10 @@ libcrux_ml_dsa_simd_avx2_rejection_sample_less_than_field_modulus_sample(
 );
 
 /**
-This function found in impl {libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
+This function found in impl {impl libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
 */
 size_t
-libcrux_ml_dsa_simd_avx2_rejection_sample_less_than_field_modulus_a2(
+libcrux_ml_dsa_simd_avx2_rejection_sample_less_than_field_modulus_9a(
   Eurydice_borrow_slice_u8 randomness,
   Eurydice_dst_ref_mut_83 out
 );
@@ -371,10 +371,10 @@ libcrux_ml_dsa_simd_avx2_rejection_sample_less_than_eta_sample_af(
 );
 
 /**
-This function found in impl {libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
+This function found in impl {impl libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
 */
 size_t
-libcrux_ml_dsa_simd_avx2_rejection_sample_less_than_eta_equals_2_a2(
+libcrux_ml_dsa_simd_avx2_rejection_sample_less_than_eta_equals_2_9a(
   Eurydice_borrow_slice_u8 randomness,
   Eurydice_dst_ref_mut_83 out
 );
@@ -399,10 +399,10 @@ libcrux_ml_dsa_simd_avx2_rejection_sample_less_than_eta_sample_23(
 );
 
 /**
-This function found in impl {libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
+This function found in impl {impl libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
 */
 size_t
-libcrux_ml_dsa_simd_avx2_rejection_sample_less_than_eta_equals_4_a2(
+libcrux_ml_dsa_simd_avx2_rejection_sample_less_than_eta_equals_4_9a(
   Eurydice_borrow_slice_u8 randomness,
   Eurydice_dst_ref_mut_83 out
 );
@@ -441,10 +441,10 @@ libcrux_ml_dsa_simd_avx2_encoding_gamma1_serialize(
 );
 
 /**
-This function found in impl {libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
+This function found in impl {impl libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
 */
 void
-libcrux_ml_dsa_simd_avx2_gamma1_serialize_a2(
+libcrux_ml_dsa_simd_avx2_gamma1_serialize_9a(
   const __m256i *simd_unit,
   Eurydice_mut_borrow_slice_u8 serialized,
   size_t gamma1_exponent
@@ -478,10 +478,10 @@ libcrux_ml_dsa_simd_avx2_encoding_gamma1_deserialize(
 );
 
 /**
-This function found in impl {libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
+This function found in impl {impl libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
 */
 void
-libcrux_ml_dsa_simd_avx2_gamma1_deserialize_a2(
+libcrux_ml_dsa_simd_avx2_gamma1_deserialize_9a(
   Eurydice_borrow_slice_u8 serialized,
   __m256i *out,
   size_t gamma1_exponent
@@ -498,10 +498,10 @@ libcrux_ml_dsa_simd_avx2_encoding_commitment_serialize(
 );
 
 /**
-This function found in impl {libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
+This function found in impl {impl libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
 */
 void
-libcrux_ml_dsa_simd_avx2_commitment_serialize_a2(
+libcrux_ml_dsa_simd_avx2_commitment_serialize_9a(
   const __m256i *simd_unit,
   Eurydice_mut_borrow_slice_u8 serialized
 );
@@ -536,10 +536,10 @@ libcrux_ml_dsa_simd_avx2_encoding_error_serialize(
 );
 
 /**
-This function found in impl {libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
+This function found in impl {impl libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
 */
 void
-libcrux_ml_dsa_simd_avx2_error_serialize_a2(
+libcrux_ml_dsa_simd_avx2_error_serialize_9a(
   libcrux_ml_dsa_constants_Eta eta,
   const __m256i *simd_unit,
   Eurydice_mut_borrow_slice_u8 serialized
@@ -553,10 +553,10 @@ libcrux_ml_dsa_simd_avx2_encoding_error_deserialize(
 );
 
 /**
-This function found in impl {libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
+This function found in impl {impl libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
 */
 void
-libcrux_ml_dsa_simd_avx2_error_deserialize_a2(
+libcrux_ml_dsa_simd_avx2_error_deserialize_9a(
   libcrux_ml_dsa_constants_Eta eta,
   Eurydice_borrow_slice_u8 serialized,
   __m256i *out
@@ -575,10 +575,10 @@ libcrux_ml_dsa_simd_avx2_encoding_t0_serialize(
 );
 
 /**
-This function found in impl {libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
+This function found in impl {impl libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
 */
 void
-libcrux_ml_dsa_simd_avx2_t0_serialize_a2(
+libcrux_ml_dsa_simd_avx2_t0_serialize_9a(
   const __m256i *simd_unit,
   Eurydice_mut_borrow_slice_u8 out
 );
@@ -598,10 +598,10 @@ libcrux_ml_dsa_simd_avx2_encoding_t0_deserialize(
 );
 
 /**
-This function found in impl {libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
+This function found in impl {impl libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
 */
 void
-libcrux_ml_dsa_simd_avx2_t0_deserialize_a2(Eurydice_borrow_slice_u8 serialized, __m256i *out);
+libcrux_ml_dsa_simd_avx2_t0_deserialize_9a(Eurydice_borrow_slice_u8 serialized, __m256i *out);
 
 void
 libcrux_ml_dsa_simd_avx2_encoding_t1_serialize(
@@ -610,10 +610,10 @@ libcrux_ml_dsa_simd_avx2_encoding_t1_serialize(
 );
 
 /**
-This function found in impl {libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
+This function found in impl {impl libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
 */
 void
-libcrux_ml_dsa_simd_avx2_t1_serialize_a2(
+libcrux_ml_dsa_simd_avx2_t1_serialize_9a(
   const __m256i *simd_unit,
   Eurydice_mut_borrow_slice_u8 out
 );
@@ -624,10 +624,10 @@ void
 libcrux_ml_dsa_simd_avx2_encoding_t1_deserialize(Eurydice_borrow_slice_u8 bytes, __m256i *out);
 
 /**
-This function found in impl {libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
+This function found in impl {impl libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
 */
 void
-libcrux_ml_dsa_simd_avx2_t1_deserialize_a2(Eurydice_borrow_slice_u8 serialized, __m256i *out);
+libcrux_ml_dsa_simd_avx2_t1_deserialize_9a(Eurydice_borrow_slice_u8 serialized, __m256i *out);
 
 /**
 A monomorphic instance of Eurydice.arr
@@ -749,9 +749,9 @@ void libcrux_ml_dsa_simd_avx2_ntt_ntt_avx2_ntt(Eurydice_arr_60 *re);
 void libcrux_ml_dsa_simd_avx2_ntt_ntt(Eurydice_arr_60 *re);
 
 /**
-This function found in impl {libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
+This function found in impl {impl libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
 */
-void libcrux_ml_dsa_simd_avx2_ntt_a2(Eurydice_arr_60 *simd_units);
+void libcrux_ml_dsa_simd_avx2_ntt_9a(Eurydice_arr_60 *simd_units);
 
 typedef struct libcrux_ml_dsa_simd_avx2_vector_type_Vec256_x2_s
 {
@@ -1132,14 +1132,14 @@ void libcrux_ml_dsa_simd_avx2_invntt_invert_ntt_montgomery_inv_inner(Eurydice_ar
 void libcrux_ml_dsa_simd_avx2_invntt_invert_ntt_montgomery(Eurydice_arr_60 *re);
 
 /**
-This function found in impl {libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
+This function found in impl {impl libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
 */
-void libcrux_ml_dsa_simd_avx2_invert_ntt_montgomery_a2(Eurydice_arr_60 *simd_units);
+void libcrux_ml_dsa_simd_avx2_invert_ntt_montgomery_9a(Eurydice_arr_60 *simd_units);
 
 /**
-This function found in impl {libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
+This function found in impl {impl libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
 */
-void libcrux_ml_dsa_simd_avx2_barrett_reduce_simd_unit_a2(__m256i *simd_unit);
+void libcrux_ml_dsa_simd_avx2_barrett_reduce_simd_unit_9a(__m256i *simd_unit);
 
 /**
 A monomorphic instance of libcrux_ml_dsa.polynomial.PolynomialRingElement
@@ -1149,15 +1149,15 @@ with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256
 typedef Eurydice_arr_60 libcrux_ml_dsa_polynomial_PolynomialRingElement_4b;
 
 /**
-This function found in impl {libcrux_ml_dsa::polynomial::PolynomialRingElement<SIMDUnit>[TraitClause@0, TraitClause@1]}
+This function found in impl {libcrux_ml_dsa::polynomial::PolynomialRingElement<SIMDUnit>[@TraitClause0, @TraitClause1]}
 */
 /**
-A monomorphic instance of libcrux_ml_dsa.polynomial.zero_ff
+A monomorphic instance of libcrux_ml_dsa.polynomial.zero_e5
 with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256
 with const generics
 
 */
-Eurydice_arr_60 libcrux_ml_dsa_polynomial_zero_ff_64(void);
+Eurydice_arr_60 libcrux_ml_dsa_polynomial_zero_e5_94(void);
 
 /**
 A monomorphic instance of Eurydice.dst_ref_mut
@@ -1190,7 +1190,7 @@ with const generics
 
 */
 bool
-libcrux_ml_dsa_sample_rejection_sample_less_than_eta_equals_4_64(
+libcrux_ml_dsa_sample_rejection_sample_less_than_eta_equals_4_94(
   Eurydice_borrow_slice_u8 randomness,
   size_t *sampled_coefficients,
   Eurydice_arr_d0 *out
@@ -1203,7 +1203,7 @@ with const generics
 
 */
 bool
-libcrux_ml_dsa_sample_rejection_sample_less_than_eta_equals_2_64(
+libcrux_ml_dsa_sample_rejection_sample_less_than_eta_equals_2_94(
   Eurydice_borrow_slice_u8 randomness,
   size_t *sampled_coefficients,
   Eurydice_arr_d0 *out
@@ -1216,7 +1216,7 @@ with const generics
 
 */
 bool
-libcrux_ml_dsa_sample_rejection_sample_less_than_eta_64(
+libcrux_ml_dsa_sample_rejection_sample_less_than_eta_94(
   libcrux_ml_dsa_constants_Eta eta,
   Eurydice_borrow_slice_u8 randomness,
   size_t *sampled,
@@ -1224,16 +1224,16 @@ libcrux_ml_dsa_sample_rejection_sample_less_than_eta_64(
 );
 
 /**
-This function found in impl {libcrux_ml_dsa::polynomial::PolynomialRingElement<SIMDUnit>[TraitClause@0, TraitClause@1]}
+This function found in impl {libcrux_ml_dsa::polynomial::PolynomialRingElement<SIMDUnit>[@TraitClause0, @TraitClause1]}
 */
 /**
-A monomorphic instance of libcrux_ml_dsa.polynomial.from_i32_array_ff
+A monomorphic instance of libcrux_ml_dsa.polynomial.from_i32_array_e5
 with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256
 with const generics
 
 */
 void
-libcrux_ml_dsa_polynomial_from_i32_array_ff_64(
+libcrux_ml_dsa_polynomial_from_i32_array_e5_94(
   Eurydice_dst_ref_shared_83 array,
   Eurydice_arr_60 *result
 );
@@ -1272,7 +1272,7 @@ with const generics
 
 */
 bool
-libcrux_ml_dsa_sample_rejection_sample_less_than_field_modulus_64(
+libcrux_ml_dsa_sample_rejection_sample_less_than_field_modulus_94(
   Eurydice_borrow_slice_u8 randomness,
   size_t *sampled_coefficients,
   Eurydice_arr_d0 *out
@@ -1322,32 +1322,32 @@ libcrux_ml_dsa_samplex4_matrix_flat_0a(
 );
 
 /**
-This function found in impl {libcrux_ml_dsa::samplex4::X4Sampler for libcrux_ml_dsa::samplex4::avx2::AVX2Sampler}
+This function found in impl {impl libcrux_ml_dsa::samplex4::X4Sampler for libcrux_ml_dsa::samplex4::avx2::AVX2Sampler}
 */
 /**
-A monomorphic instance of libcrux_ml_dsa.samplex4.avx2.matrix_flat.inner_e8
+A monomorphic instance of libcrux_ml_dsa.samplex4.avx2.matrix_flat.inner_88
 with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256
 with const generics
 
 */
 void
-libcrux_ml_dsa_samplex4_avx2_matrix_flat_inner_e8_64(
+libcrux_ml_dsa_samplex4_avx2_matrix_flat_inner_88_94(
   size_t columns,
   Eurydice_borrow_slice_u8 seed,
   Eurydice_dst_ref_mut_ba matrix
 );
 
 /**
-This function found in impl {libcrux_ml_dsa::samplex4::X4Sampler for libcrux_ml_dsa::samplex4::avx2::AVX2Sampler}
+This function found in impl {impl libcrux_ml_dsa::samplex4::X4Sampler for libcrux_ml_dsa::samplex4::avx2::AVX2Sampler}
 */
 /**
-A monomorphic instance of libcrux_ml_dsa.samplex4.avx2.matrix_flat_e8
+A monomorphic instance of libcrux_ml_dsa.samplex4.avx2.matrix_flat_88
 with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256
 with const generics
 
 */
 void
-libcrux_ml_dsa_samplex4_avx2_matrix_flat_e8_64(
+libcrux_ml_dsa_samplex4_avx2_matrix_flat_88_94(
   size_t columns,
   Eurydice_borrow_slice_u8 seed,
   Eurydice_dst_ref_mut_ba matrix
@@ -1359,7 +1359,7 @@ with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256
 with const generics
 
 */
-void libcrux_ml_dsa_ntt_ntt_64(Eurydice_arr_60 *re);
+void libcrux_ml_dsa_ntt_ntt_94(Eurydice_arr_60 *re);
 
 /**
 A monomorphic instance of libcrux_ml_dsa.ntt.ntt_multiply_montgomery
@@ -1368,29 +1368,29 @@ with const generics
 
 */
 void
-libcrux_ml_dsa_ntt_ntt_multiply_montgomery_64(Eurydice_arr_60 *lhs, const Eurydice_arr_60 *rhs);
+libcrux_ml_dsa_ntt_ntt_multiply_montgomery_94(Eurydice_arr_60 *lhs, const Eurydice_arr_60 *rhs);
 
 /**
-This function found in impl {libcrux_ml_dsa::polynomial::PolynomialRingElement<SIMDUnit>[TraitClause@0, TraitClause@1]}
+This function found in impl {libcrux_ml_dsa::polynomial::PolynomialRingElement<SIMDUnit>[@TraitClause0, @TraitClause1]}
 */
 /**
-A monomorphic instance of libcrux_ml_dsa.polynomial.add_ff
+A monomorphic instance of libcrux_ml_dsa.polynomial.add_e5
 with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256
 with const generics
 
 */
-void libcrux_ml_dsa_polynomial_add_ff_64(Eurydice_arr_60 *self, const Eurydice_arr_60 *rhs);
+void libcrux_ml_dsa_polynomial_add_e5_94(Eurydice_arr_60 *self, const Eurydice_arr_60 *rhs);
 
 /**
-This function found in impl {libcrux_ml_dsa::polynomial::PolynomialRingElement<SIMDUnit>[TraitClause@0, TraitClause@1]}
+This function found in impl {libcrux_ml_dsa::polynomial::PolynomialRingElement<SIMDUnit>[@TraitClause0, @TraitClause1]}
 */
 /**
-A monomorphic instance of libcrux_ml_dsa.polynomial.barrett_reduce_ff
+A monomorphic instance of libcrux_ml_dsa.polynomial.barrett_reduce_e5
 with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256
 with const generics
 
 */
-void libcrux_ml_dsa_polynomial_barrett_reduce_ff_64(Eurydice_arr_60 *self);
+void libcrux_ml_dsa_polynomial_barrett_reduce_e5_94(Eurydice_arr_60 *self);
 
 /**
 A monomorphic instance of libcrux_ml_dsa.ntt.invert_ntt_montgomery
@@ -1398,7 +1398,7 @@ with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256
 with const generics
 
 */
-void libcrux_ml_dsa_ntt_invert_ntt_montgomery_64(Eurydice_arr_60 *re);
+void libcrux_ml_dsa_ntt_invert_ntt_montgomery_94(Eurydice_arr_60 *re);
 
 /**
  Compute InvertNTT(Â ◦ ŝ₁) + s₂
@@ -1410,7 +1410,7 @@ with const generics
 
 */
 void
-libcrux_ml_dsa_matrix_compute_as1_plus_s2_64(
+libcrux_ml_dsa_matrix_compute_as1_plus_s2_94(
   size_t rows_in_a,
   size_t columns_in_a,
   Eurydice_dst_ref_mut_ba a_as_ntt,
@@ -1426,7 +1426,7 @@ with const generics
 
 */
 void
-libcrux_ml_dsa_arithmetic_power2round_vector_64(
+libcrux_ml_dsa_arithmetic_power2round_vector_94(
   Eurydice_dst_ref_mut_ba t,
   Eurydice_dst_ref_mut_ba t1
 );
@@ -1438,7 +1438,7 @@ with const generics
 
 */
 void
-libcrux_ml_dsa_encoding_t1_serialize_64(
+libcrux_ml_dsa_encoding_t1_serialize_94(
   const Eurydice_arr_60 *re,
   Eurydice_mut_borrow_slice_u8 serialized
 );
@@ -1450,7 +1450,7 @@ with const generics
 
 */
 void
-libcrux_ml_dsa_encoding_verification_key_generate_serialized_64(
+libcrux_ml_dsa_encoding_verification_key_generate_serialized_94(
   Eurydice_borrow_slice_u8 seed,
   Eurydice_dst_ref_shared_ba t1,
   Eurydice_mut_borrow_slice_u8 verification_key_serialized
@@ -1468,15 +1468,15 @@ libcrux_ml_dsa_hash_functions_simd256_shake256_c9(
 );
 
 /**
-This function found in impl {libcrux_ml_dsa::hash_functions::shake256::DsaXof for libcrux_ml_dsa::hash_functions::simd256::Shake256}
+This function found in impl {impl libcrux_ml_dsa::hash_functions::shake256::DsaXof for libcrux_ml_dsa::hash_functions::simd256::Shake256}
 */
 /**
-A monomorphic instance of libcrux_ml_dsa.hash_functions.simd256.shake256_8c
+A monomorphic instance of libcrux_ml_dsa.hash_functions.simd256.shake256_21
 with const generics
 - OUTPUT_LENGTH= 64
 */
 void
-libcrux_ml_dsa_hash_functions_simd256_shake256_8c_c9(
+libcrux_ml_dsa_hash_functions_simd256_shake256_21_c9(
   Eurydice_borrow_slice_u8 input,
   Eurydice_arr_c7 *out
 );
@@ -1488,7 +1488,7 @@ with const generics
 
 */
 void
-libcrux_ml_dsa_encoding_error_serialize_64(
+libcrux_ml_dsa_encoding_error_serialize_94(
   libcrux_ml_dsa_constants_Eta eta,
   const Eurydice_arr_60 *re,
   Eurydice_mut_borrow_slice_u8 serialized
@@ -1501,7 +1501,7 @@ with const generics
 
 */
 void
-libcrux_ml_dsa_encoding_t0_serialize_64(
+libcrux_ml_dsa_encoding_t0_serialize_94(
   const Eurydice_arr_60 *re,
   Eurydice_mut_borrow_slice_u8 serialized
 );
@@ -1561,7 +1561,7 @@ with const generics
 
 */
 void
-libcrux_ml_dsa_encoding_error_deserialize_64(
+libcrux_ml_dsa_encoding_error_deserialize_94(
   libcrux_ml_dsa_constants_Eta eta,
   Eurydice_borrow_slice_u8 serialized,
   Eurydice_arr_60 *result
@@ -1574,7 +1574,7 @@ with const generics
 
 */
 void
-libcrux_ml_dsa_encoding_error_deserialize_to_vector_then_ntt_64(
+libcrux_ml_dsa_encoding_error_deserialize_to_vector_then_ntt_94(
   libcrux_ml_dsa_constants_Eta eta,
   size_t ring_element_size,
   Eurydice_borrow_slice_u8 serialized,
@@ -1588,7 +1588,7 @@ with const generics
 
 */
 void
-libcrux_ml_dsa_encoding_t0_deserialize_64(
+libcrux_ml_dsa_encoding_t0_deserialize_94(
   Eurydice_borrow_slice_u8 serialized,
   Eurydice_arr_60 *result
 );
@@ -1600,7 +1600,7 @@ with const generics
 
 */
 void
-libcrux_ml_dsa_encoding_t0_deserialize_to_vector_then_ntt_64(
+libcrux_ml_dsa_encoding_t0_deserialize_to_vector_then_ntt_94(
   Eurydice_borrow_slice_u8 serialized,
   Eurydice_dst_ref_mut_ba ring_elements
 );
@@ -1623,15 +1623,15 @@ libcrux_ml_dsa_hash_functions_simd256_shake256_x4_5a(
 );
 
 /**
-This function found in impl {libcrux_ml_dsa::hash_functions::shake256::XofX4 for libcrux_ml_dsa::hash_functions::simd256::Shake256x4}
+This function found in impl {impl libcrux_ml_dsa::hash_functions::shake256::XofX4 for libcrux_ml_dsa::hash_functions::simd256::Shake256x4}
 */
 /**
-A monomorphic instance of libcrux_ml_dsa.hash_functions.simd256.shake256_x4_ad
+A monomorphic instance of libcrux_ml_dsa.hash_functions.simd256.shake256_x4_39
 with const generics
 - OUT_LEN= 576
 */
 void
-libcrux_ml_dsa_hash_functions_simd256_shake256_x4_ad_5a(
+libcrux_ml_dsa_hash_functions_simd256_shake256_x4_39_5a(
   Eurydice_borrow_slice_u8 input0,
   Eurydice_borrow_slice_u8 input1,
   Eurydice_borrow_slice_u8 input2,
@@ -1649,7 +1649,7 @@ with const generics
 
 */
 void
-libcrux_ml_dsa_encoding_gamma1_deserialize_64(
+libcrux_ml_dsa_encoding_gamma1_deserialize_94(
   size_t gamma1_exponent,
   Eurydice_borrow_slice_u8 serialized,
   Eurydice_arr_60 *result
@@ -1673,15 +1673,15 @@ libcrux_ml_dsa_hash_functions_simd256_shake256_x4_0e(
 );
 
 /**
-This function found in impl {libcrux_ml_dsa::hash_functions::shake256::XofX4 for libcrux_ml_dsa::hash_functions::simd256::Shake256x4}
+This function found in impl {impl libcrux_ml_dsa::hash_functions::shake256::XofX4 for libcrux_ml_dsa::hash_functions::simd256::Shake256x4}
 */
 /**
-A monomorphic instance of libcrux_ml_dsa.hash_functions.simd256.shake256_x4_ad
+A monomorphic instance of libcrux_ml_dsa.hash_functions.simd256.shake256_x4_39
 with const generics
 - OUT_LEN= 640
 */
 void
-libcrux_ml_dsa_hash_functions_simd256_shake256_x4_ad_0e(
+libcrux_ml_dsa_hash_functions_simd256_shake256_x4_39_0e(
   Eurydice_borrow_slice_u8 input0,
   Eurydice_borrow_slice_u8 input1,
   Eurydice_borrow_slice_u8 input2,
@@ -1704,15 +1704,15 @@ libcrux_ml_dsa_hash_functions_simd256_shake256_0e(
 );
 
 /**
-This function found in impl {libcrux_ml_dsa::hash_functions::shake256::DsaXof for libcrux_ml_dsa::hash_functions::simd256::Shake256}
+This function found in impl {impl libcrux_ml_dsa::hash_functions::shake256::DsaXof for libcrux_ml_dsa::hash_functions::simd256::Shake256}
 */
 /**
-A monomorphic instance of libcrux_ml_dsa.hash_functions.simd256.shake256_8c
+A monomorphic instance of libcrux_ml_dsa.hash_functions.simd256.shake256_21
 with const generics
 - OUTPUT_LENGTH= 640
 */
 void
-libcrux_ml_dsa_hash_functions_simd256_shake256_8c_0e(
+libcrux_ml_dsa_hash_functions_simd256_shake256_21_0e(
   Eurydice_borrow_slice_u8 input,
   Eurydice_arr_20 *out
 );
@@ -1729,15 +1729,15 @@ libcrux_ml_dsa_hash_functions_simd256_shake256_5a(
 );
 
 /**
-This function found in impl {libcrux_ml_dsa::hash_functions::shake256::DsaXof for libcrux_ml_dsa::hash_functions::simd256::Shake256}
+This function found in impl {impl libcrux_ml_dsa::hash_functions::shake256::DsaXof for libcrux_ml_dsa::hash_functions::simd256::Shake256}
 */
 /**
-A monomorphic instance of libcrux_ml_dsa.hash_functions.simd256.shake256_8c
+A monomorphic instance of libcrux_ml_dsa.hash_functions.simd256.shake256_21
 with const generics
 - OUTPUT_LENGTH= 576
 */
 void
-libcrux_ml_dsa_hash_functions_simd256_shake256_8c_5a(
+libcrux_ml_dsa_hash_functions_simd256_shake256_21_5a(
   Eurydice_borrow_slice_u8 input,
   Eurydice_arr_220 *out
 );
@@ -1780,7 +1780,7 @@ with const generics
 
 */
 void
-libcrux_ml_dsa_matrix_compute_matrix_x_mask_64(
+libcrux_ml_dsa_matrix_compute_matrix_x_mask_94(
   size_t rows_in_a,
   size_t columns_in_a,
   Eurydice_dst_ref_shared_ba matrix,
@@ -1795,7 +1795,7 @@ with const generics
 
 */
 void
-libcrux_ml_dsa_arithmetic_decompose_vector_64(
+libcrux_ml_dsa_arithmetic_decompose_vector_94(
   size_t dimension,
   int32_t gamma2,
   Eurydice_dst_ref_shared_ba t,
@@ -1810,7 +1810,7 @@ with const generics
 
 */
 void
-libcrux_ml_dsa_encoding_commitment_serialize_64(
+libcrux_ml_dsa_encoding_commitment_serialize_94(
   const Eurydice_arr_60 *re,
   Eurydice_mut_borrow_slice_u8 serialized
 );
@@ -1822,7 +1822,7 @@ with const generics
 
 */
 void
-libcrux_ml_dsa_encoding_commitment_serialize_vector_64(
+libcrux_ml_dsa_encoding_commitment_serialize_vector_94(
   size_t ring_element_size,
   Eurydice_dst_ref_shared_ba vector,
   Eurydice_mut_borrow_slice_u8 serialized
@@ -1848,7 +1848,7 @@ with const generics
 
 */
 void
-libcrux_ml_dsa_matrix_vector_times_ring_element_64(
+libcrux_ml_dsa_matrix_vector_times_ring_element_94(
   Eurydice_dst_ref_mut_ba vector,
   const Eurydice_arr_60 *ring_element
 );
@@ -1860,23 +1860,23 @@ with const generics
 
 */
 void
-libcrux_ml_dsa_matrix_add_vectors_64(
+libcrux_ml_dsa_matrix_add_vectors_94(
   size_t dimension,
   Eurydice_dst_ref_mut_ba lhs,
   Eurydice_dst_ref_shared_ba rhs
 );
 
 /**
-This function found in impl {libcrux_ml_dsa::polynomial::PolynomialRingElement<SIMDUnit>[TraitClause@0, TraitClause@1]}
+This function found in impl {libcrux_ml_dsa::polynomial::PolynomialRingElement<SIMDUnit>[@TraitClause0, @TraitClause1]}
 */
 /**
-A monomorphic instance of libcrux_ml_dsa.polynomial.subtract_ff
+A monomorphic instance of libcrux_ml_dsa.polynomial.subtract_e5
 with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256
 with const generics
 
 */
 void
-libcrux_ml_dsa_polynomial_subtract_ff_64(Eurydice_arr_60 *self, const Eurydice_arr_60 *rhs);
+libcrux_ml_dsa_polynomial_subtract_e5_94(Eurydice_arr_60 *self, const Eurydice_arr_60 *rhs);
 
 /**
 A monomorphic instance of libcrux_ml_dsa.matrix.subtract_vectors
@@ -1885,7 +1885,7 @@ with const generics
 
 */
 void
-libcrux_ml_dsa_matrix_subtract_vectors_64(
+libcrux_ml_dsa_matrix_subtract_vectors_94(
   size_t dimension,
   Eurydice_dst_ref_mut_ba lhs,
   Eurydice_dst_ref_shared_ba rhs
@@ -1899,16 +1899,16 @@ libcrux_ml_dsa_matrix_subtract_vectors_64(
  safe to leak the index of a violating coefficient.
 */
 /**
-This function found in impl {libcrux_ml_dsa::polynomial::PolynomialRingElement<SIMDUnit>[TraitClause@0, TraitClause@1]}
+This function found in impl {libcrux_ml_dsa::polynomial::PolynomialRingElement<SIMDUnit>[@TraitClause0, @TraitClause1]}
 */
 /**
-A monomorphic instance of libcrux_ml_dsa.polynomial.infinity_norm_exceeds_ff
+A monomorphic instance of libcrux_ml_dsa.polynomial.infinity_norm_exceeds_e5
 with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256
 with const generics
 
 */
 bool
-libcrux_ml_dsa_polynomial_infinity_norm_exceeds_ff_64(
+libcrux_ml_dsa_polynomial_infinity_norm_exceeds_e5_94(
   const Eurydice_arr_60 *self,
   int32_t bound
 );
@@ -1927,21 +1927,21 @@ with const generics
 
 */
 bool
-libcrux_ml_dsa_arithmetic_vector_infinity_norm_exceeds_64(
+libcrux_ml_dsa_arithmetic_vector_infinity_norm_exceeds_94(
   Eurydice_dst_ref_shared_ba vector,
   int32_t bound
 );
 
 /**
-This function found in impl {libcrux_ml_dsa::polynomial::PolynomialRingElement<SIMDUnit>[TraitClause@0, TraitClause@1]}
+This function found in impl {libcrux_ml_dsa::polynomial::PolynomialRingElement<SIMDUnit>[@TraitClause0, @TraitClause1]}
 */
 /**
-A monomorphic instance of libcrux_ml_dsa.polynomial.to_i32_array_ff
+A monomorphic instance of libcrux_ml_dsa.polynomial.to_i32_array_e5
 with types libcrux_ml_dsa_simd_avx2_vector_type_Vec256
 with const generics
 
 */
-Eurydice_arr_6c libcrux_ml_dsa_polynomial_to_i32_array_ff_64(const Eurydice_arr_60 *self);
+Eurydice_arr_6c libcrux_ml_dsa_polynomial_to_i32_array_e5_94(const Eurydice_arr_60 *self);
 
 /**
 A monomorphic instance of libcrux_ml_dsa.arithmetic.make_hint
@@ -1950,7 +1950,7 @@ with const generics
 
 */
 size_t
-libcrux_ml_dsa_arithmetic_make_hint_64(
+libcrux_ml_dsa_arithmetic_make_hint_94(
   Eurydice_dst_ref_shared_ba low,
   Eurydice_dst_ref_shared_ba high,
   int32_t gamma2,
@@ -1964,7 +1964,7 @@ with const generics
 
 */
 void
-libcrux_ml_dsa_encoding_gamma1_serialize_64(
+libcrux_ml_dsa_encoding_gamma1_serialize_94(
   const Eurydice_arr_60 *re,
   Eurydice_mut_borrow_slice_u8 serialized,
   size_t gamma1_exponent
@@ -1977,7 +1977,7 @@ with const generics
 
 */
 void
-libcrux_ml_dsa_encoding_signature_serialize_64(
+libcrux_ml_dsa_encoding_signature_serialize_94(
   Eurydice_borrow_slice_u8 commitment_hash,
   Eurydice_dst_ref_shared_ba signer_response,
   Eurydice_dst_ref_shared_20 hint,
@@ -2133,7 +2133,7 @@ with const generics
 
 */
 void
-libcrux_ml_dsa_encoding_t1_deserialize_64(
+libcrux_ml_dsa_encoding_t1_deserialize_94(
   Eurydice_borrow_slice_u8 serialized,
   Eurydice_arr_60 *result
 );
@@ -2145,7 +2145,7 @@ with const generics
 
 */
 void
-libcrux_ml_dsa_encoding_verification_key_deserialize_64(
+libcrux_ml_dsa_encoding_verification_key_deserialize_94(
   size_t rows_in_a,
   size_t verification_key_size,
   Eurydice_borrow_slice_u8 serialized,
@@ -2159,7 +2159,7 @@ with const generics
 
 */
 core_result_Result_41
-libcrux_ml_dsa_encoding_signature_deserialize_64(
+libcrux_ml_dsa_encoding_signature_deserialize_94(
   size_t columns_in_a,
   size_t rows_in_a,
   size_t commitment_hash_size,
@@ -2181,14 +2181,14 @@ with const generics
 void libcrux_ml_dsa_simd_avx2_arithmetic_shift_left_then_reduce_84(__m256i *simd_unit);
 
 /**
-This function found in impl {libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
+This function found in impl {impl libcrux_ml_dsa::simd::traits::Operations for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
 */
 /**
-A monomorphic instance of libcrux_ml_dsa.simd.avx2.shift_left_then_reduce_a2
+A monomorphic instance of libcrux_ml_dsa.simd.avx2.shift_left_then_reduce_9a
 with const generics
 - SHIFT_BY= 13
 */
-void libcrux_ml_dsa_simd_avx2_shift_left_then_reduce_a2_84(__m256i *simd_unit);
+void libcrux_ml_dsa_simd_avx2_shift_left_then_reduce_9a_84(__m256i *simd_unit);
 
 /**
 A monomorphic instance of libcrux_ml_dsa.arithmetic.shift_left_then_reduce
@@ -2208,7 +2208,7 @@ with const generics
 
 */
 void
-libcrux_ml_dsa_matrix_compute_w_approx_64(
+libcrux_ml_dsa_matrix_compute_w_approx_94(
   size_t rows_in_a,
   size_t columns_in_a,
   Eurydice_dst_ref_shared_ba matrix,
@@ -2224,7 +2224,7 @@ with const generics
 
 */
 void
-libcrux_ml_dsa_arithmetic_use_hint_64(
+libcrux_ml_dsa_arithmetic_use_hint_94(
   int32_t gamma2,
   Eurydice_dst_ref_shared_20 hint,
   Eurydice_dst_ref_mut_ba re_vector
@@ -2877,9 +2877,9 @@ libcrux_ml_dsa_simd_avx2_rejection_sample_shuffle_table_generate_shuffle_table(v
 typedef Eurydice_arr_60 libcrux_ml_dsa_simd_avx2_vector_type_AVX2RingElement;
 
 /**
-This function found in impl {core::clone::Clone for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
+This function found in impl {impl core::clone::Clone for libcrux_ml_dsa::simd::avx2::vector_type::Vec256}
 */
-__m256i libcrux_ml_dsa_simd_avx2_vector_type_clone_be(const __m256i *self);
+__m256i libcrux_ml_dsa_simd_avx2_vector_type_clone_12(const __m256i *self);
 
 #if defined(__cplusplus)
 }

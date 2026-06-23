@@ -4,11 +4,11 @@
  * SPDX-License-Identifier: MIT or Apache-2.0
  *
  * This code was generated with the following revisions:
- * Charon: e656e17bff6ca5efac8ab6919b9b74cb9a8dd8ad
- * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
+ * Charon: 6f058254eb741c12e9b388df07adaf7cc8aac8ed
+ * Eurydice: fca2e9fbd728e49d677f3fc0da0054b55f3b9973
  * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
- * F*: unset
- * Libcrux: 3687467117fe5c6ddf8cdeb78306adc5d11ead2d
+ * F*: 70671ffb81fa30aba09b9d6e2af275dfbccaa8f8
+ * Libcrux: bdbc514c92784f52ed92097e2dfe82c2533df5d0
  */
 
 
@@ -29,9 +29,25 @@ extern "C" {
 A monomorphic instance of Eurydice.arr
 with types libcrux_sha3_portable_KeccakState
 with const generics
+- $4size_t
+*/
+typedef struct Eurydice_arr_4a_s { Eurydice_arr_7c data[4U]; } Eurydice_arr_4a;
+
+/**
+A monomorphic instance of Eurydice.arr
+with types libcrux_sha3_portable_KeccakState
+with const generics
 - $3size_t
 */
-typedef struct Eurydice_arr_1b0_s { Eurydice_arr_7c data[3U]; } Eurydice_arr_1b0;
+typedef struct Eurydice_arr_1b1_s { Eurydice_arr_7c data[3U]; } Eurydice_arr_1b1;
+
+/**
+A monomorphic instance of Eurydice.arr
+with types libcrux_sha3_portable_KeccakState
+with const generics
+- $2size_t
+*/
+typedef struct Eurydice_arr_e3_s { Eurydice_arr_7c data[2U]; } Eurydice_arr_e3;
 
 #if defined(__cplusplus)
 }

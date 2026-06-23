@@ -4,11 +4,11 @@
  * SPDX-License-Identifier: MIT or Apache-2.0
  *
  * This code was generated with the following revisions:
- * Charon: e656e17bff6ca5efac8ab6919b9b74cb9a8dd8ad
- * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
+ * Charon: 6f058254eb741c12e9b388df07adaf7cc8aac8ed
+ * Eurydice: fca2e9fbd728e49d677f3fc0da0054b55f3b9973
  * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
- * F*: unset
- * Libcrux: 3687467117fe5c6ddf8cdeb78306adc5d11ead2d
+ * F*: 70671ffb81fa30aba09b9d6e2af275dfbccaa8f8
+ * Libcrux: bdbc514c92784f52ed92097e2dfe82c2533df5d0
  */
 
 
@@ -26,22 +26,25 @@ extern "C" {
 A monomorphic instance of Eurydice.arr
 with types uint8_t
 with const generics
-- $16size_t
+- $1568size_t
 */
-typedef struct Eurydice_arr_b2_s { uint8_t data[16U]; } Eurydice_arr_b2;
-
-#define core_result_Ok 0
-#define core_result_Err 1
-
-typedef uint8_t core_result_Result_57_tags;
+typedef struct Eurydice_arr_d1_s { uint8_t data[1568U]; } Eurydice_arr_d1;
 
 /**
 A monomorphic instance of Eurydice.arr
-with types int16_t
+with types uint8_t
 with const generics
-- $16size_t
+- $3168size_t
 */
-typedef struct Eurydice_arr_d6_s { int16_t data[16U]; } Eurydice_arr_d6;
+typedef struct Eurydice_arr_a8_s { uint8_t data[3168U]; } Eurydice_arr_a8;
+
+/**
+A monomorphic instance of Eurydice.arr
+with types uint8_t
+with const generics
+- $34size_t
+*/
+typedef struct Eurydice_arr_31_s { uint8_t data[34U]; } Eurydice_arr_31;
 
 /**
 A monomorphic instance of Eurydice.arr
@@ -63,22 +66,6 @@ typedef struct Eurydice_arr_7d_s { uint8_t data[2400U]; } Eurydice_arr_7d;
 A monomorphic instance of Eurydice.arr
 with types uint8_t
 with const generics
-- $32size_t
-*/
-typedef struct Eurydice_arr_ec_s { uint8_t data[32U]; } Eurydice_arr_ec;
-
-/**
-A monomorphic instance of Eurydice.arr
-with types uint8_t
-with const generics
-- $64size_t
-*/
-typedef struct Eurydice_arr_c7_s { uint8_t data[64U]; } Eurydice_arr_c7;
-
-/**
-A monomorphic instance of Eurydice.arr
-with types uint8_t
-with const generics
 - $1088size_t
 */
 typedef struct Eurydice_arr_2b_s { uint8_t data[1088U]; } Eurydice_arr_2b;
@@ -95,9 +82,86 @@ typedef struct Eurydice_arr_c5_s { uint8_t data[168U]; } Eurydice_arr_c5;
 A monomorphic instance of Eurydice.arr
 with types uint8_t
 with const generics
-- $34size_t
+- $800size_t
 */
-typedef struct Eurydice_arr_31_s { uint8_t data[34U]; } Eurydice_arr_31;
+typedef struct Eurydice_arr_03_s { uint8_t data[800U]; } Eurydice_arr_03;
+
+/**
+A monomorphic instance of Eurydice.arr
+with types uint8_t
+with const generics
+- $1632size_t
+*/
+typedef struct Eurydice_arr_ab0_s { uint8_t data[1632U]; } Eurydice_arr_ab0;
+
+/**
+A monomorphic instance of Eurydice.arr
+with types uint8_t
+with const generics
+- $24size_t
+*/
+typedef struct Eurydice_arr_94_s { uint8_t data[24U]; } Eurydice_arr_94;
+
+/**
+A monomorphic instance of Eurydice.arr
+with types uint8_t
+with const generics
+- $32size_t
+*/
+typedef struct Eurydice_arr_ec_s { uint8_t data[32U]; } Eurydice_arr_ec;
+
+#define core_result_Ok 0
+#define core_result_Err 1
+
+typedef uint8_t core_result_Result_07_tags;
+
+/**
+A monomorphic instance of Eurydice.arr
+with types uint8_t
+with const generics
+- $64size_t
+*/
+typedef struct Eurydice_arr_c7_s { uint8_t data[64U]; } Eurydice_arr_c7;
+
+/**
+A monomorphic instance of Eurydice.arr
+with types uint8_t
+with const generics
+- $768size_t
+*/
+typedef struct Eurydice_arr_d2_s { uint8_t data[768U]; } Eurydice_arr_d2;
+
+/**
+A monomorphic instance of Eurydice.arr
+with types uint8_t
+with const generics
+- $10size_t
+*/
+typedef struct Eurydice_arr_6d_s { uint8_t data[10U]; } Eurydice_arr_6d;
+
+/**
+A monomorphic instance of Eurydice.arr
+with types uint8_t
+with const generics
+- $22size_t
+*/
+typedef struct Eurydice_arr_80_s { uint8_t data[22U]; } Eurydice_arr_80;
+
+/**
+A monomorphic instance of Eurydice.arr
+with types uint8_t
+with const generics
+- $20size_t
+*/
+typedef struct Eurydice_arr_fc_s { uint8_t data[20U]; } Eurydice_arr_fc;
+
+/**
+A monomorphic instance of Eurydice.arr
+with types uint8_t
+with const generics
+- $16size_t
+*/
+typedef struct Eurydice_arr_b2_s { uint8_t data[16U]; } Eurydice_arr_b2;
 
 /**
 A monomorphic instance of Eurydice.dst_ref_mut
@@ -336,6 +400,126 @@ Eurydice_arr_ff_x4;
 
 /**
 A monomorphic instance of Eurydice.arr
+with types int32_t
+with const generics
+- $8size_t
+*/
+typedef struct Eurydice_arr_4d_s { int32_t data[8U]; } Eurydice_arr_4d;
+
+typedef struct int32_t_x2_s
+{
+  int32_t fst;
+  int32_t snd;
+}
+int32_t_x2;
+
+/**
+A monomorphic instance of core.option.Option
+with types Eurydice_arr_c9
+
+*/
+typedef struct core_option_Option_57_s
+{
+  core_option_Option_45_tags tag;
+  Eurydice_arr_c9 f0;
+}
+core_option_Option_57;
+
+typedef struct uint8_t_x2_s
+{
+  uint8_t fst;
+  uint8_t snd;
+}
+uint8_t_x2;
+
+/**
+A monomorphic instance of Eurydice.arr
+with types int16_t
+with const generics
+- $16size_t
+*/
+typedef struct Eurydice_arr_d6_s { int16_t data[16U]; } Eurydice_arr_d6;
+
+typedef struct core_core_arch_x86___m128i_x2_s
+{
+  __m128i fst;
+  __m128i snd;
+}
+core_core_arch_x86___m128i_x2;
+
+typedef struct int16_t_x2_s
+{
+  int16_t fst;
+  int16_t snd;
+}
+int16_t_x2;
+
+typedef struct uint8_t_x3_s
+{
+  uint8_t fst;
+  uint8_t snd;
+  uint8_t thd;
+}
+uint8_t_x3;
+
+typedef struct uint8_t_x5_s
+{
+  uint8_t fst;
+  uint8_t snd;
+  uint8_t thd;
+  uint8_t f3;
+  uint8_t f4;
+}
+uint8_t_x5;
+
+typedef struct uint8_t_x4_s
+{
+  uint8_t fst;
+  uint8_t snd;
+  uint8_t thd;
+  uint8_t f3;
+}
+uint8_t_x4;
+
+/**
+A monomorphic instance of Eurydice.arr
+with types Eurydice_arr_b2
+with const generics
+- $256size_t
+*/
+typedef struct Eurydice_arr_87_s { Eurydice_arr_b2 data[256U]; } Eurydice_arr_87;
+
+typedef struct int16_t_x8_s
+{
+  int16_t fst;
+  int16_t snd;
+  int16_t thd;
+  int16_t f3;
+  int16_t f4;
+  int16_t f5;
+  int16_t f6;
+  int16_t f7;
+}
+int16_t_x8;
+
+typedef struct uint8_t_x11_s
+{
+  uint8_t fst;
+  uint8_t snd;
+  uint8_t thd;
+  uint8_t f3;
+  uint8_t f4;
+  uint8_t f5;
+  uint8_t f6;
+  uint8_t f7;
+  uint8_t f8;
+  uint8_t f9;
+  uint8_t f10;
+}
+uint8_t_x11;
+
+/**
+A monomorphic instance of Eurydice.arr
 with types Eurydice_arr_c5
 with const generics
 - $1size_t
@@ -396,40 +580,6 @@ with const generics
 - $25size_t
 */
 typedef struct Eurydice_arr_7c_s { uint64_t data[25U]; } Eurydice_arr_7c;
-
-/**
-A monomorphic instance of Eurydice.arr
-with types int32_t
-with const generics
-- $8size_t
-*/
-typedef struct Eurydice_arr_4d_s { int32_t data[8U]; } Eurydice_arr_4d;
-
-typedef struct int32_t_x2_s
-{
-  int32_t fst;
-  int32_t snd;
-}
-int32_t_x2;
-
-/**
-A monomorphic instance of core.option.Option
-with types Eurydice_arr_c9
-
-*/
-typedef struct core_option_Option_57_s
-{
-  core_option_Option_45_tags tag;
-  Eurydice_arr_c9 f0;
-}
-core_option_Option_57;
-
-typedef struct uint8_t_x2_s
-{
-  uint8_t fst;
-  uint8_t snd;
-}
-uint8_t_x2;
 
 #if defined(__cplusplus)
 }

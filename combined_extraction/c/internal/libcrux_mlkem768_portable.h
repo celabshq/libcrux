@@ -4,11 +4,11 @@
  * SPDX-License-Identifier: MIT or Apache-2.0
  *
  * This code was generated with the following revisions:
- * Charon: e656e17bff6ca5efac8ab6919b9b74cb9a8dd8ad
- * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
+ * Charon: 6f058254eb741c12e9b388df07adaf7cc8aac8ed
+ * Eurydice: fca2e9fbd728e49d677f3fc0da0054b55f3b9973
  * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
- * F*: unset
- * Libcrux: 3687467117fe5c6ddf8cdeb78306adc5d11ead2d
+ * F*: 70671ffb81fa30aba09b9d6e2af275dfbccaa8f8
+ * Libcrux: bdbc514c92784f52ed92097e2dfe82c2533df5d0
  */
 
 
@@ -22,78 +22,135 @@
 extern "C" {
 #endif
 
-#include "internal/libcrux_sha3_portable.h"
-#include "internal/combined_core.h"
+#include "internal/libcrux_mlkem_portable.h"
+#include "libcrux_mlkem_core.h"
 #include "combined_core.h"
 #include "../libcrux_mlkem768_portable.h"
 
-int16_t libcrux_ml_kem_polynomial_zeta(size_t i);
-
-#define LIBCRUX_ML_KEM_POLYNOMIAL_VECTORS_IN_RING_ELEMENT ((size_t)16U)
-
-#define LIBCRUX_ML_KEM_VECTOR_TRAITS_FIELD_ELEMENTS_IN_VECTOR ((size_t)16U)
-
-#define LIBCRUX_ML_KEM_VECTOR_TRAITS_MONTGOMERY_R_SQUARED_MOD_FIELD_MODULUS (1353)
-
-#define LIBCRUX_ML_KEM_VECTOR_TRAITS_FIELD_MODULUS (3329)
-
-#define LIBCRUX_ML_KEM_VECTOR_TRAITS_INVERSE_OF_MODULUS_MOD_MONTGOMERY_R (62209U)
+typedef libcrux_ml_kem_ind_cca_unpacked_MlKemPublicKeyUnpacked_51
+libcrux_ml_kem_mlkem768_portable_unpacked_MlKem768PublicKeyUnpacked;
 
 /**
-This function found in impl {libcrux_ml_kem::hash_functions::Hash<K> for libcrux_ml_kem::hash_functions::portable::PortableHash<K>}
+ Decapsulate ML-KEM 768 (unpacked)
+
+ Generates an [`MlKemSharedSecret`].
+ The input is a reference to an unpacked key pair of type [`MlKem768KeyPairUnpacked`]
+ and an [`MlKem768Ciphertext`].
 */
-/**
-A monomorphic instance of libcrux_ml_kem.hash_functions.portable.shake128_init_absorb_final_4a
-with const generics
-- K= 3
-*/
-Eurydice_arr_1b0
-libcrux_ml_kem_hash_functions_portable_shake128_init_absorb_final_4a_78(
-  const Eurydice_arr_810 *input
+Eurydice_arr_ec
+libcrux_ml_kem_mlkem768_portable_unpacked_decapsulate(
+  const libcrux_ml_kem_mlkem768_portable_unpacked_MlKem768KeyPairUnpacked *private_key,
+  const Eurydice_arr_2b *ciphertext
 );
 
 /**
-This function found in impl {libcrux_ml_kem::hash_functions::Hash<K> for libcrux_ml_kem::hash_functions::portable::PortableHash<K>}
+ Encapsulate ML-KEM 768 (unpacked)
+
+ Generates an ([`MlKem768Ciphertext`], [`MlKemSharedSecret`]) tuple.
+ The input is a reference to an unpacked public key of type [`MlKem768PublicKeyUnpacked`],
+ the SHA3-256 hash of this public key, and [`SHARED_SECRET_SIZE`] bytes of `randomness`.
 */
-/**
-A monomorphic instance of libcrux_ml_kem.hash_functions.portable.shake128_squeeze_first_three_blocks_4a
-with const generics
-- K= 3
-*/
-Eurydice_arr_7e
-libcrux_ml_kem_hash_functions_portable_shake128_squeeze_first_three_blocks_4a_78(
-  Eurydice_arr_1b0 *self
+tuple_f4
+libcrux_ml_kem_mlkem768_portable_unpacked_encapsulate(
+  const libcrux_ml_kem_ind_cca_unpacked_MlKemPublicKeyUnpacked_51 *public_key,
+  Eurydice_arr_ec randomness
 );
 
 /**
-This function found in impl {libcrux_ml_kem::hash_functions::Hash<K> for libcrux_ml_kem::hash_functions::portable::PortableHash<K>}
-*/
-/**
-A monomorphic instance of libcrux_ml_kem.hash_functions.portable.shake128_squeeze_next_block_4a
-with const generics
-- K= 3
-*/
-Eurydice_arr_2c
-libcrux_ml_kem_hash_functions_portable_shake128_squeeze_next_block_4a_78(
-  Eurydice_arr_1b0 *self
-);
-
-/**
- Serialize the secret key.
-*/
-/**
-A monomorphic instance of libcrux_ml_kem.ind_cca.serialize_kem_secret_key_mut
-with types libcrux_ml_kem_hash_functions_portable_PortableHash[[$3size_t]]
-with const generics
-- K= 3
-- SERIALIZED_KEY_LEN= 2400
+ Generate ML-KEM 768 Key Pair in "unpacked" form.
 */
 void
-libcrux_ml_kem_ind_cca_serialize_kem_secret_key_mut_52(
-  Eurydice_borrow_slice_u8 private_key,
-  Eurydice_borrow_slice_u8 public_key,
-  Eurydice_borrow_slice_u8 implicit_rejection_value,
+libcrux_ml_kem_mlkem768_portable_unpacked_generate_key_pair_mut(
+  Eurydice_arr_c7 randomness,
+  libcrux_ml_kem_mlkem768_portable_unpacked_MlKem768KeyPairUnpacked *key_pair
+);
+
+/**
+ Generate ML-KEM 768 Key Pair in "unpacked" form.
+*/
+libcrux_ml_kem_mlkem768_portable_unpacked_MlKem768KeyPairUnpacked
+libcrux_ml_kem_mlkem768_portable_unpacked_generate_key_pair(Eurydice_arr_c7 randomness);
+
+/**
+ Create a new, empty unpacked key.
+*/
+libcrux_ml_kem_mlkem768_portable_unpacked_MlKem768KeyPairUnpacked
+libcrux_ml_kem_mlkem768_portable_unpacked_init_key_pair(void);
+
+/**
+ Create a new, empty unpacked public key.
+*/
+libcrux_ml_kem_ind_cca_unpacked_MlKemPublicKeyUnpacked_51
+libcrux_ml_kem_mlkem768_portable_unpacked_init_public_key(void);
+
+/**
+ Get an unpacked key from a private key.
+*/
+void
+libcrux_ml_kem_mlkem768_portable_unpacked_key_pair_from_private_mut(
+  const Eurydice_arr_7d *private_key,
+  libcrux_ml_kem_mlkem768_portable_unpacked_MlKem768KeyPairUnpacked *key_pair
+);
+
+/**
+ Get the serialized private key.
+*/
+Eurydice_arr_7d
+libcrux_ml_kem_mlkem768_portable_unpacked_key_pair_serialized_private_key(
+  const libcrux_ml_kem_mlkem768_portable_unpacked_MlKem768KeyPairUnpacked *key_pair
+);
+
+/**
+ Get the serialized private key.
+*/
+void
+libcrux_ml_kem_mlkem768_portable_unpacked_key_pair_serialized_private_key_mut(
+  const libcrux_ml_kem_mlkem768_portable_unpacked_MlKem768KeyPairUnpacked *key_pair,
   Eurydice_arr_7d *serialized
+);
+
+/**
+ Get the serialized public key.
+*/
+Eurydice_arr_5f
+libcrux_ml_kem_mlkem768_portable_unpacked_key_pair_serialized_public_key(
+  const libcrux_ml_kem_mlkem768_portable_unpacked_MlKem768KeyPairUnpacked *key_pair
+);
+
+/**
+ Get the serialized public key.
+*/
+void
+libcrux_ml_kem_mlkem768_portable_unpacked_key_pair_serialized_public_key_mut(
+  const libcrux_ml_kem_mlkem768_portable_unpacked_MlKem768KeyPairUnpacked *key_pair,
+  Eurydice_arr_5f *serialized
+);
+
+/**
+ Get the unpacked public key.
+*/
+void
+libcrux_ml_kem_mlkem768_portable_unpacked_public_key(
+  const libcrux_ml_kem_mlkem768_portable_unpacked_MlKem768KeyPairUnpacked *key_pair,
+  libcrux_ml_kem_ind_cca_unpacked_MlKemPublicKeyUnpacked_51 *pk
+);
+
+/**
+ Get the serialized public key.
+*/
+void
+libcrux_ml_kem_mlkem768_portable_unpacked_serialized_public_key(
+  const libcrux_ml_kem_ind_cca_unpacked_MlKemPublicKeyUnpacked_51 *public_key,
+  Eurydice_arr_5f *serialized
+);
+
+/**
+ Get the unpacked public key.
+*/
+void
+libcrux_ml_kem_mlkem768_portable_unpacked_unpacked_public_key(
+  const Eurydice_arr_5f *public_key,
+  libcrux_ml_kem_ind_cca_unpacked_MlKemPublicKeyUnpacked_51 *unpacked_public_key
 );
 
 #if defined(__cplusplus)

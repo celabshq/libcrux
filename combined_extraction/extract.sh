@@ -30,7 +30,7 @@ clean=0
 config=$extract_root/extract-c.yaml
 out=c
 glue=$EURYDICE_HOME/include/eurydice_glue.h
-features_mlkem="${features} --no-default-features --features=mlkem768"
+features_mlkem="${features} --no-default-features --features=mlkem512 --features=mlkem768 --features=mlkem1024"
 features_mldsa="${features} --no-default-features --features=mldsa65 --features=mldsa44 --features=mldsa87"
 eurydice_glue=1
 karamel_include=1
