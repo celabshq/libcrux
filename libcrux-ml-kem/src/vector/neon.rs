@@ -631,7 +631,6 @@ fn op_serialize_1(vector: SIMD128Vector) -> [u8; 2] {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::requires(fstar!(r#"Libcrux_ml_kem.Vector.Traits.Spec.serialize_pre_N 4 (impl.f_repr $vector)"#))]
 #[hax_lib::ensures(|out| fstar!(r#"Libcrux_ml_kem.Vector.Traits.Spec.serialize_pre_N 4 (impl.f_repr $vector) ==> Libcrux_ml_kem.Vector.Traits.Spec.serialize_post_N 4 (impl.f_repr $vector) $out"#))]
 fn op_serialize_4(vector: SIMD128Vector) -> [u8; 8] {
