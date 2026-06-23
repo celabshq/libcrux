@@ -71,6 +71,329 @@ let lemma_deser1_half_lane
   ()
 "#
 )]
+#[hax_lib::fstar::before(
+    r#"
+#push-options "--fuel 2 --ifuel 1 --z3rlimit 300"
+let rec ser1_bitsum (c: nat -> nat) (d: nat) : Tot nat (decreases d) =
+  if d = 0 then 0 else ser1_bitsum c (d - 1) + c (d - 1) * pow2 (d - 1)
+
+let rec lemma_ser1_bitsum_bound (c: nat -> nat) (d: nat)
+    : Lemma (requires forall (j: nat). j < d ==> c j < 2)
+            (ensures ser1_bitsum c d < pow2 d)
+            (decreases d) =
+  if d = 0 then ()
+  else (lemma_ser1_bitsum_bound c (d - 1); FStar.Math.Lemmas.pow2_double_sum (d - 1))
+
+let rec lemma_ser1_bitsum_bit (c: nat -> nat) (d: nat) (k: nat{k < d})
+    : Lemma (requires forall (j: nat). j < d ==> c j < 2)
+            (ensures Rust_primitives.Integers.get_bit_nat (ser1_bitsum c d) k == c k)
+            (decreases d) =
+  lemma_ser1_bitsum_bound c (d - 1);
+  let lo = ser1_bitsum c (d - 1) in
+  let hi = c (d - 1) in
+  if k = d - 1 then begin
+    FStar.Math.Lemmas.lemma_div_plus lo hi (pow2 (d - 1));
+    FStar.Math.Lemmas.small_div lo (pow2 (d - 1))
+  end
+  else begin
+    lemma_ser1_bitsum_bit c (d - 1) k;
+    FStar.Math.Lemmas.pow2_plus k (d - 1 - k);
+    assert (hi * pow2 (d - 1) == (hi * pow2 (d - 1 - k)) * pow2 k);
+    FStar.Math.Lemmas.lemma_div_plus lo (hi * pow2 (d - 1 - k)) (pow2 k);
+    FStar.Math.Lemmas.pow2_plus 1 (d - 2 - k);
+    assert (hi * pow2 (d - 1 - k) == (hi * pow2 (d - 2 - k)) * 2);
+    FStar.Math.Lemmas.lemma_mod_plus (lo / pow2 k) (hi * pow2 (d - 2 - k)) 2
+  end
+#pop-options
+
+(* One lane: shifting a 1-bit value c left by s (0<=s<8) yields c * 2^s. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_ser1_shift_lane (c shk: i16) (s: nat{s < 8})
+    : Lemma
+      (requires Rust_primitives.BitVectors.bounded c 1 /\ v (shk %! mk_i16 256) == s)
+      (ensures v (Libcrux_intrinsics.Arm64_extract.arm_sshl_i16 c shk) == (v c) * pow2 s) =
+  FStar.Math.Lemmas.pow2_le_compat 7 s
+#pop-options
+
+(* reveal the opaque `get_bit` for a nonnegative integer. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 50"
+let lemma_get_bit_val (#t: inttype) (x: int_t t) (i: usize{v i < bits t})
+    : Lemma (requires v x >= 0)
+            (ensures Rust_primitives.Integers.get_bit x i == Rust_primitives.Integers.get_bit_nat (v x) (v i)) =
+  reveal_opaque (`%Rust_primitives.Integers.get_bit) (Rust_primitives.Integers.get_bit #t)
+#pop-options
+
+(* ser1_bitsum at d=8 is the flat weighted sum (pure nat, clean context). *)
+#push-options "--fuel 9 --ifuel 1 --z3rlimit 100"
+let lemma_ser1_bitsum_flat (c: nat -> nat)
+    : Lemma
+      (ensures
+        ser1_bitsum c 8
+        == c 0 * 1 + c 1 * 2 + c 2 * 4 + c 3 * 8 + c 4 * 16 + c 5 * 32 + c 6 * 64 + c 7 * 128) =
+  ()
+#pop-options
+
+(* Value of one packed byte: vaddvq of vshlq(half, [0..7]) equals the no-carry
+   binary (weighted) sum of the 8 one-bit lanes. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 300"
+let lemma_ser1_half (half shift: Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t)
+    : Lemma
+      (requires
+        (forall (j: nat{j < 8}).
+            Rust_primitives.BitVectors.bounded (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half j) 1) /\
+        (forall (j: nat{j < 8}).
+            v ((Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 shift j) %! mk_i16 256) == j))
+      (ensures
+        v (Libcrux_intrinsics.Arm64_extract.e_vaddvq_s16
+              (Libcrux_intrinsics.Arm64_extract.e_vshlq_s16 half shift))
+        == (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 0)) * 1
+         + (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 1)) * 2
+         + (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 2)) * 4
+         + (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 3)) * 8
+         + (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 4)) * 16
+         + (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 5)) * 32
+         + (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 6)) * 64
+         + (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 7)) * 128) =
+  let sh = Libcrux_intrinsics.Arm64_extract.e_vshlq_s16 half shift in
+  let aux (j: nat{j < 8})
+      : Lemma
+        (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 sh j)
+          == (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half j)) * pow2 j) =
+    lemma_ser1_shift_lane (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half j)
+      (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 shift j) j
+  in
+  Classical.forall_intro aux;
+  assert_norm (pow2 0 == 1 /\ pow2 1 == 2 /\ pow2 2 == 4 /\ pow2 3 == 8 /\
+               pow2 4 == 16 /\ pow2 5 == 32 /\ pow2 6 == 64 /\ pow2 7 == 128);
+  let l0 = Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 sh 0 in
+  let l1 = Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 sh 1 in
+  let l2 = Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 sh 2 in
+  let l3 = Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 sh 3 in
+  let l4 = Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 sh 4 in
+  let l5 = Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 sh 5 in
+  let l6 = Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 sh 6 in
+  let l7 = Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 sh 7 in
+  (* lane values + small bounds (each lane < 256, so the nested adds do not wrap) *)
+  assert (v l0 == (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 0)) * 1 /\ v l0 <= 1);
+  assert (v l1 == (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 1)) * 2 /\ v l1 <= 2);
+  assert (v l2 == (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 2)) * 4 /\ v l2 <= 4);
+  assert (v l3 == (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 3)) * 8 /\ v l3 <= 8);
+  assert (v l4 == (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 4)) * 16 /\ v l4 <= 16);
+  assert (v l5 == (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 5)) * 32 /\ v l5 <= 32);
+  assert (v l6 == (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 6)) * 64 /\ v l6 <= 64);
+  assert (v l7 == (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 7)) * 128 /\ v l7 <= 128);
+  (* nested vaddvq sum is exact (no i16 wrap) *)
+  assert (v (l0 +. l1) == v l0 + v l1);
+  assert (v (l2 +. l3) == v l2 + v l3);
+  assert (v (l4 +. l5) == v l4 + v l5);
+  assert (v (l6 +. l7) == v l6 + v l7);
+  assert (v ((l0 +. l1) +. (l2 +. l3)) == v l0 + v l1 + v l2 + v l3);
+  assert (v ((l4 +. l5) +. (l6 +. l7)) == v l4 + v l5 + v l6 + v l7);
+  assert (v (((l0 +. l1) +. (l2 +. l3)) +. ((l4 +. l5) +. (l6 +. l7)))
+          == v l0 + v l1 + v l2 + v l3 + v l4 + v l5 + v l6 + v l7)
+#pop-options
+
+(* Bit k of the packed byte (cast of the vaddvq sum) equals bit 0 of lane k. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 300"
+let lemma_ser1_byte (half shift: Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t) (byte: u8) (k: nat{k < 8})
+    : Lemma
+      (requires
+        (forall (j: nat{j < 8}).
+            Rust_primitives.BitVectors.bounded (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half j) 1) /\
+        (forall (j: nat{j < 8}).
+            v ((Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 shift j) %! mk_i16 256) == j) /\
+        byte == (cast (Libcrux_intrinsics.Arm64_extract.e_vaddvq_s16
+                        (Libcrux_intrinsics.Arm64_extract.e_vshlq_s16 half shift)) <: u8))
+      (ensures
+        Rust_primitives.Integers.get_bit byte (sz k)
+        == Rust_primitives.Integers.get_bit
+             (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half k) (mk_usize 0)) =
+  let c:(nat -> nat) =
+    (fun (j: nat) ->
+        if j < 8
+        then (let x = v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half j) in
+              if x >= 0 then x else 0)
+        else 0)
+  in
+  lemma_ser1_half half shift;
+  lemma_ser1_bitsum_flat c;
+  lemma_ser1_bitsum_bound c 8;
+  lemma_ser1_bitsum_bit c 8 k;
+  let s = Libcrux_intrinsics.Arm64_extract.e_vaddvq_s16
+            (Libcrux_intrinsics.Arm64_extract.e_vshlq_s16 half shift)
+  in
+  Rust_primitives.Integers.get_bit_cast #i16_inttype #u8_inttype s (sz k);
+  lemma_get_bit_val #i16_inttype s (sz k);
+  lemma_get_bit_val #i16_inttype (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half k) (mk_usize 0)
+#pop-options
+
+(* Both 8-lane bound foralls, derived once from serialize_pre_N in a CLEAN
+   context (no cast/shift terms). The f_high half uses the +8 Seq.append
+   offset (app2), fragile to derive amid the cast soup. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200"
+let lemma_ser1_bounded_halves (vec: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector)
+    : Lemma
+      (requires Libcrux_ml_kem.Vector.Traits.Spec.serialize_pre_N 1 (repr vec))
+      (ensures
+        (forall (j: nat{j < 8}).
+            Rust_primitives.BitVectors.bounded (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low j) 1) /\
+        (forall (j: nat{j < 8}).
+            Rust_primitives.BitVectors.bounded (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high j) 1)) =
+  assert (forall (j: nat{j < 8}).
+        Rust_primitives.BitVectors.bounded (Seq.index (repr vec) j) 1 /\
+        Rust_primitives.BitVectors.bounded (Seq.index (repr vec) (j + 8)) 1)
+#pop-options
+
+(* The i/8, i%8 euclidean facts, proven in a CLEAN context (only the bound
+   on i, no cast soup): deriving i%8==i-8 from lemma_div_mod is flaky amid
+   lemma_ser1_bit's heavy hypotheses, so isolate it. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 50"
+let lemma_idx8 (i: nat{i < 16})
+    : Lemma
+      (ensures
+        (i < 8 ==> (i / 8 == 0 /\ i % 8 == i)) /\
+        (i >= 8 ==> (i / 8 == 1 /\ i % 8 == i - 8))) =
+  if i < 8 then (FStar.Math.Lemmas.small_div i 8; FStar.Math.Lemmas.small_mod i 8)
+  else FStar.Math.Lemmas.lemma_div_mod i 8
+#pop-options
+
+(* Per-coefficient bit equality for SYMBOLIC i (AVX2-style): an internal
+   if i<8 split selects the low/high half; the i/8, i%8 reductions come from
+   the clean lemma_idx8, and the repr-append index SMTPat bridges
+   (repr vec).[i] to the lane.  One lemma VC -> the dispatcher is a single
+   introduce-forall call (no 16-way match, no monolithic saturation). *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_ser1_bit (vec: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector)
+      (shift: Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t)
+      (result: t_Array u8 (mk_usize 2))
+      (i: nat{i < 16})
+    : Lemma
+      (requires
+        Libcrux_ml_kem.Vector.Traits.Spec.serialize_pre_N 1 (repr vec) /\
+        (forall (j: nat{j < 8}).
+            v ((Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 shift j) %! mk_i16 256) == j) /\
+        Seq.index result 0
+          == (cast (Libcrux_intrinsics.Arm64_extract.e_vaddvq_s16
+                     (Libcrux_intrinsics.Arm64_extract.e_vshlq_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low shift)) <: u8) /\
+        Seq.index result 1
+          == (cast (Libcrux_intrinsics.Arm64_extract.e_vaddvq_s16
+                     (Libcrux_intrinsics.Arm64_extract.e_vshlq_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high shift)) <: u8))
+      (ensures
+        Rust_primitives.Integers.get_bit (Seq.index result (i / 8)) (sz (i % 8))
+        == Rust_primitives.Integers.get_bit (Seq.index (repr vec) i) (mk_usize 0)) =
+  lemma_ser1_bounded_halves vec;
+  lemma_idx8 i;
+  if i < 8 then
+    lemma_ser1_byte vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low shift (Seq.index result 0) i
+  else
+    lemma_ser1_byte vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high shift (Seq.index result 1) (i - 8)
+#pop-options
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_ser1_bits
+      (vec: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector)
+      (shift: Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t)
+      (result: t_Array u8 (mk_usize 2))
+    : Lemma
+      (requires
+        Libcrux_ml_kem.Vector.Traits.Spec.serialize_pre_N 1 (repr vec) /\
+        (forall (j: nat{j < 8}).
+            v ((Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 shift j) %! mk_i16 256) == j) /\
+        Seq.index result 0
+          == (cast (Libcrux_intrinsics.Arm64_extract.e_vaddvq_s16
+                     (Libcrux_intrinsics.Arm64_extract.e_vshlq_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low shift)) <: u8) /\
+        Seq.index result 1
+          == (cast (Libcrux_intrinsics.Arm64_extract.e_vaddvq_s16
+                     (Libcrux_intrinsics.Arm64_extract.e_vshlq_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high shift)) <: u8))
+      (ensures
+        forall (i: nat{i < 16}).
+          Rust_primitives.Integers.get_bit (Seq.index result (i / 8)) (sz (i % 8))
+          == Rust_primitives.Integers.get_bit (Seq.index (repr vec) i) (mk_usize 0)) =
+  introduce forall (i: nat{i < 16}).
+      Rust_primitives.Integers.get_bit (Seq.index result (i / 8)) (sz (i % 8))
+      == Rust_primitives.Integers.get_bit (Seq.index (repr vec) i) (mk_usize 0)
+  with lemma_ser1_bit vec shift result i
+#pop-options
+
+(* BitVec bridge, proven in a CLEAN context (only the per-coefficient
+   get_bit forall): the on-applied bit_vec_of_int_t_array unfolding +
+   bit_vec_equal_intro are fragile amid lemma_ser1_bits's repr-append forall
+   and the cast/shift result-defs, so isolate them here. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_bv_eq_from_bits
+      (arr: t_Array i16 (mk_usize 16))
+      (result: t_Array u8 (mk_usize 2))
+    : Lemma
+      (requires
+        forall (i: nat{i < 16}).
+          Rust_primitives.Integers.get_bit (Seq.index result (i / 8)) (sz (i % 8))
+          == Rust_primitives.Integers.get_bit (Seq.index arr i) (mk_usize 0))
+      (ensures
+        BitVecEq.int_t_array_bitwise_eq #i16_inttype #u8_inttype #(mk_usize 16) #(mk_usize 2)
+          arr 1 result 8) =
+  introduce forall (i: nat{i < 16}).
+      Rust_primitives.BitVectors.bit_vec_of_int_t_array #i16_inttype #(mk_usize 16) arr 1 i
+      == Rust_primitives.BitVectors.bit_vec_of_int_t_array #u8_inttype #(mk_usize 2) result 8 i
+  with (assert (Rust_primitives.BitVectors.bit_vec_of_int_t_array #i16_inttype #(mk_usize 16) arr 1 i
+            == Rust_primitives.Integers.get_bit (Seq.index arr i) (mk_usize 0));
+        assert (Rust_primitives.BitVectors.bit_vec_of_int_t_array #u8_inttype #(mk_usize 2) result 8 i
+            == Rust_primitives.Integers.get_bit (Seq.index result (i / 8)) (sz (i % 8))));
+  BitVecEq.bit_vec_equal_intro
+    (Rust_primitives.BitVectors.bit_vec_of_int_t_array #i16_inttype #(mk_usize 16) arr 1)
+    (BitVecEq.retype (Rust_primitives.BitVectors.bit_vec_of_int_t_array #u8_inttype #(mk_usize 2) result 8))
+#pop-options
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_serialize_1_post
+      (vec: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector)
+      (shift: Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t)
+      (result: t_Array u8 (mk_usize 2))
+    : Lemma
+      (requires
+        Libcrux_ml_kem.Vector.Traits.Spec.serialize_pre_N 1 (repr vec) /\
+        (forall (j: nat{j < 8}).
+            v ((Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 shift j) %! mk_i16 256) == j) /\
+        Seq.index result 0
+          == (cast (Libcrux_intrinsics.Arm64_extract.e_vaddvq_s16
+                     (Libcrux_intrinsics.Arm64_extract.e_vshlq_s16
+                        vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low shift)) <: u8) /\
+        Seq.index result 1
+          == (cast (Libcrux_intrinsics.Arm64_extract.e_vaddvq_s16
+                     (Libcrux_intrinsics.Arm64_extract.e_vshlq_s16
+                        vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high shift)) <: u8))
+      (ensures Libcrux_ml_kem.Vector.Traits.Spec.serialize_post_N 1 (repr vec) result) =
+  lemma_ser1_bits vec shift result;
+  lemma_bv_eq_from_bits (repr vec) result
+#pop-options
+
+(* The 8 shift-amount facts from the concrete shifter, proven in a CLEAN
+   context (only the e_vld1q lane relationship + the 8 ground shifter
+   values): the 8-way match enumeration saturates if done inline in the
+   serialize_1_ body amid the array_of_list / vaddvq / cast machinery. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_ser1_shift_amounts (shift: Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t)
+      (shifter: t_Array i16 (mk_usize 8))
+    : Lemma
+      (requires
+        (forall (j: nat{j < 8}).
+            Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 shift j == Seq.index shifter j) /\
+        Seq.index shifter 0 == mk_i16 0 /\ Seq.index shifter 1 == mk_i16 1 /\
+        Seq.index shifter 2 == mk_i16 2 /\ Seq.index shifter 3 == mk_i16 3 /\
+        Seq.index shifter 4 == mk_i16 4 /\ Seq.index shifter 5 == mk_i16 5 /\
+        Seq.index shifter 6 == mk_i16 6 /\ Seq.index shifter 7 == mk_i16 7)
+      (ensures
+        forall (j: nat{j < 8}).
+          v ((Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 shift j) %! mk_i16 256) == j) =
+  introduce forall (j: nat{j < 8}).
+      v ((Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 shift j) %! mk_i16 256) == j
+  with (match j with
+        | 0 -> () | 1 -> () | 2 -> () | 3 -> () | 4 -> () | 5 -> () | 6 -> () | _ -> ())
+#pop-options
+"#
+)]
+#[hax_lib::fstar::options("--z3rlimit 400")]
+#[hax_lib::requires(fstar!(r#"Libcrux_ml_kem.Vector.Traits.Spec.serialize_pre_N 1 (repr ${v})"#))]
+#[hax_lib::ensures(|result| fstar!(r#"Libcrux_ml_kem.Vector.Traits.Spec.serialize_post_N 1 (repr ${v}) ${result}"#))]
 pub(crate) fn serialize_1(v: SIMD128Vector) -> [u8; 2] {
     let shifter: [i16; 8] = [0, 1, 2, 3, 4, 5, 6, 7];
     let shift = _vld1q_s16(&shifter);
@@ -78,7 +401,21 @@ pub(crate) fn serialize_1(v: SIMD128Vector) -> [u8; 2] {
     let high = _vshlq_s16(v.high, shift);
     let low = _vaddvq_s16(low);
     let high = _vaddvq_s16(high);
-    [low as u8, high as u8]
+    let result = [low as u8, high as u8];
+    hax_lib::fstar!(
+        r#"(* shift-amount facts from the concrete shifter (lane j shifts by j) *)
+assert (forall (j: nat{j < 8}).
+      Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${shift} j == Seq.index ${shifter} j);
+assert (Seq.index ${shifter} 0 == mk_i16 0 /\ Seq.index ${shifter} 1 == mk_i16 1 /\
+        Seq.index ${shifter} 2 == mk_i16 2 /\ Seq.index ${shifter} 3 == mk_i16 3 /\
+        Seq.index ${shifter} 4 == mk_i16 4 /\ Seq.index ${shifter} 5 == mk_i16 5 /\
+        Seq.index ${shifter} 6 == mk_i16 6 /\ Seq.index ${shifter} 7 == mk_i16 7);
+lemma_ser1_shift_amounts ${shift} ${shifter};
+assert (Seq.index ${result} 0 == (cast (${low} <: i16) <: u8));
+assert (Seq.index ${result} 1 == (cast (${high} <: i16) <: u8));
+lemma_serialize_1_post ${v} ${shift} ${result}"#
+    );
+    result
 }
 
 #[inline(always)]
