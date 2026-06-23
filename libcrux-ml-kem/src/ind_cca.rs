@@ -547,7 +547,6 @@ pub(crate) mod unpacked {
     // legacy ind_cca_unpack_public_key spec-form returned (value, valid), but
     // the Hacspec analogue returns Result, so the spec-equality shape differs
     // structurally. Full Hacspec-form ensures pending.
-    #[hax_lib::fstar::verification_status(panic_free)]
     #[hax_lib::fstar::options("--z3rlimit 300 --split_queries always")]
     #[hax_lib::requires(
         fstar!(r#"Hacspec_ml_kem.Parameters.is_rank $K /\

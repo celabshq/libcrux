@@ -1,5 +1,5 @@
 [
-  "6e8b0fb99a7ab2b9976445df00f0964a",
+  "1dae58e84b3bf445616f14b8f6fe701b",
   [
     [
       "Libcrux_ml_kem.Ind_cca.Unpacked.t_MlKemPrivateKeyUnpacked",
@@ -2227,6 +2227,78 @@
       ],
       0,
       "c50e250b15de2c40441de4d86048c94e"
+    ],
+    [
+      "Libcrux_ml_kem.Ind_cca.Unpacked.unpack_public_key",
+      61,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "Prims_pretyping_f8666440faa91836cc5a13998af863fc",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Core_models.Array.impl_28",
+        "equation_Core_models.Ops.Index.f_index",
+        "equation_Hacspec_ml_kem.Parameters.tt_as_ntt_encoded_size",
+        "equation_Prims.prop", "equation_Prims.subtype_of",
+        "equation_Rust_primitives.Arrays.split",
+        "equation_Rust_primitives.Arrays.t_Array",
+        "equation_Rust_primitives.Arrays.t_Slice",
+        "equation_Rust_primitives.Hax.super_index",
+        "equation_Rust_primitives.Hax.update_at_tc_array_range_from",
+        "equation_Rust_primitives.Hax.update_at_tc_array_range_from_super",
+        "equation_Rust_primitives.Integers.mk_usize",
+        "equation_Rust_primitives.Integers.sub",
+        "equation_Rust_primitives.Integers.sz",
+        "equation_Rust_primitives.Integers.u8",
+        "equation_Rust_primitives.Integers.usize",
+        "equation_Rust_primitives.Notations.op_String_Access",
+        "equation_Rust_primitives.Slice.array_slice",
+        "equation_Rust_primitives.Slice.slice_slice",
+        "fuel_guarded_inversion_Libcrux_ml_kem.Hash_functions.t_Hash",
+        "fuel_guarded_inversion_Libcrux_ml_kem.Types.t_MlKemPublicKey",
+        "fuel_guarded_inversion_Libcrux_ml_kem.Vector.Traits.t_Operations",
+        "function_token_typing_Rust_primitives.Integers.u8",
+        "interpretation_Tm_abs_4ab552b3415220d2b607f7d57c958117",
+        "interpretation_Tm_abs_d175eeaaa95464a0d60f149dab3d969e",
+        "interpretation_Tm_abs_ec85e1ac0a65c79a2f5fe60bebb74edd",
+        "lemma_FStar.Seq.Base.lemma_eq_elim",
+        "proj_equation_Core_models.Ops.Range.Mkt_RangeFrom_@f_start",
+        "proj_equation_Libcrux_ml_kem.Ind_cca.Unpacked.Mkt_MlKemPublicKeyUnpacked_@f_ind_cpa_public_key",
+        "proj_equation_Libcrux_ml_kem.Ind_cpa.Unpacked.Mkt_IndCpaPublicKeyUnpacked_@f_seed_for_A",
+        "proj_equation_Libcrux_ml_kem.Types.Mkt_MlKemPublicKey_@f_value",
+        "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index",
+        "projection_inverse_Core_models.Ops.Range.Mkt_RangeFrom_@f_start",
+        "projection_inverse_FStar.Pervasives.Native.Mktuple2_@_2",
+        "projection_inverse_Libcrux_ml_kem.Ind_cca.Unpacked.Mkt_MlKemPublicKeyUnpacked_@f_ind_cpa_public_key",
+        "projection_inverse_Libcrux_ml_kem.Ind_cpa.Unpacked.Mkt_IndCpaPublicKeyUnpacked_@f_seed_for_A",
+        "projection_inverse_Rust_primitives.Hax.Mkupdate_at_tc_@super_index",
+        "refinement_interpretation_Tm_refine_0170e2d71d51df517d862c3a0aaed140",
+        "refinement_interpretation_Tm_refine_0dee8cb03258a67c2f7ec66427696212",
+        "refinement_interpretation_Tm_refine_11f4842cd5ca5e36f83f46b84552e54b",
+        "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
+        "refinement_interpretation_Tm_refine_38aa263e72972fce41c8b3bc443e407a",
+        "refinement_interpretation_Tm_refine_7263f516cff73f3ccf8b2b80cfa31f8b",
+        "refinement_interpretation_Tm_refine_7470a40c5727fbb373dc52fc0cb5c49a",
+        "refinement_interpretation_Tm_refine_7785a19d0631736da91fb5d940038847",
+        "refinement_interpretation_Tm_refine_89a235692a2a5f2b8de9fc3ad5d518e7",
+        "refinement_interpretation_Tm_refine_91a0408b4f1bc42b6c665bbd3e0f60be",
+        "refinement_interpretation_Tm_refine_a78afce0dd015f3cccc1752bad18db3d",
+        "refinement_interpretation_Tm_refine_b04dc195c30ee8143db3fe800df6839b",
+        "refinement_interpretation_Tm_refine_ba4be9e593fda710cd7cd90723afa87e",
+        "refinement_interpretation_Tm_refine_c8912aa5d22c219879a2244af502f2f2",
+        "refinement_interpretation_Tm_refine_db0049328e611a5096953bb528e33995",
+        "refinement_interpretation_Tm_refine_dbac820e3adb1087f4637c3e2e5d6a3c",
+        "refinement_interpretation_Tm_refine_dd45d3612449d0b7a290038839ae1b51",
+        "refinement_interpretation_Tm_refine_e42b91b1a9a3c469e903c880397304ab",
+        "token_correspondence_Core_models.Ops.Index.f_index",
+        "token_correspondence_Rust_primitives.Hax.super_index",
+        "token_correspondence_Rust_primitives.Slice.array_slice",
+        "token_correspondence_Rust_primitives.Slice.slice_slice",
+        "typing_FStar.Seq.Base.equal", "unit_inversion", "unit_typing"
+      ],
+      0,
+      "53aab9b73ec917b06efb80666d23c529"
     ],
     [
       "Libcrux_ml_kem.Ind_cca.Unpacked.impl_3__serialized_mut",
@@ -9807,7 +9879,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "b1ccf911c3fd2b353c5c1ad99e844c8c"
+      "f3f0b7c7a9a4fa2ab526fe4b8226fd7d"
     ],
     [
       "Libcrux_ml_kem.Ind_cca.Unpacked.decapsulate",
@@ -9829,7 +9901,7 @@
         "typing_Libcrux_ml_kem.Ind_cca.Unpacked.__proj__Mkt_MlKemPrivateKeyUnpacked__item__f_implicit_rejection_value"
       ],
       0,
-      "58f13077e7add0830db1b4f19d4b26dd"
+      "1fb8ad3ae101201d4ef9a2a2e15f5459"
     ],
     [
       "Libcrux_ml_kem.Ind_cca.Unpacked.decapsulate",
@@ -9983,7 +10055,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "656eeea7088ac7cb127e81c793fb8d4b"
+      "4ae607c62e31709f701ca7b07f02a4b6"
     ]
   ]
 ]
