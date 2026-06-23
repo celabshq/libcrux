@@ -1,21 +1,12 @@
-# Hacspec-style SHA-3 specification
+# Hacspec-style ML-KEM specification
 
-This is a hacspec-style Rust implementation of SHA-3, closely following FIPS-202. Its purpose
+This is a hacspec-style Rust implementation of ML-KEM, closely following FIPS 203. Its purpose
 is to serve as a reference implementation for verifying functional correctness of more efficient
 implementations.
 
 **Do not use this implementation for other applications! Besides being slow, it may be vulnerable to side-channel attacks.**
 
 ## Extraction via HAX
-
-### F*
-
-Prerequisites:
-* Hax 0.3.6 (https://github.com/cryspen/hax/tree/87ba96831ecfeb7dbb54efcf97036fbc5f25bc71)
-* F* 2026/03/24
-  (https://github.com/FStarLang/FStar/releases/tag/v2026.03.24)
-
-Run `hax_fstar.sh extract` to produce the F* files, and `hax_fstar.sh prove` to type-check them.
 
 ### Lean
 
@@ -26,7 +17,7 @@ Prerequisites:
 * Aeneas `8d2077c`
   (https://github.com/cryspen/aeneas/releases/tag/nightly-2026.06.04)
 
-Run `hax_aeneas.py` to extract. 
+Run `hax_aeneas.py` to extract.
 Depending on the aeneas binary you have, you may have to run
 `SKIP_VERSION_CHECK=1 hax_aeneas.py` instead.
 Run `cd proofs/aeneas-lean && lake update && lake build` to

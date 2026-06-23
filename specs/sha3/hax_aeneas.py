@@ -7,7 +7,7 @@ from pathlib import Path
 
 import os
 
-HAX_VERSION = "1f85fc13b9967080cc657863e2000ba5d4aa8647"
+HAX_VERSION = "ffdf432705d409b62ec025d253a340234b59766f"
 AENEAS_VERSION = "8d2077c"
 
 

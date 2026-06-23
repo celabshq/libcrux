@@ -81,10 +81,20 @@ serde_json = { version = "1.0" }
 serde = { version = "1.0", features = ["derive"] }
 hex = { version = "0.4.3", features = ["serde"] }
 criterion = "0.8"
-libcrux-traits = { workspace = true, features = [
-    "generic-tests",
-] }
+libcrux-traits = { workspace = true, features = ["generic-tests"] }
 libcrux-kats = { path = "../crates/testing/kats", features = ["mlkem"] }
+
+# Cross-spec equivalence tests against the hacspec ML-KEM
+hacspec_ml_kem = { path = "../specs/ml-kem" }
+proptest = "1"
+
+[[test]]
+name = "cross_spec"
+required-features = ["mlkem512", "mlkem768", "mlkem1024"]
+
+[[test]]
+name = "cross_spec_proptests"
+required-features = ["mlkem512", "mlkem768", "mlkem1024"]
 
 [[bench]]
 name = "ml-kem"
