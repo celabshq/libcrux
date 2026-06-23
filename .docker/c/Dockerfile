@@ -1,8 +1,8 @@
 # This Dockerfile should be run from this directory
-# `docker build . -t franziskus/libcrux-c`
+# `docker build . -t celabs/libcrux-c`
 
 FROM ubuntu:24.04
-LABEL maintainer="Franziskus Kiefer <franziskuskiefer@gmail.com>"
+LABEL maintainer="CE Labs <info@celabs.eu>"
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV SHELL=/bin/bash
