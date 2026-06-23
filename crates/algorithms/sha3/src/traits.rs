@@ -9,7 +9,7 @@ use crate::proof_utils::{slices_same_len, valid_rate};
 #[hax_lib::requires(i < 5 && j < 5)]
 #[inline(always)]
 pub(crate) fn get_ij<const N: usize, T: KeccakItem<N>>(arr: &[T; 25], i: usize, j: usize) -> &T {
-    &arr[5 * j + i]
+    &arr[5 * i + j]
 }
 
 #[hax_lib::requires(i < 5 && j < 5)]
@@ -20,7 +20,7 @@ pub(crate) fn set_ij<const N: usize, T: KeccakItem<N>>(
     j: usize,
     value: T,
 ) {
-    arr[5 * j + i] = value;
+    arr[5 * i + j] = value;
 }
 
 /// A Keccak Item for multiplexing arithmetic implementations.

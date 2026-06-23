@@ -8,7 +8,7 @@
  * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
  * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
  * F*: unset
- * Libcrux: ae092f4921933e45dec31610a1465191171e5b3f
+ * Libcrux: c5f306978fa7d13b590fd71dbc260386f3936d57
  */
 
 #ifndef libcrux_sha3_avx2_H
@@ -185,7 +185,7 @@ KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE void libcrux_sha3_traits_set_ij_5d(Eurydice_arr_c4 *arr,
                                                           size_t i, size_t j,
                                                           __m256i value) {
-  arr->data[(size_t)5U * j + i] = value;
+  arr->data[(size_t)5U * i + j] = value;
 }
 
 /**
@@ -197,7 +197,7 @@ with const generics
 KRML_ATTRIBUTE_TARGET("avx2")
 static KRML_MUSTINLINE const __m256i *libcrux_sha3_traits_get_ij_5d(
     const Eurydice_arr_c4 *arr, size_t i, size_t j) {
-  return &arr->data[(size_t)5U * j + i];
+  return &arr->data[(size_t)5U * i + j];
 }
 
 /**

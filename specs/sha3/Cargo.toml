@@ -1,0 +1,19 @@
+[package]
+name = "hacspec_sha3"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+hax-lib = "=0.3.6"
+
+[dev-dependencies]
+hex = "0.4.3"
+proptest = "1.2.0"
+libcrux-sha3 = { path = "../../crates/algorithms/sha3" }
+libcrux-kats = { path = "../../crates/testing/kats", features = ["sha3"] }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = [
+    'cfg(hax)',
+    'cfg(hax_backend_lean)',
+] }
