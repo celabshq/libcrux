@@ -11,7 +11,9 @@
     # Keep this revision in sync with EURYDICE_REV in .docker/c/Dockerfile,
     # which is what CI uses for the extraction. charon and karamel follow
     # eurydice transitively, so pinning eurydice pins all three.
-    eurydice.url = "github:aeneasverif/eurydice/b227478b67c6a6e2ff611f978f10d6b7f26472ac";
+    eurydice.url = "github:aeneasverif/eurydice/aaa9fa657fb6f09802edb890252040d94cd93982";
+    eurydice.inputs.karamel.inputs.fstar.follows = "fstar-pinned";
+    fstar-pinned.url = "github:FStarLang/FStar/v2025.10.06";
     hax.url = "github:hacspec/hax";
     googletest = {
       url = "github:google/googletest/release-1.11.0";
@@ -34,6 +36,7 @@
       flake-utils,
       rust-overlay,
       eurydice,
+      fstar-pinned,
       hax,
       googletest,
       benchmark,
@@ -51,7 +54,7 @@
         crane = charon.inputs.crane;
         # Use the overridden package exported by the eurydice flake.
         karamel = eurydice.packages.${system}.karamel;
-        fstar = eurydice.inputs.karamel.inputs.fstar;
+        fstar = fstar-pinned;
 
         tools-environment = {
           CHARON_HOME = charon.packages.${system}.charon;
@@ -315,10 +318,14 @@
             fstar.packages.${system}.default
           ];
           runtimeEnv = tools-environment-strings;
+          # there is a mismatch between the version of karamel installed to $KRML_HOME by the flake.nix
+          # and what CI expects the layout to be from a repo checkout. In the installed version,
+          # the include path is include/krml/krml whereas it is include/krml in the repo
+          # Use --no-karamel_include for now to work around that
           text = ''
             root=$(git rev-parse --show-toplevel)
             cd "$root/libcrux-ml-kem/extracts"
-            ./extract-all.sh
+            ./extract-all.sh --no-karamel_include
           '';
         };
 
@@ -340,6 +347,22 @@
             ./boring.sh --no-clean
           '';
         };
+
+        combined-extract-app = pkgs.writeShellApplication {
+          name = "combined-extract";
+          runtimeInputs = [
+            rustToolchain
+            pkgs.llvmPackages_18.clang-tools
+            clang-format-18-wrapper
+            pkgs.git
+          ];
+          runtimeEnv = tools-environment-strings;
+          text = ''
+            root=$(git rev-parse --show-toplevel)
+            cd "$root/combined_extraction"
+            ./extract.sh "$@"
+          '';
+        };
       in
       rec {
         packages = {
@@ -353,6 +376,10 @@
           ml-dsa-extract = {
             type = "app";
             program = "${ml-dsa-extract-app}/bin/ml-dsa-extract";
+          };
+          combined-extract = {
+            type = "app";
+            program = "${combined-extract-app}/bin/combined-extract";
           };
         };
         devShells.default = craneLib.devShell (
