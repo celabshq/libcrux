@@ -7,8 +7,8 @@
  * Charon: e656e17bff6ca5efac8ab6919b9b74cb9a8dd8ad
  * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
  * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
- * F*: unset
- * Libcrux: c5f306978fa7d13b590fd71dbc260386f3936d57
+ * F*: 7b347386330d0e5a331a220535b6f15288903234
+ * Libcrux: c2593afcf1c70df94fe6b696747fa02197763c3b
  */
 
 
@@ -54,7 +54,7 @@ This function found in impl {libcrux_secrets::int::CastOps for i16}
 static KRML_MUSTINLINE uint8_t libcrux_secrets_int_as_u8_f5(int16_t self)
 {
   return
-    libcrux_secrets_int_public_integers_classify_27_90((uint8_t)libcrux_secrets_int_public_integers_declassify_d8_39(self));
+    libcrux_secrets_int_classify_public_classify_27_90((uint8_t)libcrux_secrets_int_classify_public_declassify_d8_39(self));
 }
 
 /**
@@ -63,7 +63,7 @@ This function found in impl {libcrux_secrets::int::CastOps for u8}
 static KRML_MUSTINLINE int16_t libcrux_secrets_int_as_i16_59(uint8_t self)
 {
   return
-    libcrux_secrets_int_public_integers_classify_27_39((int16_t)(uint32_t)libcrux_secrets_int_public_integers_declassify_d8_90(self));
+    libcrux_secrets_int_classify_public_classify_27_39((int16_t)(uint32_t)libcrux_secrets_int_classify_public_declassify_d8_90(self));
 }
 
 /**
@@ -72,7 +72,7 @@ This function found in impl {libcrux_secrets::int::CastOps for i16}
 static KRML_MUSTINLINE int32_t libcrux_secrets_int_as_i32_f5(int16_t self)
 {
   return
-    libcrux_secrets_int_public_integers_classify_27_a8((int32_t)libcrux_secrets_int_public_integers_declassify_d8_39(self));
+    libcrux_secrets_int_classify_public_classify_27_a8((int32_t)libcrux_secrets_int_classify_public_declassify_d8_39(self));
 }
 
 /**
@@ -81,7 +81,7 @@ This function found in impl {libcrux_secrets::int::CastOps for i32}
 static KRML_MUSTINLINE int16_t libcrux_secrets_int_as_i16_36(int32_t self)
 {
   return
-    libcrux_secrets_int_public_integers_classify_27_39((int16_t)libcrux_secrets_int_public_integers_declassify_d8_a8(self));
+    libcrux_secrets_int_classify_public_classify_27_39((int16_t)libcrux_secrets_int_classify_public_declassify_d8_a8(self));
 }
 
 /**
@@ -90,7 +90,7 @@ This function found in impl {libcrux_secrets::int::CastOps for u32}
 static KRML_MUSTINLINE int32_t libcrux_secrets_int_as_i32_b8(uint32_t self)
 {
   return
-    libcrux_secrets_int_public_integers_classify_27_a8((int32_t)libcrux_secrets_int_public_integers_declassify_d8_df(self));
+    libcrux_secrets_int_classify_public_classify_27_a8((int32_t)libcrux_secrets_int_classify_public_declassify_d8_df(self));
 }
 
 /**
@@ -99,7 +99,7 @@ This function found in impl {libcrux_secrets::int::CastOps for i16}
 static KRML_MUSTINLINE uint16_t libcrux_secrets_int_as_u16_f5(int16_t self)
 {
   return
-    libcrux_secrets_int_public_integers_classify_27_de((uint16_t)libcrux_secrets_int_public_integers_declassify_d8_39(self));
+    libcrux_secrets_int_classify_public_classify_27_de((uint16_t)libcrux_secrets_int_classify_public_declassify_d8_39(self));
 }
 
 /**
@@ -108,7 +108,7 @@ This function found in impl {libcrux_secrets::int::CastOps for u16}
 static KRML_MUSTINLINE int16_t libcrux_secrets_int_as_i16_ca(uint16_t self)
 {
   return
-    libcrux_secrets_int_public_integers_classify_27_39((int16_t)(uint32_t)libcrux_secrets_int_public_integers_declassify_d8_de(self));
+    libcrux_secrets_int_classify_public_classify_27_39((int16_t)(uint32_t)libcrux_secrets_int_classify_public_declassify_d8_de(self));
 }
 
 /**
@@ -117,7 +117,7 @@ This function found in impl {libcrux_secrets::int::CastOps for u16}
 static KRML_MUSTINLINE uint64_t libcrux_secrets_int_as_u64_ca(uint16_t self)
 {
   return
-    libcrux_secrets_int_public_integers_classify_27_49((uint64_t)(uint32_t)libcrux_secrets_int_public_integers_declassify_d8_de(self));
+    libcrux_secrets_int_classify_public_classify_27_49((uint64_t)(uint32_t)libcrux_secrets_int_classify_public_declassify_d8_de(self));
 }
 
 /**
@@ -126,7 +126,7 @@ This function found in impl {libcrux_secrets::int::CastOps for u64}
 static KRML_MUSTINLINE uint32_t libcrux_secrets_int_as_u32_a3(uint64_t self)
 {
   return
-    libcrux_secrets_int_public_integers_classify_27_df((uint32_t)libcrux_secrets_int_public_integers_declassify_d8_49(self));
+    libcrux_secrets_int_classify_public_classify_27_df((uint32_t)libcrux_secrets_int_classify_public_declassify_d8_49(self));
 }
 
 /**
@@ -135,7 +135,7 @@ This function found in impl {libcrux_secrets::int::CastOps for u32}
 static KRML_MUSTINLINE int16_t libcrux_secrets_int_as_i16_b8(uint32_t self)
 {
   return
-    libcrux_secrets_int_public_integers_classify_27_39((int16_t)libcrux_secrets_int_public_integers_declassify_d8_df(self));
+    libcrux_secrets_int_classify_public_classify_27_39((int16_t)libcrux_secrets_int_classify_public_declassify_d8_df(self));
 }
 
 /**
@@ -144,7 +144,7 @@ This function found in impl {libcrux_secrets::int::CastOps for i16}
 static KRML_MUSTINLINE int16_t libcrux_secrets_int_as_i16_f5(int16_t self)
 {
   return
-    libcrux_secrets_int_public_integers_classify_27_39(libcrux_secrets_int_public_integers_declassify_d8_39(self));
+    libcrux_secrets_int_classify_public_classify_27_39(libcrux_secrets_int_classify_public_declassify_d8_39(self));
 }
 
 /**
