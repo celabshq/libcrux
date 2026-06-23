@@ -150,6 +150,8 @@ files:
       monomorphizations_of:
         - [libcrux_ml_kem, vector, avx2, "*"]
         - [libcrux_ml_kem, hash_functions, avx2, "*"]
+      monomorphizations_exact:
+        - [core_core_arch_x86___m128i_x2]
 
   # Shared portable infrastructure (covers slightly more than just "portable",
   # but greatly simplifies things — mirrors c.yaml's libcrux_mlkem_portable)

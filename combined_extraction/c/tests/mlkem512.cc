@@ -11,8 +11,8 @@
 #include <nlohmann/json.hpp>
 
 #include "libcrux_sha3_portable.h"
-#include "libcrux_mlkem1024.h"
-#include "libcrux_mlkem1024_portable.h"
+#include "libcrux_mlkem512.h"
+#include "libcrux_mlkem512_portable.h"
 
 using namespace std;
 
@@ -179,20 +179,20 @@ compute_implicit_rejection_shared_secret(uint8_t *ciphertext,
 
 typedef Eurydice_arr_c7 libcrux_sha3_Sha3_512Digest;
 
-TEST(MlKem1024TestPortable, ConsistencyTest)
+TEST(MlKem512TestPortable, ConsistencyTest)
 {
     libcrux_sha3_Sha3_512Digest randomness;
     for (int i = 0; i < 64; i++)
     {
         randomness.data[i] = 13;
     }
-    auto key_pair = libcrux_ml_kem_mlkem1024_portable_generate_key_pair(randomness);
+    auto key_pair = libcrux_ml_kem_mlkem512_portable_generate_key_pair(randomness);
 
     Eurydice_arr_ec randomness32;
     memcpy(randomness32.data, randomness.data, 32);
-    auto ctxt = libcrux_ml_kem_mlkem1024_portable_encapsulate(&key_pair.pk, randomness32);
+    auto ctxt = libcrux_ml_kem_mlkem512_portable_encapsulate(&key_pair.pk, randomness32);
 
-    Eurydice_arr_ec sharedSecret2 = libcrux_ml_kem_mlkem1024_portable_decapsulate(&key_pair.sk, &ctxt.fst);
+    Eurydice_arr_ec sharedSecret2 = libcrux_ml_kem_mlkem512_portable_decapsulate(&key_pair.sk, &ctxt.fst);
 
     EXPECT_EQ(0,
               memcmp(ctxt.snd.data,
@@ -200,19 +200,19 @@ TEST(MlKem1024TestPortable, ConsistencyTest)
                      LIBCRUX_ML_KEM_CONSTANTS_SHARED_SECRET_SIZE));
 }
 
-TEST(Kyber1024TestPortable, ModifiedCiphertextTest)
+TEST(Kyber512TestPortable, ModifiedCiphertextTest)
 {
     libcrux_sha3_Sha3_512Digest randomness;
     generate_random(randomness.data, 64);
-    auto key_pair = libcrux_ml_kem_mlkem1024_portable_generate_key_pair(randomness);
+    auto key_pair = libcrux_ml_kem_mlkem512_portable_generate_key_pair(randomness);
 
     Eurydice_arr_ec randomness32;
     generate_random(randomness32.data, 32);
-    auto ctxt = libcrux_ml_kem_mlkem1024_portable_encapsulate(&key_pair.pk, randomness32);
+    auto ctxt = libcrux_ml_kem_mlkem512_portable_encapsulate(&key_pair.pk, randomness32);
 
     modify_ciphertext(ctxt.fst.data,
-                      LIBCRUX_ML_KEM_MLKEM1024_CPA_PKE_CIPHERTEXT_SIZE);
-    auto sharedSecret2 = libcrux_ml_kem_mlkem1024_portable_decapsulate(&key_pair.sk, &ctxt.fst);
+                      LIBCRUX_ML_KEM_MLKEM512_CPA_PKE_CIPHERTEXT_SIZE);
+    auto sharedSecret2 = libcrux_ml_kem_mlkem512_portable_decapsulate(&key_pair.sk, &ctxt.fst);
 
     EXPECT_NE(0,
               memcmp(ctxt.snd.data,
@@ -222,9 +222,9 @@ TEST(Kyber1024TestPortable, ModifiedCiphertextTest)
     uint8_t *implicitRejectionSharedSecret =
         compute_implicit_rejection_shared_secret(
             ctxt.fst.data,
-            LIBCRUX_ML_KEM_MLKEM1024_CPA_PKE_CIPHERTEXT_SIZE,
+            LIBCRUX_ML_KEM_MLKEM512_CPA_PKE_CIPHERTEXT_SIZE,
             key_pair.sk.data,
-            LIBCRUX_ML_KEM_MLKEM1024_SECRET_KEY_SIZE);
+            LIBCRUX_ML_KEM_MLKEM512_SECRET_KEY_SIZE);
 
     EXPECT_EQ(0,
               memcmp(implicitRejectionSharedSecret,
@@ -233,19 +233,19 @@ TEST(Kyber1024TestPortable, ModifiedCiphertextTest)
     delete[] implicitRejectionSharedSecret;
 }
 
-TEST(Kyber1024TestPortable, ModifiedSecretKeyTest)
+TEST(Kyber512TestPortable, ModifiedSecretKeyTest)
 {
     libcrux_sha3_Sha3_512Digest randomness;
     generate_random(randomness.data, 64);
-    auto key_pair = libcrux_ml_kem_mlkem1024_portable_generate_key_pair(randomness);
+    auto key_pair = libcrux_ml_kem_mlkem512_portable_generate_key_pair(randomness);
 
     Eurydice_arr_ec randomness32;
     generate_random(randomness32.data, 32);
-    auto ctxt = libcrux_ml_kem_mlkem1024_portable_encapsulate(&key_pair.pk, randomness32);
+    auto ctxt = libcrux_ml_kem_mlkem512_portable_encapsulate(&key_pair.pk, randomness32);
 
     modify_secret_key(
-        key_pair.sk.data, LIBCRUX_ML_KEM_MLKEM1024_SECRET_KEY_SIZE, false);
-    auto sharedSecret2 = libcrux_ml_kem_mlkem1024_portable_decapsulate(&key_pair.sk, &ctxt.fst);
+        key_pair.sk.data, LIBCRUX_ML_KEM_MLKEM512_SECRET_KEY_SIZE, false);
+    auto sharedSecret2 = libcrux_ml_kem_mlkem512_portable_decapsulate(&key_pair.sk, &ctxt.fst);
 
     EXPECT_NE(0,
               memcmp(ctxt.snd.data,
@@ -253,15 +253,15 @@ TEST(Kyber1024TestPortable, ModifiedSecretKeyTest)
                      LIBCRUX_ML_KEM_CONSTANTS_SHARED_SECRET_SIZE));
 
     modify_secret_key(
-        ctxt.snd.data, LIBCRUX_ML_KEM_MLKEM1024_SECRET_KEY_SIZE, true);
-    sharedSecret2 = libcrux_ml_kem_mlkem1024_portable_decapsulate(&key_pair.sk, &ctxt.fst);
+        ctxt.snd.data, LIBCRUX_ML_KEM_MLKEM512_SECRET_KEY_SIZE, true);
+    sharedSecret2 = libcrux_ml_kem_mlkem512_portable_decapsulate(&key_pair.sk, &ctxt.fst);
 
     uint8_t *implicitRejectionSharedSecret =
         compute_implicit_rejection_shared_secret(
             ctxt.fst.data,
-            LIBCRUX_ML_KEM_MLKEM1024_CPA_PKE_CIPHERTEXT_SIZE,
+            LIBCRUX_ML_KEM_MLKEM512_CPA_PKE_CIPHERTEXT_SIZE,
             key_pair.sk.data,
-            LIBCRUX_ML_KEM_MLKEM1024_SECRET_KEY_SIZE);
+            LIBCRUX_ML_KEM_MLKEM512_SECRET_KEY_SIZE);
     EXPECT_EQ(0,
               memcmp(implicitRejectionSharedSecret,
                      sharedSecret2.data,
@@ -269,36 +269,36 @@ TEST(Kyber1024TestPortable, ModifiedSecretKeyTest)
     delete[] implicitRejectionSharedSecret;
 }
 
-TEST(MlKem1024TestPortable, NISTKnownAnswerTest)
+TEST(MlKem512TestPortable, NISTKnownAnswerTest)
 {
-    auto kats = read_kats("tests/mlkem1024_nistkats.json");
+    auto kats = read_kats("tests/mlkem512_nistkats.json");
 
     for (auto kat : kats)
     {
         libcrux_sha3_Sha3_512Digest randomness;
         memcpy(randomness.data, kat.key_generation_seed.data(), 64);
         auto key_pair =
-            libcrux_ml_kem_mlkem1024_portable_generate_key_pair(randomness);
+            libcrux_ml_kem_mlkem512_portable_generate_key_pair(randomness);
 
         auto pk_hash =
           libcrux_sha3_sha256(
               mk_slice_u8(key_pair.pk.data,
-                       LIBCRUX_ML_KEM_MLKEM1024_CPA_PKE_PUBLIC_KEY_SIZE));
+                       LIBCRUX_ML_KEM_MLKEM512_CPA_PKE_PUBLIC_KEY_SIZE));
         EXPECT_EQ(0, memcmp(pk_hash.data, kat.sha3_256_hash_of_public_key.data(), 32));
 
         auto sk_hash =
           libcrux_sha3_sha256(
-              mk_slice_u8(key_pair.sk.data, LIBCRUX_ML_KEM_MLKEM1024_SECRET_KEY_SIZE));
+              mk_slice_u8(key_pair.sk.data, LIBCRUX_ML_KEM_MLKEM512_SECRET_KEY_SIZE));
         EXPECT_EQ(0, memcmp(sk_hash.data, kat.sha3_256_hash_of_secret_key.data(), 32));
 
         Eurydice_arr_ec randomness32;
         memcpy(randomness32.data, kat.encapsulation_seed.data(), 32);
-        auto ctxt = libcrux_ml_kem_mlkem1024_portable_encapsulate(
+        auto ctxt = libcrux_ml_kem_mlkem512_portable_encapsulate(
             &key_pair.pk, randomness32);
         auto ct_hash =
           libcrux_sha3_sha256(
               mk_slice_u8(ctxt.fst.data,
-                       LIBCRUX_ML_KEM_MLKEM1024_CPA_PKE_CIPHERTEXT_SIZE));
+                       LIBCRUX_ML_KEM_MLKEM512_CPA_PKE_CIPHERTEXT_SIZE));
         EXPECT_EQ(0, memcmp(ct_hash.data, kat.sha3_256_hash_of_ciphertext.data(), 32));
         EXPECT_EQ(0,
                   memcmp(ctxt.snd.data,
@@ -306,7 +306,7 @@ TEST(MlKem1024TestPortable, NISTKnownAnswerTest)
                          LIBCRUX_ML_KEM_CONSTANTS_SHARED_SECRET_SIZE));
 
         auto sharedSecret2 =
-          libcrux_ml_kem_mlkem1024_portable_decapsulate(&key_pair.sk, &ctxt.fst);
+          libcrux_ml_kem_mlkem512_portable_decapsulate(&key_pair.sk, &ctxt.fst);
 
         EXPECT_EQ(0,
                   memcmp(ctxt.snd.data,
@@ -316,22 +316,22 @@ TEST(MlKem1024TestPortable, NISTKnownAnswerTest)
 }
 
 #ifdef LIBCRUX_X64
-#include "libcrux_mlkem1024_avx2.h"
+#include "libcrux_mlkem512_avx2.h"
 
-TEST(MlKem1024TestAvx2, ConsistencyTest)
+TEST(MlKem512TestAvx2, ConsistencyTest)
 {
     libcrux_sha3_Sha3_512Digest randomness;
     for (int i = 0; i < 64; i++)
     {
         randomness.data[i] = 13;
     }
-    auto key_pair = libcrux_ml_kem_mlkem1024_avx2_generate_key_pair(randomness);
+    auto key_pair = libcrux_ml_kem_mlkem512_avx2_generate_key_pair(randomness);
     Eurydice_arr_ec randomness32;
     memcpy(randomness32.data, randomness.data, 32);
-    auto ctxt = libcrux_ml_kem_mlkem1024_avx2_encapsulate(&key_pair.pk, randomness32);
+    auto ctxt = libcrux_ml_kem_mlkem512_avx2_encapsulate(&key_pair.pk, randomness32);
 
     auto sharedSecret2 =
-      libcrux_ml_kem_mlkem1024_avx2_decapsulate(&key_pair.sk, &ctxt.fst);
+      libcrux_ml_kem_mlkem512_avx2_decapsulate(&key_pair.sk, &ctxt.fst);
 
     EXPECT_EQ(0,
               memcmp(ctxt.snd.data,
@@ -339,20 +339,20 @@ TEST(MlKem1024TestAvx2, ConsistencyTest)
                      LIBCRUX_ML_KEM_CONSTANTS_SHARED_SECRET_SIZE));
 }
 
-TEST(Kyber1024TestAvx2, ModifiedCiphertextTest)
+TEST(Kyber512TestAvx2, ModifiedCiphertextTest)
 {
     libcrux_sha3_Sha3_512Digest randomness;
     generate_random(randomness.data, 64);
-    auto key_pair = libcrux_ml_kem_mlkem1024_avx2_generate_key_pair(randomness);
+    auto key_pair = libcrux_ml_kem_mlkem512_avx2_generate_key_pair(randomness);
 
     Eurydice_arr_ec randomness32;
     generate_random(randomness32.data, 32);
-    auto ctxt = libcrux_ml_kem_mlkem1024_avx2_encapsulate(&key_pair.pk, randomness32);
+    auto ctxt = libcrux_ml_kem_mlkem512_avx2_encapsulate(&key_pair.pk, randomness32);
 
     modify_ciphertext(ctxt.fst.data,
-                      LIBCRUX_ML_KEM_MLKEM1024_CPA_PKE_CIPHERTEXT_SIZE);
+                      LIBCRUX_ML_KEM_MLKEM512_CPA_PKE_CIPHERTEXT_SIZE);
     auto sharedSecret2 =
-      libcrux_ml_kem_mlkem1024_avx2_decapsulate(&key_pair.sk, &ctxt.fst);
+      libcrux_ml_kem_mlkem512_avx2_decapsulate(&key_pair.sk, &ctxt.fst);
 
     EXPECT_NE(0,
               memcmp(ctxt.snd.data,
@@ -362,9 +362,9 @@ TEST(Kyber1024TestAvx2, ModifiedCiphertextTest)
     uint8_t *implicitRejectionSharedSecret =
         compute_implicit_rejection_shared_secret(
             ctxt.fst.data,
-            LIBCRUX_ML_KEM_MLKEM1024_CPA_PKE_CIPHERTEXT_SIZE,
+            LIBCRUX_ML_KEM_MLKEM512_CPA_PKE_CIPHERTEXT_SIZE,
             key_pair.sk.data,
-            LIBCRUX_ML_KEM_MLKEM1024_SECRET_KEY_SIZE);
+            LIBCRUX_ML_KEM_MLKEM512_SECRET_KEY_SIZE);
 
     EXPECT_EQ(0,
               memcmp(implicitRejectionSharedSecret,
@@ -373,20 +373,20 @@ TEST(Kyber1024TestAvx2, ModifiedCiphertextTest)
     delete[] implicitRejectionSharedSecret;
 }
 
-TEST(Kyber1024TestAvx2, ModifiedSecretKeyTest)
+TEST(Kyber512TestAvx2, ModifiedSecretKeyTest)
 {
     libcrux_sha3_Sha3_512Digest randomness;
     generate_random(randomness.data, 64);
-    auto key_pair = libcrux_ml_kem_mlkem1024_avx2_generate_key_pair(randomness);
+    auto key_pair = libcrux_ml_kem_mlkem512_avx2_generate_key_pair(randomness);
 
     Eurydice_arr_ec randomness32;
     generate_random(randomness32.data, 32);
-    auto ctxt = libcrux_ml_kem_mlkem1024_avx2_encapsulate(&key_pair.pk, randomness32);
+    auto ctxt = libcrux_ml_kem_mlkem512_avx2_encapsulate(&key_pair.pk, randomness32);
 
     modify_secret_key(
-        key_pair.sk.data, LIBCRUX_ML_KEM_MLKEM1024_SECRET_KEY_SIZE, false);
+        key_pair.sk.data, LIBCRUX_ML_KEM_MLKEM512_SECRET_KEY_SIZE, false);
     auto sharedSecret2 =
-      libcrux_ml_kem_mlkem1024_avx2_decapsulate(&key_pair.sk, &ctxt.fst);
+      libcrux_ml_kem_mlkem512_avx2_decapsulate(&key_pair.sk, &ctxt.fst);
 
     EXPECT_NE(0,
               memcmp(ctxt.snd.data,
@@ -394,15 +394,15 @@ TEST(Kyber1024TestAvx2, ModifiedSecretKeyTest)
                      LIBCRUX_ML_KEM_CONSTANTS_SHARED_SECRET_SIZE));
 
     modify_secret_key(
-        ctxt.snd.data, LIBCRUX_ML_KEM_MLKEM1024_SECRET_KEY_SIZE, true);
-    sharedSecret2 = libcrux_ml_kem_mlkem1024_avx2_decapsulate(&key_pair.sk, &ctxt.fst);
+        ctxt.snd.data, LIBCRUX_ML_KEM_MLKEM512_SECRET_KEY_SIZE, true);
+    sharedSecret2 = libcrux_ml_kem_mlkem512_avx2_decapsulate(&key_pair.sk, &ctxt.fst);
 
     uint8_t *implicitRejectionSharedSecret =
         compute_implicit_rejection_shared_secret(
             ctxt.fst.data,
-            LIBCRUX_ML_KEM_MLKEM1024_CPA_PKE_CIPHERTEXT_SIZE,
+            LIBCRUX_ML_KEM_MLKEM512_CPA_PKE_CIPHERTEXT_SIZE,
             key_pair.sk.data,
-            LIBCRUX_ML_KEM_MLKEM1024_SECRET_KEY_SIZE);
+            LIBCRUX_ML_KEM_MLKEM512_SECRET_KEY_SIZE);
     EXPECT_EQ(0,
               memcmp(implicitRejectionSharedSecret,
                      sharedSecret2.data,
@@ -410,35 +410,35 @@ TEST(Kyber1024TestAvx2, ModifiedSecretKeyTest)
     delete[] implicitRejectionSharedSecret;
 }
 
-TEST(MlKem1024TestAvx2, NISTKnownAnswerTest)
+TEST(MlKem512TestAvx2, NISTKnownAnswerTest)
 {
-    auto kats = read_kats("tests/mlkem1024_nistkats.json");
+    auto kats = read_kats("tests/mlkem512_nistkats.json");
 
     for (auto kat : kats)
     {
         libcrux_sha3_Sha3_512Digest randomness;
         memcpy(randomness.data, kat.key_generation_seed.data(), 64);
-        auto key_pair = libcrux_ml_kem_mlkem1024_avx2_generate_key_pair(randomness);
+        auto key_pair = libcrux_ml_kem_mlkem512_avx2_generate_key_pair(randomness);
 
         auto pk_hash =
           libcrux_sha3_sha256(
               mk_slice_u8(key_pair.pk.data,
-                       LIBCRUX_ML_KEM_MLKEM1024_CPA_PKE_PUBLIC_KEY_SIZE));
+                       LIBCRUX_ML_KEM_MLKEM512_CPA_PKE_PUBLIC_KEY_SIZE));
         EXPECT_EQ(0, memcmp(pk_hash.data, kat.sha3_256_hash_of_public_key.data(), 32));
 
         auto sk_hash =
           libcrux_sha3_sha256(
-              mk_slice_u8(key_pair.sk.data, LIBCRUX_ML_KEM_MLKEM1024_SECRET_KEY_SIZE));
+              mk_slice_u8(key_pair.sk.data, LIBCRUX_ML_KEM_MLKEM512_SECRET_KEY_SIZE));
         EXPECT_EQ(0, memcmp(sk_hash.data, kat.sha3_256_hash_of_secret_key.data(), 32));
 
         Eurydice_arr_ec randomness32;
         memcpy(randomness32.data, kat.encapsulation_seed.data(), 32);
-        auto ctxt = libcrux_ml_kem_mlkem1024_avx2_encapsulate(
+        auto ctxt = libcrux_ml_kem_mlkem512_avx2_encapsulate(
             &key_pair.pk, randomness32);
         auto ct_hash =
           libcrux_sha3_sha256(
               mk_slice_u8(ctxt.fst.data,
-                       LIBCRUX_ML_KEM_MLKEM1024_CPA_PKE_CIPHERTEXT_SIZE));
+                       LIBCRUX_ML_KEM_MLKEM512_CPA_PKE_CIPHERTEXT_SIZE));
         EXPECT_EQ(0, memcmp(ct_hash.data, kat.sha3_256_hash_of_ciphertext.data(), 32));
         EXPECT_EQ(0,
                   memcmp(ctxt.snd.data,
@@ -446,7 +446,7 @@ TEST(MlKem1024TestAvx2, NISTKnownAnswerTest)
                          LIBCRUX_ML_KEM_CONSTANTS_SHARED_SECRET_SIZE));
 
         auto sharedSecret2 =
-          libcrux_ml_kem_mlkem1024_avx2_decapsulate(&key_pair.sk, &ctxt.fst);
+          libcrux_ml_kem_mlkem512_avx2_decapsulate(&key_pair.sk, &ctxt.fst);
 
         EXPECT_EQ(0,
                   memcmp(ctxt.snd.data,

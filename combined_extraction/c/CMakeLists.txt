@@ -51,8 +51,11 @@ file(GLOB SOURCES
   ${PROJECT_SOURCE_DIR}/libcrux_mldsa87_portable.c
   ${PROJECT_SOURCE_DIR}/libcrux_mldsa_core.c
   ${PROJECT_SOURCE_DIR}/libcrux_mldsa_portable.c
+  ${PROJECT_SOURCE_DIR}/libcrux_mlkem512_portable.c
   ${PROJECT_SOURCE_DIR}/libcrux_mlkem768_portable.c
+  ${PROJECT_SOURCE_DIR}/libcrux_mlkem1024_portable.c
   ${PROJECT_SOURCE_DIR}/libcrux_mlkem_core.c
+  ${PROJECT_SOURCE_DIR}/libcrux_mlkem_portable.c
   ${PROJECT_SOURCE_DIR}/libcrux_sha3_portable.c
 )
 file(GLOB SOURCES_vec256
@@ -60,7 +63,10 @@ file(GLOB SOURCES_vec256
   ${PROJECT_SOURCE_DIR}/libcrux_mldsa65_avx2.c
   ${PROJECT_SOURCE_DIR}/libcrux_mldsa87_avx2.c
   ${PROJECT_SOURCE_DIR}/libcrux_mldsa_avx2.c
+  ${PROJECT_SOURCE_DIR}/libcrux_mlkem_avx2.c
+  ${PROJECT_SOURCE_DIR}/libcrux_mlkem512_avx2.c
   ${PROJECT_SOURCE_DIR}/libcrux_mlkem768_avx2.c
+  ${PROJECT_SOURCE_DIR}/libcrux_mlkem1024_avx2.c
   ${PROJECT_SOURCE_DIR}/libcrux_sha3_avx2.c
 )
 
@@ -72,6 +78,7 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")
   add_compile_definitions(LIBCRUX_X64)
 
   add_library(combined_vec256 OBJECT ${SOURCES_vec256})
+  set_target_properties(combined_vec256 PROPERTIES POSITION_INDEPENDENT_CODE ON)
   target_sources(combined_static PRIVATE $<TARGET_OBJECTS:combined_vec256>)
   target_sources(combined PRIVATE $<TARGET_OBJECTS:combined_vec256>)
 endif()
@@ -129,10 +136,28 @@ target_link_libraries(ml_dsa_test87 PRIVATE
     nlohmann_json::nlohmann_json
 )
 
+add_executable(ml_kem_test512
+    ${PROJECT_SOURCE_DIR}/tests/mlkem512.cc
+)
+target_link_libraries(ml_kem_test512 PRIVATE
+    combined_static
+    gtest_main
+    nlohmann_json::nlohmann_json
+)
+
 add_executable(ml_kem_test768
     ${PROJECT_SOURCE_DIR}/tests/mlkem768.cc
 )
 target_link_libraries(ml_kem_test768 PRIVATE
+    combined_static
+    gtest_main
+    nlohmann_json::nlohmann_json
+)
+
+add_executable(ml_kem_test1024
+    ${PROJECT_SOURCE_DIR}/tests/mlkem1024.cc
+)
+target_link_libraries(ml_kem_test1024 PRIVATE
     combined_static
     gtest_main
     nlohmann_json::nlohmann_json

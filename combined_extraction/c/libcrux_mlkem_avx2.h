@@ -8,7 +8,7 @@
  * Eurydice: fca2e9fbd728e49d677f3fc0da0054b55f3b9973
  * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
  * F*: 70671ffb81fa30aba09b9d6e2af275dfbccaa8f8
- * Libcrux: bdbc514c92784f52ed92097e2dfe82c2533df5d0
+ * Libcrux: 03a9dbf07ad389374e301a47b3f0418a247bc6b0
  */
 
 
@@ -414,6 +414,13 @@ __m256i libcrux_ml_kem_vector_avx2_serialize_deserialize_5(Eurydice_borrow_slice
 This function found in impl {impl libcrux_ml_kem::vector::traits::Operations for libcrux_ml_kem::vector::avx2::SIMD256Vector}
 */
 __m256i libcrux_ml_kem_vector_avx2_deserialize_5_14(Eurydice_borrow_slice_u8 bytes);
+
+typedef struct core_core_arch_x86___m128i_x2_s
+{
+  __m128i fst;
+  __m128i snd;
+}
+core_core_arch_x86___m128i_x2;
 
 core_core_arch_x86___m128i_x2
 libcrux_ml_kem_vector_avx2_serialize_serialize_10_serialize_10_vec(__m256i vector);

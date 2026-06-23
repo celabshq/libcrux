@@ -122,6 +122,10 @@ typedef struct Eurydice_mut_borrow_slice_i16_s {
 #define core_array__core__clone__Clone_for__T__N___clone(len, src, elem_type, \
                                                          _ret_t)              \
   (*(src))
+#define core_array__impl_core__clone__Clone_for__T__N___clone(len, src,       \
+                                                              elem_type,      \
+                                                              _ret_t)         \
+  (*(src))
 #define TryFromSliceError uint8_t
 #define core_array_TryFromSliceError uint8_t
 
@@ -407,12 +411,16 @@ core_ops_bit__core__ops__bit__BitAnd_u8__u8__for__0__u8___bitand(
     const uint8_t *x0, uint8_t x1) {
   return Eurydice_bitand_pv_u8(x0, x1);
 }
+#define core_ops_bit__impl_core__ops__bit__BitAnd_u8__u8__for____0_u8__bitand \
+  core_ops_bit__core__ops__bit__BitAnd_u8__u8__for__0__u8___bitand
 
 static inline uint8_t
 core_ops_bit__core__ops__bit__Shr_i32__u8__for__0__u8___shr(const uint8_t *x0,
                                                             int32_t x1) {
   return Eurydice_shr_pv_u8(x0, x1);
 }
+#define core_ops_bit__impl_core__ops__bit__Shr_i32__u8__for____0_u8__shr \
+  core_ops_bit__core__ops__bit__Shr_i32__u8__for__0__u8___shr
 
 #define core_num_nonzero_private_NonZeroUsizeInner size_t
 static inline core_num_nonzero_private_NonZeroUsizeInner
@@ -504,3 +512,5 @@ static inline char *malloc_and_init(size_t sz, char *init) {
 #define core_option__core__option__Option_T__TraitClause_0___is_some( \
     x, _of_type, _)                                                   \
   x->tag
+#define core_option__core__option__Option_T___TraitClause0___is_some \
+  core_option__core__option__Option_T__TraitClause_0___is_some
