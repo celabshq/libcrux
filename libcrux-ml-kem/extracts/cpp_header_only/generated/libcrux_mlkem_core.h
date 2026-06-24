@@ -7,8 +7,8 @@
  * Charon: e656e17bff6ca5efac8ab6919b9b74cb9a8dd8ad
  * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
  * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
- * F*: unset
- * Libcrux: c5f306978fa7d13b590fd71dbc260386f3936d57
+ * F*: 7b347386330d0e5a331a220535b6f15288903234
+ * Libcrux: dirty
  */
 
 #ifndef libcrux_mlkem_core_H
@@ -86,12 +86,12 @@ static inline size_t libcrux_ml_kem_constants_ranked_bytes_per_ring_element(
 This function found in impl {libcrux_secrets::traits::Classify<T> for T}
 */
 /**
-A monomorphic instance of libcrux_secrets.int.public_integers.classify_27
+A monomorphic instance of libcrux_secrets.int.classify_public.classify_27
 with types uint8_t
 
 */
 static KRML_MUSTINLINE uint8_t
-libcrux_secrets_int_public_integers_classify_27_90(uint8_t self) {
+libcrux_secrets_int_classify_public_classify_27_90(uint8_t self) {
   return self;
 }
 
@@ -99,12 +99,12 @@ libcrux_secrets_int_public_integers_classify_27_90(uint8_t self) {
 This function found in impl {libcrux_secrets::traits::Declassify<T> for T}
 */
 /**
-A monomorphic instance of libcrux_secrets.int.public_integers.declassify_d8
+A monomorphic instance of libcrux_secrets.int.classify_public.declassify_d8
 with types int16_t
 
 */
 static KRML_MUSTINLINE int16_t
-libcrux_secrets_int_public_integers_declassify_d8_39(int16_t self) {
+libcrux_secrets_int_classify_public_declassify_d8_39(int16_t self) {
   return self;
 }
 
@@ -112,20 +112,20 @@ libcrux_secrets_int_public_integers_declassify_d8_39(int16_t self) {
 This function found in impl {libcrux_secrets::int::CastOps for i16}
 */
 static KRML_MUSTINLINE uint8_t libcrux_secrets_int_as_u8_f5(int16_t self) {
-  return libcrux_secrets_int_public_integers_classify_27_90(
-      (uint8_t)libcrux_secrets_int_public_integers_declassify_d8_39(self));
+  return libcrux_secrets_int_classify_public_classify_27_90(
+      (uint8_t)libcrux_secrets_int_classify_public_declassify_d8_39(self));
 }
 
 /**
 This function found in impl {libcrux_secrets::traits::Classify<T> for T}
 */
 /**
-A monomorphic instance of libcrux_secrets.int.public_integers.classify_27
+A monomorphic instance of libcrux_secrets.int.classify_public.classify_27
 with types int16_t
 
 */
 static KRML_MUSTINLINE int16_t
-libcrux_secrets_int_public_integers_classify_27_39(int16_t self) {
+libcrux_secrets_int_classify_public_classify_27_39(int16_t self) {
   return self;
 }
 
@@ -133,12 +133,12 @@ libcrux_secrets_int_public_integers_classify_27_39(int16_t self) {
 This function found in impl {libcrux_secrets::traits::Declassify<T> for T}
 */
 /**
-A monomorphic instance of libcrux_secrets.int.public_integers.declassify_d8
+A monomorphic instance of libcrux_secrets.int.classify_public.declassify_d8
 with types uint8_t
 
 */
 static KRML_MUSTINLINE uint8_t
-libcrux_secrets_int_public_integers_declassify_d8_90(uint8_t self) {
+libcrux_secrets_int_classify_public_declassify_d8_90(uint8_t self) {
   return self;
 }
 
@@ -146,8 +146,8 @@ libcrux_secrets_int_public_integers_declassify_d8_90(uint8_t self) {
 This function found in impl {libcrux_secrets::int::CastOps for u8}
 */
 static KRML_MUSTINLINE int16_t libcrux_secrets_int_as_i16_59(uint8_t self) {
-  return libcrux_secrets_int_public_integers_classify_27_39(
-      (int16_t)(uint32_t)libcrux_secrets_int_public_integers_declassify_d8_90(
+  return libcrux_secrets_int_classify_public_classify_27_39(
+      (int16_t)(uint32_t)libcrux_secrets_int_classify_public_declassify_d8_90(
           self));
 }
 
@@ -155,12 +155,12 @@ static KRML_MUSTINLINE int16_t libcrux_secrets_int_as_i16_59(uint8_t self) {
 This function found in impl {libcrux_secrets::traits::Classify<T> for T}
 */
 /**
-A monomorphic instance of libcrux_secrets.int.public_integers.classify_27
+A monomorphic instance of libcrux_secrets.int.classify_public.classify_27
 with types int32_t
 
 */
 static KRML_MUSTINLINE int32_t
-libcrux_secrets_int_public_integers_classify_27_a8(int32_t self) {
+libcrux_secrets_int_classify_public_classify_27_a8(int32_t self) {
   return self;
 }
 
@@ -168,20 +168,20 @@ libcrux_secrets_int_public_integers_classify_27_a8(int32_t self) {
 This function found in impl {libcrux_secrets::int::CastOps for i16}
 */
 static KRML_MUSTINLINE int32_t libcrux_secrets_int_as_i32_f5(int16_t self) {
-  return libcrux_secrets_int_public_integers_classify_27_a8(
-      (int32_t)libcrux_secrets_int_public_integers_declassify_d8_39(self));
+  return libcrux_secrets_int_classify_public_classify_27_a8(
+      (int32_t)libcrux_secrets_int_classify_public_declassify_d8_39(self));
 }
 
 /**
 This function found in impl {libcrux_secrets::traits::Declassify<T> for T}
 */
 /**
-A monomorphic instance of libcrux_secrets.int.public_integers.declassify_d8
+A monomorphic instance of libcrux_secrets.int.classify_public.declassify_d8
 with types int32_t
 
 */
 static KRML_MUSTINLINE int32_t
-libcrux_secrets_int_public_integers_declassify_d8_a8(int32_t self) {
+libcrux_secrets_int_classify_public_declassify_d8_a8(int32_t self) {
   return self;
 }
 
@@ -189,20 +189,20 @@ libcrux_secrets_int_public_integers_declassify_d8_a8(int32_t self) {
 This function found in impl {libcrux_secrets::int::CastOps for i32}
 */
 static KRML_MUSTINLINE int16_t libcrux_secrets_int_as_i16_36(int32_t self) {
-  return libcrux_secrets_int_public_integers_classify_27_39(
-      (int16_t)libcrux_secrets_int_public_integers_declassify_d8_a8(self));
+  return libcrux_secrets_int_classify_public_classify_27_39(
+      (int16_t)libcrux_secrets_int_classify_public_declassify_d8_a8(self));
 }
 
 /**
 This function found in impl {libcrux_secrets::traits::Declassify<T> for T}
 */
 /**
-A monomorphic instance of libcrux_secrets.int.public_integers.declassify_d8
+A monomorphic instance of libcrux_secrets.int.classify_public.declassify_d8
 with types uint32_t
 
 */
 static KRML_MUSTINLINE uint32_t
-libcrux_secrets_int_public_integers_declassify_d8_df(uint32_t self) {
+libcrux_secrets_int_classify_public_declassify_d8_df(uint32_t self) {
   return self;
 }
 
@@ -210,20 +210,20 @@ libcrux_secrets_int_public_integers_declassify_d8_df(uint32_t self) {
 This function found in impl {libcrux_secrets::int::CastOps for u32}
 */
 static KRML_MUSTINLINE int32_t libcrux_secrets_int_as_i32_b8(uint32_t self) {
-  return libcrux_secrets_int_public_integers_classify_27_a8(
-      (int32_t)libcrux_secrets_int_public_integers_declassify_d8_df(self));
+  return libcrux_secrets_int_classify_public_classify_27_a8(
+      (int32_t)libcrux_secrets_int_classify_public_declassify_d8_df(self));
 }
 
 /**
 This function found in impl {libcrux_secrets::traits::Classify<T> for T}
 */
 /**
-A monomorphic instance of libcrux_secrets.int.public_integers.classify_27
+A monomorphic instance of libcrux_secrets.int.classify_public.classify_27
 with types uint16_t
 
 */
 static KRML_MUSTINLINE uint16_t
-libcrux_secrets_int_public_integers_classify_27_de(uint16_t self) {
+libcrux_secrets_int_classify_public_classify_27_de(uint16_t self) {
   return self;
 }
 
@@ -231,20 +231,20 @@ libcrux_secrets_int_public_integers_classify_27_de(uint16_t self) {
 This function found in impl {libcrux_secrets::int::CastOps for i16}
 */
 static KRML_MUSTINLINE uint16_t libcrux_secrets_int_as_u16_f5(int16_t self) {
-  return libcrux_secrets_int_public_integers_classify_27_de(
-      (uint16_t)libcrux_secrets_int_public_integers_declassify_d8_39(self));
+  return libcrux_secrets_int_classify_public_classify_27_de(
+      (uint16_t)libcrux_secrets_int_classify_public_declassify_d8_39(self));
 }
 
 /**
 This function found in impl {libcrux_secrets::traits::Declassify<T> for T}
 */
 /**
-A monomorphic instance of libcrux_secrets.int.public_integers.declassify_d8
+A monomorphic instance of libcrux_secrets.int.classify_public.declassify_d8
 with types uint16_t
 
 */
 static KRML_MUSTINLINE uint16_t
-libcrux_secrets_int_public_integers_declassify_d8_de(uint16_t self) {
+libcrux_secrets_int_classify_public_declassify_d8_de(uint16_t self) {
   return self;
 }
 
@@ -252,8 +252,8 @@ libcrux_secrets_int_public_integers_declassify_d8_de(uint16_t self) {
 This function found in impl {libcrux_secrets::int::CastOps for u16}
 */
 static KRML_MUSTINLINE int16_t libcrux_secrets_int_as_i16_ca(uint16_t self) {
-  return libcrux_secrets_int_public_integers_classify_27_39(
-      (int16_t)(uint32_t)libcrux_secrets_int_public_integers_declassify_d8_de(
+  return libcrux_secrets_int_classify_public_classify_27_39(
+      (int16_t)(uint32_t)libcrux_secrets_int_classify_public_declassify_d8_de(
           self));
 }
 
@@ -261,12 +261,12 @@ static KRML_MUSTINLINE int16_t libcrux_secrets_int_as_i16_ca(uint16_t self) {
 This function found in impl {libcrux_secrets::traits::Classify<T> for T}
 */
 /**
-A monomorphic instance of libcrux_secrets.int.public_integers.classify_27
+A monomorphic instance of libcrux_secrets.int.classify_public.classify_27
 with types uint64_t
 
 */
 static KRML_MUSTINLINE uint64_t
-libcrux_secrets_int_public_integers_classify_27_49(uint64_t self) {
+libcrux_secrets_int_classify_public_classify_27_49(uint64_t self) {
   return self;
 }
 
@@ -274,8 +274,8 @@ libcrux_secrets_int_public_integers_classify_27_49(uint64_t self) {
 This function found in impl {libcrux_secrets::int::CastOps for u16}
 */
 static KRML_MUSTINLINE uint64_t libcrux_secrets_int_as_u64_ca(uint16_t self) {
-  return libcrux_secrets_int_public_integers_classify_27_49(
-      (uint64_t)(uint32_t)libcrux_secrets_int_public_integers_declassify_d8_de(
+  return libcrux_secrets_int_classify_public_classify_27_49(
+      (uint64_t)(uint32_t)libcrux_secrets_int_classify_public_declassify_d8_de(
           self));
 }
 
@@ -283,12 +283,12 @@ static KRML_MUSTINLINE uint64_t libcrux_secrets_int_as_u64_ca(uint16_t self) {
 This function found in impl {libcrux_secrets::traits::Classify<T> for T}
 */
 /**
-A monomorphic instance of libcrux_secrets.int.public_integers.classify_27
+A monomorphic instance of libcrux_secrets.int.classify_public.classify_27
 with types uint32_t
 
 */
 static KRML_MUSTINLINE uint32_t
-libcrux_secrets_int_public_integers_classify_27_df(uint32_t self) {
+libcrux_secrets_int_classify_public_classify_27_df(uint32_t self) {
   return self;
 }
 
@@ -296,12 +296,12 @@ libcrux_secrets_int_public_integers_classify_27_df(uint32_t self) {
 This function found in impl {libcrux_secrets::traits::Declassify<T> for T}
 */
 /**
-A monomorphic instance of libcrux_secrets.int.public_integers.declassify_d8
+A monomorphic instance of libcrux_secrets.int.classify_public.declassify_d8
 with types uint64_t
 
 */
 static KRML_MUSTINLINE uint64_t
-libcrux_secrets_int_public_integers_declassify_d8_49(uint64_t self) {
+libcrux_secrets_int_classify_public_declassify_d8_49(uint64_t self) {
   return self;
 }
 
@@ -309,24 +309,24 @@ libcrux_secrets_int_public_integers_declassify_d8_49(uint64_t self) {
 This function found in impl {libcrux_secrets::int::CastOps for u64}
 */
 static KRML_MUSTINLINE uint32_t libcrux_secrets_int_as_u32_a3(uint64_t self) {
-  return libcrux_secrets_int_public_integers_classify_27_df(
-      (uint32_t)libcrux_secrets_int_public_integers_declassify_d8_49(self));
+  return libcrux_secrets_int_classify_public_classify_27_df(
+      (uint32_t)libcrux_secrets_int_classify_public_declassify_d8_49(self));
 }
 
 /**
 This function found in impl {libcrux_secrets::int::CastOps for u32}
 */
 static KRML_MUSTINLINE int16_t libcrux_secrets_int_as_i16_b8(uint32_t self) {
-  return libcrux_secrets_int_public_integers_classify_27_39(
-      (int16_t)libcrux_secrets_int_public_integers_declassify_d8_df(self));
+  return libcrux_secrets_int_classify_public_classify_27_39(
+      (int16_t)libcrux_secrets_int_classify_public_declassify_d8_df(self));
 }
 
 /**
 This function found in impl {libcrux_secrets::int::CastOps for i16}
 */
 static KRML_MUSTINLINE int16_t libcrux_secrets_int_as_i16_f5(int16_t self) {
-  return libcrux_secrets_int_public_integers_classify_27_39(
-      libcrux_secrets_int_public_integers_declassify_d8_39(self));
+  return libcrux_secrets_int_classify_public_classify_27_39(
+      libcrux_secrets_int_classify_public_declassify_d8_39(self));
 }
 
 /**
@@ -1682,67 +1682,77 @@ libcrux_ml_kem_types_unpack_private_key_64(
 }
 
 /**
-This function found in impl {libcrux_secrets::traits::Declassify<T> for T}
+This function found in impl {libcrux_secrets::traits::Declassify<[T; N]> for [T;
+N]}
 */
 /**
-A monomorphic instance of libcrux_secrets.int.public_integers.declassify_d8
-with types Eurydice_arr uint8_t[[$24size_t]]
-
+A monomorphic instance of libcrux_secrets.int.classify_public.declassify_91
+with types uint8_t
+with const generics
+- N= 24
 */
 static KRML_MUSTINLINE Eurydice_arr_94
-libcrux_secrets_int_public_integers_declassify_d8_40(Eurydice_arr_94 self) {
+libcrux_secrets_int_classify_public_declassify_91_ed(Eurydice_arr_94 self) {
   return self;
 }
 
 /**
-This function found in impl {libcrux_secrets::traits::Declassify<T> for T}
+This function found in impl {libcrux_secrets::traits::Declassify<[T; N]> for [T;
+N]}
 */
 /**
-A monomorphic instance of libcrux_secrets.int.public_integers.declassify_d8
-with types Eurydice_arr uint8_t[[$20size_t]]
-
+A monomorphic instance of libcrux_secrets.int.classify_public.declassify_91
+with types uint8_t
+with const generics
+- N= 20
 */
 static KRML_MUSTINLINE Eurydice_arr_fc
-libcrux_secrets_int_public_integers_declassify_d8_2b(Eurydice_arr_fc self) {
+libcrux_secrets_int_classify_public_declassify_91_8f(Eurydice_arr_fc self) {
   return self;
 }
 
 /**
-This function found in impl {libcrux_secrets::traits::Declassify<T> for T}
+This function found in impl {libcrux_secrets::traits::Declassify<[T; N]> for [T;
+N]}
 */
 /**
-A monomorphic instance of libcrux_secrets.int.public_integers.declassify_d8
-with types Eurydice_arr uint8_t[[$8size_t]]
-
+A monomorphic instance of libcrux_secrets.int.classify_public.declassify_91
+with types uint8_t
+with const generics
+- N= 8
 */
 static KRML_MUSTINLINE Eurydice_array_u8x8
-libcrux_secrets_int_public_integers_declassify_d8_52(Eurydice_array_u8x8 self) {
+libcrux_secrets_int_classify_public_declassify_91_6e(Eurydice_array_u8x8 self) {
   return self;
 }
 
 /**
-This function found in impl {libcrux_secrets::traits::Declassify<T> for T}
+This function found in impl {libcrux_secrets::traits::Declassify<[T; N]> for [T;
+N]}
 */
 /**
-A monomorphic instance of libcrux_secrets.int.public_integers.declassify_d8
-with types Eurydice_arr uint8_t[[$2size_t]]
-
+A monomorphic instance of libcrux_secrets.int.classify_public.declassify_91
+with types uint8_t
+with const generics
+- N= 2
 */
 static KRML_MUSTINLINE Eurydice_array_u8x2
-libcrux_secrets_int_public_integers_declassify_d8_75(Eurydice_array_u8x2 self) {
+libcrux_secrets_int_classify_public_declassify_91_82(Eurydice_array_u8x2 self) {
   return self;
 }
 
 /**
-This function found in impl {libcrux_secrets::traits::Classify<T> for T}
+This function found in impl {libcrux_secrets::traits::Classify<[T; N]> for [T;
+N]}
 */
 /**
-A monomorphic instance of libcrux_secrets.int.public_integers.classify_27
-with types Eurydice_arr int16_t[[$16size_t]]
-
+A monomorphic instance of libcrux_secrets.int.classify_public.classify_fa
+with types int16_t
+with const generics
+- N= 16
 */
 static KRML_MUSTINLINE Eurydice_arr_d6
-libcrux_secrets_int_public_integers_classify_27_4b(Eurydice_arr_d6 self) {
+libcrux_secrets_int_classify_public_classify_fa_8a(Eurydice_arr_d6 self) {
   return self;
 }
 
