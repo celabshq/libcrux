@@ -13,6 +13,7 @@ pub type Vec128 = __m128i;
 pub type Vec256Float = __m256;
 
 #[hax_lib::opaque]
+#[hax_lib::ensures(|_r| future(output).len() == output.len())]
 #[inline(always)]
 pub fn mm256_storeu_si256_u8(output: &mut [u8], vector: Vec256) {
     // Note: in this module the `debug_assert_eq!` are essentially sanity
@@ -28,6 +29,7 @@ pub fn mm256_storeu_si256_u8(output: &mut [u8], vector: Vec256) {
 }
 
 #[hax_lib::opaque]
+#[hax_lib::ensures(|_r| future(output).len() == output.len())]
 #[inline(always)]
 pub fn mm256_storeu_si256_i16(output: &mut [i16], vector: Vec256) {
     #[cfg(not(hax))]
@@ -38,6 +40,7 @@ pub fn mm256_storeu_si256_i16(output: &mut [i16], vector: Vec256) {
 }
 
 #[hax_lib::opaque]
+#[hax_lib::ensures(|_r| future(output).len() == output.len())]
 #[inline(always)]
 pub fn mm256_storeu_si256_i32(output: &mut [i32], vector: Vec256) {
     #[cfg(not(hax))]
@@ -48,6 +51,7 @@ pub fn mm256_storeu_si256_i32(output: &mut [i32], vector: Vec256) {
 }
 
 #[hax_lib::opaque]
+#[hax_lib::ensures(|_r| future(output).len() == output.len())]
 #[inline(always)]
 pub fn mm_storeu_si128(output: &mut [i16], vector: Vec128) {
     #[cfg(not(hax))]
@@ -66,6 +70,7 @@ pub fn mm_storeu_si128_u128(output: &mut u128, vector: Vec128) {
 }
 
 #[hax_lib::opaque]
+#[hax_lib::ensures(|_r| future(output).len() == output.len())]
 #[inline(always)]
 pub fn mm_storeu_si128_u8(output: &mut [u8], vector: Vec128) {
     #[cfg(not(hax))]
@@ -76,6 +81,7 @@ pub fn mm_storeu_si128_u8(output: &mut [u8], vector: Vec128) {
 }
 
 #[hax_lib::opaque]
+#[hax_lib::ensures(|_r| future(output).len() == output.len())]
 #[inline(always)]
 pub fn mm_storeu_si128_i32(output: &mut [i32], vector: Vec128) {
     #[cfg(not(hax))]
@@ -800,4 +806,19 @@ pub fn mm_aesenclast_si128(a: Vec128, b: Vec128) -> Vec128 {
 #[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
 pub fn mm_aeskeygenassist_si128<const RCON: i32>(a: Vec128) -> Vec128 {
     unsafe { _mm_aeskeygenassist_si128(a, RCON) }
+}
+
+// Opaque to hax like the other raw-pointer store/load wrappers above: the body
+// reinterprets a `[u64; 4]` as `&mut [u8]` via `from_raw_parts_mut`, which hax
+// rejects (`reject_RawOrMutPointer`). Marking it opaque extracts it as an
+// uninterpreted `val` (consumers that need a spec use the `avx2_extract` model).
+#[hax_lib::opaque]
+#[inline(always)]
+pub fn get_lane_u64(vec: Vec256, lane: usize) -> u64 {
+    let mut tmp = [0u64; 4];
+    mm256_storeu_si256_u8(
+        unsafe { core::slice::from_raw_parts_mut(tmp.as_mut_ptr() as *mut u8, 32) },
+        vec,
+    );
+    tmp[lane]
 }

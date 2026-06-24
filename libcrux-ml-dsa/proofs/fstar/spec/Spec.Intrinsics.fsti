@@ -796,3 +796,126 @@ val lemma_from_i32x8_def_pt (f: (i:u64{v i < 8}) -> i32): Lemma (forall i. to_i3
 let mk_i32x8 (f: (i:u64{v i < 8}) -> i32): r: bv256 {forall i. to_i32x8 r i == f i}
  = lemma_from_i32x8_def_pt f;
    from_i32x8 (FStar.FunctionalExtensionality.on (n:u64{v n < 8}) f)
+
+(* ============================================================================
+   ML-DSA AVX2 intrinsic-model lemmas (D6.3 F* spec layer), upstreamed from
+   libcrux-ml-dsa-proofs for rebase consistency. Each is the trusted F* spec for a
+   CPU-differential-tested core-models model (D6.1 model + D6.2 `mk!` test vs real
+   x86 `upstream::`). Grouped: (1) compute_hint/use_hint set, (2) rejection_sample set.
+   ============================================================================ *)
+
+(* --- (1) compute_hint / use_hint models (store/load/setzero/blend/cmpeq/or/sign) --- *)
+
+val mm256_storeu_si256_i32_lemma (out: t_Slice i32) (vec: bv256) (i: nat {i < 8})
+  : Lemma (requires Seq.length out == 8)
+          (ensures Seq.length (I.mm256_storeu_si256_i32 out vec) == 8 /\
+                   Seq.index (I.mm256_storeu_si256_i32 out vec) i == to_i32x8 vec (mk_u64 i))
+          [SMTPat (Seq.index (I.mm256_storeu_si256_i32 out vec) i)]
+
+val mm256_storeu_si256_i32_len_lemma (out: t_Slice i32) (vec: bv256)
+  : Lemma (Seq.length (I.mm256_storeu_si256_i32 out vec) == Seq.length out)
+          [SMTPat (Seq.length (I.mm256_storeu_si256_i32 out vec))]
+
+val mm256_setzero_si256_lemma (i: u64 {v i < 8})
+  : Lemma (to_i32x8 (I.mm256_setzero_si256 ()) i == mk_i32 0)
+          [SMTPat (to_i32x8 (I.mm256_setzero_si256 ()) i)]
+
+val mm256_loadu_si256_i32_lemma (input: t_Slice i32) (i: u64 {v i < 8})
+  : Lemma (requires Seq.length input == 8)
+          (ensures to_i32x8 (I.mm256_loadu_si256_i32 input) i == Seq.index input (v i))
+          [SMTPat (to_i32x8 (I.mm256_loadu_si256_i32 input) i)]
+
+// Faithful model of _mm256_blendv_ps-based 32-bit lane select: the result lane
+// is `b` when the mask lane's sign bit (MSB) is set (mask lane < 0) and `a`
+// otherwise. Cross-validated vs Intel semantics in the use_hint Python sim.
+val vec256_blendv_epi32_lemma (a b mask: bv256) (i:u64{v i < 8}):
+  Lemma (to_i32x8 (Libcrux_intrinsics.Avx2.vec256_blendv_epi32 a b mask) i ==
+         (if to_i32x8 mask i <. mk_i32 0 then to_i32x8 b i else to_i32x8 a i))
+  [SMTPat (to_i32x8 (Libcrux_intrinsics.Avx2.vec256_blendv_epi32 a b mask) i)]
+
+val mm256_cmpeq_epi32_lemma (a b: bv256) (i:u64{v i < 8}):
+  Lemma (to_i32x8 (Libcrux_intrinsics.Avx2.mm256_cmpeq_epi32 a b) i ==
+         (if (to_i32x8 a i = to_i32x8 b i) then ones else zero))
+  [SMTPat (to_i32x8 (Libcrux_intrinsics.Avx2.mm256_cmpeq_epi32 a b) i)]
+
+val mm256_or_si256_lemma (a b: bv256) (i:u64{v i < 8}):
+  Lemma (to_i32x8 (Libcrux_intrinsics.Avx2.mm256_or_si256 a b) i ==
+         ((to_i32x8 a i) |. (to_i32x8 b i)))
+  [SMTPat (to_i32x8 (Libcrux_intrinsics.Avx2.mm256_or_si256 a b) i)]
+
+// _mm256_sign_epi32: lane = (b<0 ? wrapping_neg a : (b==0 ? 0 : a)).
+val mm256_sign_epi32_lemma (a b: bv256) (i:u64{v i < 8}):
+  Lemma (to_i32x8 (Libcrux_intrinsics.Avx2.mm256_sign_epi32 a b) i ==
+         (let bi = to_i32x8 b i in
+          if bi <. zero then (mk_i32 0 -. (to_i32x8 a i))
+          else if bi = zero then zero
+          else to_i32x8 a i))
+  [SMTPat (to_i32x8 (Libcrux_intrinsics.Avx2.mm256_sign_epi32 a b) i)]
+
+(* --- (2) rejection_sample models (movemask / 128-bit store / 256-byte load + projections) --- *)
+(* movemask : interpretations.rs `_mm256_movemask_ps` (sum_j a[j]<0?2^j:0) + CPU test + lift-lemma.
+   mm_storeu_si128_i32 : core_arch/x86.rs `_mm_storeu_si128` (mm_storeu_bytes_si128) + CPU test.
+   mm256_loadu_si256_u8 : interpretations.rs `_mm256_loadu_si256_u8` (BitVec::from_slice(.,8)).
+   i32x4 / i32_to_bv lemmas: definitional (mirror i32_to_bv_to_i32x8_inv / to_i32x8_eq_to_bv_eq). *)
+
+(* to_i32x4 bit inversion (bv128 analogue of i32_to_bv_to_i32x8_inv). *)
+val i32_to_bv_to_i32x4_inv (vec: bv128) (i: u64 {v i < 4}) (j: u64 {v j < 32})
+  : Lemma (i32_to_bv (to_i32x4 vec i) j == vec.(mk_int (v i * 32 + v j)))
+    [SMTPat (i32_to_bv (to_i32x4 vec i) j)]
+
+(* i32_to_bv is injective (32-bit extensionality). *)
+val i32_to_bv_ext (a c: i32)
+  : Lemma (requires forall (j:u64{v j<32}). i32_to_bv a j == i32_to_bv c j)
+          (ensures a == c)
+
+(* to_i8x16 of a 16-byte load: lane nth is byte nth reinterpreted as i8. *)
+val to_i8x16_mm_loadu_si128_lemma (bytes: t_Slice u8 {Seq.length bytes == 16}) (nth: u64 {v nth < 16})
+  : Lemma (to_i8x16 (I.mm_loadu_si128 bytes) nth == (cast (Seq.index bytes (v nth)) <: i8))
+    [SMTPat (to_i8x16 (I.mm_loadu_si128 bytes) nth)]
+
+(* mm256_loadu_si256_u8 byte content (256-bit analogue of mm_loadu_si128_lemma). *)
+val mm256_loadu_si256_u8_lemma (bytes: t_Slice u8 {Seq.length bytes == 32}) (i: u64 {v i < 256})
+  : Lemma ((I.mm256_loadu_si256_u8 bytes).(i) == (u8_to_bv (Seq.index bytes ((v i) / 8)))(mk_int ((v i) % 8)))
+    [SMTPat ((I.mm256_loadu_si256_u8 bytes).(i))]
+
+(* mm_storeu_si128_i32 content (128-bit / 4 i32 analogue of mm256_storeu_si256_i32). *)
+val mm_storeu_si128_i32_lemma (out: t_Slice i32) (vec: bv128) (i: nat {i < 4})
+  : Lemma (requires Seq.length out == 4)
+          (ensures Seq.length (I.mm_storeu_si128_i32 out vec) == 4 /\
+                   Seq.index (I.mm_storeu_si128_i32 out vec) i == to_i32x4 vec (mk_u64 i))
+    [SMTPat (Seq.index (I.mm_storeu_si128_i32 out vec) i)]
+
+val mm_storeu_si128_i32_len_lemma (out: t_Slice i32) (vec: bv128)
+  : Lemma (Seq.length (I.mm_storeu_si128_i32 out vec) == Seq.length out)
+    [SMTPat (Seq.length (I.mm_storeu_si128_i32 out vec))]
+
+(* mm256_movemask_ps content: result == sum of per-lane i32 sign bits (matches the
+   CPU-tested core-models model; mm256_castsi256_ps is bit-identity). *)
+val mm256_movemask_ps_lemma (a: bv256)
+  : Lemma (v (I.mm256_movemask_ps (I.mm256_castsi256_ps a)) ==
+           (if to_i32x8 a (mk_u64 0) <. mk_i32 0 then 1 else 0) +
+           (if to_i32x8 a (mk_u64 1) <. mk_i32 0 then 2 else 0) +
+           (if to_i32x8 a (mk_u64 2) <. mk_i32 0 then 4 else 0) +
+           (if to_i32x8 a (mk_u64 3) <. mk_i32 0 then 8 else 0) +
+           (if to_i32x8 a (mk_u64 4) <. mk_i32 0 then 16 else 0) +
+           (if to_i32x8 a (mk_u64 5) <. mk_i32 0 then 32 else 0) +
+           (if to_i32x8 a (mk_u64 6) <. mk_i32 0 then 64 else 0) +
+           (if to_i32x8 a (mk_u64 7) <. mk_i32 0 then 128 else 0))
+
+(* NEW (D6.3): the masked 3-byte coefficient's bit decomposition. Analog of
+   shl_casted_u8_bv_lemma (2-byte); matches rejection_sample_coefficient_lemma. *)
+val coeff_gather_bv_lemma (a b c: u8) (i: u64{v i<32})
+  : Lemma (i32_to_bv (((((cast c <: i32) <<! mk_i32 16 <: i32) |. ((cast b <: i32) <<! mk_i32 8 <: i32) <: i32)
+                       |. (cast a <: i32) <: i32) &. mk_i32 8388607 <: i32) i
+        == (if v i >= 23 then Bit_Zero
+            else if v i >= 16 then u8_to_bv c (mk_int (v i - 16))
+            else if v i >= 8 then u8_to_bv b (mk_int (v i - 8))
+            else u8_to_bv a i))
+
+(* NEW (D6.3): u8-nibble bit lemmas (u8_to_bv abstract). low nibble (& 15) keeps
+   bits 0..3, zeroes 4..7; high nibble (>> 4) moves bits 4..7 to 0..3, zeroes 4..7. *)
+val u8_to_bv_logand15_lemma (x: u8) (i: u64{v i < 8})
+  : Lemma (u8_to_bv (x &. mk_u8 15) i == (if v i < 4 then u8_to_bv x i else Bit_Zero))
+
+val u8_to_bv_shr4_lemma (x: u8) (i: u64{v i < 8})
+  : Lemma (u8_to_bv (x >>! mk_u8 4) i == (if v i < 4 then u8_to_bv x (mk_int (v i + 4)) else Bit_Zero))

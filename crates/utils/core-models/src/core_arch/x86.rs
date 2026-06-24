@@ -664,9 +664,15 @@ pub mod avx2 {
     }
 
     /// [Intel Documentation](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm256_bsrli_epi128)
-    /// NOTE: the bsrli here is different from intel specification. In the intel specification, if an IMM8 is given whose first 8 bits are higher than 15, it fixes it to 16.
-    /// However, the Rust implementation erroneously takes the input modulo 16. Thus, instead of shifting by 16 bits at an input of 16, it shifts by 0.
-    /// We are currently modelling the Rust implementation.
+    ///
+    /// Models Intel's specification: byte-shift right within each 128-bit
+    /// lane; if `IMM8 & 0xff > 15`, the destination is zeroed.
+    ///
+    /// History: an earlier model deliberately mirrored a bug in Rust
+    /// `core::arch::x86_64::_mm256_bsrli_epi128` that took `IMM8 % 16`
+    /// instead of zeroing on out-of-range shifts (rust-lang/stdarch#1822).
+    /// That bug was fixed in stdarch#1823 — the int-vec model now matches
+    /// the fixed (Intel-spec) behaviour.
     #[hax_lib::opaque]
     pub fn _mm256_bsrli_epi128<const IMM8: i32>(_: __m256i) -> __m256i {
         unimplemented!()

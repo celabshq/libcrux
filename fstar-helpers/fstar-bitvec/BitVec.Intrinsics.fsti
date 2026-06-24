@@ -84,7 +84,47 @@ let mm256_set1_epi16_pow2_minus_one (n: nat): bit_vec 256
 
 let mm256_and_si256 (x y: bit_vec 256): bit_vec 256
   = mk_bv (fun i -> if y i = 0 then 0 else x i)
-  
+
+let mm256_or_si256 (x y: bit_vec 256): bit_vec 256
+  = mk_bv (fun i -> if y i = 1 then 1 else x i)
+
+let mm256_xor_si256 (x y: bit_vec 256): bit_vec 256
+  = mk_bv (fun i -> if y i = 0 then x i else (if x i = 0 then 1 else 0))
+
+let mm256_andnot_si256 (a b: bit_vec 256): bit_vec 256
+  = mk_bv (fun i -> if a i = 0 then b i else 0)
+
+let mm256_slli_epi64 (shift: i32 {v shift >= 0 /\ v shift <= 64}) (vec: bit_vec 256): bit_vec 256
+  = mk_bv (fun i -> let nth_bit = i % 64 in
+                 if nth_bit >= v shift then vec (i - v shift) else 0)
+
+let mm256_set1_epi64x (a: i64): bit_vec 256
+  = mk_bv (fun i -> get_bit a (sz (i % 64)))
+
+let mm256_set_epi64x (input3 input2 input1 input0: i64): bit_vec 256
+  = mk_bv (fun i ->
+      let h (x: i64) = get_bit x (sz (i % 64)) in
+      match i / 64 with
+      | 0 -> h input0
+      | 1 -> h input1
+      | 2 -> h input2
+      | _ -> h input3)
+
+let mm256_unpacklo_epi64 (a b: bit_vec 256): bit_vec 256
+  = mk_bv (fun i -> if (i / 64) % 2 = 0 then a i else b (i - 64))
+
+let mm256_unpackhi_epi64 (lhs rhs: bit_vec 256): bit_vec 256
+  = mk_bv (fun i -> if (i / 64) % 2 = 0 then lhs (i + 64) else rhs i)
+
+let mm256_permute2x128_si256 (control: i32 {v control == 0x20 \/ v control == 0x31})
+                              (a b: bit_vec 256): bit_vec 256
+  = mk_bv (fun i ->
+      if v control = 0x20 then
+        (if i < 128 then a i else b (i - 128))
+      else
+        (if i < 128 then a (i + 128) else b i))
+
+
 let mm256_set1_epi16 (constant: i16)
   (#[Tactics.exact (match unify_app (quote constant) (quote (fun n -> (((mk_i16 1) <<! mk_i32 n <: i16) -! (mk_i16 1) <: i16))) [] with
      | Some [x] -> `(mm256_set1_epi16_pow2_minus_one (`#x))
@@ -156,10 +196,24 @@ let mm256_mullo_epi16_specialized2 (a: bit_vec 256): bit_vec 256 =
 
 // This is a very specialized version of mm256_mullo_epi16
 let mm256_mullo_epi16_specialized3 (a: bit_vec 256): bit_vec 256 =
-  mk_bv (fun i -> 
+  mk_bv (fun i ->
     let nth_bit = i % 16 in
     let nth_i16 = i / 16 in
     let shift = 6 - (nth_i16 % 4) * 2 in
+    if nth_bit >= shift then a (i - shift) else 0
+  )
+
+// For deserialize_5: per-lane shift cycle of period 8 = [11;6;9;4;7;2;5;0].
+// (Multiplier source `(1<<0,1<<5,1<<2,1<<7,1<<4,1<<9,1<<6,1<<11,...)` has
+// the FIRST arg corresponding to lane 15, so lane 0 receives `1<<11`,
+// i.e. shift=11; lane 7 receives `1<<0`, i.e. shift=0.)
+// Equivalently: shift(k) = 11 - ((k % 2) * 5 + ((k % 8) / 2) * 2).
+let mm256_mullo_epi16_specialized4 (a: bit_vec 256): bit_vec 256 =
+  mk_bv (fun i ->
+    let nth_bit = i % 16 in
+    let nth_i16 = i / 16 in
+    let k = nth_i16 % 8 in
+    let shift = 11 - ((k % 2) * 5 + (k / 2) * 2) in
     if nth_bit >= shift then a (i - shift) else 0
   )
 
@@ -195,8 +249,16 @@ let mm256_mullo_epi16
                 | Some [x] -> unquote x = (mk_i16 1)
                 | _ -> false
              then Tactics.exact (quote (mm256_mullo_epi16_specialized3 a))
-             else 
-               Tactics.exact (quote (mm256_mullo_epi16_no_semantics a count))
+             else
+               if match unify_app (quote count) (quote (fun x -> mm256_set_epi16 (x <<! (mk_i32 0) <: i16) ((mk_i16 1) <<! (mk_i32 5) <: i16)
+                                                                 ((mk_i16 1) <<! (mk_i32 2) <: i16) ((mk_i16 1) <<! (mk_i32 7) <: i16) ((mk_i16 1) <<! (mk_i32 4) <: i16) ((mk_i16 1) <<! (mk_i32 9) <: i16) ((mk_i16 1) <<! (mk_i32 6) <: i16)
+                                                                 ((mk_i16 1) <<! (mk_i32 11) <: i16) ((mk_i16 1) <<! (mk_i32 0) <: i16) ((mk_i16 1) <<! (mk_i32 5) <: i16) ((mk_i16 1) <<! (mk_i32 2) <: i16) ((mk_i16 1) <<! (mk_i32 7) <: i16)
+                                                                 ((mk_i16 1) <<! (mk_i32 4) <: i16) ((mk_i16 1) <<! (mk_i32 9) <: i16) ((mk_i16 1) <<! (mk_i32 6) <: i16) ((mk_i16 1) <<! (mk_i32 11) <: i16))) [] with
+                  | Some [x] -> unquote x = (mk_i16 1)
+                  | _ -> false
+               then Tactics.exact (quote (mm256_mullo_epi16_specialized4 a))
+               else
+                 Tactics.exact (quote (mm256_mullo_epi16_no_semantics a count))
     )]result: bit_vec 256): bit_vec 256 = result
 
 let madd_rhs (n: nat {n < 16}) = 

@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- (libcrux-intrinsics, core-models) [#1481](https://github.com/cryspen/libcrux/pull/1481): Improved models for SIMD intrinsics
 - [#1478](https://github.com/cryspen/libcrux/pull/1478): Upgrade hax-lib to 0.3.7 and bump the F* verification toolchain to v2026.03.24
 - (libcrux-secrets) [#1446](https://github.com/cryspen/libcrux/pull/1446): Remove const qualifier of secret types constructors
 - (libcrux-secrets) [#1462](https://github.com/cryspen/libcrux/pull/1462): More robust casts instead of transmutes when checking secret independence

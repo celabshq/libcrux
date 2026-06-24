@@ -159,6 +159,19 @@ pub mod int_vec {
         i32x8::from_fn(|i| a[i].overflowing_mul(b[i]).0)
     }
 
+    /// VPMADDWD: per 32-bit lane j, the sum of the two adjacent signed i16xi16
+    /// products `a[2j]*b[2j] + a[2j+1]*b[2j+1]`.  Each product fits i32 (|i16| <
+    /// 2^15 so |product| <= 2^30); the horizontal sum can reach 2^31 (e.g. both
+    /// pairs i16::MIN^2), which wraps (madd does NOT saturate) — hence
+    /// `wrapping_add`.
+    pub fn _mm256_madd_epi16(a: i16x16, b: i16x16) -> i32x8 {
+        i32x8::from_fn(|j| {
+            let p0 = (a[2 * j] as i32) * (b[2 * j] as i32);
+            let p1 = (a[2 * j + 1] as i32) * (b[2 * j + 1] as i32);
+            p0.wrapping_add(p1)
+        })
+    }
+
     #[hax_lib::fstar::verification_status(lax)]
     pub fn _mm256_mulhi_epi16(a: i16x16, b: i16x16) -> i16x16 {
         i16x16::from_fn(|i| ((a[i] as i32) * (b[i] as i32) >> 16) as i16)
@@ -473,11 +486,22 @@ pub mod int_vec {
         })
     }
 
+    // Intel-spec: byte-shift right within each 128-bit lane. If the byte
+    // shift count (low 8 bits of IMM8) is greater than 15, the destination
+    // is zeroed. Mirrors rust-lang/stdarch#1823 (which fixed an earlier
+    // `IMM8 % 16` bug that wrapped the shift instead of zeroing).
     pub fn _mm256_bsrli_epi128<const IMM8: i32>(a: i128x2) -> i128x2 {
         i128x2::from_fn(|i| {
+            // Intel spec: a byte-shift amount > 15 clears the lane (the count is
+            // clamped to 16), it is NOT taken modulo 16. The old `tmp % 16` here
+            // mirrored a Rust core bug whose fix we upstreamed, so the model must
+            // follow the spec rather than the (now-corrected) implementation.
             let tmp = IMM8 % 256;
-            let tmp = tmp % 16;
-            ((a[i] as u128) >> (tmp * 8)) as i128
+            if tmp > 15 {
+                0
+            } else {
+                ((a[i] as u128) >> (tmp * 8)) as i128
+            }
         })
     }
 
@@ -525,6 +549,413 @@ pub mod int_vec {
                     3 => b[1],
                     _ => unreachable!(),
                 }
+            }
+        })
+    }
+
+    // ===========================================================================
+    // Phase B-AVX2 backfill: int-vec bodies for previously-bitvec-only intrinsics.
+    //
+    // Portions of this section are adapted from
+    // `verify-rust-std/testable-simd-models/`, (c) Cryspen, Apache-2.0,
+    // imported on 2026-05-02 for the libcrux SIMD intrinsics trust-base sprint.
+    //
+    // Note: the bit-vec-layer stubs in `core_arch/x86.rs` keep their
+    // `#[hax_lib::opaque]` attribute. These int-vec bodies are the
+    // computational reference exercised by `mk!` differential tests against
+    // the real CPU; the lift lemmas below in `mod lemmas` postulate
+    // upstream::X(args) == int_vec::X(to_lane(args)) lifted back to BitVec.
+    // ===========================================================================
+
+    // _mm256_castsi256_si128: take low 128 bits.
+    pub fn _mm256_castsi256_si128(a: BitVec<256>) -> BitVec<128> {
+        BitVec::from_fn(|i| a[i])
+    }
+
+    // ---- Track B: Load/store typed wrappers (L0-nospec → L2) ----
+
+    // _mm256_loadu_si256_i16: load 16 i16 lanes from a slice.
+    // NB (PR2 cross-validation): these load/store typed wrappers call
+    // `BitVec::{from_slice,to_vec}`, which are `#[hax_lib::exclude]`d (generic
+    // `T: Into<i128>`/`TryFrom<i128>` bounds hax can't extract). They are the
+    // Rust-side computational reference exercised by `mk!` differential tests;
+    // no F* consumer uses them (ml-kem/sha3 use the abstract `Avx2_extract`
+    // model and never build this `Int_vec` module; ml-dsa's `Spec.Intrinsics`
+    // models load/store over the *intrinsic* `Libcrux_intrinsics.Avx2.*`, not
+    // these `e_*` interpretations). Left un-excluded they extract as dangling
+    // references to the excluded `from_slice`/`to_vec` and break F* typechecking
+    // of `Int_vec` for any consumer that builds it (ml-dsa). So exclude them.
+    #[hax_lib::exclude]
+    pub fn _mm256_loadu_si256_i16(input: &[i16]) -> BitVec<256> {
+        BitVec::from_slice(input, 16)
+    }
+
+    // _mm256_loadu_si256_i32: load 8 i32 lanes from a slice.
+    #[hax_lib::exclude]
+    pub fn _mm256_loadu_si256_i32(input: &[i32]) -> BitVec<256> {
+        BitVec::from_slice(input, 32)
+    }
+
+    // _mm256_loadu_si256_u8: load 32 u8 bytes from a slice.
+    #[hax_lib::exclude]
+    pub fn _mm256_loadu_si256_u8(input: &[u8]) -> BitVec<256> {
+        BitVec::from_slice(input, 8)
+    }
+
+    // _mm256_storeu_si256_u8: store 32 bytes from a 256-bit vector.
+    #[hax_lib::exclude]
+    pub fn _mm256_storeu_si256_u8(output: &mut [u8], vector: BitVec<256>) {
+        let bytes: Vec<u8> = vector.to_vec();
+        output.copy_from_slice(&bytes);
+    }
+
+    // _mm256_storeu_si256_i32: store 8 i32 lanes to a slice.
+    #[hax_lib::exclude]
+    pub fn _mm256_storeu_si256_i32(output: &mut [i32], vector: BitVec<256>) {
+        let ints: Vec<i32> = vector.to_vec();
+        output.copy_from_slice(&ints);
+    }
+
+    // ---- Batch D bodies: ports of L0 / L0-nospec wrappers ----
+
+    // _mm_set_epi8: lane-wise set, low-to-high.
+    pub fn _mm_set_epi8(
+        e15: i8,
+        e14: i8,
+        e13: i8,
+        e12: i8,
+        e11: i8,
+        e10: i8,
+        e9: i8,
+        e8: i8,
+        e7: i8,
+        e6: i8,
+        e5: i8,
+        e4: i8,
+        e3: i8,
+        e2: i8,
+        e1: i8,
+        e0: i8,
+    ) -> i8x16 {
+        i8x16::from_fn(|i| match i {
+            0 => e0,
+            1 => e1,
+            2 => e2,
+            3 => e3,
+            4 => e4,
+            5 => e5,
+            6 => e6,
+            7 => e7,
+            8 => e8,
+            9 => e9,
+            10 => e10,
+            11 => e11,
+            12 => e12,
+            13 => e13,
+            14 => e14,
+            15 => e15,
+            _ => unreachable!(),
+        })
+    }
+
+    // _mm256_set_epi8.
+    pub fn _mm256_set_epi8(
+        e31: i8,
+        e30: i8,
+        e29: i8,
+        e28: i8,
+        e27: i8,
+        e26: i8,
+        e25: i8,
+        e24: i8,
+        e23: i8,
+        e22: i8,
+        e21: i8,
+        e20: i8,
+        e19: i8,
+        e18: i8,
+        e17: i8,
+        e16: i8,
+        e15: i8,
+        e14: i8,
+        e13: i8,
+        e12: i8,
+        e11: i8,
+        e10: i8,
+        e9: i8,
+        e8: i8,
+        e7: i8,
+        e6: i8,
+        e5: i8,
+        e4: i8,
+        e3: i8,
+        e2: i8,
+        e1: i8,
+        e0: i8,
+    ) -> i8x32 {
+        i8x32::from_fn(|i| match i {
+            0 => e0,
+            1 => e1,
+            2 => e2,
+            3 => e3,
+            4 => e4,
+            5 => e5,
+            6 => e6,
+            7 => e7,
+            8 => e8,
+            9 => e9,
+            10 => e10,
+            11 => e11,
+            12 => e12,
+            13 => e13,
+            14 => e14,
+            15 => e15,
+            16 => e16,
+            17 => e17,
+            18 => e18,
+            19 => e19,
+            20 => e20,
+            21 => e21,
+            22 => e22,
+            23 => e23,
+            24 => e24,
+            25 => e25,
+            26 => e26,
+            27 => e27,
+            28 => e28,
+            29 => e29,
+            30 => e30,
+            31 => e31,
+            _ => unreachable!(),
+        })
+    }
+
+    // _mm256_set_epi16.
+    pub fn _mm256_set_epi16(
+        e15: i16,
+        e14: i16,
+        e13: i16,
+        e12: i16,
+        e11: i16,
+        e10: i16,
+        e9: i16,
+        e8: i16,
+        e7: i16,
+        e6: i16,
+        e5: i16,
+        e4: i16,
+        e3: i16,
+        e2: i16,
+        e1: i16,
+        e0: i16,
+    ) -> i16x16 {
+        i16x16::from_fn(|i| match i {
+            0 => e0,
+            1 => e1,
+            2 => e2,
+            3 => e3,
+            4 => e4,
+            5 => e5,
+            6 => e6,
+            7 => e7,
+            8 => e8,
+            9 => e9,
+            10 => e10,
+            11 => e11,
+            12 => e12,
+            13 => e13,
+            14 => e14,
+            15 => e15,
+            _ => unreachable!(),
+        })
+    }
+
+    // _mm256_set_epi32.
+    pub fn _mm256_set_epi32(
+        e7: i32,
+        e6: i32,
+        e5: i32,
+        e4: i32,
+        e3: i32,
+        e2: i32,
+        e1: i32,
+        e0: i32,
+    ) -> i32x8 {
+        i32x8::from_fn(|i| match i {
+            0 => e0,
+            1 => e1,
+            2 => e2,
+            3 => e3,
+            4 => e4,
+            5 => e5,
+            6 => e6,
+            7 => e7,
+            _ => unreachable!(),
+        })
+    }
+
+    // _mm_setzero_si128: all-zero 128-bit vector.
+    pub fn _mm_setzero_si128() -> BitVec<128> {
+        BitVec::from_fn(|_| Bit::Zero)
+    }
+
+    // _mm_xor_si128: bitwise xor of two 128-bit vectors.
+    pub fn _mm_xor_si128(a: BitVec<128>, b: BitVec<128>) -> BitVec<128> {
+        BitVec::from_fn(|i| match (a[i], b[i]) {
+            (Bit::Zero, Bit::Zero) => Bit::Zero,
+            (Bit::One, Bit::One) => Bit::Zero,
+            _ => Bit::One,
+        })
+    }
+
+    // _mm_shuffle_epi32<IMM8>: 32-bit lane shuffle controlled by 2-bit fields.
+    // Use `% 4` rather than `& 0b11` so F* can auto-prove the index is < 4
+    // (mirrors the working `_mm256_shuffle_epi32` body above).
+    pub fn _mm_shuffle_epi32<const IMM8: i32>(a: i32x4) -> i32x4 {
+        let indexes: FunArray<4, u64> = FunArray::from_fn(|i| ((IMM8 >> (i * 2)) % 4) as u64);
+        i32x4::from_fn(|i| a[indexes[i]])
+    }
+
+    // _mm_unpackhi_epi64: take high 64-bit halves from a and b interleaved.
+    pub fn _mm_unpackhi_epi64(a: i64x2, b: i64x2) -> i64x2 {
+        i64x2::from_fn(|i| match i {
+            0 => a[1],
+            1 => b[1],
+            _ => unreachable!(),
+        })
+    }
+
+    // _mm_unpacklo_epi64: take low 64-bit halves from a and b interleaved.
+    pub fn _mm_unpacklo_epi64(a: i64x2, b: i64x2) -> i64x2 {
+        i64x2::from_fn(|i| match i {
+            0 => a[0],
+            1 => b[0],
+            _ => unreachable!(),
+        })
+    }
+
+    // _mm_slli_si128<IMM8>: byte-shift left, zero-fill.
+    pub fn _mm_slli_si128<const IMM8: i32>(a: i8x16) -> i8x16 {
+        i8x16::from_fn(|i| {
+            let imm8 = (IMM8 as u32) & 0xff;
+            if imm8 > 15 {
+                0
+            } else if i < imm8 as u64 {
+                0
+            } else {
+                a[i - imm8 as u64]
+            }
+        })
+    }
+
+    // _mm_srli_si128<IMM8>: byte-shift right, zero-fill.
+    pub fn _mm_srli_si128<const IMM8: i32>(a: i8x16) -> i8x16 {
+        i8x16::from_fn(|i| {
+            let imm8 = (IMM8 as u32) & 0xff;
+            if imm8 > 15 {
+                0
+            } else if i + imm8 as u64 > 15 {
+                0
+            } else {
+                a[i + imm8 as u64]
+            }
+        })
+    }
+
+    // _mm256_mullo_epi16: lane-wise wrapping multiply of 16-bit lanes.
+    pub fn _mm256_mullo_epi16(a: i16x16, b: i16x16) -> i16x16 {
+        i16x16::from_fn(|i| a[i].wrapping_mul(b[i]))
+    }
+
+    // _mm_shuffle_epi8: byte-shuffle within the 128-bit vector.
+    // Per Intel: if high bit of indexes[i] is set, output byte i is 0; else
+    // output byte i = vector[indexes[i] & 0xF]. Use `% 16` for the lane
+    // index so F* can auto-prove it's < 16 (mirrors the `% 4` pattern used
+    // by `_mm_shuffle_epi32` and `_mm256_shuffle_epi32`).
+    pub fn _mm_shuffle_epi8(vector: i8x16, indexes: i8x16) -> i8x16 {
+        i8x16::from_fn(|i| {
+            let idx = indexes[i] as u8;
+            if idx & 0x80 != 0 {
+                0
+            } else {
+                vector[(idx as u64) % 16]
+            }
+        })
+    }
+
+    // _mm256_extracti128_si256<IMM8>: low 128 if IMM8==0, high 128 else.
+    pub fn _mm256_extracti128_si256<const IMM8: i32>(a: BitVec<256>) -> BitVec<128> {
+        BitVec::from_fn(|i| a[i + if IMM8 % 2 == 0 { 0 } else { 128 }])
+    }
+
+    // _mm256_slli_epi16<IMM8>: shift each 16-bit lane left by IMM8 (0 if >15).
+    pub fn _mm256_slli_epi16<const IMM8: i32>(a: i16x16) -> i16x16 {
+        i16x16::from_fn(|i| {
+            let imm8 = IMM8.rem_euclid(256);
+            if imm8 > 15 {
+                0
+            } else {
+                ((a[i] as u16) << imm8) as i16
+            }
+        })
+    }
+
+    // _mm256_srli_epi64<IMM8>: shift each 64-bit lane right (logical) by IMM8 (0 if >63).
+    pub fn _mm256_srli_epi64<const IMM8: i32>(a: i64x4) -> i64x4 {
+        i64x4::from_fn(|i| {
+            let imm8 = IMM8.rem_euclid(256);
+            if imm8 > 63 {
+                0
+            } else {
+                ((a[i] as u64) >> imm8) as i64
+            }
+        })
+    }
+
+    // _mm256_sllv_epi32: per-lane variable shift left, lane width 32.
+    pub fn _mm256_sllv_epi32(a: i32x8, b: i32x8) -> i32x8 {
+        i32x8::from_fn(|i| {
+            if b[i] > 31 || b[i] < 0 {
+                0
+            } else {
+                ((a[i] as u32) << b[i]) as i32
+            }
+        })
+    }
+
+    // _mm256_srlv_epi32: per-lane variable shift right (logical), lane width 32.
+    pub fn _mm256_srlv_epi32(a: i32x8, b: i32x8) -> i32x8 {
+        i32x8::from_fn(|i| {
+            if b[i] > 31 || b[i] < 0 {
+                0
+            } else {
+                ((a[i] as u32) >> b[i]) as i32
+            }
+        })
+    }
+
+    // _mm256_permutevar8x32_epi32: per-lane index pick (low 3 bits of b lane).
+    // Use `% 8` for the lane index so F* can auto-prove it's < 8 (bit-and
+    // is opaque to Z3).
+    pub fn _mm256_permutevar8x32_epi32(a: i32x8, b: i32x8) -> i32x8 {
+        i32x8::from_fn(|i| a[(b[i] as u64) % 8])
+    }
+
+    // _mm256_shuffle_epi8: byte-shuffle within each 128-bit lane.
+    // Per Intel: if high bit of indexes[i] is set, output byte i is 0; else
+    // output byte i = vector[(indexes[i] % 16) + lane_base], where
+    // lane_base = 0 for i in 0..16 and 16 for i in 16..32. Using `%` and
+    // explicit branch on lane membership rather than bit-and so F* can
+    // auto-prove the index is in 0..32.
+    pub fn _mm256_shuffle_epi8(vector: i8x32, indexes: i8x32) -> i8x32 {
+        i8x32::from_fn(|i| {
+            let idx = indexes[i] as u8;
+            if idx & 0x80 != 0 {
+                0
+            } else {
+                let lane_base: u64 = if i < 16 { 0 } else { 16 };
+                let local = (idx as u64) % 16;
+                vector[lane_base + local]
             }
         })
     }
@@ -695,6 +1126,89 @@ assume val _mm256_set_epi32_interp: e7: i32 -> e6: i32 -> e5: i32 -> e4: i32 -> 
         mk_lift_lemma!(_mm256_permute2x128_si256<const IMM8: i32>(a: __m256i, b: __m256i) ==
 		       __m256i::from_i128x2(super::_mm256_permute2x128_si256::<IMM8>(BitVec::to_i128x2(a), BitVec::to_i128x2(b))));
 
+        // Phase B-AVX2 backfill: lift lemmas for int-vec bodies whose lift was missing.
+        mk_lift_lemma!(_mm_sub_epi16(a: __m128i, b: __m128i) ==
+		       __m128i::from_i16x8(super::_mm_sub_epi16(BitVec::to_i16x8(a), BitVec::to_i16x8(b))));
+        mk_lift_lemma!(_mm256_cmpeq_epi32(a: __m256i, b: __m256i) ==
+		       __m256i::from_i32x8(super::_mm256_cmpeq_epi32(BitVec::to_i32x8(a), BitVec::to_i32x8(b))));
+        // Lift lemmas for int-vec bodies added during Batch C backfill.
+        mk_lift_lemma!(_mm256_castsi256_si128(a: __m256i) ==
+		       super::_mm256_castsi256_si128(a));
+        mk_lift_lemma!(_mm256_extracti128_si256<const IMM8: i32>(a: __m256i) ==
+		       super::_mm256_extracti128_si256::<IMM8>(a));
+        mk_lift_lemma!(_mm256_slli_epi16<const IMM8: i32>(a: __m256i) ==
+		       __m256i::from_i16x16(super::_mm256_slli_epi16::<IMM8>(BitVec::to_i16x16(a))));
+        mk_lift_lemma!(_mm256_srli_epi64<const IMM8: i32>(a: __m256i) ==
+		       __m256i::from_i64x4(super::_mm256_srli_epi64::<IMM8>(BitVec::to_i64x4(a))));
+        mk_lift_lemma!(_mm256_sllv_epi32(a: __m256i, b: __m256i) ==
+		       __m256i::from_i32x8(super::_mm256_sllv_epi32(BitVec::to_i32x8(a), BitVec::to_i32x8(b))));
+        mk_lift_lemma!(_mm256_srlv_epi32(a: __m256i, b: __m256i) ==
+		       __m256i::from_i32x8(super::_mm256_srlv_epi32(BitVec::to_i32x8(a), BitVec::to_i32x8(b))));
+        mk_lift_lemma!(_mm256_permutevar8x32_epi32(a: __m256i, b: __m256i) ==
+		       __m256i::from_i32x8(super::_mm256_permutevar8x32_epi32(BitVec::to_i32x8(a), BitVec::to_i32x8(b))));
+        mk_lift_lemma!(_mm256_shuffle_epi8(a: __m256i, b: __m256i) ==
+		       __m256i::from_i8x32(super::_mm256_shuffle_epi8(BitVec::to_i8x32(a), BitVec::to_i8x32(b))));
+
+        // Batch D lift lemmas: ports of L0/L0-nospec wrappers.
+        mk_lift_lemma!(_mm_set_epi8(
+            e15: i8, e14: i8, e13: i8, e12: i8,
+            e11: i8, e10: i8, e9: i8, e8: i8,
+            e7: i8, e6: i8, e5: i8, e4: i8,
+            e3: i8, e2: i8, e1: i8, e0: i8
+        ) == __m128i::from_i8x16(super::_mm_set_epi8(
+            e15, e14, e13, e12, e11, e10, e9, e8,
+            e7, e6, e5, e4, e3, e2, e1, e0
+        )));
+        mk_lift_lemma!(_mm256_set_epi8(
+            e31: i8, e30: i8, e29: i8, e28: i8,
+            e27: i8, e26: i8, e25: i8, e24: i8,
+            e23: i8, e22: i8, e21: i8, e20: i8,
+            e19: i8, e18: i8, e17: i8, e16: i8,
+            e15: i8, e14: i8, e13: i8, e12: i8,
+            e11: i8, e10: i8, e9: i8, e8: i8,
+            e7: i8, e6: i8, e5: i8, e4: i8,
+            e3: i8, e2: i8, e1: i8, e0: i8
+        ) == __m256i::from_i8x32(super::_mm256_set_epi8(
+            e31, e30, e29, e28, e27, e26, e25, e24,
+            e23, e22, e21, e20, e19, e18, e17, e16,
+            e15, e14, e13, e12, e11, e10, e9, e8,
+            e7, e6, e5, e4, e3, e2, e1, e0
+        )));
+        mk_lift_lemma!(_mm256_set_epi16(
+            e15: i16, e14: i16, e13: i16, e12: i16,
+            e11: i16, e10: i16, e9: i16, e8: i16,
+            e7: i16, e6: i16, e5: i16, e4: i16,
+            e3: i16, e2: i16, e1: i16, e0: i16
+        ) == __m256i::from_i16x16(super::_mm256_set_epi16(
+            e15, e14, e13, e12, e11, e10, e9, e8,
+            e7, e6, e5, e4, e3, e2, e1, e0
+        )));
+        mk_lift_lemma!(_mm256_set_epi32(
+            e7: i32, e6: i32, e5: i32, e4: i32,
+            e3: i32, e2: i32, e1: i32, e0: i32
+        ) == __m256i::from_i32x8(super::_mm256_set_epi32(
+            e7, e6, e5, e4, e3, e2, e1, e0
+        )));
+        mk_lift_lemma!(_mm_setzero_si128() == super::_mm_setzero_si128());
+        mk_lift_lemma!(_mm_xor_si128(a: __m128i, b: __m128i) ==
+		       super::_mm_xor_si128(a, b));
+        mk_lift_lemma!(_mm_shuffle_epi32<const IMM8: i32>(a: __m128i) ==
+		       __m128i::from_i32x4(super::_mm_shuffle_epi32::<IMM8>(BitVec::to_i32x4(a))));
+        mk_lift_lemma!(_mm_unpackhi_epi64(a: __m128i, b: __m128i) ==
+		       __m128i::from_i64x2(super::_mm_unpackhi_epi64(BitVec::to_i64x2(a), BitVec::to_i64x2(b))));
+        mk_lift_lemma!(_mm_unpacklo_epi64(a: __m128i, b: __m128i) ==
+		       __m128i::from_i64x2(super::_mm_unpacklo_epi64(BitVec::to_i64x2(a), BitVec::to_i64x2(b))));
+        mk_lift_lemma!(_mm_slli_si128<const IMM8: i32>(a: __m128i) ==
+		       __m128i::from_i8x16(super::_mm_slli_si128::<IMM8>(BitVec::to_i8x16(a))));
+        mk_lift_lemma!(_mm_srli_si128<const IMM8: i32>(a: __m128i) ==
+		       __m128i::from_i8x16(super::_mm_srli_si128::<IMM8>(BitVec::to_i8x16(a))));
+        mk_lift_lemma!(_mm256_mullo_epi16(a: __m256i, b: __m256i) ==
+		       __m256i::from_i16x16(super::_mm256_mullo_epi16(BitVec::to_i16x16(a), BitVec::to_i16x16(b))));
+        mk_lift_lemma!(_mm256_madd_epi16(a: __m256i, b: __m256i) ==
+		       __m256i::from_i32x8(super::_mm256_madd_epi16(BitVec::to_i16x16(a), BitVec::to_i16x16(b))));
+        mk_lift_lemma!(_mm_shuffle_epi8(a: __m128i, b: __m128i) ==
+		       __m128i::from_i8x16(super::_mm_shuffle_epi8(BitVec::to_i8x16(a), BitVec::to_i8x16(b))));
+
         #[hax_lib::fstar::replace(
             r#"
         let ${flatten_circuit} (): FStar.Tactics.Tac unit =
@@ -758,6 +1272,7 @@ assume val _mm256_set_epi32_interp: e7: i32 -> e6: i32 -> e5: i32 -> e4: i32 -> 
         mk!(_mm256_sub_epi32(x: BitVec, y: BitVec));
         mk!(_mm256_mul_epi32(x: BitVec, y: BitVec));
         mk!(_mm256_shuffle_epi32{<0b01_00_10_11>, <0b01_11_01_10>}(x: BitVec));
+        mk!(_mm256_permute4x64_epi64{<245>, <160>, <216>, <0b11_10_01_00>, <27>, <0>, <255>}(x: BitVec));
         mk!([100]_mm256_blend_epi32{<0>,<1>,<2>,<3>,<4>,<5>,<6>,<7>,<8>,<9>,<10>,<11>,<12>,<13>,<14>,<15>,<16>,<17>,<18>,<19>,<20>,<21>,<22>,<23>,<24>,<25>,<26>,<27>,<28>,<29>,<30>,<31>,<32>,<33>,<34>,<35>,<36>,<37>,<38>,<39>,<40>,<41>,<42>,<43>,<44>,<45>,<46>,<47>,<48>,<49>,<50>,<51>,<52>,<53>,<54>,<55>,<56>,<57>,<58>,<59>,<60>,<61>,<62>,<63>,<64>,<65>,<66>,<67>,<68>,<69>,<70>,<71>,<72>,<73>,<74>,<75>,<76>,<77>,<78>,<79>,<80>,<81>,<82>,<83>,<84>,<85>,<86>,<87>,<88>,<89>,<90>,<91>,<92>,<93>,<94>,<95>,<96>,<97>,<98>,<99>,<100>,<101>,<102>,<103>,<104>,<105>,<106>,<107>,<108>,<109>,<110>,<111>,<112>,<113>,<114>,<115>,<116>,<117>,<118>,<119>,<120>,<121>,<122>,<123>,<124>,<125>,<126>,<127>,<128>,<129>,<130>,<131>,<132>,<133>,<134>,<135>,<136>,<137>,<138>,<139>,<140>,<141>,<142>,<143>,<144>,<145>,<146>,<147>,<148>,<149>,<150>,<151>,<152>,<153>,<154>,<155>,<156>,<157>,<158>,<159>,<160>,<161>,<162>,<163>,<164>,<165>,<166>,<167>,<168>,<169>,<170>,<171>,<172>,<173>,<174>,<175>,<176>,<177>,<178>,<179>,<180>,<181>,<182>,<183>,<184>,<185>,<186>,<187>,<188>,<189>,<190>,<191>,<192>,<193>,<194>,<195>,<196>,<197>,<198>,<199>,<200>,<201>,<202>,<203>,<204>,<205>,<206>,<207>,<208>,<209>,<210>,<211>,<212>,<213>,<214>,<215>,<216>,<217>,<218>,<219>,<220>,<221>,<222>,<223>,<224>,<225>,<226>,<227>,<228>,<229>,<230>,<231>,<232>,<233>,<234>,<235>,<236>,<237>,<238>,<239>,<240>,<241>,<242>,<243>,<244>,<245>,<246>,<247>,<248>,<249>,<250>,<251>,<252>,<253>,<254>,<255>}(x: BitVec, y: BitVec));
         mk!(_mm256_setzero_si256());
         mk!(_mm256_set_m128i(x: BitVec, y: BitVec));
@@ -768,6 +1283,7 @@ assume val _mm256_set_epi32_interp: e7: i32 -> e6: i32 -> e5: i32 -> e4: i32 -> 
         mk!(_mm_add_epi16(a: BitVec, b: BitVec));
         mk!(_mm256_add_epi16(a: BitVec, b: BitVec));
         mk!(_mm256_add_epi32(a: BitVec, b: BitVec));
+        mk!(_mm256_madd_epi16(a: BitVec, b: BitVec));
         mk!(_mm256_add_epi64(a: BitVec, b: BitVec));
         mk!(_mm256_abs_epi32(a: BitVec));
         #[test]
@@ -871,5 +1387,1196 @@ assume val _mm256_set_epi32_interp: e7: i32 -> e6: i32 -> e5: i32 -> e4: i32 -> 
         mk!(_mm256_unpacklo_epi64(a: BitVec, b: BitVec));
 
         mk!([100]_mm256_permute2x128_si256{<0>,<1>,<2>,<3>,<4>,<5>,<6>,<7>,<8>,<9>,<10>,<11>,<12>,<13>,<14>,<15>,<16>,<17>,<18>,<19>,<20>,<21>,<22>,<23>,<24>,<25>,<26>,<27>,<28>,<29>,<30>,<31>,<32>,<33>,<34>,<35>,<36>,<37>,<38>,<39>,<40>,<41>,<42>,<43>,<44>,<45>,<46>,<47>,<48>,<49>,<50>,<51>,<52>,<53>,<54>,<55>,<56>,<57>,<58>,<59>,<60>,<61>,<62>,<63>,<64>,<65>,<66>,<67>,<68>,<69>,<70>,<71>,<72>,<73>,<74>,<75>,<76>,<77>,<78>,<79>,<80>,<81>,<82>,<83>,<84>,<85>,<86>,<87>,<88>,<89>,<90>,<91>,<92>,<93>,<94>,<95>,<96>,<97>,<98>,<99>,<100>,<101>,<102>,<103>,<104>,<105>,<106>,<107>,<108>,<109>,<110>,<111>,<112>,<113>,<114>,<115>,<116>,<117>,<118>,<119>,<120>,<121>,<122>,<123>,<124>,<125>,<126>,<127>,<128>,<129>,<130>,<131>,<132>,<133>,<134>,<135>,<136>,<137>,<138>,<139>,<140>,<141>,<142>,<143>,<144>,<145>,<146>,<147>,<148>,<149>,<150>,<151>,<152>,<153>,<154>,<155>,<156>,<157>,<158>,<159>,<160>,<161>,<162>,<163>,<164>,<165>,<166>,<167>,<168>,<169>,<170>,<171>,<172>,<173>,<174>,<175>,<176>,<177>,<178>,<179>,<180>,<181>,<182>,<183>,<184>,<185>,<186>,<187>,<188>,<189>,<190>,<191>,<192>,<193>,<194>,<195>,<196>,<197>,<198>,<199>,<200>,<201>,<202>,<203>,<204>,<205>,<206>,<207>,<208>,<209>,<210>,<211>,<212>,<213>,<214>,<215>,<216>,<217>,<218>,<219>,<220>,<221>,<222>,<223>,<224>,<225>,<226>,<227>,<228>,<229>,<230>,<231>,<232>,<233>,<234>,<235>,<236>,<237>,<238>,<239>,<240>,<241>,<242>,<243>,<244>,<245>,<246>,<247>,<248>,<249>,<250>,<251>,<252>,<253>,<254>,<255>}(a: BitVec, b: BitVec));
+
+        // ===========================================================================
+        // Phase B-AVX2 backfill: mk! invocations for L1 wrappers (body present, no test)
+        // ===========================================================================
+
+        // Batch A: int-vec body + lift lemma already exist.
+        mk!(_mm256_mul_epu32(a: BitVec, b: BitVec));
+        mk!(_mm256_mulhi_epi16(a: BitVec, b: BitVec));
+        mk!(_mm256_unpackhi_epi32(a: BitVec, b: BitVec));
+        mk!(_mm256_unpackhi_epi64(a: BitVec, b: BitVec));
+        mk!(_mm256_unpacklo_epi32(a: BitVec, b: BitVec));
+
+        // Batch B: int-vec body present, lift lemma freshly added above.
+        mk!(_mm_sub_epi16(a: BitVec, b: BitVec));
+        mk!(_mm256_cmpeq_epi32(a: BitVec, b: BitVec));
+
+        // Permute over the full 0..256 IMM8 range like sibling permute intrinsics.
+        mk!([100]_mm256_permute4x64_epi64{<0>,<1>,<2>,<3>,<4>,<5>,<6>,<7>,<8>,<9>,<10>,<11>,<12>,<13>,<14>,<15>,<16>,<17>,<18>,<19>,<20>,<21>,<22>,<23>,<24>,<25>,<26>,<27>,<28>,<29>,<30>,<31>,<32>,<33>,<34>,<35>,<36>,<37>,<38>,<39>,<40>,<41>,<42>,<43>,<44>,<45>,<46>,<47>,<48>,<49>,<50>,<51>,<52>,<53>,<54>,<55>,<56>,<57>,<58>,<59>,<60>,<61>,<62>,<63>,<64>,<65>,<66>,<67>,<68>,<69>,<70>,<71>,<72>,<73>,<74>,<75>,<76>,<77>,<78>,<79>,<80>,<81>,<82>,<83>,<84>,<85>,<86>,<87>,<88>,<89>,<90>,<91>,<92>,<93>,<94>,<95>,<96>,<97>,<98>,<99>,<100>,<101>,<102>,<103>,<104>,<105>,<106>,<107>,<108>,<109>,<110>,<111>,<112>,<113>,<114>,<115>,<116>,<117>,<118>,<119>,<120>,<121>,<122>,<123>,<124>,<125>,<126>,<127>,<128>,<129>,<130>,<131>,<132>,<133>,<134>,<135>,<136>,<137>,<138>,<139>,<140>,<141>,<142>,<143>,<144>,<145>,<146>,<147>,<148>,<149>,<150>,<151>,<152>,<153>,<154>,<155>,<156>,<157>,<158>,<159>,<160>,<161>,<162>,<163>,<164>,<165>,<166>,<167>,<168>,<169>,<170>,<171>,<172>,<173>,<174>,<175>,<176>,<177>,<178>,<179>,<180>,<181>,<182>,<183>,<184>,<185>,<186>,<187>,<188>,<189>,<190>,<191>,<192>,<193>,<194>,<195>,<196>,<197>,<198>,<199>,<200>,<201>,<202>,<203>,<204>,<205>,<206>,<207>,<208>,<209>,<210>,<211>,<212>,<213>,<214>,<215>,<216>,<217>,<218>,<219>,<220>,<221>,<222>,<223>,<224>,<225>,<226>,<227>,<228>,<229>,<230>,<231>,<232>,<233>,<234>,<235>,<236>,<237>,<238>,<239>,<240>,<241>,<242>,<243>,<244>,<245>,<246>,<247>,<248>,<249>,<250>,<251>,<252>,<253>,<254>,<255>}(a: BitVec));
+
+        // Batch C: int-vec bodies freshly added above.
+        mk!(_mm256_castsi256_si128(a: BitVec));
+        mk!([2]_mm256_extracti128_si256{<0>,<1>}(a: BitVec));
+        mk!(_mm256_sllv_epi32(a: BitVec, b: BitVec));
+        mk!(_mm256_srlv_epi32(a: BitVec, b: BitVec));
+        mk!(_mm256_permutevar8x32_epi32(a: BitVec, b: BitVec));
+        mk!(_mm256_shuffle_epi8(a: BitVec, b: BitVec));
+        mk!([100]_mm256_slli_epi16{<0>,<1>,<2>,<3>,<4>,<5>,<6>,<7>,<8>,<9>,<10>,<11>,<12>,<13>,<14>,<15>,<16>,<17>,<18>,<19>,<20>,<21>,<22>,<23>,<24>,<25>,<26>,<27>,<28>,<29>,<30>,<31>,<32>,<33>,<34>,<35>,<36>,<37>,<38>,<39>,<40>,<41>,<42>,<43>,<44>,<45>,<46>,<47>,<48>,<49>,<50>,<51>,<52>,<53>,<54>,<55>,<56>,<57>,<58>,<59>,<60>,<61>,<62>,<63>,<64>,<65>,<66>,<67>,<68>,<69>,<70>,<71>,<72>,<73>,<74>,<75>,<76>,<77>,<78>,<79>,<80>,<81>,<82>,<83>,<84>,<85>,<86>,<87>,<88>,<89>,<90>,<91>,<92>,<93>,<94>,<95>,<96>,<97>,<98>,<99>,<100>,<101>,<102>,<103>,<104>,<105>,<106>,<107>,<108>,<109>,<110>,<111>,<112>,<113>,<114>,<115>,<116>,<117>,<118>,<119>,<120>,<121>,<122>,<123>,<124>,<125>,<126>,<127>,<128>,<129>,<130>,<131>,<132>,<133>,<134>,<135>,<136>,<137>,<138>,<139>,<140>,<141>,<142>,<143>,<144>,<145>,<146>,<147>,<148>,<149>,<150>,<151>,<152>,<153>,<154>,<155>,<156>,<157>,<158>,<159>,<160>,<161>,<162>,<163>,<164>,<165>,<166>,<167>,<168>,<169>,<170>,<171>,<172>,<173>,<174>,<175>,<176>,<177>,<178>,<179>,<180>,<181>,<182>,<183>,<184>,<185>,<186>,<187>,<188>,<189>,<190>,<191>,<192>,<193>,<194>,<195>,<196>,<197>,<198>,<199>,<200>,<201>,<202>,<203>,<204>,<205>,<206>,<207>,<208>,<209>,<210>,<211>,<212>,<213>,<214>,<215>,<216>,<217>,<218>,<219>,<220>,<221>,<222>,<223>,<224>,<225>,<226>,<227>,<228>,<229>,<230>,<231>,<232>,<233>,<234>,<235>,<236>,<237>,<238>,<239>,<240>,<241>,<242>,<243>,<244>,<245>,<246>,<247>,<248>,<249>,<250>,<251>,<252>,<253>,<254>,<255>}(a: BitVec));
+        mk!([100]_mm256_srli_epi64{<0>,<1>,<2>,<3>,<4>,<5>,<6>,<7>,<8>,<9>,<10>,<11>,<12>,<13>,<14>,<15>,<16>,<17>,<18>,<19>,<20>,<21>,<22>,<23>,<24>,<25>,<26>,<27>,<28>,<29>,<30>,<31>,<32>,<33>,<34>,<35>,<36>,<37>,<38>,<39>,<40>,<41>,<42>,<43>,<44>,<45>,<46>,<47>,<48>,<49>,<50>,<51>,<52>,<53>,<54>,<55>,<56>,<57>,<58>,<59>,<60>,<61>,<62>,<63>,<64>,<65>,<66>,<67>,<68>,<69>,<70>,<71>,<72>,<73>,<74>,<75>,<76>,<77>,<78>,<79>,<80>,<81>,<82>,<83>,<84>,<85>,<86>,<87>,<88>,<89>,<90>,<91>,<92>,<93>,<94>,<95>,<96>,<97>,<98>,<99>,<100>,<101>,<102>,<103>,<104>,<105>,<106>,<107>,<108>,<109>,<110>,<111>,<112>,<113>,<114>,<115>,<116>,<117>,<118>,<119>,<120>,<121>,<122>,<123>,<124>,<125>,<126>,<127>,<128>,<129>,<130>,<131>,<132>,<133>,<134>,<135>,<136>,<137>,<138>,<139>,<140>,<141>,<142>,<143>,<144>,<145>,<146>,<147>,<148>,<149>,<150>,<151>,<152>,<153>,<154>,<155>,<156>,<157>,<158>,<159>,<160>,<161>,<162>,<163>,<164>,<165>,<166>,<167>,<168>,<169>,<170>,<171>,<172>,<173>,<174>,<175>,<176>,<177>,<178>,<179>,<180>,<181>,<182>,<183>,<184>,<185>,<186>,<187>,<188>,<189>,<190>,<191>,<192>,<193>,<194>,<195>,<196>,<197>,<198>,<199>,<200>,<201>,<202>,<203>,<204>,<205>,<206>,<207>,<208>,<209>,<210>,<211>,<212>,<213>,<214>,<215>,<216>,<217>,<218>,<219>,<220>,<221>,<222>,<223>,<224>,<225>,<226>,<227>,<228>,<229>,<230>,<231>,<232>,<233>,<234>,<235>,<236>,<237>,<238>,<239>,<240>,<241>,<242>,<243>,<244>,<245>,<246>,<247>,<248>,<249>,<250>,<251>,<252>,<253>,<254>,<255>}(a: BitVec));
+
+        // Batch D: int-vec bodies for L0 / L0-nospec wrappers.
+        mk!(_mm_set_epi8(
+            e15: i8, e14: i8, e13: i8, e12: i8,
+            e11: i8, e10: i8, e9: i8, e8: i8,
+            e7: i8, e6: i8, e5: i8, e4: i8,
+            e3: i8, e2: i8, e1: i8, e0: i8
+        ));
+        mk!(_mm256_set_epi8(
+            e31: i8, e30: i8, e29: i8, e28: i8,
+            e27: i8, e26: i8, e25: i8, e24: i8,
+            e23: i8, e22: i8, e21: i8, e20: i8,
+            e19: i8, e18: i8, e17: i8, e16: i8,
+            e15: i8, e14: i8, e13: i8, e12: i8,
+            e11: i8, e10: i8, e9: i8, e8: i8,
+            e7: i8, e6: i8, e5: i8, e4: i8,
+            e3: i8, e2: i8, e1: i8, e0: i8
+        ));
+        mk!(_mm256_set_epi16(
+            e15: i16, e14: i16, e13: i16, e12: i16,
+            e11: i16, e10: i16, e9: i16, e8: i16,
+            e7: i16, e6: i16, e5: i16, e4: i16,
+            e3: i16, e2: i16, e1: i16, e0: i16
+        ));
+        mk!(_mm256_set_epi32(
+            e7: i32, e6: i32, e5: i32, e4: i32,
+            e3: i32, e2: i32, e1: i32, e0: i32
+        ));
+        mk!(_mm_setzero_si128());
+        mk!(_mm_xor_si128(a: BitVec, b: BitVec));
+        mk!([100]_mm_shuffle_epi32{<0>,<1>,<2>,<3>,<4>,<5>,<6>,<7>,<8>,<9>,<10>,<11>,<12>,<13>,<14>,<15>,<16>,<17>,<18>,<19>,<20>,<21>,<22>,<23>,<24>,<25>,<26>,<27>,<28>,<29>,<30>,<31>,<32>,<33>,<34>,<35>,<36>,<37>,<38>,<39>,<40>,<41>,<42>,<43>,<44>,<45>,<46>,<47>,<48>,<49>,<50>,<51>,<52>,<53>,<54>,<55>,<56>,<57>,<58>,<59>,<60>,<61>,<62>,<63>,<64>,<65>,<66>,<67>,<68>,<69>,<70>,<71>,<72>,<73>,<74>,<75>,<76>,<77>,<78>,<79>,<80>,<81>,<82>,<83>,<84>,<85>,<86>,<87>,<88>,<89>,<90>,<91>,<92>,<93>,<94>,<95>,<96>,<97>,<98>,<99>,<100>,<101>,<102>,<103>,<104>,<105>,<106>,<107>,<108>,<109>,<110>,<111>,<112>,<113>,<114>,<115>,<116>,<117>,<118>,<119>,<120>,<121>,<122>,<123>,<124>,<125>,<126>,<127>,<128>,<129>,<130>,<131>,<132>,<133>,<134>,<135>,<136>,<137>,<138>,<139>,<140>,<141>,<142>,<143>,<144>,<145>,<146>,<147>,<148>,<149>,<150>,<151>,<152>,<153>,<154>,<155>,<156>,<157>,<158>,<159>,<160>,<161>,<162>,<163>,<164>,<165>,<166>,<167>,<168>,<169>,<170>,<171>,<172>,<173>,<174>,<175>,<176>,<177>,<178>,<179>,<180>,<181>,<182>,<183>,<184>,<185>,<186>,<187>,<188>,<189>,<190>,<191>,<192>,<193>,<194>,<195>,<196>,<197>,<198>,<199>,<200>,<201>,<202>,<203>,<204>,<205>,<206>,<207>,<208>,<209>,<210>,<211>,<212>,<213>,<214>,<215>,<216>,<217>,<218>,<219>,<220>,<221>,<222>,<223>,<224>,<225>,<226>,<227>,<228>,<229>,<230>,<231>,<232>,<233>,<234>,<235>,<236>,<237>,<238>,<239>,<240>,<241>,<242>,<243>,<244>,<245>,<246>,<247>,<248>,<249>,<250>,<251>,<252>,<253>,<254>,<255>}(a: BitVec));
+        mk!(_mm_unpackhi_epi64(a: BitVec, b: BitVec));
+        mk!(_mm_unpacklo_epi64(a: BitVec, b: BitVec));
+        mk!([100]_mm_slli_si128{<0>,<1>,<2>,<3>,<4>,<5>,<6>,<7>,<8>,<9>,<10>,<11>,<12>,<13>,<14>,<15>,<16>,<17>,<18>,<19>,<20>,<21>,<22>,<23>,<24>,<25>,<26>,<27>,<28>,<29>,<30>,<31>,<32>,<33>,<34>,<35>,<36>,<37>,<38>,<39>,<40>,<41>,<42>,<43>,<44>,<45>,<46>,<47>,<48>,<49>,<50>,<51>,<52>,<53>,<54>,<55>,<56>,<57>,<58>,<59>,<60>,<61>,<62>,<63>,<64>,<65>,<66>,<67>,<68>,<69>,<70>,<71>,<72>,<73>,<74>,<75>,<76>,<77>,<78>,<79>,<80>,<81>,<82>,<83>,<84>,<85>,<86>,<87>,<88>,<89>,<90>,<91>,<92>,<93>,<94>,<95>,<96>,<97>,<98>,<99>,<100>,<101>,<102>,<103>,<104>,<105>,<106>,<107>,<108>,<109>,<110>,<111>,<112>,<113>,<114>,<115>,<116>,<117>,<118>,<119>,<120>,<121>,<122>,<123>,<124>,<125>,<126>,<127>,<128>,<129>,<130>,<131>,<132>,<133>,<134>,<135>,<136>,<137>,<138>,<139>,<140>,<141>,<142>,<143>,<144>,<145>,<146>,<147>,<148>,<149>,<150>,<151>,<152>,<153>,<154>,<155>,<156>,<157>,<158>,<159>,<160>,<161>,<162>,<163>,<164>,<165>,<166>,<167>,<168>,<169>,<170>,<171>,<172>,<173>,<174>,<175>,<176>,<177>,<178>,<179>,<180>,<181>,<182>,<183>,<184>,<185>,<186>,<187>,<188>,<189>,<190>,<191>,<192>,<193>,<194>,<195>,<196>,<197>,<198>,<199>,<200>,<201>,<202>,<203>,<204>,<205>,<206>,<207>,<208>,<209>,<210>,<211>,<212>,<213>,<214>,<215>,<216>,<217>,<218>,<219>,<220>,<221>,<222>,<223>,<224>,<225>,<226>,<227>,<228>,<229>,<230>,<231>,<232>,<233>,<234>,<235>,<236>,<237>,<238>,<239>,<240>,<241>,<242>,<243>,<244>,<245>,<246>,<247>,<248>,<249>,<250>,<251>,<252>,<253>,<254>,<255>}(a: BitVec));
+        mk!([100]_mm_srli_si128{<0>,<1>,<2>,<3>,<4>,<5>,<6>,<7>,<8>,<9>,<10>,<11>,<12>,<13>,<14>,<15>,<16>,<17>,<18>,<19>,<20>,<21>,<22>,<23>,<24>,<25>,<26>,<27>,<28>,<29>,<30>,<31>,<32>,<33>,<34>,<35>,<36>,<37>,<38>,<39>,<40>,<41>,<42>,<43>,<44>,<45>,<46>,<47>,<48>,<49>,<50>,<51>,<52>,<53>,<54>,<55>,<56>,<57>,<58>,<59>,<60>,<61>,<62>,<63>,<64>,<65>,<66>,<67>,<68>,<69>,<70>,<71>,<72>,<73>,<74>,<75>,<76>,<77>,<78>,<79>,<80>,<81>,<82>,<83>,<84>,<85>,<86>,<87>,<88>,<89>,<90>,<91>,<92>,<93>,<94>,<95>,<96>,<97>,<98>,<99>,<100>,<101>,<102>,<103>,<104>,<105>,<106>,<107>,<108>,<109>,<110>,<111>,<112>,<113>,<114>,<115>,<116>,<117>,<118>,<119>,<120>,<121>,<122>,<123>,<124>,<125>,<126>,<127>,<128>,<129>,<130>,<131>,<132>,<133>,<134>,<135>,<136>,<137>,<138>,<139>,<140>,<141>,<142>,<143>,<144>,<145>,<146>,<147>,<148>,<149>,<150>,<151>,<152>,<153>,<154>,<155>,<156>,<157>,<158>,<159>,<160>,<161>,<162>,<163>,<164>,<165>,<166>,<167>,<168>,<169>,<170>,<171>,<172>,<173>,<174>,<175>,<176>,<177>,<178>,<179>,<180>,<181>,<182>,<183>,<184>,<185>,<186>,<187>,<188>,<189>,<190>,<191>,<192>,<193>,<194>,<195>,<196>,<197>,<198>,<199>,<200>,<201>,<202>,<203>,<204>,<205>,<206>,<207>,<208>,<209>,<210>,<211>,<212>,<213>,<214>,<215>,<216>,<217>,<218>,<219>,<220>,<221>,<222>,<223>,<224>,<225>,<226>,<227>,<228>,<229>,<230>,<231>,<232>,<233>,<234>,<235>,<236>,<237>,<238>,<239>,<240>,<241>,<242>,<243>,<244>,<245>,<246>,<247>,<248>,<249>,<250>,<251>,<252>,<253>,<254>,<255>}(a: BitVec));
+        mk!(_mm256_mullo_epi16(a: BitVec, b: BitVec));
+        mk!(_mm256_madd_epi16(a: BitVec, b: BitVec));
+        mk!(_mm_shuffle_epi8(a: BitVec, b: BitVec));
+
+        // Load/store intrinsics: tested via round-trip through real CPU.
+        // These take raw pointers so `mk!` cannot express them directly.
+        // Hand-written tests, named after the upstream so the audit
+        // picks them up via HAND_TEST_RE.
+        #[test]
+        fn _mm_loadu_si128() {
+            for _ in 0..1000 {
+                let bv: BitVec<128> = BitVec::random();
+                // Load through upstream then store back; equality
+                // round-trip evidences both load and store match.
+                let bytes: Vec<u8> = bv.to_vec();
+                let loaded = unsafe { upstream::_mm_loadu_si128(bytes.as_ptr() as *const _) };
+                let mut out = [0u8; 16];
+                unsafe {
+                    upstream::_mm_storeu_si128(out.as_mut_ptr() as *mut _, loaded);
+                }
+                assert_eq!(&bytes[..], &out[..]);
+            }
+        }
+
+        #[test]
+        fn _mm_storeu_si128() {
+            for _ in 0..1000 {
+                let bv: BitVec<128> = BitVec::random();
+                let bytes: Vec<u8> = bv.to_vec();
+                let loaded = unsafe { upstream::_mm_loadu_si128(bytes.as_ptr() as *const _) };
+                let mut out = [0u8; 16];
+                unsafe {
+                    upstream::_mm_storeu_si128(out.as_mut_ptr() as *mut _, loaded);
+                }
+                assert_eq!(&bytes[..], &out[..]);
+            }
+        }
+
+        #[test]
+        fn _mm256_loadu_si256() {
+            for _ in 0..1000 {
+                let bv: BitVec<256> = BitVec::random();
+                let bytes: Vec<u8> = bv.to_vec();
+                let loaded = unsafe { upstream::_mm256_loadu_si256(bytes.as_ptr() as *const _) };
+                let mut out = [0u8; 32];
+                unsafe {
+                    upstream::_mm256_storeu_si256(out.as_mut_ptr() as *mut _, loaded);
+                }
+                assert_eq!(&bytes[..], &out[..]);
+            }
+        }
+
+        #[test]
+        fn _mm256_storeu_si256() {
+            for _ in 0..1000 {
+                let bv: BitVec<256> = BitVec::random();
+                let bytes: Vec<u8> = bv.to_vec();
+                let loaded = unsafe { upstream::_mm256_loadu_si256(bytes.as_ptr() as *const _) };
+                let mut out = [0u8; 32];
+                unsafe {
+                    upstream::_mm256_storeu_si256(out.as_mut_ptr() as *mut _, loaded);
+                }
+                assert_eq!(&bytes[..], &out[..]);
+            }
+        }
+
+        // Typed load/store wrappers: tested via round-trip through real CPU.
+        // These wrap _mm256_loadu_si256 / _mm256_storeu_si256 with typed casts;
+        // audit picks them up via HAND_TEST_RE.
+        #[test]
+        fn _mm256_loadu_si256_i16() {
+            for _ in 0..1000 {
+                let data: Vec<i16> = (0..16).map(|_| rand::random::<i16>()).collect();
+                let loaded = unsafe { upstream::_mm256_loadu_si256(data.as_ptr() as *const _) };
+                let mut out = [0i16; 16];
+                unsafe {
+                    upstream::_mm256_storeu_si256(out.as_mut_ptr() as *mut _, loaded);
+                }
+                assert_eq!(&data[..], &out[..]);
+            }
+        }
+
+        #[test]
+        fn _mm256_loadu_si256_i32() {
+            for _ in 0..1000 {
+                let data: Vec<i32> = (0..8).map(|_| rand::random::<i32>()).collect();
+                let loaded = unsafe { upstream::_mm256_loadu_si256(data.as_ptr() as *const _) };
+                let mut out = [0i32; 8];
+                unsafe {
+                    upstream::_mm256_storeu_si256(out.as_mut_ptr() as *mut _, loaded);
+                }
+                assert_eq!(&data[..], &out[..]);
+            }
+        }
+
+        #[test]
+        fn _mm256_loadu_si256_u8() {
+            for _ in 0..1000 {
+                let data: Vec<u8> = (0..32).map(|_| rand::random::<u8>()).collect();
+                let loaded = unsafe { upstream::_mm256_loadu_si256(data.as_ptr() as *const _) };
+                let mut out = [0u8; 32];
+                unsafe {
+                    upstream::_mm256_storeu_si256(out.as_mut_ptr() as *mut _, loaded);
+                }
+                assert_eq!(&data[..], &out[..]);
+            }
+        }
+
+        #[test]
+        fn _mm256_storeu_si256_u8() {
+            for _ in 0..1000 {
+                let data: Vec<u8> = (0..32).map(|_| rand::random::<u8>()).collect();
+                let loaded = unsafe { upstream::_mm256_loadu_si256(data.as_ptr() as *const _) };
+                let mut out = [0u8; 32];
+                unsafe {
+                    upstream::_mm256_storeu_si256(out.as_mut_ptr() as *mut _, loaded);
+                }
+                assert_eq!(&data[..], &out[..]);
+            }
+        }
+
+        #[test]
+        fn _mm256_storeu_si256_i32() {
+            for _ in 0..1000 {
+                let data: Vec<i32> = (0..8).map(|_| rand::random::<i32>()).collect();
+                let loaded = unsafe { upstream::_mm256_loadu_si256(data.as_ptr() as *const _) };
+                let mut out = [0i32; 8];
+                unsafe {
+                    upstream::_mm256_storeu_si256(out.as_mut_ptr() as *mut _, loaded);
+                }
+                assert_eq!(&data[..], &out[..]);
+            }
+        }
+    }
+}
+
+/// Track I (2026-06-10): differential validation of the F* TRUST AXIOMS added/fixed
+/// for the ML-KEM AVX2 rejection-sampling proof, against the executable core-models
+/// reference semantics in this file / `x86.rs` (which are themselves hardware-validated
+/// by the `mk!` differential tests above, on x86 hosts).
+///
+/// Each test transcribes the F* axiom's formula literally to Rust and compares it with
+/// the core-models model on randomized + edge inputs. Pure Rust: runs on any host
+/// (no `upstream`, no x86 needed).
+///
+/// Axioms validated (see the cross-references at the axiom sites):
+/// - `mm256_cmpgt_epi16` ensures
+///   (`crates/utils/intrinsics/src/avx2_extract.rs`)
+/// - `mm_storeu_si128` content+frame ensures
+///   (`crates/utils/intrinsics/src/avx2_extract.rs`)
+/// - `bit_vec_of_int_t_array_vec128_as_i16x8_lemma`
+///   (`crates/utils/intrinsics/src/avx2_extract.rs`)
+/// - `mm_shuffle_epi8_no_semantics_lemma`
+///   (`libcrux-ml-kem/src/vector/avx2/sampling.rs`)
+#[cfg(test)]
+mod track_i_axiom_transcription_tests {
+    use super::int_vec;
+    use crate::abstractions::{bit::Bit, bitvec::BitVec, funarr::FunArray};
+    use crate::core_arch::x86::{extra, ssse3};
+
+    /// F* axiom: `forall (i: nat{i < 256}). result i ==
+    ///   (if Seq.index (vec256_as_i16x16 lhs) (i/16) >. Seq.index (vec256_as_i16x16 rhs) (i/16)
+    ///    then 1 else 0)`
+    /// vs the model `int_vec::_mm256_cmpgt_epi16` (interpretations.rs:
+    /// `i16x16::from_fn(|i| if a[i] > b[i] { -1 } else { 0 })`).
+    fn check_cmpgt(a: BitVec<256>, b: BitVec<256>) {
+        let model: BitVec<256> = BitVec::from_i16x16(int_vec::_mm256_cmpgt_epi16(
+            BitVec::to_i16x16(a),
+            BitVec::to_i16x16(b),
+        ));
+        let la: Vec<i16> = a.to_vec();
+        let lb: Vec<i16> = b.to_vec();
+        let formula = BitVec::<256>::from_fn(|i| {
+            if la[(i / 16) as usize] > lb[(i / 16) as usize] {
+                Bit::One
+            } else {
+                Bit::Zero
+            }
+        });
+        assert_eq!(model, formula);
+    }
+
+    #[test]
+    fn cmpgt_epi16_bit_level_formula() {
+        for _ in 0..1000 {
+            check_cmpgt(BitVec::rand(), BitVec::rand());
+        }
+        // Edge lanes: equal / greater / less, including INT16_MIN/MAX and the
+        // FIELD_MODULUS values the rejection sampler compares against.
+        let specials: [i16; 9] = [
+            i16::MIN,
+            i16::MIN + 1,
+            -1,
+            0,
+            1,
+            3328,
+            3329,
+            i16::MAX - 1,
+            i16::MAX,
+        ];
+        for &x in specials.iter() {
+            for &y in specials.iter() {
+                let a = BitVec::<256>::from_slice(&[x; 16], 16);
+                let b = BitVec::<256>::from_slice(&[y; 16], 16);
+                check_cmpgt(a, b);
+            }
+        }
+        // Mixed lanes (per-lane independence).
+        for _ in 0..100 {
+            let mut xs = [0i16; 16];
+            let mut ys = [0i16; 16];
+            for k in 0..16 {
+                xs[k] = specials[(k * 7 + 3) % specials.len()];
+                ys[k] = specials[(k * 5 + 1) % specials.len()];
+            }
+            check_cmpgt(
+                BitVec::<256>::from_slice(&xs, 16),
+                BitVec::<256>::from_slice(&ys, 16),
+            );
+        }
+    }
+
+    /// F* axiom (`mm256_cvtepi16_epi32` ensures, avx2_extract.rs): sign-extends
+    /// each of the 8 i16 lanes of `vector` to an i32 lane of the result.  On the
+    /// i16x16 view of the result: `get_lane result (2j) == get_lane128 vector j`
+    /// and `get_lane result (2j+1) == (if v (get_lane128 vector j) < 0 then
+    /// mk_i16 (-1) else mk_i16 0)` (the sign fill, 0xffff/0x0000).
+    /// Model anchor: `int_vec::_mm256_cvtepi16_epi32`
+    /// (`i32x8::from_fn(|i| a[i] as i32)` — Rust `as i32` sign-extends).
+    fn check_cvt(a: BitVec<128>) {
+        let model: Vec<i16> =
+            BitVec::<256>::from_i32x8(int_vec::_mm256_cvtepi16_epi32(BitVec::to_i16x8(a))).to_vec();
+        let input: Vec<i16> = a.to_vec();
+        let formula: Vec<i16> = (0..16usize)
+            .map(|i| {
+                let j = i / 2;
+                if i % 2 == 0 {
+                    input[j]
+                } else if input[j] < 0 {
+                    -1i16
+                } else {
+                    0i16
+                }
+            })
+            .collect();
+        assert_eq!(model, formula);
+    }
+
+    #[test]
+    fn cvtepi16_epi32_lane_formula() {
+        for _ in 0..1000 {
+            check_cvt(BitVec::rand());
+        }
+        // Edge lanes incl. INT16_MIN/MAX and the FIELD_MODULUS neighbourhood.
+        let specials: [i16; 9] = [
+            i16::MIN,
+            i16::MIN + 1,
+            -1,
+            0,
+            1,
+            3328,
+            3329,
+            i16::MAX - 1,
+            i16::MAX,
+        ];
+        for &x in specials.iter() {
+            check_cvt(BitVec::<128>::from_slice(&[x; 8], 16));
+        }
+        // Mixed lanes (per-lane independence).
+        for _ in 0..100 {
+            let mut xs = [0i16; 8];
+            for k in 0..8 {
+                xs[k] = specials[(k * 7 + 3) % specials.len()];
+            }
+            check_cvt(BitVec::<128>::from_slice(&xs, 16));
+        }
+    }
+
+    // ─── B' lane-permutation axiom transcription tests ───────────────────────
+    // Validate the F* crate ensures (avx2_extract.rs) for the control-driven
+    // AVX2 lane shuffles against the executable int_vec models, on the i16x16
+    // lane view.  Each *_rs helper mirrors the corresponding F* index helper
+    // (shuffle32_src / permute64_src / blend_sel) byte-for-byte.  Controls
+    // tested = those ml-kem uses + edge controls to catch formula bugs.
+
+    /// Mirrors F* `shuffle32_src c l` (source 32-bit lane within a 128-bit half).
+    fn shuffle32_src_rs(c: i32, l: usize) -> usize {
+        let cb = c.rem_euclid(256) as usize;
+        (l / 4) * 4
+            + ((match l % 4 {
+                0 => cb,
+                1 => cb / 4,
+                2 => cb / 16,
+                _ => cb / 64,
+            }) % 4)
+    }
+    fn check_shuffle32<const C: i32>(a: BitVec<256>) {
+        let model: Vec<i16> =
+            BitVec::from_i32x8(int_vec::_mm256_shuffle_epi32::<C>(BitVec::to_i32x8(a))).to_vec();
+        let input: Vec<i16> = a.to_vec();
+        let formula: Vec<i16> = (0..16)
+            .map(|k| input[2 * shuffle32_src_rs(C, k / 2) + k % 2])
+            .collect();
+        assert_eq!(model, formula);
+    }
+
+    /// Mirrors F* `permute64_src c q` (source 64-bit qword).
+    fn permute64_src_rs(c: i32, q: usize) -> usize {
+        let cb = c.rem_euclid(256) as usize;
+        (match q {
+            0 => cb,
+            1 => cb / 4,
+            2 => cb / 16,
+            _ => cb / 64,
+        }) % 4
+    }
+    fn check_permute64<const C: i32>(a: BitVec<256>) {
+        let model: Vec<i16> =
+            BitVec::from_i64x4(int_vec::_mm256_permute4x64_epi64::<C>(BitVec::to_i64x4(a)))
+                .to_vec();
+        let input: Vec<i16> = a.to_vec();
+        let formula: Vec<i16> = (0..16)
+            .map(|k| input[4 * permute64_src_rs(C, k / 4) + k % 4])
+            .collect();
+        assert_eq!(model, formula);
+    }
+
+    /// Mirrors F* `blend_sel c k` (true => pick rhs at i16-lane k).
+    fn blend_sel_rs(c: i32, k: usize) -> bool {
+        let cb = c.rem_euclid(256) as usize;
+        ((match k % 8 {
+            0 => cb,
+            1 => cb / 2,
+            2 => cb / 4,
+            3 => cb / 8,
+            4 => cb / 16,
+            5 => cb / 32,
+            6 => cb / 64,
+            _ => cb / 128,
+        }) % 2)
+            == 1
+    }
+    fn check_blend16<const C: i32>(a: BitVec<256>, b: BitVec<256>) {
+        let model: Vec<i16> = BitVec::from_i16x16(int_vec::_mm256_blend_epi16::<C>(
+            BitVec::to_i16x16(a),
+            BitVec::to_i16x16(b),
+        ))
+        .to_vec();
+        let la: Vec<i16> = a.to_vec();
+        let lb: Vec<i16> = b.to_vec();
+        let formula: Vec<i16> = (0..16)
+            .map(|k| if blend_sel_rs(C, k) { lb[k] } else { la[k] })
+            .collect();
+        assert_eq!(model, formula);
+    }
+
+    /// F* axiom (`mm256_slli_epi32` ensures, shift 16): i16 lane 2j -> 0,
+    /// 2j+1 -> old lane 2j (the 32-bit lane << 16).
+    fn check_slli32_16(a: BitVec<256>) {
+        let model: Vec<i16> =
+            BitVec::from_i32x8(int_vec::_mm256_slli_epi32::<16>(BitVec::to_i32x8(a))).to_vec();
+        let input: Vec<i16> = a.to_vec();
+        let formula: Vec<i16> = (0..16)
+            .map(|k| if k % 2 == 0 { 0i16 } else { input[k - 1] })
+            .collect();
+        assert_eq!(model, formula);
+    }
+
+    /// F* axiom (`mm256_castsi128_si256` ensures): the low 8 i16 lanes equal the
+    /// input vec128 lanes (high 128 undefined, so only the low 8 are asserted).
+    fn check_castsi128(a: BitVec<128>) {
+        let model: Vec<i16> = int_vec::_mm256_castsi128_si256(a).to_vec();
+        let input: Vec<i16> = a.to_vec();
+        for k in 0..8 {
+            assert_eq!(model[k], input[k]);
+        }
+    }
+
+    /// F* axiom (`mm256_inserti128_si256` ensures, control 1): low 8 i16 lanes
+    /// from `vector`, high 8 from `vector_i128`.
+    fn check_inserti128_1(a: BitVec<256>, b: BitVec<128>) {
+        let model: Vec<i16> = BitVec::from_i128x2(int_vec::_mm256_inserti128_si256::<1>(
+            BitVec::to_i128x2(a),
+            BitVec::to_i128x1(b),
+        ))
+        .to_vec();
+        let la: Vec<i16> = a.to_vec();
+        let lb: Vec<i16> = b.to_vec();
+        let formula: Vec<i16> = (0..16)
+            .map(|k| if k < 8 { la[k] } else { lb[k - 8] })
+            .collect();
+        assert_eq!(model, formula);
+    }
+
+    #[test]
+    fn shuffle_epi32_lane_formula() {
+        for _ in 0..200 {
+            check_shuffle32::<245>(BitVec::rand());
+            check_shuffle32::<160>(BitVec::rand());
+            check_shuffle32::<238>(BitVec::rand());
+            check_shuffle32::<68>(BitVec::rand());
+            check_shuffle32::<0b11_10_01_00>(BitVec::rand()); // identity
+            check_shuffle32::<0>(BitVec::rand());
+            check_shuffle32::<255>(BitVec::rand());
+            check_shuffle32::<27>(BitVec::rand());
+        }
+    }
+
+    #[test]
+    fn permute4x64_epi64_lane_formula() {
+        for _ in 0..200 {
+            check_permute64::<245>(BitVec::rand());
+            check_permute64::<160>(BitVec::rand());
+            check_permute64::<216>(BitVec::rand());
+            check_permute64::<0b11_10_01_00>(BitVec::rand()); // identity
+            check_permute64::<0>(BitVec::rand());
+            check_permute64::<255>(BitVec::rand());
+            check_permute64::<27>(BitVec::rand());
+        }
+    }
+
+    #[test]
+    fn blend_epi16_lane_formula() {
+        for _ in 0..200 {
+            check_blend16::<204>(BitVec::rand(), BitVec::rand());
+            check_blend16::<240>(BitVec::rand(), BitVec::rand());
+            check_blend16::<170>(BitVec::rand(), BitVec::rand());
+            check_blend16::<0>(BitVec::rand(), BitVec::rand());
+            check_blend16::<255>(BitVec::rand(), BitVec::rand());
+            check_blend16::<85>(BitVec::rand(), BitVec::rand());
+        }
+    }
+
+    #[test]
+    fn slli_epi32_16_lane_formula() {
+        for _ in 0..1000 {
+            check_slli32_16(BitVec::rand());
+        }
+    }
+
+    #[test]
+    fn castsi128_si256_lane_formula() {
+        for _ in 0..1000 {
+            check_castsi128(BitVec::rand());
+        }
+    }
+
+    #[test]
+    fn inserti128_si256_1_lane_formula() {
+        // inserti128 is pure lane placement (value-agnostic).  We use distinct
+        // NON-NEGATIVE i16 lanes (so the top i16 of each 128-bit half is >= 0,
+        // i.e. bit 127 clear) because the `to_i128x2`/`to_i128x1` interpretation
+        // overflows i128 on a half whose sign bit is set.  Distinct per-lane
+        // values still detect any mis-mapping; shifted variants add coverage.
+        for s in 0..256i16 {
+            let av: [i16; 16] = core::array::from_fn(|k| (k as i16) * 100 + s);
+            let bv: [i16; 8] = core::array::from_fn(|k| 5000 + (k as i16) * 13 + s);
+            check_inserti128_1(
+                BitVec::<256>::from_slice(&av, 16),
+                BitVec::<128>::from_slice(&bv, 16),
+            );
+        }
+    }
+
+    /// The F* `lane32 v j` (avx2_extract.rs / ml-kem Arithmetic): the signed
+    /// value of the j-th 32-bit lane, reconstructed from the i16x16 view as
+    /// `(v (lane 2j) % 65536) + 65536 * v (lane 2j+1)` (low unsigned + high
+    /// signed).  Computed here from the canonical i16 lane view, NOT from
+    /// `to_i32x8` — so the tests below genuinely validate that this i16-pair
+    /// reconstruction equals the 32-bit-lane arithmetic of the model.
+    fn lane32_recon(v: &BitVec<256>) -> Vec<i32> {
+        let lanes: Vec<i16> = v.to_vec();
+        (0..8)
+            .map(|j| {
+                let lo = lanes[2 * j] as u16 as i64; // v (lane 2j) % 65536
+                let hi = lanes[2 * j + 1] as i64; // v (lane 2j+1)
+                (lo + 65536 * hi) as i32
+            })
+            .collect()
+    }
+
+    /// F* axiom (`mm256_add_epi32` ensures): `lane32 result j ==
+    /// (lane32 lhs j + lane32 rhs j) @% 2^32` (32-bit wrapping add).
+    /// Model anchor: `int_vec::_mm256_add_epi32` (`a[i].wrapping_add(b[i])`).
+    fn check_add32(a: BitVec<256>, b: BitVec<256>) {
+        let model: BitVec<256> = BitVec::from_i32x8(int_vec::_mm256_add_epi32(
+            BitVec::to_i32x8(a),
+            BitVec::to_i32x8(b),
+        ));
+        let la = lane32_recon(&a);
+        let lb = lane32_recon(&b);
+        let formula: Vec<i32> = (0..8).map(|j| la[j].wrapping_add(lb[j])).collect();
+        assert_eq!(lane32_recon(&model), formula);
+    }
+
+    /// F* axiom (`mm256_mullo_epi32` ensures): `lane32 result j ==
+    /// (lane32 lhs j * lane32 rhs j) @% 2^32` (32-bit wrapping low multiply).
+    /// Model anchor: `int_vec::_mm256_mullo_epi32` (`a[i].wrapping_mul(b[i])`).
+    fn check_mullo32(a: BitVec<256>, b: BitVec<256>) {
+        let model: BitVec<256> = BitVec::from_i32x8(int_vec::_mm256_mullo_epi32(
+            BitVec::to_i32x8(a),
+            BitVec::to_i32x8(b),
+        ));
+        let la = lane32_recon(&a);
+        let lb = lane32_recon(&b);
+        let formula: Vec<i32> = (0..8).map(|j| la[j].wrapping_mul(lb[j])).collect();
+        assert_eq!(lane32_recon(&model), formula);
+    }
+
+    #[test]
+    fn add32_mullo32_lane_formula() {
+        for _ in 0..1000 {
+            check_add32(BitVec::rand(), BitVec::rand());
+            check_mullo32(BitVec::rand(), BitVec::rand());
+        }
+        // Edge 32-bit lanes (INT32 extremes, the no-wrap NTT bound 3328^2, and
+        // values straddling the i16-half boundary to exercise the reconstruction).
+        let specials: [i32; 8] = [
+            i32::MIN,
+            i32::MIN + 1,
+            -1,
+            0,
+            1,
+            3328,
+            3328 * 3328,
+            i32::MAX,
+        ];
+        for &x in specials.iter() {
+            for &y in specials.iter() {
+                let a = BitVec::<256>::from_slice(&[x; 8], 32);
+                let b = BitVec::<256>::from_slice(&[y; 8], 32);
+                check_add32(a, b);
+                check_mullo32(a, b);
+            }
+        }
+    }
+
+    /// F* axiom (`mm256_madd_epi16` ensures): `lane32 result j ==
+    /// (v (get_lane lhs (2j)) * v (get_lane rhs (2j)) +
+    ///  v (get_lane lhs (2j+1)) * v (get_lane rhs (2j+1))) @% 2^32`.
+    /// Model anchor: `int_vec::_mm256_madd_epi16` (adjacent i16xi16 products,
+    /// wrapping horizontal add).  Inputs are the i16x16 lane view directly.
+    fn check_madd(a: BitVec<256>, b: BitVec<256>) {
+        let model: BitVec<256> = BitVec::from_i32x8(int_vec::_mm256_madd_epi16(
+            BitVec::to_i16x16(a),
+            BitVec::to_i16x16(b),
+        ));
+        let la: Vec<i16> = a.to_vec();
+        let lb: Vec<i16> = b.to_vec();
+        let formula: Vec<i32> = (0..8)
+            .map(|j| {
+                let p0 = (la[2 * j] as i32) * (lb[2 * j] as i32);
+                let p1 = (la[2 * j + 1] as i32) * (lb[2 * j + 1] as i32);
+                p0.wrapping_add(p1)
+            })
+            .collect();
+        assert_eq!(lane32_recon(&model), formula);
+    }
+
+    #[test]
+    fn madd_epi16_lane_formula() {
+        for _ in 0..1000 {
+            check_madd(BitVec::rand(), BitVec::rand());
+        }
+        // Edge i16 lanes incl. INT16 extremes (so a pair hits the 2^31 wrap) and
+        // the NTT bound neighbourhood.
+        let specials: [i16; 9] = [
+            i16::MIN,
+            i16::MIN + 1,
+            -1,
+            0,
+            1,
+            3328,
+            3329,
+            i16::MAX - 1,
+            i16::MAX,
+        ];
+        for &x in specials.iter() {
+            for &y in specials.iter() {
+                check_madd(
+                    BitVec::<256>::from_slice(&[x; 16], 16),
+                    BitVec::<256>::from_slice(&[y; 16], 16),
+                );
+            }
+        }
+    }
+
+    /// F* axiom: `mm_storeu_si128` stores exactly the 8 LSB-first i16 lanes
+    /// (`vec128_as_i16x8 vector`) to `output[0..8]`, framing the rest.
+    /// Model anchor: `other::_mm_storeu_si128` / `extra::mm_storeu_bytes_si128`
+    /// (x86.rs): the store writes exactly the 16 bytes of the vector (`*output = a`),
+    /// i.e. 8 little-endian i16 lanes — and nothing else (the frame clause).
+    #[test]
+    fn storeu_si128_lane_formula() {
+        for _ in 0..1000 {
+            let vec: BitVec<128> = BitVec::rand();
+            let mut bytes = [0u8; 16];
+            extra::mm_storeu_bytes_si128(&mut bytes, vec);
+            // model: the 16 stored bytes, read back as 8 LE i16 lanes
+            let model: Vec<i16> = bytes
+                .chunks(2)
+                .map(|c| i16::from_le_bytes([c[0], c[1]]))
+                .collect();
+            // F* formula: output_future[0..8] == vec128_as_i16x8 vector,
+            // where vec128_as_i16x8 is the canonical LSB-first 16-bit lane view
+            // (= BitVec::to_vec::<i16>, as pinned by vec128_lane_bit_decomposition below)
+            let formula: Vec<i16> = vec.to_vec();
+            assert_eq!(model, formula);
+        }
+    }
+
+    /// F* axiom: `bit_vec_of_int_t_array (vec128_as_i16x8 v) d i == v ((i/d)*16 + i%d)`
+    /// for `0 < d <= 16`, `i < 8*d` — i.e. lane k of the canonical i16x8 view occupies
+    /// bits `16k..16k+15` of the bit-vector, LSB-first (two's complement bits).
+    /// Model anchor: `BitVec::to_vec::<i16>` chunking (abstractions/bitvec.rs), the
+    /// same lane view used by `BitVec::to_i16x8` and `mm_storeu_bytes_si128`.
+    #[test]
+    fn vec128_lane_bit_decomposition() {
+        for _ in 0..1000 {
+            let v: BitVec<128> = BitVec::rand();
+            let lanes: Vec<i16> = v.to_vec();
+            for d in 1..=16u64 {
+                for i in 0..(8 * d) {
+                    let lane = lanes[(i / d) as usize] as u16;
+                    let lane_bit = (lane >> (i % d)) & 1;
+                    let v_bit: u16 = u16::from(v[(i / d) * 16 + i % d]);
+                    assert_eq!(lane_bit, v_bit, "d={d} i={i}");
+                }
+            }
+        }
+    }
+
+    /// F* axiom `count_ones_u8_popcount8` (Track I M2, landed in the
+    /// `fstar::before` block of `libcrux-ml-kem/src/vector/avx2/sampling.rs`):
+    /// `v (count_ones_u8 x) == popcount8 (v x)` with
+    /// `popcount8 g = if g = 0 then 0 else g % 2 + popcount8 (g / 2)`
+    /// (defined in `Hacspec_ml_kem.Commute.Rej_table`).
+    /// Model anchor: Rust core's `u8::count_ones` — the operation that
+    /// `Rust_primitives.Arithmetic.count_ones_u8` (an uninterpreted F* val) models.
+    /// Exhaustive over all 256 inputs.
+    #[test]
+    fn count_ones_popcount8_formula() {
+        fn popcount8(g: u32) -> u32 {
+            if g == 0 {
+                0
+            } else {
+                g % 2 + popcount8(g / 2)
+            }
+        }
+        for x in 0..=255u8 {
+            assert_eq!(x.count_ones(), popcount8(x as u32));
+        }
+    }
+
+    /// F* axiom (`mm_shuffle_epi8_no_semantics_lemma`, ml-kem sampling.rs):
+    ///   `result i == (let nth = i / 8 in
+    ///                 let idx = sum_k b (8*nth+k) * 2^k in
+    ///                 if idx > 127 then 0 else a ((idx % 16) * 8 + i % 8))`
+    /// vs the model `ssse3::_mm_shuffle_epi8` / `extra::mm_shuffle_epi8_u8_array`
+    /// (x86.rs:1107: `if index > 127 { Zero } else { vector[(index % 16)*8 + i%8] }`).
+    ///
+    /// The mask bit-vector `b` is built with the same byte->bit mapping as
+    /// `BitVec.Intrinsics.mm_loadu_si128` (`get_bit bytes[i/8] (i%8)`), which is
+    /// `BitVec::from_slice(bytes, 8)` — so this also validates the byte-decode
+    /// (`idx = sum_k b(8*nth+k)*2^k`) used in the F* axiom.
+    fn check_shuffle(a: BitVec<128>, mask_bytes: [u8; 16]) {
+        let b = BitVec::<128>::from_slice(&mask_bytes, 8);
+        // model via the ssse3 entry point (FunArray<16, u8> indexes)
+        let model_ssse3 = ssse3::_mm_shuffle_epi8(a, b);
+        // model via the array primitive directly
+        let indexes = FunArray::<16, u8>::from_fn(|i| mask_bytes[i as usize]);
+        let model_extra = extra::mm_shuffle_epi8_u8_array(a, indexes);
+        assert_eq!(model_ssse3, model_extra);
+        // F* formula transcription
+        let formula = BitVec::<128>::from_fn(|i| {
+            let nth = i / 8;
+            let idx: u64 = (0..8u64).map(|k| u64::from(b[8 * nth + k]) << k).sum();
+            if idx > 127 {
+                Bit::Zero
+            } else {
+                a[(idx % 16) * 8 + i % 8]
+            }
+        });
+        assert_eq!(model_extra, formula);
+    }
+
+    #[test]
+    fn shuffle_epi8_dynamic_mask_formula() {
+        // randomized masks (uniform over all byte values incl. MSB-set)
+        for _ in 0..1000 {
+            let a: BitVec<128> = BitVec::rand();
+            let mask_bv: BitVec<128> = BitVec::rand();
+            let mask_bytes: [u8; 16] = mask_bv.to_vec::<u8>().try_into().unwrap();
+            check_shuffle(a, mask_bytes);
+        }
+        // exhaustive index coverage: every mask byte value 0..=255
+        // (covers idx <= 127 with %16 wrap, and idx > 127 => zero)
+        for v in 0..=255u8 {
+            let a: BitVec<128> = BitVec::rand();
+            check_shuffle(a, [v; 16]);
+        }
+        // REJECTION_SAMPLE_SHUFFLE_TABLE-shaped masks: pairs (2k, 2k+1) + 0xff fill
+        for _ in 0..100 {
+            let a: BitVec<128> = BitVec::rand();
+            let mut mask = [0xffu8; 16];
+            for j in 0..8 {
+                let k = (j * 3) % 8;
+                mask[2 * j] = (2 * k) as u8;
+                mask[2 * j + 1] = (2 * k + 1) as u8;
+            }
+            check_shuffle(a, mask);
+        }
+    }
+
+    /// F* axiom (`mm256_shuffle_epi8_no_semantics_lemma`, ml-kem ntt.rs): the 256-bit
+    /// PSHUFB per-bit semantics — same shape as the 128-bit one but indexing stays
+    /// WITHIN the 128-bit half of bit `i` (`+ (i/128)*128`), and the byte index is a
+    /// SIGNED i8 (MSB set => zero, i.e. unsigned `idx > 127`):
+    ///   `result i == (let nth = i/8 in let idx = sum_k b(8*nth+k)*2^k in
+    ///                 if idx > 127 then 0 else a ((idx%16)*8 + i%8 + (i/128)*128))`
+    /// vs the model `extra::mm256_shuffle_epi8_i8_array` (x86.rs:1161).
+    fn check_shuffle256(a: BitVec<256>, mask_bytes: [i8; 32]) {
+        let b = BitVec::<256>::from_slice(&mask_bytes, 8);
+        let indexes = FunArray::<32, i8>::from_fn(|i| mask_bytes[i as usize]);
+        let model = extra::mm256_shuffle_epi8_i8_array(a, indexes);
+        let formula = BitVec::<256>::from_fn(|i| {
+            let nth = i / 8;
+            let idx: u64 = (0..8u64).map(|k| u64::from(b[8 * nth + k]) << k).sum();
+            if idx > 127 {
+                Bit::Zero
+            } else {
+                a[(idx % 16) * 8 + i % 8 + (i / 128) * 128]
+            }
+        });
+        assert_eq!(model, formula);
+    }
+
+    #[test]
+    fn shuffle256_epi8_dynamic_mask_formula() {
+        for _ in 0..1000 {
+            let a: BitVec<256> = BitVec::rand();
+            let mb: BitVec<256> = BitVec::rand();
+            let mask_bytes: [i8; 32] = mb
+                .to_vec::<u8>()
+                .iter()
+                .map(|&x| x as i8)
+                .collect::<Vec<_>>()
+                .try_into()
+                .unwrap();
+            check_shuffle256(a, mask_bytes);
+        }
+        for v in -128..=127i8 {
+            let a: BitVec<256> = BitVec::rand();
+            check_shuffle256(a, [v; 32]);
+        }
+    }
+
+    /// Validates the lemma facts (`lemma_nttmul_shuffle_group_lane` /
+    /// `lemma_nttmul_swap_lane`, ml-kem ntt.rs) at the i16-lane level: the two
+    /// concrete `mm256_set_epi8` masks realize the stated permutations.  The byte
+    /// arrays below are exactly what `mm256_set_epi8 (mk_i8 a0)...(mk_i8 a31)`
+    /// produces (byte `nth` = arg `a_(31-nth)`).
+    #[test]
+    fn shuffle256_epi8_group_swap_lane_perms() {
+        // grouping mask: out i16-lane k = in lane sigma_group(k)
+        let group_bytes: [i8; 32] = [
+            0, 1, 4, 5, 8, 9, 12, 13, 2, 3, 6, 7, 10, 11, 14, 15, // low 128
+            0, 1, 4, 5, 8, 9, 12, 13, 2, 3, 6, 7, 10, 11, 14, 15, // high 128
+        ];
+        let sigma_group = |k: usize| -> usize {
+            if k < 4 {
+                2 * k
+            } else if k < 8 {
+                2 * (k - 4) + 1
+            } else if k < 12 {
+                2 * (k - 8) + 8
+            } else {
+                2 * (k - 12) + 9
+            }
+        };
+        // adjacent-pair swap mask: out lane k = in lane (k xor 1)
+        let swap_bytes: [i8; 32] = [
+            2, 3, 0, 1, 6, 7, 4, 5, 10, 11, 8, 9, 14, 15, 12, 13, // low 128
+            2, 3, 0, 1, 6, 7, 4, 5, 10, 11, 8, 9, 14, 15, 12, 13, // high 128
+        ];
+        let sigma_swap = |k: usize| -> usize {
+            if k % 2 == 0 {
+                k + 1
+            } else {
+                k - 1
+            }
+        };
+
+        for _ in 0..1000 {
+            let a: BitVec<256> = BitVec::rand();
+            let ain: Vec<i16> = a.to_vec();
+            let g = extra::mm256_shuffle_epi8_i8_array(
+                a,
+                FunArray::<32, i8>::from_fn(|i| group_bytes[i as usize]),
+            );
+            let gv: Vec<i16> = g.to_vec();
+            for k in 0..16 {
+                assert_eq!(gv[k], ain[sigma_group(k)]);
+            }
+            let s = extra::mm256_shuffle_epi8_i8_array(
+                a,
+                FunArray::<32, i8>::from_fn(|i| swap_bytes[i as usize]),
+            );
+            let sv: Vec<i16> = s.to_vec();
+            for k in 0..16 {
+                assert_eq!(sv[k], ain[sigma_swap(k)]);
+            }
+        }
+    }
+
+    // ─── d-bit (de)compress AVX2 lane-axiom transcription tests ──────────────
+    // Validate the F* crate ensures (avx2_extract.rs) added for the AVX2 d-bit
+    // compress spine — mm256_srli_epi32, mm256_slli_epi32 (small shift),
+    // mm256_mul_epu32, mm256_packs_epi32, and the three unpacks used by
+    // mulhi_mm256_epi32 — against the executable int_vec models on the i32/u64
+    // lane views.  Each *formula* transcribes the F* axiom RHS exactly (using
+    // `rem_euclid` for F*'s Euclidean `%` and wrapping i32 for `@%`); `model` is
+    // the hardware-differential-tested interpretation.
+
+    /// Unsigned value of i32-lane j (`lane32 v j % 2^32`), as i64 in [0, 2^32).
+    fn lane32u_of(v: &BitVec<256>, j: usize) -> i64 {
+        (lane32_recon(v)[j] as i64).rem_euclid(1i64 << 32)
+    }
+
+    /// F* axiom (`mm256_srli_epi32` ensures, 0 < s < 32):
+    /// `lane32 result j == (lane32 vector j % 2^32) / 2^s` (logical shift).
+    /// Model anchor: `int_vec::_mm256_srli_epi32` (`((a[i] as u32) >> s) as i32`).
+    fn check_srli32<const S: i32>(a: BitVec<256>) {
+        let model: BitVec<256> =
+            BitVec::from_i32x8(int_vec::_mm256_srli_epi32::<S>(BitVec::to_i32x8(a)));
+        let lm = lane32_recon(&model);
+        for j in 0..8 {
+            let formula = lane32u_of(&a, j) / (1i64 << S);
+            assert_eq!(lm[j] as i64, formula, "srli s={S} j={j}");
+        }
+    }
+
+    /// F* axiom (`mm256_slli_epi32` small-shift ensures, 0 <= s < 32):
+    /// `lane32 result j == (lane32 vector j * 2^s) @% 2^32` (signed wrap).
+    /// Model anchor: `int_vec::_mm256_slli_epi32` (`((a[i] as u32) << s) as i32`).
+    fn check_slli32<const S: i32>(a: BitVec<256>) {
+        let model: BitVec<256> =
+            BitVec::from_i32x8(int_vec::_mm256_slli_epi32::<S>(BitVec::to_i32x8(a)));
+        let la = lane32_recon(&a);
+        let lm = lane32_recon(&model);
+        for j in 0..8 {
+            // (lane * 2^s) reinterpreted into i32 via the low 32 bits == `@% 2^32`.
+            let formula = (((la[j] as i64) << S) as i32) as i64;
+            assert_eq!(lm[j] as i64, formula, "slli s={S} j={j}");
+        }
+    }
+
+    /// F* axiom (`mm256_srai_epi32` ensures, 0 <= s < 32):
+    /// `lane32 result j == (lane32 vector j) / 2^s` (arithmetic shift; F*'s
+    /// integer `/` is Euclidean floor, matching the sign-filling shift).
+    /// Model anchor: `int_vec::_mm256_srai_epi32` (`a[i] >> s`, signed).
+    fn check_srai32<const S: i32>(a: BitVec<256>) {
+        let model: BitVec<256> =
+            BitVec::from_i32x8(int_vec::_mm256_srai_epi32::<S>(BitVec::to_i32x8(a)));
+        let la = lane32_recon(&a);
+        let lm = lane32_recon(&model);
+        for j in 0..8 {
+            // arithmetic shift right == Euclidean floor division by 2^s (F* `/`).
+            let formula = (la[j] as i64).div_euclid(1i64 << S);
+            assert_eq!(lm[j] as i64, formula, "srai s={S} j={j}");
+        }
+    }
+
+    /// F* axiom (`mm256_mul_epu32` ensures, i < 4):
+    /// `lane64u result i == (lane32 lhs (2i) % 2^32) * (lane32 rhs (2i) % 2^32)`.
+    /// Model anchor: `int_vec::_mm256_mul_epu32` (`(a[2i] as u64) * (b[2i] as u64)`).
+    fn check_mul_epu32(a: BitVec<256>, b: BitVec<256>) {
+        let model: BitVec<256> = BitVec::from_u64x4(int_vec::_mm256_mul_epu32(
+            BitVec::to_u32x8(a),
+            BitVec::to_u32x8(b),
+        ));
+        let lane64u_recon = |v: &BitVec<256>, i: usize| -> i128 {
+            (lane32u_of(v, 2 * i) as i128) + (1i128 << 32) * (lane32u_of(v, 2 * i + 1) as i128)
+        };
+        for i in 0..4 {
+            let formula = (lane32u_of(&a, 2 * i) as i128) * (lane32u_of(&b, 2 * i) as i128);
+            assert_eq!(lane64u_recon(&model, i), formula, "mul_epu32 i={i}");
+        }
+    }
+
+    /// F* axiom (`mm256_packs_epi32` ensures): signed-saturating pack with the
+    /// 128-bit-half interleave layout (out lanes 0..3 = sat(lhs 0..3),
+    /// 4..7 = sat(rhs 0..3), 8..11 = sat(lhs 4..7), 12..15 = sat(rhs 4..7)).
+    /// Model anchor: `int_vec::_mm256_packs_epi32`.
+    fn check_packs32(a: BitVec<256>, b: BitVec<256>) {
+        let model: Vec<i16> = BitVec::from_i16x16(int_vec::_mm256_packs_epi32(
+            BitVec::to_i32x8(a),
+            BitVec::to_i32x8(b),
+        ))
+        .to_vec();
+        let la = lane32_recon(&a);
+        let lb = lane32_recon(&b);
+        let sat = |x: i32| -> i16 {
+            if x > 32767 {
+                32767
+            } else if x < -32768 {
+                -32768
+            } else {
+                x as i16
+            }
+        };
+        let formula: Vec<i16> = (0..16)
+            .map(|k| {
+                if k < 4 {
+                    sat(la[k])
+                } else if k < 8 {
+                    sat(lb[k - 4])
+                } else if k < 12 {
+                    sat(la[k - 4])
+                } else {
+                    sat(lb[k - 8])
+                }
+            })
+            .collect();
+        assert_eq!(model, formula);
+    }
+
+    /// F* axiom (`mm256_unpacklo_epi32` ensures): i32 lanes
+    /// [lhs0,rhs0,lhs1,rhs1, lhs4,rhs4,lhs5,rhs5].
+    fn check_unpacklo32(a: BitVec<256>, b: BitVec<256>) {
+        let model = lane32_recon(&BitVec::from_i32x8(int_vec::_mm256_unpacklo_epi32(
+            BitVec::to_i32x8(a),
+            BitVec::to_i32x8(b),
+        )));
+        let la = lane32_recon(&a);
+        let lb = lane32_recon(&b);
+        let formula = vec![la[0], lb[0], la[1], lb[1], la[4], lb[4], la[5], lb[5]];
+        assert_eq!(model, formula);
+    }
+
+    /// F* axiom (`mm256_unpackhi_epi32` ensures): i32 lanes
+    /// [lhs2,rhs2,lhs3,rhs3, lhs6,rhs6,lhs7,rhs7].
+    fn check_unpackhi32(a: BitVec<256>, b: BitVec<256>) {
+        let model = lane32_recon(&BitVec::from_i32x8(int_vec::_mm256_unpackhi_epi32(
+            BitVec::to_i32x8(a),
+            BitVec::to_i32x8(b),
+        )));
+        let la = lane32_recon(&a);
+        let lb = lane32_recon(&b);
+        let formula = vec![la[2], lb[2], la[3], lb[3], la[6], lb[6], la[7], lb[7]];
+        assert_eq!(model, formula);
+    }
+
+    /// F* axiom (`mm256_unpackhi_epi64` ensures): i32 lanes
+    /// [lhs2,lhs3,rhs2,rhs3, lhs6,lhs7,rhs6,rhs7].
+    fn check_unpackhi64(a: BitVec<256>, b: BitVec<256>) {
+        let model = lane32_recon(&BitVec::from_i64x4(int_vec::_mm256_unpackhi_epi64(
+            BitVec::to_i64x4(a),
+            BitVec::to_i64x4(b),
+        )));
+        let la = lane32_recon(&a);
+        let lb = lane32_recon(&b);
+        let formula = vec![la[2], la[3], lb[2], lb[3], la[6], la[7], lb[6], lb[7]];
+        assert_eq!(model, formula);
+    }
+
+    /// F* axiom (`mm256_set1_epi32` ensures): every i32 lane == constant
+    /// (`lane32 result j == v constant`); and for 0 <= constant < 2^16, the
+    /// per-i16-lane decomposition (low = constant, high = 0).
+    /// Model anchor: `int_vec::_mm256_set1_epi32` (`i32x8::from_fn(|_| x)`).
+    fn check_set1_epi32(x: i32) {
+        let model: BitVec<256> = BitVec::from_i32x8(int_vec::_mm256_set1_epi32(x));
+        let lm = lane32_recon(&model);
+        for j in 0..8 {
+            assert_eq!(lm[j], x, "set1 lane32 j={j}");
+        }
+        if 0 <= x && x < (1i32 << 16) {
+            let i16lanes: Vec<i16> = model.to_vec();
+            for j in 0..8 {
+                assert_eq!(i16lanes[2 * j], x as i16, "set1 i16 lo j={j}");
+                assert_eq!(i16lanes[2 * j + 1], 0i16, "set1 i16 hi j={j}");
+            }
+        }
+    }
+
+    #[test]
+    fn set1_epi32_lane_formula() {
+        for _ in 0..200 {
+            for &x in lane32_recon(&BitVec::<256>::rand()).iter() {
+                check_set1_epi32(x);
+            }
+        }
+        let specials: [i32; 14] = [
+            i32::MIN,
+            -1,
+            0,
+            1,
+            15,
+            31,
+            1023,
+            1664,
+            2047,
+            10_321_340,
+            32767,
+            32768,
+            65535,
+            i32::MAX,
+        ];
+        for &x in specials.iter() {
+            check_set1_epi32(x);
+        }
+    }
+
+    #[test]
+    fn srli_epi32_lane_formula() {
+        // s = 3 is the compress consumer's shift; also validate a broad set of
+        // strictly-positive shifts (the axiom's precondition 0 < s < 32) over
+        // random inputs incl. negative lanes, plus i32 edge lanes.
+        macro_rules! over_shifts {
+            ($a:expr) => {{
+                check_srli32::<1>($a);
+                check_srli32::<2>($a);
+                check_srli32::<3>($a);
+                check_srli32::<4>($a);
+                check_srli32::<5>($a);
+                check_srli32::<8>($a);
+                check_srli32::<10>($a);
+                check_srli32::<11>($a);
+                check_srli32::<13>($a);
+                check_srli32::<16>($a);
+                check_srli32::<20>($a);
+                check_srli32::<31>($a);
+            }};
+        }
+        for _ in 0..200 {
+            over_shifts!(BitVec::rand());
+        }
+        let specials: [i32; 8] = [i32::MIN, i32::MIN + 1, -1, 0, 1, 3328, 6_817_408, i32::MAX];
+        for &x in specials.iter() {
+            over_shifts!(BitVec::<256>::from_slice(&[x; 8], 32));
+        }
+    }
+
+    #[test]
+    fn slli_epi32_general_lane_formula() {
+        // Compress uses s in {4,5,10,11}; validate 0 <= s < 32 incl. the s=16
+        // case (must agree with the existing shift-16 lane characterization) and
+        // boundary shifts, over random inputs incl. negative lanes + edges.
+        macro_rules! over_shifts {
+            ($a:expr) => {{
+                check_slli32::<0>($a);
+                check_slli32::<1>($a);
+                check_slli32::<3>($a);
+                check_slli32::<4>($a);
+                check_slli32::<5>($a);
+                check_slli32::<10>($a);
+                check_slli32::<11>($a);
+                check_slli32::<16>($a);
+                check_slli32::<31>($a);
+            }};
+        }
+        for _ in 0..200 {
+            over_shifts!(BitVec::rand());
+        }
+        let specials: [i32; 8] = [i32::MIN, i32::MIN + 1, -1, 0, 1, 3328, 6_817_408, i32::MAX];
+        for &x in specials.iter() {
+            over_shifts!(BitVec::<256>::from_slice(&[x; 8], 32));
+        }
+    }
+
+    #[test]
+    fn srai_epi32_general_lane_formula() {
+        // montgomery_reduce_i32s uses s = 16; validate 0 <= s < 32 over random
+        // inputs incl. negative lanes (arithmetic = sign-fill) + i32 edges.
+        macro_rules! over_shifts {
+            ($a:expr) => {{
+                check_srai32::<0>($a);
+                check_srai32::<1>($a);
+                check_srai32::<15>($a);
+                check_srai32::<16>($a);
+                check_srai32::<17>($a);
+                check_srai32::<31>($a);
+            }};
+        }
+        for _ in 0..200 {
+            over_shifts!(BitVec::rand());
+        }
+        let specials: [i32; 8] = [i32::MIN, i32::MIN + 1, -1, 0, 1, 3328, 6_817_408, i32::MAX];
+        for &x in specials.iter() {
+            over_shifts!(BitVec::<256>::from_slice(&[x; 8], 32));
+        }
+    }
+
+    #[test]
+    fn mul_epu32_packs_unpacks_lane_formula() {
+        for _ in 0..1000 {
+            check_mul_epu32(BitVec::rand(), BitVec::rand());
+            check_packs32(BitVec::rand(), BitVec::rand());
+            check_unpacklo32(BitVec::rand(), BitVec::rand());
+            check_unpackhi32(BitVec::rand(), BitVec::rand());
+            check_unpackhi64(BitVec::rand(), BitVec::rand());
+        }
+        // Edge i32 lanes: the i16-saturation boundaries (for packs), the unsigned
+        // 32-bit extremes (for mul_epu32), and the compress neighbourhood.
+        let specials: [i32; 11] = [
+            i32::MIN,
+            i32::MIN + 1,
+            -32769,
+            -32768,
+            -1,
+            0,
+            1,
+            32767,
+            32768,
+            6_817_408,
+            i32::MAX,
+        ];
+        for &x in specials.iter() {
+            for &y in specials.iter() {
+                let a = BitVec::<256>::from_slice(&[x; 8], 32);
+                let b = BitVec::<256>::from_slice(&[y; 8], 32);
+                check_mul_epu32(a, b);
+                check_packs32(a, b);
+                check_unpacklo32(a, b);
+                check_unpackhi32(a, b);
+                check_unpackhi64(a, b);
+            }
+        }
     }
 }

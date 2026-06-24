@@ -1,1 +1,9 @@
-proofs
+# Generated F* artifacts (hax extraction + make scratch). The hand-written
+# proofs/fstar/Makefile is tracked; everything generated under proofs/ is not.
+proofs/fstar/extraction/*.fst
+proofs/fstar/extraction/*.fsti
+proofs/fstar/extraction/*.hints
+proofs/fstar/extraction/*.smt2
+proofs/fstar/.depend
+proofs/fstar/hax.fst.config.json
+proofs/fstar/FINDLIBS.sh

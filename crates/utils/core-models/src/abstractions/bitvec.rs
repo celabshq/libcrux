@@ -351,9 +351,13 @@ pub mod int_vec_interp {
     // intrinsics (e.g. `_mm256_add_epi16` works on 16 bits integers, not on i32
     // or i64).
     interpretations!(256; i32x8 [i32; 8], i64x4 [i64; 4], i16x16 [i16; 16], i128x2 [i128; 2], i8x32 [i8; 32],
-		     u32x8 [u32; 8], u64x4 [u64; 4], u16x16 [u16; 16]);
+		     u32x8 [u32; 8], u64x4 [u64; 4], u16x16 [u16; 16], u8x32 [u8; 32]);
     interpretations!(128; i32x4 [i32; 4], i64x2 [i64; 2], i16x8 [i16; 8], i128x1 [i128; 1], i8x16 [i8; 16],
-		     u32x4 [u32; 4], u64x2 [u64; 2], u16x8 [u16; 8]);
+		     u32x4 [u32; 4], u64x2 [u64; 2], u16x8 [u16; 8], u8x16 [u8; 16]);
+    // 64-bit interpretations — needed for ARM NEON's `*_t` half-vectors:
+    // int32x2_t = i32x2, int16x4_t = i16x4, int8x8_t = i8x8, etc.
+    interpretations!(64; i32x2 [i32; 2], i16x4 [i16; 4], i8x8 [i8; 8], i64x1 [i64; 1],
+		     u32x2 [u32; 2], u16x4 [u16; 4], u8x8 [u8; 8], u64x1 [u64; 1]);
 
     impl i64x4 {
         pub fn into_i32x8(self) -> i32x8 {
