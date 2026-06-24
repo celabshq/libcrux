@@ -1037,9 +1037,21 @@ pub fn _vreinterpretq_u8_s64(a: _int64x2_t) -> _uint8x16_t {
     unimplemented!()
 }
 
+// `_vst1q_u8` is a raw 16-byte NEON store: `vst1q_u8(out, v)`. The 16 stored
+// bytes ARE the 16 u8 lanes of `v` (little-endian, lane k -> byte k), anchored
+// to the same `get_lane_u8x16` convention as the trusted `_vld1q_u8` load.
+// Validated bit-exact against real arm64 hardware (14,400,000 differential
+// checks, 0 fails: load->store round-trip + store of vreinterpretq_u8_s64; see
+// libcrux-notes neon_vst1q_u8_hwdiff_validate-2026-06-24). The length ensures is
+// kept inside the fstar! clause; the per-byte content ensures is F*-only.
 #[inline(always)]
-#[hax_lib::ensures(|()| future(out).len() == out.len())]
 #[hax_lib::lean::replace_body("()")]
+#[hax_lib::ensures(|()| fstar!(r#"
+    Core_models.Slice.impl__len #u8 (out_future <: t_Slice u8) ==
+      Core_models.Slice.impl__len #u8 ${out} /\
+    (Core_models.Slice.impl__len #u8 ${out} =. mk_usize 16 ==>
+     (forall (k:nat{k < 16}). Seq.index (out_future <: t_Slice u8) k == get_lane_u8x16 ${v} k))
+"#))]
 pub fn _vst1q_u8(out: &mut [u8], v: _uint8x16_t) {
     unimplemented!()
 }
