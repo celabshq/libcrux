@@ -1,4 +1,3 @@
-use crate::matrix::transpose;
 use crate::parameters::hash_functions::*;
 use crate::parameters::*;
 use crate::sampling::BadRejectionSamplingRandomnessError;
@@ -350,15 +349,16 @@ pub fn decapsulate<
 
 // ── Unpacked-API CCA helpers (P5) ────────────────────────────────────
 //
-// Convention: `m_A` is in **libcrux convention** (transposed form,
-// `A_transposed[j][i] = sampled(i, j)`), matching the `A` field on
-// `IndCpaPublicKeyUnpacked` in the libcrux impl.  The helpers transpose
-// internally before delegating to the raw-form `ind_cpa::*_unpacked`
-// helpers.
+// Convention: `m_A` is the **raw** `sample_matrix_A(seed, false)` form,
+// matching the `A` field on `IndCpaPublicKeyUnpacked` in the libcrux impl.
+// The impl's IND-CCA keygen untransposes A (`sample_matrix_A(true)` then
+// `transpose_a`), and `unpack_public_key` samples `false` directly, so the
+// stored A is the raw form.  `ind_cpa::encrypt_unpacked` consumes the raw
+// form directly, so the helpers pass `m_A` through without transposing.
 
 /// Tuple returned by `ind_cca_unpack_generate_keypair`.  Components in
 /// libcrux-impl order:
-/// `(secret_as_ntt, t_as_ntt, m_A_transposed, seed_for_A, public_key_hash, implicit_rejection_value)`.
+/// `(secret_as_ntt, t_as_ntt, m_A, seed_for_A, public_key_hash, implicit_rejection_value)`.
 pub type IndCcaUnpackedKeyPair<const RANK: usize> = (
     Vector<RANK>,
     Vector<RANK>,
@@ -390,8 +390,9 @@ pub fn ind_cca_unpack_generate_keypair<const RANK: usize, const EK_SIZE: usize>(
     let (secret_as_ntt, t_as_ntt, A_as_ntt, seed_for_A) =
         ind_cpa::generate_keypair_unpacked::<RANK>(params, d)?;
 
-    // Libcrux stores A in transposed form on `IndCpaPublicKeyUnpacked.A`.
-    let m_A: Matrix<RANK> = transpose(&A_as_ntt);
+    // Libcrux's IND-CCA keygen untransposes A, so the stored
+    // `IndCpaPublicKeyUnpacked.A` is the raw `sample_matrix_A(.., false)` form.
+    let m_A: Matrix<RANK> = A_as_ntt;
 
     // public_key_hash = H(serialize_public_key(t_as_ntt, seed_for_A))
     let ek: [u8; EK_SIZE] = serialize_public_key::<RANK, EK_SIZE>(&t_as_ntt, &seed_for_A);
@@ -412,8 +413,8 @@ pub fn ind_cca_unpack_generate_keypair<const RANK: usize, const EK_SIZE: usize>(
 
 /// ML-KEM.Encaps — unpacked variant.  Skips the `H(ek)` and
 /// `ByteDecode₁₂(ek)` decoding steps; consumes the precomputed
-/// `public_key_hash`, `t_as_ntt`, and `m_A` (libcrux-transposed form)
-/// directly.
+/// `public_key_hash`, `t_as_ntt`, and `m_A` (raw `sample_matrix_A(.., false)`
+/// form) directly.
 #[allow(non_snake_case)]
 #[hax_lib::fstar::options("--z3rlimit 1500")]
 #[hax_lib::requires(
@@ -443,13 +444,12 @@ pub fn ind_cca_unpack_encapsulate<
     let hashed = G(&to_hash);
     let (shared_secret, pseudorandomness) = hashed.split_at(32);
 
-    // Un-transpose to raw form for ind_cpa::encrypt_unpacked.
-    let A_as_ntt: Matrix<RANK> = transpose(m_A);
-
+    // `m_A` is already the raw `sample_matrix_A(.., false)` form that
+    // `ind_cpa::encrypt_unpacked` consumes — pass it through directly.
     let c = ind_cpa::encrypt_unpacked::<RANK, U_SIZE, V_SIZE, CT_SIZE>(
         params,
         t_as_ntt,
-        &A_as_ntt,
+        m_A,
         randomness,
         pseudorandomness,
     )?;
@@ -507,11 +507,11 @@ pub fn ind_cca_unpack_decapsulate<
     let rejection_shared_secret: [u8; 32] = J(&j_input);
 
     // c′ ← K-PKE.Encrypt_unpacked(t_as_ntt, A, m′, r′)
-    let A_as_ntt: Matrix<RANK> = transpose(m_A);
+    // `m_A` is the raw `sample_matrix_A(.., false)` form (see encapsulate).
     let c_prime = ind_cpa::encrypt_unpacked::<RANK, U_SIZE, V_SIZE, CT_SIZE>(
         params,
         t_as_ntt,
-        &A_as_ntt,
+        m_A,
         &m_prime,
         pseudorandomness,
     )?;

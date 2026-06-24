@@ -888,6 +888,48 @@ pub(crate) mod unpacked {
     /// Generate Unpacked Keys
     #[inline(always)]
     #[hax_lib::fstar::options("--z3rlimit 300 --ext context_pruning --split_queries always")]
+    // transpose_a <-> Hacspec_ml_kem.Matrix.transpose commute under matrix_to_spec.
+    // Discharges the keygen matrix conjunct at the call site (transpose_a is local;
+    // referencing it from the spec commute tree would be circular). Double
+    // extensionality: matrix_to_spec_index / vector_to_spec_index per (i,j),
+    // transpose_a's per-lane ensures, and createi_lemma for HM.transpose.
+    #[hax_lib::fstar::before(
+        r#"#push-options "--fuel 1 --ifuel 1 --z3rlimit 100"
+let lemma_matrix_to_spec_transpose_a
+      (v_K: usize)
+      (#v_Vector: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()]
+          i0:
+          Libcrux_ml_kem.Vector.Traits.t_Operations v_Vector)
+      (a: t_Array (t_Array (Libcrux_ml_kem.Vector.t_PolynomialRingElement v_Vector) v_K) v_K)
+  : Lemma (requires v v_K <= 4)
+          (ensures
+            Libcrux_ml_kem.Vector.Spec.matrix_to_spec v_K #v_Vector (transpose_a v_K #v_Vector a)
+            == Hacspec_ml_kem.Matrix.transpose v_K
+                 (Libcrux_ml_kem.Vector.Spec.matrix_to_spec v_K #v_Vector a))
+  = let ta = transpose_a v_K #v_Vector a in
+    let lhs = Libcrux_ml_kem.Vector.Spec.matrix_to_spec v_K #v_Vector ta in
+    let ma = Libcrux_ml_kem.Vector.Spec.matrix_to_spec v_K #v_Vector a in
+    let rhs = Hacspec_ml_kem.Matrix.transpose v_K ma in
+    let aux (i: nat{i < v v_K}) : Lemma (Seq.index lhs i == Seq.index rhs i) =
+      let ii = mk_usize i in
+      Libcrux_ml_kem.Vector.Spec.matrix_to_spec_index v_K #v_Vector ta i;
+      let inner (j: nat{j < v v_K})
+        : Lemma (Seq.index (Seq.index lhs i) j == Seq.index (Seq.index rhs i) j) =
+        let jj = mk_usize j in
+        Libcrux_ml_kem.Vector.Spec.vector_to_spec_index v_K #v_Vector (Seq.index ta i) j;
+        Libcrux_ml_kem.Vector.Spec.matrix_to_spec_index v_K #v_Vector a j;
+        Libcrux_ml_kem.Vector.Spec.vector_to_spec_index v_K #v_Vector (Seq.index a j) i;
+        assert (Seq.index (Seq.index ta (v ii)) (v jj) == Seq.index (Seq.index a (v jj)) (v ii));
+        assert (Seq.index (Seq.index rhs (v ii)) (v jj) == Seq.index (Seq.index ma (v jj)) (v ii))
+      in
+      Classical.forall_intro inner;
+      Seq.lemma_eq_intro (Seq.index lhs i) (Seq.index rhs i)
+    in
+    Classical.forall_intro aux;
+    Seq.lemma_eq_intro lhs rhs
+#pop-options"#
+    )]
     #[hax_lib::requires(
         hacspec_ml_kem::parameters::is_rank(K)
         && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
@@ -907,7 +949,6 @@ pub(crate) mod unpacked {
             Err(_) => true,
         }
     )]
-    #[hax_lib::fstar::verification_status(panic_free)]
     pub(crate) fn generate_keypair<
         const K: usize,
         const CPA_PRIVATE_KEY_SIZE: usize,
@@ -933,6 +974,12 @@ pub(crate) mod unpacked {
 
         #[allow(non_snake_case)]
         let A = transpose_a::<K, Vector>(out.public_key.ind_cpa_public_key.A);
+        // matrix_to_spec(transpose_a pre_A) == transpose(matrix_to_spec pre_A); applied to
+        // the post-keygen f_A BEFORE the update below so it shares the term the
+        // Ind_cpa.generate_keypair_unpacked post speaks about.
+        hax_lib::fstar!(
+            r#"lemma_matrix_to_spec_transpose_a $K #v_Vector ${out}.f_public_key.f_ind_cpa_public_key.Libcrux_ml_kem.Ind_cpa.Unpacked.f_A"#
+        );
         out.public_key.ind_cpa_public_key.A = A;
 
         let pk_serialized = serialize_public_key::<K, PUBLIC_KEY_SIZE, Vector>(
@@ -941,11 +988,23 @@ pub(crate) mod unpacked {
         );
         out.public_key.public_key_hash = Hasher::H(&pk_serialized);
         out.private_key.implicit_rejection_value = implicit_rejection_value.try_into().unwrap();
+        hax_lib::fstar!(
+            r#"Hacspec_ml_kem.Commute.Ind_cca_bridge.lemma_rank_encrypt_facts $K;
+assert (${ind_cpa_keypair_randomness} == Seq.slice $randomness 0 32);
+assert ((${implicit_rejection_value} <: t_Slice u8) == Seq.slice $randomness 32 64);
+Hacspec_ml_kem.Commute.Ind_cca_bridge.lemma_slice_to_array_id_32 (${implicit_rejection_value} <: t_Slice u8);
+Hacspec_ml_kem.Commute.Ind_cca_bridge.lemma_v_H_bridge ($pk_serialized <: t_Slice u8);
+(match Hacspec_ml_kem.Ind_cpa.generate_keypair_unpacked $K (Hacspec_ml_kem.Parameters.rank_to_params $K) (Seq.slice $randomness 0 32 <: t_Slice u8) with
+ | Core_models.Result.Result_Ok (s_secret, s_tt, s_vA, s_seed) ->
+   Hacspec_ml_kem.Commute.Keygen_bridge.lemma_transpose_involutive $K s_vA;
+   assert (Libcrux_ml_kem.Vector.Spec.matrix_to_spec $K #v_Vector ${out}.f_public_key.f_ind_cpa_public_key.Libcrux_ml_kem.Ind_cpa.Unpacked.f_A == s_vA)
+ | Core_models.Result.Result_Err _ -> ());
+Hacspec_ml_kem.Commute.Ind_cca_bridge.lemma_unpack_generate_keypair_post $K $PUBLIC_KEY_SIZE $randomness (Libcrux_ml_kem.Vector.Spec.matrix_to_spec $K #v_Vector ${out}.f_public_key.f_ind_cpa_public_key.Libcrux_ml_kem.Ind_cpa.Unpacked.f_A) ${out}.f_public_key.f_public_key_hash ${out}.f_private_key.f_implicit_rejection_value"#
+        );
     }
 
     // Encapsulate with Unpacked Public Key
     #[inline(always)]
-    #[hax_lib::fstar::verification_status(panic_free)]
     #[hax_lib::requires(
         hacspec_ml_kem::parameters::is_rank(K).to_prop()
         & (ETA1 == hacspec_ml_kem::parameters::eta1(K)
@@ -1018,7 +1077,11 @@ pub(crate) mod unpacked {
         );
         let mut shared_secret_array = [0u8; SHARED_SECRET_SIZE];
         shared_secret_array.copy_from_slice(shared_secret);
-        (MlKemCiphertext::from(ciphertext), shared_secret_array)
+        let result = (MlKemCiphertext::from(ciphertext), shared_secret_array);
+        hax_lib::fstar!(
+            r#"Hacspec_ml_kem.Commute.Ind_cca_bridge.lemma_unpack_encapsulate_post $K $C1_SIZE $C2_SIZE $CIPHERTEXT_SIZE ${public_key}.f_public_key_hash (Libcrux_ml_kem.Vector.Spec.vector_to_spec $K #v_Vector ${public_key}.f_ind_cpa_public_key.Libcrux_ml_kem.Ind_cpa.Unpacked.f_tt_as_ntt) (Libcrux_ml_kem.Vector.Spec.matrix_to_spec $K #v_Vector ${public_key}.f_ind_cpa_public_key.Libcrux_ml_kem.Ind_cpa.Unpacked.f_A) $randomness $shared_secret $pseudorandomness $ciphertext $result"#
+        );
+        result
     }
 
     #[hax_lib::requires(randomness.len() == 32 && pk_hash.len() == 32)]
@@ -1043,7 +1106,6 @@ pub(crate) mod unpacked {
 
     // Decapsulate with Unpacked Private Key
     #[inline(always)]
-    #[hax_lib::fstar::verification_status(panic_free)]
     #[hax_lib::fstar::options("--z3rlimit 400 --ext context_pruning --split_queries always")]
     #[hax_lib::requires(
         (hacspec_ml_kem::parameters::is_rank(K)
@@ -1165,10 +1227,16 @@ pub(crate) mod unpacked {
         let selector =
             compare_ciphertexts_in_constant_time(ciphertext.as_ref(), &expected_ciphertext);
 
-        select_shared_secret_in_constant_time(
+        let result = select_shared_secret_in_constant_time(
             shared_secret,
             &implicit_rejection_shared_secret,
             selector,
-        )
+        );
+        hax_lib::fstar!(
+            r#"Hacspec_ml_kem.Commute.Ind_cca_bridge.lemma_rank_encrypt_facts $K;
+Hacspec_ml_kem.Commute.Ind_cca_bridge.lemma_rank_decaps_facts $K;
+Hacspec_ml_kem.Commute.Ind_cca_bridge.lemma_unpack_decapsulate_post $K $C1_SIZE $C2_SIZE $CIPHERTEXT_SIZE $IMPLICIT_REJECTION_HASH_INPUT_SIZE ${key_pair}.f_public_key.f_public_key_hash ${key_pair}.f_private_key.f_implicit_rejection_value ${ciphertext}.f_value (Libcrux_ml_kem.Vector.Spec.vector_to_spec $K #v_Vector ${key_pair}.f_private_key.f_ind_cpa_private_key.Libcrux_ml_kem.Ind_cpa.Unpacked.f_secret_as_ntt) (Libcrux_ml_kem.Vector.Spec.vector_to_spec $K #v_Vector ${key_pair}.f_public_key.f_ind_cpa_public_key.Libcrux_ml_kem.Ind_cpa.Unpacked.f_tt_as_ntt) (Libcrux_ml_kem.Vector.Spec.matrix_to_spec $K #v_Vector ${key_pair}.f_public_key.f_ind_cpa_public_key.Libcrux_ml_kem.Ind_cpa.Unpacked.f_A) $decrypted $hashed $shared_secret $pseudorandomness $expected_ciphertext $implicit_rejection_shared_secret $result"#
+        );
+        result
     }
 }

@@ -736,3 +736,274 @@ let lemma_decapsulate_post
   | Core_models.Result.Result_Ok c_prime -> ()
   | Core_models.Result.Result_Err _ -> ()
 #pop-options
+
+(* ════════════════════════════════════════════════════════════════════════
+   UNPACKED-API composition bridges (Tier C).
+
+   These relate the impl (Libcrux_ml_kem.Ind_cca.Unpacked.{encapsulate,...}) to the
+   hacspec reference (Hacspec_ml_kem.Ind_cca.ind_cca_unpack_ helpers).  The unpacked spec
+   takes the precomputed `public_key_hash`, `tt_as_ntt` (= vector_to_spec f_tt),
+   `m_A` (= matrix_to_spec f_A, raw sample_matrix_A(false) form) directly, so these
+   are SIMPLER than the packed bridges (no pubkey deserialization, no v_H bridge).
+   The `m_A` here is the raw form that ind_cpa::encrypt_unpacked consumes directly
+   (the reference spec's spurious untranspose was removed 2026-06-24).
+   ════════════════════════════════════════════════════════════════════════ *)
+
+(* encapsulate (unpacked): the impl-body facts (encaps_prepare = SU.v_G(concat
+   randomness pk_hash), the split, the Ind_cpa.encrypt_unpacked contract, the
+   result-wrap) compose into ind_cca_unpack_encapsulate's Ok post. 2-way analog of
+   lemma_encapsulate_post with pk_hash given directly + encrypt_unpacked. *)
+#push-options "--fuel 2 --ifuel 1 --z3rlimit 400"
+let lemma_unpack_encapsulate_post
+      (v_K v_C1_SIZE v_C2_SIZE v_CIPHERTEXT_SIZE: usize)
+      (public_key_hash: t_Array u8 (mk_usize 32))
+      (tt_as_ntt: t_Array (t_Array P.t_FieldElement (mk_usize 256)) v_K)
+      (m_A: t_Array (t_Array (t_Array P.t_FieldElement (mk_usize 256)) v_K) v_K)
+      (randomness: t_Array u8 (mk_usize 32))
+      (shared_secret pseudorandomness: t_Slice u8)
+      (ciphertext: t_Array u8 v_CIPHERTEXT_SIZE)
+      (result: (Libcrux_ml_kem.Types.t_MlKemCiphertext v_CIPHERTEXT_SIZE & t_Array u8 (mk_usize 32)))
+  : Lemma
+    (requires
+      P.is_rank v_K /\
+      v_C1_SIZE == P.c1_size v_K /\
+      v_C2_SIZE == P.c2_size v_K /\
+      v_CIPHERTEXT_SIZE == P.cpa_ciphertext_size v_K /\
+      Core_models.Slice.impl__split_at #u8
+        (SU.v_G (Rust_primitives.Arrays.concat (randomness <: t_Slice u8)
+                   (public_key_hash <: t_Slice u8)) <: t_Slice u8)
+        (mk_usize 32)
+        == (shared_secret, pseudorandomness) /\
+      (match HCP.encrypt_unpacked v_K v_C1_SIZE v_C2_SIZE v_CIPHERTEXT_SIZE (P.rank_to_params v_K)
+               tt_as_ntt m_A randomness pseudorandomness
+       with
+       | Core_models.Result.Result_Ok e -> ciphertext == e
+       | Core_models.Result.Result_Err _ -> True) /\
+      (result._1).Libcrux_ml_kem.Types.f_value == ciphertext /\
+      result._2 == shared_secret)
+    (ensures
+      (match HC.ind_cca_unpack_encapsulate v_K v_C1_SIZE v_C2_SIZE v_CIPHERTEXT_SIZE
+               (P.rank_to_params v_K) public_key_hash tt_as_ntt m_A randomness
+       with
+       | Core_models.Result.Result_Ok (shared, ct) ->
+         (result._1).Libcrux_ml_kem.Types.f_value == ct /\ result._2 == shared
+       | Core_models.Result.Result_Err _ -> True))
+  =
+  (* (0) named→du size + concrete eta facts so the spec encrypt_unpacked /
+     ind_cca_unpack_encapsulate preconditions discharge. *)
+  lemma_rank_encrypt_facts v_K;
+  (* (1) spec's to_hash construction == concat randomness public_key_hash. *)
+  lemma_to_hash_build randomness public_key_hash;
+  let to_hash = Rust_primitives.Arrays.concat (randomness <: t_Slice u8)
+                  (public_key_hash <: t_Slice u8) in
+  (* (2) v_G glue: spec hashed = HF.v_G to_hash == SU.v_G to_hash. *)
+  lemma_v_G_bridge to_hash;
+  (* (3) split projections + lengths: shared_secret/pseudorandomness are the 32-byte halves. *)
+  assert (Seq.length (SU.v_G to_hash <: t_Slice u8) == 64);
+  assert (shared_secret == Seq.slice (SU.v_G to_hash <: t_Slice u8) 0 32);
+  assert (pseudorandomness == Seq.slice (SU.v_G to_hash <: t_Slice u8) 32 64);
+  assert (Seq.length shared_secret == 32);
+  assert (Seq.length pseudorandomness == 32);
+  (* (4) align the Ind_cpa.encrypt_unpacked match; copy_from_slice(zeros 32, shared_secret)
+     == shared_secret. *)
+  match HCP.encrypt_unpacked v_K v_C1_SIZE v_C2_SIZE v_CIPHERTEXT_SIZE (P.rank_to_params v_K)
+          tt_as_ntt m_A randomness pseudorandomness
+  with
+  | Core_models.Result.Result_Ok c -> ()
+  | Core_models.Result.Result_Err _ -> ()
+#pop-options
+
+(* decapsulate (unpacked): impl-body facts (decrypt_unpacked, the to_hash1 G-hash +
+   split, the j_input PRF, the encrypt_unpacked re-encryption, the compare-select)
+   compose into ind_cca_unpack_decapsulate's Ok post.  Unpacked analog of
+   lemma_decapsulate_post: no dk unpacking; secret_as_ntt/tt_as_ntt/m_A given
+   directly; decrypt_unpacked / encrypt_unpacked (m_A is the raw form, no transpose). *)
+#push-options "--fuel 4 --ifuel 2 --z3rlimit 800"
+let lemma_unpack_decapsulate_post
+      (v_K v_C1_SIZE v_C2_SIZE v_CIPHERTEXT_SIZE v_IMPLICIT_REJECTION_HASH_INPUT_SIZE: usize)
+      (public_key_hash implicit_rejection_value: t_Array u8 (mk_usize 32))
+      (ciphertext: t_Array u8 v_CIPHERTEXT_SIZE)
+      (secret_as_ntt tt_as_ntt: t_Array (t_Array P.t_FieldElement (mk_usize 256)) v_K)
+      (m_A: t_Array (t_Array (t_Array P.t_FieldElement (mk_usize 256)) v_K) v_K)
+      (decrypted: t_Array u8 (mk_usize 32))
+      (hashed: t_Array u8 (mk_usize 64))
+      (shared_secret pseudorandomness: t_Slice u8)
+      (expected_ciphertext: t_Array u8 v_CIPHERTEXT_SIZE)
+      (implicit_rejection_shared_secret: t_Array u8 (mk_usize 32))
+      (result: t_Array u8 (mk_usize 32))
+  : Lemma
+    (requires
+      P.is_rank v_K /\
+      (P.rank_to_params v_K).Hacspec_ml_kem.Parameters.f_rank == v_K /\
+      v_C1_SIZE ==
+        (((v_K *! P.v_COEFFICIENTS_IN_RING_ELEMENT)
+            *! (P.rank_to_params v_K).Hacspec_ml_kem.Parameters.f_du) /! mk_usize 8) /\
+      v_C2_SIZE ==
+        ((P.v_COEFFICIENTS_IN_RING_ELEMENT
+            *! (P.rank_to_params v_K).Hacspec_ml_kem.Parameters.f_dv) /! mk_usize 8) /\
+      v_CIPHERTEXT_SIZE == (v_C1_SIZE +! v_C2_SIZE) /\
+      v_IMPLICIT_REJECTION_HASH_INPUT_SIZE == (mk_usize 32 +! v_CIPHERTEXT_SIZE) /\
+      ((P.rank_to_params v_K).Hacspec_ml_kem.Parameters.f_eta1 == mk_usize 2 \/
+       (P.rank_to_params v_K).Hacspec_ml_kem.Parameters.f_eta1 == mk_usize 3) /\
+      ((P.rank_to_params v_K).Hacspec_ml_kem.Parameters.f_eta2 == mk_usize 2 \/
+       (P.rank_to_params v_K).Hacspec_ml_kem.Parameters.f_eta2 == mk_usize 3) /\
+      v_C1_SIZE == P.c1_size v_K /\
+      v_C2_SIZE == P.c2_size v_K /\
+      v_CIPHERTEXT_SIZE == P.cpa_ciphertext_size v_K /\
+      v_IMPLICIT_REJECTION_HASH_INPUT_SIZE == P.implicit_rejection_hash_input_size v_K /\
+      (* decrypt_unpacked contract conclusion *)
+      decrypted ==
+        HCP.decrypt_unpacked v_K (P.rank_to_params v_K) secret_as_ntt (ciphertext <: t_Slice u8) /\
+      (* G hash of to_hash1 = concat decrypted public_key_hash *)
+      hashed ==
+        SU.v_G (Rust_primitives.Arrays.concat (decrypted <: t_Slice u8)
+                  (public_key_hash <: t_Slice u8)) /\
+      Core_models.Slice.impl__split_at #u8 (hashed <: t_Slice u8) (mk_usize 32)
+        == (shared_secret, pseudorandomness) /\
+      (* re-encryption contract conclusion *)
+      (match HCP.encrypt_unpacked v_K v_C1_SIZE v_C2_SIZE v_CIPHERTEXT_SIZE (P.rank_to_params v_K)
+               tt_as_ntt m_A decrypted pseudorandomness
+       with
+       | Core_models.Result.Result_Ok e -> expected_ciphertext == e
+       | Core_models.Result.Result_Err _ -> True) /\
+      (* implicit-rejection PRF post (impl proves vs Spec.Utils.v_PRF) *)
+      implicit_rejection_shared_secret ==
+        SU.v_PRF (mk_usize 32)
+          (Rust_primitives.Arrays.concat (implicit_rejection_value <: t_Slice u8)
+             (ciphertext <: t_Slice u8)) /\
+      (* compare-ciphertexts-select post *)
+      result ==
+        (if (ciphertext <: t_Slice u8) =. (expected_ciphertext <: t_Slice u8)
+         then shared_secret
+         else (implicit_rejection_shared_secret <: t_Slice u8)))
+    (ensures
+      (match HC.ind_cca_unpack_decapsulate v_K v_C1_SIZE v_C2_SIZE v_CIPHERTEXT_SIZE
+               v_IMPLICIT_REJECTION_HASH_INPUT_SIZE (P.rank_to_params v_K)
+               public_key_hash implicit_rejection_value ciphertext secret_as_ntt tt_as_ntt m_A
+       with
+       | Core_models.Result.Result_Ok shared -> result == shared
+       | Core_models.Result.Result_Err _ -> True))
+  =
+  (* (0) named→du size + concrete eta facts so the spec preconditions discharge. *)
+  lemma_rank_encrypt_facts v_K;
+  lemma_rank_decaps_facts v_K;
+  (* (1) j_input construction == concat z c; bridge SU.v_PRF -> HF.v_J. *)
+  lemma_j_input_build v_CIPHERTEXT_SIZE v_IMPLICIT_REJECTION_HASH_INPUT_SIZE
+    (implicit_rejection_value <: t_Slice u8) ciphertext;
+  lemma_v_PRF_J_32
+    (Rust_primitives.Arrays.concat (implicit_rejection_value <: t_Slice u8)
+       (ciphertext <: t_Slice u8));
+  (* (2) to_hash1 construction == concat decrypted public_key_hash; bridge SU.v_G -> HF.v_G. *)
+  lemma_to_hash_build decrypted public_key_hash;
+  lemma_v_G_bridge (Rust_primitives.Arrays.concat (decrypted <: t_Slice u8)
+                      (public_key_hash <: t_Slice u8));
+  (* (3) split projections + lengths. *)
+  assert (Seq.length (hashed <: t_Slice u8) == 64);
+  assert (shared_secret == Seq.slice (hashed <: t_Slice u8) 0 32);
+  assert (pseudorandomness == Seq.slice (hashed <: t_Slice u8) 32 64);
+  assert (Seq.length shared_secret == 32);
+  assert (Seq.length pseudorandomness == 32);
+  (* (4) r_prime coercion: pseudorandomness[..32] == pseudorandomness. *)
+  Seq.slice_slice (hashed <: t_Slice u8) 32 64 0 32;
+  assert (Seq.slice pseudorandomness 0 32 == pseudorandomness);
+  lemma_slice_to_array_id_32 (Seq.slice pseudorandomness 0 32 <: t_Slice u8);
+  lemma_slice_to_array_id_32 pseudorandomness;
+  assert (Seq.length (ciphertext <: t_Slice u8) == v v_CIPHERTEXT_SIZE);
+  (* (5) align the Ind_cpa.encrypt_unpacked match; copy_from_slice(zeros 32, ss) == ss. *)
+  match HCP.encrypt_unpacked v_K v_C1_SIZE v_C2_SIZE v_CIPHERTEXT_SIZE (P.rank_to_params v_K)
+          tt_as_ntt m_A decrypted pseudorandomness
+  with
+  | Core_models.Result.Result_Ok c_prime -> ()
+  | Core_models.Result.Result_Err _ -> ()
+#pop-options
+
+(* generate_keypair (unpacked): the impl body's facts compose into
+   ind_cca_unpack_generate_keypair's Ok post.  The matrix conjunct
+   `matrix_to_spec(out.f_A) == v_A_as_ntt` is discharged at the IMPL call site
+   (transpose_a is not visible here — referencing it would be circular: the
+   impl calls THIS lemma).  Concretely the body proves, from
+   `matrix_to_spec(tmp1.f_A) == transpose(v_A_as_ntt)` (the impl
+   Ind_cpa.generate_keypair_unpacked post) + the transpose_a↔transpose commute +
+   transpose_involutive, that `matrix_to_spec(out.f_A) == v_A_as_ntt`, and passes
+   the collapsed `out_A` here.  This lemma is therefore PURELY spec-level (no
+   matrix reasoning) — mirroring lemma_generate_keypair_post for the d/z slice
+   coercion + the serialize_public_key/H bridge.
+
+   out_A                          == matrix_to_spec out.f_public_key…f_A
+   out_public_key_hash            == out.f_public_key.f_public_key_hash
+   out_implicit_rejection_value   == out.f_private_key.f_implicit_rejection_value
+   The requires couples them to the SAME spec Ind_cpa.generate_keypair_unpacked
+   call that ind_cca_unpack_generate_keypair runs internally (seed = randomness[..32]).
+   The serialize/H conjunct folds the impl serialize_public_key contract + v_H
+   bridge proven at the call site into one HF.v_H(serialize_public_key …) term. *)
+#push-options "--fuel 2 --ifuel 1 --z3rlimit 400"
+let lemma_unpack_generate_keypair_post
+      (v_K v_PUBLIC_KEY_SIZE: usize)
+      (randomness: t_Array u8 (mk_usize 64))
+      (out_A: t_Array (t_Array (t_Array P.t_FieldElement (mk_usize 256)) v_K) v_K)
+      (out_public_key_hash out_implicit_rejection_value: t_Array u8 (mk_usize 32))
+  : Lemma
+    (requires
+      P.is_rank v_K /\
+      (P.rank_to_params v_K).Hacspec_ml_kem.Parameters.f_rank == v_K /\
+      v_PUBLIC_KEY_SIZE == (v_K *! P.v_BYTES_PER_RING_ELEMENT) +! mk_usize 32 /\
+      ((P.rank_to_params v_K).Hacspec_ml_kem.Parameters.f_eta1 == mk_usize 2 \/
+       (P.rank_to_params v_K).Hacspec_ml_kem.Parameters.f_eta1 == mk_usize 3) /\
+      (match HCP.generate_keypair_unpacked v_K (P.rank_to_params v_K)
+               (Seq.slice randomness 0 32 <: t_Slice u8)
+       with
+       | Core_models.Result.Result_Ok (s_secret, s_tt, s_vA, s_seed) ->
+         out_A == s_vA /\
+         out_public_key_hash ==
+           HF.v_H (Hacspec_ml_kem.Serialize.serialize_public_key v_K v_PUBLIC_KEY_SIZE s_tt s_seed
+                     <: t_Slice u8) /\
+         out_implicit_rejection_value == Seq.slice randomness 32 64
+       | Core_models.Result.Result_Err _ -> True))
+    (ensures
+      (match HC.ind_cca_unpack_generate_keypair v_K v_PUBLIC_KEY_SIZE (P.rank_to_params v_K)
+               randomness
+       with
+       | Core_models.Result.Result_Ok
+         (e_secret, e_tt, m_A, e_seed, public_key_hash, implicit_rejection_value) ->
+         out_A == m_A /\
+         out_public_key_hash == public_key_hash /\
+         out_implicit_rejection_value == implicit_rejection_value
+       | Core_models.Result.Result_Err _ -> True))
+  =
+  (* Seed coercion: d == Seq.slice randomness 0 32, z == Seq.slice randomness 32 64
+     (mirror lemma_generate_keypair_post). *)
+  let d:t_Array u8 (mk_usize 32) =
+    Core_models.Result.impl__unwrap #(t_Array u8 (mk_usize 32))
+      #Core_models.Array.t_TryFromSliceError
+      (Core_models.Convert.f_try_into #(t_Slice u8) #(t_Array u8 (mk_usize 32))
+          #FStar.Tactics.Typeclasses.solve
+          (randomness.[ { Core_models.Ops.Range.f_end = mk_usize 32 }
+              <: Core_models.Ops.Range.t_RangeTo usize ] <: t_Slice u8))
+  in
+  let z:t_Array u8 (mk_usize 32) =
+    Core_models.Result.impl__unwrap #(t_Array u8 (mk_usize 32))
+      #Core_models.Array.t_TryFromSliceError
+      (Core_models.Convert.f_try_into #(t_Slice u8) #(t_Array u8 (mk_usize 32))
+          #FStar.Tactics.Typeclasses.solve
+          (randomness.[ { Core_models.Ops.Range.f_start = mk_usize 32 }
+              <: Core_models.Ops.Range.t_RangeFrom usize ] <: t_Slice u8))
+  in
+  assert ((randomness.[ { Core_models.Ops.Range.f_end = mk_usize 32 }
+              <: Core_models.Ops.Range.t_RangeTo usize ] <: t_Slice u8)
+          == Seq.slice randomness 0 32);
+  assert ((randomness.[ { Core_models.Ops.Range.f_start = mk_usize 32 }
+              <: Core_models.Ops.Range.t_RangeFrom usize ] <: t_Slice u8)
+          == Seq.slice randomness 32 64);
+  lemma_slice_to_array_id_32 (Seq.slice randomness 0 32 <: t_Slice u8);
+  lemma_slice_to_array_id_32 (Seq.slice randomness 32 64 <: t_Slice u8);
+  assert (d == Seq.slice randomness 0 32);
+  assert (z == Seq.slice randomness 32 64);
+  match HCP.generate_keypair_unpacked v_K (P.rank_to_params v_K)
+          (Seq.slice randomness 0 32 <: t_Slice u8)
+  with
+  | Core_models.Result.Result_Ok (s_secret, s_tt, s_vA, s_seed) ->
+    (* spec implicit_rejection_value = copy_from_slice(repeat 0 32, z) == z (length 32). *)
+    assert (Core_models.Slice.impl__copy_from_slice #u8
+              (Rust_primitives.Hax.repeat (mk_u8 0) (mk_usize 32)) (z <: t_Slice u8) == z)
+  | Core_models.Result.Result_Err _ -> ()
+#pop-options
