@@ -115,10 +115,12 @@ pub(crate) fn generate_keypair<
 /// The public keys can be extracted from the bytes.
 #[inline(always)]
 #[hax_lib::requires(
-    hacspec_ml_kem::parameters::is_rank(K)
+    (hacspec_ml_kem::parameters::is_rank(K)
     && ETA1 == hacspec_ml_kem::parameters::eta1(K)
     && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
     && PUBLIC_KEY_SIZE == hacspec_ml_kem::parameters::cpa_public_key_size(K)
+    && CPA_PRIVATE_KEY_SIZE == hacspec_ml_kem::parameters::ranked_bytes_per_ring_element(K)).to_prop()
+    & fstar!(r#"v $KEYPAIR_LEN >= v $CPA_PRIVATE_KEY_SIZE + v $PK2_LEN + 96"#)
 )]
 pub(crate) fn generate_keypair_compressed<
     const K: usize,
@@ -149,8 +151,20 @@ pub(crate) fn generate_keypair_compressed<
         variant::MlKem,
     >(randomness, &mut kp);
 
-    let kp = KeyPair::<K, PK2_LEN, Vector>::from(kp);
-    kp.to_bytes_compressed::<KEYPAIR_LEN, CPA_PRIVATE_KEY_SIZE>(key_pair);
+    let kp_packed = KeyPair::<K, PK2_LEN, Vector>::from(kp);
+    // The `From` instance copies `sk` verbatim, and its (verified) post states
+    // exactly `kp_packed.f_sk == kp.f_private_key` (see the `#[ensures]` on
+    // `From<MlKemKeyPairUnpacked> for KeyPair`).  But that post reaches the
+    // caller as the unreduced parameterized-instance projector
+    // `(impl_N v_K v_PK2_LEN).f_from_post …`, which F* will not normalize at
+    // fuel 0 — so the keygen's `is_bounded(3328, secret_as_ntt)` cannot be
+    // transferred to the packed key pair automatically.  We `assume` that
+    // already-declared, body-trivially-true equality here; the bound then flows
+    // by congruence and discharges `to_bytes_compressed`'s precondition.  This
+    // replaces the previous whole-body `admit ()` on `to_bytes_compressed` with
+    // this single, precise structural fact.
+    hax_lib::fstar!(r#"assume (${kp_packed}.f_sk == ${kp}.f_private_key)"#);
+    kp_packed.to_bytes_compressed::<KEYPAIR_LEN, CPA_PRIVATE_KEY_SIZE>(key_pair);
 }
 
 /// Generate a key pair for incremental encapsulation.

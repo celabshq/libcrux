@@ -29,69 +29,69 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 |            | variant           |    1 |   9 |   0 |     |   3 |    4 |      0 |       2 |
 |            | lib               |    1 |   3 |   0 |   3 |   0 |    0 |      0 |       0 |
 |            | hash_functions    |    1 |  49 |   0 |     |  21 |    0 |      0 |      28 |
-|            | ind_cpa           |    1 |  21 |   0 |     |  20 |    1 |      0 |       0 |
-|            | ind_cca           |    1 |  27 |   0 |     |  23 |    1 |      0 |       3 |
-|            | instantiations    |    2 |  40 |   0 |     |  40 |    0 |      0 |       0 |
-|            | multiplexing      |    2 |  20 |   0 |     |  18 |    2 |      0 |       0 |
-|            | incremental       |    2 |  45 |   3 |     |  26 |   11 |      5 |       0 |
-|            | polynomial        |    1 |  58 |   0 |     |  23 |    6 |     25 |       4 |
+|            | ind_cpa           |    1 |  21 |   0 |     |   2 |    7 |      5 |       7 |
+|            | ind_cca           |    1 |  27 |   0 |     |  16 |    6 |      1 |       4 |
+|            | instantiations    |    2 |  40 |   0 |     |  31 |    9 |      0 |       0 |
+|            | multiplexing      |    2 |  20 |   0 |     |  15 |    5 |      0 |       0 |
+|            | incremental       |    2 |  45 |   2 |     |  26 |   12 |      5 |       0 |
+|            | polynomial        |    1 |  59 |   0 |     |  21 |    9 |     20 |       9 |
 |            | invert_ntt        |    1 |   7 |   0 |     |   1 |    0 |      1 |       5 |
-|            | ntt               |    1 |  12 |   0 |     |   4 |    0 |      3 |       5 |
-|            | mlkem*            |    4 | 134 |   0 |     | 131 |    3 |      0 |       0 |
+|            | ntt               |    1 |  12 |   0 |     |   4 |    0 |      1 |       7 |
+|            | mlkem*            |    4 | 134 |   0 |     | 125 |    9 |      0 |       0 |
 |            | matrix            |    1 |   5 |   0 |     |   0 |    0 |      5 |       0 |
-|            | serialize         |    1 |  25 |   0 |     |  22 |    1 |      2 |       0 |
-|            | sampling          |    0 |   9 |   1 |     |   7 |    1 |      0 |       0 |
+|            | serialize         |    1 |  25 |   0 |     |   5 |    1 |      0 |      19 |
+|            | sampling          |    0 |   9 |   1 |     |   4 |    1 |      0 |       3 |
 |            | vector (top)      |    1 |   3 |   0 |     |   3 |    0 |      0 |       0 |
 |            | vector/traits     |    1 | 111 |   0 |     |  73 |   36 |      0 |       2 |
 |            | rej_sample_table  |    1 |   0 |   0 |     |   0 |    0 |      0 |       0 |
-|            | **Generic total** | **27** | **619** | **4** | **3** | **442** | **80** | **41** |  **49** |
+|            | **Generic total** | **27** | **620** | **3** | **3** | **377** | **113** | **38** |  **86** |
 |            |                   |      |     |     |     |     |      |        |         |
 | _Portable_ | arithmetic        |    1 |  13 |   0 |     |   6 |    7 |      0 |       0 |
 |            | ntt               |    1 |  10 |   0 |     |   0 |    0 |     10 |       0 |
 |            | serialize         |    1 |  22 |   0 |     |  22 |    0 |      0 |       0 |
-|            | compress          |    1 |   6 |   0 |     |   5 |    1 |      0 |       0 |
+|            | compress          |    1 |   6 |   0 |     |   2 |    4 |      0 |       0 |
 |            | sampling          |    0 |   1 |   0 |     |   0 |    1 |      0 |       0 |
-|            | vector_type       |    1 |   5 |   0 |     |   2 |    3 |      0 |       0 |
+|            | vector_type       |    1 |   5 |   0 |     |   0 |    3 |      0 |       2 |
 |            | vector            |    1 |  64 |   0 |     |   1 |   36 |      0 |      27 |
-|            | **Portable total** | **6** | **121** | **0** |     | **36** | **48** | **10** |  **27** |
+|            | **Portable total** | **6** | **121** | **0** |     | **31** | **51** | **10** |  **29** |
 |            |                   |      |     |     |     |     |      |        |         |
 | _Avx2_     | arithmetic        |    1 |  12 |   0 |     |   5 |    7 |      0 |       0 |
 |            | ntt               |    1 |   7 |   0 |     |   0 |    0 |      7 |       0 |
 |            | serialize         |    1 |  24 |   0 |     |   2 |   22 |      0 |       0 |
-|            | compress          |    1 |   5 |   0 |     |   4 |    1 |      0 |       0 |
-|            | sampling          |    0 |   1 |   0 |     |   1 |    0 |      0 |       0 |
-|            | vector            |    1 |  72 |   0 |     |   9 |   37 |      0 |      26 |
-|            | **Avx2 total**    | **5** | **121** | **0** |     | **21** | **67** |  **7** |  **26** |
+|            | compress          |    1 |   5 |   0 |     |   1 |    4 |      0 |       0 |
+|            | sampling          |    0 |   1 |   0 |     |   0 |    1 |      0 |       0 |
+|            | vector            |    1 |  72 |   0 |     |   1 |   43 |      0 |      28 |
+|            | **Avx2 total**    | **5** | **121** | **0** |     | **9** | **77** |  **7** |  **28** |
 |            |                   |      |     |     |     |     |      |        |         |
 | _Neon_     | arithmetic        |    1 |  13 |   0 |     |   0 |   10 |      3 |       0 |
 |            | ntt               |    1 |   7 |   0 |     |   0 |    0 |      7 |       0 |
-|            | compress          |    1 |   7 |   0 |     |   4 |    3 |      0 |       0 |
-|            | serialize         |    1 |  12 |   0 |     |   5 |    7 |      0 |       0 |
+|            | compress          |    1 |   7 |   0 |     |   2 |    5 |      0 |       0 |
+|            | serialize         |    1 |  12 |   0 |     |   0 |    8 |      0 |       4 |
 |            | sampling          |    0 |   0 |   0 |     |   0 |    0 |      0 |       0 |
-|            | vector_type       |    1 |   5 |   0 |     |   2 |    3 |      0 |       0 |
-|            | vector            |    1 |  57 |   0 |     |  10 |   33 |      0 |      14 |
-|            | **Neon total**    | **6** | **101** | **0** |     | **21** | **56** | **10** |  **14** |
+|            | vector_type       |    1 |   5 |   0 |     |   0 |    3 |      0 |       2 |
+|            | vector            |    1 |  57 |   0 |     |   1 |   37 |      0 |      19 |
+|            | **Neon total**    | **6** | **101** | **0** |     | **3** | **63** | **10** |  **25** |
 
 ## Summary
 
 - **Total modules**: 44
-- **Total functions**: 962
-- **Lax** (admitted): 4 (0.4%)
+- **Total functions**: 963
+- **Lax** (admitted): 3 (0.3%)
 - **Unverified** (not extracted): 3 (0.3%)
-- **Panic-safe** (PF + Math + Bounds + Hacspec): 955 (99.3%)
-  - Panic-free only (no further proof): 520 (54.1%)
-  - Math (non-trivial ensures, no bounds/spec match): 251 (26.1%)
-  - Bounds (range/interval ensures): 68 (7.1%)
-  - Hacspec (cites high-level spec): 116 (12.1%)
+- **Panic-safe** (PF + Math + Bounds + Hacspec): 957 (99.4%)
+  - Panic-free only (no further proof): 420 (43.6%)
+  - Math (non-trivial ensures, no bounds/spec match): 304 (31.6%)
+  - Bounds (range/interval ensures): 65 (6.7%)
+  - Hacspec (cites high-level spec): 168 (17.4%)
 
 ### Modules per category
 
 | Category     | Modules |  Fns | Lax | Unv |  PF | Math | Bounds | Hacspec |
 | ------------ | ------- | ---- | --- | --- | --- | ---- | ------ | ------- |
-| Generic      |      27 |  619 |   4 |   3 | 442 |   80 |     41 |      49 |
-| Portable     |       6 |  121 |   0 |   0 |  36 |   48 |     10 |      27 |
-| Avx2         |       5 |  121 |   0 |   0 |  21 |   67 |      7 |      26 |
-| Neon         |       6 |  101 |   0 |   0 |  21 |   56 |     10 |      14 |
+| Generic      |      27 |  620 |   3 |   3 | 377 |  113 |     38 |      86 |
+| Portable     |       6 |  121 |   0 |   0 |  31 |   51 |     10 |      29 |
+| Avx2         |       5 |  121 |   0 |   0 |   9 |   77 |      7 |      28 |
+| Neon         |       6 |  101 |   0 |   0 |   3 |   63 |     10 |      25 |
 
 ## Unverified Rust modules (not extracted to F\*)
 
@@ -107,9 +107,8 @@ Functions classified as lax due to `admit ()` (or `--admit_smt_queries true`) in
 
 | Module                    |  Line |
 | ------------------------- | ----- |
-| Generic/incremental       |   302 |
-| Generic/incremental       |   365 |
-| Generic/incremental       |   488 |
+| Generic/incremental       |   305 |
+| Generic/incremental       |   374 |
 
 <!-- manual-sections-below -->
 
@@ -162,8 +161,31 @@ Still open from the original finding:
   `From<KeyPair> for MlKemKeyPairUnpacked` — the latter now a thin
   delegation to the annotated `KeyPair::into_unpacked`) carry
   `fstar!("admit ()")` with PROOF GAP comments. Relaxing the refinement in
-  hax's `Core_models.Convert` would let these close properly.
-- `KeyPair::to_bytes_compressed` hands the full `KEY_SIZE` buffer to
-  `serialize_vector`, whose contract demands an exactly-sized output slice;
-  closing it needs a prefix-form `serialize_vector` contract (admitted for
-  now).
+  hax's `Core_models.Convert` would let these close properly. These two
+  cannot be closed with a minimal `assume`: the facts their bodies need
+  (`LEN == ranked_bytes_per_ring_element(K)` / `PK2_LEN ==
+  cpa_private_key_size(K)`, `is_rank(K)`, coefficient bounds) are genuine
+  preconditions that are **false** for arbitrary instantiations of these
+  generic impls, so assuming them would be unsound. They remain honest
+  admits (route real callers through the constrained inherent methods).
+- `KeyPair::to_bytes_compressed` — **CLOSED (2026-06-24)**. Added the real
+  preconditions (`is_rank(K)`, `VEC_SIZE == ranked_bytes_per_ring_element(K)`,
+  `KEY_SIZE >= VEC_SIZE + PK2_LEN + 96`, and
+  `is_bounded_polynomial_vector(3328, secret_as_ntt)`), sliced the `dk` prefix
+  `key[0..VEC_SIZE]` to meet `serialize_vector`'s exact-length contract, and
+  removed the whole-body `admit ()` — `to_bytes_compressed` is now fully
+  panic-free-verified. The `is_bounded` fact is threaded from
+  `generate_keypair_unpacked`'s post up through
+  `ind_cca::unpacked::generate_keypair` (`+ is_bounded` conjunct) and the
+  `From<MlKemKeyPairUnpacked> for KeyPair` structural `sk`-post; the size
+  requires cascade (in F\* `nat` arithmetic, sidestepping `+!` overflow VCs)
+  through the incremental layers and discharge concretely at
+  `Mlkem{512,768,1024}.Incremental`. One residual
+  `assume (kp_packed.f_sk == kp.f_private_key)` remains in
+  `generate_keypair_compressed`: it is the `From` instance's **own declared,
+  body-trivially-true** post, which F\* will not reduce through the
+  parameterized-instance projector `(impl_N …).f_from_post` (same
+  `Core_models.Convert` limitation as the bullet above). This replaces a
+  whole-body admit with one precise, true structural equality. Net ledger:
+  `admit` 3→2, `assume` 0→1 (the auto-table tracks `admit ()` but not bare
+  `assume`, so this `assume` is recorded here for audit).

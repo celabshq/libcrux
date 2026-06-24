@@ -937,7 +937,9 @@ let lemma_matrix_to_spec_transpose_a
         && PUBLIC_KEY_SIZE == hacspec_ml_kem::parameters::cpa_public_key_size(K)
     )]
     #[hax_lib::ensures(|()|
-        match hacspec_ml_kem::ind_cca_unpack_generate_keypair::<K, PUBLIC_KEY_SIZE>(
+        crate::polynomial::spec::is_bounded_polynomial_vector(3328,
+            &future(out).private_key.ind_cpa_private_key.secret_as_ntt)
+        & (match hacspec_ml_kem::ind_cca_unpack_generate_keypair::<K, PUBLIC_KEY_SIZE>(
             &hacspec_ml_kem::parameters::rank_to_params(K),
             &randomness,
         ) {
@@ -947,7 +949,7 @@ let lemma_matrix_to_spec_transpose_a
                 && future(out).private_key.implicit_rejection_value == implicit_rejection_value
             }
             Err(_) => true,
-        }
+        }).to_prop()
     )]
     pub(crate) fn generate_keypair<
         const K: usize,

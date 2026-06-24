@@ -51,13 +51,13 @@ with `generate_verification_status.py`). Headline as of the last run:
 
 | Metric | Count | % |
 | --- | --- | --- |
-| Total functions | 962 | |
-| **Panic-safe** (panic-free + spec-bearing) | 955 | **99.3%** |
-| &nbsp;&nbsp;— cites high-level hacspec | 116 | 12.1% |
-| &nbsp;&nbsp;— interval/bounds ensures | 68 | 7.1% |
-| &nbsp;&nbsp;— other non-trivial ensures | 251 | 26.1% |
-| &nbsp;&nbsp;— panic-free only | 520 | 54.1% |
-| Lax (admitted) | 4 | 0.4% |
+| Total functions | 963 | |
+| **Panic-safe** (panic-free + spec-bearing) | 957 | **99.4%** |
+| &nbsp;&nbsp;— cites high-level hacspec | 168 | 17.4% |
+| &nbsp;&nbsp;— interval/bounds ensures | 65 | 6.7% |
+| &nbsp;&nbsp;— other non-trivial ensures | 304 | 31.6% |
+| &nbsp;&nbsp;— panic-free only | 420 | 43.6% |
+| Lax (admitted) | 3 | 0.3% |
 | Unverified (not extracted) | 3 | 0.3% |
 
 The NIST/PQCP C-ABI shim (`src/pqcp/`, the `crypto_kem_*` boundary functions)
@@ -70,19 +70,24 @@ unverified** on all three (Portable, AVX2, Neon): every NTT-layer trait method
 and rejection sampler is functionally verified (Neon's `rej_sample` delegates to
 the verified portable scalar sampler).
 
-Known remaining gaps (see the status file for the live list): 4 admitted
+Known remaining gaps (see the status file for the live list): 3 admitted
 (`lax`) and 3 not extracted to F\*.
 
 - **`lax`** — (1) `sampling::sample_from_xof`: its rejection-sampling
   `while !done` loop has no statically decreasing measure, so it is not
   provably terminating, and `panic_free` does not exempt termination. The
   bounded inner helper it drives, `sample_from_uniform_distribution_next`, **is**
-  now fully verified (it establishes the per-coefficient
-  `≤ COEFFICIENTS_IN_RING_ELEMENT` bound). (2–4) three incremental-API
-  `From`-instance bodies, blocked by a hax limitation that forces trivial
-  preconditions on core-trait (`From`) impls.
+  fully verified (it establishes the per-coefficient
+  `≤ COEFFICIENTS_IN_RING_ELEMENT` bound). (2–3) two incremental-API
+  `From`-instance bodies (`From<&MlKemPublicKeyUnpacked> for PublicKey2`,
+  `From<KeyPair> for MlKemKeyPairUnpacked`), blocked by a hax limitation that
+  forces trivial preconditions on core-trait (`From`) impls.
 - **not extracted** — the three functions in `src/lib.rs` (crate-level glue,
   filtered out of extraction by hax).
+
+`KeyPair::to_bytes_compressed` is panic-free-verified modulo one `assume` (a
+`From`-instance `sk`-equality F\* won't reduce through the typeclass
+projector); see the status file's "hax limitations" finding.
 
 ## Reproducing the results
 

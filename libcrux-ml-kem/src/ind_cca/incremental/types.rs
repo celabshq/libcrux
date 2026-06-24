@@ -349,9 +349,15 @@ pub struct KeyPair<const K: usize, const PK2_LEN: usize, Vector: Operations> {
     matrix: [[PolynomialRingElement<Vector>; K]; K],
 }
 
+#[hax_lib::attributes]
 impl<const K: usize, const PK2_LEN: usize, Vector: Operations> From<MlKemKeyPairUnpacked<K, Vector>>
     for KeyPair<K, PK2_LEN, Vector>
 {
+    // Expose the structural fact that `sk` is copied verbatim from the input's
+    // private key.  `t_From` forces the precondition trivial but leaves the
+    // post free, so this lets the bound on `secret_as_ntt` survive the
+    // conversion (consumed by `to_bytes_compressed`).
+    #[ensures(|out| fstar!(r#"${out}.f_sk == ${kp}.f_private_key"#))]
     fn from(kp: MlKemKeyPairUnpacked<K, Vector>) -> Self {
         KeyPair {
             pk1: PublicKey1::from(kp.public_key()),
@@ -488,20 +494,26 @@ impl<const K: usize, const PK2_LEN: usize, Vector: Operations> KeyPair<K, PK2_LE
     /// `key` must be at least of length secret key size
     ///
     /// Layout: dk | ek | H(ek) | z
+    #[hax_lib::requires(
+        (hacspec_ml_kem::parameters::is_rank(K)
+            && VEC_SIZE == hacspec_ml_kem::parameters::ranked_bytes_per_ring_element(K)).to_prop()
+        & fstar!(r#"v $KEY_SIZE >= v $VEC_SIZE + v $PK2_LEN + 96"#)
+        & crate::polynomial::spec::is_bounded_polynomial_vector(3328,
+            &self.sk.ind_cpa_private_key.secret_as_ntt)
+    )]
     pub fn to_bytes_compressed<const KEY_SIZE: usize, const VEC_SIZE: usize>(
         &self,
         key: &mut [u8; KEY_SIZE],
     ) {
-        // PROOF GAP (admitted): `serialize_vector` requires
-        // `out.len() == ranked_bytes_per_ring_element(K)` exactly, but is
-        // handed the full KEY_SIZE buffer here; it also requires
-        // `is_bounded_polynomial_vector(3328, secret_as_ntt)`, which is not
-        // available from this type.
-        hax_lib::fstar!("admit ()");
         // Write the private key.
         // This is a manual version of serialize_kem_secret_key_mut that skips
-        // the hash.
-        serialize_vector(&self.sk.ind_cpa_private_key.secret_as_ntt, key);
+        // the hash.  `serialize_vector` demands an exact-length buffer
+        // (`ranked_bytes_per_ring_element(K) == VEC_SIZE`), so we hand it the
+        // `dk` prefix; the remaining sections are written after it.
+        serialize_vector(
+            &self.sk.ind_cpa_private_key.secret_as_ntt,
+            &mut key[0..VEC_SIZE],
+        );
         let mut offset = VEC_SIZE;
 
         // ek = t | ⍴

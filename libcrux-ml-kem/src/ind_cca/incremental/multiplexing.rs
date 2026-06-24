@@ -383,10 +383,12 @@ pub(crate) fn generate_keypair<
 
 #[inline(always)]
 #[hax_lib::requires(
-    hacspec_ml_kem::parameters::is_rank(K)
+    (hacspec_ml_kem::parameters::is_rank(K)
     && ETA1 == hacspec_ml_kem::parameters::eta1(K)
     && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
     && PUBLIC_KEY_SIZE == hacspec_ml_kem::parameters::cpa_public_key_size(K)
+    && CPA_PRIVATE_KEY_SIZE == hacspec_ml_kem::parameters::ranked_bytes_per_ring_element(K)).to_prop()
+    & fstar!(r#"v $KEYPAIR_LEN >= v $CPA_PRIVATE_KEY_SIZE + v $PK2_LEN + 96"#)
 )]
 pub(crate) fn generate_keypair_compressed<
     const K: usize,
