@@ -95,7 +95,7 @@ impl<T: Not<Output: Scalar> + Scalar> Not for Secret<T> {
 // Shift-left of secret values
 // Note: the number of bits we shift the value by is not secret,
 //       since some implementations may leak this value
-impl<U: Scalar, T: Shl<U> + Scalar> Shl<U> for Secret<T>
+impl<U, T: Shl<U> + Scalar> Shl<U> for Secret<T>
 where
     T::Output: Into<T> + Scalar,
 {
@@ -108,7 +108,7 @@ where
 // Shift-right of secret values
 // Note: the number of bits we shift the value by is not secret,
 //       since some implementations may leak this value
-impl<U: Scalar, T: Shr<U> + Scalar> Shr<U> for Secret<T>
+impl<U, T: Shr<U> + Scalar> Shr<U> for Secret<T>
 where
     T::Output: Into<T> + Scalar,
 {
@@ -161,14 +161,14 @@ impl<T: BitAndAssign + Scalar, V: Into<Secret<T>>> BitAndAssign<V> for Secret<T>
 }
 
 // >>= over secret values
-impl<U: Scalar, T: ShrAssign<U> + Scalar> ShrAssign<U> for Secret<T> {
+impl<U, T: ShrAssign<U> + Scalar> ShrAssign<U> for Secret<T> {
     fn shr_assign(&mut self, rhs: U) {
         self.0 >>= rhs;
     }
 }
 
 // <<= over secret values
-impl<U: Scalar, T: ShlAssign<U> + Scalar> ShlAssign<U> for Secret<T> {
+impl<U, T: ShlAssign<U> + Scalar> ShlAssign<U> for Secret<T> {
     fn shl_assign(&mut self, rhs: U) {
         self.0 <<= rhs;
     }
