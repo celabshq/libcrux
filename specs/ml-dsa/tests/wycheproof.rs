@@ -253,10 +253,9 @@ fn run_verify_tests<
             }
 
             let m_prime = format_m_prime(&test.msg, &test.ctx);
-            let valid = verify_internal::<K, L, C_TILDE_LEN, W1_BYTES>(
-                pk, &m_prime, &test.sig, params,
-            )
-            .is_ok();
+            let valid =
+                verify_internal::<K, L, C_TILDE_LEN, W1_BYTES>(pk, &m_prime, &test.sig, params)
+                    .is_ok();
 
             if test.result == "valid" {
                 assert!(
