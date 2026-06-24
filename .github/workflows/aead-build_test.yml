@@ -26,7 +26,7 @@ jobs:
         shell: bash
         working-directory: crates/primitives/aead
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: 🛠️ Setup Rust Nightly
         run: rustup toolchain install nightly
@@ -59,7 +59,7 @@ jobs:
         working-directory: crates/primitives/aead
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - run: echo "RUST_TARGET_FLAG=" > $GITHUB_ENV
         if: ${{ matrix.bits == 64 }}

@@ -27,7 +27,7 @@ jobs:
 
       - name: Checkout full git history
         if: steps.skip_check.outputs.skip == 'false'
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
