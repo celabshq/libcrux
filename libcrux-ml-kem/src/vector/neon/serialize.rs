@@ -1141,6 +1141,384 @@ lemma_repr_of_two_loads ${array}
 }
 
 #[inline(always)]
+#[hax_lib::fstar::before(r#"
+module NI = Libcrux_intrinsics.Arm64_extract
+module BV = Rust_primitives.BitVectors
+module I = Rust_primitives.Integers
+module VT = Libcrux_ml_kem.Vector.Neon.Vector_type
+module Spec = Libcrux_ml_kem.Vector.Traits.Spec
+
+(* ===================== Block A: spine get_bit lemmas ===================== *)
+
+(* A1: bit r of the low-d-bits mask (2^d - 1) is 1 iff r < d. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_mask_nat_bit (d: nat) (r: nat)
+    : Lemma (ensures I.get_bit_nat (pow2 d - 1) r == (if r < d then 1 else 0)) =
+  if r < d then begin
+    FStar.Math.Lemmas.pow2_plus r (d - r);
+    (* pow2 d - 1 = (pow2 (d-r) - 1) * pow2 r + (pow2 r - 1) *)
+    FStar.Math.Lemmas.lemma_div_plus (pow2 r - 1) (pow2 (d - r) - 1) (pow2 r);
+    FStar.Math.Lemmas.small_div (pow2 r - 1) (pow2 r);
+    (* (pow2 d - 1)/pow2 r == pow2 (d-r) - 1, which is odd *)
+    FStar.Math.Lemmas.pow2_plus 1 (d - r - 1)
+  end
+  else begin
+    FStar.Math.Lemmas.pow2_le_compat r d;
+    FStar.Math.Lemmas.small_div (pow2 d - 1) (pow2 r)
+  end
+#pop-options
+
+(* A1-i32: bit r of arm_low_mask_i32 d *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_low_mask_i32_bit (d: nat{d < 32}) (r: nat{r < 32})
+    : Lemma (I.get_bit (NI.arm_low_mask_i32 d) (sz r) == (if r < d then 1 else 0)) =
+  assert (v (NI.arm_low_mask_i32 d) == pow2 d - 1);
+  lemma_get_bit_val #i32_inttype (NI.arm_low_mask_i32 d) (sz r);
+  lemma_mask_nat_bit d r
+#pop-options
+
+(* A1-i64: bit r of arm_low_mask_i64 d *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_low_mask_i64_bit (d: nat{d < 64}) (r: nat{r < 64})
+    : Lemma (I.get_bit (NI.arm_low_mask_i64 d) (sz r) == (if r < d then 1 else 0)) =
+  assert (v (NI.arm_low_mask_i64 d) == pow2 d - 1);
+  lemma_get_bit_val #i64_inttype (NI.arm_low_mask_i64 d) (sz r);
+  lemma_mask_nat_bit d r
+#pop-options
+
+(* A2: bit r (<16) of (i16x2_as_i32 lo hi) is bit r of lo. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 150"
+let lemma_i16x2_lo_bit (lo hi: i16) (r: nat{r < 16})
+    : Lemma (I.get_bit (NI.i16x2_as_i32 lo hi) (sz r) == I.get_bit lo (sz r)) =
+  FStar.Math.Lemmas.small_mod (v (I.cast_mod #i16_inttype #u16_inttype lo)) (pow2 32);
+  assert (I.cast #u16_inttype #u32_inttype (I.cast_mod #i16_inttype #u16_inttype lo)
+       == I.cast_mod #u16_inttype #u32_inttype (I.cast_mod #i16_inttype #u16_inttype lo))
+#pop-options
+
+(* A3: bit r (<32) of (i32x2_as_i64 lo hi) is bit r of lo. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 150"
+let lemma_i32x2_lo_bit (lo hi: i32) (r: nat{r < 32})
+    : Lemma (I.get_bit (NI.i32x2_as_i64 lo hi) (sz r) == I.get_bit lo (sz r)) =
+  FStar.Math.Lemmas.small_mod (v (I.cast_mod #i32_inttype #u32_inttype lo)) (pow2 64);
+  assert (I.cast #u32_inttype #u64_inttype (I.cast_mod #i32_inttype #u32_inttype lo)
+       == I.cast_mod #u32_inttype #u64_inttype (I.cast_mod #i32_inttype #u32_inttype lo))
+#pop-options
+
+(* A4: the i32 vsli layer.  mixt = (i16x2_as_i32 ae ae & mask_d) | (i16x2_as_i32 ao ao << d).
+   bit r (<2d) of mixt is bit r of ae (r<d) or bit (r-d) of ao (d<=r<2d). *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200"
+let lemma_vsli32_lane_bit (ae ao: i16) (d: nat{0 < d /\ d <= 12}) (r: nat{r < 2 * d})
+    : Lemma
+      (ensures
+        (let mixt = (NI.i16x2_as_i32 ae ae &. NI.arm_low_mask_i32 d) |.
+                    (NI.i16x2_as_i32 ao ao <<! mk_i32 d) in
+         I.get_bit mixt (sz r) == (if r < d then I.get_bit ae (sz r) else I.get_bit ao (sz (r - d))))) =
+  lemma_low_mask_i32_bit d r;
+  (if r < d then lemma_i16x2_lo_bit ae ae r
+   else lemma_i16x2_lo_bit ao ao (r - d))
+#pop-options
+
+(* A5: the i64 vsli layer. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200"
+let lemma_vsli64_lane_bit (me mo: i32) (d2: nat{0 < d2 /\ d2 <= 24}) (q: nat{q < 2 * d2})
+    : Lemma
+      (ensures
+        (let lane = (NI.i32x2_as_i64 me me &. NI.arm_low_mask_i64 d2) |.
+                    (NI.i32x2_as_i64 mo mo <<! mk_i32 d2) in
+         I.get_bit lane (sz q) == (if q < d2 then I.get_bit me (sz q) else I.get_bit mo (sz (q - d2))))) =
+  lemma_low_mask_i64_bit d2 q;
+  (if q < d2 then lemma_i32x2_lo_bit me me q
+   else lemma_i32x2_lo_bit mo mo (q - d2))
+#pop-options
+
+(* q div/mod by d, when q lives in band [m*d, (m+1)*d). *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_q_band (d: nat{d > 0}) (q: nat) (m: nat)
+    : Lemma (requires m * d <= q /\ q < (m + 1) * d)
+            (ensures q / d == m /\ q % d == q - m * d) =
+  let r = q - m * d in
+  FStar.Math.Lemmas.small_div r d;
+  FStar.Math.Lemmas.small_mod r d;
+  FStar.Math.Lemmas.lemma_div_plus r m d;
+  FStar.Math.Lemmas.lemma_mod_plus r m d
+#pop-options
+
+(* A6: combine both layers — bit q (<4d) of the packed lane is bit (q%d) of coeff q/d. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 250 --split_queries always"
+let lemma_lane_bit (c0 c1 c2 c3: i16) (me mo: i32) (lane: i64) (d: nat{0 < d /\ d <= 12}) (q: nat{q < 4 * d})
+    : Lemma
+      (requires
+        (let me32 = (NI.i16x2_as_i32 c0 c0 &. NI.arm_low_mask_i32 d) |. (NI.i16x2_as_i32 c1 c1 <<! mk_i32 d) in
+         let mo32 = (NI.i16x2_as_i32 c2 c2 &. NI.arm_low_mask_i32 d) |. (NI.i16x2_as_i32 c3 c3 <<! mk_i32 d) in
+         me == me32 /\ mo == mo32 /\
+         lane == ((NI.i32x2_as_i64 me me &. NI.arm_low_mask_i64 (2 * d)) |. (NI.i32x2_as_i64 mo mo <<! mk_i32 (2 * d)))))
+      (ensures
+        I.get_bit lane (sz q) ==
+        (if q < d then I.get_bit c0 (sz q)
+         else if q < 2 * d then I.get_bit c1 (sz (q - d))
+         else if q < 3 * d then I.get_bit c2 (sz (q - 2 * d))
+         else I.get_bit c3 (sz (q - 3 * d)))) =
+  lemma_vsli64_lane_bit me mo (2 * d) q;
+  if q < 2 * d then lemma_vsli32_lane_bit c0 c1 d q
+  else lemma_vsli32_lane_bit c2 c3 d (q - 2 * d)
+#pop-options
+
+(* B1: bit p (<8) of byte e (<8) of an i64 is bit (8e+p) of the i64. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 150"
+let lemma_i64_byte_bit (x: i64) (e: nat{e < 8}) (p: nat{p < 8})
+    : Lemma (I.get_bit (NI.i64_byte x e) (sz p) == I.get_bit x (sz (8 * e + p))) =
+  ()
+#pop-options
+
+(* ===================== Block B: recompute spine + stitch ===================== *)
+
+(* opaque atoms: the s32 mixt and full i64x2 packed spine of one 8-coeff half. *)
+[@@ "opaque_to_smt"]
+let half_mixt (half: NI.t_e_int16x8_t) (d: nat{0 < d /\ d <= 12}) : NI.t_e_int32x4_t =
+  NI.e_vsliq_n_s32 (mk_i32 d)
+    (NI.e_vreinterpretq_s32_s16 (NI.e_vtrn1q_s16 half half))
+    (NI.e_vreinterpretq_s32_s16 (NI.e_vtrn2q_s16 half half))
+
+[@@ "opaque_to_smt"]
+let half_spine (half: NI.t_e_int16x8_t) (d: nat{0 < d /\ d <= 12}) : NI.t_e_int64x2_t =
+  NI.e_vsliq_n_s64 (mk_i32 (2 * d))
+    (NI.e_vreinterpretq_s64_s32 (NI.e_vtrn1q_s32 (half_mixt half d) (half_mixt half d)))
+    (NI.e_vreinterpretq_s64_s32 (NI.e_vtrn2q_s32 (half_mixt half d) (half_mixt half d)))
+
+(* B2: the recompute lemma — bit q (<4d) of lane g (g<2) of the packed i64x2
+   `low_mix == half_spine half d` is bit (q%d) of coeff (4g + q/d) of half. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 300 --split_queries always"
+let lemma_half_lane_bit (half: NI.t_e_int16x8_t) (low_mix: NI.t_e_int64x2_t)
+      (g: nat{g < 2}) (d: nat{0 < d /\ d <= 12}) (q: nat{q < 4 * d})
+    : Lemma
+      (requires low_mix == half_spine half d)
+      (ensures
+        I.get_bit (NI.get_lane_i64x2 low_mix g) (sz q) ==
+        I.get_bit (NI.get_lane_i16x8 half (4 * g + q / d)) (sz (q % d))) =
+  reveal_opaque (`%half_spine) (half_spine half d);
+  reveal_opaque (`%half_mixt) (half_mixt half d);
+  let mixt = half_mixt half d in
+  let c0 = NI.get_lane_i16x8 half (4 * g) in
+  let c1 = NI.get_lane_i16x8 half (4 * g + 1) in
+  let c2 = NI.get_lane_i16x8 half (4 * g + 2) in
+  let c3 = NI.get_lane_i16x8 half (4 * g + 3) in
+  let me = NI.get_lane_i32x4 mixt (2 * g) in
+  let mo = NI.get_lane_i32x4 mixt (2 * g + 1) in
+  let lane = NI.get_lane_i64x2 low_mix g in
+  assert (me == ((NI.i16x2_as_i32 c0 c0 &. NI.arm_low_mask_i32 d) |. (NI.i16x2_as_i32 c1 c1 <<! mk_i32 d)));
+  assert (mo == ((NI.i16x2_as_i32 c2 c2 &. NI.arm_low_mask_i32 d) |. (NI.i16x2_as_i32 c3 c3 <<! mk_i32 d)));
+  assert (lane == ((NI.i32x2_as_i64 me me &. NI.arm_low_mask_i64 (2 * d)) |. (NI.i32x2_as_i64 mo mo <<! mk_i32 (2 * d))));
+  lemma_lane_bit c0 c1 c2 c3 me mo lane d q;
+  (if q < d then lemma_q_band d q 0
+   else if q < 2 * d then lemma_q_band d q 1
+   else if q < 3 * d then lemma_q_band d q 2
+   else lemma_q_band d q 3)
+#pop-options
+
+(* lane selector: groups 0,1 from low_mix; groups 2,3 from high_mix. *)
+let lane_of (low_mix high_mix: NI.t_e_int64x2_t) (g: nat{g < 4}) : i64 =
+  if g < 2 then NI.get_lane_i64x2 low_mix g else NI.get_lane_i64x2 high_mix (g - 2)
+
+(* B3: per-global-bit fact for the byte stream. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 300 --split_queries always"
+let lemma_serd_bit
+      (vec: VT.t_SIMD128Vector)
+      (low_mix high_mix: NI.t_e_int64x2_t)
+      (v_N: nat{0 < v_N /\ v_N <= 6})
+      (result: t_Array u8 (mk_usize (4 * v_N)))
+      (i: nat{i < 32 * v_N})
+    : Lemma
+      (requires
+        (forall (g: nat{g < 4}) (q: nat{q < 8 * v_N}).
+           I.get_bit (lane_of low_mix high_mix g) (sz q) ==
+           I.get_bit (Seq.index (VT.repr vec) (4 * g + q / (2 * v_N))) (sz (q % (2 * v_N)))) /\
+        (forall (g: nat{g < 4}) (e: nat{e < v_N}).
+           Seq.index result (v_N * g + e) == NI.i64_byte (lane_of low_mix high_mix g) e))
+      (ensures
+        I.get_bit (Seq.index result (i / 8)) (sz (i % 8)) ==
+        I.get_bit (Seq.index (VT.repr vec) (i / (2 * v_N))) (sz (i % (2 * v_N)))) =
+  let beta = i / 8 in
+  let p = i % 8 in
+  let n = v_N in
+  FStar.Math.Lemmas.lemma_div_mod i 8;
+  let g = beta / n in
+  let e = beta % n in
+  FStar.Math.Lemmas.lemma_div_mod beta n;
+  let q = 8 * e + p in
+  assert (beta < 4 * n);
+  assert (g < 4);
+  assert (e < n);
+  assert (q < 8 * n);
+  assert (Seq.index result (n * g + e) == NI.i64_byte (lane_of low_mix high_mix g) e);
+  lemma_i64_byte_bit (lane_of low_mix high_mix g) e p;
+  assert (i == q + (4 * g) * (2 * n));
+  FStar.Math.Lemmas.lemma_div_plus q (4 * g) (2 * n);
+  FStar.Math.Lemmas.lemma_mod_plus q (4 * g) (2 * n)
+#pop-options
+
+(* B-stitch: per-bit equality -> int_t_array_bitwise_eq (mirror lemma_bv_eq_from_bits4). *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 150"
+let lemma_bv_eq_from_bitsN (v_N: nat{0 < v_N /\ v_N <= 6})
+      (arr: t_Array i16 (mk_usize 16))
+      (result: t_Array u8 (mk_usize (4 * v_N)))
+    : Lemma
+      (requires
+        (forall (i: nat{i < 32 * v_N}).
+          I.get_bit (Seq.index result (i / 8)) (sz (i % 8)) ==
+          I.get_bit (Seq.index arr (i / (2 * v_N))) (sz (i % (2 * v_N)))))
+      (ensures
+        BitVecEq.int_t_array_bitwise_eq #i16_inttype #u8_inttype #(mk_usize 16) #(mk_usize (4 * v_N))
+          arr (2 * v_N) result 8) =
+  introduce forall (i: nat{i < 32 * v_N}).
+      BV.bit_vec_of_int_t_array #i16_inttype #(mk_usize 16) arr (2 * v_N) i
+      == BV.bit_vec_of_int_t_array #u8_inttype #(mk_usize (4 * v_N)) result 8 i
+  with (assert (BV.bit_vec_of_int_t_array #i16_inttype #(mk_usize 16) arr (2 * v_N) i
+            == I.get_bit (Seq.index arr (i / (2 * v_N))) (sz (i % (2 * v_N))));
+        assert (BV.bit_vec_of_int_t_array #u8_inttype #(mk_usize (4 * v_N)) result 8 i
+            == I.get_bit (Seq.index result (i / 8)) (sz (i % 8))));
+  BitVecEq.bit_vec_equal_intro
+    (BV.bit_vec_of_int_t_array #i16_inttype #(mk_usize 16) arr (2 * v_N))
+    (BitVecEq.retype (BV.bit_vec_of_int_t_array #u8_inttype #(mk_usize (4 * v_N)) result 8))
+#pop-options
+
+(* B4: top chainer — the leaf post from the spine + result-byte mapping. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 300 --split_queries always"
+let lemma_serialize_post
+      (vec: VT.t_SIMD128Vector)
+      (low_mix high_mix: NI.t_e_int64x2_t)
+      (v_N: nat{0 < v_N /\ v_N <= 6})
+      (result: t_Array u8 (mk_usize (4 * v_N)))
+    : Lemma
+      (requires
+        Spec.serialize_pre_N (2 * v_N) (VT.repr vec) /\
+        (forall (g: nat{g < 4}) (q: nat{q < 8 * v_N}).
+           I.get_bit (lane_of low_mix high_mix g) (sz q) ==
+           I.get_bit (Seq.index (VT.repr vec) (4 * g + q / (2 * v_N))) (sz (q % (2 * v_N)))) /\
+        (forall (g: nat{g < 4}) (e: nat{e < v_N}).
+           Seq.index result (v_N * g + e) == NI.i64_byte (lane_of low_mix high_mix g) e))
+      (ensures Spec.serialize_post_N (2 * v_N) (VT.repr vec) result) =
+  introduce forall (i: nat{i < 32 * v_N}).
+      I.get_bit (Seq.index result (i / 8)) (sz (i % 8)) ==
+      I.get_bit (Seq.index (VT.repr vec) (i / (2 * v_N))) (sz (i % (2 * v_N)))
+  with lemma_serd_bit vec low_mix high_mix v_N result i;
+  lemma_bv_eq_from_bitsN v_N (VT.repr vec) result
+#pop-options
+
+(* framing SMTPat: a sub-slice [a,b) that ends at/before the written range's start
+   is preserved by update_at_range.  Chains through the nested updates automatically. *)
+#push-options "--fuel 0 --ifuel 0 --z3rlimit 100"
+let lemma_uar_sub_before (#t: Type0) (s: t_Slice t)
+      (i: Core_models.Ops.Range.t_Range usize) (x: t_Slice t) (a b: nat)
+    : Lemma
+      (requires
+        v i.Core_models.Ops.Range.f_start <= Seq.length s /\
+        v i.Core_models.Ops.Range.f_end <= Seq.length s /\
+        Seq.length x == v i.Core_models.Ops.Range.f_end - v i.Core_models.Ops.Range.f_start /\
+        a <= b /\ b <= v i.Core_models.Ops.Range.f_start)
+      (ensures
+        Seq.slice (Rust_primitives.Hax.Monomorphized_update_at.update_at_range s i x) a b == Seq.slice s a b)
+      [SMTPat (Seq.slice (Rust_primitives.Hax.Monomorphized_update_at.update_at_range s i x) a b)] =
+  let res = Rust_primitives.Hax.Monomorphized_update_at.update_at_range s i x in
+  let fs = v i.Core_models.Ops.Range.f_start in
+  FStar.Seq.Properties.slice_slice res 0 fs a b;
+  FStar.Seq.Properties.slice_slice s 0 fs a b
+#pop-options
+
+(* R3: result-byte mapping, from the two 16-byte stores + four copy_from_slice. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 300 --split_queries always"
+let lemma_result_mapping
+      (low_mix high_mix: NI.t_e_int64x2_t)
+      (v_N: nat{0 < v_N /\ v_N <= 6})
+      (result32: t_Array u8 (mk_usize 32))
+      (result: t_Array u8 (mk_usize (4 * v_N)))
+    : Lemma
+      (requires
+        (forall (k: nat{k < 16}).
+           Seq.index result32 k == NI.i64_byte (NI.get_lane_i64x2 low_mix (k / 8)) (k % 8)) /\
+        (forall (k: nat{k < 16}).
+           Seq.index result32 (16 + k) == NI.i64_byte (NI.get_lane_i64x2 high_mix (k / 8)) (k % 8)) /\
+        Seq.slice result 0 v_N == Seq.slice result32 0 v_N /\
+        Seq.slice result v_N (v_N + v_N) == Seq.slice result32 8 (8 + v_N) /\
+        Seq.slice result (2 * v_N) (2 * v_N + v_N) == Seq.slice result32 16 (16 + v_N) /\
+        Seq.slice result (3 * v_N) (3 * v_N + v_N) == Seq.slice result32 24 (24 + v_N))
+      (ensures
+        (forall (g: nat{g < 4}) (e: nat{e < v_N}).
+           Seq.index result (v_N * g + e) == NI.i64_byte (lane_of low_mix high_mix g) e)) =
+  let aux (g: nat{g < 4}) (e: nat{e < v_N}) : Lemma
+      (Seq.index result (v_N * g + e) == NI.i64_byte (lane_of low_mix high_mix g) e) =
+    if g = 0 then begin
+      Seq.lemma_index_slice result 0 v_N e;
+      Seq.lemma_index_slice result32 0 v_N e;
+      FStar.Math.Lemmas.small_div e 8; FStar.Math.Lemmas.small_mod e 8
+    end
+    else if g = 1 then begin
+      Seq.lemma_index_slice result v_N (v_N + v_N) e;
+      Seq.lemma_index_slice result32 8 (8 + v_N) e;
+      FStar.Math.Lemmas.small_div e 8; FStar.Math.Lemmas.small_mod e 8;
+      FStar.Math.Lemmas.lemma_div_plus e 1 8; FStar.Math.Lemmas.lemma_mod_plus e 1 8
+    end
+    else if g = 2 then begin
+      Seq.lemma_index_slice result (2 * v_N) (2 * v_N + v_N) e;
+      Seq.lemma_index_slice result32 16 (16 + v_N) e;
+      assert (Seq.index result32 (16 + e) == NI.i64_byte (NI.get_lane_i64x2 high_mix (e / 8)) (e % 8));
+      FStar.Math.Lemmas.small_div e 8; FStar.Math.Lemmas.small_mod e 8
+    end
+    else begin
+      Seq.lemma_index_slice result (3 * v_N) (3 * v_N + v_N) e;
+      Seq.lemma_index_slice result32 24 (24 + v_N) e;
+      assert (24 + e == 16 + (8 + e));
+      assert (Seq.index result32 (16 + (8 + e)) ==
+              NI.i64_byte (NI.get_lane_i64x2 high_mix ((8 + e) / 8)) ((8 + e) % 8));
+      FStar.Math.Lemmas.small_div e 8; FStar.Math.Lemmas.small_mod e 8;
+      FStar.Math.Lemmas.lemma_div_plus e 1 8; FStar.Math.Lemmas.lemma_mod_plus e 1 8
+    end
+  in
+  Classical.forall_intro_2 aux
+#pop-options
+
+(* store-byte conversion: slice-content (get_lane_u8x16 of the reinterpret) -> i64_byte facts. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200 --split_queries always"
+let lemma_store32_to_bytes (low_mix high_mix: NI.t_e_int64x2_t) (result32: t_Array u8 (mk_usize 32))
+    : Lemma
+      (requires
+        (forall (k: nat{k < 16}).
+           Seq.index (Seq.slice result32 0 16) k == NI.get_lane_u8x16 (NI.e_vreinterpretq_u8_s64 low_mix) k) /\
+        (forall (k: nat{k < 16}).
+           Seq.index (Seq.slice result32 16 32) k == NI.get_lane_u8x16 (NI.e_vreinterpretq_u8_s64 high_mix) k))
+      (ensures
+        (forall (k: nat{k < 16}).
+           Seq.index result32 k == NI.i64_byte (NI.get_lane_i64x2 low_mix (k / 8)) (k % 8)) /\
+        (forall (k: nat{k < 16}).
+           Seq.index result32 (16 + k) == NI.i64_byte (NI.get_lane_i64x2 high_mix (k / 8)) (k % 8))) =
+  let auxl (k: nat{k < 16}) : Lemma
+      (Seq.index result32 k == NI.i64_byte (NI.get_lane_i64x2 low_mix (k / 8)) (k % 8)) =
+    Seq.lemma_index_slice result32 0 16 k in
+  let auxh (k: nat{k < 16}) : Lemma
+      (Seq.index result32 (16 + k) == NI.i64_byte (NI.get_lane_i64x2 high_mix (k / 8)) (k % 8)) =
+    Seq.lemma_index_slice result32 16 32 k in
+  Classical.forall_intro auxl;
+  Classical.forall_intro auxh
+#pop-options
+
+(* R2: spine fact for both halves, in clean context (atomic half_spine match). *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 300 --split_queries always"
+let lemma_spine_r2 (vec: VT.t_SIMD128Vector) (low_mix high_mix: NI.t_e_int64x2_t) (d: nat{0 < d /\ d <= 12})
+    : Lemma
+      (requires low_mix == half_spine vec.VT.f_low d /\ high_mix == half_spine vec.VT.f_high d)
+      (ensures
+        (forall (g: nat{g < 4}) (q: nat{q < 4 * d}).
+           I.get_bit (lane_of low_mix high_mix g) (sz q) ==
+           I.get_bit (Seq.index (VT.repr vec) (4 * g + q / d)) (sz (q % d)))) =
+  introduce forall (g: nat{g < 4}) (q: nat{q < 4 * d}).
+      I.get_bit (lane_of low_mix high_mix g) (sz q) ==
+      I.get_bit (Seq.index (VT.repr vec) (4 * g + q / d)) (sz (q % d))
+  with (if g < 2 then lemma_half_lane_bit vec.VT.f_low low_mix g d q
+        else lemma_half_lane_bit vec.VT.f_high high_mix (g - 2) d q)
+#pop-options
+"#)]
+#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always --z3refresh")]
+#[hax_lib::requires(fstar!(r#"Libcrux_ml_kem.Vector.Traits.Spec.serialize_pre_N 10 (repr ${v})"#))]
+#[hax_lib::ensures(|result| fstar!(r#"Libcrux_ml_kem.Vector.Traits.Spec.serialize_post_N 10 (repr ${v}) ${result}"#))]
 pub(crate) fn serialize_10(v: SIMD128Vector) -> [u8; 20] {
     let low0 = _vreinterpretq_s32_s16(_vtrn1q_s16(v.low, v.low)); // a0, a0, a2, a2, a4, a4, a6, a6
     let low1 = _vreinterpretq_s32_s16(_vtrn2q_s16(v.low, v.low)); // a1, a1, a3, a3, a5, a5, a7, a7
@@ -1166,6 +1544,36 @@ pub(crate) fn serialize_10(v: SIMD128Vector) -> [u8; 20] {
     result[5..10].copy_from_slice(&result32[8..13]);
     result[10..15].copy_from_slice(&result32[16..21]);
     result[15..20].copy_from_slice(&result32[24..29]);
+    hax_lib::fstar!(
+        r#"
+    let _:squash (forall (k: nat{k < 16}).
+          Seq.index (Seq.slice ${result32} 0 16) k == NI.get_lane_u8x16 (NI.e_vreinterpretq_u8_s64 ${low_mix}) k) =
+      introduce forall (k: nat{k < 16}).
+          Seq.index (Seq.slice ${result32} 0 16) k == NI.get_lane_u8x16 (NI.e_vreinterpretq_u8_s64 ${low_mix}) k
+      with ()
+    in
+    let _:squash (forall (k: nat{k < 16}).
+          Seq.index (Seq.slice ${result32} 16 32) k == NI.get_lane_u8x16 (NI.e_vreinterpretq_u8_s64 ${high_mix}) k) =
+      introduce forall (k: nat{k < 16}).
+          Seq.index (Seq.slice ${result32} 16 32) k == NI.get_lane_u8x16 (NI.e_vreinterpretq_u8_s64 ${high_mix}) k
+      with ()
+    in
+    lemma_store32_to_bytes ${low_mix} ${high_mix} ${result32};
+    assert (Seq.slice ${result} 0 5 == Seq.slice ${result32} 0 5);
+    assert (Seq.slice ${result} 5 10 == Seq.slice ${result32} 8 13);
+    assert (Seq.slice ${result} 10 15 == Seq.slice ${result32} 16 21);
+    assert (Seq.slice ${result} 15 20 == Seq.slice ${result32} 24 29);
+    lemma_result_mapping ${low_mix} ${high_mix} 5 ${result32} ${result};
+    reveal_opaque (`%half_spine) (half_spine ${v}.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low 10);
+    reveal_opaque (`%half_mixt) (half_mixt ${v}.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low 10);
+    reveal_opaque (`%half_spine) (half_spine ${v}.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high 10);
+    reveal_opaque (`%half_mixt) (half_mixt ${v}.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high 10);
+    assert (${low_mix} == half_spine ${v}.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low 10);
+    assert (${high_mix} == half_spine ${v}.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high 10);
+    lemma_spine_r2 ${v} ${low_mix} ${high_mix} 10;
+    lemma_serialize_post ${v} ${low_mix} ${high_mix} 5 ${result}
+    "#
+    );
     result
 }
 
@@ -1231,6 +1639,9 @@ lemma_repr_of_two_loads ${array}
 }
 
 #[inline(always)]
+#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always --z3refresh")]
+#[hax_lib::requires(fstar!(r#"Libcrux_ml_kem.Vector.Traits.Spec.serialize_pre_N 12 (repr ${v})"#))]
+#[hax_lib::ensures(|result| fstar!(r#"Libcrux_ml_kem.Vector.Traits.Spec.serialize_post_N 12 (repr ${v}) ${result}"#))]
 pub(crate) fn serialize_12(v: SIMD128Vector) -> [u8; 24] {
     let low0 = _vreinterpretq_s32_s16(_vtrn1q_s16(v.low, v.low)); // a0, a0, a2, a2, a4, a4, a6, a6
     let low1 = _vreinterpretq_s32_s16(_vtrn2q_s16(v.low, v.low)); // a1, a1, a3, a3, a5, a5, a7, a7
@@ -1256,6 +1667,36 @@ pub(crate) fn serialize_12(v: SIMD128Vector) -> [u8; 24] {
     result[6..12].copy_from_slice(&result32[8..14]);
     result[12..18].copy_from_slice(&result32[16..22]);
     result[18..24].copy_from_slice(&result32[24..30]);
+    hax_lib::fstar!(
+        r#"
+    let _:squash (forall (k: nat{k < 16}).
+          Seq.index (Seq.slice ${result32} 0 16) k == NI.get_lane_u8x16 (NI.e_vreinterpretq_u8_s64 ${low_mix}) k) =
+      introduce forall (k: nat{k < 16}).
+          Seq.index (Seq.slice ${result32} 0 16) k == NI.get_lane_u8x16 (NI.e_vreinterpretq_u8_s64 ${low_mix}) k
+      with ()
+    in
+    let _:squash (forall (k: nat{k < 16}).
+          Seq.index (Seq.slice ${result32} 16 32) k == NI.get_lane_u8x16 (NI.e_vreinterpretq_u8_s64 ${high_mix}) k) =
+      introduce forall (k: nat{k < 16}).
+          Seq.index (Seq.slice ${result32} 16 32) k == NI.get_lane_u8x16 (NI.e_vreinterpretq_u8_s64 ${high_mix}) k
+      with ()
+    in
+    lemma_store32_to_bytes ${low_mix} ${high_mix} ${result32};
+    assert (Seq.slice ${result} 0 6 == Seq.slice ${result32} 0 6);
+    assert (Seq.slice ${result} 6 12 == Seq.slice ${result32} 8 14);
+    assert (Seq.slice ${result} 12 18 == Seq.slice ${result32} 16 22);
+    assert (Seq.slice ${result} 18 24 == Seq.slice ${result32} 24 30);
+    lemma_result_mapping ${low_mix} ${high_mix} 6 ${result32} ${result};
+    reveal_opaque (`%half_spine) (half_spine ${v}.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low 12);
+    reveal_opaque (`%half_mixt) (half_mixt ${v}.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low 12);
+    reveal_opaque (`%half_spine) (half_spine ${v}.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high 12);
+    reveal_opaque (`%half_mixt) (half_mixt ${v}.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high 12);
+    assert (${low_mix} == half_spine ${v}.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low 12);
+    assert (${high_mix} == half_spine ${v}.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high 12);
+    lemma_spine_r2 ${v} ${low_mix} ${high_mix} 12;
+    lemma_serialize_post ${v} ${low_mix} ${high_mix} 6 ${result}
+    "#
+    );
     result
 }
 
