@@ -7,6 +7,7 @@
   "admit_module_prefix": "Libcrux_ml_kem.",
   "spec_patterns": [
     "Hacspec_ml_kem\\.",
+    "hacspec_ml_kem::",
     "Spec\\.Utils\\.v_G",
     "Spec\\.Utils\\.v_H",
     "Spec\\.Utils\\.v_PRF",

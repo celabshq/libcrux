@@ -477,6 +477,15 @@ pub fn validate_private_key(
 ///
 /// This function returns an [`MlKem768KeyPair`].
 #[cfg(not(eurydice))]
+#[hax_lib::ensures(|res|
+    match hacspec_ml_kem::generate_keypair::<RANK, CPA_PKE_PUBLIC_KEY_SIZE, SECRET_KEY_SIZE, CPA_PKE_SECRET_KEY_SIZE>(
+        &hacspec_ml_kem::parameters::rank_to_params(RANK),
+        &randomness,
+    ) {
+        Ok((ek, dk)) => res.sk.value == dk && res.pk.value == ek,
+        Err(_) => true,
+    }
+)]
 pub fn generate_key_pair(randomness: [u8; KEY_GENERATION_SEED_SIZE]) -> MlKem768KeyPair {
     multiplexing::generate_keypair::<
         RANK,
@@ -494,6 +503,16 @@ pub fn generate_key_pair(randomness: [u8; KEY_GENERATION_SEED_SIZE]) -> MlKem768
 /// The input is a reference to an [`MlKem768PublicKey`] and [`SHARED_SECRET_SIZE`]
 /// bytes of `randomness`.
 #[cfg(not(eurydice))]
+#[hax_lib::ensures(|res|
+    match hacspec_ml_kem::encapsulate::<RANK, CPA_PKE_PUBLIC_KEY_SIZE, C1_SIZE, C2_SIZE, CPA_PKE_CIPHERTEXT_SIZE>(
+        &hacspec_ml_kem::parameters::rank_to_params(RANK),
+        &public_key.value,
+        &randomness,
+    ) {
+        Ok((shared, ciphertext)) => res.0.value == ciphertext && res.1 == shared,
+        Err(_) => true,
+    }
+)]
 pub fn encapsulate(
     public_key: &MlKem768PublicKey,
     randomness: [u8; SHARED_SECRET_SIZE],
@@ -520,6 +539,16 @@ pub fn encapsulate(
 /// Generates an [`MlKemSharedSecret`].
 /// The input is a reference to an [`MlKem768PrivateKey`] and an [`MlKem768Ciphertext`].
 #[cfg(not(eurydice))]
+#[hax_lib::ensures(|res|
+    match hacspec_ml_kem::decapsulate::<RANK, CPA_PKE_PUBLIC_KEY_SIZE, SECRET_KEY_SIZE, CPA_PKE_SECRET_KEY_SIZE, C1_SIZE, C2_SIZE, CPA_PKE_CIPHERTEXT_SIZE, IMPLICIT_REJECTION_HASH_INPUT_SIZE>(
+        &hacspec_ml_kem::parameters::rank_to_params(RANK),
+        &private_key.value,
+        &ciphertext.value,
+    ) {
+        Ok(expected) => res == expected,
+        Err(_) => true,
+    }
+)]
 pub fn decapsulate(
     private_key: &MlKem768PrivateKey,
     ciphertext: &MlKem768Ciphertext,

@@ -32,7 +32,7 @@ DEFAULT_ML_KEM_CONFIG = {
     "output": "proofs/ml_kem_verification_status.md",
     "admit_module_prefix": "Libcrux_ml_kem.",
     "spec_patterns": [
-        r"Hacspec_ml_kem\.",
+        r"Hacspec_ml_kem\.", r"hacspec_ml_kem::",
         r"Spec\.Utils\.v_G", r"Spec\.Utils\.v_H", r"Spec\.Utils\.v_PRF",
         r"to_spec_poly_t", r"to_spec_vector_t", r"to_spec_matrix_t",
         r"Traits\.Spec\.\w+_post",

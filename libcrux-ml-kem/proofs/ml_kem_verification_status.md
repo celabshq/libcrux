@@ -29,22 +29,22 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 |            | variant           |    1 |   9 |   0 |     |   3 |    4 |      0 |       2 |
 |            | lib               |    1 |   3 |   0 |   3 |   0 |    0 |      0 |       0 |
 |            | hash_functions    |    1 |  49 |   0 |     |  21 |    0 |      0 |      28 |
-|            | ind_cpa           |    1 |  21 |   0 |     |   2 |    7 |      5 |       7 |
-|            | ind_cca           |    1 |  27 |   0 |     |  16 |    6 |      1 |       4 |
-|            | instantiations    |    2 |  40 |   0 |     |  31 |    9 |      0 |       0 |
-|            | multiplexing      |    2 |  20 |   0 |     |  15 |    5 |      0 |       0 |
+|            | ind_cpa           |    1 |  21 |   0 |     |   2 |    0 |      0 |      19 |
+|            | ind_cca           |    1 |  27 |   0 |     |  16 |    1 |      0 |      10 |
+|            | instantiations    |    2 |  40 |   0 |     |  31 |    0 |      0 |       9 |
+|            | multiplexing      |    2 |  20 |   0 |     |  15 |    2 |      0 |       3 |
 |            | incremental       |    2 |  45 |   2 |     |  26 |   12 |      5 |       0 |
 |            | polynomial        |    1 |  59 |   0 |     |  21 |    9 |     20 |       9 |
 |            | invert_ntt        |    1 |   7 |   0 |     |   1 |    0 |      1 |       5 |
 |            | ntt               |    1 |  12 |   0 |     |   4 |    0 |      1 |       7 |
-|            | mlkem*            |    4 | 134 |   0 |     | 125 |    9 |      0 |       0 |
-|            | matrix            |    1 |   5 |   0 |     |   0 |    0 |      5 |       0 |
+|            | mlkem*            |    4 | 134 |   0 |     | 122 |    3 |      0 |       9 |
+|            | matrix            |    1 |   5 |   0 |     |   0 |    0 |      0 |       5 |
 |            | serialize         |    1 |  25 |   0 |     |   5 |    1 |      0 |      19 |
 |            | sampling          |    0 |   9 |   1 |     |   4 |    1 |      0 |       3 |
 |            | vector (top)      |    1 |   3 |   0 |     |   3 |    0 |      0 |       0 |
 |            | vector/traits     |    1 | 111 |   0 |     |  73 |   36 |      0 |       2 |
 |            | rej_sample_table  |    1 |   0 |   0 |     |   0 |    0 |      0 |       0 |
-|            | **Generic total** | **27** | **620** | **3** | **3** | **377** | **113** | **38** |  **86** |
+|            | **Generic total** | **27** | **620** | **3** | **3** | **374** | **83** | **27** | **130** |
 |            |                   |      |     |     |     |     |      |        |         |
 | _Portable_ | arithmetic        |    1 |  13 |   0 |     |   6 |    7 |      0 |       0 |
 |            | ntt               |    1 |  10 |   0 |     |   0 |    0 |     10 |       0 |
@@ -79,16 +79,16 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 - **Lax** (admitted): 3 (0.3%)
 - **Unverified** (not extracted): 3 (0.3%)
 - **Panic-safe** (PF + Math + Bounds + Hacspec): 957 (99.4%)
-  - Panic-free only (no further proof): 420 (43.6%)
-  - Math (non-trivial ensures, no bounds/spec match): 304 (31.6%)
-  - Bounds (range/interval ensures): 65 (6.7%)
-  - Hacspec (cites high-level spec): 168 (17.4%)
+  - Panic-free only (no further proof): 417 (43.3%)
+  - Math (non-trivial ensures, no bounds/spec match): 274 (28.5%)
+  - Bounds (range/interval ensures): 54 (5.6%)
+  - Hacspec (cites high-level spec): 212 (22.0%)
 
 ### Modules per category
 
 | Category     | Modules |  Fns | Lax | Unv |  PF | Math | Bounds | Hacspec |
 | ------------ | ------- | ---- | --- | --- | --- | ---- | ------ | ------- |
-| Generic      |      27 |  620 |   3 |   3 | 377 |  113 |     38 |      86 |
+| Generic      |      27 |  620 |   3 |   3 | 374 |   83 |     27 |     130 |
 | Portable     |       6 |  121 |   0 |   0 |  31 |   51 |     10 |      29 |
 | Avx2         |       5 |  121 |   0 |   0 |   9 |   77 |      7 |      28 |
 | Neon         |       6 |  101 |   0 |   0 |   3 |   63 |     10 |      25 |

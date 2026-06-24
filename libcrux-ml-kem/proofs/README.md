@@ -14,34 +14,51 @@ src/*.rs  ──hax──▶  proofs/fstar/extraction/*.fst(i)  ──F*/Z3─�
 
 ## Top-level theorems
 
-The verification establishes two classes of theorem for the optimized
-implementation (all three backends — Portable, AVX2, Neon):
+The verification establishes the following for the optimized implementation
+(all three backends — Portable, AVX2, Neon):
 
-1. **Memory & panic safety.** The full public API
-   (`mlkem{512,768,1024}::{generate_key_pair, encapsulate, decapsulate}` and the
-   incremental API) and essentially all internal functions are proven **free of
-   panics and arithmetic overflow**, and to respect every callee precondition.
-   In F\* terms each such function carries a discharged `requires`/`ensures`
-   contract (or, at minimum, `verification_status(panic_free)`). Decode entry
-   points (`KeyPair::from_bytes`, `EncapsState::try_from_bytes`) additionally
-   bounds-check every decoded coefficient and return `Error::InvalidInput`
-   rather than trusting their input.
+1. **End-to-end functional correctness of the public KEM API.** For every
+   parameter set (ML-KEM-512/768/1024), the public `generate_key_pair`,
+   `encapsulate`, and `decapsulate` are proven to return **byte-for-byte the
+   same result as the `hacspec_ml_kem` executable reference specification** (a
+   FIPS-203 transcription — the spec the NIST KATs run against). The F\*
+   `ensures` clauses cite `Hacspec_ml_kem.Ind_cca.{generate_keypair,
+   encapsulate, decapsulate}`:
+   - `generate_key_pair(seed)` ⇒ `pk.value == ek ∧ sk.value == dk`,
+     where `(ek, dk) = generate_keypair(seed)`;
+   - `encapsulate(pk, r)` ⇒ `ct.value == ciphertext ∧ ss == shared`,
+     where `(shared, ciphertext) = encapsulate(pk.value, r)`;
+   - `decapsulate(sk, ct)` ⇒ `ss == decapsulate(sk.value, ct.value)`.
 
-2. **Functional correctness of the arithmetic core.** The number-theoretic
+   The same postconditions back the generic `Ind_cca.{generate_keypair,
+   encapsulate, decapsulate}` layer (proven once, generic over the SIMD
+   backend) and the unpacked key-API variants. The reference returns a
+   `Result`; equality is asserted on the `Ok` case (the negligible
+   rejection-sampling failure branch is unconstrained).
+
+2. **Memory & panic safety.** The full public API (incl. the incremental API)
+   and essentially all internal functions are proven **free of panics and
+   arithmetic overflow**, and to respect every callee precondition. Decode
+   entry points (`KeyPair::from_bytes`, `EncapsState::try_from_bytes`)
+   additionally bounds-check every decoded coefficient and return
+   `Error::InvalidInput` rather than trusting their input.
+
+3. **Functional correctness of the arithmetic core.** The number-theoretic
    transform (forward and inverse, all layers), Montgomery and Barrett
    reduction, coefficient (de)serialization, (de)compression, and the
    binomial/rejection sampling carry F\* postconditions that tie the
    bit-twiddling SIMD code to the mathematical reference spec
-   (`Hacspec_ml_kem.*`, `Spec.Utils.*`) **modulo q = 3329** — i.e. the
-   vectorized code computes the same field-element arithmetic as the spec.
+   (`Hacspec_ml_kem.*`, `Spec.Utils.*`) **modulo q = 3329**.
 
-3. **Cross-backend equivalence.** Portable, AVX2, and Neon each implement the
+4. **Cross-backend equivalence.** Portable, AVX2, and Neon each implement the
    same `Libcrux_ml_kem.Vector.Traits.t_Operations` trait contract, so the
    per-operation specs above hold uniformly across all three SIMD backends, and
    the generic ML-KEM layer is verified once against that trait.
 
-These are component-level functional-correctness + safety theorems, not a single
-end-to-end IND-CCA security proof (that is out of scope for this tree).
+Together these give end-to-end functional correctness — the optimized KEM
+computes exactly the FIPS-203 reference — plus memory and panic safety. They
+are not an IND-CCA *security* proof (the reference's cryptographic security is
+out of scope for this tree).
 
 ## Verification state
 
@@ -53,10 +70,10 @@ with `generate_verification_status.py`). Headline as of the last run:
 | --- | --- | --- |
 | Total functions | 963 | |
 | **Panic-safe** (panic-free + spec-bearing) | 957 | **99.4%** |
-| &nbsp;&nbsp;— cites high-level hacspec | 168 | 17.4% |
-| &nbsp;&nbsp;— interval/bounds ensures | 65 | 6.7% |
-| &nbsp;&nbsp;— other non-trivial ensures | 304 | 31.6% |
-| &nbsp;&nbsp;— panic-free only | 420 | 43.6% |
+| &nbsp;&nbsp;— cites high-level hacspec | 212 | 22.0% |
+| &nbsp;&nbsp;— interval/bounds ensures | 54 | 5.6% |
+| &nbsp;&nbsp;— other non-trivial ensures | 274 | 28.5% |
+| &nbsp;&nbsp;— panic-free only | 417 | 43.3% |
 | Lax (admitted) | 3 | 0.3% |
 | Unverified (not extracted) | 3 | 0.3% |
 
