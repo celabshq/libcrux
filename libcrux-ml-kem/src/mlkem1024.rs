@@ -488,7 +488,6 @@ pub fn validate_private_key(
 ///
 /// This function returns an [`MlKem1024KeyPair`].
 #[cfg(not(eurydice))]
-#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::ensures(|res|
     match hacspec_ml_kem::generate_keypair::<RANK, CPA_PKE_PUBLIC_KEY_SIZE, SECRET_KEY_SIZE, CPA_PKE_SECRET_KEY_SIZE>(
         &hacspec_ml_kem::parameters::rank_to_params(RANK),
@@ -517,7 +516,6 @@ pub fn generate_key_pair(
 /// The input is a reference to an [`MlKem1024PublicKey`] and [`SHARED_SECRET_SIZE`]
 /// bytes of `randomness`.
 #[cfg(not(eurydice))]
-#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::ensures(|res|
     match hacspec_ml_kem::encapsulate::<RANK, CPA_PKE_PUBLIC_KEY_SIZE, C1_SIZE, C2_SIZE, CPA_PKE_CIPHERTEXT_SIZE>(
         &hacspec_ml_kem::parameters::rank_to_params(RANK),
@@ -554,7 +552,6 @@ pub fn encapsulate(
 /// Generates an [`MlKemSharedSecret`].
 /// The input is a reference to an [`MlKem1024PrivateKey`] and an [`MlKem1024Ciphertext`].
 #[cfg(not(eurydice))]
-#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::ensures(|res|
     match hacspec_ml_kem::decapsulate::<RANK, CPA_PKE_PUBLIC_KEY_SIZE, SECRET_KEY_SIZE, CPA_PKE_SECRET_KEY_SIZE, C1_SIZE, C2_SIZE, CPA_PKE_CIPHERTEXT_SIZE, IMPLICIT_REJECTION_HASH_INPUT_SIZE>(
         &hacspec_ml_kem::parameters::rank_to_params(RANK),

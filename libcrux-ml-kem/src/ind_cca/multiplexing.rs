@@ -127,6 +127,15 @@ pub(crate) fn kyber_generate_keypair<
     $PUBLIC_KEY_SIZE == Hacspec_ml_kem.Parameters.cpa_public_key_size $K /\
     $ETA1 == Hacspec_ml_kem.Parameters.eta1 $K /\
     $ETA1_RANDOMNESS_SIZE == Hacspec_ml_kem.Parameters.eta1_randomness_size $K"#))]
+#[hax_lib::ensures(|result|
+    match hacspec_ml_kem::generate_keypair::<K, PUBLIC_KEY_SIZE, PRIVATE_KEY_SIZE, CPA_PRIVATE_KEY_SIZE>(
+        &hacspec_ml_kem::parameters::rank_to_params(K),
+        randomness,
+    ) {
+        Ok((ek, dk)) => result.pk.value == ek && result.sk.value == dk,
+        Err(_) => true,
+    }
+)]
 pub(crate) fn generate_keypair<
     const K: usize,
     const CPA_PRIVATE_KEY_SIZE: usize,
@@ -251,6 +260,16 @@ pub(crate) fn kyber_encapsulate<
     $ETA1_RANDOMNESS_SIZE == Hacspec_ml_kem.Parameters.eta1_randomness_size $K /\
     $ETA2 == Hacspec_ml_kem.Parameters.eta2 $K /\
     $ETA2_RANDOMNESS_SIZE == Hacspec_ml_kem.Parameters.eta2_randomness_size $K"#))]
+#[hax_lib::ensures(|result|
+    match hacspec_ml_kem::encapsulate::<K, PUBLIC_KEY_SIZE, C1_SIZE, C2_SIZE, CIPHERTEXT_SIZE>(
+        &hacspec_ml_kem::parameters::rank_to_params(K),
+        &public_key.value,
+        randomness,
+    ) {
+        Ok((shared, ciphertext)) => result.0.value == ciphertext && result.1 == shared,
+        Err(_) => true,
+    }
+)]
 pub(crate) fn encapsulate<
     const K: usize,
     const CIPHERTEXT_SIZE: usize,
@@ -418,6 +437,16 @@ pub(crate) fn kyber_decapsulate<
     $ETA2 == Hacspec_ml_kem.Parameters.eta2 $K /\
     $ETA2_RANDOMNESS_SIZE == Hacspec_ml_kem.Parameters.eta2_randomness_size $K /\
     $IMPLICIT_REJECTION_HASH_INPUT_SIZE == Hacspec_ml_kem.Parameters.implicit_rejection_hash_input_size $K"#))]
+#[hax_lib::ensures(|result|
+    match hacspec_ml_kem::decapsulate::<K, PUBLIC_KEY_SIZE, SECRET_KEY_SIZE, CPA_SECRET_KEY_SIZE, C1_SIZE, C2_SIZE, CIPHERTEXT_SIZE, IMPLICIT_REJECTION_HASH_INPUT_SIZE>(
+        &hacspec_ml_kem::parameters::rank_to_params(K),
+        &private_key.value,
+        &ciphertext.value,
+    ) {
+        Ok(expected) => result == expected,
+        Err(_) => true,
+    }
+)]
 pub(crate) fn decapsulate<
     const K: usize,
     const SECRET_KEY_SIZE: usize,
