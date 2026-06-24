@@ -654,7 +654,6 @@ fn op_serialize_12(vector: SIMD128Vector) -> [u8; 24] {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
 #[hax_lib::requires(bytes.len() == 24)]
 #[hax_lib::ensures(|out| fstar!(r#"sz (Seq.length $bytes) =. sz 24 ==> Libcrux_ml_kem.Vector.Traits.Spec.deserialize_post_N 12 $bytes (impl.f_repr $out)"#))]
 fn op_deserialize_12(bytes: &[u8]) -> SIMD128Vector {

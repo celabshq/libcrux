@@ -1259,8 +1259,473 @@ pub(crate) fn serialize_12(v: SIMD128Vector) -> [u8; 24] {
     result
 }
 
+#[hax_lib::fstar::before(
+    r#"
+module NI = Libcrux_intrinsics.Arm64_extract
+module BV = Rust_primitives.BitVectors
+module I = Rust_primitives.Integers
+
+(* bit b (<12) of ((n >> s) & (2^12-1)) is bit (s+b) of n. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_window_bit (n: nat) (s: nat) (b: nat{b < 12})
+    : Lemma
+      (ensures I.get_bit_nat ((n / pow2 s) % pow2 12) b == I.get_bit_nat n (s + b)) =
+  let q = n / pow2 s in
+  FStar.Math.Lemmas.pow2_modulo_division_lemma_1 q b 12;
+  FStar.Math.Lemmas.pow2_modulo_modulo_lemma_1 (q / pow2 b) 1 (12 - b);
+  FStar.Math.Lemmas.division_multiplication_lemma n (pow2 s) (pow2 b);
+  FStar.Math.Lemmas.pow2_plus s b
+#pop-options
+
+(* bit b (<12) of the all-12-bits-set u16 mask is 1. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 50"
+let lemma_mask12_bit (b: nat{b < 12}) : Lemma (I.get_bit (mk_u16 4095) (sz b) == 1) =
+  lemma_get_bit_val #u16_inttype (mk_u16 4095) (sz b);
+  assert (v (mk_u16 4095) == 4095);
+  (match b with
+   | 0  -> assert_norm (I.get_bit_nat 4095 0  == 1)
+   | 1  -> assert_norm (I.get_bit_nat 4095 1  == 1)
+   | 2  -> assert_norm (I.get_bit_nat 4095 2  == 1)
+   | 3  -> assert_norm (I.get_bit_nat 4095 3  == 1)
+   | 4  -> assert_norm (I.get_bit_nat 4095 4  == 1)
+   | 5  -> assert_norm (I.get_bit_nat 4095 5  == 1)
+   | 6  -> assert_norm (I.get_bit_nat 4095 6  == 1)
+   | 7  -> assert_norm (I.get_bit_nat 4095 7  == 1)
+   | 8  -> assert_norm (I.get_bit_nat 4095 8  == 1)
+   | 9  -> assert_norm (I.get_bit_nat 4095 9  == 1)
+   | 10 -> assert_norm (I.get_bit_nat 4095 10 == 1)
+   | _  -> assert_norm (I.get_bit_nat 4095 11 == 1))
+#pop-options
+
+(* bit i (<16) of the little-endian 2-byte value lo + hi*256. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_u8x2_as_u16_bit (lo hi: u8) (i: nat{i < 16})
+    : Lemma
+      (ensures
+        I.get_bit (NI.u8x2_as_u16 lo hi) (sz i) ==
+        (if i < 8 then I.get_bit lo (sz i) else I.get_bit hi (sz (i - 8)))) =
+  FStar.Math.Lemmas.small_mod (v lo) (pow2 16);
+  FStar.Math.Lemmas.small_mod (v hi) (pow2 16);
+  assert (I.cast #u8_inttype #u16_inttype lo == I.cast_mod #u8_inttype #u16_inttype lo);
+  assert (I.cast #u8_inttype #u16_inttype hi == I.cast_mod #u8_inttype #u16_inttype hi)
+#pop-options
+
+(* One lane value: cast_mod_u16->i16 of ((arm_ushl w shift) & 0xFFF) is the
+   shifted-masked window (v w / 2^s) mod 2^12, and it is 12-bit bounded. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 200"
+let lemma_deser12_lane_val (w: u16) (shift_lane: i16) (s: nat)
+    : Lemma
+      (requires
+        (s == 0 /\ v (shift_lane %! mk_i16 256) == 0) \/
+        (s == 4 /\ v (shift_lane %! mk_i16 256) == 252))
+      (ensures
+        (let res = I.cast_mod #u16_inttype #i16_inttype
+                     ((NI.arm_ushl_u16 w shift_lane) &. mk_u16 4095) in
+         v res == (v w / pow2 s) % pow2 12 /\ BV.bounded res 12)) =
+  let z = NI.arm_ushl_u16 w shift_lane in
+  assert (v z == v w / pow2 s);
+  I.logand_mask_lemma #u16_inttype z 12;
+  assert_norm (mk_u16 4095 == I.sub #u16_inttype (mk_int #u16_inttype (pow2 12)) (mk_int #u16_inttype 1));
+  let m = z &. mk_u16 4095 in
+  assert (v m == v z % pow2 12);
+  assert (v m < pow2 12);
+  assert_norm (pow2 12 <= pow2 15)
+#pop-options
+
+(* One lane bit: bit b (<12) of the result lane equals bit (s+b) of the window w. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 150"
+let lemma_deser12_lane_bit (w: u16) (shift_lane: i16) (s: nat) (b: nat{b < 12})
+    : Lemma
+      (requires
+        (s == 0 /\ v (shift_lane %! mk_i16 256) == 0) \/
+        (s == 4 /\ v (shift_lane %! mk_i16 256) == 252))
+      (ensures
+        (let res = I.cast_mod #u16_inttype #i16_inttype
+                     ((NI.arm_ushl_u16 w shift_lane) &. mk_u16 4095) in
+         BV.bounded res 12 /\
+         I.get_bit res (sz b) == I.get_bit w (sz (s + b)))) =
+  let res = I.cast_mod #u16_inttype #i16_inttype ((NI.arm_ushl_u16 w shift_lane) &. mk_u16 4095) in
+  lemma_deser12_lane_val w shift_lane s;
+  lemma_get_bit_val #i16_inttype res (sz b);
+  lemma_window_bit (v w) s b;
+  lemma_get_bit_val #u16_inttype w (sz (s + b))
+#pop-options
+
+(* One output lane c of a 12-bit deserialize half: the vqtbl byte-gather selects
+   bytes (idxA,idxB) from input_vec, vreinterpret reads the LE window, vshl/vand
+   shift-mask; bit b of the result lane == bit (s+b) of the window u8x2(vA,vB). *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 250 --split_queries always --z3refresh"
+let lemma_deser12_out_lane
+      (input_vec index_vec: NI.t_e_uint8x16_t)
+      (shift_vec: NI.t_e_int16x8_t) (mask12: NI.t_e_uint16x8_t)
+      (c: nat{c < 8}) (idxA idxB: nat) (vA vB: u8) (s: nat) (b: nat{b < 12})
+    : Lemma
+      (requires
+        v (NI.get_lane_u8x16 index_vec (2 * c)) == idxA /\
+        v (NI.get_lane_u8x16 index_vec (2 * c + 1)) == idxB /\
+        idxA < 16 /\ idxB < 16 /\
+        NI.get_lane_u8x16 input_vec idxA == vA /\
+        NI.get_lane_u8x16 input_vec idxB == vB /\
+        (forall (i: nat{i < 8}). NI.get_lane_u16x8 mask12 i == mk_u16 4095) /\
+        ((s == 0 /\ v (NI.get_lane_i16x8 shift_vec c %! mk_i16 256) == 0) \/
+         (s == 4 /\ v (NI.get_lane_i16x8 shift_vec c %! mk_i16 256) == 252)))
+      (ensures
+        (let low = NI.e_vreinterpretq_s16_u16
+                     (NI.e_vandq_u16
+                        (NI.e_vshlq_u16
+                           (NI.e_vreinterpretq_u16_u8 (NI.e_vqtbl1q_u8 input_vec index_vec))
+                           shift_vec)
+                        mask12) in
+         BV.bounded (NI.get_lane_i16x8 low c) 12 /\
+         I.get_bit (NI.get_lane_i16x8 low c) (sz b) ==
+         I.get_bit (NI.u8x2_as_u16 vA vB) (sz (s + b)))) =
+  let tbl = NI.e_vqtbl1q_u8 input_vec index_vec in
+  let moved = NI.e_vreinterpretq_u16_u8 tbl in
+  let shifted = NI.e_vshlq_u16 moved shift_vec in
+  let masked = NI.e_vandq_u16 shifted mask12 in
+  let low = NI.e_vreinterpretq_s16_u16 masked in
+  assert (NI.get_lane_u8x16 tbl (2 * c) == vA);
+  assert (NI.get_lane_u8x16 tbl (2 * c + 1) == vB);
+  assert (NI.get_lane_u16x8 moved c == NI.u8x2_as_u16 vA vB);
+  assert (NI.get_lane_u16x8 shifted c ==
+          NI.arm_ushl_u16 (NI.get_lane_u16x8 moved c) (NI.get_lane_i16x8 shift_vec c));
+  assert (NI.get_lane_u16x8 mask12 c == mk_u16 4095);
+  assert (NI.get_lane_u16x8 masked c ==
+          (NI.get_lane_u16x8 shifted c &. mk_u16 4095));
+  assert (NI.get_lane_i16x8 low c ==
+          I.cast_mod #u16_inttype #i16_inttype
+            ((NI.arm_ushl_u16 (NI.u8x2_as_u16 vA vB) (NI.get_lane_i16x8 shift_vec c)) &. mk_u16 4095));
+  lemma_deser12_lane_bit (NI.u8x2_as_u16 vA vB) (NI.get_lane_i16x8 shift_vec c) s b
+#pop-options
+
+(* Coefficient cc (<16) of the packed byte stream: ties the output lane's bit b to
+   the global byte-stream bit (12*cc+b), given the window invariant 8*byteA+s==12*cc
+   and vA=inp[byteA], vB=inp[byteA+1]. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 250 --split_queries always --z3refresh"
+let lemma_deser12_coeff_bit
+      (inp: t_Slice u8)
+      (input_vec index_vec: NI.t_e_uint8x16_t)
+      (shift_vec: NI.t_e_int16x8_t) (mask12: NI.t_e_uint16x8_t)
+      (c: nat{c < 8}) (idxA idxB: nat) (vA vB: u8) (s: nat) (byteA: nat) (cc: nat{cc < 16})
+      (b: nat{b < 12})
+    : Lemma
+      (requires
+        v (NI.get_lane_u8x16 index_vec (2 * c)) == idxA /\
+        v (NI.get_lane_u8x16 index_vec (2 * c + 1)) == idxB /\
+        idxA < 16 /\ idxB < 16 /\
+        NI.get_lane_u8x16 input_vec idxA == vA /\
+        NI.get_lane_u8x16 input_vec idxB == vB /\
+        (forall (i: nat{i < 8}). NI.get_lane_u16x8 mask12 i == mk_u16 4095) /\
+        ((s == 0 /\ v (NI.get_lane_i16x8 shift_vec c %! mk_i16 256) == 0) \/
+         (s == 4 /\ v (NI.get_lane_i16x8 shift_vec c %! mk_i16 256) == 252)) /\
+        byteA + 1 < Seq.length inp /\
+        8 * byteA + s == 12 * cc /\
+        vA == Seq.index inp byteA /\ vB == Seq.index inp (byteA + 1))
+      (ensures
+        (let low = NI.e_vreinterpretq_s16_u16
+                     (NI.e_vandq_u16
+                        (NI.e_vshlq_u16
+                           (NI.e_vreinterpretq_u16_u8 (NI.e_vqtbl1q_u8 input_vec index_vec))
+                           shift_vec)
+                        mask12) in
+         BV.bounded (NI.get_lane_i16x8 low c) 12 /\
+         I.get_bit (NI.get_lane_i16x8 low c) (sz b) ==
+         I.get_bit (Seq.index inp ((12 * cc + b) / 8)) (sz ((12 * cc + b) % 8)))) =
+  lemma_deser12_out_lane input_vec index_vec shift_vec mask12 c idxA idxB vA vB s b;
+  lemma_u8x2_as_u16_bit vA vB (s + b);
+  let r = s + b in
+  assert (12 * cc + b == r + byteA * 8);
+  FStar.Math.Lemmas.lemma_div_plus r byteA 8;
+  FStar.Math.Lemmas.lemma_mod_plus r byteA 8;
+  (if r < 8
+   then (FStar.Math.Lemmas.small_div r 8; FStar.Math.Lemmas.small_mod r 8)
+   else (FStar.Math.Lemmas.lemma_div_plus (r - 8) 1 8;
+         FStar.Math.Lemmas.lemma_mod_plus (r - 8) 1 8;
+         FStar.Math.Lemmas.small_div (r - 8) 8;
+         FStar.Math.Lemmas.small_mod (r - 8) 8))
+#pop-options
+
+(* Concrete contents of the gather-index / shift tables.  Proven on the explicit
+   array_of_list literal so the seq_of_list index SMTPat fires (fuel reduces
+   List.index); callers transfer by ground congruence (their array == this literal). *)
+#push-options "--fuel 20 --ifuel 1 --z3rlimit 200"
+let lemma_deser12_index_vals (u: unit)
+    : Lemma
+      (ensures
+         Seq.index (Rust_primitives.Hax.array_of_list 16 [ mk_u8 0; mk_u8 1; mk_u8 1; mk_u8 2; mk_u8 3; mk_u8 4; mk_u8 4; mk_u8 5; mk_u8 6; mk_u8 7; mk_u8 7; mk_u8 8; mk_u8 9; mk_u8 10; mk_u8 10; mk_u8 11 ]) 0 == mk_u8 0 /\
+         Seq.index (Rust_primitives.Hax.array_of_list 16 [ mk_u8 0; mk_u8 1; mk_u8 1; mk_u8 2; mk_u8 3; mk_u8 4; mk_u8 4; mk_u8 5; mk_u8 6; mk_u8 7; mk_u8 7; mk_u8 8; mk_u8 9; mk_u8 10; mk_u8 10; mk_u8 11 ]) 1 == mk_u8 1 /\
+         Seq.index (Rust_primitives.Hax.array_of_list 16 [ mk_u8 0; mk_u8 1; mk_u8 1; mk_u8 2; mk_u8 3; mk_u8 4; mk_u8 4; mk_u8 5; mk_u8 6; mk_u8 7; mk_u8 7; mk_u8 8; mk_u8 9; mk_u8 10; mk_u8 10; mk_u8 11 ]) 2 == mk_u8 1 /\
+         Seq.index (Rust_primitives.Hax.array_of_list 16 [ mk_u8 0; mk_u8 1; mk_u8 1; mk_u8 2; mk_u8 3; mk_u8 4; mk_u8 4; mk_u8 5; mk_u8 6; mk_u8 7; mk_u8 7; mk_u8 8; mk_u8 9; mk_u8 10; mk_u8 10; mk_u8 11 ]) 3 == mk_u8 2 /\
+         Seq.index (Rust_primitives.Hax.array_of_list 16 [ mk_u8 0; mk_u8 1; mk_u8 1; mk_u8 2; mk_u8 3; mk_u8 4; mk_u8 4; mk_u8 5; mk_u8 6; mk_u8 7; mk_u8 7; mk_u8 8; mk_u8 9; mk_u8 10; mk_u8 10; mk_u8 11 ]) 4 == mk_u8 3 /\
+         Seq.index (Rust_primitives.Hax.array_of_list 16 [ mk_u8 0; mk_u8 1; mk_u8 1; mk_u8 2; mk_u8 3; mk_u8 4; mk_u8 4; mk_u8 5; mk_u8 6; mk_u8 7; mk_u8 7; mk_u8 8; mk_u8 9; mk_u8 10; mk_u8 10; mk_u8 11 ]) 5 == mk_u8 4 /\
+         Seq.index (Rust_primitives.Hax.array_of_list 16 [ mk_u8 0; mk_u8 1; mk_u8 1; mk_u8 2; mk_u8 3; mk_u8 4; mk_u8 4; mk_u8 5; mk_u8 6; mk_u8 7; mk_u8 7; mk_u8 8; mk_u8 9; mk_u8 10; mk_u8 10; mk_u8 11 ]) 6 == mk_u8 4 /\
+         Seq.index (Rust_primitives.Hax.array_of_list 16 [ mk_u8 0; mk_u8 1; mk_u8 1; mk_u8 2; mk_u8 3; mk_u8 4; mk_u8 4; mk_u8 5; mk_u8 6; mk_u8 7; mk_u8 7; mk_u8 8; mk_u8 9; mk_u8 10; mk_u8 10; mk_u8 11 ]) 7 == mk_u8 5 /\
+         Seq.index (Rust_primitives.Hax.array_of_list 16 [ mk_u8 0; mk_u8 1; mk_u8 1; mk_u8 2; mk_u8 3; mk_u8 4; mk_u8 4; mk_u8 5; mk_u8 6; mk_u8 7; mk_u8 7; mk_u8 8; mk_u8 9; mk_u8 10; mk_u8 10; mk_u8 11 ]) 8 == mk_u8 6 /\
+         Seq.index (Rust_primitives.Hax.array_of_list 16 [ mk_u8 0; mk_u8 1; mk_u8 1; mk_u8 2; mk_u8 3; mk_u8 4; mk_u8 4; mk_u8 5; mk_u8 6; mk_u8 7; mk_u8 7; mk_u8 8; mk_u8 9; mk_u8 10; mk_u8 10; mk_u8 11 ]) 9 == mk_u8 7 /\
+         Seq.index (Rust_primitives.Hax.array_of_list 16 [ mk_u8 0; mk_u8 1; mk_u8 1; mk_u8 2; mk_u8 3; mk_u8 4; mk_u8 4; mk_u8 5; mk_u8 6; mk_u8 7; mk_u8 7; mk_u8 8; mk_u8 9; mk_u8 10; mk_u8 10; mk_u8 11 ]) 10 == mk_u8 7 /\
+         Seq.index (Rust_primitives.Hax.array_of_list 16 [ mk_u8 0; mk_u8 1; mk_u8 1; mk_u8 2; mk_u8 3; mk_u8 4; mk_u8 4; mk_u8 5; mk_u8 6; mk_u8 7; mk_u8 7; mk_u8 8; mk_u8 9; mk_u8 10; mk_u8 10; mk_u8 11 ]) 11 == mk_u8 8 /\
+         Seq.index (Rust_primitives.Hax.array_of_list 16 [ mk_u8 0; mk_u8 1; mk_u8 1; mk_u8 2; mk_u8 3; mk_u8 4; mk_u8 4; mk_u8 5; mk_u8 6; mk_u8 7; mk_u8 7; mk_u8 8; mk_u8 9; mk_u8 10; mk_u8 10; mk_u8 11 ]) 12 == mk_u8 9 /\
+         Seq.index (Rust_primitives.Hax.array_of_list 16 [ mk_u8 0; mk_u8 1; mk_u8 1; mk_u8 2; mk_u8 3; mk_u8 4; mk_u8 4; mk_u8 5; mk_u8 6; mk_u8 7; mk_u8 7; mk_u8 8; mk_u8 9; mk_u8 10; mk_u8 10; mk_u8 11 ]) 13 == mk_u8 10 /\
+         Seq.index (Rust_primitives.Hax.array_of_list 16 [ mk_u8 0; mk_u8 1; mk_u8 1; mk_u8 2; mk_u8 3; mk_u8 4; mk_u8 4; mk_u8 5; mk_u8 6; mk_u8 7; mk_u8 7; mk_u8 8; mk_u8 9; mk_u8 10; mk_u8 10; mk_u8 11 ]) 14 == mk_u8 10 /\
+         Seq.index (Rust_primitives.Hax.array_of_list 16 [ mk_u8 0; mk_u8 1; mk_u8 1; mk_u8 2; mk_u8 3; mk_u8 4; mk_u8 4; mk_u8 5; mk_u8 6; mk_u8 7; mk_u8 7; mk_u8 8; mk_u8 9; mk_u8 10; mk_u8 10; mk_u8 11 ]) 15 == mk_u8 11) =
+  let l = [ mk_u8 0; mk_u8 1; mk_u8 1; mk_u8 2; mk_u8 3; mk_u8 4; mk_u8 4; mk_u8 5; mk_u8 6; mk_u8 7; mk_u8 7; mk_u8 8; mk_u8 9; mk_u8 10; mk_u8 10; mk_u8 11 ] in
+  assert_norm (List.Tot.length l == 16);
+  FStar.Seq.Properties.lemma_seq_of_list_index l 0;
+  FStar.Seq.Properties.lemma_seq_of_list_index l 1;
+  FStar.Seq.Properties.lemma_seq_of_list_index l 2;
+  FStar.Seq.Properties.lemma_seq_of_list_index l 3;
+  FStar.Seq.Properties.lemma_seq_of_list_index l 4;
+  FStar.Seq.Properties.lemma_seq_of_list_index l 5;
+  FStar.Seq.Properties.lemma_seq_of_list_index l 6;
+  FStar.Seq.Properties.lemma_seq_of_list_index l 7;
+  FStar.Seq.Properties.lemma_seq_of_list_index l 8;
+  FStar.Seq.Properties.lemma_seq_of_list_index l 9;
+  FStar.Seq.Properties.lemma_seq_of_list_index l 10;
+  FStar.Seq.Properties.lemma_seq_of_list_index l 11;
+  FStar.Seq.Properties.lemma_seq_of_list_index l 12;
+  FStar.Seq.Properties.lemma_seq_of_list_index l 13;
+  FStar.Seq.Properties.lemma_seq_of_list_index l 14;
+  FStar.Seq.Properties.lemma_seq_of_list_index l 15;
+  assert_norm (List.Tot.index l 0 == mk_u8 0 /\
+                List.Tot.index l 1 == mk_u8 1 /\
+                List.Tot.index l 2 == mk_u8 1 /\
+                List.Tot.index l 3 == mk_u8 2 /\
+                List.Tot.index l 4 == mk_u8 3 /\
+                List.Tot.index l 5 == mk_u8 4 /\
+                List.Tot.index l 6 == mk_u8 4 /\
+                List.Tot.index l 7 == mk_u8 5 /\
+                List.Tot.index l 8 == mk_u8 6 /\
+                List.Tot.index l 9 == mk_u8 7 /\
+                List.Tot.index l 10 == mk_u8 7 /\
+                List.Tot.index l 11 == mk_u8 8 /\
+                List.Tot.index l 12 == mk_u8 9 /\
+                List.Tot.index l 13 == mk_u8 10 /\
+                List.Tot.index l 14 == mk_u8 10 /\
+                List.Tot.index l 15 == mk_u8 11)
+#pop-options
+
+#push-options "--fuel 20 --ifuel 1 --z3rlimit 200"
+let lemma_deser12_shift_vals (u: unit)
+    : Lemma
+      (ensures
+         Seq.index (Rust_primitives.Hax.array_of_list 8 [mk_i16 0; mk_i16 (-4); mk_i16 0; mk_i16 (-4); mk_i16 0; mk_i16 (-4); mk_i16 0; mk_i16 (-4)]) 0 == mk_i16 0 /\
+         Seq.index (Rust_primitives.Hax.array_of_list 8 [mk_i16 0; mk_i16 (-4); mk_i16 0; mk_i16 (-4); mk_i16 0; mk_i16 (-4); mk_i16 0; mk_i16 (-4)]) 1 == mk_i16 (-4) /\
+         Seq.index (Rust_primitives.Hax.array_of_list 8 [mk_i16 0; mk_i16 (-4); mk_i16 0; mk_i16 (-4); mk_i16 0; mk_i16 (-4); mk_i16 0; mk_i16 (-4)]) 2 == mk_i16 0 /\
+         Seq.index (Rust_primitives.Hax.array_of_list 8 [mk_i16 0; mk_i16 (-4); mk_i16 0; mk_i16 (-4); mk_i16 0; mk_i16 (-4); mk_i16 0; mk_i16 (-4)]) 3 == mk_i16 (-4) /\
+         Seq.index (Rust_primitives.Hax.array_of_list 8 [mk_i16 0; mk_i16 (-4); mk_i16 0; mk_i16 (-4); mk_i16 0; mk_i16 (-4); mk_i16 0; mk_i16 (-4)]) 4 == mk_i16 0 /\
+         Seq.index (Rust_primitives.Hax.array_of_list 8 [mk_i16 0; mk_i16 (-4); mk_i16 0; mk_i16 (-4); mk_i16 0; mk_i16 (-4); mk_i16 0; mk_i16 (-4)]) 5 == mk_i16 (-4) /\
+         Seq.index (Rust_primitives.Hax.array_of_list 8 [mk_i16 0; mk_i16 (-4); mk_i16 0; mk_i16 (-4); mk_i16 0; mk_i16 (-4); mk_i16 0; mk_i16 (-4)]) 6 == mk_i16 0 /\
+         Seq.index (Rust_primitives.Hax.array_of_list 8 [mk_i16 0; mk_i16 (-4); mk_i16 0; mk_i16 (-4); mk_i16 0; mk_i16 (-4); mk_i16 0; mk_i16 (-4)]) 7 == mk_i16 (-4)) =
+  let l = [mk_i16 0; mk_i16 (-4); mk_i16 0; mk_i16 (-4); mk_i16 0; mk_i16 (-4); mk_i16 0; mk_i16 (-4)] in
+  assert_norm (List.Tot.length l == 8);
+  FStar.Seq.Properties.lemma_seq_of_list_index l 0;
+  FStar.Seq.Properties.lemma_seq_of_list_index l 1;
+  FStar.Seq.Properties.lemma_seq_of_list_index l 2;
+  FStar.Seq.Properties.lemma_seq_of_list_index l 3;
+  FStar.Seq.Properties.lemma_seq_of_list_index l 4;
+  FStar.Seq.Properties.lemma_seq_of_list_index l 5;
+  FStar.Seq.Properties.lemma_seq_of_list_index l 6;
+  FStar.Seq.Properties.lemma_seq_of_list_index l 7;
+  assert_norm (List.Tot.index l 0 == mk_i16 0 /\
+                List.Tot.index l 1 == mk_i16 (-4) /\
+                List.Tot.index l 2 == mk_i16 0 /\
+                List.Tot.index l 3 == mk_i16 (-4) /\
+                List.Tot.index l 4 == mk_i16 0 /\
+                List.Tot.index l 5 == mk_i16 (-4) /\
+                List.Tot.index l 6 == mk_i16 0 /\
+                List.Tot.index l 7 == mk_i16 (-4))
+#pop-options
+
+#push-options "--fuel 20 --ifuel 1 --z3rlimit 100"
+let lemma_deser12_index_lanes (index_vec: NI.t_e_uint8x16_t) (indexes: t_Array u8 (mk_usize 16))
+    : Lemma
+      (requires
+        (forall (i: nat{i < 16}). NI.get_lane_u8x16 index_vec i == Seq.index indexes i) /\
+        indexes == Rust_primitives.Hax.array_of_list 16 [ mk_u8 0; mk_u8 1; mk_u8 1; mk_u8 2; mk_u8 3; mk_u8 4; mk_u8 4; mk_u8 5; mk_u8 6; mk_u8 7; mk_u8 7; mk_u8 8; mk_u8 9; mk_u8 10; mk_u8 10; mk_u8 11 ])
+      (ensures
+        v (NI.get_lane_u8x16 index_vec 0) == 0 /\
+        v (NI.get_lane_u8x16 index_vec 1) == 1 /\
+        v (NI.get_lane_u8x16 index_vec 2) == 1 /\
+        v (NI.get_lane_u8x16 index_vec 3) == 2 /\
+        v (NI.get_lane_u8x16 index_vec 4) == 3 /\
+        v (NI.get_lane_u8x16 index_vec 5) == 4 /\
+        v (NI.get_lane_u8x16 index_vec 6) == 4 /\
+        v (NI.get_lane_u8x16 index_vec 7) == 5 /\
+        v (NI.get_lane_u8x16 index_vec 8) == 6 /\
+        v (NI.get_lane_u8x16 index_vec 9) == 7 /\
+        v (NI.get_lane_u8x16 index_vec 10) == 7 /\
+        v (NI.get_lane_u8x16 index_vec 11) == 8 /\
+        v (NI.get_lane_u8x16 index_vec 12) == 9 /\
+        v (NI.get_lane_u8x16 index_vec 13) == 10 /\
+        v (NI.get_lane_u8x16 index_vec 14) == 10 /\
+        v (NI.get_lane_u8x16 index_vec 15) == 11) =
+  lemma_deser12_index_vals ()
+#pop-options
+
+#push-options "--fuel 20 --ifuel 1 --z3rlimit 100"
+let lemma_deser12_shift_lanes (shift_vec: NI.t_e_int16x8_t) (shifts: t_Array i16 (mk_usize 8))
+    : Lemma
+      (requires
+        (forall (i: nat{i < 8}). NI.get_lane_i16x8 shift_vec i == Seq.index shifts i) /\
+        shifts == Rust_primitives.Hax.array_of_list 8 [mk_i16 0; mk_i16 (-4); mk_i16 0; mk_i16 (-4); mk_i16 0; mk_i16 (-4); mk_i16 0; mk_i16 (-4)])
+      (ensures
+        v (NI.get_lane_i16x8 shift_vec 0 %! mk_i16 256) == 0 /\
+        v (NI.get_lane_i16x8 shift_vec 1 %! mk_i16 256) == 252 /\
+        v (NI.get_lane_i16x8 shift_vec 2 %! mk_i16 256) == 0 /\
+        v (NI.get_lane_i16x8 shift_vec 3 %! mk_i16 256) == 252 /\
+        v (NI.get_lane_i16x8 shift_vec 4 %! mk_i16 256) == 0 /\
+        v (NI.get_lane_i16x8 shift_vec 5 %! mk_i16 256) == 252 /\
+        v (NI.get_lane_i16x8 shift_vec 6 %! mk_i16 256) == 0 /\
+        v (NI.get_lane_i16x8 shift_vec 7 %! mk_i16 256) == 252) =
+  lemma_deser12_shift_vals ()
+#pop-options
+
+(* Clean-context per-coefficient dispatcher: given the loaded vectors with their
+   concrete per-lane facts (index table, shifts, mask, input bytes), coefficient
+   cc of repr(result) is 12-bit bounded and its bits track the packed byte stream. *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 300 --split_queries always --z3refresh"
+let lemma_deser12_dispatch
+      (inp: t_Slice u8) (result: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector)
+      (index_vec input_vec0 input_vec1: NI.t_e_uint8x16_t)
+      (shift_vec: NI.t_e_int16x8_t) (mask12: NI.t_e_uint16x8_t)
+      (cc: nat{cc < 16})
+    : Lemma
+      (requires
+        Seq.length inp == 24 /\
+        result.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low ==
+          NI.e_vreinterpretq_s16_u16 (NI.e_vandq_u16 (NI.e_vshlq_u16 (NI.e_vreinterpretq_u16_u8 (NI.e_vqtbl1q_u8 input_vec0 index_vec)) shift_vec) mask12) /\
+        result.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high ==
+          NI.e_vreinterpretq_s16_u16 (NI.e_vandq_u16 (NI.e_vshlq_u16 (NI.e_vreinterpretq_u16_u8 (NI.e_vqtbl1q_u8 input_vec1 index_vec)) shift_vec) mask12) /\
+        v (NI.get_lane_u8x16 index_vec 0) == 0 /\ v (NI.get_lane_u8x16 index_vec 1) == 1 /\
+        v (NI.get_lane_u8x16 index_vec 2) == 1 /\ v (NI.get_lane_u8x16 index_vec 3) == 2 /\
+        v (NI.get_lane_u8x16 index_vec 4) == 3 /\ v (NI.get_lane_u8x16 index_vec 5) == 4 /\
+        v (NI.get_lane_u8x16 index_vec 6) == 4 /\ v (NI.get_lane_u8x16 index_vec 7) == 5 /\
+        v (NI.get_lane_u8x16 index_vec 8) == 6 /\ v (NI.get_lane_u8x16 index_vec 9) == 7 /\
+        v (NI.get_lane_u8x16 index_vec 10) == 7 /\ v (NI.get_lane_u8x16 index_vec 11) == 8 /\
+        v (NI.get_lane_u8x16 index_vec 12) == 9 /\ v (NI.get_lane_u8x16 index_vec 13) == 10 /\
+        v (NI.get_lane_u8x16 index_vec 14) == 10 /\ v (NI.get_lane_u8x16 index_vec 15) == 11 /\
+        (forall (i: nat{i < 8}). NI.get_lane_u16x8 mask12 i == mk_u16 4095) /\
+        v (NI.get_lane_i16x8 shift_vec 0 %! mk_i16 256) == 0 /\ v (NI.get_lane_i16x8 shift_vec 1 %! mk_i16 256) == 252 /\
+        v (NI.get_lane_i16x8 shift_vec 2 %! mk_i16 256) == 0 /\ v (NI.get_lane_i16x8 shift_vec 3 %! mk_i16 256) == 252 /\
+        v (NI.get_lane_i16x8 shift_vec 4 %! mk_i16 256) == 0 /\ v (NI.get_lane_i16x8 shift_vec 5 %! mk_i16 256) == 252 /\
+        v (NI.get_lane_i16x8 shift_vec 6 %! mk_i16 256) == 0 /\ v (NI.get_lane_i16x8 shift_vec 7 %! mk_i16 256) == 252 /\
+        (forall (i: nat{i < 12}). NI.get_lane_u8x16 input_vec0 i == Seq.index inp i) /\
+        (forall (i: nat{i < 12}). NI.get_lane_u8x16 input_vec1 i == Seq.index inp (12 + i)))
+      (ensures
+        (let rr = Libcrux_ml_kem.Vector.Neon.Vector_type.repr result in
+         BV.bounded (Seq.index rr cc) 12 /\
+         (forall (b: nat{b < 12}). I.get_bit (Seq.index rr cc) (sz b) ==
+            I.get_bit (Seq.index inp ((12 * cc + b) / 8)) (sz ((12 * cc + b) % 8))))) =
+  let rr = Libcrux_ml_kem.Vector.Neon.Vector_type.repr result in
+  let _ = Seq.index rr cc in
+  (match cc with
+   | 0  -> lemma_deser12_coeff_bit inp input_vec0 index_vec shift_vec mask12 0 0 1 (Seq.index inp 0) (Seq.index inp 1) 0 0 0 0;
+           introduce forall (b: nat{b < 12}). I.get_bit (Seq.index rr 0) (sz b) == I.get_bit (Seq.index inp ((12 * 0 + b) / 8)) (sz ((12 * 0 + b) % 8))
+           with lemma_deser12_coeff_bit inp input_vec0 index_vec shift_vec mask12 0 0 1 (Seq.index inp 0) (Seq.index inp 1) 0 0 0 b
+   | 1  -> lemma_deser12_coeff_bit inp input_vec0 index_vec shift_vec mask12 1 1 2 (Seq.index inp 1) (Seq.index inp 2) 4 1 1 0;
+           introduce forall (b: nat{b < 12}). I.get_bit (Seq.index rr 1) (sz b) == I.get_bit (Seq.index inp ((12 * 1 + b) / 8)) (sz ((12 * 1 + b) % 8))
+           with lemma_deser12_coeff_bit inp input_vec0 index_vec shift_vec mask12 1 1 2 (Seq.index inp 1) (Seq.index inp 2) 4 1 1 b
+   | 2  -> lemma_deser12_coeff_bit inp input_vec0 index_vec shift_vec mask12 2 3 4 (Seq.index inp 3) (Seq.index inp 4) 0 3 2 0;
+           introduce forall (b: nat{b < 12}). I.get_bit (Seq.index rr 2) (sz b) == I.get_bit (Seq.index inp ((12 * 2 + b) / 8)) (sz ((12 * 2 + b) % 8))
+           with lemma_deser12_coeff_bit inp input_vec0 index_vec shift_vec mask12 2 3 4 (Seq.index inp 3) (Seq.index inp 4) 0 3 2 b
+   | 3  -> lemma_deser12_coeff_bit inp input_vec0 index_vec shift_vec mask12 3 4 5 (Seq.index inp 4) (Seq.index inp 5) 4 4 3 0;
+           introduce forall (b: nat{b < 12}). I.get_bit (Seq.index rr 3) (sz b) == I.get_bit (Seq.index inp ((12 * 3 + b) / 8)) (sz ((12 * 3 + b) % 8))
+           with lemma_deser12_coeff_bit inp input_vec0 index_vec shift_vec mask12 3 4 5 (Seq.index inp 4) (Seq.index inp 5) 4 4 3 b
+   | 4  -> lemma_deser12_coeff_bit inp input_vec0 index_vec shift_vec mask12 4 6 7 (Seq.index inp 6) (Seq.index inp 7) 0 6 4 0;
+           introduce forall (b: nat{b < 12}). I.get_bit (Seq.index rr 4) (sz b) == I.get_bit (Seq.index inp ((12 * 4 + b) / 8)) (sz ((12 * 4 + b) % 8))
+           with lemma_deser12_coeff_bit inp input_vec0 index_vec shift_vec mask12 4 6 7 (Seq.index inp 6) (Seq.index inp 7) 0 6 4 b
+   | 5  -> lemma_deser12_coeff_bit inp input_vec0 index_vec shift_vec mask12 5 7 8 (Seq.index inp 7) (Seq.index inp 8) 4 7 5 0;
+           introduce forall (b: nat{b < 12}). I.get_bit (Seq.index rr 5) (sz b) == I.get_bit (Seq.index inp ((12 * 5 + b) / 8)) (sz ((12 * 5 + b) % 8))
+           with lemma_deser12_coeff_bit inp input_vec0 index_vec shift_vec mask12 5 7 8 (Seq.index inp 7) (Seq.index inp 8) 4 7 5 b
+   | 6  -> lemma_deser12_coeff_bit inp input_vec0 index_vec shift_vec mask12 6 9 10 (Seq.index inp 9) (Seq.index inp 10) 0 9 6 0;
+           introduce forall (b: nat{b < 12}). I.get_bit (Seq.index rr 6) (sz b) == I.get_bit (Seq.index inp ((12 * 6 + b) / 8)) (sz ((12 * 6 + b) % 8))
+           with lemma_deser12_coeff_bit inp input_vec0 index_vec shift_vec mask12 6 9 10 (Seq.index inp 9) (Seq.index inp 10) 0 9 6 b
+   | 7  -> lemma_deser12_coeff_bit inp input_vec0 index_vec shift_vec mask12 7 10 11 (Seq.index inp 10) (Seq.index inp 11) 4 10 7 0;
+           introduce forall (b: nat{b < 12}). I.get_bit (Seq.index rr 7) (sz b) == I.get_bit (Seq.index inp ((12 * 7 + b) / 8)) (sz ((12 * 7 + b) % 8))
+           with lemma_deser12_coeff_bit inp input_vec0 index_vec shift_vec mask12 7 10 11 (Seq.index inp 10) (Seq.index inp 11) 4 10 7 b
+   | 8  -> lemma_deser12_coeff_bit inp input_vec1 index_vec shift_vec mask12 0 0 1 (Seq.index inp 12) (Seq.index inp 13) 0 12 8 0;
+           introduce forall (b: nat{b < 12}). I.get_bit (Seq.index rr 8) (sz b) == I.get_bit (Seq.index inp ((12 * 8 + b) / 8)) (sz ((12 * 8 + b) % 8))
+           with lemma_deser12_coeff_bit inp input_vec1 index_vec shift_vec mask12 0 0 1 (Seq.index inp 12) (Seq.index inp 13) 0 12 8 b
+   | 9  -> lemma_deser12_coeff_bit inp input_vec1 index_vec shift_vec mask12 1 1 2 (Seq.index inp 13) (Seq.index inp 14) 4 13 9 0;
+           introduce forall (b: nat{b < 12}). I.get_bit (Seq.index rr 9) (sz b) == I.get_bit (Seq.index inp ((12 * 9 + b) / 8)) (sz ((12 * 9 + b) % 8))
+           with lemma_deser12_coeff_bit inp input_vec1 index_vec shift_vec mask12 1 1 2 (Seq.index inp 13) (Seq.index inp 14) 4 13 9 b
+   | 10 -> lemma_deser12_coeff_bit inp input_vec1 index_vec shift_vec mask12 2 3 4 (Seq.index inp 15) (Seq.index inp 16) 0 15 10 0;
+           introduce forall (b: nat{b < 12}). I.get_bit (Seq.index rr 10) (sz b) == I.get_bit (Seq.index inp ((12 * 10 + b) / 8)) (sz ((12 * 10 + b) % 8))
+           with lemma_deser12_coeff_bit inp input_vec1 index_vec shift_vec mask12 2 3 4 (Seq.index inp 15) (Seq.index inp 16) 0 15 10 b
+   | 11 -> lemma_deser12_coeff_bit inp input_vec1 index_vec shift_vec mask12 3 4 5 (Seq.index inp 16) (Seq.index inp 17) 4 16 11 0;
+           introduce forall (b: nat{b < 12}). I.get_bit (Seq.index rr 11) (sz b) == I.get_bit (Seq.index inp ((12 * 11 + b) / 8)) (sz ((12 * 11 + b) % 8))
+           with lemma_deser12_coeff_bit inp input_vec1 index_vec shift_vec mask12 3 4 5 (Seq.index inp 16) (Seq.index inp 17) 4 16 11 b
+   | 12 -> lemma_deser12_coeff_bit inp input_vec1 index_vec shift_vec mask12 4 6 7 (Seq.index inp 18) (Seq.index inp 19) 0 18 12 0;
+           introduce forall (b: nat{b < 12}). I.get_bit (Seq.index rr 12) (sz b) == I.get_bit (Seq.index inp ((12 * 12 + b) / 8)) (sz ((12 * 12 + b) % 8))
+           with lemma_deser12_coeff_bit inp input_vec1 index_vec shift_vec mask12 4 6 7 (Seq.index inp 18) (Seq.index inp 19) 0 18 12 b
+   | 13 -> lemma_deser12_coeff_bit inp input_vec1 index_vec shift_vec mask12 5 7 8 (Seq.index inp 19) (Seq.index inp 20) 4 19 13 0;
+           introduce forall (b: nat{b < 12}). I.get_bit (Seq.index rr 13) (sz b) == I.get_bit (Seq.index inp ((12 * 13 + b) / 8)) (sz ((12 * 13 + b) % 8))
+           with lemma_deser12_coeff_bit inp input_vec1 index_vec shift_vec mask12 5 7 8 (Seq.index inp 19) (Seq.index inp 20) 4 19 13 b
+   | 14 -> lemma_deser12_coeff_bit inp input_vec1 index_vec shift_vec mask12 6 9 10 (Seq.index inp 21) (Seq.index inp 22) 0 21 14 0;
+           introduce forall (b: nat{b < 12}). I.get_bit (Seq.index rr 14) (sz b) == I.get_bit (Seq.index inp ((12 * 14 + b) / 8)) (sz ((12 * 14 + b) % 8))
+           with lemma_deser12_coeff_bit inp input_vec1 index_vec shift_vec mask12 6 9 10 (Seq.index inp 21) (Seq.index inp 22) 0 21 14 b
+   | _  -> lemma_deser12_coeff_bit inp input_vec1 index_vec shift_vec mask12 7 10 11 (Seq.index inp 22) (Seq.index inp 23) 4 22 15 0;
+           introduce forall (b: nat{b < 12}). I.get_bit (Seq.index rr 15) (sz b) == I.get_bit (Seq.index inp ((12 * 15 + b) / 8)) (sz ((12 * 15 + b) % 8))
+           with lemma_deser12_coeff_bit inp input_vec1 index_vec shift_vec mask12 7 10 11 (Seq.index inp 22) (Seq.index inp 23) 4 22 15 b)
+#pop-options
+
+(* Assemble deserialize_post_N from the per-coefficient dispatcher + BitVec stitch,
+   in clean context (off the leaf's heavy construction WP). *)
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 300 --split_queries always --z3refresh"
+let lemma_deser12_post
+      (inp: t_Slice u8) (result: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector)
+      (index_vec input_vec0 input_vec1: NI.t_e_uint8x16_t)
+      (shift_vec: NI.t_e_int16x8_t) (mask12: NI.t_e_uint16x8_t)
+    : Lemma
+      (requires
+        Seq.length inp == 24 /\
+        result.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low ==
+          NI.e_vreinterpretq_s16_u16 (NI.e_vandq_u16 (NI.e_vshlq_u16 (NI.e_vreinterpretq_u16_u8 (NI.e_vqtbl1q_u8 input_vec0 index_vec)) shift_vec) mask12) /\
+        result.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high ==
+          NI.e_vreinterpretq_s16_u16 (NI.e_vandq_u16 (NI.e_vshlq_u16 (NI.e_vreinterpretq_u16_u8 (NI.e_vqtbl1q_u8 input_vec1 index_vec)) shift_vec) mask12) /\
+        v (NI.get_lane_u8x16 index_vec 0) == 0 /\ v (NI.get_lane_u8x16 index_vec 1) == 1 /\
+        v (NI.get_lane_u8x16 index_vec 2) == 1 /\ v (NI.get_lane_u8x16 index_vec 3) == 2 /\
+        v (NI.get_lane_u8x16 index_vec 4) == 3 /\ v (NI.get_lane_u8x16 index_vec 5) == 4 /\
+        v (NI.get_lane_u8x16 index_vec 6) == 4 /\ v (NI.get_lane_u8x16 index_vec 7) == 5 /\
+        v (NI.get_lane_u8x16 index_vec 8) == 6 /\ v (NI.get_lane_u8x16 index_vec 9) == 7 /\
+        v (NI.get_lane_u8x16 index_vec 10) == 7 /\ v (NI.get_lane_u8x16 index_vec 11) == 8 /\
+        v (NI.get_lane_u8x16 index_vec 12) == 9 /\ v (NI.get_lane_u8x16 index_vec 13) == 10 /\
+        v (NI.get_lane_u8x16 index_vec 14) == 10 /\ v (NI.get_lane_u8x16 index_vec 15) == 11 /\
+        (forall (i: nat{i < 8}). NI.get_lane_u16x8 mask12 i == mk_u16 4095) /\
+        v (NI.get_lane_i16x8 shift_vec 0 %! mk_i16 256) == 0 /\ v (NI.get_lane_i16x8 shift_vec 1 %! mk_i16 256) == 252 /\
+        v (NI.get_lane_i16x8 shift_vec 2 %! mk_i16 256) == 0 /\ v (NI.get_lane_i16x8 shift_vec 3 %! mk_i16 256) == 252 /\
+        v (NI.get_lane_i16x8 shift_vec 4 %! mk_i16 256) == 0 /\ v (NI.get_lane_i16x8 shift_vec 5 %! mk_i16 256) == 252 /\
+        v (NI.get_lane_i16x8 shift_vec 6 %! mk_i16 256) == 0 /\ v (NI.get_lane_i16x8 shift_vec 7 %! mk_i16 256) == 252 /\
+        (forall (i: nat{i < 12}). NI.get_lane_u8x16 input_vec0 i == Seq.index inp i) /\
+        (forall (i: nat{i < 12}). NI.get_lane_u8x16 input_vec1 i == Seq.index inp (12 + i)))
+      (ensures
+        Libcrux_ml_kem.Vector.Traits.Spec.deserialize_post_N 12 inp
+          (Libcrux_ml_kem.Vector.Neon.Vector_type.repr result)) =
+  let rr = Libcrux_ml_kem.Vector.Neon.Vector_type.repr result in
+  let aux (cc: nat{cc < 16}) : Lemma
+      (BV.bounded (Seq.index rr cc) 12 /\
+       (forall (b: nat{b < 12}). I.get_bit (Seq.index rr cc) (sz b) ==
+          I.get_bit (Seq.index inp ((12 * cc + b) / 8)) (sz ((12 * cc + b) % 8)))) =
+    lemma_deser12_dispatch inp result index_vec input_vec0 input_vec1 shift_vec mask12 cc
+  in
+  Classical.forall_intro aux;
+  let n8: usize = sz (Seq.length inp) in
+  let input_arr: t_Array u8 n8 = inp in
+  let bv_in: BV.bit_vec (v n8 * 8) = BV.bit_vec_of_int_t_array #u8_inttype #n8 input_arr 8 in
+  let bv_out: BV.bit_vec (16 * 12) = BV.bit_vec_of_int_t_array #i16_inttype #(mk_usize 16) rr 12 in
+  introduce forall (i: nat{i < 192}). bv_in i == bv_out i
+  with (FStar.Math.Lemmas.lemma_div_mod i 12;
+        assert (12 * (i / 12) + (i % 12) == i);
+        assert (bv_out i == I.get_bit (Seq.index rr (i / 12)) (sz (i % 12)));
+        assert (bv_in i == I.get_bit (Seq.index inp (i / 8)) (sz (i % 8))));
+  BitVecEq.bit_vec_equal_intro bv_in (BitVecEq.retype bv_out)
+#pop-options
+"#
+)]
 #[inline(always)]
+#[hax_lib::fstar::options("--z3rlimit 300 --split_queries always --z3refresh")]
 #[hax_lib::requires(v.len() == 24)]
+#[hax_lib::ensures(|result| fstar!(r#"${spec::deserialize_12_post} ${v} (repr ${result})"#))]
 pub(crate) fn deserialize_12(v: &[u8]) -> SIMD128Vector {
     let indexes: [u8; 16] = [0, 1, 1, 2, 3, 4, 4, 5, 6, 7, 7, 8, 9, 10, 10, 11];
     let index_vec = _vld1q_u8(&indexes);
@@ -1284,5 +1749,30 @@ pub(crate) fn deserialize_12(v: &[u8]) -> SIMD128Vector {
     let shifted1 = _vshlq_u16(moved1, shift_vec);
     let high = _vreinterpretq_s16_u16(_vandq_u16(shifted1, mask12));
 
-    SIMD128Vector { low, high }
+    let result = SIMD128Vector { low, high };
+    hax_lib::fstar!(
+        r#"(* mask lanes *)
+assert (forall (i: nat{i < 8}). NI.get_lane_u16x8 ${mask12} i == mk_u16 4095);
+(* ${index_vec} lanes + concrete index values *)
+assert (forall (i: nat{i < 16}). NI.get_lane_u8x16 ${index_vec} i == Seq.index ${indexes} i);
+lemma_deser12_index_lanes ${index_vec} ${indexes};
+(* shift lanes + concrete shift values *)
+assert (forall (i: nat{i < 8}). NI.get_lane_i16x8 ${shift_vec} i == Seq.index ${shifts} i);
+lemma_deser12_shift_lanes ${shift_vec} ${shifts};
+(* input0 / input1 vs ${v} *)
+assert ((${v}.[ { Core_models.Ops.Range.f_start = mk_usize 0; Core_models.Ops.Range.f_end = mk_usize 12 } <: Core_models.Ops.Range.t_Range usize ]) == Seq.slice ${v} 0 12);
+assert ((${v}.[ { Core_models.Ops.Range.f_start = mk_usize 12; Core_models.Ops.Range.f_end = mk_usize 24 } <: Core_models.Ops.Range.t_Range usize ]) == Seq.slice ${v} 12 24);
+Rust_primitives.Hax.Monomorphized_update_at_Lemmas.lemma_index_update_at_range #u8
+  (Rust_primitives.Hax.repeat (mk_u8 0) (mk_usize 16))
+  ({ Core_models.Ops.Range.f_start = mk_usize 0; Core_models.Ops.Range.f_end = mk_usize 12 } <: Core_models.Ops.Range.t_Range usize)
+  (Seq.slice ${v} 0 12);
+Rust_primitives.Hax.Monomorphized_update_at_Lemmas.lemma_index_update_at_range #u8
+  (Rust_primitives.Hax.repeat (mk_u8 0) (mk_usize 16))
+  ({ Core_models.Ops.Range.f_start = mk_usize 0; Core_models.Ops.Range.f_end = mk_usize 12 } <: Core_models.Ops.Range.t_Range usize)
+  (Seq.slice ${v} 12 24);
+assert (forall (i: nat{i < 12}). NI.get_lane_u8x16 ${input_vec0} i == Seq.index ${v} i);
+assert (forall (i: nat{i < 12}). NI.get_lane_u8x16 ${input_vec1} i == Seq.index ${v} (12 + i));
+lemma_deser12_post ${v} ${result} ${index_vec} ${input_vec0} ${input_vec1} ${shift_vec} ${mask12}"#
+    );
+    result
 }
