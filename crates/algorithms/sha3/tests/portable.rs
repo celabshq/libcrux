@@ -293,3 +293,88 @@ fn bug1_xof_squeeze_multi_call_consistency() {
 
     assert_eq!(single, multi);
 }
+
+/// Regression test for issue #1362: streaming squeeze with arbitrary chunk
+/// sizes (including chunks smaller than RATE) should produce the same output
+/// as a single large squeeze. Previously, the XOF only supported RATE-aligned
+/// chunks because it had no internal buffering for the leftover bytes of a
+/// partially-consumed squeeze block.
+#[test]
+fn issue_1362_xof_streaming_squeeze_partial_chunks_shake128() {
+    let mut state1 = incremental::Shake128Xof::new();
+    state1.absorb_final(test_vectors::HELLO);
+    let mut single = [0u8; 600];
+    state1.squeeze(&mut single);
+
+    // Chunks: 100 (< RATE), 100, 100, 200 (> RATE), 100. None are RATE-aligned.
+    let mut state2 = incremental::Shake128Xof::new();
+    state2.absorb_final(test_vectors::HELLO);
+    let mut multi = [0u8; 600];
+    state2.squeeze(&mut multi[0..100]);
+    state2.squeeze(&mut multi[100..200]);
+    state2.squeeze(&mut multi[200..300]);
+    state2.squeeze(&mut multi[300..500]);
+    state2.squeeze(&mut multi[500..600]);
+
+    assert_eq!(single, multi);
+}
+
+/// Same as the SHAKE128 test, but for SHAKE256 (RATE = 136).
+#[test]
+fn issue_1362_xof_streaming_squeeze_partial_chunks_shake256() {
+    let mut state1 = incremental::Shake256Xof::new();
+    state1.absorb_final(test_vectors::HELLO);
+    let mut single = [0u8; 500];
+    state1.squeeze(&mut single);
+
+    let mut state2 = incremental::Shake256Xof::new();
+    state2.absorb_final(test_vectors::HELLO);
+    let mut multi = [0u8; 500];
+    state2.squeeze(&mut multi[0..50]);
+    state2.squeeze(&mut multi[50..150]);
+    state2.squeeze(&mut multi[150..200]);
+    state2.squeeze(&mut multi[200..400]);
+    state2.squeeze(&mut multi[400..500]);
+
+    assert_eq!(single, multi);
+}
+
+/// Single-byte streaming squeeze: stresses the internal buffering by
+/// forcing a buffer drain on every call.
+#[test]
+fn issue_1362_xof_streaming_squeeze_byte_at_a_time_shake128() {
+    let mut state1 = incremental::Shake128Xof::new();
+    state1.absorb_final(test_vectors::HELLO);
+    let mut single = [0u8; 350]; // > 2 * RATE so we cross block boundaries
+    state1.squeeze(&mut single);
+
+    let mut state2 = incremental::Shake128Xof::new();
+    state2.absorb_final(test_vectors::HELLO);
+    let mut multi = [0u8; 350];
+    for i in 0..350 {
+        state2.squeeze(&mut multi[i..i + 1]);
+    }
+
+    assert_eq!(single, multi);
+}
+
+/// Squeeze that crosses a block boundary inside one call after a previous
+/// partial squeeze: drain leftover, then extract more than one further block.
+#[test]
+fn issue_1362_xof_squeeze_crosses_block_boundary_after_partial_drain() {
+    let mut state1 = incremental::Shake128Xof::new();
+    state1.absorb_final(test_vectors::HELLO);
+    let mut single = [0u8; 400];
+    state1.squeeze(&mut single);
+
+    let mut state2 = incremental::Shake128Xof::new();
+    state2.absorb_final(test_vectors::HELLO);
+    let mut multi = [0u8; 400];
+    // First call: 50 bytes (leaves 118 bytes leftover in the squeeze buffer).
+    state2.squeeze(&mut multi[0..50]);
+    // Second call: 350 bytes — drains the 118 leftover, then extracts an
+    // additional full block plus a partial trailing block.
+    state2.squeeze(&mut multi[50..400]);
+
+    assert_eq!(single, multi);
+}
