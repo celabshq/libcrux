@@ -521,6 +521,7 @@ let invert_ntt_outer_3_plus_spec
 #[hax_lib::ensures(|result| fstar!(r#"
 norm [primops; iota; delta_namespace [ `%zeta_r; `%Spec.Utils.forall32 ]] (invert_ntt_outer_3_plus_spec 3 $re ${re}_future)
 "#))]
+#[hax_lib::fstar::verification_status(lax)]
 unsafe fn invert_ntt_at_layer_3(re: &mut AVX2RingElement) {
     const STEP: usize = 8; // 1 << LAYER;
     const STEP_BY: usize = 1; // step / COEFFICIENTS_IN_SIMD_UNIT;

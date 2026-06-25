@@ -377,7 +377,7 @@ val v_XOF (v_LEN: usize{v v_LEN < pow2 32}) (input: t_Slice u8) : t_Array u8 v_L
 
 val update_at_range_lemma #n
   (s: t_Slice 't)
-  (i: Core_models.Ops.Range.t_Range (int_t n) {(Core_models.Ops.Range.impl_index_range_slice 't n).f_index_pre s i}) 
+  (i: Core_models.Ops.Range.t_Range (int_t n) {v i.f_start >= 0 /\ v i.f_start <= Seq.length s /\ v i.f_end <= Seq.length s}) 
   (x: t_Slice 't)
   : Lemma
     (requires (Seq.length x == v i.f_end - v i.f_start))
@@ -392,6 +392,20 @@ val update_at_range_lemma #n
 
 let is_intb (l:nat) (x:int) = (x <= l) && (x >= -l)
 let is_i16b (l:nat) (x:i16) = is_intb l (v x)
+
+(* hax-lib 0.3.7 source-compat shim.
+   0.3.6's Core_models.Ops.Arith provided a generic `let f_neg #t x = zero -! x`,
+   so negating any machine int (incl. i16) just worked. 0.3.7 turned `f_neg` into a
+   `t_Neg` typeclass method and ships no machine-int instance, so the extracted ml-kem
+   code (Vector.Portable.Ntt negates i16 zetas via Core_models.Ops.Arith.f_neg) no
+   longer resolves. Re-provide the i16 instance, mirroring the 0.3.6 semantics. *)
+[@@ FStar.Tactics.Typeclasses.tcinstance]
+let impl_Neg_i16: Core_models.Ops.Arith.t_Neg i16 = {
+  f_Output = i16;
+  f_neg_pre = (fun (x: i16) -> range (- v x) i16_inttype);
+  f_neg_post = (fun (_: i16) (_: i16) -> True);
+  f_neg = (fun (x: i16) -> mk_int #i16_inttype 0 -! x)
+}
 let is_i16b_array (l:nat) (x:t_Slice i16) = forall i. i < Seq.length x ==> is_i16b l (Seq.index x i)
 let is_i16b_vector (l:nat) (r:usize) (x:t_Array (t_Array i16 (sz 256)) r) = forall i. i < v r ==> is_i16b_array l (Seq.index x i)
 let is_i16b_matrix (l:nat) (r:usize) (x:t_Array (t_Array (t_Array i16 (sz 256)) r) r) = forall i. i < v r ==> is_i16b_vector l r (Seq.index x i)

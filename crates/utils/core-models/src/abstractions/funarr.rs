@@ -18,6 +18,7 @@ let ${FunArray::<0, ()>::get} (v_N: u64) (#v_T: Type0) (self: t_FunArray v_N v_T
 let ${FunArray::<0, ()>::from_fn::<fn(u64)->()>}
     (v_N: u64)
     (#v_T: Type0)
+    (#_v_F: Type0)
     (f: (i: u64 {v i < v v_N}) -> v_T)
     : t_FunArray v_N v_T = FunArray (on (i: u64 {v i < v v_N}) f)
 
@@ -30,7 +31,7 @@ let rec ${FunArray::<0, ()>::fold::<()>} n #t #a (arr: t_FunArray n t) (init: a)
         let acc: a = f init (arr._0 (mk_u64 0)) in
         let n = MkInt (n - 1) in
         ${FunArray::<0, ()>::fold::<()>}  n #t #a
-                      (${FunArray::<0, ()>::from_fn::<fn(u64)->()>} n (fun i -> arr._0 (i +. mk_u64 1)))
+                      (${FunArray::<0, ()>::from_fn::<fn(u64)->()>} n #t #(u64 -> t) (fun i -> arr._0 (i +. mk_u64 1)))
                       acc f
 "#
 )]

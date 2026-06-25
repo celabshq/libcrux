@@ -1,4 +1,4 @@
-SLOW_MODULES +=
+SLOW_MODULES += Libcrux_ml_kem.Vector.Rej_sample_table.fsti
 
 ADMIT_MODULES =  Libcrux_ml_kem.Sampling.fst \
 	      Libcrux_ml_kem.Ind_cpa.fst \

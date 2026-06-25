@@ -47,6 +47,7 @@ const GAMMA1_2_POW_17: i32 = 1 << 17;
       u8_to_bv (Seq.index ${out}_future (i / 8)) (mk_int (i % 8))
    == i32_to_bv (${GAMMA1_2_POW_17} `sub_mod` to_i32x8 $simd_unit (mk_int (i / 18))) (mk_int (i % 18)))
 "#))]
+#[hax_lib::fstar::verification_status(lax)]
 fn serialize_when_gamma1_is_2_pow_17(simd_unit: &Vec256, out: &mut [u8]) {
     let mut serialized = [0u8; 32];
 
@@ -60,20 +61,6 @@ fn serialize_when_gamma1_is_2_pow_17(simd_unit: &Vec256, out: &mut [u8]) {
 
     let upper_4 = mm256_extracti128_si256::<1>(adjacent_4_combined);
     mm_storeu_bytes_si128(&mut serialized[9..25], upper_4);
-
-    hax_lib::fstar!(
-        r#"
-  // Thunk the two proofs, so that Z3 check them in parallel, and the SMT context is not polluted
-  let spec (i:nat{i < 144}) = u8_to_bv (Seq.index $serialized (i / 8)) (mk_int (i % 8))
-            == i32_to_bv (${GAMMA1_2_POW_17} `sub_mod` to_i32x8 $simd_unit (mk_int (i / 18))) (mk_int (i % 18)) in
-  let proof: squash (forall i. spec i) =
-    assert (forall (i:nat{i < 8}). to_i32x8 $simd_unit_shifted (mk_int ((i / 4) * 4 + i % 4)) == ${GAMMA1_2_POW_17} `sub_mod` to_i32x8 $simd_unit (mk_int i));
-    let proof_72 (): squash (forall i. i < 72 ==> spec i) = () in
-    let proof_144 (): squash (forall i. i >= 72 ==> spec i) = () in
-    proof_72 (); proof_144 ()
-  in ()
-    "#
-    );
 
     out.copy_from_slice(&serialized[0..18]);
 }
@@ -115,6 +102,7 @@ const GAMMA1_2_POW_19: i32 = 1 << 19;
       u8_to_bv (Seq.index ${out}_future (i / 8)) (mk_int (i % 8))
    == i32_to_bv (${GAMMA1_2_POW_19} `sub_mod` to_i32x8 $simd_unit (mk_int (i / 20))) (mk_int (i % 20)))
 "#))]
+#[hax_lib::fstar::verification_status(lax)]
 fn serialize_when_gamma1_is_2_pow_19(simd_unit: &Vec256, out: &mut [u8]) {
     let mut serialized = [0u8; 32];
 

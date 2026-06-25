@@ -76,9 +76,14 @@ define FINDLIBS
     } ; \
     : "Asks Cargo all the dependencies for the current crate or workspace,"; \
     : "and extract all "root" directories for each. Takes zero argument."; \
+    : "We skip crates.io-registry packages: hax F* proof libraries only ship"; \
+    : "in our local path crates (intrinsics, sha3, ...) and the git-pinned"; \
+    : "hax-lib. Enabling hpke transitively pulls stale published copies (a"; \
+    : "0.3.6 hax-lib, old libcrux/core-models extractions) that must not shadow"; \
+    : "the workspace ones."; \
     function dependencies() { \
         cargo metadata --format-version 1 | \
-            jq -r ".packages | .[] | .manifest_path | split(\"/\") | .[:-1] | join(\"/\")"; \
+            jq -r ".packages | .[] | select((.source // \"\") | startswith(\"registry+\") | not) | .manifest_path | split(\"/\") | .[:-1] | join(\"/\")"; \
     } ; \
     : "Find hax libraries *around* a given path. Takes one argument: the"; \
     : "path."; \

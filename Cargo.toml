@@ -91,7 +91,7 @@ readme = "Readme.md"
 allow-branch = ["main"]
 
 [workspace.dependencies]
-hax-lib = { version = "=0.3.6" }
+hax-lib = { git = "https://github.com/cryspen/hax", tag = "cargo-hax-v0.3.7" }
 libcrux-aead = { version = "=0.0.8", path = "crates/primitives/aead" }
 libcrux-aes = { version = "=0.0.8", path = "crates/algorithms/aes" }
 libcrux-blake2 = { version = "=0.0.7", path = "crates/algorithms/blake2" }
