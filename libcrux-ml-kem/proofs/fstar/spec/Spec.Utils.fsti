@@ -446,8 +446,34 @@ let is_i32b_array (l:nat) (x:t_Slice i32) = forall i. i < Seq.length x ==> is_i3
 [@ "opaque_to_smt"]
 let is_i32b_array_opaque (l:nat) (x:t_Slice i32) = is_i32b_array l x
 let is_i32b_array_larger (l:nat) (l':nat) (x:t_Slice i32):
-  Lemma (is_i32b_array_opaque l x /\ l <= l' ==> is_i32b_array_opaque l' x) 
+  Lemma (is_i32b_array_opaque l x /\ l <= l' ==> is_i32b_array_opaque l' x)
   = reveal_opaque (`%is_i32b_array_opaque) (is_i32b_array_opaque)
+
+// Half-open `(-l, l]` analogue of `is_i32b` / `is_i32b_array_opaque`.
+// Mathematically: -l < x <= l (strict on the lower bound, inclusive on the upper).
+// Used by trait pres/posts that mirror FIPS 204's centered modulo `mod^±`,
+// which produces `r0 ∈ (-m/2, m/2]` for `m = 2^d` (Algorithms 35 / 36).
+let is_intb_strict_lower (l:nat) (x:int) = (x <= l) && (x > -l)
+let is_i32b_strict_lower (l:nat) (x:i32) = is_intb_strict_lower l (v x)
+let is_i32b_strict_lower_array (l:nat) (x:t_Slice i32) =
+  forall i. i < Seq.length x ==> is_i32b_strict_lower l (Seq.index x i)
+
+[@ "opaque_to_smt"]
+let is_i32b_strict_lower_array_opaque (l:nat) (x:t_Slice i32) = is_i32b_strict_lower_array l x
+
+// `strict_lower` implies the closed centered form (any `x` with `-l < x <= l`
+// also has `-l <= x <= l`).  SMTPat triggers on the strict-lower form so callers
+// expecting the old (closed) predicate keep discharging when given the new one.
+let lemma_is_i32b_strict_lower_implies_array_opaque (l:nat) (x:t_Slice i32):
+  Lemma (is_i32b_strict_lower_array_opaque l x ==> is_i32b_array_opaque l x)
+        [SMTPat (is_i32b_strict_lower_array_opaque l x)]
+  = reveal_opaque (`%is_i32b_strict_lower_array_opaque) (is_i32b_strict_lower_array_opaque);
+    reveal_opaque (`%is_i32b_array_opaque) (is_i32b_array_opaque)
+
+let is_i32b_strict_lower_array_larger (l:nat) (l':nat) (x:t_Slice i32):
+  Lemma (is_i32b_strict_lower_array_opaque l x /\ l <= l' ==>
+         is_i32b_strict_lower_array_opaque l' x)
+  = reveal_opaque (`%is_i32b_strict_lower_array_opaque) (is_i32b_strict_lower_array_opaque)
 
 
 let is_i64b (l:nat) (x:i64) = is_intb l (v x)
