@@ -1,6 +1,15 @@
 [
-  "91797c172d82c25dde511cf90c3f17ee",
+  "2bc6821f8a8b5a796f5eca29d6a4d270",
   [
+    [
+      "EquivImplSpec.Keccakf.Avx2.lemma_avx2_lane_unfold",
+      1,
+      0,
+      1,
+      [ "@query" ],
+      0,
+      "04dbf7fe37c63902ab320b9a99e9e625"
+    ],
     [
       "EquivImplSpec.Keccakf.Avx2.avx2_lc_zero",
       1,
@@ -72,7 +81,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f3bb8f1675b6dc89b87f69a42646f676"
+      "064fa47af1cca18e4921cd0b75ab7054"
     ],
     [
       "EquivImplSpec.Keccakf.Avx2.avx2_lc_xor5",
@@ -118,7 +127,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "895d923a3f927dcdbe94533e76e7453f"
+      "d0bd78f43f1c8377431133bad2cf4d07"
     ],
     [
       "EquivImplSpec.Keccakf.Avx2.avx2_lc_rotate_left1_and_xor",
@@ -212,7 +221,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "29de1ff3611cea0b0c9206177766c26e"
+      "f1587c8d24884897ab187717a05f16ce"
     ],
     [
       "EquivImplSpec.Keccakf.Avx2.avx2_lc_xor_and_rotate",
@@ -288,7 +297,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "c2dc74992d5ec0b68b3d9e670dfd1a38"
+      "0ad54305776945405d612ff7f237a86b"
     ],
     [
       "EquivImplSpec.Keccakf.Avx2.avx2_lc_and_not_xor",
@@ -335,7 +344,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e3ece223d9eb36e15c76d31e4851a8c2"
+      "98df8c08628002d4bf851f132b2b9a70"
     ],
     [
       "EquivImplSpec.Keccakf.Avx2.avx2_lc_xor_constant",
@@ -404,7 +413,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "fac46ed549972eb6df586037b49d767c"
+      "38b40cdf837b361d0384d9fb0b75cd9b"
     ],
     [
       "EquivImplSpec.Keccakf.Avx2.avx2_lc_xor",
@@ -448,7 +457,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f97872e729c34c1b8dd1e400fdc05ebd"
+      "1751a9195718f464ce09577239af8430"
     ],
     [
       "EquivImplSpec.Keccakf.Avx2.lc_avx2",
@@ -482,7 +491,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "3d798fc424fe995de866225e12d4f86b"
+      "3234d3e46c29ea239d0f106cce1157d2"
     ],
     [
       "EquivImplSpec.Keccakf.Avx2.lemma_keccakf1600_avx2",
@@ -527,7 +536,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e3831cd7e2f17a8cca7e1dc376e7eae2"
+      "dd5f76c72ffcf38e820fdaf3226451ea"
     ],
     [
       "EquivImplSpec.Keccakf.Avx2.lemma_keccakf1600_avx2",
@@ -556,7 +565,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "77af935cc15f4c23075dc22bf965dd2a"
+      "a85709e19726fead1ef585f0f869880a"
     ],
     [
       "EquivImplSpec.Keccakf.Avx2.lemma_extract_lane_zero_avx2",
@@ -618,13 +627,13 @@
         "projection_inverse_EquivImplSpec.Keccakf.Generic.Mklane_correctness_@lane",
         "projection_inverse_Libcrux_sha3.Traits.Mkt_KeccakItem_@f_zero_pre",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
+        "refinement_interpretation_Tm_refine_1b6927ff8506425bb47d5a33c2c7bbb4",
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
         "refinement_interpretation_Tm_refine_3c519c8afa38c3c934a5bef97a712903",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
         "refinement_interpretation_Tm_refine_693213d29dc5b9d0a76e3af0564654aa",
         "refinement_interpretation_Tm_refine_6af5dd912a49c5aa2d10fa9f5a5534c2",
         "refinement_interpretation_Tm_refine_774ba3f728d91ead8ef40be66c9802e5",
-        "refinement_interpretation_Tm_refine_789b829b78beeee86039d58e99a3a685",
         "refinement_interpretation_Tm_refine_7acf795d50ec256996534a97e12bfa61",
         "refinement_interpretation_Tm_refine_b045b04f0bb15cd7c94a2ec78d3283ce",
         "refinement_interpretation_Tm_refine_c1424615841f28cac7fc34e92b7ff33c",
@@ -644,7 +653,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e48a369a7ef61b4c819d8fd82eff8e14"
+      "3657c71fe6ecd19c0fd913957efce4ee"
     ]
   ]
 ]

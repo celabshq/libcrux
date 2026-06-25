@@ -1,5 +1,5 @@
 [
-  "746b9298ad4c4e4ff896eff6c1c1763d",
+  "57383150b0c57b2f065d3c982c077b94",
   [
     [
       "EquivImplSpec.Sponge.Avx2.Steps.lemma_absorb_block_avx2",
@@ -109,7 +109,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e1342cb76576b2fe861249443ef01243"
+      "efbfd0e407bd0bddf18adedaf848e077"
     ],
     [
       "EquivImplSpec.Sponge.Avx2.Steps.lemma_absorb_block_avx2",
@@ -139,7 +139,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "6f0d2426a2dd17ec49b186227771f85a"
+      "c8984f0f839fd4cfba2d39e952185b5f"
     ],
     [
       "EquivImplSpec.Sponge.Avx2.Steps.lemma_absorb_last_avx2",
@@ -221,7 +221,7 @@
         "typing_Tm_abs_bb5e6bdd929fe810462ddbc4eae8e561"
       ],
       0,
-      "0528b212cf5407d3afc9c4552dd36fd9"
+      "298034e4716ffee041fe2bc18550bb82"
     ],
     [
       "EquivImplSpec.Sponge.Avx2.Steps.lemma_absorb_last_avx2",
@@ -254,7 +254,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "62470e79944a84838378ceb7fd4eb803"
+      "e69cd219acb20b34aef0bc717d7b856c"
     ],
     [
       "EquivImplSpec.Sponge.Avx2.Steps.lemma_squeeze_block_avx2",
@@ -314,7 +314,7 @@
         "typing_Libcrux_sha3.Proof_utils.valid_rate"
       ],
       0,
-      "ab93caa7d9091de9befa0c48bf7532cf"
+      "78e93d6330541c2c2b0132888f134ac7"
     ],
     [
       "EquivImplSpec.Sponge.Avx2.Steps.lemma_squeeze_block_avx2",
@@ -344,7 +344,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "6f0d2426a2dd17ec49b186227771f85a"
+      "1b321ad0fd567e80abc2a0f39b62ec1d"
     ],
     [
       "EquivImplSpec.Sponge.Avx2.Steps.lemma_squeeze_last_avx2",
@@ -404,7 +404,7 @@
         "typing_Libcrux_sha3.Proof_utils.valid_rate"
       ],
       0,
-      "734d54a8173acf439295b13931e3cf24"
+      "0b52a06853c9156b58556b4745cfd5bb"
     ],
     [
       "EquivImplSpec.Sponge.Avx2.Steps.lemma_squeeze_last_avx2",
@@ -434,7 +434,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "6f0d2426a2dd17ec49b186227771f85a"
+      "57eb86809cf415fa633a355bd2f86473"
     ]
   ]
 ]
