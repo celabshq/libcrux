@@ -22,7 +22,7 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Log in to the Container registry
         uses: docker/login-action@v4
@@ -50,7 +50,7 @@ jobs:
         working-directory: libcrux-ml-kem/extracts/c_header_only
         shell: bash
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Extract C (header only)
         run: |
@@ -73,7 +73,7 @@ jobs:
         working-directory: libcrux-ml-kem/extracts/cpp_header_only
         shell: bash
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Extract C++ (header only)
         run: |
@@ -97,7 +97,7 @@ jobs:
         working-directory: libcrux-ml-dsa
         shell: bash
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Extract C (header only)
         run: |

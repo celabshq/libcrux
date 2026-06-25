@@ -42,7 +42,7 @@ jobs:
         working-directory: libcrux-ecdh
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - run: echo "RUST_TARGET_FLAG=" > $GITHUB_ENV
         if: ${{ matrix.bits == 64 }}
@@ -117,7 +117,7 @@ jobs:
         working-directory: libcrux-ecdh
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Add no_std target
         run: rustup target add thumbv6m-none-eabi

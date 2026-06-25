@@ -40,7 +40,7 @@ jobs:
       - get-hax-ref
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
@@ -68,7 +68,7 @@ jobs:
       - extract-portable
     if: ${{ github.event_name != 'merge_group' }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
@@ -93,7 +93,7 @@ jobs:
       - extract-portable
     if: ${{ github.event_name != 'merge_group' }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
