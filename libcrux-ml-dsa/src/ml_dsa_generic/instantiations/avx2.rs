@@ -141,6 +141,7 @@ macro_rules! parameter_set {
 
             /// Sign (pre-hashed).
             #[allow(unsafe_code)]
+            #[cfg_attr(hax, hax_lib::ensures(|_| future(pre_hash_buffer).len() == pre_hash_buffer.len()))]
             pub fn sign_pre_hashed_shake128(
                 signing_key: &[u8; SIGNING_KEY_SIZE],
                 message: &[u8],
@@ -150,6 +151,7 @@ macro_rules! parameter_set {
             ) -> Result<MLDSASignature<SIGNATURE_SIZE>, SigningError> {
                 #[cfg_attr(not(hax), target_feature(enable = "avx2"))]
                 #[allow(unsafe_code)]
+                #[cfg_attr(hax, hax_lib::ensures(|_| future(pre_hash_buffer).len() == pre_hash_buffer.len()))]
                 unsafe fn _inner(
                     signing_key: &[u8; SIGNING_KEY_SIZE],
                     message: &[u8],
@@ -234,6 +236,7 @@ macro_rules! parameter_set {
 
             /// Verify (pre-hashed with SHAKE-128).
             #[allow(unsafe_code)]
+            #[cfg_attr(hax, hax_lib::ensures(|_| future(pre_hash_buffer).len() == pre_hash_buffer.len()))]
             pub fn verify_pre_hashed_shake128(
                 verification_key: &[u8; VERIFICATION_KEY_SIZE],
                 message: &[u8],
@@ -243,6 +246,7 @@ macro_rules! parameter_set {
             ) -> Result<(), VerificationError> {
                 #[cfg_attr(not(hax), target_feature(enable = "avx2"))]
                 #[allow(unsafe_code)]
+                #[cfg_attr(hax, hax_lib::ensures(|_| future(pre_hash_buffer).len() == pre_hash_buffer.len()))]
                 unsafe fn _inner(
                     verification_key: &[u8; VERIFICATION_KEY_SIZE],
                     message: &[u8],

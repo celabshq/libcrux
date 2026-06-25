@@ -7,9 +7,27 @@ use crate::{
     simd::traits::Operations,
 };
 
+#[cfg(hax)]
+use crate::simd::traits::specs::*;
+
 /// The x4 sampling implementation that is selected during multiplexing.
+//
+// `requires(true)` matches the `hash_functions` trait pattern: refines
+// the extracted `f_matrix_flat_pre` to `Type0{true ==> pred}` so panic-
+// free callers can discharge it.  The ensures combine length-preservation
+// (so callers can rebind the mutated-via-&mut, returned-by-value-in-F*
+// `matrix` back to a fixed-size array) with a per-coefficient FIELD_MAX
+// bound (so `compute_as1_plus_s2`'s `a_as_ntt` precondition discharges
+// from the trait method's post).  Class B Chain 1B (NTT-bound chain).
+#[hax_lib::attributes]
 pub(crate) trait X4Sampler {
     /// Sample the matrix A using platform specific implementation.
+    #[requires(true)]
+    #[ensures(|_| fstar!(r#"
+        Seq.length ${matrix}_future == Seq.length $matrix /\
+        Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice
+            (mk_usize 8380416) ${matrix}_future
+    "#))]
     fn matrix_flat<SIMDUnit: Operations>(
         columns: usize,
         seed: &[u8],
@@ -17,7 +35,16 @@ pub(crate) trait X4Sampler {
     );
 }
 
+// Free-fn matrix_flat (called by every X4Sampler impl).  Body chains from
+// `sample_up_to_four_ring_elements_flat`'s post (now the opaque slice form).
+// Post is the opaque poly-slice atom so callers see one premise instead
+// of bare double-forall.
 #[inline(always)]
+#[hax_lib::ensures(|_| fstar!(r#"
+    Seq.length ${matrix}_future == Seq.length $matrix /\
+    Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice
+        (mk_usize 8380416) ${matrix}_future
+"#))]
 pub(crate) fn matrix_flat<SIMDUnit: Operations, Shake128: shake128::XofX4>(
     columns: usize,
     seed: &[u8],
@@ -119,6 +146,24 @@ pub(crate) mod avx2 {
 
 // Not inling this causes a 10x slow-down
 #[inline(always)]
+// Length-preserving + per-coefficient `is_pos_array_opaque eta` ensures
+// (Class B Chain 1B).  Body chains from `sample_four_error_ring_elements`'s
+// Class B Chain 1A postulate: each call's post says the entire `s1_s2`
+// slice has every coefficient in `[0, eta]`.  Initial zero-fill is in
+// range; rejection sampling keeps it in range.  Exposed as a single
+// opaque atom (`is_lane_range_poly_slice`) so callers see one premise
+// instead of triple-forall + match expansion.  Note: signing_key's pre
+// still uses the bare per-simd-unit `is_pos_array_opaque` form, so a
+// bridge in keygen is needed (was: same-shape match; now: opaque-atom
+// expansion).
+#[hax_lib::ensures(|_| fstar!(r#"
+    Seq.length ${s1_s2}_future == Seq.length $s1_s2 /\
+    (let eta_val : usize = match ${eta} with
+                            | Libcrux_ml_dsa.Constants.Eta_Two -> mk_usize 2
+                            | Libcrux_ml_dsa.Constants.Eta_Four -> mk_usize 4 in
+     Libcrux_ml_dsa.Polynomial.Spec.is_lane_range_poly_slice
+         (mk_usize 0) eta_val ${s1_s2}_future)
+"#))]
 pub(crate) fn sample_s1_and_s2<SIMDUnit: Operations, Shake256X4: shake256::XofX4>(
     eta: Eta,
     seed: &[u8],

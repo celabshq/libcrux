@@ -98,6 +98,7 @@ macro_rules! instantiate {
                         }
 
                         /// Sign (pre-hashed).
+                        #[cfg_attr(hax, hax_lib::ensures(|_| future(pre_hash_buffer).len() == pre_hash_buffer.len()))]
                         pub(crate) fn sign_pre_hashed_shake128(
                             signing_key: &[u8; SIGNING_KEY_SIZE],
                             message: &[u8],
@@ -150,6 +151,7 @@ macro_rules! instantiate {
                         }
 
                         /// Verify (pre-hashed with SHAKE-128).
+                        #[cfg_attr(hax, hax_lib::ensures(|_| future(pre_hash_buffer).len() == pre_hash_buffer.len()))]
                         pub(crate) fn verify_pre_hashed_shake128(
                             verification_key: &[u8; VERIFICATION_KEY_SIZE],
                             message: &[u8],

@@ -1,8 +1,8 @@
 use libcrux_ml_dsa::ml_dsa_44::*;
-use rand::{rngs::SysRng, TryRng};
+use rand::{rngs::OsRng, TryRngCore};
 
 fn random_array<const L: usize>() -> [u8; L] {
-    let mut rng = SysRng;
+    let mut rng = OsRng;
     let mut seed = [0; L];
     rng.try_fill_bytes(&mut seed).unwrap();
     seed

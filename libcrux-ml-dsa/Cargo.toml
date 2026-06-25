@@ -1,7 +1,7 @@
 [package]
 name = "libcrux-ml-dsa"
 description = "Libcrux ML-DSA implementation"
-version = "0.0.9"
+version = "0.0.8"
 readme = "README.md"
 
 authors.workspace = true
@@ -30,19 +30,24 @@ libcrux-sha3.workspace = true
 libcrux-intrinsics.workspace = true
 libcrux-platform.workspace = true
 libcrux-macros.workspace = true
-libcrux-secrets.workspace = true
 hax-lib.workspace = true
 tls_codec = { version = "0.4.2", features = [
     "derive",
 ], default-features = false, optional = true }
 
 [dev-dependencies]
-rand = { version = "0.10" }
+rand = { version = "0.9" }
 hex = { version = "0.4.3", features = ["serde"] }
 serde_json = { version = "1.0" }
 serde = { version = "1.0", features = ["derive"] }
 criterion = "0.8"
 libcrux-kats = { workspace = true, features = ["mldsa"] }
+# Cross-spec tests against the hacspec at ../specs/ml-dsa.  Always
+# pulled in for dev builds because Cargo doesn't allow optional
+# dev-dependencies; the actual test bodies are gated behind the
+# `cross-spec-tests` feature so default `cargo test` is unaffected.
+hacspec_ml_dsa = { path = "../specs/ml-dsa" }
+rand_chacha = "0.9"
 
 
 # This doesn't build on intel macos.
@@ -50,7 +55,8 @@ libcrux-kats = { workspace = true, features = ["mldsa"] }
 pqcrypto-mldsa = { version = "0.1.0" } #, default-features = false
 
 [target.'cfg(hax)'.dependencies]
-core-models = { path = "../crates/utils/core-models", version = "0.0.6" }
+core-models = { path = "../crates/utils/core-models", version = "0.0.5" }
+hacspec_ml_dsa = { path = "../specs/ml-dsa" }
 
 [features]
 default = ["std", "mldsa44", "mldsa65", "mldsa87"]
@@ -58,6 +64,7 @@ simd128 = ["libcrux-sha3/simd128", "libcrux-intrinsics/simd128"]
 simd256 = ["libcrux-sha3/simd256", "libcrux-intrinsics/simd256"]
 acvp = []                                                        # expose internal API for ACVP testing
 test-utils = []                                                  # exposing internal functions for testing
+cross-spec-tests = ["test-utils"]                                # tests/cross_spec.rs against the hacspec
 
 # Features for the different key sizes of ML-DSA
 mldsa44 = []
@@ -87,4 +94,4 @@ name = "ml-dsa"
 harness = false
 
 [lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = ['cfg(hax)', 'cfg(valgrind_ct_test)'] }
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(hax)'] }

@@ -4,15 +4,20 @@ use crate::{constants::BITS_IN_LOWER_PART_OF_T, simd::portable::vector_type::Coe
 // vice versa.
 #[inline(always)]
 #[hax_lib::requires(t0 > i32::MIN + 4096)]
+#[hax_lib::ensures(|result| fstar!(r#"
+    v $result == pow2 12 - v $t0 /\
+    (v $t0 >= 0 /\ v $t0 < pow2 13 ==>
+      v $result > -(pow2 12) /\ v $result <= pow2 12)"#))]
 fn change_t0_interval(t0: i32) -> i32 {
     (1 << (BITS_IN_LOWER_PART_OF_T - 1)) - t0
 }
 
 #[inline(always)]
 #[hax_lib::requires(fstar!(r#"
-    (forall i. bounded (Seq.index simd_unit.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i) 13)
+    (forall i. Spec.Utils.is_i32b (pow2 12) (Seq.index simd_unit.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i))
  /\ (Seq.length $serialized == 13)
 "#))]
+#[hax_lib::ensures(|_| fstar!(r#"Seq.length ${serialized}_future == Seq.length ${serialized}"#))]
 pub fn serialize(simd_unit: &Coefficients, serialized: &mut [u8]) {
     #[cfg(not(eurydice))]
     debug_assert!(serialized.len() == 13);
@@ -42,7 +47,12 @@ pub fn serialize(simd_unit: &Coefficients, serialized: &mut [u8]) {
 }
 
 #[inline(always)]
+#[hax_lib::fstar::options("--z3rlimit 300 --split_queries always")]
 #[hax_lib::requires(serialized.len() == 13)]
+#[hax_lib::ensures(|_| fstar!(r#"
+    (forall (i: nat). i < 8 ==>
+      v (Seq.index ${simd_unit}_future.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i) > -(pow2 12) /\
+      v (Seq.index ${simd_unit}_future.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i) <= pow2 12)"#))]
 pub fn deserialize(serialized: &[u8], simd_unit: &mut Coefficients) {
     #[cfg(not(eurydice))]
     debug_assert!(serialized.len() == 13);
@@ -100,6 +110,12 @@ pub fn deserialize(serialized: &[u8], simd_unit: &mut Coefficients) {
     coefficient7 &= BITS_IN_LOWER_PART_OF_T_MASK;
 
     hax_lib::fstar!("let (): squash (forall (x: int_t I32). get_bit x (mk_int 31) == 0 ==> v x >= 0) = reveal_opaque (`%get_bit) (get_bit #I32) in ()");
+    hax_lib::fstar!(
+        r#"assert (Libcrux_ml_dsa.Simd.Portable.Encoding.T0.deserialize__v_BITS_IN_LOWER_PART_OF_T_MASK == (mk_i32 (pow2 13) -! mk_i32 1))
+            by (FStar.Tactics.norm [delta_only [`%Libcrux_ml_dsa.Constants.v_BITS_IN_LOWER_PART_OF_T;
+                                                `%Libcrux_ml_dsa.Simd.Portable.Encoding.T0.deserialize__v_BITS_IN_LOWER_PART_OF_T_MASK];
+                                    primops])"#
+    );
 
     simd_unit.values[0] = change_t0_interval(coefficient0);
     simd_unit.values[1] = change_t0_interval(coefficient1);

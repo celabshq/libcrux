@@ -1,12 +1,13 @@
-use libcrux_intrinsics::avx2::*;
-
 use crate::{
     constants::{Gamma2, BITS_IN_LOWER_PART_OF_T, GAMMA2_V261_888, GAMMA2_V95_232},
     simd::traits::{FIELD_MODULUS, INVERSE_OF_MODULUS_MOD_MONTGOMERY_R},
 };
 
+use libcrux_intrinsics::avx2::*;
+
 #[inline]
 #[hax_lib::fstar::before(r#"open Spec.Intrinsics"#)]
+#[hax_lib::fstar::before(r#"open Libcrux_core_models.Core_arch.X86.Interpretations.Int_vec"#)]
 #[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
 #[hax_lib::requires(true)]
 #[hax_lib::ensures(|result| fstar!(r#"
@@ -38,24 +39,39 @@ fn to_unsigned_representatives(t: &mut Vec256) {
 }
 
 #[inline]
+#[hax_lib::ensures(|_| fstar!(r#"
+    (forall i. to_i32x8 ${lhs}_future i ==
+        add_mod_opaque (to_i32x8 ${lhs} i) (to_i32x8 ${rhs} i))"#))]
 pub(super) fn add(lhs: &mut Vec256, rhs: &Vec256) {
     *lhs = mm256_add_epi32(*lhs, *rhs);
 }
 
 #[inline]
+#[hax_lib::ensures(|_| fstar!(r#"
+    (forall i. to_i32x8 ${lhs}_future i ==
+        sub_mod_opaque (to_i32x8 ${lhs} i) (to_i32x8 ${rhs} i))"#))]
 pub(super) fn subtract(lhs: &mut Vec256, rhs: &Vec256) {
     *lhs = mm256_sub_epi32(*lhs, *rhs)
 }
 
 // Not using inline always here regresses performance significantly.
+//
+// Post: only the per-lane mont_mul equality.  The SMTPats on
+// `to_i32x8 (mm256_op …) i` (registered in Spec.Intrinsics) propagate
+// lane-wise through the SIMD chain; mont_mul auto-unfolds to
+// `mont_red (i32_mul x y)`; `reveal_opaque mont_red` exposes the hi/lo
+// body which syntactically matches the SIMD expansion.  Bound + mod-q
+// derivations belong at the trait/caller layer where they invoke
+// `lemma_mont_mul_bound_and_mod_q` per-lane.
 #[inline(always)]
 #[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
+#[hax_lib::fstar::options("--z3rlimit 200")]
 #[hax_lib::ensures(|result| fstar!(r#"
-    forall i. to_i32x8 ${result} i == 
+    forall i. to_i32x8 ${result} i ==
               Spec.MLDSA.Math.mont_mul (to_i32x8 ${lhs} i) $constant
 "#))]
 pub(super) fn montgomery_multiply_by_constant(lhs: Vec256, constant: i32) -> Vec256 {
-    hax_lib::fstar!("reveal_opaque (`%Spec.MLDSA.Math.mont_mul) (Spec.MLDSA.Math.mont_mul)");
+    hax_lib::fstar!("reveal_opaque (`%Spec.MLDSA.Math.mont_red) (Spec.MLDSA.Math.mont_red)");
 
     let rhs = mm256_set1_epi32(constant);
     let field_modulus = mm256_set1_epi32(FIELD_MODULUS);
@@ -83,6 +99,7 @@ pub(super) fn montgomery_multiply_by_constant(lhs: Vec256, constant: i32) -> Vec
 // Not using inline always here regresses performance significantly.
 #[inline(always)]
 #[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
+#[hax_lib::fstar::options("--z3rlimit 200")]
 #[hax_lib::requires(
     hax_lib::eq(field_modulus, mm256_set1_epi32(FIELD_MODULUS)).and(hax_lib::eq(
         inverse_of_modulus_mod_montgomery_r,
@@ -93,14 +110,13 @@ pub(super) fn montgomery_multiply_by_constant(lhs: Vec256, constant: i32) -> Vec
     forall i. to_i32x8 ${lhs}_future i ==
               Spec.MLDSA.Math.mont_mul (to_i32x8 ${lhs} i) (to_i32x8 ${rhs} i)
 "#))]
-#[hax_lib::fstar::verification_status(panic_free)]
 pub(super) fn montgomery_multiply_aux(
     field_modulus: Vec256,
     inverse_of_modulus_mod_montgomery_r: Vec256,
     lhs: &mut Vec256,
     rhs: &Vec256,
 ) {
-    hax_lib::fstar!("reveal_opaque (`%Spec.MLDSA.Math.mont_mul) (Spec.MLDSA.Math.mont_mul)");
+    hax_lib::fstar!("reveal_opaque (`%Spec.MLDSA.Math.mont_red) (Spec.MLDSA.Math.mont_red)");
 
     let prod02 = mm256_mul_epi32(*lhs, *rhs);
     let prod13 = mm256_mul_epi32(
@@ -123,7 +139,7 @@ pub(super) fn montgomery_multiply_aux(
 #[inline(always)]
 #[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
 #[hax_lib::ensures(|_| fstar!(r#"
-    forall i. to_i32x8 ${lhs}_future i == 
+    forall i. to_i32x8 ${lhs}_future i ==
               Spec.MLDSA.Math.mont_mul (to_i32x8 ${lhs} i) (to_i32x8 ${rhs} i)
 "#))]
 pub(super) fn montgomery_multiply(lhs: &mut Vec256, rhs: &Vec256) {
@@ -134,28 +150,19 @@ pub(super) fn montgomery_multiply(lhs: &mut Vec256, rhs: &Vec256) {
     montgomery_multiply_aux(field_modulus, inverse_of_modulus_mod_montgomery_r, lhs, rhs);
 }
 
-#[inline]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"v $SHIFT_BY == 13"#))]
-#[hax_lib::ensures(|_| fstar!(r#"
-    (forall i. to_i32x8 ${simd_unit}_future i ==
-        Spec.MLDSA.Math.barrett_red (shift_left_opaque (to_i32x8 ${simd_unit} i) v_SHIFT_BY))"#))]
-pub(super) fn shift_left_then_reduce<const SHIFT_BY: i32>(simd_unit: &mut Vec256) {
-    hax_lib::fstar!("reveal_opaque (`%Spec.MLDSA.Math.barrett_red) (Spec.MLDSA.Math.barrett_red)");
-
-    let mut shifted = mm256_slli_epi32::<SHIFT_BY>(*simd_unit);
-
-    barrett_reduce_simd_unit(&mut shifted);
-    *simd_unit = shifted;
-}
-
+/// Per-lane Barrett reduce on all 8 coefficients in a `Vec256`.
+///
+/// Brings each coefficient into the centered Barrett range
+/// `(-FIELD_MODULUS, FIELD_MODULUS)`. Shared by `Operations::reduce` and
+/// `shift_left_then_reduce` (which prepends a SIMD left-shift).
 #[inline]
 #[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
 #[hax_lib::ensures(|_| fstar!(r#"
     (forall i. to_i32x8 ${simd_unit}_future i ==
         Spec.MLDSA.Math.barrett_red (to_i32x8 ${simd_unit} i))"#))]
-#[hax_lib::fstar::verification_status(panic_free)]
-pub(super) fn barrett_reduce_simd_unit(simd_unit: &mut Vec256) {
+pub(super) fn reduce(simd_unit: &mut Vec256) {
+    hax_lib::fstar!("reveal_opaque (`%Spec.MLDSA.Math.barrett_red) (Spec.MLDSA.Math.barrett_red)");
+
     let quotient = mm256_add_epi32(*simd_unit, mm256_set1_epi32(1 << 22));
     let quotient = mm256_srai_epi32::<23>(quotient);
 
@@ -163,6 +170,17 @@ pub(super) fn barrett_reduce_simd_unit(simd_unit: &mut Vec256) {
         mm256_mullo_epi32(quotient, mm256_set1_epi32(FIELD_MODULUS as i32));
 
     *simd_unit = mm256_sub_epi32(*simd_unit, quotient_times_field_modulus);
+}
+
+#[inline]
+#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
+#[hax_lib::requires(fstar!(r#"v $SHIFT_BY == 13"#))]
+#[hax_lib::ensures(|_| fstar!(r#"
+    (forall i. to_i32x8 ${simd_unit}_future i ==
+        Spec.MLDSA.Math.barrett_red (shift_left_opaque (to_i32x8 ${simd_unit} i) v_SHIFT_BY))"#))]
+pub(super) fn shift_left_then_reduce<const SHIFT_BY: i32>(simd_unit: &mut Vec256) {
+    *simd_unit = mm256_slli_epi32::<SHIFT_BY>(*simd_unit);
+    reduce(simd_unit);
 }
 
 #[inline]
@@ -281,13 +299,46 @@ pub(super) fn decompose(gamma2: Gamma2, r: &Vec256, r0: &mut Vec256, r1: &mut Ve
 
 // Not using inline always here regresses performance significantly.
 #[inline(always)]
+// Proof helpers for compute_hint's per-lane functional post.  `lemma_or_and_mask_bit`
+// closes the `(mask_a |. mask_c) &. 1` truth table for mask values (ones/zero) via the
+// logor/logand value lemmas; `lemma_and_one_binary` gives `x &. 1 ∈ {0,1}` for any x.
+#[hax_lib::fstar::before(
+    r#"
+let lemma_ones_zero_v (_: unit)
+    : Lemma (v (ones #i32_inttype) == - 1 /\ v (zero #i32_inttype) == 0) =
+  lognot_lemma_forall #i32_inttype
+
+let lemma_and_one_binary (x: i32)
+    : Lemma (v (x &. mk_i32 1) == 0 \/ v (x &. mk_i32 1) == 1) =
+  logand_mask_lemma x 1
+
+let lemma_or_and_mask_bit (a c: i32)
+    : Lemma
+      (requires (a == zero \/ a == ones) /\ (c == zero \/ c == ones))
+      (ensures v ((a |. c <: i32) &. mk_i32 1) == (if (a = ones) || (c = ones) then 1 else 0)) =
+  logor_lemma a c;
+  logand_lemma (mk_i32 1) (mk_i32 1);
+  lemma_ones_zero_v ()
+"#
+)]
 #[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::requires(fstar!(r#"
+    (v $gamma2 == v $GAMMA2_V261_888 \/ v $gamma2 == v $GAMMA2_V95_232) /\
+    (forall i. Spec.Utils.is_i32b (v $FIELD_MODULUS - 1) (to_i32x8 $low i)) /\
+    (forall i. Spec.Utils.is_i32b (v $FIELD_MODULUS - 1) (to_i32x8 $high i))"#))]
+#[hax_lib::ensures(|result| fstar!(r#"
+    v $result <= 8 /\
+    (forall (i: u64{v i < 8}). {:pattern (to_i32x8 ${hint}_future i)}
+        v (to_i32x8 ${hint}_future i) == 0 \/ v (to_i32x8 ${hint}_future i) == 1) /\
+    (forall (i: u64{v i < 8}). {:pattern (to_i32x8 ${hint}_future i)}
+        (v (to_i32x8 $high i) >= 0 /\ v (to_i32x8 $high i) < 8380417) ==>
+        v (to_i32x8 ${hint}_future i) ==
+        Spec.MLDSA.Math.compute_one_hint (v (to_i32x8 $low i)) (v (to_i32x8 $high i)) (v $gamma2))"#))]
 pub(super) fn compute_hint(low: &Vec256, high: &Vec256, gamma2: i32, hint: &mut Vec256) -> usize {
     let minus_gamma2 = mm256_set1_epi32(-gamma2);
-    let gamma2 = mm256_set1_epi32(gamma2);
+    let gamma2_vec = mm256_set1_epi32(gamma2);
 
-    let low_within_bound = mm256_cmpgt_epi32(mm256_abs_epi32(*low), gamma2);
+    let low_within_bound = mm256_cmpgt_epi32(mm256_abs_epi32(*low), gamma2_vec);
     let low_equals_minus_gamma2 = mm256_cmpeq_epi32(*low, minus_gamma2);
 
     // If a lane in |high| is 0, the corresponding output will be 0; the output
@@ -303,26 +354,128 @@ pub(super) fn compute_hint(low: &Vec256, high: &Vec256, gamma2: i32, hint: &mut 
     let hints_mask = mm256_movemask_ps(mm256_castsi256_ps(*hint));
     *hint = mm256_and_si256(*hint, mm256_set1_epi32(0x1));
 
-    hints_mask.count_ones() as usize
+    let result = hints_mask.count_ones() as usize;
+    hax_lib::fstar!(
+        r#"
+        Libcrux_ml_dsa.Proof_utils.lemma_movemask_ps_bound
+          (Libcrux_intrinsics.Avx2.mm256_castsi256_ps
+            (Libcrux_intrinsics.Avx2.mm256_or_si256 ${low_within_bound}
+                ${low_equals_minus_gamma2_and_high_is_nonzero}));
+        Libcrux_ml_dsa.Proof_utils.lemma_count_ones_byte ${hints_mask};
+        let aux (i: u64{v i < 8}) : Lemma
+          (ensures
+            (v (to_i32x8 ${hint} i) == 0 \/ v (to_i32x8 ${hint} i) == 1) /\
+            ((v (to_i32x8 ${high} i) >= 0 /\ v (to_i32x8 ${high} i) < 8380417) ==>
+              v (to_i32x8 ${hint} i) ==
+              Spec.MLDSA.Math.compute_one_hint (v (to_i32x8 ${low} i)) (v (to_i32x8 ${high} i)) (v $gamma2))) =
+          lemma_and_one_binary ((to_i32x8 ${low_within_bound} i) |.
+              (to_i32x8 ${low_equals_minus_gamma2_and_high_is_nonzero} i));
+          lemma_ones_zero_v ();
+          if (v (to_i32x8 ${high} i) >= 0 && v (to_i32x8 ${high} i) < 8380417)
+          then
+            lemma_or_and_mask_bit (to_i32x8 ${low_within_bound} i)
+              (to_i32x8 ${low_equals_minus_gamma2_and_high_is_nonzero} i)
+          else () in
+        Classical.forall_intro aux
+    "#
+    );
+    result
 }
 
 // Not using inline always here regresses performance significantly.
 #[inline(always)]
+// Clean-context helper lemmas for use_hint's functional proof: the pure-int
+// matching of the AVX2 clamp/and chain to use_one_hint's (r1 +/- 1) % m form,
+// and the bridge from use_one_hint to decompose_spec's outputs (via the
+// admitted decompose bit-trick lemma).  Kept out of the leaf's SIMD context so
+// the small-modulus reasoning does not saturate.
+#[hax_lib::fstar::before(
+    r#"
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 300"
+let lemma_use_hint_value (gamma2: i32) (r0i r1i h: int)
+    : Lemma
+      (requires
+        (v gamma2 == 95232 \/ v gamma2 == 261888) /\
+        (h == 0 \/ h == 1) /\
+        0 <= r1i /\
+        (v gamma2 == 95232 ==> r1i < 44) /\
+        (v gamma2 == 261888 ==> r1i < 16))
+      (ensures
+        (let m = 4190208 / (v gamma2) in
+          let rph = (if r0i <= 0 then r1i - h else r1i + h) in
+          let uoh = (if h = 0 then r1i else if r0i > 0 then (r1i + 1) % m else (r1i - 1) % m) in
+          (v gamma2 == 95232 ==>
+            (if (if rph < 0 then 43 else rph) > 43 then 0 else (if rph < 0 then 43 else rph)) == uoh) /\
+          (v gamma2 == 261888 ==> rph % 16 == uoh))) =
+  let m = 4190208 / (v gamma2) in
+  if h = 0 then ()
+  else if r0i > 0 then begin
+    if r1i + 1 < m then FStar.Math.Lemmas.small_mod (r1i + 1) m
+    else FStar.Math.Lemmas.cancel_mul_mod 1 m
+  end
+  else begin
+    if r1i - 1 >= 0 then FStar.Math.Lemmas.small_mod (r1i - 1) m
+    else begin
+      FStar.Math.Lemmas.lemma_mod_plus (r1i - 1) 1 m;
+      FStar.Math.Lemmas.small_mod (r1i - 1 + m) m
+    end
+  end
+#pop-options
+
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 300"
+let lemma_use_one_hint_via_spec (gamma2 r h: i32)
+    : Lemma
+      (requires
+        (v gamma2 == 95232 \/ v gamma2 == 261888) /\
+        Spec.Utils.is_i32b 8380416 r /\
+        (v h == 0 \/ v h == 1))
+      (ensures
+        (let r0_s, r1_s = Spec.MLDSA.Math.decompose_spec gamma2 r in
+          let m = 4190208 / (v gamma2) in
+          Spec.MLDSA.Math.use_one_hint (v gamma2) (v r) (v h) ==
+          (if v h = 0 then v r1_s
+           else if v r0_s > 0 then (v r1_s + 1) % m
+           else (v r1_s - 1) % m))) =
+  Hacspec_ml_dsa.Commute.Chunk.lemma_decompose_spec_eq_decompose gamma2 r;
+  Hacspec_ml_dsa.Commute.Chunk.lemma_decompose_bound gamma2 r
+#pop-options
+"#
+)]
+#[cfg_attr(hax, hax_lib::fstar::options("--split_queries always --z3rlimit 300 --fuel 1 --ifuel 1 --using_facts_from '* -Spec.MLDSA.Math.decompose_spec -Spec.MLDSA.Math.decompose -Spec.MLDSA.Math.mod_p'"))]
 #[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::requires(fstar!(r#"(v $gamma2 == v $GAMMA2_V261_888 \/ v $gamma2 == v $GAMMA2_V95_232) /\
+    (forall i. Spec.Utils.is_i32b (v $FIELD_MODULUS - 1) (to_i32x8 $r i)) /\
+    (forall (i: u64{v i < 8}). v (to_i32x8 $hint i) == 0 \/ v (to_i32x8 $hint i) == 1)"#))]
+#[hax_lib::ensures(|_| fstar!(r#"
+    (forall (i: u64{v i < 8}). {:pattern (to_i32x8 ${hint}_future i)}
+        (let r0_s, r1_s = Spec.MLDSA.Math.decompose_spec $gamma2 (to_i32x8 $r i) in
+          let m = 4190208 / (v $gamma2) in
+          v (to_i32x8 ${hint}_future i) ==
+          (if v (to_i32x8 $hint i) = 0 then v r1_s
+           else if v r0_s > 0 then (v r1_s + 1) % m
+           else (v r1_s - 1) % m))) /\
+    (forall (i: u64{v i < 8}). {:pattern (to_i32x8 ${hint}_future i)}
+        (v $gamma2 == 95232 ==> Spec.Utils.is_i32b 44 (to_i32x8 ${hint}_future i)) /\
+        (v $gamma2 == 261888 ==> Spec.Utils.is_i32b 16 (to_i32x8 ${hint}_future i)))"#))]
 pub(super) fn use_hint(gamma2: Gamma2, r: &Vec256, hint: &mut Vec256) {
+    #[cfg(hax)]
+    let hint_in = *hint;
     let (mut r0, mut r1) = (mm256_setzero_si256(), mm256_setzero_si256());
     decompose(gamma2, r, &mut r0, &mut r1);
 
     let all_zeros = mm256_setzero_si256();
 
-    // If r0 is <=0, we have to subtract the hint, whereas if it is > 0,
-    // we have to add the hint. We thus add signs to the hint vector accordingly:
+    // If r0 <= 0, we have to subtract the hint, whereas if it is strictly
+    // positive, we have to add the hint (FIPS 204, Algorithm 40: the boundary
+    // r0 == 0 belongs to the subtract branch). blendv selects by the sign bit,
+    // so we test the sign of (r0 - 1), which is set exactly when r0 <= 0
+    // (r0 in [-gamma2, gamma2], so r0 - 1 never overflows). We thus add signs to
+    // the hint vector accordingly:
     //
     // With this step, |negate_hints| will match |hint| in only those lanes in
     // which the corresponding r0 value is <= 0, and will be 0 elsewhere.
-    let r0_gt_zero = mm256_cmpgt_epi32(r0, all_zeros);
-    let negate_hints = vec256_blendv_epi32(*hint, all_zeros, r0_gt_zero);
+    let r0_le_zero = mm256_sub_epi32(r0, mm256_set1_epi32(1));
+    let negate_hints = vec256_blendv_epi32(all_zeros, *hint, r0_le_zero);
 
     // If a lane in |negate_hints| is 1, it means the corresponding hint was 1,
     // and the lane value will be doubled. It will remain 0 otherwise.
@@ -334,6 +487,8 @@ pub(super) fn use_hint(gamma2: Gamma2, r: &Vec256, hint: &mut Vec256) {
 
     // Now add the hints to r1
     let mut r1_plus_hints = mm256_add_epi32(r1, hints);
+    #[cfg(hax)]
+    let rph_snapshot = r1_plus_hints;
 
     match gamma2 {
         GAMMA2_V95_232 => {
@@ -354,4 +509,35 @@ pub(super) fn use_hint(gamma2: Gamma2, r: &Vec256, hint: &mut Vec256) {
 
         _ => unreachable!(),
     }
+
+    hax_lib::fstar!(
+        r#"
+    let aux (i: u64{v i < 8})
+        : Lemma
+        (ensures
+          (let r0_s, r1_s = Spec.MLDSA.Math.decompose_spec ${gamma2} (to_i32x8 ${r} i) in
+            let m = 4190208 / (v ${gamma2}) in
+            v (to_i32x8 ${hint} i) ==
+            (if v (to_i32x8 ${hint_in} i) = 0 then v r1_s
+             else if v r0_s > 0 then (v r1_s + 1) % m
+             else (v r1_s - 1) % m)) /\
+          (v ${gamma2} == 95232 ==> Spec.Utils.is_i32b 44 (to_i32x8 ${hint} i)) /\
+          (v ${gamma2} == 261888 ==> Spec.Utils.is_i32b 16 (to_i32x8 ${hint} i))) =
+      let ri = to_i32x8 ${r} i in
+      Hacspec_ml_dsa.Commute.Chunk.lemma_decompose_spec_eq_decompose ${gamma2} ri;
+      Hacspec_ml_dsa.Commute.Chunk.lemma_decompose_bound ${gamma2} ri;
+      Spec.Intrinsics.reveal_opaque_arithmetic_ops #i32_inttype;
+      lemma_ones_zero_v ();
+      logand_mask_lemma (to_i32x8 ${rph_snapshot} i) 4;
+      assert (forall (j: u64{v j < 8}). v (to_i32x8 ${hint_in} j) == 0 \/ v (to_i32x8 ${hint_in} j) == 1);
+      assert (v (to_i32x8 ${hint_in} i) == 0 \/ v (to_i32x8 ${hint_in} i) == 1);
+      assert (0 <= v (to_i32x8 ${r1} i) /\
+              (v ${gamma2} == 95232 ==> v (to_i32x8 ${r1} i) < 44) /\
+              (v ${gamma2} == 261888 ==> v (to_i32x8 ${r1} i) < 16));
+      lemma_use_hint_value ${gamma2} (v (to_i32x8 ${r0} i)) (v (to_i32x8 ${r1} i))
+        (v (to_i32x8 ${hint_in} i))
+    in
+    Classical.forall_intro aux
+    "#
+    );
 }

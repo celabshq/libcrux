@@ -1,12 +1,16 @@
-use libcrux_secrets::mem_requests::ct_declassify;
-
 use crate::constants::FIELD_MODULUS;
+
 #[cfg(hax)]
 use crate::specs::simd::portable::sample::*;
 
 #[inline(always)]
 #[hax_lib::requires(rejection_sample_less_than_field_modulus_pre(randomness, out))]
-#[hax_lib::ensures(|r| rejection_sample_less_than_field_modulus_post(randomness, future(out), r))]
+#[hax_lib::ensures(|r| fstar!(r#"
+    Libcrux_ml_dsa.Specs.Simd.Portable.Sample.rejection_sample_less_than_field_modulus_post $randomness ${out}_future $r /\
+    Seq.length ${out}_future == Seq.length $out /\
+    v $r <= Seq.length $randomness / 3 /\
+    (forall (i:nat{i < Seq.length ${out}_future}). i < v $r ==>
+       v (Seq.index ${out}_future i) >= 0 /\ v (Seq.index ${out}_future i) < 8380417)"#))]
 pub fn rejection_sample_less_than_field_modulus(randomness: &[u8], out: &mut [i32]) -> usize {
     let mut sampled = 0;
 
@@ -22,6 +26,8 @@ pub fn rejection_sample_less_than_field_modulus(randomness: &[u8], out: &mut [i3
                 r#"
               v $sampled <= v $i /\
               Seq.length $out == v $_out_len /\
+              (forall (j:nat{j < Seq.length ${out}}). j < v $sampled ==>
+                 v (Seq.index $out j) >= 0 /\ v (Seq.index $out j) < 8380417) /\
               (let samples = Spec.Utils.repeati ($i)
                 (Spec.MLDSA.Math.rejection_sample_field_modulus_inner $randomness) Seq.empty in
               v $sampled == Seq.length samples /\
@@ -58,7 +64,12 @@ pub fn rejection_sample_less_than_field_modulus(randomness: &[u8], out: &mut [i3
 #[inline(always)]
 #[hax_lib::fstar::options("--z3rlimit 800 --ext context_pruning --z3refresh")]
 #[hax_lib::requires(rejection_sample_less_than_eta_equals_2_pre(randomness, out))]
-#[hax_lib::ensures(|r| rejection_sample_less_than_eta_equals_2_post(randomness, future(out), r))]
+#[hax_lib::ensures(|r| fstar!(r#"
+    Libcrux_ml_dsa.Specs.Simd.Portable.Sample.rejection_sample_less_than_eta_equals_2_post $randomness ${out}_future $r /\
+    Seq.length ${out}_future == Seq.length $out /\
+    v $r <= Seq.length $randomness * 2 /\
+    (forall (i:nat{i < Seq.length ${out}_future}). i < v $r ==>
+       v (Seq.index ${out}_future i) >= -2 /\ v (Seq.index ${out}_future i) <= 2)"#))]
 pub fn rejection_sample_less_than_eta_equals_2(randomness: &[u8], out: &mut [i32]) -> usize {
     let mut sampled = 0;
 
@@ -75,6 +86,8 @@ pub fn rejection_sample_less_than_eta_equals_2(randomness: &[u8], out: &mut [i32
               v $i >= 0 /\ v $i <= Seq.length $randomness /\
               v $sampled <= v $i * 2 /\
               Seq.length $out == v $_out_len /\
+              (forall (j:nat{j < Seq.length ${out}}). j < v $sampled ==>
+                 v (Seq.index $out j) >= -2 /\ v (Seq.index $out j) <= 2) /\
               (let samples = Spec.Utils.repeati ($i)
                 (Spec.MLDSA.Math.rejection_sample_eta_2_inner $randomness) Seq.empty in
               v $sampled == Seq.length samples /\
@@ -91,38 +104,7 @@ pub fn rejection_sample_less_than_eta_equals_2(randomness: &[u8], out: &mut [i32
                 (Spec.MLDSA.Math.rejection_sample_eta_2_inner $randomness) Seq.empty ($i)"#
         );
 
-        let try_0_comp = try_0 < 15;
-        let try_1_comp = try_1 < 15;
-
-        // Declassification: The subsequent branch may leak the
-        // rejection decision for this coefficient. The Dilithium
-        // Specification for Round 3 of the NIST Post-Quantum
-        // Cryptography Standardization Process states that:
-        //
-        // "When performing rejection sampling, our code reveals which of the
-        // conditions was the reason for the rejection, ..."
-        //
-        // and that doing so is safe (Section 5.5,
-        // https://pq-crystals.org/dilithium/data/dilithium-specification-round3-20210208.pdf).
-        // However, there is some ambiguity whether this is referring
-        // only to rejection sampling during signature
-        // generation. Other implementations of ML-DSA, including the
-        // reference implementation, do not go out of their way to
-        // avoid this secret-dependent branch and are offered as
-        // evidence that this is safe to do:
-        //
-        // - mldsa-native: https://github.com/pq-code-package/mldsa-native/blob/0591fe06832418f8a320d5a1533327df063185cf/mldsa/src/poly_kl.c#L235
-        // - Dilithium reference implementation: https://github.com/pq-crystals/dilithium/blob/6e00625c5b29f516c6de973fe2ee2fbb150973f9/ref/poly.c#L398
-        //
-        // While we do not consider protection against power
-        // side-channels in scope for libcrux, at this point, a
-        // hardened implementation of sampling mod p can be found in
-        // Azouaoui et al, "Levelling Dilithium Against Leakage",
-        // section 4.4
-        // (https://csrc.nist.gov/csrc/media/Events/2022/fourth-pqc-standardization-conference/documents/papers/leveling-dilithium-against-leakage-pqc2022.pdf).
-        ct_declassify(&try_0_comp);
-
-        if try_0_comp {
+        if try_0 < 15 {
             let try_0 = try_0 as i32;
             // (try_0 * 26) >> 7 computes ⌊try_0 / 5⌋
             let try_0_mod_5 = try_0 - ((try_0 * 26) >> 7) * 5;
@@ -136,35 +118,7 @@ pub fn rejection_sample_less_than_eta_equals_2(randomness: &[u8], out: &mut [i32
             sampled += 1;
         }
 
-        // Declassification: The subsequent branch may leak the
-        // rejection decision for this coefficient. The Dilithium
-        // Specification for Round 3 of the NIST Post-Quantum
-        // Cryptography Standardization Process states that:
-        //
-        // "When performing rejection sampling, our code reveals which of the
-        // conditions was the reason for the rejection, ..."
-        //
-        // and that doing so is safe (Section 5.5,
-        // https://pq-crystals.org/dilithium/data/dilithium-specification-round3-20210208.pdf).
-        // However, there is some ambiguity whether this is referring
-        // only to rejection sampling during signature
-        // generation. Other implementations of ML-DSA, including the
-        // reference implementation, do not go out of their way to
-        // avoid this secret-dependent branch and are offered as
-        // evidence that this is safe to do:
-        //
-        // - mldsa-native: https://github.com/pq-code-package/mldsa-native/blob/0591fe06832418f8a320d5a1533327df063185cf/mldsa/src/poly_kl.c#L235
-        // - Dilithium reference implementation: https://github.com/pq-crystals/dilithium/blob/6e00625c5b29f516c6de973fe2ee2fbb150973f9/ref/poly.c#L398
-        //
-        // While we do not consider protection against power
-        // side-channels in scope for libcrux, at this point, a
-        // hardened implementation of sampling mod p can be found in
-        // Azouaoui et al, "Levelling Dilithium Against Leakage",
-        // section 4.4
-        // (https://csrc.nist.gov/csrc/media/Events/2022/fourth-pqc-standardization-conference/documents/papers/leveling-dilithium-against-leakage-pqc2022.pdf).
-        ct_declassify(&try_1_comp);
-
-        if try_1_comp {
+        if try_1 < 15 {
             let try_1 = try_1 as i32;
             let try_1_mod_5 = try_1 - ((try_1 * 26) >> 7) * 5;
 
@@ -190,7 +144,12 @@ pub fn rejection_sample_less_than_eta_equals_2(randomness: &[u8], out: &mut [i32
 #[inline(always)]
 #[hax_lib::fstar::options("--ext context_pruning --z3refresh")]
 #[hax_lib::requires(rejection_sample_less_than_eta_equals_4_pre(randomness, out))]
-#[hax_lib::ensures(|r| rejection_sample_less_than_eta_equals_4_post(randomness, future(out), r))]
+#[hax_lib::ensures(|r| fstar!(r#"
+    Libcrux_ml_dsa.Specs.Simd.Portable.Sample.rejection_sample_less_than_eta_equals_4_post $randomness ${out}_future $r /\
+    Seq.length ${out}_future == Seq.length $out /\
+    v $r <= Seq.length $randomness * 2 /\
+    (forall (i:nat{i < Seq.length ${out}_future}). i < v $r ==>
+       v (Seq.index ${out}_future i) >= -4 /\ v (Seq.index ${out}_future i) <= 4)"#))]
 pub fn rejection_sample_less_than_eta_equals_4(randomness: &[u8], out: &mut [i32]) -> usize {
     let mut sampled = 0;
 
@@ -207,6 +166,8 @@ pub fn rejection_sample_less_than_eta_equals_4(randomness: &[u8], out: &mut [i32
               v $i >= 0 /\ v $i <= Seq.length $randomness /\
               v $sampled <= v $i * 2 /\
               Seq.length $out == v $_out_len /\
+              (forall (j:nat{j < Seq.length ${out}}). j < v $sampled ==>
+                 v (Seq.index $out j) >= -4 /\ v (Seq.index $out j) <= 4) /\
               (let samples = Spec.Utils.repeati ($i)
                 (Spec.MLDSA.Math.rejection_sample_eta_4_inner $randomness) Seq.empty in
               v $sampled == Seq.length samples /\
@@ -223,71 +184,11 @@ pub fn rejection_sample_less_than_eta_equals_4(randomness: &[u8], out: &mut [i32
                 (Spec.MLDSA.Math.rejection_sample_eta_4_inner $randomness) Seq.empty ($i)"#
         );
 
-        let try_0_comp = try_0 < 9;
-        let try_1_comp = try_1 < 9;
-
-        // Declassification: The subsequent branch may leak the
-        // rejection decision for this coefficient. The Dilithium
-        // Specification for Round 3 of the NIST Post-Quantum
-        // Cryptography Standardization Process states that:
-        //
-        // "When performing rejection sampling, our code reveals which of the
-        // conditions was the reason for the rejection, ..."
-        //
-        // and that doing so is safe (Section 5.5,
-        // https://pq-crystals.org/dilithium/data/dilithium-specification-round3-20210208.pdf).
-        // However, there is some ambiguity whether this is referring
-        // only to rejection sampling during signature
-        // generation. Other implementations of ML-DSA, including the
-        // reference implementation, do not go out of their way to
-        // avoid this secret-dependent branch and are offered as
-        // evidence that this is safe to do:
-        //
-        // - mldsa-native: https://github.com/pq-code-package/mldsa-native/blob/0591fe06832418f8a320d5a1533327df063185cf/mldsa/src/poly_kl.c#L235
-        // - Dilithium reference implementation: https://github.com/pq-crystals/dilithium/blob/6e00625c5b29f516c6de973fe2ee2fbb150973f9/ref/poly.c#L398
-        //
-        // While we do not consider protection against power
-        // side-channels in scope for libcrux, at this point, a
-        // hardened implementation of sampling mod p can be found in
-        // Azouaoui et al, "Levelling Dilithium Against Leakage",
-        // section 4.4
-        // (https://csrc.nist.gov/csrc/media/Events/2022/fourth-pqc-standardization-conference/documents/papers/leveling-dilithium-against-leakage-pqc2022.pdf).
-        ct_declassify(&try_0_comp);
-
-        if try_0_comp {
+        if try_0 < 9 {
             out[sampled] = 4 - (try_0 as i32);
             sampled += 1;
         }
-
-        // Declassification: The subsequent branch may leak the
-        // rejection decision for this coefficient. The Dilithium
-        // Specification for Round 3 of the NIST Post-Quantum
-        // Cryptography Standardization Process states that:
-        //
-        // "When performing rejection sampling, our code reveals which of the
-        // conditions was the reason for the rejection, ..."
-        //
-        // and that doing so is safe (Section 5.5,
-        // https://pq-crystals.org/dilithium/data/dilithium-specification-round3-20210208.pdf).
-        // However, there is some ambiguity whether this is referring
-        // only to rejection sampling during signature
-        // generation. Other implementations of ML-DSA, including the
-        // reference implementation, do not go out of their way to
-        // avoid this secret-dependent branch and are offered as
-        // evidence that this is safe to do:
-        //
-        // - mldsa-native: https://github.com/pq-code-package/mldsa-native/blob/0591fe06832418f8a320d5a1533327df063185cf/mldsa/src/poly_kl.c#L235
-        // - Dilithium reference implementation: https://github.com/pq-crystals/dilithium/blob/6e00625c5b29f516c6de973fe2ee2fbb150973f9/ref/poly.c#L398
-        //
-        // While we do not consider protection against power
-        // side-channels in scope for libcrux, at this point, a
-        // hardened implementation of sampling mod p can be found in
-        // Azouaoui et al, "Levelling Dilithium Against Leakage",
-        // section 4.4
-        // (https://csrc.nist.gov/csrc/media/Events/2022/fourth-pqc-standardization-conference/documents/papers/leveling-dilithium-against-leakage-pqc2022.pdf).
-        ct_declassify(&try_1_comp);
-
-        if try_1_comp {
+        if try_1 < 9 {
             out[sampled] = 4 - (try_1 as i32);
             sampled += 1;
         }

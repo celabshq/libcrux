@@ -1,8 +1,8 @@
-use rand::TryRng;
+use rand::TryRngCore;
 
 #[allow(unused)]
 pub(crate) fn random_array<const L: usize>() -> [u8; L] {
-    let mut rng = rand::rngs::SysRng;
+    let mut rng = rand::rngs::OsRng;
     let mut seed = [0; L];
     rng.try_fill_bytes(&mut seed).unwrap();
     seed
@@ -45,15 +45,7 @@ pub(crate) const SECOND_PER_ITERATION_THRESHOLD: u128 = 1_000_000 * ITERATIONS a
 // A benchmarking macro to avoid copying memory and skewing the results.
 #[macro_export]
 macro_rules! bench {
-    (
-        $implementation:literal,
-        $fun_label:literal,
-        $hardware:literal,
-        $keysize:literal,
-        $input:expr,
-        $setup:expr,
-        $routine:expr
-    ) => {{
+    ($implementation:literal, $fun_label:literal, $hardware:literal, $keysize:literal, $input:expr, $setup:expr, $routine:expr) => {{
         let mut time = std::time::Duration::ZERO;
 
         // Warmup

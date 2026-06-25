@@ -30,7 +30,7 @@ pub mod simd {
                 randomness: &[u8],
                 out: &[i32],
             ) -> Prop {
-                (randomness.len() * 2 <= 4_294_967_295 && randomness.len() * 2 <= out.len()).into()
+                (randomness.len() <= 2_147_483_647 && randomness.len() * 2 <= out.len()).into()
             }
 
             #[fstar::replace_body(
@@ -50,7 +50,7 @@ pub mod simd {
                 randomness: &[u8],
                 out: &[i32],
             ) -> Prop {
-                (randomness.len() * 2 <= 4_294_967_295 && randomness.len() * 2 <= out.len()).into()
+                (randomness.len() <= 2_147_483_647 && randomness.len() * 2 <= out.len()).into()
             }
 
             #[fstar::replace_body(

@@ -9,12 +9,15 @@ use crate::{constants::CONTEXT_MAX_LEN, hash_functions, SigningError, Verificati
 pub(crate) const PRE_HASH_OID_LEN: usize = 11;
 pub(crate) type PreHashOID = [u8; PRE_HASH_OID_LEN];
 
+#[hax_lib::attributes]
 pub(crate) trait PreHash {
     /// The object identifier (OID) of the hash function or XOF used
     /// to perform the pre-hashing of the message.
     fn oid() -> PreHashOID;
 
     /// Used to derive the pre-hash PH of the message before signing.
+    #[requires(output.len() == 32)]
+    #[ensures(|_| future(output).len() == 32)]
     fn hash<Shake128: hash_functions::shake128::Xof>(message: &[u8], output: &mut [u8]);
 }
 
@@ -23,16 +26,26 @@ pub(crate) trait PreHash {
 /// digest length 256 bytes.
 pub(crate) struct SHAKE128_PH();
 
+// SHAKE128 OID 2.16.840.1.101.3.4.2.11 in DER encoding:
+//   0x06 0x09 ... = tag (OBJECT IDENTIFIER) + length (9) + 9 OID body bytes.
+// FIPS 204 Algorithm 4 line 23 (and Algorithm 5 line 18) absorb the OID
+// into M' WITHOUT a separate `IntegerToBytes(|OID|, 1)` length prefix —
+// the DER tag+length already serves that role, so we emit the 11-byte
+// DER blob verbatim.  Do not "symmetrize" with the ctx-length byte by
+// inserting another length prefix here.
 const SHAKE128_OID: PreHashOID = [
     0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x0b,
 ];
 
+#[hax_lib::attributes]
 impl PreHash for SHAKE128_PH {
     fn oid() -> PreHashOID {
         SHAKE128_OID
     }
 
     #[inline(always)]
+    #[requires(output.len() == 32)]
+    #[ensures(|_| future(output).len() == 32)]
     fn hash<Shake128: hash_functions::shake128::Xof>(message: &[u8], output: &mut [u8]) {
         #[cfg(not(eurydice))]
         debug_assert_eq!(output.len(), 32);

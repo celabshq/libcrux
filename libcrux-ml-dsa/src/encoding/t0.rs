@@ -3,30 +3,69 @@
 // ---------------------------------------------------------------------------
 
 use crate::{
-    constants::RING_ELEMENT_OF_T0S_SIZE, helper::cloop, ntt::ntt,
+    constants::RING_ELEMENT_OF_T0S_SIZE, ntt::ntt,
     polynomial::PolynomialRingElement, simd::traits::Operations,
 };
 
+#[cfg(hax)]
+use crate::simd::traits::specs::*;
+
 const OUTPUT_BYTES_PER_SIMD_UNIT: usize = 13;
 
+// F-6 (2026-04-29): caller pre uses centered `is_i32b_array_opaque (pow2 12)` to
+// match the trait pre after F-6's swap (was non-negative `is_pos_array_opaque (pow2 13)`).
+// The semantically correct interval for t0 inputs is the lower 13 signed bits of t,
+// centered around 0 (i.e. |x| <= 4096).
+// F-8 (2026-04-29): tighten further to half-open `is_i32b_strict_lower_array_opaque (pow2 12)`
+// to match the trait pre after F-8's swap.  Required because AVX2 free fn pre is half-open
+// `(-pow2 12, pow2 12]` strict on the lower end.
 #[inline(always)]
+#[hax_lib::requires(fstar!(r#"
+    Seq.length $serialized == 32 * 13 /\
+    (forall (j:nat). j < 32 ==>
+      Spec.Utils.is_i32b_strict_lower_array_opaque (pow2 12)
+        (i0._super_i2.f_repr (Seq.index re.f_simd_units j)))"#))]
+#[hax_lib::ensures(|_| fstar!(r#"
+    Seq.length ${serialized}_future == Seq.length ${serialized}"#))]
 pub(crate) fn serialize<SIMDUnit: Operations>(
     re: &PolynomialRingElement<SIMDUnit>,
     serialized: &mut [u8], // RING_ELEMENT_OF_T0S_SIZE
 ) {
-    cloop! {
-        for (i, simd_unit) in re.simd_units.iter().enumerate() {
-            SIMDUnit::t0_serialize(simd_unit, &mut serialized[i * OUTPUT_BYTES_PER_SIMD_UNIT..(i + 1) * OUTPUT_BYTES_PER_SIMD_UNIT]);
-        }
+    for i in 0..re.simd_units.len() {
+        hax_lib::loop_invariant!(|i: usize| fstar!(
+            r#"v i <= 32 /\ Seq.length serialized == 32 * 13 /\
+              (forall (j:nat). j < 32 ==>
+                Spec.Utils.is_i32b_strict_lower_array_opaque (pow2 12)
+                  (i0._super_i2.f_repr (Seq.index re.f_simd_units j)))"#
+        ));
+        SIMDUnit::t0_serialize(
+            &re.simd_units[i],
+            &mut serialized
+                [i * OUTPUT_BYTES_PER_SIMD_UNIT..(i + 1) * OUTPUT_BYTES_PER_SIMD_UNIT],
+        );
     }
 }
 
+// F-10 (2026-04-29): wrapper post + loop invariant tightened to half-open
+// `is_i32b_strict_lower_array_opaque (pow2 12)` for round-trip symmetry with
+// `serialize` and to match the trait `t0_deserialize` post.
 #[inline(always)]
+#[hax_lib::requires(fstar!(r#"Seq.length $serialized == 32 * 13"#))]
+#[hax_lib::ensures(|_| fstar!(r#"
+    (forall (j:nat). j < 32 ==>
+      Spec.Utils.is_i32b_strict_lower_array_opaque (pow2 12)
+        (i0._super_i2.f_repr (Seq.index ${result}_future.f_simd_units j)))"#))]
 fn deserialize<SIMDUnit: Operations>(
     serialized: &[u8],
     result: &mut PolynomialRingElement<SIMDUnit>,
 ) {
     for i in 0..result.simd_units.len() {
+        hax_lib::loop_invariant!(|i: usize| fstar!(
+            r#"v i <= 32 /\ Seq.length serialized == 32 * 13 /\
+              (forall (j:nat). j < v i ==>
+                Spec.Utils.is_i32b_strict_lower_array_opaque (pow2 12)
+                  (i0._super_i2.f_repr (Seq.index result.f_simd_units j)))"#
+        ));
         SIMDUnit::t0_deserialize(
             &serialized[i * OUTPUT_BYTES_PER_SIMD_UNIT..(i + 1) * OUTPUT_BYTES_PER_SIMD_UNIT],
             &mut result.simd_units[i],
@@ -34,16 +73,56 @@ fn deserialize<SIMDUnit: Operations>(
     }
 }
 
+// F-13 (2026-04-29): close body admit.  The loop processes one polynomial per
+// iteration: deserialize gives `is_i32b_strict_lower_array_opaque (pow2 12)`
+// per simd_unit (lifted to `is_i32b_array_opaque (pow2 12)` via the
+// strict_lower SMTPat), `pow2 12 ≤ NTT_BASE_BOUND` lets `ntt`'s pre fire (we
+// invoke `is_i32b_array_larger` to do the manual lift), and `ntt`'s post then
+// gives `is_i32b_array_opaque FIELD_MAX` for that index.  The loop_invariant
+// tracks the partial-progress FIELD_MAX bound across `ring_elements[0..i]`.
 #[inline(always)]
+#[hax_lib::requires(fstar!(r#"
+    Seq.length $serialized == v $RING_ELEMENT_OF_T0S_SIZE * Seq.length ring_elements /\
+    Seq.length ring_elements <= 8"#))]
+#[hax_lib::fstar::verification_status(panic_free)]
 pub(crate) fn deserialize_to_vector_then_ntt<SIMDUnit: Operations>(
     serialized: &[u8],
     ring_elements: &mut [PolynomialRingElement<SIMDUnit>],
 ) {
-    cloop! {
-        for (i, bytes) in serialized.chunks_exact(RING_ELEMENT_OF_T0S_SIZE).enumerate() {
-            deserialize::<SIMDUnit>(bytes, &mut ring_elements[i]);
-            ntt(&mut ring_elements[i]);
-        }
+    let n = serialized.len() / RING_ELEMENT_OF_T0S_SIZE;
+    for i in 0..n {
+        hax_lib::loop_invariant!(|i: usize| fstar!(
+            r#"v i <= v n /\
+              v n == Seq.length ring_elements /\
+              Seq.length serialized == v $RING_ELEMENT_OF_T0S_SIZE * Seq.length ring_elements /\
+              Seq.length ring_elements <= 8 /\
+              (forall (k:nat). k < v i ==>
+                (forall (j:nat). j < 32 ==>
+                  Spec.Utils.is_i32b_array_opaque (v ${NTT_OUTPUT_BOUND})
+                    (i0._super_i2.f_repr (Seq.index (Seq.index ring_elements k).f_simd_units j))))"#
+        ));
+        let bytes =
+            &serialized[i * RING_ELEMENT_OF_T0S_SIZE..(i + 1) * RING_ELEMENT_OF_T0S_SIZE];
+        deserialize::<SIMDUnit>(bytes, &mut ring_elements[i]);
+        // Lift `pow2 12` per-lane → `NTT_BASE_BOUND = FIELD_MAX` per-lane,
+        // then to `is_bounded_poly FIELD_MAX` so `ntt`'s pre discharges.
+        hax_lib::fstar!(
+            r#"
+            let lemma_lift (j:nat{j < 32}) :
+              Lemma (Spec.Utils.is_i32b_array_opaque
+                       (v Libcrux_ml_dsa.Simd.Traits.Specs.v_NTT_BASE_BOUND)
+                       (i0._super_i2.f_repr
+                         (Seq.index (Seq.index ring_elements (v i)).f_simd_units j))) =
+              Spec.Utils.is_i32b_array_larger (pow2 12)
+                (v Libcrux_ml_dsa.Simd.Traits.Specs.v_NTT_BASE_BOUND)
+                (i0._super_i2.f_repr
+                  (Seq.index (Seq.index ring_elements (v i)).f_simd_units j))
+            in
+            Classical.forall_intro lemma_lift;
+            Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_intro
+              (mk_usize 8380416) (Seq.index ring_elements (v i))"#
+        );
+        ntt(&mut ring_elements[i]);
     }
 }
 

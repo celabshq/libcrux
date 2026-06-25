@@ -1,32 +1,64 @@
-use crate::{helper::cloop, polynomial::PolynomialRingElement, simd::traits::Operations};
+use crate::{polynomial::PolynomialRingElement, simd::traits::Operations};
 
 #[inline(always)]
+#[hax_lib::requires(fstar!(r#"
+    (Seq.length $serialized == 128 \/ Seq.length $serialized == 192) /\
+    (forall (j:nat). j < 32 ==>
+      Libcrux_ml_dsa.Simd.Traits.Specs.is_pos_array_opaque
+        (pow2 (Seq.length $serialized / 32) - 1)
+        (i0._super_i2.f_repr (Seq.index re.f_simd_units j)))"#))]
+#[hax_lib::ensures(|_| fstar!(r#"
+    Seq.length ${serialized}_future == Seq.length ${serialized}"#))]
 fn serialize<SIMDUnit: Operations>(re: &PolynomialRingElement<SIMDUnit>, serialized: &mut [u8]) {
     let output_bytes_per_simd_unit = serialized.len() / (8 * 4);
-
-    cloop! {
-        for (i, simd_unit) in re.simd_units.iter().enumerate() {
-            SIMDUnit::commitment_serialize(
-                simd_unit,
-                &mut serialized[i * output_bytes_per_simd_unit..(i + 1) * output_bytes_per_simd_unit],
-            );
-        }
+    let total_len = serialized.len();
+    for i in 0..re.simd_units.len() {
+        hax_lib::loop_invariant!(|i: usize| fstar!(
+            r#"v i <= 32 /\ Seq.length serialized == v total_len /\
+              (v total_len == 128 \/ v total_len == 192) /\
+              v output_bytes_per_simd_unit == v total_len / 32"#
+        ));
+        SIMDUnit::commitment_serialize(
+            &re.simd_units[i],
+            &mut serialized
+                [i * output_bytes_per_simd_unit..(i + 1) * output_bytes_per_simd_unit],
+        );
     }
 }
 
 #[inline(always)]
+#[hax_lib::requires(fstar!(r#"
+    (v $ring_element_size == 128 \/ v $ring_element_size == 192) /\
+    Seq.length vector <= 8 /\
+    Seq.length $serialized == v $ring_element_size * Seq.length vector /\
+    (forall (k:nat). k < Seq.length vector ==>
+      (forall (j:nat). j < 32 ==>
+        Libcrux_ml_dsa.Simd.Traits.Specs.is_pos_array_opaque
+          (pow2 (v $ring_element_size / 32) - 1)
+          (i0._super_i2.f_repr (Seq.index (Seq.index vector k).f_simd_units j))))"#))]
+#[hax_lib::ensures(|_| fstar!(r#"
+    Seq.length ${serialized}_future == Seq.length ${serialized}"#))]
 pub(crate) fn serialize_vector<SIMDUnit: Operations>(
     ring_element_size: usize,
     vector: &[PolynomialRingElement<SIMDUnit>],
     serialized: &mut [u8],
 ) {
-    let mut offset: usize = 0;
-
-    cloop! {
-        for ring_element in vector.iter() {
-            serialize::<SIMDUnit>(ring_element, &mut serialized[offset..offset + ring_element_size]);
-            offset += ring_element_size;
-        }
+    for k in 0..vector.len() {
+        hax_lib::loop_invariant!(|k: usize| fstar!(
+            r#"v k <= Seq.length vector /\
+              Seq.length vector <= 8 /\
+              (v ring_element_size == 128 \/ v ring_element_size == 192) /\
+              Seq.length serialized == v ring_element_size * Seq.length vector /\
+              (forall (m:nat). m < Seq.length vector ==>
+                (forall (j:nat). j < 32 ==>
+                  Libcrux_ml_dsa.Simd.Traits.Specs.is_pos_array_opaque
+                    (pow2 (v ring_element_size / 32) - 1)
+                    (i0._super_i2.f_repr (Seq.index (Seq.index vector m).f_simd_units j))))"#
+        ));
+        serialize::<SIMDUnit>(
+            &vector[k],
+            &mut serialized[k * ring_element_size..(k + 1) * ring_element_size],
+        );
     }
 }
 

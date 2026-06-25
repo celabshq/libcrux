@@ -1,27 +1,53 @@
-use crate::{helper::cloop, polynomial::PolynomialRingElement, simd::traits::Operations};
+use crate::{polynomial::PolynomialRingElement, simd::traits::Operations};
 
 // Each coefficient takes up 10 bits.
 
 #[inline(always)]
+#[hax_lib::requires(fstar!(r#"
+    Seq.length $serialized == 320 /\
+    (forall (j:nat). j < 32 ==>
+      (forall (i:nat). i < 8 ==>
+        v (Seq.index (i0._super_i2.f_repr (Seq.index re.f_simd_units j)) i) >= 0 /\
+        v (Seq.index (i0._super_i2.f_repr (Seq.index re.f_simd_units j)) i) < pow2 10))"#))]
+#[hax_lib::ensures(|_| fstar!(r#"
+    Seq.length ${serialized}_future == Seq.length ${serialized}"#))]
 pub(crate) fn serialize<SIMDUnit: Operations>(
     re: &PolynomialRingElement<SIMDUnit>,
     serialized: &mut [u8], // len RING_ELEMENT_OF_T1S_SIZE
 ) {
     const OUTPUT_BYTES_PER_SIMD_UNIT: usize = 10;
-
-    cloop! {
-        for (i, simd_unit) in re.simd_units.iter().enumerate() {
-            SIMDUnit::t1_serialize(simd_unit, &mut serialized[i * OUTPUT_BYTES_PER_SIMD_UNIT..(i + 1) * OUTPUT_BYTES_PER_SIMD_UNIT]);
-        }
+    for i in 0..re.simd_units.len() {
+        hax_lib::loop_invariant!(|i: usize| fstar!(
+            r#"v i <= 32 /\ Seq.length serialized == 320"#
+        ));
+        SIMDUnit::t1_serialize(
+            &re.simd_units[i],
+            &mut serialized[i * OUTPUT_BYTES_PER_SIMD_UNIT
+                ..(i + 1) * OUTPUT_BYTES_PER_SIMD_UNIT],
+        );
     }
 }
 
+#[hax_lib::requires(fstar!(r#"
+    Seq.length $serialized == 320"#))]
+#[hax_lib::ensures(|_| fstar!(r#"
+    (forall (j:nat). j < 32 ==>
+      (forall (i:nat). i < 8 ==>
+        v (Seq.index (i0._super_i2.f_repr (Seq.index ${result}_future.f_simd_units j)) i) >= 0 /\
+        v (Seq.index (i0._super_i2.f_repr (Seq.index ${result}_future.f_simd_units j)) i) < pow2 10))"#))]
 pub(crate) fn deserialize<SIMDUnit: Operations>(
     serialized: &[u8],
     result: &mut PolynomialRingElement<SIMDUnit>,
 ) {
     const WINDOW: usize = 10;
     for i in 0..result.simd_units.len() {
+        hax_lib::loop_invariant!(|i: usize| fstar!(
+            r#"v i <= 32 /\
+              (forall (j:nat). j < v i ==>
+                (forall (k:nat). k < 8 ==>
+                  v (Seq.index (i0._super_i2.f_repr (Seq.index result.f_simd_units j)) k) >= 0 /\
+                  v (Seq.index (i0._super_i2.f_repr (Seq.index result.f_simd_units j)) k) < pow2 10))"#
+        ));
         SIMDUnit::t1_deserialize(
             &serialized[i * WINDOW..(i + 1) * WINDOW],
             &mut result.simd_units[i],

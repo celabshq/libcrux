@@ -1,37 +1,62 @@
-use crate::{helper::cloop, polynomial::PolynomialRingElement, simd::traits::Operations};
+use crate::{polynomial::PolynomialRingElement, simd::traits::Operations};
 
 #[inline(always)]
+#[hax_lib::requires(fstar!(r#"
+    (v $gamma1_exponent == 17 \/ v $gamma1_exponent == 19) /\
+    Seq.length $serialized == 32 * (1 + v $gamma1_exponent) /\
+    (forall (j:nat). j < 32 ==>
+      Libcrux_ml_dsa.Simd.Traits.Specs.is_pos_array_opaque
+        (pow2 (v $gamma1_exponent) - 1)
+        (i0._super_i2.f_repr (Seq.index re.f_simd_units j)))"#))]
+#[hax_lib::ensures(|_| fstar!(r#"
+    Seq.length ${serialized}_future == Seq.length ${serialized}"#))]
 pub(crate) fn serialize<SIMDUnit: Operations>(
     re: &PolynomialRingElement<SIMDUnit>,
     serialized: &mut [u8], // OUTPUT_BYTES
     gamma1_exponent: usize,
 ) {
-    cloop! {
-        for (i, simd_unit) in re.simd_units.iter().enumerate() {
-            SIMDUnit::gamma1_serialize(
-                simd_unit,
-                &mut serialized[i * (gamma1_exponent + 1)..(i + 1) * (gamma1_exponent + 1)],
-                gamma1_exponent
-            );
-        }
+    for i in 0..re.simd_units.len() {
+        hax_lib::loop_invariant!(|i: usize| fstar!(
+            r#"v i <= 32 /\
+              (v gamma1_exponent == 17 \/ v gamma1_exponent == 19) /\
+              Seq.length serialized == 32 * (1 + v gamma1_exponent)"#
+        ));
+        SIMDUnit::gamma1_serialize(
+            &re.simd_units[i],
+            &mut serialized[i * (gamma1_exponent + 1)..(i + 1) * (gamma1_exponent + 1)],
+            gamma1_exponent,
+        );
     }
-    ()
 }
 
 #[inline(always)]
+#[hax_lib::requires(fstar!(r#"
+    (v $gamma1_exponent == 17 \/ v $gamma1_exponent == 19) /\
+    Seq.length $serialized == 32 * (1 + v $gamma1_exponent)"#))]
+#[hax_lib::ensures(|_| fstar!(r#"
+    (forall (j:nat). j < 32 ==>
+      Spec.Utils.is_i32b_array_opaque (pow2 (v $gamma1_exponent))
+        (i0._super_i2.f_repr (Seq.index ${result}_future.f_simd_units j)))"#))]
 pub(crate) fn deserialize<SIMDUnit: Operations>(
     gamma1_exponent: usize,
     serialized: &[u8],
     result: &mut PolynomialRingElement<SIMDUnit>,
 ) {
     for i in 0..result.simd_units.len() {
+        hax_lib::loop_invariant!(|i: usize| fstar!(
+            r#"v i <= 32 /\
+              (v gamma1_exponent == 17 \/ v gamma1_exponent == 19) /\
+              Seq.length serialized == 32 * (1 + v gamma1_exponent) /\
+              (forall (j:nat). j < v i ==>
+                Spec.Utils.is_i32b_array_opaque (pow2 (v gamma1_exponent))
+                  (i0._super_i2.f_repr (Seq.index result.f_simd_units j)))"#
+        ));
         SIMDUnit::gamma1_deserialize(
             &serialized[i * (gamma1_exponent + 1)..(i + 1) * (gamma1_exponent + 1)],
             &mut result.simd_units[i],
             gamma1_exponent,
         );
     }
-    ()
 }
 
 #[cfg(test)]

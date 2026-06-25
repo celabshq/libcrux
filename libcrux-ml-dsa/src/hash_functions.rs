@@ -7,16 +7,52 @@ pub(crate) mod shake256 {
     /// An ML-DSA specific Xof trait
     /// This trait is not actually a full Xof implementation but opererates only
     /// on multiple of blocks. The only real Xof API for SHAKE256 is [`Xof`].
+    //
+    // Each method below carries `requires(true)` rather than no-requires so
+    // the trait extracts to F* with a refined `f_*_pre: ... -> Type0{true ==> pred}`
+    // discharge-able from `True` at any call site.  Without it, the
+    // generated `f_*_pre: ... -> Type0` is opaque and panic-free callers
+    // can't progress past a trait-method invocation.  The audit of the
+    // portable / avx2 / neon impls in this file confirms each method
+    // body is a pass-through to `libcrux_sha3::*` with no panic site
+    // visible at the trait layer.  TODO: tighten if a downstream lemma
+    // needs a real precondition (e.g., on `OUTPUT_LENGTH > 0`).
+    #[hax_lib::attributes]
     pub(crate) trait DsaXof {
+        #[requires(true)]
+        #[ensures(|_| fstar!(r#"Seq.length ${out}_future == v $OUTPUT_LENGTH"#))]
         fn shake256<const OUTPUT_LENGTH: usize>(input: &[u8], out: &mut [u8; OUTPUT_LENGTH]);
+        // Sound-hardening (audit 2026-06-18): the proven `shake256_absorb_final`
+        // in libcrux-sha3 requires `len(data) < rate` (136). Match it here rather
+        // than `true` so the trusted-boundary assumption is no broader than the
+        // sha3 proof. Real seeds are 34/66 B (both < 136), so this is vacuous at
+        // every call site.
+        #[requires(input.len() < BLOCK_SIZE)]
         fn init_absorb_final(input: &[u8]) -> Self;
         // TODO: There should only be a `squeeze_block`
+        #[requires(true)]
+        #[ensures(|out| fstar!(r#"Seq.length $out == 136"#))]
         fn squeeze_first_block(&mut self) -> [u8; BLOCK_SIZE];
+        #[requires(true)]
+        #[ensures(|out| fstar!(r#"Seq.length $out == 136"#))]
         fn squeeze_next_block(&mut self) -> [u8; BLOCK_SIZE];
     }
 
+    // See the `DsaXof` doc comment above for the rationale of `requires(true)`.
+    #[hax_lib::attributes]
     pub(crate) trait XofX4 {
+        // Sound-hardening (audit 2026-06-18): the proven AVX2 x4
+        // `shake256_absorb_final` requires `len(data0) < rate` (136) AND all four
+        // inputs equal-length. Match it here rather than `true`. Real seeds are
+        // 66 B fixed-size arrays (all equal, < 136), so this is vacuous.
+        #[requires(input0.len() < BLOCK_SIZE && input0.len() == input1.len() && input0.len() == input2.len() && input0.len() == input3.len())]
         fn init_absorb_x4(input0: &[u8], input1: &[u8], input2: &[u8], input3: &[u8]) -> Self;
+        #[requires(true)]
+        #[ensures(|out| fstar!(r#"
+            Seq.length (out._1 <: t_Array u8 (mk_usize 136)) == 136 /\
+            Seq.length (out._2 <: t_Array u8 (mk_usize 136)) == 136 /\
+            Seq.length (out._3 <: t_Array u8 (mk_usize 136)) == 136 /\
+            Seq.length (out._4 <: t_Array u8 (mk_usize 136)) == 136"#))]
         fn squeeze_first_block_x4(
             &mut self,
         ) -> (
@@ -25,6 +61,12 @@ pub(crate) mod shake256 {
             [u8; BLOCK_SIZE],
             [u8; BLOCK_SIZE],
         );
+        #[requires(true)]
+        #[ensures(|out| fstar!(r#"
+            Seq.length (out._1 <: t_Array u8 (mk_usize 136)) == 136 /\
+            Seq.length (out._2 <: t_Array u8 (mk_usize 136)) == 136 /\
+            Seq.length (out._3 <: t_Array u8 (mk_usize 136)) == 136 /\
+            Seq.length (out._4 <: t_Array u8 (mk_usize 136)) == 136"#))]
         fn squeeze_next_block_x4(
             &mut self,
         ) -> (
@@ -33,6 +75,12 @@ pub(crate) mod shake256 {
             [u8; BLOCK_SIZE],
             [u8; BLOCK_SIZE],
         );
+        #[requires(true)]
+        #[ensures(|_| fstar!(r#"
+            Seq.length ${out0}_future == v $OUT_LEN /\
+            Seq.length ${out1}_future == v $OUT_LEN /\
+            Seq.length ${out2}_future == v $OUT_LEN /\
+            Seq.length ${out3}_future == v $OUT_LEN"#))]
         fn shake256_x4<const OUT_LEN: usize>(
             input0: &[u8],
             input1: &[u8],
@@ -46,17 +94,24 @@ pub(crate) mod shake256 {
     }
 
     /// A generic Xof trait
+    // See the `DsaXof` doc comment above for the rationale of `requires(true)`.
+    #[hax_lib::attributes]
     pub(crate) trait Xof {
         /// Initialize the state
+        #[requires(true)]
         fn init() -> Self;
 
         /// Absorb
+        #[requires(true)]
         fn absorb(&mut self, input: &[u8]);
 
         /// Absorb final input
+        #[requires(true)]
         fn absorb_final(&mut self, input: &[u8]);
 
         /// Squeeze output bytes
+        #[requires(true)]
+        #[ensures(|_| future(out).len() == out.len())]
         fn squeeze(&mut self, out: &mut [u8]);
     }
 }
@@ -66,14 +121,30 @@ pub(crate) mod shake128 {
     pub(crate) const BLOCK_SIZE: usize = 168;
     pub(crate) const FIVE_BLOCKS_SIZE: usize = BLOCK_SIZE * 5;
 
+    #[hax_lib::attributes]
     pub(crate) trait Xof {
+        #[requires(true)]
+        #[ensures(|_| future(out).len() == out.len())]
         fn shake128(input: &[u8], out: &mut [u8]);
     }
 
     /// When sampling matrix A we always want to do 4 absorb/squeeze calls in
     /// parallel.
+    // See the `shake256::DsaXof` doc comment for the rationale of `requires(true)`.
+    #[hax_lib::attributes]
     pub(crate) trait XofX4 {
+        // Sound-hardening (audit 2026-06-18): the proven AVX2 x4
+        // `shake128_absorb_final` requires `len(data0) < rate` (168) AND all four
+        // inputs equal-length. Match it here rather than `true`. Real matrix seeds
+        // are 34 B fixed-size arrays (all equal, < 168), so this is vacuous.
+        #[requires(input0.len() < BLOCK_SIZE && input0.len() == input1.len() && input0.len() == input2.len() && input0.len() == input3.len())]
         fn init_absorb(input0: &[u8], input1: &[u8], input2: &[u8], input3: &[u8]) -> Self;
+        #[requires(true)]
+        #[ensures(|_| fstar!(r#"
+            Seq.length ${out0}_future == 840 /\
+            Seq.length ${out1}_future == 840 /\
+            Seq.length ${out2}_future == 840 /\
+            Seq.length ${out3}_future == 840"#))]
         fn squeeze_first_five_blocks(
             &mut self,
             out0: &mut [u8; FIVE_BLOCKS_SIZE],
@@ -81,6 +152,12 @@ pub(crate) mod shake128 {
             out2: &mut [u8; FIVE_BLOCKS_SIZE],
             out3: &mut [u8; FIVE_BLOCKS_SIZE],
         );
+        #[requires(true)]
+        #[ensures(|out| fstar!(r#"
+            Seq.length (out._1 <: t_Array u8 (mk_usize 168)) == 168 /\
+            Seq.length (out._2 <: t_Array u8 (mk_usize 168)) == 168 /\
+            Seq.length (out._3 <: t_Array u8 (mk_usize 168)) == 168 /\
+            Seq.length (out._4 <: t_Array u8 (mk_usize 168)) == 168"#))]
         fn squeeze_next_block(
             &mut self,
         ) -> (

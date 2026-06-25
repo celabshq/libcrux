@@ -1,0 +1,24 @@
+--- a/proofs/fstar/extraction/Libcrux_ml_dsa.Matrix.fst
++++ b/proofs/fstar/extraction/Libcrux_ml_dsa.Matrix.fst
+@@ -204,7 +204,7 @@
+               (fun temp_0_ j ->
+                   let
+                   (a_as_ntt: t_Slice (Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement v_SIMDUnit)),
+-                  (result: t_Slice (Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement v_SIMDUnit)) =
++                  (out: t_Slice (Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement v_SIMDUnit)) =
+                     temp_0_
+                   in
+                   let j:usize = j in
+@@ -233,10 +233,10 @@
+                   in
+                   let result:t_Slice (Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement v_SIMDUnit)
+                   =
+-                    Rust_primitives.Hax.Monomorphized_update_at.update_at_usize result
++                    Rust_primitives.Hax.Monomorphized_update_at.update_at_usize out
+                       i
+                       (add_to_ring_element #v_SIMDUnit
+-                          (result.[ i ]
++                          ((out <: t_Slice (Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement v_SIMDUnit)).[ i ]
+                             <:
+                             Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement v_SIMDUnit)
+                           (a_as_ntt.[ (i *! columns_in_a <: usize) +! j <: usize ]

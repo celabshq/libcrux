@@ -1,25 +1,45 @@
 // Functions for serializing and deserializing an error ring element.
 
 use crate::{
-    constants::Eta, helper::cloop, ntt::ntt, polynomial::PolynomialRingElement,
-    simd::traits::Operations,
+    constants::Eta, ntt::ntt, polynomial::PolynomialRingElement, simd::traits::Operations,
 };
 
+#[cfg(hax)]
+use crate::simd::traits::specs::*;
+
 #[inline(always)]
+#[hax_lib::requires(fstar!(r#"
+    Seq.length $serialized == 32 * (match $eta with
+                                     | Libcrux_ml_dsa.Constants.Eta_Two -> 3
+                                     | Libcrux_ml_dsa.Constants.Eta_Four -> 4) /\
+    (forall (j:nat). j < 32 ==>
+      Libcrux_ml_dsa.Simd.Traits.Specs.is_pos_array_opaque
+        (match $eta with
+         | Libcrux_ml_dsa.Constants.Eta_Two -> 2
+         | Libcrux_ml_dsa.Constants.Eta_Four -> 4)
+        (i0._super_i2.f_repr (Seq.index re.f_simd_units j)))"#))]
+#[hax_lib::ensures(|_| fstar!(r#"
+    Seq.length ${serialized}_future == Seq.length ${serialized}"#))]
 pub(crate) fn serialize<SIMDUnit: Operations>(
     eta: Eta,
     re: &PolynomialRingElement<SIMDUnit>,
     serialized: &mut [u8], // OUTPUT_SIZE
 ) {
     let output_bytes_per_simd_unit = chunk_size(eta);
-
-    cloop! {
-        for (i, simd_unit) in re.simd_units.iter().enumerate() {
-            SIMDUnit::error_serialize(eta,
-                    simd_unit,
-                    &mut serialized[i * output_bytes_per_simd_unit..(i + 1) * output_bytes_per_simd_unit]
-                );
-        }
+    for i in 0..re.simd_units.len() {
+        hax_lib::loop_invariant!(|i: usize| fstar!(
+            r#"v i <= 32 /\
+              v output_bytes_per_simd_unit == (match eta with
+                                               | Libcrux_ml_dsa.Constants.Eta_Two -> 3
+                                               | Libcrux_ml_dsa.Constants.Eta_Four -> 4) /\
+              Seq.length serialized == 32 * v output_bytes_per_simd_unit"#
+        ));
+        SIMDUnit::error_serialize(
+            eta,
+            &re.simd_units[i],
+            &mut serialized
+                [i * output_bytes_per_simd_unit..(i + 1) * output_bytes_per_simd_unit],
+        );
     }
 }
 
@@ -31,35 +51,119 @@ fn chunk_size(eta: Eta) -> usize {
     }
 }
 
+// F-16 (2026-04-30): strengthen post to expose a per-simd-unit signed
+// bound that holds for both eta values.  The trait post on
+// `error_deserialize` is the eta-conditional `forall8`
+// (`eta=2 ==> -5 <= v <= 2`, `eta=4 ==> -11 <= v <= 4`).  Both cases
+// satisfy `is_i32b 11`, so we expose `is_i32b_array_opaque 11` per j.
+// `11 < NTT_BASE_BOUND`, so `is_i32b_array_larger` lifts to
+// `NTT_BASE_BOUND` at the caller (mirrors T0's `pow2 12 -> NTT_BASE_BOUND`
+// pattern but without the SMTPat shortcut, since `forall8` has no
+// strict_lower-style intro lemma).
 #[inline(always)]
+#[hax_lib::requires(fstar!(r#"
+    Seq.length $serialized == 32 * (match $eta with
+                                     | Libcrux_ml_dsa.Constants.Eta_Two -> 3
+                                     | Libcrux_ml_dsa.Constants.Eta_Four -> 4)"#))]
+#[hax_lib::ensures(|_| fstar!(r#"
+    (forall (j:nat). j < 32 ==>
+      Spec.Utils.is_i32b_array_opaque 11
+        (i0._super_i2.f_repr (Seq.index ${result}_future.f_simd_units j)))"#))]
 fn deserialize<SIMDUnit: Operations>(
     eta: Eta,
     serialized: &[u8],
     result: &mut PolynomialRingElement<SIMDUnit>,
 ) {
     let chunk_size = chunk_size(eta);
-
     for i in 0..result.simd_units.len() {
+        hax_lib::loop_invariant!(|i: usize| fstar!(
+            r#"v i <= 32 /\
+              v chunk_size == (match eta with
+                               | Libcrux_ml_dsa.Constants.Eta_Two -> 3
+                               | Libcrux_ml_dsa.Constants.Eta_Four -> 4) /\
+              Seq.length serialized == 32 * v chunk_size /\
+              (forall (j:nat). j < v i ==>
+                Spec.Utils.is_i32b_array_opaque 11
+                  (i0._super_i2.f_repr (Seq.index result.f_simd_units j)))"#
+        ));
         SIMDUnit::error_deserialize(
             eta,
             &serialized[i * chunk_size..(i + 1) * chunk_size],
             &mut result.simd_units[i],
         );
+        // Bridge: the trait post is `forall8 (eta_two ==> -5 <= v <= 2 /\
+        // eta_four ==> -11 <= v <= 4)` on `f_repr (result.simd_units[i])`.
+        // Both cases satisfy `is_i32b 11`.  Targeted reveal per AP-3.
+        hax_lib::fstar!(
+            r#"
+            reveal_opaque (`%Spec.Utils.is_i32b_array_opaque)
+              (Spec.Utils.is_i32b_array_opaque 11
+                 (i0._super_i2.f_repr (Seq.index result.f_simd_units (v i))))"#
+        );
     }
 }
 
+// F-16 (2026-04-30): close body admit by mirroring T0's recipe.  Per-iter
+// `deserialize` call gives `forall j<32. is_i32b_array_opaque 11 (...)`
+// (post bridged from eta-conditional `forall8` inside `deserialize`).
+// `11 ≤ NTT_BASE_BOUND` is lifted via `is_i32b_array_larger`, then
+// `ntt`'s post supplies `is_i32b_array_opaque FIELD_MAX` for that index.
+// The loop_invariant tracks the partial-progress FIELD_MAX bound across
+// `ring_elements[0..i]`.
 #[inline(always)]
+#[hax_lib::requires(fstar!(r#"
+    Seq.length $serialized == v $ring_element_size * Seq.length ring_elements /\
+    Seq.length ring_elements <= 8 /\
+    v $ring_element_size == 32 * (match $eta with
+                                  | Libcrux_ml_dsa.Constants.Eta_Two -> 3
+                                  | Libcrux_ml_dsa.Constants.Eta_Four -> 4)"#))]
+#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::ensures(|_| fstar!(r#"
+    Seq.length ${ring_elements}_future == Seq.length $ring_elements"#))]
 pub(crate) fn deserialize_to_vector_then_ntt<SIMDUnit: Operations>(
     eta: Eta,
     ring_element_size: usize,
     serialized: &[u8],
     ring_elements: &mut [PolynomialRingElement<SIMDUnit>],
 ) {
-    cloop! {
-        for (i, bytes) in serialized.chunks_exact(ring_element_size).enumerate() {
-            deserialize::<SIMDUnit>(eta, bytes, &mut ring_elements[i]);
-            ntt(&mut ring_elements[i]);
-        }
+    let n = serialized.len() / ring_element_size;
+    for i in 0..n {
+        hax_lib::loop_invariant!(|i: usize| fstar!(
+            r#"v i <= v n /\
+              v n == Seq.length ring_elements /\
+              Seq.length serialized == v ring_element_size * Seq.length ring_elements /\
+              v ring_element_size == 32 * (match eta with
+                                           | Libcrux_ml_dsa.Constants.Eta_Two -> 3
+                                           | Libcrux_ml_dsa.Constants.Eta_Four -> 4) /\
+              Seq.length ring_elements <= 8 /\
+              (forall (k:nat). k < v i ==>
+                (forall (j:nat). j < 32 ==>
+                  Spec.Utils.is_i32b_array_opaque (v ${NTT_OUTPUT_BOUND})
+                    (i0._super_i2.f_repr (Seq.index (Seq.index ring_elements k).f_simd_units j))))"#
+        ));
+        let bytes = &serialized[i * ring_element_size..(i + 1) * ring_element_size];
+        deserialize::<SIMDUnit>(eta, bytes, &mut ring_elements[i]);
+        // Lift the per-j `is_i32b_array_opaque 11` we just got from
+        // `deserialize` to `FIELD_MAX = NTT_BASE_BOUND` per-lane, then to
+        // `is_bounded_poly FIELD_MAX` so `ntt`'s (newly is_bounded_poly-form)
+        // pre discharges.
+        hax_lib::fstar!(
+            r#"
+            let lemma_lift (j:nat{j < 32}) :
+              Lemma (Spec.Utils.is_i32b_array_opaque
+                       (v Libcrux_ml_dsa.Simd.Traits.Specs.v_NTT_BASE_BOUND)
+                       (i0._super_i2.f_repr
+                         (Seq.index (Seq.index ring_elements (v i)).f_simd_units j))) =
+              Spec.Utils.is_i32b_array_larger 11
+                (v Libcrux_ml_dsa.Simd.Traits.Specs.v_NTT_BASE_BOUND)
+                (i0._super_i2.f_repr
+                  (Seq.index (Seq.index ring_elements (v i)).f_simd_units j))
+            in
+            Classical.forall_intro lemma_lift;
+            Libcrux_ml_dsa.Polynomial.Spec.lemma_is_bounded_poly_intro
+              (mk_usize 8380416) (Seq.index ring_elements (v i))"#
+        );
+        ntt(&mut ring_elements[i]);
     }
 }
 
