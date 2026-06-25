@@ -88,3 +88,31 @@ You may use a [path dependency](https://doc.rust-lang.org/cargo/reference/specif
 If your pull request includes such a non-default dependency (e.g., a Git or path-based reference), **please mention it clearly in the PR description**.
 Using a non-[crates.io](https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#specifying-dependencies-from-cratesio) dependency in a PR is acceptable for development. However, **before merging**, the dependency must be updated to point to a released version of `hax`.
 If a new `hax` release is required for your PR to be merged, please [open an issue on the hax repository](https://github.com/cryspen/hax/issues/new?title=Release%20request&body=For%20libcrux%20PR%20%23XX,%20I%20need%20a%20release%20of%20hax.) to request it.
+
+### Policy on AI-Generated Submissions
+
+We are supportive of responsible AI use in software development.
+AI can be a helpful tool, and we do not object to contributors using it as part of their workflow for writing code, drafting issues, or conducting security research.
+
+However, submissions to this project must meet a reasonable quality bar and remain suitable for human review.
+AI-generated content can be produced very quickly, but it frequently contains hallucinations, inaccurate claims, repetitive reports, or non-functional code.
+Reviewing these submissions requires significant maintainer time and attention.
+
+To keep our review process sustainable, we enforce the following guidelines:
+- **Human Validation is Required**: Please ensure that any AI-assisted issue, pull request, or security report has been carefully checked and verified by a human before it is submitted.
+- **Provide Actionable Context**: Issues and PRs must include clear, verified context. Bug reports must have actual reproduction steps, and security reports must have a working proof-of-concept (PoC) rather than purely theoretical or AI-hallucinated exploits.
+- **Low-Quality Submissions Will Be Closed**: If our maintainers determine that an issue, pull request, or security report appears to be mass-generated, low-quality, or insufficiently validated, it may be closed without detailed review or response.
+- **Use of AI tools must be disclosed**: Contributors must disclose whether AI tools were used in their submission and detail the capacity in which they were utilized.
+
+This is not a ban on AI-assisted contributions.
+It is a practical policy intended to focus our efforts on submissions that are specific, verified, and actionable.
+
+## General Contribution Workflow
+When you are ready to contribute code or documentation:
+1. **Check Existing Issues**: Before starting work, check the issue tracker to see if someone is already working on the same problem.
+2. **Open an Issue First**: For significant changes or new features, please open an issue to discuss your proposal with the maintainers before writing the code.
+3. **Drafting your Pull Request**:
+    - Keep your PRs focused and as small as reasonably possible.
+    - Ensure your code adheres to the existing style and formatting of the project.
+    - Include tests for any new functionality or bug fixes.
+4. **Review Process**: A maintainer will review your PR. Be prepared to answer questions or make requested changes.
