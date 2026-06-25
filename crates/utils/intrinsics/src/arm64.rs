@@ -492,3 +492,8 @@ pub fn _vdupq_n_u8(value: u8) -> uint8x16_t {
 pub fn _vdupq_laneq_u32<const N: i32>(a: uint32x4_t) -> uint32x4_t {
     unsafe { vdupq_laneq_u32(a, N) }
 }
+
+#[inline(always)]
+pub fn _vmaxvq_u8(v: uint8x16_t) -> u8 {
+    unsafe { vmaxvq_u8(v) }
+}

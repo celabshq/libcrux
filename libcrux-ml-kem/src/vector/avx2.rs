@@ -11,7 +11,7 @@ mod serialize;
 #[hax_lib::fstar::before(interface, "noeq")]
 #[hax_lib::fstar::after(interface,"let repr (x:t_SIMD256Vector) : t_Array i16 (sz 16) = Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 x.f_elements")]
 pub struct SIMD256Vector {
-    elements: Vec256,
+    pub(crate) elements: Vec256,
 }
 
 #[inline(always)]

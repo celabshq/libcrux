@@ -48,6 +48,11 @@ mod utils;
 mod variant;
 mod vector;
 
+
+#[cfg(all(feature = "zeroize", not(hax)))]
+#[cfg_attr(docsrs, doc(cfg(feature = "zeroize")))]
+pub mod zeroize;
+
 #[cfg(feature = "pqcp")]
 pub(crate) mod pqcp;
 

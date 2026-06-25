@@ -32,6 +32,7 @@ hax-lib.workspace = true
 tls_codec = { version = "0.4.2", features = [
     "derive",
 ], default-features = false, optional = true }
+zeroize = { version = "1.8", optional = true, default-features = false}
 
 [features]
 # By default all variants and std are enabled.
@@ -64,6 +65,9 @@ alloc = []
 
 # Incremental encapsulation API
 incremental = []
+
+# Feature for zeroize
+zeroize = ["dep:zeroize"]
 
 # Checking secret independence
 check-secret-independence = [
