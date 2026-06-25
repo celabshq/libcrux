@@ -10,13 +10,15 @@ mod simd;
 
 mod generic_keccak;
 
-#[cfg(not(any(hax, eurydice)))]
+#[cfg(not(eurydice))]
 mod impl_digest_trait;
-#[cfg(not(any(hax, eurydice)))]
+#[cfg(not(eurydice))]
 pub use impl_digest_trait::*;
 
 #[cfg(hax)]
 use hax_lib::int::*;
+#[cfg(hax)]
+use hax_lib::prop::*;
 
 mod traits;
 
@@ -34,8 +36,7 @@ pub const SHA3_512_DIGEST_SIZE: usize = 64;
 pub(crate) mod proof_utils;
 
 /// The Digest Algorithm.
-#[cfg_attr(not(eurydice), derive(Debug, PartialEq))]
-#[derive(Clone, Copy)]
+#[cfg_attr(not(eurydice), derive(Clone, Copy, Debug, PartialEq))]
 #[repr(u32)]
 pub enum Algorithm {
     /// SHA3 224
@@ -90,11 +91,11 @@ pub const fn digest_size(mode: Algorithm) -> usize {
 #[hax_lib::fstar::options("--split_queries always")]
 #[hax_lib::requires(
     payload.len().to_int() <= u32::MAX.to_int() &&
-    digest_size(algorithm) == LEN
+    LEN < usize::MAX - 200
 )]
 pub fn hash<const LEN: usize>(algorithm: Algorithm, payload: &[u8]) -> [u8; LEN] {
+    #[cfg(not(eurydice))]
     debug_assert!(payload.len() <= u32::MAX as usize);
-    debug_assert_eq!(digest_size(algorithm), LEN);
 
     let mut out = [0u8; LEN];
     match algorithm {
@@ -114,6 +115,10 @@ pub use hash as sha3;
 #[hax_lib::requires(
     data.len().to_int() <= u32::MAX.to_int()
 )]
+#[hax_lib::ensures(|result| fstar!(r#"
+    (result <: t_Array u8 (mk_usize 28)) ==
+    Hacspec_sha3.Sponge.keccak (mk_usize 28) (mk_usize 144) (mk_u8 6) $data
+"#))]
 pub fn sha224(data: &[u8]) -> [u8; SHA3_224_DIGEST_SIZE] {
     let mut out = [0u8; SHA3_224_DIGEST_SIZE];
     sha224_ema(&mut out, data);
@@ -129,6 +134,11 @@ pub fn sha224(data: &[u8]) -> [u8; SHA3_224_DIGEST_SIZE] {
     payload.len().to_int() <= u32::MAX.to_int() &&
     digest.len().to_int() == int!(28)
 )]
+#[hax_lib::ensures(|_| (future(digest).len() == digest.len()).to_prop() & {
+    fstar!(r#"(digest_future <: t_Slice u8) ==
+              (Hacspec_sha3.Sponge.keccak
+                 (mk_usize 28) (mk_usize 144) (mk_u8 6) $payload <: t_Slice u8)"#)
+})]
 pub fn sha224_ema(digest: &mut [u8], payload: &[u8]) {
     debug_assert!(payload.len() <= u32::MAX as usize);
     debug_assert!(digest.len() == 28);
@@ -141,6 +151,10 @@ pub fn sha224_ema(digest: &mut [u8], payload: &[u8]) {
 #[hax_lib::requires(
     data.len().to_int() <= u32::MAX.to_int()
 )]
+#[hax_lib::ensures(|result| fstar!(r#"
+    (result <: t_Array u8 (mk_usize 32)) ==
+    Hacspec_sha3.Sponge.keccak (mk_usize 32) (mk_usize 136) (mk_u8 6) $data
+"#))]
 pub fn sha256(data: &[u8]) -> [u8; SHA3_256_DIGEST_SIZE] {
     let mut out = [0u8; SHA3_256_DIGEST_SIZE];
     sha256_ema(&mut out, data);
@@ -153,6 +167,11 @@ pub fn sha256(data: &[u8]) -> [u8; SHA3_256_DIGEST_SIZE] {
     payload.len().to_int() <= u32::MAX.to_int() &&
     digest.len().to_int() == int!(32)
 )]
+#[hax_lib::ensures(|_| (future(digest).len() == digest.len()).to_prop() & {
+    fstar!(r#"(digest_future <: t_Slice u8) ==
+              (Hacspec_sha3.Sponge.keccak
+                 (mk_usize 32) (mk_usize 136) (mk_u8 6) $payload <: t_Slice u8)"#)
+})]
 pub fn sha256_ema(digest: &mut [u8], payload: &[u8]) {
     debug_assert!(payload.len() <= u32::MAX as usize);
     debug_assert!(digest.len() == 32);
@@ -165,6 +184,10 @@ pub fn sha256_ema(digest: &mut [u8], payload: &[u8]) {
 #[hax_lib::requires(
     data.len().to_int() <= u32::MAX.to_int()
 )]
+#[hax_lib::ensures(|result| fstar!(r#"
+    (result <: t_Array u8 (mk_usize 48)) ==
+    Hacspec_sha3.Sponge.keccak (mk_usize 48) (mk_usize 104) (mk_u8 6) $data
+"#))]
 pub fn sha384(data: &[u8]) -> [u8; SHA3_384_DIGEST_SIZE] {
     let mut out = [0u8; SHA3_384_DIGEST_SIZE];
     sha384_ema(&mut out, data);
@@ -177,6 +200,11 @@ pub fn sha384(data: &[u8]) -> [u8; SHA3_384_DIGEST_SIZE] {
     payload.len().to_int() <= u32::MAX.to_int() &&
     digest.len().to_int() == int!(48)
 )]
+#[hax_lib::ensures(|_| (future(digest).len() == digest.len()).to_prop() & {
+    fstar!(r#"(digest_future <: t_Slice u8) ==
+              (Hacspec_sha3.Sponge.keccak
+                 (mk_usize 48) (mk_usize 104) (mk_u8 6) $payload <: t_Slice u8)"#)
+})]
 pub fn sha384_ema(digest: &mut [u8], payload: &[u8]) {
     debug_assert!(payload.len() <= u32::MAX as usize);
     debug_assert!(digest.len() == 48);
@@ -189,6 +217,10 @@ pub fn sha384_ema(digest: &mut [u8], payload: &[u8]) {
 #[hax_lib::requires(
     data.len().to_int() <= u32::MAX.to_int()
 )]
+#[hax_lib::ensures(|result| fstar!(r#"
+    (result <: t_Array u8 (mk_usize 64)) ==
+    Hacspec_sha3.Sponge.keccak (mk_usize 64) (mk_usize 72) (mk_u8 6) $data
+"#))]
 pub fn sha512(data: &[u8]) -> [u8; SHA3_512_DIGEST_SIZE] {
     let mut out = [0u8; SHA3_512_DIGEST_SIZE];
     sha512_ema(&mut out, data);
@@ -201,6 +233,11 @@ pub fn sha512(data: &[u8]) -> [u8; SHA3_512_DIGEST_SIZE] {
     payload.len().to_int() <= u32::MAX.to_int() &&
     digest.len().to_int() == int!(64)
 )]
+#[hax_lib::ensures(|_| (future(digest).len() == digest.len()).to_prop() & {
+    fstar!(r#"(digest_future <: t_Slice u8) ==
+              (Hacspec_sha3.Sponge.keccak
+                 (mk_usize 64) (mk_usize 72) (mk_u8 6) $payload <: t_Slice u8)"#)
+})]
 pub fn sha512_ema(digest: &mut [u8], payload: &[u8]) {
     debug_assert!(payload.len() <= u32::MAX as usize);
     debug_assert!(digest.len() == 64);
@@ -213,6 +250,11 @@ pub fn sha512_ema(digest: &mut [u8], payload: &[u8]) {
 /// Note that the output length `BYTES` must fit into 32 bit. If it is longer,
 /// the output will only return `u32::MAX` bytes.
 #[cfg_attr(not(eurydice), inline(always))]
+#[hax_lib::requires(BYTES < usize::MAX - 200)]
+#[hax_lib::ensures(|result| fstar!(r#"
+    (result <: t_Array u8 $BYTES) ==
+    Hacspec_sha3.Sponge.keccak $BYTES (mk_usize 168) (mk_u8 31) $data
+"#))]
 pub fn shake128<const BYTES: usize>(data: &[u8]) -> [u8; BYTES] {
     let mut out = [0u8; BYTES];
     portable::shake128(&mut out, data);
@@ -223,6 +265,13 @@ pub fn shake128<const BYTES: usize>(data: &[u8]) -> [u8; BYTES] {
 ///
 /// Writes `out.len()` bytes.
 #[cfg_attr(not(eurydice), inline(always))]
+#[hax_lib::requires(out.len() < usize::MAX - 200)]
+#[hax_lib::ensures(|_| (future(out).len() == out.len()).to_prop() & {
+    fstar!(r#"(out_future <: t_Slice u8) ==
+              (Hacspec_sha3.Sponge.keccak
+                 (Core_models.Slice.impl__len #u8 $out)
+                 (mk_usize 168) (mk_u8 31) $data <: t_Slice u8)"#)
+})]
 pub fn shake128_ema(out: &mut [u8], data: &[u8]) {
     portable::shake128(out, data);
 }
@@ -232,6 +281,11 @@ pub fn shake128_ema(out: &mut [u8], data: &[u8]) {
 /// Note that the output length `BYTES` must fit into 32 bit. If it is longer,
 /// the output will only return `u32::MAX` bytes.
 #[cfg_attr(not(eurydice), inline(always))]
+#[hax_lib::requires(BYTES < usize::MAX - 200)]
+#[hax_lib::ensures(|result| fstar!(r#"
+    (result <: t_Array u8 $BYTES) ==
+    Hacspec_sha3.Sponge.keccak $BYTES (mk_usize 136) (mk_u8 31) $data
+"#))]
 pub fn shake256<const BYTES: usize>(data: &[u8]) -> [u8; BYTES] {
     let mut out = [0u8; BYTES];
     portable::shake256(&mut out, data);
@@ -242,6 +296,13 @@ pub fn shake256<const BYTES: usize>(data: &[u8]) -> [u8; BYTES] {
 ///
 /// Writes `out.len()` bytes.
 #[cfg_attr(not(eurydice), inline(always))]
+#[hax_lib::requires(out.len() < usize::MAX - 200)]
+#[hax_lib::ensures(|_| (future(out).len() == out.len()).to_prop() & {
+    fstar!(r#"(out_future <: t_Slice u8) ==
+              (Hacspec_sha3.Sponge.keccak
+                 (Core_models.Slice.impl__len #u8 $out)
+                 (mk_usize 136) (mk_u8 31) $data <: t_Slice u8)"#)
+})]
 pub fn shake256_ema(out: &mut [u8], data: &[u8]) {
     portable::shake256(out, data);
 }

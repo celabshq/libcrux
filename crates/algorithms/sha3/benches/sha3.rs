@@ -1,12 +1,14 @@
 #![allow(non_snake_case)]
 use criterion::{criterion_group, criterion_main, BatchSize, BenchmarkId, Criterion, Throughput};
+
 use libcrux_sha3::{portable::incremental::Xof, *};
 
 pub fn randombytes(n: usize) -> Vec<u8> {
-    use rand::{rngs::SysRng, TryRng};
+    use rand::rngs::OsRng;
+    use rand::TryRngCore;
 
     let mut bytes = vec![0u8; n];
-    SysRng.try_fill_bytes(&mut bytes).unwrap();
+    OsRng.try_fill_bytes(&mut bytes).unwrap();
     bytes
 }
 

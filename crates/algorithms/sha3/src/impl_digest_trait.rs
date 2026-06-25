@@ -13,6 +13,11 @@ macro_rules! impl_hash_traits {
         pub struct $type;
 
         #[doc = concat!("A hasher for [`",stringify!($type), "`].")]
+        // The `Hasher` alias is bound by `DigestIncrementalBase` (the
+        // incremental machinery), which is intentionally not extracted to
+        // F*.  Exclude the alias from hax so the extracted surface stays
+        // limited to the four `arrayref::Hash` impls.
+        #[cfg_attr(hax, hax_lib::exclude)]
         pub type $hasher = libcrux_traits::digest::Hasher<$len, $type>;
 
         impl libcrux_traits::digest::arrayref::Hash<$len> for $type {

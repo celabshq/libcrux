@@ -9,7 +9,7 @@ use crate::proof_utils::{slices_same_len, valid_rate};
 #[hax_lib::requires(i < 5 && j < 5)]
 #[inline(always)]
 pub(crate) fn get_ij<const N: usize, T: KeccakItem<N>>(arr: &[T; 25], i: usize, j: usize) -> &T {
-    &arr[5 * j + i]
+    &arr[5 * i + j]
 }
 
 #[hax_lib::requires(i < 5 && j < 5)]
@@ -20,7 +20,7 @@ pub(crate) fn set_ij<const N: usize, T: KeccakItem<N>>(
     j: usize,
     value: T,
 ) {
-    arr[5 * j + i] = value;
+    arr[5 * i + j] = value;
 }
 
 /// A Keccak Item for multiplexing arithmetic implementations.
@@ -40,9 +40,11 @@ pub(crate) trait KeccakItem<const N: usize>: Clone + Copy {
 
     /// `(a ^ b) <<< LEFT`
     #[hax_lib::requires(
-        LEFT.to_int() + RIGHT.to_int() == 64.to_int() &&
+        LEFT > 0 &&
+        LEFT < 64 &&
         RIGHT > 0 &&
-        RIGHT < 64
+        RIGHT < 64 &&
+        LEFT + RIGHT == 64
     )]
     fn xor_and_rotate<const LEFT: i32, const RIGHT: i32>(a: Self, b: Self) -> Self;
 
@@ -118,7 +120,7 @@ class t_Squeeze (v_Self: Type0) (v_T: Type0) = {
             (Rust_primitives.Hax.Int.from_machine len <: Hax_lib.Int.t_Int)
             <:
             Hax_lib.Int.t_Int) <=
-          (Rust_primitives.Hax.Int.from_machine (Core.Slice.impl__len #u8 out <: usize)
+          (Rust_primitives.Hax.Int.from_machine (Core_models.Slice.impl__len #u8 out <: usize)
             <:
             Hax_lib.Int.t_Int) ==>
           pred };
@@ -132,7 +134,7 @@ class t_Squeeze (v_Self: Type0) (v_T: Type0) = {
     -> pred:
       Type0
         { pred ==>
-          (Core.Slice.impl__len #u8 out_future <: usize) =. (Core.Slice.impl__len #u8 out <: usize)
+          (Core_models.Slice.impl__len #u8 out_future <: usize) =. (Core_models.Slice.impl__len #u8 out <: usize)
         };
   f_squeeze:v_RATE: usize -> x0: v_Self -> x1: t_Slice u8 -> x2: usize -> x3: usize
     -> Prims.Pure (t_Slice u8)
@@ -167,7 +169,15 @@ pub(crate) trait Squeeze<T: KeccakItem<1>> {
 ///
 /// Store blocks `N = 2`
 #[cfg(feature = "simd128")]
+#[hax_lib::attributes]
 pub(crate) trait Squeeze2<T: KeccakItem<2>> {
+    #[hax_lib::requires(
+        valid_rate(RATE) &&
+        len <= RATE &&
+        start.to_int() + len.to_int() <= out0.len().to_int() &&
+        out0.len() == out1.len()
+    )]
+    #[hax_lib::ensures(|_| future(out0).len() == out0.len() && future(out1).len() == out1.len())]
     fn squeeze2<const RATE: usize>(
         &self,
         out0: &mut [u8],
@@ -184,7 +194,22 @@ pub(crate) trait Squeeze2<T: KeccakItem<2>> {
 ///
 /// Store blocks `N = 4`
 #[cfg(feature = "simd256")]
+#[hax_lib::attributes]
 pub(crate) trait Squeeze4<T: KeccakItem<4>> {
+    #[hax_lib::requires(
+        valid_rate(RATE) &&
+        len <= RATE &&
+        start.to_int() + len.to_int() <= out0.len().to_int() &&
+        out0.len() == out1.len() &&
+        out0.len() == out2.len() &&
+        out0.len() == out3.len()
+    )]
+    #[hax_lib::ensures(|_|
+        future(out0).len() == out0.len() &&
+        future(out1).len() == out1.len() &&
+        future(out2).len() == out2.len() &&
+        future(out3).len() == out3.len()
+    )]
     fn squeeze4<const RATE: usize>(
         &self,
         out0: &mut [u8],

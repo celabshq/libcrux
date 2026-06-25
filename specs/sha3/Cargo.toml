@@ -1,0 +1,12 @@
+[package]
+name = "hacspec_sha3"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+hax-lib.workspace = true
+
+[dev-dependencies]
+hex = "0.4.3"
+proptest = "1.2.0"
+libcrux-sha3 = { path = "../../crates/algorithms/sha3" }

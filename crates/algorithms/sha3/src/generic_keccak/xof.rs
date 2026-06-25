@@ -38,14 +38,10 @@ pub(crate) struct KeccakXofState<
 }
 
 /// Note: This function exists to work around a hax bug where `core::array::from_fn`
-/// is not extracted with a usable call to `Core_models.Array.from_fn`.
+/// is extracted with an incorrect explicit type parameter `#(usize -> t_Slice u8)`
+/// instead of using the typeclass-based implicit parameter `#v_F` from
+/// `Core_models.Array.from_fn`.
 /// See: https://github.com/cryspen/hax/issues/1920
-///
-/// The hand-written replacement supplies the closure-type implicit `#v_F`
-/// explicitly as `#(usize -> t_Slice u8)`. Under F* v2026.03.24 the implicit
-/// cannot be resolved from the refined closure argument alone (the closure has
-/// type `(x: usize{x <. v_N}) -> t_Slice u8`, not the bare `usize -> t_Slice u8`
-/// that `t_FnOnce` resolves against), so it must be given explicitly.
 #[inline(always)]
 #[hax_lib::fstar::replace(
     "let buf_to_slices
@@ -54,7 +50,6 @@ pub(crate) struct KeccakXofState<
     : t_Array (t_Slice u8) v_PARALLEL_LANES =
   Core_models.Array.from_fn #(t_Slice u8)
     v_PARALLEL_LANES
-    #(usize -> t_Slice u8)
     (fun i -> Core_models.Array.impl_23__as_slice #u8 v_RATE (buf.[ i ]))
 "
 )]
@@ -122,7 +117,7 @@ impl<const PARALLEL_LANES: usize, const RATE: usize, STATE: KeccakItem<PARALLEL_
             )
         } else {
             future(self).buf_len == RATE &&
-            consumed.to_int() == RATE.to_int() - self.buf_len.to_int()
+            consumed == RATE - self.buf_len
         }
     )]
     pub(crate) fn fill_buffer(&mut self, inputs: &[&[u8]; PARALLEL_LANES]) -> usize {

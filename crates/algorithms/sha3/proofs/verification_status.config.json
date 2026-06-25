@@ -1,0 +1,40 @@
+{
+  "crate_name": "SHA-3",
+  "src_dir": "src",
+  "makefile": "proofs/fstar/extraction/Makefile",
+  "extraction_dir": "proofs/fstar/extraction",
+  "output": "proofs/verification_status.md",
+  "admit_module_prefix": "Libcrux_sha3.",
+  "spec_patterns": [
+    "Hacspec_sha3\\.",
+    "Spec\\.SHA3\\.",
+    "Spec\\.Keccak\\.",
+    "to_spec_state",
+    "Traits\\.Specs?\\.\\w+_post"
+  ],
+  "range_patterns": [
+    "is_intb", "is_i32b", "is_u8b", "is_bounded",
+    "\\bbounded\\b"
+  ],
+  "modules": [
+    {"category": "Generic", "display": "lib", "paths": ["lib"]},
+    {"category": "Generic", "display": "traits", "paths": ["traits"]},
+    {"category": "Generic", "display": "proof_utils", "paths": ["proof_utils"]},
+    {"category": "Generic", "display": "impl_digest_trait", "paths": ["impl_digest_trait"]},
+    {"category": "Generic", "display": "simd (top)", "paths": ["simd"]},
+    {"category": "Generic", "display": "generic_keccak (top)", "paths": ["generic_keccak"]},
+    {"category": "Generic", "display": "generic_keccak/constants", "paths": ["generic_keccak/constants"]},
+    {"category": "Generic", "display": "generic_keccak/xof", "paths": ["generic_keccak/xof"]},
+    {"category": "Portable", "display": "generic_keccak", "paths": ["generic_keccak/portable"]},
+    {"category": "Portable", "display": "portable", "paths": ["portable"]},
+    {"category": "Portable", "display": "simd", "paths": ["simd/portable"]},
+    {"category": "Avx2", "display": "generic_keccak", "paths": ["generic_keccak/simd256"]},
+    {"category": "Avx2", "display": "avx2", "paths": ["avx2"]},
+    {"category": "Avx2", "display": "simd",
+     "paths": ["simd/avx2", "simd/avx2/load", "simd/avx2/store", "simd/avx2/wrappers"]},
+    {"category": "Neon", "display": "generic_keccak", "paths": ["generic_keccak/simd128"]},
+    {"category": "Neon", "display": "neon", "paths": ["neon"]},
+    {"category": "Neon", "display": "simd",
+     "paths": ["simd/arm64", "simd/arm64/load", "simd/arm64/store", "simd/arm64/wrappers"]}
+  ]
+}

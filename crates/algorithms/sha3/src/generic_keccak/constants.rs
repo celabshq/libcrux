@@ -1,4 +1,4 @@
-pub(super) const ROUNDCONSTANTS: [u64; 24] = [
+pub(crate) const ROUNDCONSTANTS: [u64; 24] = [
     0x0000_0000_0000_0001u64,
     0x0000_0000_0000_8082u64,
     0x8000_0000_0000_808au64,
