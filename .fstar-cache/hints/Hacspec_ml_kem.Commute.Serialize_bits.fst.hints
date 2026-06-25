@@ -17,7 +17,7 @@
         "well-founded-ordering-on-nat"
       ],
       0,
-      "04b3a6284fb29116ff01157737fb9b8b"
+      "77ee4a8f12b388b701276377f7d4435c"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.bitsum_cong",
@@ -43,7 +43,7 @@
         "well-founded-ordering-on-nat"
       ],
       0,
-      "3c7f7dec9c217fa719a249c991711aa5"
+      "54571b068b619b8587626e41d3c448c5"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_bitsum_bound",
@@ -72,7 +72,7 @@
         "well-founded-ordering-on-nat"
       ],
       0,
-      "2fe3d10db9431a8eb25142e697f8884a"
+      "f723d2542132b311c1f5719b63d2d08e"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_shl1_u16",
@@ -134,7 +134,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e582a61f103797b354980cf4c6b1b5b2"
+      "9fbc08162bfc72dbe3848e4726bc59fd"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_get_bit_nat_mod",
@@ -155,7 +155,7 @@
         "typing_Prims.pow2"
       ],
       0,
-      "21010a3d2071d69a40df4e9c50e2777c"
+      "660824ee933a082649e4753c1afa5065"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_combine",
@@ -184,7 +184,7 @@
         "typing_Prims.pow2"
       ],
       0,
-      "4295310ee3de48f3d1702a7bcc47ca3c"
+      "d980943b75ec02874da124b19df1316c"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -197,7 +197,7 @@
         "refinement_interpretation_Tm_refine_7a88a82f6daa024cff2948119565875f"
       ],
       0,
-      "1dbbce4615e42f21ef3d2894810d76bb"
+      "7a20441b28a178d340249744b7d6aac7"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -209,7 +209,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "3c2d3b403b7eefc1149a432803b54546"
+      "5c94b4cf6dc15ac6022afaac3d71c513"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -222,7 +222,7 @@
         "refinement_interpretation_Tm_refine_7a88a82f6daa024cff2948119565875f"
       ],
       0,
-      "51de697bb62c3cf2ff81ee990ecf6b61"
+      "41be0ebaa975da6124018b6c692c7dec"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -235,7 +235,7 @@
         "refinement_interpretation_Tm_refine_1c7b9ec4bd8ed1bb73637283366dce40"
       ],
       0,
-      "942e81989535d6a7c8681f8315f01a3d"
+      "ee382a51a7af6aa89fb7c9def0776363"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -254,7 +254,7 @@
         "refinement_interpretation_Tm_refine_f7d4c98b2e34e921c8c40729d3b0834a"
       ],
       0,
-      "08bde0fbe8e8ab48ffcc43bbd47de00e"
+      "4bee04ad90d7bae6290dff0d2c5338c5"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -267,7 +267,7 @@
         "refinement_interpretation_Tm_refine_7a88a82f6daa024cff2948119565875f"
       ],
       0,
-      "06d6a0e1b97785748531196d24977298"
+      "df513aff79bddb23fb4cca1896052ae8"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -280,7 +280,7 @@
         "refinement_interpretation_Tm_refine_7a88a82f6daa024cff2948119565875f"
       ],
       0,
-      "09f1fb15a5d8f80e35b10fd23e2f54ac"
+      "1091dca0a2480363986604ff04e91c61"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -292,7 +292,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "901968859f4a0fc29c8534ed42963146"
+      "f8e42049c627b132778863aa2b3ea760"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -305,7 +305,7 @@
         "refinement_interpretation_Tm_refine_7a88a82f6daa024cff2948119565875f"
       ],
       0,
-      "1690b955d7c0d2897b5d0df46b6ee8c7"
+      "5f70908206d2c9ccf158e99a1d78662a"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -318,7 +318,7 @@
         "refinement_interpretation_Tm_refine_1c7b9ec4bd8ed1bb73637283366dce40"
       ],
       0,
-      "832a51b85e8eeb04b7182224298d1981"
+      "ac8afdd23a925be4f9382e5b57cd5e01"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -337,7 +337,7 @@
         "refinement_interpretation_Tm_refine_f7d4c98b2e34e921c8c40729d3b0834a"
       ],
       0,
-      "e477ae657db5b508bbf080473d9dd0dd"
+      "44356cdb4d1680f3926808cf34d70f0e"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -350,7 +350,7 @@
         "refinement_interpretation_Tm_refine_7a88a82f6daa024cff2948119565875f"
       ],
       0,
-      "fae245089745bd2dc75d8025d735cc1d"
+      "41360f92259cbe4bd57f8c56ca8623c6"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -363,7 +363,7 @@
         "refinement_interpretation_Tm_refine_21b74da43e188e85f29da189680a96d9"
       ],
       0,
-      "7a1bafe57edc21190d103616cdc4bb94"
+      "9267f717558f335ed6b464add58acf20"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -376,7 +376,7 @@
         "refinement_interpretation_Tm_refine_21b74da43e188e85f29da189680a96d9"
       ],
       0,
-      "09288685416a3ba6460d43aa426bcd9c"
+      "d9bc87175991a5ff5306eba4bf4acb60"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -388,7 +388,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "9f4eb7e30517690f0d4c439385f6be0e"
+      "39541fa937d970fed4f4ff2408fd6603"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -401,7 +401,7 @@
         "refinement_interpretation_Tm_refine_21b74da43e188e85f29da189680a96d9"
       ],
       0,
-      "88580f866fc3532b8f610039913405ab"
+      "5d3fb9d0e8bd5f2c166899f7c6afafb8"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -414,7 +414,7 @@
         "refinement_interpretation_Tm_refine_1c7b9ec4bd8ed1bb73637283366dce40"
       ],
       0,
-      "9c51135e3037b72cf27a4d917822321a"
+      "8669fb51b9a591b1c7790fe6a5cd3b5b"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -427,7 +427,7 @@
         "refinement_interpretation_Tm_refine_21b74da43e188e85f29da189680a96d9"
       ],
       0,
-      "e1944d40972db5c044411a976d067603"
+      "359e3edc8531dc3f90b7fd25d11b4b3d"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -440,7 +440,7 @@
         "refinement_interpretation_Tm_refine_1c7b9ec4bd8ed1bb73637283366dce40"
       ],
       0,
-      "0e2b93924025c00a1fbe0a49b159359a"
+      "1f89f580ab406d30dc6b03df3b506d9a"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -465,7 +465,7 @@
         "refinement_interpretation_Tm_refine_a14364336d39a9186b74b66371787713"
       ],
       0,
-      "b7b9b2138205bf497d72f78ce5153969"
+      "1856173ae392484e1fec55ec0ed2f18c"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -478,7 +478,7 @@
         "refinement_interpretation_Tm_refine_21b74da43e188e85f29da189680a96d9"
       ],
       0,
-      "e126d2f3b90d122b035373ce878e2fa8"
+      "6b49a80203cc5a7c3514f6fbcf5e1477"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -501,7 +501,7 @@
         "refinement_interpretation_Tm_refine_f7d4c98b2e34e921c8c40729d3b0834a"
       ],
       0,
-      "de5bd7fdcdcceadcd13c797a3a6a2230"
+      "34729e89b49889c3c0403a014c3de967"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -516,7 +516,7 @@
         "refinement_interpretation_Tm_refine_f7d4c98b2e34e921c8c40729d3b0834a"
       ],
       0,
-      "4fb13d347a623fcb48e248fbc25f17a8"
+      "44194f49bc7d259f059bc93e5ef29415"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -529,7 +529,7 @@
         "refinement_interpretation_Tm_refine_21b74da43e188e85f29da189680a96d9"
       ],
       0,
-      "f7987f21cf42c6e633150cf41579eb4a"
+      "2a8b3ce8f61463ea56690a29c265dda6"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -544,7 +544,7 @@
         "refinement_interpretation_Tm_refine_53797674bf0f27168ed9eca58cc5f017"
       ],
       0,
-      "33c80d1d5bb65deb49a12affd8c4dd15"
+      "738759775fc4e37a748d9060257c76a5"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -559,7 +559,7 @@
         "unit_inversion", "unit_typing"
       ],
       0,
-      "fd5a4867ae16bd94229481098048b3bf"
+      "bdbd03a47708329a79223857d629deb4"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -575,7 +575,7 @@
         "unit_inversion", "unit_typing"
       ],
       0,
-      "45384b2df47abeccb79b043a338d291d"
+      "5c00f6a1814c21bd2a4740e9ed9039db"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -588,7 +588,7 @@
         "refinement_interpretation_Tm_refine_21b74da43e188e85f29da189680a96d9"
       ],
       0,
-      "c406ed74c0ad16d27351c4f2ace27884"
+      "f64264f4e0a07fe3981939e0d9e65fdf"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -601,7 +601,7 @@
         "refinement_interpretation_Tm_refine_2f1815aacaf17eb67d80860db8ea5f8e"
       ],
       0,
-      "668e32b329c0fc5b503c8659c74ff801"
+      "f454439f677fc36c61355524ad9c6eaf"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -616,7 +616,7 @@
         "refinement_interpretation_Tm_refine_f7d4c98b2e34e921c8c40729d3b0834a"
       ],
       0,
-      "21e4f6b2808fd39bb847c4319e2c09d2"
+      "bb5a2e12998a40f7df3e6213f68bdc04"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -633,7 +633,7 @@
         "refinement_interpretation_Tm_refine_e9d2acd716e976eddb0f03391caae2b5"
       ],
       0,
-      "e0b2e5cbdcdfeb323b68662902954058"
+      "13e2ae91e60ca9840a218ad784e1df5f"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -645,7 +645,7 @@
         "refinement_interpretation_Tm_refine_21b74da43e188e85f29da189680a96d9"
       ],
       0,
-      "c42b4c3e3dc330a2c7903a2bcbb7e6a4"
+      "3a2691d5622480987d43d70ddf83d4c0"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -657,7 +657,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "aae5db99a49717ebf51abe567ae08b51"
+      "6705b2ac1d3858681d20edd1eb090066"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -669,7 +669,7 @@
         "primitive_Prims.op_Multiply", "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "a4cbe505f1154deb9c8126078b2fcc92"
+      "77fb5ccc982639c041b79ac5b8a18157"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -682,7 +682,7 @@
         "refinement_interpretation_Tm_refine_f23b69fef99cbb40e183800cedbd643d"
       ],
       0,
-      "7514373a685378ce17beaa9a9eaf3177"
+      "4d9c7b5cd88f79f401e656e048942797"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -694,7 +694,7 @@
         "refinement_interpretation_Tm_refine_6e662777ad6d8537cfb3c08247a6e775"
       ],
       0,
-      "3f1e19b79f96ab7d018a3975c6ce4d9b"
+      "487353c79e964b55769ca0aa5f01f1da"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_step",
@@ -708,7 +708,7 @@
         "unit_inversion", "unit_typing"
       ],
       0,
-      "3d3f4c7859b742d2131cb58046966781"
+      "9908b7f93530148b3225298218240eca"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_recon_nat",
@@ -737,7 +737,7 @@
         "well-founded-ordering-on-nat"
       ],
       0,
-      "b72413adbede3b764e9a2a7f4587b04f"
+      "4aa48c6587d173d86acb278288ba01fb"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_fold_range_step",
@@ -790,7 +790,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e3b55f36a31f40d9f846813d33ac6a9e"
+      "eed6df7c62d22f37c865209b4b3a8719"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_fold_range_step",
@@ -821,7 +821,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "94a756bcea3c359b0e0c145dd2ba8638"
+      "3b1da38ce202fa103cb189dc56829057"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.dec_inv",
@@ -865,7 +865,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "50642b0c41a0a755eda5b1db8c20534a"
+      "b8974e071119d97509239d367b2c56c6"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.dec_inv",
@@ -901,7 +901,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "d9bac7538d83bee69b0c78c6196788a3"
+      "8d0fde4d73ed8b5f02d4888512cd2003"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.dec_step",
@@ -978,7 +978,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "ee89f2f72126bc6f549a7da3c072ffbb"
+      "d575e37592184804e5e82413a1990915"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.dec_step",
@@ -1008,7 +1008,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e86695278716794d7b2bdc92ecb90f37"
+      "ea6dc1f6c9efb51063e818c937f5d6ed"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_dec_aux",
@@ -1130,7 +1130,7 @@
         "well-founded-ordering-on-nat"
       ],
       0,
-      "9bc981c94696e66ea8969a0f324f3939"
+      "ed6b3a2b03fa2979ae666b59c0d903f0"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_dec_aux",
@@ -1183,7 +1183,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "793bb0c6d8f25dae514893a877fc9c0f"
+      "e58e327248a8d1c3511e04992b95bf99"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_bitvec_to_bounded_index_12",
@@ -1258,7 +1258,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "5f09239764f44e6efea7026df26a1428"
+      "c4c1bd23994a072d5352d4a073794341"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_bitvec_to_bounded_index_12",
@@ -1279,7 +1279,7 @@
         "refinement_interpretation_Tm_refine_61e566d3a0eff0db4cca38b6241efdfc"
       ],
       0,
-      "c729b37485fbef997d0b53a66eb1279f"
+      "8454f7d09edaab295d41be8e7a00ffb7"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_bitvec_to_bounded_index_12",
@@ -1309,7 +1309,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "72b1f944776f913545393918be54d5c5"
+      "11cc348971ced712528d6cb667494a45"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_get_bit_nat_eq",
@@ -1340,7 +1340,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "afb0d0b5cf9aeb7d33570823f31f61be"
+      "2dd7794bf4b4cbe881461fdc9d79530c"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_val_and1",
@@ -1417,7 +1417,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "02b706e51490b0b44c67e7330b18de00"
+      "82ec540539f2f024326ae0d6659f0e9c"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_bytes_to_bits_index",
@@ -1502,7 +1502,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "401b1ff964d604c18a148e3c31d5780c"
+      "dd7a3e5f9ea60ec89b86d52660c17195"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_bytes_to_bits_index",
@@ -1522,7 +1522,7 @@
         "refinement_interpretation_Tm_refine_61e566d3a0eff0db4cca38b6241efdfc"
       ],
       0,
-      "a0e1bc66b3345ae81d619af9f6e92318"
+      "ebccb2e928767f1810d70904dd086c7c"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_bytes_to_bits_index",
@@ -1552,7 +1552,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e906f5ff1c4136989dd6a0b19fb75147"
+      "6df9dede7ef8ff2aa9b441430e1134db"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -1591,7 +1591,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e44b50c78426aeafa6d880501c05736f"
+      "9a8904bbff74566450cb0a685ad76be2"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -1620,7 +1620,7 @@
         "refinement_interpretation_Tm_refine_fd15e7dd65d535676b394dc745c1792a"
       ],
       0,
-      "111aceb679f685383b66a0249e095226"
+      "1169719ca0a0ae4f069415ec90f13b34"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -1642,7 +1642,7 @@
         "refinement_interpretation_Tm_refine_fd15e7dd65d535676b394dc745c1792a"
       ],
       0,
-      "b4c04644faca47d3cbdab7f77e7e71c3"
+      "345cdcdd11ebcb20ff9ea40bb42fd0d8"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -1656,7 +1656,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "20474488e2bdb635db84e82c56918f27"
+      "97186f089cb2ee7bb8671a1aded8513f"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -1670,7 +1670,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "bd74246b1120575443a924493eaf5aad"
+      "c2f2715c1242121a597747df688fcd55"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -1682,7 +1682,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "7b6cfd9b4bacd2b940dc25535c5eff7a"
+      "7f731d3978669f5a28b4ccd8e4d00569"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -1705,7 +1705,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "e5ac918452056f53c276bdb3f396f7be"
+      "da5510d02c83025f64990a6009f442aa"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -1739,7 +1739,7 @@
         "typing_FStar.Seq.Base.length"
       ],
       0,
-      "a05555a156c6b160396418fc486cbb98"
+      "051eb4af9403b22d3535d692384cc33a"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -1752,7 +1752,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "f271b8651e70deec08566c6470f9f117"
+      "d011432da5cb6cb824a5e1901f64f75a"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -1765,7 +1765,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "42763de7866bf9ee1c0b4b90b5768380"
+      "fd6d4929262bce22cd4de9f4609c1455"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -1781,7 +1781,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "1a202c215bf700ad9a881885e026e1e7"
+      "99686d89a62d0ca36c8998060f12604a"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -1797,7 +1797,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "d2c06a5eaa1497d78cc68ec9698acc2b"
+      "904725ae3518d63494972b55314ab14b"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -1817,7 +1817,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "4a8b7430a2c84e2121beb144daf9c82d"
+      "cd19128988f814f4857095663fb46e07"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -1838,7 +1838,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "131fa45207fbd5ff45fd3a22b46b52c9"
+      "ab75044eeb48ba4bb3745e281379ce73"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -1877,7 +1877,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "dcc63010d7508200045a2d160b60afa2"
+      "705dd1a7de99b439ef172bb15f11699f"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -1906,7 +1906,7 @@
         "refinement_interpretation_Tm_refine_fd15e7dd65d535676b394dc745c1792a"
       ],
       0,
-      "b7071879185c1117be9f9cf650082881"
+      "3d39859bd74ec7c1e314617fc140d0ef"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -1928,7 +1928,7 @@
         "refinement_interpretation_Tm_refine_fd15e7dd65d535676b394dc745c1792a"
       ],
       0,
-      "d3d491fcf1233768bb8c2a4f25d3c21b"
+      "25dd72989ef22b38154bc751650997ab"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -1942,7 +1942,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "85b9f025dd872abbc1b213e49015419c"
+      "965e7d51c6083e5920f150a013c818c7"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -1956,7 +1956,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "f6de2861f818893e1ab9ba73802a090a"
+      "1c07619dfd1f4a737fc694b8dd8078c6"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -1968,7 +1968,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "429c8b6722139d95d992eef35152566c"
+      "714de0d67b0b3be6e9fc6af600a2f7ce"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -1991,7 +1991,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "fe5428f2ce80fb5cb37cbc8bb91baf4f"
+      "5d04d51f5773727b4fc8b4a45f762237"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2022,7 +2022,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "072c619cd9117e184af31cbadf5f3fec"
+      "3b8c82eeeb680ab6c2fac33cb9906275"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2035,7 +2035,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "ebc135d4370a05a324272aa5f9f9c8d2"
+      "df5c5ff443ddf24ae40132101cdd365c"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2048,7 +2048,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "5c33464175dc86997b3f7c8578f74c0b"
+      "7e38cce58b472e8d97873d6a5def55fb"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2071,7 +2071,7 @@
         "refinement_interpretation_Tm_refine_c64f2405b85ab7b11cd3469c849b05e8"
       ],
       0,
-      "efd9bc3de7e945a10a48fadc356b6cb0"
+      "8c8fd4f2276e984a9112a61e286e80fa"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2094,7 +2094,7 @@
         "refinement_interpretation_Tm_refine_c64f2405b85ab7b11cd3469c849b05e8"
       ],
       0,
-      "36d6d9644630a30fb57d0041385cc88f"
+      "8db8792dbfc468c3a46238df771c1a0e"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2114,7 +2114,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "6bd5e65af2e14e602b1a757cde6a30c0"
+      "870bda5c37472c2ba24403cca45a34ef"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2135,7 +2135,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "0b4356d8165b8f1e6c26edaae21237c4"
+      "80f607a9f32d96af7578ba14a24192e8"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2156,7 +2156,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "22e11f3a744c21d53e4d252e501d3b0b"
+      "7ea2fbeeafb7a2f5a5c56021129f6846"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2168,7 +2168,7 @@
         "refinement_interpretation_Tm_refine_2acc273d7fe90edade7bf1320e93806b"
       ],
       0,
-      "5d920a70ebd2e2478d254d654876b5cd"
+      "edd8c293f11b1b413888ccb79555593a"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2209,7 +2209,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "43c44f322cb46f3f2f69c7d60da1f905"
+      "3fe320686948121b41b8b1b30dad3122"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2256,7 +2256,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "fd6de90077034025757c9047ca85a8b5"
+      "42bdc9288ceae481ea7e297381a7430e"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2278,7 +2278,7 @@
         "refinement_interpretation_Tm_refine_80d6fdf6f9f0898e6b94953d0f492224"
       ],
       0,
-      "14eb85e70894d55700adfe2ca9a3c42c"
+      "6734fbdfce86b31af3ab0265572b9ee0"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2299,7 +2299,7 @@
         "refinement_interpretation_Tm_refine_80d6fdf6f9f0898e6b94953d0f492224"
       ],
       0,
-      "4e718c0b1daf533de3d9eeae7ec5285f"
+      "fbc2884db221582be8fd55594b41afeb"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2316,7 +2316,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "812ce16ef3629b6d0d9e7a09486f7bb6"
+      "cdb5fa9dc777311f266689cefdb94f08"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2342,7 +2342,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "b6f4e8bc0c4478abaf09ff353a0765e9"
+      "0e615adbb0d2afc713990dae50179931"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2381,7 +2381,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "7ad5735d2a99c0a9b3e9284ee7bcbabe"
+      "88c6a4b2b26249be620eaf3d4c565026"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2395,7 +2395,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "64a6d5a3a78c5e785a471fb8e614c153"
+      "642d97931564f8e3645ce20a1c563c3f"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2409,7 +2409,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "668abb05ba8b4d0dcc8770b91bb94774"
+      "1b1a09889f26aa687185671ad52bbd9a"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2421,7 +2421,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "efcf4476878cc8c00f35e8be605d6947"
+      "dad56d23608337947f322ba13477b0de"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2444,7 +2444,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "3be777a07f9e93bce7ee592b2ae4dcd5"
+      "c3ef1673f65c90a1f56728960a2fc850"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2477,7 +2477,7 @@
         "typing_FStar.Seq.Base.length"
       ],
       0,
-      "fd4d9d560a319a8a09c0d5fa7eb01aa5"
+      "6ef62db35622feb208cedbbef6d861c7"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2491,7 +2491,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "a204ddc15b9a403fe9c63bc2a4a901d3"
+      "2856906fb9bc1269631191bc50498733"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2503,7 +2503,7 @@
         "primitive_Prims.op_Multiply", "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "fcd6aab40e709596ad1cfeb57ac881f0"
+      "c334baf23d963b53f8d8455f1552be68"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2524,7 +2524,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "4b0b95b5e703b47f12671ce843520e93"
+      "a8b9e80539168b99acfc1e527627fc9d"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2536,7 +2536,7 @@
         "refinement_interpretation_Tm_refine_a9670d724d48db047cdd2123389b9305"
       ],
       0,
-      "8963281385aa4ee062e4ac424f78409c"
+      "ee946dbe1f4808e721867fcbc2074ace"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2577,7 +2577,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "cd006595a68ceac5bfdd0594b478a6c1"
+      "bcd6d04e4376bc5b3b5e558c382f8e86"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2600,7 +2600,7 @@
         "refinement_interpretation_Tm_refine_b7b8e889bd8cc8aa701de2525d236631"
       ],
       0,
-      "dc0540ea8766c64782440adefca10eac"
+      "b4817045fbb9f57df6cebee652e55b6f"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2618,7 +2618,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "a3259592485d0f8c54d9e22dd431a3a2"
+      "594b2da2c61f60a79d416c7f2f335ad5"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2643,7 +2643,7 @@
         "refinement_interpretation_Tm_refine_dfb8d5008b2d22f162df60b079a9add1"
       ],
       0,
-      "3aebc2f01d5cae90aebbb506b658ac30"
+      "33f8c47147bb7fcd26a7a6cbb03bab39"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2682,7 +2682,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "fc7b42c6dc5ff497198c6405f6a1744a"
+      "46e257e29c99e344bc2997188fd54d3b"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2698,7 +2698,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "4a72991632d6ee0197395c591d4910f4"
+      "dbcf4963e96722ac5d4720ae61b2b2af"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2714,7 +2714,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "c98a573e7dc36d8e5dda6dec04d1f04e"
+      "1151901faa669df01e4ca2226a633f21"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2731,7 +2731,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "e5714f61bbd631b6727bb950c88f3830"
+      "55a6e2b404821d18b06c67bf7b97bba4"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2752,7 +2752,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "bc976a52e6bb23ffed94231741ba06c9"
+      "6cc4850eaea51bf71bb8e0ad405d60f3"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2775,7 +2775,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "cab413ed43978f86729b9ae6c13a20d8"
+      "d570aa1dcde0f3a22bb541839a438976"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2799,7 +2799,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "0638e63dd90fc1bc587c6cfbf357d2f3"
+      "9b53490b8835ccbc550fe238f555a403"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2812,7 +2812,7 @@
         "refinement_interpretation_Tm_refine_fb1f788064b0104bba0be226cdb63071"
       ],
       0,
-      "0eb4dfed4f9f9cbc3c1f436c19b1a1e3"
+      "da5d2ce026e06bf923327baee7d21fdb"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2855,7 +2855,7 @@
         "typing_Tm_abs_9dc0d07e7b600973925537f206f43aed"
       ],
       0,
-      "c28a8b04aa8f916bee293933fa3c3ed7"
+      "6b86e7fddacf6353eeff0c9c61e50277"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2878,7 +2878,7 @@
         "refinement_interpretation_Tm_refine_c64f2405b85ab7b11cd3469c849b05e8"
       ],
       0,
-      "0ade5e7f6ff909e8f25793173000c5e5"
+      "b6d8d25e81a769bce65a666bb1285921"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2900,7 +2900,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "819512e51567e683f70fab92f154897b"
+      "c167312adf71ecaac9f3683184b5fa13"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2922,7 +2922,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "6160a9f1e872e265bc21b0be2ee3ea82"
+      "35e945b497475cf840286ae62a57d7d0"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2939,7 +2939,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "83398862846724b9b36807f1a283c2a7"
+      "729fee76315011ee62fba3b8d5da25ea"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -2960,7 +2960,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "ca856045d6360d553ff7013494816a25"
+      "9ab71477cb3d0a71cf292eeaa2c45236"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3006,7 +3006,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "cbe3a295711099a28e54bafcc431ac17"
+      "b845f25539b82dda1a7fba7ce74602d6"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3019,7 +3019,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "e372b1982543439bb112a744e839e0b1"
+      "313d9edd0aa69f296d1d24898034b850"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3032,7 +3032,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "102b27d57ae075a5ce28ebce24f3692a"
+      "e6007dc55c3f352c01c21bf8054c8263"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3049,7 +3049,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "8a6f89ba3259595ad92867d46d058cd0"
+      "f0abc8c333cab9e5216e791843746438"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3070,7 +3070,7 @@
         "refinement_interpretation_Tm_refine_63c0cf93c4d449b5b9d1b12e355a0400"
       ],
       0,
-      "908b53b34ff31bf4d45a949b2bfd5710"
+      "382fb656a004546bb5b54241042a63ee"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3089,7 +3089,7 @@
         "token_correspondence_Rust_primitives.BitVectors.bit_vec_of_int_t_array"
       ],
       0,
-      "749876cec0cdf65c250255e1879aef47"
+      "4cb18ce262b2af35896e32eda907e661"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3141,7 +3141,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e06adc54a089951dbd26f2609a73f8db"
+      "bbf66b2f5002a7a9590e11e8d3d6b3ed"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3154,7 +3154,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "bdebda118a61077461c8a4d482283223"
+      "af89a2ca64a1814f51a5bb6fd0e17920"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3177,7 +3177,7 @@
         "refinement_interpretation_Tm_refine_fd15e7dd65d535676b394dc745c1792a"
       ],
       0,
-      "664d29a25f3f8ae1770fc431f177b420"
+      "001288f1d11002a677b53e7e29415275"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3199,7 +3199,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "76c556d529b010c553947e9ddd5efed0"
+      "70dd850aa8d03b49086e6c5f170913d4"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3212,7 +3212,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "6548b716d06c9e4f1e3da0f90321fb00"
+      "a9659bc0bf59f4208e99a1c6f8c262dd"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3225,7 +3225,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "c8038fa39abfbf69015f486187991e8a"
+      "6b50d35509b2587f95410c215bee1e6b"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3248,7 +3248,7 @@
         "refinement_interpretation_Tm_refine_fd15e7dd65d535676b394dc745c1792a"
       ],
       0,
-      "8c89546626ab8ea4f9f50dc20371e05a"
+      "ea2a483845ddbc3181cbb06a09f6991b"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3261,7 +3261,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "3d154711e651fef1f8c105f232ea8645"
+      "4eaa39a0318e667b2bfc7d12850dd585"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3274,7 +3274,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "d132ae4a8f97c9f48e8a9f4b77be4090"
+      "e07cb48f5608f898d046e294845acd9b"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3291,7 +3291,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "8f3c87d83d03f50dc5c7133f4d8ffff0"
+      "2c771ea87adb28955fc37e7e1a7a763e"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3312,7 +3312,7 @@
         "refinement_interpretation_Tm_refine_63c0cf93c4d449b5b9d1b12e355a0400"
       ],
       0,
-      "b73b7a49600ca866f04859b69d2bef02"
+      "b1c12364c77418d2ab3dc27374dda197"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3335,7 +3335,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "1119daeb17877e99f4b7b270f27dbd2f"
+      "35ad64f12d8ec07091bf4745702c2fbe"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3354,7 +3354,7 @@
         "refinement_interpretation_Tm_refine_80d6fdf6f9f0898e6b94953d0f492224"
       ],
       0,
-      "6f5140c31e34fd462eb10598cb46f7ee"
+      "468b39868f31cb48f052ab2143de2cff"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3375,7 +3375,7 @@
         "refinement_interpretation_Tm_refine_bdb0ed9c9f7127ae36e02cad3b173cdb"
       ],
       0,
-      "9f839af598ca4bf3dab3ea70c88d0e1a"
+      "282ef8a17bd9029bc3f6483108c8b800"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3388,7 +3388,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "2bcb4cc338fd1bf4955db2e68948bf67"
+      "34847f47ceb2f7d69f39732f3801e2f5"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3401,7 +3401,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "36c59146d8a24afca6ed066b970b1519"
+      "16f89306cd87b4bbd292d5610f1bca3d"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3415,7 +3415,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "fef4240aee6bf8987c2131b551148a79"
+      "41e44b1e56629966e2e419cccee81fd0"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3437,7 +3437,7 @@
         "refinement_interpretation_Tm_refine_796dffedce800b86272c4f147cc143e8"
       ],
       0,
-      "b4101bd67df8298453c58beb1992fcb6"
+      "2a949c85d01cfb364483428e5b5f39ad"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3454,7 +3454,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "24627fc25995c24fac6664cb78f83224"
+      "0cc46977484a5343f70915f4ff93bc6b"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3466,7 +3466,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "da11ed9abe7a31e82c52c7de4d840985"
+      "e2414ddcab4ba3b50171467e4b71594d"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3517,7 +3517,7 @@
         "typing_tok_Rust_primitives.Integers.I16@tok"
       ],
       0,
-      "cbaf22556889a238497c6c770ea18ca5"
+      "ba4789753a7f77e677ef67ba2294e428"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3538,7 +3538,7 @@
         "refinement_interpretation_Tm_refine_bdb0ed9c9f7127ae36e02cad3b173cdb"
       ],
       0,
-      "d33d10ba166fb78cb1ab43839bfcf7fc"
+      "394ff75370143c6add7a0e0d48285098"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3551,7 +3551,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "689ddee738f7cacea7aa1910be5a00ec"
+      "0d8289139016df04449fb6ad53250fe8"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3572,7 +3572,7 @@
         "refinement_interpretation_Tm_refine_bdb0ed9c9f7127ae36e02cad3b173cdb"
       ],
       0,
-      "ac96d5adaeb12a5f847505ff92a977b6"
+      "885040e72387e8799d797824dc8755fd"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3585,7 +3585,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "9a2d8125f270c390d2648db749481db7"
+      "470169fb5402ee990fa190a1635dd560"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3598,7 +3598,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "03d9029ba940c6a6581c398060be83a7"
+      "6fef38ee6f88133d2aa8befee68ba7ac"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3611,7 +3611,7 @@
         "refinement_interpretation_Tm_refine_bbe30c4d40d3631afe25976baa4ae974"
       ],
       0,
-      "ea06bafa9262641ead61f9099cd6337e"
+      "2f92187c3ba6b8fe7ca02c3273150817"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3624,7 +3624,7 @@
         "refinement_interpretation_Tm_refine_c187d113af86d02624e6b320049c575f"
       ],
       0,
-      "39286de59d3e22bc8072c282ff56e9b0"
+      "652d6322d94040a488cb8f0a91734ae2"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3641,7 +3641,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "18ff00110ec8d8583ec05b5e4386c424"
+      "1bb140b40d166d0d8a9b5ce86bceba57"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3653,7 +3653,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "fbebd46e99e3d6003b853fdd7b59c6d7"
+      "5b8bd4ab98ae575141d1242e79a6a286"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3674,7 +3674,7 @@
         "refinement_interpretation_Tm_refine_bdb0ed9c9f7127ae36e02cad3b173cdb"
       ],
       0,
-      "7f0ce2acb191ab78cab9d6b74b29c003"
+      "c44a9c6ae7a3713ec3ef59a522da2941"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3687,7 +3687,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "b1e40b8b7862e26df07c9f9ef31a4d6d"
+      "60d0020c5ee81e26753269b82fe2136e"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3700,7 +3700,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "8614b3c0727e64a2359a34fe9f19fb27"
+      "188384eae6b1e56e9b982c57bea349ca"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3718,7 +3718,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "40530577dff4907afc4d747624ec2bc7"
+      "2e1d87be0bf19b484f50036af06aba0f"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3740,7 +3740,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "eee1661e6fd753bdea7c88de48cffbe3"
+      "a30ecfaaeb38facc8d15c5c21f709694"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3781,7 +3781,7 @@
         "typing_Tm_abs_a9e8729795d8f82066d2749742f3d4c2"
       ],
       0,
-      "5d4e2b74123b023888e29e268ff433cb"
+      "3d015a1e2c77e96c503dfe427bb59af3"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3798,7 +3798,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "eaf076ae25f16a2daba38efdb72ad988"
+      "8e3962e54835487f29251da881da67f7"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3824,7 +3824,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "9078f4b62a592476855bb14ceedbdbdf"
+      "0912fcd91f494bdbfe77c1180ded830f"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3851,7 +3851,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "352a51966b92d3672c91943d53fad174"
+      "9983335c43ecebd6b42e703ae348a021"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3882,7 +3882,7 @@
         "refinement_interpretation_Tm_refine_d8836626372248741cc7d6582bd93782"
       ],
       0,
-      "0b889f7f879d55931d6ecb1554ff5de8"
+      "ab83147164665daf6081e5e98da19560"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3902,7 +3902,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "846ab3b810a616afa2037990ff4fd3e5"
+      "94ba19355d11cd7067cdc9bcd98c9900"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3923,7 +3923,7 @@
         "refinement_interpretation_Tm_refine_bdb0ed9c9f7127ae36e02cad3b173cdb"
       ],
       0,
-      "7c650601fd1d0ec8a8b72e0bba08e1b2"
+      "1681e4d3e7f035f1bc546da39a9e9162"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3936,7 +3936,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "e3878079614447bfffb90381c97a422f"
+      "e4331a472be613c44ca4dada8eff31ad"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3949,7 +3949,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "fa597e83c5e5040a6e3e89c424aa3313"
+      "c5dd1d24c3d69b2fca7fe284ec098d2a"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3967,7 +3967,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "639896fb54b946fa4bc8545af1eb8e70"
+      "f483e60187154937d716c3dc0595b706"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -3989,7 +3989,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "214a319779883d864728e9835b19638b"
+      "aadd3b7774aa0b7b1564bee9e6db9177"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -4003,7 +4003,7 @@
         "refinement_interpretation_Tm_refine_dc770919a708456770381f0b1e4b8a96"
       ],
       0,
-      "1c2839d7013c0d7545c7196fe71b5b73"
+      "1907537c04771fcbbce644bbfd6d33d6"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -4016,7 +4016,7 @@
         "refinement_interpretation_Tm_refine_dc770919a708456770381f0b1e4b8a96"
       ],
       0,
-      "9d4e26c3689dd97ecd5c861f885fbcd3"
+      "102dd2471a8c4f20261c8b40f0d1a0d3"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -4031,7 +4031,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "5fafe152ccc62581a417a1f11d2b946a"
+      "c1270886d3ecaa3f32efc1c7288c919b"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -4044,7 +4044,7 @@
         "refinement_interpretation_Tm_refine_ac9dcedc876a5845340048de5bd89cd7"
       ],
       0,
-      "8a68f6bc0c7c914c6187397e06917f19"
+      "513494f66189c2dd9f370304d3f60d5f"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -4087,7 +4087,7 @@
         "typing_Tm_abs_9dc0d07e7b600973925537f206f43aed"
       ],
       0,
-      "e34b7900dc1ee7059baa1aed4c1ae7b1"
+      "1f21547d777ea22c702dbacfbdd95cf0"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -4105,7 +4105,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "e9b311b37f77680e285bb7cc1d01cf3c"
+      "43c6a96afe4c4366e73087e61ec13663"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -4120,7 +4120,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "b4fae2d7f01e2fd07f9ad7f4489de4b3"
+      "04ca8d696b27602c12bc056bb14b53c4"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -4153,7 +4153,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok", "unit_inversion"
       ],
       0,
-      "0b901911c5ea35f6ad546bdf09918911"
+      "89f38f0c475e559e3cec988ae18a0ea3"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -4182,7 +4182,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "68d8298ef186996d8e7976008cf452be"
+      "03f70f65a8b516906817f2a1dc724b0d"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_bit",
@@ -4211,7 +4211,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "ca11a254a06d3022f28b8afe3060efd4"
+      "e84826ca52d7b5d8a880688297ade1d4"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4252,7 +4252,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "36c8266b2b640d0d58004181e0c0b39f"
+      "86ccba30d0d936ac40845430e8e484a4"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4281,7 +4281,7 @@
         "refinement_interpretation_Tm_refine_fd15e7dd65d535676b394dc745c1792a"
       ],
       0,
-      "4bf5db5543e9d1075acc55d7217ad744"
+      "6f5a15b86b1cb705be2d2ade54e30d85"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4303,7 +4303,7 @@
         "refinement_interpretation_Tm_refine_fd15e7dd65d535676b394dc745c1792a"
       ],
       0,
-      "aa842705be6b827c563d28b4baa3ede0"
+      "edb348d2b62386a41cfad7a2fbea6ff6"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4317,7 +4317,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "98313e88cc86e12a74848d7ccc178386"
+      "162001b48c77b6a3b21264e87d9eed64"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4331,7 +4331,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "410757def3c6e88dd091d5fbbf0e3308"
+      "2b2e4af63d8180130314c866c45417e3"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4343,7 +4343,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "5d20d9b72776a13455cffdfe01a5cb38"
+      "4a83849b4d12f5ce68abc32334c3c294"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4366,7 +4366,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "220d4825ccf11527f46c781c05bb64b3"
+      "29a15c7cbd24913fd13b89d5d0ed58da"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4400,7 +4400,7 @@
         "typing_FStar.Seq.Base.length"
       ],
       0,
-      "dc516a8267cc51210949e9c6bd5a235c"
+      "fdf2e500b863d803094f00f6bb3ca7dd"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4413,7 +4413,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "65509a5a5bc03f79526e7ab759c02788"
+      "566cb7111784963adf1de10298f3f155"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4426,7 +4426,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "e6eb44e1cdc77bc7b29feddfc09cf574"
+      "88fff25f86cac07db5ec7f2f080d1942"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4442,7 +4442,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "77ab12edc40ada171da7cf9c4d31e71f"
+      "801f897f76c0bb16b043bd564c167b2e"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4458,7 +4458,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "9db223cce777e27f3d0938445409d260"
+      "f8b1c3bfa57f055e48a7a29ef556c23d"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4478,7 +4478,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "38e35e5833360b39644c26bb675276cc"
+      "2435da47536b22cd2e82dc2220fd1e11"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4499,7 +4499,7 @@
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e"
       ],
       0,
-      "c27519ef8c9923a02d914463c3aa7f11"
+      "88bfce68bf9c91e2136838243bda249e"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4513,7 +4513,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "e0b7e3131fce1aa21b5f07903aaeedd7"
+      "ae45e3a4823e36faa33aae93e2c2c38b"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4527,7 +4527,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "38012b2c375bc232ddaf1d8da4cf73f5"
+      "6a58dda4d63b68753056b7b6f894c823"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4568,7 +4568,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "bbbac3d4c1b681314c026463ede4e7d1"
+      "71e9596e118cc9ae01132967435a466e"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4597,7 +4597,7 @@
         "refinement_interpretation_Tm_refine_fd15e7dd65d535676b394dc745c1792a"
       ],
       0,
-      "cda7765a15d521f2714cec57640e9b77"
+      "9b58e7e8217cc9970546d993f336994a"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4619,7 +4619,7 @@
         "refinement_interpretation_Tm_refine_fd15e7dd65d535676b394dc745c1792a"
       ],
       0,
-      "f90f90160e6c90cc89b44c3c5950a6a0"
+      "3ffd78f43be850e0bae4ecc8d0d34f4b"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4633,7 +4633,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "ee9018ca475881ced5f458698a6484b5"
+      "3fa185e41cb3717bee1ca502c5857c04"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4647,7 +4647,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "b9e7297deeba0b8484e15f598bf75eb6"
+      "935e5e7e49001ef1e1bba495f523eafe"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4659,7 +4659,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "e5247ab830a9e121d8d81fd8521dfc79"
+      "215664f0c7ed2759eb89b38c29a1eaa5"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4682,7 +4682,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "6bcaacde437e3d780629a94cc1bdb826"
+      "540facb342f60231b32daff814fc247c"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4713,7 +4713,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "bb691d3bb42976437aefb1bb901e8678"
+      "b1f1f29f97fd9587aaa48cb29a2bbb55"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4726,7 +4726,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "4a5ab53662cebe5a3d213772a230f194"
+      "a406cd755e4bfd8f2526bb59550ad742"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4739,7 +4739,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "ea3b6f89d36f0985f9a304bee77ee69a"
+      "ff8c10c618632e873dabcb4b9aac31a2"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4755,7 +4755,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "272be87fe65507be52e9374b503d425e"
+      "9346ad656e318514462f6ea2bfb65deb"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4771,7 +4771,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "f99a562850882a086e0e11f14601acda"
+      "af554c5e30e02faf454a4987ef428003"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4791,7 +4791,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "e6e026490d9d4b4f1c6ff8e3a66d9e2b"
+      "1e51784dc1d1416209382ca707f3d856"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4812,7 +4812,7 @@
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e"
       ],
       0,
-      "ded0c033d0450652f9bfb302f6f7a6d8"
+      "cce9322c9ee3b6c04defc29df88239f0"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4826,7 +4826,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "c6cb1ea7654efd1fba3a7b176ee865c2"
+      "f21d874a454b66a845e847847ab7f210"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4840,7 +4840,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "a59a43c9c6e8407609d127f425c974fb"
+      "ad36ff871c7c8f8d12b5d7f97aded2e0"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4861,7 +4861,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "917eba6e01e22f6f1187856a580c8d31"
+      "12127099ea36611b9eb052b90101b400"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4870,7 +4870,7 @@
       1,
       [ "@query", "b2t_def" ],
       0,
-      "4c13d80e73eaca63ac86b4b0c1131481"
+      "82148bcb257832394c86fc74aae67716"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4913,7 +4913,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "d514e388a901aa5ebaadb4588c01cac4"
+      "46063fe0119d45a4a4f6dd7e50fcb0a8"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4961,7 +4961,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "fc27416e4c31f5a93697c5ba348ebe28"
+      "9b2afe871df9ac6b7fe2b9337a7ea492"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -4990,7 +4990,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "d689af0334ba97cc6881895b37078e11"
+      "25831aefc9284c98a5a93b5b461c2c81"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5012,7 +5012,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "99c194a1665a2b725809b3d7af5ed5fc"
+      "254144aa8d3def19dce744500adc4a4c"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5034,7 +5034,7 @@
         "refinement_interpretation_Tm_refine_80d6fdf6f9f0898e6b94953d0f492224"
       ],
       0,
-      "f3ed52dc7e1664c08de891ea83fe8d3e"
+      "f454e2099491ed6bd2916d649d41e11a"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5057,7 +5057,7 @@
         "refinement_interpretation_Tm_refine_8641a04018b07cfb49c8809d3b0f9f59"
       ],
       0,
-      "8a6e7d95c86a3eac718b6cf94d137439"
+      "901528fbe923360034249c65d54ee869"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5089,7 +5089,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "730be0af080cca47dea54d33fbe8fc64"
+      "4f68528bf7de714d8f18ee46f8e08d1c"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5111,7 +5111,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "dd287a7b1d7e83225b4b0dc91a1c0741"
+      "84b95c95e9ef6ddcfe929688482bf06b"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5126,7 +5126,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "22a5288efd6fdeeb0e25cb0501a7ff7b"
+      "15b69e62d910af80080f3d62837d05be"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5169,7 +5169,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "0282538ddfdb3a81e446204590600e70"
+      "6441117eb4bf8a2b6b51d14fc7d96ecb"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5185,7 +5185,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "da6dea89fdfa80f722cd35a93d9a45d1"
+      "bbfaeab529283ec1b22dfa233c40303d"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5211,7 +5211,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "a1cc091511a8abf2f21019d2c5b07cb9"
+      "e8ec4d226141e4402934934b68456975"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5220,7 +5220,7 @@
       1,
       [ "@query", "b2t_def" ],
       0,
-      "2d24ce0d531512f61e0f487d52a1211f"
+      "1f6d69112e698f3b4a47a5237b537f48"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5268,7 +5268,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "a0210a2642e568a0e1994a5691a954f0"
+      "56c2881681811618c52170d47e8fc78d"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5316,7 +5316,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "06c6d0323f93dd8e9935c57355549b9d"
+      "6ebd0c8e7ead4ca6577d497a877aafd3"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5363,7 +5363,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f023cf6e7e5454ad492438e3c3d6059e"
+      "4d43c0db8d03ad58f72e5c624a40953a"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5385,7 +5385,7 @@
         "refinement_interpretation_Tm_refine_80d6fdf6f9f0898e6b94953d0f492224"
       ],
       0,
-      "52de74131dfd8d940ea154cfc6a63f06"
+      "8262c5098b68b4770101481eb62fd3a2"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5435,7 +5435,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f005c84adb120f272baf723f22c848cd"
+      "313bfc5e43c2112aafac767ca3d30df6"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5456,7 +5456,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "da51525f39236dd2793f4722e4be098f"
+      "aebd1d6b4d26269db770668150feee48"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5472,7 +5472,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "3c4a45dd467c29ae815c2db91199fa1e"
+      "5058833087d02b29e31435cc3cc4fa2f"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5488,7 +5488,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "c84c5acc0d159e3761b23984da2dcb89"
+      "f694cfa29f037f78532b1d8041a8e198"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5509,7 +5509,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "8648eb1bd6935654050f661fe8b25cc4"
+      "4d4fc81216a748a1fdc55d49b80ea65d"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5522,7 +5522,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "e710d9044b6082f39383ed68c3562041"
+      "4695568437cff705f5c2ad6e92aa410f"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5538,7 +5538,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "378e5637ab5f4f4b85eb6774d2215514"
+      "27391a2e7da267837cb4733b77db4b71"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5564,7 +5564,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "7cf4aba3e29ea77767ef943c8f4bf82d"
+      "30d7e7bae67ed133c68ad6fe441873af"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5585,7 +5585,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "8648eb1bd6935654050f661fe8b25cc4"
+      "4d4fc81216a748a1fdc55d49b80ea65d"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5598,7 +5598,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "e710d9044b6082f39383ed68c3562041"
+      "4695568437cff705f5c2ad6e92aa410f"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5614,7 +5614,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "378e5637ab5f4f4b85eb6774d2215514"
+      "27391a2e7da267837cb4733b77db4b71"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5640,7 +5640,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "7cf4aba3e29ea77767ef943c8f4bf82d"
+      "30d7e7bae67ed133c68ad6fe441873af"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5653,7 +5653,7 @@
         "refinement_interpretation_Tm_refine_8c6ae2f45db15aeb4158fc9f85e510ee"
       ],
       0,
-      "42983251858596c771ace6be0b03263b"
+      "bde4a2db0d1e2393057a5e5a9c4abd1c"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5665,7 +5665,7 @@
         "refinement_interpretation_Tm_refine_0e7b07e0729b1031a99f117d91a97879"
       ],
       0,
-      "6b5b453aa87fc31929e0459c1e8be8a1"
+      "b3395f76db1a72afb2cae1a1decff1e1"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5678,7 +5678,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "69b83eb9112fb409997a3cba98ec9bec"
+      "e4cce04d76d6bd45a658bd6e277631d0"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5708,7 +5708,7 @@
         "unit_typing"
       ],
       0,
-      "e1c6f46b281d40c0e0fdfe65b87ebdcd"
+      "8970adcff634583beb8232add9af5d08"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5723,7 +5723,7 @@
         "unit_inversion", "unit_typing"
       ],
       0,
-      "f9338a3eaa302441fc4307d7fb041886"
+      "4ea589fe435b74032aa757c08610c25d"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5744,7 +5744,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "a721c96f98f1fa096f9640ab6281d0f2"
+      "d324ddd90bcfdc732520f2fa572e37fd"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5757,7 +5757,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "3f265c76569be69ea3ad655dd2aa7bce"
+      "9600a70644e04a00215812d087a09e43"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5773,7 +5773,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "95bfe1c40f2a1a4c1e764bbbb800eb6f"
+      "47945b8a651c8adc2f37c8ab5a5d3208"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5799,7 +5799,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "3f2488e5bae7d659163465d9240d7dd0"
+      "bad8ead71fd41b43235122290d04c1c0"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5820,7 +5820,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "a0fd1fea93de9fde7ef2d5bc5c4ed62f"
+      "469d57bb203fcb8df5315fa2c1ef1788"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5833,7 +5833,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "01d13af661b37ff35b8e1be0b6bdd7a8"
+      "9da2ecb149a617bdba73b4eb242e34d8"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5849,7 +5849,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "e182473c70c1d6c6210ba53d85ea9b96"
+      "9e83830a6a980b3ea7df41b3f2aa375a"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5875,7 +5875,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "f0db8bd3fa419fca8ca3c346d58a278f"
+      "c208fe192fe5f08afa956f08d03a021f"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5888,7 +5888,7 @@
         "refinement_interpretation_Tm_refine_a3111ea0d761ee9d65b992bb05d09b10"
       ],
       0,
-      "712d618f5f015a61317506a0cf1cce77"
+      "50faef00a0241ab610b8878f87336951"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5904,7 +5904,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "34e4ba6bb2cf77704fcb6c9d385dc86c"
+      "7574970994e59a5851558ffb118f6e4f"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5917,7 +5917,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "a7b1773d749a387a3828885cbdf2d79c"
+      "89a7600bf589856cccad9369cf0f4db7"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5933,7 +5933,7 @@
         "unit_inversion", "unit_typing"
       ],
       0,
-      "e6342eaae5b96dea74cac3873dea58c2"
+      "b7d9047d07ed28a1ff6076e5f2864c75"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5963,7 +5963,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "61422791cd134e2e2cca706b0963de97"
+      "e3ea16308cc1156b095e3ce8d05a97a1"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_coeff_value",
@@ -5993,7 +5993,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "0ab928c44430d05d37687d5aac881c65"
+      "fe5aca912267627c9806932c948e150d"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_byte_decode_index_12",
@@ -6065,7 +6065,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "71e9b7ec2ccf883ab258af2d92ebae6a"
+      "29b50b29c8b9ffb4cb8bdbf1f4c97760"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_byte_decode_index_12",
@@ -6088,7 +6088,7 @@
         "refinement_interpretation_Tm_refine_d4d8441dd3342c0031d49a3ddc93d01d"
       ],
       0,
-      "5d3419aa4d6945dad61e058fca8cc7db"
+      "b9bc3c25fecd636b73481e3adc215a5b"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_byte_decode_index_12",
@@ -6111,7 +6111,7 @@
         "refinement_interpretation_Tm_refine_d4d8441dd3342c0031d49a3ddc93d01d"
       ],
       0,
-      "5d3419aa4d6945dad61e058fca8cc7db"
+      "b9bc3c25fecd636b73481e3adc215a5b"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_byte_decode_index_12",
@@ -6218,7 +6218,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "67d56652373370230fd921ef1a074565"
+      "0df38583609d215757cb395c5a3a58c8"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_byte_decode_index_12",
@@ -6248,7 +6248,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "5a2a6ee09534b5d5c881b5334d3a7c09"
+      "3aea08c93dc52b0c8177063dfb998cc9"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_deserialize_coeff_eq_byte_decode_12",
@@ -6336,7 +6336,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "087f3459e91cf6674226eb04ee5c8583"
+      "53734f3550c3a8570f97ee51d345ced1"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_deserialize_coeff_eq_byte_decode_12",
@@ -6365,7 +6365,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "2d623cc53f73dbd72882474dbcad6150"
+      "29391816dcb84204d6755a68d7cd807e"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_deserialize_chunk_eq_byte_decode_12",
@@ -6432,7 +6432,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "b2dcc36d43784ec0b880039920c6698a"
+      "12989bc7e41635ce55cd6153445b4aed"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_deserialize_chunk_eq_byte_decode_12",
@@ -6461,7 +6461,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "9e7d8a4aab90df08c6d8e0f34612b8d8"
+      "3feceb13614b6fbf18ab6f1d08db80dc"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.chunk_decoded_12",
@@ -6513,7 +6513,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "50de18f29407e604f86eea105086b6c1"
+      "a2264e44760774a0322daaa028f0b04f"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.chunk_decoded_12",
@@ -6543,7 +6543,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "bad097d98f39e721d6bd7a9ec30370df"
+      "69d0ab5918e2cfeaf7922fc588c5113d"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_intro",
@@ -6599,7 +6599,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "d60a77d61b821447f1b2dbc13bfa6ed5"
+      "69937d3502f77959cb1994bed9c106e7"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_intro",
@@ -6629,7 +6629,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f642d18b98439a0daf51c68af33d474c"
+      "bd9cd0bbc7f520e012fa66373c9ce599"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_byte_decode",
@@ -6707,7 +6707,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f86df6b46b7e7cacba00b9067cf839f5"
+      "d5c4a5f480e0c7ccf8d2dbcfa655ff28"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_byte_decode",
@@ -6736,7 +6736,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "21e4fa9b72575997137b41b23efaafc5"
+      "6585f472bedf62be34a535b3fc41569e"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_val_and1_u16",
@@ -6810,7 +6810,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "b3930255650046bb559a75b84475d517"
+      "5cd5f4a6baeabcc202bf3cdf69d4de27"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_bitvec_from_bounded_index",
@@ -6912,7 +6912,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "2664893109ab7eb44bfb75deb167e101"
+      "de2e414f458868e5dc6b496a1d89a1ef"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_bitvec_from_bounded_index",
@@ -6932,7 +6932,7 @@
         "refinement_interpretation_Tm_refine_854223539d8f8252765e6aba5325e1bb"
       ],
       0,
-      "0025117da6f6f8663636935ae6b1d557"
+      "22b1faf1cedf7b0d8cf163fdf2dc9317"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_bitvec_from_bounded_index",
@@ -6962,7 +6962,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "77b3787e8ad6db0070dbb6c8c154902a"
+      "b14af00e616fa95a9bf8574b6a0f26b0"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_get_bit_cast_bool",
@@ -7027,7 +7027,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e4b0a60f21b9a3a880dd8b5600812c2f"
+      "8cadc7737571634116e30a757e6d5d89"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_bits_to_bytes_bit",
@@ -7156,7 +7156,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "25f6885c4e12d44d2eb5e235131edc8e"
+      "af923327474d3a48e4c250befcec0cca"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_bits_to_bytes_bit",
@@ -7177,7 +7177,7 @@
         "refinement_interpretation_Tm_refine_6a3a77ed429ce597e64c4c4d778e79fe"
       ],
       0,
-      "09207044f19d88a8d6399ad3e4457095"
+      "734ac03112775e321d6c799d364b7502"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_bits_to_bytes_bit",
@@ -7207,7 +7207,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "ca373a836700ff60cbeb2ae12978e54b"
+      "2c9a42d8d6f06b2fa1bd63179c5de938"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_byte_encode_bit",
@@ -7285,7 +7285,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "8d77155d40672f267545c12f5d0d432b"
+      "2dc8c6fba27483cc9664f41f4bd269e2"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_byte_encode_bit",
@@ -7310,7 +7310,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "43fe67cc897b9cce74a18774a9007e55"
+      "7e4c1f995a6ee0db8ede4429ce1df31f"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_byte_encode_bit",
@@ -7340,7 +7340,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "2ce80896431efbd0945a2e3a64539063"
+      "e9a7a52db1f8d34781fb509ce8b61bd6"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7379,7 +7379,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "0e7fcb427fad3e066946542cd52eb5ad"
+      "fd206a124ac0d7b8271bac8a018e645e"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7425,7 +7425,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "c85b1f14014aac84e8bfea1af174c9cb"
+      "770051d8bedb80449ea5b5176279f96c"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7441,7 +7441,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "1a9075b68820ee443552805a4e10311d"
+      "6eb9fb1fa045a31589a7ee07daf43a13"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7457,7 +7457,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "814ec807c04cab87af09a63786b490b0"
+      "ea1135bab30f83d42a4094034a892dab"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7479,7 +7479,7 @@
         "refinement_interpretation_Tm_refine_fd15e7dd65d535676b394dc745c1792a"
       ],
       0,
-      "c028921bb42b45760c850aaba02e5661"
+      "220cf02bea8e11a78b4a915c17ec93ee"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7493,7 +7493,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "9ec4a5e039a399f94434935d64c09ce5"
+      "e0ed6b50c7f64b05f5e7ef39f05fe9f0"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7507,7 +7507,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "9db544212338130168e8f53a4e708d81"
+      "cdcee99cbb8505426c26b1e2a7e4a7ba"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7519,7 +7519,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "383eedd6bd4ff30131645ed682c8eae9"
+      "ed648122ce49d7c02fef41cddd29431b"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7542,7 +7542,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "d8b6d17751a74e7c90a68db3758fe4ae"
+      "e521103cdecec5d4ec47db42c682f043"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7576,7 +7576,7 @@
         "typing_FStar.Seq.Base.length"
       ],
       0,
-      "c97d04a8ecd7cbbce0ab767e71a28702"
+      "3d39e2b4291c12e29b726a444b4b49fc"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7589,7 +7589,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "0307efc2d897f4805edde7ee51c1315d"
+      "f1b0eaedda27c30498716d708fcc14c4"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7602,7 +7602,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "ffcc45b7e5063cc28b049411c7d99eb2"
+      "38d396f44502a86e8df70f853d77927e"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7622,7 +7622,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "e5f3508955a9dbff5e2a7bbe700e53f3"
+      "8956d6dbb904ab4e31d47ed0b9a05579"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7643,7 +7643,7 @@
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e"
       ],
       0,
-      "3976d8cae949516ab6d3e0c2a01c4149"
+      "0e0457bace8f38c286ea7330e68041b6"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7657,7 +7657,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "22902ab895b888546442cb68f0ceb9c3"
+      "81615885430e2915f72ec837010da281"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7671,7 +7671,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "10a91384a35d7ff5d56b4126fe1d5b64"
+      "3d88b53ec55e24875d4c0076ad0c9c8e"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7692,7 +7692,7 @@
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e"
       ],
       0,
-      "82c8f9f934e5c3432612ab46f4877b7b"
+      "4ebf3c71b3de2881bf0dcf7140ce7f0d"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7701,7 +7701,7 @@
       1,
       [ "@query", "b2t_def" ],
       0,
-      "4ff981cd9faf62f837c188bfbb2ac1fd"
+      "73e8a01882311220959bbe86714ef966"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7716,7 +7716,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "2ef4a6df3dda790393c793103f3feda3"
+      "93eb5fbc2f9485f5d038c0b141bc351c"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7739,7 +7739,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "4635958942be090ad15986bc1ae86b73"
+      "43154b5291431bfdbcff5a2bd653ba45"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7748,7 +7748,7 @@
       1,
       [ "@query", "b2t_def" ],
       0,
-      "a29f13291e4d32704b4e0f368b47dbf4"
+      "6fe1a6df318be77e086b40c641ac5dfd"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7787,7 +7787,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "64e82a532311dda319f439d8404d3e2f"
+      "fd5c6a7c8473e4e57416dd75b8784337"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7833,7 +7833,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "3c5613ae8401f56d88041d73d591aba2"
+      "fb5591a3def7a9d2cb476523b20cdde2"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7849,7 +7849,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "e3ac39f02d79d4ae3ffd5d1b6e2e529a"
+      "2ae6e2f6138243b846ee2f4e714859b6"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7865,7 +7865,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "6518ccb203912844de4b568bb7e26d4a"
+      "a621222e5dad8eccd4052e8f9b29e72d"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7887,7 +7887,7 @@
         "refinement_interpretation_Tm_refine_fd15e7dd65d535676b394dc745c1792a"
       ],
       0,
-      "83e55bf259e1a6b0d03d9ac502aa16fc"
+      "3c609009972e39a64f56b3507940b67a"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7901,7 +7901,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "ee8b61a80d5606d03ad09e28b66080ca"
+      "b245feabbae487b95bfd96a44d678e5d"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7915,7 +7915,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "6bd1728f3822e8423e4fa6b48dfb97d9"
+      "c031ac258b7d695be66d438ae53bd690"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7927,7 +7927,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "dd709d93f89c9666f2f3a5094619fcf3"
+      "f4e6e53cea8ead249a1532b0968e3995"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7950,7 +7950,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "81f8c1923a019aec3a494a1050222153"
+      "1893ce55606ede7e6f09d62f91606dc3"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7981,7 +7981,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "362390a30f16e08c85586c2fd3a50c25"
+      "0260173cfe4b54b88da46352bd3e4a19"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -7994,7 +7994,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "cf64206da26e8cf07bf81164f6b74a6e"
+      "52f4d977df022e33cd126ca78d97ebd3"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8007,7 +8007,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "7ba93a5191a3b321a47b1eb45bb2d0b9"
+      "279dc38a83c072487efd7daed9e65051"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8027,7 +8027,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "1727285337f0e98581869439e0f246d7"
+      "1fa42e5806653b573759354e0a04d12a"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8048,7 +8048,7 @@
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e"
       ],
       0,
-      "855feafe39aad8356f0964f03ead16c7"
+      "c2b78c7b86b4deba236de43dbd024aba"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8062,7 +8062,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "9ff3359eca4273de9a2cff993f0dc4f3"
+      "06a7e752a82dc561b8d84ca99882666f"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8076,7 +8076,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "7457146bcaf915d7585bb365ed586a10"
+      "b1dda7086650d0fd448b895dca1367b9"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8097,7 +8097,7 @@
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e"
       ],
       0,
-      "64ed6ad2133e93a8a08eeaeda04f0c58"
+      "2843cdf4bbc03b5e3b931fa4749bd4ea"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8106,7 +8106,7 @@
       1,
       [ "@query", "b2t_def" ],
       0,
-      "b1c816407a67ccc9bd02e83ed38381c2"
+      "f7045b15ea3583c55d6d0a3214429fcb"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8121,7 +8121,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "1d4195f6c910879b2bbdad1b968d18d2"
+      "d928b6c1ad29daba2b9c932af88ba3a4"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8144,7 +8144,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "468969284137b1bff74cd50a7bb67c04"
+      "fd1a27ada491c44d7a6fd652398aa5d8"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8153,7 +8153,7 @@
       1,
       [ "@query", "b2t_def" ],
       0,
-      "1a9c5cddf040b49481bb2b800f8f1bcb"
+      "a0591ead82857430a19a2571cc79e8e9"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8169,7 +8169,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "cc7cad06a6789c31b20346477fde24a8"
+      "9b5efe1f8bb100774388181024353b64"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8193,7 +8193,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "7557881092b37d13c7cb9069bd98a22d"
+      "427686bf29a36c10ea437930e295dc66"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8247,7 +8247,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "744de6b76411ab972d71715751a18f8a"
+      "4a5dab0f4f799299fbeb5773564a2b28"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8305,7 +8305,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "cc541d450e0e8dcaad19826df73daf34"
+      "b9f1ee81e7defdcfb72229b9fe46bf1b"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8334,7 +8334,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "af37f644971156cf11c2f0585a5b1ada"
+      "08f420c146a8349f7e1f6e6c2f6a0c96"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8349,7 +8349,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "2096b7ba2adb5f29bedfa08685b153ef"
+      "d7a365045946f4cea249fb3bee0a4da9"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8376,7 +8376,7 @@
         "refinement_interpretation_Tm_refine_80d6fdf6f9f0898e6b94953d0f492224"
       ],
       0,
-      "a09008a9b2d6e1fcf1e89fe1ea8a0c8c"
+      "96092a36f4220bf83d17dfecb1b4c558"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8431,7 +8431,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "6953f5c01feadfaf2b286044aab030c8"
+      "37299f4ec0b3d45e89a3f1d6dcdfdb05"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8446,7 +8446,7 @@
         "refinement_interpretation_Tm_refine_e9ced3e611a2e0327cd16d23c90de311"
       ],
       0,
-      "0b751dd931d0c840883dc7c8849cf42b"
+      "bbbe8e40b5e503d836d59a16eec24d92"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8464,7 +8464,7 @@
         "refinement_interpretation_Tm_refine_e9ced3e611a2e0327cd16d23c90de311"
       ],
       0,
-      "ee175b70d4d1edd5f40834986f111e91"
+      "2c91ff751abcb3c91e0472fa4010287b"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8514,7 +8514,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "d17581c5a840ae2e81f34165e23d00fe"
+      "fb3936248f604c4201b981aa3e36f379"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8528,7 +8528,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "8e16e2cbd20cf5dadef576efa9566776"
+      "00ce49dcae79a2e3c87fa6485e235070"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8542,7 +8542,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "7d93701e488481d6d41dfc0536bdad7e"
+      "e4f499b3ce3578505b6fbcac567ffb7e"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8554,7 +8554,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "69206391fba74668509b3668e1e820dc"
+      "02c75ba8b4738807d2b17a7ad60848d9"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8577,7 +8577,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "7f55ce456fdafcd626c84aa64e9d84f7"
+      "cf9c9eede2ac24c3aba740600c48a88f"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8607,7 +8607,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "262b91edc6c91e3bb5f2bafbfdc1ead3"
+      "fb2d90648a4c89b96933bf86bebe7034"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8658,7 +8658,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "30d260bfd22677c97c3d06fefac13f63"
+      "ab7f697b6d26d536fb106fdab0140f6f"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8709,7 +8709,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "30d260bfd22677c97c3d06fefac13f63"
+      "ab7f697b6d26d536fb106fdab0140f6f"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8766,7 +8766,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "b5db5d17b6c17bbd6ca2381f15a27aaa"
+      "127875dca165fd6fe6a2e292cf193b41"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8795,7 +8795,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "cabd3a9928163f3c5a16eb4d2e01a505"
+      "9cf539508126ea7af4ec7d9e55f570b2"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8810,7 +8810,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "84b1cc901c7503e31ddc15bced9037b0"
+      "4fe160b508356aae290d4007e274d060"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8861,7 +8861,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e3f907107006d6775a75ccf7c0f33e14"
+      "b21e88e0903e4ed18fbe4117b5949d40"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8885,7 +8885,7 @@
         "refinement_interpretation_Tm_refine_8641a04018b07cfb49c8809d3b0f9f59"
       ],
       0,
-      "733cde4e462c897e87304b0967f7be12"
+      "9f703be3902b3631364aeac91cf8f83a"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8900,7 +8900,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "81ec1ec1e29ab7ef874799e88152762b"
+      "3436905b2262cec4b77c282083cb8c75"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8917,7 +8917,7 @@
         "refinement_interpretation_Tm_refine_91f90bfec38c68a31aef3c99b2c25a9b"
       ],
       0,
-      "f277590b273ff2f90e73b5d4de1f92a9"
+      "8a41a24c97f08329b6b5712dc46e5169"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8948,7 +8948,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "284db4fc14d3935181da27c54254701a"
+      "f30e16223814342cb35567644d31e602"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8971,7 +8971,7 @@
         "refinement_interpretation_Tm_refine_26d768cc241c6628db9e0d45d45d9136"
       ],
       0,
-      "30c590f825702efa99a7cb8b461b1e3f"
+      "e0497e73c04af3b9978e1df1ae2d8c86"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -8986,7 +8986,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "5b5212f6fefb16488d5b8eb5a17e3686"
+      "cef92ad2121ff76426a6a2e50ec06687"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9008,7 +9008,7 @@
         "refinement_interpretation_Tm_refine_d456b16462666a5a3cb7e1803148ed36"
       ],
       0,
-      "1edf7494a97fb4d7da84557caad0aec9"
+      "4b9d8bd4008f48d0712d6cd7ce715253"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9033,7 +9033,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "13c37b5c45dd266a65712e112e4332ae"
+      "af5b9692075bc2933aa752b22f29b63c"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9046,7 +9046,7 @@
         "refinement_interpretation_Tm_refine_d960554f81750c3ede599d859ee49494"
       ],
       0,
-      "977fc061cb466459e860e2085411f813"
+      "332478b3aa9d0c6f86e54a5802e45261"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9061,7 +9061,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "81ec1ec1e29ab7ef874799e88152762b"
+      "3436905b2262cec4b77c282083cb8c75"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9078,7 +9078,7 @@
         "refinement_interpretation_Tm_refine_91f90bfec38c68a31aef3c99b2c25a9b"
       ],
       0,
-      "f277590b273ff2f90e73b5d4de1f92a9"
+      "8a41a24c97f08329b6b5712dc46e5169"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9109,7 +9109,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "284db4fc14d3935181da27c54254701a"
+      "f30e16223814342cb35567644d31e602"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9132,7 +9132,7 @@
         "refinement_interpretation_Tm_refine_26d768cc241c6628db9e0d45d45d9136"
       ],
       0,
-      "30c590f825702efa99a7cb8b461b1e3f"
+      "e0497e73c04af3b9978e1df1ae2d8c86"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9147,7 +9147,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "5b5212f6fefb16488d5b8eb5a17e3686"
+      "cef92ad2121ff76426a6a2e50ec06687"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9169,7 +9169,7 @@
         "refinement_interpretation_Tm_refine_d456b16462666a5a3cb7e1803148ed36"
       ],
       0,
-      "1edf7494a97fb4d7da84557caad0aec9"
+      "4b9d8bd4008f48d0712d6cd7ce715253"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9194,7 +9194,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "32da5526e6791cb4969c6070c7044b52"
+      "260cd6e85d97f5a9aa30a0c2d8772093"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9207,7 +9207,7 @@
         "refinement_interpretation_Tm_refine_d960554f81750c3ede599d859ee49494"
       ],
       0,
-      "977fc061cb466459e860e2085411f813"
+      "332478b3aa9d0c6f86e54a5802e45261"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9221,7 +9221,7 @@
         "refinement_interpretation_Tm_refine_91f90bfec38c68a31aef3c99b2c25a9b"
       ],
       0,
-      "d0b9efb20da465b201cdee78e3e72120"
+      "15607cdfa4b47071c7f6788b1d285ab7"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9236,7 +9236,7 @@
         "refinement_interpretation_Tm_refine_91f90bfec38c68a31aef3c99b2c25a9b"
       ],
       0,
-      "2d25e57125dde8a88ff7eb09f0ea284f"
+      "9d7cc3174bc7ae22b268518778bd0e27"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9265,7 +9265,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "6635ffd01907ff2065aa40d76ca2b95c"
+      "327d415e3c522633a1e34d04e6ab9fb9"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9281,7 +9281,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "73fa6ee2808e01d2c89668e5cd91a61c"
+      "cdf4ecf1f3c31df5f4354b8c9e694b08"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9297,7 +9297,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "d7d84140c3e5e4a7b27d98d2f1659c0d"
+      "b8464d49ad55cda59bd6c9a72e87a49e"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9313,7 +9313,7 @@
         "refinement_interpretation_Tm_refine_91f90bfec38c68a31aef3c99b2c25a9b"
       ],
       0,
-      "f56e0451ef1a9d8bf26e72199fb40743"
+      "e94d299119d8acfc4e4abf26f78b0fcb"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9334,7 +9334,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "30b47aa2b8aeef04ab3ff1ab81816231"
+      "724672ce6ad03167f1448990b9d8706a"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9350,7 +9350,7 @@
         "refinement_interpretation_Tm_refine_91f90bfec38c68a31aef3c99b2c25a9b"
       ],
       0,
-      "869e846d61d3ecbd79a7228bc1f369af"
+      "8a6befcc5ae2fcc25a0bebd52ea78087"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9373,7 +9373,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "5946350a9f5c712c790ce574816223c7"
+      "f31a16c3ca5255d45ffa9f12e9f45ace"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9402,7 +9402,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "8306a50f9105098d118291af1a4ed789"
+      "c5d0842a4e49a35978759d43793fba1d"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9428,7 +9428,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "3f5a9ebdb8b2adb0eb7213bcdeade179"
+      "59f0e89a30f71df85b2a54f75c87f3b9"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9469,7 +9469,7 @@
         "typing_Tm_abs_9dc0d07e7b600973925537f206f43aed"
       ],
       0,
-      "9f315f1fdb0fe296ba25cce1adbb9a66"
+      "a60a6469b33ece3189f0e5733f81bf23"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9493,7 +9493,7 @@
         "refinement_interpretation_Tm_refine_c64f2405b85ab7b11cd3469c849b05e8"
       ],
       0,
-      "837cf870c9820b9b754d30b08ff0d5ef"
+      "47c72efae6f15b75b6a8723986d399dc"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9515,7 +9515,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "bbdf8ade694f93ab8f1cb1cb2c436fb2"
+      "d05ef65b92915ed32f534bf04dc7f34d"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9537,7 +9537,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "339cc9dd56f500f429328ccfbc55a243"
+      "043aa448a79a0b13b1c9bcfa515134f0"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9553,7 +9553,7 @@
         "refinement_interpretation_Tm_refine_91f90bfec38c68a31aef3c99b2c25a9b"
       ],
       0,
-      "e83ff44f2b9101ff9b6a6bafc4837ba1"
+      "ad00164ce879bf7da77a535b16127d79"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9575,7 +9575,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "784330dc97e3fa8317f0bcc97d1f91ff"
+      "5fb5c0048be912ae97a649ee4cc9de16"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9604,7 +9604,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "e06b46c1a2e31ff5b9e7cea22f154182"
+      "6cbc915a460b7ca797c93103b74d71e0"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9617,7 +9617,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "d62a181a8398d00bf129693e439f0e37"
+      "0f4f1f73e6d085840dbae79021be9ffb"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9630,7 +9630,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "fab93c74139df6ea4d8d8e89b8e238c6"
+      "69964a1ebcdb5df396b5168e8aa0628a"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9646,7 +9646,7 @@
         "refinement_interpretation_Tm_refine_91f90bfec38c68a31aef3c99b2c25a9b"
       ],
       0,
-      "7fd44ac307fcc20f032053d55abeafd3"
+      "4cf7f4ee580dfbd84deace323ad3b1e8"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9667,7 +9667,7 @@
         "refinement_interpretation_Tm_refine_63c0cf93c4d449b5b9d1b12e355a0400"
       ],
       0,
-      "61ab422cfc946ffb4dc267a8dc027bf5"
+      "e73b768055e8870acc275528fd3393d5"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9686,7 +9686,7 @@
         "token_correspondence_Rust_primitives.BitVectors.bit_vec_of_int_t_array"
       ],
       0,
-      "bbf63660644d2b9a63c5be5699e502ce"
+      "fb1a3b9698ccea4cae1268eddf151a29"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9707,7 +9707,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "15e9d4705199f935a75852820ead01bb"
+      "c6d85ed25cc36ed024efad24ddfec605"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9720,7 +9720,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "0e089cafb262215db7eb1d3cbbe0f6a4"
+      "8e3e0b257813026dae61848cfda9ce5f"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9744,7 +9744,7 @@
         "refinement_interpretation_Tm_refine_fd15e7dd65d535676b394dc745c1792a"
       ],
       0,
-      "46fe1173a83ba5ac063a418403350a89"
+      "8fe19cb2f04f3b9bb6e610c81a789705"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9766,7 +9766,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "90f8d57aead0e725033150016c2ae1a2"
+      "98a39c611bf21838a6d1d02391c963c0"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9779,7 +9779,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "0504b3705e50945ebdd0e99bd0bb5f54"
+      "3af394e0f86f5260ed80674ced77c0ba"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9792,7 +9792,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "aa6f9dcc2cb749e54bcb9f72e9a795e9"
+      "ca345c8ea28fdd2862a02cb2b7d13bc8"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9816,7 +9816,7 @@
         "refinement_interpretation_Tm_refine_fd15e7dd65d535676b394dc745c1792a"
       ],
       0,
-      "112719b7fd3fc2800869099215ca9cc7"
+      "3f3fb42a420dcf1db85a814f6b9585c0"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9829,7 +9829,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "33ec821de00cae1c1e010df5a2edf3e3"
+      "f412339e1968215997b6de82f139743b"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9842,7 +9842,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "186a2f1f7d4c89f266fd1b51704b3c06"
+      "99208be7e950c71c58a86f8d6740e2a2"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9858,7 +9858,7 @@
         "refinement_interpretation_Tm_refine_91f90bfec38c68a31aef3c99b2c25a9b"
       ],
       0,
-      "6d60fe8544dfeb1677fdf0f0b443e691"
+      "4e5af9adb729f559b8e571a950e3f808"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9879,7 +9879,7 @@
         "refinement_interpretation_Tm_refine_63c0cf93c4d449b5b9d1b12e355a0400"
       ],
       0,
-      "ed3811c44f16f784f78119dd122f97a5"
+      "55292732e9a121662e25076f4ddb7905"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9903,7 +9903,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "887c97209fcc3c700e01526c6c71b4f2"
+      "b45f5c1fedb02bc747e1c037836b02b9"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9922,7 +9922,7 @@
         "refinement_interpretation_Tm_refine_80d6fdf6f9f0898e6b94953d0f492224"
       ],
       0,
-      "d1949e877a3844257d14626c88484d97"
+      "be4926b8084b65e5c133c7e0b9a2e39c"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9943,7 +9943,7 @@
         "refinement_interpretation_Tm_refine_bdb0ed9c9f7127ae36e02cad3b173cdb"
       ],
       0,
-      "f3e04b72201b70e4c6b45992c6700567"
+      "c7fa3f24ccfaba9d9a2e3bf870b4e303"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9956,7 +9956,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "92bf26209ffb64f37cdb5f6b4ede3089"
+      "23a7e41594900df5397105e97af20aa6"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9969,7 +9969,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "c50a4ea3458d45af14f42e76e9ac9352"
+      "d813590be44847b66b6a8746ff41812d"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -9983,7 +9983,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "dfee7bd7fd7e3d80b7fa993b2b6e00a2"
+      "3adee5225276bf69d84c0c5f758ec6a4"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10005,7 +10005,7 @@
         "refinement_interpretation_Tm_refine_796dffedce800b86272c4f147cc143e8"
       ],
       0,
-      "722d6bc0459683bba1c2285f3c80cac7"
+      "d318a8c574082658e716fa58ce3b9e3a"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10021,7 +10021,7 @@
         "refinement_interpretation_Tm_refine_91f90bfec38c68a31aef3c99b2c25a9b"
       ],
       0,
-      "0b068a692e466b42155a1fab3b615655"
+      "4f7275903254bc2ac094ba0f602337f1"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10033,7 +10033,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "e5c58e0bff4efb4988e7fed408a65c66"
+      "6cb9bc28f287d5d8f8b3ad287aa74c23"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10084,7 +10084,7 @@
         "typing_tok_Rust_primitives.Integers.I16@tok"
       ],
       0,
-      "2d4708e5f37913753857bbe4365be3e1"
+      "50df5a8602fcc0b9365f953014f39d50"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10105,7 +10105,7 @@
         "refinement_interpretation_Tm_refine_bdb0ed9c9f7127ae36e02cad3b173cdb"
       ],
       0,
-      "380a6c3445a518b0d177726db99868e5"
+      "0635c140ba26b7331b80c782897fd8f7"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10118,7 +10118,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "ce7a24f81190fda83fe880d428e2c500"
+      "4cb9cb5a8dc90ef4bb27e2afec874d75"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10139,7 +10139,7 @@
         "refinement_interpretation_Tm_refine_bdb0ed9c9f7127ae36e02cad3b173cdb"
       ],
       0,
-      "75229c5b59ab9c8d8f0006e5299b4559"
+      "daec17c242dc7227bf0d17a56466bc0f"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10152,7 +10152,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "cb5becf843bbc4d7980aebb41247fba3"
+      "0c1453dff0ad8e862bbbf8f74a51f471"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10165,7 +10165,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "0995d69bcfdb3e8e63d37ec7dbe04b64"
+      "90a61b753061d766d0458fe13f0f9586"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10178,7 +10178,7 @@
         "refinement_interpretation_Tm_refine_bbe30c4d40d3631afe25976baa4ae974"
       ],
       0,
-      "83922021c63508ae70cd7a1fb6315177"
+      "dcb255150c3c86543d87481b5341b926"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10191,7 +10191,7 @@
         "refinement_interpretation_Tm_refine_c187d113af86d02624e6b320049c575f"
       ],
       0,
-      "251a027db5364d4def461cfaeec9d3ce"
+      "a8fbf6ebe56ae193626a94190e0fa4b3"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10207,7 +10207,7 @@
         "refinement_interpretation_Tm_refine_91f90bfec38c68a31aef3c99b2c25a9b"
       ],
       0,
-      "120b0e661a8186997ac247f0cf922a2d"
+      "8d48b643705f6e735c7c456012266a62"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10219,7 +10219,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "d5ca708bbde0a1ab3549b7f298b3184f"
+      "42bef71650889c90c877fcb57a292c7a"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10240,7 +10240,7 @@
         "refinement_interpretation_Tm_refine_bdb0ed9c9f7127ae36e02cad3b173cdb"
       ],
       0,
-      "1c3dd884d13edd18b70e05219574227f"
+      "a69bf2592fe9fca12c910f7eb751d6a4"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10253,7 +10253,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "e740b2a5c1d0003bd0728087a8afcb15"
+      "ab8df21bd2f0682afe0746fcc7c274c4"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10266,7 +10266,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "6ed99d8ff851b55eedaab51c01ec6d19"
+      "7940e032a0d6f7e1237551fd7aeec647"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10283,7 +10283,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "ad1833cccce22ed5ed5467781d489777"
+      "3c509ad691988941938415e7547b48eb"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10305,7 +10305,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "71b8f6c3879a87f18b656d4abb6901bb"
+      "ce6bfda8e14a2f97fb9127790bdd19b9"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10348,7 +10348,7 @@
         "typing_Tm_abs_a9e8729795d8f82066d2749742f3d4c2"
       ],
       0,
-      "81a2cf97a15be4e6f3d9556b6df32f2c"
+      "156e0eab0c3f35816d4c32775e075753"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10360,7 +10360,7 @@
         "primitive_Prims.op_Multiply", "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "e341e6583570d6431a48c3a86c8e2b68"
+      "f464b06e979e433a3ca9961e3d4d9abd"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10381,7 +10381,7 @@
         "refinement_interpretation_Tm_refine_bdb0ed9c9f7127ae36e02cad3b173cdb"
       ],
       0,
-      "9a9f63b66f96452ef8bed0388aa116b8"
+      "57116e3e806d9add3b425837339c1de0"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10394,7 +10394,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "78efe9550129f760423b3fe9320cab3a"
+      "b531e325b2114c261d2d1c73620aa0bf"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10407,7 +10407,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "9b2e9177be9c227e87280dda34d706c9"
+      "d458bcc9e9457d67154e6a2ef5831425"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10423,7 +10423,7 @@
         "refinement_interpretation_Tm_refine_89d1a035f9f70f1f84a185f83c97bed5"
       ],
       0,
-      "8ddc797c6440621cf6a0c841e6880356"
+      "a7fe4e71e47cca438f6e86cb9501ac79"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10437,7 +10437,7 @@
         "refinement_interpretation_Tm_refine_89d1a035f9f70f1f84a185f83c97bed5"
       ],
       0,
-      "128c868455562fc4cc0f5a31f29a3bc5"
+      "e36f6b7f6549e355be0a559b792ad121"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10452,7 +10452,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "6476b57748edab41d5aafefcd3ad1101"
+      "9a82c980167ae230f41d24de1ec46252"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10477,7 +10477,7 @@
         "refinement_interpretation_Tm_refine_91f90bfec38c68a31aef3c99b2c25a9b"
       ],
       0,
-      "c7e41d4a268d00ac2b0d67c8886ff781"
+      "5f2cf9231f36091ffd58e04a858594f9"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10513,7 +10513,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "fb6fd6948a1702b36744602a0fc42c57"
+      "411549e61e3663953703d4c8d0f84bc9"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10536,7 +10536,7 @@
         "refinement_interpretation_Tm_refine_26d768cc241c6628db9e0d45d45d9136"
       ],
       0,
-      "b78e83e54d549facf7f35dd22c111685"
+      "b1d005176f1342de51f978a1e4a0f4bb"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10609,7 +10609,7 @@
         "typing_Tm_abs_9dc0d07e7b600973925537f206f43aed"
       ],
       0,
-      "273ada44d0b8131fe341fd83794a8e44"
+      "bf4a1ced211d738edb29e15f7c1aaefb"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10627,7 +10627,7 @@
         "refinement_interpretation_Tm_refine_fb1ff82f752a28a61f9484c11d1c7ff4"
       ],
       0,
-      "a06070ac81a7c9e547d324d2b378c0a9"
+      "56063346e3e8bdcbd0598671a5c4d9fa"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10650,7 +10650,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "16528e76a0b982fe9e9a1502596d3f51"
+      "1f05cf5d7f35b98a86439ce6b593873e"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10674,7 +10674,7 @@
         "refinement_interpretation_Tm_refine_fb1ff82f752a28a61f9484c11d1c7ff4"
       ],
       0,
-      "6a17dbf5859c348310e4fc5a632781e9"
+      "b9cb29e856375e54fce0fb8c103409cd"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10689,7 +10689,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "747bdcfd9dbb7a9101abc0b91c083b71"
+      "ca71d9d4835343d96fdfadb506e74c29"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10702,7 +10702,7 @@
         "refinement_interpretation_Tm_refine_fb1f788064b0104bba0be226cdb63071"
       ],
       0,
-      "2c9fe59a1755917567ed5a90c756aa9a"
+      "4651e3b32cb1465ff19a5a95fdae32b3"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10717,7 +10717,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "2f7e41f3d4c22cca7996bbf07c50ecc8"
+      "d6d1447d4ad51cfc4c03fbd053454bec"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10731,7 +10731,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "028c90557ccef0e2666b3d7ec89fa025"
+      "85c8beca4acbc0c8b79dec89ff8d3023"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10768,7 +10768,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "8ab62070fd52275a5034b02d17f2c0b5"
+      "8182b214f7b658c44b249e24f039883d"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10794,7 +10794,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "2dd6e545908037442823757fbc8bfea1"
+      "9ee6c7efa72c871a27c0fc19931ab157"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10830,7 +10830,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok", "unit_inversion"
       ],
       0,
-      "723163926716140a3b416f88814f9ee4"
+      "c0498d90b68cfb5288718da7307e572f"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10845,7 +10845,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "082ae32e78d3ac6c591d2864e748266e"
+      "50f384ef6181dc98f560815526f52332"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10862,7 +10862,7 @@
         "refinement_interpretation_Tm_refine_91f90bfec38c68a31aef3c99b2c25a9b"
       ],
       0,
-      "9ba3700f93085eb32360e43c5085830f"
+      "136d0c34b9f15a0a53c17c85aa127a67"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10893,7 +10893,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "17ec9f8e76c03613ea64c12664eb217a"
+      "abf7145bb2b90a27c9a65a0f3d87b771"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10916,7 +10916,7 @@
         "refinement_interpretation_Tm_refine_26d768cc241c6628db9e0d45d45d9136"
       ],
       0,
-      "6fea2e62318cc80484a69c53c3bcb453"
+      "eededbcad3f4a09d1ccd45e2b7d7c91e"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10931,7 +10931,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "1a35af684902e533d99a453687f3448a"
+      "badface32216a2490454d4149d8eea6c"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10953,7 +10953,7 @@
         "refinement_interpretation_Tm_refine_d456b16462666a5a3cb7e1803148ed36"
       ],
       0,
-      "32575174ef62b3abce4cba5b17807652"
+      "fb868422ccf888bb9889c1c3cd94507d"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10978,7 +10978,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "d6ea8a6c30bc3af981a2f2fe237e49d5"
+      "0cf2fa5d8de543e46b066c62d4d2aa4d"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -10991,7 +10991,7 @@
         "refinement_interpretation_Tm_refine_d960554f81750c3ede599d859ee49494"
       ],
       0,
-      "06b9c1e2a3d7d4e23cb1dadd9c53dfef"
+      "2f9c409e7b7f956651b07ddd6d9cff21"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -11006,7 +11006,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "45e31de082ba856237d73a744520985c"
+      "ac608463b83b8f6a301ed79698bbc82c"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -11023,7 +11023,7 @@
         "refinement_interpretation_Tm_refine_91f90bfec38c68a31aef3c99b2c25a9b"
       ],
       0,
-      "201a17b94c05d9e1212fe730d5d25f2f"
+      "f31f73aa8d5f7e1966d74b21ceef11af"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -11038,7 +11038,7 @@
         "refinement_interpretation_Tm_refine_05e7b3f2c52723cd61a6bf000c4968a5"
       ],
       0,
-      "96b51876b4d92cc56b0b1a32c83cf05e"
+      "d9dbbb7c65bc952a7642e0877cf7edf4"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -11053,7 +11053,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "5649dde14249c675ee290305275e7b10"
+      "a2d1ed74f64d8aa823d5bea3659c82a1"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -11075,7 +11075,7 @@
         "refinement_interpretation_Tm_refine_d456b16462666a5a3cb7e1803148ed36"
       ],
       0,
-      "11860ceac9f73abd65a2a5d605ffbf4e"
+      "205af78b70732e4ec6e508c9ee27260f"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -11090,7 +11090,7 @@
         "refinement_interpretation_Tm_refine_05e7b3f2c52723cd61a6bf000c4968a5"
       ],
       0,
-      "8f50138118b55f296c224adc3c670a6b"
+      "df7702c66e243c52e78129e8e6c02e3f"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -11105,7 +11105,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "1c0c2546f7a0e9ef44ba5d85c1bc1e1d"
+      "e0589511182f5193cf40851d2904d863"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -11122,7 +11122,7 @@
         "refinement_interpretation_Tm_refine_91f90bfec38c68a31aef3c99b2c25a9b"
       ],
       0,
-      "e533d622dde5e19ab1ae8ebf35a231f9"
+      "03e0cdc48661ab13fa1446d87662ed34"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -11137,7 +11137,7 @@
         "refinement_interpretation_Tm_refine_05e7b3f2c52723cd61a6bf000c4968a5"
       ],
       0,
-      "68b055c2596011979ca9466d44527bcc"
+      "5675d128abeb580729b5f889030167a6"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -11152,7 +11152,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "d186aed4995502ce5e7be1c6b68e21f5"
+      "df71e4e14518d94394559cbfcd361758"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -11174,7 +11174,7 @@
         "refinement_interpretation_Tm_refine_d456b16462666a5a3cb7e1803148ed36"
       ],
       0,
-      "06ecd2fd843ec19db44b952ce42854e3"
+      "08ab72dcb3df4308c295a62d24581e4a"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -11189,7 +11189,7 @@
         "refinement_interpretation_Tm_refine_05e7b3f2c52723cd61a6bf000c4968a5"
       ],
       0,
-      "c75c3fef0a478e5abadb8df091643249"
+      "92898da6f1766be0584f61954d2ed0fa"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -11208,7 +11208,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "e5810e6cd95969948e7c54975e465cdc"
+      "ef86c5cbfb245b3455a0ba4b06d6ee43"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -11220,7 +11220,7 @@
         "refinement_interpretation_Tm_refine_05e7b3f2c52723cd61a6bf000c4968a5"
       ],
       0,
-      "352b4257f96bc70f3cd7e5955a49ca5a"
+      "a4a4cd4f6c69f81de01ac0d2fdbfca21"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -11241,7 +11241,7 @@
         "refinement_interpretation_Tm_refine_fda0c0f0238efa4734bb207404518e0e"
       ],
       0,
-      "c42bbdcb9877d5a598428beee878a5ac"
+      "cfadfebc908e32f5c0ff84ec34ff32d5"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -11256,7 +11256,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "c120062c08935eb732e39a7065a6b4a0"
+      "1928a5c1d4c388e78c19f4ab1cbc3db3"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -11273,7 +11273,7 @@
         "refinement_interpretation_Tm_refine_91f90bfec38c68a31aef3c99b2c25a9b"
       ],
       0,
-      "e9cde1a9c1e326107837b4ce4d10f766"
+      "9a56aeccea55bd04a92b72c08705d552"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -11288,7 +11288,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "2811d64693e82d0541b75d40d43003fb"
+      "f8524803450eacf0c4ebb4f0ec911dec"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -11310,7 +11310,7 @@
         "refinement_interpretation_Tm_refine_d456b16462666a5a3cb7e1803148ed36"
       ],
       0,
-      "ca4fe158cc216b28721b8d3205393bf2"
+      "1c0de7602fe14ca25c3b89f209be29d7"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -11328,7 +11328,7 @@
         "refinement_interpretation_Tm_refine_dc616a425dbecf2f7891ded007abc114"
       ],
       0,
-      "f5041438f8251d9a83a307a889d2be1c"
+      "26aa6c4dcccca893338beeb5f8ee2933"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -11342,7 +11342,7 @@
         "unit_inversion", "unit_typing"
       ],
       0,
-      "40c27bf332e0b2628f1ab78cf43c8497"
+      "23e436860df842187c8fb117afad1b71"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -11371,7 +11371,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "be19bb2aed312193cbccd83fe519ff0d"
+      "988e7d986aa1abc6e65bf54820c4e66a"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -11400,7 +11400,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e571ef7fb9004e721a3377fcffac5b69"
+      "1a6c2097461a0d2d1bff49156de2d79d"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_byte_eq",
@@ -11440,7 +11440,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "8198ef452963b361db00450995734af3"
+      "8c4dfe34cd921c6a9cb966121d505752"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_chunk_eq_byte_encode_12",
@@ -11499,7 +11499,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "2013554acfefc36b2a1083a4a728002a"
+      "ab3eb5e5116facb6213851ed3f538f13"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_serialize_chunk_eq_byte_encode_12",
@@ -11529,7 +11529,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "97f63bd3546b0189ee24395b2b2614b4"
+      "61678f6136bde73e4b5bc90fcb447eab"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.chunk_encoded_12",
@@ -11581,7 +11581,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "9421baf9658605629dd7ebd2e372252f"
+      "3acd9d4d9b34a08b441d17891886d220"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.chunk_encoded_12",
@@ -11612,7 +11612,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f524df417d989a370256435cc133443f"
+      "c2c54e654a9aae2de6aff39e0b86a950"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_encoded_intro",
@@ -11672,7 +11672,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "797327d49a678ef4979e8b70367b834c"
+      "877f123ec4b52c0b06715e2702f07967"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_encoded_intro",
@@ -11703,7 +11703,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "858fe05dca080d9b96c6b9f50fa6bb42"
+      "1b3e12a9123e53858d0f94fe55983385"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_encoded_byte_encode",
@@ -11763,7 +11763,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f9cbbd8b8644e857129839a71352c938"
+      "47eb794144fbca41389b771670a60966"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_encoded_byte_encode",
@@ -11793,7 +11793,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "8bb785cd5ed43170f007869baeae337b"
+      "5e2e49450ec3d2536d22e39785924252"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_i16_to_spec_fe_mod_q_eq",
@@ -11812,7 +11812,7 @@
         "refinement_interpretation_Tm_refine_041144618caa4b29bbce3b395843c16c"
       ],
       0,
-      "dabf10a664d0c484bcc71fc2a1f39f5a"
+      "ae5b2c9a844cdd0bded2ff8b8494ef75"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.chunk_byte_enc",
@@ -11868,7 +11868,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "7988a7c2ecfee8f7c8410fc54e9af912"
+      "baf105226839acfc518b9484f16ba323"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.chunk_byte_enc",
@@ -11898,7 +11898,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "efb70656696867dfb1b78b58793a2595"
+      "cbee3e3467bf374a396fd90d397daa98"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_byte_enc_intro",
@@ -11958,7 +11958,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "a6d5579386adf401850bc508aaaa3a26"
+      "d903adfd509f47bf8030068d0fe03a46"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_byte_enc_intro",
@@ -11988,7 +11988,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "bccff138e07c7918472c18b5a267e466"
+      "651a573f9d3002b351099dd631e8a110"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_byte_enc_frame",
@@ -12051,7 +12051,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "d7e59c7a70facd6cd60e271cf706aad7"
+      "d176d5844b58d9944acdd8c38138f83c"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_byte_enc_frame",
@@ -12080,7 +12080,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "49b6b6da8c67d2d19c952bb8b39304e5"
+      "4dbd795273e5d3214e501ecb6e5dd142"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_byte_enc_extend",
@@ -12118,7 +12118,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "6d9312910bcd6a0c719848dd8e076a28"
+      "c659ea8311985c6ebd1c01e328d4d5ab"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_byte_enc_extend",
@@ -12147,7 +12147,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "30abddea6b70fab24eaa488cb71e81ff"
+      "f145d0fe5dac5712bbc47d2adce6d6c3"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_enc_value_match_one",
@@ -12258,7 +12258,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "8864765a25a23fadafa29ec5ffc72552"
+      "50675348cbe1242b58fb180c2c3b818c"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_enc_value_match_one",
@@ -12299,7 +12299,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "fff71db00a024b61bd2aa627a8d6be40"
+      "7105165d0453a25d567baf0f4d141650"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_byte_enc_intro_re",
@@ -12361,7 +12361,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "62a2860baf9364e0f8220957ffd9ad51"
+      "5dca5143c59c470694e309c40fb30775"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_byte_enc_intro_re",
@@ -12390,7 +12390,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "c3d971e5d99a44abfe454547ac8c3d20"
+      "b005a89f557ea53d559388c747c3f979"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_byte_enc_unfold",
@@ -12445,7 +12445,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "8b0866d1fecc02fbd1db3498f03c94ef"
+      "3568a3649d2b84bbf08525d7dbb0e0c8"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_byte_enc_unfold",
@@ -12474,7 +12474,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "1a13d62090d13c2ea0ad14dd6c326ba6"
+      "438c0f3d70511e7f5e51db4d6a389232"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.chunk_decoded_12_red",
@@ -12545,7 +12545,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "2d711a2926d4af3d8eccd0e1079da655"
+      "fd0fb170dd7d99844d01b47aa5cb3cfd"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.chunk_decoded_12_red",
@@ -12575,7 +12575,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "d01d7c88fd975b0ed93373daa2999732"
+      "a6bbd578aa09ecfe918353801691f954"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -12614,7 +12614,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "8c6e392c749ae1e81cf555b8314078fc"
+      "fd775445417f96ff3b487f12cddba0e9"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -12643,7 +12643,7 @@
         "refinement_interpretation_Tm_refine_fd15e7dd65d535676b394dc745c1792a"
       ],
       0,
-      "934e172829dcc907331e95d3b9cc0a8b"
+      "2544612a16557c00bd76485168bd9111"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -12665,7 +12665,7 @@
         "refinement_interpretation_Tm_refine_fd15e7dd65d535676b394dc745c1792a"
       ],
       0,
-      "7ac9fad62a9ce8feb46c53828ce3c7d3"
+      "04dc5d6ce1c2c94b6af9fb48689f3283"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -12678,7 +12678,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "68690fd5fc289e9bd98f0335d8b97ac2"
+      "1755328a5b478fa4974495dd694beb9b"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -12692,7 +12692,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "822c88580c1be346e9a617d1367552a0"
+      "067ae9fe47166c2c380f77cc668c0564"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -12704,7 +12704,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "022694486a8f82a489c3b4d1310de038"
+      "ffab7275d27eb154dcc5179e7533ced6"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -12727,7 +12727,7 @@
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e"
       ],
       0,
-      "50b69162f00c62d1bb5d5dac4bb296bb"
+      "242c5e666cfe96e31001afb53cf517a2"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -12762,7 +12762,7 @@
         "typing_FStar.Seq.Base.length"
       ],
       0,
-      "fbfe8c5b93e97abb1c6cdc22c5a51689"
+      "aea0daf4e9fd156309f2d0dabe5835c0"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -12775,7 +12775,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "1fbb14c4a66c6f5d8f1815f83ab53a0e"
+      "2e3adc9e455170283c7cc07795d798be"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -12788,7 +12788,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "7cecca0b0d4ac1ba174933dd02f6ebde"
+      "c747c4d276d9110872c9e404c785ea28"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -12804,7 +12804,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "cac084f797716e31d2ff3d95da09a7e8"
+      "517186e70916d16a50f84f4f582b81db"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -12820,7 +12820,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "a3f80821bcbb7b9ca638aa70cea5e27d"
+      "2e53dfbae51753df4712f8a4ece9517f"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -12840,7 +12840,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "aaa392e1a425fe987a00972614e1916b"
+      "a3278daf8202b121c1620966ee5d6e37"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -12861,7 +12861,7 @@
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e"
       ],
       0,
-      "bf93291b0a4da7f3cfe3625004f1795e"
+      "50a6a0c583b1a23ddb829d6a1c4ea1a4"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -12875,7 +12875,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "5b2e0390383bdcde008fa4dec1632a1f"
+      "69047df9799bd5952364f1c7e5ab99b7"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -12889,7 +12889,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "6b0e060bdfed675da54539cabde9fea7"
+      "796632ed98b51d076d1d9a933a73fe8a"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -12928,7 +12928,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "340ddcc679a4802aa1458e990535c87f"
+      "89ba4e8d2c7355246881316453bf3944"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -12957,7 +12957,7 @@
         "refinement_interpretation_Tm_refine_fd15e7dd65d535676b394dc745c1792a"
       ],
       0,
-      "5f5dee2f73c171a441dbfd3e545d3e8f"
+      "c19f9b7194f8b013d35c4adbdb177080"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -12979,7 +12979,7 @@
         "refinement_interpretation_Tm_refine_fd15e7dd65d535676b394dc745c1792a"
       ],
       0,
-      "358a0500826edc6f80c3538d2d2fa355"
+      "f7ff842ba4682c37e4040dd887bf35fd"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -12992,7 +12992,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "8af673639435747591ed562a458a1802"
+      "3a26c8fe496e3b80657658499f6fd5e3"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13006,7 +13006,7 @@
         "refinement_interpretation_Tm_refine_e7f97c42a42aaefe7ffa4552236dca53"
       ],
       0,
-      "b63edb2bca27e1c231363071a1dcd723"
+      "1d6be591035fcc70b8fceb6fb825bdb6"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13018,7 +13018,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "0b0bccb7a42a6766311c8af9cf55444a"
+      "d089e846bfc23f40d8097278b4c963cf"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13041,7 +13041,7 @@
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e"
       ],
       0,
-      "0459681f966b6a638dd8c83f918d4da3"
+      "14f3552ed9d4e5beed31b66c70964387"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13076,7 +13076,7 @@
         "typing_FStar.Seq.Base.length"
       ],
       0,
-      "6afa5925f8d8d576d75a517e738ab392"
+      "1d007a08f1bd11143c0c9fa06bec3b77"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13089,7 +13089,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "cd20963833cbc88e35af89bca526af54"
+      "8748b3b8f58b80542c8d6dbf02ea7279"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13102,7 +13102,7 @@
         "equation_Rust_primitives.Integers.bits"
       ],
       0,
-      "bb0f3b5114507fb606cdf09e9e13e061"
+      "d2366e6c4df5305b3014a9f49704a63d"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13118,7 +13118,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "3072ee5b1f6ebd1d018e995f5dfafd5c"
+      "51548aab488e6152fdc2043f770f0088"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13134,7 +13134,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "795354291dd3e4d1189fdbad3b1057f8"
+      "36ee386706755b10c1827e8306bf6d22"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13154,7 +13154,7 @@
         "refinement_interpretation_Tm_refine_986b3d1bb94bf57fa4d40e63127dc5c1"
       ],
       0,
-      "770b27d6ca8ecc4a263b2ac5085d06b7"
+      "99b2f88f51c970bfe12afed36f2d08ff"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13175,7 +13175,7 @@
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e"
       ],
       0,
-      "1949fe6488b0362d77e50c0ae819ca45"
+      "4fe66ebf37e71f156f4726c903252944"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13189,7 +13189,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "72a3854ab3e87638bfa7ef9a01bf2398"
+      "9be17cd9af7a2f3b19d7cba2869dd2d4"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13203,7 +13203,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "a799cf630140e323337813ccdfe65bb6"
+      "df15392bd9d4ff0dfca2b736292921ff"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13243,7 +13243,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "580abbe6d5abbd8d008f40130d6ee198"
+      "9daa6f8bc71e78fc2858c48b456d58a0"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13282,7 +13282,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "b81387bf713eb239066f70c6696ed3dc"
+      "31425320a64e335c57d54929e87109d8"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13322,7 +13322,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "ea8d1cd017f2a564d0549b22a782680e"
+      "28b063442a016866578d9c153d12c8f0"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13334,7 +13334,7 @@
         "refinement_interpretation_Tm_refine_f8dce3bd780516d5185d21544812df97"
       ],
       0,
-      "c1d3c69183fa5329511bbdabc3a3cc34"
+      "7c40c41be63c59709d3f7fc7b2fe69d5"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13346,7 +13346,7 @@
         "refinement_interpretation_Tm_refine_f8dce3bd780516d5185d21544812df97"
       ],
       0,
-      "e54f673591de7d66b1b8f353d1126801"
+      "eee2b2bafc0bb6a9e01d1d10a6d25e8c"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13359,7 +13359,7 @@
         "refinement_interpretation_Tm_refine_f8dce3bd780516d5185d21544812df97"
       ],
       0,
-      "25fb90a3b1b275264da133697cf05292"
+      "31f5f4e666c5029f5f991de7c43bc85e"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13400,7 +13400,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "6cd08f17968a48d198a515168f73641e"
+      "3d1d3a05adf7e268e5d076584d457543"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13432,7 +13432,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "73f06279534105f9aea0518a55975577"
+      "68fb3cfbaf69c8f9d3d0fc02b122c941"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13464,7 +13464,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "a59593f38c905ea57851d8bdfc879418"
+      "8d94837b7aab6f983c41cbeeadc4eb52"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13509,7 +13509,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "814892c66c0f3e10f2381ed7ed31d1ca"
+      "dd29a4971ea75001f883b387f3761413"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13552,7 +13552,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "bbf6227db624a27fb3dba8e9ffe88234"
+      "902265fd7959b9f544179414e4b433d6"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13583,7 +13583,7 @@
         "refinement_interpretation_Tm_refine_ec88c68b7a4c951c60bddd7015bc5576"
       ],
       0,
-      "3ad6db9ab82486297911a80ab429883e"
+      "73d1cd3474ca56ee7d7bcf2ce3063afe"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13607,7 +13607,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "c8a56b287800baf06348de296e7923dd"
+      "ba8e73181a0addf70d3ce9a73dbd73b7"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13654,7 +13654,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "567a17f06f2a4d265a5c46ad32c3be07"
+      "e6266e4ba416d2b8d68b2074f4f895cc"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13678,7 +13678,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "68527de585a52cf805f967a41a22ad28"
+      "60e900c6cd9e32cceb96c66dafdccbb1"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13703,7 +13703,7 @@
         "refinement_interpretation_Tm_refine_ec88c68b7a4c951c60bddd7015bc5576"
       ],
       0,
-      "bb0e292947e2df3eb5bcf6b69e1ff7e3"
+      "f014d8fc7f7fffda191d8f52d1753303"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13728,7 +13728,7 @@
         "refinement_interpretation_Tm_refine_ec88c68b7a4c951c60bddd7015bc5576"
       ],
       0,
-      "4b2adce1eb0a30fbb37a526355e2efcd"
+      "90e3886a15cf383b9cb0afc033ca7d3d"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13753,7 +13753,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "1ca0aa1d97389872ea3e064ec7cd8b90"
+      "3046691fd337f9afaaddc4d673851283"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13776,7 +13776,7 @@
         "refinement_interpretation_Tm_refine_66f7da439f22046068b276c1cc23696a"
       ],
       0,
-      "346384a4785d07d632d7de53ceb10d81"
+      "d89957569e4dc66afb947d2f31348845"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13791,7 +13791,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "4c919f6953222cf4127966811ea40801"
+      "07bf06272ddf65b235f5bee50828f0f7"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13815,7 +13815,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "57a179b769ee4cc98cc2dd660337ae80"
+      "40bfc487a2b3fcc8c931a3930b435bdb"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13827,7 +13827,7 @@
         "refinement_interpretation_Tm_refine_3528741f05cf8d0daebbec7cad08a539"
       ],
       0,
-      "a9d119e3d59b71356d9196f76aa54a16"
+      "7a62286cc6d9d3e2aa0169d344ab5eec"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13839,7 +13839,7 @@
         "refinement_interpretation_Tm_refine_76dce9e25c245f4b8e355b24d6fce5e8"
       ],
       0,
-      "cc8a898e6dfc1769cb9ff5005ac95b37"
+      "82b6d4f65c22602721ece337f97e9cae"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13861,7 +13861,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "b0f10cbe96052992f0ae4a916d027a60"
+      "9876d0422e366c112e16d8456cd81e21"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13877,7 +13877,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "207fc1baa389c9602ee9b3c5796d20e5"
+      "c792bd354944e725c290365b43398bf4"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13903,7 +13903,7 @@
         "refinement_interpretation_Tm_refine_f8dce3bd780516d5185d21544812df97"
       ],
       0,
-      "40365704fe5c92345164ea44e4cde04e"
+      "a6b76cd8628b33b6631b3e8a5cc705bf"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13925,7 +13925,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "c179d03506a624fbc28d5fd99e6805ec"
+      "5334c2dede91f923c331898ccbb9a8cf"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13947,7 +13947,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "b0f10cbe96052992f0ae4a916d027a60"
+      "9876d0422e366c112e16d8456cd81e21"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13963,7 +13963,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "207fc1baa389c9602ee9b3c5796d20e5"
+      "c792bd354944e725c290365b43398bf4"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -13989,7 +13989,7 @@
         "refinement_interpretation_Tm_refine_f8dce3bd780516d5185d21544812df97"
       ],
       0,
-      "40365704fe5c92345164ea44e4cde04e"
+      "a6b76cd8628b33b6631b3e8a5cc705bf"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -14011,7 +14011,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "c179d03506a624fbc28d5fd99e6805ec"
+      "5334c2dede91f923c331898ccbb9a8cf"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -14033,7 +14033,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "df741dce2bf02ade80f880852ae63310"
+      "8ab238a11b079cc8b4e378c276654a07"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -14054,7 +14054,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "bbe7656c69dffbf98a763a203c1b0a99"
+      "911edb53aef4d0a282e4bc83dbba379d"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -14079,7 +14079,7 @@
         "refinement_interpretation_Tm_refine_f8dce3bd780516d5185d21544812df97"
       ],
       0,
-      "07bc8031173c57cab43009cf3b49b4c8"
+      "e8cfc26af11a832e7737b513d4285786"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -14135,7 +14135,7 @@
         "typing_tok_Rust_primitives.Integers.I16@tok", "unit_inversion"
       ],
       0,
-      "a777f47e57540b30ba1ca74acb248b4c"
+      "d10de8793da150da5e7b2031f0b8e55e"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -14157,7 +14157,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "c008e9e8efdae642c1a8fc053b103385"
+      "6718bd79cf4e21863b27ed3000b6ae9e"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -14173,7 +14173,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "dc2c5b295e4b9963b5676349b8eaba65"
+      "44283b5ebf28b7374df8ff77bcd1ce4f"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -14199,7 +14199,7 @@
         "refinement_interpretation_Tm_refine_f8dce3bd780516d5185d21544812df97"
       ],
       0,
-      "e697ae44e89a590513cbca70ade9d5a4"
+      "afa2b56485b9d23a5117fb2d3fa0e37b"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -14221,7 +14221,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "c4c488bc90fb6136055010a62580bc50"
+      "59ca27a203e50a9d1e9f499bd1fa55bd"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -14259,7 +14259,7 @@
         "unit_inversion"
       ],
       0,
-      "2cf8ec7dacc22ebc1a63f73d17961277"
+      "d834b93e5b3e700d32e2d3bf062c7d39"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -14288,7 +14288,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "757b82ef6bc8dc7a00569eb506e31811"
+      "69b6631548e6baf12d1a1606491d68d0"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -14317,7 +14317,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "9846423088fa951a732a3aed3c350260"
+      "514f3b07e4695ea91c3b74d9f44dc7de"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_intro",
@@ -14356,7 +14356,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "54c21632102b497ebcea1e2f68de9d9c"
+      "cbfa7f7e3a5c975c08e5787a81379b62"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_byte_decode",
@@ -14434,7 +14434,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "1c085a1afc0d6472265e0789eccf18dc"
+      "cbc40df540c4e6bf3d6c53444a4949e5"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_byte_decode",
@@ -14463,7 +14463,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "97ef9b1efd3675da8c639e488e791c6d"
+      "9c8a1bd147bfc751dc1398b2b341eb55"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_bound",
@@ -14509,7 +14509,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "a5b36fa9adb8655fad35870e14c3d974"
+      "f95051aa1fd510ac9e455ca35600e6be"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_red_bound",
@@ -14538,7 +14538,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "913ed355c8d1090f2b4fa77404c5b015"
+      "86ab0248861038b348f64d030f95e9e1"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_is_bounded_poly_of_red_chunks",
@@ -14608,7 +14608,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "efcb77d26eec806813a0f1f33918288a"
+      "73cf0ebaecab06913f7c976e79cd4c60"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_is_bounded_poly_of_red_chunks",
@@ -14637,7 +14637,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "8b3e47a12600c8f6fe92e68c038ae4cc"
+      "0b34a64966e9681e50d93f518bd73435"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_row_decoded_maintain",
@@ -14704,7 +14704,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "36d3b524fd99d1a3c70b238a34f8850c"
+      "903626f568349b9182e83cab2c6f4d6c"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_bound",
@@ -14759,7 +14759,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "0b50ba0b702066a7c7a0a72ba76fc3c4"
+      "abf969ef4f427f183a147ad04b8222f1"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_chunk_decoded_bound",
@@ -14788,7 +14788,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4db17cc35dceffc20751e871e314dfe1"
+      "1903522eb8877550cfc7ea509ee53ece"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_is_bounded_poly_of_chunks_12",
@@ -14857,7 +14857,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "21afe380bc844b503118f4b12b0cfadc"
+      "7568347a3c0af848a6dacff7bd551846"
     ],
     [
       "Hacspec_ml_kem.Commute.Serialize_bits.lemma_is_bounded_poly_of_chunks_12",
@@ -14886,7 +14886,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "008aea7c5fddae3006085021a61ded5a"
+      "986f19cd0631aeb80c43320cbd50b5b2"
     ]
   ]
 ]

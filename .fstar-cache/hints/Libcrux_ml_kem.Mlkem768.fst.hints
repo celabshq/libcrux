@@ -968,7 +968,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "05772e27c5d6f3a55095dd2d91dddb1a"
+      "9b227958c1594f8e46f8a7e80b5e43e3"
     ],
     [
       "Libcrux_ml_kem.Mlkem768.generate_key_pair",
@@ -1028,7 +1028,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "ef4afc1406a289105bfe0f18457afb93"
+      "29b1a2d6aeb57778992b8a7442203764"
     ],
     [
       "Libcrux_ml_kem.Mlkem768.generate_key_pair",
@@ -1137,7 +1137,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "3b1f9323516473cd0121d191171e4457"
+      "a40ef5659bbc93acafbffc42f95a6459"
     ],
     [
       "Libcrux_ml_kem.Mlkem768.encapsulate",
@@ -1145,7 +1145,9 @@
       0,
       1,
       [
-        "@MaxIFuel_assumption", "@query", "bool_inversion", "bool_typing",
+        "@MaxFuel_assumption", "@MaxIFuel_assumption",
+        "@fuel_correspondence_Prims.pow2.fuel_instrumented", "@query",
+        "bool_inversion", "bool_typing",
         "constructor_distinct_Rust_primitives.Integers.USIZE",
         "data_elim_Libcrux_ml_kem.Types.Mkt_MlKemPublicKey",
         "data_elim_Rust_primitives.Integers.MkInt",
@@ -1167,9 +1169,10 @@
         "equation_Hacspec_ml_kem.Parameters.v_ML_KEM_768_CT_SIZE",
         "equation_Hacspec_ml_kem.Parameters.vector_u_compression_factor",
         "equation_Hacspec_ml_kem.Parameters.vector_v_compression_factor",
-        "equation_Libcrux_ml_kem.Mlkem768.v_RANK",
+        "equation_Libcrux_ml_kem.Mlkem768.v_RANK", "equation_Prims.nat",
         "equation_Rust_primitives.Arrays.t_Array",
         "equation_Rust_primitives.Integers.add",
+        "equation_Rust_primitives.Integers.bits",
         "equation_Rust_primitives.Integers.div",
         "equation_Rust_primitives.Integers.maxint",
         "equation_Rust_primitives.Integers.minint",
@@ -1183,22 +1186,29 @@
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v",
         "fuel_guarded_inversion_Libcrux_ml_kem.Types.t_MlKemPublicKey",
-        "int_inversion", "int_typing",
+        "function_token_typing_Rust_primitives.Integers.u8", "int_inversion",
+        "int_typing", "lemma_Rust_primitives.Integers.pow2_values",
         "lemma_Rust_primitives.Integers.v_mk_int_lemma",
         "primitive_Prims.op_Addition", "primitive_Prims.op_AmpAmp",
         "primitive_Prims.op_BarBar", "primitive_Prims.op_Division",
         "primitive_Prims.op_Equality", "primitive_Prims.op_LessThanOrEqual",
-        "primitive_Prims.op_Multiply",
+        "primitive_Prims.op_Multiply", "primitive_Prims.op_Subtraction",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxBool_proj_0",
         "projection_inverse_BoxInt_proj_0",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
+        "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
+        "refinement_interpretation_Tm_refine_b045b04f0bb15cd7c94a2ec78d3283ce",
+        "typing_FStar.Seq.Base.length",
+        "typing_Rust_primitives.Integers.bits",
         "typing_Rust_primitives.Integers.range",
+        "typing_Rust_primitives.Integers.size_bits",
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e5945e086c5be465533fefe6e5b304cf"
+      "75372e51d259ef0fed94629992bbd1af"
     ],
     [
       "Libcrux_ml_kem.Mlkem768.encapsulate",
@@ -1308,7 +1318,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e8df898fe089b2eca6acee789acf94a0"
+      "eaa4a54ff4de19045ed6ca8d740557a1"
     ],
     [
       "Libcrux_ml_kem.Mlkem768.decapsulate",
@@ -1378,7 +1388,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "6306aa86ed2497bbb16af9592ab6f15b"
+      "a208b10d7d90a09e1fcb09e03d7f67a7"
     ],
     [
       "Libcrux_ml_kem.Mlkem768.decapsulate",
