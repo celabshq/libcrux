@@ -118,10 +118,6 @@ jobs:
       - name: 🏃🏻‍♀️ Test Release
         run: cargo test --verbose --release $RUST_TARGET_FLAG
 
-      - name: 🔨 Build sys/hacl
-        working-directory: crates/sys/hacl
-        run: cargo build --verbose $RUST_TARGET_FLAG
-  
   libcrux-build-test-status:
     if: ${{ always() }}
     needs: [build]

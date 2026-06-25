@@ -1,19 +1,19 @@
 [package]
-name = "lib25519"
-version.workspace = true
-edition.workspace = true
-authors.workspace = true
-license.workspace = true
-homepage.workspace = true
-repository.workspace = true
-readme.workspace = true
+authors = ["Cryspen"]
 description = "sys crate for lib25519 on linux and macOS."
+edition = "2021"
+homepage = "https://github.com/cryspen/libcrux"
+license = "Apache-2.0"
+name = "lib25519"
 publish = false
+readme = "Readme.md"
+repository = "https://github.com/cryspen/libcrux"
+version = "0.0.1"
 
 [dependencies]
 libc = "0.2"
 
 [build-dependencies]
-cc = { version = "1.1", features = ["parallel"] }
 bindgen = { version = "0.72", optional = true }
+cc = { version = "1.1", features = ["parallel"] }
 pkg-config = "0.3"

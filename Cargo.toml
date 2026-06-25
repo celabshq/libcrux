@@ -53,11 +53,7 @@ members = [
     "crates/algorithms/sha3",
     "crates/primitives/aead",
     "crates/primitives/digest",
-    "crates/sys/hacl",
-    "crates/sys/lib25519",
-    "crates/sys/libjade",
     "crates/sys/platform",
-    "crates/sys/pqclean",
     "crates/testing/kats",
     "crates/utils/core-models",
     "crates/utils/ctgrind-test",
@@ -75,6 +71,15 @@ members = [
     "libcrux-psq/fuzz",
     "traits",
 ]
+
+# These crates are not part of the main libcrux library.
+exclude = [
+    "crates/sys/libjade",
+    "crates/sys/lib25519",
+    "crates/sys/pqclean",
+    "crates/sys/hacl",
+]
+
 resolver = "2"
 
 [workspace.package]
