@@ -83,6 +83,13 @@ pub fn ml_dsa_parameter_sets(args: TokenStream, item: TokenStream) -> TokenStrea
         let keypair_ident = format_ident!("MLDSA{}KeyPair", parameter_set_string);
         let sig_ident = format_ident!("MLDSA{}Signature", parameter_set_string);
 
+        // Per-variant Rust binding for the Hacspec spec parameters,
+        // active only under cfg(hax).  This replaces a previous
+        // hax_lib::fstar::after string injection: as a real Rust path
+        // it is type-checked at `cargo +nightly check --cfg hax` time
+        // instead of surfacing typos only at F*-extract time.
+        let spec_const_ident = format_ident!("ML_DSA_{}", parameter_set_string);
+
         // add the variant at the end of the function name
         if let Some((_, ref content)) = content {
             let this_content = content.clone();
@@ -91,6 +98,10 @@ pub fn ml_dsa_parameter_sets(args: TokenStream, item: TokenStream) -> TokenStrea
                 #[cfg(feature = #feature_name)]
                 #vis mod #modpath {
                     use crate::constants::#modpath::*;
+
+                    #[cfg(hax)]
+                    pub(crate) const HACSPEC_PARAMS: hacspec_ml_dsa::MlDsaParams =
+                        hacspec_ml_dsa::#spec_const_ident;
 
                     pub type #sk_ident = MLDSASigningKey<SIGNING_KEY_SIZE>;
                     pub type #vk_ident = MLDSAVerificationKey<VERIFICATION_KEY_SIZE>;
