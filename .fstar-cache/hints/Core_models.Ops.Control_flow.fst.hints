@@ -1,0 +1,38 @@
+[
+  "2ffa5fe1ffa2ba22c041a29a6129e82f",
+  [
+    [
+      "Core_models.Ops.Control_flow.t_ControlFlow",
+      1,
+      0,
+      1,
+      [ "@query" ],
+      0,
+      "8d45cb6e833e54b17f52cae7fa74ce7d"
+    ],
+    [
+      "Core_models.Ops.Control_flow.__proj__ControlFlow_Continue__item___0",
+      1,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "refinement_interpretation_Tm_refine_454030d618b418c919a3293706b8ea1b"
+      ],
+      0,
+      "448a83e75bd3b8ae4b0b5bb2f7495772"
+    ],
+    [
+      "Core_models.Ops.Control_flow.__proj__ControlFlow_Break__item___0",
+      1,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "refinement_interpretation_Tm_refine_f72c989888eeb120f2448b6a08247efd"
+      ],
+      0,
+      "5c57f28da616b2271aaed94a221343fd"
+    ]
+  ]
+]

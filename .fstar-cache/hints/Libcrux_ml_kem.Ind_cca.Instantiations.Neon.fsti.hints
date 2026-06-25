@@ -1,0 +1,119 @@
+[
+  "ad923a9bcae5c17ce7de591a16de6387",
+  [
+    [
+      "Libcrux_ml_kem.Ind_cca.Instantiations.Neon.generate_keypair",
+      1,
+      0,
+      1,
+      [
+        "@MaxFuel_assumption", "@MaxIFuel_assumption",
+        "@fuel_correspondence_Prims.pow2.fuel_instrumented", "@query",
+        "constructor_distinct_Rust_primitives.Integers.USIZE",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Prims.nat", "equation_Rust_primitives.Integers.bits",
+        "equation_Rust_primitives.Integers.maxint",
+        "equation_Rust_primitives.Integers.minint",
+        "equation_Rust_primitives.Integers.range",
+        "equation_Rust_primitives.Integers.unsigned",
+        "lemma_Rust_primitives.Integers.pow2_values",
+        "primitive_Prims.op_AmpAmp", "primitive_Prims.op_LessThanOrEqual",
+        "primitive_Prims.op_Subtraction",
+        "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_BoxInt_proj_0",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_b045b04f0bb15cd7c94a2ec78d3283ce",
+        "typing_Rust_primitives.Integers.bits",
+        "typing_Rust_primitives.Integers.size_bits",
+        "typing_tok_Rust_primitives.Integers.USIZE@tok"
+      ],
+      0,
+      "863315e6d9e4e9c6fcde01ff25c98b1f"
+    ],
+    [
+      "Libcrux_ml_kem.Ind_cca.Instantiations.Neon.validate_public_key",
+      1,
+      0,
+      1,
+      [ "@query" ],
+      0,
+      "3aca23409119e45912071f75d208d124"
+    ],
+    [
+      "Libcrux_ml_kem.Ind_cca.Instantiations.Neon.validate_private_key",
+      1,
+      0,
+      1,
+      [ "@query" ],
+      0,
+      "18afc3eea71a6439a97784387d909e71"
+    ],
+    [
+      "Libcrux_ml_kem.Ind_cca.Instantiations.Neon.validate_private_key_only",
+      1,
+      0,
+      1,
+      [ "@query" ],
+      0,
+      "8a785eddc556a955862b1a74d524758f"
+    ],
+    [
+      "Libcrux_ml_kem.Ind_cca.Instantiations.Neon.encapsulate",
+      1,
+      0,
+      1,
+      [
+        "@MaxFuel_assumption", "@MaxIFuel_assumption",
+        "@fuel_correspondence_Prims.pow2.fuel_instrumented", "@query",
+        "constructor_distinct_Rust_primitives.Integers.USIZE",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Prims.nat", "equation_Rust_primitives.Integers.bits",
+        "equation_Rust_primitives.Integers.maxint",
+        "equation_Rust_primitives.Integers.minint",
+        "equation_Rust_primitives.Integers.range",
+        "equation_Rust_primitives.Integers.unsigned",
+        "lemma_Rust_primitives.Integers.pow2_values",
+        "primitive_Prims.op_AmpAmp", "primitive_Prims.op_LessThanOrEqual",
+        "primitive_Prims.op_Subtraction",
+        "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_BoxInt_proj_0",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_b045b04f0bb15cd7c94a2ec78d3283ce",
+        "typing_Rust_primitives.Integers.bits",
+        "typing_Rust_primitives.Integers.size_bits",
+        "typing_tok_Rust_primitives.Integers.USIZE@tok"
+      ],
+      0,
+      "d755b362a65a186eab04f371c071ee0b"
+    ],
+    [
+      "Libcrux_ml_kem.Ind_cca.Instantiations.Neon.decapsulate",
+      1,
+      0,
+      1,
+      [
+        "@MaxFuel_assumption", "@MaxIFuel_assumption",
+        "@fuel_correspondence_Prims.pow2.fuel_instrumented", "@query",
+        "constructor_distinct_Rust_primitives.Integers.USIZE",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Prims.nat", "equation_Rust_primitives.Integers.bits",
+        "equation_Rust_primitives.Integers.maxint",
+        "equation_Rust_primitives.Integers.minint",
+        "equation_Rust_primitives.Integers.range",
+        "equation_Rust_primitives.Integers.unsigned",
+        "lemma_Rust_primitives.Integers.pow2_values",
+        "primitive_Prims.op_AmpAmp", "primitive_Prims.op_LessThanOrEqual",
+        "primitive_Prims.op_Subtraction",
+        "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_BoxInt_proj_0",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_b045b04f0bb15cd7c94a2ec78d3283ce",
+        "typing_Rust_primitives.Integers.bits",
+        "typing_Rust_primitives.Integers.size_bits",
+        "typing_tok_Rust_primitives.Integers.USIZE@tok"
+      ],
+      0,
+      "85372bef862fc027ee60a2dac48ac2ea"
+    ]
+  ]
+]

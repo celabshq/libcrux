@@ -1,0 +1,725 @@
+[
+  "2a6e7ff41175595ab43a15fd85172f7d",
+  [
+    [
+      "BitVecEq.bit_vec_equal_intro",
+      1,
+      0,
+      1,
+      [ "@query" ],
+      0,
+      "2eebe2fac649df4ca089f74efebf1352"
+    ],
+    [
+      "BitVecEq.bit_vec_equal_intro_principle",
+      1,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "refinement_interpretation_Tm_refine_4930c2a3b9ed81b19c4163bc5d944ade",
+        "refinement_interpretation_Tm_refine_5ea27f29671734c284c74b54ac71be4c"
+      ],
+      0,
+      "73d7313d2ae335d70ae7d2275299f6cb"
+    ],
+    [
+      "BitVecEq.bit_vec_equal_elim_principle",
+      1,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query", "equation_Prims.squash",
+        "lemma_BitVecEq.bit_vec_equal_elim",
+        "refinement_interpretation_Tm_refine_2de20c066034c13bf76e9c0b94f4806c",
+        "refinement_interpretation_Tm_refine_f7508cd976fab894dc1e01a7483287a6"
+      ],
+      0,
+      "ca5d7223a2c5a4fb2f2f72086ac1100d"
+    ],
+    [
+      "BitVecEq.bit_vec_equal_trivial",
+      1,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query", "equation_Prims.nat", "int_typing",
+        "lemma_BitVecEq.bit_vec_equal_elim",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_c9b1a93dc7180dbdeb887c6ba6a0bb06"
+      ],
+      0,
+      "d918ef7e4e7c03737270d86c9023c796"
+    ],
+    [
+      "BitVecEq.bit_vec_sub",
+      1,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query", "equation_Prims.nat",
+        "int_inversion", "primitive_Prims.op_Addition",
+        "projection_inverse_BoxInt_proj_0",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_6f684e27d6af9965634108bcfe981953",
+        "refinement_interpretation_Tm_refine_c1424615841f28cac7fc34e92b7ff33c"
+      ],
+      0,
+      "3fcb4da5d28e48dced76828260284529"
+    ],
+    [
+      "BitVecEq.bit_vec_equal_trivial_sub_smtpat",
+      1,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query", "equation_Prims.nat",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_c5efe95b1f250c44fbd9d953d94aff03"
+      ],
+      0,
+      "ff289ee8127c04c390ce02b64099b0be"
+    ],
+    [
+      "BitVecEq.retype",
+      1,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "refinement_interpretation_Tm_refine_5aa920a17995d0f61a4f940906701385"
+      ],
+      0,
+      "25bfc1d09ad36a614de6b427530c3b2d"
+    ],
+    [
+      "BitVecEq.bit_vec_sub_all_lemma",
+      1,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "BitVecEq_interpretation_Tm_arrow_b4ead33e06e21b401ac39ed9ccd66716",
+        "FStar.FunctionalExtensionality_interpretation_Tm_arrow_505f8adb466dc430d209c7de298af914",
+        "Prims_interpretation_Tm_arrow_5b1c7f3f701f4c9bd877a4f9b4ec1dfa",
+        "Rust_primitives.BitVectors_interpretation_Tm_arrow_860f2755c75eacda845858db7f1e1cb1",
+        "equation_BitVecEq.bit_vec_sub",
+        "equation_FStar.FunctionalExtensionality.feq", "equation_Prims.nat",
+        "function_token_typing_BitVecEq.bit_vec_sub", "int_inversion",
+        "interpretation_Tm_abs_6b0d41e187e8c90103e925c0b9bfbd91",
+        "interpretation_Tm_abs_a9e8729795d8f82066d2749742f3d4c2",
+        "lemma_BitVecEq.bit_vec_equal_elim",
+        "lemma_FStar.FunctionalExtensionality.feq_on_domain",
+        "primitive_Prims.op_Addition", "projection_inverse_BoxInt_proj_0",
+        "refinement_interpretation_Tm_refine_15f0687264c581284bdf37108526e858",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_c1424615841f28cac7fc34e92b7ff33c",
+        "refinement_kinding_Tm_refine_c1424615841f28cac7fc34e92b7ff33c",
+        "typing_Tm_abs_6b0d41e187e8c90103e925c0b9bfbd91",
+        "typing_Tm_abs_a9e8729795d8f82066d2749742f3d4c2"
+      ],
+      0,
+      "553206e0852bd44b7fcbe090a4b43ff6"
+    ],
+    [
+      "BitVecEq.int_t_array_bitwise_eq'",
+      1,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query", "equation_Prims.nat",
+        "equation_Rust_primitives.Arrays.t_Array",
+        "equation_Rust_primitives.BitVectors.num_bits",
+        "kinding_Rust_primitives.Integers.int_t@tok",
+        "primitive_Prims.op_Multiply", "projection_inverse_BoxInt_proj_0",
+        "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
+        "refinement_interpretation_Tm_refine_2b93cc0d2fb3530ccc9d725f3cc7d456",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_910042e4465a8b9e2656170ea1b37b96",
+        "typing_FStar.Seq.Base.length"
+      ],
+      0,
+      "be1b00dbf5380f9c640741885163ca43"
+    ],
+    [
+      "BitVecEq.int_t_array_bitwise_eq",
+      1,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "refinement_interpretation_Tm_refine_910042e4465a8b9e2656170ea1b37b96"
+      ],
+      0,
+      "bc2c18000354b63e232ea771ed4e9103"
+    ],
+    [
+      "BitVecEq.int_t_seq_slice_to_bv_sub_lemma",
+      1,
+      0,
+      0,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "BitVecEq_interpretation_Tm_arrow_b4ead33e06e21b401ac39ed9ccd66716",
+        "FStar.FunctionalExtensionality_interpretation_Tm_arrow_505f8adb466dc430d209c7de298af914",
+        "Prims_interpretation_Tm_arrow_5b1c7f3f701f4c9bd877a4f9b4ec1dfa",
+        "Rust_primitives.BitVectors_interpretation_Tm_arrow_263987c414bea07b2206a5b30a296731",
+        "Rust_primitives.BitVectors_interpretation_Tm_arrow_476118dcf50576376e084ad03c37f473",
+        "Rust_primitives.BitVectors_interpretation_Tm_arrow_860f2755c75eacda845858db7f1e1cb1",
+        "bool_inversion",
+        "constructor_distinct_Rust_primitives.Integers.USIZE",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_BitVecEq.bit_vec_sub",
+        "equation_FStar.FunctionalExtensionality.feq", "equation_Prims.nat",
+        "equation_Rust_primitives.Arrays.t_Array",
+        "equation_Rust_primitives.BitVectors.bit_vec_of_int_t_array",
+        "equation_Rust_primitives.BitVectors.num_bits",
+        "equation_Rust_primitives.Integers.minint",
+        "equation_Rust_primitives.Integers.range",
+        "equation_Rust_primitives.Integers.range_t",
+        "equation_Rust_primitives.Integers.unsigned",
+        "equation_Rust_primitives.Integers.usize",
+        "equation_Rust_primitives.Integers.v",
+        "fuel_guarded_inversion_Rust_primitives.Integers.int_t",
+        "function_token_typing_BitVecEq.bit_vec_sub",
+        "function_token_typing_Rust_primitives.BitVectors.bit_vec_of_int_t_array",
+        "int_inversion", "int_typing",
+        "interpretation_Tm_abs_6b0d41e187e8c90103e925c0b9bfbd91",
+        "interpretation_Tm_abs_85cb1551f09da5b3b17a2f59ddc97e55",
+        "interpretation_Tm_abs_9dc0d07e7b600973925537f206f43aed",
+        "interpretation_Tm_abs_a9e8729795d8f82066d2749742f3d4c2",
+        "kinding_Rust_primitives.Integers.int_t@tok",
+        "lemma_FStar.FunctionalExtensionality.feq_on_domain",
+        "lemma_FStar.Seq.Base.lemma_len_slice",
+        "primitive_Prims.op_Addition", "primitive_Prims.op_AmpAmp",
+        "primitive_Prims.op_Division", "primitive_Prims.op_LessThanOrEqual",
+        "primitive_Prims.op_Multiply", "primitive_Prims.op_Subtraction",
+        "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_BoxInt_proj_0",
+        "refinement_interpretation_Tm_refine_160fe7faad9a466b3cae8455bac5be60",
+        "refinement_interpretation_Tm_refine_1e860b5f1231d0739d7c46508bbd022a",
+        "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
+        "refinement_interpretation_Tm_refine_2b93cc0d2fb3530ccc9d725f3cc7d456",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_5a92b6e4e7af9363bc35e43d9d7f3f13",
+        "refinement_interpretation_Tm_refine_77f46b50eb7c0ddd7035d1cfb4639031",
+        "refinement_interpretation_Tm_refine_8bee7d7a4f99a12b9e378c1cb16fd4a0",
+        "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
+        "refinement_interpretation_Tm_refine_c1424615841f28cac7fc34e92b7ff33c",
+        "refinement_interpretation_Tm_refine_c78d0f505f5756c4299dd29f53aceab9",
+        "refinement_interpretation_Tm_refine_d98127cce9305800edb663156c37aa5b",
+        "refinement_kinding_Tm_refine_c1424615841f28cac7fc34e92b7ff33c",
+        "refinement_kinding_Tm_refine_d98127cce9305800edb663156c37aa5b",
+        "typing_FStar.Seq.Base.index", "typing_FStar.Seq.Base.length",
+        "typing_Rust_primitives.Integers.range",
+        "typing_Rust_primitives.Integers.v",
+        "typing_Tm_abs_6b0d41e187e8c90103e925c0b9bfbd91",
+        "typing_Tm_abs_85cb1551f09da5b3b17a2f59ddc97e55",
+        "typing_Tm_abs_9dc0d07e7b600973925537f206f43aed",
+        "typing_Tm_abs_a9e8729795d8f82066d2749742f3d4c2",
+        "typing_tok_Rust_primitives.Integers.USIZE@tok"
+      ],
+      0,
+      "0c55657c35f9578d6f136391aeb18dfd"
+    ],
+    [
+      "BitVecEq.int_t_eq_seq_slice_bv_sub_lemma",
+      1,
+      0,
+      0,
+      [
+        "@MaxIFuel_assumption", "@query", "equation_Prims.nat",
+        "primitive_Prims.op_Addition", "projection_inverse_BoxInt_proj_0",
+        "refinement_interpretation_Tm_refine_3468711f0359db81d2402f85fe47981c",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
+      ],
+      0,
+      "d9ba44acb89209d5cb2efedc51078d92"
+    ],
+    [
+      "BitVecEq.int_t_eq_seq_slice_bv_sub_lemma",
+      2,
+      0,
+      0,
+      [
+        "@MaxIFuel_assumption", "@query", "equation_Prims.nat",
+        "primitive_Prims.op_Addition", "projection_inverse_BoxInt_proj_0",
+        "refinement_interpretation_Tm_refine_3468711f0359db81d2402f85fe47981c",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
+      ],
+      0,
+      "d1f2625d9e304e1c961b562fcc4c03b4"
+    ],
+    [
+      "BitVecEq.int_t_eq_seq_slice_bv_sub_lemma",
+      3,
+      0,
+      0,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "equation_Rust_primitives.Arrays.t_Array",
+        "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
+        "refinement_interpretation_Tm_refine_3468711f0359db81d2402f85fe47981c"
+      ],
+      0,
+      "8a5d563661ec342c1f5e56eed5cf7098"
+    ],
+    [
+      "BitVecEq.int_t_eq_seq_slice_bv_sub_lemma",
+      4,
+      0,
+      0,
+      [
+        "@MaxIFuel_assumption", "@query", "equation_Prims.nat",
+        "primitive_Prims.op_Addition", "projection_inverse_BoxInt_proj_0",
+        "refinement_interpretation_Tm_refine_3468711f0359db81d2402f85fe47981c",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
+      ],
+      0,
+      "de89d97bd2da3c5e40449cd554d9e5f6"
+    ],
+    [
+      "BitVecEq.int_t_eq_seq_slice_bv_sub_lemma",
+      5,
+      0,
+      0,
+      [
+        "@MaxIFuel_assumption", "@query", "equation_Prims.nat",
+        "primitive_Prims.op_Addition", "projection_inverse_BoxInt_proj_0",
+        "refinement_interpretation_Tm_refine_3468711f0359db81d2402f85fe47981c",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
+      ],
+      0,
+      "f7a5b84aa9cc2e27fa3a054a487f0932"
+    ],
+    [
+      "BitVecEq.int_t_eq_seq_slice_bv_sub_lemma",
+      6,
+      0,
+      0,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "equation_Rust_primitives.Arrays.t_Array",
+        "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
+        "refinement_interpretation_Tm_refine_3468711f0359db81d2402f85fe47981c"
+      ],
+      0,
+      "4b8d5afe304ddbf50f4044551bf537c3"
+    ],
+    [
+      "BitVecEq.int_t_eq_seq_slice_bv_sub_lemma",
+      7,
+      0,
+      0,
+      [
+        "@MaxIFuel_assumption", "@query", "equation_Prims.nat",
+        "primitive_Prims.op_Addition",
+        "refinement_interpretation_Tm_refine_53c655668b35152fbbd9a7948c262451",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_77f46b50eb7c0ddd7035d1cfb4639031"
+      ],
+      0,
+      "9b8c64a9920fe23adbf82e634e651217"
+    ],
+    [
+      "BitVecEq.int_t_eq_seq_slice_bv_sub_lemma",
+      8,
+      0,
+      0,
+      [
+        "@MaxIFuel_assumption", "@query", "primitive_Prims.op_Addition",
+        "primitive_Prims.op_LessThanOrEqual",
+        "projection_inverse_BoxBool_proj_0",
+        "refinement_interpretation_Tm_refine_53c655668b35152fbbd9a7948c262451",
+        "refinement_interpretation_Tm_refine_77f46b50eb7c0ddd7035d1cfb4639031"
+      ],
+      0,
+      "91d48233d7a6d2090def3fe92b5dc654"
+    ],
+    [
+      "BitVecEq.int_t_eq_seq_slice_bv_sub_lemma",
+      9,
+      0,
+      0,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "equation_Rust_primitives.Arrays.t_Array",
+        "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
+        "refinement_interpretation_Tm_refine_3468711f0359db81d2402f85fe47981c"
+      ],
+      0,
+      "abebda67c1f61607a282a92e0c1b27ff"
+    ],
+    [
+      "BitVecEq.int_t_eq_seq_slice_bv_sub_lemma",
+      10,
+      0,
+      0,
+      [
+        "@MaxIFuel_assumption", "@query", "equation_Prims.nat",
+        "primitive_Prims.op_Addition",
+        "refinement_interpretation_Tm_refine_53c655668b35152fbbd9a7948c262451",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_77f46b50eb7c0ddd7035d1cfb4639031"
+      ],
+      0,
+      "be9ea10b92899789753aefcddc6c399a"
+    ],
+    [
+      "BitVecEq.int_t_eq_seq_slice_bv_sub_lemma",
+      11,
+      0,
+      0,
+      [
+        "@MaxIFuel_assumption", "@query", "primitive_Prims.op_Addition",
+        "primitive_Prims.op_LessThanOrEqual",
+        "projection_inverse_BoxBool_proj_0",
+        "refinement_interpretation_Tm_refine_53c655668b35152fbbd9a7948c262451",
+        "refinement_interpretation_Tm_refine_77f46b50eb7c0ddd7035d1cfb4639031"
+      ],
+      0,
+      "0c7fce16d76d621e2b03f0a108ed811c"
+    ],
+    [
+      "BitVecEq.int_t_eq_seq_slice_bv_sub_lemma",
+      12,
+      0,
+      0,
+      [
+        "@MaxIFuel_assumption", "@query", "primitive_Prims.op_Addition",
+        "primitive_Prims.op_LessThanOrEqual",
+        "projection_inverse_BoxBool_proj_0",
+        "refinement_interpretation_Tm_refine_53c655668b35152fbbd9a7948c262451",
+        "refinement_interpretation_Tm_refine_77f46b50eb7c0ddd7035d1cfb4639031"
+      ],
+      0,
+      "d6c87cc3a1650cb817633f5c15197c49"
+    ],
+    [
+      "BitVecEq.int_t_eq_seq_slice_bv_sub_lemma",
+      13,
+      0,
+      0,
+      [
+        "@MaxIFuel_assumption", "@query", "equation_Prims.nat",
+        "equation_Rust_primitives.BitVectors.num_bits",
+        "primitive_Prims.op_Addition", "primitive_Prims.op_Multiply",
+        "projection_inverse_BoxInt_proj_0",
+        "refinement_interpretation_Tm_refine_2b93cc0d2fb3530ccc9d725f3cc7d456",
+        "refinement_interpretation_Tm_refine_3468711f0359db81d2402f85fe47981c",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
+      ],
+      0,
+      "80f0f433d2eb1f4ef66841b8b21ec36d"
+    ],
+    [
+      "BitVecEq.int_t_eq_seq_slice_bv_sub_lemma",
+      14,
+      0,
+      0,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Prims.nat", "equation_Rust_primitives.BitVectors.num_bits",
+        "equation_Rust_primitives.Integers.v", "primitive_Prims.op_Addition",
+        "primitive_Prims.op_Multiply", "projection_inverse_BoxInt_proj_0",
+        "refinement_interpretation_Tm_refine_2b93cc0d2fb3530ccc9d725f3cc7d456",
+        "refinement_interpretation_Tm_refine_3468711f0359db81d2402f85fe47981c",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
+      ],
+      0,
+      "b8c55a6abde476a4a3413f3dd4a94f80"
+    ],
+    [
+      "BitVecEq.int_t_eq_seq_slice_bv_sub_lemma",
+      15,
+      0,
+      0,
+      [
+        "@MaxIFuel_assumption", "@query", "equation_Prims.nat",
+        "equation_Rust_primitives.BitVectors.num_bits",
+        "primitive_Prims.op_Multiply", "projection_inverse_BoxInt_proj_0",
+        "refinement_interpretation_Tm_refine_2b93cc0d2fb3530ccc9d725f3cc7d456",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
+      ],
+      0,
+      "f5a3894e352109ea63dea197e4d61105"
+    ],
+    [
+      "BitVecEq.int_t_eq_seq_slice_bv_sub_lemma",
+      16,
+      0,
+      0,
+      [
+        "@MaxIFuel_assumption", "@query", "equation_Prims.nat",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_90b5d2df39645a4835173a203da069e4"
+      ],
+      0,
+      "3e10435f8d90f3503680b51d74d28639"
+    ],
+    [
+      "BitVecEq.int_t_eq_seq_slice_bv_sub_lemma",
+      17,
+      0,
+      0,
+      [
+        "@MaxIFuel_assumption", "@query", "equation_Prims.nat",
+        "equation_Rust_primitives.BitVectors.num_bits",
+        "primitive_Prims.op_Addition", "primitive_Prims.op_LessThanOrEqual",
+        "primitive_Prims.op_Multiply", "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_BoxInt_proj_0",
+        "refinement_interpretation_Tm_refine_2b93cc0d2fb3530ccc9d725f3cc7d456",
+        "refinement_interpretation_Tm_refine_3468711f0359db81d2402f85fe47981c",
+        "refinement_interpretation_Tm_refine_53c655668b35152fbbd9a7948c262451",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_77f46b50eb7c0ddd7035d1cfb4639031"
+      ],
+      0,
+      "69eb3827f65c3182750172c9a7f3ff2c"
+    ],
+    [
+      "BitVecEq.int_t_eq_seq_slice_bv_sub_lemma",
+      18,
+      0,
+      0,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Prims.nat", "equation_Rust_primitives.BitVectors.num_bits",
+        "equation_Rust_primitives.Integers.v", "primitive_Prims.op_Addition",
+        "primitive_Prims.op_Multiply", "projection_inverse_BoxInt_proj_0",
+        "refinement_interpretation_Tm_refine_2b93cc0d2fb3530ccc9d725f3cc7d456",
+        "refinement_interpretation_Tm_refine_3468711f0359db81d2402f85fe47981c",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
+      ],
+      0,
+      "f774a75b171a7659887279a37d717105"
+    ],
+    [
+      "BitVecEq.int_t_eq_seq_slice_bv_sub_lemma",
+      19,
+      0,
+      0,
+      [
+        "@MaxIFuel_assumption", "@query", "equation_Prims.nat",
+        "equation_Rust_primitives.BitVectors.num_bits",
+        "primitive_Prims.op_Addition", "primitive_Prims.op_Multiply",
+        "projection_inverse_BoxInt_proj_0",
+        "refinement_interpretation_Tm_refine_2b93cc0d2fb3530ccc9d725f3cc7d456",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
+      ],
+      0,
+      "0fe51cb47b27b8ea4123cebe2c08771a"
+    ],
+    [
+      "BitVecEq.int_t_eq_seq_slice_bv_sub_lemma",
+      20,
+      0,
+      0,
+      [
+        "@MaxIFuel_assumption", "@query", "equation_Prims.nat",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_90b5d2df39645a4835173a203da069e4"
+      ],
+      0,
+      "b6f25e3128d8a55cbcf5cf89844011f1"
+    ],
+    [
+      "BitVecEq.int_t_eq_seq_slice_bv_sub_lemma",
+      21,
+      0,
+      0,
+      [
+        "@MaxIFuel_assumption", "@query", "equation_Prims.nat",
+        "equation_Rust_primitives.BitVectors.num_bits",
+        "primitive_Prims.op_Addition", "primitive_Prims.op_LessThanOrEqual",
+        "primitive_Prims.op_Multiply", "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_BoxInt_proj_0",
+        "refinement_interpretation_Tm_refine_2b93cc0d2fb3530ccc9d725f3cc7d456",
+        "refinement_interpretation_Tm_refine_3468711f0359db81d2402f85fe47981c",
+        "refinement_interpretation_Tm_refine_53c655668b35152fbbd9a7948c262451",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_77f46b50eb7c0ddd7035d1cfb4639031"
+      ],
+      0,
+      "a016e31a521fc64e79e846795aeef94f"
+    ],
+    [
+      "BitVecEq.int_t_eq_seq_slice_bv_sub_lemma",
+      22,
+      0,
+      0,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "constructor_distinct_Rust_primitives.Integers.USIZE",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Prims.nat", "equation_Rust_primitives.Integers.maxint",
+        "equation_Rust_primitives.Integers.minint",
+        "equation_Rust_primitives.Integers.range",
+        "equation_Rust_primitives.Integers.range_t",
+        "equation_Rust_primitives.Integers.unsigned",
+        "equation_Rust_primitives.Integers.usize",
+        "fuel_guarded_inversion_Rust_primitives.Integers.int_t",
+        "primitive_Prims.op_Addition", "primitive_Prims.op_AmpAmp",
+        "primitive_Prims.op_LessThanOrEqual",
+        "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_BoxInt_proj_0",
+        "refinement_interpretation_Tm_refine_3468711f0359db81d2402f85fe47981c",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
+        "refinement_interpretation_Tm_refine_b8d4a260a8d37b6d5d26192ee039e995",
+        "typing_Rust_primitives.Integers.v",
+        "typing_tok_Rust_primitives.Integers.USIZE@tok"
+      ],
+      0,
+      "ccff849bb0502b2879ed448719949367"
+    ],
+    [
+      "BitVecEq.int_t_eq_seq_slice_bv_sub_lemma",
+      23,
+      0,
+      0,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Rust_primitives.Integers.mk_int",
+        "equation_Rust_primitives.Integers.mk_usize",
+        "equation_Rust_primitives.Integers.sz",
+        "equation_Rust_primitives.Integers.v", "primitive_Prims.op_Addition",
+        "proj_equation_Rust_primitives.Integers.MkInt_@_0",
+        "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
+        "refinement_interpretation_Tm_refine_0dee8cb03258a67c2f7ec66427696212",
+        "refinement_interpretation_Tm_refine_3468711f0359db81d2402f85fe47981c"
+      ],
+      0,
+      "0062466b876d2a270754433c315dc2b0"
+    ],
+    [
+      "BitVecEq.int_t_eq_seq_slice_bv_sub_lemma",
+      24,
+      0,
+      0,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Rust_primitives.Integers.mk_int",
+        "equation_Rust_primitives.Integers.mk_usize",
+        "equation_Rust_primitives.Integers.sz",
+        "equation_Rust_primitives.Integers.v", "primitive_Prims.op_Addition",
+        "proj_equation_Rust_primitives.Integers.MkInt_@_0",
+        "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
+        "refinement_interpretation_Tm_refine_0dee8cb03258a67c2f7ec66427696212",
+        "refinement_interpretation_Tm_refine_3468711f0359db81d2402f85fe47981c"
+      ],
+      0,
+      "80e3f4c446ffa18ab2400ecb4d3b5be9"
+    ],
+    [
+      "BitVecEq.int_t_eq_seq_slice_bv_sub_lemma",
+      25,
+      0,
+      0,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "BitVecEq_interpretation_Tm_arrow_b4ead33e06e21b401ac39ed9ccd66716",
+        "FStar.FunctionalExtensionality_interpretation_Tm_arrow_505f8adb466dc430d209c7de298af914",
+        "Prims_interpretation_Tm_arrow_5b1c7f3f701f4c9bd877a4f9b4ec1dfa",
+        "Rust_primitives.BitVectors_interpretation_Tm_arrow_860f2755c75eacda845858db7f1e1cb1",
+        "bool_inversion", "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_BitVecEq.bit_vec_sub",
+        "equation_FStar.FunctionalExtensionality.is_restricted",
+        "equation_FStar.FunctionalExtensionality.restricted_t",
+        "equation_Prims.nat", "equation_Rust_primitives.Arrays.t_Array",
+        "equation_Rust_primitives.BitVectors.bit_vec",
+        "equation_Rust_primitives.BitVectors.bit_vec_of_int_t_array",
+        "equation_Rust_primitives.BitVectors.num_bits",
+        "equation_Rust_primitives.Integers.mk_int",
+        "equation_Rust_primitives.Integers.mk_usize",
+        "equation_Rust_primitives.Integers.range",
+        "equation_Rust_primitives.Integers.range_t",
+        "equation_Rust_primitives.Integers.sz",
+        "equation_Rust_primitives.Integers.usize",
+        "equation_Rust_primitives.Integers.v",
+        "fuel_guarded_inversion_Rust_primitives.Integers.int_t",
+        "int_inversion", "int_typing",
+        "interpretation_Tm_abs_6b0d41e187e8c90103e925c0b9bfbd91",
+        "kinding_Rust_primitives.Integers.int_t@tok",
+        "lemma_BitVecEq.bit_vec_equal_elim",
+        "lemma_BitVecEq.int_t_seq_slice_to_bv_sub_lemma",
+        "lemma_FStar.FunctionalExtensionality.extensionality",
+        "lemma_FStar.FunctionalExtensionality.feq_on_domain",
+        "lemma_FStar.Seq.Base.lemma_len_slice",
+        "primitive_Prims.op_Addition", "primitive_Prims.op_LessThanOrEqual",
+        "primitive_Prims.op_Multiply", "primitive_Prims.op_Subtraction",
+        "proj_equation_Rust_primitives.Integers.MkInt_@_0",
+        "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
+        "refinement_interpretation_Tm_refine_08e06c4401a4875551424e5152aa22a5",
+        "refinement_interpretation_Tm_refine_0dee8cb03258a67c2f7ec66427696212",
+        "refinement_interpretation_Tm_refine_1e860b5f1231d0739d7c46508bbd022a",
+        "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
+        "refinement_interpretation_Tm_refine_2b93cc0d2fb3530ccc9d725f3cc7d456",
+        "refinement_interpretation_Tm_refine_3468711f0359db81d2402f85fe47981c",
+        "refinement_interpretation_Tm_refine_5280d0c4b9b990118f9152d1c5b93f3b",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_5a92b6e4e7af9363bc35e43d9d7f3f13",
+        "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
+        "refinement_interpretation_Tm_refine_a94de11175d00fdbbdf07b37c09f231c",
+        "refinement_kinding_Tm_refine_c1424615841f28cac7fc34e92b7ff33c",
+        "typing_FStar.FunctionalExtensionality.on_domain",
+        "typing_FStar.Seq.Base.slice",
+        "typing_Rust_primitives.BitVectors.bit_vec_of_int_t_array",
+        "typing_Rust_primitives.Integers.range",
+        "typing_Rust_primitives.Integers.v",
+        "typing_Tm_abs_6b0d41e187e8c90103e925c0b9bfbd91",
+        "typing_Tm_abs_a9e8729795d8f82066d2749742f3d4c2",
+        "typing_tok_Rust_primitives.Integers.USIZE@tok", "unit_inversion"
+      ],
+      0,
+      "28012ed4206ad0010f741ec7cd0b6e52"
+    ],
+    [
+      "BitVecEq.bit_vec_equal_extend",
+      1,
+      0,
+      0,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "BitVecEq_interpretation_Tm_arrow_b4ead33e06e21b401ac39ed9ccd66716",
+        "FStar.FunctionalExtensionality_interpretation_Tm_arrow_505f8adb466dc430d209c7de298af914",
+        "Prims_interpretation_Tm_arrow_5b1c7f3f701f4c9bd877a4f9b4ec1dfa",
+        "Rust_primitives.BitVectors_interpretation_Tm_arrow_860f2755c75eacda845858db7f1e1cb1",
+        "b2t_def", "bool_inversion", "bool_typing",
+        "equation_BitVecEq.bit_vec_sub",
+        "equation_FStar.FunctionalExtensionality.feq", "equation_Prims.nat",
+        "equation_Prims.squash",
+        "function_token_typing_BitVecEq.bit_vec_sub", "int_inversion",
+        "int_typing",
+        "interpretation_Tm_abs_6b0d41e187e8c90103e925c0b9bfbd91",
+        "interpretation_Tm_abs_a9e8729795d8f82066d2749742f3d4c2",
+        "lemma_BitVecEq.bit_vec_equal_elim",
+        "lemma_FStar.FunctionalExtensionality.feq_on_domain",
+        "primitive_Prims.op_Addition", "primitive_Prims.op_LessThan",
+        "primitive_Prims.op_Subtraction",
+        "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_BoxInt_proj_0",
+        "refinement_interpretation_Tm_refine_266ea895698ef1c2c11479e2e605454e",
+        "refinement_interpretation_Tm_refine_2de20c066034c13bf76e9c0b94f4806c",
+        "refinement_interpretation_Tm_refine_4a7c44b5dbcd095a37f95c3335e2f0ea",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_6f684e27d6af9965634108bcfe981953",
+        "refinement_interpretation_Tm_refine_b9fb9a93e440aa2badbbdac025f74343",
+        "refinement_interpretation_Tm_refine_c1424615841f28cac7fc34e92b7ff33c",
+        "refinement_kinding_Tm_refine_c1424615841f28cac7fc34e92b7ff33c",
+        "typing_Tm_abs_6b0d41e187e8c90103e925c0b9bfbd91",
+        "typing_Tm_abs_a9e8729795d8f82066d2749742f3d4c2"
+      ],
+      0,
+      "642c81cea14182bea04ac57428c19e3c"
+    ]
+  ]
+]

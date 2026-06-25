@@ -1,0 +1,23 @@
+[
+  "99c92d5f7aeac829034050ff65bf65b7",
+  [
+    [
+      "Rust_primitives.Notations.op_String_Access",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "equation_Core_models.Ops.Index.f_index_pre",
+        "fuel_guarded_inversion_Core_models.Ops.Index.t_Index",
+        "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
+        "proj_equation_Core_models.Ops.Index.Mkt_Index_@f_index_pre",
+        "refinement_interpretation_Tm_refine_e16a4ff0a31703789cc1c1125fc4da02",
+        "token_correspondence_Core_models.Ops.Index.__proj__Mkt_Index__item__f_index_pre",
+        "token_correspondence_Core_models.Ops.Index.f_index_pre"
+      ],
+      0,
+      "03b2c6854e6162fca8150b736ec9dd1c"
+    ]
+  ]
+]

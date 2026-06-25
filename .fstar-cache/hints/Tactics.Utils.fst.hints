@@ -1,0 +1,150 @@
+[
+  "df909942f3dd108a0cdd8dd47b35492d",
+  [
+    [
+      "Tactics.Utils.op_let_Question_u35",
+      1,
+      2,
+      1,
+      [ "@query", "lemma_FStar.Pervasives.invertOption" ],
+      0,
+      "9bece77438ebe010b96cd6a87c01559c"
+    ],
+    [
+      "Tactics.Utils.unwrap",
+      1,
+      2,
+      1,
+      [ "@query", "lemma_FStar.Pervasives.invertOption" ],
+      0,
+      "56c10b97720cf7dd5622ee60c4581fbf"
+    ],
+    [
+      "Tactics.Utils.expect",
+      1,
+      2,
+      1,
+      [ "@query", "lemma_FStar.Pervasives.invertOption" ],
+      0,
+      "d2aaf5ee0d0e9a59a23a9dea93e684ca"
+    ],
+    [
+      "Tactics.Utils.expect_lhs_eq_rhs_term",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "equation_FStar.Stubs.Reflection.Types.typ",
+        "function_token_typing_FStar.Stubs.Reflection.Types.term",
+        "lemma_FStar.Pervasives.invertOption"
+      ],
+      0,
+      "9cac939bc27e73420e224b5bb4774647"
+    ],
+    [
+      "Tactics.Utils.expect_app_n",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query", "equation_Prims.eqtype",
+        "equation_Prims.nat", "function_token_typing_Prims.int",
+        "haseqTm_refine_542f9d4f129664613f2483a6c88bc7c2", "int_inversion",
+        "primitive_Prims.op_Equality", "projection_inverse_BoxBool_proj_0",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_9d6af3f3535473623f7aec2f0501897f"
+      ],
+      0,
+      "a58161a005b8b5e1b2d4b02891bc7220"
+    ],
+    [
+      "Tactics.Utils.revert_if_none",
+      1,
+      2,
+      1,
+      [ "@query", "lemma_FStar.Pervasives.invertOption" ],
+      0,
+      "52319e9b60650056bea6abec5b6a3e87"
+    ],
+    [
+      "Tactics.Utils.weaken_eq2_lemma",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query", "equation_Prims.subtype_of",
+        "refinement_interpretation_Tm_refine_a17a2460023e36fc15d00ec5e411cabd"
+      ],
+      0,
+      "0830e473c9acbb760d7dcf5183ceb4a1"
+    ],
+    [
+      "Tactics.Utils.apply_lemma_rw_eqtype",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query", "equation_Prims.eqtype",
+        "function_token_typing_Prims.unit",
+        "lemma_FStar.Pervasives.invertOption",
+        "refinement_interpretation_Tm_refine_9d6af3f3535473623f7aec2f0501897f"
+      ],
+      0,
+      "e021db8a07fb80cf1cdc9f72fafe8344"
+    ],
+    [
+      "Tactics.Utils.__proj__UnifyAppReturn__item__uu___",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "refinement_interpretation_Tm_refine_fa3e4c4e6b2e6beab61914c7e7957644"
+      ],
+      0,
+      "59505ac49263e018ce6f15fecef34d7d"
+    ],
+    [
+      "Tactics.Utils.unify_app",
+      1,
+      2,
+      1,
+      [
+        "@MaxFuel_assumption", "@MaxIFuel_assumption",
+        "@fuel_correspondence_FStar.List.Tot.Base.length.fuel_instrumented",
+        "@query", "constructor_distinct_Tm_unit", "disc_equation_Prims.Cons",
+        "disc_equation_Prims.Nil",
+        "equation_FStar.Stubs.Reflection.Types.typ", "equation_Prims.nat",
+        "equation_with_fuel_FStar.List.Tot.Base.length.fuel_instrumented",
+        "function_token_typing_FStar.Stubs.Reflection.Types.namedv",
+        "function_token_typing_FStar.Stubs.Reflection.Types.term",
+        "int_inversion", "kinding_FStar.Pervasives.Native.tuple2@tok",
+        "projection_inverse_BoxBool_proj_0",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "typing_FStar.List.Tot.Base.length"
+      ],
+      0,
+      "2542da258811adfdeafadeb15b4d75fc"
+    ],
+    [
+      "Tactics.Utils._split_forall_nat",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query", "equation_Prims.nat",
+        "equation_Prims.pos", "int_inversion", "int_typing",
+        "primitive_Prims.op_Equality", "primitive_Prims.op_Subtraction",
+        "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_BoxInt_proj_0",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_774ba3f728d91ead8ef40be66c9802e5",
+        "refinement_interpretation_Tm_refine_c1424615841f28cac7fc34e92b7ff33c",
+        "refinement_interpretation_Tm_refine_cf74cf5c1e7834b84db9cc7ebce886a3"
+      ],
+      0,
+      "7b597f879c54fb537f357fb7030313ca"
+    ]
+  ]
+]

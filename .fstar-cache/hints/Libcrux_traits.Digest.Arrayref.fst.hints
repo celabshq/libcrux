@@ -1,0 +1,40 @@
+[
+  "bd941340446f291114efb8296ab544cb",
+  [
+    [
+      "Libcrux_traits.Digest.Arrayref.t_HashError_cast_to_repr",
+      1,
+      0,
+      1,
+      [
+        "@MaxFuel_assumption", "@MaxIFuel_assumption",
+        "@fuel_correspondence_Prims.pow2.fuel_instrumented", "@query",
+        "bool_inversion",
+        "constructor_distinct_Rust_primitives.Integers.ISIZE",
+        "disc_equation_Libcrux_traits.Digest.Arrayref.HashError_InvalidPayloadLength",
+        "disc_equation_Libcrux_traits.Digest.Arrayref.HashError_Unknown",
+        "equality_tok_Rust_primitives.Integers.ISIZE@tok",
+        "equation_Prims.nat", "equation_Prims.pos",
+        "equation_Rust_primitives.Integers.bits",
+        "equation_Rust_primitives.Integers.maxint",
+        "equation_Rust_primitives.Integers.minint",
+        "equation_Rust_primitives.Integers.range",
+        "equation_Rust_primitives.Integers.unsigned",
+        "fuel_guarded_inversion_Libcrux_traits.Digest.Arrayref.t_HashError",
+        "int_typing", "lemma_Rust_primitives.Integers.pow2_values",
+        "primitive_Prims.op_AmpAmp", "primitive_Prims.op_LessThanOrEqual",
+        "primitive_Prims.op_Minus", "primitive_Prims.op_Subtraction",
+        "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_BoxInt_proj_0",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_774ba3f728d91ead8ef40be66c9802e5",
+        "refinement_interpretation_Tm_refine_b045b04f0bb15cd7c94a2ec78d3283ce",
+        "typing_Prims.pow2", "typing_Rust_primitives.Integers.range",
+        "typing_Rust_primitives.Integers.size_bits",
+        "typing_tok_Rust_primitives.Integers.ISIZE@tok"
+      ],
+      0,
+      "8e67fd931eeb031b5d23f83fec168080"
+    ]
+  ]
+]

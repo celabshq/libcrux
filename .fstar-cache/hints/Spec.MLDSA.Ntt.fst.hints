@@ -1,0 +1,41 @@
+[
+  "3ee2b267e6561c82035905d5c348475d",
+  [
+    [
+      "Spec.MLDSA.Ntt.zeta",
+      1,
+      0,
+      0,
+      [
+        "@MaxIFuel_assumption", "@query", "equation_Prims.nat",
+        "int_inversion", "projection_inverse_BoxInt_proj_0",
+        "refinement_interpretation_Tm_refine_31c7d3d85d92cb942c95a78642e657c7",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
+      ],
+      0,
+      "b29d554794ad977e503bb1320d941e16"
+    ],
+    [
+      "Spec.MLDSA.Ntt.zeta_r",
+      1,
+      0,
+      0,
+      [
+        "@MaxFuel_assumption", "@MaxIFuel_assumption",
+        "@fuel_correspondence_Prims.pow2.fuel_instrumented", "@query",
+        "equation_Prims.nat", "equation_Spec.MLDSA.Ntt.zeta",
+        "function_token_typing_Spec.MLDSA.Math.mod_q", "int_inversion",
+        "int_typing",
+        "interpretation_Tm_abs_522a07ca05d7439399da9676a745b42e",
+        "lemma_Rust_primitives.Integers.pow2_values",
+        "primitive_Prims.op_Modulus", "primitive_Prims.op_Multiply",
+        "projection_inverse_BoxInt_proj_0",
+        "refinement_interpretation_Tm_refine_1d28ba3cac8f5ba9762fe15b8436558e",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "typing_Spec.MLDSA.Math.mod_q"
+      ],
+      0,
+      "896b67cb64dcd6d5ab78d3a53f0c9c7b"
+    ]
+  ]
+]

@@ -1,0 +1,80 @@
+[
+  "7db27b795a983ae94d696fc0a4a4dcaa",
+  [
+    [
+      "Hacspec_ml_kem.ModQ.mod_q",
+      1,
+      0,
+      1,
+      [
+        "@query", "primitive_Prims.op_GreaterThanOrEqual",
+        "primitive_Prims.op_LessThan", "projection_inverse_BoxBool_proj_0"
+      ],
+      0,
+      "23e186a7ed84de654b87be00a9df3252"
+    ],
+    [
+      "Hacspec_ml_kem.ModQ.mod_q_eq",
+      1,
+      0,
+      1,
+      [ "@query" ],
+      0,
+      "68b1a62014ede87eb9c674d5ecfdd8c0"
+    ],
+    [
+      "Hacspec_ml_kem.ModQ.lemma_mod_q_unfold",
+      1,
+      0,
+      1,
+      [ "@query" ],
+      0,
+      "e0f6ad7e7554f4d87cdcef850e77bf01"
+    ],
+    [
+      "Hacspec_ml_kem.ModQ.lemma_mod_q_eq_unfold",
+      1,
+      0,
+      1,
+      [ "@query", "eq2-interp" ],
+      0,
+      "5b9d9108ac03f966787f8b62e431ef00"
+    ],
+    [
+      "Hacspec_ml_kem.ModQ.lemma_mod_q_eq_intro",
+      1,
+      0,
+      1,
+      [ "@query", "eq2-interp" ],
+      0,
+      "9bb250dc888c6f0a6add38c174cb24be"
+    ],
+    [
+      "Hacspec_ml_kem.ModQ.lemma_mod_q_eq_refl",
+      1,
+      0,
+      1,
+      [ "@query", "true_interp" ],
+      0,
+      "50b20955d7a04518dee6bf30c7970823"
+    ],
+    [
+      "Hacspec_ml_kem.ModQ.lemma_mod_q_eq_sym",
+      1,
+      0,
+      1,
+      [ "@query", "eq2-interp" ],
+      0,
+      "12e3305097c2f83552b75ce0dc54431b"
+    ],
+    [
+      "Hacspec_ml_kem.ModQ.lemma_mod_q_eq_trans",
+      1,
+      0,
+      1,
+      [ "@query", "eq2-interp" ],
+      0,
+      "39e7e6c5cff37d15a76d4ec38d66f6c9"
+    ]
+  ]
+]

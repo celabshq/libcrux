@@ -1,0 +1,381 @@
+[
+  "3d59260f63f14b05515852929c3eb88a",
+  [
+    [
+      "ScratchConsumer.ntt_l3block_o",
+      1,
+      0,
+      1,
+      [
+        "@MaxFuel_assumption", "@MaxIFuel_assumption",
+        "@fuel_correspondence_Prims.pow2.fuel_instrumented", "@query",
+        "Prims_pretyping_ae567c2fb75be05905677af440075565", "bool_inversion",
+        "bool_typing", "constructor_distinct_Rust_primitives.Integers.I32",
+        "constructor_distinct_Rust_primitives.Integers.USIZE",
+        "equality_tok_Rust_primitives.Integers.I32@tok",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Avx2NttTheory.layer_bound_factor_avx2",
+        "equation_Prims.nat", "equation_Rust_primitives.Integers.bits",
+        "equation_Rust_primitives.Integers.maxint",
+        "equation_Rust_primitives.Integers.minint",
+        "equation_Rust_primitives.Integers.mk_i32",
+        "equation_Rust_primitives.Integers.mk_int",
+        "equation_Rust_primitives.Integers.mk_usize",
+        "equation_Rust_primitives.Integers.range",
+        "equation_Rust_primitives.Integers.unsigned",
+        "equation_Rust_primitives.Integers.v",
+        "equation_Spec.MLDSA.NttConstants.zeta_r",
+        "equation_Spec.Utils.is_i32b", "equation_Spec.Utils.is_intb",
+        "function_token_typing_Prims.__cache_version_number__",
+        "int_inversion", "int_typing",
+        "lemma_Rust_primitives.Integers.pow2_values",
+        "primitive_Prims.op_Addition", "primitive_Prims.op_AmpAmp",
+        "primitive_Prims.op_Division", "primitive_Prims.op_Equality",
+        "primitive_Prims.op_GreaterThanOrEqual",
+        "primitive_Prims.op_LessThanOrEqual", "primitive_Prims.op_Minus",
+        "primitive_Prims.op_Multiply", "primitive_Prims.op_Subtraction",
+        "proj_equation_Rust_primitives.Integers.MkInt_@_0",
+        "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
+        "refinement_interpretation_Tm_refine_31c7d3d85d92cb942c95a78642e657c7",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_b045b04f0bb15cd7c94a2ec78d3283ce",
+        "refinement_interpretation_Tm_refine_ecd7a51bb545a1382ade444409e95c92",
+        "typing_Rust_primitives.Integers.bits",
+        "typing_Rust_primitives.Integers.range",
+        "typing_Rust_primitives.Integers.size_bits",
+        "typing_Spec.MLDSA.NttConstants.zeta_r",
+        "typing_tok_Rust_primitives.Integers.I32@tok",
+        "typing_tok_Rust_primitives.Integers.USIZE@tok"
+      ],
+      0,
+      "802475550159d3c06099e517ed13e68e"
+    ],
+    [
+      "ScratchConsumer.ntt_l5block_o",
+      1,
+      0,
+      1,
+      [
+        "@MaxFuel_assumption", "@MaxIFuel_assumption",
+        "@fuel_correspondence_Prims.pow2.fuel_instrumented", "@query",
+        "Prims_pretyping_ae567c2fb75be05905677af440075565", "bool_inversion",
+        "bool_typing", "constructor_distinct_Rust_primitives.Integers.I32",
+        "constructor_distinct_Rust_primitives.Integers.USIZE",
+        "equality_tok_Rust_primitives.Integers.I32@tok",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Avx2NttTheory.layer_bound_factor_avx2",
+        "equation_Prims.nat", "equation_Rust_primitives.Integers.bits",
+        "equation_Rust_primitives.Integers.maxint",
+        "equation_Rust_primitives.Integers.minint",
+        "equation_Rust_primitives.Integers.mk_i32",
+        "equation_Rust_primitives.Integers.mk_int",
+        "equation_Rust_primitives.Integers.mk_usize",
+        "equation_Rust_primitives.Integers.range",
+        "equation_Rust_primitives.Integers.unsigned",
+        "equation_Rust_primitives.Integers.v",
+        "equation_Spec.MLDSA.NttConstants.zeta_r",
+        "equation_Spec.Utils.is_i32b", "equation_Spec.Utils.is_intb",
+        "function_token_typing_Prims.__cache_version_number__",
+        "int_inversion", "int_typing",
+        "lemma_Rust_primitives.Integers.pow2_values",
+        "primitive_Prims.op_Addition", "primitive_Prims.op_AmpAmp",
+        "primitive_Prims.op_Division", "primitive_Prims.op_Equality",
+        "primitive_Prims.op_GreaterThanOrEqual",
+        "primitive_Prims.op_LessThanOrEqual", "primitive_Prims.op_Minus",
+        "primitive_Prims.op_Multiply", "primitive_Prims.op_Subtraction",
+        "proj_equation_Rust_primitives.Integers.MkInt_@_0",
+        "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
+        "refinement_interpretation_Tm_refine_31c7d3d85d92cb942c95a78642e657c7",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_b045b04f0bb15cd7c94a2ec78d3283ce",
+        "refinement_interpretation_Tm_refine_ecd7a51bb545a1382ade444409e95c92",
+        "typing_Rust_primitives.Integers.bits",
+        "typing_Rust_primitives.Integers.range",
+        "typing_Rust_primitives.Integers.size_bits",
+        "typing_Spec.MLDSA.NttConstants.zeta_r",
+        "typing_tok_Rust_primitives.Integers.I32@tok",
+        "typing_tok_Rust_primitives.Integers.USIZE@tok"
+      ],
+      0,
+      "68b8712a55d63e538aec92d2f923302b"
+    ],
+    [
+      "ScratchConsumer.ntt_l4block_o",
+      1,
+      0,
+      1,
+      [
+        "@MaxFuel_assumption", "@MaxIFuel_assumption",
+        "@fuel_correspondence_Prims.pow2.fuel_instrumented", "@query",
+        "Prims_pretyping_ae567c2fb75be05905677af440075565", "bool_inversion",
+        "bool_typing", "constructor_distinct_Rust_primitives.Integers.I32",
+        "constructor_distinct_Rust_primitives.Integers.USIZE",
+        "equality_tok_Rust_primitives.Integers.I32@tok",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Avx2NttTheory.layer_bound_factor_avx2",
+        "equation_Prims.nat", "equation_Rust_primitives.Integers.bits",
+        "equation_Rust_primitives.Integers.maxint",
+        "equation_Rust_primitives.Integers.minint",
+        "equation_Rust_primitives.Integers.mk_i32",
+        "equation_Rust_primitives.Integers.mk_int",
+        "equation_Rust_primitives.Integers.mk_usize",
+        "equation_Rust_primitives.Integers.range",
+        "equation_Rust_primitives.Integers.unsigned",
+        "equation_Rust_primitives.Integers.v",
+        "equation_Spec.MLDSA.NttConstants.zeta_r",
+        "equation_Spec.Utils.is_i32b", "equation_Spec.Utils.is_intb",
+        "function_token_typing_Prims.__cache_version_number__",
+        "int_inversion", "int_typing",
+        "lemma_Rust_primitives.Integers.pow2_values",
+        "primitive_Prims.op_Addition", "primitive_Prims.op_AmpAmp",
+        "primitive_Prims.op_Division", "primitive_Prims.op_Equality",
+        "primitive_Prims.op_GreaterThanOrEqual",
+        "primitive_Prims.op_LessThanOrEqual", "primitive_Prims.op_Minus",
+        "primitive_Prims.op_Multiply", "primitive_Prims.op_Subtraction",
+        "proj_equation_Rust_primitives.Integers.MkInt_@_0",
+        "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
+        "refinement_interpretation_Tm_refine_31c7d3d85d92cb942c95a78642e657c7",
+        "refinement_interpretation_Tm_refine_4815f91f4f7f5c74117214e9064dbba1",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_b045b04f0bb15cd7c94a2ec78d3283ce",
+        "refinement_interpretation_Tm_refine_ecd7a51bb545a1382ade444409e95c92",
+        "typing_Avx2NttTheory.layer_bound_factor_avx2",
+        "typing_Rust_primitives.Integers.bits",
+        "typing_Rust_primitives.Integers.range",
+        "typing_Rust_primitives.Integers.size_bits",
+        "typing_Spec.MLDSA.NttConstants.zeta_r",
+        "typing_tok_Rust_primitives.Integers.I32@tok",
+        "typing_tok_Rust_primitives.Integers.USIZE@tok"
+      ],
+      0,
+      "07de8165950745427bf1f6cb7ad38a91"
+    ],
+    [
+      "ScratchConsumer.ntt_at_layer_5_to_3_o",
+      1,
+      0,
+      1,
+      [ "@query" ],
+      0,
+      "d873484593122112be9bc1dfbbfaca15"
+    ],
+    [
+      "ScratchConsumer.ntt_at_layer_7_and_6_o",
+      1,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "refinement_interpretation_Tm_refine_00f664507419cb083a2457f0c3efe076"
+      ],
+      0,
+      "999c4fef9556b8555e5fbf2843c519ac"
+    ],
+    [
+      "ScratchConsumer.ntt_at_layer_7_and_6_o",
+      2,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "refinement_interpretation_Tm_refine_4c9642c63b16b61dfe73b6b2d8d35b68",
+        "refinement_interpretation_Tm_refine_8a69fef4389a776eea15871b67148f29"
+      ],
+      0,
+      "758731449d16de8d4cfab3f2e9b58a00"
+    ],
+    [
+      "ScratchConsumer.ntt_at_layer_7_and_6_o",
+      3,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "refinement_interpretation_Tm_refine_4c9642c63b16b61dfe73b6b2d8d35b68",
+        "refinement_interpretation_Tm_refine_8a69fef4389a776eea15871b67148f29"
+      ],
+      0,
+      "cc459ed4c309948349149cb754144cf8"
+    ],
+    [
+      "ScratchConsumer.ntt_at_layer_7_and_6_o",
+      4,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "refinement_interpretation_Tm_refine_e21a940f5f7c05264c97a9ed1a848353",
+        "refinement_interpretation_Tm_refine_e7c0e26ef40c9531dd50e6353240f955"
+      ],
+      0,
+      "790e99256df962e82f2f70aeaddd45e5"
+    ],
+    [
+      "ScratchConsumer.ntt_at_layer_7_and_6_o",
+      5,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "refinement_interpretation_Tm_refine_00f664507419cb083a2457f0c3efe076",
+        "refinement_interpretation_Tm_refine_0dee8cb03258a67c2f7ec66427696212",
+        "refinement_interpretation_Tm_refine_6fcfca0f43aad2bd8ab091459e8a44bf",
+        "refinement_interpretation_Tm_refine_e21a940f5f7c05264c97a9ed1a848353",
+        "refinement_interpretation_Tm_refine_e7c0e26ef40c9531dd50e6353240f955"
+      ],
+      0,
+      "a48367d57c3645929fba2ce120b92d20"
+    ],
+    [
+      "ScratchConsumer.ntt_o",
+      1,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "refinement_interpretation_Tm_refine_1aab01a39ed68c2a613f568ba89dd5f2"
+      ],
+      0,
+      "89af8057dcaa9551f89aefd190146f83"
+    ],
+    [
+      "ScratchConsumer.ntt_o",
+      2,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "refinement_interpretation_Tm_refine_f24a8c1d0d3f2c663a33f94eabf8873f",
+        "refinement_interpretation_Tm_refine_f621861eff5825ff71c703f13975b6b3"
+      ],
+      0,
+      "14fda211ae3e6e2013cbeb6dd6e7c9b8"
+    ],
+    [
+      "ScratchConsumer.ntt_o",
+      3,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "refinement_interpretation_Tm_refine_8a54a59308d7920056d089c75fb7beb7",
+        "refinement_interpretation_Tm_refine_8c859cc923406e07e3cebbb7f245a565"
+      ],
+      0,
+      "5b4e8e79efc1617acd856c4fc8cae80c"
+    ],
+    [
+      "ScratchConsumer.ntt_o",
+      4,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "refinement_interpretation_Tm_refine_c4c1f15307bdee9b4d3518979838f973",
+        "refinement_interpretation_Tm_refine_ffd6782458f2ebffcb4070953897da97"
+      ],
+      0,
+      "cac3cf616863739fd7e9bb2cf25b2286"
+    ],
+    [
+      "ScratchConsumer.ntt_o",
+      5,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "refinement_interpretation_Tm_refine_6ace1629d751a84fb35221e2e7b63cbe",
+        "refinement_interpretation_Tm_refine_9ba8e26077ca3334198ceb61b083c975"
+      ],
+      0,
+      "70d56cb6b1589fd66d934d895c5d467c"
+    ],
+    [
+      "ScratchConsumer.ntt_o",
+      6,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "refinement_interpretation_Tm_refine_f24a8c1d0d3f2c663a33f94eabf8873f",
+        "refinement_interpretation_Tm_refine_f621861eff5825ff71c703f13975b6b3"
+      ],
+      0,
+      "f306280b6e14a9e093b0388d98e93b03"
+    ],
+    [
+      "ScratchConsumer.ntt_o",
+      7,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "refinement_interpretation_Tm_refine_8a54a59308d7920056d089c75fb7beb7",
+        "refinement_interpretation_Tm_refine_8c859cc923406e07e3cebbb7f245a565"
+      ],
+      0,
+      "f82027b4c2deb538f063f38aed575336"
+    ],
+    [
+      "ScratchConsumer.ntt_o",
+      8,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "refinement_interpretation_Tm_refine_c4c1f15307bdee9b4d3518979838f973",
+        "refinement_interpretation_Tm_refine_ffd6782458f2ebffcb4070953897da97"
+      ],
+      0,
+      "871e63ce7e297da051e198c68d3e1a32"
+    ],
+    [
+      "ScratchConsumer.ntt_o",
+      9,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "refinement_interpretation_Tm_refine_6ace1629d751a84fb35221e2e7b63cbe",
+        "refinement_interpretation_Tm_refine_9ba8e26077ca3334198ceb61b083c975"
+      ],
+      0,
+      "3055bac12b180fb85058f10337e65d44"
+    ],
+    [
+      "ScratchConsumer.ntt_o",
+      10,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "refinement_interpretation_Tm_refine_460549d14b449deaded3c53e04d5f502",
+        "refinement_interpretation_Tm_refine_6ba4e35956589d3ffc5670a82eb25ca4"
+      ],
+      0,
+      "08b42bdc1054662e9f0d2c2da9b2896a"
+    ],
+    [
+      "ScratchConsumer.ntt_o",
+      11,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "refinement_interpretation_Tm_refine_0dee8cb03258a67c2f7ec66427696212",
+        "refinement_interpretation_Tm_refine_1aab01a39ed68c2a613f568ba89dd5f2",
+        "refinement_interpretation_Tm_refine_460549d14b449deaded3c53e04d5f502",
+        "refinement_interpretation_Tm_refine_6ba4e35956589d3ffc5670a82eb25ca4",
+        "refinement_interpretation_Tm_refine_8f6a7abbe5030c1262072baf99822ed0"
+      ],
+      0,
+      "ee3e4cb04599a081a805ee4ae932fda6"
+    ]
+  ]
+]

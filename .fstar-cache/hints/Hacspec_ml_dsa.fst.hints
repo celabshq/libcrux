@@ -1,0 +1,32 @@
+[
+  "8585be3fa7e92065abb2ae7031dababe",
+  [
+    [
+      "Hacspec_ml_dsa.createi_lemma",
+      1,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "constructor_distinct_Rust_primitives.Integers.USIZE",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Rust_primitives.Arrays.t_Array",
+        "equation_Rust_primitives.Integers.lt",
+        "equation_Rust_primitives.Integers.minint",
+        "equation_Rust_primitives.Integers.range",
+        "equation_Rust_primitives.Integers.unsigned",
+        "equation_Rust_primitives.Integers.usize",
+        "equation_Rust_primitives.Integers.v",
+        "fuel_guarded_inversion_Rust_primitives.Integers.int_t",
+        "primitive_Prims.op_AmpAmp", "primitive_Prims.op_LessThan",
+        "primitive_Prims.op_LessThanOrEqual",
+        "projection_inverse_BoxBool_proj_0",
+        "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
+        "refinement_interpretation_Tm_refine_eea4a7aaf0d9fd792b6bd561042bfd5e",
+        "typing_Hacspec_ml_dsa.createi"
+      ],
+      0,
+      "0b5d29f0542c8719daf362f8d369bcf3"
+    ]
+  ]
+]

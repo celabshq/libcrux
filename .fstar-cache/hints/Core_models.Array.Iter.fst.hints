@@ -1,0 +1,69 @@
+[
+  "bae80aa779acd830bc030e0350eeecc5",
+  [
+    [
+      "Core_models.Array.Iter.t_IntoIter",
+      1,
+      0,
+      1,
+      [
+        "@query", "equation_Rust_primitives.Arrays.t_Slice",
+        "equation_Rust_primitives.Sequence.t_Seq",
+        "haseqTm_refine_fd980a4a94cc34052e6e36a3c682afca",
+        "lemma_FStar.Seq.Base.hasEq_lemma"
+      ],
+      0,
+      "50ef9e1324b37f41bcf8a522f50e9b59"
+    ],
+    [
+      "Core_models.Array.Iter.impl",
+      1,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "assumption_Rust_primitives.Integers.int_t__uu___haseq",
+        "bool_inversion", "bool_typing",
+        "constructor_distinct_Rust_primitives.Integers.USIZE",
+        "data_elim_Core_models.Array.Iter.IntoIter",
+        "data_elim_Rust_primitives.Integers.MkInt",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Prims.nat", "equation_Rust_primitives.Arrays.t_Slice",
+        "equation_Rust_primitives.Integers.gt",
+        "equation_Rust_primitives.Integers.gte",
+        "equation_Rust_primitives.Integers.lte",
+        "equation_Rust_primitives.Integers.max_usize",
+        "equation_Rust_primitives.Integers.maxint",
+        "equation_Rust_primitives.Integers.minint",
+        "equation_Rust_primitives.Integers.mk_int",
+        "equation_Rust_primitives.Integers.mk_usize",
+        "equation_Rust_primitives.Integers.range",
+        "equation_Rust_primitives.Integers.range_t",
+        "equation_Rust_primitives.Integers.unsigned",
+        "equation_Rust_primitives.Integers.usize",
+        "equation_Rust_primitives.Integers.v",
+        "equation_Rust_primitives.Sequence.seq_len",
+        "equation_Rust_primitives.Sequence.t_Seq",
+        "fuel_guarded_inversion_Core_models.Array.Iter.t_IntoIter",
+        "fuel_guarded_inversion_Rust_primitives.Integers.int_t",
+        "int_inversion", "primitive_Prims.op_AmpAmp",
+        "primitive_Prims.op_Equality", "primitive_Prims.op_GreaterThan",
+        "primitive_Prims.op_GreaterThanOrEqual",
+        "primitive_Prims.op_LessThanOrEqual",
+        "proj_equation_Core_models.Array.Iter.IntoIter_@_0",
+        "proj_equation_Rust_primitives.Integers.MkInt_@_0",
+        "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
+        "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca",
+        "typing_Core_models.Array.Iter.__proj__IntoIter__item___0",
+        "typing_FStar.Seq.Base.length",
+        "typing_tok_Rust_primitives.Integers.USIZE@tok"
+      ],
+      0,
+      "f722ccac689b4e1a0897b107e9be4e99"
+    ]
+  ]
+]
