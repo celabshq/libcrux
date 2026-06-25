@@ -11,7 +11,8 @@ mod rejection_sample;
 mod vector_type;
 
 use arithmetic::shift_left_then_reduce;
-pub(crate) use vector_type::{AVX2RingElement, Vec256 as AVX2SIMDUnit};
+pub(crate) use vector_type::AVX2RingElement;
+pub use vector_type::Vec256 as AVX2SIMDUnit;
 
 #[cfg(hax)]
 impl Repr for AVX2SIMDUnit {

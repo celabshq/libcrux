@@ -39,13 +39,13 @@ pub(crate) const CONTEXT_MAX_LEN: usize = 255;
 
 /// Eta values
 #[derive(Clone, Copy)]
-pub(crate) enum Eta {
+pub enum Eta {
     Two = 2,
     Four = 4,
 }
 
 /// Gamma2 values
-pub(crate) type Gamma2 = i32;
+pub type Gamma2 = i32;
 pub(crate) const GAMMA2_V261_888: Gamma2 = 261_888;
 pub(crate) const GAMMA2_V95_232: Gamma2 = 95_232;
 

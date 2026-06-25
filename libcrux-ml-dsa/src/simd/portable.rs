@@ -14,7 +14,7 @@ mod sample;
 
 use arithmetic::shift_left_then_reduce;
 /// Portable SIMD coefficients
-pub(crate) use vector_type::Coefficients as PortableSIMDUnit;
+pub use vector_type::Coefficients as PortableSIMDUnit;
 use vector_type::Coefficients;
 
 #[cfg(hax)]

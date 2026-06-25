@@ -2,7 +2,7 @@
 #[hax_lib::fstar::before("noeq")]
 #[derive(Clone, Copy)]
 #[repr(transparent)]
-pub(crate) struct Vec256 {
+pub struct Vec256 {
     pub(super) value: libcrux_intrinsics::avx2::Vec256,
 }
 

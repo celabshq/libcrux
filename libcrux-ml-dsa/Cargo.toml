@@ -43,6 +43,8 @@ serde_json = { version = "1.0" }
 serde = { version = "1.0", features = ["derive"] }
 criterion = "0.8"
 libcrux-kats = { workspace = true, features = ["mldsa"] }
+hacspec_ml_dsa = { path = "../specs/ml-dsa" }
+rand_chacha = "0.10"
 
 
 # This doesn't build on intel macos.
@@ -51,13 +53,14 @@ pqcrypto-mldsa = { version = "0.1.0" } #, default-features = false
 
 [target.'cfg(hax)'.dependencies]
 core-models = { path = "../crates/utils/core-models", version = "0.0.6" }
+hacspec_ml_dsa = { path = "../specs/ml-dsa" }
 
 [features]
 default = ["std", "mldsa44", "mldsa65", "mldsa87"]
 simd128 = ["libcrux-sha3/simd128", "libcrux-intrinsics/simd128"]
 simd256 = ["libcrux-sha3/simd256", "libcrux-intrinsics/simd256"]
 acvp = []                                                        # expose internal API for ACVP testing
-test-utils = []                                                  # exposing internal functions for testing
+cross-spec-tests = []                                            # tests/cross_spec.rs against the hacspec; re-exports internals for testing
 
 # Features for the different key sizes of ML-DSA
 mldsa44 = []
@@ -87,4 +90,7 @@ name = "ml-dsa"
 harness = false
 
 [lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = ['cfg(hax)', 'cfg(valgrind_ct_test)'] }
+unexpected_cfgs = { level = "warn", check-cfg = [
+    'cfg(hax)',
+    'cfg(valgrind_ct_test)',
+] }

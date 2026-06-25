@@ -1,0 +1,15 @@
+[package]
+name = "hacspec_ml_dsa"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+hacspec_sha3 = { path = "../sha3" }
+hax-lib = "=0.3.6"
+
+[dev-dependencies]
+hex = { version = "0.4.3", features = ["serde"] }
+proptest = "1.2.0"
+rand = "0.9"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"

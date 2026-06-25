@@ -5,11 +5,11 @@ use crate::constants::{Eta, Gamma2};
 pub(crate) mod specs;
 
 // Each field element occupies 32 bits and the size of a simd_unit is 256 bits.
-pub(crate) const COEFFICIENTS_IN_SIMD_UNIT: usize = 8;
+pub const COEFFICIENTS_IN_SIMD_UNIT: usize = 8;
 
 // Note: For proofs, it is better to use concrete constants instead of const expressions
 //COEFFICIENTS_IN_RING_ELEMENT / COEFFICIENTS_IN_SIMD_UNIT;
-pub(crate) const SIMD_UNITS_IN_RING_ELEMENT: usize = 32;
+pub const SIMD_UNITS_IN_RING_ELEMENT: usize = 32;
 
 pub const FIELD_MODULUS: i32 = 8_380_417;
 
@@ -23,7 +23,7 @@ pub(crate) type FieldElementTimesMontgomeryR = i32;
 
 #[cfg(hax)]
 #[hax_lib::attributes]
-pub(crate) trait Repr: Copy + Clone {
+pub trait Repr: Copy + Clone {
     #[cfg(hax)]
     #[requires(true)]
     fn repr(&self) -> [i32; COEFFICIENTS_IN_SIMD_UNIT];
@@ -33,7 +33,7 @@ pub(crate) trait Repr: Copy + Clone {
 pub trait Repr {}
 
 #[hax_lib::attributes]
-pub(crate) trait Operations: Copy + Clone + Repr {
+pub trait Operations: Copy + Clone + Repr {
     #[hax_lib::requires(true)]
     #[hax_lib::ensures(|result| result.repr() == [0i32; COEFFICIENTS_IN_SIMD_UNIT])]
     fn zero() -> Self;

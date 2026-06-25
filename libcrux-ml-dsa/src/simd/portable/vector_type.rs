@@ -5,7 +5,7 @@ pub(crate) type FieldElement = i32;
 
 #[derive(Clone, Copy)]
 #[repr(transparent)]
-pub(crate) struct Coefficients {
+pub struct Coefficients {
     pub(super) values: [FieldElement; COEFFICIENTS_IN_SIMD_UNIT],
 }
 
