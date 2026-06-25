@@ -493,7 +493,10 @@ pub(crate) mod avx2 {
 }
 
 /// A SIMD128 implementation of [`Hash`] for NEON
-#[cfg(feature = "simd128")]
+// Gated out of hax extraction: depends on `libcrux_sha3::neon::x2` which is
+// not currently extracted to F* (portable + AVX2 trait impls cover the
+// verification surface; the Neon hash impl is verified by other means).
+#[cfg(all(feature = "simd128", not(hax)))]
 pub(crate) mod neon {
     use super::*;
     use libcrux_sha3::neon::x2::{self, incremental::KeccakState};

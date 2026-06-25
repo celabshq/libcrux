@@ -38,14 +38,14 @@ Usage example:
 ```rust
  #[cfg(feature = "mlkem768")]
  {
-     use rand::{rngs::SysRng, TryRng};
+     use rand::{rngs::OsRng, TryRngCore};
 
      // Ensure you use good randomness.
      // It is not recommended to use OsRng directly!
      // Instead it is highly encouraged to use RNGs like NISTs DRBG to account for
      // bad system entropy.
      fn random_array<const L: usize>() -> [u8; L] {
-         let mut rng = SysRng;
+         let mut rng = OsRng;
          let mut seed = [0; L];
          rng.try_fill_bytes(&mut seed).unwrap();
          seed
@@ -169,7 +169,7 @@ instructions.
 The portable and AVX2 code for field arithmetic, NTT polynomial arithmetic, serialization, and the generic code for high-level algorithms
 is formally verified using [hax](https://cryspen.com/hax) and  [F*](https://fstar-lang.org).
 
-Please refer to [this file](proofs/verification_status.md) for detail on the verification of this crate.
+Please refer to [this file](proofs/ml_kem_verification_status.md) for detail on the verification of this crate.
 
 [verified]: ../.assets/verified-brightgreen.svg
 

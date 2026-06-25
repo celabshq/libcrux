@@ -1,6 +1,6 @@
 [package]
 name = "libcrux-ml-kem"
-version = "0.0.9"
+version = "0.0.8"
 authors.workspace = true
 license.workspace = true
 homepage.workspace = true
@@ -22,7 +22,7 @@ exclude = [
 bench = false # so libtest doesn't eat the arguments to criterion
 
 [dependencies]
-rand = { version = "0.10", optional = true, default-features = false }
+rand = { version = "0.9", optional = true, default-features = false }
 libcrux-platform.workspace = true
 libcrux-sha3.workspace = true
 libcrux-intrinsics.workspace = true
@@ -32,6 +32,11 @@ hax-lib.workspace = true
 tls_codec = { version = "0.4.2", features = [
     "derive",
 ], default-features = false, optional = true }
+
+# Reference Hacspec spec — used by `#[cfg(hax)]` impl→spec lift functions
+# in vector/traits.rs (i16_to_spec_fe, etc.) and vector.rs (poly_to_spec, etc.).
+# Compiled in all builds; usage is `#[cfg(hax)]`-gated.
+hacspec_ml_kem = { path = "../specs/ml-kem" }
 
 [features]
 # By default all variants and std are enabled.
@@ -76,8 +81,9 @@ check-secret-independence = [
 pqcp = []
 
 [dev-dependencies]
-rand = { version = "0.10", features = ["thread_rng"] }
+rand = { version = "0.9", features = ["thread_rng"] }
 serde_json = { version = "1.0" }
+hacspec_sha3 = { path = "../specs/sha3" }
 serde = { version = "1.0", features = ["derive"] }
 hex = { version = "0.4.3", features = ["serde"] }
 criterion = "0.8"

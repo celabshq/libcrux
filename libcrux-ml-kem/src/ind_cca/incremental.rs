@@ -4,6 +4,9 @@
 //!
 //! **WARNING:** This API is not standard compliant and may lead to insecure
 //! usage. Use at your own risk.
+#[allow(unused_imports)]
+use hax_lib::prop::ToProp;
+
 use crate::{
     constants::BITS_PER_RING_ELEMENT,
     hash_functions::Hash,
@@ -39,7 +42,7 @@ pub(crate) mod avx2 {
         #[allow(unsafe_code)]
     );
 }
-#[cfg(feature = "simd128")]
+#[cfg(all(feature = "simd128", not(hax)))]
 pub(crate) mod neon {
     use super::*;
 
@@ -69,6 +72,12 @@ pub(crate) mod multiplexing;
 ///
 /// To [`decapsulate`], the entire key pair is used again.
 #[inline(always)]
+#[hax_lib::requires(
+    hacspec_ml_kem::parameters::is_rank(K)
+    && ETA1 == hacspec_ml_kem::parameters::eta1(K)
+    && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
+    && PUBLIC_KEY_SIZE == hacspec_ml_kem::parameters::cpa_public_key_size(K)
+)]
 pub(crate) fn generate_keypair<
     const K: usize,
     const CPA_PRIVATE_KEY_SIZE: usize,
@@ -105,6 +114,14 @@ pub(crate) fn generate_keypair<
 ///
 /// The public keys can be extracted from the bytes.
 #[inline(always)]
+#[hax_lib::requires(
+    (hacspec_ml_kem::parameters::is_rank(K)
+    && ETA1 == hacspec_ml_kem::parameters::eta1(K)
+    && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
+    && PUBLIC_KEY_SIZE == hacspec_ml_kem::parameters::cpa_public_key_size(K)
+    && CPA_PRIVATE_KEY_SIZE == hacspec_ml_kem::parameters::ranked_bytes_per_ring_element(K)).to_prop()
+    & fstar!(r#"v $KEYPAIR_LEN >= v $CPA_PRIVATE_KEY_SIZE + v $PK2_LEN + 96"#)
+)]
 pub(crate) fn generate_keypair_compressed<
     const K: usize,
     const PK2_LEN: usize,
@@ -134,8 +151,20 @@ pub(crate) fn generate_keypair_compressed<
         variant::MlKem,
     >(randomness, &mut kp);
 
-    let kp = KeyPair::<K, PK2_LEN, Vector>::from(kp);
-    kp.to_bytes_compressed::<KEYPAIR_LEN, CPA_PRIVATE_KEY_SIZE>(key_pair);
+    let kp_packed = KeyPair::<K, PK2_LEN, Vector>::from(kp);
+    // The `From` instance copies `sk` verbatim, and its (verified) post states
+    // exactly `kp_packed.f_sk == kp.f_private_key` (see the `#[ensures]` on
+    // `From<MlKemKeyPairUnpacked> for KeyPair`).  But that post reaches the
+    // caller as the unreduced parameterized-instance projector
+    // `(impl_N v_K v_PK2_LEN).f_from_post …`, which F* will not normalize at
+    // fuel 0 — so the keygen's `is_bounded(3328, secret_as_ntt)` cannot be
+    // transferred to the packed key pair automatically.  We `assume` that
+    // already-declared, body-trivially-true equality here; the bound then flows
+    // by congruence and discharges `to_bytes_compressed`'s precondition.  This
+    // replaces the previous whole-body `admit ()` on `to_bytes_compressed` with
+    // this single, precise structural fact.
+    hax_lib::fstar!(r#"assume (${kp_packed}.f_sk == ${kp}.f_private_key)"#);
+    kp_packed.to_bytes_compressed::<KEYPAIR_LEN, CPA_PRIVATE_KEY_SIZE>(key_pair);
 }
 
 /// Generate a key pair for incremental encapsulation.
@@ -145,6 +174,16 @@ pub(crate) fn generate_keypair_compressed<
 ///
 /// The public keys can be extracted from the bytes TODO.
 #[inline(always)]
+#[hax_lib::requires(
+    hacspec_ml_kem::parameters::is_rank(K)
+    && ETA1 == hacspec_ml_kem::parameters::eta1(K)
+    && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
+    && PUBLIC_KEY_SIZE == hacspec_ml_kem::parameters::cpa_public_key_size(K)
+    && PK2_LEN <= 1536
+    && key_pair.len() >= 64 + PK2_LEN + K * 512 + 32 + K * K * 512
+)]
+#[hax_lib::ensures(|result|
+    result.is_ok() && future(key_pair).len() == key_pair.len())]
 pub(crate) fn generate_keypair_serialized<
     const K: usize,
     const PK2_LEN: usize,
@@ -178,6 +217,20 @@ pub(crate) fn generate_keypair_serialized<
 }
 
 #[inline(always)]
+#[hax_lib::requires(
+    hacspec_ml_kem::parameters::is_rank(K)
+    && ETA1 == hacspec_ml_kem::parameters::eta1(K)
+    && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
+    && ETA2 == hacspec_ml_kem::parameters::eta2(K)
+    && ETA2_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta2_randomness_size(K)
+    && C1_SIZE == hacspec_ml_kem::parameters::c1_size(K)
+    && VECTOR_U_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_u_compression_factor(K)
+    && VECTOR_U_BLOCK_LEN == hacspec_ml_kem::parameters::c1_block_size(K)
+)]
+#[hax_lib::ensures(|(_ct1, state, _ss)|
+    crate::polynomial::spec::is_bounded_polynomial_vector(3328, &state.r_as_ntt)
+    & crate::polynomial::spec::is_bounded_poly(3328, &state.error2)
+)]
 pub(crate) fn encapsulate1<
     const K: usize,
     const CIPHERTEXT_SIZE: usize,
@@ -200,6 +253,22 @@ pub(crate) fn encapsulate1<
     // Rebuild the matrix A from the seed
     let mut matrix = [[PolynomialRingElement::<Vector>::ZERO(); K]; K];
     sample_matrix_A::<K, Vector, Hasher>(&mut matrix, &into_padded_array(&pk1.seed), false);
+
+    // Fold sample_matrix_A's nested per-element forall ensures into the
+    // opaque `is_bounded_polynomial_matrix 3328 matrix` atom required by
+    // encrypt_c1 (same producer-site folding as in ind_cpa.rs).
+    hax_lib::fstar!(
+        r#"let folded (i: usize{ v i < v $K }) : Lemma
+            (Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector $K #$:Vector (sz 3328)
+                (${matrix}.[ i ] <: t_Array (Libcrux_ml_kem.Vector.t_PolynomialRingElement $:Vector) $K)) =
+            Libcrux_ml_kem.Polynomial.Spec.lemma_is_bounded_polynomial_vector_intro $K #$:Vector
+                (${matrix}.[ i ] <: t_Array (Libcrux_ml_kem.Vector.t_PolynomialRingElement $:Vector) $K)
+                (sz 3328)
+        in
+        Classical.forall_intro folded;
+        Libcrux_ml_kem.Polynomial.Spec.lemma_is_bounded_polynomial_matrix_intro $K #$:Vector
+            $matrix (sz 3328)"#
+    );
 
     let mut ciphertext = [0u8; C1_SIZE];
     let (r_as_ntt, error2) = ind_cpa::encrypt_c1::<
@@ -228,6 +297,22 @@ pub(crate) fn encapsulate1<
 }
 
 #[inline(always)]
+#[hax_lib::requires(
+    hacspec_ml_kem::parameters::is_rank(K)
+    && ETA1 == hacspec_ml_kem::parameters::eta1(K)
+    && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
+    && ETA2 == hacspec_ml_kem::parameters::eta2(K)
+    && ETA2_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta2_randomness_size(K)
+    && C1_SIZE == hacspec_ml_kem::parameters::c1_size(K)
+    && VECTOR_U_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_u_compression_factor(K)
+    && VECTOR_U_BLOCK_LEN == hacspec_ml_kem::parameters::c1_block_size(K)
+    && state.len() >= K * 512 + 512 + 32
+    && shared_secret.len() >= 32
+)]
+#[hax_lib::ensures(|result|
+    result.is_ok()
+    && future(state).len() == state.len()
+    && future(shared_secret).len() == shared_secret.len())]
 pub(crate) fn encapsulate1_serialized<
     const K: usize,
     const CIPHERTEXT_SIZE: usize,
@@ -275,6 +360,10 @@ pub(crate) fn encapsulate1_serialized<
 
 /// Check that the pk1 and pk2 parts are consistent.
 #[inline(always)]
+#[hax_lib::requires(
+    hacspec_ml_kem::parameters::is_rank(K)
+    && PK_LEN == hacspec_ml_kem::parameters::cpa_public_key_size(K)
+)]
 pub(crate) fn validate_pk<
     const K: usize,
     const PK_LEN: usize,
@@ -294,6 +383,10 @@ pub(crate) fn validate_pk<
 
 /// Check that the pk1 and pk2 parts are consistent.
 #[inline(always)]
+#[hax_lib::requires(
+    hacspec_ml_kem::parameters::is_rank(K)
+    && PK_LEN == hacspec_ml_kem::parameters::cpa_public_key_size(K)
+)]
 pub(crate) fn validate_pk_bytes<
     const K: usize,
     const PK_LEN: usize,
@@ -312,6 +405,13 @@ pub(crate) fn validate_pk_bytes<
 }
 
 #[inline(always)]
+#[hax_lib::requires(
+    hacspec_ml_kem::parameters::is_rank(K)
+    && PK_LEN == hacspec_ml_kem::parameters::cpa_public_key_size(K)
+    && pk1_seed.len() == 32
+    && pk1_hash.len() == 32
+    && pk2.len() == K * BITS_PER_RING_ELEMENT / 8
+)]
 fn validate_pk_parts<const K: usize, const PK_LEN: usize, Hasher: Hash<K>, Vector: Operations>(
     pk1_seed: &[u8],
     pk1_hash: &[u8],
@@ -339,6 +439,15 @@ fn validate_pk_parts<const K: usize, const PK_LEN: usize, Hasher: Hash<K>, Vecto
 }
 
 #[inline(always)]
+#[hax_lib::requires(
+    (hacspec_ml_kem::parameters::is_rank(K)
+    && PK2_LEN == hacspec_ml_kem::parameters::cpa_private_key_size(K)
+    && C2_SIZE == hacspec_ml_kem::parameters::c2_size(K)
+    && VECTOR_V_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_v_compression_factor(K))
+        .to_prop()
+    & crate::polynomial::spec::is_bounded_polynomial_vector(3328, &state.r_as_ntt)
+    & crate::polynomial::spec::is_bounded_poly(3328, &state.error2)
+)]
 pub(crate) fn encapsulate2<
     const K: usize,
     const PK2_LEN: usize,
@@ -363,7 +472,18 @@ pub(crate) fn encapsulate2<
     Ciphertext2 { value: ciphertext }
 }
 
+/// Encapsulate the second part of the ciphertext from a serialized state.
+///
+/// The state bytes are validated on decode: [`Error::InvalidInput`] is
+/// returned if any decoded coefficient is out of field range.
 #[inline(always)]
+#[hax_lib::requires(
+    hacspec_ml_kem::parameters::is_rank(K)
+    && PK2_LEN == hacspec_ml_kem::parameters::cpa_private_key_size(K)
+    && C2_SIZE == hacspec_ml_kem::parameters::c2_size(K)
+    && VECTOR_V_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_v_compression_factor(K)
+    && STATE_LEN >= K * 512 + 512 + 32
+)]
 pub(crate) fn encapsulate2_serialized<
     const K: usize,
     const PK2_LEN: usize,
@@ -374,16 +494,38 @@ pub(crate) fn encapsulate2_serialized<
 >(
     state: &[u8; STATE_LEN],
     public_key_part: &PublicKey2<PK2_LEN>,
-) -> Ciphertext2<C2_SIZE> {
-    let state = EncapsState::from_bytes(state);
+) -> Result<Ciphertext2<C2_SIZE>, Error> {
+    let state = EncapsState::try_from_bytes(state)?;
 
-    encapsulate2::<K, PK2_LEN, C2_SIZE, VECTOR_V_COMPRESSION_FACTOR, Vector>(
-        &state,
-        public_key_part,
-    )
+    Ok(encapsulate2::<
+        K,
+        PK2_LEN,
+        C2_SIZE,
+        VECTOR_V_COMPRESSION_FACTOR,
+        Vector,
+    >(&state, public_key_part))
 }
 
 #[inline(always)]
+#[hax_lib::requires(
+    (hacspec_ml_kem::parameters::is_rank(K)
+    && ETA1 == hacspec_ml_kem::parameters::eta1(K)
+    && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
+    && ETA2 == hacspec_ml_kem::parameters::eta2(K)
+    && ETA2_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta2_randomness_size(K)
+    && C1_SIZE == hacspec_ml_kem::parameters::c1_size(K)
+    && C2_SIZE == hacspec_ml_kem::parameters::c2_size(K)
+    && VECTOR_U_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_u_compression_factor(K)
+    && VECTOR_V_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_v_compression_factor(K)
+    && C1_BLOCK_SIZE == hacspec_ml_kem::parameters::c1_block_size(K)
+    && CIPHERTEXT_SIZE == hacspec_ml_kem::parameters::cpa_ciphertext_size(K)
+    && IMPLICIT_REJECTION_HASH_INPUT_SIZE
+        == hacspec_ml_kem::parameters::implicit_rejection_hash_input_size(K))
+        .to_prop()
+    & crate::polynomial::spec::is_bounded_polynomial_vector(4096, &private_key.private_key.ind_cpa_private_key.secret_as_ntt)
+    & crate::polynomial::spec::is_bounded_polynomial_matrix(3328, &private_key.public_key.ind_cpa_public_key.A)
+    & crate::polynomial::spec::is_bounded_polynomial_vector(4096, &private_key.public_key.ind_cpa_public_key.t_as_ntt)
+)]
 pub(crate) fn decapsulate<
     const K: usize,
     const SECRET_KEY_SIZE: usize,
@@ -433,7 +575,28 @@ pub(crate) fn decapsulate<
     >(private_key, &ciphertext.into())
 }
 
+/// Decapsulate with a serialized incremental key pair.
+///
+/// The key bytes are validated on decode: [`Error::InvalidInput`] is
+/// returned if any decoded coefficient is out of field range.
 #[inline(always)]
+#[hax_lib::requires(
+    hacspec_ml_kem::parameters::is_rank(K)
+    && PK2_LEN == hacspec_ml_kem::parameters::cpa_private_key_size(K)
+    && ETA1 == hacspec_ml_kem::parameters::eta1(K)
+    && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
+    && ETA2 == hacspec_ml_kem::parameters::eta2(K)
+    && ETA2_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta2_randomness_size(K)
+    && C1_SIZE == hacspec_ml_kem::parameters::c1_size(K)
+    && C2_SIZE == hacspec_ml_kem::parameters::c2_size(K)
+    && VECTOR_U_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_u_compression_factor(K)
+    && VECTOR_V_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_v_compression_factor(K)
+    && C1_BLOCK_SIZE == hacspec_ml_kem::parameters::c1_block_size(K)
+    && CIPHERTEXT_SIZE == hacspec_ml_kem::parameters::cpa_ciphertext_size(K)
+    && IMPLICIT_REJECTION_HASH_INPUT_SIZE
+        == hacspec_ml_kem::parameters::implicit_rejection_hash_input_size(K)
+    && key.len() >= 64 + PK2_LEN + K * 512 + 32 + K * K * 512
+)]
 pub(crate) fn decapsulate_incremental_key<
     const K: usize,
     const PK2_LEN: usize,
@@ -461,6 +624,7 @@ pub(crate) fn decapsulate_incremental_key<
 ) -> Result<MlKemSharedSecret, Error> {
     // Build an unpacked key pair from the input bytes.
     let key_pair: KeyPair<K, PK2_LEN, Vector> = KeyPair::from_bytes(key)?;
+    let key_pair = key_pair.into_unpacked();
 
     let mut ciphertext = [0u8; CIPHERTEXT_SIZE];
     ciphertext[..C1_SIZE].copy_from_slice(&ciphertext1.value);
@@ -485,10 +649,28 @@ pub(crate) fn decapsulate_incremental_key<
         IMPLICIT_REJECTION_HASH_INPUT_SIZE,
         Vector,
         Hasher,
-    >(&key_pair.into(), &ciphertext.into()))
+    >(&key_pair, &ciphertext.into()))
 }
 
 #[inline(always)]
+#[hax_lib::requires(
+    hacspec_ml_kem::parameters::is_rank(K)
+    && SECRET_KEY_SIZE == hacspec_ml_kem::parameters::cca_private_key_size(K)
+    && CPA_SECRET_KEY_SIZE == hacspec_ml_kem::parameters::cpa_private_key_size(K)
+    && PUBLIC_KEY_SIZE == hacspec_ml_kem::parameters::cpa_public_key_size(K)
+    && CIPHERTEXT_SIZE == hacspec_ml_kem::parameters::cpa_ciphertext_size(K)
+    && T_AS_NTT_ENCODED_SIZE == hacspec_ml_kem::parameters::t_as_ntt_encoded_size(K)
+    && C1_SIZE == hacspec_ml_kem::parameters::c1_size(K)
+    && C2_SIZE == hacspec_ml_kem::parameters::c2_size(K)
+    && VECTOR_U_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_u_compression_factor(K)
+    && VECTOR_V_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_v_compression_factor(K)
+    && C1_BLOCK_SIZE == hacspec_ml_kem::parameters::c1_block_size(K)
+    && ETA1 == hacspec_ml_kem::parameters::eta1(K)
+    && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
+    && ETA2 == hacspec_ml_kem::parameters::eta2(K)
+    && ETA2_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta2_randomness_size(K)
+    && IMPLICIT_REJECTION_HASH_INPUT_SIZE == hacspec_ml_kem::parameters::implicit_rejection_hash_input_size(K)
+)]
 pub(crate) fn decapsulate_compressed_key<
     const K: usize,
     const PK2_LEN: usize,

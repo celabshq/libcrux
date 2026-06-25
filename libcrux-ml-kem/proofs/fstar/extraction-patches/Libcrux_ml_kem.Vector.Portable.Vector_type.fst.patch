@@ -1,0 +1,34 @@
+diff --git a/libcrux-ml-kem/proofs/fstar/extraction/Libcrux_ml_kem.Vector.Portable.Vector_type.fst b/libcrux-ml-kem/proofs/fstar/extraction/Libcrux_ml_kem.Vector.Portable.Vector_type.fst
+index a9ba69da6..f49d9dec0 100644
+--- a/libcrux-ml-kem/proofs/fstar/extraction/Libcrux_ml_kem.Vector.Portable.Vector_type.fst
++++ b/libcrux-ml-kem/proofs/fstar/extraction/Libcrux_ml_kem.Vector.Portable.Vector_type.fst
+@@ -31,28 +31,7 @@ let zero (_: Prims.unit) =
+ let to_i16_array (x: t_PortableVector) = x.f_elements
+ 
+ let from_i16_array (array: t_Slice i16) =
+-  {
+-    f_elements
+-    =
+-    Core_models.Result.impl__unwrap #(t_Array i16 (mk_usize 16))
+-      #Core_models.Array.t_TryFromSliceError
+-      (Core_models.Convert.f_try_into #(t_Slice i16)
+-          #(t_Array i16 (mk_usize 16))
+-          #FStar.Tactics.Typeclasses.solve
+-          (array.[ {
+-                Core_models.Ops.Range.f_start = mk_usize 0;
+-                Core_models.Ops.Range.f_end = mk_usize 16
+-              }
+-              <:
+-              Core_models.Ops.Range.t_Range usize ]
+-            <:
+-            t_Slice i16)
+-        <:
+-        Core_models.Result.t_Result (t_Array i16 (mk_usize 16))
+-          Core_models.Array.t_TryFromSliceError)
+-  }
+-  <:
+-  t_PortableVector
++  { f_elements = array } <: t_PortableVector
+ 
+ let from_bytes (array: t_Slice u8) =
+   let elements:t_Array i16 (mk_usize 16) =

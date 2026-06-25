@@ -4,11 +4,11 @@
  * SPDX-License-Identifier: MIT or Apache-2.0
  *
  * This code was generated with the following revisions:
- * Charon: e656e17bff6ca5efac8ab6919b9b74cb9a8dd8ad
- * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
- * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
- * F*: unset
- * Libcrux: ae092f4921933e45dec31610a1465191171e5b3f
+ * Charon: 377317d6b25702c46ffff072fa00a3e32095e46f
+ * Eurydice: b227478b67c6a6e2ff611f978f10d6b7f26472ac
+ * Karamel: 4e64d915da3c172d1dfad805b8e1a46beff938bc
+ * F*: 89901492c020c74b82d811d27f3149c222d9b8b5
+ * Libcrux: a53e03cfd7b424560bdfefc9d483f87faacd3122
  */
 
 #ifndef libcrux_core_H
@@ -20,26 +20,7 @@
 extern "C" {
 #endif
 
-#define LIBCRUX_ML_KEM_CONSTANTS_SHARED_SECRET_SIZE ((size_t)32U)
-
-/**
-A monomorphic instance of Eurydice.arr
-with types uint8_t
-with const generics
-- $32size_t
-*/
-typedef struct Eurydice_arr_ec_s {
-  uint8_t data[32U];
-} Eurydice_arr_ec;
-
-#define LIBCRUX_ML_KEM_CONSTANTS_BITS_PER_COEFFICIENT ((size_t)12U)
-
-#define LIBCRUX_ML_KEM_CONSTANTS_COEFFICIENTS_IN_RING_ELEMENT ((size_t)256U)
-
-#define LIBCRUX_ML_KEM_CONSTANTS_BITS_PER_RING_ELEMENT \
-  (LIBCRUX_ML_KEM_CONSTANTS_COEFFICIENTS_IN_RING_ELEMENT * (size_t)12U)
-
-#define LIBCRUX_ML_KEM_CONSTANTS_H_DIGEST_SIZE ((size_t)32U)
+#include "libcrux_sha3_internal.h"
 
 /**
 A monomorphic instance of Eurydice.arr
@@ -47,9 +28,9 @@ with types uint8_t
 with const generics
 - $3168size_t
 */
-typedef struct Eurydice_arr_a8_s {
+typedef struct Eurydice_arr_17_s {
   uint8_t data[3168U];
-} Eurydice_arr_a8;
+} Eurydice_arr_17;
 
 /**
 A monomorphic instance of Eurydice.arr
@@ -57,24 +38,24 @@ with types uint8_t
 with const generics
 - $1568size_t
 */
-typedef struct Eurydice_arr_d1_s {
+typedef struct Eurydice_arr_00_s {
   uint8_t data[1568U];
-} Eurydice_arr_d1;
+} Eurydice_arr_00;
 
 typedef struct libcrux_ml_kem_mlkem1024_MlKem1024KeyPair_s {
-  Eurydice_arr_a8 sk;
-  Eurydice_arr_d1 pk;
+  Eurydice_arr_17 sk;
+  Eurydice_arr_00 pk;
 } libcrux_ml_kem_mlkem1024_MlKem1024KeyPair;
 
 /**
-A monomorphic instance of n-tuple
-with types libcrux_ml_kem_mlkem1024_MlKem1024Ciphertext, Eurydice_arr_ec
+A monomorphic instance of K.
+with types libcrux_ml_kem_mlkem1024_MlKem1024Ciphertext, Eurydice_arr_60
 
 */
-typedef struct tuple_25_s {
-  Eurydice_arr_d1 fst;
-  Eurydice_arr_ec snd;
-} tuple_25;
+typedef struct tuple_4d_s {
+  Eurydice_arr_00 fst;
+  Eurydice_arr_60 snd;
+} tuple_4d;
 
 /**
 A monomorphic instance of Eurydice.arr
@@ -82,9 +63,9 @@ with types uint8_t
 with const generics
 - $168size_t
 */
-typedef struct Eurydice_arr_c5_s {
+typedef struct Eurydice_arr_27_s {
   uint8_t data[168U];
-} Eurydice_arr_c5;
+} Eurydice_arr_27;
 
 /**
 A monomorphic instance of Eurydice.arr
@@ -92,9 +73,9 @@ with types uint8_t
 with const generics
 - $2400size_t
 */
-typedef struct Eurydice_arr_7d_s {
+typedef struct Eurydice_arr_ea_s {
   uint8_t data[2400U];
-} Eurydice_arr_7d;
+} Eurydice_arr_ea;
 
 /**
 A monomorphic instance of Eurydice.arr
@@ -102,13 +83,13 @@ with types uint8_t
 with const generics
 - $1184size_t
 */
-typedef struct Eurydice_arr_5f_s {
+typedef struct Eurydice_arr_74_s {
   uint8_t data[1184U];
-} Eurydice_arr_5f;
+} Eurydice_arr_74;
 
 typedef struct libcrux_ml_kem_mlkem768_MlKem768KeyPair_s {
-  Eurydice_arr_7d sk;
-  Eurydice_arr_5f pk;
+  Eurydice_arr_ea sk;
+  Eurydice_arr_74 pk;
 } libcrux_ml_kem_mlkem768_MlKem768KeyPair;
 
 /**
@@ -117,9 +98,9 @@ with types uint8_t
 with const generics
 - $24size_t
 */
-typedef struct Eurydice_arr_94_s {
+typedef struct Eurydice_arr_6d_s {
   uint8_t data[24U];
-} Eurydice_arr_94;
+} Eurydice_arr_6d;
 
 /**
 A monomorphic instance of Eurydice.arr
@@ -127,9 +108,9 @@ with types uint8_t
 with const generics
 - $64size_t
 */
-typedef struct Eurydice_arr_c7_s {
+typedef struct Eurydice_arr_060_s {
   uint8_t data[64U];
-} Eurydice_arr_c7;
+} Eurydice_arr_060;
 
 /**
 A monomorphic instance of Eurydice.arr
@@ -137,19 +118,19 @@ with types uint8_t
 with const generics
 - $1088size_t
 */
-typedef struct Eurydice_arr_2b_s {
+typedef struct Eurydice_arr_2c_s {
   uint8_t data[1088U];
-} Eurydice_arr_2b;
+} Eurydice_arr_2c;
 
 /**
-A monomorphic instance of n-tuple
-with types libcrux_ml_kem_mlkem768_MlKem768Ciphertext, Eurydice_arr_ec
+A monomorphic instance of K.
+with types libcrux_ml_kem_mlkem768_MlKem768Ciphertext, Eurydice_arr_60
 
 */
-typedef struct tuple_f4_s {
-  Eurydice_arr_2b fst;
-  Eurydice_arr_ec snd;
-} tuple_f4;
+typedef struct tuple_7f_s {
+  Eurydice_arr_2c fst;
+  Eurydice_arr_60 snd;
+} tuple_7f;
 
 /**
 A monomorphic instance of Eurydice.arr
@@ -157,9 +138,9 @@ with types uint8_t
 with const generics
 - $10size_t
 */
-typedef struct Eurydice_arr_6d_s {
+typedef struct Eurydice_arr_77_s {
   uint8_t data[10U];
-} Eurydice_arr_6d;
+} Eurydice_arr_77;
 
 /**
 A monomorphic instance of Eurydice.arr
@@ -167,9 +148,9 @@ with types uint8_t
 with const generics
 - $22size_t
 */
-typedef struct Eurydice_arr_80_s {
+typedef struct Eurydice_arr_f3_s {
   uint8_t data[22U];
-} Eurydice_arr_80;
+} Eurydice_arr_f3;
 
 /**
 A monomorphic instance of Eurydice.arr
@@ -177,9 +158,9 @@ with types uint8_t
 with const generics
 - $20size_t
 */
-typedef struct Eurydice_arr_fc_s {
+typedef struct Eurydice_arr_dc_s {
   uint8_t data[20U];
-} Eurydice_arr_fc;
+} Eurydice_arr_dc;
 
 /**
 A monomorphic instance of Eurydice.arr
@@ -187,9 +168,9 @@ with types int16_t
 with const generics
 - $16size_t
 */
-typedef struct Eurydice_arr_d6_s {
+typedef struct Eurydice_arr_e2_s {
   int16_t data[16U];
-} Eurydice_arr_d6;
+} Eurydice_arr_e2;
 
 /**
 A monomorphic instance of Eurydice.arr
@@ -197,29 +178,29 @@ with types uint8_t
 with const generics
 - $136size_t
 */
-typedef struct Eurydice_arr_ff_s {
+typedef struct Eurydice_arr_3d_s {
   uint8_t data[136U];
-} Eurydice_arr_ff;
+} Eurydice_arr_3d;
 
 /**
 A monomorphic instance of Eurydice.arr
-with types Eurydice_arr_ff
+with types Eurydice_arr_3d
 with const generics
 - $1size_t
 */
-typedef struct Eurydice_arr_0b_s {
-  Eurydice_arr_ff data[1U];
-} Eurydice_arr_0b;
+typedef struct Eurydice_arr_3e_s {
+  Eurydice_arr_3d data[1U];
+} Eurydice_arr_3e;
 
 /**
 A monomorphic instance of Eurydice.arr
-with types Eurydice_arr_c5
+with types Eurydice_arr_27
 with const generics
 - $1size_t
 */
-typedef struct Eurydice_arr_88_s {
-  Eurydice_arr_c5 data[1U];
-} Eurydice_arr_88;
+typedef struct Eurydice_arr_3a_s {
+  Eurydice_arr_27 data[1U];
+} Eurydice_arr_3a;
 
 /**
 A monomorphic instance of Eurydice.arr
@@ -227,9 +208,9 @@ with types uint8_t
 with const generics
 - $48size_t
 */
-typedef struct Eurydice_arr_65_s {
+typedef struct Eurydice_arr_5f_s {
   uint8_t data[48U];
-} Eurydice_arr_65;
+} Eurydice_arr_5f;
 
 /**
 A monomorphic instance of Eurydice.arr
@@ -237,9 +218,9 @@ with types uint8_t
 with const generics
 - $28size_t
 */
-typedef struct Eurydice_arr_a2_s {
+typedef struct Eurydice_arr_f1_s {
   uint8_t data[28U];
-} Eurydice_arr_a2;
+} Eurydice_arr_f1;
 
 /**
 A monomorphic instance of Eurydice.arr
@@ -247,9 +228,9 @@ with types uint64_t
 with const generics
 - $5size_t
 */
-typedef struct Eurydice_arr_84_s {
+typedef struct Eurydice_arr_a5_s {
   uint64_t data[5U];
-} Eurydice_arr_84;
+} Eurydice_arr_a5;
 
 /**
 A monomorphic instance of Eurydice.arr
@@ -257,9 +238,9 @@ with types Eurydice_borrow_slice_u8
 with const generics
 - $1size_t
 */
-typedef struct Eurydice_arr_dc_s {
+typedef struct Eurydice_arr_06_s {
   Eurydice_borrow_slice_u8 data[1U];
-} Eurydice_arr_dc;
+} Eurydice_arr_06;
 
 /**
 A monomorphic instance of Eurydice.arr
@@ -267,9 +248,9 @@ with types uint64_t
 with const generics
 - $25size_t
 */
-typedef struct Eurydice_arr_7c_s {
+typedef struct Eurydice_arr_26_s {
   uint64_t data[25U];
-} Eurydice_arr_7c;
+} Eurydice_arr_26;
 
 /**
 A monomorphic instance of Eurydice.arr
@@ -277,9 +258,9 @@ with types uint64_t
 with const generics
 - $24size_t
 */
-typedef struct Eurydice_arr_22_s {
+typedef struct Eurydice_arr_a7_s {
   uint64_t data[24U];
-} Eurydice_arr_22;
+} Eurydice_arr_a7;
 
 #if defined(__cplusplus)
 }

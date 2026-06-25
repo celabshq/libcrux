@@ -4,11 +4,11 @@
  * SPDX-License-Identifier: MIT or Apache-2.0
  *
  * This code was generated with the following revisions:
- * Charon: e656e17bff6ca5efac8ab6919b9b74cb9a8dd8ad
- * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
- * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
- * F*: unset
- * Libcrux: ae092f4921933e45dec31610a1465191171e5b3f
+ * Charon: 377317d6b25702c46ffff072fa00a3e32095e46f
+ * Eurydice: b227478b67c6a6e2ff611f978f10d6b7f26472ac
+ * Karamel: 4e64d915da3c172d1dfad805b8e1a46beff938bc
+ * F*: 89901492c020c74b82d811d27f3149c222d9b8b5
+ * Libcrux: a53e03cfd7b424560bdfefc9d483f87faacd3122
  */
 
 #ifndef internal_libcrux_mlkem768_portable_H
@@ -23,8 +23,9 @@ extern "C" {
 #include "../libcrux_mlkem768_portable.h"
 #include "internal/libcrux_mlkem_portable.h"
 #include "libcrux_core.h"
+#include "libcrux_sha3_internal.h"
 
-typedef libcrux_ml_kem_ind_cca_unpacked_MlKemPublicKeyUnpacked_51
+typedef libcrux_ml_kem_ind_cca_unpacked_MlKemPublicKeyUnpacked_a0
     libcrux_ml_kem_mlkem768_portable_unpacked_MlKem768PublicKeyUnpacked;
 
 /**
@@ -34,10 +35,10 @@ typedef libcrux_ml_kem_ind_cca_unpacked_MlKemPublicKeyUnpacked_51
  The input is a reference to an unpacked key pair of type
  [`MlKem768KeyPairUnpacked`] and an [`MlKem768Ciphertext`].
 */
-Eurydice_arr_ec libcrux_ml_kem_mlkem768_portable_unpacked_decapsulate(
+Eurydice_arr_60 libcrux_ml_kem_mlkem768_portable_unpacked_decapsulate(
     const libcrux_ml_kem_mlkem768_portable_unpacked_MlKem768KeyPairUnpacked
         *private_key,
-    const Eurydice_arr_2b *ciphertext);
+    const Eurydice_arr_2c *ciphertext);
 
 /**
  Encapsulate ML-KEM 768 (unpacked)
@@ -47,15 +48,15 @@ Eurydice_arr_ec libcrux_ml_kem_mlkem768_portable_unpacked_decapsulate(
  [`MlKem768PublicKeyUnpacked`], the SHA3-256 hash of this public key, and
  [`SHARED_SECRET_SIZE`] bytes of `randomness`.
 */
-tuple_f4 libcrux_ml_kem_mlkem768_portable_unpacked_encapsulate(
-    const libcrux_ml_kem_ind_cca_unpacked_MlKemPublicKeyUnpacked_51 *public_key,
-    Eurydice_arr_ec randomness);
+tuple_7f libcrux_ml_kem_mlkem768_portable_unpacked_encapsulate(
+    const libcrux_ml_kem_ind_cca_unpacked_MlKemPublicKeyUnpacked_a0 *public_key,
+    Eurydice_arr_60 randomness);
 
 /**
  Generate ML-KEM 768 Key Pair in "unpacked" form.
 */
 void libcrux_ml_kem_mlkem768_portable_unpacked_generate_key_pair_mut(
-    Eurydice_arr_c7 randomness,
+    Eurydice_arr_060 randomness,
     libcrux_ml_kem_mlkem768_portable_unpacked_MlKem768KeyPairUnpacked
         *key_pair);
 
@@ -64,7 +65,7 @@ void libcrux_ml_kem_mlkem768_portable_unpacked_generate_key_pair_mut(
 */
 libcrux_ml_kem_mlkem768_portable_unpacked_MlKem768KeyPairUnpacked
 libcrux_ml_kem_mlkem768_portable_unpacked_generate_key_pair(
-    Eurydice_arr_c7 randomness);
+    Eurydice_arr_060 randomness);
 
 /**
  Create a new, empty unpacked key.
@@ -75,21 +76,21 @@ libcrux_ml_kem_mlkem768_portable_unpacked_init_key_pair(void);
 /**
  Create a new, empty unpacked public key.
 */
-libcrux_ml_kem_ind_cca_unpacked_MlKemPublicKeyUnpacked_51
+libcrux_ml_kem_ind_cca_unpacked_MlKemPublicKeyUnpacked_a0
 libcrux_ml_kem_mlkem768_portable_unpacked_init_public_key(void);
 
 /**
  Get an unpacked key from a private key.
 */
 void libcrux_ml_kem_mlkem768_portable_unpacked_key_pair_from_private_mut(
-    const Eurydice_arr_7d *private_key,
+    const Eurydice_arr_ea *private_key,
     libcrux_ml_kem_mlkem768_portable_unpacked_MlKem768KeyPairUnpacked
         *key_pair);
 
 /**
  Get the serialized private key.
 */
-Eurydice_arr_7d
+Eurydice_arr_ea
 libcrux_ml_kem_mlkem768_portable_unpacked_key_pair_serialized_private_key(
     const libcrux_ml_kem_mlkem768_portable_unpacked_MlKem768KeyPairUnpacked
         *key_pair);
@@ -100,12 +101,12 @@ libcrux_ml_kem_mlkem768_portable_unpacked_key_pair_serialized_private_key(
 void libcrux_ml_kem_mlkem768_portable_unpacked_key_pair_serialized_private_key_mut(
     const libcrux_ml_kem_mlkem768_portable_unpacked_MlKem768KeyPairUnpacked
         *key_pair,
-    Eurydice_arr_7d *serialized);
+    Eurydice_arr_ea *serialized);
 
 /**
  Get the serialized public key.
 */
-Eurydice_arr_5f
+Eurydice_arr_74
 libcrux_ml_kem_mlkem768_portable_unpacked_key_pair_serialized_public_key(
     const libcrux_ml_kem_mlkem768_portable_unpacked_MlKem768KeyPairUnpacked
         *key_pair);
@@ -116,7 +117,7 @@ libcrux_ml_kem_mlkem768_portable_unpacked_key_pair_serialized_public_key(
 void libcrux_ml_kem_mlkem768_portable_unpacked_key_pair_serialized_public_key_mut(
     const libcrux_ml_kem_mlkem768_portable_unpacked_MlKem768KeyPairUnpacked
         *key_pair,
-    Eurydice_arr_5f *serialized);
+    Eurydice_arr_74 *serialized);
 
 /**
  Get the unpacked public key.
@@ -124,21 +125,21 @@ void libcrux_ml_kem_mlkem768_portable_unpacked_key_pair_serialized_public_key_mu
 void libcrux_ml_kem_mlkem768_portable_unpacked_public_key(
     const libcrux_ml_kem_mlkem768_portable_unpacked_MlKem768KeyPairUnpacked
         *key_pair,
-    libcrux_ml_kem_ind_cca_unpacked_MlKemPublicKeyUnpacked_51 *pk);
+    libcrux_ml_kem_ind_cca_unpacked_MlKemPublicKeyUnpacked_a0 *pk);
 
 /**
  Get the serialized public key.
 */
 void libcrux_ml_kem_mlkem768_portable_unpacked_serialized_public_key(
-    const libcrux_ml_kem_ind_cca_unpacked_MlKemPublicKeyUnpacked_51 *public_key,
-    Eurydice_arr_5f *serialized);
+    const libcrux_ml_kem_ind_cca_unpacked_MlKemPublicKeyUnpacked_a0 *public_key,
+    Eurydice_arr_74 *serialized);
 
 /**
  Get the unpacked public key.
 */
 void libcrux_ml_kem_mlkem768_portable_unpacked_unpacked_public_key(
-    const Eurydice_arr_5f *public_key,
-    libcrux_ml_kem_ind_cca_unpacked_MlKemPublicKeyUnpacked_51
+    const Eurydice_arr_74 *public_key,
+    libcrux_ml_kem_ind_cca_unpacked_MlKemPublicKeyUnpacked_a0
         *unpacked_public_key);
 
 #if defined(__cplusplus)

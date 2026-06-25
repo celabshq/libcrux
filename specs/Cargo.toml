@@ -1,5 +1,5 @@
 [workspace]
-members = ["hacspec-lib", "kyber", "sha3", "ml-dsa"]
+members = ["hacspec-lib", "kyber", "sha3", "ml-dsa", "ml-kem"]
 resolver = "2"
 
 [workspace.dependencies]

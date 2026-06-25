@@ -261,11 +261,13 @@ let pow2_more_values (x:nat) =
   assert_norm(pow2( 254 ) == 28948022309329048855892746252171976963317496166410141009864396001978282409984 );
   assert_norm(pow2( 255 ) == 57896044618658097711785492504343953926634992332820282019728792003956564819968 )
 
-let rec repeati #acc l f acc0 =
-    if l = 0 then acc0 else
-    f (l -! sz 1) (repeati #acc (l -! sz 1) acc0)
+let rec repeati #acc l f acc0 : Tot acc (decreases (v l)) =
+    if l = sz 0 then acc0 else
+    f (l -! sz 1) (repeati #acc (l -! sz 1) f acc0)
 
+#push-options "--fuel 1 --ifuel 1"
 let eq_repeati0 #a n f acc0 = ()
+#pop-options
 
 let unfold_repeati #a n f acc0 i = admit ()
 
@@ -308,7 +310,7 @@ let v_XOF v_LEN input = admit()
 
 let update_at_range_lemma #n
   (s: t_Slice 't)
-  (i: Core_models.Ops.Range.t_Range (int_t n) {v i.f_start >= 0 /\ v i.f_start <= Seq.length s /\ v i.f_end <= Seq.length s}) 
+  (i: Core_models.Ops.Range.t_Range (int_t n) {v i.f_start >= 0 /\ v i.f_start <= Seq.length s /\ v i.f_end <= Seq.length s})
   (x: t_Slice 't)
   = let s' = Rust_primitives.Hax.Monomorphized_update_at.update_at_range s i x in
     let len = v i.f_start in
@@ -316,6 +318,23 @@ let update_at_range_lemma #n
     with (assert ( Seq.index (Seq.slice s  0 len) i == Seq.index s  i 
                  /\ Seq.index (Seq.slice s' 0 len) i == Seq.index s' i ))  
 
+
+let fill_bytes_pre_true #v_Self #i0 self bytes = assume (i0.f_fill_bytes_pre self bytes)
+
+let fill_bytes_post_true #v_Self #i0 self bytes result =
+  assume (i0.f_fill_bytes_post self bytes result /\
+          Seq.length (snd result) == Seq.length bytes)
+
+let impl_i16__abs_value (x: i16) = assume (v (Core_models.Num.impl_i16__abs x) == Prims.abs (v x))
+
+let slice_to_array_id (array: t_Slice 'a) =
+  assume (Core_models.Result.impl__unwrap
+    #(t_Array 'a (mk_usize 16))
+    #Core_models.Array.t_TryFromSliceError
+    (Core_models.Convert.f_try_into #(t_Slice 'a)
+      #(t_Array 'a (mk_usize 16))
+      #FStar.Tactics.Typeclasses.solve
+      array) == array)
 
 /// Bounded integers
 

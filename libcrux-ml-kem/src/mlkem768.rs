@@ -274,35 +274,40 @@ macro_rules! instantiate {
                 }
 
                 /// Get the serialized public key.
-                #[hax_lib::requires(fstar!(r#"forall (i:nat). i < 3 ==>
-                    Libcrux_ml_kem.Polynomial.is_bounded_poly 3328 (Seq.index 
-                        ${public_key.ind_cpa_public_key.t_as_ntt} i)"#))]
+                #[hax_lib::requires(fstar!(r#"Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector
+                    (sz 3) (sz 3328) ${public_key.ind_cpa_public_key.t_as_ntt}"#))]
                 pub fn serialized_public_key(public_key: &MlKem768PublicKeyUnpacked, serialized : &mut MlKem768PublicKey) {
                     public_key.serialized_mut::<CPA_PKE_PUBLIC_KEY_SIZE>(serialized);
                 }
 
                 /// Get the serialized private key.
+                #[hax_lib::requires(fstar!(r#"Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector
+                    (sz 3) (sz 3328) ${key_pair.public_key.ind_cpa_public_key.t_as_ntt} /\
+                    Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector
+                    (sz 3) (sz 3328) ${key_pair.private_key.ind_cpa_private_key.secret_as_ntt}"#))]
                 pub fn key_pair_serialized_private_key(key_pair: &MlKem768KeyPairUnpacked) -> MlKem768PrivateKey {
                     key_pair.serialized_private_key::<CPA_PKE_SECRET_KEY_SIZE, SECRET_KEY_SIZE, CPA_PKE_PUBLIC_KEY_SIZE>()
                 }
 
                 /// Get the serialized private key.
+                #[hax_lib::requires(fstar!(r#"Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector
+                    (sz 3) (sz 3328) ${key_pair.public_key.ind_cpa_public_key.t_as_ntt} /\
+                    Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector
+                    (sz 3) (sz 3328) ${key_pair.private_key.ind_cpa_private_key.secret_as_ntt}"#))]
                 pub fn key_pair_serialized_private_key_mut(key_pair: &MlKem768KeyPairUnpacked, serialized: &mut MlKem768PrivateKey) {
                     key_pair.serialized_private_key_mut::<CPA_PKE_SECRET_KEY_SIZE, SECRET_KEY_SIZE, CPA_PKE_PUBLIC_KEY_SIZE>(serialized);
                 }
 
                 /// Get the serialized public key.
-                #[hax_lib::requires(fstar!(r#"(forall (i:nat). i < 3 ==>
-                        Libcrux_ml_kem.Polynomial.is_bounded_poly 3328 (Seq.index 
-                            ${key_pair.public_key.ind_cpa_public_key.t_as_ntt} i))"#))]
+                #[hax_lib::requires(fstar!(r#"Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector
+                    (sz 3) (sz 3328) ${key_pair.public_key.ind_cpa_public_key.t_as_ntt}"#))]
                 pub fn key_pair_serialized_public_key_mut(key_pair: &MlKem768KeyPairUnpacked, serialized: &mut MlKem768PublicKey) {
                     key_pair.serialized_public_key_mut::<CPA_PKE_PUBLIC_KEY_SIZE>(serialized);
                 }
 
                 /// Get the serialized public key.
-                #[hax_lib::requires(fstar!(r#"forall (i:nat). i < 3 ==>
-                    Libcrux_ml_kem.Polynomial.is_bounded_poly 3328 (Seq.index 
-                        ${key_pair.public_key.ind_cpa_public_key.t_as_ntt} i)"#))]
+                #[hax_lib::requires(fstar!(r#"Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector
+                    (sz 3) (sz 3328) ${key_pair.public_key.ind_cpa_public_key.t_as_ntt}"#))]
                 pub fn key_pair_serialized_public_key(key_pair: &MlKem768KeyPairUnpacked) ->MlKem768PublicKey {
                     key_pair.serialized_public_key::<CPA_PKE_PUBLIC_KEY_SIZE>()
                 }
@@ -371,6 +376,10 @@ macro_rules! instantiate {
                 ()"
                     )
                 )]
+                #[hax_lib::requires(fstar!(r#"Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_matrix
+                    (sz 3) (sz 3328) ${public_key.ind_cpa_public_key.A} /\
+                    Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector
+                    (sz 3) (sz 3328) ${public_key.ind_cpa_public_key.t_as_ntt}"#))]
                 pub fn encapsulate(
                     public_key: &MlKem768PublicKeyUnpacked,
                     randomness: [u8; SHARED_SECRET_SIZE],
@@ -397,6 +406,12 @@ macro_rules! instantiate {
                 /// Generates an [`MlKemSharedSecret`].
                 /// The input is a reference to an unpacked key pair of type [`MlKem768KeyPairUnpacked`]
                 /// and an [`MlKem768Ciphertext`].
+                #[hax_lib::requires(fstar!(r#"Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector (mk_usize 3) (mk_usize 3328)
+                    ${private_key}.f_private_key.f_ind_cpa_private_key.f_secret_as_ntt /\
+                    Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_matrix (mk_usize 3) (mk_usize 3328)
+                    ${private_key}.f_public_key.f_ind_cpa_public_key.f_A /\
+                    Libcrux_ml_kem.Polynomial.Spec.is_bounded_polynomial_vector (mk_usize 3) (mk_usize 3328)
+                    ${private_key}.f_public_key.f_ind_cpa_public_key.f_tt_as_ntt"#))]
                 pub fn decapsulate(
                     private_key: &MlKem768KeyPairUnpacked,
                     ciphertext: &MlKem768Ciphertext,
@@ -430,7 +445,7 @@ macro_rules! instantiate {
 instantiate! {portable, ind_cca::instantiations::portable, "Portable ML-KEM 768"}
 #[cfg(feature = "simd256")]
 instantiate! {avx2, ind_cca::instantiations::avx2, "AVX2 Optimised ML-KEM 768"}
-#[cfg(feature = "simd128")]
+#[cfg(all(feature = "simd128", not(hax)))]
 instantiate! {neon, ind_cca::instantiations::neon, "Neon Optimised ML-KEM 768"}
 
 /// Validate a public key.
@@ -462,6 +477,15 @@ pub fn validate_private_key(
 ///
 /// This function returns an [`MlKem768KeyPair`].
 #[cfg(not(eurydice))]
+#[hax_lib::ensures(|res|
+    match hacspec_ml_kem::generate_keypair::<RANK, CPA_PKE_PUBLIC_KEY_SIZE, SECRET_KEY_SIZE, CPA_PKE_SECRET_KEY_SIZE>(
+        &hacspec_ml_kem::parameters::rank_to_params(RANK),
+        &randomness,
+    ) {
+        Ok((ek, dk)) => res.sk.value == dk && res.pk.value == ek,
+        Err(_) => true,
+    }
+)]
 pub fn generate_key_pair(randomness: [u8; KEY_GENERATION_SEED_SIZE]) -> MlKem768KeyPair {
     multiplexing::generate_keypair::<
         RANK,
@@ -479,6 +503,16 @@ pub fn generate_key_pair(randomness: [u8; KEY_GENERATION_SEED_SIZE]) -> MlKem768
 /// The input is a reference to an [`MlKem768PublicKey`] and [`SHARED_SECRET_SIZE`]
 /// bytes of `randomness`.
 #[cfg(not(eurydice))]
+#[hax_lib::ensures(|res|
+    match hacspec_ml_kem::encapsulate::<RANK, CPA_PKE_PUBLIC_KEY_SIZE, C1_SIZE, C2_SIZE, CPA_PKE_CIPHERTEXT_SIZE>(
+        &hacspec_ml_kem::parameters::rank_to_params(RANK),
+        &public_key.value,
+        &randomness,
+    ) {
+        Ok((shared, ciphertext)) => res.0.value == ciphertext && res.1 == shared,
+        Err(_) => true,
+    }
+)]
 pub fn encapsulate(
     public_key: &MlKem768PublicKey,
     randomness: [u8; SHARED_SECRET_SIZE],
@@ -505,6 +539,16 @@ pub fn encapsulate(
 /// Generates an [`MlKemSharedSecret`].
 /// The input is a reference to an [`MlKem768PrivateKey`] and an [`MlKem768Ciphertext`].
 #[cfg(not(eurydice))]
+#[hax_lib::ensures(|res|
+    match hacspec_ml_kem::decapsulate::<RANK, CPA_PKE_PUBLIC_KEY_SIZE, SECRET_KEY_SIZE, CPA_PKE_SECRET_KEY_SIZE, C1_SIZE, C2_SIZE, CPA_PKE_CIPHERTEXT_SIZE, IMPLICIT_REJECTION_HASH_INPUT_SIZE>(
+        &hacspec_ml_kem::parameters::rank_to_params(RANK),
+        &private_key.value,
+        &ciphertext.value,
+    ) {
+        Ok(expected) => res == expected,
+        Err(_) => true,
+    }
+)]
 pub fn decapsulate(
     private_key: &MlKem768PrivateKey,
     ciphertext: &MlKem768Ciphertext,
@@ -538,12 +582,11 @@ pub fn decapsulate(
 /// Decapsulation is not provided in this module as it does not require randomness.
 #[cfg(all(not(eurydice), feature = "rand"))]
 pub mod rand {
-    use ::rand::CryptoRng;
-
     use super::{
         MlKem768Ciphertext, MlKem768KeyPair, MlKem768PublicKey, MlKemSharedSecret,
         KEY_GENERATION_SEED_SIZE, SHARED_SECRET_SIZE,
     };
+    use ::rand::CryptoRng;
 
     /// Generate ML-KEM 768 Key Pair
     ///
@@ -551,7 +594,8 @@ pub mod rand {
     /// to sample the required randomness internally.
     ///
     /// This function returns an [`MlKem768KeyPair`].
-    #[hax_lib::fstar::verification_status(lax)]
+    #[cfg_attr(hax, hax_lib::fstar::before("open Spec.Utils"))]
+    #[cfg_attr(hax, hax_lib::fstar::before(interface, "open Spec.Utils"))]
     pub fn generate_key_pair(rng: &mut impl CryptoRng) -> MlKem768KeyPair {
         let mut randomness = [0u8; KEY_GENERATION_SEED_SIZE];
         rng.fill_bytes(&mut randomness);
@@ -565,7 +609,6 @@ pub mod rand {
     /// The input is a reference to an [`MlKem768PublicKey`].
     /// The random number generator `rng` needs to implement `CryptoRng`
     /// to sample the required randomness internally.
-    #[hax_lib::fstar::verification_status(lax)]
     pub fn encapsulate(
         public_key: &MlKem768PublicKey,
         rng: &mut impl CryptoRng,
@@ -671,37 +714,37 @@ pub(crate) mod kyber {
 /// ```
 /// #[cfg(feature = "rand")]
 /// {
-///     use libcrux_ml_kem::mlkem768::incremental::*;
+/// use libcrux_ml_kem::mlkem768::incremental::*;
 ///
-///     // USE ONLY CRYPTOGRAPHICALLY SECURE RANDOMNESS OR `generate`
-///     let randomness = [0x13; 64];
-///     let key_pair = KeyPairBytes::from_seed(randomness);
+/// // USE ONLY CRYPTOGRAPHICALLY SECURE RANDOMNESS OR `generate`
+/// let randomness = [0x13; 64];
+/// let key_pair = KeyPairBytes::from_seed(randomness);
 ///
-///     // Get pk1 and pk2 to send to the other party.
-///     let pk1 = key_pair.pk1();
-///     let pk2 = key_pair.pk2();
+/// // Get pk1 and pk2 to send to the other party.
+/// let pk1 = key_pair.pk1();
+/// let pk2 = key_pair.pk2();
 ///
-///     // On the receiver, encapsulate to the public keys.
-///     // Check the public key for consistency.
-///     assert!(validate_pk_bytes(pk1, pk2).is_ok());
+/// // On the receiver, encapsulate to the public keys.
+/// // Check the public key for consistency.
+/// assert!(validate_pk_bytes(pk1, pk2).is_ok());
 ///
-///     let mut encaps_state = [0u8; encaps_state_len()];
-///     let mut encaps_shared_secret = [0u8; shared_secret_size()];
-///     let randomness = [0xAF; 32];
-///     let ct1 = encapsulate1(
-///         pk1,
-///         randomness,
-///         &mut encaps_state,
-///         &mut encaps_shared_secret,
-///     )
-///     .unwrap();
+/// let mut encaps_state = [0u8; encaps_state_len()];
+/// let mut encaps_shared_secret = [0u8; shared_secret_size()];
+/// let randomness = [0xAF; 32];
+/// let ct1 = encapsulate1(
+///     pk1,
+///     randomness,
+///     &mut encaps_state,
+///     &mut encaps_shared_secret,
+/// )
+/// .unwrap();
 ///
-///     let ct2 = encapsulate2(&encaps_state, &pk2);
+/// let ct2 = encapsulate2(&encaps_state, &pk2);
 ///
-///     // Decapsulate the shared secret after receiving ct1 and ct2.
-///     let shared_secret = decapsulate_incremental_key(key_pair.as_ref(), &ct1, &ct2).unwrap();
+/// // Decapsulate the shared secret after receiving ct1 and ct2.
+/// let shared_secret = decapsulate_incremental_key(key_pair.as_ref(), &ct1, &ct2).unwrap();
 ///
-///     assert_eq!(shared_secret, encaps_shared_secret);
+/// assert_eq!(shared_secret, encaps_shared_secret);
 /// }
 /// ```
 ///
@@ -709,33 +752,38 @@ pub(crate) mod kyber {
 /// ```
 /// #[cfg(feature = "rand")]
 /// {
-///     use libcrux_ml_kem::mlkem768::incremental::*;
+/// use libcrux_ml_kem::mlkem768::incremental::*;
 ///
-///     // Use a n RNG that is safe to use for cryptography.
-///     // THIS ONE IS NOT!
-///     let mut rng = ::rand::rng();
+/// // Use a n RNG that is safe to use for cryptography.
+/// // THIS ONE IS NOT!
+/// let mut rng = ::rand::rng();
 ///
-///     let key_pair = KeyPairCompressedBytes::generate(&mut rng);
+/// let key_pair = KeyPairCompressedBytes::generate(&mut rng);
 ///
-///     // Get pk1 and pk2 to send to the other party.
-///     let pk1 = key_pair.pk1();
-///     let pk2 = key_pair.pk2();
+/// // Get pk1 and pk2 to send to the other party.
+/// let pk1 = key_pair.pk1();
+/// let pk2 = key_pair.pk2();
 ///
-///     // On the receiver, encapsulate to the public keys.
-///     // Check the public key for consistency.
-///     assert!(validate_pk_bytes(pk1, pk2).is_ok());
+/// // On the receiver, encapsulate to the public keys.
+/// // Check the public key for consistency.
+/// assert!(validate_pk_bytes(pk1, pk2).is_ok());
 ///
-///     let mut encaps_state = [0u8; encaps_state_len()];
-///     let mut encaps_shared_secret = [0u8; shared_secret_size()];
-///     let ct1 = rand::encapsulate1(pk1, &mut rng, &mut encaps_state, &mut encaps_shared_secret)
-///         .unwrap();
+/// let mut encaps_state = [0u8; encaps_state_len()];
+/// let mut encaps_shared_secret = [0u8; shared_secret_size()];
+/// let ct1 = rand::encapsulate1(
+///     pk1,
+///     &mut rng,
+///     &mut encaps_state,
+///     &mut encaps_shared_secret,
+/// )
+/// .unwrap();
 ///
-///     let ct2 = encapsulate2(&encaps_state, pk2);
+/// let ct2 = encapsulate2(&encaps_state, pk2);
 ///
-///     // Decapsulate the shared secret after receiving ct1 and ct2.
-///     let shared_secret = decapsulate_compressed_key(key_pair.sk(), &ct1, &ct2);
+/// // Decapsulate the shared secret after receiving ct1 and ct2.
+/// let shared_secret = decapsulate_compressed_key(key_pair.sk(), &ct1, &ct2);
 ///
-///     assert_eq!(shared_secret, encaps_shared_secret);
+/// assert_eq!(shared_secret, encaps_shared_secret);
 /// }
 /// ```
 #[cfg(all(not(eurydice), feature = "incremental"))]
@@ -747,7 +795,7 @@ pub mod incremental {
 
 #[cfg(test)]
 mod tests {
-    use rand::{rngs::SysRng, TryRng};
+    use rand::{rngs::OsRng, TryRngCore};
 
     use super::{
         mlkem768::{generate_key_pair, validate_public_key},
@@ -757,7 +805,7 @@ mod tests {
     #[test]
     fn pk_validation() {
         let mut randomness = [0u8; KEY_GENERATION_SEED_SIZE];
-        SysRng.try_fill_bytes(&mut randomness).unwrap();
+        OsRng.try_fill_bytes(&mut randomness).unwrap();
 
         let key_pair = generate_key_pair(randomness);
         assert!(validate_public_key(&key_pair.pk));

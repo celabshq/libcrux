@@ -4,11 +4,11 @@
  * SPDX-License-Identifier: MIT or Apache-2.0
  *
  * This code was generated with the following revisions:
- * Charon: e656e17bff6ca5efac8ab6919b9b74cb9a8dd8ad
- * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
- * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
- * F*: unset
- * Libcrux: ae092f4921933e45dec31610a1465191171e5b3f
+ * Charon: 377317d6b25702c46ffff072fa00a3e32095e46f
+ * Eurydice: b227478b67c6a6e2ff611f978f10d6b7f26472ac
+ * Karamel: 4e64d915da3c172d1dfad805b8e1a46beff938bc
+ * F*: 89901492c020c74b82d811d27f3149c222d9b8b5
+ * Libcrux: a53e03cfd7b424560bdfefc9d483f87faacd3122
  */
 
 #ifndef libcrux_mlkem768_portable_H
@@ -21,6 +21,7 @@ extern "C" {
 #endif
 
 #include "libcrux_core.h"
+#include "libcrux_sha3_internal.h"
 
 /**
  Decapsulate ML-KEM 768
@@ -29,8 +30,8 @@ extern "C" {
  The input is a reference to an [`MlKem768PrivateKey`] and an
  [`MlKem768Ciphertext`].
 */
-Eurydice_arr_ec libcrux_ml_kem_mlkem768_portable_decapsulate(
-    const Eurydice_arr_7d *private_key, const Eurydice_arr_2b *ciphertext);
+Eurydice_arr_60 libcrux_ml_kem_mlkem768_portable_decapsulate(
+    const Eurydice_arr_ea *private_key, const Eurydice_arr_2c *ciphertext);
 
 /**
  Encapsulate ML-KEM 768
@@ -39,14 +40,14 @@ Eurydice_arr_ec libcrux_ml_kem_mlkem768_portable_decapsulate(
  The input is a reference to an [`MlKem768PublicKey`] and [`SHARED_SECRET_SIZE`]
  bytes of `randomness`.
 */
-tuple_f4 libcrux_ml_kem_mlkem768_portable_encapsulate(
-    const Eurydice_arr_5f *public_key, Eurydice_arr_ec randomness);
+tuple_7f libcrux_ml_kem_mlkem768_portable_encapsulate(
+    const Eurydice_arr_74 *public_key, Eurydice_arr_60 randomness);
 
 /**
  Generate ML-KEM 768 Key Pair
 */
 libcrux_ml_kem_mlkem768_MlKem768KeyPair
-libcrux_ml_kem_mlkem768_portable_generate_key_pair(Eurydice_arr_c7 randomness);
+libcrux_ml_kem_mlkem768_portable_generate_key_pair(Eurydice_arr_060 randomness);
 
 /**
  Validate a private key.
@@ -54,7 +55,7 @@ libcrux_ml_kem_mlkem768_portable_generate_key_pair(Eurydice_arr_c7 randomness);
  Returns `true` if valid, and `false` otherwise.
 */
 bool libcrux_ml_kem_mlkem768_portable_validate_private_key(
-    const Eurydice_arr_7d *private_key, const Eurydice_arr_2b *ciphertext);
+    const Eurydice_arr_ea *private_key, const Eurydice_arr_2c *ciphertext);
 
 /**
  Validate the private key only.
@@ -62,7 +63,7 @@ bool libcrux_ml_kem_mlkem768_portable_validate_private_key(
  Returns `true` if valid, and `false` otherwise.
 */
 bool libcrux_ml_kem_mlkem768_portable_validate_private_key_only(
-    const Eurydice_arr_7d *private_key);
+    const Eurydice_arr_ea *private_key);
 
 /**
  Validate a public key.
@@ -70,7 +71,7 @@ bool libcrux_ml_kem_mlkem768_portable_validate_private_key_only(
  Returns `true` if valid, and `false` otherwise.
 */
 bool libcrux_ml_kem_mlkem768_portable_validate_public_key(
-    const Eurydice_arr_5f *public_key);
+    const Eurydice_arr_74 *public_key);
 
 #if defined(__cplusplus)
 }

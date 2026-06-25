@@ -52,6 +52,11 @@ let serialize_1_bit_vec_lemma (v: t_Array i16 (sz 16))
 "
     )
 )]
+#[cfg_attr(hax, hax_lib::fstar::after(interface, "
+val serialize_1_lemma (inputs: Libcrux_ml_kem.Vector.Portable.Vector_type.t_PortableVector) : Lemma
+  (requires (forall i. Rust_primitives.bounded (Seq.index inputs.f_elements i) 1))
+  (ensures bit_vec_of_int_t_array (${serialize_1} inputs) 8 == bit_vec_of_int_t_array inputs.f_elements 1)
+"))]
 #[cfg_attr(
     hax,
     hax_lib::fstar::after(
@@ -60,18 +65,13 @@ let serialize_1_bit_vec_lemma (v: t_Array i16 (sz 16))
 
 let serialize_1_lemma inputs =
   serialize_1_bit_vec_lemma inputs.f_elements ();
-  BitVecEq.bit_vec_equal_intro (bit_vec_of_int_t_array (${serialize_1} inputs) 8) 
+  BitVecEq.bit_vec_equal_intro (bit_vec_of_int_t_array (${serialize_1} inputs) 8)
     (BitVecEq.retype (bit_vec_of_int_t_array inputs.f_elements 1))
 
 #pop-options
 "
     )
 )]
-#[cfg_attr(hax, hax_lib::fstar::after(interface, "
-val serialize_1_lemma (inputs: Libcrux_ml_kem.Vector.Portable.Vector_type.t_PortableVector) : Lemma
-  (requires (forall i. Rust_primitives.bounded (Seq.index inputs.f_elements i) 1)) 
-  (ensures bit_vec_of_int_t_array (${serialize_1} inputs) 8 == bit_vec_of_int_t_array inputs.f_elements 1)
-"))]
 #[inline(always)]
 pub(crate) fn serialize_1(v: PortableVector) -> [U8; 2] {
     let result0 = (v.elements[0].as_u8())
@@ -201,6 +201,11 @@ let serialize_4_bit_vec_lemma (v: t_Array i16 (sz 16))
 "
     )
 )]
+#[cfg_attr(hax, hax_lib::fstar::after(interface, "
+val serialize_4_lemma (inputs: Libcrux_ml_kem.Vector.Portable.Vector_type.t_PortableVector) : Lemma
+  (requires (forall i. Rust_primitives.bounded (Seq.index inputs.f_elements i) 4))
+  (ensures bit_vec_of_int_t_array (${serialize_4} inputs) 8 == bit_vec_of_int_t_array inputs.f_elements 4)
+"))]
 #[cfg_attr(
     hax,
     hax_lib::fstar::after(
@@ -209,18 +214,13 @@ let serialize_4_bit_vec_lemma (v: t_Array i16 (sz 16))
 
 let serialize_4_lemma inputs =
   serialize_4_bit_vec_lemma inputs.f_elements ();
-  BitVecEq.bit_vec_equal_intro (bit_vec_of_int_t_array (${serialize_4} inputs) 8) 
+  BitVecEq.bit_vec_equal_intro (bit_vec_of_int_t_array (${serialize_4} inputs) 8)
     (BitVecEq.retype (bit_vec_of_int_t_array inputs.f_elements 4))
 
 #pop-options
 "
     )
 )]
-#[cfg_attr(hax, hax_lib::fstar::after(interface, "
-val serialize_4_lemma (inputs: Libcrux_ml_kem.Vector.Portable.Vector_type.t_PortableVector) : Lemma
-  (requires (forall i. Rust_primitives.bounded (Seq.index inputs.f_elements i) 4)) 
-  (ensures bit_vec_of_int_t_array (${serialize_4} inputs) 8 == bit_vec_of_int_t_array inputs.f_elements 4)
-"))]
 #[inline(always)]
 pub(crate) fn serialize_4(v: PortableVector) -> [U8; 8] {
     let result0_3 = serialize_4_int(&v.elements[0..8]);
@@ -336,6 +336,45 @@ pub(crate) fn serialize_5_int(v: &[I16]) -> (U8, U8, U8, U8, U8) {
     (r0, r1, r2, r3, r4)
 }
 
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::after(
+        "
+#push-options \"--compat_pre_core 2 --z3rlimit 300 --z3refresh\"
+
+let serialize_5_bit_vec_lemma (v: t_Array i16 (sz 16))
+  (_: squash (forall i. Rust_primitives.bounded (Seq.index v i) 5))
+   : squash (
+     let inputs = bit_vec_of_int_t_array v 5 in
+     let outputs = bit_vec_of_int_t_array (${serialize_5} ({ f_elements = v })) 8 in
+     (forall (i: nat {i < 80}). inputs i == outputs i)
+   ) =
+  _ by (Tactics.GetBit.prove_bit_vector_equality' ())
+
+#pop-options
+"
+    )
+)]
+#[cfg_attr(hax, hax_lib::fstar::after(interface, "
+val serialize_5_lemma (inputs: Libcrux_ml_kem.Vector.Portable.Vector_type.t_PortableVector) : Lemma
+  (requires (forall i. Rust_primitives.bounded (Seq.index inputs.f_elements i) 5))
+  (ensures bit_vec_of_int_t_array (${serialize_5} inputs) 8 == bit_vec_of_int_t_array inputs.f_elements 5)
+"))]
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::after(
+        r#"
+#push-options "--z3rlimit 300"
+
+let serialize_5_lemma inputs =
+  serialize_5_bit_vec_lemma inputs.f_elements ();
+  BitVecEq.bit_vec_equal_intro (bit_vec_of_int_t_array (${serialize_5} inputs) 8)
+    (BitVecEq.retype (bit_vec_of_int_t_array inputs.f_elements 5))
+
+#pop-options
+"#
+    )
+)]
 #[inline(always)]
 pub(crate) fn serialize_5(v: PortableVector) -> [U8; 10] {
     let r0_4 = serialize_5_int(&v.elements[0..8]);
@@ -361,6 +400,60 @@ pub(crate) fn deserialize_5_int(bytes: &[U8]) -> (I16, I16, I16, I16, I16, I16, 
     (v0, v1, v2, v3, v4, v5, v6, v7)
 }
 
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::after(
+        r#"
+#push-options "--compat_pre_core 2 --z3rlimit 300 --z3refresh"
+
+let deserialize_5_bit_vec_lemma (v: t_Array u8 (sz 10))
+   : squash (
+     let inputs = bit_vec_of_int_t_array v 8 in
+     let outputs = bit_vec_of_int_t_array (${deserialize_5} v).f_elements 5 in
+     (forall (i: nat {i < 80}). inputs i == outputs i)
+   ) =
+  _ by (Tactics.GetBit.prove_bit_vector_equality' ())
+
+
+let deserialize_5_bit_vec_lemma_bounded (v: t_Array u8 (sz 10))
+  : squash (
+    let result = ${deserialize_5} v in
+    (forall (i: nat {i < 16}). Rust_primitives.bounded (Seq.index result.f_elements i) 5)
+  ) =
+ _ by (Tactics.GetBit.prove_bit_vector_equality' ())
+
+#pop-options
+"#
+    )
+)]
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::after(
+        interface,
+        r#"
+val deserialize_5_lemma (inputs: t_Array u8 (sz 10)) : Lemma
+  (ensures (let result = ${deserialize_5} inputs in
+            bit_vec_of_int_t_array result.f_elements 5 == bit_vec_of_int_t_array inputs 8 /\
+            (forall i. Rust_primitives.bounded (Seq.index result.f_elements i) 5)))
+"#
+    )
+)]
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::after(
+        r#"
+#push-options "--z3rlimit 300"
+
+let deserialize_5_lemma inputs =
+  deserialize_5_bit_vec_lemma inputs;
+  deserialize_5_bit_vec_lemma_bounded inputs;
+  BitVecEq.bit_vec_equal_intro (bit_vec_of_int_t_array (${deserialize_5} inputs).f_elements 5)
+    (BitVecEq.retype (bit_vec_of_int_t_array inputs 8))
+
+#pop-options
+"#
+    )
+)]
 #[hax_lib::requires(fstar!(r#"
      ${bytes.len() == 10}
 "#))]
@@ -546,6 +639,45 @@ pub(crate) fn serialize_11_int(v: &[I16]) -> (U8, U8, U8, U8, U8, U8, U8, U8, U8
     (r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10)
 }
 
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::after(
+        "
+#push-options \"--compat_pre_core 2 --z3rlimit 300 --z3refresh\"
+
+let serialize_11_bit_vec_lemma (v: t_Array i16 (sz 16))
+  (_: squash (forall i. Rust_primitives.bounded (Seq.index v i) 11))
+   : squash (
+     let inputs = bit_vec_of_int_t_array v 11 in
+     let outputs = bit_vec_of_int_t_array (${serialize_11} ({ f_elements = v })) 8 in
+     (forall (i: nat {i < 176}). inputs i == outputs i)
+   ) =
+  _ by (Tactics.GetBit.prove_bit_vector_equality' ())
+
+#pop-options
+"
+    )
+)]
+#[cfg_attr(hax, hax_lib::fstar::after(interface, "
+val serialize_11_lemma (inputs: Libcrux_ml_kem.Vector.Portable.Vector_type.t_PortableVector) : Lemma
+  (requires (forall i. Rust_primitives.bounded (Seq.index inputs.f_elements i) 11))
+  (ensures bit_vec_of_int_t_array (${serialize_11} inputs) 8 == bit_vec_of_int_t_array inputs.f_elements 11)
+"))]
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::after(
+        r#"
+#push-options "--z3rlimit 300"
+
+let serialize_11_lemma inputs =
+  serialize_11_bit_vec_lemma inputs.f_elements ();
+  BitVecEq.bit_vec_equal_intro (bit_vec_of_int_t_array (${serialize_11} inputs) 8)
+    (BitVecEq.retype (bit_vec_of_int_t_array inputs.f_elements 11))
+
+#pop-options
+"#
+    )
+)]
 #[inline(always)]
 pub(crate) fn serialize_11(v: PortableVector) -> [U8; 22] {
     let r0_10 = serialize_11_int(&v.elements[0..8]);
@@ -575,6 +707,60 @@ pub(crate) fn deserialize_11_int(bytes: &[U8]) -> (I16, I16, I16, I16, I16, I16,
     (r0, r1, r2, r3, r4, r5, r6, r7)
 }
 
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::after(
+        r#"
+#push-options "--compat_pre_core 2 --z3rlimit 300 --z3refresh"
+
+let deserialize_11_bit_vec_lemma (v: t_Array u8 (sz 22))
+   : squash (
+     let inputs = bit_vec_of_int_t_array v 8 in
+     let outputs = bit_vec_of_int_t_array (${deserialize_11} v).f_elements 11 in
+     (forall (i: nat {i < 176}). inputs i == outputs i)
+   ) =
+  _ by (Tactics.GetBit.prove_bit_vector_equality' ())
+
+
+let deserialize_11_bit_vec_lemma_bounded (v: t_Array u8 (sz 22))
+  : squash (
+    let result = ${deserialize_11} v in
+    (forall (i: nat {i < 16}). Rust_primitives.bounded (Seq.index result.f_elements i) 11)
+  ) =
+ _ by (Tactics.GetBit.prove_bit_vector_equality' ())
+
+#pop-options
+"#
+    )
+)]
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::after(
+        interface,
+        r#"
+val deserialize_11_lemma (inputs: t_Array u8 (sz 22)) : Lemma
+  (ensures (let result = ${deserialize_11} inputs in
+            bit_vec_of_int_t_array result.f_elements 11 == bit_vec_of_int_t_array inputs 8 /\
+            (forall i. Rust_primitives.bounded (Seq.index result.f_elements i) 11)))
+"#
+    )
+)]
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::after(
+        r#"
+#push-options "--z3rlimit 300"
+
+let deserialize_11_lemma inputs =
+  deserialize_11_bit_vec_lemma inputs;
+  deserialize_11_bit_vec_lemma_bounded inputs;
+  BitVecEq.bit_vec_equal_intro (bit_vec_of_int_t_array (${deserialize_11} inputs).f_elements 11)
+    (BitVecEq.retype (bit_vec_of_int_t_array inputs 8))
+
+#pop-options
+"#
+    )
+)]
 #[hax_lib::requires(fstar!(r#"
      ${bytes.len() == 22}
 "#))]

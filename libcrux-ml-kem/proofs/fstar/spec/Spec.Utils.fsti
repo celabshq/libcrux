@@ -377,7 +377,7 @@ val v_XOF (v_LEN: usize{v v_LEN < pow2 32}) (input: t_Slice u8) : t_Array u8 v_L
 
 val update_at_range_lemma #n
   (s: t_Slice 't)
-  (i: Core_models.Ops.Range.t_Range (int_t n) {v i.f_start >= 0 /\ v i.f_start <= Seq.length s /\ v i.f_end <= Seq.length s}) 
+  (i: Core_models.Ops.Range.t_Range (int_t n) {v i.f_start >= 0 /\ v i.f_start <= Seq.length s /\ v i.f_end <= Seq.length s})
   (x: t_Slice 't)
   : Lemma
     (requires (Seq.length x == v i.f_end - v i.f_start))
@@ -388,24 +388,51 @@ val update_at_range_lemma #n
     ))
     [SMTPat (Rust_primitives.Hax.Monomorphized_update_at.update_at_range s i x)]
 
+/// TODO: This assumption should be moved to Rand_core.fsti in hax-lib,
+/// where f_fill_bytes_pre should be defined as True.
+val fill_bytes_pre_true
+      (#v_Self: Type0)
+      (#i0: Rand_core.t_RngCore v_Self)
+      (self: v_Self)
+      (bytes: t_Slice u8)
+    : Lemma (i0.f_fill_bytes_pre self bytes)
+      [SMTPat (i0.f_fill_bytes_pre self bytes)]
+
+/// TODO: This assumption should be moved to Rand_core.fsti in hax-lib,
+/// where f_fill_bytes_post should guarantee the output has the same length.
+val fill_bytes_post_true
+      (#v_Self: Type0)
+      (#i0: Rand_core.t_RngCore v_Self)
+      (self: v_Self)
+      (bytes: t_Slice u8)
+      (result: v_Self & t_Slice u8)
+    : Lemma (i0.f_fill_bytes_post self bytes result /\
+             Seq.length (snd result) == Seq.length bytes)
+      [SMTPat (i0.f_fill_bytes_post self bytes result)]
+
+/// TODO: This assumption should be moved to Core_models.Num in hax-lib.
+val impl_i16__abs_value (x: i16)
+    : Lemma (requires v x > -32768)
+            (ensures v (Core_models.Num.impl_i16__abs x) == Prims.abs (v x))
+      [SMTPat (Core_models.Num.impl_i16__abs x)]
+
+/// TODO: This assumption should be moved to Core_models proof-libs.
+/// The extracted `unwrap(try_into(array.[0..16]))` should reduce to `array`
+/// when `len array == 16`.
+val slice_to_array_id (array: t_Slice 'a)
+    : Lemma (requires Seq.length array == 16)
+            (ensures Core_models.Result.impl__unwrap
+              #(t_Array 'a (mk_usize 16))
+              #Core_models.Array.t_TryFromSliceError
+              (Core_models.Convert.f_try_into #(t_Slice 'a)
+                #(t_Array 'a (mk_usize 16))
+                #FStar.Tactics.Typeclasses.solve
+                array) == array)
+
 /// Bounded integers
 
 let is_intb (l:nat) (x:int) = (x <= l) && (x >= -l)
 let is_i16b (l:nat) (x:i16) = is_intb l (v x)
-
-(* hax-lib 0.3.7 source-compat shim.
-   0.3.6's Core_models.Ops.Arith provided a generic `let f_neg #t x = zero -! x`,
-   so negating any machine int (incl. i16) just worked. 0.3.7 turned `f_neg` into a
-   `t_Neg` typeclass method and ships no machine-int instance, so the extracted ml-kem
-   code (Vector.Portable.Ntt negates i16 zetas via Core_models.Ops.Arith.f_neg) no
-   longer resolves. Re-provide the i16 instance, mirroring the 0.3.6 semantics. *)
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-let impl_Neg_i16: Core_models.Ops.Arith.t_Neg i16 = {
-  f_Output = i16;
-  f_neg_pre = (fun (x: i16) -> range (- v x) i16_inttype);
-  f_neg_post = (fun (_: i16) (_: i16) -> True);
-  f_neg = (fun (x: i16) -> mk_int #i16_inttype 0 -! x)
-}
 let is_i16b_array (l:nat) (x:t_Slice i16) = forall i. i < Seq.length x ==> is_i16b l (Seq.index x i)
 let is_i16b_vector (l:nat) (r:usize) (x:t_Array (t_Array i16 (sz 256)) r) = forall i. i < v r ==> is_i16b_array l (Seq.index x i)
 let is_i16b_matrix (l:nat) (r:usize) (x:t_Array (t_Array (t_Array i16 (sz 256)) r) r) = forall i. i < v r ==> is_i16b_vector l r (Seq.index x i)
@@ -574,12 +601,117 @@ let ntt_spec #len (vec_in: t_Array i16 len) (zeta: int) (i: nat{i < v len}) (j: 
   ((v (Seq.index vec_out j) % 3329) ==
    ((v (Seq.index vec_in i) - (v (Seq.index vec_in j) * zeta * 169)) % 3329))
 
-let inv_ntt_spec #len (vec_in: t_Array i16 len) (zeta: int) (i: nat{i < v len}) (j: nat{j < v len}) 
+let inv_ntt_spec #len (vec_in: t_Array i16 len) (zeta: int) (i: nat{i < v len}) (j: nat{j < v len})
                  (vec_out: t_Array i16 len) : Type0 =
   ((v (Seq.index vec_out i) % 3329) ==
    ((v (Seq.index vec_in j) + v (Seq.index vec_in i)) % 3329)) /\
   ((v (Seq.index vec_out j) % 3329) ==
    (((v (Seq.index vec_in j) - v (Seq.index vec_in i)) * zeta * 169) % 3329))
+
+(* Opaque wrappers that bundle the 8 butterfly ntt_specs / inv_ntt_specs
+   for within-chunk layers so callers don't pay the cost of an 8-conjunct
+   post in their SMT context unless they reveal it.  The within-chunk
+   pattern at N = 16 uses len ∈ {2, 4, 8}; zetas are 4 / 2 / 1 per layer.
+   Layer-1 commute proofs reveal these in a small local scope. *)
+[@@ "opaque_to_smt"]
+let ntt_layer_1_butterfly_post
+      (vec_in vec_out: t_Array i16 (mk_usize 16))
+      (z0 z1 z2 z3: i16) : Type0 =
+  ntt_spec vec_in (v z0) 0 2 vec_out /\ ntt_spec vec_in (v z0) 1 3 vec_out /\
+  ntt_spec vec_in (v z1) 4 6 vec_out /\ ntt_spec vec_in (v z1) 5 7 vec_out /\
+  ntt_spec vec_in (v z2) 8 10 vec_out /\ ntt_spec vec_in (v z2) 9 11 vec_out /\
+  ntt_spec vec_in (v z3) 12 14 vec_out /\ ntt_spec vec_in (v z3) 13 15 vec_out
+
+[@@ "opaque_to_smt"]
+let ntt_layer_2_butterfly_post
+      (vec_in vec_out: t_Array i16 (mk_usize 16))
+      (z0 z1: i16) : Type0 =
+  ntt_spec vec_in (v z0) 0 4 vec_out /\ ntt_spec vec_in (v z0) 1 5 vec_out /\
+  ntt_spec vec_in (v z0) 2 6 vec_out /\ ntt_spec vec_in (v z0) 3 7 vec_out /\
+  ntt_spec vec_in (v z1) 8 12 vec_out /\ ntt_spec vec_in (v z1) 9 13 vec_out /\
+  ntt_spec vec_in (v z1) 10 14 vec_out /\ ntt_spec vec_in (v z1) 11 15 vec_out
+
+[@@ "opaque_to_smt"]
+let ntt_layer_3_butterfly_post
+      (vec_in vec_out: t_Array i16 (mk_usize 16))
+      (z0: i16) : Type0 =
+  ntt_spec vec_in (v z0) 0 8 vec_out /\ ntt_spec vec_in (v z0) 1 9 vec_out /\
+  ntt_spec vec_in (v z0) 2 10 vec_out /\ ntt_spec vec_in (v z0) 3 11 vec_out /\
+  ntt_spec vec_in (v z0) 4 12 vec_out /\ ntt_spec vec_in (v z0) 5 13 vec_out /\
+  ntt_spec vec_in (v z0) 6 14 vec_out /\ ntt_spec vec_in (v z0) 7 15 vec_out
+
+[@@ "opaque_to_smt"]
+let inv_ntt_layer_1_butterfly_post
+      (vec_in vec_out: t_Array i16 (mk_usize 16))
+      (z0 z1 z2 z3: i16) : Type0 =
+  inv_ntt_spec vec_in (v z0) 0 2 vec_out /\ inv_ntt_spec vec_in (v z0) 1 3 vec_out /\
+  inv_ntt_spec vec_in (v z1) 4 6 vec_out /\ inv_ntt_spec vec_in (v z1) 5 7 vec_out /\
+  inv_ntt_spec vec_in (v z2) 8 10 vec_out /\ inv_ntt_spec vec_in (v z2) 9 11 vec_out /\
+  inv_ntt_spec vec_in (v z3) 12 14 vec_out /\ inv_ntt_spec vec_in (v z3) 13 15 vec_out
+
+[@@ "opaque_to_smt"]
+let inv_ntt_layer_2_butterfly_post
+      (vec_in vec_out: t_Array i16 (mk_usize 16))
+      (z0 z1: i16) : Type0 =
+  inv_ntt_spec vec_in (v z0) 0 4 vec_out /\ inv_ntt_spec vec_in (v z0) 1 5 vec_out /\
+  inv_ntt_spec vec_in (v z0) 2 6 vec_out /\ inv_ntt_spec vec_in (v z0) 3 7 vec_out /\
+  inv_ntt_spec vec_in (v z1) 8 12 vec_out /\ inv_ntt_spec vec_in (v z1) 9 13 vec_out /\
+  inv_ntt_spec vec_in (v z1) 10 14 vec_out /\ inv_ntt_spec vec_in (v z1) 11 15 vec_out
+
+[@@ "opaque_to_smt"]
+let inv_ntt_layer_3_butterfly_post
+      (vec_in vec_out: t_Array i16 (mk_usize 16))
+      (z0: i16) : Type0 =
+  inv_ntt_spec vec_in (v z0) 0 8 vec_out /\ inv_ntt_spec vec_in (v z0) 1 9 vec_out /\
+  inv_ntt_spec vec_in (v z0) 2 10 vec_out /\ inv_ntt_spec vec_in (v z0) 3 11 vec_out /\
+  inv_ntt_spec vec_in (v z0) 4 12 vec_out /\ inv_ntt_spec vec_in (v z0) 5 13 vec_out /\
+  inv_ntt_spec vec_in (v z0) 6 14 vec_out /\ inv_ntt_spec vec_in (v z0) 7 15 vec_out
+
+(* Residue pair for one base-case binomial multiply at index k (k < 8).
+   `zeta` is the full int zeta for that binomial — callers pass `v zeta_i`
+   for positive entries and `- v zeta_i` for the negated ones, paralleling
+   the 8-entry zetas sequence `[z0,-z0,z1,-z1,z2,-z2,z3,-z3]`.
+   Marked `unfold` so consumers of the butterfly_post see the residue
+   bodies directly without fuel-based unfolding. *)
+unfold let ntt_multiply_spec
+      (lhs rhs: t_Array i16 (mk_usize 16))
+      (zeta: int) (k: nat{k < 8})
+      (result: t_Array i16 (mk_usize 16)) : Type0 =
+  let ai = Seq.index lhs (2 * k) in
+  let aj = Seq.index lhs (2 * k + 1) in
+  let bi = Seq.index rhs (2 * k) in
+  let bj = Seq.index rhs (2 * k + 1) in
+  let oi = Seq.index result (2 * k) in
+  let oj = Seq.index result (2 * k + 1) in
+  ((v oi % 3329) == (((v ai * v bi + v aj * v bj * zeta * 169) * 169) % 3329)) /\
+  ((v oj % 3329) == (((v ai * v bj + v aj * v bi) * 169) % 3329))
+
+(* i16 negation — kept as a named helper because inline `mk_i16 0 -! x`
+   doesn't survive hax's `fstar_prop_expr!` parser.  Made total by
+   guarding `i16::MIN` (whose negation overflows i16); every actual
+   caller passes a zeta or a bounded value, so the guard's `else`
+   branch is unreachable in practice but lets the helper appear in
+   trait posts without propagating a refinement. *)
+unfold let neg_i16 (x: i16) : i16 =
+  if v x > - pow2 15 then mk_i16 0 -! x else mk_i16 0
+
+(* Opaque wrapper bundling the 8 `ntt_multiply_spec` residues — one per
+   binomial pair — so the trait post can cite them as a single conjunct.
+   Matches the `[z0, -z0, z1, -z1, z2, -z2, z3, -z3]` ordering that the
+   impl iterates over. *)
+[@@ "opaque_to_smt"]
+let ntt_multiply_butterfly_post
+      (lhs rhs result: t_Array i16 (mk_usize 16))
+      (z0 z1 z2 z3: i16) : Type0 =
+  ntt_multiply_spec lhs rhs (v z0)      0 result /\
+  ntt_multiply_spec lhs rhs (- (v z0))  1 result /\
+  ntt_multiply_spec lhs rhs (v z1)      2 result /\
+  ntt_multiply_spec lhs rhs (- (v z1))  3 result /\
+  ntt_multiply_spec lhs rhs (v z2)      4 result /\
+  ntt_multiply_spec lhs rhs (- (v z2))  5 result /\
+  ntt_multiply_spec lhs rhs (v z3)      6 result /\
+  ntt_multiply_spec lhs rhs (- (v z3))  7 result
+
 
 (* Wrap-around modulo: wraps into ]-p/2; p/2] *)
 let mod_p (v:int) (p:int{p>0/\ p%2=0}) : Tot int =
@@ -587,20 +719,20 @@ let mod_p (v:int) (p:int{p>0/\ p%2=0}) : Tot int =
 
 let is_intb_bt (l:nat) (x:int) = (x > -l) && (x <= l)
 
-let forall4 (p:(x:nat{x < 4} -> Type0)) =
+unfold let forall4 (p:(x:nat{x < 4} -> Type0)) =
     p 0  /\ p 1  /\ p 2  /\ p 3
     
-let forall8 (p:(x:nat{x < 8} -> Type0)) =
+unfold let forall8 (p:(x:nat{x < 8} -> Type0)) =
     p 0  /\ p 1  /\ p 2  /\ p 3  /\
     p 4  /\ p 5  /\ p 6  /\ p 7 
 
-let forall16 (p:(x:nat{x < 16} -> Type0)) =
+unfold let forall16 (p:(x:nat{x < 16} -> Type0)) =
     p 0  /\ p 1  /\ p 2  /\ p 3  /\
     p 4  /\ p 5  /\ p 6  /\ p 7  /\
     p 8  /\ p 9  /\ p 10 /\ p 11 /\
     p 12 /\ p 13 /\ p 14 /\ p 15
 
-let forall32 (p:(x:nat{x < 32} -> Type0)) =
+unfold let forall32 (p:(x:nat{x < 32} -> Type0)) =
     p 0  /\ p 1  /\ p 2  /\ p 3  /\
     p 4  /\ p 5  /\ p 6  /\ p 7  /\
     p 8  /\ p 9  /\ p 10 /\ p 11 /\

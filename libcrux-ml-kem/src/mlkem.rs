@@ -23,11 +23,13 @@ macro_rules! impl_incr_key_size {
         pub type Ciphertext2 = types::Ciphertext2<C2_SIZE>;
 
         /// Get the size of the first public key in bytes.
+        #[hax_lib::ensures(|result| result == 64)]
         pub const fn pk1_len() -> usize {
             PublicKey1::len()
         }
 
         /// Get the size of the second public key in bytes.
+        #[hax_lib::ensures(|result| result == RANKED_BYTES_PER_RING_ELEMENT)]
         pub const fn pk2_len() -> usize {
             RANKED_BYTES_PER_RING_ELEMENT
         }
@@ -215,6 +217,11 @@ macro_rules! impl_incr_key_size {
         ///
         /// `key_pair.len()` must be of size `key_pair_len()`.
         /// The function returns an error if this is not the case.
+        #[hax_lib::ensures(|result|
+            hax_lib::implies(
+                key_pair.len() >= 64 + RANKED_BYTES_PER_RING_ELEMENT + RANK * 512 + 32 + RANK * RANK * 512,
+                result.is_ok(),
+            ) & (future(key_pair).len() == key_pair.len()))]
         pub fn generate_key_pair(randomness: [u8; KEY_GENERATION_SEED_SIZE], key_pair: &mut [u8]) -> Result<(), Error> {
             multiplexing::generate_keypair::<
                 RANK,
@@ -341,6 +348,13 @@ macro_rules! impl_incr_key_size {
         ///
         /// Returns an [`Error`] if the provided input or output don't have
         /// the appropriate sizes.
+        ///
+        /// `state` must be at least `encaps_state_len()` bytes and
+        /// `shared_secret` at least `shared_secret_size()` bytes long.
+        #[hax_lib::requires(
+            state.len() >= RANK * 512 + 512 + 32
+            && shared_secret.len() >= 32
+        )]
         pub fn encapsulate1(
             pk1: &[u8],
             randomness: [u8; SHARED_SECRET_SIZE],
@@ -375,6 +389,13 @@ macro_rules! impl_incr_key_size {
             ///
             /// Returns an [`Error`] if the provided input or output don't have
             /// the appropriate sizes.
+            ///
+            /// `state` must be at least `encaps_state_len()` bytes and
+            /// `shared_secret` at least `shared_secret_size()` bytes long.
+            #[hax_lib::requires(
+                state.len() >= RANK * 512 + 512 + 32
+                && shared_secret.len() >= 32
+            )]
             pub fn encapsulate1(
                 pk1: &[u8],
                 rng: &mut impl CryptoRng,
@@ -402,13 +423,20 @@ macro_rules! impl_incr_key_size {
         /// Encapsulate the second part of the ciphertext.
         ///
         /// The second part of the public key is passed in as byte slice.
-        /// [`Error::InvalidInputLength`] is returned if `public_key_part` is too
-        /// short.
-        pub fn encapsulate2(state: &[u8; encaps_state_len()], public_key_part: &[u8; pk2_len()]) -> Ciphertext2 {
+        /// [`Error::InvalidInput`] is returned if the state bytes fail
+        /// validation (a decoded coefficient is out of field range).
+        pub fn encapsulate2(state: &[u8; encaps_state_len()], public_key_part: &[u8; pk2_len()]) -> Result<Ciphertext2, Error> {
             multiplexing::encapsulate2::<RANK, RANKED_BYTES_PER_RING_ELEMENT, C2_SIZE, VECTOR_V_COMPRESSION_FACTOR, {encaps_state_len()}>(state, public_key_part)
         }
 
         /// Decapsulate incremental ciphertexts.
+        ///
+        /// `private_key` must be at least `key_pair_len()` bytes long.
+        /// [`Error::InvalidInput`] is returned if the key bytes fail
+        /// validation (a decoded coefficient is out of field range).
+        #[hax_lib::requires(
+            private_key.len() >= 64 + RANKED_BYTES_PER_RING_ELEMENT + RANK * 512 + 32 + RANK * RANK * 512
+        )]
         pub fn decapsulate_incremental_key(
             private_key: &[u8],
             ciphertext1: &Ciphertext1,
@@ -467,6 +495,9 @@ pub(crate) use impl_incr_key_size;
 
 macro_rules! impl_incr_platform {
     ($vector:path, $hash:path $(, $unsafe:ident)? $(, #[$meta:meta])*) => {
+        #[allow(unused_imports)]
+        use hax_lib::prop::ToProp;
+
         /// Downcast [`Keys`] to a platform dependent [`MlKemKeyPairUnpacked`].
         ///
         /// **PANICS** is the cast fails
@@ -486,6 +517,12 @@ macro_rules! impl_incr_platform {
         }
 
         $(#[$meta])*
+        #[hax_lib::requires(
+            hacspec_ml_kem::parameters::is_rank(K)
+            && ETA1 == hacspec_ml_kem::parameters::eta1(K)
+            && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
+            && PUBLIC_KEY_SIZE == hacspec_ml_kem::parameters::cpa_public_key_size(K)
+        )]
         pub(crate) $($unsafe)? fn generate_keypair<
             const K: usize,
             const CPA_PRIVATE_KEY_SIZE: usize,
@@ -510,6 +547,18 @@ macro_rules! impl_incr_platform {
         }
 
         $(#[$meta])*
+        #[hax_lib::requires(
+            hacspec_ml_kem::parameters::is_rank(K)
+            && ETA1 == hacspec_ml_kem::parameters::eta1(K)
+            && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
+            && PUBLIC_KEY_SIZE == hacspec_ml_kem::parameters::cpa_public_key_size(K)
+            && PK2_LEN <= 1536
+        )]
+        #[hax_lib::ensures(|result|
+            hax_lib::implies(
+                key_pair.len() >= 64 + PK2_LEN + K * 512 + 32 + K * K * 512,
+                result.is_ok(),
+            ) & (future(key_pair).len() == key_pair.len()))]
         pub(crate) $($unsafe)? fn generate_keypair_serialized<
             const K: usize,
             const PK2_LEN: usize,
@@ -541,6 +590,14 @@ macro_rules! impl_incr_platform {
         }
 
         $(#[$meta])*
+        #[hax_lib::requires(
+            (hacspec_ml_kem::parameters::is_rank(K)
+            && ETA1 == hacspec_ml_kem::parameters::eta1(K)
+            && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
+            && PUBLIC_KEY_SIZE == hacspec_ml_kem::parameters::cpa_public_key_size(K)
+            && CPA_PRIVATE_KEY_SIZE == hacspec_ml_kem::parameters::ranked_bytes_per_ring_element(K)).to_prop()
+            & fstar!(r#"v $COMPRESSED_KEYPAIR_LEN >= v $CPA_PRIVATE_KEY_SIZE + v $PK2_LEN + 96"#)
+        )]
         pub(crate) $($unsafe)? fn generate_keypair_compressed<
             const K: usize,
             const PK2_LEN: usize,
@@ -570,6 +627,10 @@ macro_rules! impl_incr_platform {
         }
 
         $(#[$meta])*
+        #[hax_lib::requires(
+            hacspec_ml_kem::parameters::is_rank(K)
+            && PK_LEN == hacspec_ml_kem::parameters::cpa_public_key_size(K)
+        )]
         pub(crate) $($unsafe)? fn validate_pk<const K: usize, const PK_LEN: usize>(
             pk1: &PublicKey1,
             pk2: &[u8],
@@ -578,6 +639,10 @@ macro_rules! impl_incr_platform {
         }
 
         $(#[$meta])*
+        #[hax_lib::requires(
+            hacspec_ml_kem::parameters::is_rank(K)
+            && PK_LEN == hacspec_ml_kem::parameters::cpa_public_key_size(K)
+        )]
         pub(crate) $($unsafe)? fn validate_pk_bytes<const K: usize, const PK_LEN: usize>(
             pk1: &[u8],
             pk2: &[u8],
@@ -586,6 +651,16 @@ macro_rules! impl_incr_platform {
         }
 
         $(#[$meta])*
+        #[hax_lib::requires(
+            hacspec_ml_kem::parameters::is_rank(K)
+            && ETA1 == hacspec_ml_kem::parameters::eta1(K)
+            && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
+            && ETA2 == hacspec_ml_kem::parameters::eta2(K)
+            && ETA2_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta2_randomness_size(K)
+            && C1_SIZE == hacspec_ml_kem::parameters::c1_size(K)
+            && VECTOR_U_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_u_compression_factor(K)
+            && VECTOR_U_BLOCK_LEN == hacspec_ml_kem::parameters::c1_block_size(K)
+        )]
         pub(crate) $($unsafe)? fn encapsulate1<
             const K: usize,
             const CIPHERTEXT_SIZE: usize,
@@ -620,6 +695,22 @@ macro_rules! impl_incr_platform {
         }
 
         $(#[$meta])*
+        #[hax_lib::requires(
+            hacspec_ml_kem::parameters::is_rank(K)
+            && ETA1 == hacspec_ml_kem::parameters::eta1(K)
+            && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
+            && ETA2 == hacspec_ml_kem::parameters::eta2(K)
+            && ETA2_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta2_randomness_size(K)
+            && C1_SIZE == hacspec_ml_kem::parameters::c1_size(K)
+            && VECTOR_U_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_u_compression_factor(K)
+            && VECTOR_U_BLOCK_LEN == hacspec_ml_kem::parameters::c1_block_size(K)
+            && state.len() >= K * 512 + 512 + 32
+            && shared_secret.len() >= 32
+        )]
+        #[hax_lib::ensures(|result|
+            result.is_ok()
+            && future(state).len() == state.len()
+            && future(shared_secret).len() == shared_secret.len())]
         pub(crate) $($unsafe)? fn encapsulate1_serialized<
             const K: usize,
             const CIPHERTEXT_SIZE: usize,
@@ -652,6 +743,15 @@ macro_rules! impl_incr_platform {
         }
 
         $(#[$meta])*
+        #[hax_lib::requires(
+            (hacspec_ml_kem::parameters::is_rank(K)
+            && PK2_LEN == hacspec_ml_kem::parameters::cpa_private_key_size(K)
+            && C2_SIZE == hacspec_ml_kem::parameters::c2_size(K)
+            && VECTOR_V_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_v_compression_factor(K))
+                .to_prop()
+            & crate::polynomial::spec::is_bounded_polynomial_vector(3328, &state.r_as_ntt)
+            & crate::polynomial::spec::is_bounded_poly(3328, &state.error2)
+        )]
         pub(crate) $($unsafe)? fn encapsulate2<
             const K: usize,
             const PK2_LEN: usize,
@@ -668,6 +768,13 @@ macro_rules! impl_incr_platform {
         }
 
         $(#[$meta])*
+        #[hax_lib::requires(
+            hacspec_ml_kem::parameters::is_rank(K)
+            && PK2_LEN == hacspec_ml_kem::parameters::cpa_private_key_size(K)
+            && C2_SIZE == hacspec_ml_kem::parameters::c2_size(K)
+            && VECTOR_V_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_v_compression_factor(K)
+            && STATE_LEN >= K * 512 + 512 + 32
+        )]
         pub(crate) $($unsafe)? fn encapsulate2_serialized<
             const K: usize,
             const PK2_LEN: usize,
@@ -677,7 +784,7 @@ macro_rules! impl_incr_platform {
         >(
             state: &[u8; STATE_LEN],
             public_key_part: &PublicKey2<PK2_LEN>,
-        ) -> Ciphertext2<C2_SIZE> {
+        ) -> Result<Ciphertext2<C2_SIZE>, Error> {
             super::encapsulate2_serialized::<
                 K,
                 PK2_LEN,
@@ -689,6 +796,25 @@ macro_rules! impl_incr_platform {
         }
 
         $(#[$meta])*
+        #[hax_lib::requires(
+            (hacspec_ml_kem::parameters::is_rank(K)
+            && ETA1 == hacspec_ml_kem::parameters::eta1(K)
+            && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
+            && ETA2 == hacspec_ml_kem::parameters::eta2(K)
+            && ETA2_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta2_randomness_size(K)
+            && C1_SIZE == hacspec_ml_kem::parameters::c1_size(K)
+            && C2_SIZE == hacspec_ml_kem::parameters::c2_size(K)
+            && VECTOR_U_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_u_compression_factor(K)
+            && VECTOR_V_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_v_compression_factor(K)
+            && C1_BLOCK_SIZE == hacspec_ml_kem::parameters::c1_block_size(K)
+            && CIPHERTEXT_SIZE == hacspec_ml_kem::parameters::cpa_ciphertext_size(K)
+            && IMPLICIT_REJECTION_HASH_INPUT_SIZE
+                == hacspec_ml_kem::parameters::implicit_rejection_hash_input_size(K))
+                .to_prop()
+            & crate::polynomial::spec::is_bounded_polynomial_vector(3328, &private_key.private_key.ind_cpa_private_key.secret_as_ntt)
+            & crate::polynomial::spec::is_bounded_polynomial_matrix(3328, &private_key.public_key.ind_cpa_public_key.A)
+            & crate::polynomial::spec::is_bounded_polynomial_vector(3328, &private_key.public_key.ind_cpa_public_key.t_as_ntt)
+        )]
         pub(crate) $($unsafe)? fn decapsulate<
             const K: usize,
             const SECRET_KEY_SIZE: usize,
@@ -734,6 +860,23 @@ macro_rules! impl_incr_platform {
         }
 
         $(#[$meta])*
+        #[hax_lib::requires(
+            hacspec_ml_kem::parameters::is_rank(K)
+            && PK2_LEN == hacspec_ml_kem::parameters::cpa_private_key_size(K)
+            && ETA1 == hacspec_ml_kem::parameters::eta1(K)
+            && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
+            && ETA2 == hacspec_ml_kem::parameters::eta2(K)
+            && ETA2_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta2_randomness_size(K)
+            && C1_SIZE == hacspec_ml_kem::parameters::c1_size(K)
+            && C2_SIZE == hacspec_ml_kem::parameters::c2_size(K)
+            && VECTOR_U_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_u_compression_factor(K)
+            && VECTOR_V_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_v_compression_factor(K)
+            && C1_BLOCK_SIZE == hacspec_ml_kem::parameters::c1_block_size(K)
+            && CIPHERTEXT_SIZE == hacspec_ml_kem::parameters::cpa_ciphertext_size(K)
+            && IMPLICIT_REJECTION_HASH_INPUT_SIZE
+                == hacspec_ml_kem::parameters::implicit_rejection_hash_input_size(K)
+            && private_key.len() >= 64 + PK2_LEN + K * 512 + 32 + K * K * 512
+        )]
         pub(crate) $($unsafe)? fn decapsulate_incremental_key<
             const K: usize,
             const PK2_LEN: usize,
@@ -781,6 +924,24 @@ macro_rules! impl_incr_platform {
         }
 
         $(#[$meta])*
+        #[hax_lib::requires(
+            hacspec_ml_kem::parameters::is_rank(K)
+            && SECRET_KEY_SIZE == hacspec_ml_kem::parameters::cca_private_key_size(K)
+            && CPA_SECRET_KEY_SIZE == hacspec_ml_kem::parameters::cpa_private_key_size(K)
+            && PUBLIC_KEY_SIZE == hacspec_ml_kem::parameters::cpa_public_key_size(K)
+            && CIPHERTEXT_SIZE == hacspec_ml_kem::parameters::cpa_ciphertext_size(K)
+            && T_AS_NTT_ENCODED_SIZE == hacspec_ml_kem::parameters::t_as_ntt_encoded_size(K)
+            && C1_SIZE == hacspec_ml_kem::parameters::c1_size(K)
+            && C2_SIZE == hacspec_ml_kem::parameters::c2_size(K)
+            && VECTOR_U_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_u_compression_factor(K)
+            && VECTOR_V_COMPRESSION_FACTOR == hacspec_ml_kem::parameters::vector_v_compression_factor(K)
+            && C1_BLOCK_SIZE == hacspec_ml_kem::parameters::c1_block_size(K)
+            && ETA1 == hacspec_ml_kem::parameters::eta1(K)
+            && ETA1_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta1_randomness_size(K)
+            && ETA2 == hacspec_ml_kem::parameters::eta2(K)
+            && ETA2_RANDOMNESS_SIZE == hacspec_ml_kem::parameters::eta2_randomness_size(K)
+            && IMPLICIT_REJECTION_HASH_INPUT_SIZE == hacspec_ml_kem::parameters::implicit_rejection_hash_input_size(K)
+        )]
         pub(crate) $($unsafe)? fn decapsulate_compressed_key<
             const K: usize,
             const PK2_LEN: usize,

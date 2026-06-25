@@ -1,10 +1,17 @@
 use super::*;
 use crate::vector::portable::PortableVector;
 
+// NOTE (Track I, 2026-06-10): this function previously required
+// `forall i. i % 16 >= 1 ==> vector i == 0`. That requires is semantically
+// unnecessary — the body's first operation `mm256_slli_epi16::<15>` discards
+// bits 1..15 of every lane, so the post holds for ARBITRARY input — and it is
+// no longer satisfiable at rejection_sample's call site now that
+// `mm256_cmpgt_epi16` carries its true hardware semantics (whole lane set on
+// a true compare).
 #[inline(always)]
-#[hax_lib::fstar::verification_status(lax)]
-#[hax_lib::fstar::options("--ext context_pruning --compat_pre_core 0")]
-#[hax_lib::requires(fstar!(r#"forall i. i % 16 >= 1 ==> vector i == 0"#))]
+#[hax_lib::fstar::options(
+    "--ext context_pruning --compat_pre_core 0 --split_queries always --z3rlimit 400"
+)]
 #[hax_lib::ensures(|result| fstar!(r#"forall i. bit_vec_of_int_t_array $result 8 i == $vector (i * 16)"#))]
 pub(crate) fn serialize_1(vector: Vec256) -> [u8; 2] {
     // Suppose |vector| is laid out as follows (superscript number indicates the
@@ -50,13 +57,26 @@ pub(crate) fn serialize_1(vector: Vec256) -> [u8; 2] {
     hax_lib::fstar!(
         r#"
 let bits_packed' = BitVec.Intrinsics.mm_movemask_epi8_bv msbs in
-  assert (forall (i: nat{i < 16}). bits_packed' i = $vector ((i / 1) * 16 + i % 1))
-      by (
-         Tactics.Utils.prove_forall_nat_pointwise (fun _ -> 
-           Tactics.compute ();
-           Tactics.smt_sync ()
-         )
-      )
+  introduce forall (i: nat{i < 16}). bits_packed' i = $vector (i * 16)
+  with (
+    match i with
+    | 0  -> assert_norm (bits_packed' 0  = $vector 0  )
+    | 1  -> assert_norm (bits_packed' 1  = $vector 16 )
+    | 2  -> assert_norm (bits_packed' 2  = $vector 32 )
+    | 3  -> assert_norm (bits_packed' 3  = $vector 48 )
+    | 4  -> assert_norm (bits_packed' 4  = $vector 64 )
+    | 5  -> assert_norm (bits_packed' 5  = $vector 80 )
+    | 6  -> assert_norm (bits_packed' 6  = $vector 96 )
+    | 7  -> assert_norm (bits_packed' 7  = $vector 112)
+    | 8  -> assert_norm (bits_packed' 8  = $vector 128)
+    | 9  -> assert_norm (bits_packed' 9  = $vector 144)
+    | 10 -> assert_norm (bits_packed' 10 = $vector 160)
+    | 11 -> assert_norm (bits_packed' 11 = $vector 176)
+    | 12 -> assert_norm (bits_packed' 12 = $vector 192)
+    | 13 -> assert_norm (bits_packed' 13 = $vector 208)
+    | 14 -> assert_norm (bits_packed' 14 = $vector 224)
+    | _  -> assert_norm (bits_packed' 15 = $vector 240)
+  )
 "#
     );
 
@@ -349,97 +369,83 @@ pub(crate) fn deserialize_4(bytes: &[u8]) -> Vec256 {
 }
 
 #[inline(always)]
+#[hax_lib::fstar::options("--ext context_pruning --split_queries always --z3rlimit 400")]
+#[hax_lib::requires(fstar!(r#"forall (i: nat{i < 256}). i % 16 < 5 || vector i = 0"#))]
+#[hax_lib::ensures(|r| fstar!(r#"forall (i: nat{i < 80}). bit_vec_of_int_t_array r 8 i == vector ((i/5) * 16 + i%5)"#))]
 pub(crate) fn serialize_5(vector: Vec256) -> [u8; 10] {
+    #[inline(always)]
+    #[hax_lib::fstar::options("--ext context_pruning --split_queries always --z3rlimit 400")]
+    #[hax_lib::requires(fstar!(r#"forall (i: nat{i < 256}). i % 16 < 5 || vector i = 0"#))]
+    #[hax_lib::ensures(|(lower_8, upper_8)| fstar!(
+        r#"
+         forall (i: nat{i < 80}).
+           vector ((i/5) * 16 + i%5) == (if i < 40 then $lower_8 i else $upper_8 (i - 40))
+      )
+    "#
+    ))]
+    fn serialize_5_vec(vector: Vec256) -> (Vec128, Vec128) {
+        // If |vector| is laid out as follows (superscript number indicates the
+        // corresponding bit is duplicated that many times):
+        //
+        // 0¹¹a₄a₃a₂a₁a₀ 0¹¹b₄b₃b₂b₁b₀ 0¹¹c₄c₃c₂c₁c₀ 0¹¹d₄d₃d₂d₁d₀ | ↩
+        // 0¹¹e₄e₃e₂e₁e₀ 0¹¹f₄f₃f₂f₁f₀ 0¹¹g₄g₃g₂g₁g₀ 0¹¹h₄h₃h₂h₁h₀ | ↩
+        //
+        // |adjacent_2_combined| will be laid out as a series of 32-bit integers,
+        // as follows:
+        //
+        // 0²²b₄b₃b₂b₁b₀a₄a₃a₂a₁a₀ 0²²d₄d₃d₂d₁d₀c₄c₃c₂c₁c₀ | ↩
+        // 0²²f₄f₃f₂f₁f₀e₄e₃e₂e₁e₀ 0²²h₄h₃h₂h₁h₀g₄g₃g₂g₁g₀ | ↩
+        // ....
+        let adjacent_2_combined = mm256_concat_pairs_n(5, vector);
+
+        // Shifting up by 22, then back down by 22, viewing as 64-bit lanes,
+        // packs adjacent 2-combined into adjacent 4-combined.
+        let adjacent_4_combined = mm256_sllv_epi32(
+            adjacent_2_combined,
+            mm256_set_epi32(0, 22, 0, 22, 0, 22, 0, 22),
+        );
+        let adjacent_4_combined = mm256_srli_epi64::<22>(adjacent_4_combined);
+
+        // Shuffle to bring the bits into a contiguous form, then shift up
+        // by 12 in 32-bit lanes, view as 64-bit lanes, shift down by 12 to
+        // pack adjacent 4-combined into adjacent 8-combined.
+        // Equivalent to `mm256_shuffle_epi32::<0b00_00_10_00>` but expressed
+        // via `mm256_shuffle_epi8`, which has a `BitVec.Intrinsics` spec
+        // usable by `assert_norm`.  In each 128-bit half, places 32-bit
+        // lane 2 into lane 1; lanes 0/2/3 retain old lane 0 (will be
+        // masked off by the next sllv/srli pair).
+        let adjacent_8_combined = mm256_shuffle_epi8(
+            adjacent_4_combined,
+            mm256_set_epi8(
+                3, 2, 1, 0, 3, 2, 1, 0, 11, 10, 9, 8, 3, 2, 1, 0, 3, 2, 1, 0, 3, 2, 1, 0, 11, 10,
+                9, 8, 3, 2, 1, 0,
+            ),
+        );
+        let adjacent_8_combined = mm256_sllv_epi32(
+            adjacent_8_combined,
+            mm256_set_epi32(0, 0, 0, 12, 0, 0, 0, 12),
+        );
+        let adjacent_8_combined = mm256_srli_epi64::<12>(adjacent_8_combined);
+
+        // We now have 40 bits starting at position 0 in the lower 128-bit lane, ...
+        let lower_8 = mm256_castsi256_si128(adjacent_8_combined);
+        // ... and the second 40 bits at position 0 in the upper 128-bit lane
+        let upper_8 = mm256_extracti128_si256::<1>(adjacent_8_combined);
+
+        hax_lib::fstar!(
+            r#"
+    introduce forall (i:nat{i < 40}). lower_8_ i = vector ((i / 5) * 16 + i % 5)
+    with assert_norm (BitVec.Utils.forall_n 40 (fun i -> lower_8_ i = vector ((i / 5) * 16 + i % 5)));
+    introduce forall (i:nat{i < 40}). upper_8_ i = vector (128 + (i / 5) * 16 + i % 5)
+    with assert_norm (BitVec.Utils.forall_n 40 (fun i -> upper_8_ i = vector (128 + (i / 5) * 16 + i % 5)))
+    "#
+        );
+        (lower_8, upper_8)
+    }
+
     let mut serialized = [0u8; 32];
-
-    // If |vector| is laid out as follows (superscript number indicates the
-    // corresponding bit is duplicated that many times):
-    //
-    // 0¹¹a₄a₃a₂a₁a₀ 0¹¹b₄b₃b₂b₁b₀ 0¹¹c₄c₃c₂c₁c₀ 0¹¹d₄d₃d₂d₁d₀ | ↩
-    // 0¹¹e₄e₃e₂e₁e₀ 0¹¹f₄f₃f₂f₁f₀ 0¹¹g₄g₃g₂g₁g₀ 0¹¹h₄h₃h₂h₁h₀ | ↩
-    //
-    // |adjacent_2_combined| will be laid out as a series of 32-bit integers,
-    // as follows:
-    //
-    // 0²²b₄b₃b₂b₁b₀a₄a₃a₂a₁a₀ 0²²d₄d₃d₂d₁d₀c₄c₃c₂c₁c₀ | ↩
-    // 0²²f₄f₃f₂f₁f₀e₄e₃e₂e₁e₀ 0²²h₄h₃h₂h₁h₀g₄g₃g₂g₁g₀ | ↩
-    // ....
-    let adjacent_2_combined = mm256_madd_epi16(
-        vector,
-        mm256_set_epi16(
-            1 << 5,
-            1,
-            1 << 5,
-            1,
-            1 << 5,
-            1,
-            1 << 5,
-            1,
-            1 << 5,
-            1,
-            1 << 5,
-            1,
-            1 << 5,
-            1,
-            1 << 5,
-            1,
-        ),
-    );
-
-    // Recall that |adjacent_2_combined| is laid out as follows:
-    //
-    // 0²²b₄b₃b₂b₁b₀a₄a₃a₂a₁a₀ 0²²d₄d₃d₂d₁d₀c₄c₃c₂c₁c₀ | ↩
-    // 0²²f₄f₃f₂f₁f₀e₄e₃e₂e₁e₀ 0²²h₄h₃h₂h₁h₀g₄g₃g₂g₁g₀ | ↩
-    // ....
-    //
-    // This shift results in:
-    //
-    // b₄b₃b₂b₁b₀a₄a₃a₂a₁a₀0²² 0²²d₄d₃d₂d₁d₀c₄c₃c₂c₁c₀ | ↩
-    // f₄f₃f₂f₁f₀e₄e₃e₂e₁e₀0²² 0²²h₄h₃h₂h₁h₀g₄g₃g₂g₁g₀ | ↩
-    // ....
-    //
-    let adjacent_4_combined = mm256_sllv_epi32(
-        adjacent_2_combined,
-        mm256_set_epi32(0, 22, 0, 22, 0, 22, 0, 22),
-    );
-
-    // |adjacent_4_combined|, when viewed as 64-bit lanes, is:
-    //
-    // 0²²d₄d₃d₂d₁d₀c₄c₃c₂c₁c₀b₄b₃b₂b₁b₀a₄a₃a₂a₁a₀0²² | ↩
-    // 0²²h₄h₃h₂h₁h₀g₄g₃g₂g₁g₀f₄f₃f₂f₁f₀e₄e₃e₂e₁e₀0²² | ↩
-    // ...
-    //
-    // so we just shift down by 22 bits to remove the least significant 0 bits
-    // that aren't part of the bits we need.
-    let adjacent_4_combined = mm256_srli_epi64::<22>(adjacent_4_combined);
-
-    // |adjacent_4_combined|, when viewed as a set of 32-bit values, looks like:
-    //
-    // 0:0¹²d₄d₃d₂d₁d₀c₄c₃c₂c₁c₀b₄b₃b₂b₁b₀a₄a₃a₂a₁a₀ 1:0³² 2:0¹²h₄h₃h₂h₁h₀g₄g₃g₂g₁g₀f₄f₃f₂f₁f₀e₄e₃e₂e₁e₀ 3:0³² | ↩
-    //
-    // To be able to read out the bytes in one go, we need to shifts the bits in
-    // position 2 to position 1 in each 128-bit lane.
-    let adjacent_8_combined = mm256_shuffle_epi32::<0b00_00_10_00>(adjacent_4_combined);
-
-    // |adjacent_8_combined|, when viewed as a set of 32-bit values, now looks like:
-    //
-    // 0¹²d₄d₃d₂d₁d₀c₄c₃c₂c₁c₀b₄b₃b₂b₁b₀a₄a₃a₂a₁a₀ 0¹²h₄h₃h₂h₁h₀g₄g₃g₂g₁g₀f₄f₃f₂f₁f₀e₄e₃e₂e₁e₀ 0³² 0³² | ↩
-    //
-    // Once again, we line these bits up by shifting the up values at indices
-    // 0 and 5 by 12, viewing the resulting register as a set of 64-bit values,
-    // and then shifting down the 64-bit values by 12 bits.
-    let adjacent_8_combined = mm256_sllv_epi32(
-        adjacent_8_combined,
-        mm256_set_epi32(0, 0, 0, 12, 0, 0, 0, 12),
-    );
-    let adjacent_8_combined = mm256_srli_epi64::<12>(adjacent_8_combined);
-
-    // We now have 40 bits starting at position 0 in the lower 128-bit lane, ...
-    let lower_8 = mm256_castsi256_si128(adjacent_8_combined);
+    let (lower_8, upper_8) = serialize_5_vec(vector);
     mm_storeu_bytes_si128(&mut serialized[0..16], lower_8);
-
-    // ... and the second 40 bits at position 0 in the upper 128-bit lane
-    let upper_8 = mm256_extracti128_si256::<1>(adjacent_8_combined);
     mm_storeu_bytes_si128(&mut serialized[5..21], upper_8);
 
     serialized[0..10].try_into().unwrap()
@@ -462,8 +468,84 @@ fn mm256_si256_from_two_si128(lower: Vec128, upper: Vec128) -> Vec256 {
 }
 
 #[inline(always)]
+#[hax_lib::fstar::options(
+    "--ext context_pruning --split_queries always --z3rlimit 800 --z3refresh"
+)]
 #[hax_lib::requires(fstar!(r#"Seq.length bytes == 10"#))]
+#[hax_lib::ensures(|result| fstar!(r#"forall (i: nat{i < 256}).
+  $result i = (if i % 16 >= 5 then 0
+               else let j = (i / 16) * 5 + i % 16 in
+                     bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 j)"#))]
 pub(crate) fn deserialize_5(bytes: &[u8]) -> Vec256 {
+    // Inner helper takes a Vec128 directly (no Seq.index lookups in the closure),
+    // so the assert_norm inside reduces over a free Vec128 rather than the chain
+    // mm_set_epi8(bytes[i]…). Spec is keyed on c-bit positions; the byte-level
+    // bridge is at the outer level via mm_set_epi8's spec.
+    #[inline(always)]
+    #[hax_lib::fstar::options("--ext context_pruning --split_queries always --z3rlimit 400")]
+    #[hax_lib::fstar::before(r#"[@@"opaque_to_smt"]"#)]
+    #[hax_lib::ensures(|result| fstar!(r#"forall (i: nat{i < 256}).
+      $result i =
+        (if i % 16 >= 5 then 0
+         else let shift_inv = ((i / 16) % 2) * 5 + (((i / 16) % 8) / 2) * 2 in
+              let j = i + shift_inv in
+              let byte_pos = j / 8 in
+              let c_byte =
+                if byte_pos < 16
+                then (byte_pos / 4) * 2 + (byte_pos % 2)
+                else ((byte_pos - 16) / 4) * 2 + ((byte_pos - 16) % 2) + 8 in
+              $c (c_byte * 8 + j % 8))"#))]
+    fn deserialize_5_vec(c: Vec128) -> Vec256 {
+        let coefficients_loaded = mm256_si256_from_two_si128(c, c);
+
+        let coefficients = mm256_shuffle_epi8(
+            coefficients_loaded,
+            mm256_set_epi8(
+                15, 14, 15, 14, 13, 12, 13, 12, 11, 10, 11, 10, 9, 8, 9, 8, 7, 6, 7, 6, 5, 4, 5, 4,
+                3, 2, 3, 2, 1, 0, 1, 0,
+            ),
+        );
+
+        let coefficients = mm256_mullo_epi16(
+            coefficients,
+            mm256_set_epi16(
+                1 << 0,
+                1 << 5,
+                1 << 2,
+                1 << 7,
+                1 << 4,
+                1 << 9,
+                1 << 6,
+                1 << 11,
+                1 << 0,
+                1 << 5,
+                1 << 2,
+                1 << 7,
+                1 << 4,
+                1 << 9,
+                1 << 6,
+                1 << 11,
+            ),
+        );
+        let result = mm256_srli_epi16::<11>(coefficients);
+        hax_lib::fstar!(
+            r#"
+assert_norm (BitVec.Utils.forall256 (fun i ->
+      $result i =
+        (if i % 16 >= 5 then 0
+         else let shift_inv = ((i / 16) % 2) * 5 + (((i / 16) % 8) / 2) * 2 in
+              let j = i + shift_inv in
+              let byte_pos = j / 8 in
+              let c_byte =
+                if byte_pos < 16
+                then (byte_pos / 4) * 2 + (byte_pos % 2)
+                else ((byte_pos - 16) / 4) * 2 + ((byte_pos - 16) % 2) + 8 in
+              $c (c_byte * 8 + j % 8))))
+"#
+        );
+        result
+    }
+
     let coefficients = mm_set_epi8(
         bytes[9] as i8,
         bytes[8] as i8,
@@ -482,39 +564,31 @@ pub(crate) fn deserialize_5(bytes: &[u8]) -> Vec256 {
         bytes[1] as i8,
         bytes[0] as i8,
     );
-
-    let coefficients_loaded = mm256_si256_from_two_si128(coefficients, coefficients);
-
-    let coefficients = mm256_shuffle_epi8(
-        coefficients_loaded,
-        mm256_set_epi8(
-            15, 14, 15, 14, 13, 12, 13, 12, 11, 10, 11, 10, 9, 8, 9, 8, 7, 6, 7, 6, 5, 4, 5, 4, 3,
-            2, 3, 2, 1, 0, 1, 0,
-        ),
+    let result = deserialize_5_vec(coefficients);
+    // 16 per-k bridges from coefficients (post mm_set_epi8) to bit_vec_of_int_t_array bytes.
+    // Each is a forall over b∈[0,8) at concrete k; mm_set_epi8 reduces match-arm `i/8 = k`
+    // and the byte_map[k] = (0,1,1,2,2,3,3,4,5,6,6,7,7,8,8,9) substitutes concretely.
+    hax_lib::fstar!(
+        r#"
+assert (forall (b: nat{b < 8}). $coefficients (8*0  + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (0*8 + b));
+assert (forall (b: nat{b < 8}). $coefficients (8*1  + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (1*8 + b));
+assert (forall (b: nat{b < 8}). $coefficients (8*2  + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (1*8 + b));
+assert (forall (b: nat{b < 8}). $coefficients (8*3  + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (2*8 + b));
+assert (forall (b: nat{b < 8}). $coefficients (8*4  + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (2*8 + b));
+assert (forall (b: nat{b < 8}). $coefficients (8*5  + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (3*8 + b));
+assert (forall (b: nat{b < 8}). $coefficients (8*6  + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (3*8 + b));
+assert (forall (b: nat{b < 8}). $coefficients (8*7  + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (4*8 + b));
+assert (forall (b: nat{b < 8}). $coefficients (8*8  + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (5*8 + b));
+assert (forall (b: nat{b < 8}). $coefficients (8*9  + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (6*8 + b));
+assert (forall (b: nat{b < 8}). $coefficients (8*10 + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (6*8 + b));
+assert (forall (b: nat{b < 8}). $coefficients (8*11 + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (7*8 + b));
+assert (forall (b: nat{b < 8}). $coefficients (8*12 + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (7*8 + b));
+assert (forall (b: nat{b < 8}). $coefficients (8*13 + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (8*8 + b));
+assert (forall (b: nat{b < 8}). $coefficients (8*14 + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (8*8 + b));
+assert (forall (b: nat{b < 8}). $coefficients (8*15 + b) == bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 10)) 8 (9*8 + b))
+"#
     );
-
-    let coefficients = mm256_mullo_epi16(
-        coefficients,
-        mm256_set_epi16(
-            1 << 0,
-            1 << 5,
-            1 << 2,
-            1 << 7,
-            1 << 4,
-            1 << 9,
-            1 << 6,
-            1 << 11,
-            1 << 0,
-            1 << 5,
-            1 << 2,
-            1 << 7,
-            1 << 4,
-            1 << 9,
-            1 << 6,
-            1 << 11,
-        ),
-    );
-    mm256_srli_epi16::<11>(coefficients)
+    result
 }
 
 #[inline(always)]
@@ -683,20 +757,94 @@ assert_norm(BitVec.Utils.forall256 (fun i ->
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::fstar::options("--ext context_pruning --z3rlimit 200")]
+#[hax_lib::fstar::before(
+    r#"
+(* Lane-bound bridge.  Same proof as `vector/avx2.rs`'s before-block helper;
+   redefined locally because `Vector.Avx2.Serialize` is checked before
+   `Vector.Avx2` and so cannot import it. *)
+let lemma_vec256_lane_bounded_local
+      (vec: Libcrux_intrinsics.Avx2_extract.t_Vec256) (n: nat{n > 0 /\ n <= 16}) (i: nat{i < 16})
+    : Lemma
+      (requires forall (b: nat{b < 16}). b >= n ==> vec (i * 16 + b) == 0)
+      (ensures
+        Rust_primitives.BitVectors.bounded
+          (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 vec) i) n)
+  = let arr = Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 vec in
+    let lane = Seq.index arr i in
+    let aux (b: usize{v b < 16}) : Lemma (v b > n ==> get_bit lane b == 0)
+      = if v b > n then begin
+          Libcrux_intrinsics.Avx2_extract.bit_vec_of_int_t_array_vec256_as_i16x16_lemma
+            vec 16 (i * 16 + v b);
+          Math.Lemmas.lemma_mod_plus (v b) i 16;
+          Math.Lemmas.lemma_div_plus (v b) i 16
+        end
+        else ()
+    in
+    Classical.forall_intro aux;
+    Rust_primitives.BitVectors.lemma_get_bit_bounded' lane n
+"#
+)]
+#[hax_lib::requires(fstar!(r#"forall (i: nat{i < 256}). i % 16 < 11 || vector i = 0"#))]
+#[hax_lib::ensures(|r| fstar!(r#"forall (i: nat{i < 176}). bit_vec_of_int_t_array r 8 i == vector ((i/11) * 16 + i%11)"#))]
 pub(crate) fn serialize_11(vector: Vec256) -> [u8; 22] {
     let mut array = [0i16; 16];
     mm256_storeu_si256_i16(&mut array, vector);
+    hax_lib::fstar!(
+        r#"
+introduce forall (j: nat). j < 16 ==>
+    Rust_primitives.BitVectors.bounded (Seq.index array j) 11
+with introduce j < 16 ==>
+    Rust_primitives.BitVectors.bounded (Seq.index array j) 11
+with _. lemma_vec256_lane_bounded_local ${vector} 11 j
+"#
+    );
     let input = PortableVector::from_i16_array(&array);
-    PortableVector::serialize_11(input)
+    let result = PortableVector::serialize_11(input);
+    hax_lib::fstar!(
+        r#"
+introduce forall (i: nat{i < 176}).
+    bit_vec_of_int_t_array result 8 i == ${vector} ((i / 11) * 16 + i % 11)
+with begin
+  Libcrux_intrinsics.Avx2_extract.bit_vec_of_int_t_array_vec256_as_i16x16_lemma
+    ${vector} 11 i
+end
+"#
+    );
+    result
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::fstar::options("--ext context_pruning --z3rlimit 200")]
+#[hax_lib::requires(fstar!(r#"Seq.length bytes == 22"#))]
+#[hax_lib::ensures(|result| fstar!(r#"forall (i: nat{i < 256}).
+  $result i = (if i % 16 >= 11 then 0
+               else let j = (i / 16) * 11 + i % 16 in
+                     bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 22)) 8 j)"#))]
 pub(crate) fn deserialize_11(bytes: &[u8]) -> Vec256 {
     let output = PortableVector::deserialize_11(bytes);
     let array = PortableVector::to_i16_array(output);
-    mm256_loadu_si256_i16(&array)
+    let result = mm256_loadu_si256_i16(&array);
+    hax_lib::fstar!(
+        r#"
+introduce forall (i: nat{i < 256}).
+    result i =
+      (if i % 16 >= 11 then 0
+       else let j = (i / 16) * 11 + i % 16 in
+            bit_vec_of_int_t_array (${bytes} <: t_Array _ (sz 22)) 8 j)
+with begin
+  if i % 16 >= 11 then begin
+    Libcrux_intrinsics.Avx2_extract.bit_vec_of_int_t_array_vec256_as_i16x16_lemma
+      result 16 i;
+    ()
+  end else begin
+    Libcrux_intrinsics.Avx2_extract.bit_vec_of_int_t_array_vec256_as_i16x16_lemma
+      result 11 ((i / 16) * 11 + i % 16)
+  end
+end
+"#
+    );
+    result
 }
 
 #[inline(always)]

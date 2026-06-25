@@ -5,6 +5,9 @@ use crate::vector::traits::{
 };
 use libcrux_secrets::*;
 
+#[cfg(hax)]
+use crate::vector::traits::spec;
+
 /// If 'x' denotes a value of type `fe`, values having this type hold a
 /// representative y ≡ x·MONTGOMERY_R^(-1) (mod FIELD_MODULUS).
 /// We use 'mfe' as a shorthand for this type
@@ -51,11 +54,8 @@ pub(crate) fn get_n_least_significant_bits(n: u8, value: U32) -> U32 {
 
 #[inline(always)]
 #[hax_lib::fstar::options("--z3rlimit 150")]
-#[hax_lib::requires(fstar!(r#"forall i. i < 16 ==> 
-    Spec.Utils.is_intb (pow2 15 - 1) (v (Seq.index ${lhs}.f_elements i) + v (Seq.index ${rhs}.f_elements i))"#))]
-#[hax_lib::ensures(|result| fstar!(r#"forall i. i < 16 ==> 
-    (v (Seq.index ${result}.f_elements i) == 
-     v (Seq.index ${lhs}.f_elements i) + v (Seq.index ${rhs}.f_elements i))"#))]
+#[hax_lib::requires(fstar!(r#"${spec::add_pre} ${lhs}.f_elements ${rhs}.f_elements"#))]
+#[hax_lib::ensures(|result| fstar!(r#"${spec::add_post} ${lhs}.f_elements ${rhs}.f_elements ${result}.f_elements"#))]
 pub fn add(mut lhs: PortableVector, rhs: &PortableVector) -> PortableVector {
     #[cfg(hax)]
     let _lhs0 = lhs;
@@ -77,16 +77,16 @@ pub fn add(mut lhs: PortableVector, rhs: &PortableVector) -> PortableVector {
         "assert (forall i. v (Seq.index ${lhs}.f_elements i) ==
     			          v (Seq.index ${_lhs0}.f_elements i) + v (Seq.index ${rhs}.f_elements i))"
     );
+    hax_lib::fstar!(
+        r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)"#
+    );
 
     lhs
 }
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"forall i. i < 16 ==> 
-    Spec.Utils.is_intb (pow2 15 - 1) (v (Seq.index ${lhs}.f_elements i) - v (Seq.index ${rhs}.f_elements i))"#))]
-#[hax_lib::ensures(|result| fstar!(r#"forall i. i < 16 ==> 
-    (v (Seq.index ${result}.f_elements i) == 
-     v (Seq.index ${lhs}.f_elements i) - v (Seq.index ${rhs}.f_elements i))"#))]
+#[hax_lib::requires(fstar!(r#"${spec::sub_pre} ${lhs}.f_elements ${rhs}.f_elements"#))]
+#[hax_lib::ensures(|result| fstar!(r#"${spec::sub_post} ${lhs}.f_elements ${rhs}.f_elements ${result}.f_elements"#))]
 pub fn sub(mut lhs: PortableVector, rhs: &PortableVector) -> PortableVector {
     #[cfg(hax)]
     let _lhs0 = lhs;
@@ -108,16 +108,16 @@ pub fn sub(mut lhs: PortableVector, rhs: &PortableVector) -> PortableVector {
         "assert (forall i. v (Seq.index ${lhs}.f_elements i) ==
     			          v (Seq.index ${_lhs0}.f_elements i) - v (Seq.index ${rhs}.f_elements i))"
     );
+    hax_lib::fstar!(
+        r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)"#
+    );
 
     lhs
 }
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"forall i. i < 16 ==> 
-    Spec.Utils.is_intb (pow2 15 - 1) (v (Seq.index ${vec}.f_elements i) * v c)"#))]
-#[hax_lib::ensures(|result| fstar!(r#"forall i. i < 16 ==> 
-    (v (Seq.index ${result}.f_elements i) == 
-     v (Seq.index ${vec}.f_elements i) * v c)"#))]
+#[hax_lib::requires(fstar!(r#"${spec::multiply_by_constant_pre} ${vec}.f_elements c"#))]
+#[hax_lib::ensures(|result| fstar!(r#"${spec::multiply_by_constant_post} ${vec}.f_elements c ${result}.f_elements"#))]
 pub fn multiply_by_constant(mut vec: PortableVector, c: i16) -> PortableVector {
     #[cfg(hax)]
     let _vec0 = vec;
@@ -202,8 +202,12 @@ pub fn shift_right<const SHIFT_BY: i32>(mut vec: PortableVector) -> PortableVect
 #[inline(always)]
 #[hax_lib::fstar::options("--z3rlimit 300")]
 #[hax_lib::requires(fstar!(r#"Spec.Utils.is_i16b_array (pow2 12 - 1) ${vec}.f_elements"#))]
-#[hax_lib::ensures(|result| fstar!(r#"${result}.f_elements == Spec.Utils.map_array 
-                (fun x -> if x >=. (mk_i16 3329) then x -! (mk_i16 3329) else x) (${vec}.f_elements)"#))]
+#[hax_lib::ensures(|result| fstar!(r#"forall i.
+    let x = Seq.index ${vec}.f_elements i in
+    let y = Seq.index ${result}.f_elements i in
+    ((v y == v x - 3329 \/ v y == v x) /\
+     (v y % 3329 == v x % 3329) /\
+     v y == (if v x >= 3329 then v x - 3329 else v x))"#))]
 pub fn cond_subtract_3329(mut vec: PortableVector) -> PortableVector {
     #[cfg(hax)]
     let _vec0 = vec;
@@ -224,8 +228,19 @@ pub fn cond_subtract_3329(mut vec: PortableVector) -> PortableVector {
     }
 
     hax_lib::fstar!(
-        r#"Seq.lemma_eq_intro ${vec}.f_elements (Spec.Utils.map_array 
-                            (fun x -> if x >=. (mk_i16 3329) then x -! (mk_i16 3329) else x) ${_vec0}.f_elements)"#
+        r#"let aux (j: nat) : Lemma (j < 16 ==>
+          (let x = Seq.index ${_vec0}.f_elements j in
+           let y = Seq.index ${vec}.f_elements j in
+           ((v y == v x - 3329 \/ v y == v x) /\
+            (v y % 3329 == v x % 3329) /\
+            v y == (if v x >= 3329 then v x - 3329 else v x))))
+          = if j < 16 then begin
+              let x = Seq.index ${_vec0}.f_elements j in
+              if x >=. mk_i16 3329 then
+                FStar.Math.Lemmas.lemma_mod_sub (v x) 3329 1
+              else ()
+            end in
+        Classical.forall_intro aux"#
     );
 
     vec
