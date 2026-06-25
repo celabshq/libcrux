@@ -76,7 +76,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "6371bcf6687dbe76b1d49170c2e5e437"
+      "20656af39fddcfee0ef207b849a50a78"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.poly_add",
@@ -105,7 +105,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4c421e977e174192e5c401b265801633"
+      "d97b6803916ece05003bb7ec3eb2da41"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.poly_sub",
@@ -181,7 +181,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "2316d521fd139b581ae40c732b66b9c6"
+      "33af40d3a9de675c63a177eb06a9dde5"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.poly_sub",
@@ -210,7 +210,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4c421e977e174192e5c401b265801633"
+      "cf8c13c102efb1524fde5b8f96aef541"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.poly_pointwise_mul",
@@ -286,7 +286,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "0fc5cfcf85369a20ea896f5b045a4766"
+      "e85c1f54a6597b2c8e62da517169236b"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.poly_pointwise_mul",
@@ -315,7 +315,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4c421e977e174192e5c401b265801633"
+      "d0b37cf7ea8b759846dacc4babfbb727"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.vector_ntt",
@@ -362,7 +362,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "787a2fdab9fee7a2515626db1dfd4cef"
+      "651894b1fffbcca6b09b0cce8e21cd56"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.vector_ntt",
@@ -391,7 +391,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "dc70275d963e41a4a145cd69d6d2023b"
+      "973c73ed32c508983dc7a51351fc171d"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.vector_intt",
@@ -438,7 +438,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "63bd57ec4ce17101b08cdaea433b2710"
+      "adcac42e3ef666cd68542b5e082c33a1"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.vector_intt",
@@ -467,7 +467,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "dc70275d963e41a4a145cd69d6d2023b"
+      "bf9297646d84907aafb72fa2a534e4fe"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.vector_add",
@@ -515,7 +515,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f215dc55338691a62439a22963411d07"
+      "76685f172bf2eb2249c48f9a1c80fa77"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.vector_add",
@@ -544,7 +544,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "dac6932aefda62e4324b9759cb3aed1a"
+      "f941a97d8e5484b33a6f8a4bbe51bb8a"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.vector_sub",
@@ -592,7 +592,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f215dc55338691a62439a22963411d07"
+      "1c616fa488751b00a55b8e0895344dc9"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.vector_sub",
@@ -621,7 +621,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "dac6932aefda62e4324b9759cb3aed1a"
+      "f7c620cec746cc0ac7e4ff9d5d074d12"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.scalar_vector_ntt",
@@ -671,7 +671,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "67600012a294a990ce0e2c958101c724"
+      "08a5398d2adabf965e1c753cf30d5af8"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.scalar_vector_ntt",
@@ -700,7 +700,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "494d2d4ac874bf8f40da1228cd223979"
+      "cd7d7a0ba4fb5b4764530bd7e1bfbf59"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.poly_infinity_norm",
@@ -757,7 +757,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "9b1c0954451bef5e6e74cce9f89efa49"
+      "2804d9603f7bf3c99cbdfb579e22a689"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.poly_infinity_norm",
@@ -786,7 +786,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "77095ccb770c4adc20ea3a650cc3e946"
+      "868f3b312df2a12192cd6ae2a7375d23"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.vector_infinity_norm",
@@ -844,7 +844,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "835abe541c062f021c2daeeac7648862"
+      "9c7bdbcc0d45eadbfddc071843d2b322"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.vector_infinity_norm",
@@ -873,7 +873,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "dc70275d963e41a4a145cd69d6d2023b"
+      "7f349db187a2672b4479b1d675a39070"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.vector_power2round",
@@ -941,7 +941,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "64b041bf470f58852de8a8beecf909b1"
+      "8af5e1d3fed0842b826ab5a0088b5756"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.vector_power2round",
@@ -970,7 +970,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "dc70275d963e41a4a145cd69d6d2023b"
+      "ec45b265bc5243765bacfe9b7687c45d"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.vector_high_bits",
@@ -1047,7 +1047,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "dc6b7c0be473abfd99d92e9d38ada1f4"
+      "71116b04cbc2f4042d5cd9280e49a186"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.vector_high_bits",
@@ -1076,7 +1076,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "dc70275d963e41a4a145cd69d6d2023b"
+      "0fdae4c465ca6c252bf5d7d894cfa7e9"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.vector_low_bits",
@@ -1153,7 +1153,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "0e665f7cc5c97d5962435f81dfc2c0d4"
+      "831257a87b8a8b0fb1134aa549c84efb"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.vector_low_bits",
@@ -1182,7 +1182,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "dc70275d963e41a4a145cd69d6d2023b"
+      "2238b8700907b7d6027473ae98353700"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.count_hints",
@@ -1243,7 +1243,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "1044d488fae154823a4de7b03f1cd717"
+      "a24d92ec5b816a6a544ad9521d8df947"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.count_hints",
@@ -1272,7 +1272,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "9722d8eedd93af893e129be49e0db918"
+      "a25c98d585f12ce5b029277a0b470b23"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.vector_make_hint",
@@ -1349,7 +1349,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "6c0d12cd5b2e528ac606c7155476127e"
+      "8b15a06dc6eca0d906cfb8758a1dd8cf"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.vector_make_hint",
@@ -1378,7 +1378,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "dac6932aefda62e4324b9759cb3aed1a"
+      "aa88d582a7859b91c6093c43e53bc92f"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.vector_use_hint",
@@ -1456,7 +1456,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "2c96d2175adf358bd868b5bc171a9caa"
+      "2c9969cc4edb6e0b58732b12816c53d1"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.vector_use_hint",
@@ -1485,7 +1485,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "9718a706af93abe7ca1be33b61a0fa43"
+      "c9200942cc115579e0c45b912d2e35a4"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.poly_mod_pm",
@@ -1573,7 +1573,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "17533afdce5aed498f08cd8972e876e8"
+      "67db918857c7615742119be2bfc74056"
     ],
     [
       "Hacspec_ml_dsa.Polynomial.poly_mod_pm",
@@ -1602,7 +1602,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "49491f34c65181c6c65356500eac8fbd"
+      "62877833c609ce4215e1ef1c4135909a"
     ]
   ]
 ]

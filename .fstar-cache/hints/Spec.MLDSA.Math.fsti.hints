@@ -29,7 +29,7 @@
         "typing_tok_Rust_primitives.Integers.I32@tok"
       ],
       0,
-      "9d1be9ce48559c3a71725e12d2e2dd70"
+      "ec1f7a1374bdc05bce06b50280731b23"
     ],
     [
       "Spec.MLDSA.Math.mont_red",
@@ -72,7 +72,7 @@
         "typing_tok_Rust_primitives.Integers.I32@tok"
       ],
       0,
-      "2434e067fcba3829581e73121e1cb61a"
+      "057d9fc6f50dfcdaf460f70ef8bc3460"
     ],
     [
       "Spec.MLDSA.Math.lemma_mont_red_bound_field_max_times_pow2_32",
@@ -89,7 +89,7 @@
         "typing_Prims.pow2"
       ],
       0,
-      "80febd36ee05ff3015146c440d2364dc"
+      "6cb7957229be5dcf650a49fc27abfa67"
     ],
     [
       "Spec.MLDSA.Math.lemma_mont_red_bound_field_max_times_pow2_31",
@@ -106,7 +106,7 @@
         "typing_Prims.pow2"
       ],
       0,
-      "115ba3d8909aaee39802ad12b30324e3"
+      "192cdfb1eb50a4431669a29ef14d56bb"
     ],
     [
       "Spec.MLDSA.Math.lemma_mont_red_mod_q",
@@ -123,7 +123,7 @@
         "typing_Prims.pow2"
       ],
       0,
-      "fab1084e25ee2af455ce13be7a9fe544"
+      "e6d65a771865f191f96385ec49c69cc0"
     ],
     [
       "Spec.MLDSA.Math.barrett_red",
@@ -163,7 +163,7 @@
         "typing_tok_Rust_primitives.Integers.I32@tok"
       ],
       0,
-      "9f88c96d6bc00089244c83ba6943ab83"
+      "9e975954d2dce3b31b086ec50f446b01"
     ],
     [
       "Spec.MLDSA.Math.decompose_spec",
@@ -212,7 +212,7 @@
         "typing_tok_Rust_primitives.Integers.I32@tok"
       ],
       0,
-      "69adf02f90a78b11dacf44fb685b884e"
+      "09e62d273b4ae6ecc4760d17682f9fb6"
     ],
     [
       "Spec.MLDSA.Math.decompose_spec",
@@ -246,7 +246,7 @@
         "typing_tok_Rust_primitives.Integers.I32@tok"
       ],
       0,
-      "c02501016818be1d1dbc5fdecf9d86ad"
+      "8dc7c4a0b55518480a58677b5d00d573"
     ],
     [
       "Spec.MLDSA.Math.v_BITS_IN_LOWER_PART_OF_T",
@@ -275,7 +275,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "bb399193e6890904fc203a8da63b82b4"
+      "d0240998239491522036f05242dd7b10"
     ],
     [
       "Spec.MLDSA.Math.v_GAMMA2_V261_888",
@@ -305,7 +305,7 @@
         "typing_tok_Rust_primitives.Integers.I32@tok"
       ],
       0,
-      "aeca48d125df5190c2f9bf4856968a02"
+      "086f1729b1452677dc69349324a86f20"
     ],
     [
       "Spec.MLDSA.Math.v_GAMMA2_V95_232",
@@ -335,7 +335,7 @@
         "typing_tok_Rust_primitives.Integers.I32@tok"
       ],
       0,
-      "851922efe3bddf7ee14fbf7026c0cd3f"
+      "cd94f39de6e95ca7fdaf274a2cb63d36"
     ],
     [
       "Spec.MLDSA.Math.power2round",
@@ -384,7 +384,7 @@
         "typing_tok_Rust_primitives.Integers.I32@tok"
       ],
       0,
-      "75b83c4a7b152c564f4628c7de4a0847"
+      "8d300e9c180447b1109aa423a405d11a"
     ],
     [
       "Spec.MLDSA.Math.decompose",
@@ -434,7 +434,7 @@
         "typing_tok_Rust_primitives.Integers.I32@tok"
       ],
       0,
-      "7379bb100769592cf98394ab0fb38cc1"
+      "300def19c7421091c062f800c29bc307"
     ],
     [
       "Spec.MLDSA.Math.compute_one_hint",
@@ -464,7 +464,7 @@
         "typing_tok_Rust_primitives.Integers.I32@tok"
       ],
       0,
-      "9703947b4fd31be7446c281a2f37be8d"
+      "6ae9ba609485c59cf50f45afca4257f3"
     ],
     [
       "Spec.MLDSA.Math.use_one_hint",
@@ -504,7 +504,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "28d8937c811955f75ec652c6b96f4796"
+      "b7bdb0b735e8ff2fb224ee4fb9b90e03"
     ],
     [
       "Spec.MLDSA.Math.hint_counter",
@@ -559,7 +559,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e9e4efb4f70a5c574ec831035f29f41f"
+      "4b577fcb8e47dc6477b4350b7b8c443a"
     ],
     [
       "Spec.MLDSA.Math.hint_counter",
@@ -588,7 +588,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "1ce539fa7aecc8c30e1e94e1c6da33bf"
+      "4c457dc4e059676dea339f86ca98e3a1"
     ],
     [
       "Spec.MLDSA.Math.hint_counter_loop",
@@ -635,7 +635,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "023b2b50df058463e4e37bb28c193945"
+      "37791bfe1ec1b1ce7969304a1aa2a9a5"
     ],
     [
       "Spec.MLDSA.Math.compute_hint",
@@ -675,7 +675,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "715dcc9cd5b5c25667bf47607b44a657"
+      "2c50c7c41571c8b3b8435a97a3293913"
     ],
     [
       "Spec.MLDSA.Math.compute_hint",
@@ -704,7 +704,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "9f8be8c45521d18647f709897614397a"
+      "f8ba4a52a0eb5d2a95ddabbeb178c796"
     ],
     [
       "Spec.MLDSA.Math.rejection_sample_coefficient",
@@ -765,7 +765,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "1fc69973a71d91881c0a7568e209f8c4"
+      "6e51dbf136d3c25d823a433679e81f96"
     ],
     [
       "Spec.MLDSA.Math.rejection_sample_field_modulus_inner",
@@ -796,7 +796,7 @@
         "typing_tok_Rust_primitives.Integers.I32@tok"
       ],
       0,
-      "3280ea58bacb8eef7285575394e61ecc"
+      "7481e737b8f87d0b8d82b4471acd6ba6"
     ],
     [
       "Spec.MLDSA.Math.rejection_sample_field_modulus",
@@ -826,7 +826,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "041082f87f05784d6db1c2711ae18137"
+      "574f93483e072c4cf65abb300f7aac2e"
     ],
     [
       "Spec.MLDSA.Math.rejection_sample_eta_2_inner",
@@ -874,7 +874,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "9be340309d23fb18290ae3afb782dcb1"
+      "a32df79c89d06c4c6184228818309b79"
     ],
     [
       "Spec.MLDSA.Math.rejection_sample_eta_2",
@@ -902,7 +902,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "0e950beda32f004cdf65a1b963746194"
+      "27192c3e5893b9da637839d35a018278"
     ],
     [
       "Spec.MLDSA.Math.rejection_sample_eta_4_inner",
@@ -949,7 +949,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "efd47ce3e3f7b94211117255d9e13c60"
+      "b60830d267d6c243784dacbefc89f67f"
     ],
     [
       "Spec.MLDSA.Math.rejection_sample_eta_4",
@@ -977,7 +977,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "512db684c49c6059f18180ebd3dcfb0c"
+      "1322703a3f6df2c3c130974208d1d566"
     ],
     [
       "Spec.MLDSA.Math.rejection_sample_coefficient_lemma",
@@ -1025,7 +1025,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "432736e4249ff52d91ed3985ac5c09a0"
+      "8d81c11ca0db10c96c4ddf6ff46fcc11"
     ],
     [
       "Spec.MLDSA.Math.to_mont",
@@ -1101,7 +1101,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "bf8035d5651ebb2e569013ab6f373f14"
+      "d806c294c9373d2b24fd860e1b1f4ec2"
     ],
     [
       "Spec.MLDSA.Math.to_mont",
@@ -1130,7 +1130,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "18fe3f5eb167685906f12a9e74bb9247"
+      "9d797f284c147c9f38d3cee6c069bfd7"
     ]
   ]
 ]
