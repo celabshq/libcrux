@@ -230,6 +230,39 @@ let lemma_mm256_storeu_si256_u8_byte (output: t_Slice u8) (vector: t_Vec256) (k:
   = admit ()
 "#
 )]
+// ml-kem byte/bit_vec view of the SAME store (used by
+// Libcrux_ml_kem.Vector.Avx2.to_bytes); mirror of ml-kem-proofs' storeu bit_vec
+// post. Validated trust axiom (same little-endian store as the byte/u64 views).
+#[hax_lib::fstar::after(
+    interface,
+    r#"
+val lemma_mm256_storeu_si256_u8_bit_vec (output: t_Slice u8) (vector: t_Vec256)
+  : Lemma (requires Core_models.Slice.impl__len #u8 output == mk_usize 32)
+          (ensures
+      (let output_future = mm256_storeu_si256_u8 output vector in
+       Core_models.Slice.impl__len #u8 output_future ==
+         Core_models.Slice.impl__len #u8 output /\
+       (let output_arr: t_Array u8 (sz 32) = output_future in
+        BitVecEq.bit_vec_equal
+          (Rust_primitives.BitVectors.bit_vec_of_int_t_array output_arr 8) vector)))
+    [SMTPat (mm256_storeu_si256_u8 output vector)]
+"#
+)]
+#[hax_lib::fstar::after(
+    r#"
+let lemma_mm256_storeu_si256_u8_bit_vec (output: t_Slice u8) (vector: t_Vec256)
+  : Lemma (ensures
+      (let output_future = mm256_storeu_si256_u8 output vector in
+       Core_models.Slice.impl__len #u8 output_future ==
+         Core_models.Slice.impl__len #u8 output /\
+       (Core_models.Slice.impl__len #u8 output == mk_usize 32 ==>
+         (let output_arr: t_Array u8 (sz 32) = output_future in
+          BitVecEq.bit_vec_equal
+            (Rust_primitives.BitVectors.bit_vec_of_int_t_array output_arr 8) vector))))
+    [SMTPat (mm256_storeu_si256_u8 output vector)]
+  = admit ()
+"#
+)]
 pub fn mm256_storeu_si256_u8(output: &mut [u8], vector: Vec256) {
     debug_assert_eq!(output.len(), 32);
     unimplemented!()
@@ -300,8 +333,22 @@ pub fn mm_loadu_si128(input: &[u8]) -> Vec128 {
     unimplemented!()
 }
 
-// NOTE (PR2 union): ml-kem-proofs also specs this fn with a bit_vec view;
-// kept sha3's u64-lane ensures (hax allows one ensures/fn).
+// NOTE (PR2 union): sha3 needs the u64-lane view (the hax_lib::forall ensures
+// below, also extracted to Lean); ml-kem needs the i16/byte bit_vec view (used
+// by Libcrux_ml_kem.Vector.Avx2.from_bytes). hax allows one ensures/fn, so the
+// bit_vec view is supplied as a separate validated trust-axiom SMTPat lemma
+// (same little-endian byte load; mirror of ml-kem-proofs' loadu bit_vec post).
+#[hax_lib::fstar::after(
+    interface,
+    r#"
+val lemma_mm256_loadu_si256_u8_bit_vec (input: t_Slice u8)
+    : Lemma (requires Core_models.Slice.impl__len #u8 input == mk_usize 32)
+            (ensures (let input_arr: t_Array u8 (sz 32) = input in
+              BitVecEq.bit_vec_equal (mm256_loadu_si256_u8 input)
+                (Rust_primitives.BitVectors.bit_vec_of_int_t_array input_arr 8)))
+            [SMTPat (mm256_loadu_si256_u8 input)]
+"#
+)]
 #[inline(always)]
 #[hax_lib::requires(input.len() == 32)]
 #[hax_lib::ensures(|result| hax_lib::forall(|i: usize|
