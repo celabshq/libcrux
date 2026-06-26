@@ -18,7 +18,7 @@
         "typing_Prims.pow2"
       ],
       0,
-      "61927df5cf14db2a2201085cbdb3e89e"
+      "13ec6ffdb5e82a2cc0c3462a8889bfe8"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Arithmetic.sub",
@@ -37,7 +37,7 @@
         "typing_Prims.pow2"
       ],
       0,
-      "0b5ed47298842046244eb8898d938491"
+      "e59c0647585e5a117d373e0299171440"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Arithmetic.multiply_by_constant",
@@ -55,7 +55,7 @@
         "typing_Prims.pow2"
       ],
       0,
-      "26a6d59d3609c78eb30fc9bda14aa86d"
+      "0dea620025ee9736ca0c43654b08b9a9"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Arithmetic.bitwise_and_with_constant",
@@ -93,7 +93,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e2914791f4e9619e37267f7b9c1e93d1"
+      "7473f3961846b2905c2e7708f476b336"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Arithmetic.shift_right",
@@ -147,7 +147,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "3d79edb37b3fd3fe596e1d5b5c66017d"
+      "9acdfc15ea20ec6e81e089f693c22ddb"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Arithmetic.cond_subtract_3329_",
@@ -209,7 +209,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "2cb643a58d945da6f62a81e8465b4235"
+      "6fb75553572cb3d686f96e80204d7bdb"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Arithmetic.v_BARRETT_MULTIPLIER",
@@ -239,7 +239,7 @@
         "typing_tok_Rust_primitives.Integers.I16@tok"
       ],
       0,
-      "2c23781552089e20cf50e1fc66fdae04"
+      "189c72805b160b394b65040e4b140bea"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Arithmetic.barrett_reduce",
@@ -283,7 +283,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "c2fc7c571cd5eec133c13057a4ac3726"
+      "0861ec6255cb5c6f73781650c9b6a804"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Arithmetic.montgomery_multiply_by_constant",
@@ -326,7 +326,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "42fc4c6701a8596747c85610a6a9ed70"
+      "57b383ae3348ea8c1eeb35c3553a02b4"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Arithmetic.montgomery_multiply_by_constants",
@@ -370,7 +370,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "7f3cedc96417da8aeeef192fe0f6a783"
+      "42e1da956ce18c2d4e5fede2dc7a3764"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Arithmetic.lane32",
@@ -385,7 +385,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "239fa79ee36fe29a9411c8c25843829a"
+      "ab9b176820eda94f746868d850a02bfe"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Arithmetic.mont_red_i32_lane",
@@ -400,7 +400,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "71baaa5f2c6c33ebd8a3accf10a2a9d3"
+      "a4a47409ea5202ab40cf35fab1b309d8"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Arithmetic.montgomery_reduce_i32s",
@@ -444,7 +444,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "ffa22641f052a3e6a4628d1e5fa1c6c2"
+      "278c62ab58f7f9b4e8e7294ade4176ce"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Arithmetic.montgomery_multiply_m128i_by_constants",
@@ -489,7 +489,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "fe3c962d470ab3c48f37924f60154079"
+      "4b5a17db3989651cc08690c0da35823d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Arithmetic.to_unsigned_representative",
@@ -532,7 +532,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "6ef28620ac4717e86db2c8eae3bf7e89"
+      "ab1136b45427616178a92c795a2990b9"
     ]
   ]
 ]
