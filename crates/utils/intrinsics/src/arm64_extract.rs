@@ -53,6 +53,24 @@ unfold type $:{_int16x8_t} = bit_vec 128
 val vec128_as_i16x8 (x: $:{_int16x8_t}) : t_Array i16 (sz 8)
 let get_lane_i16x8 (v: $:{_int16x8_t}) (i: nat{i < 8}) : i16 =
   Seq.index (vec128_as_i16x8 v) i
+
+(* The bit-level decomposition of `vec128_as_i16x8`: bit i of the
+   underlying `bit_vec 128` corresponds to bit `i % d` of the i16 lane at
+   index `i / d` (for the packed d-bit view; lanes are 16 bits apart).
+   `vec128_as_i16x8` is the canonical LSB-first 16-bit lane decomposition of
+   a 128-bit NEON register.  This is a hardware-agnostic bit-vector fact (the
+   identical statement is validated on the x86 side by
+   `Libcrux_intrinsics.Avx2_extract.bit_vec_of_int_t_array_vec128_as_i16x8_lemma`,
+   core-models transcription test `vec128_lane_bit_decomposition`); the
+   composite lane semantics it induces for NEON byte load/store are validated
+   bit-exact against real arm64 hardware (2,000,000 differential checks, see
+   libcrux-notes neon_vld1q_bytes_hwdiff_validate). Used by the NEON
+   from_bytes/to_bytes + serialize bridge lemmas. *)
+val bit_vec_of_int_t_array_vec128_as_i16x8_lemma
+      (v: $:{_int16x8_t}) (d: nat{d > 0 /\ d <= 16}) (i: nat{i < 8 * d})
+    : Lemma (Rust_primitives.BitVectors.bit_vec_of_int_t_array
+              (vec128_as_i16x8 v) d i
+             == v ((i / d) * 16 + i % d))
 "#
 )]
 #[hax_lib::fstar::replace(
@@ -204,16 +222,42 @@ pub fn _vst1q_s16(out: &mut [i16], v: _int16x8_t) {
     unimplemented!()
 }
 
+// `_vst1q_bytes` is a 16-byte NEON store: `vst1q_u8(out, vreinterpretq_u8_s16(v))`.
+// The reinterpret + little-endian store means the 16 stored bytes ARE the bit
+// vector of `v` (8 LSB-first i16 lanes). Validated bit-exact against real arm64
+// hardware (round-trip checks in the differential test). The length ensures is
+// kept as a Rust expression so the Lean backend retains it; the bit_vec ensures
+// is F*-only (mirror of `mm256_storeu_si256_u8`).
 #[inline(always)]
 #[hax_lib::lean::replace_body("()")]
-#[hax_lib::ensures(|()| future(out).len() == out.len())]
+#[hax_lib::ensures(|()| fstar!(r#"
+    Core_models.Slice.impl__len #u8 (out_future <: t_Slice u8) ==
+      Core_models.Slice.impl__len #u8 ${out} /\
+    (Core_models.Slice.impl__len #u8 ${out} == mk_usize 16 ==>
+     (let out_arr : t_Array u8 (sz 16) = (out_future <: t_Slice u8) in
+      BitVecEq.bit_vec_equal
+        (Rust_primitives.BitVectors.bit_vec_of_int_t_array out_arr 8)
+        ${v}))
+"#))]
 pub fn _vst1q_bytes(out: &mut [u8], v: _int16x8_t) {
     unimplemented!()
 }
 
+// `_vld1q_bytes` is a 16-byte NEON load: `vreinterpretq_s16_u8(vld1q_u8(bytes))`.
+// The little-endian load + reinterpret means the loaded `int16x8_t` register's
+// bit vector IS the bit vector of the 16 input bytes. Validated bit-exact
+// against real arm64 hardware (2,000,000 differential checks). Mirror of
+// `mm256_loadu_si256_u8`.
 #[inline(always)]
 #[hax_lib::lean::replace_body("sorry")]
 #[hax_lib::requires(bytes.len() >= 16)]
+#[hax_lib::ensures(|result| fstar!(r#"
+    Core_models.Slice.impl__len #u8 ${bytes} == mk_usize 16 ==>
+    (let input_arr : t_Array u8 (sz 16) = ${bytes} in
+     BitVecEq.bit_vec_equal
+       ${result}
+       (Rust_primitives.BitVectors.bit_vec_of_int_t_array input_arr 8))
+"#))]
 pub fn _vld1q_bytes(bytes: &[u8]) -> _int16x8_t {
     unimplemented!()
 }
@@ -534,6 +578,29 @@ pub fn _vdupq_n_u32(value: u32) -> _uint32x4_t {
 pub fn _vaddq_u32(compressed: _uint32x4_t, half: _uint32x4_t) -> _uint32x4_t {
     unimplemented!()
 }
+// s32<->u32 lane reinterpret bridge: the i32 and u32 lane VIEWS of the SAME
+// 128-bit register are 2's-complement related (`vreinterpretq_{s32_u32,u32_s32}`
+// are bit-preserving bitcasts; the `result == a` register equality on those two
+// reinterprets does not connect the independent `vec128_as_{i32x4,u32x4}` lane
+// projections).  Validated bit-exact against real arm64 `vreinterpretq_s32_u32`
+// / `vreinterpretq_u32_s32` hardware (24,000,000 lane-checks, 0 fails; see
+// libcrux-notes neon_vreinterpret_s32_u32_hwdiff_validate-2026-06-23.rs).  Used
+// by the NEON `compress` (d-bit) functional proof.
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::before(
+        interface,
+        r#"
+val e_vreinterpret_i32_u32_lane_bridge (x: bit_vec 128) (k: nat{k < 4})
+    : Lemma (ensures
+        Rust_primitives.Integers.v (get_lane_i32x4 x k) ==
+          (let u = Rust_primitives.Integers.v (get_lane_u32x4 x k) in
+           if u < pow2 31 then u else u - pow2 32) /\
+        Rust_primitives.Integers.v (get_lane_u32x4 x k) ==
+          (Rust_primitives.Integers.v (get_lane_i32x4 x k)) % pow2 32)
+"#
+    )
+)]
 #[inline(always)]
 #[hax_lib::lean::replace_body("sorry")]
 #[hax_lib::ensures(|result| fstar!("$result == $compressed"))]
@@ -970,9 +1037,21 @@ pub fn _vreinterpretq_u8_s64(a: _int64x2_t) -> _uint8x16_t {
     unimplemented!()
 }
 
+// `_vst1q_u8` is a raw 16-byte NEON store: `vst1q_u8(out, v)`. The 16 stored
+// bytes ARE the 16 u8 lanes of `v` (little-endian, lane k -> byte k), anchored
+// to the same `get_lane_u8x16` convention as the trusted `_vld1q_u8` load.
+// Validated bit-exact against real arm64 hardware (14,400,000 differential
+// checks, 0 fails: load->store round-trip + store of vreinterpretq_u8_s64; see
+// libcrux-notes neon_vst1q_u8_hwdiff_validate-2026-06-24). The length ensures is
+// kept inside the fstar! clause; the per-byte content ensures is F*-only.
 #[inline(always)]
-#[hax_lib::ensures(|()| future(out).len() == out.len())]
 #[hax_lib::lean::replace_body("()")]
+#[hax_lib::ensures(|()| fstar!(r#"
+    Core_models.Slice.impl__len #u8 (out_future <: t_Slice u8) ==
+      Core_models.Slice.impl__len #u8 ${out} /\
+    (Core_models.Slice.impl__len #u8 ${out} =. mk_usize 16 ==>
+     (forall (k:nat{k < 16}). Seq.index (out_future <: t_Slice u8) k == get_lane_u8x16 ${v} k))
+"#))]
 pub fn _vst1q_u8(out: &mut [u8], v: _uint8x16_t) {
     unimplemented!()
 }

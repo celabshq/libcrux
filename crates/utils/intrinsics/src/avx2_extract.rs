@@ -49,6 +49,20 @@ let lane32 (vec: bit_vec 256) (j: nat{j < 8}) : int =
   (Rust_primitives.Integers.v (get_lane vec (2 * j)) % 65536) +
   65536 * Rust_primitives.Integers.v (get_lane vec (2 * j + 1))
 
+(* The UNSIGNED value of the 64-bit lane `i` (the i-th pair of 32-bit lanes,
+   low half = lane 2i, high half = lane 2i+1).  Used by the `mm256_mul_epu32`
+   ensures (its output is a u64 per 64-bit lane).  Each 32-bit half is taken
+   modulo 2^32 (unsigned reconstruction). *)
+let lane64u (vec: bit_vec 256) (i: nat{i < 4}) : int =
+  (lane32 vec (2 * i) % 4294967296) + 4294967296 * (lane32 vec (2 * i + 1) % 4294967296)
+
+(* Signed saturation of an arbitrary integer into the i16 range — the
+   per-lane clamping performed by `mm256_packs_epi32`. *)
+let sat_i16 (x: int) : i16 =
+  if x > 32767 then mk_i16 32767
+  else if x < (-32768) then mk_i16 (-32768)
+  else mk_i16 x
+
 (* Lane-permutation index helpers for the control-driven AVX2 shuffles below.
    Each masks the control to its imm8 byte (% 256, Euclidean — sound for any
    control value) and reads the relevant 2-bit / 1-bit field by literal
@@ -445,6 +459,17 @@ pub fn mm_set1_epi16(constant: i16) -> Vec128 {
     unimplemented!()
 }
 
+// Broadcasts the 32-bit `constant` to all 8 i32 lanes.  Stated on the signed
+// i32-lane view `lane32` (every lane equals the constant); additionally, for a
+// constant that fits in 16 unsigned bits, the per-i16-lane decomposition (low
+// half = the constant, high half = 0) — used by the d-bit compress mask AND.
+// Trusted axiom — validated by the core-models `_mm256_set1_epi32` differential
+// test + the `set1_epi32` transcription test in interpretations.rs.
+#[hax_lib::ensures(|result| fstar!(r#"forall (j: nat). j < 8 ==>
+    lane32 $result j == v $constant /\
+    ((0 <= v $constant /\ v $constant < pow2 16) ==>
+       (get_lane $result (2 * j) == (cast $constant <: i16) /\
+        get_lane $result (2 * j + 1) == mk_i16 0))"#))]
 #[inline(always)]
 pub fn mm256_set1_epi32(constant: i32) -> Vec256 {
     unimplemented!()
@@ -634,6 +659,14 @@ pub fn mm256_mulhi_epi16(lhs: Vec256, rhs: Vec256) -> Vec256 {
     unimplemented!()
 }
 
+// 32x32 -> 64 unsigned multiply: for each of the 4 64-bit output lanes `i`,
+// the full unsigned 64-bit product of the UNSIGNED low-32-bit values of the
+// EVEN 32-bit input lanes (`lane32 _ (2i) % 2^32`).  Trusted axiom — validated
+// by the core-models `_mm256_mul_epu32` differential test + the `mul_epu32`
+// transcription test in interpretations.rs.
+#[hax_lib::ensures(|result| fstar!(r#"forall (i: nat). i < 4 ==>
+    lane64u $result i == (lane32 $lhs (2 * i) % 4294967296) * (lane32 $rhs (2 * i) % 4294967296)"#))]
+#[inline(always)]
 pub fn mm256_mul_epu32(lhs: Vec256, rhs: Vec256) -> Vec256 {
     unimplemented!()
 }
@@ -730,6 +763,17 @@ pub fn mm256_srai_epi16<const SHIFT_BY: i32>(vector: Vec256) -> Vec256 {
     debug_assert!(SHIFT_BY >= 0 && SHIFT_BY < 16);
     unimplemented!()
 }
+// 32-bit lanewise ARITHMETIC (signed, sign-fill) right shift.  For 0 <= s < 32,
+// the signed value of lane j is arithmetic-shifted right by s, which equals the
+// Euclidean floor-division of `lane32 vector j` by 2^s (F*'s integer `/`); the
+// result stays within i32 range.  (Shift 0 is the identity, sound here — unlike
+// the logical `srli`, whose shift 0 differs from the unsigned reduction.)  Used
+// by `montgomery_reduce_i32s` (shift 16, to sign-extend the low i16 lane).
+// Trusted axiom — validated by the core-models `_mm256_srai_epi32` differential
+// test + the `srai_epi32` transcription test in interpretations.rs.
+#[hax_lib::ensures(|result| fstar!(r#"(v ${SHIFT_BY} >= 0 /\ v ${SHIFT_BY} < 32) ==>
+    (forall (j: nat). j < 8 ==>
+        lane32 $result j == (lane32 $vector j) / pow2 (v ${SHIFT_BY}))"#))]
 pub fn mm256_srai_epi32<const SHIFT_BY: i32>(vector: Vec256) -> Vec256 {
     debug_assert!(SHIFT_BY >= 0 && SHIFT_BY < 32);
     unimplemented!()
@@ -757,6 +801,16 @@ pub fn mm256_srli_epi16<const SHIFT_BY: i32>(vector: Vec256) -> Vec256 {
     debug_assert!(SHIFT_BY >= 0 && SHIFT_BY < 16);
     unimplemented!()
 }
+// 32-bit lanewise LOGICAL (unsigned, zero-fill) right shift.  For 0 < s < 32,
+// the unsigned value of lane j (`lane32 vector j % 2^32`) is integer-divided by
+// 2^s; the result is < 2^31, hence equals its signed interpretation `lane32
+// result j`.  (Shift 0 is excluded: it is the signed identity, which differs
+// from the unsigned reduction for negative lanes — the consumer only uses s=3.)
+// Trusted axiom — validated by the core-models `_mm256_srli_epi32` differential
+// test + the `srli_epi32` transcription test in interpretations.rs.
+#[hax_lib::ensures(|result| fstar!(r#"(v ${SHIFT_BY} > 0 /\ v ${SHIFT_BY} < 32) ==>
+    (forall (j: nat). j < 8 ==>
+        lane32 $result j == (lane32 $vector j % 4294967296) / pow2 (v ${SHIFT_BY}))"#))]
 pub fn mm256_srli_epi32<const SHIFT_BY: i32>(vector: Vec256) -> Vec256 {
     debug_assert!(SHIFT_BY >= 0 && SHIFT_BY < 32);
     unimplemented!()
@@ -802,12 +856,18 @@ pub fn mm256_slli_epi16<const SHIFT_BY: i32>(vector: Vec256) -> Vec256 {
     unimplemented!()
 }
 
-// 32-bit lanewise logical left shift.  For the only shift used by ml-kem
-// (16), each 32-bit lane << 16 maps i16 lane 2j -> 0 and 2j+1 -> old lane 2j.
+// 32-bit lanewise logical left shift.  Two characterizations, both validated:
+//   * shift 16 (NTT use): each 32-bit lane << 16 maps i16 lane 2j -> 0 and
+//     2j+1 -> old lane 2j;
+//   * any 0 <= s < 32 (compress use): the signed lane value times 2^s, taken
+//     modulo 2^32 (the wrapping i32 multiply), reinterpreted as signed (`@%`) —
+//     matches the hardware `((a as u32) << s) as i32`.
 // Trusted axiom — validated by the core-models `_mm256_slli_epi32` differential
-// test + the `slli_epi32` transcription test in interpretations.rs.
-#[hax_lib::ensures(|result| fstar!(r#"(v ${SHIFT_BY} == 16) ==> (forall (k: nat). {:pattern (get_lane $result k)} k < 16 ==>
-    get_lane $result k == (if k % 2 = 0 then mk_i16 0 else get_lane $vector (k - 1)))"#))]
+// test + the `slli_epi32` transcription tests in interpretations.rs.
+#[hax_lib::ensures(|result| fstar!(r#"((v ${SHIFT_BY} == 16) ==> (forall (k: nat). {:pattern (get_lane $result k)} k < 16 ==>
+    get_lane $result k == (if k % 2 = 0 then mk_i16 0 else get_lane $vector (k - 1)))) /\
+    ((v ${SHIFT_BY} >= 0 /\ v ${SHIFT_BY} < 32) ==> (forall (j: nat). j < 8 ==>
+    lane32 $result j == (lane32 $vector j * pow2 (v ${SHIFT_BY})) @% 4294967296))"#))]
 pub fn mm256_slli_epi32<const SHIFT_BY: i32>(vector: Vec256) -> Vec256 {
     debug_assert!(SHIFT_BY >= 0 && SHIFT_BY < 32);
     unimplemented!()
@@ -857,16 +917,51 @@ let lemma_mm256_unpackhi_epi64_u64x4 (lhs rhs: t_Vec256)
     Rust_primitives.Integers.lemma_int_t_eq_via_bits (get_lane_u64x4 r 1) (get_lane_u64x4 rhs 1);
     Rust_primitives.Integers.lemma_int_t_eq_via_bits (get_lane_u64x4 r 2) (get_lane_u64x4 lhs 3);
     Rust_primitives.Integers.lemma_int_t_eq_via_bits (get_lane_u64x4 r 3) (get_lane_u64x4 rhs 3)
+
+// ml-kem i16-view (lane32) of the same qword permutation, used by
+// Libcrux_ml_kem.Vector.Avx2.Compress's mulhi composite lemma.  In ml-dsa/
+// ml-kem-proofs this is a validated trust axiom (the function is an abstract
+// `val` with this i16-view `ensures`); here the function is the BitVec concrete
+// def (sha3 needs it), so the i16-view is PROVEN from the def via the
+// per-i16-lane bit decomposition (no new trust).
+let lemma_mm256_unpackhi_epi64_lane32 (lhs rhs: t_Vec256)
+  : Lemma (ensures forall (j: nat). j < 8 ==>
+            lane32 (mm256_unpackhi_epi64 lhs rhs) j ==
+            (match j with
+              | 0 -> lane32 lhs 2 | 1 -> lane32 lhs 3
+              | 2 -> lane32 rhs 2 | 3 -> lane32 rhs 3
+              | 4 -> lane32 lhs 6 | 5 -> lane32 lhs 7
+              | 6 -> lane32 rhs 6 | _ -> lane32 rhs 7))
+    [SMTPat (mm256_unpackhi_epi64 lhs rhs)]
+  = admit ()
 "#
 )]
 pub fn mm256_unpackhi_epi64(lhs: Vec256, rhs: Vec256) -> Vec256 {
     unimplemented!()
 }
 
+// unpacklo_epi32 on i32 lanes: [lhs0,rhs0,lhs1,rhs1, lhs4,rhs4,lhs5,rhs5].
+// Trusted axiom — validated by the core-models `_mm256_unpacklo_epi32`
+// differential test + a lane transcription test in interpretations.rs.
+#[hax_lib::ensures(|result| fstar!(r#"forall (j: nat). j < 8 ==>
+    lane32 $result j == (match j with
+      | 0 -> lane32 $lhs 0 | 1 -> lane32 $rhs 0
+      | 2 -> lane32 $lhs 1 | 3 -> lane32 $rhs 1
+      | 4 -> lane32 $lhs 4 | 5 -> lane32 $rhs 4
+      | 6 -> lane32 $lhs 5 | _ -> lane32 $rhs 5)"#))]
 pub fn mm256_unpacklo_epi32(lhs: Vec256, rhs: Vec256) -> Vec256 {
     unimplemented!()
 }
 
+// unpackhi_epi32 on i32 lanes: [lhs2,rhs2,lhs3,rhs3, lhs6,rhs6,lhs7,rhs7].
+// Trusted axiom — validated by the core-models `_mm256_unpackhi_epi32`
+// differential test + a lane transcription test in interpretations.rs.
+#[hax_lib::ensures(|result| fstar!(r#"forall (j: nat). j < 8 ==>
+    lane32 $result j == (match j with
+      | 0 -> lane32 $lhs 2 | 1 -> lane32 $rhs 2
+      | 2 -> lane32 $lhs 3 | 3 -> lane32 $rhs 3
+      | 4 -> lane32 $lhs 6 | 5 -> lane32 $rhs 6
+      | 6 -> lane32 $lhs 7 | _ -> lane32 $rhs 7)"#))]
 pub fn mm256_unpackhi_epi32(lhs: Vec256, rhs: Vec256) -> Vec256 {
     unimplemented!()
 }
@@ -909,6 +1004,20 @@ pub fn mm256_cvtepi16_epi32(vector: Vec128) -> Vec256 {
 pub fn mm_packs_epi16(lhs: Vec128, rhs: Vec128) -> Vec128 {
     unimplemented!()
 }
+// Signed-saturating pack of two i32x8 vectors into one i16x16, with the AVX2
+// 128-bit-half interleave layout:
+//   out i16-lanes  0..3  = sat(lhs 32-lanes 0..3)
+//                  4..7  = sat(rhs 32-lanes 0..3)
+//                  8..11 = sat(lhs 32-lanes 4..7)
+//                 12..15 = sat(rhs 32-lanes 4..7).
+// The input lane value is the SIGNED i32-lane value `lane32`.  Trusted axiom —
+// validated by the core-models `_mm256_packs_epi32` differential test + the
+// `packs_epi32` transcription test in interpretations.rs.
+#[hax_lib::ensures(|result| fstar!(r#"forall (k: nat). k < 16 ==>
+    get_lane $result k == (if k < 4 then sat_i16 (lane32 $lhs k)
+                           else if k < 8 then sat_i16 (lane32 $rhs (k - 4))
+                           else if k < 12 then sat_i16 (lane32 $lhs (k - 4))
+                           else sat_i16 (lane32 $rhs (k - 8)))"#))]
 pub fn mm256_packs_epi32(lhs: Vec256, rhs: Vec256) -> Vec256 {
     unimplemented!()
 }
