@@ -447,7 +447,7 @@ macro_rules! instantiate {
 instantiate! {portable, ind_cca::instantiations::portable, vector::portable::PortableVector, "Portable ML-KEM 512"}
 #[cfg(feature = "simd256")]
 instantiate! {avx2, ind_cca::instantiations::avx2, vector::SIMD256Vector, "AVX2 Optimised ML-KEM 512"}
-#[cfg(all(feature = "simd128", not(hax)))]
+#[cfg(feature = "simd128")]
 instantiate! {neon, ind_cca::instantiations::neon, vector::SIMD128Vector, "Neon Optimised ML-KEM 512"}
 
 /// Validate a public key.
