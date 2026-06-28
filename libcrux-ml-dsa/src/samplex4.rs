@@ -40,6 +40,11 @@ pub(crate) trait X4Sampler {
 // Post is the opaque poly-slice atom so callers see one premise instead
 // of bare double-forall.
 #[inline(always)]
+// Admitted (relocated from Makefile ADMIT_MODULES): the body requires
+// trait-method panic-freedom on the underlying X4 Xof hash functions,
+// which is not yet proven.  The declared `ensures` is exported to
+// callers exactly as before.
+#[hax_lib::fstar::verification_status(lax)]
 #[hax_lib::ensures(|_| fstar!(r#"
     Seq.length ${matrix}_future == Seq.length $matrix /\
     Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice
@@ -156,6 +161,10 @@ pub(crate) mod avx2 {
 // still uses the bare per-simd-unit `is_pos_array_opaque` form, so a
 // bridge in keygen is needed (was: same-shape match; now: opaque-atom
 // expansion).
+// Admitted (relocated from Makefile ADMIT_MODULES): same X4 Xof
+// panic-freedom dependency as `matrix_flat`.  Declared `ensures`
+// exported to callers unchanged.
+#[hax_lib::fstar::verification_status(lax)]
 #[hax_lib::ensures(|_| fstar!(r#"
     Seq.length ${s1_s2}_future == Seq.length $s1_s2 /\
     (let eta_val : usize = match ${eta} with

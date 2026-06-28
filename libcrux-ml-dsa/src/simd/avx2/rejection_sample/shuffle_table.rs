@@ -5,10 +5,19 @@
 //
 // |SHUFFLE_TABLE| was originally generated using a
 // python script.
+//
+// They are excluded from F* extraction (dead code outside the unit
+// test): `is_bit_set`'s `1 << bit_position` would need the opaque
+// `v bit_position < bits USIZE` shift precondition.  Excluding them
+// lets the extracted module carry only the `SHUFFLE_TABLE` constant,
+// which verifies without any admit (this removes the former
+// Makefile ADMIT_MODULES entry rather than relocating it).
+#[cfg_attr(hax, hax_lib::exclude)]
 #[allow(dead_code)]
 fn is_bit_set(number: usize, bit_position: u8) -> bool {
     ((number & (1 << bit_position)) >> bit_position) == 1
 }
+#[cfg_attr(hax, hax_lib::exclude)]
 #[allow(dead_code)]
 fn generate_shuffle_table() -> [[u8; 16]; 16] {
     let mut byte_shuffles = [[255u8; 16]; 16];

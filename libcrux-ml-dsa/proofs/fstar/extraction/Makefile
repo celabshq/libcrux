@@ -19,28 +19,27 @@ SLOW_MODULES +=
 # through multiplexing -> instantiations -> generic (admitted core).
 
 # =====================================================================
-# X4-parallel matrix sampling dispatchers (4)
+# Trust boundary: as much as possible is now declared IN SOURCE.
 # =====================================================================
-# Requires trait-method panic-freedom on the underlying X4 Xof hash
-# functions.  Tracked as Session D in `proofs/post-merge-handoff.md`.
+# MOVED TO SOURCE (no longer admitted here):
+# - Samplex4.fst: the free fns `matrix_flat` / `sample_s1_and_s2` in
+#   `src/samplex4.rs` carry `#[hax_lib::fstar::verification_status(lax)]`
+#   (bodies need X4 Xof trait-method panic-freedom, not yet proven).
+# - Simd.Avx2.Rejection_sample.Shuffle_table: the dead-code executable-
+#   spec fns are `#[hax_lib::exclude]`d in `shuffle_table.rs`, leaving
+#   only the verified `SHUFFLE_TABLE` constant — admit ELIMINATED.
+#
+# CANNOT move to source (hax 0.3.7 limitation): the per-platform
+# `X4Sampler` impls below fail the trait-instance subtyping check
+# (`Samplex4.{Avx2,Portable,Neon}.fst:43 f_matrix_flat`, Error 19), not
+# a body VC.  `verification_status(lax)` is illegal on impl methods
+# (expands to an unnamed `const _`, rustc rejects) and `panic_free`
+# only admits the ensures, not this instance check.  Until hax gains a
+# module-/impl-level admit attribute they stay admitted here.
 ADMIT_MODULES = \
-	Libcrux_ml_dsa.Samplex4.fst \
 	Libcrux_ml_dsa.Samplex4.Avx2.fst \
 	Libcrux_ml_dsa.Samplex4.Neon.fst \
 	Libcrux_ml_dsa.Samplex4.Portable.fst
-
-# =====================================================================
-# AVX2 rejection sample shuffle table + samplers (3)
-# =====================================================================
-# Shuffle_table is dead-code "executable spec" for the const
-# `SHUFFLE_TABLE`; its `is_bit_set` does `1 << bit_position` which
-# requires `v bit_position < bits USIZE` (opaque in the proof-libs
-# .fsti) — fixable but not trivial.  Samplers are admit-only
-# pending bit-vec body proofs (similar shape to Step 13 Track A AVX2
-# closures).  Tracked as Session C in
-# `proofs/post-merge-handoff.md`.
-ADMIT_MODULES += \
-	Libcrux_ml_dsa.Simd.Avx2.Rejection_sample.Shuffle_table.fst
 
 FSTAR_INCLUDE_DIRS_EXTRA += ../spec \
 	      $(shell git rev-parse --show-toplevel)/fstar-helpers/fstar-bitvec \
