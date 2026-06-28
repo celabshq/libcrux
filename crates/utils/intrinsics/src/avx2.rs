@@ -6,7 +6,7 @@ pub use core::arch::x86::*;
 pub use core::arch::x86_64::*;
 
 #[cfg(hax)]
-pub use core_models::arch::x86::*;
+pub use libcrux_core_models::arch::x86::*;
 
 pub type Vec256 = __m256i;
 pub type Vec128 = __m128i;

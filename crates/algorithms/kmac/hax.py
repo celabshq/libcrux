@@ -116,7 +116,7 @@ class extractAction(argparse.Action):
             INTRINSICS,
             [
                 "into",
-                "-i", "-core_models::**",
+                "-i", "-libcrux_core_models::**",
                 "fstar", "--z3rlimit", "80", "--interfaces", "+**",
             ],
         )

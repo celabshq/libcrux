@@ -55,7 +55,7 @@ rand_chacha = "0.9"
 pqcrypto-mldsa = { version = "0.1.0" } #, default-features = false
 
 [target.'cfg(hax)'.dependencies]
-core-models = { path = "../crates/utils/core-models", version = "0.0.6" }
+libcrux-core-models = { path = "../crates/utils/core-models", version = "0.0.6" }
 hacspec_ml_dsa = { path = "../specs/ml-dsa" }
 
 [features]

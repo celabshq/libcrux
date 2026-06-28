@@ -14,11 +14,10 @@ function extract_all() {
         fstar --z3rlimit 80 --interfaces "+**"
 
     extract crates/utils/core-models into fstar
-    rename_core_models_files crates/utils/core-models
 
     extract crates/utils/intrinsics \
         -C --features simd128,simd256 ";" \
-        into -i "-core_models::**" \
+        into -i "-libcrux_core_models::**" \
         fstar --z3rlimit 80 --interfaces "+**"
 
     extract crates/utils/secrets \
@@ -102,23 +101,6 @@ function msg() {
     echo -e "$1[$SCRIPT_NAME]$RESET $2"
 }
 
-function rename_core_models_files() {
-    TARGET="$1"
-    shift 1
-    go_to "$TARGET"
-
-    local target_dir="proofs/fstar/extraction"
-    find "$target_dir" -type f -name "Core_models*" | while read -r file; do
-        dir_path="${file%/*}"
-        filename="${file##*/}"
-        new_filename="Libcrux_core_models${filename#Core_models}"
-        mv "$file" "$dir_path/$new_filename"
-    done
-    find "$target_dir" -type f \( -name "*.fst" -o -name "*.fsti" \) -exec $SED -i'' \
-        -e 's/module Core_models/module Libcrux_core_models/g' \
-        {} +
-}
-
 function patch_fstar_extractions() {
     go_to "crates/algorithms/sha3"
     local target_dir="proofs/fstar/extraction"
@@ -154,14 +136,6 @@ function patch_fstar_extractions() {
     # needed here.
 }
 
-function rename_core_models_uses() {
-    local target_dir="proofs/fstar/extraction"
-    find "$target_dir" -type f \( -name "*.fst" -o -name "*.fsti" \) -exec $SED -i'' \
-        -e 's/Core_models\.Abstractions/Libcrux_core_models.Abstractions/g' \
-        -e 's/Core_models\.Core_arch/Libcrux_core_models.Core_arch/g' \
-        {} +
-}
-
 function extract() {
     TARGET="$1"
     shift 1
@@ -172,7 +146,6 @@ function extract() {
         msg "$RED" "extract extraction failed for ${BOLD}$1${RESET}"
         exit 1
     }
-    rename_core_models_uses
 }
 
 function extract_to_lean() {
@@ -195,7 +168,7 @@ function extract_all_lean() {
     extract_to_lean crates/utils/core-models into lean
 
     extract_to_lean crates/utils/intrinsics \
-        into -i "-core_models::**" \
+        into -i "-libcrux_core_models::**" \
         lean
 
     extract_to_lean crates/utils/secrets \

@@ -997,8 +997,8 @@ assume val _mm256_set_epi32_interp: e7: i32 -> e6: i32 -> e5: i32 -> e4: i32 -> 
   -> Lemma
         (
             (
-                Core_models.Abstractions.Bitvec.Int_vec_interp.e_ee_1__impl__to_i32x8
-                    (Core_models.Core_arch.X86.Avx.e_mm256_set_epi32 e7 e6 e5 e4 e3 e2 e1 e0)
+                Libcrux_core_models.Abstractions.Bitvec.Int_vec_interp.e_ee_1__impl__to_i32x8
+                    (Libcrux_core_models.Core_arch.X86.Avx.e_mm256_set_epi32 e7 e6 e5 e4 e3 e2 e1 e0)
             ).[ i ]
          == ( match i with
             | MkInt 0 -> e0 | MkInt 1 -> e1 | MkInt 2 -> e2 | MkInt 3 -> e3

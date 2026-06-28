@@ -5,7 +5,7 @@
 use core::arch::aarch64::*;
 
 #[cfg(hax)]
-pub use core_models::arch::arm::*;
+pub use libcrux_core_models::arch::arm::*;
 
 pub type _int16x8_t = int16x8_t;
 pub type _uint32x4_t = uint32x4_t;

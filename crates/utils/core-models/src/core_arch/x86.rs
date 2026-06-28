@@ -857,7 +857,7 @@ const _: () = {
 
     #[hax_lib::fstar::replace(
         r#"
-[@@ Core_models.Abstractions.Bitvec.v_REWRITE_RULE ]
+[@@ Libcrux_core_models.Abstractions.Bitvec.v_REWRITE_RULE ]
 
 assume
 val e___e_rw_mm256_mullo_epi16_shifts':
