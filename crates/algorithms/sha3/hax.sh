@@ -30,6 +30,12 @@ function extract_all() {
     # two items by name (rather than the whole `arrayref` module) keeps
     # the extraction from dragging in `DigestIncremental`,
     # `DigestIncrementalBase`, `Hasher` and the aead/kem/ecdh surface.
+    #
+    # The `digest::slice::Hash` trait is deliberately NOT selected: its
+    # impl macro reborrows a `&mut [u8; LEN]` out of a `&mut [u8]` via
+    # `try_into().map_err(..)?`, which hax 0.3.7 cannot model (HAX0010
+    # / HAX0003 in the `DirectAndMut` context).  The `slice` impls in
+    # `impl_digest_trait.rs` are excluded for the same reason.
     extract traits \
         into -i "-** +libcrux_traits::digest::arrayref::Hash +libcrux_traits::digest::arrayref::HashError" \
         fstar --z3rlimit 80
@@ -37,7 +43,6 @@ function extract_all() {
     extract crates/algorithms/sha3 \
         -C --features simd128,simd256 ";" \
         into -i "+**" \
-        -i "-**::neon::x2::**" \
         fstar --z3rlimit 80
 
     patch_fstar_extractions
@@ -125,10 +130,14 @@ function patch_fstar_extractions() {
     $SED -i '/f_squeeze4_pre/i\    _super_i0 = FStar.Tactics.Typeclasses.solve;' \
         "$target_dir"/Libcrux_sha3.Simd.Avx2.Store.fst
 
-    # The AVX2 X4.Incremental.t_KeccakState wraps an opaque Vec256 record
-    # that has no decidable equality.  Mark the wrapper noeq.
+    # The incremental KeccakState wrappers hold a generic KeccakState
+    # over an opaque SIMD vector record (Vec256 on AVX2 X4, uint64x2_t
+    # on Neon X2) that has no decidable equality.  hax 0.3.7 has no
+    # source-level `noeq` attribute and the F* backend does not detect
+    # non-eqtype records, so mark both wrappers noeq here.
     $SED -i 's/^type t_KeccakState =/noeq type t_KeccakState =/' \
-        "$target_dir"/Libcrux_sha3.Avx2.X4.Incremental.fst
+        "$target_dir"/Libcrux_sha3.Avx2.X4.Incremental.fst \
+        "$target_dir"/Libcrux_sha3.Neon.X2.Incremental.fst
 
     # Note: per-u64-lane SMTPat lemma admits (lemma_mm256_*_u64x4)
     # are now injected directly from avx2_extract.rs via

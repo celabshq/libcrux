@@ -43,8 +43,16 @@ impl_hash_traits!(Sha3_256, Sha3_256Hasher, SHA3_256_LEN, portable::sha256);
 impl_hash_traits!(Sha3_384, Sha3_384Hasher, SHA3_384_LEN, portable::sha384);
 impl_hash_traits!(Sha3_512, Sha3_512Hasher, SHA3_512_LEN, portable::sha512);
 
-// Implement the slice hash trait
-// This is excluded for the hax extraction
+// Implement the slice hash trait.
+//
+// Each impl is a thin length-checking wrapper that reborrows a
+// `&mut [u8; LEN]` out of the variable-length `&mut [u8]` digest via
+// `try_into().map_err(..)?` and delegates to the already-extracted
+// `arrayref::Hash<LEN>` impls above.  That `&mut`-through-fallible-
+// `try_into` pattern is unsupported by hax 0.3.7 (HAX0010 / HAX0003 in
+// the `DirectAndMut` context), so this module is excluded from F*
+// extraction; the verified surface is the arrayref impls it delegates
+// to.  Revisit once hax models `&mut` reborrows through `try_into`.
 #[cfg_attr(hax, hax_lib::exclude)]
 mod slice {
     use super::*;
