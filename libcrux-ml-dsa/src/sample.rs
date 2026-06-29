@@ -71,14 +71,15 @@ pub(crate) fn add_domain_separator(slice: &[u8], indices: (u8, u8)) -> [u8; 34] 
 /// provided index in `indices[i]`.
 /// `rand_stack` is a working buffer that holds initial Shake output.
 //
-// Body stays admitted (`admit ()` at start of body); the `ensures` is a
-// postulated postcondition that callers (`samplex4::matrix_flat`) consume
-// to discharge `compute_as1_plus_s2`'s `is_i32b_array_opaque FIELD_MAX`
+// Body is `verification_status(lax)`; the `ensures` is a postulated
+// postcondition that callers (`samplex4::matrix_flat`) consume to
+// discharge `compute_as1_plus_s2`'s `is_i32b_array_opaque FIELD_MAX`
 // pre on the `a_as_ntt` matrix.  The postulate is sound under the body
 // invariant: matrix coefficients are rejection-sampled from `[0, Q)`
 // (FIPS 204 Algorithm 30), hence `0 <= c < FIELD_MAX + 1` per coefficient,
 // which `is_i32b FIELD_MAX` (centered |c| <= FIELD_MAX) covers.
 #[inline(always)]
+#[hax_lib::fstar::verification_status(lax)]
 #[hax_lib::ensures(|_| fstar!(r#"
     Seq.length ${matrix}_future == Seq.length $matrix /\
     Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice
@@ -99,7 +100,6 @@ pub(crate) fn sample_up_to_four_ring_elements_flat<
     start_index: usize,
     elements_requested: usize,
 ) {
-    hax_lib::fstar!("admit ()");
     #[cfg(not(eurydice))]
     debug_assert!(elements_requested <= 4);
 
@@ -289,12 +289,13 @@ pub(crate) fn add_error_domain_separator(slice: &[u8], domain_separator: u16) ->
     out
 }
 
-// Body stays admitted (`admit ()` at start of body); the `ensures` is a
-// postulated postcondition that callers (`samplex4::sample_s1_and_s2`)
-// consume to discharge `signing_key::generate_serialized`'s pre on `s1_2`.
+// Body is `verification_status(lax)`; the `ensures` is a postulated
+// postcondition that callers (`samplex4::sample_s1_and_s2`) consume to
+// discharge `signing_key::generate_serialized`'s pre on `s1_2`.
 // Exposed as the opaque `is_lane_range_poly_slice` atom so callers see one
 // premise instead of triple-forall + match expansion.
 #[inline(always)]
+#[hax_lib::fstar::verification_status(lax)]
 #[hax_lib::ensures(|_| fstar!(r#"
     Seq.length ${re}_future == Seq.length $re /\
     (let eta_val : usize = match $eta with
@@ -309,7 +310,6 @@ pub(crate) fn sample_four_error_ring_elements<SIMDUnit: Operations, Shake256: sh
     start_index: u16,
     re: &mut [PolynomialRingElement<SIMDUnit>],
 ) {
-    hax_lib::fstar!("admit ()");
     // Prepare the seeds
     let seed0 = add_error_domain_separator(seed, start_index);
     let seed1 = add_error_domain_separator(seed, start_index + 1);
@@ -405,12 +405,12 @@ pub(crate) fn sample_four_error_ring_elements<SIMDUnit: Operations, Shake256: sh
 }
 
 #[inline(always)]
+#[hax_lib::fstar::verification_status(lax)]
 fn sample_mask_ring_element<SIMDUnit: Operations, Shake256: shake256::DsaXof>(
     seed: &[u8; 66],
     result: &mut PolynomialRingElement<SIMDUnit>,
     gamma1_exponent: usize,
 ) {
-    hax_lib::fstar!("admit ()");
     match gamma1_exponent {
         17 => {
             let mut out = [0u8; 576];
@@ -427,6 +427,7 @@ fn sample_mask_ring_element<SIMDUnit: Operations, Shake256: shake256::DsaXof>(
 }
 
 #[inline(always)]
+#[hax_lib::fstar::verification_status(lax)]
 pub(crate) fn sample_mask_vector<
     SIMDUnit: Operations,
     Shake256: shake256::DsaXof,
@@ -438,7 +439,6 @@ pub(crate) fn sample_mask_vector<
     domain_separator: &mut u16,
     mask: &mut [PolynomialRingElement<SIMDUnit>],
 ) {
-    hax_lib::fstar!("admit ()");
     // DIMENSION is COLUMNS_IN_A
     #[cfg(not(eurydice))]
     debug_assert!(dimension == 4 || dimension == 5 || dimension == 7);
@@ -525,12 +525,12 @@ fn inside_out_shuffle(
 }
 
 #[inline(always)]
+#[hax_lib::fstar::verification_status(lax)]
 pub(crate) fn sample_challenge_ring_element<SIMDUnit: Operations, Shake256: shake256::DsaXof>(
     seed: &[u8],
     number_of_ones: usize,
     re: &mut PolynomialRingElement<SIMDUnit>,
 ) {
-    hax_lib::fstar!("admit ()");
     let mut state = Shake256::init_absorb_final(seed);
     let randomness = state.squeeze_first_block();
 
