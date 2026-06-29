@@ -89,7 +89,19 @@ pub(crate) mod portable {
     use super::*;
 
     pub(crate) struct PortableSampler {}
+    #[hax_lib::attributes]
     impl X4Sampler for PortableSampler {
+        // Restate the trait `requires`/`ensures` so the extracted
+        // instance's `f_matrix_flat_pre`/`_post` match the trait (not
+        // the default `true` post); the body discharges the post by
+        // forwarding to the (lax) free `matrix_flat`, whose identical
+        // post is exported.
+        #[requires(true)]
+        #[ensures(|_| fstar!(r#"
+            Seq.length ${matrix}_future == Seq.length $matrix /\
+            Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice
+                (mk_usize 8380416) ${matrix}_future
+        "#))]
         fn matrix_flat<SIMDUnit: Operations>(
             columns: usize,
             seed: &[u8],
@@ -108,8 +120,15 @@ pub(crate) mod neon {
     use super::*;
 
     pub(crate) struct NeonSampler {}
+    #[hax_lib::attributes]
     impl X4Sampler for NeonSampler {
         #[inline(always)]
+        #[requires(true)]
+        #[ensures(|_| fstar!(r#"
+            Seq.length ${matrix}_future == Seq.length $matrix /\
+            Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice
+                (mk_usize 8380416) ${matrix}_future
+        "#))]
         fn matrix_flat<SIMDUnit: Operations>(
             columns: usize,
             seed: &[u8],
@@ -126,15 +145,29 @@ pub(crate) mod avx2 {
     use super::*;
 
     pub(crate) struct AVX2Sampler {}
+    #[hax_lib::attributes]
     impl X4Sampler for AVX2Sampler {
         #[allow(unsafe_code)]
+        #[requires(true)]
+        #[ensures(|_| fstar!(r#"
+            Seq.length ${matrix}_future == Seq.length $matrix /\
+            Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice
+                (mk_usize 8380416) ${matrix}_future
+        "#))]
         fn matrix_flat<SIMDUnit: Operations>(
             columns: usize,
             seed: &[u8],
             matrix: &mut [PolynomialRingElement<SIMDUnit>],
         ) {
+            // `inner` carries the same post so the outer method can
+            // thread the mutated `matrix` through the call.
             #[cfg_attr(not(hax), target_feature(enable = "avx2"))]
             #[allow(unsafe_code)]
+            #[hax_lib::ensures(|_| fstar!(r#"
+                Seq.length ${matrix}_future == Seq.length $matrix /\
+                Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice
+                    (mk_usize 8380416) ${matrix}_future
+            "#))]
             unsafe fn inner<SIMDUnit: Operations>(
                 columns: usize,
                 seed: &[u8],

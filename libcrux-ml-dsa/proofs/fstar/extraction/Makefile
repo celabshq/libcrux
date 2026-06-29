@@ -19,27 +19,21 @@ SLOW_MODULES +=
 # through multiplexing -> instantiations -> generic (admitted core).
 
 # =====================================================================
-# Trust boundary: as much as possible is now declared IN SOURCE.
+# Trust boundary is declared IN SOURCE — no Makefile admits.
 # =====================================================================
-# MOVED TO SOURCE (no longer admitted here):
 # - Samplex4.fst: the free fns `matrix_flat` / `sample_s1_and_s2` in
 #   `src/samplex4.rs` carry `#[hax_lib::fstar::verification_status(lax)]`
-#   (bodies need X4 Xof trait-method panic-freedom, not yet proven).
-# - Simd.Avx2.Rejection_sample.Shuffle_table: the dead-code executable-
-#   spec fns are `#[hax_lib::exclude]`d in `shuffle_table.rs`, leaving
-#   only the verified `SHUFFLE_TABLE` constant — admit ELIMINATED.
-#
-# CANNOT move to source (hax 0.3.7 limitation): the per-platform
-# `X4Sampler` impls below fail the trait-instance subtyping check
-# (`Samplex4.{Avx2,Portable,Neon}.fst:43 f_matrix_flat`, Error 19), not
-# a body VC.  `verification_status(lax)` is illegal on impl methods
-# (expands to an unnamed `const _`, rustc rejects) and `panic_free`
-# only admits the ensures, not this instance check.  Until hax gains a
-# module-/impl-level admit attribute they stay admitted here.
-ADMIT_MODULES = \
-	Libcrux_ml_dsa.Samplex4.Avx2.fst \
-	Libcrux_ml_dsa.Samplex4.Neon.fst \
-	Libcrux_ml_dsa.Samplex4.Portable.fst
+#   (bodies need X4 Xof trait-method panic-freedom, not yet proven) —
+#   the single isolated trust axiom for the X4 sampler.
+# - Samplex4.{Avx2,Neon,Portable}: the per-platform `X4Sampler` impls
+#   restate the trait `requires`/`ensures` (under `#[hax_lib::attributes]`)
+#   and forward to the lax free `matrix_flat`, so their bodies VERIFY
+#   (the instance post is the strong post, discharged from the exported
+#   lax post — no admit needed).
+# - Simd.Avx2.Rejection_sample.Shuffle_table: dead-code executable-spec
+#   fns are `#[hax_lib::exclude]`d, leaving only the verified
+#   `SHUFFLE_TABLE` constant — admit ELIMINATED.
+ADMIT_MODULES =
 
 FSTAR_INCLUDE_DIRS_EXTRA += ../spec \
 	      $(shell git rev-parse --show-toplevel)/fstar-helpers/fstar-bitvec \
