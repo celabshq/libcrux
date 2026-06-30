@@ -22,6 +22,9 @@ pub struct SIMD256Vector {
 
 #[inline(always)]
 #[hax_lib::ensures(|result| fstar!(r#"repr ${result} == Seq.create 16 (mk_i16 0)"#))]
+// 2026-06-30: bring the relocated ml-kem storeu/loadu bit_vec SMTPats into
+// scope (moved out of Avx2_extract to keep sha3's interface lean).
+#[hax_lib::fstar::before(r#"open Libcrux_intrinsics.Avx2_ml_kem_views"#)]
 fn vec_zero() -> SIMD256Vector {
     SIMD256Vector {
         elements: mm256_setzero_si256(),

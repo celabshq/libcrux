@@ -230,39 +230,11 @@ let lemma_mm256_storeu_si256_u8_byte (output: t_Slice u8) (vector: t_Vec256) (k:
   = admit ()
 "#
 )]
-// ml-kem byte/bit_vec view of the SAME store (used by
-// Libcrux_ml_kem.Vector.Avx2.to_bytes); mirror of ml-kem-proofs' storeu bit_vec
-// post. Validated trust axiom (same little-endian store as the byte/u64 views).
-#[hax_lib::fstar::after(
-    interface,
-    r#"
-val lemma_mm256_storeu_si256_u8_bit_vec (output: t_Slice u8) (vector: t_Vec256)
-  : Lemma (requires Core_models.Slice.impl__len #u8 output == mk_usize 32)
-          (ensures
-      (let output_future = mm256_storeu_si256_u8 output vector in
-       Core_models.Slice.impl__len #u8 output_future ==
-         Core_models.Slice.impl__len #u8 output /\
-       (let output_arr: t_Array u8 (sz 32) = output_future in
-        BitVecEq.bit_vec_equal
-          (Rust_primitives.BitVectors.bit_vec_of_int_t_array output_arr 8) vector)))
-    [SMTPat (mm256_storeu_si256_u8 output vector)]
-"#
-)]
-#[hax_lib::fstar::after(
-    r#"
-let lemma_mm256_storeu_si256_u8_bit_vec (output: t_Slice u8) (vector: t_Vec256)
-  : Lemma (ensures
-      (let output_future = mm256_storeu_si256_u8 output vector in
-       Core_models.Slice.impl__len #u8 output_future ==
-         Core_models.Slice.impl__len #u8 output /\
-       (Core_models.Slice.impl__len #u8 output == mk_usize 32 ==>
-         (let output_arr: t_Array u8 (sz 32) = output_future in
-          BitVecEq.bit_vec_equal
-            (Rust_primitives.BitVectors.bit_vec_of_int_t_array output_arr 8) vector))))
-    [SMTPat (mm256_storeu_si256_u8 output vector)]
-  = admit ()
-"#
-)]
+// NOTE (2026-06-30): the ml-kem byte/bit_vec view of this store
+// (`lemma_mm256_storeu_si256_u8_bit_vec`, SMTPat) was RELOCATED to the
+// ml-kem-only module `Libcrux_intrinsics.Avx2_ml_kem_views` so it no longer
+// bloats sha3's view of this interface. The byte lemma above stays (sha3 uses
+// it). See sha3-avx2-regression-rootcause-2026-06-30.md.
 pub fn mm256_storeu_si256_u8(output: &mut [u8], vector: Vec256) {
     debug_assert_eq!(output.len(), 32);
     unimplemented!()
@@ -338,17 +310,10 @@ pub fn mm_loadu_si128(input: &[u8]) -> Vec128 {
 // by Libcrux_ml_kem.Vector.Avx2.from_bytes). hax allows one ensures/fn, so the
 // bit_vec view is supplied as a separate validated trust-axiom SMTPat lemma
 // (same little-endian byte load; mirror of ml-kem-proofs' loadu bit_vec post).
-#[hax_lib::fstar::after(
-    interface,
-    r#"
-val lemma_mm256_loadu_si256_u8_bit_vec (input: t_Slice u8)
-    : Lemma (requires Core_models.Slice.impl__len #u8 input == mk_usize 32)
-            (ensures (let input_arr: t_Array u8 (sz 32) = input in
-              BitVecEq.bit_vec_equal (mm256_loadu_si256_u8 input)
-                (Rust_primitives.BitVectors.bit_vec_of_int_t_array input_arr 8)))
-            [SMTPat (mm256_loadu_si256_u8 input)]
-"#
-)]
+// NOTE (2026-06-30): the ml-kem bit_vec view of this load
+// (`lemma_mm256_loadu_si256_u8_bit_vec`, SMTPat) was RELOCATED to the
+// ml-kem-only module `Libcrux_intrinsics.Avx2_ml_kem_views`. The u64-lane
+// `ensures` below stays (sha3 + Lean use it).
 #[inline(always)]
 #[hax_lib::requires(input.len() == 32)]
 #[hax_lib::ensures(|result| hax_lib::forall(|i: usize|
@@ -782,21 +747,9 @@ let lemma_mm256_xor_si256_u64x4 (lhs rhs: t_Vec256)
         (get_lane_u64x4 (mm256_xor_si256 lhs rhs) i)
         (get_lane_u64x4 lhs i ^. get_lane_u64x4 rhs i)
     in FStar.Classical.forall_intro aux
-
-(* ml-kem i16-view characterization (called explicitly by
-   Libcrux_ml_kem.Vector.Avx2.Compress). Restored here so the union is a
-   faithful superset of ml-kem's verified Avx2_extract interface: ml-kem
-   declared this as an assumed `val` trust axiom (over its then-abstract
-   mm256_xor_si256); here mm256_xor_si256 is BitVec.Intrinsics' concrete
-   bitwise xor, for which `vec256_as_i16x16 (xor) == map2 (^.) ...` holds, so
-   the axiom is no less sound. Coexists with the u64x4 lemma above: the two
-   describe disjoint lane views (i16 vs u64) of the same value; sha3 never
-   takes the i16-view, so this SMTPat never fires in sha3 proofs. *)
-val lemma_mm256_xor_si256 (lhs rhs: t_Vec256)
-  : Lemma (   vec256_as_i16x16 (mm256_xor_si256 lhs rhs)
-           == Spec.Utils.map2 (^.) (vec256_as_i16x16 lhs) (vec256_as_i16x16 rhs)
-          )
-          [SMTPat (vec256_as_i16x16 (mm256_xor_si256 lhs rhs))]
+(* ml-kem i16-view `lemma_mm256_xor_si256` RELOCATED to
+   Libcrux_intrinsics.Avx2_ml_kem_views (2026-06-30); the u64x4 view above
+   stays (sha3 uses it). *)
 "#
 )]
 pub fn mm256_xor_si256(lhs: Vec256, rhs: Vec256) -> Vec256 {
@@ -826,23 +779,12 @@ pub fn mm256_srai_epi32<const SHIFT_BY: i32>(vector: Vec256) -> Vec256 {
     unimplemented!()
 }
 
-// ml-kem i16-view characterization (called explicitly by
-// Libcrux_ml_kem.Vector.Avx2.Compress, e.g. `lemma_mm256_srli_epi16_15`).
-// Restored alongside the BitVec.Intrinsics include so the union is a faithful
-// superset of ml-kem's verified interface; assumed `val` matching ml-kem's
-// trust footprint. sha3 never uses srli_epi16's i16-view.
+// NOTE (2026-06-30): ml-kem i16-view `lemma_mm256_srli_epi16` (SMTPat)
+// RELOCATED to Libcrux_intrinsics.Avx2_ml_kem_views. sha3 never uses
+// srli_epi16's i16-view.
 #[hax_lib::fstar::replace(
     interface,
-    r#"
-include BitVec.Intrinsics {mm256_srli_epi16 as ${mm256_srli_epi16::<0>}}
-val lemma_mm256_srli_epi16 (v_SHIFT_BY: i32 {v v_SHIFT_BY >= 0 /\ v v_SHIFT_BY < 16}) (vector: t_Vec256)
-  : Lemma (   vec256_as_i16x16 (${mm256_srli_epi16::<0>} v_SHIFT_BY vector)
-           == Spec.Utils.map_array (fun (x:i16) ->
-                  cast ((cast x <: u16) >>! v_SHIFT_BY) <: i16)
-                (vec256_as_i16x16 vector)
-          )
-          [SMTPat (vec256_as_i16x16 (${mm256_srli_epi16::<0>} v_SHIFT_BY vector))]
-"#
+    "include BitVec.Intrinsics {mm256_srli_epi16 as ${mm256_srli_epi16::<0>}}"
 )]
 pub fn mm256_srli_epi16<const SHIFT_BY: i32>(vector: Vec256) -> Vec256 {
     debug_assert!(SHIFT_BY >= 0 && SHIFT_BY < 16);
@@ -964,23 +906,9 @@ let lemma_mm256_unpackhi_epi64_u64x4 (lhs rhs: t_Vec256)
     Rust_primitives.Integers.lemma_int_t_eq_via_bits (get_lane_u64x4 r 1) (get_lane_u64x4 rhs 1);
     Rust_primitives.Integers.lemma_int_t_eq_via_bits (get_lane_u64x4 r 2) (get_lane_u64x4 lhs 3);
     Rust_primitives.Integers.lemma_int_t_eq_via_bits (get_lane_u64x4 r 3) (get_lane_u64x4 rhs 3)
-
-// ml-kem i16-view (lane32) of the same qword permutation, used by
-// Libcrux_ml_kem.Vector.Avx2.Compress's mulhi composite lemma.  In ml-dsa/
-// ml-kem-proofs this is a validated trust axiom (the function is an abstract
-// `val` with this i16-view `ensures`); here the function is the BitVec concrete
-// def (sha3 needs it), so the i16-view is PROVEN from the def via the
-// per-i16-lane bit decomposition (no new trust).
-let lemma_mm256_unpackhi_epi64_lane32 (lhs rhs: t_Vec256)
-  : Lemma (ensures forall (j: nat). j < 8 ==>
-            lane32 (mm256_unpackhi_epi64 lhs rhs) j ==
-            (match j with
-              | 0 -> lane32 lhs 2 | 1 -> lane32 lhs 3
-              | 2 -> lane32 rhs 2 | 3 -> lane32 rhs 3
-              | 4 -> lane32 lhs 6 | 5 -> lane32 lhs 7
-              | 6 -> lane32 rhs 6 | _ -> lane32 rhs 7))
-    [SMTPat (mm256_unpackhi_epi64 lhs rhs)]
-  = admit ()
+(* ml-kem i16-view (lane32) `lemma_mm256_unpackhi_epi64_lane32` (SMTPat)
+   RELOCATED to Libcrux_intrinsics.Avx2_ml_kem_views (2026-06-30); the u64x4
+   view above stays (sha3 uses it). *)
 "#
 )]
 pub fn mm256_unpackhi_epi64(lhs: Vec256, rhs: Vec256) -> Vec256 {

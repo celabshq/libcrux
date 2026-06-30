@@ -9,7 +9,10 @@ use super::*;
 //
 // TODO: Optimize this implementation if performance numbers suggest doing so.
 #[inline(always)]
-#[hax_lib::fstar::before(r#"module Iavx = Libcrux_intrinsics.Avx2_extract"#)]
+#[hax_lib::fstar::before(
+    r#"module Iavx = Libcrux_intrinsics.Avx2_extract
+open Libcrux_intrinsics.Avx2_ml_kem_views"#
+)]
 fn mulhi_mm256_epi32(lhs: Vec256, rhs: Vec256) -> Vec256 {
     let prod02 = mm256_mul_epu32(lhs, rhs);
     let prod13 = mm256_mul_epu32(
@@ -41,7 +44,7 @@ let lemma_mm256_xor_si256_lane (lhs rhs: Libcrux_intrinsics.Avx2_extract.t_Vec25
                  (Libcrux_intrinsics.Avx2_extract.mm256_xor_si256 lhs rhs)) i ==
     Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 lhs) i ^.
     Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 rhs) i))
-  = Libcrux_intrinsics.Avx2_extract.lemma_mm256_xor_si256 lhs rhs
+  = Libcrux_intrinsics.Avx2_ml_kem_views.lemma_mm256_xor_si256 lhs rhs
 
 (* AGENT C2: closed via `lemma_mm256_srli_epi16` axiom.  Specialises the
    per-lane logical right-shift characterization to SHIFT = 15 (sign bit
@@ -52,7 +55,7 @@ let lemma_mm256_srli_epi16_15 (vec: Libcrux_intrinsics.Avx2_extract.t_Vec256) : 
                     (Libcrux_intrinsics.Avx2_extract.mm256_srli_epi16 (mk_i32 15) vec)) i) ==
     (if v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 vec) i) < 0
      then 1 else 0)))
-  = Libcrux_intrinsics.Avx2_extract.lemma_mm256_srli_epi16 (mk_i32 15) vec;
+  = Libcrux_intrinsics.Avx2_ml_kem_views.lemma_mm256_srli_epi16 (mk_i32 15) vec;
     let view = Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 vec in
     let view_shifted = Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16
                          (Libcrux_intrinsics.Avx2_extract.mm256_srli_epi16 (mk_i32 15) vec) in
