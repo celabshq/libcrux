@@ -73,9 +73,10 @@ result.
 
 ## Tools
 
-| Tool | Role | Reference |
-|---|---|---|
-| F\* | Proof assistant; discharges the proofs. | <https://fstar-lang.org> |
-| HACL\* | F\*-verified source of the §1 algorithms. | <https://github.com/hacl-star/hacl-star> |
-| Scylla | Formalized C-to-Rust compiler. | <https://arxiv.org/abs/2412.15042> |
-| hax | Extracts Rust to F\* for §2. | <https://github.com/cryspen/hax> |
+| Tool | Role | GitHub | Website / paper |
+|---|---|---|---|
+| F\* | Proof assistant; discharges the proofs. | <https://github.com/FStarLang/FStar> | <https://fstar-lang.org> |
+| HACL\* | F\*-verified C; source of the §1 algorithms. | <https://github.com/hacl-star/hacl-star> | <https://hacl-star.github.io> |
+| Scylla | Formalized C-to-Rust compiler (§1). | <https://github.com/AeneasVerif/scylla> | <https://arxiv.org/abs/2412.15042> |
+| Eurydice | Compiles the verified Rust to C. | <https://github.com/AeneasVerif/eurydice> | <https://aeneasverif.github.io> |
+| hax | Extracts Rust to F\* (§2). | <https://github.com/cryspen/hax> | <https://cryspen.com/hax/>, <https://eprint.iacr.org/2025/142> |
