@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- [#XXX](https://github.com/cryspen/libcrux/pull/XXX): Provide instantiable `libcrux-traits` incremental hashing API
 - [#1456](https://github.com/cryspen/libcrux/pull/1456): Fix out of bounds indexing in avx2 SHAKE-256 implementation
 
 ### Changed
