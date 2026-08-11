@@ -166,3 +166,36 @@ mod codec {
     impl_tls_codec_for_generic_struct!(MLDSAVerificationKey);
     impl_tls_codec_for_generic_struct!(MLDSASignature);
 }
+
+#[cfg(all(feature = "zeroize", not(hax)))]
+mod zeroize_impls {
+    use super::*;
+    use zeroize::{Zeroize, ZeroizeOnDrop};
+
+    impl<const SIZE: usize> Zeroize for MLDSASigningKey<SIZE> {
+        fn zeroize(&mut self) {
+            self.value.zeroize();
+        }
+    }
+
+    impl<const SIZE: usize> Drop for MLDSASigningKey<SIZE> {
+        fn drop(&mut self) {
+            self.zeroize();
+        }
+    }
+
+    impl<const SIZE: usize> ZeroizeOnDrop for MLDSASigningKey<SIZE> {}
+
+    impl<const VERIFICATION_KEY_SIZE: usize, const SIGNING_KEY_SIZE: usize> Zeroize
+        for MLDSAKeyPair<VERIFICATION_KEY_SIZE, SIGNING_KEY_SIZE>
+    {
+        fn zeroize(&mut self) {
+            self.signing_key.zeroize();
+        }
+    }
+
+    impl<const VERIFICATION_KEY_SIZE: usize, const SIGNING_KEY_SIZE: usize> ZeroizeOnDrop
+        for MLDSAKeyPair<VERIFICATION_KEY_SIZE, SIGNING_KEY_SIZE>
+    {
+    }
+}

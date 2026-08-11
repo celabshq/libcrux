@@ -33,6 +33,7 @@ libcrux-macros.workspace = true
 libcrux-secrets.workspace = true
 hax-lib.workspace = true
 tls_codec = { workspace = true, optional = true }
+zeroize = { version = "1.8", default-features = false, optional = true }
 
 [dev-dependencies]
 rand = { version = "0.10" }
@@ -67,6 +68,9 @@ std = ["tls_codec?/std"]
 
 # Serialization & Deserialization using tls_codec
 codec = ["dep:tls_codec"]
+
+# Zeroize secret key material on drop
+zeroize = ["dep:zeroize"]
 
 [[bench]]
 name = "manual44"
