@@ -45,7 +45,7 @@ libcrux-aes.workspace = true
 # replace_body / opaque macros used for the symbolic-crypto boundary are not in
 # the workspace-pinned crates.io hax-lib 0.3.6, so pin the git rev directly.
 # Optional + gated behind `hax-pv` so normal builds are unaffected.
-hax-lib = { git = "https://github.com/cryspen/hax.git", rev = "1a99a1948d5931026fd0be4e322fbd1b7149927b", optional = true }
+hax-lib = { git = "https://github.com/cryspen/hax.git", rev = "5cdb74443a1eeebd34f7bae057ead44bc8a25107", optional = true }
 
 [dev-dependencies]
 rand_core = { version = "0.10" }
