@@ -116,7 +116,7 @@ impl<'a> Channel<Error, HandshakeMessage> for QueryInitiator<'a> {
     // analysis rejects. The model drives the protocol via
     // `write_message_external_encoding` (returns the `HandshakeMessage` term),
     // so stub this body out for extraction.
-    #[cfg_attr(feature = "hax-pv", hax_lib::proverif::replace_body("nat_lit(0)"))]
+    #[cfg_attr(feature = "hax-pv", hax_lib::proverif::replace_body("nat_0"))]
     fn write_message(&mut self, payload: &[u8], out: &mut [u8]) -> Result<usize, Error> {
         let (ciphertext, tag) = self.prepare_message_contents(payload)?;
 

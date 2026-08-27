@@ -462,4 +462,4 @@ letfun tls_codec__quic_vec__Impl_25__as_slice(x: bitstring) = x.
 letfun std__io__cursor__Impl__new_kw(x: bitstring) = x.
 letfun tls_codec__Serialize__tls_serialize_detached(x: bitstring) = x.
 letfun tls_codec__Deserialize__tls_deserialize(x: bitstring) =
-      rust_primitives__hax__Tuple2__Tuple2(nat_lit(0), x).
+      rust_primitives__hax__Tuple2__Tuple2(nat_0, x).
