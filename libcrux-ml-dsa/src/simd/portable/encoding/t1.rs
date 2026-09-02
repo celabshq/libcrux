@@ -3,13 +3,14 @@ use crate::{
 };
 
 #[inline(always)]
-#[hax_lib::requires(serialized.len() == 10)]
+#[cfg_attr(hax, hax_lib::requires(serialized.len() == 10))]
 pub fn serialize(simd_unit: &Coefficients, serialized: &mut [u8]) {
     #[cfg(not(eurydice))]
     debug_assert!(serialized.len() == 10);
 
     cloop! {
         for (i, coefficients) in simd_unit.values.chunks_exact(4).enumerate() {
+            #[cfg(hax)]
             hax_lib::loop_invariant!(|_i: usize| serialized.len() == 10);
 
             serialized[5 * i] = (coefficients[0] & 0xFF) as u8;
@@ -25,7 +26,7 @@ pub fn serialize(simd_unit: &Coefficients, serialized: &mut [u8]) {
 }
 
 #[inline(always)]
-#[hax_lib::requires(serialized.len() == 10)]
+#[cfg_attr(hax, hax_lib::requires(serialized.len() == 10))]
 pub fn deserialize(serialized: &[u8], simd_unit: &mut Coefficients) {
     #[cfg(not(eurydice))]
     debug_assert!(serialized.len() == 10);
@@ -34,6 +35,7 @@ pub fn deserialize(serialized: &[u8], simd_unit: &mut Coefficients) {
 
     cloop! {
         for (i, bytes) in serialized.chunks_exact(5).enumerate() {
+            #[cfg(hax)]
             hax_lib::loop_invariant!(|_i: usize| serialized.len() == 10);
 
             let byte0 = bytes[0] as i32;

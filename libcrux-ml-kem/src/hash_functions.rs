@@ -23,56 +23,57 @@ pub(crate) const THREE_BLOCKS: usize = BLOCK_SIZE * 3;
 /// - AVX2
 /// - NEON
 /// - Portable
-#[hax_lib::attributes]
+#[cfg_attr(hax, hax_lib::attributes)]
 pub(crate) trait Hash<const K: usize> {
     /// G aka SHA3 512
-    #[requires(true)]
-    #[ensures(|result|
-        fstar!(r#"$result == Spec.Utils.v_G $input"#))
+    #[cfg_attr(hax, hax_lib::requires(true))]
+    #[cfg_attr(hax, hax_lib::ensures(|result|
+        fstar!(r#"$result == Spec.Utils.v_G $input"#)))
     ]
     fn G(input: &[u8]) -> [u8; G_DIGEST_SIZE];
 
     /// H aka SHA3 256
-    #[requires(true)]
-    #[ensures(|result|
-        fstar!(r#"$result == Spec.Utils.v_H $input"#))
+    #[cfg_attr(hax, hax_lib::requires(true))]
+    #[cfg_attr(hax, hax_lib::ensures(|result|
+        fstar!(r#"$result == Spec.Utils.v_H $input"#)))
     ]
     fn H(input: &[u8]) -> [u8; H_DIGEST_SIZE];
 
     /// PRF aka SHAKE256
-    #[requires(fstar!(r#"v $LEN < pow2 32"#))]
-    #[ensures(|result|
+    #[cfg_attr(hax, hax_lib::requires(fstar!(r#"v $LEN < pow2 32"#)))]
+    #[cfg_attr(hax, hax_lib::ensures(|result|
         // We need to repeat the pre-condition here because of https://github.com/hacspec/hax/issues/784
-        fstar!(r#"v $LEN < pow2 32 ==> $result == Spec.Utils.v_PRF $LEN $input"#))
+        fstar!(r#"v $LEN < pow2 32 ==> $result == Spec.Utils.v_PRF $LEN $input"#)))
     ]
     fn PRF<const LEN: usize>(input: &[u8]) -> [u8; LEN];
 
     /// PRFxN aka N SHAKE256
-    #[requires(fstar!(r#"v $LEN < pow2 32 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)"#))]
-    #[ensures(|result|
+    #[cfg_attr(hax, hax_lib::requires(fstar!(r#"v $LEN < pow2 32 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)"#)))]
+    #[cfg_attr(hax, hax_lib::ensures(|result|
         // We need to repeat the pre-condition here because of https://github.com/hacspec/hax/issues/784
         fstar!(r#"(v $LEN < pow2 32 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)) ==>
-            $result == Spec.Utils.v_PRFxN $K $LEN $input"#))
+            $result == Spec.Utils.v_PRFxN $K $LEN $input"#)))
     ]
     fn PRFxN<const LEN: usize>(input: &[[u8; 33]; K]) -> [[u8; LEN]; K];
 
     /// Create a SHAKE128 state and absorb the input.
-    #[requires(true)]
+    #[cfg_attr(hax, hax_lib::requires(true))]
     fn shake128_init_absorb_final(input: &[[u8; 34]; K]) -> Self;
 
     /// Squeeze 3 blocks out of the SHAKE128 state.
-    #[requires(true)]
+    #[cfg_attr(hax, hax_lib::requires(true))]
     fn shake128_squeeze_first_three_blocks(&mut self) -> [[u8; THREE_BLOCKS]; K];
 
     /// Squeeze 1 block out of the SHAKE128 state.
-    #[requires(true)]
+    #[cfg_attr(hax, hax_lib::requires(true))]
     fn shake128_squeeze_next_block(&mut self) -> [[u8; BLOCK_SIZE]; K];
 }
 
 /// A portable implementation of [`Hash`]
 pub(crate) mod portable {
-    use super::*;
     use libcrux_sha3::portable::{self, incremental, KeccakState};
+
+    use super::*;
 
     /// The state.
     ///
@@ -83,8 +84,8 @@ pub(crate) mod portable {
         shake128_state: [KeccakState; K],
     }
 
-    #[hax_lib::ensures(|result|
-        fstar!(r#"$result == Spec.Utils.v_G $input"#))
+    #[cfg_attr(hax, hax_lib::ensures(|result|
+        fstar!(r#"$result == Spec.Utils.v_G $input"#)))
     ]
     #[inline]
     fn G(input: &[u8]) -> [u8; G_DIGEST_SIZE] {
@@ -93,8 +94,8 @@ pub(crate) mod portable {
         digest
     }
 
-    #[hax_lib::ensures(|result|
-        fstar!(r#"$result == Spec.Utils.v_H $input"#))
+    #[cfg_attr(hax, hax_lib::ensures(|result|
+        fstar!(r#"$result == Spec.Utils.v_H $input"#)))
     ]
     #[inline]
     fn H(input: &[u8]) -> [u8; H_DIGEST_SIZE] {
@@ -103,9 +104,9 @@ pub(crate) mod portable {
         digest
     }
 
-    #[hax_lib::requires(fstar!(r#"v $LEN < pow2 32"#))]
-    #[hax_lib::ensures(|result|
-        fstar!(r#"$result == Spec.Utils.v_PRF $LEN $input"#))
+    #[cfg_attr(hax, hax_lib::requires(fstar!(r#"v $LEN < pow2 32"#)))]
+    #[cfg_attr(hax, hax_lib::ensures(|result|
+        fstar!(r#"$result == Spec.Utils.v_PRF $LEN $input"#)))
     ]
     #[inline]
     fn PRF<const LEN: usize>(input: &[u8]) -> [u8; LEN] {
@@ -114,9 +115,9 @@ pub(crate) mod portable {
         digest
     }
 
-    #[hax_lib::requires(fstar!(r#"v $LEN < pow2 32 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)"#))]
-    #[hax_lib::ensures(|result|
-        fstar!(r#"$result == Spec.Utils.v_PRFxN $K $LEN $input"#))
+    #[cfg_attr(hax, hax_lib::requires(fstar!(r#"v $LEN < pow2 32 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)"#)))]
+    #[cfg_attr(hax, hax_lib::ensures(|result|
+        fstar!(r#"$result == Spec.Utils.v_PRFxN $K $LEN $input"#)))
     ]
     #[inline]
     fn PRFxN<const K: usize, const LEN: usize>(input: &[[u8; 33]; K]) -> [[u8; LEN]; K] {
@@ -172,38 +173,38 @@ pub(crate) mod portable {
         out
     }
 
-    #[hax_lib::attributes]
+    #[cfg_attr(hax, hax_lib::attributes)]
     impl<const K: usize> Hash<K> for PortableHash<K> {
-        #[ensures(|out|
-            fstar!(r#"$out == Spec.Utils.v_G $input"#))
+        #[cfg_attr(hax, hax_lib::ensures(|out|
+            fstar!(r#"$out == Spec.Utils.v_G $input"#)))
         ]
         #[inline]
         fn G(input: &[u8]) -> [u8; G_DIGEST_SIZE] {
             G(input)
         }
 
-        #[ensures(|out|
-            fstar!(r#"$out == Spec.Utils.v_H $input"#))
+        #[cfg_attr(hax, hax_lib::ensures(|out|
+            fstar!(r#"$out == Spec.Utils.v_H $input"#)))
         ]
         #[inline]
         fn H(input: &[u8]) -> [u8; H_DIGEST_SIZE] {
             H(input)
         }
 
-        #[requires(fstar!(r#"v $LEN < pow2 32"#))]
-        #[ensures(|out|
+        #[cfg_attr(hax, hax_lib::requires(fstar!(r#"v $LEN < pow2 32"#)))]
+        #[cfg_attr(hax, hax_lib::ensures(|out|
             // We need to repeat the pre-condition here because of https://github.com/hacspec/hax/issues/784
-            fstar!(r#"v $LEN < pow2 32 ==> $out == Spec.Utils.v_PRF $LEN $input"#))
+            fstar!(r#"v $LEN < pow2 32 ==> $out == Spec.Utils.v_PRF $LEN $input"#)))
         ]
         #[inline]
         fn PRF<const LEN: usize>(input: &[u8]) -> [u8; LEN] {
             PRF::<LEN>(input)
         }
 
-        #[requires(fstar!(r#"v $LEN < pow2 32 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)"#))]
-        #[ensures(|out|
+        #[cfg_attr(hax, hax_lib::requires(fstar!(r#"v $LEN < pow2 32 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)"#)))]
+        #[cfg_attr(hax, hax_lib::ensures(|out|
             fstar!(r#"(v $LEN < pow2 32 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)) ==>
-                $out == Spec.Utils.v_PRFxN $K $LEN $input"#))
+                $out == Spec.Utils.v_PRFxN $K $LEN $input"#)))
         ]
         #[inline]
         fn PRFxN<const LEN: usize>(input: &[[u8; 33]; K]) -> [[u8; LEN]; K] {
@@ -230,11 +231,12 @@ pub(crate) mod portable {
 /// A SIMD256 implementation of [`Hash`] for AVX2
 #[cfg(feature = "simd256")]
 pub(crate) mod avx2 {
-    use super::*;
     use libcrux_sha3::{
         avx2::x4::{self, incremental::KeccakState},
         portable,
     };
+
+    use super::*;
 
     /// The state.
     ///
@@ -245,8 +247,8 @@ pub(crate) mod avx2 {
         shake128_state: KeccakState,
     }
 
-    #[hax_lib::ensures(|result|
-        fstar!(r#"$result == Spec.Utils.v_G $input"#))
+    #[cfg_attr(hax, hax_lib::ensures(|result|
+        fstar!(r#"$result == Spec.Utils.v_G $input"#)))
     ]
     #[inline(always)]
     fn G(input: &[u8]) -> [u8; G_DIGEST_SIZE] {
@@ -255,8 +257,8 @@ pub(crate) mod avx2 {
         digest
     }
 
-    #[hax_lib::ensures(|result|
-        fstar!(r#"$result == Spec.Utils.v_H $input"#))
+    #[cfg_attr(hax, hax_lib::ensures(|result|
+        fstar!(r#"$result == Spec.Utils.v_H $input"#)))
     ]
     #[inline(always)]
     fn H(input: &[u8]) -> [u8; H_DIGEST_SIZE] {
@@ -265,9 +267,9 @@ pub(crate) mod avx2 {
         digest
     }
 
-    #[hax_lib::requires(fstar!(r#"v $LEN < pow2 32"#))]
-    #[hax_lib::ensures(|result|
-        fstar!(r#"$result == Spec.Utils.v_PRF $LEN $input"#))
+    #[cfg_attr(hax, hax_lib::requires(fstar!(r#"v $LEN < pow2 32"#)))]
+    #[cfg_attr(hax, hax_lib::ensures(|result|
+        fstar!(r#"$result == Spec.Utils.v_PRF $LEN $input"#)))
     ]
     #[inline(always)]
     fn PRF<const LEN: usize>(input: &[u8]) -> [u8; LEN] {
@@ -276,9 +278,9 @@ pub(crate) mod avx2 {
         digest
     }
 
-    #[hax_lib::requires(fstar!(r#"v $LEN < pow2 32 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)"#))]
-    #[hax_lib::ensures(|result|
-        fstar!(r#"$result == Spec.Utils.v_PRFxN $K $LEN $input"#))
+    #[cfg_attr(hax, hax_lib::requires(fstar!(r#"v $LEN < pow2 32 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)"#)))]
+    #[cfg_attr(hax, hax_lib::ensures(|result|
+        fstar!(r#"$result == Spec.Utils.v_PRFxN $K $LEN $input"#)))
     ]
     #[inline(always)]
     fn PRFxN<const K: usize, const LEN: usize>(input: &[[u8; 33]; K]) -> [[u8; LEN]; K] {
@@ -437,38 +439,38 @@ pub(crate) mod avx2 {
         out
     }
 
-    #[hax_lib::attributes]
+    #[cfg_attr(hax, hax_lib::attributes)]
     impl<const K: usize> Hash<K> for Simd256Hash {
-        #[ensures(|out|
-            fstar!(r#"$out == Spec.Utils.v_G $input"#))
+        #[cfg_attr(hax, hax_lib::ensures(|out|
+            fstar!(r#"$out == Spec.Utils.v_G $input"#)))
         ]
         #[inline(always)]
         fn G(input: &[u8]) -> [u8; G_DIGEST_SIZE] {
             G(input)
         }
 
-        #[ensures(|out|
-            fstar!(r#"$out == Spec.Utils.v_H $input"#))
+        #[cfg_attr(hax, hax_lib::ensures(|out|
+            fstar!(r#"$out == Spec.Utils.v_H $input"#)))
         ]
         #[inline(always)]
         fn H(input: &[u8]) -> [u8; H_DIGEST_SIZE] {
             H(input)
         }
 
-        #[requires(fstar!(r#"v $LEN < pow2 32"#))]
-        #[hax_lib::ensures(|out|
+        #[cfg_attr(hax, hax_lib::requires(fstar!(r#"v $LEN < pow2 32"#)))]
+        #[cfg_attr(hax, hax_lib::ensures(|out|
             // We need to repeat the pre-condition here because of https://github.com/hacspec/hax/issues/784
-            fstar!(r#"v $LEN < pow2 32 ==> $out == Spec.Utils.v_PRF $LEN $input"#))
+            fstar!(r#"v $LEN < pow2 32 ==> $out == Spec.Utils.v_PRF $LEN $input"#)))
         ]
         #[inline(always)]
         fn PRF<const LEN: usize>(input: &[u8]) -> [u8; LEN] {
             PRF::<LEN>(input)
         }
 
-        #[requires(fstar!(r#"v $LEN < pow2 32 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)"#))]
-        #[ensures(|out|
+        #[cfg_attr(hax, hax_lib::requires(fstar!(r#"v $LEN < pow2 32 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)"#)))]
+        #[cfg_attr(hax, hax_lib::ensures(|out|
             fstar!(r#"(v $LEN < pow2 32 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)) ==>
-                $out == Spec.Utils.v_PRFxN $K $LEN $input"#))
+                $out == Spec.Utils.v_PRFxN $K $LEN $input"#)))
         ]
         #[inline(always)]
         fn PRFxN<const LEN: usize>(input: &[[u8; 33]; K]) -> [[u8; LEN]; K] {
@@ -495,8 +497,9 @@ pub(crate) mod avx2 {
 /// A SIMD128 implementation of [`Hash`] for NEON
 #[cfg(feature = "simd128")]
 pub(crate) mod neon {
-    use super::*;
     use libcrux_sha3::neon::x2::{self, incremental::KeccakState};
+
+    use super::*;
 
     /// The state.
     ///
@@ -507,8 +510,8 @@ pub(crate) mod neon {
         shake128_state: [KeccakState; 2],
     }
 
-    #[hax_lib::ensures(|result|
-        fstar!(r#"$result == Spec.Utils.v_G $input"#))
+    #[cfg_attr(hax, hax_lib::ensures(|result|
+        fstar!(r#"$result == Spec.Utils.v_G $input"#)))
     ]
     #[inline(always)]
     fn G(input: &[u8]) -> [u8; G_DIGEST_SIZE] {
@@ -517,8 +520,8 @@ pub(crate) mod neon {
         digest
     }
 
-    #[hax_lib::ensures(|result|
-        fstar!(r#"$result == Spec.Utils.v_H $input"#))
+    #[cfg_attr(hax, hax_lib::ensures(|result|
+        fstar!(r#"$result == Spec.Utils.v_H $input"#)))
     ]
     #[inline(always)]
     fn H(input: &[u8]) -> [u8; H_DIGEST_SIZE] {
@@ -527,9 +530,9 @@ pub(crate) mod neon {
         digest
     }
 
-    #[hax_lib::requires(fstar!(r#"v $LEN < pow2 32"#))]
-    #[hax_lib::ensures(|result|
-        fstar!(r#"$result == Spec.Utils.v_PRF $LEN $input"#))
+    #[cfg_attr(hax, hax_lib::requires(fstar!(r#"v $LEN < pow2 32"#)))]
+    #[cfg_attr(hax, hax_lib::ensures(|result|
+        fstar!(r#"$result == Spec.Utils.v_PRF $LEN $input"#)))
     ]
     #[inline(always)]
     fn PRF<const LEN: usize>(input: &[u8]) -> [u8; LEN] {
@@ -539,9 +542,9 @@ pub(crate) mod neon {
         digest
     }
 
-    #[hax_lib::requires(fstar!(r#"v $LEN < pow2 32 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)"#))]
-    #[hax_lib::ensures(|result|
-        fstar!(r#"$result == Spec.Utils.v_PRFxN $K $LEN $input"#))
+    #[cfg_attr(hax, hax_lib::requires(fstar!(r#"v $LEN < pow2 32 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)"#)))]
+    #[cfg_attr(hax, hax_lib::ensures(|result|
+        fstar!(r#"$result == Spec.Utils.v_PRFxN $K $LEN $input"#)))
     ]
     #[inline(always)]
     fn PRFxN<const K: usize, const LEN: usize>(input: &[[u8; 33]; K]) -> [[u8; LEN]; K] {
@@ -715,39 +718,39 @@ pub(crate) mod neon {
         out
     }
 
-    #[hax_lib::attributes]
+    #[cfg_attr(hax, hax_lib::attributes)]
     impl<const K: usize> Hash<K> for Simd128Hash {
-        #[ensures(|out|
-            fstar!(r#"$out == Spec.Utils.v_G $input"#))
+        #[cfg_attr(hax, hax_lib::ensures(|out|
+            fstar!(r#"$out == Spec.Utils.v_G $input"#)))
         ]
         #[inline(always)]
         fn G(input: &[u8]) -> [u8; G_DIGEST_SIZE] {
             G(input)
         }
 
-        #[ensures(|out|
-            fstar!(r#"$out == Spec.Utils.v_H $input"#))
+        #[cfg_attr(hax, hax_lib::ensures(|out|
+            fstar!(r#"$out == Spec.Utils.v_H $input"#)))
         ]
         #[inline(always)]
         fn H(input: &[u8]) -> [u8; H_DIGEST_SIZE] {
             H(input)
         }
 
-        #[requires(fstar!(r#"v $LEN < pow2 32"#))]
-        #[ensures(|out|
+        #[cfg_attr(hax, hax_lib::requires(fstar!(r#"v $LEN < pow2 32"#)))]
+        #[cfg_attr(hax, hax_lib::ensures(|out|
             // We need to repeat the pre-condition here because of https://github.com/hacspec/hax/issues/784
-            fstar!(r#"v $LEN < pow2 32 ==> $out == Spec.Utils.v_PRF $LEN $input"#))
+            fstar!(r#"v $LEN < pow2 32 ==> $out == Spec.Utils.v_PRF $LEN $input"#)))
         ]
         #[inline(always)]
         fn PRF<const LEN: usize>(input: &[u8]) -> [u8; LEN] {
             PRF::<LEN>(input)
         }
 
-        #[requires(fstar!(r#"v $LEN < pow2 32 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)"#))]
-        #[ensures(|out|
+        #[cfg_attr(hax, hax_lib::requires(fstar!(r#"v $LEN < pow2 32 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)"#)))]
+        #[cfg_attr(hax, hax_lib::ensures(|out|
             // We need to repeat the pre-condition here because of https://github.com/hacspec/hax/issues/784
             fstar!(r#"(v $LEN < pow2 32 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)) ==>
-                $out == Spec.Utils.v_PRFxN $K $LEN $input"#))
+                $out == Spec.Utils.v_PRFxN $K $LEN $input"#)))
         ]
         #[inline(always)]
         fn PRFxN<const LEN: usize>(input: &[[u8; 33]; K]) -> [[u8; LEN]; K] {

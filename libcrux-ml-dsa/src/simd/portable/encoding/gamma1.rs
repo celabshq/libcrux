@@ -1,12 +1,13 @@
 use crate::{helper::cloop, simd::portable::vector_type::Coefficients};
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"(forall i. bounded (Seq.index ${simd_unit.values} i) 17) /\ Seq.length $serialized == 18"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"(forall i. bounded (Seq.index ${simd_unit.values} i) 17) /\ Seq.length $serialized == 18"#)))]
 fn serialize_when_gamma1_is_2_pow_17(simd_unit: &Coefficients, serialized: &mut [u8]) {
     const GAMMA1: i32 = 1 << 17;
 
     cloop! {
         for (i, coefficients) in simd_unit.values.chunks_exact(4).enumerate() {
+            #[cfg(hax)]
             hax_lib::loop_invariant!(|_i: usize| serialized.len() == 18);
 
             let coefficient0 = GAMMA1 - coefficients[0];
@@ -37,12 +38,13 @@ fn serialize_when_gamma1_is_2_pow_17(simd_unit: &Coefficients, serialized: &mut 
 }
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"(forall i. bounded (Seq.index ${simd_unit.values} i) 19) /\ Seq.length $serialized == 20"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"(forall i. bounded (Seq.index ${simd_unit.values} i) 19) /\ Seq.length $serialized == 20"#)))]
 fn serialize_when_gamma1_is_2_pow_19(simd_unit: &Coefficients, serialized: &mut [u8]) {
     const GAMMA1: i32 = 1 << 19;
 
     cloop! {
         for (i, coefficients) in simd_unit.values.chunks_exact(2).enumerate() {
+            #[cfg(hax)]
             hax_lib::loop_invariant!(|_i: usize| serialized.len() == 20);
 
             let coefficient0 = GAMMA1 - coefficients[0];
@@ -61,11 +63,11 @@ fn serialize_when_gamma1_is_2_pow_19(simd_unit: &Coefficients, serialized: &mut 
 }
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
        (v $gamma1_exponent == 17 \/ v $gamma1_exponent == 19)
     /\ (forall i. bounded (Seq.index ${simd_unit.values} i) (v $gamma1_exponent))
     /\ Seq.length $serialized == (1 + v $gamma1_exponent)
-"#))]
+"#)))]
 pub(crate) fn serialize(simd_unit: &Coefficients, serialized: &mut [u8], gamma1_exponent: usize) {
     match gamma1_exponent {
         17 => serialize_when_gamma1_is_2_pow_17(simd_unit, serialized),
@@ -75,7 +77,7 @@ pub(crate) fn serialize(simd_unit: &Coefficients, serialized: &mut [u8], gamma1_
 }
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"Seq.length $serialized == 18"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"Seq.length $serialized == 18"#)))]
 fn deserialize_when_gamma1_is_2_pow_17(serialized: &[u8], simd_unit: &mut Coefficients) {
     // Each set of 9 bytes deserializes to 4 elements, and since each PortableSIMDUnit
     // can hold 8, we process 18 bytes in this function.
@@ -87,6 +89,7 @@ fn deserialize_when_gamma1_is_2_pow_17(serialized: &[u8], simd_unit: &mut Coeffi
 
     cloop! {
         for (i, bytes) in serialized.chunks_exact(9).enumerate() {
+            #[cfg(hax)]
             hax_lib::loop_invariant!(|_i: usize| serialized.len() == 18);
 
             let mut coefficient0 = bytes[0] as i32;
@@ -109,6 +112,7 @@ fn deserialize_when_gamma1_is_2_pow_17(serialized: &[u8], simd_unit: &mut Coeffi
             coefficient3 |= (bytes[8] as i32) << 10;
             coefficient3 &= GAMMA1_TIMES_2_BITMASK;
 
+            #[cfg(hax)]
             hax_lib::fstar!("let (): squash (forall (x: int_t I32). get_bit x (mk_int 31) == 0 ==> v x >= 0) = reveal_opaque (`%get_bit) (get_bit #I32) in ()");
 
             simd_unit.values[4 * i] = GAMMA1 - coefficient0;
@@ -120,7 +124,7 @@ fn deserialize_when_gamma1_is_2_pow_17(serialized: &[u8], simd_unit: &mut Coeffi
 }
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"Seq.length $serialized == 20"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"Seq.length $serialized == 20"#)))]
 fn deserialize_when_gamma1_is_2_pow_19(serialized: &[u8], simd_unit: &mut Coefficients) {
     // Each set of 5 bytes deserializes to 2 elements, and since each PortableSIMDUnit
     // can hold 8, we process 5 * (8 / 2) = 20 bytes in this function.
@@ -141,6 +145,7 @@ fn deserialize_when_gamma1_is_2_pow_19(serialized: &[u8], simd_unit: &mut Coeffi
             coefficient1 |= (bytes[3] as i32) << 4;
             coefficient1 |= (bytes[4] as i32) << 12;
 
+            #[cfg(hax)]
             hax_lib::fstar!("let (): squash (forall (x: int_t I32). get_bit x (mk_int 31) == 0 ==> v x >= 0) = reveal_opaque (`%get_bit) (get_bit #I32) in ()");
 
             simd_unit.values[2 * i] = GAMMA1 - coefficient0;
@@ -150,7 +155,7 @@ fn deserialize_when_gamma1_is_2_pow_19(serialized: &[u8], simd_unit: &mut Coeffi
 }
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"Seq.length $serialized == 1 + v $gamma1_exponent"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"Seq.length $serialized == 1 + v $gamma1_exponent"#)))]
 pub(crate) fn deserialize(serialized: &[u8], out: &mut Coefficients, gamma1_exponent: usize) {
     match gamma1_exponent {
         17 => deserialize_when_gamma1_is_2_pow_17(serialized, out),

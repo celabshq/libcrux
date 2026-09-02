@@ -444,6 +444,7 @@ fn inside_out_shuffle(
     let mut done = false;
 
     for i in 0..randomness.len() {
+        #[cfg(hax)]
         hax_lib::loop_invariant!(|i: usize| fstar!(
             r#"v ${out_index} <= 256 /\
                (${done} \/ v ${out_index} < 256)"#
@@ -492,7 +493,6 @@ pub(crate) fn sample_challenge_ring_element<SIMDUnit: Operations, Shake256: shak
 #[cfg(test)]
 mod tests {
     use super::*;
-
     use crate::{
         constants::COEFFICIENTS_IN_RING_ELEMENT,
         hash_functions,

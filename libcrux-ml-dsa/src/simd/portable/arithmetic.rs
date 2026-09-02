@@ -11,17 +11,20 @@ use crate::{
 pub(crate) const MONTGOMERY_SHIFT: u8 = 32;
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 150")]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(add_pre(&lhs.values, &rhs.values))]
-#[hax_lib::ensures(|result| add_post(&lhs.values, &rhs.values, &(future(lhs).values)))]
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 150"))]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(add_pre(&lhs.values, &rhs.values)))]
+#[cfg_attr(hax, hax_lib::ensures(|result| add_post(&lhs.values, &rhs.values, &(future(lhs).values))))]
 pub fn add(lhs: &mut Coefficients, rhs: &Coefficients) {
     #[cfg(hax)]
     let _lhs0 = lhs.clone();
+    #[cfg(hax)]
     hax_lib::fstar!("reveal_opaque (`%$add_pre) ($add_pre)");
+    #[cfg(hax)]
     hax_lib::fstar!("reveal_opaque (`%$add_post) ($add_post)");
 
     for i in 0..lhs.values.len() {
+        #[cfg(hax)]
         hax_lib::loop_invariant!(|i: usize| {
             hax_lib::forall(|j: usize| {
                 hax_lib::implies(j < i, lhs.values[j] == _lhs0.values[j] + rhs.values[j])
@@ -38,17 +41,20 @@ pub fn add(lhs: &mut Coefficients, rhs: &Coefficients) {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 150")]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(sub_pre(&lhs.values, &rhs.values))]
-#[hax_lib::ensures(|result| sub_post(&lhs.values, &rhs.values, &(future(lhs).values)))]
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 150"))]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(sub_pre(&lhs.values, &rhs.values)))]
+#[cfg_attr(hax, hax_lib::ensures(|result| sub_post(&lhs.values, &rhs.values, &(future(lhs).values))))]
 pub fn subtract(lhs: &mut Coefficients, rhs: &Coefficients) {
     #[cfg(hax)]
     let _lhs0 = lhs.clone();
+    #[cfg(hax)]
     hax_lib::fstar!("reveal_opaque (`%$sub_pre) ($sub_pre)");
+    #[cfg(hax)]
     hax_lib::fstar!("reveal_opaque (`%$sub_post) ($sub_post)");
 
     for i in 0..lhs.values.len() {
+        #[cfg(hax)]
         hax_lib::loop_invariant!(|i: usize| {
             hax_lib::forall(|j: usize| {
                 hax_lib::implies(j < i, lhs.values[j] == _lhs0.values[j] - rhs.values[j])
@@ -65,13 +71,14 @@ pub fn subtract(lhs: &mut Coefficients, rhs: &Coefficients) {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 150 --split_queries always")]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(n <= 32)]
-#[hax_lib::ensures(|result| fstar!(r#"v result == v value % pow2(v n)"#))]
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 150 --split_queries always"))]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(n <= 32))]
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"v result == v value % pow2(v n)"#)))]
 pub(crate) fn get_n_least_significant_bits(n: u8, value: u64) -> u64 {
     let res = value & ((1 << n) - 1);
 
+    #[cfg(hax)]
     hax_lib::fstar!(
         "calc (==) {
             v res;
@@ -92,20 +99,22 @@ pub(crate) fn get_n_least_significant_bits(n: u8, value: u64) -> u64 {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 900 --split_queries always")]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"Spec.Utils.is_i64b (8380416 * pow2 32) value "#))]
-#[hax_lib::ensures(|result| fstar!(r#"Spec.Utils.is_i32b (8380416 + 4190209) result /\
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 900 --split_queries always"))]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"Spec.Utils.is_i64b (8380416 * pow2 32) value "#)))]
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"Spec.Utils.is_i32b (8380416 + 4190209) result /\
                 (Spec.Utils.is_i64b (8380416 * pow2 31) value ==> Spec.Utils.is_i32b 8380416 result) /\
-                Spec.MLDSA.Math.(mod_q (v result) == mod_q (v value * 8265825))"#))]
+                Spec.MLDSA.Math.(mod_q (v result) == mod_q (v value * 8265825))"#)))]
 pub(crate) fn montgomery_reduce_element(value: i64) -> FieldElementTimesMontgomeryR {
     let t = get_n_least_significant_bits(MONTGOMERY_SHIFT, value as u64)
         * INVERSE_OF_MODULUS_MOD_MONTGOMERY_R;
 
+    #[cfg(hax)]
     hax_lib::fstar!(r#"assert (v $t == (v $value % pow2 32) * 58728449)"#);
 
     let k = get_n_least_significant_bits(MONTGOMERY_SHIFT, t) as i32;
 
+    #[cfg(hax)]
     hax_lib::fstar!(
         r#"assert (v $k == v $t @% pow2 32);
         assert(v (cast ($k <: i32) <: i64) == v $k);
@@ -116,6 +125,7 @@ pub(crate) fn montgomery_reduce_element(value: i64) -> FieldElementTimesMontgome
 
     let k_times_modulus = (k as i64) * (FIELD_MODULUS as i64);
 
+    #[cfg(hax)]
     hax_lib::fstar!(
         r#"Spec.Utils.lemma_mul_i32b (pow2 31) (8380417) $k $FIELD_MODULUS;
         assert (Spec.Utils.is_i64b (pow2 31 * 8380417) $k_times_modulus)"#
@@ -123,6 +133,7 @@ pub(crate) fn montgomery_reduce_element(value: i64) -> FieldElementTimesMontgome
 
     let c = (k_times_modulus >> MONTGOMERY_SHIFT) as i32;
 
+    #[cfg(hax)]
     hax_lib::fstar!(
         r#"assert (v $k_times_modulus < pow2 63);
         assert (v $k_times_modulus / pow2 32 < pow2 31);
@@ -133,6 +144,7 @@ pub(crate) fn montgomery_reduce_element(value: i64) -> FieldElementTimesMontgome
 
     let value_high = (value >> MONTGOMERY_SHIFT) as i32;
 
+    #[cfg(hax)]
     hax_lib::fstar!(
         r#"assert (v $value < pow2 63);
         assert (v $value / pow2 32 < pow2 31);
@@ -145,10 +157,12 @@ pub(crate) fn montgomery_reduce_element(value: i64) -> FieldElementTimesMontgome
 
     let res = value_high - c;
 
+    #[cfg(hax)]
     hax_lib::fstar!(
         r#"assert(Spec.Utils.is_i32b (8380416 + 4190209) $res);
         assert(Spec.Utils.is_i64b (8380416 * pow2 31) $value ==> Spec.Utils.is_i32b 58728448 $res)"#
     );
+    #[cfg(hax)]
     hax_lib::fstar!(
         r#"calc ( == ) {
             v $k_times_modulus % pow2 32;
@@ -168,6 +182,7 @@ pub(crate) fn montgomery_reduce_element(value: i64) -> FieldElementTimesMontgome
         Math.Lemmas.modulo_add (pow2 32) (- (v $k_times_modulus)) (v $value) (v $k_times_modulus);
         assert ((v $value - v $k_times_modulus) % pow2 32 == 0)"#
     );
+    #[cfg(hax)]
     hax_lib::fstar!(
         r#"calc ( == ) {
             v $res % 8380417;
@@ -189,42 +204,46 @@ pub(crate) fn montgomery_reduce_element(value: i64) -> FieldElementTimesMontgome
             (v $value * 8265825) % 8380417;
         }"#
     );
+    #[cfg(hax)]
     hax_lib::fstar!(r#"reveal_opaque (`%Spec.MLDSA.Math.mod_q) (Spec.MLDSA.Math.mod_q)"#);
     res
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 300")]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"Spec.Utils.is_i32b 4190208 fer"#))]
-#[hax_lib::ensures(|result| fstar!(r#"Spec.Utils.is_i32b 8380416 $result /\
-    Spec.MLDSA.Math.(mod_q (v result) == mod_q (v fe * v fer * 8265825))"#))]
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 300"))]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"Spec.Utils.is_i32b 4190208 fer"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"Spec.Utils.is_i32b 8380416 $result /\
+    Spec.MLDSA.Math.(mod_q (v result) == mod_q (v fe * v fer * 8265825))"#)))]
 pub(crate) fn montgomery_multiply_fe_by_fer(
     fe: FieldElement,
     fer: FieldElementTimesMontgomeryR,
 ) -> FieldElement {
+    #[cfg(hax)]
     hax_lib::fstar!(r#"Spec.Utils.lemma_mul_i32b (pow2 31) (4190208) fe fer"#);
 
     montgomery_reduce_element((fe as i64) * (fer as i64))
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 150")]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"Spec.Utils.is_i32b 4190208 $c"#))]
-#[hax_lib::ensures(|result| fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 150"))]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"Spec.Utils.is_i32b 4190208 $c"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"
     Spec.Utils.is_i32b_array_opaque 8380416 ${simd_unit}_future.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values /\
     Spec.MLDSA.Math.(forall i. i < 8 ==> 
         mod_q (v (Seq.index ${simd_unit}_future.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i)) == 
-        mod_q (v (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i) * v $c * 8265825))"#))]
+        mod_q (v (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i) * v $c * 8265825))"#)))]
 pub(crate) fn montgomery_multiply_by_constant(simd_unit: &mut Coefficients, c: i32) {
     #[cfg(hax)]
     let _simd_unit0 = simd_unit.clone();
+    #[cfg(hax)]
     hax_lib::fstar!(
         "reveal_opaque (`%Spec.Utils.is_i32b_array_opaque) (Spec.Utils.is_i32b_array_opaque)"
     );
 
     for i in 0..simd_unit.values.len() {
+        #[cfg(hax)]
         hax_lib::loop_invariant!(|i: usize| {
             fstar!(
                 r#"
@@ -235,6 +254,7 @@ pub(crate) fn montgomery_multiply_by_constant(simd_unit: &mut Coefficients, c: i
               (forall j. j >= v $i ==> (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values j) == (Seq.index ${_simd_unit0}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values j))"#
             )
         });
+        #[cfg(hax)]
         hax_lib::fstar!(
             r#"Spec.Utils.lemma_mul_i32b (pow2 31) (4190208) ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values.[ $i ] $c"#
         );
@@ -244,22 +264,24 @@ pub(crate) fn montgomery_multiply_by_constant(simd_unit: &mut Coefficients, c: i
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 150")]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"Spec.Utils.is_i32b_array_opaque 8380416 ${rhs}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values"#))]
-#[hax_lib::ensures(|result| fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 150"))]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"Spec.Utils.is_i32b_array_opaque 8380416 ${rhs}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"
     Spec.Utils.is_i32b_array_opaque 8380416 ${lhs}_future.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values /\
     Spec.MLDSA.Math.(forall i. i < 8 ==> 
         mod_q (v (Seq.index ${lhs}_future.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i)) == 
-        mod_q (v (Seq.index ${lhs}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i) * v (Seq.index ${rhs}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i) * 8265825))"#))]
+        mod_q (v (Seq.index ${lhs}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i) * v (Seq.index ${rhs}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i) * 8265825))"#)))]
 pub(crate) fn montgomery_multiply(lhs: &mut Coefficients, rhs: &Coefficients) {
     #[cfg(hax)]
     let _lhs0 = lhs.clone();
+    #[cfg(hax)]
     hax_lib::fstar!(
         "reveal_opaque (`%Spec.Utils.is_i32b_array_opaque) (Spec.Utils.is_i32b_array_opaque)"
     );
 
     for i in 0..lhs.values.len() {
+        #[cfg(hax)]
         hax_lib::loop_invariant!(|i: usize| {
             fstar!(
                 r#"
@@ -270,6 +292,7 @@ pub(crate) fn montgomery_multiply(lhs: &mut Coefficients, rhs: &Coefficients) {
               (forall j. j >= v $i ==> (Seq.index ${lhs}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values j) == (Seq.index ${_lhs0}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values j))"#
             )
         });
+        #[cfg(hax)]
         hax_lib::fstar!(
             r#"Spec.Utils.lemma_mul_i32b (pow2 31) (8380416) ${lhs}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values.[ $i ] ${rhs}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values.[ $i ]"#
         );
@@ -287,12 +310,16 @@ pub(crate) fn montgomery_multiply(lhs: &mut Coefficients, rhs: &Coefficients) {
 // We assume the input t is in the signed representative range and convert it
 // to the standard unsigned range.
 #[inline(always)]
-#[hax_lib::fstar::options("--ext context_pruning --z3refresh --split_queries always")]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"Spec.Utils.is_i32b (v $FIELD_MODULUS - 1) $t"#))]
-#[hax_lib::ensures(|(t0,t1)| fstar!(r#"let (t0_s, t1_s) = Spec.MLDSA.Math.power2round (v $t) in
-    v $t0 == t0_s /\ v $t1 == t1_s /\ Spec.Utils.is_intb_bt (pow2 (v $BITS_IN_LOWER_PART_OF_T - 1)) (v $t0)"#))]
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::options("--ext context_pruning --z3refresh --split_queries always")
+)]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"Spec.Utils.is_i32b (v $FIELD_MODULUS - 1) $t"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|(t0,t1)| fstar!(r#"let (t0_s, t1_s) = Spec.MLDSA.Math.power2round (v $t) in
+    v $t0 == t0_s /\ v $t1 == t1_s /\ Spec.Utils.is_intb_bt (pow2 (v $BITS_IN_LOWER_PART_OF_T - 1)) (v $t0)"#)))]
 fn power2round_element(t: i32) -> (i32, i32) {
+    #[cfg(hax)]
     hax_lib::fstar!("logand_lemma $FIELD_MODULUS (t >>! mk_i32 31)");
     #[cfg(hax)]
     let _t = t;
@@ -300,6 +327,7 @@ fn power2round_element(t: i32) -> (i32, i32) {
     // Convert the signed representative to the standard unsigned one.
     let t = t + ((t >> 31) & FIELD_MODULUS);
 
+    #[cfg(hax)]
     hax_lib::fstar!("assert (v $t == v $_t % v $FIELD_MODULUS)");
 
     // t0 = t - (2^{BITS_IN_LOWER_PART_OF_T} * t1)
@@ -309,6 +337,7 @@ fn power2round_element(t: i32) -> (i32, i32) {
     // on what these compute.
     let t1 = (t - 1 + (1 << (BITS_IN_LOWER_PART_OF_T - 1))) >> BITS_IN_LOWER_PART_OF_T;
 
+    #[cfg(hax)]
     hax_lib::fstar!(
         "assert (v $t1 == (v $t - 1 + pow2 12) / pow2 13);
         assert ((v $t - (Spec.Utils.mod_p (v $t) (pow2 13))) / pow2 13 ==
@@ -326,6 +355,7 @@ fn power2round_element(t: i32) -> (i32, i32) {
 
     let t0 = t - (t1 << BITS_IN_LOWER_PART_OF_T);
 
+    #[cfg(hax)]
     hax_lib::fstar!(
         "assert (v $t0 == v $t - ((v $t - (Spec.Utils.mod_p (v $t) (pow2 13))) / pow2 13) * pow2 13);
         assert (v $t0 == v $t - (v $t - (Spec.Utils.mod_p (v $t) (pow2 13))));
@@ -335,22 +365,24 @@ fn power2round_element(t: i32) -> (i32, i32) {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"Spec.Utils.is_i32b_array_opaque (v $FIELD_MODULUS - 1) ${t0}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values"#))]
-#[hax_lib::ensures(|_| fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"Spec.Utils.is_i32b_array_opaque (v $FIELD_MODULUS - 1) ${t0}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"
     forall i. i < 8 ==>
         (let t0_v = v (Seq.index ${t0}_future.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i) in
         let (t0_s, t1_s) = Spec.MLDSA.Math.power2round (v (Seq.index ${t0}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i)) in
         t0_v == t0_s /\ v (Seq.index ${t1}_future.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i) == t1_s /\
-        Spec.Utils.is_intb_bt (pow2 (v $BITS_IN_LOWER_PART_OF_T - 1)) t0_v)"#))]
+        Spec.Utils.is_intb_bt (pow2 (v $BITS_IN_LOWER_PART_OF_T - 1)) t0_v)"#)))]
 pub(super) fn power2round(t0: &mut Coefficients, t1: &mut Coefficients) {
     #[cfg(hax)]
     let _t0: Coefficients = t0.clone();
+    #[cfg(hax)]
     hax_lib::fstar!(
         "reveal_opaque (`%Spec.Utils.is_i32b_array_opaque) (Spec.Utils.is_i32b_array_opaque)"
     );
 
     for i in 0..t0.values.len() {
+        #[cfg(hax)]
         hax_lib::loop_invariant!(|i: usize| {
             fstar!(
                 r#"
@@ -370,13 +402,14 @@ pub(super) fn power2round(t0: &mut Coefficients, t1: &mut Coefficients) {
 // TODO: Revisit this function when doing the range analysis and testing
 // additional KATs.
 #[inline(always)]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"v $bound > 0 /\ 
-        Spec.Utils.is_i32b_array_opaque (v $FIELD_MODULUS - 1) ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values"#))]
-#[hax_lib::ensures(|result| fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"v $bound > 0 /\ 
+        Spec.Utils.is_i32b_array_opaque (v $FIELD_MODULUS - 1) ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"
     $result == false ==> 
-        Spec.Utils.is_i32b_array_opaque (v $bound - 1) ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values"#))]
+        Spec.Utils.is_i32b_array_opaque (v $bound - 1) ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values"#)))]
 pub(super) fn infinity_norm_exceeds(simd_unit: &Coefficients, bound: i32) -> bool {
+    #[cfg(hax)]
     hax_lib::fstar!(
         "reveal_opaque (`%Spec.Utils.is_i32b_array_opaque) (Spec.Utils.is_i32b_array_opaque)"
     );
@@ -386,6 +419,7 @@ pub(super) fn infinity_norm_exceeds(simd_unit: &Coefficients, bound: i32) -> boo
     // the probability for each coefficient is independent of secret
     // data but we must not leak the sign of the centralized representative.
     for i in 0..simd_unit.values.len() {
+        #[cfg(hax)]
         hax_lib::loop_invariant!(|i: usize| {
             fstar!(
                 r#"
@@ -404,10 +438,12 @@ pub(super) fn infinity_norm_exceeds(simd_unit: &Coefficients, bound: i32) -> boo
         // don't convert it into a different representation.
         let sign = coefficient >> 31;
 
+        #[cfg(hax)]
         hax_lib::fstar!("logand_lemma (mk_i32 2 *! $coefficient) $sign");
 
         let normalized = coefficient - (sign & (2 * coefficient));
 
+        #[cfg(hax)]
         hax_lib::fstar!("assert (v $normalized == abs (v $coefficient))");
 
         // FIXME: return
@@ -419,14 +455,15 @@ pub(super) fn infinity_norm_exceeds(simd_unit: &Coefficients, bound: i32) -> boo
 }
 
 #[inline(always)]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"Spec.Utils.is_i32b 2143289343 $fe"#))]
-#[hax_lib::ensures(|result| fstar!(r#"Spec.Utils.is_i32b 8380416 $result /\
-    Spec.MLDSA.Math.mod_q (v $result) == Spec.MLDSA.Math.mod_q (v $fe)"#))]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"Spec.Utils.is_i32b 2143289343 $fe"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"Spec.Utils.is_i32b 8380416 $result /\
+    Spec.MLDSA.Math.mod_q (v $result) == Spec.MLDSA.Math.mod_q (v $fe)"#)))]
 fn barrett_reduce_element(fe: FieldElement) -> FieldElement {
     let quotient = (fe + (1 << 22)) >> 23;
     let result = fe - (quotient * FIELD_MODULUS);
 
+    #[cfg(hax)]
     hax_lib::fstar!(
         "calc (==) {
         v $result % 8380417;
@@ -441,25 +478,27 @@ fn barrett_reduce_element(fe: FieldElement) -> FieldElement {
     }"
     );
 
+    #[cfg(hax)]
     hax_lib::fstar!(r#"reveal_opaque (`%Spec.MLDSA.Math.mod_q) (Spec.MLDSA.Math.mod_q)"#);
     result
 }
 
 #[inline]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"Spec.Utils.is_i32b_array_opaque 2143289343 (${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values)"#))]
-#[hax_lib::ensures(|_| fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"Spec.Utils.is_i32b_array_opaque 2143289343 (${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values)"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"
     Spec.Utils.is_i32b_array_opaque 8380416 (${simd_unit}_future.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values) /\
     (forall i. i < 8 ==> Spec.MLDSA.Math.(
         mod_q (v (Seq.index ${simd_unit}_future.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i)) ==
-        mod_q (v (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i)))))"#))
+        mod_q (v (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i)))))"#)))
 ]
-#[hax_lib::fstar::verification_status(lax)]
+#[cfg_attr(hax, hax_lib::fstar::verification_status(lax))]
 pub(crate) fn barrett_reduce_simd_unit(simd_unit: &mut Coefficients) {
     #[cfg(hax)]
     let _simd_unit0 = simd_unit.clone();
 
     for i in 0..simd_unit.values.len() {
+        #[cfg(hax)]
         hax_lib::loop_invariant!(|i: usize| fstar!(
             r#"
                 (forall j. j < v i ==> (Spec.Utils.is_i32b 8380416 (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values j) /\
@@ -472,23 +511,25 @@ pub(crate) fn barrett_reduce_simd_unit(simd_unit: &mut Coefficients) {
     }
 }
 #[inline(always)]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"v $SHIFT_BY == 13 /\ 
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"v $SHIFT_BY == 13 /\ 
     (forall i. i < 8 ==> v (Seq.index (${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values) i) >= 0 /\
-        v (Seq.index (${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values) i) <= 261631)"#))]
-#[hax_lib::ensures(|_| fstar!(r#"
+        v (Seq.index (${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values) i) <= 261631)"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"
     Spec.Utils.is_i32b_array_opaque 8380416 (${simd_unit}_future.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values) /\
     (forall i. i < 8 ==> Spec.MLDSA.Math.(
         mod_q (v (Seq.index ${simd_unit}_future.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i)) ==
-        mod_q (v ((Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i) <<! v_SHIFT_BY))))"#))]
+        mod_q (v ((Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i) <<! v_SHIFT_BY))))"#)))]
 pub(super) fn shift_left_then_reduce<const SHIFT_BY: i32>(simd_unit: &mut Coefficients) {
     #[cfg(hax)]
     let _simd_unit0 = simd_unit.clone();
+    #[cfg(hax)]
     hax_lib::fstar!(
         "reveal_opaque (`%Spec.Utils.is_i32b_array_opaque) (Spec.Utils.is_i32b_array_opaque)"
     );
 
     for i in 0..simd_unit.values.len() {
+        #[cfg(hax)]
         hax_lib::loop_invariant!(|i: usize| fstar!(
             r#"
                 (forall j. j < v i ==> Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values j == 
@@ -503,9 +544,9 @@ pub(super) fn shift_left_then_reduce<const SHIFT_BY: i32>(simd_unit: &mut Coeffi
 }
 
 #[inline(always)]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"v $gamma2 == v $GAMMA2_V261_888 \/ v $gamma2 == v $GAMMA2_V95_232"#))]
-#[hax_lib::ensures(|result| fstar!(r#"v $result = Spec.MLDSA.Math.compute_one_hint (v $low) (v $high) (v $gamma2)"#))]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"v $gamma2 == v $GAMMA2_V261_888 \/ v $gamma2 == v $GAMMA2_V95_232"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"v $result = Spec.MLDSA.Math.compute_one_hint (v $low) (v $high) (v $gamma2)"#)))]
 fn compute_one_hint(low: i32, high: i32, gamma2: i32) -> i32 {
     if (low > gamma2) || (low < -gamma2) || (low == -gamma2 && high != 0) {
         1
@@ -515,14 +556,14 @@ fn compute_one_hint(low: i32, high: i32, gamma2: i32) -> i32 {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"v $gamma2 == v $GAMMA2_V261_888 \/ v $gamma2 == v $GAMMA2_V95_232"#))]
-#[hax_lib::ensures(|result| fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"v $gamma2 == v $GAMMA2_V261_888 \/ v $gamma2 == v $GAMMA2_V95_232"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"
     (forall i. i < 8 ==> (v (Seq.index ${hint}_future.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i) =
         Spec.MLDSA.Math.compute_one_hint (v (Seq.index ${low}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i))
             (v (Seq.index ${high}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i)) (v $gamma2))) /\
     v $result == Spec.MLDSA.Math.compute_hint ${hint}_future.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values"#
-))]
+)))]
 pub(super) fn compute_hint(
     low: &Coefficients,
     high: &Coefficients,
@@ -531,11 +572,13 @@ pub(super) fn compute_hint(
 ) -> usize {
     let mut one_hints_count = 0;
 
+    #[cfg(hax)]
     hax_lib::fstar!(
         r#"Spec.Utils.eq_repeati0 (sz 0) (Spec.MLDSA.Math.hint_counter ${hint}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values) (0)"#
     );
 
     for i in 0..hint.values.len() {
+        #[cfg(hax)]
         hax_lib::loop_invariant!(|i: usize| {
             fstar!(
                 r#"
@@ -553,6 +596,7 @@ pub(super) fn compute_hint(
 
         hint.values[i] = compute_one_hint(low.values[i], high.values[i], gamma2);
 
+        #[cfg(hax)]
         hax_lib::fstar!(
             r#"Spec.MLDSA.Math.hint_counter_loop ${hint}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values $_hint_values (v i);
             Spec.Utils.unfold_repeati ($i +! sz 1) (Spec.MLDSA.Math.hint_counter ${hint}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values) (0) ($i)"#
@@ -579,34 +623,40 @@ pub(super) fn compute_hint(
 //
 // Note that 0 ≤ r₁ < (q-1)/α.
 #[inline(always)]
-#[hax_lib::fstar::options(
-    "--fuel 3 --z3rlimit 1500 --ext context_pruning --z3refresh --split_queries always"
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::options(
+        "--fuel 3 --z3rlimit 1500 --ext context_pruning --z3refresh --split_queries always"
+    )
 )]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"(v $gamma2 == v $GAMMA2_V261_888 \/ v $gamma2 == v $GAMMA2_V95_232) /\
-    Spec.Utils.is_i32b (v $FIELD_MODULUS - 1) $r"#))]
-#[hax_lib::ensures(|(r0,r1)| fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"(v $gamma2 == v $GAMMA2_V261_888 \/ v $gamma2 == v $GAMMA2_V95_232) /\
+    Spec.Utils.is_i32b (v $FIELD_MODULUS - 1) $r"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|(r0,r1)| fstar!(r#"
     let (r0_s, r1_s, cond) = Spec.MLDSA.Math.decompose (v $gamma2) (v $r) in
     v $r0 = r0_s /\ v $r1 = r1_s /\
     (if cond then
         (v $r0 >= -(v $gamma2) /\ v $r0 < 0)
     else
         (v $r0 > -(v $gamma2) /\ v $r0 <= v $gamma2)) /\
-    (v $r1 >= 0 /\ v $r1 < (v $FIELD_MODULUS - 1) / (v $gamma2 * 2))"#))]
+    (v $r1 >= 0 /\ v $r1 < (v $FIELD_MODULUS - 1) / (v $gamma2 * 2))"#)))]
 fn decompose_element(gamma2: Gamma2, r: i32) -> (i32, i32) {
     #[cfg(hax)]
     let _r = r;
+    #[cfg(hax)]
     hax_lib::fstar!(r#"logand_lemma $FIELD_MODULUS ($r >>! mk_i32 31)"#);
 
     // Convert the signed representative to the standard unsigned one.
     let r = r + ((r >> 31) & FIELD_MODULUS);
 
+    #[cfg(hax)]
     hax_lib::fstar!(r#"assert (v $r == v $_r % v $FIELD_MODULUS)"#);
 
     let r1 = {
         // Compute ⌈r / 128⌉
         let ceil_of_r_by_128 = (r + 127) >> 7;
 
+        #[cfg(hax)]
         hax_lib::fstar!(r#"assert (v $ceil_of_r_by_128 == (v $r + 127) / 128)"#);
 
         match gamma2 {
@@ -615,6 +665,7 @@ fn decompose_element(gamma2: Gamma2, r: i32) -> (i32, i32) {
                 // ⌊2²⁴ / 1488⌋ / 2²⁴ = 11,275 / 2²⁴
                 let result = ((ceil_of_r_by_128 * 11_275) + (1 << 23)) >> 24;
 
+                #[cfg(hax)]
                 hax_lib::fstar!(
                     r#"assert (v $result == ((v $ceil_of_r_by_128 * 11275) + pow2 23) / pow2 24);
                     assert (v $result == ((((v $r + 127) / 128) * 11275) + pow2 23) / pow2 24);
@@ -622,6 +673,7 @@ fn decompose_element(gamma2: Gamma2, r: i32) -> (i32, i32) {
                     assert (v $result == (v $r - (Spec.Utils.mod_p (v $r) 190464)) / 190464);
                     assert (v $result >= 0 /\ v $result <= 44)"#
                 );
+                #[cfg(hax)]
                 hax_lib::fstar!(
                     r#"logxor_lemma $result ((mk_i32 43 -! $result) >>! mk_i32 31);
                     lognot_lemma $result;
@@ -631,6 +683,7 @@ fn decompose_element(gamma2: Gamma2, r: i32) -> (i32, i32) {
                 // For the corner-case a₁ = (q-1)/α = 44, we have to set a₁=0.
                 let result_0 = (result ^ (43 - result) >> 31) & result;
 
+                #[cfg(hax)]
                 hax_lib::fstar!(
                     r#"assert (v $result == 44 ==> v $result_0 == 0);
                     assert (v $result < 44 ==> v $result_0 == v $result)"#
@@ -643,6 +696,7 @@ fn decompose_element(gamma2: Gamma2, r: i32) -> (i32, i32) {
                 // ⌊2²² / 4092⌋ / 2²² = 1025 / 2²²
                 let result = (ceil_of_r_by_128 * 1025 + (1 << 21)) >> 22;
 
+                #[cfg(hax)]
                 hax_lib::fstar!(
                     r#"assert (v $result == ((v $ceil_of_r_by_128 * 1025) + pow2 21) / pow2 22);
                     assert (v $result == ((((v $r + 127) / 128) * 1025) + pow2 21) / pow2 22);
@@ -650,11 +704,13 @@ fn decompose_element(gamma2: Gamma2, r: i32) -> (i32, i32) {
                     assert (v $result == (v $r - (Spec.Utils.mod_p (v $r) 523776)) / 523776);
                     assert (v $result >= 0 /\ v $result <= 16)"#
                 );
+                #[cfg(hax)]
                 hax_lib::fstar!(r#"logand_mask_lemma $result 4"#);
 
                 // For the corner-case a₁ = (q-1)/α = 16, we have to set a₁=0.
                 let result_0 = result & 15;
 
+                #[cfg(hax)]
                 hax_lib::fstar!(
                     r#"assert (v $result == 16 ==> v $result_0 == 0);
                     assert (v $result < 16 ==> v $result_0 == v $result)"#
@@ -672,6 +728,7 @@ fn decompose_element(gamma2: Gamma2, r: i32) -> (i32, i32) {
     #[cfg(hax)]
     let _r0 = r0;
 
+    #[cfg(hax)]
     hax_lib::fstar!(
         r#"logand_lemma (((($FIELD_MODULUS -! mk_i32 1) /! mk_i32 2) -! $r0) >>! mk_i32 31)
             $FIELD_MODULUS"#
@@ -682,6 +739,7 @@ fn decompose_element(gamma2: Gamma2, r: i32) -> (i32, i32) {
     // return a₀ + q, that comes down to adding q if a₀ < (q-1)/2.
     r0 -= (((FIELD_MODULUS - 1) / 2 - r0) >> 31) & FIELD_MODULUS;
 
+    #[cfg(hax)]
     hax_lib::fstar!(
         r#"assert (v $_r0 > 4190208 ==> v $r0 == v $_r0 - 8380417);
         assert (v $_r0 <= 4190208 ==> v $r0 == v $_r0);
@@ -700,12 +758,15 @@ fn decompose_element(gamma2: Gamma2, r: i32) -> (i32, i32) {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--ext context_pruning --z3refresh --split_queries always")]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"(v $gamma2 == v $GAMMA2_V261_888 \/ v $gamma2 == v $GAMMA2_V95_232) /\
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::options("--ext context_pruning --z3refresh --split_queries always")
+)]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"(v $gamma2 == v $GAMMA2_V261_888 \/ v $gamma2 == v $GAMMA2_V95_232) /\
     Spec.Utils.is_i32b (v $FIELD_MODULUS - 1) $r /\
-    (v $hint == 0 \/ v $hint == 1)"#))]
-#[hax_lib::ensures(|result| fstar!(r#"v $result == Spec.MLDSA.Math.use_one_hint (v $gamma2) (v $r) (v $hint)"#))]
+    (v $hint == 0 \/ v $hint == 1)"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"v $result == Spec.MLDSA.Math.use_one_hint (v $gamma2) (v $r) (v $hint)"#)))]
 pub(crate) fn use_one_hint(gamma2: Gamma2, r: i32, hint: i32) -> i32 {
     let (r0, r1) = decompose_element(gamma2, r);
     if hint == 0 {
@@ -728,6 +789,7 @@ pub(crate) fn use_one_hint(gamma2: Gamma2, r: i32, hint: i32) -> i32 {
         }
 
         GAMMA2_V261_888 => {
+            #[cfg(hax)]
             hax_lib::fstar!(
                 r#"logand_mask_lemma ($r1 +! $hint) 4;
                 logand_mask_lemma ($r1 -! $hint) 4"#
@@ -745,10 +807,10 @@ pub(crate) fn use_one_hint(gamma2: Gamma2, r: i32, hint: i32) -> i32 {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"(v $gamma2 == v $GAMMA2_V261_888 \/ v $gamma2 == v $GAMMA2_V95_232) /\
-    Spec.Utils.is_i32b_array_opaque (v $FIELD_MODULUS - 1) ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values"#))]
-#[hax_lib::ensures(|_| fstar!(r#"forall i. i < 8 ==>
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"(v $gamma2 == v $GAMMA2_V261_888 \/ v $gamma2 == v $GAMMA2_V95_232) /\
+    Spec.Utils.is_i32b_array_opaque (v $FIELD_MODULUS - 1) ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"forall i. i < 8 ==>
     (let r = v (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i) in
     let r0 = v (Seq.index ${low}_future.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i) in
     let r1 = v (Seq.index ${high}_future.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i) in
@@ -758,18 +820,20 @@ pub(crate) fn use_one_hint(gamma2: Gamma2, r: i32, hint: i32) -> i32 {
         (r0 >= -(v $gamma2) /\ r0 < 0)
     else
         (r0 > -(v $gamma2) /\ r0 <= v $gamma2)) /\
-    (r1 >= 0 /\ r1 < (v $FIELD_MODULUS - 1) / (v $gamma2 * 2)))"#))]
+    (r1 >= 0 /\ r1 < (v $FIELD_MODULUS - 1) / (v $gamma2 * 2)))"#)))]
 pub fn decompose(
     gamma2: Gamma2,
     simd_unit: &Coefficients,
     low: &mut Coefficients,
     high: &mut Coefficients,
 ) {
+    #[cfg(hax)]
     hax_lib::fstar!(
         "reveal_opaque (`%Spec.Utils.is_i32b_array_opaque) (Spec.Utils.is_i32b_array_opaque)"
     );
 
     for i in 0..low.values.len() {
+        #[cfg(hax)]
         hax_lib::loop_invariant!(|i: usize| {
             fstar!(
                 r#"
@@ -791,22 +855,24 @@ pub fn decompose(
 }
 
 #[inline(always)]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"(v $gamma2 == v $GAMMA2_V261_888 \/ v $gamma2 == v $GAMMA2_V95_232) /\
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"(v $gamma2 == v $GAMMA2_V261_888 \/ v $gamma2 == v $GAMMA2_V95_232) /\
     Spec.Utils.is_i32b_array_opaque (v $FIELD_MODULUS - 1) ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values /\
-    (forall i. i < 8 ==> v (Seq.index ${hint}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i) == 0 \/ v (Seq.index ${hint}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i) == 1)"#))]
-#[hax_lib::ensures(|_| fstar!(r#"forall i. i < 8 ==>
+    (forall i. i < 8 ==> v (Seq.index ${hint}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i) == 0 \/ v (Seq.index ${hint}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i) == 1)"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"forall i. i < 8 ==>
     (let h = Seq.index ${hint}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i in
     let result = Seq.index ${hint}_future.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i in
-    v result = Spec.MLDSA.Math.use_one_hint (v $gamma2) (v (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i)) (v h))"#))]
+    v result = Spec.MLDSA.Math.use_one_hint (v $gamma2) (v (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i)) (v h))"#)))]
 pub fn use_hint(gamma2: Gamma2, simd_unit: &Coefficients, hint: &mut Coefficients) {
     #[cfg(hax)]
     let _hint0 = hint.clone();
+    #[cfg(hax)]
     hax_lib::fstar!(
         "reveal_opaque (`%Spec.Utils.is_i32b_array_opaque) (Spec.Utils.is_i32b_array_opaque)"
     );
 
     for i in 0..hint.values.len() {
+        #[cfg(hax)]
         hax_lib::loop_invariant!(|i: usize| {
             fstar!(
                 r#"

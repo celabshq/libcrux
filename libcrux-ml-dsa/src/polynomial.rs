@@ -3,12 +3,12 @@ use crate::simd::traits::specs::*;
 use crate::simd::traits::{Operations, COEFFICIENTS_IN_SIMD_UNIT, SIMD_UNITS_IN_RING_ELEMENT};
 
 #[derive(Clone, Copy)]
-#[hax_lib::fstar::after("open Libcrux_ml_dsa.Simd.Traits.Specs")]
+#[cfg_attr(hax, hax_lib::fstar::after("open Libcrux_ml_dsa.Simd.Traits.Specs"))]
 pub(crate) struct PolynomialRingElement<SIMDUnit: Operations> {
     pub(crate) simd_units: [SIMDUnit; SIMD_UNITS_IN_RING_ELEMENT],
 }
 
-#[hax_lib::attributes]
+#[cfg_attr(hax, hax_lib::attributes)]
 impl<SIMDUnit: Operations> PolynomialRingElement<SIMDUnit> {
     #[inline(always)]
     // Barrett reduce all coefficients.
@@ -48,7 +48,7 @@ impl<SIMDUnit: Operations> PolynomialRingElement<SIMDUnit> {
         result
     }
 
-    #[hax_lib::requires(array.len() == 256)]
+    #[cfg_attr(hax, hax_lib::requires(array.len() == 256))]
     pub(crate) fn from_i32_array(array: &[i32], result: &mut Self) {
         for i in 0..SIMD_UNITS_IN_RING_ELEMENT {
             SIMDUnit::from_coefficient_array(
@@ -66,10 +66,10 @@ impl<SIMDUnit: Operations> PolynomialRingElement<SIMDUnit> {
     }
 
     #[inline(always)]
-    #[hax_lib::requires(fstar!(r#"v $bound > 0 /\ 
+    #[cfg_attr(hax, hax_lib::requires(fstar!(r#"v $bound > 0 /\ 
         (forall i. Spec.Utils.is_i32b_array_opaque 
             (v ${FIELD_MAX}) 
-            (i0._super_i2.f_repr (Seq.index self.f_simd_units i)))"#))]
+            (i0._super_i2.f_repr (Seq.index self.f_simd_units i)))"#)))]
     /// CAUTION: This function must only be called with inputs for
     /// which it is safe to leak the index of a violating coefficient.
     ///
@@ -102,14 +102,15 @@ impl<SIMDUnit: Operations> PolynomialRingElement<SIMDUnit> {
     }
 
     #[inline(always)]
-    #[hax_lib::requires(fstar!(r#"forall i. 
+    #[cfg_attr(hax, hax_lib::requires(fstar!(r#"forall i. 
         add_pre (i0._super_i2.f_repr (Seq.index self.f_simd_units i)) 
-                (i0._super_i2.f_repr (Seq.index rhs.f_simd_units i))"#))]
+                (i0._super_i2.f_repr (Seq.index rhs.f_simd_units i))"#)))]
     pub(crate) fn add(&mut self, rhs: &Self) {
         #[cfg(hax)]
         let old_self = self.clone();
 
         for i in 0..self.simd_units.len() {
+            #[cfg(hax)]
             hax_lib::loop_invariant!(|i: usize| fstar!(
                 r#"forall j. j >= v i ==> 
                             Seq.index self.f_simd_units j == 
@@ -121,14 +122,15 @@ impl<SIMDUnit: Operations> PolynomialRingElement<SIMDUnit> {
     }
 
     #[inline(always)]
-    #[hax_lib::requires(fstar!(r#"forall i. 
+    #[cfg_attr(hax, hax_lib::requires(fstar!(r#"forall i. 
         sub_pre (i0._super_i2.f_repr (Seq.index self.f_simd_units i)) 
-                (i0._super_i2.f_repr (Seq.index rhs.f_simd_units i))"#))]
+                (i0._super_i2.f_repr (Seq.index rhs.f_simd_units i))"#)))]
     pub(crate) fn subtract(&mut self, rhs: &Self) {
         #[cfg(hax)]
         let old_self = self.clone();
 
         for i in 0..self.simd_units.len() {
+            #[cfg(hax)]
             hax_lib::loop_invariant!(|i: usize| fstar!(
                 r#"forall j. j >= v i ==> 
                         Seq.index self.f_simd_units j == 

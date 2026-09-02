@@ -1,5 +1,5 @@
 /// The vector type
-#[hax_lib::fstar::before("noeq")]
+#[cfg_attr(hax, hax_lib::fstar::before("noeq"))]
 #[derive(Clone, Copy)]
 #[repr(transparent)]
 pub(crate) struct Vec256 {

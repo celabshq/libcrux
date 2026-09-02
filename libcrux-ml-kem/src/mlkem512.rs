@@ -273,9 +273,9 @@ macro_rules! instantiate {
                 }
 
                 /// Get the serialized public key.
-                #[hax_lib::requires(fstar!(r#"forall (i:nat). i < 2 ==>
+                #[cfg_attr(hax, hax_lib::requires(fstar!(r#"forall (i:nat). i < 2 ==>
                     Libcrux_ml_kem.Polynomial.is_bounded_poly 3328 (Seq.index 
-                        ${public_key.ind_cpa_public_key.t_as_ntt} i)"#))]
+                        ${public_key.ind_cpa_public_key.t_as_ntt} i)"#)))]
                 pub fn serialized_public_key(
                     public_key: &MlKem512PublicKeyUnpacked,
                     serialized: &mut MlKem512PublicKey,
@@ -296,17 +296,17 @@ macro_rules! instantiate {
                 }
 
                 /// Get the serialized public key.
-                #[hax_lib::requires(fstar!(r#"forall (i:nat). i < 2 ==>
+                #[cfg_attr(hax, hax_lib::requires(fstar!(r#"forall (i:nat). i < 2 ==>
                     Libcrux_ml_kem.Polynomial.is_bounded_poly 3328 (Seq.index 
-                        ${key_pair.public_key.ind_cpa_public_key.t_as_ntt} i)"#))]
+                        ${key_pair.public_key.ind_cpa_public_key.t_as_ntt} i)"#)))]
                 pub fn key_pair_serialized_public_key_mut(key_pair: &MlKem512KeyPairUnpacked, serialized: &mut MlKem512PublicKey) {
                     key_pair.serialized_public_key_mut::<CPA_PKE_PUBLIC_KEY_SIZE>(serialized);
                 }
 
                 /// Get the serialized public key.
-                #[hax_lib::requires(fstar!(r#"forall (i:nat). i < 2 ==>
+                #[cfg_attr(hax, hax_lib::requires(fstar!(r#"forall (i:nat). i < 2 ==>
                     Libcrux_ml_kem.Polynomial.is_bounded_poly 3328 (Seq.index 
-                        ${key_pair.public_key.ind_cpa_public_key.t_as_ntt} i)"#))]
+                        ${key_pair.public_key.ind_cpa_public_key.t_as_ntt} i)"#)))]
                 pub fn key_pair_serialized_public_key(key_pair: &MlKem512KeyPairUnpacked) ->MlKem512PublicKey {
                     key_pair.serialized_public_key::<CPA_PKE_PUBLIC_KEY_SIZE>()
                 }
@@ -464,11 +464,11 @@ pub fn validate_private_key(
 ///
 /// This function returns an [`MlKem512KeyPair`].
 #[cfg(not(eurydice))]
-#[hax_lib::fstar::verification_status(panic_free)]
-#[hax_lib::ensures(|res|
+#[cfg_attr(hax, hax_lib::fstar::verification_status(panic_free))]
+#[cfg_attr(hax, hax_lib::ensures(|res|
     fstar!(r#"let ((secret_key, public_key), valid) = Spec.MLKEM.Instances.mlkem512_generate_keypair $randomness in
         valid ==> (${res}.f_sk.f_value == secret_key /\ ${res}.f_pk.f_value == public_key)"#)
-)]
+))]
 pub fn generate_key_pair(randomness: [u8; KEY_GENERATION_SEED_SIZE]) -> MlKem512KeyPair {
     multiplexing::generate_keypair::<
         RANK,
@@ -486,12 +486,12 @@ pub fn generate_key_pair(randomness: [u8; KEY_GENERATION_SEED_SIZE]) -> MlKem512
 /// The input is a reference to an [`MlKem512PublicKey`] and [`SHARED_SECRET_SIZE`]
 /// bytes of `randomness`.
 #[cfg(not(eurydice))]
-#[hax_lib::fstar::verification_status(panic_free)]
-#[hax_lib::ensures(|res|
+#[cfg_attr(hax, hax_lib::fstar::verification_status(panic_free))]
+#[cfg_attr(hax, hax_lib::ensures(|res|
     fstar!(r#"let ((ciphertext, shared_secret), valid) = Spec.MLKEM.Instances.mlkem512_encapsulate ${public_key}.f_value $randomness in
         let (res_ciphertext, res_shared_secret) = $res in
         valid ==> (res_ciphertext.f_value == ciphertext /\ res_shared_secret == shared_secret)"#)
-)]
+))]
 pub fn encapsulate(
     public_key: &MlKem512PublicKey,
     randomness: [u8; SHARED_SECRET_SIZE],
@@ -518,11 +518,11 @@ pub fn encapsulate(
 /// Generates an [`MlKemSharedSecret`].
 /// The input is a reference to an [`MlKem512PrivateKey`] and an [`MlKem512Ciphertext`].
 #[cfg(not(eurydice))]
-#[hax_lib::fstar::verification_status(panic_free)]
-#[hax_lib::ensures(|res|
+#[cfg_attr(hax, hax_lib::fstar::verification_status(panic_free))]
+#[cfg_attr(hax, hax_lib::ensures(|res|
     fstar!(r#"let (shared_secret, valid) = Spec.MLKEM.Instances.mlkem512_decapsulate ${private_key}.f_value ${ciphertext}.f_value in
         valid ==> $res == shared_secret"#)
-)]
+))]
 pub fn decapsulate(
     private_key: &MlKem512PrivateKey,
     ciphertext: &MlKem512Ciphertext,
@@ -556,11 +556,12 @@ pub fn decapsulate(
 /// Decapsulation is not provided in this module as it does not require randomness.
 #[cfg(all(not(eurydice), feature = "rand"))]
 pub mod rand {
+    use ::rand::CryptoRng;
+
     use super::{
         MlKem512Ciphertext, MlKem512KeyPair, MlKem512PublicKey, MlKemSharedSecret,
         KEY_GENERATION_SEED_SIZE, SHARED_SECRET_SIZE,
     };
-    use ::rand::CryptoRng;
 
     /// Generate ML-KEM 512 Key Pair
     ///
@@ -568,7 +569,7 @@ pub mod rand {
     /// `CryptoRng` to sample the required randomness internally.
     ///
     /// This function returns an [`MlKem512KeyPair`].
-    #[hax_lib::fstar::verification_status(lax)]
+    #[cfg_attr(hax, hax_lib::fstar::verification_status(lax))]
     pub fn generate_key_pair(rng: &mut impl CryptoRng) -> MlKem512KeyPair {
         let mut randomness = [0u8; KEY_GENERATION_SEED_SIZE];
         rng.fill_bytes(&mut randomness);
@@ -582,7 +583,7 @@ pub mod rand {
     /// The input is a reference to an [`MlKem512PublicKey`].
     /// The random number generator `rng` needs to implement `CryptoRng`
     /// to sample the required randomness internally.
-    #[hax_lib::fstar::verification_status(lax)]
+    #[cfg_attr(hax, hax_lib::fstar::verification_status(lax))]
     pub fn encapsulate(
         public_key: &MlKem512PublicKey,
         rng: &mut impl CryptoRng,

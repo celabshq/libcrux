@@ -71,7 +71,7 @@ fn sample_from_uniform_distribution_next<Vector: Operations, const K: usize, con
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(lax)]
+#[cfg_attr(hax, hax_lib::fstar::verification_status(lax))]
 pub(super) fn sample_from_xof<const K: usize, Vector: Operations, Hasher: Hash<K>>(
     seeds: &[[u8; 34]; K],
 ) -> [PolynomialRingElement<Vector>; K] {
@@ -152,17 +152,18 @@ pub(super) fn sample_from_xof<const K: usize, Vector: Operations, Hasher: Hash<K
 ///
 /// The NIST FIPS 203 standard can be found at
 /// <https://csrc.nist.gov/pubs/fips/203/ipd>.
-#[hax_lib::requires(randomness.len() == 2 * 64)]
+#[cfg_attr(hax, hax_lib::requires(randomness.len() == 2 * 64))]
 // TODO: Remove or replace with something that works and is useful for the proof.
 // #[cfg_attr(hax, hax_lib::ensures(|result|
 //     hax_lib::forall(|i:usize|
 //         hax_lib::implies(i < result.coefficients.len(), || result.coefficients[i].abs() <= 2
 // ))))]
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 800")]
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 800"))]
 fn sample_from_binomial_distribution_2<Vector: Operations>(
     randomness: &[u8],
 ) -> PolynomialRingElement<Vector> {
+    #[cfg(hax)]
     hax_lib::fstar!(
         "assert (v (sz 2 *! sz 64) == 128);
         assert (Seq.length $randomness == 128)"
@@ -178,6 +179,7 @@ fn sample_from_binomial_distribution_2<Vector: Operations>(
 
             let even_bits = random_bits_as_u32 & 0x55555555;
             let odd_bits = (random_bits_as_u32 >> 1) & 0x55555555;
+            #[cfg(hax)]
             hax_lib::fstar!(r#"logand_lemma $random_bits_as_u32 (mk_u32 1431655765);
                 logand_lemma ($random_bits_as_u32 >>! (mk_i32 1)) (mk_u32 1431655765)"#);
             let coin_toss_outcomes = even_bits + odd_bits;
@@ -186,6 +188,7 @@ fn sample_from_binomial_distribution_2<Vector: Operations>(
                 for outcome_set in (0..32u32).step_by(4) { // u32::BITS
                     let outcome_1 = ((coin_toss_outcomes >> outcome_set) & 0x3) as i16;
                     let outcome_2 = ((coin_toss_outcomes >> (outcome_set + 2)) & 0x3) as i16;
+                    #[cfg(hax)]
                     hax_lib::fstar!(r#"logand_lemma ($coin_toss_outcomes >>! $outcome_set <: u32) (mk_u32 3);
                         logand_lemma ($coin_toss_outcomes >>! ($outcome_set +! (mk_u32 2) <: u32) <: u32) (mk_u32 3);
                         assert (v $outcome_1 >= 0 /\ v $outcome_1 <= 3);
@@ -203,17 +206,18 @@ fn sample_from_binomial_distribution_2<Vector: Operations>(
     PolynomialRingElement::from_i16_array(&sampled_i16s)
 }
 
-#[hax_lib::requires(randomness.len() == 3 * 64)]
+#[cfg_attr(hax, hax_lib::requires(randomness.len() == 3 * 64))]
 // TODO: Remove or replace with something that works and is useful for the proof.
 // #[cfg_attr(hax, hax_lib::ensures(|result|
 //     hax_lib::forall(|i:usize|
 //         hax_lib::implies(i < result.coefficients.len(), || result.coefficients[i].abs() <= 3
 // ))))]
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 800")]
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 800"))]
 fn sample_from_binomial_distribution_3<Vector: Operations>(
     randomness: &[u8],
 ) -> PolynomialRingElement<Vector> {
+    #[cfg(hax)]
     hax_lib::fstar!(
         "assert (v (sz 3 *! sz 64) == 192);
         assert (Seq.length $randomness == 192)"
@@ -228,6 +232,7 @@ fn sample_from_binomial_distribution_3<Vector: Operations>(
             let first_bits = random_bits_as_u24 & 0x00249249;
             let second_bits = (random_bits_as_u24 >> 1) & 0x00249249;
             let third_bits = (random_bits_as_u24 >> 2) & 0x00249249;
+            #[cfg(hax)]
             hax_lib::fstar!(r#"logand_lemma $random_bits_as_u24 (mk_u32 2396745);
                 logand_lemma ($random_bits_as_u24 >>! (mk_i32 1) <: u32) (mk_u32 2396745);
                 logand_lemma ($random_bits_as_u24 >>! (mk_i32 2) <: u32) (mk_u32 2396745)"#);
@@ -238,6 +243,7 @@ fn sample_from_binomial_distribution_3<Vector: Operations>(
                 for outcome_set in (0..24).step_by(6) {
                     let outcome_1 = ((coin_toss_outcomes >> outcome_set) & 0x7) as i16;
                     let outcome_2 = ((coin_toss_outcomes >> (outcome_set + 3)) & 0x7) as i16;
+                    #[cfg(hax)]
                     hax_lib::fstar!(r#"logand_lemma ($coin_toss_outcomes >>! $outcome_set <: u32) (mk_u32 7);
                         logand_lemma ($coin_toss_outcomes >>! ($outcome_set +! (mk_i32 3) <: i32) <: u32) (mk_u32 7);
                         assert (v $outcome_1 >= 0 /\ v $outcome_1 <= 7);
@@ -256,16 +262,17 @@ fn sample_from_binomial_distribution_3<Vector: Operations>(
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
-#[hax_lib::requires((ETA == 2 || ETA == 3) && randomness.len() == ETA * 64)]
-#[hax_lib::ensures(|result| fstar!(r#"(forall (i:nat). i < 8 ==> Libcrux_ml_kem.Ntt.ntt_layer_7_pre
+#[cfg_attr(hax, hax_lib::fstar::verification_status(panic_free))]
+#[cfg_attr(hax, hax_lib::requires((ETA == 2 || ETA == 3) && randomness.len() == ETA * 64))]
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"(forall (i:nat). i < 8 ==> Libcrux_ml_kem.Ntt.ntt_layer_7_pre
     (${result}.f_coefficients.[ sz i ]) (${result}.f_coefficients.[ sz i +! sz 8 ])) /\
     Libcrux_ml_kem.Polynomial.is_bounded_poly 7 ${result} /\
     Libcrux_ml_kem.Polynomial.to_spec_poly_t #$:Vector $result ==
-        Spec.MLKEM.sample_poly_cbd $ETA $randomness"#))]
+        Spec.MLKEM.sample_poly_cbd $ETA $randomness"#)))]
 pub(super) fn sample_from_binomial_distribution<const ETA: usize, Vector: Operations>(
     randomness: &[u8],
 ) -> PolynomialRingElement<Vector> {
+    #[cfg(hax)]
     hax_lib::fstar!(
         r#"assert (
         (v (cast $ETA <: u32) == 2) \/

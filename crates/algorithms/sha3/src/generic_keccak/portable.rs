@@ -1,37 +1,36 @@
 use super::*;
-
 #[cfg(hax)]
 use crate::proof_utils::{lemma_mul_succ_le, valid_rate};
 
-#[hax_lib::attributes]
+#[cfg_attr(hax, hax_lib::attributes)]
 impl KeccakState<1, u64> {
     #[inline(always)]
-    #[hax_lib::requires(
+    #[cfg_attr(hax, hax_lib::requires(
         valid_rate(RATE) &&
         start.to_int() + RATE.to_int() <= out.len().to_int()
-    )]
-    #[hax_lib::ensures(|_| future(out).len() == out.len())]
+    ))]
+    #[cfg_attr(hax, hax_lib::ensures(|_| future(out).len() == out.len()))]
     pub(crate) fn squeeze_next_block<const RATE: usize>(&mut self, out: &mut [u8], start: usize) {
         self.keccakf1600();
         self.squeeze::<RATE>(out, start, RATE);
     }
 
     #[inline(always)]
-    #[hax_lib::requires(
+    #[cfg_attr(hax, hax_lib::requires(
         valid_rate(RATE) &&
         RATE <= out.len()
-    )]
-    #[hax_lib::ensures(|_| future(out).len() == out.len())]
+    ))]
+    #[cfg_attr(hax, hax_lib::ensures(|_| future(out).len() == out.len()))]
     pub(crate) fn squeeze_first_block<const RATE: usize>(&self, out: &mut [u8]) {
         self.squeeze::<RATE>(out, 0, RATE);
     }
 
     #[inline(always)]
-    #[hax_lib::requires(
+    #[cfg_attr(hax, hax_lib::requires(
         valid_rate(RATE) &&
         3 * RATE <= out.len()
-    )]
-    #[hax_lib::ensures(|_| future(out).len() == out.len())]
+    ))]
+    #[cfg_attr(hax, hax_lib::ensures(|_| future(out).len() == out.len()))]
     pub(crate) fn squeeze_first_three_blocks<const RATE: usize>(&mut self, out: &mut [u8]) {
         self.squeeze::<RATE>(out, 0, RATE);
 
@@ -43,11 +42,11 @@ impl KeccakState<1, u64> {
     }
 
     #[inline(always)]
-    #[hax_lib::requires(
+    #[cfg_attr(hax, hax_lib::requires(
         valid_rate(RATE) &&
         5 * RATE <= out.len()
-    )]
-    #[hax_lib::ensures(|_| future(out).len() == out.len())]
+    ))]
+    #[cfg_attr(hax, hax_lib::ensures(|_| future(out).len() == out.len()))]
     pub(crate) fn squeeze_first_five_blocks<const RATE: usize>(&mut self, out: &mut [u8]) {
         self.squeeze::<RATE>(out, 0, RATE);
 
@@ -65,9 +64,9 @@ impl KeccakState<1, u64> {
     }
 }
 
-#[hax_lib::requires(valid_rate(RATE))]
-#[hax_lib::ensures(|_| future(output).len() == output.len())]
-#[hax_lib::fstar::options("--split_queries always --z3rlimit 300")]
+#[cfg_attr(hax, hax_lib::requires(valid_rate(RATE)))]
+#[cfg_attr(hax, hax_lib::ensures(|_| future(output).len() == output.len()))]
+#[cfg_attr(hax, hax_lib::fstar::options("--split_queries always --z3rlimit 300"))]
 #[inline]
 pub(crate) fn keccak1<const RATE: usize, const DELIM: u8>(input: &[u8], output: &mut [u8]) {
     // Initialize Keccak state
@@ -94,6 +93,7 @@ pub(crate) fn keccak1<const RATE: usize, const DELIM: u8>(input: &[u8], output: 
     } else {
         s.squeeze::<RATE>(output, 0, RATE);
         for i in 1..output_blocks {
+            #[cfg(hax)]
             hax_lib::loop_invariant!(|_: usize| output.len() == output_len);
             #[cfg(hax)]
             lemma_mul_succ_le(i, output_blocks, RATE);

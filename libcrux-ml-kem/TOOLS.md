@@ -251,7 +251,7 @@ way, but you can replace it with a different implementation, e.g.:
 
 ```rust
 #[inline(never)] // Don't inline this to avoid that the compiler optimizes this out.
-#[hax_lib::ensures(|result| if value == 0 {result == 0} else {result == 1})]
+#[cfg_attr(hax, hax_lib::ensures(|result| if value == 0 {result == 0} else {result == 1}))]
 fn inz2(value: u8) -> u8 {
     let value = value as i32;
     let result = ((-value) as u32) >> 31;

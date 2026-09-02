@@ -38,8 +38,8 @@ pub(crate) const G_DIGEST_SIZE: usize = 64;
 ///
 /// [eurydice] Note that we can't use const generics here because that breaks
 ///            C extraction with eurydice.
-#[hax_lib::requires(rank <= 4)]
-#[hax_lib::ensures(|result| result == rank * BITS_PER_RING_ELEMENT / 8)]
+#[cfg_attr(hax, hax_lib::requires(rank <= 4))]
+#[cfg_attr(hax, hax_lib::ensures(|result| result == rank * BITS_PER_RING_ELEMENT / 8))]
 pub(crate) const fn ranked_bytes_per_ring_element(rank: usize) -> usize {
     rank * BITS_PER_RING_ELEMENT / 8
 }

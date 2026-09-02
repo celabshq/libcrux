@@ -17,6 +17,8 @@ bench = false # so libtest doesn't eat the arguments to criterion
 libcrux-platform = { version = "0.0.3", path = "../../sys/platform" }
 libcrux-intrinsics.workspace = true
 libcrux-traits.workspace = true
+
+[target.'cfg(hax)'.dependencies]
 hax-lib.workspace = true
 
 [features]

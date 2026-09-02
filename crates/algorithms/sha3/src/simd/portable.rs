@@ -5,14 +5,13 @@ use hax_lib::int::*;
 
 #[cfg(hax)]
 use crate::proof_utils::valid_rate;
-
 use crate::{generic_keccak::KeccakState, traits::*};
 
 #[inline(always)]
-#[hax_lib::requires(
+#[cfg_attr(hax, hax_lib::requires(
     LEFT.to_int() + RIGHT.to_int() == 64.to_int() &&
     RIGHT > 0
-)]
+))]
 fn rotate_left<const LEFT: i32, const RIGHT: i32>(x: u64) -> u64 {
     #[cfg(not(eurydice))]
     debug_assert!(LEFT + RIGHT == 64);
@@ -30,10 +29,10 @@ fn _vrax1q_u64(a: u64, b: u64) -> u64 {
 }
 
 #[inline(always)]
-#[hax_lib::requires(
+#[cfg_attr(hax, hax_lib::requires(
     LEFT.to_int() + RIGHT.to_int() == 64.to_int() &&
     RIGHT > 0
-)]
+))]
 fn _vxarq_u64<const LEFT: i32, const RIGHT: i32>(a: u64, b: u64) -> u64 {
     rotate_left::<LEFT, RIGHT>(a ^ b)
 }
@@ -49,10 +48,10 @@ fn _veorq_n_u64(a: u64, c: u64) -> u64 {
 }
 
 #[inline(always)]
-#[hax_lib::requires(
+#[cfg_attr(hax, hax_lib::requires(
     valid_rate(RATE) &&
     start.to_int() + RATE.to_int() <= blocks.len().to_int()
-)]
+))]
 pub(crate) fn load_block<const RATE: usize>(state: &mut [u64; 25], blocks: &[u8], start: usize) {
     #[cfg(not(eurydice))]
     {
@@ -83,11 +82,11 @@ pub(crate) fn load_block<const RATE: usize>(state: &mut [u64; 25], blocks: &[u8]
 }
 
 #[inline(always)]
-#[hax_lib::requires(
+#[cfg_attr(hax, hax_lib::requires(
     valid_rate(RATE) &&
     len < RATE &&
     start.to_int() + len.to_int() <= blocks.len().to_int()
-)]
+))]
 pub(crate) fn load_last<const RATE: usize, const DELIMITER: u8>(
     state: &mut [u64; 25],
     blocks: &[u8],
@@ -106,12 +105,12 @@ pub(crate) fn load_last<const RATE: usize, const DELIMITER: u8>(
 }
 
 #[inline(always)]
-#[hax_lib::requires(
+#[cfg_attr(hax, hax_lib::requires(
     valid_rate(RATE) &&
     len <= RATE &&
     start.to_int() + len.to_int() <= out.len().to_int()
-)]
-#[hax_lib::ensures(|_| future(out).len() == out.len())]
+))]
+#[cfg_attr(hax, hax_lib::ensures(|_| future(out).len() == out.len()))]
 pub(crate) fn store_block<const RATE: usize>(
     s: &[u64; 25],
     out: &mut [u8],
@@ -124,6 +123,7 @@ pub(crate) fn store_block<const RATE: usize>(
     let out_len = out.len(); // ghost variable
 
     for i in 0..octets {
+        #[cfg(hax)]
         hax_lib::loop_invariant!(|i: usize| out.len() == out_len);
 
         let bytes = get_ij(s, i / 5, i % 5).to_le_bytes();
@@ -139,7 +139,7 @@ pub(crate) fn store_block<const RATE: usize>(
     }
 }
 
-#[hax_lib::attributes]
+#[cfg_attr(hax, hax_lib::attributes)]
 impl KeccakItem<1> for u64 {
     #[inline(always)]
     fn zero() -> Self {
@@ -154,10 +154,10 @@ impl KeccakItem<1> for u64 {
         _vrax1q_u64(a, b)
     }
     #[inline(always)]
-    #[hax_lib::requires(
+    #[cfg_attr(hax, hax_lib::requires(
         LEFT.to_int() + RIGHT.to_int() == 64.to_int() &&
         RIGHT > 0
-    )]
+    ))]
     fn xor_and_rotate<const LEFT: i32, const RIGHT: i32>(a: Self, b: Self) -> Self {
         _vxarq_u64::<LEFT, RIGHT>(a, b)
     }
@@ -175,21 +175,21 @@ impl KeccakItem<1> for u64 {
     }
 }
 
-#[hax_lib::attributes]
+#[cfg_attr(hax, hax_lib::attributes)]
 impl Absorb<1> for KeccakState<1, u64> {
-    #[hax_lib::requires(
+    #[cfg_attr(hax, hax_lib::requires(
         valid_rate(RATE) &&
         start.to_int() + RATE.to_int() <= input[0].len().to_int()
-    )]
+    ))]
     fn load_block<const RATE: usize>(&mut self, input: &[&[u8]; 1], start: usize) {
         load_block::<RATE>(&mut self.st, input[0], start);
     }
 
-    #[hax_lib::requires(
+    #[cfg_attr(hax, hax_lib::requires(
         valid_rate(RATE) &&
         len < RATE &&
         start.to_int() + len.to_int() <= input[0].len().to_int()
-    )]
+    ))]
     fn load_last<const RATE: usize, const DELIMITER: u8>(
         &mut self,
         input: &[&[u8]; 1],
@@ -200,14 +200,14 @@ impl Absorb<1> for KeccakState<1, u64> {
     }
 }
 
-#[hax_lib::attributes]
+#[cfg_attr(hax, hax_lib::attributes)]
 impl Squeeze<u64> for KeccakState<1, u64> {
-    #[hax_lib::requires(
+    #[cfg_attr(hax, hax_lib::requires(
         valid_rate(RATE) &&
         len <= RATE &&
         start.to_int() + len.to_int() <= out.len().to_int()
-    )]
-    #[hax_lib::ensures(|_| future(out).len() == out.len())]
+    ))]
+    #[cfg_attr(hax, hax_lib::ensures(|_| future(out).len() == out.len()))]
     fn squeeze<const RATE: usize>(&self, out: &mut [u8], start: usize, len: usize) {
         store_block::<RATE>(&self.st, out, start, len);
     }

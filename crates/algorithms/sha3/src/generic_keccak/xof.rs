@@ -1,20 +1,22 @@
 #[cfg(hax)]
 use hax_lib::int::*;
 
+#[cfg(hax)]
+use crate::proof_utils::valid_rate;
 use crate::{
     generic_keccak::KeccakState,
     traits::{Absorb, KeccakItem, Squeeze},
 };
 
-#[cfg(hax)]
-use crate::proof_utils::valid_rate;
-
 // TODO: Should not be needed. Use hax_lib::fstar::options("") below.
 // Known bug: https://github.com/cryspen/hax/issues/1698
-#[hax_lib::fstar::before(
-    r#"
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::before(
+        r#"
 #push-options "--split_queries always --z3rlimit 300"
 "#
+    )
 )]
 
 /// The internal keccak state that can also buffer inputs to absorb.
@@ -60,8 +62,10 @@ pub(crate) struct KeccakXofState<
 /// type `(x: usize{x <. v_N}) -> t_Slice u8`, not the bare `usize -> t_Slice u8`
 /// that `t_FnOnce` resolves against), so it must be given explicitly.
 #[inline(always)]
-#[hax_lib::fstar::replace(
-    "let buf_to_slices
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::replace(
+        "let buf_to_slices
       (v_PARALLEL_LANES v_RATE: usize)
       (buf: t_Array (t_Array u8 v_RATE) v_PARALLEL_LANES)
     : t_Array (t_Slice u8) v_PARALLEL_LANES =
@@ -70,6 +74,7 @@ pub(crate) struct KeccakXofState<
     #(usize -> t_Slice u8)
     (fun i -> Core_models.Array.impl_23__as_slice #u8 v_RATE (buf.[ i ]))
 "
+    )
 )]
 fn buf_to_slices<const PARALLEL_LANES: usize, const RATE: usize>(
     buf: &[[u8; RATE]; PARALLEL_LANES],
@@ -77,8 +82,8 @@ fn buf_to_slices<const PARALLEL_LANES: usize, const RATE: usize>(
     core::array::from_fn(|i| buf[i].as_slice())
 }
 
-#[hax_lib::attributes]
-#[hax_lib::fstar::options("--split_queries always --z3rlimit 300")] // TODO: Has no effect. See above.
+#[cfg_attr(hax, hax_lib::attributes)]
+#[cfg_attr(hax, hax_lib::fstar::options("--split_queries always --z3rlimit 300"))] // TODO: Has no effect. See above.
 impl<const PARALLEL_LANES: usize, const RATE: usize, STATE: KeccakItem<PARALLEL_LANES>>
     KeccakXofState<PARALLEL_LANES, RATE, STATE>
 {
@@ -88,14 +93,14 @@ impl<const PARALLEL_LANES: usize, const RATE: usize, STATE: KeccakItem<PARALLEL_
     }
 
     /// Generate a new keccak xof state.
-    #[hax_lib::requires(
+    #[cfg_attr(hax, hax_lib::requires(
         PARALLEL_LANES == 1 &&
         valid_rate(RATE)
-    )]
-    #[hax_lib::ensures(|result|
+    ))]
+    #[cfg_attr(hax, hax_lib::ensures(|result|
         result.state_inv() &&
         result.squeeze_pos == RATE
-    )]
+    ))]
     pub(crate) fn new() -> Self {
         Self {
             inner: KeccakState::new(),
@@ -126,11 +131,11 @@ impl<const PARALLEL_LANES: usize, const RATE: usize, STATE: KeccakItem<PARALLEL_
     /// If `consumed > 0` is returned, `self.buf` contains a full block to be
     /// loaded.
     // Note: consciously not inlining this function to avoid using too much stack
-    #[hax_lib::requires(
+    #[cfg_attr(hax, hax_lib::requires(
         PARALLEL_LANES == 1 &&
         self.state_inv()
-    )]
-    #[hax_lib::ensures(|consumed|
+    ))]
+    #[cfg_attr(hax, hax_lib::ensures(|consumed|
         future(self).state_inv() &&
         if consumed == 0 {
             future(self).buf_len == self.buf_len && (
@@ -142,7 +147,7 @@ impl<const PARALLEL_LANES: usize, const RATE: usize, STATE: KeccakItem<PARALLEL_
             future(self).buf_len == RATE &&
             consumed.to_int() == RATE.to_int() - self.buf_len.to_int()
         }
-    )]
+    ))]
     pub(crate) fn fill_buffer(&mut self, inputs: &[&[u8]; PARALLEL_LANES]) -> usize {
         let input_len = inputs[0].len();
 
@@ -159,6 +164,7 @@ impl<const PARALLEL_LANES: usize, const RATE: usize, STATE: KeccakItem<PARALLEL_
 
             #[allow(clippy::needless_range_loop)]
             for i in 0..PARALLEL_LANES {
+                #[cfg(hax)]
                 hax_lib::loop_invariant!(|_: usize| {
                     self.buf_len == self_buf_len && self.squeeze_pos == self_squeeze_pos
                 });
@@ -174,14 +180,14 @@ impl<const PARALLEL_LANES: usize, const RATE: usize, STATE: KeccakItem<PARALLEL_
     }
 
     // Note: consciously not inlining this function to avoid using too much stack
-    #[hax_lib::requires(
+    #[cfg_attr(hax, hax_lib::requires(
         PARALLEL_LANES == 1 &&
         self.state_inv()
-    )]
-    #[hax_lib::ensures(|remainder|
+    ))]
+    #[cfg_attr(hax, hax_lib::ensures(|remainder|
         future(self).state_inv() &&
         future(self).buf_len.to_int() + remainder.to_int() <= RATE.to_int()
-    )]
+    ))]
     pub(crate) fn absorb_full(&mut self, inputs: &[&[u8]; PARALLEL_LANES]) -> usize
     where
         KeccakState<PARALLEL_LANES, STATE>: Absorb<PARALLEL_LANES>,
@@ -225,6 +231,7 @@ impl<const PARALLEL_LANES: usize, const RATE: usize, STATE: KeccakItem<PARALLEL_
         };
 
         for i in 0..num_blocks {
+            #[cfg(hax)]
             hax_lib::loop_invariant!(
                 |_: usize| self.buf_len == self_buf_len && self.squeeze_pos == self_squeeze_pos
             );
@@ -253,11 +260,11 @@ impl<const PARALLEL_LANES: usize, const RATE: usize, STATE: KeccakItem<PARALLEL_
     ///
     /// This works best with relatively small `inputs`.
     #[inline(always)]
-    #[hax_lib::requires(
+    #[cfg_attr(hax, hax_lib::requires(
         PARALLEL_LANES == 1 &&
         self.state_inv()
-    )]
-    #[hax_lib::ensures(|_| future(self).state_inv())]
+    ))]
+    #[cfg_attr(hax, hax_lib::ensures(|_| future(self).state_inv()))]
     pub(crate) fn absorb(&mut self, inputs: &[&[u8]; PARALLEL_LANES])
     where
         KeccakState<PARALLEL_LANES, STATE>: Absorb<PARALLEL_LANES>,
@@ -284,6 +291,7 @@ impl<const PARALLEL_LANES: usize, const RATE: usize, STATE: KeccakItem<PARALLEL_
 
             #[allow(clippy::needless_range_loop)]
             for i in 0..PARALLEL_LANES {
+                #[cfg(hax)]
                 hax_lib::loop_invariant!(
                     |_: usize| self.buf_len == self_buf_len && self.squeeze_pos == self_squeeze_pos
                 );
@@ -301,11 +309,11 @@ impl<const PARALLEL_LANES: usize, const RATE: usize, STATE: KeccakItem<PARALLEL_
     /// The `inputs` block may be empty. Everything in the `inputs` block beyond
     /// `RATE` bytes is ignored.
     #[inline(always)]
-    #[hax_lib::requires(
+    #[cfg_attr(hax, hax_lib::requires(
         PARALLEL_LANES == 1 &&
         self.state_inv()
-    )]
-    #[hax_lib::ensures(|_| future(self).state_inv())]
+    ))]
+    #[cfg_attr(hax, hax_lib::ensures(|_| future(self).state_inv()))]
     pub(crate) fn absorb_final<const DELIMITER: u8>(&mut self, inputs: &[&[u8]; PARALLEL_LANES])
     where
         KeccakState<PARALLEL_LANES, STATE>: Absorb<PARALLEL_LANES>,
@@ -323,19 +331,19 @@ impl<const PARALLEL_LANES: usize, const RATE: usize, STATE: KeccakItem<PARALLEL_
 /// Squeeze we only implement for N = 1 right now.
 /// This is because it's not needed for N > 1 right now, but also because hax
 /// can't handle the required mutability for it.
-#[hax_lib::attributes]
+#[cfg_attr(hax, hax_lib::attributes)]
 impl<const RATE: usize, STATE: KeccakItem<1>> KeccakXofState<1, RATE, STATE> {
     /// Squeeze output bytes into `out`.
     ///
     /// Supports arbitrary-sized requests across multiple calls.
     #[inline(always)]
-    #[hax_lib::requires(
+    #[cfg_attr(hax, hax_lib::requires(
         self.state_inv()
-    )]
-    #[hax_lib::ensures(|_|
+    ))]
+    #[cfg_attr(hax, hax_lib::ensures(|_|
         future(self).state_inv() &&
         future(out).len() == out.len()
-    )]
+    ))]
     pub(crate) fn squeeze(&mut self, out: &mut [u8])
     where
         KeccakState<1, STATE>: Squeeze<STATE>,
@@ -404,6 +412,7 @@ impl<const RATE: usize, STATE: KeccakItem<1>> KeccakXofState<1, RATE, STATE> {
 
             // Apply f then extract for each subsequent full block.
             for i in 1..blocks {
+                #[cfg(hax)]
                 hax_lib::loop_invariant!(|_: usize| out.len() == out_len
                     && self_buf_len == self.buf_len
                     && self_squeeze_pos == self.squeeze_pos);

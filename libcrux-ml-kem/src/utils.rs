@@ -15,16 +15,21 @@ type PaddedArray<const N: usize> = [u8; N];
 pub(crate) fn into_padded_array<const LEN: usize>(slice: &[u8]) -> PaddedArray<LEN> {
     let mut out = [0u8; LEN];
     out[0..slice.len()].copy_from_slice(slice);
+    #[cfg(hax)]
     hax_lib::fstar!(r#"assert (Seq.slice out 0 (Seq.length slice) == slice)"#);
+    #[cfg(hax)]
     hax_lib::fstar!(
         r#"assert (Seq.slice out (Seq.length slice) (v v_LEN) == Seq.slice (Seq.create (v v_LEN) (mk_u8 0)) (Seq.length slice) (v v_LEN))"#
     );
+    #[cfg(hax)]
     hax_lib::fstar!(
         "assert (forall i. i < Seq.length slice ==> Seq.index out i == Seq.index slice i)"
     );
+    #[cfg(hax)]
     hax_lib::fstar!(
         r#"assert (forall i. (i >= Seq.length slice && i < v v_LEN) ==> Seq.index out i == Seq.index (Seq.slice out (Seq.length slice) (v v_LEN)) (i - Seq.length slice))"#
     );
+    #[cfg(hax)]
     hax_lib::fstar!(
         "Seq.lemma_eq_intro out (Seq.append slice (Seq.create (v v_LEN - Seq.length slice) (mk_u8 0)))"
     );
@@ -32,14 +37,14 @@ pub(crate) fn into_padded_array<const LEN: usize>(slice: &[u8]) -> PaddedArray<L
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 200")]
-#[hax_lib::requires(fstar!(r#"range (v $domain_separator + v $K) u8_inttype"#))]
-#[hax_lib::ensures(|ds|
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 200"))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"range (v $domain_separator + v $K) u8_inttype"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|ds|
     fstar!(r#"v $ds == v $domain_separator + v $K /\
             (forall (i:nat). i < v $K ==>
                 v (Seq.index (Seq.index ${prf_inputs}_future i) 32) == v $domain_separator + i /\
                 Seq.slice (Seq.index ${prf_inputs}_future i) 0 32 == Seq.slice (Seq.index $prf_inputs i) 0 32)"#)
-)]
+))]
 pub(crate) fn prf_input_inc<const K: usize>(
     prf_inputs: &mut [[u8; 33]; K],
     mut domain_separator: u8,
@@ -50,6 +55,7 @@ pub(crate) fn prf_input_inc<const K: usize>(
     let _prf_inputs_init = prf_inputs.clone();
 
     for i in 0..K {
+        #[cfg(hax)]
         hax_lib::loop_invariant!(|i: usize| {
             fstar!(
                 r#"v $domain_separator == v $_domain_separator_init + v $i /\

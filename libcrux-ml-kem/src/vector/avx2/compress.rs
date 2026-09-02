@@ -1,6 +1,5 @@
-use crate::vector::FIELD_MODULUS;
-
 use super::*;
+use crate::vector::FIELD_MODULUS;
 
 // Multiply the 32-bit numbers contained in |lhs| and |rhs|, and store only
 // the upper 32 bits of the resulting product.
@@ -38,8 +37,8 @@ pub(crate) fn compress_message_coefficient(vector: Vec256) -> Vec256 {
 }
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"v $COEFFICIENT_BITS >= 0 /\ v $COEFFICIENT_BITS < bits i32_inttype /\
-    range (v ((mk_i32 1) <<! $COEFFICIENT_BITS) - 1) i32_inttype"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"v $COEFFICIENT_BITS >= 0 /\ v $COEFFICIENT_BITS < bits i32_inttype /\
+    range (v ((mk_i32 1) <<! $COEFFICIENT_BITS) - 1) i32_inttype"#)))]
 pub(crate) fn compress_ciphertext_coefficient<const COEFFICIENT_BITS: i32>(
     vector: Vec256,
 ) -> Vec256 {
@@ -105,11 +104,12 @@ pub(crate) fn compress_ciphertext_coefficient<const COEFFICIENT_BITS: i32>(
 }
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"forall i. let x = Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $a) i in 
-                                      (x == mk_i16 0 \/ x == mk_i16 1)"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"forall i. let x = Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $a) i in 
+                                      (x == mk_i16 0 \/ x == mk_i16 1)"#)))]
 pub fn decompress_1(a: Vec256) -> Vec256 {
     let z = mm256_setzero_si256();
 
+    #[cfg(hax)]
     hax_lib::fstar!(
         r#"
         assert(Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $z == Seq.create 16 (mk_i16 0));
@@ -124,6 +124,7 @@ pub fn decompress_1(a: Vec256) -> Vec256 {
 
     let s = arithmetic::sub(z, a);
 
+    #[cfg(hax)]
     hax_lib::fstar!(
         r#"assert(forall i. Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $s) i == mk_i16 0 \/ 
                             Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $s) i == mk_i16 (-1))"#
@@ -133,7 +134,7 @@ pub fn decompress_1(a: Vec256) -> Vec256 {
 }
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"v $COEFFICIENT_BITS >= 0 /\ v $COEFFICIENT_BITS < bits i32_inttype"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"v $COEFFICIENT_BITS >= 0 /\ v $COEFFICIENT_BITS < bits i32_inttype"#)))]
 pub(crate) fn decompress_ciphertext_coefficient<const COEFFICIENT_BITS: i32>(
     vector: Vec256,
 ) -> Vec256 {

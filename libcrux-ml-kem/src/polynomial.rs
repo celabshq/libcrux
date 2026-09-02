@@ -1,6 +1,7 @@
 use crate::vector::{Operations, MONTGOMERY_R_SQUARED_MOD_FIELD_MODULUS};
 
 pub(crate) const ZETAS_TIMES_MONTGOMERY_R: [i16; 128] = {
+    #[cfg(hax)]
     hax_lib::fstar!(r#"assert_norm (pow2 16 == 65536)"#);
     [
         -1044, -758, -359, -1517, 1493, 1422, 287, 202, -171, 622, 1577, 182, 962, -1202, -1474,
@@ -17,9 +18,9 @@ pub(crate) const ZETAS_TIMES_MONTGOMERY_R: [i16; 128] = {
 
 // A function to retrieve zetas so that we can add a post-condition
 #[inline(always)]
-#[hax_lib::fstar::verification_status(panic_free)]
-#[hax_lib::requires(i < 128)]
-#[hax_lib::ensures(|result| fstar!(r#"Spec.Utils.is_i16b 1664 result"#))]
+#[cfg_attr(hax, hax_lib::fstar::verification_status(panic_free))]
+#[cfg_attr(hax, hax_lib::requires(i < 128))]
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"Spec.Utils.is_i16b 1664 result"#)))]
 pub fn zeta(i: usize) -> i16 {
     ZETAS_TIMES_MONTGOMERY_R[i]
 }
@@ -73,7 +74,7 @@ fn ZERO<Vector: Operations>() -> PolynomialRingElement<Vector> {
 }
 
 #[inline(always)]
-#[hax_lib::requires(VECTORS_IN_RING_ELEMENT * 16 <= a.len())]
+#[cfg_attr(hax, hax_lib::requires(VECTORS_IN_RING_ELEMENT * 16 <= a.len()))]
 fn from_i16_array<Vector: Operations>(a: &[i16]) -> PolynomialRingElement<Vector> {
     let mut result = ZERO();
     for i in 0..VECTORS_IN_RING_ELEMENT {
@@ -84,19 +85,20 @@ fn from_i16_array<Vector: Operations>(a: &[i16]) -> PolynomialRingElement<Vector
 
 #[allow(dead_code)]
 #[inline(always)]
-#[hax_lib::requires(out.len() >= VECTORS_IN_RING_ELEMENT * 16)]
+#[cfg_attr(hax, hax_lib::requires(out.len() >= VECTORS_IN_RING_ELEMENT * 16))]
 fn to_i16_array<Vector: Operations>(re: PolynomialRingElement<Vector>, out: &mut [i16]) {
     #[cfg(hax)]
     let _out_len = out.len();
 
     for i in 0..re.coefficients.len() {
+        #[cfg(hax)]
         hax_lib::loop_invariant!(|_i: usize| out.len() == _out_len);
         out[i * 16..(i + 1) * 16].copy_from_slice(&Vector::to_i16_array(re.coefficients[i]));
     }
 }
 
 #[inline(always)]
-#[hax_lib::requires(VECTORS_IN_RING_ELEMENT * 16 *2 <= bytes.len())]
+#[cfg_attr(hax, hax_lib::requires(VECTORS_IN_RING_ELEMENT * 16 *2 <= bytes.len()))]
 fn from_bytes<Vector: Operations>(bytes: &[u8]) -> PolynomialRingElement<Vector> {
     let mut result = ZERO();
     for i in 0..VECTORS_IN_RING_ELEMENT {
@@ -106,12 +108,13 @@ fn from_bytes<Vector: Operations>(bytes: &[u8]) -> PolynomialRingElement<Vector>
 }
 
 #[inline(always)]
-#[hax_lib::requires(VECTORS_IN_RING_ELEMENT * 32 <= out.len())]
+#[cfg_attr(hax, hax_lib::requires(VECTORS_IN_RING_ELEMENT * 32 <= out.len()))]
 fn to_bytes<Vector: Operations>(re: PolynomialRingElement<Vector>, out: &mut [u8]) {
     #[cfg(hax)]
     let _out_len = out.len();
 
     for i in 0..re.coefficients.len() {
+        #[cfg(hax)]
         hax_lib::loop_invariant!(|_i: usize| out.len() == _out_len);
         Vector::to_bytes(re.coefficients[i], &mut out[i * 32..(i + 1) * 32]);
     }
@@ -120,8 +123,8 @@ fn to_bytes<Vector: Operations>(re: PolynomialRingElement<Vector>, out: &mut [u8
 /// Get the bytes of the vector of ring elements in `re` and write them to `out`.
 #[inline(always)]
 #[allow(dead_code)]
-#[hax_lib::fstar::options("--z3rlimit 500 --split_queries always")]
-#[hax_lib::requires(re.len() <= 4 && 512 * re.len() <= out.len())]
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 500 --split_queries always"))]
+#[cfg_attr(hax, hax_lib::requires(re.len() <= 4 && 512 * re.len() <= out.len()))]
 pub(crate) fn vec_to_bytes<Vector: Operations>(
     re: &[PolynomialRingElement<Vector>],
     out: &mut [u8],
@@ -130,6 +133,7 @@ pub(crate) fn vec_to_bytes<Vector: Operations>(
     let _out_len = out.len();
     let re_bytes = PolynomialRingElement::<Vector>::num_bytes();
     for i in 0..re.len() {
+        #[cfg(hax)]
         hax_lib::loop_invariant!(|_i: usize| out.len() == _out_len);
         PolynomialRingElement::<Vector>::to_bytes(re[i], &mut out[i * re_bytes..]);
     }
@@ -138,10 +142,10 @@ pub(crate) fn vec_to_bytes<Vector: Operations>(
 /// Build a vector of ring elements from `bytes`.
 #[inline(always)]
 #[allow(dead_code)]
-#[hax_lib::fstar::options("--z3rlimit 500 --split_queries always")]
-#[hax_lib::requires(fstar!(r#"Seq.length out <= 4 /\ 
-    Seq.length bytes >= 512 * Seq.length out"#))]
-#[hax_lib::ensures(|_| future(out).len() == out.len())]
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 500 --split_queries always"))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"Seq.length out <= 4 /\ 
+    Seq.length bytes >= 512 * Seq.length out"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|_| future(out).len() == out.len()))]
 pub(crate) fn vec_from_bytes<Vector: Operations>(
     bytes: &[u8],
     out: &mut [PolynomialRingElement<Vector>],
@@ -151,13 +155,14 @@ pub(crate) fn vec_from_bytes<Vector: Operations>(
 
     let re_bytes = PolynomialRingElement::<Vector>::num_bytes();
     for i in 0..out.len() {
+        #[cfg(hax)]
         hax_lib::loop_invariant!(|_i: usize| out.len() == _out_len);
         out[i] = PolynomialRingElement::<Vector>::from_bytes(&bytes[i * re_bytes..]);
     }
 }
 
 /// The length of a vector of ring elements in bytes
-#[hax_lib::requires(K <= 4)]
+#[cfg_attr(hax, hax_lib::requires(K <= 4))]
 #[allow(dead_code)]
 pub(crate) const fn vec_len_bytes<const K: usize, Vector: Operations>() -> usize {
     K * PolynomialRingElement::<Vector>::num_bytes()
@@ -166,30 +171,32 @@ pub(crate) const fn vec_len_bytes<const K: usize, Vector: Operations>() -> usize
 /// Given two polynomial ring elements `lhs` and `rhs`, compute the pointwise
 /// sum of their constituent coefficients.
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 500 --split_queries always")]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 500 --split_queries always"))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
         forall (i:nat). i < v ${VECTORS_IN_RING_ELEMENT} ==>
          (let lhs_i = i0.f_to_i16_array (${myself}.f_coefficients.[ sz i ]) in
           let rhs_i = i0.f_to_i16_array (${rhs}.f_coefficients.[ sz i ]) in
-          Libcrux_ml_kem.Vector.Traits.Spec.add_pre lhs_i rhs_i)"#))]
-#[hax_lib::ensures(|_| fstar!(r#"
+          Libcrux_ml_kem.Vector.Traits.Spec.add_pre lhs_i rhs_i)"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"
         forall (i:nat). i < v ${VECTORS_IN_RING_ELEMENT} ==>
          (let lhs_i = i0.f_to_i16_array (${myself}.f_coefficients.[ sz i ]) in
           let rhs_i = i0.f_to_i16_array (${rhs}.f_coefficients.[ sz i ]) in
           let result_i = i0.f_to_i16_array (${myself}_future.f_coefficients.[ sz i ]) in
-          Libcrux_ml_kem.Vector.Traits.Spec.add_post lhs_i rhs_i result_i)"#))]
+          Libcrux_ml_kem.Vector.Traits.Spec.add_post lhs_i rhs_i result_i)"#)))]
 fn add_to_ring_element<Vector: Operations, const K: usize>(
     myself: &mut PolynomialRingElement<Vector>,
     rhs: &PolynomialRingElement<Vector>,
 ) {
     #[cfg(hax)]
     let _myself = myself.coefficients;
+    #[cfg(hax)]
     hax_lib::fstar!(
         r#"assert(forall (v: v_Vector).
         i0.f_to_i16_array v == i0._super_i2.f_repr v)"#
     );
 
     for i in 0..myself.coefficients.len() {
+        #[cfg(hax)]
         hax_lib::loop_invariant!(|i: usize| {
             fstar!(
                 r#"
@@ -213,13 +220,14 @@ fn add_to_ring_element<Vector: Operations, const K: usize>(
 }
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"is_bounded_poly 28296 ${myself}"#))]
-#[hax_lib::ensures(|_| fstar!(r#"is_bounded_poly 3328 ${myself}_future"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"is_bounded_poly 28296 ${myself}"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"is_bounded_poly 3328 ${myself}_future"#)))]
 fn poly_barrett_reduce<Vector: Operations>(myself: &mut PolynomialRingElement<Vector>) {
     #[cfg(hax)]
     let _myself = myself.coefficients;
 
     for i in 0..VECTORS_IN_RING_ELEMENT {
+        #[cfg(hax)]
         hax_lib::loop_invariant!(|i: usize| fstar!(
             r#"
         (forall j. j < v i ==> is_bounded_vector 3328 ${myself}.f_coefficients.[ sz j ]) /\
@@ -232,10 +240,10 @@ fn poly_barrett_reduce<Vector: Operations>(myself: &mut PolynomialRingElement<Ve
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 300")]
-#[hax_lib::requires(fstar!(r#"is_bounded_poly (pow2 12 - 1) ${myself}"#))]
-#[hax_lib::ensures(|result| fstar!(r#"is_bounded_poly 3328 ${result}"#))]
-#[hax_lib::fstar::verification_status(lax)]
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 300"))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"is_bounded_poly (pow2 12 - 1) ${myself}"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"is_bounded_poly 3328 ${result}"#)))]
+#[cfg_attr(hax, hax_lib::fstar::verification_status(lax))]
 fn subtract_reduce<Vector: Operations>(
     myself: &PolynomialRingElement<Vector>,
     mut b: PolynomialRingElement<Vector>,
@@ -244,12 +252,14 @@ fn subtract_reduce<Vector: Operations>(
     let _b = b.coefficients;
 
     for i in 0..VECTORS_IN_RING_ELEMENT {
+        #[cfg(hax)]
         hax_lib::loop_invariant!(|i: usize| fstar!(
             r#"
         (forall j. j < v i ==> is_bounded_vector 3328 ${b}.f_coefficients.[ sz j ]) /\
         (forall j. (j >= v i /\ j < 16) ==> ${b}.f_coefficients.[ sz j ] == ${_b}.[ sz j ])
         "#
         ));
+        #[cfg(hax)]
         hax_lib::fstar!(
             r#"
           assert (v $i < 16);
@@ -263,6 +273,7 @@ fn subtract_reduce<Vector: Operations>(
         let coefficient_normal_form =
             Vector::montgomery_multiply_by_constant(b.coefficients[i], 1441);
 
+        #[cfg(hax)]
         hax_lib::fstar!(
             r#"
             assert (is_bounded_vector 3328 ${coefficient_normal_form});
@@ -285,11 +296,14 @@ fn subtract_reduce<Vector: Operations>(
         );
 
         let diff = Vector::sub(myself.coefficients[i], &coefficient_normal_form);
+        #[cfg(hax)]
         hax_lib::fstar!("assert (is_bounded_vector 28296 diff)");
         let red = Vector::barrett_reduce(diff);
+        #[cfg(hax)]
         hax_lib::fstar!("assert (is_bounded_vector 3328 red)");
         b.coefficients[i] = red;
 
+        #[cfg(hax)]
         hax_lib::fstar!(
             r#"
             assert (forall j. (j > v $i /\ j < 16) ==> ${b}.f_coefficients.[ sz j ] == ${_b}.[ sz j]);
@@ -303,11 +317,11 @@ fn subtract_reduce<Vector: Operations>(
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 300 --split_queries always")]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 300 --split_queries always"))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
     is_bounded_poly 3328 ${myself} /\ 
-    is_bounded_poly 3328 ${message}"#))]
-#[hax_lib::ensures(|output| fstar!("is_bounded_poly 3328 ${output}"))]
+    is_bounded_poly 3328 ${message}"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|output| fstar!("is_bounded_poly 3328 ${output}")))]
 fn add_message_error_reduce<Vector: Operations>(
     myself: &PolynomialRingElement<Vector>,
     message: &PolynomialRingElement<Vector>,
@@ -317,12 +331,14 @@ fn add_message_error_reduce<Vector: Operations>(
     let _result = result.coefficients;
 
     for i in 0..VECTORS_IN_RING_ELEMENT {
+        #[cfg(hax)]
         hax_lib::loop_invariant!(|i: usize| fstar!(
             r#"
             (forall j. j < v i ==> is_bounded_vector 3328 ${result}.f_coefficients.[ sz j ]) /\
             (forall j. (j >= v i /\ j < 16) ==> ${result}.f_coefficients.[ sz j ] == ${_result}.[ sz j ])
             "#
         ));
+        #[cfg(hax)]
         hax_lib::fstar!(
             r#"
           assert (v $i < 16);
@@ -337,6 +353,7 @@ fn add_message_error_reduce<Vector: Operations>(
         let coefficient_normal_form =
             Vector::montgomery_multiply_by_constant(result.coefficients[i], 1441);
 
+        #[cfg(hax)]
         hax_lib::fstar!(
             r#"
                 Spec.Utils.lemma_add_intb_forall 3328 3328;
@@ -352,8 +369,10 @@ fn add_message_error_reduce<Vector: Operations>(
         );
 
         let sum1 = Vector::add(myself.coefficients[i], &message.coefficients[i]);
+        #[cfg(hax)]
         hax_lib::fstar!("assert(is_bounded_vector 6656 sum1)");
 
+        #[cfg(hax)]
         hax_lib::fstar!(
             r#"                
                 Spec.Utils.lemma_add_intb_forall 3328 6656;
@@ -372,11 +391,14 @@ fn add_message_error_reduce<Vector: Operations>(
         );
 
         let sum2 = Vector::add(coefficient_normal_form, &sum1);
+        #[cfg(hax)]
         hax_lib::fstar!("assert(is_bounded_vector 9984 sum2)");
         let red = Vector::barrett_reduce(sum2);
+        #[cfg(hax)]
         hax_lib::fstar!("assert(is_bounded_vector 3328 red)");
         result.coefficients[i] = red;
 
+        #[cfg(hax)]
         hax_lib::fstar!(
             r#"
             assert (forall j. (j > v $i /\ j < 16) ==> ${result}.f_coefficients.[ sz j ] == ${_result}.[ sz j]);
@@ -390,9 +412,9 @@ fn add_message_error_reduce<Vector: Operations>(
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always")]
-#[hax_lib::requires(fstar!("is_bounded_poly 7 ${error}"))]
-#[hax_lib::ensures(|result| fstar!(r#"is_bounded_poly 3328 ${myself}_future"#))]
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 400 --split_queries always"))]
+#[cfg_attr(hax, hax_lib::requires(fstar!("is_bounded_poly 7 ${error}")))]
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"is_bounded_poly 3328 ${myself}_future"#)))]
 fn add_error_reduce<Vector: Operations>(
     myself: &mut PolynomialRingElement<Vector>,
     error: &PolynomialRingElement<Vector>,
@@ -401,6 +423,7 @@ fn add_error_reduce<Vector: Operations>(
     let _myself = myself.coefficients;
 
     for j in 0..VECTORS_IN_RING_ELEMENT {
+        #[cfg(hax)]
         hax_lib::loop_invariant!(|i: usize| fstar!(
             r#"
             (forall j. j < v i ==> is_bounded_vector 3328 ${myself}.f_coefficients.[ sz j ]) /\
@@ -411,6 +434,7 @@ fn add_error_reduce<Vector: Operations>(
         let coefficient_normal_form =
             Vector::montgomery_multiply_by_constant(myself.coefficients[j], 1441);
 
+        #[cfg(hax)]
         hax_lib::fstar!(
             r#"
               assert (is_bounded_vector 3328 ${coefficient_normal_form});
@@ -432,11 +456,14 @@ fn add_error_reduce<Vector: Operations>(
         );
 
         let sum = Vector::add(coefficient_normal_form, &error.coefficients[j]);
+        #[cfg(hax)]
         hax_lib::fstar!("assert(is_bounded_vector 3335 sum)");
         let red = Vector::barrett_reduce(sum);
+        #[cfg(hax)]
         hax_lib::fstar!("assert(is_bounded_vector 3328 red)");
         myself.coefficients[j] = red;
 
+        #[cfg(hax)]
         hax_lib::fstar!(
             r#"
             assert (forall i. (i > v $j /\ i < 16) ==> ${myself}.f_coefficients.[ sz i ] == ${_myself}.[ sz i]);
@@ -449,17 +476,17 @@ fn add_error_reduce<Vector: Operations>(
 }
 
 #[inline(always)]
-#[hax_lib::ensures(|result| fstar!(r#"Spec.Utils.is_i16b_array 3328 (i0.f_to_i16_array ${result}) /\
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"Spec.Utils.is_i16b_array 3328 (i0.f_to_i16_array ${result}) /\
                 (forall i. i < 16 ==> ((v (Seq.index (i0.f_to_i16_array ${result}) i) % 3329)==
-                                       (v (Seq.index (i0.f_to_i16_array ${vector}) i) * 1353 * 169) % 3329))"#))]
+                                       (v (Seq.index (i0.f_to_i16_array ${vector}) i) * 1353 * 169) % 3329))"#)))]
 fn to_standard_domain<T: Operations>(vector: T) -> T {
     T::montgomery_multiply_by_constant(vector, MONTGOMERY_R_SQUARED_MOD_FIELD_MODULUS as i16)
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 300 --split_queries always")]
-#[hax_lib::requires(fstar!(r#"is_bounded_poly #$:Vector 3328 ${error}"#))]
-#[hax_lib::ensures(|result| fstar!(r#"is_bounded_poly 3328 ${myself}_future"#))]
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 300 --split_queries always"))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"is_bounded_poly #$:Vector 3328 ${error}"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"is_bounded_poly 3328 ${myself}_future"#)))]
 fn add_standard_error_reduce<Vector: Operations>(
     myself: &mut PolynomialRingElement<Vector>,
     error: &PolynomialRingElement<Vector>,
@@ -468,6 +495,7 @@ fn add_standard_error_reduce<Vector: Operations>(
     let _myself = myself.coefficients;
 
     for j in 0..VECTORS_IN_RING_ELEMENT {
+        #[cfg(hax)]
         hax_lib::loop_invariant!(|i: usize| fstar!(
             r#"
             (forall j. j < v i ==> is_bounded_vector 3328 ${myself}.f_coefficients.[ sz j ]) /\
@@ -479,6 +507,7 @@ fn add_standard_error_reduce<Vector: Operations>(
         // calling to_montgomery_domain() on them should return a mod q.
         let coefficient_normal_form = to_standard_domain::<Vector>(myself.coefficients[j]);
 
+        #[cfg(hax)]
         hax_lib::fstar!(
             r#"
           Spec.Utils.pow2_more_values 15;
@@ -501,11 +530,14 @@ fn add_standard_error_reduce<Vector: Operations>(
         );
 
         let sum = Vector::add(coefficient_normal_form, &error.coefficients[j]);
+        #[cfg(hax)]
         hax_lib::fstar!("assert(is_bounded_vector 6656 sum)");
         let red = Vector::barrett_reduce(sum);
+        #[cfg(hax)]
         hax_lib::fstar!("assert(is_bounded_vector 3328 red)");
         myself.coefficients[j] = red;
 
+        #[cfg(hax)]
         hax_lib::fstar!(
             r#"
             assert (forall i. (i > v $j /\ i < 16) ==> ${myself}.f_coefficients.[ sz i ] == ${_myself}.[ sz i]);
@@ -556,9 +588,9 @@ fn add_standard_error_reduce<Vector: Operations>(
 //                 result.coefficients[i].abs() <= FIELD_MODULUS
 // ))))]
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 300 --split_queries always")]
-#[hax_lib::requires(fstar!(r#"is_bounded_poly 3328 ${myself} /\
-                              is_bounded_poly 3328 ${rhs}"#))]
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 300 --split_queries always"))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"is_bounded_poly 3328 ${myself} /\
+                              is_bounded_poly 3328 ${rhs}"#)))]
 fn ntt_multiply<Vector: Operations>(
     myself: &PolynomialRingElement<Vector>,
     rhs: &PolynomialRingElement<Vector>,
@@ -581,7 +613,7 @@ fn ntt_multiply<Vector: Operations>(
 
 // FIXME: We pulled out all the items because of https://github.com/hacspec/hax/issues/1183
 // Revisit when that issue is fixed.
-#[hax_lib::attributes]
+#[cfg_attr(hax, hax_lib::attributes)]
 impl<Vector: Operations> PolynomialRingElement<Vector> {
     #[allow(non_snake_case)]
     pub(crate) fn ZERO() -> Self {
@@ -593,34 +625,34 @@ impl<Vector: Operations> PolynomialRingElement<Vector> {
     /// Size of a ring element in bytes.
     #[inline(always)]
     #[allow(dead_code)]
-    #[ensures(|result| result == 512 )]
+    #[cfg_attr(hax, hax_lib::ensures(|result| result == 512 ))]
     pub(crate) const fn num_bytes() -> usize {
         VECTORS_IN_RING_ELEMENT * 32
     }
 
     #[inline(always)]
-    #[requires(VECTORS_IN_RING_ELEMENT * 16 <= a.len())]
+    #[cfg_attr(hax, hax_lib::requires(VECTORS_IN_RING_ELEMENT * 16 <= a.len()))]
     pub(crate) fn from_i16_array(a: &[i16]) -> Self {
         from_i16_array(a)
     }
 
     #[allow(dead_code)]
     #[inline(always)]
-    #[requires(VECTORS_IN_RING_ELEMENT * 16 <= out.len())]
+    #[cfg_attr(hax, hax_lib::requires(VECTORS_IN_RING_ELEMENT * 16 <= out.len()))]
     pub(crate) fn to_i16_array(self, out: &mut [i16]) {
         to_i16_array(self, out)
     }
 
     #[inline(always)]
     #[allow(dead_code)]
-    #[requires(VECTORS_IN_RING_ELEMENT * 16 * 2 <= bytes.len())]
+    #[cfg_attr(hax, hax_lib::requires(VECTORS_IN_RING_ELEMENT * 16 * 2 <= bytes.len()))]
     pub(crate) fn from_bytes(bytes: &[u8]) -> Self {
         from_bytes(bytes)
     }
 
     #[inline(always)]
     #[allow(dead_code)]
-    #[requires(VECTORS_IN_RING_ELEMENT * 16 * 2 <= out.len())]
+    #[cfg_attr(hax, hax_lib::requires(VECTORS_IN_RING_ELEMENT * 16 * 2 <= out.len()))]
     pub(crate) fn to_bytes(self, out: &mut [u8]) {
         to_bytes(self, out)
     }
@@ -628,58 +660,58 @@ impl<Vector: Operations> PolynomialRingElement<Vector> {
     /// Given two polynomial ring elements `lhs` and `rhs`, compute the pointwise
     /// sum of their constituent coefficients.
     #[inline(always)]
-    #[requires(fstar!(r#"
+    #[cfg_attr(hax, hax_lib::requires(fstar!(r#"
         forall (i:nat). i < v ${VECTORS_IN_RING_ELEMENT} ==>
             (let lhs_i = i0.f_to_i16_array (self.f_coefficients.[ sz i ]) in
             let rhs_i = i0.f_to_i16_array (${rhs}.f_coefficients.[ sz i ]) in
-            Libcrux_ml_kem.Vector.Traits.Spec.add_pre lhs_i rhs_i)"#))]
-    #[ensures(|_| fstar!(r#"
+            Libcrux_ml_kem.Vector.Traits.Spec.add_pre lhs_i rhs_i)"#)))]
+    #[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"
         forall (i:nat). i < v ${VECTORS_IN_RING_ELEMENT} ==>
             (let lhs_i = i0.f_to_i16_array (self.f_coefficients.[ sz i ]) in
             let rhs_i = i0.f_to_i16_array (${rhs}.f_coefficients.[ sz i ]) in
             let result_i = i0.f_to_i16_array (self_e_future.f_coefficients.[ sz i ]) in
-            Libcrux_ml_kem.Vector.Traits.Spec.add_post lhs_i rhs_i result_i)"#))]
+            Libcrux_ml_kem.Vector.Traits.Spec.add_post lhs_i rhs_i result_i)"#)))]
     pub(crate) fn add_to_ring_element<const K: usize>(&mut self, rhs: &Self) {
         add_to_ring_element::<Vector, K>(self, rhs);
     }
 
     #[inline(always)]
-    #[requires(fstar!(r#"is_bounded_poly 28296 self"#))]
-    #[ensures(|_| fstar!(r#"is_bounded_poly 3328 self_e_future"#))]
+    #[cfg_attr(hax, hax_lib::requires(fstar!(r#"is_bounded_poly 28296 self"#)))]
+    #[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"is_bounded_poly 3328 self_e_future"#)))]
     pub(crate) fn poly_barrett_reduce(&mut self) {
         poly_barrett_reduce(self);
     }
 
     #[inline(always)]
-    #[requires(fstar!(r#"is_bounded_poly (pow2 12 - 1) self"#))]
-    #[ensures(|result| fstar!(r#"is_bounded_poly 3328 ${result}"#))]
+    #[cfg_attr(hax, hax_lib::requires(fstar!(r#"is_bounded_poly (pow2 12 - 1) self"#)))]
+    #[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"is_bounded_poly 3328 ${result}"#)))]
     pub(crate) fn subtract_reduce(&self, b: Self) -> Self {
         subtract_reduce(self, b)
     }
 
     #[inline(always)]
-    #[requires(fstar!(r#"is_bounded_poly 3328 self /\ 
-                         is_bounded_poly 3328 ${message}"#))]
-    #[ensures(|output| fstar!(r#"is_bounded_poly 3328 ${output}"#))]
+    #[cfg_attr(hax, hax_lib::requires(fstar!(r#"is_bounded_poly 3328 self /\ 
+                         is_bounded_poly 3328 ${message}"#)))]
+    #[cfg_attr(hax, hax_lib::ensures(|output| fstar!(r#"is_bounded_poly 3328 ${output}"#)))]
     pub(crate) fn add_message_error_reduce(&self, message: &Self, result: Self) -> Self {
         add_message_error_reduce(self, message, result)
     }
 
     #[inline(always)]
-    #[requires(fstar!("is_bounded_poly 7 ${error}"))]
+    #[cfg_attr(hax, hax_lib::requires(fstar!("is_bounded_poly 7 ${error}")))]
     pub(crate) fn add_error_reduce(&mut self, error: &Self) {
         add_error_reduce(self, error);
     }
 
     #[inline(always)]
-    #[requires(fstar!(r#"is_bounded_poly #$:Vector 3328 ${error}"#))]
+    #[cfg_attr(hax, hax_lib::requires(fstar!(r#"is_bounded_poly #$:Vector 3328 ${error}"#)))]
     pub(crate) fn add_standard_error_reduce(&mut self, error: &Self) {
         add_standard_error_reduce(self, error);
     }
 
     #[inline(always)]
-    #[requires(fstar!(r#"is_bounded_poly 3328 self /\
-                         is_bounded_poly 3328 ${rhs}"#))]
+    #[cfg_attr(hax, hax_lib::requires(fstar!(r#"is_bounded_poly 3328 self /\
+                         is_bounded_poly 3328 ${rhs}"#)))]
     pub(crate) fn ntt_multiply(&self, rhs: &Self) -> Self {
         ntt_multiply(self, rhs)
     }
@@ -687,10 +719,10 @@ impl<Vector: Operations> PolynomialRingElement<Vector> {
 
 #[cfg(test)]
 mod tests {
-    use crate::vector::portable::PortableVector;
+    use libcrux_secrets::*;
 
     use super::PolynomialRingElement;
-    use libcrux_secrets::*;
+    use crate::vector::portable::PortableVector;
 
     #[test]
     fn encoding_portable() {

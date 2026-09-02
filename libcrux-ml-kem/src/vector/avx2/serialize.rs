@@ -2,10 +2,13 @@ use super::*;
 use crate::vector::portable::PortableVector;
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(lax)]
-#[hax_lib::fstar::options("--ext context_pruning --compat_pre_core 0")]
-#[hax_lib::requires(fstar!(r#"forall i. i % 16 >= 1 ==> vector i == 0"#))]
-#[hax_lib::ensures(|result| fstar!(r#"forall i. bit_vec_of_int_t_array $result 8 i == $vector (i * 16)"#))]
+#[cfg_attr(hax, hax_lib::fstar::verification_status(lax))]
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::options("--ext context_pruning --compat_pre_core 0")
+)]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"forall i. i % 16 >= 1 ==> vector i == 0"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"forall i. bit_vec_of_int_t_array $result 8 i == $vector (i * 16)"#)))]
 pub(crate) fn serialize_1(vector: Vec256) -> [u8; 2] {
     // Suppose |vector| is laid out as follows (superscript number indicates the
     // corresponding bit is duplicated that many times):
@@ -47,6 +50,7 @@ pub(crate) fn serialize_1(vector: Vec256) -> [u8; 2] {
     // 0xFF 0x00 0x00 0x00 | 0xFF 0x00 0x00 0x00 | 0x00 0x00 0x00 0x00 | 0x00 0x00 0x00 0xFF
     let msbs = mm_packs_epi16(low_msbs, high_msbs);
 
+    #[cfg(hax)]
     hax_lib::fstar!(
         r#"
 let bits_packed' = BitVec.Intrinsics.mm_movemask_epi8_bv msbs in
@@ -66,6 +70,7 @@ let bits_packed' = BitVec.Intrinsics.mm_movemask_epi8_bv msbs in
 
     let result = [bits_packed as u8, (bits_packed >> 8) as u8];
 
+    #[cfg(hax)]
     hax_lib::fstar!(
         r#"
 assert (forall (i: nat {i < 8}). get_bit ($bits_packed >>! (mk_i32 8) <: i32) (sz i) == get_bit $bits_packed (sz (i + 8)))
@@ -76,42 +81,42 @@ assert (forall (i: nat {i < 8}). get_bit ($bits_packed >>! (mk_i32 8) <: i32) (s
 }
 
 #[inline(always)]
-#[hax_lib::requires(bytes.len() == 2)]
-#[hax_lib::ensures(|coefficients| fstar!(
+#[cfg_attr(hax, hax_lib::requires(bytes.len() == 2))]
+#[cfg_attr(hax, hax_lib::ensures(|coefficients| fstar!(
         r#"forall (i:nat{i < 256}).
       $coefficients i
     = ( if i % 16 >= 1 then 0
         else let j = (i / 16) * 1 + i % 16 in
              bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 2)) 8 j))
 "#
-))]
-#[hax_lib::fstar::before("#restart-solver")]
+)))]
+#[cfg_attr(hax, hax_lib::fstar::before("#restart-solver"))]
 pub(crate) fn deserialize_1(bytes: &[u8]) -> Vec256 {
-    #[hax_lib::ensures(|coefficients| fstar!(
+    #[cfg_attr(hax, hax_lib::ensures(|coefficients| fstar!(
         r#"forall (i:nat{i < 256}).
       $coefficients i
     = ( if i % 16 >= 1 then 0
         else let j = (i / 16) * 1 + i % 16 in
              if i < 128 then get_bit $a (sz j) else get_bit $b (sz (j - 8)))
 "#
-    ))]
-    #[hax_lib::fstar::before(r#"[@@"opaque_to_smt"]"#)]
+    )))]
+    #[cfg_attr(hax, hax_lib::fstar::before(r#"[@@"opaque_to_smt"]"#))]
     #[inline(always)]
     pub(crate) fn deserialize_1_u8s(a: u8, b: u8) -> Vec256 {
         deserialize_1_i16s(a as i16, b as i16)
     }
 
-    #[hax_lib::ensures(|coefficients| fstar!(
+    #[cfg_attr(hax, hax_lib::ensures(|coefficients| fstar!(
         r#"forall (i:nat{i < 256}).
       $coefficients i
     = ( if i % 16 >= 1 then 0
         else let j = (i / 16) * 1 + i % 16 in
              if i < 128 then get_bit $a (sz j) else get_bit $b (sz (j - 8)))
 "#
-    ))]
+    )))]
     #[inline(always)]
-    #[hax_lib::fstar::options("--ext context_pruning")]
-    #[hax_lib::fstar::before(r#"[@@"opaque_to_smt"]"#)]
+    #[cfg_attr(hax, hax_lib::fstar::options("--ext context_pruning"))]
+    #[cfg_attr(hax, hax_lib::fstar::before(r#"[@@"opaque_to_smt"]"#))]
     pub(crate) fn deserialize_1_i16s(a: i16, b: i16) -> Vec256 {
         // We need to take each bit from the 2 bytes of input and put them
         // into their own 16-bit lane. Ideally, we'd load the two bytes into the vector,
@@ -164,7 +169,10 @@ pub(crate) fn deserialize_1(bytes: &[u8]) -> Vec256 {
 /// of the shape `0b0…0b₁…bₙa₁…aₙ`, if `x` is a sequence of pairs of
 /// 16 bits, of the shape `(0b0…0a₁…aₙ, 0b0…0b₁…bₙ)` (where the last
 /// `n` bits are non-zero).
-#[hax_lib::fstar::replace(interface, "include BitVec.Intrinsics {mm256_concat_pairs_n}")]
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::replace(interface, "include BitVec.Intrinsics {mm256_concat_pairs_n}")
+)]
 #[inline(always)]
 fn mm256_concat_pairs_n(n: u8, x: Vec256) -> Vec256 {
     let n = 1 << n;
@@ -174,13 +182,16 @@ fn mm256_concat_pairs_n(n: u8, x: Vec256) -> Vec256 {
     )
 }
 
-#[hax_lib::fstar::options("--ext context_pruning --split_queries always")]
-#[hax_lib::requires(
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::options("--ext context_pruning --split_queries always")
+)]
+#[cfg_attr(hax, hax_lib::requires(
     fstar!(
         r#"forall (i: nat{i < 256}). i % 16 < 4 || $vector i = 0"#
     )
-)]
-#[hax_lib::ensures(|r| fstar!(r#"forall (i: nat{i < 64}). bit_vec_of_int_t_array $r 8 i == $vector ((i/4) * 16 + i%4)"#))]
+))]
+#[cfg_attr(hax, hax_lib::ensures(|r| fstar!(r#"forall (i: nat{i < 64}). bit_vec_of_int_t_array $r 8 i == $vector ((i/4) * 16 + i%4)"#)))]
 #[inline(always)]
 pub(crate) fn serialize_4(vector: Vec256) -> [u8; 8] {
     let mut serialized = [0u8; 16];
@@ -221,6 +232,7 @@ pub(crate) fn serialize_4(vector: Vec256) -> [u8; 8] {
     // ... so that we can read them out in one go.
     mm_storeu_bytes_si128(&mut serialized, combined);
 
+    #[cfg(hax)]
     hax_lib::fstar!(
         r#"
 assert (forall (i: nat{i < 64}). $combined i == bit_vec_of_int_t_array serialized 8 i);
@@ -234,14 +246,14 @@ assert (forall (i: nat{i < 64}). $combined i == bit_vec_of_int_t_array serialize
 }
 
 #[inline(always)]
-#[hax_lib::requires(bytes.len() == 8)]
-#[hax_lib::ensures(|result| fstar!(r#"forall (i: nat{i < 256}).
+#[cfg_attr(hax, hax_lib::requires(bytes.len() == 8))]
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"forall (i: nat{i < 256}).
   $result i = (if i % 16 >= 4 then 0
                else let j = (i / 16) * 4 + i % 16 in
-                     bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 8)) 8 j)"#))]
-#[hax_lib::fstar::before("#restart-solver")]
+                     bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 8)) 8 j)"#)))]
+#[cfg_attr(hax, hax_lib::fstar::before("#restart-solver"))]
 pub(crate) fn deserialize_4(bytes: &[u8]) -> Vec256 {
-    #[hax_lib::ensures(|coefficients| fstar!(
+    #[cfg_attr(hax, hax_lib::ensures(|coefficients| fstar!(
         r#"forall (i:nat{i < 256}).
       $coefficients i
     = ( if i % 16 < 4
@@ -257,16 +269,16 @@ pub(crate) fn deserialize_4(bytes: &[u8]) -> Vec256 {
              | 7 -> get_bit $b7 (sz (j - 56)))
         else 0)
 "#
-    ))]
+    )))]
     #[inline(always)]
-    #[hax_lib::fstar::before(r#"[@@"opaque_to_smt"]"#)]
+    #[cfg_attr(hax, hax_lib::fstar::before(r#"[@@"opaque_to_smt"]"#))]
     fn deserialize_4_u8s(b0: u8, b1: u8, b2: u8, b3: u8, b4: u8, b5: u8, b6: u8, b7: u8) -> Vec256 {
         deserialize_4_i16s(
             b0 as i16, b1 as i16, b2 as i16, b3 as i16, b4 as i16, b5 as i16, b6 as i16, b7 as i16,
         )
     }
 
-    #[hax_lib::ensures(|coefficients| fstar!(
+    #[cfg_attr(hax, hax_lib::ensures(|coefficients| fstar!(
         r#"forall (i:nat{i < 256}).
       $coefficients i
     = ( if i % 16 < 4
@@ -282,9 +294,9 @@ pub(crate) fn deserialize_4(bytes: &[u8]) -> Vec256 {
              | 7 -> get_bit $b7 (sz (j - 56)))
         else 0)
 "#
-    ))]
+    )))]
     #[inline(always)]
-    #[hax_lib::fstar::before(r#"[@@"opaque_to_smt"]"#)]
+    #[cfg_attr(hax, hax_lib::fstar::before(r#"[@@"opaque_to_smt"]"#))]
     fn deserialize_4_i16s(
         b0: i16,
         b1: i16,
@@ -453,16 +465,19 @@ pub(crate) fn serialize_5(vector: Vec256) -> [u8; 10] {
 /// `mm256_inserti128_si256`: this composition sets the upper bits,
 /// making the whole computation pure again.
 #[inline(always)]
-#[hax_lib::fstar::replace(
-    interface,
-    "include BitVec.Intrinsics {mm256_si256_from_two_si128 as ${mm256_si256_from_two_si128}}"
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::replace(
+        interface,
+        "include BitVec.Intrinsics {mm256_si256_from_two_si128 as ${mm256_si256_from_two_si128}}"
+    )
 )]
 fn mm256_si256_from_two_si128(lower: Vec128, upper: Vec128) -> Vec256 {
     mm256_inserti128_si256::<1>(mm256_castsi128_si256(lower), upper)
 }
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"Seq.length bytes == 10"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"Seq.length bytes == 10"#)))]
 pub(crate) fn deserialize_5(bytes: &[u8]) -> Vec256 {
     let coefficients = mm_set_epi8(
         bytes[9] as i8,
@@ -518,19 +533,25 @@ pub(crate) fn deserialize_5(bytes: &[u8]) -> Vec256 {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--ext context_pruning --split_queries always")]
-#[hax_lib::requires(fstar!(r#"forall (i: nat{i < 256}). i % 16 < 10 || vector i = 0"#))]
-#[hax_lib::ensures(|r| fstar!(r#"forall (i: nat{i < 160}). bit_vec_of_int_t_array r 8 i == vector ((i/10) * 16 + i%10)"#))]
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::options("--ext context_pruning --split_queries always")
+)]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"forall (i: nat{i < 256}). i % 16 < 10 || vector i = 0"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|r| fstar!(r#"forall (i: nat{i < 160}). bit_vec_of_int_t_array r 8 i == vector ((i/10) * 16 + i%10)"#)))]
 pub(crate) fn serialize_10(vector: Vec256) -> [u8; 20] {
-    #[hax_lib::fstar::options("--ext context_pruning --split_queries always")]
-    #[hax_lib::requires(fstar!(r#"forall (i: nat{i < 256}). i % 16 < 10 || vector i = 0"#))]
-    #[hax_lib::ensures(|(lower_8, upper_8)| fstar!(
+    #[cfg_attr(
+        hax,
+        hax_lib::fstar::options("--ext context_pruning --split_queries always")
+    )]
+    #[cfg_attr(hax, hax_lib::requires(fstar!(r#"forall (i: nat{i < 256}). i % 16 < 10 || vector i = 0"#)))]
+    #[cfg_attr(hax, hax_lib::ensures(|(lower_8, upper_8)| fstar!(
         r#"
          forall (i: nat{i < 160}).
            vector ((i/10) * 16 + i%10) == (if i < 80 then $lower_8 i else $upper_8 (i - 80))
       )
     "#
-    ))]
+    )))]
     fn serialize_10_vec(vector: Vec256) -> (Vec128, Vec128) {
         // If |vector| is laid out as follows (superscript number indicates the
         // corresponding bit is duplicated that many times):
@@ -589,6 +610,7 @@ pub(crate) fn serialize_10(vector: Vec256) -> [u8; 20] {
         let lower_8 = mm256_castsi256_si128(adjacent_8_combined);
         // and 64 bits starting at position 0 in the upper 128-bit lane.
         let upper_8 = mm256_extracti128_si256::<1>(adjacent_8_combined);
+        #[cfg(hax)]
         hax_lib::fstar!(
             r#"
     introduce forall (i:nat{i < 80}). lower_8_ i = vector ((i / 10) * 16 + i % 10)
@@ -610,21 +632,21 @@ pub(crate) fn serialize_10(vector: Vec256) -> [u8; 20] {
 }
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"Seq.length bytes == 20"#))]
-#[hax_lib::ensures(|result| fstar!(r#"forall (i: nat{i < 256}).
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"Seq.length bytes == 20"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"forall (i: nat{i < 256}).
   $result i = (if i % 16 >= 10 then 0
                else let j = (i / 16) * 10 + i % 16 in
-                     bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 20)) 8 j)"#))]
+                     bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 20)) 8 j)"#)))]
 pub(crate) fn deserialize_10(bytes: &[u8]) -> Vec256 {
     #[inline(always)]
-    #[hax_lib::ensures(|coefficients| fstar!(r#"
+    #[cfg_attr(hax, hax_lib::ensures(|coefficients| fstar!(r#"
 forall (i: nat {i < 256}).
       $coefficients i
     = ( if i % 16 >= 10 then 0
         else let j = (i / 16) * 10 + i % 16 in
              if i < 128 then $lower_coefficients0 j else $upper_coefficients0 (j - 32)))
-"#))]
-    #[hax_lib::fstar::before(r#"[@@"opaque_to_smt"]"#)]
+"#)))]
+    #[cfg_attr(hax, hax_lib::fstar::before(r#"[@@"opaque_to_smt"]"#))]
     fn deserialize_10_vec(lower_coefficients0: Vec128, upper_coefficients0: Vec128) -> Vec256 {
         let lower_coefficients = mm_shuffle_epi8(
             lower_coefficients0,
@@ -661,6 +683,7 @@ forall (i: nat {i < 256}).
         let coefficients = mm256_srli_epi16::<6>(coefficients);
         // Here I can prove this `and` is not useful
         let coefficients = mm256_and_si256(coefficients, mm256_set1_epi16((1 << 10) - 1));
+        #[cfg(hax)]
         hax_lib::fstar!(
             r#"
 assert_norm(BitVec.Utils.forall256 (fun i -> 
@@ -683,7 +706,7 @@ assert_norm(BitVec.Utils.forall256 (fun i ->
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(lax)]
+#[cfg_attr(hax, hax_lib::fstar::verification_status(lax))]
 pub(crate) fn serialize_11(vector: Vec256) -> [u8; 22] {
     let mut array = [0i16; 16];
     mm256_storeu_si256_i16(&mut array, vector);
@@ -692,7 +715,7 @@ pub(crate) fn serialize_11(vector: Vec256) -> [u8; 22] {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::verification_status(lax)]
+#[cfg_attr(hax, hax_lib::fstar::verification_status(lax))]
 pub(crate) fn deserialize_11(bytes: &[u8]) -> Vec256 {
     let output = PortableVector::deserialize_11(bytes);
     let array = PortableVector::to_i16_array(output);
@@ -700,20 +723,26 @@ pub(crate) fn deserialize_11(bytes: &[u8]) -> Vec256 {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--ext context_pruning --split_queries always")]
-#[hax_lib::requires(fstar!(r#"forall (i: nat{i < 256}). i % 16 < 12 || vector i = 0"#))]
-#[hax_lib::ensures(|r| fstar!(r#"forall (i: nat{i < 192}). bit_vec_of_int_t_array r 8 i == vector ((i/12) * 16 + i%12)"#))]
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::options("--ext context_pruning --split_queries always")
+)]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"forall (i: nat{i < 256}). i % 16 < 12 || vector i = 0"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|r| fstar!(r#"forall (i: nat{i < 192}). bit_vec_of_int_t_array r 8 i == vector ((i/12) * 16 + i%12)"#)))]
 pub(crate) fn serialize_12(vector: Vec256) -> [u8; 24] {
     #[inline(always)]
-    #[hax_lib::fstar::options("--ext context_pruning --split_queries always")]
-    #[hax_lib::requires(fstar!(r#"forall (i: nat{i < 256}). i % 16 < 12 || vector i = 0"#))]
-    #[hax_lib::ensures(|(lower_8, upper_8)| fstar!(
+    #[cfg_attr(
+        hax,
+        hax_lib::fstar::options("--ext context_pruning --split_queries always")
+    )]
+    #[cfg_attr(hax, hax_lib::requires(fstar!(r#"forall (i: nat{i < 256}). i % 16 < 12 || vector i = 0"#)))]
+    #[cfg_attr(hax, hax_lib::ensures(|(lower_8, upper_8)| fstar!(
         r#"
          forall (i: nat{i < 192}).
            vector ((i/12) * 16 + i%12) == (if i < 96 then $lower_8 i else $upper_8 (i - 96))
       )
     "#
-    ))]
+    )))]
     fn serialize_12_vec(vector: Vec256) -> (Vec128, Vec128) {
         let adjacent_2_combined = mm256_concat_pairs_n(12, vector);
         let adjacent_4_combined =
@@ -730,6 +759,7 @@ pub(crate) fn serialize_12(vector: Vec256) -> [u8; 24] {
 
         let lower_8 = mm256_castsi256_si128(adjacent_8_combined);
         let upper_8 = mm256_extracti128_si256::<1>(adjacent_8_combined);
+        #[cfg(hax)]
         hax_lib::fstar!(
             r#"
     introduce forall (i:nat{i < 96}). lower_8_ i = vector ((i / 12) * 16 + i % 12)
@@ -750,21 +780,21 @@ pub(crate) fn serialize_12(vector: Vec256) -> [u8; 24] {
 }
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"Seq.length bytes == 24"#))]
-#[hax_lib::ensures(|result| fstar!(r#"forall (i: nat{i < 256}).
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"Seq.length bytes == 24"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"forall (i: nat{i < 256}).
   $result i = (if i % 16 >= 12 then 0
                else let j = (i / 16) * 12 + i % 16 in
-                     bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 24)) 8 j)"#))]
+                     bit_vec_of_int_t_array ($bytes <: t_Array _ (sz 24)) 8 j)"#)))]
 pub(crate) fn deserialize_12(bytes: &[u8]) -> Vec256 {
     #[inline(always)]
-    #[hax_lib::ensures(|coefficients| fstar!(r#"
+    #[cfg_attr(hax, hax_lib::ensures(|coefficients| fstar!(r#"
 forall (i: nat {i < 256}).
       $coefficients i
     = ( if i % 16 >= 12 then 0
         else let j = (i / 16) * 12 + i % 16 in
              if i < 128 then $lower_coefficients0 j else $upper_coefficients0 (j - 64)))
-"#))]
-    #[hax_lib::fstar::before(r#"[@@"opaque_to_smt"]"#)]
+"#)))]
+    #[cfg_attr(hax, hax_lib::fstar::before(r#"[@@"opaque_to_smt"]"#))]
     fn deserialize_12_vec(lower_coefficients0: Vec128, upper_coefficients0: Vec128) -> Vec256 {
         let lower_coefficients = mm_shuffle_epi8(
             lower_coefficients0,
@@ -800,6 +830,7 @@ forall (i: nat {i < 256}).
         );
         let coefficients = mm256_srli_epi16::<4>(coefficients);
         let coefficients = mm256_and_si256(coefficients, mm256_set1_epi16((1 << 12) - 1));
+        #[cfg(hax)]
         hax_lib::fstar!(
             r#"
 assert_norm(BitVec.Utils.forall256 (fun i -> 

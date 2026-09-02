@@ -64,9 +64,7 @@ pub mod mlkem768;
 pub mod mlkem1024;
 
 pub use constants::SHARED_SECRET_SIZE;
-
 pub use ind_cca::{MlKemSharedSecret, ENCAPS_SEED_SIZE, KEY_GENERATION_SEED_SIZE};
-
 // These types all have type aliases for the different variants.
 pub use types::{MlKemCiphertext, MlKemKeyPair, MlKemPrivateKey, MlKemPublicKey};
 
@@ -116,7 +114,7 @@ cfg_kyber! {
 
 macro_rules! impl_kem_trait {
     ($variant:ty, $pk:ty, $sk:ty, $ct:ty) => {
-        #[hax_lib::exclude]
+        #[cfg_attr(hax, hax_lib::exclude)]
         impl
             libcrux_traits::kem::arrayref::Kem<
                 CPA_PKE_PUBLIC_KEY_SIZE,

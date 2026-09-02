@@ -26,31 +26,31 @@ impl crate::vector::traits::Repr for SIMD128Vector {
 #[cfg(any(eurydice, not(hax)))]
 impl crate::vector::traits::Repr for SIMD128Vector {}
 
-#[hax_lib::attributes]
+#[cfg_attr(hax, hax_lib::attributes)]
 impl Operations for SIMD128Vector {
     #[inline(always)]
-    #[ensures(|out| fstar!(r#"impl.f_repr out == Seq.create 16 (mk_i16 0)"#))]
+    #[cfg_attr(hax, hax_lib::ensures(|out| fstar!(r#"impl.f_repr out == Seq.create 16 (mk_i16 0)"#)))]
     fn ZERO() -> Self {
         ZERO()
     }
 
-    #[requires(array.len() == 16)]
-    #[ensures(|out| fstar!(r#"impl.f_repr out == $array"#))]
+    #[cfg_attr(hax, hax_lib::requires(array.len() == 16))]
+    #[cfg_attr(hax, hax_lib::ensures(|out| fstar!(r#"impl.f_repr out == $array"#)))]
     fn from_i16_array(array: &[i16]) -> Self {
         from_i16_array(array)
     }
 
-    #[ensures(|out| fstar!(r#"out == impl.f_repr $x"#))]
+    #[cfg_attr(hax, hax_lib::ensures(|out| fstar!(r#"out == impl.f_repr $x"#)))]
     fn to_i16_array(x: Self) -> [i16; 16] {
         to_i16_array(x)
     }
 
-    #[requires(array.len() >= 32)]
+    #[cfg_attr(hax, hax_lib::requires(array.len() >= 32))]
     fn from_bytes(array: &[u8]) -> Self {
         from_bytes(array)
     }
 
-    #[requires(bytes.len() >= 32)]
+    #[cfg_attr(hax, hax_lib::requires(bytes.len() >= 32))]
     fn to_bytes(x: Self, bytes: &mut [u8]) {
         to_bytes(x, bytes)
     }
