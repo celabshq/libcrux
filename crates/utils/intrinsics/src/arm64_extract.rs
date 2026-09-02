@@ -3,23 +3,23 @@
 
 #![allow(non_camel_case_types, unsafe_code, unused_variables)]
 
-#[hax_lib::opaque]
+#[cfg_attr(hax, hax_lib::opaque)]
 pub type _uint16x4_t = u8;
-#[hax_lib::opaque]
+#[cfg_attr(hax, hax_lib::opaque)]
 pub type _int16x4_t = u8;
-#[hax_lib::opaque]
+#[cfg_attr(hax, hax_lib::opaque)]
 pub type _int16x8_t = u8;
-#[hax_lib::opaque]
+#[cfg_attr(hax, hax_lib::opaque)]
 pub type _uint8x16_t = u8;
-#[hax_lib::opaque]
+#[cfg_attr(hax, hax_lib::opaque)]
 pub type _uint16x8_t = u8;
-#[hax_lib::opaque]
+#[cfg_attr(hax, hax_lib::opaque)]
 pub type _uint32x4_t = u8;
-#[hax_lib::opaque]
+#[cfg_attr(hax, hax_lib::opaque)]
 pub type _int32x4_t = u8;
-#[hax_lib::opaque]
+#[cfg_attr(hax, hax_lib::opaque)]
 pub type _uint64x2_t = u8;
-#[hax_lib::opaque]
+#[cfg_attr(hax, hax_lib::opaque)]
 pub type _int64x2_t = u8;
 
 #[inline(always)]
