@@ -3,13 +3,12 @@
 
 use core::ops::Index;
 
-use crate::traits::*;
+#[cfg(hax)]
+use hax_lib::{constructors::from_bool, int::ToInt};
 
 #[cfg(hax)]
 use crate::proof_utils::{slices_same_len, valid_rate};
-
-#[cfg(hax)]
-use hax_lib::{constructors::from_bool, int::ToInt};
+use crate::traits::*;
 
 /// A generic Xof API.
 pub(crate) mod xof;
@@ -37,7 +36,7 @@ pub(crate) struct KeccakState<const N: usize, T: KeccakItem<N>> {
     pub(crate) st: [T; 25],
 }
 
-#[hax_lib::attributes]
+#[cfg_attr(hax, hax_lib::attributes)]
 impl<const N: usize, T: KeccakItem<N>> KeccakState<N, T> {
     /// Create a new Shake128 x4 state.
     #[inline(always)]
@@ -48,7 +47,7 @@ impl<const N: usize, T: KeccakItem<N>> KeccakState<N, T> {
     }
 
     /// Set element `[i, j] = v`.
-    #[hax_lib::requires(i < 5 && j < 5)]
+    #[cfg_attr(hax, hax_lib::requires(i < 5 && j < 5))]
     fn set(&mut self, i: usize, j: usize, v: T) {
         set_ij(&mut self.st, i, j, v);
     }
@@ -231,7 +230,7 @@ impl<const N: usize, T: KeccakItem<N>> KeccakState<N, T> {
     }
 
     #[inline(always)]
-    #[hax_lib::requires(i < ROUNDCONSTANTS.len())]
+    #[cfg_attr(hax, hax_lib::requires(i < ROUNDCONSTANTS.len()))]
     fn iota(&mut self, i: usize) {
         self.set(0, 0, T::xor_constant(self[(0, 0)], ROUNDCONSTANTS[i]));
     }
@@ -248,7 +247,7 @@ impl<const N: usize, T: KeccakItem<N>> KeccakState<N, T> {
     }
 
     #[inline(always)]
-    #[hax_lib::requires(
+    #[cfg_attr(hax, hax_lib::requires(
       from_bool(
         N != 0 &&
         valid_rate(RATE) &&
@@ -256,7 +255,7 @@ impl<const N: usize, T: KeccakItem<N>> KeccakState<N, T> {
       ).and(
         slices_same_len(input)
       )
-    )]
+    ))]
     fn absorb_block<const RATE: usize>(&mut self, input: &[&[u8]; N], start: usize)
     where
         Self: Absorb<N>,
@@ -269,7 +268,7 @@ impl<const N: usize, T: KeccakItem<N>> KeccakState<N, T> {
     }
 
     #[inline(always)]
-    #[hax_lib::requires(
+    #[cfg_attr(hax, hax_lib::requires(
       from_bool(
         N != 0 &&
         valid_rate(RATE) &&
@@ -278,7 +277,7 @@ impl<const N: usize, T: KeccakItem<N>> KeccakState<N, T> {
       ).and(
         slices_same_len(input)
       )
-    )]
+    ))]
     pub(crate) fn absorb_final<const RATE: usize, const DELIM: u8>(
         &mut self,
         input: &[&[u8]; N],
@@ -298,12 +297,12 @@ impl<const N: usize, T: KeccakItem<N>> KeccakState<N, T> {
     }
 }
 
-#[hax_lib::attributes]
+#[cfg_attr(hax, hax_lib::attributes)]
 impl<const N: usize, T: KeccakItem<N>> Index<(usize, usize)> for KeccakState<N, T> {
     type Output = T;
 
     /// Get element `[i, j]`.
-    #[hax_lib::requires(index.0 < 5 && index.1 < 5)]
+    #[cfg_attr(hax, hax_lib::requires(index.0 < 5 && index.1 < 5))]
     fn index(&self, index: (usize, usize)) -> &Self::Output {
         get_ij(&self.st, index.0, index.1)
     }
@@ -312,9 +311,9 @@ impl<const N: usize, T: KeccakItem<N>> Index<(usize, usize)> for KeccakState<N, 
 /// Cross-spec tests: compare each permutation step against the hacspec spec.
 #[cfg(test)]
 mod cross_spec_tests {
+    use hacspec_sha3::{keccak_f as spec_kf, sponge as spec_sponge};
+
     use super::*;
-    use hacspec_sha3::keccak_f as spec_kf;
-    use hacspec_sha3::sponge as spec_sponge;
 
     fn wrap(st: [u64; 25]) -> KeccakState<1, u64> {
         KeccakState { st }
@@ -502,9 +501,10 @@ mod cross_spec_tests {
 /// property that the F* generalization proof is built on.
 #[cfg(all(test, feature = "simd128"))]
 mod neon_to_spec_tests {
-    use super::*;
     use hacspec_sha3::keccak_f as spec_kf;
     use libcrux_intrinsics::arm64::*;
+
+    use super::*;
 
     /// Extract lane `l` (0 or 1) from a KeccakState<2, uint64x2_t> → [u64; 25]
     fn extract_lane(state: &KeccakState<2, _uint64x2_t>, lane: usize) -> [u64; 25] {
