@@ -223,9 +223,6 @@ psq = []
 [dependencies]
 getrandom = { version = "0.4", optional = true }
 
-# Proofs
-hax-lib.workspace = true
-
 # External Cryspen code.
 hpke-rs = { workspace = true, features = ["libcrux"] }
 
@@ -259,6 +256,9 @@ libcrux-psq.workspace = true
 
 # WASM API
 wasm-bindgen = { version = "0.2.87", optional = true }
+
+[target.'cfg(hax)'.dependencies]
+hax-lib.workspace = true
 
 [build-dependencies]
 libcrux-platform = { version = "=0.0.3", path = "crates/sys/platform" }
