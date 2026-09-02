@@ -17,14 +17,14 @@ pub(crate) fn zero() -> Coefficients {
 }
 
 #[inline(always)]
-#[hax_lib::requires(array.len() == COEFFICIENTS_IN_SIMD_UNIT)]
+#[cfg_attr(hax, hax_lib::requires(array.len() == COEFFICIENTS_IN_SIMD_UNIT))]
 pub(crate) fn from_coefficient_array(array: &[i32], out: &mut Coefficients) {
     out.values
         .copy_from_slice(&array[0..COEFFICIENTS_IN_SIMD_UNIT])
 }
 
 #[inline(always)]
-#[hax_lib::requires(out.len() == COEFFICIENTS_IN_SIMD_UNIT)]
+#[cfg_attr(hax, hax_lib::requires(out.len() == COEFFICIENTS_IN_SIMD_UNIT))]
 pub(crate) fn to_coefficient_array(
     value: &Coefficients,
     out: &mut [i32], // len: COEFFICIENTS_IN_SIMD_UNIT

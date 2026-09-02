@@ -1,14 +1,17 @@
-use super::arithmetic::{self, montgomery_multiply_by_constant, montgomery_multiply_fe_by_fer};
-use super::vector_type::Coefficients;
-use crate::simd::traits::{COEFFICIENTS_IN_SIMD_UNIT, SIMD_UNITS_IN_RING_ELEMENT};
-
+use super::{
+    arithmetic::{self, montgomery_multiply_by_constant, montgomery_multiply_fe_by_fer},
+    vector_type::Coefficients,
+};
 #[cfg(hax)]
 use crate::simd::traits::specs::*;
+use crate::simd::traits::{COEFFICIENTS_IN_SIMD_UNIT, SIMD_UNITS_IN_RING_ELEMENT};
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 300 --split_queries always")]
-#[hax_lib::fstar::before(
-    r#"
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 300 --split_queries always"))]
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::before(
+        r#"
 let simd_layer_factor (step:usize) =
     match step with
     | MkInt 1 -> 7
@@ -16,9 +19,10 @@ let simd_layer_factor (step:usize) =
     | MkInt 4 -> 5
     | _ -> 5
 "#
+    )
 )]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
     v step <= 4 /\ v index + v step < 8 /\    
     Spec.Utils.is_i32b 
         (v $NTT_BASE_BOUND + (simd_layer_factor $step * v $FIELD_MAX))
@@ -27,8 +31,8 @@ let simd_layer_factor (step:usize) =
         (v $NTT_BASE_BOUND + (simd_layer_factor $step * v $FIELD_MAX))
         (Seq.index ${simd_unit}.f_values (v $index + v $step)) /\
     Spec.Utils.is_i32b 4190208 $zeta 
-"#))]
-#[hax_lib::ensures(|_| fstar!(r#"
+"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"
     Spec.Utils.modifies2_8 ${simd_unit}.f_values ${simd_unit}_future.f_values index (index +! step) /\
     Spec.Utils.is_i32b 
         (v $NTT_BASE_BOUND + ((simd_layer_factor $step + 1)  * v $FIELD_MAX))
@@ -36,7 +40,7 @@ let simd_layer_factor (step:usize) =
     Spec.Utils.is_i32b 
         (v $NTT_BASE_BOUND + ((simd_layer_factor $step + 1)  * v $FIELD_MAX))
         (Seq.index ${simd_unit}_future.f_values (v $index + v $step))
-"#) )]
+"#) ))]
 fn simd_unit_ntt_step(simd_unit: &mut Coefficients, zeta: i32, index: usize, step: usize) {
     let t = montgomery_multiply_fe_by_fer(simd_unit.values[index + step], zeta);
     simd_unit.values[index + step] = simd_unit.values[index] - t;
@@ -44,18 +48,18 @@ fn simd_unit_ntt_step(simd_unit: &mut Coefficients, zeta: i32, index: usize, ste
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 300 --split_queries always")]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 300 --split_queries always"))]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
     Spec.Utils.is_i32b_array (v $NTT_BASE_BOUND + 7 * v $FIELD_MAX) ${simd_unit}.f_values /\
     Spec.Utils.is_i32b 4190208 $zeta0 /\
     Spec.Utils.is_i32b 4190208 $zeta1 /\
     Spec.Utils.is_i32b 4190208 $zeta2 /\
     Spec.Utils.is_i32b 4190208 $zeta3
-"#))]
-#[hax_lib::ensures(|_| fstar!(r#"
+"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"
     Spec.Utils.is_i32b_array (v $NTT_BASE_BOUND + 8 * v $FIELD_MAX) ${simd_unit}_future.f_values
-"#) )]
+"#) ))]
 pub fn simd_unit_ntt_at_layer_0(
     simd_unit: &mut Coefficients,
     zeta0: i32,
@@ -70,16 +74,16 @@ pub fn simd_unit_ntt_at_layer_0(
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 300 --split_queries always")]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 300 --split_queries always"))]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
     Spec.Utils.is_i32b_array (v $NTT_BASE_BOUND + 6 * v $FIELD_MAX) ${simd_unit}.f_values /\
     Spec.Utils.is_i32b 4190208 $zeta1 /\
     Spec.Utils.is_i32b 4190208 $zeta2
-"#))]
-#[hax_lib::ensures(|_| fstar!(r#"
+"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"
     Spec.Utils.is_i32b_array (v $NTT_BASE_BOUND + 7 * v $FIELD_MAX) ${simd_unit}_future.f_values
-"#) )]
+"#) ))]
 pub fn simd_unit_ntt_at_layer_1(simd_unit: &mut Coefficients, zeta1: i32, zeta2: i32) {
     simd_unit_ntt_step(simd_unit, zeta1, 0, 2);
     simd_unit_ntt_step(simd_unit, zeta1, 1, 2);
@@ -88,15 +92,15 @@ pub fn simd_unit_ntt_at_layer_1(simd_unit: &mut Coefficients, zeta1: i32, zeta2:
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 300 --split_queries always")]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 300 --split_queries always"))]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
     Spec.Utils.is_i32b_array (v $NTT_BASE_BOUND + 5 * v $FIELD_MAX) ${simd_unit}.f_values /\
     Spec.Utils.is_i32b 4190208 $zeta
-"#))]
-#[hax_lib::ensures(|_| fstar!(r#"
+"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"
     Spec.Utils.is_i32b_array (v $NTT_BASE_BOUND + 6 * v $FIELD_MAX) ${simd_unit}_future.f_values
-"#) )]
+"#) ))]
 pub fn simd_unit_ntt_at_layer_2(simd_unit: &mut Coefficients, zeta: i32) {
     simd_unit_ntt_step(simd_unit, zeta, 0, 4);
     simd_unit_ntt_step(simd_unit, zeta, 1, 4);
@@ -105,23 +109,23 @@ pub fn simd_unit_ntt_at_layer_2(simd_unit: &mut Coefficients, zeta: i32) {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always")]
-#[hax_lib::fstar::before(r#"
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 400 --split_queries always"))]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"
     let is_i32b_polynomial (b:nat) (re:t_Array Libcrux_ml_dsa.Simd.Portable.Vector_type.t_Coefficients (sz 32)) =
         Spec.Utils.forall32 (fun x -> Spec.Utils.is_i32b_array_opaque b (Seq.index re x).f_values)
-"#)]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"
-    is_i32b_polynomial (v $NTT_BASE_BOUND + 7 * v $FIELD_MAX) ${re}
 "#))]
-#[hax_lib::ensures(|_| fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
+    is_i32b_polynomial (v $NTT_BASE_BOUND + 7 * v $FIELD_MAX) ${re}
+"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"
     is_i32b_polynomial (v $NTT_BASE_BOUND + 8 * v $FIELD_MAX) ${re}_future
-"#) )]
+"#) ))]
 fn ntt_at_layer_0(re: &mut [Coefficients; SIMD_UNITS_IN_RING_ELEMENT]) {
     #[inline(always)]
-    #[hax_lib::fstar::options("--z3rlimit 100")]
-    #[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-    #[hax_lib::requires(fstar!(r#"
+    #[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 100"))]
+    #[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+    #[cfg_attr(hax, hax_lib::requires(fstar!(r#"
         v index < v $SIMD_UNITS_IN_RING_ELEMENT /\
         Spec.Utils.is_i32b_array_opaque (v $NTT_BASE_BOUND + 7 * v $FIELD_MAX) 
             (Seq.index ${re} (v index)).f_values /\
@@ -129,12 +133,12 @@ fn ntt_at_layer_0(re: &mut [Coefficients; SIMD_UNITS_IN_RING_ELEMENT]) {
         Spec.Utils.is_i32b 4190208 $zeta_1 /\
         Spec.Utils.is_i32b 4190208 $zeta_2 /\
         Spec.Utils.is_i32b 4190208 $zeta_3
-    "#))]
-    #[hax_lib::ensures(|_| fstar!(r#"
+    "#)))]
+    #[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"
         Spec.Utils.modifies1_32 ${re} ${re}_future $index /\
         Spec.Utils.is_i32b_array_opaque (v $NTT_BASE_BOUND + 8 * v $FIELD_MAX)
             (Seq.index ${re}_future (v index)).f_values
-     "#))]
+     "#)))]
     fn round(
         re: &mut [Coefficients; SIMD_UNITS_IN_RING_ELEMENT],
         index: usize,
@@ -143,6 +147,7 @@ fn ntt_at_layer_0(re: &mut [Coefficients; SIMD_UNITS_IN_RING_ELEMENT]) {
         zeta_2: i32,
         zeta_3: i32,
     ) {
+        #[cfg(hax)]
         hax_lib::fstar!(
             "reveal_opaque (`%Spec.Utils.is_i32b_array_opaque) (Spec.Utils.is_i32b_array_opaque)"
         );
@@ -185,36 +190,37 @@ fn ntt_at_layer_0(re: &mut [Coefficients; SIMD_UNITS_IN_RING_ELEMENT]) {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 300 --split_queries always")]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 300 --split_queries always"))]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
     is_i32b_polynomial (v $NTT_BASE_BOUND + 6 * v $FIELD_MAX) ${re}
-"#))]
-#[hax_lib::ensures(|_| fstar!(r#"
+"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"
     is_i32b_polynomial (v $NTT_BASE_BOUND + 7 * v $FIELD_MAX) ${re}_future
-"#) )]
+"#) ))]
 fn ntt_at_layer_1(re: &mut [Coefficients; SIMD_UNITS_IN_RING_ELEMENT]) {
     #[inline(always)]
-    #[hax_lib::fstar::options("--z3rlimit 100")]
-    #[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-    #[hax_lib::requires(fstar!(r#"
+    #[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 100"))]
+    #[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+    #[cfg_attr(hax, hax_lib::requires(fstar!(r#"
         v index < v $SIMD_UNITS_IN_RING_ELEMENT /\
         Spec.Utils.is_i32b_array_opaque (v $NTT_BASE_BOUND + 6 * v $FIELD_MAX) 
                                  (Seq.index ${re} (v index)).f_values /\
         Spec.Utils.is_i32b 4190208 $zeta_0 /\
         Spec.Utils.is_i32b 4190208 $zeta_1
-    "#))]
-    #[hax_lib::ensures(|_| fstar!(r#"
+    "#)))]
+    #[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"
         Spec.Utils.modifies1_32 ${re} ${re}_future $index /\
         Spec.Utils.is_i32b_array_opaque (v $NTT_BASE_BOUND + 7 * v $FIELD_MAX)
             (Seq.index ${re}_future (v index)).f_values
-     "#))]
+     "#)))]
     fn round(
         re: &mut [Coefficients; SIMD_UNITS_IN_RING_ELEMENT],
         index: usize,
         zeta_0: i32,
         zeta_1: i32,
     ) {
+        #[cfg(hax)]
         hax_lib::fstar!(
             "reveal_opaque (`%Spec.Utils.is_i32b_array_opaque) (Spec.Utils.is_i32b_array_opaque)"
         );
@@ -257,30 +263,31 @@ fn ntt_at_layer_1(re: &mut [Coefficients; SIMD_UNITS_IN_RING_ELEMENT]) {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always")]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 400 --split_queries always"))]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
     is_i32b_polynomial (v $NTT_BASE_BOUND + 5 * v $FIELD_MAX) ${re}
-"#))]
-#[hax_lib::ensures(|_| fstar!(r#"
+"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"
     is_i32b_polynomial (v $NTT_BASE_BOUND + 6 * v $FIELD_MAX) ${re}_future
-"#) )]
+"#) ))]
 fn ntt_at_layer_2(re: &mut [Coefficients; SIMD_UNITS_IN_RING_ELEMENT]) {
     #[inline(always)]
-    #[hax_lib::fstar::options("--z3rlimit 200")]
-    #[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-    #[hax_lib::requires(fstar!(r#"
+    #[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 200"))]
+    #[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+    #[cfg_attr(hax, hax_lib::requires(fstar!(r#"
         v index < v $SIMD_UNITS_IN_RING_ELEMENT /\
         Spec.Utils.is_i32b_array_opaque (v $NTT_BASE_BOUND + 5 * v $FIELD_MAX) 
                                         (Seq.index ${re} (v index)).f_values /\
         Spec.Utils.is_i32b 4190208 $zeta
-    "#))]
-    #[hax_lib::ensures(|_| fstar!(r#"
+    "#)))]
+    #[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"
         Spec.Utils.modifies1_32 ${re} ${re}_future $index /\
         Spec.Utils.is_i32b_array_opaque (v $NTT_BASE_BOUND + 6 * v $FIELD_MAX)
             (Seq.index ${re}_future (v index)).f_values
-    "#))]
+    "#)))]
     fn round(re: &mut [Coefficients; SIMD_UNITS_IN_RING_ELEMENT], index: usize, zeta: i32) {
+        #[cfg(hax)]
         hax_lib::fstar!(
             "reveal_opaque (`%Spec.Utils.is_i32b_array_opaque) (Spec.Utils.is_i32b_array_opaque)"
         );
@@ -323,9 +330,9 @@ fn ntt_at_layer_2(re: &mut [Coefficients; SIMD_UNITS_IN_RING_ELEMENT]) {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 600 --split_queries always")]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 600 --split_queries always"))]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
     (v $STEP_BY > 0) /\
     (v $OFFSET + v $STEP_BY < v $SIMD_UNITS_IN_RING_ELEMENT) /\
     (v $OFFSET + 2 * v $STEP_BY <= v $SIMD_UNITS_IN_RING_ELEMENT) /\
@@ -334,22 +341,24 @@ fn ntt_at_layer_2(re: &mut [Coefficients; SIMD_UNITS_IN_RING_ELEMENT]) {
                 (v $NTT_BASE_BOUND + ((layer_bound_factor $STEP_BY) * v $FIELD_MAX)) 
                 (Seq.index ${re} i).f_values)) /\
     Spec.Utils.is_i32b 4190208 $ZETA
-"#))]
-#[hax_lib::ensures(|_| fstar!(r#"
+"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"
     Spec.Utils.modifies_range_32 ${re} ${re}_future $OFFSET (${OFFSET + STEP_BY + STEP_BY}) /\
     (Spec.Utils.forall32 (fun i -> (i >= v $OFFSET /\ i < (v $OFFSET + 2 * v $STEP_BY)) ==>
               Spec.Utils.is_i32b_array_opaque 
                 (v $NTT_BASE_BOUND + ((layer_bound_factor $STEP_BY + 1) * v $FIELD_MAX)) 
                 (Seq.index ${re}_future i).f_values))
-"#))]
+"#)))]
 fn outer_3_plus<const OFFSET: usize, const STEP_BY: usize, const ZETA: i32>(
     re: &mut [Coefficients; SIMD_UNITS_IN_RING_ELEMENT],
 ) {
     // Refactoring the code to have the loop body separately verified is good for proof performance.
     // So we factor out the loop body in a `round` function similarly to the other NTT layers.
     #[inline(always)]
-    #[hax_lib::fstar::before(
-        r#"
+    #[cfg_attr(
+        hax,
+        hax_lib::fstar::before(
+            r#"
     let layer_bound_factor (step_by:usize) : n:nat{n <= 4} =
         match step_by with
         | MkInt 1 -> 4
@@ -359,10 +368,11 @@ fn outer_3_plus<const OFFSET: usize, const STEP_BY: usize, const ZETA: i32>(
         | MkInt 16 -> 0
         | _ -> 0
     "#
+        )
     )]
-    #[hax_lib::fstar::options("--z3rlimit 300 --split_queries always")]
-    #[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-    #[hax_lib::requires(fstar!(r#"
+    #[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 300 --split_queries always"))]
+    #[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+    #[cfg_attr(hax, hax_lib::requires(fstar!(r#"
         v $step_by > 0 /\
         v $index + v $step_by < v $SIMD_UNITS_IN_RING_ELEMENT /\
         Spec.Utils.is_i32b_array_opaque 
@@ -372,8 +382,8 @@ fn outer_3_plus<const OFFSET: usize, const STEP_BY: usize, const ZETA: i32>(
                     (v $NTT_BASE_BOUND + ((layer_bound_factor $step_by) * v $FIELD_MAX)) 
                     (Seq.index ${re} (v $index + v $step_by)).f_values /\
         Spec.Utils.is_i32b 4190208 $zeta
-    "#))]
-    #[hax_lib::ensures(|_| fstar!(r#"
+    "#)))]
+    #[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"
         Spec.Utils.modifies2_32 ${re} ${re}_future $index (${index + step_by}) /\
         Spec.Utils.is_i32b_array_opaque 
                     (v $NTT_BASE_BOUND + ((layer_bound_factor $step_by + 1) * v $FIELD_MAX)) 
@@ -381,13 +391,14 @@ fn outer_3_plus<const OFFSET: usize, const STEP_BY: usize, const ZETA: i32>(
         Spec.Utils.is_i32b_array_opaque 
                     (v $NTT_BASE_BOUND + ((layer_bound_factor $step_by + 1) * v $FIELD_MAX)) 
                     (Seq.index ${re}_future (v $index + v step_by)).f_values
-    "#))]
+    "#)))]
     fn round(
         re: &mut [Coefficients; SIMD_UNITS_IN_RING_ELEMENT],
         index: usize,
         step_by: usize,
         zeta: i32,
     ) {
+        #[cfg(hax)]
         hax_lib::fstar!(
             "reveal_opaque (`%Spec.Utils.is_i32b_array_opaque) (Spec.Utils.is_i32b_array_opaque)"
         );
@@ -404,6 +415,7 @@ fn outer_3_plus<const OFFSET: usize, const STEP_BY: usize, const ZETA: i32>(
     let orig_re = re.clone();
 
     for j in OFFSET..OFFSET + STEP_BY {
+        #[cfg(hax)]
         hax_lib::loop_invariant!(|j: usize| fstar!(
             r#"
             (Spec.Utils.modifies_range2_32 $orig_re $re 
@@ -420,14 +432,14 @@ fn outer_3_plus<const OFFSET: usize, const STEP_BY: usize, const ZETA: i32>(
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always")]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 400 --split_queries always"))]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
     is_i32b_polynomial (v $NTT_BASE_BOUND + 4 * v $FIELD_MAX) ${re}
-"#))]
-#[hax_lib::ensures(|_| fstar!(r#"
+"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"
     is_i32b_polynomial (v $NTT_BASE_BOUND + 5 * v $FIELD_MAX) ${re}_future
-"#) )]
+"#) ))]
 fn ntt_at_layer_3(re: &mut [Coefficients; SIMD_UNITS_IN_RING_ELEMENT]) {
     const STEP: usize = 8; // 1 << LAYER;
     const STEP_BY: usize = 1; // step / COEFFICIENTS_IN_SIMD_UNIT;
@@ -451,14 +463,14 @@ fn ntt_at_layer_3(re: &mut [Coefficients; SIMD_UNITS_IN_RING_ELEMENT]) {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always")]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 400 --split_queries always"))]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
     is_i32b_polynomial (v $NTT_BASE_BOUND + 3 * v $FIELD_MAX) ${re}
-"#))]
-#[hax_lib::ensures(|_| fstar!(r#"
+"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"
     is_i32b_polynomial (v $NTT_BASE_BOUND + 4 * v $FIELD_MAX) ${re}_future
-"#) )]
+"#) ))]
 fn ntt_at_layer_4(re: &mut [Coefficients; SIMD_UNITS_IN_RING_ELEMENT]) {
     const STEP: usize = 16; // 1 << LAYER;
     const STEP_BY: usize = 2; // step / COEFFICIENTS_IN_SIMD_UNIT;
@@ -474,14 +486,14 @@ fn ntt_at_layer_4(re: &mut [Coefficients; SIMD_UNITS_IN_RING_ELEMENT]) {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always")]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 400 --split_queries always"))]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
     is_i32b_polynomial (v $NTT_BASE_BOUND + 2 * v $FIELD_MAX) ${re}
-"#))]
-#[hax_lib::ensures(|_| fstar!(r#"
+"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"
     is_i32b_polynomial (v $NTT_BASE_BOUND + 3 * v $FIELD_MAX) ${re}_future
-"#) )]
+"#) ))]
 fn ntt_at_layer_5(re: &mut [Coefficients; SIMD_UNITS_IN_RING_ELEMENT]) {
     const STEP: usize = 32; // 1 << LAYER;
     const STEP_BY: usize = 4; // step / COEFFICIENTS_IN_SIMD_UNIT;
@@ -493,14 +505,14 @@ fn ntt_at_layer_5(re: &mut [Coefficients; SIMD_UNITS_IN_RING_ELEMENT]) {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always")]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 400 --split_queries always"))]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
     is_i32b_polynomial (v $NTT_BASE_BOUND + 1 * v $FIELD_MAX) ${re}
-"#))]
-#[hax_lib::ensures(|_| fstar!(r#"
+"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"
     is_i32b_polynomial (v $NTT_BASE_BOUND + 2 * v $FIELD_MAX) ${re}_future
-"#) )]
+"#) ))]
 fn ntt_at_layer_6(re: &mut [Coefficients; SIMD_UNITS_IN_RING_ELEMENT]) {
     const STEP: usize = 64; // 1 << LAYER;
     const STEP_BY: usize = 8; // step / COEFFICIENTS_IN_SIMD_UNIT;
@@ -510,14 +522,14 @@ fn ntt_at_layer_6(re: &mut [Coefficients; SIMD_UNITS_IN_RING_ELEMENT]) {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always")]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 400 --split_queries always"))]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
     is_i32b_polynomial (v $NTT_BASE_BOUND) $re
-"#))]
-#[hax_lib::ensures(|_| fstar!(r#"
+"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"
     is_i32b_polynomial (v $NTT_BASE_BOUND + 1 * v $FIELD_MAX) ${re}_future
-"#) )]
+"#) ))]
 fn ntt_at_layer_7(re: &mut [Coefficients; SIMD_UNITS_IN_RING_ELEMENT]) {
     const STEP: usize = 128; // 1 << LAYER;
     const STEP_BY: usize = 16; // step / COEFFICIENTS_IN_SIMD_UNIT;
@@ -526,14 +538,14 @@ fn ntt_at_layer_7(re: &mut [Coefficients; SIMD_UNITS_IN_RING_ELEMENT]) {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always")]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 400 --split_queries always"))]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
     is_i32b_polynomial (v $NTT_BASE_BOUND) ${re}
-"#))]
-#[hax_lib::ensures(|_| fstar!(r#"
+"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"
     is_i32b_polynomial (v $NTT_BASE_BOUND + 8 * v $FIELD_MAX) ${re}_future
-"#) )]
+"#) ))]
 pub(crate) fn ntt(re: &mut [Coefficients; SIMD_UNITS_IN_RING_ELEMENT]) {
     ntt_at_layer_7(re);
     ntt_at_layer_6(re);

@@ -18,8 +18,8 @@ pub(crate) fn int_is_i32(i: Int) -> bool {
     i <= i32::MAX.to_int() && i >= i32::MIN.to_int()
 }
 
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::fstar::after(r#"
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::fstar::after(r#"
     let bounded_add_pre (a b: t_Array i32 (sz 8)) (b1:nat) (b2:nat):
         Lemma (requires (Spec.Utils.is_i32b_array_opaque b1 a /\ Spec.Utils.is_i32b_array_opaque b2 b /\ b1 + b2 <= 4294967295))
                 (ensures (Libcrux_ml_dsa.Simd.Traits.Specs.add_pre a b))
@@ -27,7 +27,7 @@ pub(crate) fn int_is_i32(i: Int) -> bool {
                 SMTPat (Spec.Utils.is_i32b_array_opaque b1 a);
                 SMTPat (Spec.Utils.is_i32b_array_opaque b2 b)] = 
         reveal_opaque (`%$add_pre) ($add_pre)
-    "#)]
+    "#))]
 pub(crate) fn add_pre(lhs: &SIMDContent, rhs: &SIMDContent) -> Prop {
     forall(|i: usize| {
         implies(
@@ -37,8 +37,8 @@ pub(crate) fn add_pre(lhs: &SIMDContent, rhs: &SIMDContent) -> Prop {
     })
 }
 
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::fstar::after(r#"
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::fstar::after(r#"
     let bounded_add_post (a b a_future: t_Array i32 (sz 8)) (b1 b2 b3:nat):
         Lemma (requires (Spec.Utils.is_i32b_array_opaque b1 a /\ Spec.Utils.is_i32b_array_opaque b2 b /\
                     b1 + b2 <= b3 /\ Libcrux_ml_dsa.Simd.Traits.Specs.add_post a b a_future))
@@ -48,7 +48,7 @@ pub(crate) fn add_pre(lhs: &SIMDContent, rhs: &SIMDContent) -> Prop {
             SMTPat (Spec.Utils.is_i32b_array_opaque b2 b);
             SMTPat (Spec.Utils.is_i32b_array_opaque b3 a_future)] = 
         reveal_opaque (`%$add_post) ($add_post)
-    "#)]
+    "#))]
 pub(crate) fn add_post(lhs: &SIMDContent, rhs: &SIMDContent, future_lhs: &SIMDContent) -> Prop {
     forall(|i: usize| {
         implies(
@@ -58,8 +58,8 @@ pub(crate) fn add_post(lhs: &SIMDContent, rhs: &SIMDContent, future_lhs: &SIMDCo
     })
 }
 
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::fstar::after(r#"
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::fstar::after(r#"
     let bounded_sub_pre (a b: t_Array i32 (sz 8)) (b1:nat) (b2:nat):
         Lemma (requires (Spec.Utils.is_i32b_array_opaque b1 a /\ Spec.Utils.is_i32b_array_opaque b2 b /\ b1 + b2 <= 4294967295))
               (ensures (Libcrux_ml_dsa.Simd.Traits.Specs.sub_pre a b))
@@ -67,7 +67,7 @@ pub(crate) fn add_post(lhs: &SIMDContent, rhs: &SIMDContent, future_lhs: &SIMDCo
                SMTPat (Spec.Utils.is_i32b_array_opaque b1 a);
                SMTPat (Spec.Utils.is_i32b_array_opaque b2 b)] = 
         reveal_opaque (`%$sub_pre) ($sub_pre)
-    "#)]
+    "#))]
 pub(crate) fn sub_pre(lhs: &SIMDContent, rhs: &SIMDContent) -> Prop {
     forall(|i: usize| {
         implies(
@@ -77,8 +77,8 @@ pub(crate) fn sub_pre(lhs: &SIMDContent, rhs: &SIMDContent) -> Prop {
     })
 }
 
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::fstar::after(r#"
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::fstar::after(r#"
     let bounded_sub_post (a b a_future: t_Array i32 (sz 8)) (b1 b2 b3:nat):
         Lemma (requires (Spec.Utils.is_i32b_array_opaque b1 a /\ Spec.Utils.is_i32b_array_opaque b2 b /\
                         b1 + b2 <= b3 /\ Libcrux_ml_dsa.Simd.Traits.Specs.sub_post a b a_future))
@@ -88,7 +88,7 @@ pub(crate) fn sub_pre(lhs: &SIMDContent, rhs: &SIMDContent) -> Prop {
                 SMTPat (Spec.Utils.is_i32b_array_opaque b2 b);
                 SMTPat (Spec.Utils.is_i32b_array_opaque b3 a_future)] = 
                 reveal_opaque (`%$sub_post) ($sub_post)
-    "#)]
+    "#))]
 pub(crate) fn sub_post(lhs: &SIMDContent, rhs: &SIMDContent, future_lhs: &SIMDContent) -> Prop {
     forall(|i: usize| {
         implies(

@@ -1,14 +1,14 @@
 use libcrux_intrinsics::avx2::*;
 
-#[hax_lib::ensures(|result| fstar!(r#"
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"
       let open Spec.Intrinsics in
       forall (i: nat {i < 48}).
          (if i < 24 then result.(mk_int i) else result.(mk_int (128 + i - 24)))
       == (${simd_unit}.(mk_int ((i / 6) * 32 + i % 6)))
     "#
-    ))]
-#[hax_lib::fstar::options("--ifuel 0 --z3rlimit 380")]
-#[hax_lib::fstar::before(r#"[@@"opaque_to_smt"]"#)]
+)))]
+#[cfg_attr(hax, hax_lib::fstar::options("--ifuel 0 --z3rlimit 380"))]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@"opaque_to_smt"]"#))]
 #[inline(always)]
 // This function is purely AVX2 operations, which makes the SMT proof with F* easy.
 fn serialize_6(simd_unit: &Vec256) -> Vec256 {
@@ -49,12 +49,12 @@ fn serialize_6(simd_unit: &Vec256) -> Vec256 {
     mm256_srlv_epi32(adjacent_3_combined, mm256_set_epi32(0, 0, 0, 4, 0, 0, 0, 4))
 }
 
-#[hax_lib::fstar::options("--ifuel 0 --z3rlimit 380")]
-#[hax_lib::ensures(|result| fstar!(r"
+#[cfg_attr(hax, hax_lib::fstar::options("--ifuel 0 --z3rlimit 380"))]
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r"
         let open Spec.Intrinsics in
           forall (i: nat{i < 32}).
                 ${result}.(mk_int i) == simd_unit.(mk_int ((i / 4) * 32 + i % 4))
-    "))]
+    ")))]
 #[inline(always)]
 // This function is purely AVX2 operations, which makes the SMT proof with F* easy.
 fn serialize_4(simd_unit: &Vec256) -> Vec128 {
@@ -75,14 +75,14 @@ fn serialize_4(simd_unit: &Vec256) -> Vec128 {
 }
 
 #[inline(always)]
-#[hax_lib::requires(out.len() == 4 || out.len() == 6)]
-#[hax_lib::ensures(|_result| fstar!(r"
+#[cfg_attr(hax, hax_lib::requires(out.len() == 4 || out.len() == 6))]
+#[cfg_attr(hax, hax_lib::ensures(|_result| fstar!(r"
   let open Spec.Intrinsics in
   let bytes = Seq.length out in
      Seq.length out_future == Seq.length out
   /\ (forall (i: nat {i < bytes * 8}). u8_to_bv out_future.[mk_usize (i / 8)] (mk_int (i % 8)) == simd_unit.(mk_int (i / bytes * 32 + i % bytes)))
-"))]
-#[hax_lib::fstar::verification_status(panic_free)]
+")))]
+#[cfg_attr(hax, hax_lib::fstar::verification_status(panic_free))]
 pub(in crate::simd::avx2) fn serialize(simd_unit: &Vec256, out: &mut [u8]) {
     let mut serialized = [0u8; 19];
 
