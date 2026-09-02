@@ -1,6 +1,6 @@
-(* PSQ registration — PASSIVE-FIRST sanity. Non-vacuity foundation: under a
-   PASSIVE attacker the honest registration round-trip must complete ON ITS OWN
-   (no attacker forging / driving the responder). If these four events are NOT
+(* PSQ registration — passive-first sanity. Non-vacuity foundation: under a
+   passive attacker the registration round-trip must complete on its own
+   (no attacker forging / driving the responder). If these four events are not
    reachable under `set attacker = passive.`, every active-attacker verdict below
    is unsound (a "reachable" RespReg would be the attacker, not the protocol).
    Shared setup/roles/aliases/nounif: -lib psq_reg_lib.pvl.
@@ -11,21 +11,21 @@
 set attacker = passive.
 set reconstructTrace = true.
 
-(* Honest initiator emitted InitRegDH.        Expected: false (reachable) *)
+(* Initiator emitted InitRegDH.        Expected: false (reachable) *)
 query i: Principal, r: Principal, ctx: bitstring, k: bitstring;
       event(InitRegDH(i, r, ctx, k)).
-(* Honest responder accepted -> RespRegDH.     Expected: false (reachable) *)
+(* Responder accepted -> RespRegDH.     Expected: false (reachable) *)
 query i: Principal, r: Principal, ctx: bitstring, k: bitstring;
       event(RespRegDH(i, r, ctx, k)).
-(* Honest initiator emitted InitRegSig.        Expected: false (reachable) *)
+(* Initiator emitted InitRegSig.        Expected: false (reachable) *)
 query i: Principal, r: Principal, ctx: bitstring, k: bitstring;
       event(InitRegSig(i, r, ctx, k)).
-(* Honest responder accepted -> RespRegSig.    Expected: false (reachable) *)
+(* Responder accepted -> RespRegSig.    Expected: false (reachable) *)
 query i: Principal, r: Principal, ctx: bitstring, k: bitstring;
       event(RespRegSig(i, r, ctx, k)).
 
-(* Stronger non-vacuity: the responder's accepted K_1 AGREES with the honest
-   initiator's K_1 (same run). If the honest run is sound, this correspondence
+(* Stronger non-vacuity: the responder's accepted K_1 agrees with the
+   initiator's K_1 (same run). If the run is sound, this correspondence
    holds (it cannot under an attacker-forged RespReg). Expected: true. *)
 query i: Principal, r: Principal, ctx: bitstring, k: bitstring;
       event(RespRegDH(i, r, ctx, k)) ==> event(InitRegDH(i, r, ctx, k)).

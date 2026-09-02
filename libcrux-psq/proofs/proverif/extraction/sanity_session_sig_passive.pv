@@ -1,6 +1,6 @@
-(* PSQ registration (sig) — FULL two-message handshake + into_session, PASSIVE.
-   Non-vacuity foundation for the sig response/session analysis: the honest run
-   must reach InitSessSig AND RespSessSig with no attacker help. *)
+(* PSQ registration (sig) — full two-message handshake + into_session, passive.
+   Non-vacuity foundation for the sig response/session analysis: the run
+   must reach InitSessSig and RespSessSig with no attacker help. *)
 set attacker = passive.
 set reconstructTrace = true.
 query i: Principal, r: Principal, ctx: bitstring, e: bitstring, k: bitstring;

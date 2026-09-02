@@ -3,13 +3,13 @@
    analysis_auth.pv (auth-core responder, P2/P3). See those files for queries. *)
 
 (* ===========================================================================
-   PSQ — Query mode: security analysis against the EXTRACTED libcrux-psq model
+   PSQ — Query mode: security analysis against the extracted libcrux-psq model
    ===========================================================================
    This file adds a handwritten top-level process and the query-mode security
    queries (P1–P11) on top of the extracted `lib.pvl` (driven via check-pv.sh,
    which composes primitives.pvl + psq_crypto.pvl + missingdecl + lib.clean.pvl).
 
-   The process drives the real extracted letfuns:
+   The process drives the extracted letfuns:
      initiator : QueryInitiator::new_kw, write_message_external_encoding,
                  read_response  (+ derive_k2_query_initiator to expose K_2)
      responder : Responder::new_kw, read_message_contents
@@ -24,8 +24,8 @@
    query_responder, and reproduces psq_query.pv's P1–P11 verdicts. The threat
    model is an active Dolev-Yao attacker (everything goes on `c`) plus a phase-1
    compromise of the responder's long-term DH key (harvest-now-decrypt-later).
-   ProVerif phases are global barriers and the honest roles carry no `phase`
-   instruction, so every honest run completes in phase 0 before the compromise.
+   ProVerif phases are global barriers and the roles carry no `phase`
+   instruction, so every run completes in phase 0 before the compromise.
    =========================================================================== *)
 
 type Principal.
@@ -37,7 +37,7 @@ const init_aad: bitstring.
 const resp_aad: bitstring.
 const rk_bound: bitstring.   (* responder rate-limiter bound (symbolically opaque) *)
 
-(* Secrets. The honest initiator's query token doubles as the responder's
+(* Secrets. The initiator's query token doubles as the responder's
    application gate (a confidential response is only as secret as the query that
    requested it). public_response is what every other (incl. attacker) query gets. *)
 free query_secret:    bitstring [private].
@@ -218,12 +218,11 @@ let compromise_endpoint(p: Principal) =
     out(c, sk_R).
 
 (* =========================================================================
-   Resolution control (SOUND — affects only ProVerif's search order/termination,
+   Resolution control (sound — affects only ProVerif's search order/termination,
    never a verdict). The DH commutativity equation + the attacker freely
-   *building* one-way crypto outputs triggers the classic "decryption-oracle"
+   *building* one-way crypto outputs triggers the "decryption-oracle"
    saturation blow-up (multi-GB, no termination). These nounif hints deprioritise
-   selecting `attacker(<one-way output>)` facts during resolution. Same technique
-   as mandrake / SparsePostQuantumRatchet.
+   selecting `attacker(<one-way output>)` facts during resolution.
    ========================================================================= *)
 nounif x: bitstring, y: bitstring;          attacker(extern__kdf(x, y))        / 30000.
 nounif x: bitstring, y: bitstring;          attacker(extern__dh_shared(x, y))  / 30000.

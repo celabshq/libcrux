@@ -1,14 +1,14 @@
-(* PSQ registration (sig auth) — RESPONSE / SESSION analysis, against the EXTRACTED
+(* PSQ registration (sig auth) — response / session analysis, against the extracted
    libcrux-psq model. Mirrors psq-design/models/psq_registration_sig_session.pv.
    Shared setup/roles/aliases/nounif: -lib psq_reg_lib.pvl.
 
-   Drives the FULL two-message handshake + into_session on the real extracted code
-   in SIGNATURE-auth mode (sess_sig_{initiator,responder}). Unlike DH mode, the
-   response K_2 folds only ONE DH term (responder_eph x initiator_eph), so the
-   responder-authentication correspondences R3/R3i ARE machine-verifiable here.
-   Honest run is sound (sanity_session_sig_passive.pv reaches both events, passive).
+   Drives the full two-message handshake + into_session on the extracted code
+   in signature-auth mode (sess_sig_{initiator,responder}). Unlike DH mode, the
+   response K_2 folds only one DH term (responder_eph x initiator_eph), so the
+   responder-authentication correspondences R3/R3i are machine-verifiable here.
+   Run is sound (sanity_session_sig_passive.pv reaches both events, passive).
 
-   THREAT MODEL: active attacker; phase-1 compromise of the PQ-KEM key + quantum
+   Threat model: active attacker; phase-1 compromise of the PQ-KEM key + quantum
    recovery of a recorded session ephemeral.
 
    R1   Reachability of InitSessSig / RespSessSig.            Expected: reachable (false)
@@ -21,7 +21,7 @@
 
 set reconstructTrace = false.
 
-(* R1 is established by the PASSIVE sanity (sanity_session_sig_passive.pv). Under
+(* R1 is established by the passive sanity (sanity_session_sig_passive.pv). Under
    the active attacker the reachability query only yields "cannot be proved", so
    it is not re-asserted here; the queries below run against the same sound run. *)
 

@@ -40,8 +40,8 @@ let query_responder_core(p: Principal) =
    ========================================================================= *)
 
 (* P2  Responder authentication, on the per-run id epub_R (= er): every response
-   an honest initiator accepts was produced by the genuine responder for the same
-   run. The accepting initiator only fires QInitRecv AFTER read_response decrypts
+   an initiator accepts was produced by the genuine responder for the same
+   run. The accepting initiator only fires QInitRecv after read_response decrypts
    the responder ciphertext under its own K_2, so by AEAD integrity that K_2
    equals the responder's - i.e. K_2 agreement is enforced by the AEAD and need
    not be unified in the query (which would force the non-terminating reasoning

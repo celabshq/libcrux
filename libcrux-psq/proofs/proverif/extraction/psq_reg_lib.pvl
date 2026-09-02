@@ -3,10 +3,10 @@
      analysis_reg_dh_msg1.pv   / analysis_reg_sig_msg1.pv    (message 1)
      analysis_reg_dh_session.pv / analysis_reg_sig_session.pv (response/session)
    Mirrors psq-design/models/psq_handshake_lib.pvl's reg_dh_* / reg_sig_* roles,
-   driven against the EXTRACTED libcrux-psq registration letfuns. See those files
+   driven against the extracted libcrux-psq registration letfuns. See those files
    for the R1–R9 queries and the per-process compromise model.
 
-   The responder is driven against an AUTH CORE (decrypt_outer_message +
+   The responder is driven against an auth core (decrypt_outer_message +
    decrypt_inner_message directly), skipping read_message_contents' rate-limiter,
    ciphersuite coercion and state-machine bookkeeping (none security-relevant to
    registration authentication, and coerce_compatible has no ML-KEM branch).
@@ -130,7 +130,7 @@ letfun sess_key(s: bitstring) = libcrux_psq__session__Session__Session__session_
 letfun hm_pk(m: bitstring) = libcrux_psq__handshake__HandshakeMessage__HandshakeMessage__pk(m).
 letfun mc_ct(m: bitstring) = libcrux_psq__handshake__responder__MessageCiphertext__MessageCiphertext__ciphertext(m).
 letfun mc_tag(m: bitstring) = libcrux_psq__handshake__responder__MessageCiphertext__MessageCiphertext__tag(m).
-(* Build a responder for the FULL read path: working_ciphersuite = None, so
+(* Build a responder for the full read path: working_ciphersuite = None, so
    read_message_contents' coerce_compatible sets it from the wire name. *)
 letfun mk_responder_full(cs: bitstring, ctx: bitstring, aad: bitstring, rng: bitstring) =
   libcrux_psq__handshake__responder__Responder__Responder(
@@ -228,10 +228,10 @@ let m1_dh_initiator(i: Principal, r: Principal) =
     event InitRegDH(i, r, context, k1);
     out(c, msg).
 
-(* Leaky variant: identical to m1_dh_initiator but ALSO tables the run ephemeral
+(* Leaky variant: identical to m1_dh_initiator but also tables the run ephemeral
    scalar (the X25519 epriv_I, projected from the WaitingState) so leak_ephemeral
    can model a quantum/harvest-now break of the session ephemeral. Used by the
-   PQ-secrecy analysis (compromise ALL classical DH keys at once). *)
+   PQ-secrecy analysis (compromise all classical DH keys at once). *)
 let m1_dh_initiator_leaky(i: Principal, r: Principal) =
     get resp_dh(=r, sk_R, pk_R) in
     get resp_pq(=r, pqdk_R, pqek_R) in
@@ -264,7 +264,7 @@ let m1_dh_responder(r: Principal) =
     let k1_r = rust_primitives__hax__Tuple5__Tuple5__2(dim) in
     let auth_r = rust_primitives__hax__Tuple5__Tuple5__3(dim) in
     (* out-of-band authentic recovery of the initiator identity: the recovered
-       authenticator must be an honest client's DH public key. *)
+       authenticator must be a client's DH public key. *)
     get client_dh(i, sk_I, =libcrux_psq__handshake__ciphersuite__types__Authenticator__Dh__0(auth_r)) in
     event RespRegDH(i, r, context, k1_r).
 
@@ -310,9 +310,9 @@ let m1_sig_responder(r: Principal) =
     event RespRegSig(i, r, context, k1_r).
 
 (* =========================================================================
-   FULL handshake + into_session roles (DH auth) — response / session layer.
+   Full handshake + into_session roles (DH auth) — response / session layer.
    Initiator: write msg1, read the response, into_session -> InitSessDH.
-   Responder: read msg1 (FULL read_message_contents path), prepare the response,
+   Responder: read msg1 (full read_message_contents path), prepare the response,
    into_session -> RespSessDH. Events keyed on the per-run responder ephemeral pk
    (epub_R) + the session key K_S (epub_R lets agreement match while K_2/K_S stay
    free — same re-keying technique as the query-mode K2 correspondences).
@@ -359,10 +359,10 @@ let sess_dh_responder(r: Principal) =
     out(c, response).
 
 (* =========================================================================
-   FULL handshake + into_session roles (SIGNATURE auth). Same shape as the DH
+   Full handshake + into_session roles (signature auth). Same shape as the DH
    roles, but the initiator authenticates with a SigningKeyPair (Auth::Sig) and
-   the responder's response K_2 folds only ONE DH term (responder_eph x
-   initiator_eph) — so the responder-authentication correspondences R3/R3i ARE
+   the responder's response K_2 folds only one DH term (responder_eph x
+   initiator_eph) — so the responder-authentication correspondences R3/R3i are
    tractable here (unlike DH mode's two response DH terms). Events: InitSessSig /
    RespSessSig.
    ========================================================================= *)
@@ -408,11 +408,10 @@ let sess_sig_responder(r: Principal) =
     out(c, response).
 
 (* =========================================================================
-   Resolution control (SOUND — search order only, never a verdict). The DH
+   Resolution control (sound — search order only, never a verdict). The DH
    commutativity equation + the attacker freely *building* one-way crypto
    outputs triggers the decryption-oracle saturation blow-up. Deprioritise
-   selecting `attacker(<one-way output>)` facts. Same technique as query mode /
-   mandrake / SparsePostQuantumRatchet.
+   selecting `attacker(<one-way output>)` facts. Same technique as query mode.
    ========================================================================= *)
 nounif x: bitstring, y: bitstring;          attacker(extern__kdf(x, y))        / 30000.
 nounif x: bitstring, y: bitstring;          attacker(extern__dh_shared(x, y))  / 30000.
@@ -423,9 +422,8 @@ nounif k: bitstring, p: bitstring, a: bitstring; attacker(extern__aead_tag(k, p,
 nounif pk: bitstring, ss: bitstring;        attacker(extern__kem_encaps(pk, ss)) / 30000.
 nounif sk: bitstring;                       attacker(extern__kem_pk(sk))       / 30000.
 (* PQ wrappers (the ML-KEM shared-secret / ciphertext / encapsulation-key carriers
-   the attacker folds into the K_1 / tx1 reconstruction — analogous to mandrake's
-   mlkem_ss / mlkem_ct / mlkem_pk nounif). Needed for the responder K_S secrecy
-   (R5 RespSessDH) to saturate in tractable time. *)
+   the attacker folds into the K_1 / tx1 reconstruction). Needed for the responder
+   K_S secrecy (R5 RespSessDH) to saturate in tractable time. *)
 nounif x: bitstring; attacker(libcrux_psq__handshake__ciphersuite__types__PQSharedSecret__MlKem(x))    / 30000.
 nounif x: bitstring; attacker(libcrux_psq__handshake__ciphersuite__types__PQCiphertext__MlKem(x))      / 30000.
 nounif x: bitstring; attacker(libcrux_psq__handshake__ciphersuite__types__PQEncapsulationKey__MlKem(x)) / 30000.

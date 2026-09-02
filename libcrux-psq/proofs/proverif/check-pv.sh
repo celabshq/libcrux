@@ -3,10 +3,6 @@
 # proverif-rust backend, compose it with the symbolic crypto model
 # (psq_crypto.pvl) and the de-duplicated `missingdecl`, and run ProVerif.
 #
-# Phase 2 status: this validates that the QUERY-MODE model (initiator + responder)
-# LOADS and type-checks (no parse/type error). Security queries (Phase 3) are
-# added in proofs/proverif/extraction/analysis.pv once present.
-#
 #   HAX_PROVERIF_DIR : a hax checkout @ proverif-rust-backend with target/release
 #                      built (or the hax-proverif opam switch installed).
 set -uo pipefail
@@ -34,7 +30,7 @@ cargo hax -C -p libcrux-psq --features hax-pv ';' into -i "$INC" proverif || tru
 # (a) Neutralize + hoist self-recursive serialization stubs. hax renders
 #     unresolvable tls_codec trait methods as `f(..) = f(..)`; the engine
 #     converts the bare form to an opaque `fun`, this pass catches the
-#     let-wrapped form too and hoists ALL opaque stub funs to the top (they are
+#     let-wrapped form too and hoists all opaque stub funs to the top (they are
 #     dependency-free; this fixes the mutual-recursion forward references).
 python3 - "$EX/lib.pvl" > "$EX/lib.clean.pvl" <<'PY'
 import re,sys
@@ -80,7 +76,7 @@ STRIP_LETFUN={'libcrux_psq__handshake__ciphersuite__types__Impl_2__from',
 stmts=re.split(r'(?<=\.)\n', open(sys.argv[1]).read())
 hoist=[]; body=[]
 for s in stmts:
-    # The engine now prepends Rust doc comments `(* ... *)` before items. Strip
+    # The engine prepends Rust doc comments `(* ... *)` before items. Strip
     # any leading comment block when CLASSIFYING the statement (fun/letfun/const)
     # so the statement-start regexes still match; keep `s` intact for output.
     sc=re.sub(r'^\s*(?:\(\*.*?\*\)\s*)+', '', s, flags=re.S)
@@ -131,11 +127,11 @@ PY
 # P2/P3 are responder-authentication correspondences; the DH-commutativity model
 # does not terminate through the full read_message_contents bookkeeping (rate
 # limiter / ciphersuite coercion / state machine), so they run against the
-# security-equivalent auth core (cf. mandrake's *_core files).
+# security-equivalent auth core.
 LIBS=(-lib "$PRIM" -lib "$PVD/psq_crypto.pvl" -lib "$EX/missingdecl.dedup.pvl"
       -lib "$EX/lib.clean.pvl" -lib "$EX/psq_query_lib.pvl")
 # Primary verdict per query. Skip ProVerif's secondary `RESULT (but event(...)
-# is true.)` annotation that follows a FALSE injective-correspondence query
+# is true.)` annotation that follows a false injective-correspondence query
 # (e.g. R2c replay): it is not a separate query verdict.
 verdicts () { grep '^RESULT' "$1" | grep -v '(but' | grep -oE 'is (true|false)' | awk '{print $2}' | tr '\n' ' '; }
 
@@ -173,15 +169,12 @@ QUERY_OK=0
 # real extracted registration initiator/responder (auth core), on a SOUND honest
 # run (sanity_reg_passive.pv: InitReg*+RespReg* reachable under a PASSIVE attacker
 # with K_1 agreement — the non-vacuity foundation). Reproduces psq-design/models/
-# psq_registration_{dh,sig}_msg1.pv EXACTLY, including R2c (replay) and R9 (NOT
-# forward-secret), which now resolve correctly (the sound honest run + the wire
-# leak fixes — CiphersuiteBase::name field-projection and the AuthMessageOut::Sig
-# .into() canon in psq_crypto.pvl — let ProVerif reconstruct the honest K_1, so
-# R2c/R9 come out FALSE rather than over-approximating to true):
-#   DH  : R1 reachable, R2a FALSE (DH initiator-auth NOT post-quantum sound),
+# psq_registration_{dh,sig}_msg1.pv exactly, including R2c (replay) and R9 (not
+# forward-secret):
+#   DH  : R1 reachable, R2a false (DH initiator-auth not post-quantum sound),
 #         R2b true, R2c false, R4 true, R6 true, R9 false, nonvac false
 #                                              -> false false true false true true false false
-#   sig : R1 reachable, R2a TRUE (signature-based auth IS PQ-sound),
+#   sig : R1 reachable, R2a true (signature-based auth is PQ-sound),
 #         R2c false, R4 true, R6 true, R9 false, nonvac false
 #                                              -> false true false true true false false
 # R9-false reconstructs reg_secret under endpoint compromise (no ephemeral break),
@@ -190,10 +183,10 @@ LIBS_REG=(-lib "$PRIM" -lib "$PVD/psq_crypto.pvl" -lib "$EX/missingdecl.dedup.pv
           -lib "$EX/lib.clean.pvl" -lib "$EX/psq_reg_lib.pvl")
 REG_OK=1
 if [ -f "$EX/analysis_reg_dh_msg1.pv" ]; then
-  # The session analyses drive the FULL handshake + into_session and are the
+  # The session analyses drive the full handshake + into_session and are the
   # heaviest runs (DH commutativity; the DH session ~58 min, the sig session ~40
   # min — its responder-auth correspondences R3/R3i are the long poles). Launch
-  # BOTH in the BACKGROUND now so they overlap each other AND the (faster) msg1
+  # both in the background now so they overlap each other and the (faster) msg1
   # analyses below; collected at the end.
   LOG_DHSESS=$(mktemp); LOG_SIGSESS=$(mktemp)
   if [ -f "$EX/analysis_reg_dh_session.pv" ]; then
@@ -212,15 +205,15 @@ if [ -f "$EX/analysis_reg_dh_msg1.pv" ]; then
   proverif "${LIBS_REG[@]}" "$EX/analysis_reg_dh_msg1.pv"  > "$LOG_RDH"  2>&1
   proverif "${LIBS_REG[@]}" "$EX/analysis_reg_sig_msg1.pv" > "$LOG_RSIG" 2>&1
   # Post-quantum forward secrecy + authenticity: the quantum apocalypse (all
-  # classical DH/sig keys derivable) hits in phase 1, STRICTLY AFTER the phase-0
+  # classical DH/sig keys derivable) hits in phase 1, strictly after the phase-0
   # session. A session accepted before the apocalypse keeps both secrecy (ML-KEM
-  # anchor) and authenticity (timestamp form: only a compromise PRECEDING the
+  # anchor) and authenticity (timestamp form: only a compromise preceding the
   # acceptance can forge — contrast R2a, false, where the break is during the run).
   LOG_PQ=$(mktemp)
   [ -f "$EX/analysis_reg_dh_pq.pv" ] && \
     proverif "${LIBS_REG[@]}" "$EX/analysis_reg_dh_pq.pv" > "$LOG_PQ" 2>&1
-  # Session passive sanity: the FULL two-message handshake + into_session honest run
-  # must reach InitSessDH AND RespSessDH on its own (response/session non-vacuity).
+  # Session passive sanity: the full two-message handshake + into_session honest run
+  # must reach InitSessDH and RespSessDH on its own (response/session non-vacuity).
   [ -f "$EX/sanity_session_passive.pv" ] && \
     proverif "${LIBS_REG[@]}" "$EX/sanity_session_passive.pv" > "$LOG_SSAN" 2>&1
   [ -f "$EX/sanity_session_sig_passive.pv" ] && \
