@@ -94,7 +94,7 @@ impl<T: Scalar, const N: usize, const M: usize> Declassify for [[T; N]; M] {
 }
 
 // Mutable references to scalars can be classified
-#[hax_lib::exclude]
+#[cfg_attr(hax, hax_lib::exclude)]
 impl<'a, T: Scalar> ClassifyRefMut for &'a mut T {
     type ClassifiedRefMut = &'a mut T;
 
@@ -105,7 +105,7 @@ impl<'a, T: Scalar> ClassifyRefMut for &'a mut T {
 }
 
 // Mutable references to scalars can be declassified
-#[hax_lib::exclude]
+#[cfg_attr(hax, hax_lib::exclude)]
 impl<'a, T: Scalar> DeclassifyRefMut for &'a mut T {
     type DeclassifiedRefMut = &'a mut T;
 
@@ -136,7 +136,7 @@ impl<'a, T: Scalar> DeclassifyRef for &'a [T] {
 }
 
 // Mutable references to slices can be classified
-#[hax_lib::exclude]
+#[cfg_attr(hax, hax_lib::exclude)]
 impl<'a, T: Scalar> ClassifyRefMut for &'a mut [T] {
     type ClassifiedRefMut = &'a mut [T];
 
@@ -147,7 +147,7 @@ impl<'a, T: Scalar> ClassifyRefMut for &'a mut [T] {
 }
 
 // Mutable references to slices can be declassified
-#[hax_lib::exclude]
+#[cfg_attr(hax, hax_lib::exclude)]
 impl<'a, T: Scalar> DeclassifyRefMut for &'a mut [T] {
     type DeclassifiedRefMut = &'a mut [T];
 
@@ -178,7 +178,7 @@ impl<'a, T: Scalar, const N: usize> DeclassifyRef for &'a [T; N] {
 }
 
 // Mutable references to arrays can be classified
-#[hax_lib::exclude]
+#[cfg_attr(hax, hax_lib::exclude)]
 impl<'a, T: Scalar, const N: usize> ClassifyRefMut for &'a mut [T; N] {
     type ClassifiedRefMut = &'a mut [T; N];
 
@@ -189,7 +189,7 @@ impl<'a, T: Scalar, const N: usize> ClassifyRefMut for &'a mut [T; N] {
 }
 
 // Mutable references to arrays can be declassified
-#[hax_lib::exclude]
+#[cfg_attr(hax, hax_lib::exclude)]
 impl<'a, T: Scalar, const N: usize> DeclassifyRefMut for &'a mut [T; N] {
     type DeclassifiedRefMut = &'a mut [T; N];
 
