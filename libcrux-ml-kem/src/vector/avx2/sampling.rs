@@ -39,7 +39,7 @@ pub(crate) fn rejection_sample(input: &[u8], output: &mut [i16]) -> usize {
         assume (v (cast (${u8::count_ones} ${good}.[ sz 1 ]) <: usize) <= 8);
         assume (Core_models.Ops.Index.f_index_pre output ({
                     Core_models.Ops.Range.f_start = cast (${u8::count_ones} ${good}.[ sz 0 ]) <: usize;
-                    Core_models.Ops.Range.f_end = (cast (${u8::count_ones} ${good}.[ sz 0 ]) <: usize) +! sz 8 }))"#
+                    Core_models.Ops.Range.f_end = (cast (${u8::count_ones} ${good}.[ sz 0 ]) <: usize) +! sz 8 } <: Core_models.Ops.Range.t_Range usize))"#
     );
 
     // Each bit (and its corresponding position) represents an element we
