@@ -341,7 +341,7 @@ def compress.compress.spec (re : Array parameters.FieldElement 256#usize)
 
 
 /-- [hacspec_ml_kem::compress::decompress::pre]:
-    Source: 'ml-kem/src/compress.rs', lines 23:0-25:96 -/
+    Source: 'ml-kem/src/compress.rs', lines 23:0-25:95 -/
 @[reducible]
 def compress.decompress.pre
   (re : Array parameters.FieldElement 256#usize)
@@ -1584,7 +1584,7 @@ def sampling.sum_coins.pre
   else ok false
 
 /-- [hacspec_ml_kem::sampling::sum_coins::post]:
-    Source: 'ml-kem/src/sampling.rs', lines 98:0-98:59 -/
+    Source: 'ml-kem/src/sampling.rs', lines 98:0-98:44 -/
 @[reducible]
 def sampling.sum_coins.post
   (eta : Std.Usize) (coins : Slice Bool) (r : parameters.FieldElement) :
@@ -1725,7 +1725,7 @@ def serialize.bitvector_to_bounded_ints.pre
   else ok false
 
 /-- [hacspec_ml_kem::serialize::bitvector_to_bounded_ints::post]:
-    Source: 'ml-kem/src/serialize.rs', lines 156:0-157:83 -/
+    Source: 'ml-kem/src/serialize.rs', lines 156:0-157:82 -/
 @[reducible]
 def serialize.bitvector_to_bounded_ints.post
   {N : Std.Usize} {Nd : Std.Usize} (input : Array Bool Nd) (d : Std.Usize)
@@ -1779,7 +1779,7 @@ def serialize.byte_decode_generic.pre
   else ok false
 
 /-- [hacspec_ml_kem::serialize::byte_decode_generic::post]:
-    Source: 'ml-kem/src/serialize.rs', lines 196:0-197:84 -/
+    Source: 'ml-kem/src/serialize.rs', lines 196:0-197:83 -/
 @[reducible]
 def serialize.byte_decode_generic.post
   (N : Std.Usize) {N8 : Std.Usize} {Nd : Std.Usize} (Nd8 : Std.Usize)
@@ -1827,7 +1827,7 @@ def serialize.byte_decode.pre
   else ok false
 
 /-- [hacspec_ml_kem::serialize::byte_decode::post]:
-    Source: 'ml-kem/src/serialize.rs', lines 211:0-211:127 -/
+    Source: 'ml-kem/src/serialize.rs', lines 211:0-211:112 -/
 @[reducible]
 def serialize.byte_decode.post
   {D32 : Std.Usize} (D256 : Std.Usize) (b : Array Std.U8 D32) (d : Std.Usize)

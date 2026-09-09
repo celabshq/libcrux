@@ -264,7 +264,7 @@ def serialize.__7.ensures.closure (N : Std.Usize) (N8 : Std.Usize) (Nd :
   Array Std.U16 N8 × Std.Usize
 
 /-- [hacspec_ml_kem::serialize::_#9::ensures::closure]
-    Source: 'ml-kem/src/serialize.rs', lines 211:58-211:123 -/
+    Source: 'ml-kem/src/serialize.rs', lines 211:44-211:109 -/
 def serialize.__9.ensures.closure (D32 : Std.Usize) (D256 : Std.Usize) :=
   Array parameters.FieldElement 256#usize × Std.Usize
 

@@ -29,7 +29,7 @@ namespace hacspec_sha3
 
 
 /-- [hacspec_sha3::keccak_f::get::pre]:
-    Source: 'sha3/src/keccak_f.rs', lines 15:16-15:49 -/
+    Source: 'sha3/src/keccak_f.rs', lines 15:0-15:36 -/
 @[reducible]
 def keccak_f.get.pre
   (state : Array Std.U64 25#usize) (x : Std.Usize) (y : Std.Usize) :
@@ -48,7 +48,7 @@ def keccak_f.get.spec (state : Array Std.U64 25#usize) (x : Std.Usize)
 
 
 /-- [hacspec_sha3::keccak_f::iota::pre]:
-    Source: 'sha3/src/keccak_f.rs', lines 117:16-117:45 -/
+    Source: 'sha3/src/keccak_f.rs', lines 117:0-117:32 -/
 @[reducible]
 def keccak_f.iota.pre
   (state : Array Std.U64 25#usize) (round : Std.Usize) : RustM Bool := do
@@ -63,7 +63,7 @@ def keccak_f.iota.spec (state : Array Std.U64 25#usize) (round : Std.Usize)
 
 
 /-- [hacspec_sha3::sha3::shake128::pre]:
-    Source: 'sha3/src/sha3.rs', lines 42:16-42:55 -/
+    Source: 'sha3/src/sha3.rs', lines 42:0-42:42 -/
 @[reducible]
 def sha3.shake128.pre
   (N : Std.Usize) (message : Slice Std.U8) : RustM Bool := do
@@ -78,7 +78,7 @@ def sha3.shake128.spec (N : Std.Usize) (message : Slice Std.U8) : Prop :=
 
 
 /-- [hacspec_sha3::sha3::shake256::pre]:
-    Source: 'sha3/src/sha3.rs', lines 52:16-52:55 -/
+    Source: 'sha3/src/sha3.rs', lines 52:0-52:42 -/
 @[reducible]
 def sha3.shake256.pre
   (N : Std.Usize) (message : Slice Std.U8) : RustM Bool := do
@@ -93,7 +93,7 @@ def sha3.shake256.spec (N : Std.Usize) (message : Slice Std.U8) : Prop :=
 
 
 /-- [hacspec_sha3::sponge::xor_block_into_state::pre]:
-    Source: 'sha3/src/sponge.rs', lines 16:16-16:86 -/
+    Source: 'sha3/src/sponge.rs', lines 16:0-16:73 -/
 @[reducible]
 def sponge.xor_block_into_state.pre
   (state : Array Std.U64 25#usize) (block : Slice Std.U8) (rate : Std.Usize) :
@@ -117,7 +117,7 @@ def sponge.xor_block_into_state.spec (state : Array Std.U64 25#usize)
 
 
 /-- [hacspec_sha3::sponge::squeeze_state::pre]:
-    Source: 'sha3/src/sponge.rs', lines 32:16-32:104 -/
+    Source: 'sha3/src/sponge.rs', lines 32:0-32:91 -/
 @[reducible]
 def sponge.squeeze_state.pre
   {OUTPUT_LEN : Std.Usize} (state : Array Std.U64 25#usize)
@@ -148,7 +148,7 @@ def sponge.squeeze_state.spec {OUTPUT_LEN : Std.Usize}
 
 
 /-- [hacspec_sha3::sponge::absorb_block::pre]:
-    Source: 'sha3/src/sponge.rs', lines 47:16-47:86 -/
+    Source: 'sha3/src/sponge.rs', lines 47:0-47:73 -/
 @[reducible]
 def sponge.absorb_block.pre
   (state : Array Std.U64 25#usize) (block : Slice Std.U8) (rate : Std.Usize) :
@@ -172,7 +172,7 @@ def sponge.absorb_block.spec (state : Array Std.U64 25#usize)
 
 
 /-- [hacspec_sha3::sponge::pad_last_block::pre]:
-    Source: 'sha3/src/sponge.rs', lines 57:16-58:95 -/
+    Source: 'sha3/src/sponge.rs', lines 57:0-58:96 -/
 @[reducible]
 def sponge.pad_last_block.pre
   (message : Slice Std.U8) (msg_offset : Std.Usize) (remaining : Std.Usize)
@@ -208,7 +208,7 @@ def sponge.pad_last_block.spec (message : Slice Std.U8)
 
 
 /-- [hacspec_sha3::sponge::absorb_final::pre]:
-    Source: 'sha3/src/sponge.rs', lines 77:16-78:95 -/
+    Source: 'sha3/src/sponge.rs', lines 77:0-78:96 -/
 @[reducible]
 def sponge.absorb_final.pre
   (state : Array Std.U64 25#usize) (message : Slice Std.U8)
@@ -246,7 +246,7 @@ def sponge.absorb_final.spec (state : Array Std.U64 25#usize)
 
 
 /-- [hacspec_sha3::sponge::absorb_rec::pre]:
-    Source: 'sha3/src/sponge.rs', lines 95:16-95:75 -/
+    Source: 'sha3/src/sponge.rs', lines 95:0-95:62 -/
 @[reducible]
 def sponge.absorb_rec.pre
   (state : Array Std.U64 25#usize) (rate : Std.Usize) (delim : Std.U8)
@@ -270,7 +270,7 @@ def sponge.absorb_rec.spec (state : Array Std.U64 25#usize) (rate : Std.Usize)
 
 
 /-- [hacspec_sha3::sponge::absorb::pre]:
-    Source: 'sha3/src/sponge.rs', lines 113:16-113:75 -/
+    Source: 'sha3/src/sponge.rs', lines 113:0-113:62 -/
 @[reducible]
 def sponge.absorb.pre
   (rate : Std.Usize) (delim : Std.U8) (message : Slice Std.U8) :
@@ -293,7 +293,7 @@ def sponge.absorb.spec (rate : Std.Usize) (delim : Std.U8)
 
 
 /-- [hacspec_sha3::sponge::squeeze::pre]:
-    Source: 'sha3/src/sponge.rs', lines 141:16-141:108 -/
+    Source: 'sha3/src/sponge.rs', lines 141:0-141:95 -/
 @[reducible]
 def sponge.squeeze.pre
   (OUTPUT_LEN : Std.Usize) (state : Array Std.U64 25#usize) (rate : Std.Usize)
@@ -321,7 +321,7 @@ def sponge.squeeze.spec (OUTPUT_LEN : Std.Usize)
 
 
 /-- [hacspec_sha3::sponge::keccak::pre]:
-    Source: 'sha3/src/sponge.rs', lines 162:16-162:108 -/
+    Source: 'sha3/src/sponge.rs', lines 162:0-162:95 -/
 @[reducible]
 def sponge.keccak.pre
   (OUTPUT_LEN : Std.Usize) (rate : Std.Usize) (delim : Std.U8)

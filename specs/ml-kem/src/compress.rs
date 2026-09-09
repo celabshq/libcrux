@@ -20,9 +20,9 @@ pub fn compress(re: Polynomial, bits_per_compressed_coefficient: usize) -> Polyn
 /// The NIST FIPS 203 standard can be found at
 /// <https://csrc.nist.gov/pubs/fips/203/ipd>.
 #[hax_lib::fstar::options("--z3rlimit 150")]
-#[cfg_attr(hax, hax_lib::requires((bits_per_compressed_coefficient < 12).to_prop() &
+#[hax_lib::requires((bits_per_compressed_coefficient < 12).to_prop() &
         hax_lib::forall(|i: usize|
-            hax_lib::implies(i < 256, re[i].val < (1u16 << bits_per_compressed_coefficient)))))]
+            hax_lib::implies(i < 256, re[i].val < (1u16 << bits_per_compressed_coefficient))))]
 pub fn decompress(re: Polynomial, bits_per_compressed_coefficient: usize) -> Polynomial {
     createi(|i| decompress_d(re[i], bits_per_compressed_coefficient))
 }

@@ -153,8 +153,8 @@ pub fn byte_encode<const D32: usize, const D256: usize>(p: Polynomial, d: usize)
 /// <https://csrc.nist.gov/pubs/fips/203/ipd>.
 #[hax_lib::fstar::options("--z3rlimit 300")]
 #[hax_lib::requires(N < 16384 && d <= BITS_PER_COEFFICIENT && Nd == N * d)]
-#[cfg_attr(hax, hax_lib::ensures(|result|
-    hax_lib::forall(|i: usize| hax_lib::implies(i < N, result[i] < (1u16 << d)))))]
+#[hax_lib::ensures(|result|
+    hax_lib::forall(|i: usize| hax_lib::implies(i < N, result[i] < (1u16 << d))))]
 pub fn bitvector_to_bounded_ints<const N: usize, const Nd: usize>(
     input: &BitVector<Nd>,
     d: usize,
@@ -193,8 +193,8 @@ pub fn bitvector_to_bounded_ints<const N: usize, const Nd: usize>(
 
 #[hax_lib::fstar::options("--z3rlimit 150")]
 #[hax_lib::requires(d > 0 && d <= BITS_PER_COEFFICIENT && N < 16384 / d && N < 16384 / 8 && N8 == N * 8 && Nd == N * d && Nd8 == Nd * 8)]
-#[cfg_attr(hax, hax_lib::ensures(|result|
-    hax_lib::forall(|i: usize| hax_lib::implies(i < N8, result[i] < (1u16 << d)))))]
+#[hax_lib::ensures(|result|
+    hax_lib::forall(|i: usize| hax_lib::implies(i < N8, result[i] < (1u16 << d))))]
 pub fn byte_decode_generic<const N: usize, const N8: usize, const Nd: usize, const Nd8: usize>(
     b: &[u8; Nd],
     d: usize,
@@ -208,7 +208,7 @@ pub fn byte_decode_generic<const N: usize, const N8: usize, const Nd: usize, con
 
 #[hax_lib::fstar::options("--z3rlimit 300")]
 #[hax_lib::requires(d > 0 && d <= BITS_PER_COEFFICIENT && b.len() == 32 * d && D32 == 32 * d && D256 == 256 * d)]
-#[cfg_attr(hax, hax_lib::ensures(|result| hax_lib::forall(|i: usize| hax_lib::implies(i < 256, result[i].val < (1u16 << d)))))]
+#[hax_lib::ensures(|result| hax_lib::forall(|i: usize| hax_lib::implies(i < 256, result[i].val < (1u16 << d))))]
 pub fn byte_decode<const D32: usize, const D256: usize>(b: &[u8; D32], d: usize) -> Polynomial {
     hax_lib::debug_assert!(
         d <= BITS_PER_COEFFICIENT && b.len() == 32 * d && D32 == 32 * d && D256 == 256 * d
