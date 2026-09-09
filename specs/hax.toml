@@ -1,18 +1,11 @@
-[tools]
-aeneas = "nightly-2026.09.03-6852e64"
-charon = "nightly-2026.09.02"
-
 [scenario.hacspec-sha3]
 package = "hacspec_sha3"
 backend = "lean"
-output-dir = "proofs/lean"
 
 [scenario.hacspec-ml-kem]
 package = "hacspec_ml_kem"
 backend = "lean"
-output-dir = "proofs/lean"
 
 [scenario.hacspec-ml-dsa]
 package = "hacspec_ml_dsa"
 backend = "lean"
-output-dir = "proofs/lean"

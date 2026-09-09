@@ -4,14 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-# Pinned to the exact hax-lib rev that libcrux-iot uses, NOT the workspace
-# branch pin. libcrux-iot's sha3 crate names `hacspec_sha3::sha3_256` in a
-# `#[hax_lib::ensures]`, so both crates end up in one hax/charon run. If the
-# two hax-libs differ, cargo keeps both, charon disambiguates the second as
-# `hax_lib_1`, and the Lean extraction breaks wholesale (CoreModels only
-# models `hax_lib`), e.g.
-#   Unknown identifier `hax_lib.Usize.Insts.Hax_lib_1IntToInt.to_int`
-hax-lib = { git = "https://github.com/cryspen/hax", rev = "cbce2c3bfcf50e853d3115c45cd592004d7d092f" }
+hax-lib.workspace = true
 
 [dev-dependencies]
 hex = "0.4.3"

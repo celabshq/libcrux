@@ -5,12 +5,7 @@ edition = "2021"
 
 [dependencies]
 hacspec_sha3 = { path = "../sha3" }
-# Pinned to the exact hax-lib rev libcrux-iot uses, NOT the workspace branch
-# pin. libcrux-iot's ml-dsa names `hacspec_ml_dsa::arithmetic::decompose` in a
-# `#[hax_lib::ensures]`, so both crates end up in one hax/charon run; two
-# different hax-libs make charon emit `hax_lib_1` and the Lean extraction
-# breaks wholesale. Same fix as specs/sha3.
-hax-lib = { git = "https://github.com/cryspen/hax", rev = "cbce2c3bfcf50e853d3115c45cd592004d7d092f" }
+hax-lib.workspace = true
 
 [dev-dependencies]
 hex = { version = "0.4.3", features = ["serde"] }
