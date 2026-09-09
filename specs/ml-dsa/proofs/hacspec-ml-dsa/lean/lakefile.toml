@@ -13,9 +13,10 @@ rev = "v0.3.17"
 # HacspecMlDsa's spec references `hacspec_sha3.sha3.{shake128,shake256}`, so it
 # depends on the HacspecSha3 spec, which lives in THIS repo. Deliberately a
 # repo-relative path rather than a `git`+`rev`, for the same reason as ml-kem:
-# consumers pull this package via `git` + `subDir = specs/ml-dsa/proofs/lean`,
-# and a relative path then resolves to `specs/sha3/proofs/lean` inside that same
-# checkout. Pinning a rev here would make libcrux fetch itself.
+# consumers pull this package via `git` + `subDir =
+# specs/ml-dsa/proofs/hacspec-ml-dsa/lean`, and a relative path then resolves to
+# `specs/sha3/proofs/hacspec-sha3/lean` inside that same checkout. Pinning a rev
+# here would make libcrux fetch itself.
 [[require]]
 name = "HacspecSha3"
 path = "../../../../sha3/proofs/hacspec-sha3/lean"

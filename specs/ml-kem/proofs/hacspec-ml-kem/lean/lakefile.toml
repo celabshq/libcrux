@@ -2,6 +2,18 @@ name = "HacspecMlKem"
 version = "0.1.0"
 defaultTargets = ["HacspecMlKem"]
 
+# The whole library is machine-generated (charon/aeneas via `cargo hax extract`), and
+# hax names the closures of a `requires`/`ensures` after the numbered anonymous item
+# they came from: `compress.__1.requires.closure`, `serialize.__9.ensures.closure`.
+# Mathlib -- pulled in transitively by Aeneas -- registers a linter that rejects `__`
+# in declaration names, and it is on by default. The names are not ours to change and
+# the generated header (which already silences `dupNamespace`, `unusedVariables` and
+# the style linters) does not know about this one, so switch it off here.
+[leanOptions]
+# `weak.` prefix: the option only exists once Mathlib is imported, and the
+# hand-written `Verification.ProofObligations` does not import it.
+weak.linter.style.nameCheck = false
+
 [[lean_lib]]
 name = "HacspecMlKem"
 
@@ -13,10 +25,10 @@ rev = "v0.3.17"
 # HacspecMlKem's spec references `hacspec_sha3.sha3.*`, so it depends on the
 # HacspecSha3 spec, which lives in THIS repo. Deliberately a repo-relative path
 # rather than a `git`+`rev`: consumers pull this package via `git` + `subDir =
-# specs/ml-kem/proofs/lean`, and a relative path then resolves to
-# `specs/sha3/proofs/lean` inside that same checkout. Pinning a rev here instead
-# would make libcrux fetch itself -- a second clone, and a self-reference that
-# has to be bumped on every spec commit.
+# specs/ml-kem/proofs/hacspec-ml-kem/lean`, and a relative path then resolves to
+# `specs/sha3/proofs/hacspec-sha3/lean` inside that same checkout. Pinning a rev
+# here instead would make libcrux fetch itself -- a second clone, and a
+# self-reference that has to be bumped on every spec commit.
 [[require]]
 name = "HacspecSha3"
 path = "../../../../sha3/proofs/hacspec-sha3/lean"
