@@ -19,4 +19,4 @@ rev = "v0.3.17"
 # has to be bumped on every spec commit.
 [[require]]
 name = "HacspecSha3"
-path = "../../../sha3/proofs/lean"
+path = "../../../../sha3/proofs/hacspec-sha3/lean"

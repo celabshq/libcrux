@@ -18,4 +18,4 @@ rev = "v0.3.17"
 # checkout. Pinning a rev here would make libcrux fetch itself.
 [[require]]
 name = "HacspecSha3"
-path = "../../../sha3/proofs/lean"
+path = "../../../../sha3/proofs/hacspec-sha3/lean"

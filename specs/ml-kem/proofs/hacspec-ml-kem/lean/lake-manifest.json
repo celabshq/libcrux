@@ -6,7 +6,7 @@
    "name": "HacspecSha3",
    "manifestFile": "lake-manifest.json",
    "inherited": false,
-   "dir": "../../../sha3/proofs/lean",
+   "dir": "../../../../sha3/proofs/hacspec-sha3/lean",
    "configFile": "lakefile.toml"},
   {"url": "https://github.com/cryspen/hax-lean",
    "type": "git",
