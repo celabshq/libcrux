@@ -320,7 +320,7 @@ impl Ct {
                 };
                 let ss = libcrux_ml_kem::mlkem512::decapsulate(sk, ct);
 
-                Ok(Ss::MlKem768(ss))
+                Ok(Ss::MlKem512(ss))
             }
             Ct::MlKem768(ct) => {
                 let sk = if let PrivateKey::MlKem768(k) = sk {

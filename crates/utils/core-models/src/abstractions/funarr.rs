@@ -46,6 +46,7 @@ impl<const N: u64, T> FunArray<N, T> {
     }
     /// Constructor for FunArray. `FunArray<N,T>::from_fn` constructs a funarray out of a function that takes usizes smaller than `N` and produces an element of type T.
     pub fn from_fn<F: Fn(u64) -> T>(f: F) -> Self {
+        const { assert!(N <= 512) };
         // let vec = (0..N).map(f).collect();
         let arr = core::array::from_fn(|i| {
             if (i as u64) < N {
