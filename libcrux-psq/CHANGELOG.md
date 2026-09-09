@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- [#XXXX](https://github.com/celabshq/libcrux/pull/XXXX): Compare the session-resumption `pk_binder` in constant time instead of with `==`/`!=`, closing a timing side channel on `Session::import`/`serialize`/`deserialize`
+- [#XXXX](https://github.com/celabshq/libcrux/pull/XXXX): Return `HandshakeError::CryptoError` instead of panicking via `unreachable!()` when converting an `AEADError::KeyExpired` during the handshake
+- [#XXXX](https://github.com/celabshq/libcrux/pull/XXXX): Clamp `recent_keys_upper_bound(0)` to `1` so it can no longer silently disable the responder's replay/rate-limit cache
+
 ## [0.0.10] (2026-07-15)
 
 ### Changed

@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - (libcrux-hmac-drbg) [#1558](https://github.com/celabshq/libcrux/pull/1558): fix panic in reseeding wrappers fill_bytes method
+- (libcrux-psq) [#XXXX](https://github.com/celabshq/libcrux/pull/XXXX): Compare the session-resumption `pk_binder` in constant time, closing a timing side channel; return an error instead of panicking on an unexpected AEAD key-reuse during the handshake; clamp `recent_keys_upper_bound(0)` to `1` so it can no longer silently disable the responder's rate-limit cache
+- (libcrux-kem) [#XXXX](https://github.com/celabshq/libcrux/pull/XXXX): Reject invalid/short seed lengths in `PublicKey::encapsulate_derand` without panicking
+- (libcrux-sha3) [#XXXX](https://github.com/celabshq/libcrux/pull/XXXX): `hash::<LEN>` now enforces its length preconditions with a release-mode `assert!` instead of a `debug_assert!`, preventing a silently truncated/wrong-algorithm digest
+- (libcrux-hmac) [#XXXX](https://github.com/celabshq/libcrux/pull/XXXX): `hmac()` now panics with a clear message instead of silently returning a shorter tag than requested
+- (libcrux-ecdsa) [#XXXX](https://github.com/celabshq/libcrux/pull/XXXX): scalar validation now rejects over-length input instead of silently truncating it
+- (libcrux-platform) [#XXXX](https://github.com/celabshq/libcrux/pull/XXXX): Fix a data race in x86 CPU feature detection
+- (libcrux-ml-dsa) [#XXXX](https://github.com/celabshq/libcrux/pull/XXXX): `generate_key_pair`'s output-buffer length check is now enforced in release builds
 
 ### Changed
 

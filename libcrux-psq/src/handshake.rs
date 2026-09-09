@@ -54,11 +54,28 @@ impl From<libcrux_ml_dsa::VerificationError> for HandshakeError {
 impl From<AEADError> for HandshakeError {
     fn from(value: AEADError) -> Self {
         match value {
-            AEADError::CryptoError => HandshakeError::CryptoError,
+            // `KeyExpired` should not be reachable during the handshake
+            // (each key is used at most once), but we return a well-defined
+            // error instead of panicking in case that invariant is ever
+            // violated by a future change.
+            AEADError::CryptoError | AEADError::KeyExpired => HandshakeError::CryptoError,
             AEADError::Serialize(error) => HandshakeError::Serialize(error),
             AEADError::Deserialize(error) => HandshakeError::Deserialize(error),
-            AEADError::KeyExpired => unreachable!("Attempt to re-use an expired key during handshake. This indicates a fatal bug in the handshake protocol, please submit a bug report at https://github.com/cryspen/libcrux/."), // this really should not happen and indicates a fatal bug in the handshake protocol
         }
+    }
+}
+
+#[cfg(test)]
+mod aead_error_conversion_tests {
+    use super::*;
+
+    // `AEADError::KeyExpired` used to convert into `HandshakeError` via 
+    // `unreachable!()`. THe path should produce a well-defined error
+    // instead, matching `SessionError`'s existing handling of the same case.
+    #[test]
+    fn key_expired_does_not_panic() {
+        let err: HandshakeError = AEADError::KeyExpired.into();
+        assert!(matches!(err, HandshakeError::CryptoError));
     }
 }
 

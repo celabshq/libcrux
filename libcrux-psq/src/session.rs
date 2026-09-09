@@ -144,6 +144,20 @@ fn derive_pk_binder(
     Ok(binder)
 }
 
+// Best-effort constant-time comparison. This is a local, minimal fix; libcrux
+// has several near-duplicate constant-time compare helpers (aes::ct_ops,
+// ml-kem::constant_time_ops) that should eventually be unified into one
+// shared, more rigorously reviewed primitive rather than each crate rolling
+// its own.
+#[inline(never)]
+fn ct_eq(a: &[u8; PK_BINDER_LEN], b: &[u8; PK_BINDER_LEN]) -> bool {
+    let mut diff = 0u8;
+    for i in 0..PK_BINDER_LEN {
+        diff |= a[i] ^ b[i];
+    }
+    core::hint::black_box(diff) == 0
+}
+
 /// Wraps public key material that is bound to a session.
 pub struct SessionBinding<'a> {
     /// The initiator's authenticator value, i.e. a long-term DH public value or signature verification key.
@@ -289,13 +303,15 @@ impl Session {
                     responder_pq_pk,
                 }),
             ) => {
-                if derive_pk_binder(
-                    &self.session_key,
-                    initiator_authenticator,
-                    responder_ecdh_pk,
-                    responder_pq_pk,
-                )? != pk_binder
-                {
+                if !ct_eq(
+                    &derive_pk_binder(
+                        &self.session_key,
+                        initiator_authenticator,
+                        responder_ecdh_pk,
+                        responder_pq_pk,
+                    )?,
+                    &pk_binder,
+                ) {
                     return Err(SessionError::Import);
                 }
             }
@@ -347,13 +363,15 @@ impl Session {
                     responder_pq_pk,
                 }),
             ) => {
-                if derive_pk_binder(
-                    &self.session_key,
-                    initiator_authenticator,
-                    responder_ecdh_pk,
-                    &responder_pq_pk,
-                )? != pk_binder
-                {
+                if !ct_eq(
+                    &derive_pk_binder(
+                        &self.session_key,
+                        initiator_authenticator,
+                        responder_ecdh_pk,
+                        &responder_pq_pk,
+                    )?,
+                    &pk_binder,
+                ) {
                     Err(SessionError::Storage)
                 } else {
                     self.tls_serialize(&mut &mut out[..])
@@ -419,13 +437,15 @@ impl Session {
             // Some binder was expected and a binder was provided =>
             // Deserialization is valid, if binder is valid.
             (Some(pk_binder), Some(provided_binding)) => {
-                if derive_pk_binder(
-                    &session.session_key,
-                    provided_binding.initiator_authenticator,
-                    provided_binding.responder_ecdh_pk,
-                    &provided_binding.responder_pq_pk,
-                )? == pk_binder
-                {
+                if ct_eq(
+                    &derive_pk_binder(
+                        &session.session_key,
+                        provided_binding.initiator_authenticator,
+                        provided_binding.responder_ecdh_pk,
+                        &provided_binding.responder_pq_pk,
+                    )?,
+                    &pk_binder,
+                ) {
                     Ok(session)
                 } else {
                     Err(SessionError::Storage)

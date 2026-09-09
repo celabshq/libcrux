@@ -558,10 +558,12 @@ impl PublicKey {
                 x25519: xpk,
             }) => {
                 // seed = mlkem_seed || x_sk
+                let seed: &[u8; 64] = seed.try_into().map_err(|_| Error::KeyGen)?;
+                let (mlkem_seed, x25519_seed) = seed.split_at(32);
                 let (mlkem_ct, mlkem_ss) =
-                    mlkem768::encapsulate(kpk, seed[0..32].try_into().map_err(|_| Error::KeyGen)?);
+                    mlkem768::encapsulate(kpk, mlkem_seed.try_into().map_err(|_| Error::KeyGen)?);
 
-                let x_sk = X25519PrivateKey::try_from(&seed[32..])?; // clamps
+                let x_sk = X25519PrivateKey::try_from(x25519_seed)?; // clamps
                 let x_pk = x25519_secret_to_public(&x_sk)?;
 
                 let x_ss = x25519_derive(xpk, &x_sk)?;
@@ -573,10 +575,12 @@ impl PublicKey {
             }
 
             PublicKey::XWingKemDraft06(XWingKemDraft06PublicKey { pk_m, pk_x }) => {
+                let seed: &[u8; 64] = seed.try_into().map_err(|_| Error::KeyGen)?;
+                let (mlkem_seed, x25519_seed) = seed.split_at(32);
                 let (ct_m, ss_m) =
-                    mlkem768::encapsulate(pk_m, seed[0..32].try_into().map_err(|_| Error::KeyGen)?);
+                    mlkem768::encapsulate(pk_m, mlkem_seed.try_into().map_err(|_| Error::KeyGen)?);
 
-                let ek_x = X25519PrivateKey::try_from(&seed[32..])?; // clamps
+                let ek_x = X25519PrivateKey::try_from(x25519_seed)?; // clamps
                 let ct_x = x25519_secret_to_public(&ek_x)?;
 
                 let ss_x = x25519_derive(pk_x, &ek_x)?;

@@ -55,7 +55,10 @@ impl<'a, Rng: CryptoRng> PrincipalBuilder<'a, Rng> {
     }
 
     pub fn recent_keys_upper_bound(mut self, recent_keys_upper_bound: usize) -> Self {
-        self.responder_recent_keys_upper_bound = recent_keys_upper_bound;
+        // A bound of 0 would make the rate-limit cache's evict-when-full
+        // check (`len() == upper_bound`) never trigger again after the first
+        // insertion, silently disabling the cache instead of limiting it.
+        self.responder_recent_keys_upper_bound = recent_keys_upper_bound.max(1);
         self
     } // builders
 
@@ -112,5 +115,26 @@ impl<'a, Rng: CryptoRng> PrincipalBuilder<'a, Rng> {
             self.responder_recent_keys_upper_bound,
             self.rng,
         ))
+    }
+}
+
+#[cfg(test)]
+mod recent_keys_upper_bound_tests {
+    use super::*;
+
+    // `recent_keys_upper_bound(0)` used to be stored verbatim, which silently
+    // disabled the responder's replay/rate-limit cache (the evict-when-full
+    // check `len() == upper_bound` never fires again once `len()` passes 0).
+    // It must be clamped to a minimum of 1.
+    #[test]
+    fn zero_is_clamped_to_one() {
+        let builder = PrincipalBuilder::new(rand::rng()).recent_keys_upper_bound(0);
+        assert_eq!(builder.responder_recent_keys_upper_bound, 1);
+    }
+
+    #[test]
+    fn nonzero_is_unchanged() {
+        let builder = PrincipalBuilder::new(rand::rng()).recent_keys_upper_bound(42);
+        assert_eq!(builder.responder_recent_keys_upper_bound, 42);
     }
 }

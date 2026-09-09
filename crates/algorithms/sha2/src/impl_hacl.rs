@@ -99,7 +99,8 @@ macro_rules! impl_hash {
             #[inline(always)]
             fn hash(digest: &mut [u8], payload: &[u8]) {
                 debug_assert!(digest.len() == $digest_size);
-                let payload_len = payload.len().try_into().unwrap();
+                let payload_len =
+                    u32::try_from(payload.len()).expect("payload longer than u32::MAX");
                 $hash(digest, payload, payload_len)
             }
 
@@ -108,7 +109,8 @@ macro_rules! impl_hash {
             /// process it.
             #[inline(always)]
             fn update(&mut self, payload: &[u8]) {
-                let payload_len = payload.len().try_into().unwrap();
+                let payload_len =
+                    u32::try_from(payload.len()).expect("payload longer than u32::MAX");
                 $update(&mut self.state, payload, payload_len);
             }
 

@@ -87,14 +87,27 @@ pub const fn digest_size(mode: Algorithm) -> usize {
 }
 
 /// SHA3
+///
+/// Panics if `payload` is longer than `u32::MAX`.
+///
+/// Panics if `LEN` does not match `digest_size(algorithm)`, i.e. if the
+/// output length requested via the const generic doesn't match the digest
+/// size of the chosen `algorithm`.
 #[hax_lib::fstar::options("--split_queries always")]
 #[hax_lib::requires(
     payload.len().to_int() <= u32::MAX.to_int() &&
     digest_size(algorithm) == LEN
 )]
 pub fn hash<const LEN: usize>(algorithm: Algorithm, payload: &[u8]) -> [u8; LEN] {
-    debug_assert!(payload.len() <= u32::MAX as usize);
-    debug_assert_eq!(digest_size(algorithm), LEN);
+    assert!(
+        payload.len() <= u32::MAX as usize,
+        "hash: payload longer than u32::MAX"
+    );
+    assert_eq!(
+        digest_size(algorithm),
+        LEN,
+        "hash::<LEN>: LEN does not match digest_size(algorithm)"
+    );
 
     let mut out = [0u8; LEN];
     match algorithm {

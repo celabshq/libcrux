@@ -6,7 +6,7 @@
 use core::arch::x86::{__cpuid, __cpuid_count, CpuidResult};
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::{__cpuid, __cpuid_count, CpuidResult};
-use core::sync::atomic::{AtomicBool, Ordering};
+use core::sync::atomic::{AtomicU8, Ordering};
 
 #[allow(non_camel_case_types)]
 #[derive(Clone, Copy)]
@@ -110,12 +110,23 @@ static mut CPU_ID: [CpuidResult; 2] = [
         edx: 0,
     },
 ];
-static INITIALIZED: AtomicBool = AtomicBool::new(false);
+/// `INITIALIZED` has not been set yet; `CPU_ID` contains no valid data.
+const UNINIT: u8 = 0;
+/// One thread won the compare_exchange race and is currently writing `CPU_ID`.
+const IN_PROGRESS: u8 = 1;
+/// `CPU_ID` has been fully written and is safe to read.
+const DONE: u8 = 2;
+
+/// Guards access to `CPU_ID`.
+///
+/// Transitions: `UNINIT` → `IN_PROGRESS` (via compare_exchange, exactly one thread) →
+/// `DONE` (store-release, makes `CPU_ID` visible to all subsequent load-acquire readers).
+static INITIALIZED: AtomicU8 = AtomicU8::new(UNINIT);
 
 /// Initialize CPU detection.
 #[inline(always)]
 pub(super) fn init() {
-    if INITIALIZED.load(Ordering::Acquire) {
+    if INITIALIZED.load(Ordering::Acquire) == DONE {
         return;
     }
 
@@ -130,13 +141,25 @@ pub(super) fn init() {
         __cpuid_count(leaf, sub_leaf)
     }
 
-    // XXX[no_std]: no good way to do this in no_std
-    // std::panic::catch_unwind(|| {
-    // If there's no CPU ID because we're in SGX or whatever other reason,
-    // we'll consider the hw detection as initialized but always return false.
-    unsafe {
-        CPU_ID = [cpuid(1), cpuid_count(7, 0)];
+    // Use compare_exchange to ensure only one thread writes CPU_ID.
+    // Other threads spin-wait until initialization is complete.
+    if INITIALIZED
+        .compare_exchange(UNINIT, IN_PROGRESS, Ordering::AcqRel, Ordering::Acquire)
+        .is_ok()
+    {
+        // XXX[no_std]: no good way to do this in no_std
+        // std::panic::catch_unwind(|| {
+        // If there's no CPU ID because we're in SGX or whatever other reason,
+        // we'll consider the hw detection as initialized but always return false.
+        unsafe {
+            CPU_ID = [cpuid(1), cpuid_count(7, 0)];
+        }
+        // });
+        INITIALIZED.store(DONE, Ordering::Release);
+    } else {
+        // Spin-wait for the initializing thread to finish.
+        while INITIALIZED.load(Ordering::Acquire) != DONE {
+            core::hint::spin_loop();
+        }
     }
-    // });
-    INITIALIZED.store(true, Ordering::Release);
 }

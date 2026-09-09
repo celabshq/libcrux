@@ -73,12 +73,20 @@ pub const fn tag_size(alg: Algorithm) -> usize {
 /// output tag length of `tag_length`.
 /// Returns a vector of length `tag_length`.
 /// Panics if either `key` or `data` are longer than `u32::MAX`.
+/// Panics if `tag_length` is greater than the native tag length of `alg`.
 pub fn hmac(alg: Algorithm, key: &[u8], data: &[u8], tag_length: Option<usize>) -> Vec<u8> {
     let native_tag_length = tag_size(alg);
     let tag_length = match tag_length {
         Some(v) => v,
         None => native_tag_length,
     };
+    assert!(
+        tag_length <= native_tag_length,
+        "hmac: requested tag_length {} exceeds native tag length {} for {:?}",
+        tag_length,
+        native_tag_length,
+        alg
+    );
     let mut dst: Vec<_> = match alg {
         Algorithm::Sha256 => wrap_bufalloc(|buf| hmac_sha2_256(buf, key, data)),
         Algorithm::Sha384 => wrap_bufalloc(|buf| hmac_sha2_384(buf, key, data)),

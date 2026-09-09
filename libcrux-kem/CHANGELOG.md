@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - [#1560](https://github.com/celabshq/libcrux/pull/1560): Reject malformed hybrid key encodings without panicking
+- [#XXXX](https://github.com/celabshq/libcrux/pull/XXXX): Reject invalid/short seed lengths in `PublicKey::encapsulate_derand` without panicking
 
 ## [0.0.9] (2026-07-15)
 

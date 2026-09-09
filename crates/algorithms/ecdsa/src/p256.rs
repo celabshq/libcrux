@@ -176,6 +176,9 @@ fn validate_scalar_slice(scalar: &[u8]) -> Result<[u8; 32], Error> {
     if scalar.is_empty() {
         return Err(Error::InvalidScalar);
     }
+    if scalar.len() > 32 {
+        return Err(Error::InvalidScalar);
+    }
 
     let mut private = [0u8; 32];
     // Force the length of `sk` to 32 bytes.

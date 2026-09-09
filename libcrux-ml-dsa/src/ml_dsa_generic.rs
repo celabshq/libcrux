@@ -69,9 +69,9 @@ pub(crate) mod generic {
 
         // Check key sizes
         #[cfg(not(eurydice))]
-        debug_assert!(signing_key.len() == SIGNING_KEY_SIZE);
+        assert!(signing_key.len() == SIGNING_KEY_SIZE);
         #[cfg(not(eurydice))]
-        debug_assert!(verification_key.len() == VERIFICATION_KEY_SIZE);
+        assert!(verification_key.len() == VERIFICATION_KEY_SIZE);
 
         // 128 = SEED_FOR_A_SIZE + SEED_FOR_ERROR_VECTORS_SIZE + SEED_FOR_SIGNING_SIZE
         let mut seed_expanded = [0; 128];
