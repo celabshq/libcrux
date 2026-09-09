@@ -1,21 +1,18 @@
-# Workspace-wide hax configuration for the hacspec specification crates.
-#
-# Pins the external tools `cargo hax` drives for the Lean extraction, so it is
-# reproducible regardless of hax's evolving built-in defaults. These are the
-# versions the extracted specs (and the libcrux-iot proofs that consume them) were
-# checked against -- the same pins as libcrux-iot's workspace `hax.toml`. hax wants
-# a single workspace-wide pin: do not repeat `[tools]` in the member crates.
-#
-# Each member declares its extraction as a `[scenario.<package>]` in its own
-# `hax.toml`; the scenario is named after the cargo package so hax derives the
-# existing Lean package name (`hacspec-ml-kem` -> `HacspecMlKem`). From this directory
-#
-#     cargo hax extract                 # all three crates
-#     cargo hax extract hacspec-sha3    # one of them (names are the cargo packages, hyphenated)
-#
-# runs them; there is no post-processing any more (the former `hax_aeneas.py`
-# drivers are gone). Tool binaries are fetched on first use, or eagerly with
-# `cargo hax tools install`.
 [tools]
 aeneas = "nightly-2026.09.03-6852e64"
 charon = "nightly-2026.09.02"
+
+[scenario.hacspec-sha3]
+package = "hacspec_sha3"
+backend = "lean"
+output-dir = "proofs/lean"
+
+[scenario.hacspec-ml-kem]
+package = "hacspec_ml_kem"
+backend = "lean"
+output-dir = "proofs/lean"
+
+[scenario.hacspec-ml-dsa]
+package = "hacspec_ml_dsa"
+backend = "lean"
+output-dir = "proofs/lean"
