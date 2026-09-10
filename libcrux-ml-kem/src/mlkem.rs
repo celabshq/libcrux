@@ -158,7 +158,7 @@ macro_rules! impl_incr_key_size {
         }
 
         #[cfg(all(not(eurydice), feature = "rand"))]
-        use ::rand::{CryptoRng, RngCore};
+        use ::rand::TryCryptoRng;
 
         impl KeyPairBytes {
             /// Generate a new key pair.
@@ -174,14 +174,15 @@ macro_rules! impl_incr_key_size {
             /// Generate a new key pair.
             /// This uses unpacked keys and does not compress the keys.
             #[cfg(all(not(eurydice), feature = "rand"))]
-            pub fn generate(rng: &mut (impl RngCore + CryptoRng)) -> Self {
+            pub fn generate(rng: &mut impl TryCryptoRng) -> Result<Self, Error> {
                 let mut randomness = [0u8; KEY_GENERATION_SEED_SIZE];
-                rng.fill_bytes(&mut randomness);
+                rng.try_fill_bytes(&mut randomness)
+                    .map_err(|_| Error::InsufficientRandomness)?;
                 let mut out = Self {
                     value: [0u8; key_pair_len()]
                 };
                 generate_key_pair(randomness, &mut out.value).unwrap();
-                out
+                Ok(out)
             }
 
             /// Get the raw bytes.
@@ -248,14 +249,15 @@ macro_rules! impl_incr_key_size {
             /// Generate a new key pair.
             /// This uses unpacked keys and does not compress the keys.
             #[cfg(all(not(eurydice), feature = "rand"))]
-            pub fn generate(rng: &mut (impl RngCore + CryptoRng)) -> Self {
+            pub fn generate(rng: &mut impl TryCryptoRng) -> Result<Self, Error> {
                 let mut randomness = [0u8; KEY_GENERATION_SEED_SIZE];
-                rng.fill_bytes(&mut randomness);
+                rng.try_fill_bytes(&mut randomness)
+                    .map_err(|_| Error::InsufficientRandomness)?;
                 let mut out = Self {
                     value: [0u8; key_pair_compressed_len()]
                 };
                 generate_key_pair_compressed(randomness, &mut out.value);
-                out
+                Ok(out)
             }
 
             /// Get the raw bytes.
@@ -369,7 +371,6 @@ macro_rules! impl_incr_key_size {
         #[cfg(feature = "rand")]
         pub mod rand {
             use super::*;
-            use ::rand::TryRngCore;
 
             /// Encapsulate the first part of the ciphertext.
             ///
@@ -377,7 +378,7 @@ macro_rules! impl_incr_key_size {
             /// the appropriate sizes.
             pub fn encapsulate1(
                 pk1: &[u8],
-                rng: &mut impl CryptoRng,
+                rng: &mut impl ::rand::TryCryptoRng,
                 state: &mut [u8],
                 shared_secret: &mut [u8],
             ) -> Result<Ciphertext1, Error> {

@@ -16,12 +16,13 @@
 //! let mut rng = rand::rng();
 //!
 //! // External setup: Responder keys
-//! let responder_mlkem_keys = libcrux_ml_kem::mlkem768::rand::generate_key_pair(&mut rng);
+//! let responder_mlkem_keys =
+//!     libcrux_ml_kem::mlkem768::rand::generate_key_pair(&mut rng).unwrap();
 //!
-//! let responder_ecdh_keys = DHKeyPair::new(&mut rng);
+//! let responder_ecdh_keys = DHKeyPair::new(&mut rng).unwrap();
 //!
 //! // External setup: Initiator keys
-//! let initiator_ecdh_keys = DHKeyPair::new(&mut rng);
+//! let initiator_ecdh_keys = DHKeyPair::new(&mut rng).unwrap();
 //!
 //! let ctx = b"Test Context";
 //! let aad_initiator_query = b"Test Data Initiator Query";

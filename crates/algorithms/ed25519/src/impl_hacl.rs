@@ -116,7 +116,7 @@ pub fn secret_to_public(pk: &mut [u8; 32], sk: &[u8; 32]) {
 
 #[cfg(feature = "rand")]
 pub fn generate_key_pair(
-    rng: &mut impl rand_core::CryptoRng,
+    rng: &mut impl rand_core::TryCryptoRng,
 ) -> Result<(SigningKey, VerificationKey), Error> {
     const LIMIT: usize = 100;
     let mut sk = [0u8; 32];

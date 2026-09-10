@@ -7,9 +7,64 @@ mod rand {
         *,
     };
     use rand::rngs::SysRng;
-    use rand_core::UnwrapErr;
+    use rand_core::{TryRng, UnwrapErr};
 
     use crate::util::*;
+
+    /// An RNG that always fails, to exercise the fallible-`TryCryptoRng`
+    /// error path.
+    struct AlwaysFailingRng;
+
+    #[derive(Debug)]
+    struct AlwaysFailingError;
+
+    impl core::fmt::Display for AlwaysFailingError {
+        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+            write!(f, "always fails")
+        }
+    }
+
+    impl core::error::Error for AlwaysFailingError {}
+
+    impl TryRng for AlwaysFailingRng {
+        type Error = AlwaysFailingError;
+
+        fn try_next_u32(&mut self) -> Result<u32, Self::Error> {
+            Err(AlwaysFailingError)
+        }
+
+        fn try_next_u64(&mut self) -> Result<u64, Self::Error> {
+            Err(AlwaysFailingError)
+        }
+
+        fn try_fill_bytes(&mut self, _dst: &mut [u8]) -> Result<(), Self::Error> {
+            Err(AlwaysFailingError)
+        }
+    }
+
+    impl rand::TryCryptoRng for AlwaysFailingRng {}
+
+    #[test]
+    fn generate_key_pair_and_sign_verify() {
+        let mut rng = UnwrapErr(SysRng);
+
+        let (sk, pk) = p256::rand::generate_key_pair(&mut rng).unwrap();
+        assert_eq!(&sk.public_key().unwrap().0, &pk.0);
+
+        let msg = b"a message to sign";
+        let sig = p256::rand::sign(DigestAlgorithm::Sha256, msg, &sk, &mut rng).unwrap();
+        p256::verify(DigestAlgorithm::Sha256, msg, &sig, &pk).unwrap();
+    }
+
+    #[test]
+    fn fallible_rng_error_propagates() {
+        let mut rng = AlwaysFailingRng;
+        let error = match p256::rand::generate_key_pair(&mut rng) {
+            Ok(_) => panic!("the RNG always fails, so key generation must fail too"),
+            Err(error) => error,
+        };
+        assert!(matches!(error, Error::RandError));
+    }
 
     #[test]
     fn test_self() {

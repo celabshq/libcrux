@@ -84,13 +84,14 @@ pub struct KeyPair {
 
 impl KeyPair {
     /// Generate a new key pair.
-    pub fn generate_key_pair(rng: &mut impl rand::CryptoRng) -> Self {
+    pub fn generate_key_pair(rng: &mut impl rand::TryCryptoRng) -> Result<Self, KEMError> {
         let mut rng = McElieceRng::new(rng);
         let (pk, sk) = keypair_boxed(&mut rng);
-        Self {
+        rng.ok()?;
+        Ok(Self {
             pk: PublicKey(pk),
             sk: SecretKey(sk),
-        }
+        })
     }
 }
 
@@ -140,34 +141,61 @@ impl<'a> Serialize for SharedSecret<'a> {
 pub struct ClassicMcEliece;
 
 // This is only here because `classic-mceliece-rust` still depends on
-// `rand` version `0.8.0`.
-pub(crate) struct McElieceRng<'a, T: rand::CryptoRng> {
+// `rand` version `0.8.0`, whose `RngCore` interface is infallible. We bridge
+// our fallible `TryCryptoRng` through it by recording whether sampling
+// failed and letting the caller check `ok()` once
+// `classic-mceliece-rust` (which only calls the infallible `fill_bytes`)
+// returns, discarding whatever it produced from short-filled bytes.
+pub(crate) struct McElieceRng<'a, T: rand::TryCryptoRng> {
     inner_rng: &'a mut T,
+    failed: bool,
 }
 
-impl<'a, T: rand::CryptoRng> McElieceRng<'a, T> {
+impl<'a, T: rand::TryCryptoRng> McElieceRng<'a, T> {
     pub(crate) fn new(inner_rng: &'a mut T) -> Self {
-        Self { inner_rng }
+        Self {
+            inner_rng,
+            failed: false,
+        }
+    }
+
+    pub(crate) fn ok(&self) -> Result<(), KEMError> {
+        if self.failed {
+            Err(KEMError::InsufficientRandomness)
+        } else {
+            Ok(())
+        }
     }
 }
 
-impl<T: rand::CryptoRng> rand_old::RngCore for McElieceRng<'_, T> {
+impl<T: rand::TryCryptoRng> rand_old::RngCore for McElieceRng<'_, T> {
     fn next_u32(&mut self) -> u32 {
-        self.inner_rng.next_u32()
+        let mut buf = [0u8; 4];
+        if self.try_fill_bytes(&mut buf).is_err() {
+            self.failed = true;
+        }
+        u32::from_le_bytes(buf)
     }
     fn next_u64(&mut self) -> u64 {
-        self.inner_rng.next_u64()
+        let mut buf = [0u8; 8];
+        if self.try_fill_bytes(&mut buf).is_err() {
+            self.failed = true;
+        }
+        u64::from_le_bytes(buf)
     }
     fn fill_bytes(&mut self, dest: &mut [u8]) {
-        self.inner_rng.fill_bytes(dest)
+        if self.inner_rng.try_fill_bytes(dest).is_err() {
+            self.failed = true;
+        }
     }
     fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), rand_old::Error> {
-        self.inner_rng.fill_bytes(dest);
-        Ok(())
+        self.inner_rng
+            .try_fill_bytes(dest)
+            .map_err(|_| rand_old::Error::new(std::io::Error::other("insufficient randomness")))
     }
 }
 
-impl<T: rand::CryptoRng> rand_old::CryptoRng for McElieceRng<'_, T> {}
+impl<T: rand::TryCryptoRng> rand_old::CryptoRng for McElieceRng<'_, T> {}
 
 impl KEM for ClassicMcEliece {
     /// The KEM's ciphertext.
@@ -181,20 +209,22 @@ impl KEM for ClassicMcEliece {
 
     /// Generate a pair of encapsulation and decapsulation keys.
     fn generate_key_pair(
-        rng: &mut impl rand::CryptoRng,
+        rng: &mut impl rand::TryCryptoRng,
     ) -> Result<KEMKeyPair<Sk<'static>, PublicKey>, KEMError> {
         let mut rng = McElieceRng::new(rng);
         let (pk, sk) = keypair_boxed(&mut rng);
+        rng.ok()?;
         Ok((sk, PublicKey(pk)))
     }
 
     /// Encapsulate a shared secret towards a given encapsulation key.
     fn encapsulate(
         ek: &Self::EncapsulationKey,
-        rng: &mut impl rand::CryptoRng,
+        rng: &mut impl rand::TryCryptoRng,
     ) -> Result<(Self::SharedSecret, Self::Ciphertext), KEMError> {
         let mut rng = McElieceRng::new(rng);
         let (enc, ss) = encapsulate_boxed(&ek.0, &mut rng);
+        rng.ok()?;
         Ok((SharedSecret(ss), Ciphertext(enc)))
     }
 

@@ -194,13 +194,14 @@ impl CommonSetup {
 
     fn new() -> Self {
         let mut rng = rand::rng();
-        let responder_mlkem_keys = libcrux_ml_kem::mlkem768::rand::generate_key_pair(&mut rng);
+        let responder_mlkem_keys =
+            libcrux_ml_kem::mlkem768::rand::generate_key_pair(&mut rng).unwrap();
         #[cfg(feature = "classic-mceliece")]
         let responder_cmc_keys =
-            libcrux_psq::classic_mceliece::KeyPair::generate_key_pair(&mut rng);
+            libcrux_psq::classic_mceliece::KeyPair::generate_key_pair(&mut rng).unwrap();
 
-        let responder_x25519_keys = DHKeyPair::new(&mut rng);
-        let initiator_x25519_keys = DHKeyPair::new(&mut rng);
+        let responder_x25519_keys = DHKeyPair::new(&mut rng).unwrap();
+        let initiator_x25519_keys = DHKeyPair::new(&mut rng).unwrap();
 
         let mut rand = [0u8; libcrux_ml_dsa::KEY_GENERATION_RANDOMNESS_SIZE];
         rng.fill(&mut rand);

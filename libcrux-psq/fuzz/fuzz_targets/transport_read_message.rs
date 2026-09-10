@@ -34,8 +34,8 @@ struct TransportSetup {
 
 static TRANSPORT_SETUP: LazyLock<TransportSetup> = LazyLock::new(|| {
     let mut rng = rand::rng();
-    let responder_x25519_keys = DHKeyPair::new(&mut rng);
-    let initiator_x25519_keys = DHKeyPair::new(&mut rng);
+    let responder_x25519_keys = DHKeyPair::new(&mut rng).unwrap();
+    let initiator_x25519_keys = DHKeyPair::new(&mut rng).unwrap();
 
     let cname = CiphersuiteName::X25519_NONE_X25519_CHACHA20POLY1305_HKDFSHA256;
 

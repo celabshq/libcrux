@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- [#1584](https://github.com/celabshq/libcrux/pull/1584): `PrivateKey::public_key` to derive the public key from a P-256 private key
+- [#1584](https://github.com/celabshq/libcrux/pull/1584): `p256::rand::generate_key_pair` to generate a full P-256 key pair
+
+### Changed
+
+- [#1584](https://github.com/celabshq/libcrux/pull/1584): Widened the RNG bound on `rand`-feature functions from `CryptoRng` to
+  `TryCryptoRng` to support fallible RNGs
+
 ## [0.0.8] (2026-07-15)
 
 ### Changed

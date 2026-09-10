@@ -8,7 +8,7 @@ pub mod slice;
 #[cfg(feature = "generic-tests")]
 pub mod tests;
 
-use rand::CryptoRng;
+use rand::TryCryptoRng;
 
 /// A KEM keypair.
 pub type KeyPair<DK, EK> = (DK, EK);
@@ -22,6 +22,8 @@ pub enum KEMError {
     Encapsulation,
     /// An error that occurred during decapsulation.
     Decapsulation,
+    /// The random number generator did not provide enough randomness.
+    InsufficientRandomness,
 }
 
 /// This trait captures the required interface of a key encapsulation
@@ -38,13 +40,13 @@ pub trait KEM {
 
     /// Generate a pair of encapsulation and decapsulation keys.
     fn generate_key_pair(
-        rng: &mut impl CryptoRng,
+        rng: &mut impl TryCryptoRng,
     ) -> Result<KeyPair<Self::DecapsulationKey, Self::EncapsulationKey>, KEMError>;
 
     /// Encapsulate a shared secret towards a given encapsulation key.
     fn encapsulate(
         ek: &Self::EncapsulationKey,
-        rng: &mut impl CryptoRng,
+        rng: &mut impl TryCryptoRng,
     ) -> Result<(Self::SharedSecret, Self::Ciphertext), KEMError>;
 
     /// Decapsulate a shared secret.

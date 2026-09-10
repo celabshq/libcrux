@@ -1,6 +1,6 @@
 use alloc::format;
 
-use rand::{CryptoRng, Rng};
+use rand::TryCryptoRng;
 
 use super::Error;
 // P256 we only have in HACL
@@ -153,7 +153,7 @@ pub(crate) fn prepare_public_key(public_key: &[u8]) -> Result<PublicKey, Error> 
 }
 
 /// Generate a new p256 secret (scalar)
-pub fn generate_secret(rng: &mut (impl CryptoRng + Rng)) -> Result<PrivateKey, Error> {
+pub fn generate_secret(rng: &mut impl TryCryptoRng) -> Result<PrivateKey, Error> {
     const LIMIT: usize = 100;
     for _ in 0..LIMIT {
         let mut out = [0u8; 32];
@@ -169,7 +169,7 @@ pub fn generate_secret(rng: &mut (impl CryptoRng + Rng)) -> Result<PrivateKey, E
 }
 
 /// Generate a new P256 key pair
-pub fn key_gen(rng: &mut (impl CryptoRng + Rng)) -> Result<(PrivateKey, PublicKey), Error> {
+pub fn key_gen(rng: &mut impl TryCryptoRng) -> Result<(PrivateKey, PublicKey), Error> {
     let sk = generate_secret(rng)?;
     let pk = secret_to_public(&sk)?;
     Ok((sk, pk))

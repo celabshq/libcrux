@@ -1,6 +1,6 @@
 use std::{io::Cursor, mem::take};
 
-use rand::CryptoRng;
+use rand::TryCryptoRng;
 use tls_codec::{Deserialize, Serialize, Size, VLByteSlice};
 
 use super::{InitiatorInnerPayloadOut, InitiatorOuterPayloadOut};
@@ -20,7 +20,7 @@ use crate::{
     traits::{Channel, IntoSession},
 };
 
-pub struct RegistrationInitiator<'a, Rng: CryptoRng> {
+pub struct RegistrationInitiator<'a, Rng: TryCryptoRng> {
     ciphersuite: InitiatorCiphersuite<'a>,
     inner_aad: &'a [u8],
     outer_aad: &'a [u8],
@@ -49,7 +49,7 @@ pub(crate) enum RegistrationInitiatorState {
     ToTransport(Box<ToTransportState>),
 }
 
-impl<'a, Rng: CryptoRng> RegistrationInitiator<'a, Rng> {
+impl<'a, Rng: TryCryptoRng> RegistrationInitiator<'a, Rng> {
     /// Create a new [`RegistrationInitiator`].
     pub(crate) fn new(
         ciphersuite: InitiatorCiphersuite<'a>,
@@ -58,7 +58,7 @@ impl<'a, Rng: CryptoRng> RegistrationInitiator<'a, Rng> {
         outer_aad: &'a [u8],
         mut rng: Rng,
     ) -> Result<Self, Error> {
-        let initiator_ephemeral_keys = DHKeyPair::new(&mut rng);
+        let initiator_ephemeral_keys = DHKeyPair::new(&mut rng)?;
 
         let (tx0, k0) = derive_k0(
             ciphersuite.kex,
@@ -234,7 +234,7 @@ impl<'a, Rng: CryptoRng> RegistrationInitiator<'a, Rng> {
     }
 }
 
-impl<'a, Rng: CryptoRng> Channel<Error, HandshakeMessage> for RegistrationInitiator<'a, Rng> {
+impl<'a, Rng: TryCryptoRng> Channel<Error, HandshakeMessage> for RegistrationInitiator<'a, Rng> {
     fn write_message(&mut self, payload: &[u8], out: &mut [u8]) -> Result<usize, Error> {
         let mut old_state = self.write_state()?;
 
@@ -322,7 +322,7 @@ impl<'a, Rng: CryptoRng> Channel<Error, HandshakeMessage> for RegistrationInitia
     }
 }
 
-impl<'a, Rng: CryptoRng> IntoSession for RegistrationInitiator<'a, Rng> {
+impl<'a, Rng: TryCryptoRng> IntoSession for RegistrationInitiator<'a, Rng> {
     fn into_session(self) -> Result<Session, SessionError> {
         let RegistrationInitiatorState::ToTransport(state) = self.state else {
             return Err(SessionError::IntoSession);

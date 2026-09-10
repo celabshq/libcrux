@@ -47,7 +47,7 @@ use libcrux_ecdh::{
 };
 use libcrux_ml_kem::{mlkem1024, mlkem512, mlkem768};
 use libcrux_sha3 as sha3;
-use rand::CryptoRng;
+use rand::TryCryptoRng;
 #[cfg(feature = "codec")]
 use tls_codec::{TlsDeserialize, TlsSerialize, TlsSize};
 
@@ -450,7 +450,7 @@ impl PrivateKey {
 
 impl PublicKey {
     /// Encapsulate a shared secret to the provided `pk` and return the `(Key, Enc)` tuple.
-    pub fn encapsulate(&self, rng: &mut impl CryptoRng) -> Result<(Ss, Ct), Error> {
+    pub fn encapsulate(&self, rng: &mut impl TryCryptoRng) -> Result<(Ss, Ct), Error> {
         match self {
             PublicKey::X25519(pk) => {
                 let (new_sk, new_pk) = libcrux_ecdh::x25519_key_gen(rng)?;
@@ -753,12 +753,12 @@ pub fn secret_to_public(alg: Algorithm, sk: impl AsRef<[u8]>) -> Result<Vec<u8>,
 }
 
 fn gen_mlkem768(
-    rng: &mut impl CryptoRng,
+    rng: &mut impl TryCryptoRng,
 ) -> Result<(MlKem768PrivateKey, MlKem768PublicKey), Error> {
     Ok(mlkem768::generate_key_pair(random_array(rng)?).into_parts())
 }
 
-fn random_array<const L: usize>(rng: &mut impl CryptoRng) -> Result<[u8; L], Error> {
+fn random_array<const L: usize>(rng: &mut impl TryCryptoRng) -> Result<[u8; L], Error> {
     let mut seed = [0; L];
     rng.try_fill_bytes(&mut seed).map_err(|_| Error::KeyGen)?;
     Ok(seed)
@@ -769,7 +769,10 @@ fn random_array<const L: usize>(rng: &mut impl CryptoRng) -> Result<[u8; L], Err
 /// The function returns a fresh key or a [`Error::KeyGen`] error if
 /// * not enough entropy was available
 /// * it was not possible to generate a valid key within a reasonable amount of iterations.
-pub fn key_gen(alg: Algorithm, rng: &mut impl CryptoRng) -> Result<(PrivateKey, PublicKey), Error> {
+pub fn key_gen(
+    alg: Algorithm,
+    rng: &mut impl TryCryptoRng,
+) -> Result<(PrivateKey, PublicKey), Error> {
     match alg {
         Algorithm::X25519 => libcrux_ecdh::x25519_key_gen(rng)
             .map_err(|e| e.into())
@@ -807,7 +810,7 @@ pub fn key_gen(alg: Algorithm, rng: &mut impl CryptoRng) -> Result<(PrivateKey, 
 
         Algorithm::XWingKemDraft06 => {
             let mut seed = [0u8; 32];
-            rng.fill_bytes(&mut seed);
+            rng.try_fill_bytes(&mut seed).map_err(|_| Error::KeyGen)?;
 
             let (kp_m, pk_x, _) = xwing::expand_decap_key(&seed)?;
 
@@ -1083,7 +1086,9 @@ mod xwing {
     }
 }
 
-fn mlkem_rand(rng: &mut impl CryptoRng) -> Result<[u8; libcrux_ml_kem::SHARED_SECRET_SIZE], Error> {
+fn mlkem_rand(
+    rng: &mut impl TryCryptoRng,
+) -> Result<[u8; libcrux_ml_kem::SHARED_SECRET_SIZE], Error> {
     let mut seed = [0; libcrux_ml_kem::SHARED_SECRET_SIZE];
     rng.try_fill_bytes(&mut seed).map_err(|_| Error::KeyGen)?;
     Ok(seed)

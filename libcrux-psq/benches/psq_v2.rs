@@ -11,7 +11,7 @@ use libcrux_psq::{
     },
     Channel, IntoSession,
 };
-use rand::CryptoRng;
+use rand::TryCryptoRng;
 
 pub fn randombytes(n: usize) -> Vec<u8> {
     use rand::{rngs::SysRng, TryRng};
@@ -32,13 +32,14 @@ struct CommonSetup {
 impl CommonSetup {
     fn new() -> Self {
         let mut rng = rand::rng();
-        let responder_mlkem_keys = libcrux_ml_kem::mlkem768::rand::generate_key_pair(&mut rng);
+        let responder_mlkem_keys =
+            libcrux_ml_kem::mlkem768::rand::generate_key_pair(&mut rng).unwrap();
         #[cfg(feature = "classic-mceliece")]
         let responder_cmc_keys =
-            libcrux_psq::classic_mceliece::KeyPair::generate_key_pair(&mut rng);
+            libcrux_psq::classic_mceliece::KeyPair::generate_key_pair(&mut rng).unwrap();
 
-        let responder_ecdh_keys = DHKeyPair::new(&mut rng);
-        let initiator_ecdh_keys = DHKeyPair::new(&mut rng);
+        let responder_ecdh_keys = DHKeyPair::new(&mut rng).unwrap();
+        let initiator_ecdh_keys = DHKeyPair::new(&mut rng).unwrap();
 
         CommonSetup {
             responder_mlkem_keys,
@@ -648,7 +649,7 @@ fn build_responder<'a>(
     ctx: &'a [u8],
     aad_responder: &'a [u8],
     ciphersuite_id: CiphersuiteName,
-) -> Responder<'a, impl CryptoRng> {
+) -> Responder<'a, impl TryCryptoRng> {
     // Setup responder
     #[allow(unused_mut)] // we need it mutable for the CMC case
     let mut responder_cbuilder = CiphersuiteBuilder::new(ciphersuite_id)
@@ -674,7 +675,7 @@ fn build_responder<'a>(
 
 #[inline(always)]
 fn query_initiator<'a>(
-    rng: impl CryptoRng,
+    rng: impl TryCryptoRng,
     ctx: &'a [u8],
     aad_initiator: &'a [u8],
     responder_ecdh_keys: &'a DHKeyPair,
@@ -693,7 +694,7 @@ fn registration_initiator<'a>(
     aad_initiator_outer: &'a [u8],
     aad_initiator_inner: &'a [u8],
     ciphersuite_id: CiphersuiteName,
-) -> RegistrationInitiator<'a, impl CryptoRng> {
+) -> RegistrationInitiator<'a, impl TryCryptoRng> {
     #[allow(unused_mut)] // we need it mutable for the CMC case
     let mut initiator_cbuilder = CiphersuiteBuilder::new(ciphersuite_id)
         .longterm_x25519_keys(&setup.initiator_ecdh_keys)
