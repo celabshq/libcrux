@@ -62,7 +62,7 @@ macro_rules! pqcp_api {
         #[cfg(all(not(eurydice), feature = "pqcp"))]
         pub mod pqcp {
             #[cfg(feature = "rand")]
-            use ::rand::CryptoRng;
+            use ::rand::TryCryptoRng;
             use libcrux_traits::kem::arrayref::Kem;
 
             use super::*;
@@ -101,10 +101,11 @@ macro_rules! pqcp_api {
             pub fn crypto_kem_keypair(
                 pk: &mut [u8; PK_LEN],
                 sk: &mut [u8; SK_LEN],
-                rng: &mut impl CryptoRng,
+                rng: &mut impl TryCryptoRng,
             ) -> Result<(), PQCPError> {
                 let mut rand = [0u8; KEYGEN_SEED_LEN];
-                rng.fill_bytes(&mut rand);
+                rng.try_fill_bytes(&mut rand)
+                    .map_err(|_| PQCPError::KeyGeneration)?;
                 <$trait_implementer>::keygen(pk, sk, &rand).map_err(|_| PQCPError::KeyGeneration)
             }
 
@@ -133,10 +134,11 @@ macro_rules! pqcp_api {
                 ct: &mut [u8; CT_LEN],
                 ss: &mut [u8; SS_LEN],
                 pk: &[u8; PK_LEN],
-                rng: &mut impl CryptoRng,
+                rng: &mut impl TryCryptoRng,
             ) -> Result<(), PQCPError> {
                 let mut rand = [0u8; ENCAPS_SEED_LEN];
-                rng.fill_bytes(&mut rand);
+                rng.try_fill_bytes(&mut rand)
+                    .map_err(|_| PQCPError::Encapsulation)?;
                 <$trait_implementer>::encaps(ct, ss, pk, &rand)
                     .map_err(|_| PQCPError::Encapsulation)
             }
@@ -203,11 +205,13 @@ macro_rules! pqcp_unpacked_api {
             /// Key Pair in \"unpacked\" form (randomness generated internally)
             pub fn crypto_kem_keypair_struct(
                 key_pair: &mut $sk_type_unpacked,
-                rng: &mut impl ::rand::CryptoRng,
-            ) {
+                rng: &mut impl ::rand::TryCryptoRng,
+            ) -> Result<(), PQCPError> {
                 let mut randomness = [0u8; KEYGEN_SEED_LEN];
-                rng.fill_bytes(&mut randomness);
-                generate_key_pair_mut(randomness, key_pair)
+                rng.try_fill_bytes(&mut randomness)
+                    .map_err(|_| PQCPError::KeyGeneration)?;
+                generate_key_pair_mut(randomness, key_pair);
+                Ok(())
             }
 
             /// Serialize an unpacked public key
@@ -293,10 +297,11 @@ macro_rules! pqcp_unpacked_api {
                 ct: &mut [u8; CT_LEN],
                 ss: &mut [u8; SS_LEN],
                 pk: &$pk_type_unpacked,
-                rng: &mut impl ::rand::CryptoRng,
+                rng: &mut impl ::rand::TryCryptoRng,
             ) -> Result<(), PQCPError> {
                 let mut randomness = [0u8; ENCAPS_SEED_LEN];
-                rng.fill_bytes(&mut randomness);
+                rng.try_fill_bytes(&mut randomness)
+                    .map_err(|_| PQCPError::Encapsulation)?;
                 let (ciphertext, shared_secret) = super::encapsulate(pk, randomness);
                 ct.copy_from_slice(ciphertext.as_slice());
                 ss.copy_from_slice(shared_secret.as_slice());

@@ -1,6 +1,6 @@
 use std::{collections::VecDeque, io::Cursor, mem::take};
 
-use rand::CryptoRng;
+use rand::TryCryptoRng;
 use tls_codec::{
     Deserialize, Serialize, Size, TlsDeserialize, TlsSerialize, TlsSize, VLByteSlice, VLBytes,
 };
@@ -65,7 +65,7 @@ pub(crate) enum ResponderState {
     ToTransport(Box<ToTransportState>),
 }
 
-pub struct Responder<'a, Rng: CryptoRng> {
+pub struct Responder<'a, Rng: TryCryptoRng> {
     pub(crate) state: ResponderState,
     ciphersuite: ResponderCiphersuite<'a>,
     working_ciphersuite: Option<CiphersuiteName>,
@@ -88,7 +88,7 @@ pub struct ResponderRegistrationPayload(pub VLBytes);
 #[derive(TlsSerialize, TlsSize)]
 pub struct ResponderRegistrationPayloadOut<'a>(VLByteSlice<'a>);
 
-impl<'a, Rng: CryptoRng> Responder<'a, Rng> {
+impl<'a, Rng: TryCryptoRng> Responder<'a, Rng> {
     /// Returns the most recent initiator authenticator for out-of-band
     /// verification, if any.
     ///
@@ -347,7 +347,7 @@ impl<'a, Rng: CryptoRng> Responder<'a, Rng> {
         payload: &[u8],
     ) -> Result<(DHPublicKey, MessageCiphertext), Error> {
         let state = take(&mut self.state);
-        let responder_ephemeral_ecdh_keys = DHKeyPair::new(&mut self.rng);
+        let responder_ephemeral_ecdh_keys = DHKeyPair::new(&mut self.rng)?;
 
         let message_contents = match state {
             ResponderState::RespondQuery(respond_query_state) => self.query(
@@ -437,7 +437,7 @@ impl<'a, Rng: CryptoRng> Responder<'a, Rng> {
     }
 }
 
-impl<'a, Rng: CryptoRng> Channel<Error, HandshakeMessage> for Responder<'a, Rng> {
+impl<'a, Rng: TryCryptoRng> Channel<Error, HandshakeMessage> for Responder<'a, Rng> {
     fn write_message(&mut self, payload: &[u8], out: &mut [u8]) -> Result<usize, Error> {
         let (responder_ephemeral_ecdh_pk, message_contents) =
             self.prepare_message_contents(payload)?;
@@ -505,7 +505,7 @@ impl<'a, Rng: CryptoRng> Channel<Error, HandshakeMessage> for Responder<'a, Rng>
     }
 }
 
-impl<'a, Rng: CryptoRng> IntoSession for Responder<'a, Rng> {
+impl<'a, Rng: TryCryptoRng> IntoSession for Responder<'a, Rng> {
     fn into_session(self) -> Result<Session, SessionError> {
         let ResponderState::ToTransport(mut state) = self.state else {
             return Err(SessionError::IntoSession);

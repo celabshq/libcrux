@@ -2,7 +2,7 @@
 
 use alloc::format;
 
-use rand::CryptoRng;
+use rand::TryCryptoRng;
 
 use super::Error;
 
@@ -126,7 +126,7 @@ pub fn secret_to_public(s: &PrivateKey) -> Result<PublicKey, Error> {
 }
 
 /// Generate a new x25519 secret.
-pub fn generate_secret(rng: &mut impl CryptoRng) -> Result<PrivateKey, Error> {
+pub fn generate_secret(rng: &mut impl TryCryptoRng) -> Result<PrivateKey, Error> {
     const LIMIT: usize = 100;
     for _ in 0..LIMIT {
         let mut out = [0u8; 32];
@@ -154,7 +154,7 @@ fn clamp(scalar: &mut [u8; 32]) {
 }
 
 /// Generate a new P256 key pair
-pub fn key_gen(rng: &mut impl CryptoRng) -> Result<(PrivateKey, PublicKey), Error> {
+pub fn key_gen(rng: &mut impl TryCryptoRng) -> Result<(PrivateKey, PublicKey), Error> {
     let sk = generate_secret(rng)?;
     let pk = secret_to_public(&sk)?;
     Ok((sk, pk))

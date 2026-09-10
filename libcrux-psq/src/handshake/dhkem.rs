@@ -3,7 +3,7 @@
 //! This module provides wrappers around KEM types, assuming a DH-KEM
 //! style API.
 use libcrux_ecdh::{secret_to_public, Algorithm};
-use rand::CryptoRng;
+use rand::TryCryptoRng;
 use tls_codec::{TlsDeserialize, TlsDeserializeBytes, TlsSerialize, TlsSerializeBytes, TlsSize};
 
 use crate::handshake::{
@@ -76,11 +76,11 @@ impl DHSharedSecret {
 
 impl DHPrivateKey {
     /// Creates a new KEM private key.
-    pub fn new(rng: &mut impl CryptoRng) -> Self {
-        Self(
+    pub fn new(rng: &mut impl TryCryptoRng) -> Result<Self, Error> {
+        Ok(Self(
             libcrux_ecdh::generate_secret(libcrux_ecdh::Algorithm::X25519, rng)
-                .expect("Insufficient Randomness"),
-        )
+                .map_err(|_| Error::InsufficientRandomness)?,
+        ))
     }
 
     /// Compute the KEM public key from the KEM private key.
@@ -126,10 +126,10 @@ impl ProvideAuthenticator for DHKeyPair {
 
 impl DHKeyPair {
     /// Generate a fresh Diffie-Hellman key pair.
-    pub fn new(rng: &mut impl CryptoRng) -> Self {
-        let sk = DHPrivateKey::new(rng);
+    pub fn new(rng: &mut impl TryCryptoRng) -> Result<Self, Error> {
+        let sk = DHPrivateKey::new(rng)?;
         let pk = sk.to_public();
-        Self { sk, pk }
+        Ok(Self { sk, pk })
     }
 
     /// Provide reference to the Diffie-Hellman private key.

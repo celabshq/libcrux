@@ -1,6 +1,6 @@
 use std::io::Cursor;
 
-use rand::CryptoRng;
+use rand::TryCryptoRng;
 use tls_codec::{Deserialize, Serialize, Size, VLByteSlice};
 
 use super::InitiatorOuterPayloadOut;
@@ -48,9 +48,9 @@ impl<'a> QueryInitiator<'a> {
         responder_longterm_ecdh_pk: &'a DHPublicKey,
         ctx: &[u8],
         outer_aad: &'a [u8],
-        mut rng: impl CryptoRng,
+        mut rng: impl TryCryptoRng,
     ) -> Result<Self, Error> {
-        let initiator_ephemeral_keys = DHKeyPair::new(&mut rng);
+        let initiator_ephemeral_keys = DHKeyPair::new(&mut rng)?;
 
         let (tx0, k0) = derive_k0(
             responder_longterm_ecdh_pk,

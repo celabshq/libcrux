@@ -28,8 +28,8 @@ struct Setup {
 static SETUP: LazyLock<Setup> = LazyLock::new(|| {
     let mut rng = rand::rng();
     Setup {
-        responder_x25519_keys: DHKeyPair::new(&mut rng),
-        initiator_x25519_keys: DHKeyPair::new(&mut rng),
+        responder_x25519_keys: DHKeyPair::new(&mut rng).unwrap(),
+        initiator_x25519_keys: DHKeyPair::new(&mut rng).unwrap(),
     }
 });
 

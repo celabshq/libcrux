@@ -1,4 +1,4 @@
-use rand::CryptoRng;
+use rand::TryCryptoRng;
 
 use super::{
     builders::BuilderError as Error,
@@ -14,7 +14,7 @@ use crate::handshake::{
 
 const RECENT_KEYS_DEFAULT_BOUND: usize = 100;
 
-pub struct PrincipalBuilder<'a, Rng: CryptoRng> {
+pub struct PrincipalBuilder<'a, Rng: TryCryptoRng> {
     rng: Rng,
     context: &'a [u8],
     inner_aad: &'a [u8],
@@ -22,7 +22,7 @@ pub struct PrincipalBuilder<'a, Rng: CryptoRng> {
     responder_recent_keys_upper_bound: usize,
 }
 
-impl<'a, Rng: CryptoRng> PrincipalBuilder<'a, Rng> {
+impl<'a, Rng: TryCryptoRng> PrincipalBuilder<'a, Rng> {
     /// Create a new builder.
     pub fn new(rng: Rng) -> Self {
         Self {

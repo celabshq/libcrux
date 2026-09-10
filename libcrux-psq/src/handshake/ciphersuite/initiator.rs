@@ -1,6 +1,6 @@
 use libcrux_ed25519::{SigningKey as Ed25519SigningKey, VerificationKey as Ed25519VerificationKey};
 use libcrux_ml_dsa::ml_dsa_65::{MLDSA65KeyPair, MLDSA65SigningKey, MLDSA65VerificationKey};
-use rand::CryptoRng;
+use rand::TryCryptoRng;
 use tls_codec::SerializeBytes;
 
 #[cfg(feature = "classic-mceliece")]
@@ -68,7 +68,7 @@ impl<'a> From<&'a (Ed25519SigningKey, Ed25519VerificationKey)> for SigningKeyPai
 impl<'a> SigningKeyPair<'a> {
     pub(crate) fn sign(
         &self,
-        rng: &mut impl CryptoRng,
+        rng: &mut impl TryCryptoRng,
         tx: &Transcript,
     ) -> Result<Signature, HandshakeError> {
         let payload = tx
@@ -81,7 +81,8 @@ impl<'a> SigningKeyPair<'a> {
             }
             SigningKeyPair::MlDsa65(mldsasigning_key, _) => {
                 let mut randomness = [0u8; libcrux_ml_dsa::SIGNING_RANDOMNESS_SIZE];
-                rng.fill_bytes(&mut randomness);
+                rng.try_fill_bytes(&mut randomness)
+                    .map_err(|_| HandshakeError::InsufficientRandomness)?;
                 let sig = libcrux_ml_dsa::ml_dsa_65::sign(
                     mldsasigning_key,
                     &payload,
@@ -196,7 +197,7 @@ impl<'a> InitiatorCiphersuite<'a> {
 
     pub(crate) fn pq_encapsulate(
         &self,
-        rng: &mut impl CryptoRng,
+        rng: &mut impl TryCryptoRng,
     ) -> Result<
         PQOptionPair<
             <Self as CiphersuiteBase>::Ciphertext,
@@ -208,7 +209,8 @@ impl<'a> InitiatorCiphersuite<'a> {
             PqKemPublicKey::None => Ok((None, None)),
             PqKemPublicKey::MlKem(ml_kem_public_key) => {
                 let mut rand = [0u8; libcrux_ml_kem::ENCAPS_SEED_SIZE];
-                rng.fill_bytes(&mut rand);
+                rng.try_fill_bytes(&mut rand)
+                    .map_err(|_| HandshakeError::InsufficientRandomness)?;
                 let (ct, ss) = libcrux_ml_kem::mlkem768::encapsulate(ml_kem_public_key, rand);
 
                 Ok((
@@ -219,10 +221,14 @@ impl<'a> InitiatorCiphersuite<'a> {
             #[cfg(feature = "classic-mceliece")]
             PqKemPublicKey::Cmc(public_key) => {
                 use crate::classic_mceliece::ClassicMcEliece;
-                use libcrux_traits::kem::KEM;
+                use libcrux_traits::kem::{KEMError, KEM};
 
-                let (ss, ct) = <ClassicMcEliece as KEM>::encapsulate(public_key, rng)
-                    .map_err(|_| HandshakeError::CryptoError)?;
+                let (ss, ct) = <ClassicMcEliece as KEM>::encapsulate(public_key, rng).map_err(
+                    |e| match e {
+                        KEMError::InsufficientRandomness => HandshakeError::InsufficientRandomness,
+                        _ => HandshakeError::CryptoError,
+                    },
+                )?;
 
                 Ok((
                     Some(PQCiphertext::CMC(Box::new(ct))),

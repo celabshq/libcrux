@@ -464,7 +464,7 @@ pub fn validate_private_key(
 ///
 /// This function returns an [`MlKem512KeyPair`].
 #[cfg(not(eurydice))]
-#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::opaque]
 #[hax_lib::ensures(|res|
     fstar!(r#"let ((secret_key, public_key), valid) = Spec.MLKEM.Instances.mlkem512_generate_keypair $randomness in
         valid ==> (${res}.f_sk.f_value == secret_key /\ ${res}.f_pk.f_value == public_key)"#)
@@ -486,7 +486,7 @@ pub fn generate_key_pair(randomness: [u8; KEY_GENERATION_SEED_SIZE]) -> MlKem512
 /// The input is a reference to an [`MlKem512PublicKey`] and [`SHARED_SECRET_SIZE`]
 /// bytes of `randomness`.
 #[cfg(not(eurydice))]
-#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::opaque]
 #[hax_lib::ensures(|res|
     fstar!(r#"let ((ciphertext, shared_secret), valid) = Spec.MLKEM.Instances.mlkem512_encapsulate ${public_key}.f_value $randomness in
         let (res_ciphertext, res_shared_secret) = $res in
@@ -518,7 +518,7 @@ pub fn encapsulate(
 /// Generates an [`MlKemSharedSecret`].
 /// The input is a reference to an [`MlKem512PrivateKey`] and an [`MlKem512Ciphertext`].
 #[cfg(not(eurydice))]
-#[hax_lib::fstar::verification_status(panic_free)]
+#[hax_lib::opaque]
 #[hax_lib::ensures(|res|
     fstar!(r#"let (shared_secret, valid) = Spec.MLKEM.Instances.mlkem512_decapsulate ${private_key}.f_value ${ciphertext}.f_value in
         valid ==> $res == shared_secret"#)
@@ -551,7 +551,7 @@ pub fn decapsulate(
 ///
 /// The functions in this module are equivalent to the one in the main module,
 /// but sample their own randomness, provided a random number generator that
-/// implements `CryptoRng`.
+/// implements `TryCryptoRng`.
 ///
 /// Decapsulation is not provided in this module as it does not require randomness.
 #[cfg(all(not(eurydice), feature = "rand"))]
@@ -560,37 +560,44 @@ pub mod rand {
         MlKem512Ciphertext, MlKem512KeyPair, MlKem512PublicKey, MlKemSharedSecret,
         KEY_GENERATION_SEED_SIZE, SHARED_SECRET_SIZE,
     };
-    use ::rand::CryptoRng;
+    use crate::RandomnessError;
+    use ::rand::TryCryptoRng;
 
     /// Generate ML-KEM 512 Key Pair
     ///
     /// The random number generator `rng` needs to implement
-    /// `CryptoRng` to sample the required randomness internally.
+    /// `TryCryptoRng` to sample the required randomness internally.
     ///
     /// This function returns an [`MlKem512KeyPair`].
-    #[hax_lib::fstar::verification_status(lax)]
-    pub fn generate_key_pair(rng: &mut impl CryptoRng) -> MlKem512KeyPair {
+    // XXX: https://github.com/cryspen/hax/issues/2243
+    #[hax_lib::exclude]
+    pub fn generate_key_pair(
+        rng: &mut impl TryCryptoRng,
+    ) -> Result<MlKem512KeyPair, RandomnessError> {
         let mut randomness = [0u8; KEY_GENERATION_SEED_SIZE];
-        rng.fill_bytes(&mut randomness);
+        rng.try_fill_bytes(&mut randomness)
+            .map_err(|_| RandomnessError)?;
 
-        super::generate_key_pair(randomness)
+        Ok(super::generate_key_pair(randomness))
     }
 
     /// Encapsulate ML-KEM 512
     ///
     /// Generates an ([`MlKem512Ciphertext`], [`MlKemSharedSecret`]) tuple.
     /// The input is a reference to an [`MlKem512PublicKey`].
-    /// The random number generator `rng` needs to implement `CryptoRng`
+    /// The random number generator `rng` needs to implement `TryCryptoRng`
     /// to sample the required randomness internally.
-    #[hax_lib::fstar::verification_status(lax)]
+    // XXX: https://github.com/cryspen/hax/issues/2243
+    #[hax_lib::exclude]
     pub fn encapsulate(
         public_key: &MlKem512PublicKey,
-        rng: &mut impl CryptoRng,
-    ) -> (MlKem512Ciphertext, MlKemSharedSecret) {
+        rng: &mut impl TryCryptoRng,
+    ) -> Result<(MlKem512Ciphertext, MlKemSharedSecret), RandomnessError> {
         let mut randomness = [0u8; SHARED_SECRET_SIZE];
-        rng.fill_bytes(&mut randomness);
+        rng.try_fill_bytes(&mut randomness)
+            .map_err(|_| RandomnessError)?;
 
-        super::encapsulate(public_key, randomness)
+        Ok(super::encapsulate(public_key, randomness))
     }
 }
 

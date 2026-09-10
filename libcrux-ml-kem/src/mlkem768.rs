@@ -533,12 +533,13 @@ pub fn decapsulate(
 ///
 /// The functions in this module are equivalent to the one in the main module,
 /// but sample their own randomness, provided a random number generator that
-/// implements `CryptoRng`.
+/// implements `TryCryptoRng`.
 ///
 /// Decapsulation is not provided in this module as it does not require randomness.
 #[cfg(all(not(eurydice), feature = "rand"))]
 pub mod rand {
-    use ::rand::CryptoRng;
+    use crate::RandomnessError;
+    use ::rand::TryCryptoRng;
 
     use super::{
         MlKem768Ciphertext, MlKem768KeyPair, MlKem768PublicKey, MlKemSharedSecret,
@@ -547,33 +548,39 @@ pub mod rand {
 
     /// Generate ML-KEM 768 Key Pair
     ///
-    /// The random number generator `rng` needs to implement `CryptoRng`
+    /// The random number generator `rng` needs to implement `TryCryptoRng`
     /// to sample the required randomness internally.
     ///
     /// This function returns an [`MlKem768KeyPair`].
-    #[hax_lib::fstar::verification_status(lax)]
-    pub fn generate_key_pair(rng: &mut impl CryptoRng) -> MlKem768KeyPair {
+    // XXX: https://github.com/cryspen/hax/issues/2243
+    #[hax_lib::exclude]
+    pub fn generate_key_pair(
+        rng: &mut impl TryCryptoRng,
+    ) -> Result<MlKem768KeyPair, RandomnessError> {
         let mut randomness = [0u8; KEY_GENERATION_SEED_SIZE];
-        rng.fill_bytes(&mut randomness);
+        rng.try_fill_bytes(&mut randomness)
+            .map_err(|_| RandomnessError)?;
 
-        super::generate_key_pair(randomness)
+        Ok(super::generate_key_pair(randomness))
     }
 
     /// Encapsulate ML-KEM 768
     ///
     /// Generates an ([`MlKem768Ciphertext`], [`MlKemSharedSecret`]) tuple.
     /// The input is a reference to an [`MlKem768PublicKey`].
-    /// The random number generator `rng` needs to implement `CryptoRng`
+    /// The random number generator `rng` needs to implement `TryCryptoRng`
     /// to sample the required randomness internally.
-    #[hax_lib::fstar::verification_status(lax)]
+    // XXX: https://github.com/cryspen/hax/issues/2243
+    #[hax_lib::exclude]
     pub fn encapsulate(
         public_key: &MlKem768PublicKey,
-        rng: &mut impl CryptoRng,
-    ) -> (MlKem768Ciphertext, MlKemSharedSecret) {
+        rng: &mut impl TryCryptoRng,
+    ) -> Result<(MlKem768Ciphertext, MlKemSharedSecret), RandomnessError> {
         let mut randomness = [0u8; SHARED_SECRET_SIZE];
-        rng.fill_bytes(&mut randomness);
+        rng.try_fill_bytes(&mut randomness)
+            .map_err(|_| RandomnessError)?;
 
-        super::encapsulate(public_key, randomness)
+        Ok(super::encapsulate(public_key, randomness))
     }
 }
 

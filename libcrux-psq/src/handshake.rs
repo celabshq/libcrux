@@ -31,6 +31,8 @@ pub enum HandshakeError {
     IdentifierMismatch,
     InvalidMessage,
     InvalidDHSecret,
+    /// The random number generator did not provide enough randomness.
+    InsufficientRandomness,
 }
 
 impl From<libcrux_ed25519::Error> for HandshakeError {

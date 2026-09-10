@@ -21,7 +21,7 @@ struct Setup {
 }
 
 static SETUP: LazyLock<Setup> = LazyLock::new(|| Setup {
-    responder_x25519_keys: DHKeyPair::new(&mut rand::rng()),
+    responder_x25519_keys: DHKeyPair::new(&mut rand::rng()).unwrap(),
 });
 
 fuzz_target!(|data: &[u8]| {

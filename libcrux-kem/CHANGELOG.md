@@ -11,6 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [#1560](https://github.com/celabshq/libcrux/pull/1560): Reject malformed hybrid key encodings without panicking
 
+## [Unreleased]
+
+### Changed
+
+- [#1584](https://github.com/celabshq/libcrux/pull/1584): Widened the RNG bound on `key_gen`, `PublicKey::encapsulate` from
+  `CryptoRng` to `TryCryptoRng` to support fallible RNGs
+
 ## [0.0.9] (2026-07-15)
 
 ### Changed

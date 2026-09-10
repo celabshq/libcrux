@@ -70,6 +70,25 @@ pub use ind_cca::{MlKemSharedSecret, ENCAPS_SEED_SIZE, KEY_GENERATION_SEED_SIZE}
 // These types all have type aliases for the different variants.
 pub use types::{MlKemCiphertext, MlKemKeyPair, MlKemPrivateKey, MlKemPublicKey};
 
+/// The random number generator failed to provide sufficient randomness.
+///
+/// This is the only failure mode of the `rand` APIs: ML-KEM key generation,
+/// encapsulation, and decapsulation are otherwise infallible.
+#[cfg(all(not(eurydice), feature = "rand"))]
+#[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
+#[derive(Debug)]
+pub struct RandomnessError;
+
+#[cfg(all(not(any(eurydice, hax)), feature = "rand"))]
+impl core::fmt::Display for RandomnessError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str("the random number generator failed to provide sufficient randomness")
+    }
+}
+
+#[cfg(all(not(any(eurydice, hax)), feature = "rand"))]
+impl core::error::Error for RandomnessError {}
+
 cfg_kyber! {
     #[cfg(feature = "mlkem512")]
     #[cfg_attr(docsrs, doc(cfg(all(feature = "kyber", feature = "mlkem512"))))]

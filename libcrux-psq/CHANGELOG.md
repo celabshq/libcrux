@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- [#1584](https://github.com/celabshq/libcrux/pull/1584): (Breaking) Widened the RNG bound throughout
+  the crate from `CryptoRng` to `TryCryptoRng` to support fallible RNGs. This affects
+  `DHPrivateKey::new`, `DHKeyPair::new`, `classic_mceliece::KeyPair::generate_key_pair`,
+  `PrincipalBuilder`, `RegistrationInitiator`, `Responder`, `QueryInitiator`, and the
+  builders (`build_query_initiator`, `build_registration_initiator`, `build_responder`), all of
+  which now return a `Result` (or propagate one) instead of panicking or being infallible
+- [#1584](https://github.com/celabshq/libcrux/pull/1584): Added a
+  `HandshakeError::InsufficientRandomness` variant, now used instead of the generic
+  `HandshakeError::CryptoError` when a `TryCryptoRng` fails to provide randomness
+
 ## [0.0.10] (2026-07-15)
 
 ### Changed

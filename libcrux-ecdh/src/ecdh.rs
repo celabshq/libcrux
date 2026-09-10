@@ -141,13 +141,13 @@ pub fn validate_scalar(alg: Algorithm, s: impl AsRef<[u8]>) -> Result<(), Error>
     }
 }
 
-use rand::{CryptoRng, Rng};
+use rand::TryCryptoRng;
 
 /// Generate a new private key scalar.
 ///
 /// The function returns the new scalar or an [`Error::KeyGenError`] if it was unable to
 /// generate a new key. If this happens, the provided `rng` is probably faulty.
-pub fn generate_secret(alg: Algorithm, rng: &mut (impl CryptoRng + Rng)) -> Result<Vec<u8>, Error> {
+pub fn generate_secret(alg: Algorithm, rng: &mut impl TryCryptoRng) -> Result<Vec<u8>, Error> {
     match alg {
         Algorithm::X25519 => x25519::generate_secret(rng).map(|k| k.0.to_vec()),
         Algorithm::P256 => p256_internal::generate_secret(rng).map(|k| k.0.to_vec()),
@@ -158,10 +158,7 @@ pub fn generate_secret(alg: Algorithm, rng: &mut (impl CryptoRng + Rng)) -> Resu
 /// Generate a fresh key pair.
 ///
 /// The function returns the (secret key, public key) tuple, or an [`Error`].
-pub fn key_gen(
-    alg: Algorithm,
-    rng: &mut (impl CryptoRng + Rng),
-) -> Result<(Vec<u8>, Vec<u8>), Error> {
+pub fn key_gen(alg: Algorithm, rng: &mut impl TryCryptoRng) -> Result<(Vec<u8>, Vec<u8>), Error> {
     let sk = generate_secret(alg, rng)?;
     let pk = secret_to_public(alg, &sk)?;
     Ok((sk, pk))

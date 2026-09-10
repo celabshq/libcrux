@@ -1,4 +1,4 @@
-use rand::CryptoRng;
+use rand::TryCryptoRng;
 use tls_codec::{
     Serialize, SerializeBytes, TlsDeserialize, TlsSerialize, TlsSerializeBytes, TlsSize,
 };
@@ -106,7 +106,7 @@ pub(crate) fn sign_tx1<'a>(
     authenticator: Auth<'a>,
     responder_pq_pk: Option<PQEncapsulationKey>,
     pq_encaps: &[u8],
-    rng: &mut impl CryptoRng,
+    rng: &mut impl TryCryptoRng,
 ) -> Result<(Option<Signature>, Transcript), Error> {
     let tx1 = tx1(
         tx0,
