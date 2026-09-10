@@ -7,15 +7,17 @@ implementations.
 ## Extraction via hax into Lean
 
 Prerequisites:
-* hax 0.4.0 (https://github.com/cryspen/hax)
-* Lean (https://lean-lang.org/install/)
+* [Lean](https://lean-lang.org/install/)
+* [cargo](https://rust-lang.org/tools/install/)
+* [cargo-binstall](https://github.com/cargo-bins/cargo-binstall#installation)
+* (hax, charon, aeneas will be downloaded automatically)
 
 To extract the Lean code, run the following in the `specs` directory:
 ```
 cargo hax extract hacspec-ml-kem
 ```
 
-To type check the extracted Lean run the following in the `specs/ml-kem/proofs/lean` directory:
+To type check the extracted Lean run the following in the `specs/ml-kem/proofs/hacspec-ml-kem/lean` directory:
 ```
 lake exe cache get
 lake build

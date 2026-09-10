@@ -18,15 +18,17 @@ Run `hax_fstar.sh extract` to produce the F* files, and `hax_fstar.sh prove` to 
 ### Lean
 
 Prerequisites:
-* hax 0.4.0 (https://github.com/cryspen/hax)
-* Lean (https://lean-lang.org/install/)
+* [Lean](https://lean-lang.org/install/)
+* [cargo](https://rust-lang.org/tools/install/)
+* [cargo-binstall](https://github.com/cargo-bins/cargo-binstall#installation)
+* (hax, charon, aeneas will be downloaded automatically)
 
 To extract the Lean code, run the following in the `specs` directory:
 ```
 cargo hax extract hacspec-sha3
 ```
 
-To type check the extracted Lean run the following in the `specs/sha3/proofs/lean` directory:
+To type check the extracted Lean run the following in the `specs/sha3/proofs/hacspec-sha3/lean` directory:
 ```
 lake exe cache get
 lake build
