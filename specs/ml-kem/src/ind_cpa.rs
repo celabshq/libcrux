@@ -26,7 +26,7 @@ fn sample_secret(eta: usize, prf_input: &[u8; 33]) -> Polynomial {
             let out: [u8; 192] = PRF(prf_input);
             sample_poly_cbd::<192, 1536>(3, &out)
         }
-        _ => panic!("unsupported eta"), // no format args: keeps the Lean extraction free of core::fmt
+        _ => panic!("unsupported eta={}", eta),
     }
 }
 

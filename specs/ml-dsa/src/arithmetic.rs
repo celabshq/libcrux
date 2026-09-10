@@ -5,7 +5,7 @@ use crate::parameters::{D, Q};
 
 /// Reduce a to [0, q-1].
 #[inline]
-pub fn mod_q(a: i64) -> i32 {
+pub(crate) fn mod_q(a: i64) -> i32 {
     let r = (a % Q as i64) as i32;
     if r < 0 {
         r + Q
@@ -18,7 +18,7 @@ pub fn mod_q(a: i64) -> i32 {
 #[inline]
 #[hax_lib::fstar::options("--z3rlimit 150")]
 #[hax_lib::requires(m > 0)]
-pub fn mod_pm(a: i32, m: i32) -> i32 {
+pub(crate) fn mod_pm(a: i32, m: i32) -> i32 {
     let a64 = a as i64;
     let m64 = m as i64;
     let r = ((a64 % m64) + m64) % m64;
@@ -34,7 +34,7 @@ pub fn mod_pm(a: i32, m: i32) -> i32 {
 ///
 /// Decomposes r into (r1, r0) such that r ≡ r1·2^d + r0 (mod q).
 #[hax_lib::requires(r >= 0 && r < Q)]
-pub fn power2round(r: i32) -> (i32, i32) {
+pub(crate) fn power2round(r: i32) -> (i32, i32) {
     let r_plus = r % Q;
     let r_plus = if r_plus < 0 { r_plus + Q } else { r_plus };
     let two_d = 1i32 << D;
@@ -50,7 +50,7 @@ pub fn power2round(r: i32) -> (i32, i32) {
 /// returns (0, r0 - 1) instead.
 #[hax_lib::fstar::options("--z3rlimit 300")]
 #[hax_lib::requires(r >= 0 && r < Q && gamma2 > 0 && gamma2 < Q / 2)]
-pub fn decompose(r: i32, gamma2: i32) -> (i32, i32) {
+pub(crate) fn decompose(r: i32, gamma2: i32) -> (i32, i32) {
     let r_plus = r % Q;
     let r_plus = if r_plus < 0 { r_plus + Q } else { r_plus };
     let alpha = 2 * gamma2;
@@ -67,7 +67,7 @@ pub fn decompose(r: i32, gamma2: i32) -> (i32, i32) {
 ///
 /// Returns r1 from Decompose(r).
 #[hax_lib::requires(r >= 0 && r < Q && gamma2 > 0 && gamma2 < Q / 2)]
-pub fn high_bits(r: i32, gamma2: i32) -> i32 {
+pub(crate) fn high_bits(r: i32, gamma2: i32) -> i32 {
     decompose(r, gamma2).0
 }
 
@@ -75,7 +75,7 @@ pub fn high_bits(r: i32, gamma2: i32) -> i32 {
 ///
 /// Returns r0 from Decompose(r).
 #[hax_lib::requires(r >= 0 && r < Q && gamma2 > 0 && gamma2 < Q / 2)]
-pub fn low_bits(r: i32, gamma2: i32) -> i32 {
+pub(crate) fn low_bits(r: i32, gamma2: i32) -> i32 {
     decompose(r, gamma2).1
 }
 
@@ -83,7 +83,7 @@ pub fn low_bits(r: i32, gamma2: i32) -> i32 {
 ///
 /// Returns true if adding z to r changes the high bits.
 #[hax_lib::requires(r >= 0 && r < Q && gamma2 > 0 && gamma2 < Q / 2)]
-pub fn make_hint(z: i32, r: i32, gamma2: i32) -> bool {
+pub(crate) fn make_hint(z: i32, r: i32, gamma2: i32) -> bool {
     let r1 = high_bits(r, gamma2);
     let v1 = high_bits(mod_q(r as i64 + z as i64), gamma2);
     r1 != v1
@@ -94,7 +94,7 @@ pub fn make_hint(z: i32, r: i32, gamma2: i32) -> bool {
 /// Returns the high bits of r, adjusted according to hint h.
 #[hax_lib::fstar::options("--z3rlimit 300")]
 #[hax_lib::requires(r >= 0 && r < Q && gamma2 > 0 && gamma2 < Q / 2)]
-pub fn use_hint(hint: bool, r: i32, gamma2: i32) -> i32 {
+pub(crate) fn use_hint(hint: bool, r: i32, gamma2: i32) -> i32 {
     let m = (Q - 1) / (2 * gamma2);
     let (r1, r0) = decompose(r, gamma2);
     if hint && r0 > 0 {
@@ -109,7 +109,7 @@ pub fn use_hint(hint: bool, r: i32, gamma2: i32) -> i32 {
 /// Infinity norm of a single coefficient (absolute value, centered).
 #[inline]
 #[hax_lib::fstar::options("--z3rlimit 150")]
-pub fn coeff_norm(a: i32) -> i32 {
+pub(crate) fn coeff_norm(a: i32) -> i32 {
     let a_mod = (((a as i64 % Q as i64) + Q as i64) % Q as i64) as i32;
     if a_mod > Q / 2 {
         Q - a_mod

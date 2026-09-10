@@ -257,7 +257,7 @@ pub fn byte_encode_into(p: Polynomial, d: usize, out: &mut [u8]) {
         10 => out.copy_from_slice(&byte_encode::<320, 2560>(p, 10)),
         11 => out.copy_from_slice(&byte_encode::<352, 2816>(p, 11)),
         12 => out.copy_from_slice(&byte_encode::<384, 3072>(p, 12)),
-        _ => panic!("unsupported d"), // no format args: keeps the Lean extraction free of core::fmt
+        _ => panic!("unsupported d={}", d),
     }
 }
 
@@ -272,7 +272,7 @@ pub fn byte_decode_dyn(b: &[u8], d: usize) -> Polynomial {
         10 => byte_decode::<320, 2560>(b.try_into().unwrap(), 10),
         11 => byte_decode::<352, 2816>(b.try_into().unwrap(), 11),
         12 => byte_decode::<384, 3072>(b.try_into().unwrap(), 12),
-        _ => panic!("unsupported d"), // no format args: keeps the Lean extraction free of core::fmt
+        _ => panic!("unsupported d={}", d),
     }
 }
 

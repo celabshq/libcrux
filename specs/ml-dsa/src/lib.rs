@@ -1,32 +1,22 @@
-// Public so that libcrux-iot's ml-dsa can name the FIPS-204 rounding layer
-// (`arithmetic::{decompose, mod_q, ...}`) directly inside a
-// `#[hax_lib::ensures]`, making the generated Lean spec full functional
-// correctness against this crate rather than a panic-freedom claim.
-pub mod arithmetic;
-// Public for the same reason as `arithmetic`: libcrux-iot's ml-dsa names
-// `polynomial::poly_infinity_norm` (and, as the top-level FC campaign
-// proceeds, `poly_add`/`poly_sub`/`poly_pointwise_mul`) inside
-// `#[hax_lib::ensures]` annotations.
-pub mod polynomial;
+mod arithmetic;
 mod encoding;
 mod error;
 mod hash_functions;
 mod matrix;
 mod ml_dsa;
-// Public for the same reason as `arithmetic`/`polynomial`: libcrux-iot names
-// `ntt::{ntt, intt}` inside `#[hax_lib::ensures]` on the NTT entry points.
-pub mod ntt;
+mod ntt;
 /// FIPS 204 — Module-Lattice-Based Digital Signature Standard (ML-DSA).
 ///
 /// This is a pure functional specification of ML-DSA, intended for
 /// extraction to F* via hax for formal verification.
 mod parameters;
+mod polynomial;
 mod sampling;
 
 pub use error::MlDsaError;
 pub use ml_dsa::{keygen, keygen_internal, sign, sign_internal, verify, verify_internal};
 pub use parameters::{
-    pk_size, Polynomial, sig_size, MlDsaParams, ML_DSA_44, ML_DSA_44_C_TILDE_LEN, ML_DSA_44_PK_SIZE,
+    pk_size, sig_size, MlDsaParams, ML_DSA_44, ML_DSA_44_C_TILDE_LEN, ML_DSA_44_PK_SIZE,
     ML_DSA_44_SIG_SIZE, ML_DSA_44_SK_SIZE, ML_DSA_44_W1_SIZE, ML_DSA_65, ML_DSA_65_C_TILDE_LEN,
     ML_DSA_65_PK_SIZE, ML_DSA_65_SIG_SIZE, ML_DSA_65_SK_SIZE, ML_DSA_65_W1_SIZE, ML_DSA_87,
     ML_DSA_87_C_TILDE_LEN, ML_DSA_87_PK_SIZE, ML_DSA_87_SIG_SIZE, ML_DSA_87_SK_SIZE,

@@ -13,7 +13,7 @@ use hax_lib::int::*;
 /// XOR a block of message bytes into the state (little-endian, lane-interleaved).
 ///
 /// Corresponds to the `S ⊕ (Pi || 0^c)` step of Algorithm 8.
-#[hax_lib::requires(rate <= 200 && rate % 8 == 0 && block.len() >= rate)]
+#[cfg_attr(hax, hax_lib::requires(rate <= 200 && rate % 8 == 0 && block.len() >= rate))]
 pub fn xor_block_into_state(state: State, block: &[u8], rate: usize) -> State {
     createi(|i| {
         if i < rate / 8 {
@@ -29,7 +29,7 @@ pub fn xor_block_into_state(state: State, block: &[u8], rate: usize) -> State {
 /// Extract `len` bytes from the rate portion of the state (little-endian, lane-interleaved).
 ///
 /// Corresponds to `Trunc_r(S)` in Algorithm 8.
-#[hax_lib::requires(len <= 200 && output.len() >= len && out_offset <= output.len() - len)]
+#[cfg_attr(hax, hax_lib::requires(len <= 200 && output.len() >= len && out_offset <= output.len() - len))]
 pub fn squeeze_state<const OUTPUT_LEN: usize>(
     state: &State,
     mut output: [u8; OUTPUT_LEN],
@@ -44,7 +44,7 @@ pub fn squeeze_state<const OUTPUT_LEN: usize>(
 /// Absorb one full block: XOR it into the state, then apply Keccak-f.
 ///
 /// Corresponds to one iteration of the absorb loop in Algorithm 8 (step 6).
-#[hax_lib::requires(rate <= 200 && rate % 8 == 0 && block.len() == rate)]
+#[cfg_attr(hax, hax_lib::requires(rate <= 200 && rate % 8 == 0 && block.len() == rate))]
 pub fn absorb_block(state: State, block: &[u8], rate: usize) -> State {
     let state = xor_block_into_state(state, block, rate);
     keccak_f(state)
@@ -54,8 +54,8 @@ pub fn absorb_block(state: State, block: &[u8], rate: usize) -> State {
 /// domain-separation byte `delim`, and set the final bit of pad10*1.
 ///
 /// Returns a `rate`-byte buffer ready to be absorbed via `xor_block_into_state`.
-#[hax_lib::requires(rate > 0 && rate <= 200 && rate % 8 == 0 && remaining < rate
-                     && msg_offset <= message.len() && remaining <= message.len() - msg_offset)]
+#[cfg_attr(hax, hax_lib::requires(rate > 0 && rate <= 200 && rate % 8 == 0 && remaining < rate
+                     && msg_offset <= message.len() && remaining <= message.len() - msg_offset))]
 pub fn pad_last_block(
     message: &[u8],
     msg_offset: usize,
@@ -74,8 +74,8 @@ pub fn pad_last_block(
 /// apply Keccak-f.
 ///
 /// Combines `pad_last_block` + `absorb_block`.
-#[hax_lib::requires(rate > 0 && rate <= 200 && rate % 8 == 0 && remaining < rate
-                     && msg_offset <= message.len() && remaining <= message.len() - msg_offset)]
+#[cfg_attr(hax, hax_lib::requires(rate > 0 && rate <= 200 && rate % 8 == 0 && remaining < rate
+                     && msg_offset <= message.len() && remaining <= message.len() - msg_offset))]
 pub fn absorb_final(
     state: State,
     message: &[u8],
@@ -92,7 +92,7 @@ pub fn absorb_final(
 /// `rate`-byte block, XOR it into the state, apply Keccak-f, then recurse on
 /// the tail slice. Once fewer than `rate` bytes remain, pad and absorb the
 /// partial final block.
-#[hax_lib::requires(rate > 0 && rate <= 200 && rate % 8 == 0)]
+#[cfg_attr(hax, hax_lib::requires(rate > 0 && rate <= 200 && rate % 8 == 0))]
 #[cfg_attr(hax, hax_lib::decreases(message.len().to_int()))]
 pub fn absorb_rec(state: State, rate: usize, delim: u8, message: &[u8]) -> State {
     if message.len() < rate {
@@ -110,7 +110,7 @@ pub fn absorb_rec(state: State, rate: usize, delim: u8, message: &[u8]) -> State
 /// applying Keccak-f. The final partial block is padded with the domain
 /// separation byte `delim` and the pad10*1 terminator `0x80` before being
 /// absorbed.
-#[hax_lib::requires(rate > 0 && rate <= 200 && rate % 8 == 0)]
+#[cfg_attr(hax, hax_lib::requires(rate > 0 && rate <= 200 && rate % 8 == 0))]
 pub fn absorb(rate: usize, delim: u8, message: &[u8]) -> State {
     absorb_rec([0u64; 25], rate, delim, message)
 }
@@ -138,7 +138,7 @@ pub fn iterate_keccak_f(n: usize, state: State) -> State {
 /// Equivalent to FIPS-202 Algorithm 8: for each full block apply keccak_f
 /// and extract `rate` bytes; the trailing partial block uses one more
 /// keccak_f before extracting `OUTPUT_LEN mod rate` bytes.
-#[hax_lib::requires(rate > 0 && rate <= 200 && rate % 8 == 0 && OUTPUT_LEN < usize::MAX - 200)]
+#[cfg_attr(hax, hax_lib::requires(rate > 0 && rate <= 200 && rate % 8 == 0 && OUTPUT_LEN < usize::MAX - 200))]
 pub fn squeeze<const OUTPUT_LEN: usize>(state: State, rate: usize) -> [u8; OUTPUT_LEN] {
     createi(|k| {
         let b = k / rate;
@@ -159,7 +159,7 @@ pub fn squeeze<const OUTPUT_LEN: usize>(state: State, rate: usize) -> [u8; OUTPU
 /// The `OUTPUT_LEN < usize::MAX - 200` precondition is a Rust implementation
 /// artifact to prevent arithmetic overflow; FIPS 202 places no upper bound
 /// on the output length.
-#[hax_lib::requires(rate > 0 && rate <= 200 && rate % 8 == 0 && OUTPUT_LEN < usize::MAX - 200)]
+#[cfg_attr(hax, hax_lib::requires(rate > 0 && rate <= 200 && rate % 8 == 0 && OUTPUT_LEN < usize::MAX - 200))]
 pub fn keccak<const OUTPUT_LEN: usize>(rate: usize, delim: u8, message: &[u8]) -> [u8; OUTPUT_LEN] {
     squeeze(absorb(rate, delim, message), rate)
 }

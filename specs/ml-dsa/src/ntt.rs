@@ -78,7 +78,7 @@ fn ntt_layer(p: Polynomial, layer: usize) -> Polynomial {
 /// NTT(w) — FIPS 204, Algorithm 41.
 ///
 /// Computes the Number Theoretic Transform of polynomial w.
-pub fn ntt(w: Polynomial) -> Polynomial {
+pub(crate) fn ntt(w: Polynomial) -> Polynomial {
     let p = ntt_layer(w, 7);
     let p = ntt_layer(p, 6);
     let p = ntt_layer(p, 5);
@@ -122,7 +122,7 @@ fn reduce_polynomial(p: Polynomial) -> Polynomial {
 /// NTT⁻¹(ŵ) — FIPS 204, Algorithm 42.
 ///
 /// Computes the inverse Number Theoretic Transform.
-pub fn intt(w_hat: Polynomial) -> Polynomial {
+pub(crate) fn intt(w_hat: Polynomial) -> Polynomial {
     let p = intt_layer(w_hat, 0);
     let p = intt_layer(p, 1);
     let p = intt_layer(p, 2);

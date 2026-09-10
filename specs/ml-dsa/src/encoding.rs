@@ -158,18 +158,13 @@ pub(crate) fn hint_bit_unpack<const K: usize>(y: &[u8], omega: usize) -> Option<
     let mut valid = true;
     for i in 0..K {
         if valid {
-            // Named `end_index`, not `end`: aeneas emits Rust locals as Lean
-            // binders without escaping Lean keywords, so a local called `end`
-            // makes the extracted Lean unparseable ("unexpected token 'end'").
-            // Fixed upstream in aeneas after nightly-2026.08.24; the rename can
-            // go once the pinned aeneas carries the fix.
-            let end_index = y[omega + i] as usize;
-            if end_index < index || end_index > omega {
+            let end = y[omega + i] as usize;
+            if end < index || end > omega {
                 valid = false;
             } else {
                 let first = index;
                 for _scan in 0..256 {
-                    if valid && index < end_index {
+                    if valid && index < end {
                         if index > first && y[index - 1] >= y[index] {
                             valid = false;
                         } else {

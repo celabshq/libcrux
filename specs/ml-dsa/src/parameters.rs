@@ -1,7 +1,7 @@
 /// ML-DSA parameters — FIPS 204, Section 4.
 
 /// Field modulus q = 2^23 - 2^13 + 1.
-pub const Q: i32 = 8380417;
+pub(crate) const Q: i32 = 8380417;
 
 /// Number of dropped bits from t — FIPS 204, Table 1.
 pub(crate) const D: usize = 13;
@@ -14,7 +14,7 @@ pub(crate) const N: usize = 256;
 
 /// A polynomial in R_q = Z_q[X]/(X^256 + 1), represented as 256 coefficients.
 /// Coefficients are in the range [0, q-1] unless otherwise noted.
-pub type Polynomial = [i32; 256];
+pub(crate) type Polynomial = [i32; 256];
 
 /// A zero polynomial.
 pub(crate) const ZERO_POLY: Polynomial = [0i32; 256];

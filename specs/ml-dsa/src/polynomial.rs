@@ -8,17 +8,17 @@ use crate::ntt::{intt, ntt};
 use crate::parameters::{Polynomial, Q};
 
 /// Coefficient-wise addition of two polynomials.
-pub fn poly_add(a: &Polynomial, b: &Polynomial) -> Polynomial {
+pub(crate) fn poly_add(a: &Polynomial, b: &Polynomial) -> Polynomial {
     createi(|i| mod_q(a[i] as i64 + b[i] as i64))
 }
 
 /// Coefficient-wise subtraction of two polynomials.
-pub fn poly_sub(a: &Polynomial, b: &Polynomial) -> Polynomial {
+pub(crate) fn poly_sub(a: &Polynomial, b: &Polynomial) -> Polynomial {
     createi(|i| mod_q(a[i] as i64 - b[i] as i64))
 }
 
 /// Coefficient-wise multiplication in NTT domain (Hadamard product).
-pub fn poly_pointwise_mul(a: &Polynomial, b: &Polynomial) -> Polynomial {
+pub(crate) fn poly_pointwise_mul(a: &Polynomial, b: &Polynomial) -> Polynomial {
     createi(|i| mod_q(a[i] as i64 * b[i] as i64))
 }
 
@@ -57,7 +57,7 @@ pub(crate) fn scalar_vector_ntt<const N: usize>(
 }
 
 /// Infinity norm of a polynomial: max |coeff| where coefficients are centered mod q.
-pub fn poly_infinity_norm(p: &Polynomial) -> i32 {
+pub(crate) fn poly_infinity_norm(p: &Polynomial) -> i32 {
     let mut max = 0i32;
     for i in 0..256 {
         let c = crate::arithmetic::coeff_norm(p[i]);
