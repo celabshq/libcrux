@@ -29,6 +29,20 @@ impl libcrux_traits::ecdh::arrayref::EcdhArrayref<RAND_LEN, SECRET_LEN, PUBLIC_L
             .ok_or(libcrux_traits::ecdh::arrayref::SecretToPublicError::InvalidSecret)
     }
 
+    /// Derive the ECDH output point.
+    ///
+    /// This computes the point `derived = secret * public` and writes its affine
+    /// representation `x||y` into `derived`. Each coordinate is represented as a 32-byte
+    /// array in big-endian format. As a result, the `derived` array has a length of 64 bytes
+    /// ([`PUBLIC_LEN`]).
+    ///
+    /// The ECDH shared secret is the x coordinate, i.e., `derived[..32]`.
+    ///
+    /// This shared secret is NOT (!) safe for use as a key and needs to be processed in a
+    /// round of key derivation, to ensure both that the output is uniformly random and that
+    /// unknown key share attacks can not happen.
+    ///
+    /// On error, the contents of derived are unspecified and may have been overwritten.
     fn derive_ecdh(
         derived: &mut [U8; PUBLIC_LEN],
         public: &[u8; PUBLIC_LEN],
