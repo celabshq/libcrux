@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   post-quantum and PQ/T-hybrid algorithms of
   [draft-ietf-hpke-pq](https://datatracker.ietf.org/doc/html/draft-ietf-hpke-pq-04),
   in the **libcrux provider only**, behind the new `draft-ietf-hpke-pq` feature.
+- (libcrux-p256) [#1586](https://github.com/celabshq/libcrux/pull/1586): Expose constants used in `Ecdh*` trait implementations
 
 
 ## [0.0.5] (2026-07-15)

@@ -1,8 +1,8 @@
 use super::{POINT_LEN, SCALAR_LEN};
 
-const RAND_LEN: usize = SCALAR_LEN;
-const SECRET_LEN: usize = SCALAR_LEN;
-const PUBLIC_LEN: usize = POINT_LEN;
+pub const RAND_LEN: usize = SCALAR_LEN;
+pub const SECRET_LEN: usize = SCALAR_LEN;
+pub const PUBLIC_LEN: usize = POINT_LEN;
 
 pub use libcrux_traits::ecdh::{arrayref::EcdhArrayref, owned::EcdhOwned, slice::EcdhSlice};
 
