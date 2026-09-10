@@ -257,7 +257,12 @@ pub fn byte_encode_into(p: Polynomial, d: usize, out: &mut [u8]) {
         10 => out.copy_from_slice(&byte_encode::<320, 2560>(p, 10)),
         11 => out.copy_from_slice(&byte_encode::<352, 2816>(p, 11)),
         12 => out.copy_from_slice(&byte_encode::<384, 3072>(p, 12)),
+        // Lean has no `core::fmt` model, so the message drops its format
+        // argument there; F*/native keep the offending value in the message.
+        #[cfg(not(hax_backend_lean))]
         _ => panic!("unsupported d={}", d),
+        #[cfg(hax_backend_lean)]
+        _ => panic!("unsupported d"),
     }
 }
 
@@ -272,7 +277,12 @@ pub fn byte_decode_dyn(b: &[u8], d: usize) -> Polynomial {
         10 => byte_decode::<320, 2560>(b.try_into().unwrap(), 10),
         11 => byte_decode::<352, 2816>(b.try_into().unwrap(), 11),
         12 => byte_decode::<384, 3072>(b.try_into().unwrap(), 12),
+        // Lean has no `core::fmt` model, so the message drops its format
+        // argument there; F*/native keep the offending value in the message.
+        #[cfg(not(hax_backend_lean))]
         _ => panic!("unsupported d={}", d),
+        #[cfg(hax_backend_lean)]
+        _ => panic!("unsupported d"),
     }
 }
 

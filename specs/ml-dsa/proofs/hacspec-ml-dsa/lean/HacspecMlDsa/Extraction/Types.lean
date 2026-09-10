@@ -23,7 +23,7 @@ set_option maxRecDepth 2048
 namespace hacspec_ml_dsa
 
 /-- [hacspec_ml_dsa::encoding::pk_decode::closure]
-    Source: 'ml-dsa/src/encoding.rs', lines 226:38-229:5 -/
+    Source: 'ml-dsa/src/encoding.rs', lines 221:38-224:5 -/
 @[reducible]
 def encoding.pk_decode.closure (K : Std.Usize) := Slice Std.U8
 
@@ -42,22 +42,22 @@ structure parameters.MlDsaParams where
   beta : Std.I32
 
 /-- [hacspec_ml_dsa::encoding::sk_decode::closure#2]
-    Source: 'ml-dsa/src/encoding.rs', lines 338:38-345:5 -/
+    Source: 'ml-dsa/src/encoding.rs', lines 333:38-340:5 -/
 def encoding.sk_decode.closure_2 (K : Std.Usize) (L : Std.Usize) :=
   Std.Usize × Std.Usize × Slice Std.U8 × Std.Usize
 
 /-- [hacspec_ml_dsa::encoding::sk_decode::closure#1]
-    Source: 'ml-dsa/src/encoding.rs', lines 330:38-333:5 -/
+    Source: 'ml-dsa/src/encoding.rs', lines 325:38-328:5 -/
 def encoding.sk_decode.closure_1 (K : Std.Usize) (L : Std.Usize) :=
   Std.Usize × Slice Std.U8 × Std.Usize
 
 /-- [hacspec_ml_dsa::encoding::sk_decode::closure]
-    Source: 'ml-dsa/src/encoding.rs', lines 326:38-329:5 -/
+    Source: 'ml-dsa/src/encoding.rs', lines 321:38-324:5 -/
 def encoding.sk_decode.closure (K : Std.Usize) (L : Std.Usize) :=
   Std.Usize × Slice Std.U8 × Std.Usize
 
 /-- [hacspec_ml_dsa::encoding::sig_decode::closure]
-    Source: 'ml-dsa/src/encoding.rs', lines 433:37-436:5 -/
+    Source: 'ml-dsa/src/encoding.rs', lines 428:37-431:5 -/
 def encoding.sig_decode.closure (K : Std.Usize) (L : Std.Usize) (C_TILDE_LEN :
   Std.Usize) :=
   Std.Usize × Slice Std.U8 × Std.Usize

@@ -989,7 +989,7 @@ def ind_cpa.sample_secret.spec (eta : Std.Usize)
 
 
 /-- [hacspec_ml_kem::ind_cpa::concat_byte::pre]:
-    Source: 'ml-kem/src/ind_cpa.rs', lines 33:0-33:43 -/
+    Source: 'ml-kem/src/ind_cpa.rs', lines 38:0-38:43 -/
 @[reducible]
 def ind_cpa.concat_byte.pre
   {N : Std.Usize} (N1 : Std.Usize) (a : Array Std.U8 N) (b : Std.U8) :
@@ -1009,7 +1009,7 @@ def ind_cpa.concat_byte.spec {N : Std.Usize} (N1 : Std.Usize)
 
 
 /-- [hacspec_ml_kem::ind_cpa::sample_vector_cbd::pre]:
-    Source: 'ml-kem/src/ind_cpa.rs', lines 47:0-52:2 -/
+    Source: 'ml-kem/src/ind_cpa.rs', lines 52:0-57:2 -/
 @[reducible]
 def ind_cpa.sample_vector_cbd.pre
   (RANK : Std.Usize) (eta : Std.Usize) (seed : Slice Std.U8)
@@ -1048,7 +1048,7 @@ def ind_cpa.sample_vector_cbd.spec (RANK : Std.Usize) (eta : Std.Usize)
 
 
 /-- [hacspec_ml_kem::ind_cpa::sample_vector_cbd_then_ntt::pre]:
-    Source: 'ml-kem/src/ind_cpa.rs', lines 67:0-72:2 -/
+    Source: 'ml-kem/src/ind_cpa.rs', lines 72:0-77:2 -/
 @[reducible]
 def ind_cpa.sample_vector_cbd_then_ntt.pre
   (RANK : Std.Usize) (eta : Std.Usize) (seed : Slice Std.U8)
@@ -1088,7 +1088,7 @@ def ind_cpa.sample_vector_cbd_then_ntt.spec (RANK : Std.Usize)
 
 
 /-- [hacspec_ml_kem::ind_cpa::generate_keypair_unpacked::pre]:
-    Source: 'ml-kem/src/ind_cpa.rs', lines 97:0-101:2 -/
+    Source: 'ml-kem/src/ind_cpa.rs', lines 102:0-106:2 -/
 @[reducible]
 def ind_cpa.generate_keypair_unpacked.pre
   (RANK : Std.Usize) (params : parameters.MlKemParams)
@@ -1122,7 +1122,7 @@ def ind_cpa.generate_keypair_unpacked.spec (RANK : Std.Usize)
 
 
 /-- [hacspec_ml_kem::ind_cpa::generate_keypair::pre]:
-    Source: 'ml-kem/src/ind_cpa.rs', lines 167:0-173:2 -/
+    Source: 'ml-kem/src/ind_cpa.rs', lines 172:0-178:2 -/
 @[reducible]
 def ind_cpa.generate_keypair.pre
   (RANK : Std.Usize) (EK_SIZE : Std.Usize) (DK_PKE_SIZE : Std.Usize)
@@ -1169,7 +1169,7 @@ def
 
 
 /-- [hacspec_ml_kem::ind_cpa::encrypt::pre]:
-    Source: 'ml-kem/src/ind_cpa.rs', lines 236:0-245:2 -/
+    Source: 'ml-kem/src/ind_cpa.rs', lines 241:0-250:2 -/
 @[reducible]
 def ind_cpa.encrypt.pre
   (RANK : Std.Usize) (U_SIZE : Std.Usize) (V_SIZE : Std.Usize) (CT_SIZE :
@@ -1245,7 +1245,7 @@ def
 
 
 /-- [hacspec_ml_kem::ind_cpa::encrypt_unpacked::pre]:
-    Source: 'ml-kem/src/ind_cpa.rs', lines 287:0-295:2 -/
+    Source: 'ml-kem/src/ind_cpa.rs', lines 292:0-300:2 -/
 @[reducible]
 def ind_cpa.encrypt_unpacked.pre
   {RANK : Std.Usize} (U_SIZE : Std.Usize) (V_SIZE : Std.Usize) (CT_SIZE :
@@ -1319,7 +1319,7 @@ def
 
 
 /-- [hacspec_ml_kem::ind_cpa::decrypt::pre]:
-    Source: 'ml-kem/src/ind_cpa.rs', lines 370:0-374:2 -/
+    Source: 'ml-kem/src/ind_cpa.rs', lines 375:0-379:2 -/
 @[reducible]
 def ind_cpa.decrypt.pre
   (RANK : Std.Usize) (params : parameters.MlKemParams) (dk : Slice Std.U8)
@@ -1355,7 +1355,7 @@ def ind_cpa.decrypt.spec (RANK : Std.Usize) (params : parameters.MlKemParams)
 
 
 /-- [hacspec_ml_kem::ind_cpa::decrypt_unpacked::pre]:
-    Source: 'ml-kem/src/ind_cpa.rs', lines 396:0-399:2 -/
+    Source: 'ml-kem/src/ind_cpa.rs', lines 401:0-404:2 -/
 @[reducible]
 def ind_cpa.decrypt_unpacked.pre
   {RANK : Std.Usize} (params : parameters.MlKemParams)
@@ -1947,7 +1947,7 @@ def serialize.byte_encode_into.spec
 
 
 /-- [hacspec_ml_kem::serialize::byte_decode_dyn::pre]:
-    Source: 'ml-kem/src/serialize.rs', lines 265:0-265:104 -/
+    Source: 'ml-kem/src/serialize.rs', lines 270:0-270:104 -/
 @[reducible]
 def serialize.byte_decode_dyn.pre
   (b : Slice Std.U8) (d : Std.Usize) : RustM Bool := do
@@ -1993,7 +1993,7 @@ def serialize.byte_decode_dyn.spec (b : Slice Std.U8) (d : Std.Usize) : Prop :=
 
 
 /-- [hacspec_ml_kem::serialize::compress_then_serialize_u_into::pre]:
-    Source: 'ml-kem/src/serialize.rs', lines 316:0-320:2 -/
+    Source: 'ml-kem/src/serialize.rs', lines 326:0-330:2 -/
 @[reducible]
 def serialize.compress_then_serialize_u_into.pre
   {RANK : Std.Usize} (u : Array (Array parameters.FieldElement 256#usize) RANK)
@@ -2030,7 +2030,7 @@ def serialize.compress_then_serialize_u_into.spec {RANK : Std.Usize}
 
 
 /-- [hacspec_ml_kem::serialize::compress_then_serialize_u::pre]:
-    Source: 'ml-kem/src/serialize.rs', lines 348:0-348:117 -/
+    Source: 'ml-kem/src/serialize.rs', lines 358:0-358:117 -/
 @[reducible]
 def serialize.compress_then_serialize_u.pre
   {RANK : Std.Usize} (U_SIZE : Std.Usize)
@@ -2067,7 +2067,7 @@ def
 
 
 /-- [hacspec_ml_kem::serialize::compress_then_serialize_v::pre]:
-    Source: 'ml-kem/src/serialize.rs', lines 361:0-361:95 -/
+    Source: 'ml-kem/src/serialize.rs', lines 371:0-371:95 -/
 @[reducible]
 def serialize.compress_then_serialize_v.pre
   (V_SIZE : Std.Usize) (v : Array parameters.FieldElement 256#usize)
@@ -2096,7 +2096,7 @@ def serialize.compress_then_serialize_v.spec (V_SIZE : Std.Usize)
 
 
 /-- [hacspec_ml_kem::serialize::deserialize_then_decompress_u::pre]:
-    Source: 'ml-kem/src/serialize.rs', lines 371:0-371:127 -/
+    Source: 'ml-kem/src/serialize.rs', lines 381:0-381:127 -/
 @[reducible]
 def serialize.deserialize_then_decompress_u.pre
   (RANK : Std.Usize) (ciphertext : Slice Std.U8) (du : Std.Usize) :
@@ -2131,7 +2131,7 @@ def serialize.deserialize_then_decompress_u.spec (RANK : Std.Usize)
 
 
 /-- [hacspec_ml_kem::serialize::deserialize_then_decompress_u_then_ntt::pre]:
-    Source: 'ml-kem/src/serialize.rs', lines 392:0-392:127 -/
+    Source: 'ml-kem/src/serialize.rs', lines 402:0-402:127 -/
 @[reducible]
 def serialize.deserialize_then_decompress_u_then_ntt.pre
   (RANK : Std.Usize) (ciphertext : Slice Std.U8) (du : Std.Usize) :
@@ -2167,7 +2167,7 @@ def serialize.deserialize_then_decompress_u_then_ntt.spec (RANK : Std.Usize)
 
 
 /-- [hacspec_ml_kem::serialize::deserialize_then_decompress_v::pre]:
-    Source: 'ml-kem/src/serialize.rs', lines 403:0-403:105 -/
+    Source: 'ml-kem/src/serialize.rs', lines 413:0-413:105 -/
 @[reducible]
 def serialize.deserialize_then_decompress_v.pre
   (serialized : Slice Std.U8) (dv : Std.Usize) : RustM Bool := do
@@ -2195,7 +2195,7 @@ def serialize.deserialize_then_decompress_v.spec (serialized : Slice Std.U8)
 
 
 /-- [hacspec_ml_kem::serialize::deserialize_ring_elements_reduced::pre]:
-    Source: 'ml-kem/src/serialize.rs', lines 412:0-412:81 -/
+    Source: 'ml-kem/src/serialize.rs', lines 422:0-422:81 -/
 @[reducible]
 def serialize.deserialize_ring_elements_reduced.pre
   (RANK : Std.Usize) (encoded : Slice Std.U8) : RustM Bool := do
@@ -2216,7 +2216,7 @@ def serialize.deserialize_ring_elements_reduced.spec (RANK : Std.Usize)
 
 
 /-- [hacspec_ml_kem::serialize::serialize_secret_key::pre]:
-    Source: 'ml-kem/src/serialize.rs', lines 419:0-419:74 -/
+    Source: 'ml-kem/src/serialize.rs', lines 429:0-429:74 -/
 @[reducible]
 def serialize.serialize_secret_key.pre
   {RANK : Std.Usize} (T_SIZE : Std.Usize)
@@ -2239,7 +2239,7 @@ def serialize.serialize_secret_key.spec {RANK : Std.Usize} (T_SIZE : Std.Usize)
 
 
 /-- [hacspec_ml_kem::serialize::serialize_public_key::pre]:
-    Source: 'ml-kem/src/serialize.rs', lines 436:0-436:106 -/
+    Source: 'ml-kem/src/serialize.rs', lines 446:0-446:106 -/
 @[reducible]
 def serialize.serialize_public_key.pre
   {RANK : Std.Usize} (EK_SIZE : Std.Usize)

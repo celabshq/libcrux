@@ -172,112 +172,6 @@ def arithmetic.use_hint.spec (hint : Bool) (r : Std.I32) (gamma2 : Std.I32)
   ⦃ ⇓ res => ⌜ True ⌝ ⦄
 
 
-/-- [hacspec_ml_dsa::polynomial::vector_power2round::pre]:
-    Source: 'ml-dsa/src/polynomial.rs', lines 84:0-84:254 -/
-@[reducible]
-def polynomial.vector_power2round.pre
-  {N : Std.Usize} (v : Array (Array Std.I32 256#usize) N) :
-  RustM hax_lib.prop.Prop
-  := do
-  hax_lib.prop.Prop.from_bool true
-
-def polynomial.vector_power2round.spec {N : Std.Usize}
-  (v : Array (Array Std.I32 256#usize) N) : Prop :=
-  (polynomial.vector_power2round.pre v).holds →
-  ⦃ ⌜ True ⌝ ⦄
-  polynomial.vector_power2round v
-  ⦃ ⇓ res => ⌜ True ⌝ ⦄
-
-
-/-- [hacspec_ml_dsa::polynomial::vector_high_bits::pre]:
-    Source: 'ml-dsa/src/polynomial.rs', lines 104:0-104:316 -/
-@[reducible]
-def polynomial.vector_high_bits.pre
-  {N : Std.Usize} (v : Array (Array Std.I32 256#usize) N) (gamma2 : Std.I32) :
-  RustM hax_lib.prop.Prop
-  := do
-  hax_lib.prop.Prop.from_bool true
-
-def polynomial.vector_high_bits.spec {N : Std.Usize}
-  (v : Array (Array Std.I32 256#usize) N) (gamma2 : Std.I32) : Prop :=
-  (polynomial.vector_high_bits.pre v gamma2).holds →
-  ⦃ ⌜ True ⌝ ⦄
-  polynomial.vector_high_bits v gamma2
-  ⦃ ⇓ res => ⌜ True ⌝ ⦄
-
-
-/-- [hacspec_ml_dsa::polynomial::vector_low_bits::pre]:
-    Source: 'ml-dsa/src/polynomial.rs', lines 113:0-113:316 -/
-@[reducible]
-def polynomial.vector_low_bits.pre
-  {N : Std.Usize} (v : Array (Array Std.I32 256#usize) N) (gamma2 : Std.I32) :
-  RustM hax_lib.prop.Prop
-  := do
-  hax_lib.prop.Prop.from_bool true
-
-def polynomial.vector_low_bits.spec {N : Std.Usize}
-  (v : Array (Array Std.I32 256#usize) N) (gamma2 : Std.I32) : Prop :=
-  (polynomial.vector_low_bits.pre v gamma2).holds →
-  ⦃ ⌜ True ⌝ ⦄
-  polynomial.vector_low_bits v gamma2
-  ⦃ ⇓ res => ⌜ True ⌝ ⦄
-
-
-/-- [hacspec_ml_dsa::polynomial::count_hints::pre]:
-    Source: 'ml-dsa/src/polynomial.rs', lines 120:0-120:70 -/
-@[reducible]
-def polynomial.count_hints.pre
-  {N : Std.Usize} (h : Array (Array Bool 256#usize) N) :
-  RustM hax_lib.prop.Prop
-  := do
-  hax_lib.prop.Prop.from_bool true
-
-def polynomial.count_hints.spec {N : Std.Usize}
-  (h : Array (Array Bool 256#usize) N) : Prop :=
-  (polynomial.count_hints.pre h).holds →
-  ⦃ ⌜ True ⌝ ⦄
-  polynomial.count_hints h
-  ⦃ ⇓ res => ⌜ True ⌝ ⦄
-
-
-/-- [hacspec_ml_dsa::polynomial::vector_make_hint::pre]:
-    Source: 'ml-dsa/src/polynomial.rs', lines 140:0-140:355 -/
-@[reducible]
-def polynomial.vector_make_hint.pre
-  {N : Std.Usize} (z : Array (Array Std.I32 256#usize) N)
-  (r : Array (Array Std.I32 256#usize) N) (gamma2 : Std.I32) :
-  RustM hax_lib.prop.Prop
-  := do
-  hax_lib.prop.Prop.from_bool true
-
-def polynomial.vector_make_hint.spec {N : Std.Usize}
-  (z : Array (Array Std.I32 256#usize) N)
-  (r : Array (Array Std.I32 256#usize) N) (gamma2 : Std.I32) : Prop :=
-  (polynomial.vector_make_hint.pre z r gamma2).holds →
-  ⦃ ⌜ True ⌝ ⦄
-  polynomial.vector_make_hint z r gamma2
-  ⦃ ⇓ res => ⌜ True ⌝ ⦄
-
-
-/-- [hacspec_ml_dsa::polynomial::vector_use_hint::pre]:
-    Source: 'ml-dsa/src/polynomial.rs', lines 153:0-153:316 -/
-@[reducible]
-def polynomial.vector_use_hint.pre
-  {N : Std.Usize} (h : Array (Array Bool 256#usize) N)
-  (r : Array (Array Std.I32 256#usize) N) (gamma2 : Std.I32) :
-  RustM hax_lib.prop.Prop
-  := do
-  hax_lib.prop.Prop.from_bool true
-
-def polynomial.vector_use_hint.spec {N : Std.Usize}
-  (h : Array (Array Bool 256#usize) N) (r : Array (Array Std.I32 256#usize) N)
-  (gamma2 : Std.I32) : Prop :=
-  (polynomial.vector_use_hint.pre h r gamma2).holds →
-  ⦃ ⌜ True ⌝ ⦄
-  polynomial.vector_use_hint h r gamma2
-  ⦃ ⇓ res => ⌜ True ⌝ ⦄
-
-
 /-- [hacspec_ml_dsa::encoding::simple_bit_pack::pre]:
     Source: 'ml-dsa/src/encoding.rs', lines 15:0-15:64 -/
 @[reducible]
@@ -400,7 +294,7 @@ def encoding.hint_bit_unpack.spec (K : Std.Usize) (y : Slice Std.U8)
 
 
 /-- [hacspec_ml_dsa::encoding::pk_encode::pre]:
-    Source: 'ml-dsa/src/encoding.rs', lines 205:0-205:55 -/
+    Source: 'ml-dsa/src/encoding.rs', lines 200:0-200:55 -/
 @[reducible]
 def encoding.pk_encode.pre
   {K : Std.Usize} (PK_SIZE : Std.Usize) (rho : Array Std.U8 32#usize)
@@ -423,7 +317,7 @@ def encoding.pk_encode.spec {K : Std.Usize} (PK_SIZE : Std.Usize)
 
 
 /-- [hacspec_ml_dsa::encoding::pk_decode::pre]:
-    Source: 'ml-dsa/src/encoding.rs', lines 222:0-222:56 -/
+    Source: 'ml-dsa/src/encoding.rs', lines 217:0-217:56 -/
 @[reducible]
 def encoding.pk_decode.pre
   (K : Std.Usize) (pk : Slice Std.U8) : RustM Bool := do
@@ -443,7 +337,7 @@ def encoding.pk_decode.spec (K : Std.Usize) (pk : Slice Std.U8) : Prop :=
 
 
 /-- [hacspec_ml_dsa::encoding::sk_encode::pre]:
-    Source: 'ml-dsa/src/encoding.rs', lines 235:0-235:121 -/
+    Source: 'ml-dsa/src/encoding.rs', lines 230:0-230:121 -/
 @[reducible]
 def encoding.sk_encode.pre
   {K : Std.Usize} {L : Std.Usize} (SK_SIZE : Std.Usize)
@@ -484,7 +378,7 @@ def
 
 
 /-- [hacspec_ml_dsa::encoding::sk_decode::pre]:
-    Source: 'ml-dsa/src/encoding.rs', lines 302:0-302:122 -/
+    Source: 'ml-dsa/src/encoding.rs', lines 297:0-297:122 -/
 @[reducible]
 def encoding.sk_decode.pre
   (K : Std.Usize) (L : Std.Usize) (sk : Slice Std.U8)
@@ -518,7 +412,7 @@ def encoding.sk_decode.spec (K : Std.Usize) (L : Std.Usize) (sk : Slice Std.U8)
 
 
 /-- [hacspec_ml_dsa::encoding::sig_encode::pre]:
-    Source: 'ml-dsa/src/encoding.rs', lines 355:0-364:2 -/
+    Source: 'ml-dsa/src/encoding.rs', lines 350:0-359:2 -/
 @[reducible]
 def encoding.sig_encode.pre
   {K : Std.Usize} {L : Std.Usize} (SIG_SIZE : Std.Usize)
@@ -797,7 +691,7 @@ def
 
 
 /-- [hacspec_ml_dsa::encoding::sig_decode::pre]:
-    Source: 'ml-dsa/src/encoding.rs', lines 418:0-421:2 -/
+    Source: 'ml-dsa/src/encoding.rs', lines 413:0-416:2 -/
 @[reducible]
 def encoding.sig_decode.pre
   (K : Std.Usize) (L : Std.Usize) (C_TILDE_LEN : Std.Usize)
@@ -836,7 +730,7 @@ def
 
 
 /-- [hacspec_ml_dsa::encoding::w1_encode::pre]:
-    Source: 'ml-dsa/src/encoding.rs', lines 446:0-448:2 -/
+    Source: 'ml-dsa/src/encoding.rs', lines 441:0-443:2 -/
 @[reducible]
 def encoding.w1_encode.pre
   {K : Std.Usize} (W1_BYTES : Std.Usize)
@@ -2181,6 +2075,112 @@ def parameters.bitlen.spec (n : Std.Usize) : Prop :=
   ⦃ ⌜ True ⌝ ⦄
   parameters.bitlen n
   ⦃ ⇓ res => ⌜ (parameters.bitlen.post n res).holds ⌝ ⦄
+
+
+/-- [hacspec_ml_dsa::polynomial::vector_power2round::pre]:
+    Source: 'ml-dsa/src/polynomial.rs', lines 84:0-84:254 -/
+@[reducible]
+def polynomial.vector_power2round.pre
+  {N : Std.Usize} (v : Array (Array Std.I32 256#usize) N) :
+  RustM hax_lib.prop.Prop
+  := do
+  hax_lib.prop.Prop.from_bool true
+
+def polynomial.vector_power2round.spec {N : Std.Usize}
+  (v : Array (Array Std.I32 256#usize) N) : Prop :=
+  (polynomial.vector_power2round.pre v).holds →
+  ⦃ ⌜ True ⌝ ⦄
+  polynomial.vector_power2round v
+  ⦃ ⇓ res => ⌜ True ⌝ ⦄
+
+
+/-- [hacspec_ml_dsa::polynomial::vector_high_bits::pre]:
+    Source: 'ml-dsa/src/polynomial.rs', lines 104:0-104:316 -/
+@[reducible]
+def polynomial.vector_high_bits.pre
+  {N : Std.Usize} (v : Array (Array Std.I32 256#usize) N) (gamma2 : Std.I32) :
+  RustM hax_lib.prop.Prop
+  := do
+  hax_lib.prop.Prop.from_bool true
+
+def polynomial.vector_high_bits.spec {N : Std.Usize}
+  (v : Array (Array Std.I32 256#usize) N) (gamma2 : Std.I32) : Prop :=
+  (polynomial.vector_high_bits.pre v gamma2).holds →
+  ⦃ ⌜ True ⌝ ⦄
+  polynomial.vector_high_bits v gamma2
+  ⦃ ⇓ res => ⌜ True ⌝ ⦄
+
+
+/-- [hacspec_ml_dsa::polynomial::vector_low_bits::pre]:
+    Source: 'ml-dsa/src/polynomial.rs', lines 113:0-113:316 -/
+@[reducible]
+def polynomial.vector_low_bits.pre
+  {N : Std.Usize} (v : Array (Array Std.I32 256#usize) N) (gamma2 : Std.I32) :
+  RustM hax_lib.prop.Prop
+  := do
+  hax_lib.prop.Prop.from_bool true
+
+def polynomial.vector_low_bits.spec {N : Std.Usize}
+  (v : Array (Array Std.I32 256#usize) N) (gamma2 : Std.I32) : Prop :=
+  (polynomial.vector_low_bits.pre v gamma2).holds →
+  ⦃ ⌜ True ⌝ ⦄
+  polynomial.vector_low_bits v gamma2
+  ⦃ ⇓ res => ⌜ True ⌝ ⦄
+
+
+/-- [hacspec_ml_dsa::polynomial::count_hints::pre]:
+    Source: 'ml-dsa/src/polynomial.rs', lines 120:0-120:70 -/
+@[reducible]
+def polynomial.count_hints.pre
+  {N : Std.Usize} (h : Array (Array Bool 256#usize) N) :
+  RustM hax_lib.prop.Prop
+  := do
+  hax_lib.prop.Prop.from_bool true
+
+def polynomial.count_hints.spec {N : Std.Usize}
+  (h : Array (Array Bool 256#usize) N) : Prop :=
+  (polynomial.count_hints.pre h).holds →
+  ⦃ ⌜ True ⌝ ⦄
+  polynomial.count_hints h
+  ⦃ ⇓ res => ⌜ True ⌝ ⦄
+
+
+/-- [hacspec_ml_dsa::polynomial::vector_make_hint::pre]:
+    Source: 'ml-dsa/src/polynomial.rs', lines 140:0-140:355 -/
+@[reducible]
+def polynomial.vector_make_hint.pre
+  {N : Std.Usize} (z : Array (Array Std.I32 256#usize) N)
+  (r : Array (Array Std.I32 256#usize) N) (gamma2 : Std.I32) :
+  RustM hax_lib.prop.Prop
+  := do
+  hax_lib.prop.Prop.from_bool true
+
+def polynomial.vector_make_hint.spec {N : Std.Usize}
+  (z : Array (Array Std.I32 256#usize) N)
+  (r : Array (Array Std.I32 256#usize) N) (gamma2 : Std.I32) : Prop :=
+  (polynomial.vector_make_hint.pre z r gamma2).holds →
+  ⦃ ⌜ True ⌝ ⦄
+  polynomial.vector_make_hint z r gamma2
+  ⦃ ⇓ res => ⌜ True ⌝ ⦄
+
+
+/-- [hacspec_ml_dsa::polynomial::vector_use_hint::pre]:
+    Source: 'ml-dsa/src/polynomial.rs', lines 153:0-153:316 -/
+@[reducible]
+def polynomial.vector_use_hint.pre
+  {N : Std.Usize} (h : Array (Array Bool 256#usize) N)
+  (r : Array (Array Std.I32 256#usize) N) (gamma2 : Std.I32) :
+  RustM hax_lib.prop.Prop
+  := do
+  hax_lib.prop.Prop.from_bool true
+
+def polynomial.vector_use_hint.spec {N : Std.Usize}
+  (h : Array (Array Bool 256#usize) N) (r : Array (Array Std.I32 256#usize) N)
+  (gamma2 : Std.I32) : Prop :=
+  (polynomial.vector_use_hint.pre h r gamma2).holds →
+  ⦃ ⌜ True ⌝ ⦄
+  polynomial.vector_use_hint h r gamma2
+  ⦃ ⇓ res => ⌜ True ⌝ ⦄
 
 
 /-- [hacspec_ml_dsa::sampling::sample_in_ball::pre]:

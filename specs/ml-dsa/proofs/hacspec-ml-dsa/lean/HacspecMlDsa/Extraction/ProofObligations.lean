@@ -63,42 +63,6 @@ theorem arithmetic.use_hint.spec.proof (hint : Bool) (r : Std.I32)
   := by sorry
 
 @[spec]
-theorem polynomial.vector_power2round.spec.proof {N : Std.Usize}
-  (v : Array (Array Std.I32 256#usize) N) :
-  polynomial.vector_power2round.spec v
-  := by sorry
-
-@[spec]
-theorem polynomial.vector_high_bits.spec.proof {N : Std.Usize}
-  (v : Array (Array Std.I32 256#usize) N) (gamma2 : Std.I32) :
-  polynomial.vector_high_bits.spec v gamma2
-  := by sorry
-
-@[spec]
-theorem polynomial.vector_low_bits.spec.proof {N : Std.Usize}
-  (v : Array (Array Std.I32 256#usize) N) (gamma2 : Std.I32) :
-  polynomial.vector_low_bits.spec v gamma2
-  := by sorry
-
-@[spec]
-theorem polynomial.count_hints.spec.proof {N : Std.Usize}
-  (h : Array (Array Bool 256#usize) N) : polynomial.count_hints.spec h
-  := by sorry
-
-@[spec]
-theorem polynomial.vector_make_hint.spec.proof {N : Std.Usize}
-  (z : Array (Array Std.I32 256#usize) N)
-  (r : Array (Array Std.I32 256#usize) N) (gamma2 : Std.I32) :
-  polynomial.vector_make_hint.spec z r gamma2
-  := by sorry
-
-@[spec]
-theorem polynomial.vector_use_hint.spec.proof {N : Std.Usize}
-  (h : Array (Array Bool 256#usize) N) (r : Array (Array Std.I32 256#usize) N)
-  (gamma2 : Std.I32) : polynomial.vector_use_hint.spec h r gamma2
-  := by sorry
-
-@[spec]
 theorem encoding.simple_bit_pack.spec.proof (BYTES : Std.Usize)
   (w : Array Std.I32 256#usize) (b : Std.Usize) :
   encoding.simple_bit_pack.spec BYTES w b
@@ -284,6 +248,42 @@ theorem parameters.sig_size.spec.proof (params : parameters.MlDsaParams) :
 
 @[spec]
 theorem parameters.bitlen.spec.proof (n : Std.Usize) : parameters.bitlen.spec n
+  := by sorry
+
+@[spec]
+theorem polynomial.vector_power2round.spec.proof {N : Std.Usize}
+  (v : Array (Array Std.I32 256#usize) N) :
+  polynomial.vector_power2round.spec v
+  := by sorry
+
+@[spec]
+theorem polynomial.vector_high_bits.spec.proof {N : Std.Usize}
+  (v : Array (Array Std.I32 256#usize) N) (gamma2 : Std.I32) :
+  polynomial.vector_high_bits.spec v gamma2
+  := by sorry
+
+@[spec]
+theorem polynomial.vector_low_bits.spec.proof {N : Std.Usize}
+  (v : Array (Array Std.I32 256#usize) N) (gamma2 : Std.I32) :
+  polynomial.vector_low_bits.spec v gamma2
+  := by sorry
+
+@[spec]
+theorem polynomial.count_hints.spec.proof {N : Std.Usize}
+  (h : Array (Array Bool 256#usize) N) : polynomial.count_hints.spec h
+  := by sorry
+
+@[spec]
+theorem polynomial.vector_make_hint.spec.proof {N : Std.Usize}
+  (z : Array (Array Std.I32 256#usize) N)
+  (r : Array (Array Std.I32 256#usize) N) (gamma2 : Std.I32) :
+  polynomial.vector_make_hint.spec z r gamma2
+  := by sorry
+
+@[spec]
+theorem polynomial.vector_use_hint.spec.proof {N : Std.Usize}
+  (h : Array (Array Bool 256#usize) N) (r : Array (Array Std.I32 256#usize) N)
+  (gamma2 : Std.I32) : polynomial.vector_use_hint.spec h r gamma2
   := by sorry
 
 @[spec]
