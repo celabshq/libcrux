@@ -36,7 +36,7 @@ pub trait EcdhArrayref<const RAND_LEN: usize, const SECRET_LEN: usize, const PUB
     /// secret value.
     ///
     /// This value is NOT (!) safe for use as a key and needs to be processed in a round of key
-    /// derivation, to ensure both that the output is uniformly random and that unkown key share
+    /// derivation, to ensure both that the output is uniformly random and that unknown key share
     /// attacks can not happen.
     fn derive_ecdh(
         derived: &mut [U8; PUBLIC_LEN],
