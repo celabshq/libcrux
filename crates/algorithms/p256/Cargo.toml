@@ -30,8 +30,10 @@ check-secret-independence = [
 
 
 [dev-dependencies]
-der = "0.8.0"
 libcrux-p256 = { path = ".", features = ["expose-hacl"] }
+# Path-only (no version): keeps the dev-dependency cycle with `libcrux-ecdsa`
+# out of the published manifest. Same pattern as `libcrux-kats` below.
+libcrux-ecdsa = { path = "../ecdsa" }
 libcrux-traits = { workspace = true, features = [
     "generic-tests",
 ] }

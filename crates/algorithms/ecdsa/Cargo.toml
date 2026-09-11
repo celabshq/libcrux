@@ -3,7 +3,6 @@ name = "libcrux-ecdsa"
 description = "Formally verified ECDSA signature library"
 readme = "Readme.md"
 version = "0.0.8"
-exclude = ["tests/*.json"]
 
 authors.workspace = true
 license.workspace = true
@@ -26,5 +25,4 @@ std = ["rand?/std"]
 [dev-dependencies]
 rand_core = { version = "0.10" }
 rand = { version = "0.10", features = ["sys_rng"] }
-serde = { version = "1.0.217", features = ["derive"] }
-serde_json = "1.0.138"
+libcrux-kats = { workspace = true, features = ["ecdsa"] }

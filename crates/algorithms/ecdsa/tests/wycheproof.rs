@@ -1,150 +1,145 @@
-mod util;
+//! Wycheproof ECDSA P-256 known answer tests.
+//!
+//! Signatures in the test vectors are DER-encoded, so every case also exercises
+//! [`Signature::from_der`] and, for anything that decodes, [`Signature::to_der`].
+
 use libcrux_ecdsa::{
-    p256::{self, PublicKey},
-    DigestAlgorithm,
+    p256::{self, PublicKey, Signature},
+    DigestAlgorithm, Error,
 };
-use serde::{Deserialize, Serialize};
-use serde_json::Value;
-use util::*;
+use libcrux_kats::wycheproof::{ecdsa, TestResult};
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[allow(non_snake_case)]
-struct P256TestVector {
-    algorithm: String,
-    generatorVersion: String,
-    numberOfTests: usize,
-    notes: Option<Value>, // text notes (might not be present), keys correspond to flags
-    header: Vec<Value>,   // not used
-    testGroups: Vec<TestGroup>,
+/// Flags marking vectors that a strict DER decoder may legitimately reject.
+///
+/// Vectors carrying only *other* flags encode a well-formed signature that must
+/// decode and then fail verification — `PointDuplication` and `Untruncatedhash`
+/// are the notable ones.
+const MAY_FAIL_TO_DECODE: &[&str] = &[
+    "ArithmeticError",
+    "BerEncodedSignature",
+    "IntegerOverflow",
+    "InvalidEncoding",
+    "InvalidSignature",
+    "InvalidTypesInSignature",
+    "MissingZero",
+    "ModifiedInteger",
+    "ModifiedSignature",
+    "RangeCheck",
+];
+
+/// Flags marking encodings that a strict DER decoder must never accept: BER
+/// long-form and indefinite lengths, wrong tags, redundant leading zero bytes,
+/// and integers that do not fit in 32 bytes.
+///
+/// This is the dual of [`MAY_FAIL_TO_DECODE`] and the assertion that catches the
+/// decoder becoming *lax*. `RangeCheck` is deliberately absent: those vectors
+/// (`r ± n`, `r + 256 * n`) are rejected today only because those particular
+/// values need 33 bytes or are negative, not because the encoding is malformed.
+/// A vector with `r == n` would be canonical DER and must be caught by the
+/// range check in verification instead.
+///
+/// If a refreshed Wycheproof file trips this assertion, decide whether the new
+/// vector really is a non-canonical *encoding* (then the decoder has a bug) or a
+/// semantic problem that happens to carry an encoding flag (then drop the flag
+/// from this list).
+const MUST_FAIL_TO_DECODE: &[&str] = &[
+    "BerEncodedSignature",
+    "IntegerOverflow",
+    "InvalidEncoding",
+    "InvalidTypesInSignature",
+    "MissingZero",
+];
+
+fn has_flag(test: &ecdsa::Test, flags: &[&str]) -> bool {
+    test.flags.iter().any(|flag| flags.contains(&flag.as_str()))
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[allow(non_snake_case)]
-struct TestGroup {
-    key: Key,
-    keyDer: String,
-    keyPem: String,
-    sha: String,
-    r#type: String,
-    tests: Vec<Test>,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[allow(non_snake_case)]
-struct Key {
-    curve: String,
-    r#type: String,
-    keySize: usize,
-    uncompressed: String,
-    wx: String,
-    wy: String,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[allow(non_snake_case)]
-struct Test {
-    tcId: usize,
-    comment: String,
-    msg: String,
-    sig: String,
-    result: String,
-    flags: Vec<String>,
-}
-
-impl ReadFromFile for P256TestVector {}
-
-fn make_fixed_length(b: &[u8]) -> [u8; 32] {
-    let mut out = [0u8; 32];
-    let b_len = if b.len() >= 32 { 32 } else { b.len() };
-    for i in 0..b_len {
-        out[31 - i] = b[b.len() - 1 - i];
-    }
-    out
-}
-
-// A very simple ASN1 parser for ecdsa signatures.
-fn decode_signature(sig: &[u8]) -> p256::Signature {
-    let mut index = 0;
-    let (seq, seq_len) = (sig[index], sig[index + 1] as usize);
-    assert_eq!(0x30, seq);
-    assert_eq!(seq_len, sig.len() - 2);
-    index += 2;
-
-    let (x_int, x_int_len) = (sig[index], sig[index + 1] as usize);
-    assert_eq!(0x02, x_int);
-    assert!(index + x_int_len + 2 < sig.len());
-    index += 2;
-    let r = &sig[index..index + x_int_len];
-    index += x_int_len;
-
-    let (y_int, y_int_len) = (sig[index], sig[index + 1] as usize);
-    assert_eq!(0x02, y_int);
-    assert!(index + y_int_len + 2 == sig.len());
-    index += 2;
-    let s = &sig[index..index + y_int_len as usize];
-    index += y_int_len;
-    assert_eq!(sig.len(), index);
-
-    p256::Signature::from_raw(make_fixed_length(r), make_fixed_length(s))
-}
-
-#[allow(non_snake_case)]
-#[test]
-fn test_wycheproof() {
-    let tests: P256TestVector = P256TestVector::from_file("tests/ecdsa_secp256r1_sha256_test.json");
-    // TODO: add SHA512 tests
-
-    assert_eq!(tests.algorithm, "ECDSA");
-
-    let num_tests = tests.numberOfTests;
+fn wycheproof_ecdsa_p256(test_set: ecdsa::TestSet, hash: DigestAlgorithm) {
     let mut tests_run = 0;
-    let mut tests_skipped = 0;
+    let mut decoding_sig_failed = 0;
 
-    for testGroup in tests.testGroups.iter() {
-        assert_eq!(testGroup.key.curve, "secp256r1");
-        assert_eq!(testGroup.key.r#type, "EcPublicKey");
-        assert_eq!(testGroup.r#type, "EcdsaVerify");
+    for test_group in &test_set.test_groups {
+        // Uncompressed point, `04 || X || Y`.
+        let pk = PublicKey::try_from(test_group.key.key.as_slice()).unwrap_or_else(|e| {
+            panic!(
+                "test group with invalid public key ({e:?}). Key (DER): {}",
+                test_group.public_key_der
+            )
+        });
 
-        assert_eq!(testGroup.sha, "SHA-256");
-
-        let pk = hex_str_to_bytes(&testGroup.key.uncompressed);
-        let pk = PublicKey::try_from(pk.as_slice()).unwrap();
-
-        for test in testGroup.tests.iter() {
-            println!("Test {:?}: {:?}", test.tcId, test.comment);
-
-            let valid = test.result.eq("valid") || test.result.eq("acceptable");
-            let hash = DigestAlgorithm::Sha256;
-
-            // Skip invalid for now
-            if !valid {
-                tests_skipped += 1;
-                continue;
-            }
-
-            let msg = hex_str_to_bytes(&test.msg);
-            let sig = hex_str_to_bytes(&test.sig);
-
-            // The signature is ASN.1 encoded.
-            let signature = decode_signature(&sig);
-
-            match p256::verify(hash, &msg, &signature, &pk) {
-                Ok(_) => {
-                    assert!(valid);
+        for test in &test_group.tests {
+            let signature = match Signature::from_der(&test.sig) {
+                Ok(signature) => signature,
+                Err(_) => {
+                    assert_eq!(
+                        TestResult::Invalid,
+                        test.result,
+                        "tc_id {}: signature failed to decode but the test is not invalid",
+                        test.tc_id
+                    );
+                    assert!(
+                        has_flag(test, MAY_FAIL_TO_DECODE),
+                        "tc_id {}: signature failed to decode for an unexpected reason: {:?}",
+                        test.tc_id,
+                        test.flags
+                    );
+                    decoding_sig_failed += 1;
+                    tests_run += 1;
+                    continue;
                 }
-                Err(e) => {
-                    println!("Error case ({:?}", e);
-                    assert!(!valid);
-                }
+            };
+
+            assert!(
+                !has_flag(test, MUST_FAIL_TO_DECODE),
+                "tc_id {}: non-canonical encoding was accepted: {:?}",
+                test.tc_id,
+                test.flags
+            );
+
+            // Anything the strict decoder accepts is already canonical DER, so
+            // re-encoding it must reproduce the input byte for byte.
+            assert_eq!(
+                signature.to_der().as_bytes(),
+                test.sig.as_slice(),
+                "tc_id {}: re-encoding the signature did not reproduce the input",
+                test.tc_id
+            );
+
+            match (p256::verify(hash, &test.msg, &signature, &pk), &test.result) {
+                (Ok(()), TestResult::Valid) => {}
+                (Err(Error::InvalidSignature), TestResult::Invalid) => {}
+                (result, expected) => panic!(
+                    "tc_id {}: verify returned {result:?} but the test result is {expected:?}",
+                    test.tc_id
+                ),
             }
 
             tests_run += 1;
         }
     }
-    // Check that we ran all tests.
-    println!(
-        "Ran {} out of {} tests and skipped {}.",
-        tests_run, num_tests, tests_skipped
+
+    assert_eq!(test_set.number_of_tests, tests_run, "did not run all tests");
+    // Guard against a decoder that accepts everything; the converse (one that
+    // rejects everything) is caught by the `TestResult::Invalid` assertion above.
+    assert!(
+        decoding_sig_failed > 0,
+        "no signature was rejected while decoding"
     );
-    assert_eq!(num_tests - tests_skipped, tests_run);
+    println!("Ran {tests_run} tests, {decoding_sig_failed} of which were rejected while decoding");
+}
+
+#[test]
+fn ecdsa_secp256r1_sha256() {
+    wycheproof_ecdsa_p256(
+        ecdsa::TestSet::load_secp256r1_sha256(),
+        DigestAlgorithm::Sha256,
+    );
+}
+
+#[test]
+fn ecdsa_secp256r1_sha512() {
+    wycheproof_ecdsa_p256(
+        ecdsa::TestSet::load_secp256r1_sha512(),
+        DigestAlgorithm::Sha512,
+    );
 }

@@ -7,6 +7,7 @@
 #![no_std]
 #![forbid(unsafe_code)]
 
+mod der;
 pub mod p256;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -20,6 +21,7 @@ pub enum Error {
     InvalidSignature,
     RandError,
     UnsupportedHash,
+    InvalidEncoding,
 }
 
 /// The hash algorithm used for signing or verifying.

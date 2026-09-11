@@ -1,0 +1,101 @@
+name: ECDSA
+
+permissions: {}
+
+on:
+  merge_group:
+  pull_request:
+    branches: ["main", "dev", "*"]
+    paths:
+      - "crates/algorithms/ecdsa/**"
+      - .github/workflows/ecdsa.yml
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+          - windows-latest
+
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: crates/algorithms/ecdsa
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Install cargo-hack
+        uses: taiki-e/install-action@b6b84cf49ebfe0176417bdce007c624f0db37f20 # v2.86.2
+        with:
+          tool: cargo-hack
+
+      - name: 🔨 Build
+        run: |
+          cargo build --all-targets --verbose
+
+      - name: 🔨 Build Release
+        run: cargo build --release --all-targets --verbose
+
+      # Test ...
+
+      - name: 🏃🏻‍♀️ Test
+        run: |
+          cargo hack test --each-feature --verbose
+
+      - name: 🏃🏻‍♀️ Test Release
+        run: |
+          cargo hack test --each-feature --verbose --release
+
+  fuzz:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-latest # macos-15
+          - ubuntu-latest
+        target:
+          - der_roundtrip
+          - der_decode
+
+    runs-on: ${{ matrix.os }}
+    env:
+      FUZZ_TIME: 300 # seconds = 5 mins
+    defaults:
+      run:
+        shell: bash
+        working-directory: crates/algorithms/ecdsa
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Install latest nightly
+        uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772
+        with:
+          toolchain: nightly
+          components: rust-src, llvm-tools-preview
+
+      # install-action with cargo-binstall fallback doesn't work for cargo-fuzz
+      - name: Install cargo-fuzz
+        run: |
+          cargo install cargo-fuzz --locked
+
+      # disable lto for fuzzing due to https://github.com/rust-fuzz/cargo-fuzz/issues/384
+      - name: 🏃🏻‍♀️ Fuzz ${{ matrix.target }}
+        run: CARGO_PROFILE_RELEASE_LTO=false cargo +nightly fuzz run ${{ matrix.target }} -- -max_total_time=${{ env.FUZZ_TIME }}

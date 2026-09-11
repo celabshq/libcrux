@@ -1,0 +1,28 @@
+[package]
+edition = "2021"
+name = "libcrux-ecdsa-fuzz"
+publish = false
+version = "0.0.0"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+
+[dependencies.libcrux-ecdsa]
+path = ".."
+
+[[bin]]
+bench = false
+doc = false
+name = "der_roundtrip"
+path = "fuzz_targets/der_roundtrip.rs"
+test = false
+
+[[bin]]
+bench = false
+doc = false
+name = "der_decode"
+path = "fuzz_targets/der_decode.rs"
+test = false
