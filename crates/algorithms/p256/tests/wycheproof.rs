@@ -114,39 +114,15 @@ fn ecdh_secp256r1() {
     println!("Ran {tests_run} ecdh_secp256r1_ecpoint tests",);
 }
 
-/// A P-256 Signature
-#[derive(Clone, Default)]
-struct Signature {
-    r: [u8; 32],
-    s: [u8; 32],
-}
+/// A P-256 Signature: `(r, s)`.
+type Signature = ([u8; 32], [u8; 32]);
 
-/// ASN.1 DER parser for ECDSA signatures.
+/// Decode a DER-encoded ECDSA signature.
 /// Returns None if the signature is malformed.
 fn decode_signature(sig: &[u8]) -> Option<Signature> {
-    use der::{asn1::UintRef, Decode, Reader};
-    // Adapted from https://docs.rs/ecdsa/0.16.9/src/ecdsa/der.rs.html#357-370
-    fn decode_der_rust_crypto(der_bytes: &[u8]) -> der::Result<(UintRef<'_>, UintRef<'_>)> {
-        let mut reader = der::SliceReader::new(der_bytes)?;
-        let header = der::Header::decode(&mut reader)?;
-        header.tag().assert_eq(der::Tag::Sequence)?;
-
-        let (r, s) = reader.read_nested(header.length(), |reader| {
-            let r = UintRef::decode(reader)?;
-            let s = UintRef::decode(reader)?;
-            Ok::<_, der::Error>((r, s))
-        })?;
-        reader.finish()?;
-        Ok((r, s))
-    }
-    let (r, s) = decode_der_rust_crypto(sig).ok()?;
-    if r.as_bytes().len() > 32 || s.as_bytes().len() > 32 {
-        return None;
-    }
-    Some(Signature {
-        r: pad_slice_to_arr(r.as_bytes()),
-        s: pad_slice_to_arr(s.as_bytes()),
-    })
+    let signature = libcrux_ecdsa::p256::Signature::from_der(sig).ok()?;
+    let (r, s) = signature.as_bytes();
+    Some((*r, *s))
 }
 
 /// Generic ecdsa_secp256r1_sha test function
@@ -210,7 +186,8 @@ where
                 continue;
             };
 
-            let valid = verify(test.msg.len() as u32, &test.msg, &pk_bytes, &sig.r, &sig.s);
+            let (r, s) = sig;
+            let valid = verify(test.msg.len() as u32, &test.msg, &pk_bytes, &r, &s);
 
             match test.result {
                 TestResult::Valid => {
