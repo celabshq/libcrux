@@ -196,7 +196,7 @@ pub(crate) fn absorb<const RATE: usize, const DELIM: u8>(input: &[u8]) -> Keccak
                        Rust_primitives.Hax.repeat (mk_u64 0) (mk_usize 25) in
                    v $i <= v $input_blocks /\
                    $s.st ==
-                     Hacspec_sha3.Sponge.absorb_blocks
+                     Hacspec_sha3.Sponge.Lemmas.absorb_blocks
                        zeros $RATE (mk_usize 0) $i $input"#
             )
         });

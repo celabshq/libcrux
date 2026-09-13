@@ -87,6 +87,7 @@ let lemma_absorb4_avx2
     Mirrors [lemma_squeeze2_arm64]: discharged directly by the Rust-side
     ensures on [Simd256.squeeze4] (an inline loop-invariant proof at N=4,
     the AVX2 analogue of [Simd128.squeeze2]). *)
+#push-options "--z3rlimit 400 --using_facts_from '* -Hacspec_sha3.Sponge.squeeze -EquivImplSpec.Keccakf.Generic.extract_lane -Libcrux_sha3.Generic_keccak.Simd256.squeeze4_blocks'"
 let lemma_squeeze4_avx2
       (rate: usize)
       (s: Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 4) I.t_Vec256)
@@ -116,7 +117,16 @@ let lemma_squeeze4_avx2
            rate
          <: t_Slice u8)))
   = let _ = Libcrux_sha3.Generic_keccak.Simd256.squeeze4 rate s out0 out1 out2 out3 in
-    ()
+    (* squeeze4's post gives out{0,1,2,3}' == squeeze(extract_lane s {0,1,2,3}); pick the
+       concrete lane so the symbolic `if l=0 ...` if-ladder collapses to the matching
+       conjunct.  Mirrors lemma_squeeze2_arm64: without pinning the lane, the symbolic
+       if forces a case split that cascades and saturates the whole lemma. *)
+    (match l with
+     | 0 -> ()
+     | 1 -> ()
+     | 2 -> ()
+     | _ -> ())
+#pop-options
 
 
 (* ================================================================

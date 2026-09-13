@@ -4,7 +4,7 @@ open FStar.Mul
 open Core_models
 
 (* ============================================================================
-   CANONICAL NEON lane-view op-lemma companion (core-models migration, WS C).
+   CANONICAL NEON lane-view op-lemma companion.
 
    The ARM/NEON analog of the x86 op-lemma set in
    `Libcrux_core_models.Intrinsics_views`.  It rests entirely on the
@@ -52,33 +52,33 @@ unfold let bv64  = BV.t_BitVec (mk_u64 64)
       the SAME shared `Int_vec_interp` codec; each `rt_*` is one instance of the
       PROVEN generic `IVi.lemma_conv_rt`. ─────────────────────────────────────── *)
 
-let to_u32x4    = IVi.e_ee_15__impl__to_u32x4
-let from_u32x4  = IVi.e_ee_15__impl__from_u32x4
+let to_u32x4    = IVi.e_ee_14__impl__to_u32x4
+let from_u32x4  = IVi.e_ee_14__impl__from_u32x4
 let rt_u32x4 (y: Funarr.t_FunArray (mk_u64 4) u32) : Lemma (to_u32x4 (from_u32x4 y) == y) =
   IVi.lemma_conv_rt Int.U32 (mk_u64 128) (mk_u64 4) y
 
-let to_u64x2    = IVi.e_ee_16__impl__to_u64x2
-let from_u64x2  = IVi.e_ee_16__impl__from_u64x2
+let to_u64x2    = IVi.e_ee_15__impl__to_u64x2
+let from_u64x2  = IVi.e_ee_15__impl__from_u64x2
 let rt_u64x2 (y: Funarr.t_FunArray (mk_u64 2) u64) : Lemma (to_u64x2 (from_u64x2 y) == y) =
   IVi.lemma_conv_rt Int.U64 (mk_u64 128) (mk_u64 2) y
 
-let to_u16x8    = IVi.e_ee_17__impl__to_u16x8
-let from_u16x8  = IVi.e_ee_17__impl__from_u16x8
+let to_u16x8    = IVi.e_ee_16__impl__to_u16x8
+let from_u16x8  = IVi.e_ee_16__impl__from_u16x8
 let rt_u16x8 (y: Funarr.t_FunArray (mk_u64 8) u16) : Lemma (to_u16x8 (from_u16x8 y) == y) =
   IVi.lemma_conv_rt Int.U16 (mk_u64 128) (mk_u64 8) y
 
-let to_u8x16    = IVi.e_ee_18__impl__to_u8x16
-let from_u8x16  = IVi.e_ee_18__impl__from_u8x16
+let to_u8x16    = IVi.e_ee_17__impl__to_u8x16
+let from_u8x16  = IVi.e_ee_17__impl__from_u8x16
 let rt_u8x16 (y: Funarr.t_FunArray (mk_u64 16) u8) : Lemma (to_u8x16 (from_u8x16 y) == y) =
   IVi.lemma_conv_rt Int.U8 (mk_u64 128) (mk_u64 16) y
 
-let to_i16x4    = IVi.e_ee_20__impl__to_i16x4
-let from_i16x4  = IVi.e_ee_20__impl__from_i16x4
+let to_i16x4    = IVi.e_ee_19__impl__to_i16x4
+let from_i16x4  = IVi.e_ee_19__impl__from_i16x4
 let rt_i16x4 (y: Funarr.t_FunArray (mk_u64 4) i16) : Lemma (to_i16x4 (from_i16x4 y) == y) =
   IVi.lemma_conv_rt Int.I16 (mk_u64 64) (mk_u64 4) y
 
-let to_u16x4    = IVi.e_ee_24__impl__to_u16x4
-let from_u16x4  = IVi.e_ee_24__impl__from_u16x4
+let to_u16x4    = IVi.e_ee_23__impl__to_u16x4
+let from_u16x4  = IVi.e_ee_23__impl__from_u16x4
 let rt_u16x4 (y: Funarr.t_FunArray (mk_u64 4) u16) : Lemma (to_u16x4 (from_u16x4 y) == y) =
   IVi.lemma_conv_rt Int.U16 (mk_u64 64) (mk_u64 4) y
 

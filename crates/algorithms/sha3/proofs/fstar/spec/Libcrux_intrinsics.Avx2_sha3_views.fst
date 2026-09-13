@@ -4,12 +4,12 @@ open FStar.Mul
 open Core_models
 
 (* ============================================================================
-   sha3 AVX2 (X4) lane-view + per-op fact companion (core-models migration).
+   sha3 AVX2 (X4) lane-view + per-op fact companion.
 
    The u64x4 / 256-bit analog of `Libcrux_intrinsics.Arm64_sha3_views` (the NEON
    u64x2 companion).  It exposes to sha3's AVX2 proofs the u64x4 lane VIEW
    (`vec256_as_u64x4` / `get_lane_u64x4`) and the per-op FACT lemmas that the
-   hand-written pcm `Libcrux_intrinsics.Avx2_extract` interface carried as op
+   hand-written `Libcrux_intrinsics.Avx2_extract` interface carried as op
    `ensures` (or `fstar::replace(interface,...)` lemma discharges), now phrased
    over the REAL `Libcrux_intrinsics.Avx2` ops (which delegate to the
    differentially-tested `libcrux-core-models` x86 model + `X86.Extra` slice-I/O
@@ -20,9 +20,9 @@ open Core_models
    codec (`Canon.to_u64x4` = `Int_vec_interp` width 256 / lane 64), and every
    op-fact is PROVEN from the canonical u64x4 op-lemma set in
    `Libcrux_core_models.Intrinsics_views` (which rests only on the differentially
-   tested `Trusted.Intrinsics` lifts + the PROVEN codec round-trip).  Under pcm
-   these facts were assumed op `ensures` / `admit`s; the trust surface here has
-   strictly SHRUNK.  NO fact in this module is assumed.
+   tested `Trusted.Intrinsics` lifts + the PROVEN codec round-trip).  Every fact
+   here is PROVEN, not an assumed op `ensures` or `admit`.  NO fact in this
+   module is assumed.
 
    It `include`s the real `Libcrux_intrinsics.Avx2` so consumers that alias this
    module resolve both `mm256_OP` to the real op AND `vec256_as_u64x4` /
@@ -50,14 +50,14 @@ module Avx2m  = Libcrux_core_models.Core_arch.X86.Avx2
 module Num    = Core_models.Num
 module Int    = Rust_primitives.Integers
 
-(* ── lane-view type (mirrors the pcm `t_Vec256`; the REAL `Avx2` wrappers take
+(* ── lane-view type (mirrors the `Avx2_extract` `t_Vec256`; the REAL `Avx2` wrappers take
       `BV.t_BitVec (mk_u64 256)` inline and define no alias, so — exactly as the
       NEON companion supplies `t_e_uint64x2_t` — this module supplies `t_Vec256`
       for the repointed consumers (`I.t_Vec256`)). ───────────────────────────── *)
 unfold type t_Vec256 = BV.t_BitVec (mk_u64 256)
 
 (* ── u64x4 lane view (A-on-B adapter over canonical Canon.to_u64x4).  OPAQUE
-      for the same reasons as ml-kem's `vec256_as_i16x16`: keeps pcm's
+      for the same reasons as ml-kem's `vec256_as_i16x16`: keeps the `Avx2_extract`
       abstraction (still PROVEN, not assumed); the only route to the codec is
       the index lemma below. ─────────────────────────────────────────────────── *)
 [@@ "opaque_to_smt"]
@@ -90,7 +90,7 @@ let lemma_glx4_eq_get64 (v: t_Vec256) (i: nat{i < 4})
    u64x4 op-facts.  Each real `mm256_OP` is `[@@ opaque_to_smt]` and delegates
    (definitionally) to `Avx2m.e_mm256_OP` / `Avx.e_mm256_OP`; revealing it +
    the PROVEN `Canon.lemma_OP_u64x4` (over the same core-models op) + the view
-   bridge closes the per-lane fact.  Statements mirror the pcm
+   bridge closes the per-lane fact.  Statements mirror
    `Avx2_extract.lemma_mm256_*_u64x4` (SMTPat on the op application, `forall`
    ensures over `get_lane_u64x4`).
    ========================================================================== *)
@@ -294,7 +294,7 @@ let lemma_mm256_permute2x128_si256_u64x4 (v_IMM8: i32) (a b: t_Vec256)
 (* ============================================================================
    get_lane_u64 bridge: the real op = `Extra.get_lane_u64_model vec lane`
    = (for v lane < 4) `(Canon.to_u64x4 vec).[cast lane]` = `get_lane_u64x4 vec
-   (v lane)`.  Matches the pcm `get_lane_u64_post` SMTPat.
+   (v lane)`.  Matches `Avx2_extract`'s `get_lane_u64_post` SMTPat.
    ========================================================================== *)
 #push-options "--fuel 1 --ifuel 1 --z3rlimit 150"
 let get_lane_u64_post (vec: t_Vec256) (lane: usize)
@@ -313,8 +313,8 @@ let get_lane_u64_post (vec: t_Vec256) (lane: usize)
    ========================================================================== *)
 
 (* u8x32 codec (Int_vec_interp width 256 / lane 8) + its round-trip. *)
-let to_u8x32   = IVi.e_ee_9__impl__to_u8x32
-let from_u8x32 = IVi.e_ee_9__impl__from_u8x32
+let to_u8x32   = IVi.e_ee_8__impl__to_u8x32
+let from_u8x32 = IVi.e_ee_8__impl__from_u8x32
 let rt_u8x32 (y: Funarr.t_FunArray (mk_u64 32) u8)
   : Lemma (to_u8x32 (from_u8x32 y) == y)
   = IVi.lemma_conv_rt Int.U8 (mk_u64 256) (mk_u64 32) y
@@ -454,7 +454,7 @@ let lemma_u8x32_u64x4_repack (vv: t_Vec256) (i: nat{i < 4}) (b: nat{b < 8})
    (`Trusted.Intrinsics.lemma_u64_{to,from}_le_bytes_*`) so the SHA3 store/load
    consumers — whose `stored` predicate and the to_le_bytes-defined reference
    spec speak in to_le_bytes / from_le_bytes form — reconnect.  These REPLACE
-   the pcm `Avx2_extract` byte op-ensures (which asserted the same le_bytes
+   the `Avx2_extract` byte op-ensures (which asserted the same le_bytes
    facts as TRUSTED); net trust drops to the two core-models axioms.
    ========================================================================== *)
 
@@ -471,8 +471,8 @@ let lemma_get_lane_u8x32_eq_to_le_bytes (vv: t_Vec256) (k: nat{k < 32})
     (get_lane_u64x4 vv (k / 8)) (k % 8)
 #pop-options
 
-(* the pcm `lemma_mm256_storeu_si256_u8_byte` replacement, in to_le_bytes form
-   over the REAL `get_lane_u64` (same name/statement as the pcm interface's, so
+(* the `Avx2_extract` `lemma_mm256_storeu_si256_u8_byte` replacement, in to_le_bytes form
+   over the REAL `get_lane_u64` (same name/statement as the `Avx2_extract` interface's, so
    StoreBlockHelpers.Avx2's by-name call repoints verbatim): the stored byte k
    is byte (k%8) of to_le_bytes(get_lane_u64 vector (k/8)). *)
 #push-options "--fuel 1 --ifuel 1 --z3rlimit 300"

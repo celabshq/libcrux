@@ -20,8 +20,7 @@ use super::wrappers::uint64x2_t;
 // extensionality lemma `load_lane_u64_lane_extensionality` injected
 // via `fstar::after`, which lets the loop_invariant's per-lane
 // equality (provided by `get_lane_u64`) bridge to per-`load_lane_u64`
-// equality without unfolding the body. Mirrors the AVX2 cascade
-// closure (commit 3b9fc054c).
+// equality without unfolding the body. Mirrors the AVX2 side.
 #[cfg(hax)]
 #[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
 #[hax_lib::fstar::after(
@@ -222,11 +221,10 @@ fn load_u64x2x2(
     )
 }
 
-// Cliff closure 2026-05-07: opacified `load_lane_u64` + `load_u64x2`
-// + `load_u64x2x2` and added `load_lane_u64_lane_extensionality`
-// SMTPat lemma. Mirrors the AVX2 cascade closure (commits 7bb581f8b
-// .. 3b9fc054c) which discharged the same `k!61` /
-// `Rust_primitives.Slice.array_from_fn` cascade at q301.
+// `load_lane_u64`, `load_u64x2`, and `load_u64x2x2` are opacified, plus a
+// `load_lane_u64_lane_extensionality` SMTPat lemma. This discharges the
+// `k!61` / `Rust_primitives.Slice.array_from_fn` refinement-interpretation
+// cascade (the AVX2 side handles the same cascade).
 #[inline(always)]
 #[hax_lib::fstar::options("--z3rlimit 400 --split_queries always --using_facts_from '* -Rust_primitives.Slice.array_from_fn -Core_models.Num.impl_u64__rem_euclid -Core_models.Num.impl_u32__rem_euclid -Libcrux_intrinsics.Arm64_sha3_views'")]
 #[hax_lib::requires(valid_rate(RATE)

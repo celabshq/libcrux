@@ -16,8 +16,8 @@ module Proof_Utils.NatFold
     α/β/η-equivalent inline lambdas whose refinement types differ only
     syntactically.
 
-    Earlier attempts to discharge these equalities via [fold_range_ext]
-    (see [Libcrux_sha3.Proof_utils.Folds]) ran into the same wall: the
+    Discharging these equalities via [fold_range_ext]
+    (see [Libcrux_sha3.Proof_utils.Folds]) hits the same wall: the
     pointwise hypothesis of [fold_range_ext] is a ∀-quantified closure
     equality, which SMT cannot prove for hax-extracted lambdas.
 

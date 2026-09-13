@@ -1277,7 +1277,7 @@ let lemma_rho_thru_4_extract_lane
     (spec-side 25-position result with matching offsets), the goal reduces to
     pointwise equality + [eq_intro]. *)
 
-(* Theta+Rho commutativity (2026-05-04: factored as 5 row-helpers + a dispatcher).
+(* Theta+Rho commutativity, factored as 5 row-helpers + a dispatcher.
 
    The cumulative [lemma_rho_thru_4_extract_lane] supplies all 25 impl-side
    per-index equalities; [lemma_rho_theta_spec] supplies the matching 25
@@ -1285,11 +1285,10 @@ let lemma_rho_thru_4_extract_lane
    [d_matches_spec]. The remaining work is just lifting 25 in-scope
    pointwise equalities to a forall for [eq_intro].
 
-   Prior attempts that fed all 25 asserts to a single [eq_intro] timed out
-   on the forall-precondition consolidation (see proof_milestones.md
-   Note A). The fix is to split the post into 5 row-shaped 5-conjunct
-   sub-goals (each closes monolithically) and assemble with a 5-way
-   case-split on [i / 5]. *)
+   Feeding all 25 asserts to a single [eq_intro] times out on the forall-
+   precondition consolidation.  Instead, split the post into 5 row-shaped
+   5-conjunct sub-goals (each closes monolithically) and assemble with a
+   5-way case-split on [i / 5]. *)
 
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 400"
 let lemma_theta_rho_row_0_to_spec

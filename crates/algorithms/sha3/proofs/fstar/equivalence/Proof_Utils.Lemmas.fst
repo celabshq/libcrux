@@ -1,11 +1,10 @@
 module Proof_Utils.Lemmas
 
 (** Library-level lemmas that bridge to upstream hax-lib /
-    core-models proofs.  As of 2026-04-25, the underlying lemmas
-    have been added to hax-lib's [Rust_primitives.Integers] and
-    companion [Rust_primitives.Hax.Monomorphized_update_at_Lemmas]
-    (cryspen/hax integer-lemmas branch); this file now wraps those
-    upstream lemmas. *)
+    core-models proofs.  The underlying lemmas live in hax-lib's
+    [Rust_primitives.Integers] and companion
+    [Rust_primitives.Hax.Monomorphized_update_at_Lemmas]; this file
+    wraps those upstream lemmas. *)
 
 #set-options "--fuel 0 --ifuel 1 --z3rlimit 50"
 
@@ -18,13 +17,14 @@ let logand_commutative (#t: inttype) (a b: int_t t)
   : Lemma ((a &. b) == (b &. a))
   = Rust_primitives.Integers.logand_commutative a b
 
-(** [rotate_left(x, 0) == x].  Now provable since
-    [Core_models.Num.impl_u64__rotate_left] is concretely defined as
-    a delegation to [rotate_left_u] with the [n mod 64 == 0]
-    case being the identity (cryspen/hax integer-lemmas branch). *)
+(** [rotate_left(x, 0) == x]: [Core_models.Num.impl_u64__rotate_left] is
+    [@@ "opaque_to_smt"] (atom by default; see hax#2235), so we [reveal_opaque]
+    its shifts+xor body — with [n = 0] the [n mod 64 == 0] guard selects the
+    identity branch. *)
 let lemma_rotate_left_zero (x: u64)
   : Lemma (Core_models.Num.impl_u64__rotate_left x (mk_u32 0) == x)
-  = ()
+  = reveal_opaque (`%Core_models.Num.impl_u64__rotate_left)
+                  Core_models.Num.impl_u64__rotate_left
 
 (* Update at Range Indexing Property *)
 (* This is a more useful spec than the one in Monomorphized_update_at *)

@@ -675,11 +675,10 @@ pub mod avx2 {
     /// Models Intel's specification: byte-shift right within each 128-bit
     /// lane; if `IMM8 & 0xff > 15`, the destination is zeroed.
     ///
-    /// History: an earlier model deliberately mirrored a bug in Rust
-    /// `core::arch::x86_64::_mm256_bsrli_epi128` that took `IMM8 % 16`
-    /// instead of zeroing on out-of-range shifts (rust-lang/stdarch#1822).
-    /// That bug was fixed in stdarch#1823 — the int-vec model now matches
-    /// the fixed (Intel-spec) behaviour.
+    /// Rust's `core::arch::x86_64::_mm256_bsrli_epi128` once took `IMM8 % 16`
+    /// instead of zeroing on out-of-range shifts (rust-lang/stdarch#1822); that
+    /// bug was fixed in stdarch#1823.  The int-vec model matches the fixed
+    /// (Intel-spec) behaviour.
     #[libcrux_macros::trusted(opaque, "validated-axiom: _mm256_bsrli_epi128 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
     pub fn _mm256_bsrli_epi128<const IMM8: i32>(_: __m256i) -> __m256i {
         unimplemented!()

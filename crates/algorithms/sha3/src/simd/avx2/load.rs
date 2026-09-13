@@ -152,7 +152,7 @@ fn load_u64x4x4(
     let v1 = mm256_loadu_si256_u8(&blocks[1][start..start + 32]);
     let v2 = mm256_loadu_si256_u8(&blocks[2][start..start + 32]);
     let v3 = mm256_loadu_si256_u8(&blocks[3][start..start + 32]);
-    // core-models flip: the pcm `mm256_loadu_si256_u8` wrapper carried a
+    // The `Avx2_extract` `mm256_loadu_si256_u8` wrapper carried a
     // `from_le_bytes(input[i*8..i*8+8].try_into())`-form auto-post; the real op
     // has none, so bridge each loaded vector's lane to the `load_lane_u64`
     // byte-slice form via the companion (range-reduction + loadu codec fact +

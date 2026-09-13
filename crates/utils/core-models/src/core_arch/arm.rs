@@ -1,7 +1,7 @@
 //! A (partial) Rust-based model of [`core::arch::aarch64`].
 //!
 //! Models 94 NEON intrinsics referenced from `crates/utils/intrinsics/src/arm64.rs`
-//! (the `T1_arm64` set in the SIMD intrinsics trust-base sprint).
+//! (the `T1_arm64` set).
 //!
 //! # Layout
 //!
@@ -24,9 +24,8 @@
 //! # Source attribution
 //!
 //! Portions of this file are adapted from
-//! `verify-rust-std/testable-simd-models/`, © Cryspen, Apache-2.0,
-//! imported on 2026-05-02 for the libcrux SIMD intrinsics trust-base sprint.
-//! The const-generic of `BitVec<N>` was reconciled from `u32` (upstream) to
+//! `verify-rust-std/testable-simd-models/`, © Cryspen, Apache-2.0.
+//! The const-generic of `BitVec<N>` is reconciled from `u32` (upstream) to
 //! `u64` (libcrux core-models) per `INTRINSICS-TRUST-PLAN.md`.
 
 #![allow(clippy::too_many_arguments)]

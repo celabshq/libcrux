@@ -365,8 +365,8 @@ pub mod int_vec_interp {
 		     u32x2 [u32; 2], u16x4 [u16; 4], u8x8 [u8; 8], u64x1 [u64; 1]);
 
     /// Concrete lane-view conversions (bit-slice + two's-complement) with a
-    /// single generic round-trip lemma `lemma_conv_rt` (SMTPat). This replaces
-    /// the (formerly `#[opaque]`) macro conversions with real F* definitions.
+    /// single generic round-trip lemma `lemma_conv_rt` (SMTPat). Gives the
+    /// macro conversions real F* definitions rather than opaque stubs.
     #[libcrux_macros::trusted(replace, "trusted-extern: BitVec concrete lane-view conversions (bit-vector primitive)")]
     #[hax_lib::fstar::replace(
         r#"

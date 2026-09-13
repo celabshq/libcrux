@@ -20,7 +20,7 @@
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
         "equation_Core_models.Ops.Index.f_index",
         "equation_Core_models.Ops.Index.f_index_pre",
-        "equation_Core_models.Slice.impl_7",
+        "equation_Core_models.Slice.impl_6",
         "equation_Core_models.Slice.impl__len",
         "equation_Hacspec_sha3.Sponge.absorb_block",
         "equation_Libcrux_sha3.Generic_keccak.impl_2__absorb_block",
@@ -61,11 +61,12 @@
         "interpretation_Tm_abs_0f26f27994f21128bed60cbb54736484",
         "interpretation_Tm_abs_4ab552b3415220d2b607f7d57c958117",
         "interpretation_Tm_abs_5868e62885022fbd12d9059af52f4674",
-        "interpretation_Tm_abs_87065fc1a6f4731576ff09a0c8e20742",
-        "interpretation_Tm_abs_900369f04b4ab299c3cdf8970be0a9f8",
         "interpretation_Tm_abs_9e51361188a25d28bb48d6a215e0ee9b",
         "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
         "interpretation_Tm_abs_cebcdd9a3b8f75c69ec7627809b3720a",
+        "interpretation_Tm_abs_d5287eb2e61e3443587fbbcb21efd84b",
+        "interpretation_Tm_abs_f9c2728f19ddd20263287eca3242b7dc",
+        "interpretation_Tm_abs_fd6f2e57ab8d0296c22b4aca283c828d",
         "lemma_FStar.Seq.Base.lemma_len_slice",
         "lemma_Rust_primitives.Integers.pow2_values",
         "primitive_Prims.op_Addition", "primitive_Prims.op_AmpAmp",
@@ -74,19 +75,19 @@
         "primitive_Prims.op_LessThan", "primitive_Prims.op_LessThanOrEqual",
         "primitive_Prims.op_Modulus", "primitive_Prims.op_Subtraction",
         "primitive_Prims.op_disEquality",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_start",
         "proj_equation_Core_models.Ops.Index.Mkt_Index_@f_Output",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_start",
         "proj_equation_Libcrux_sha3.Generic_keccak.Mkt_KeccakState_@f_st",
         "proj_equation_Libcrux_sha3.Traits.Mkt_Absorb_@f_load_block_pre",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxBool_proj_0",
         "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_start",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_Output",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index_pre",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_start",
         "projection_inverse_Libcrux_sha3.Generic_keccak.Mkt_KeccakState_@f_st",
         "projection_inverse_Libcrux_sha3.Traits.Mkt_Absorb_@f_load_block",
         "projection_inverse_Libcrux_sha3.Traits.Mkt_Absorb_@f_load_block_pre",
@@ -117,7 +118,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "37a28dd4d61c5a6fb647b862aa8afd17"
+      "03b666f1cfac47f465b3783b46771c1e"
     ],
     [
       "EquivImplSpec.Sponge.Avx2.Steps.lemma_absorb_block_avx2",
@@ -147,7 +148,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "ab52fe3edd34ebf4c754dfd46cc0fffe"
+      "b4e49d1780f100fb0fdebd6497014f0a"
     ],
     [
       "EquivImplSpec.Sponge.Avx2.Steps.lemma_absorb_last_avx2",
@@ -244,7 +245,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "acdc898acdefbedc8d467c2da0bb86de"
+      "431b4d9d53fbd8000307069e13048fdc"
     ],
     [
       "EquivImplSpec.Sponge.Avx2.Steps.lemma_absorb_last_avx2",
@@ -277,7 +278,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "b6161c86e213f7d49b89ebf695765f8c"
+      "117fc1707574ce3b306e9613d42d4812"
     ],
     [
       "EquivImplSpec.Sponge.Avx2.Steps.lemma_squeeze_block_avx2",
@@ -348,7 +349,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "50975f87182a5dd2173a71305cd3e93f"
+      "93d3efaf53695106dd7025abbe0c8b4b"
     ],
     [
       "EquivImplSpec.Sponge.Avx2.Steps.lemma_squeeze_block_avx2",
@@ -378,7 +379,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "ff0e7d1e52bd3774515f5904683c4139"
+      "689a26c36628a1a66429728d51a26ef3"
     ],
     [
       "EquivImplSpec.Sponge.Avx2.Steps.lemma_squeeze_last_avx2",
@@ -445,7 +446,7 @@
         "typing_Libcrux_sha3.Proof_utils.valid_rate"
       ],
       0,
-      "dd699db4b8fed7b2818599b828062b50"
+      "e5ceb2735585d03193eb8fff49507d4c"
     ],
     [
       "EquivImplSpec.Sponge.Avx2.Steps.lemma_squeeze_last_avx2",
@@ -475,7 +476,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "b948bdbdfe8322a9ae32f47a8f7aeac9"
+      "d77715d724d476c0f2cec6214319b8f9"
     ]
   ]
 ]

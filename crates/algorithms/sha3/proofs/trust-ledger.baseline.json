@@ -41,18 +41,15 @@
     },
     "fstar": {
       "by_kind": {
-        "admit": 5,
-        "assume_val": 28
+        "assume_val": 6
       },
       "by_module": {
-        "Libcrux_intrinsics.Arm64_extract": 18,
-        "Libcrux_intrinsics.Avx2_extract": 9,
         "Libcrux_sha3": 4,
         "Libcrux_sha3.Generic_keccak": 1,
         "Libcrux_sha3.Portable": 1
       },
-      "scanned_files": 64,
-      "total": 33
+      "scanned_files": 75,
+      "total": 6
     },
     "makefile": {
       "admit_modules": [],

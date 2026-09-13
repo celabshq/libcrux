@@ -35,10 +35,11 @@ module EquivImplSpec.Sponge.Arm64.Steps
 open FStar.Mul
 open Core_models
 
-module G  = EquivImplSpec.Keccakf.Generic
-module KA = EquivImplSpec.Keccakf.Arm64
-module SA = EquivImplSpec.Sponge.Arm64
-module I  = Libcrux_intrinsics.Arm64_sha3_views
+module G   = EquivImplSpec.Keccakf.Generic
+module KA  = EquivImplSpec.Keccakf.Arm64
+module SA  = EquivImplSpec.Sponge.Arm64
+module I   = Libcrux_intrinsics.Arm64_sha3_views
+module HSL = Hacspec_sha3.Sponge.Lemmas
 
 (* Bring Arm64 typeclass instances into scope so t_KeccakItem /
    t_Absorb / t_Squeeze2 at N=2 resolve. *)
@@ -236,92 +237,8 @@ let lemma_squeeze_last_arm64
    Post-step invariant at iteration [i+1] (lane [l]):
      - extract_lane ks_post.f_st l == iterate_keccak_f i lane_st_init
      - outX'[k] == squeeze lane_st_init rate [k]           for k < (i+1)*rate
-
-   3.2x faster than the prior recursive-spec form (Note C);
-   84 s -> 26 s on cold cache, 239 -> 117 sub-queries, ~150 -> ~80 lines.
    ================================================================ *)
-#push-options "--z3rlimit 400 --split_queries always"
-let lemma_squeeze_one_step_arm64
-      (rate: usize{Libcrux_sha3.Proof_utils.valid_rate rate})
-      (s_init_st: t_Array I.t_e_uint64x2_t (mk_usize 25))
-      (ks_pre: Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 2) I.t_e_uint64x2_t)
-      (outputs_pre: t_Array (t_Slice u8) (mk_usize 2))
-      (i: usize)
-      (l: nat{l < 2})
-  : Lemma
-      (requires (
-        let outlen = Core_models.Slice.impl__len #u8 (outputs_pre.[ mk_usize l ]) in
-        v i >= 1 /\
-        v i * v rate + v rate <= v outlen /\
-        v outlen < v Core_models.Num.impl_usize__MAX - 200 /\
-        Libcrux_sha3.Proof_utils.slices_same_len (mk_usize 2) outputs_pre /\
-        (let lane_st_init =
-            G.extract_lane (mk_usize 2) KA.lc_arm64 s_init_st l in
-         G.extract_lane (mk_usize 2) KA.lc_arm64
-           ks_pre.Libcrux_sha3.Generic_keccak.f_st l
-         == Hacspec_sha3.Sponge.iterate_keccak_f (i -! mk_usize 1) lane_st_init /\
-         (forall (k: nat). k < v i * v rate /\ k < v outlen ==>
-            Seq.index (outputs_pre.[ mk_usize l ] <: Seq.seq u8) k ==
-            Seq.index
-              (Hacspec_sha3.Sponge.squeeze outlen lane_st_init rate <: Seq.seq u8) k))))
-      (ensures (
-        let outlen = Core_models.Slice.impl__len #u8 (outputs_pre.[ mk_usize l ]) in
-        let ks_post =
-            Libcrux_sha3.Generic_keccak.impl_2__keccakf1600
-              (mk_usize 2) #I.t_e_uint64x2_t ks_pre in
-        let outX' =
-            SA.sq_lane_arm64 rate ks_post.Libcrux_sha3.Generic_keccak.f_st
-              outputs_pre (i *! rate) rate l in
-        let lane_st_init =
-            G.extract_lane (mk_usize 2) KA.lc_arm64 s_init_st l in
-        G.extract_lane (mk_usize 2) KA.lc_arm64
-          ks_post.Libcrux_sha3.Generic_keccak.f_st l
-        == Hacspec_sha3.Sponge.iterate_keccak_f i lane_st_init /\
-        (forall (k: nat). k < (v i + 1) * v rate /\ k < v outlen ==>
-            Seq.index (outX' <: Seq.seq u8) k ==
-            Seq.index
-              (Hacspec_sha3.Sponge.squeeze outlen lane_st_init rate <: Seq.seq u8) k)))
-  = let outlen = Core_models.Slice.impl__len #u8 (outputs_pre.[ mk_usize l ]) in
-    let lane_st_init =
-        G.extract_lane (mk_usize 2) KA.lc_arm64 s_init_st l in
-    (* State step: keccak_f (iterate_keccak_f (v i - 1) lane_st_init)
-       == iterate_keccak_f (v i) lane_st_init by right-add definitional
-       unfold of iterate_keccak_f at fuel 1. *)
-    lemma_squeeze_block_arm64 rate ks_pre outputs_pre (i *! rate) l;
-    let ks_post =
-        Libcrux_sha3.Generic_keccak.impl_2__keccakf1600
-          (mk_usize 2) #I.t_e_uint64x2_t ks_pre in
-    let outX' =
-        SA.sq_lane_arm64 rate ks_post.Libcrux_sha3.Generic_keccak.f_st
-          outputs_pre (i *! rate) rate l in
-    FStar.Math.Lemmas.distributivity_add_left (v i) 1 (v rate);
-    let aux (k: nat{k < v outlen})
-      : Lemma
-        (k < (v i + 1) * v rate ==>
-          Seq.index (outX' <: Seq.seq u8) k ==
-          Seq.index
-            (Hacspec_sha3.Sponge.squeeze outlen lane_st_init rate <: Seq.seq u8) k) =
-      if k < (v i + 1) * v rate then begin
-        let kk : usize = mk_usize k in
-        assert (v kk == k);
-        if k < v i * v rate then ()
-        else begin
-          assert (v i * v rate <= k);
-          assert ((v i + 1) * v rate == v i * v rate + v rate);
-          assert (k - v i * v rate < v rate);
-          assert ((k - v i * v rate) / 8 < 25);
-          (* For k in [i*rate, (i+1)*rate): byteform[k] uses block b = i. *)
-          FStar.Math.Lemmas.small_div (k - v i * v rate) (v rate);
-          FStar.Math.Lemmas.lemma_div_plus
-            (k - v i * v rate) (v i) (v rate);
-          let b : usize = kk /! rate in
-          assert (v b == v i);
-          let j : usize = kk -! (b *! rate) in
-          assert (v j == k - v i * v rate);
-          assert (v j / 8 < 25);
-          ()
-        end
-      end
-    in
-    FStar.Classical.forall_intro aux
-#pop-options
+(* [lemma_one_step_byte_arm64] + [lemma_squeeze_one_step_arm64] live in
+   [EquivImplSpec.Sponge.Arm64.OneStep] — the one_step forall_intro dispatch
+   saturates inside this heavy module but closes in the lean module (isolation-
+   sized context).  Consumers cite [OneStep.lemma_squeeze_one_step_arm64]. *)

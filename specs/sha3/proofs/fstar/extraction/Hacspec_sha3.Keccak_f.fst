@@ -25,7 +25,7 @@ let v_ROUND_CONSTANTS: t_Array u64 (mk_usize 24) =
   Rust_primitives.Hax.array_of_list 24 list
 
 /// Rotation offsets for ρ step — FIPS 202, Algorithm 2 / Table 2.
-/// Indexed as `RHO_OFFSETS[5*y + x]`.
+/// Indexed as `RHO_OFFSETS[5*y + x]`. Already reduced by the lane size (64 bits).
 let v_RHO_OFFSETS: t_Array u32 (mk_usize 25) =
   let list =
     [

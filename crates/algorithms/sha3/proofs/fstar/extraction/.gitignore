@@ -12,3 +12,11 @@
 !Libcrux_sha3.Proof_utils.Lemmas.fst
 !Libcrux_sha3.Simd.Avx2.StoreBlockHelpers.fst
 !Libcrux_sha3.Simd.Arm64.StoreBlockHelpers.fst
+
+# Hand-written ABSTRACT interfaces for the SIMD incremental wrappers (`val
+# t_KeccakState : Type0` + length-only posts).  These REPLACE the broken
+# hax-generated concrete `.fsti` (dropped `noeq` + heavy `Simd.{Avx2,Arm64}`
+# cone); the incremental modules are excluded from `--interfaces` so hax emits
+# a transparent `.fst` these abstract over.  Restored in patch_fstar_extractions.
+!Libcrux_sha3.Avx2.X4.Incremental.fsti
+!Libcrux_sha3.Neon.X2.Incremental.fsti

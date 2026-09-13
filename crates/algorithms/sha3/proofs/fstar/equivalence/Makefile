@@ -30,7 +30,10 @@ ROOTS = \
 	EquivImplSpec.Sponge.Avx2.fst \
 	EquivImplSpec.Sponge.Portable.Steps.fst \
 	EquivImplSpec.Sponge.Arm64.Steps.fst \
+	EquivImplSpec.Sponge.Arm64.OneStep.fst \
 	EquivImplSpec.Sponge.Avx2.Steps.fst \
+	EquivImplSpec.Sponge.Avx2.OneStepByte.fst \
+	EquivImplSpec.Sponge.Avx2.OneStep.fst \
 	Hacspec_sha3.Sponge.Lemmas.fst \
 	EquivImplSpec.Sponge.Portable.SqueezeAPI.fst \
 	EquivImplSpec.Correctness.Portable.fst \

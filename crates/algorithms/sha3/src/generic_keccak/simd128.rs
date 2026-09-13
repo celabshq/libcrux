@@ -52,11 +52,11 @@ pub(crate) fn absorb2<const RATE: usize, const DELIM: u8>(
                    v $i <= v $data_blocks /\
                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
                       EquivImplSpec.Keccakf.Arm64.lc_arm64 $s.st 0) ==
-                     Hacspec_sha3.Sponge.absorb_blocks
+                     Hacspec_sha3.Sponge.Lemmas.absorb_blocks
                        zeros $RATE (mk_usize 0) $i (Core_models.Ops.Index.f_index $data (mk_usize 0)) /\
                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 2)
                       EquivImplSpec.Keccakf.Arm64.lc_arm64 $s.st 1) ==
-                     Hacspec_sha3.Sponge.absorb_blocks
+                     Hacspec_sha3.Sponge.Lemmas.absorb_blocks
                        zeros $RATE (mk_usize 0) $i (Core_models.Ops.Index.f_index $data (mk_usize 1))"#
             )
         });
@@ -139,20 +139,18 @@ pub(crate) fn absorb2<const RATE: usize, const DELIM: u8>(
              (v $blocks * v $RATE))
     "#)
 })]
-// NOTE: NO `--split_queries always` here (unlike the other squeeze fns).
-// Splitting fragments the loop's shared machine-integer context, so each
-// sub-goal re-derives the `Rust_primitives.Integers` interpretation axioms
-// from scratch — a BoxInt/BoxBool projection cascade (~130k instances) that
-// maxes rlimit. Unsplit, the shared context closes the whole VC in ~100
-// rlimit. (The N=4 `squeeze4_blocks` only survives split via a recorded hint.)
-//
-// core-models flip: this is a COMPOSER (it sequences store_block, whose post
-// is stated over get_lane_u64/to_le_bytes ATOMS). Under the flip the companion
-// `Arm64_sha3_views`'s `lemma_get_lane_u64` SMTPat cascades every get_lane_u64
-// into concrete Funarr/NV codec machinery and saturates this VC cold — the SAME
-// composer pollution the Store composers hit. Exclude the companion (composed by
-// congruence, needs nothing from it); keep it UNSPLIT.
-#[hax_lib::fstar::options("--fuel 0 --ifuel 1 --z3rlimit 400 --using_facts_from '* -Hacspec_sha3.Sponge.squeeze -EquivImplSpec.Keccakf.Generic.extract_lane -Libcrux_intrinsics.Arm64_sha3_views'")]
+// The loop-body VC's `--split_queries always` WF sub-query (a bundle of trivial
+// `hasEq usize` / `range_t USIZE` / `/!`-divisor-nonzero subtyping checks)
+// saturates: its split context balloons to ~48 MB because the transparent Arm64
+// `Store.store_*` bodies + `Rust_primitives.Slice.array_from_fn` refinement-
+// interpretation cascade (one anonymous `k!61` at ~28M instantiations, driven by
+// `op_String_Access`) drowns the otherwise-trivial goal.  This is NOT the
+// `Arm64_sha3_views` view codec — excluding the view does NOT clear it (and would
+// only starve the byteform sub-query).  Fix = mirror the step-lemmas' facts-filter
+// and exclude the transparent store bodies + array_from_fn from the loop VC
+// (compositional visibility): the byteform conjuncts arrive as `mid_driver`'s
+// OPAQUE `squeezed_upto` post, so the store bodies are never needed here.  View KEPT.
+#[hax_lib::fstar::options("--fuel 0 --ifuel 1 --z3rlimit 400 --split_queries always --using_facts_from '* -Hacspec_sha3.Sponge.squeeze -EquivImplSpec.Keccakf.Generic.extract_lane -Rust_primitives.Slice.array_from_fn -Libcrux_sha3.Simd.Arm64.Store.store_block_full -Libcrux_sha3.Simd.Arm64.Store.store_block_tail -Libcrux_sha3.Simd.Arm64.Store.store_tail_high -Libcrux_sha3.Simd.Arm64.Store.store_tail_low -Libcrux_sha3.Simd.Arm64.Store.store_u64x2x2'")]
 fn squeeze2_blocks<const RATE: usize>(
     s: &mut KeccakState<2, _uint64x2_t>,
     out0: &mut [u8],
@@ -393,10 +391,10 @@ pub(crate) fn keccak2<const RATE: usize, const DELIM: u8>(
     squeeze2::<RATE>(s, out0, out1);
 }
 
-// core-models flip: the multi-block squeeze composers here (squeeze_first_three_blocks,
+// The multi-block squeeze composers here (squeeze_first_three_blocks,
 // squeeze_first_five_blocks) compose `squeeze2` (store post = get_lane_u64/to_le_bytes
 // atoms) with a length-only post. The companion `Arm64_sha3_views`'s SMTPats cascade
-// those atoms into codec machinery and saturate their shared-context VCs cold — same
+// those atoms into codec machinery and saturate their shared-context VCs — same
 // pollution the Store composers hit. They need `--using_facts_from '* -...Arm64_sha3_views'`,
 // but `fstar::options` is illegal on an impl method (anonymous const) and is silently
 // dropped on an inherent-impl block, so the exclusion is applied post-extraction in

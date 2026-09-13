@@ -2,7 +2,7 @@
 //! `super::neon` and `super::neon_handwritten`.
 //!
 //! Real computational content lives in `int_vec`. The bit-vec layer in
-//! `super::neon` is `#[hax_lib::opaque]` per the sprint's opacity rule;
+//! `super::neon` is `#[hax_lib::opaque]` per the `INTRINSICS-TRUST-PLAN.md` opacity rule;
 //! `mk_lift_lemma!` connects the two so consumer F* proofs can rewrite
 //! between bit-vec and int-vec views.
 //!
@@ -11,8 +11,7 @@
 //! # Source attribution
 //!
 //! Portions of this file are adapted from
-//! `verify-rust-std/testable-simd-models/`, © Cryspen, Apache-2.0,
-//! imported on 2026-05-02 for the libcrux SIMD intrinsics trust-base sprint.
+//! `verify-rust-std/testable-simd-models/`, © Cryspen, Apache-2.0.
 
 pub mod int_vec {
     //! Provides integer-vector interpretations for NEON intrinsics.
@@ -545,7 +544,7 @@ pub mod int_vec {
     /// (`rotate_right(x, k) == rotate_left(x, (64-k)%64)` for a 64-bit word).
     /// Both compute the same value, so the differential lift/test still hold;
     /// the left form is what the Keccak (rho) equivalence consumers need, and
-    /// it lets the whole NEON flip stay axiom-free (no rotate-symmetry lemma).
+    /// it keeps the NEON model axiom-free (no rotate-symmetry lemma).
     pub fn vxarq_u64<const N: i32>(a: u64x2, b: u64x2) -> u64x2 {
         u64x2::from_fn(|i| (a[i] ^ b[i]).rotate_left((64 - (N as u32) % 64) % 64))
     }
@@ -953,7 +952,7 @@ pub mod int_vec {
         ///
         /// The `mk!` tests above use random inputs, which essentially never
         /// hit `(i16::MIN, i16::MIN)` — the exact input where `vqdmulhq_s16`'s
-        /// `2*a*b` used to overflow `i32`. Here we drive the model AND the
+        /// `2*a*b` would overflow `i32`. Here we drive the model AND the
         /// hardware intrinsic with splat vectors of every `HasCorners` value
         /// and require bit-exact agreement, so the overflow-safe `(a*b)>>15`
         /// fix is validated against the chip, not just against our oracle.
@@ -1268,7 +1267,7 @@ pub mod int_vec {
     /// `HasCorners` (MIN / MAX / -1 / 0 / small). This pins the exact
     /// saturating/wrapping result and, because `cargo test` builds in debug,
     /// also fails on any intermediate `i32`/`i64` overflow — the class of bug
-    /// that `vqdmulhq_s16(i16::MIN, i16::MIN)` used to hide behind random
+    /// that `vqdmulhq_s16(i16::MIN, i16::MIN)` can hide behind random
     /// fuzzing.
     #[cfg(test)]
     mod corner_tests {

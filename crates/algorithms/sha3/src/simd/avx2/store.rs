@@ -349,6 +349,10 @@ fn store_u64x4x4(
         assert (a_pos + 32 <= Seq.length old_out1);
         assert (a_pos + 32 <= Seq.length old_out2);
         assert (a_pos + 32 <= Seq.length old_out3);
+        assert (Seq.slice out0 a_pos (a_pos + 32) == Libcrux_intrinsics.Avx2.mm256_storeu_si256_u8 (Seq.slice old_out0 a_pos (a_pos + 32)) v0);
+        assert (Seq.slice out1 a_pos (a_pos + 32) == Libcrux_intrinsics.Avx2.mm256_storeu_si256_u8 (Seq.slice old_out1 a_pos (a_pos + 32)) v1);
+        assert (Seq.slice out2 a_pos (a_pos + 32) == Libcrux_intrinsics.Avx2.mm256_storeu_si256_u8 (Seq.slice old_out2 a_pos (a_pos + 32)) v2);
+        assert (Seq.slice out3 a_pos (a_pos + 32) == Libcrux_intrinsics.Avx2.mm256_storeu_si256_u8 (Seq.slice old_out3 a_pos (a_pos + 32)) v3);
         let bridge_out0 (j_n:nat{j_n < Seq.length old_out0}) :
             Lemma (
               if j_n < a_pos then
@@ -814,10 +818,6 @@ fn store_block_full_avx2(
     let old_out3 = out3.to_vec().as_slice();
     hax_lib::fstar!(
         r#"
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out0) == out0);
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out1) == out1);
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out2) == out2);
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out3) == out3);
         assert (old_out0 == out0); assert (old_out1 == out1);
         assert (old_out2 == out2); assert (old_out3 == out3);
         // Seed the loop-invariant base case (i = 0): empty `stored`
@@ -855,10 +855,6 @@ fn store_block_full_avx2(
         let p3 = out3.to_vec().as_slice();
         hax_lib::fstar!(
             r#"
-            assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out0) == out0);
-            assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out1) == out1);
-            assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out2) == out2);
-            assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out3) == out3);
             assert (p0 == out0); assert (p1 == out1); assert (p2 == out2); assert (p3 == out3);
             // Discharge store_u64x4x4's `s_k == s[4*i+k]` link: get_ij
             // linearises 5*((4i+k)/5)+(4i+k)%5 == 4*i+k (Euclidean).
@@ -956,10 +952,6 @@ fn store_block_tail_avx2(
     let old_out3 = out3.to_vec().as_slice();
     hax_lib::fstar!(
         r#"
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out0) == out0);
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out1) == out1);
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out2) == out2);
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out3) == out3);
         assert (old_out0 == out0); assert (old_out1 == out1);
         assert (old_out2 == out2); assert (old_out3 == out3);
         Libcrux_sha3.Proof_utils.lemma_modifies_range_refl out0 (start +! (mk_usize 32 *! q)) (start +! (mk_usize 32 *! q));
@@ -996,10 +988,6 @@ fn store_block_tail_avx2(
         let p3 = out3.to_vec().as_slice();
         hax_lib::fstar!(
             r#"
-            assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out0) == out0);
-            assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out1) == out1);
-            assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out2) == out2);
-            assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out3) == out3);
             assert (p0 == out0); assert (p1 == out1); assert (p2 == out2); assert (p3 == out3);
             FStar.Math.Lemmas.lemma_div_mod (4 * v q + v k) 5
             "#
@@ -1048,10 +1036,6 @@ fn store_block_tail_avx2(
         let r3 = out3.to_vec().as_slice();
         hax_lib::fstar!(
             r#"
-            assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out0) == out0);
-            assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out1) == out1);
-            assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out2) == out2);
-            assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out3) == out3);
             assert (r0 == out0); assert (r1 == out1); assert (r2 == out2); assert (r3 == out3);
             FStar.Math.Lemmas.lemma_div_mod (4 * v q + v chunks8) 5
             "#
@@ -1152,10 +1136,6 @@ pub(crate) fn store_block<const RATE: usize>(
     let e3 = out3.to_vec().as_slice();
     hax_lib::fstar!(
         r#"
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out0) == out0);
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out1) == out1);
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out2) == out2);
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out3) == out3);
         assert (e0 == out0); assert (e1 == out1); assert (e2 == out2); assert (e3 == out3);
         assert (v len == 32 * v chunks + v rem);
         assert (v chunks <= 6);
@@ -1183,10 +1163,6 @@ pub(crate) fn store_block<const RATE: usize>(
     let mid3 = out3.to_vec().as_slice();
     hax_lib::fstar!(
         r#"
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out0) == out0);
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out1) == out1);
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out2) == out2);
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out3) == out3);
         assert (mid0 == out0); assert (mid1 == out1); assert (mid2 == out2); assert (mid3 == out3)
         "#
     );

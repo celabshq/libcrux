@@ -72,19 +72,19 @@ pub(crate) fn absorb4<const RATE: usize, const DELIM: u8>(
                    v $i <= v $data_blocks /\
                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
                       EquivImplSpec.Keccakf.Avx2.lc_avx2 $s.st 0) ==
-                     Hacspec_sha3.Sponge.absorb_blocks
+                     Hacspec_sha3.Sponge.Lemmas.absorb_blocks
                        zeros $RATE (mk_usize 0) $i (Core_models.Ops.Index.f_index $data (mk_usize 0)) /\
                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
                       EquivImplSpec.Keccakf.Avx2.lc_avx2 $s.st 1) ==
-                     Hacspec_sha3.Sponge.absorb_blocks
+                     Hacspec_sha3.Sponge.Lemmas.absorb_blocks
                        zeros $RATE (mk_usize 0) $i (Core_models.Ops.Index.f_index $data (mk_usize 1)) /\
                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
                       EquivImplSpec.Keccakf.Avx2.lc_avx2 $s.st 2) ==
-                     Hacspec_sha3.Sponge.absorb_blocks
+                     Hacspec_sha3.Sponge.Lemmas.absorb_blocks
                        zeros $RATE (mk_usize 0) $i (Core_models.Ops.Index.f_index $data (mk_usize 2)) /\
                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
                       EquivImplSpec.Keccakf.Avx2.lc_avx2 $s.st 3) ==
-                     Hacspec_sha3.Sponge.absorb_blocks
+                     Hacspec_sha3.Sponge.Lemmas.absorb_blocks
                        zeros $RATE (mk_usize 0) $i (Core_models.Ops.Index.f_index $data (mk_usize 3))"#
             )
         });

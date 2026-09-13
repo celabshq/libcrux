@@ -56,6 +56,15 @@ function extract_all() {
         into -i "-** +libcrux_traits::digest::arrayref::Hash +libcrux_traits::digest::arrayref::HashError" \
         fstar --z3rlimit 80
 
+    # Extract the sha3 reference spec (crate `hacspec_sha3`).  The sha3 proofs
+    # verify against `Hacspec_sha3.*` (Sha3/Sponge/Keccak_f) — a real dependency of
+    # Libcrux_sha3.Generic_keccak.* / Libcrux_sha3.fst — so it MUST be re-extracted
+    # here.  This step was missing; libcrux-ml-kem/hax.py and libcrux-ml-dsa/hax.sh
+    # already extract their own specs (specs/sha3/hax.sh is the standalone equivalent).
+    # NOTE: if cargo reports the crate fresh and skips it (writes no THIR export ->
+    # hax panics with a NotFound), force a rebuild with `cargo clean -p hacspec_sha3`.
+    extract specs/sha3 into -i "+**" fstar --z3rlimit 80
+
     # Remove stale generated F* before re-extracting.  hax never deletes files
     # for modules that were removed/renamed, nor old interface (*.fsti) files
     # when a module stops emitting one.  A leftover *.fsti silently SHADOWS the
@@ -67,10 +76,34 @@ function extract_all() {
     rm -f "$SCRIPT_DIR/proofs/fstar/extraction"/*.fst \
           "$SCRIPT_DIR/proofs/fstar/extraction"/*.fsti
 
+    # Generate ABSTRACT interfaces (.fsti) for the `portable` module subtree so
+    # external consumers (ml-kem / ml-dsa / kmac) verify against sha3's PUBLIC
+    # function contracts (`sha512`/`shake256`/... : `== Hacspec_sha3.Sponge.keccak`;
+    # incremental: length/state posts) WITHOUT dragging in sha3's internal Keccak
+    # equivalence proof cone (Generic_keccak.Portable, EquivImplSpec.*,
+    # Hacspec_sha3.Sponge.Lemmas). sha3's OWN build still verifies each `.fst`
+    # against its `.fsti`; the interface is the trust/verification boundary. The
+    # concrete `t_KeccakState` record is kept in the interface (consumers + the
+    # internal incremental `Bundle` need `.f_state`), which hax places in the
+    # `.fsti` and omits from the `.fst` automatically.
+    #
+    # EXCEPTION — the SIMD *incremental* subtrees (`avx2::x4::incremental`,
+    # `neon::x2::incremental`) are DELIBERATELY excluded from `--interfaces`, so
+    # hax extracts them TRANSPARENTLY (concrete `.fst`, no generated `.fsti`).  A
+    # hax-GENERATED concrete `.fsti` for these is broken: it drops `noeq` on the
+    # `BitVec`-field `t_KeccakState` record (F* Error 19, decidable-equality) and
+    # drags the heavy `Simd.{Avx2,Arm64}` lane cone into every consumer's
+    # `.fsti.checked`.  Instead a hand-written ABSTRACT `.fsti` (`val
+    # t_KeccakState : Type0`, length-only posts — ca6ea1dac technique) is provided
+    # for each and restored in patch_fstar_extractions; consumers (ml-kem/ml-dsa/
+    # kmac) depend only on that LIGHT interface, never the SIMD cone.  The wrapper
+    # state is never read field-wise by any sha3-internal module, so abstracting
+    # it is transparent to sha3 (whose own build verifies the concrete `.fst`
+    # implements the abstract `.fsti`).
     extract crates/algorithms/sha3 \
         -C --features simd128,simd256 ";" \
         into -i "+**" \
-        fstar --z3rlimit 80
+        fstar --z3rlimit 80 --interfaces "-** +libcrux_sha3::portable +libcrux_sha3::portable::** +libcrux_sha3::avx2::x4 +libcrux_sha3::avx2::x4::** -libcrux_sha3::avx2::x4::incremental -libcrux_sha3::avx2::x4::incremental::** +libcrux_sha3::neon +libcrux_sha3::neon::** -libcrux_sha3::neon::x2::incremental -libcrux_sha3::neon::x2::incremental::**"
 
     patch_fstar_extractions
 }
@@ -156,7 +189,9 @@ function patch_fstar_extractions() {
         "$target_dir/Libcrux_sha3.Proof_utils.fst" \
         "$target_dir/Libcrux_sha3.Proof_utils.Lemmas.fst" \
         "$target_dir/Libcrux_sha3.Simd.Arm64.StoreBlockHelpers.fst" \
-        "$target_dir/Libcrux_sha3.Simd.Avx2.StoreBlockHelpers.fst" 2>/dev/null || true
+        "$target_dir/Libcrux_sha3.Simd.Avx2.StoreBlockHelpers.fst" \
+        "$target_dir/Libcrux_sha3.Avx2.X4.Incremental.fsti" \
+        "$target_dir/Libcrux_sha3.Neon.X2.Incremental.fsti" 2>/dev/null || true
     # hax emits Core_models.Array.from_fn which has the wrong type;
     # replace with Rust_primitives.Slice.array_from_fn and supply the
     # extra implicit #(usize -> u8) that array_from_fn requires.

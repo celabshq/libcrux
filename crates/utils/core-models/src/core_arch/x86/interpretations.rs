@@ -9,7 +9,7 @@ pub mod int_vec {
     #[allow(unused)]
     use crate::core_arch::x86;
 
-    // ── movemask models as Z3-friendly base-2 folds (Option B, Phase 1, Task B) ──
+    // ── movemask models as Z3-friendly base-2 folds ──
     // The extracted movemask models (`_mm{,256}_movemask_ps/epi8`) were a flat
     // 16-/8-way `+` spine that Z3 cannot reason about (the value-vs-bit
     // characterization saturates: proving `bit i == sign of lane i` by unfolding
@@ -624,11 +624,10 @@ let e_mm256_movemask_ps (a: Libcrux_core_models.Abstractions.Funarr.t_FunArray (
     }
 
     // ===========================================================================
-    // Phase B-AVX2 backfill: int-vec bodies for previously-bitvec-only intrinsics.
+    // int-vec bodies for the AVX2 intrinsics.
     //
     // Portions of this section are adapted from
-    // `verify-rust-std/testable-simd-models/`, (c) Cryspen, Apache-2.0,
-    // imported on 2026-05-02 for the libcrux SIMD intrinsics trust-base sprint.
+    // `verify-rust-std/testable-simd-models/`, (c) Cryspen, Apache-2.0.
     //
     // Note: the bit-vec-layer stubs in `core_arch/x86.rs` keep their
     // `#[hax_lib::opaque]` attribute. These int-vec bodies are the
@@ -642,7 +641,7 @@ let e_mm256_movemask_ps (a: Libcrux_core_models.Abstractions.Funarr.t_FunArray (
         BitVec::from_fn(|i| a[i])
     }
 
-    // ---- Track B: Load/store typed wrappers (L0-nospec → L2) ----
+    // ---- Load/store typed wrappers (L0-nospec → L2) ----
 
     // _mm256_loadu_si256_i16: load 16 i16 lanes from a slice.
     // NB (PR2 cross-validation): these load/store typed wrappers call
@@ -686,7 +685,7 @@ let e_mm256_movemask_ps (a: Libcrux_core_models.Abstractions.Funarr.t_FunArray (
         output.copy_from_slice(&ints);
     }
 
-    // ---- Batch D bodies: ports of L0 / L0-nospec wrappers ----
+    // ---- Bodies for L0 / L0-nospec wrappers ----
 
     // _mm_set_epi8: lane-wise set, low-to-high.
     pub fn _mm_set_epi8(
@@ -1260,7 +1259,7 @@ assume val _mm256_set_epi32_interp: e7: i32 -> e6: i32 -> e5: i32 -> e4: i32 -> 
   -> Lemma
         (
             (
-                Libcrux_core_models.Abstractions.Bitvec.Int_vec_interp.e_ee_1__impl__to_i32x8
+                Libcrux_core_models.Abstractions.Bitvec.Int_vec_interp.e___impl__to_i32x8
                     (Libcrux_core_models.Core_arch.X86.Avx.e_mm256_set_epi32 e7 e6 e5 e4 e3 e2 e1 e0)
             ).[ i ]
          == ( match i with
@@ -1389,12 +1388,12 @@ assume val _mm256_set_epi32_interp: e7: i32 -> e6: i32 -> e5: i32 -> e4: i32 -> 
         mk_lift_lemma!(_mm256_permute2x128_si256<const IMM8: i32>(a: __m256i, b: __m256i) ==
 		       __m256i::from_i128x2(super::_mm256_permute2x128_si256::<IMM8>(BitVec::to_i128x2(a), BitVec::to_i128x2(b))));
 
-        // Phase B-AVX2 backfill: lift lemmas for int-vec bodies whose lift was missing.
+        // Lift lemmas for int-vec bodies.
         mk_lift_lemma!(_mm_sub_epi16(a: __m128i, b: __m128i) ==
 		       __m128i::from_i16x8(super::_mm_sub_epi16(BitVec::to_i16x8(a), BitVec::to_i16x8(b))));
         mk_lift_lemma!(_mm256_cmpeq_epi32(a: __m256i, b: __m256i) ==
 		       __m256i::from_i32x8(super::_mm256_cmpeq_epi32(BitVec::to_i32x8(a), BitVec::to_i32x8(b))));
-        // Lift lemmas for int-vec bodies added during Batch C backfill.
+        // Further lift lemmas for int-vec bodies.
         mk_lift_lemma!(_mm256_castsi256_si128(a: __m256i) ==
 		       super::_mm256_castsi256_si128(a));
         mk_lift_lemma!(_mm256_extracti128_si256<const IMM8: i32>(a: __m256i) ==
@@ -1412,7 +1411,7 @@ assume val _mm256_set_epi32_interp: e7: i32 -> e6: i32 -> e5: i32 -> e4: i32 -> 
         mk_lift_lemma!(_mm256_shuffle_epi8(a: __m256i, b: __m256i) ==
 		       __m256i::from_i8x32(super::_mm256_shuffle_epi8(BitVec::to_i8x32(a), BitVec::to_i8x32(b))));
 
-        // Batch D lift lemmas: ports of L0/L0-nospec wrappers.
+        // Lift lemmas for L0/L0-nospec wrappers.
         mk_lift_lemma!(_mm_set_epi8(
             e15: i8, e14: i8, e13: i8, e12: i8,
             e11: i8, e10: i8, e9: i8, e8: i8,
@@ -1746,24 +1745,24 @@ assume val _mm256_set_epi32_interp: e7: i32 -> e6: i32 -> e5: i32 -> e4: i32 -> 
         mk!([100]_mm256_permute2x128_si256{<0>,<1>,<2>,<3>,<4>,<5>,<6>,<7>,<8>,<9>,<10>,<11>,<12>,<13>,<14>,<15>,<16>,<17>,<18>,<19>,<20>,<21>,<22>,<23>,<24>,<25>,<26>,<27>,<28>,<29>,<30>,<31>,<32>,<33>,<34>,<35>,<36>,<37>,<38>,<39>,<40>,<41>,<42>,<43>,<44>,<45>,<46>,<47>,<48>,<49>,<50>,<51>,<52>,<53>,<54>,<55>,<56>,<57>,<58>,<59>,<60>,<61>,<62>,<63>,<64>,<65>,<66>,<67>,<68>,<69>,<70>,<71>,<72>,<73>,<74>,<75>,<76>,<77>,<78>,<79>,<80>,<81>,<82>,<83>,<84>,<85>,<86>,<87>,<88>,<89>,<90>,<91>,<92>,<93>,<94>,<95>,<96>,<97>,<98>,<99>,<100>,<101>,<102>,<103>,<104>,<105>,<106>,<107>,<108>,<109>,<110>,<111>,<112>,<113>,<114>,<115>,<116>,<117>,<118>,<119>,<120>,<121>,<122>,<123>,<124>,<125>,<126>,<127>,<128>,<129>,<130>,<131>,<132>,<133>,<134>,<135>,<136>,<137>,<138>,<139>,<140>,<141>,<142>,<143>,<144>,<145>,<146>,<147>,<148>,<149>,<150>,<151>,<152>,<153>,<154>,<155>,<156>,<157>,<158>,<159>,<160>,<161>,<162>,<163>,<164>,<165>,<166>,<167>,<168>,<169>,<170>,<171>,<172>,<173>,<174>,<175>,<176>,<177>,<178>,<179>,<180>,<181>,<182>,<183>,<184>,<185>,<186>,<187>,<188>,<189>,<190>,<191>,<192>,<193>,<194>,<195>,<196>,<197>,<198>,<199>,<200>,<201>,<202>,<203>,<204>,<205>,<206>,<207>,<208>,<209>,<210>,<211>,<212>,<213>,<214>,<215>,<216>,<217>,<218>,<219>,<220>,<221>,<222>,<223>,<224>,<225>,<226>,<227>,<228>,<229>,<230>,<231>,<232>,<233>,<234>,<235>,<236>,<237>,<238>,<239>,<240>,<241>,<242>,<243>,<244>,<245>,<246>,<247>,<248>,<249>,<250>,<251>,<252>,<253>,<254>,<255>}(a: BitVec, b: BitVec));
 
         // ===========================================================================
-        // Phase B-AVX2 backfill: mk! invocations for L1 wrappers (body present, no test)
+        // mk! invocations for L1 wrappers (body present, no test)
         // ===========================================================================
 
-        // Batch A: int-vec body + lift lemma already exist.
+        // int-vec body + lift lemma already exist.
         mk!(_mm256_mul_epu32(a: BitVec, b: BitVec));
         mk!(_mm256_mulhi_epi16(a: BitVec, b: BitVec));
         mk!(_mm256_unpackhi_epi32(a: BitVec, b: BitVec));
         mk!(_mm256_unpackhi_epi64(a: BitVec, b: BitVec));
         mk!(_mm256_unpacklo_epi32(a: BitVec, b: BitVec));
 
-        // Batch B: int-vec body present, lift lemma freshly added above.
+        // int-vec body present, lift lemma added above.
         mk!(_mm_sub_epi16(a: BitVec, b: BitVec));
         mk!(_mm256_cmpeq_epi32(a: BitVec, b: BitVec));
 
         // Permute over the full 0..256 IMM8 range like sibling permute intrinsics.
         mk!([100]_mm256_permute4x64_epi64{<0>,<1>,<2>,<3>,<4>,<5>,<6>,<7>,<8>,<9>,<10>,<11>,<12>,<13>,<14>,<15>,<16>,<17>,<18>,<19>,<20>,<21>,<22>,<23>,<24>,<25>,<26>,<27>,<28>,<29>,<30>,<31>,<32>,<33>,<34>,<35>,<36>,<37>,<38>,<39>,<40>,<41>,<42>,<43>,<44>,<45>,<46>,<47>,<48>,<49>,<50>,<51>,<52>,<53>,<54>,<55>,<56>,<57>,<58>,<59>,<60>,<61>,<62>,<63>,<64>,<65>,<66>,<67>,<68>,<69>,<70>,<71>,<72>,<73>,<74>,<75>,<76>,<77>,<78>,<79>,<80>,<81>,<82>,<83>,<84>,<85>,<86>,<87>,<88>,<89>,<90>,<91>,<92>,<93>,<94>,<95>,<96>,<97>,<98>,<99>,<100>,<101>,<102>,<103>,<104>,<105>,<106>,<107>,<108>,<109>,<110>,<111>,<112>,<113>,<114>,<115>,<116>,<117>,<118>,<119>,<120>,<121>,<122>,<123>,<124>,<125>,<126>,<127>,<128>,<129>,<130>,<131>,<132>,<133>,<134>,<135>,<136>,<137>,<138>,<139>,<140>,<141>,<142>,<143>,<144>,<145>,<146>,<147>,<148>,<149>,<150>,<151>,<152>,<153>,<154>,<155>,<156>,<157>,<158>,<159>,<160>,<161>,<162>,<163>,<164>,<165>,<166>,<167>,<168>,<169>,<170>,<171>,<172>,<173>,<174>,<175>,<176>,<177>,<178>,<179>,<180>,<181>,<182>,<183>,<184>,<185>,<186>,<187>,<188>,<189>,<190>,<191>,<192>,<193>,<194>,<195>,<196>,<197>,<198>,<199>,<200>,<201>,<202>,<203>,<204>,<205>,<206>,<207>,<208>,<209>,<210>,<211>,<212>,<213>,<214>,<215>,<216>,<217>,<218>,<219>,<220>,<221>,<222>,<223>,<224>,<225>,<226>,<227>,<228>,<229>,<230>,<231>,<232>,<233>,<234>,<235>,<236>,<237>,<238>,<239>,<240>,<241>,<242>,<243>,<244>,<245>,<246>,<247>,<248>,<249>,<250>,<251>,<252>,<253>,<254>,<255>}(a: BitVec));
 
-        // Batch C: int-vec bodies freshly added above.
+        // int-vec bodies added above.
         mk!(_mm256_castsi256_si128(a: BitVec));
         mk!([2]_mm256_extracti128_si256{<0>,<1>}(a: BitVec));
         mk!(_mm256_sllv_epi32(a: BitVec, b: BitVec));
@@ -1773,7 +1772,7 @@ assume val _mm256_set_epi32_interp: e7: i32 -> e6: i32 -> e5: i32 -> e4: i32 -> 
         mk!([100]_mm256_slli_epi16{<0>,<1>,<2>,<3>,<4>,<5>,<6>,<7>,<8>,<9>,<10>,<11>,<12>,<13>,<14>,<15>,<16>,<17>,<18>,<19>,<20>,<21>,<22>,<23>,<24>,<25>,<26>,<27>,<28>,<29>,<30>,<31>,<32>,<33>,<34>,<35>,<36>,<37>,<38>,<39>,<40>,<41>,<42>,<43>,<44>,<45>,<46>,<47>,<48>,<49>,<50>,<51>,<52>,<53>,<54>,<55>,<56>,<57>,<58>,<59>,<60>,<61>,<62>,<63>,<64>,<65>,<66>,<67>,<68>,<69>,<70>,<71>,<72>,<73>,<74>,<75>,<76>,<77>,<78>,<79>,<80>,<81>,<82>,<83>,<84>,<85>,<86>,<87>,<88>,<89>,<90>,<91>,<92>,<93>,<94>,<95>,<96>,<97>,<98>,<99>,<100>,<101>,<102>,<103>,<104>,<105>,<106>,<107>,<108>,<109>,<110>,<111>,<112>,<113>,<114>,<115>,<116>,<117>,<118>,<119>,<120>,<121>,<122>,<123>,<124>,<125>,<126>,<127>,<128>,<129>,<130>,<131>,<132>,<133>,<134>,<135>,<136>,<137>,<138>,<139>,<140>,<141>,<142>,<143>,<144>,<145>,<146>,<147>,<148>,<149>,<150>,<151>,<152>,<153>,<154>,<155>,<156>,<157>,<158>,<159>,<160>,<161>,<162>,<163>,<164>,<165>,<166>,<167>,<168>,<169>,<170>,<171>,<172>,<173>,<174>,<175>,<176>,<177>,<178>,<179>,<180>,<181>,<182>,<183>,<184>,<185>,<186>,<187>,<188>,<189>,<190>,<191>,<192>,<193>,<194>,<195>,<196>,<197>,<198>,<199>,<200>,<201>,<202>,<203>,<204>,<205>,<206>,<207>,<208>,<209>,<210>,<211>,<212>,<213>,<214>,<215>,<216>,<217>,<218>,<219>,<220>,<221>,<222>,<223>,<224>,<225>,<226>,<227>,<228>,<229>,<230>,<231>,<232>,<233>,<234>,<235>,<236>,<237>,<238>,<239>,<240>,<241>,<242>,<243>,<244>,<245>,<246>,<247>,<248>,<249>,<250>,<251>,<252>,<253>,<254>,<255>}(a: BitVec));
         mk!([100]_mm256_srli_epi64{<0>,<1>,<2>,<3>,<4>,<5>,<6>,<7>,<8>,<9>,<10>,<11>,<12>,<13>,<14>,<15>,<16>,<17>,<18>,<19>,<20>,<21>,<22>,<23>,<24>,<25>,<26>,<27>,<28>,<29>,<30>,<31>,<32>,<33>,<34>,<35>,<36>,<37>,<38>,<39>,<40>,<41>,<42>,<43>,<44>,<45>,<46>,<47>,<48>,<49>,<50>,<51>,<52>,<53>,<54>,<55>,<56>,<57>,<58>,<59>,<60>,<61>,<62>,<63>,<64>,<65>,<66>,<67>,<68>,<69>,<70>,<71>,<72>,<73>,<74>,<75>,<76>,<77>,<78>,<79>,<80>,<81>,<82>,<83>,<84>,<85>,<86>,<87>,<88>,<89>,<90>,<91>,<92>,<93>,<94>,<95>,<96>,<97>,<98>,<99>,<100>,<101>,<102>,<103>,<104>,<105>,<106>,<107>,<108>,<109>,<110>,<111>,<112>,<113>,<114>,<115>,<116>,<117>,<118>,<119>,<120>,<121>,<122>,<123>,<124>,<125>,<126>,<127>,<128>,<129>,<130>,<131>,<132>,<133>,<134>,<135>,<136>,<137>,<138>,<139>,<140>,<141>,<142>,<143>,<144>,<145>,<146>,<147>,<148>,<149>,<150>,<151>,<152>,<153>,<154>,<155>,<156>,<157>,<158>,<159>,<160>,<161>,<162>,<163>,<164>,<165>,<166>,<167>,<168>,<169>,<170>,<171>,<172>,<173>,<174>,<175>,<176>,<177>,<178>,<179>,<180>,<181>,<182>,<183>,<184>,<185>,<186>,<187>,<188>,<189>,<190>,<191>,<192>,<193>,<194>,<195>,<196>,<197>,<198>,<199>,<200>,<201>,<202>,<203>,<204>,<205>,<206>,<207>,<208>,<209>,<210>,<211>,<212>,<213>,<214>,<215>,<216>,<217>,<218>,<219>,<220>,<221>,<222>,<223>,<224>,<225>,<226>,<227>,<228>,<229>,<230>,<231>,<232>,<233>,<234>,<235>,<236>,<237>,<238>,<239>,<240>,<241>,<242>,<243>,<244>,<245>,<246>,<247>,<248>,<249>,<250>,<251>,<252>,<253>,<254>,<255>}(a: BitVec));
 
-        // Batch D: int-vec bodies for L0 / L0-nospec wrappers.
+        // int-vec bodies for L0 / L0-nospec wrappers.
         mk!(_mm_set_epi8(
             e15: i8, e14: i8, e13: i8, e12: i8,
             e11: i8, e10: i8, e9: i8, e8: i8,
@@ -2026,8 +2025,7 @@ assume val _mm256_set_epi32_interp: e7: i32 -> e6: i32 -> e5: i32 -> e4: i32 -> 
 
         #[test]
         fn mm256_storeu_si256_i16_model_diff() {
-            // Closes the previously-flagged gap: mm256_storeu_si256_i16 had
-            // no dedicated differential store test.
+            // Dedicated differential store test for mm256_storeu_si256_i16.
             for _ in 0..1000 {
                 let bv: BitVec<256> = BitVec::random();
                 let bytes: Vec<u8> = bv.to_vec();
@@ -2438,9 +2436,9 @@ mod corner_tests {
     }
 }
 
-/// Track I (2026-06-10): differential validation of the F* TRUST AXIOMS added/fixed
-/// for the ML-KEM AVX2 rejection-sampling proof, against the executable core-models
-/// reference semantics in this file / `x86.rs` (which are themselves hardware-validated
+/// Differential validation of the F* TRUST AXIOMS for the ML-KEM AVX2
+/// rejection-sampling proof, against the executable core-models reference
+/// semantics in this file / `x86.rs` (which are themselves hardware-validated
 /// by the `mk!` differential tests above, on x86 hosts).
 ///
 /// Each test transcribes the F* axiom's formula literally to Rust and compares it with
@@ -2934,8 +2932,8 @@ mod track_i_axiom_transcription_tests {
         }
     }
 
-    /// F* axiom `count_ones_u8_popcount8` (Track I M2, landed in the
-    /// `fstar::before` block of `libcrux-ml-kem/src/vector/avx2/sampling.rs`):
+    /// F* axiom `count_ones_u8_popcount8` (in the `fstar::before` block of
+    /// `libcrux-ml-kem/src/vector/avx2/sampling.rs`):
     /// `v (count_ones_u8 x) == popcount8 (v x)` with
     /// `popcount8 g = if g = 0 then 0 else g % 2 + popcount8 (g / 2)`
     /// (defined in `Hacspec_ml_kem.Commute.Rej_table`).

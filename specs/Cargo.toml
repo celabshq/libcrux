@@ -3,4 +3,4 @@ members = ["hacspec-lib", "kyber", "sha3", "ml-dsa", "ml-kem"]
 resolver = "2"
 
 [workspace.dependencies]
-hax-lib = { git = "https://github.com/cryspen/hax", branch = "fstar-quote-callsite-spans-037" }
+hax-lib = { git = "https://github.com/cryspen/hax", tag = "cargo-hax-v0.4.0" }

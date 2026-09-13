@@ -22,9 +22,10 @@ module EquivImplSpec.Sponge.Portable
 open FStar.Mul
 open Core_models
 
-module G  = EquivImplSpec.Keccakf.Generic
-module P  = EquivImplSpec.Keccakf.Portable
-module SC = EquivImplSpec.Sponge.Generic.Core
+module G   = EquivImplSpec.Keccakf.Generic
+module P   = EquivImplSpec.Keccakf.Portable
+module SC  = EquivImplSpec.Sponge.Generic.Core
+module HSL = Hacspec_sha3.Sponge.Lemmas
 
 (* Bring Portable typeclass instances into scope. *)
 let _ =
@@ -313,8 +314,13 @@ let lemma_store_block_eq_squeeze_state
       Hacspec_sha3.Sponge.squeeze_state out_len state
         (out <: t_Array u8 out_len) start len in
     let aux (i:nat{i < Seq.length out}):
-      Lemma(Seq.index impl_out i == Seq.index spec_out i) = 
+      Lemma(Seq.index impl_out i == Seq.index spec_out i) =
       let sz_i = sz i in
+      (* Spec side: [squeeze_state.[sz_i]] characterization (in/out of write range).
+         Impl side [store_block.[sz_i]] comes from store_block's own byteform post.
+         Both reduce to the same [to_le_bytes] byte in-range / [out.[i]] out-of-range,
+         so the per-index equality is immediate. *)
+      HSL.lemma_squeeze_state_index out_len state (out <: t_Array u8 out_len) start len sz_i;
       assert (v sz_i < Seq.length out);
       assert(Seq.index impl_out (v sz_i) == Seq.index spec_out (v sz_i))
     in

@@ -8,7 +8,7 @@
       1,
       [ "@query" ],
       0,
-      "51f965657d36a8428bb5bb3e31c0917e"
+      "2d402f6313d25593fe0a1f868b8834aa"
     ],
     [
       "EquivImplSpec.Keccakf.Arm64.arm64_lc_zero",
@@ -72,7 +72,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "a8bc7e3b78d31ca1b6b946fe3067e0b7"
+      "f85acb7f3522aa3118fb00f2a71351a7"
     ],
     [
       "EquivImplSpec.Keccakf.Arm64.arm64_lc_xor5",
@@ -141,7 +141,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e44b758f553d4a165995a755b0f51181"
+      "bc0cee804ae885a32818d8be994672c8"
     ],
     [
       "EquivImplSpec.Keccakf.Arm64.arm64_lc_rotate_left1_and_xor",
@@ -181,7 +181,7 @@
         "int_inversion",
         "interpretation_Tm_abs_39db510d86bbe56cb9ef163d847f5e16",
         "interpretation_Tm_abs_44d78164ecd3ae1d873768fc71c8c2e4",
-        "interpretation_Tm_abs_ac3199647bedbe7f06c2dc9257e1a18f",
+        "interpretation_Tm_abs_87828a3a85ad238af3f5f934b17dcda6",
         "interpretation_Tm_abs_e778d0ad810878b2381ad461dfc240ba",
         "lemma_FStar.Seq.Base.init_index_",
         "lemma_Libcrux_intrinsics.Arm64_sha3_views.lemma_e_vrax1q_u64",
@@ -206,12 +206,12 @@
         "typing_Libcrux_intrinsics.Arm64_sha3_views.vec128_as_u64x2",
         "typing_Rust_primitives.Integers.bits",
         "typing_Rust_primitives.Integers.size_bits",
-        "typing_Tm_abs_ac3199647bedbe7f06c2dc9257e1a18f",
+        "typing_Tm_abs_87828a3a85ad238af3f5f934b17dcda6",
         "typing_tok_Rust_primitives.Integers.U32@tok",
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "977fd75c329b181f68f194b5d22da9f4"
+      "4ab8e5a3e3cbe73f850ff34e9f26be20"
     ],
     [
       "EquivImplSpec.Keccakf.Arm64.arm64_lc_xor_and_rotate",
@@ -224,8 +224,10 @@
         "FStar.Seq.Base_interpretation_Tm_arrow_6d76c8e4fc59503348e55fc915188ea1",
         "Libcrux_intrinsics.Arm64_sha3_views_interpretation_Tm_arrow_260d011f3befec8d053b9324e955bad9",
         "Libcrux_sha3.Simd.Arm64.Wrappers_interpretation_Tm_arrow_a13f079c5bf90ba75526703c1f32d14d",
-        "Prims_pretyping_ae567c2fb75be05905677af440075565", "bool_inversion",
-        "bool_typing", "constructor_distinct_Rust_primitives.Integers.I32",
+        "Prims_pretyping_ae567c2fb75be05905677af440075565",
+        "Rust_primitives_interpretation_Tm_arrow_814388202aec1fb7483132389195bf0b",
+        "bool_inversion", "bool_typing",
+        "constructor_distinct_Rust_primitives.Integers.I32",
         "constructor_distinct_Rust_primitives.Integers.U32",
         "constructor_distinct_Rust_primitives.Integers.U64",
         "constructor_distinct_Rust_primitives.Integers.USIZE",
@@ -272,9 +274,9 @@
         "interpretation_Tm_abs_1eeff65ff9c3b4718cb125a4d4298f2a",
         "interpretation_Tm_abs_30d3ef4495607ba3106ac3e69c207507",
         "interpretation_Tm_abs_4e41eaf5703de6128b17c2c81e94b989",
-        "interpretation_Tm_abs_5afbfc1dc7eee71ab7bd1e0a74215dff",
         "interpretation_Tm_abs_6bce37ae1ea4d3d8be2de5a3895f032e",
         "interpretation_Tm_abs_9b420abd7c3e11c07b133e6053abbd21",
+        "interpretation_Tm_abs_a828aec1ce69a587a0eff5a88d4a3296",
         "lemma_FStar.Seq.Base.init_index_",
         "lemma_Libcrux_intrinsics.Arm64_sha3_views.lemma_e_vxarq_u64",
         "lemma_Libcrux_intrinsics.Arm64_sha3_views.vec128_as_u64x2_len",
@@ -308,14 +310,17 @@
         "typing_Rust_primitives.Integers.bits",
         "typing_Rust_primitives.Integers.range",
         "typing_Rust_primitives.Integers.size_bits",
-        "typing_Tm_abs_5afbfc1dc7eee71ab7bd1e0a74215dff",
+        "typing_Rust_primitives.Integers.v",
         "typing_Tm_abs_6bce37ae1ea4d3d8be2de5a3895f032e",
+        "typing_Tm_abs_9b420abd7c3e11c07b133e6053abbd21",
+        "typing_Tm_abs_a828aec1ce69a587a0eff5a88d4a3296",
         "typing_tok_Rust_primitives.Integers.I32@tok",
+        "typing_tok_Rust_primitives.Integers.U32@tok",
         "typing_tok_Rust_primitives.Integers.U64@tok",
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "69390e9f41bc41cc975607287c1c0319"
+      "326f6bd185ccab9f5d2c5da9de29f060"
     ],
     [
       "EquivImplSpec.Keccakf.Arm64.arm64_lc_and_not_xor",
@@ -351,10 +356,10 @@
         "fuel_guarded_inversion_Libcrux_core_models.Abstractions.Bitvec.t_BitVec",
         "function_token_typing_Rust_primitives.Integers.u64",
         "int_inversion",
+        "interpretation_Tm_abs_17e4122e816516bac77a9aa21f0271c5",
         "interpretation_Tm_abs_25b92d4c5735c5cef6efe4ba4e713109",
         "interpretation_Tm_abs_70646f65530f8e01f105e0a69ae19ec7",
         "interpretation_Tm_abs_b3415a74df5b6badedff49d0e4c315f8",
-        "interpretation_Tm_abs_c73b0554ff956feb37a6c90af295172d",
         "lemma_FStar.Seq.Base.init_index_",
         "lemma_Libcrux_intrinsics.Arm64_sha3_views.lemma_e_vbcaxq_u64",
         "lemma_Libcrux_intrinsics.Arm64_sha3_views.vec128_as_u64x2_len",
@@ -378,11 +383,11 @@
         "typing_Libcrux_intrinsics.Arm64_sha3_views.vec128_as_u64x2",
         "typing_Rust_primitives.Integers.bits",
         "typing_Rust_primitives.Integers.size_bits",
-        "typing_Tm_abs_c73b0554ff956feb37a6c90af295172d",
+        "typing_Tm_abs_17e4122e816516bac77a9aa21f0271c5",
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "c1a87fb685e2245a629ca6f9257e4783"
+      "cda6454f1fe054a1c9021c1a2f2d1a2e"
     ],
     [
       "EquivImplSpec.Keccakf.Arm64.arm64_lc_xor_constant",
@@ -454,7 +459,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "ab0af657e4e5f85ceebed828d8fee09b"
+      "d6697fe1a90e82f5eb0e384a756cc8c3"
     ],
     [
       "EquivImplSpec.Keccakf.Arm64.arm64_lc_xor",
@@ -520,7 +525,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "d2d1cfae3a4e54aa76c694ab99f65143"
+      "0828e870297ee5519879ee5c8ec2b0b6"
     ],
     [
       "EquivImplSpec.Keccakf.Arm64.lc_arm64",
@@ -556,7 +561,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "31364da79dfbb9bb1b91031f673293e5"
+      "e82ac9556778e915349c1bf5fa6f7980"
     ],
     [
       "EquivImplSpec.Keccakf.Arm64.lemma_keccakf1600_arm64",
@@ -602,7 +607,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e1ca1bd5acb7bd63af4c373e19f67ed9"
+      "834996774e0c354ecec1ce68e63e415e"
     ],
     [
       "EquivImplSpec.Keccakf.Arm64.lemma_keccakf1600_arm64",
@@ -631,7 +636,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "a092de50561ac23d6191fe6cec42094e"
+      "9b462c3f3e474553bea1a0137fef68b0"
     ],
     [
       "EquivImplSpec.Keccakf.Arm64.lemma_extract_lane_zero_arm64",
@@ -714,7 +719,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "d96ac75ad0bd848b5d4fcbef3a5ee5fc"
+      "fb6e13fd0bb74f8e4d9612aaf7cb658c"
     ]
   ]
 ]

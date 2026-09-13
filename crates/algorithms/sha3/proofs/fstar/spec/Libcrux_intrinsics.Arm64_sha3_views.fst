@@ -4,12 +4,12 @@ open FStar.Mul
 open Core_models
 
 (* ============================================================================
-   sha3 NEON (Arm64) lane-view + per-op fact companion (core-models migration).
+   sha3 NEON (Arm64) lane-view + per-op fact companion.
 
    The u64 analog of `Libcrux_intrinsics.Arm64_ml_kem_views` (which carries the
    i16/i32 families for the ml-kem NTT).  It exposes to sha3's NEON proofs the
    u64x2 lane VIEW (`vec128_as_u64x2` / `get_lane_u64x2`) and the per-op FACT
-   lemmas that the hand-written pcm `Libcrux_intrinsics.Arm64_extract` interface
+   lemmas that the hand-written `Libcrux_intrinsics.Arm64_extract` interface
    carried as op `ensures`, now phrased over the REAL `Libcrux_intrinsics.Arm64`
    ops (which delegate to the differentially-tested `libcrux-core-models` NEON
    model + `Arm.Extra` slice-I/O models).
@@ -19,8 +19,8 @@ open Core_models
    op-fact is PROVEN from the canonical NEON op-lemma set in
    `Libcrux_core_models.Neon_views` (which rests only on the differentially
    tested `Arm.Interpretations.Int_vec.Lemmas` lifts + the PROVEN codec
-   round-trip).  Under pcm these facts were assumed op `ensures`; the trust
-   surface here has strictly SHRUNK.  NO fact in this module is assumed.
+   round-trip).  Every fact here is PROVEN, not an assumed op `ensures`.  NO
+   fact in this module is assumed.
 
    It `include`s the real `Libcrux_intrinsics.Arm64` so consumers that alias
    this module as `I` resolve `I.e_vOP_u64` to the real op AND
@@ -47,12 +47,12 @@ module Extra  = Libcrux_core_models.Core_arch.Arm.Extra
 module Num    = Core_models.Num
 module Int    = Rust_primitives.Integers
 
-(* ── lane-view type (mirrors the pcm `t_e_uint64x2_t`) ────────────────────── *)
+(* ── lane-view type (mirrors the `Arm64_extract` `t_e_uint64x2_t`) ─────────── *)
 unfold type t_e_uint64x2_t = BV.t_BitVec (mk_u64 128)
 
 (* ── u64x2 lane view (A-on-B adapter over canonical NV.to_u64x2).  OPAQUE for
-      the same reasons as ml-kem's `vec128_as_i16x8`: keeps pcm's abstraction
-      (still PROVEN, not assumed); the only route to the codec is the index
+      the same reasons as ml-kem's `vec128_as_i16x8`: keeps the `Arm64_extract`
+      abstraction (still PROVEN, not assumed); the only route to the codec is the index
       lemma below. ─────────────────────────────────────────────────────────── *)
 [@@ "opaque_to_smt"]
 let vec128_as_u64x2 (x: t_e_uint64x2_t) : t_Array u64 (sz 2) =
@@ -154,10 +154,10 @@ let lemma_e_vtrn2q_u64 (a b: t_e_uint64x2_t)
 #pop-options
 
 (* ── vxarq: real op = ArmHW.vxarq_u64 v_RIGHT a b = per-lane rotate of (a^b).
-      The core-models model `ArmIV.vxarq_u64` now expresses the XAR right-rotate
+      The core-models model `ArmIV.vxarq_u64` expresses the XAR right-rotate
       as the EQUIVALENT left rotation `rotate_LEFT (a^b) by ((64 - v_RIGHT%64)%64)`
       (`rotate_right x k == rotate_left x ((64-k)%64)` for a 64-bit word) — the
-      form the Keccak-rho equivalence consumers need, keeping the whole flip
+      form the Keccak-rho equivalence consumers need, keeping this companion
       axiom-free.  This companion fact just lifts that model per-lane; a consumer
       with `v_LEFT + v_RIGHT = 64 /\ 0 < v_RIGHT < 64` then rewrites the rotate
       amount `(64 - v_RIGHT%64)%64` to `cast v_LEFT` by u32 arithmetic. ──────── *)
@@ -317,16 +317,16 @@ let lemma_e_vst1q_u64 (out: t_Slice u64) (v: t_e_uint64x2_t)
 
 (* ============================================================================
    Byte load/store bridges — CODEC form (over the `to_u8x16` view), ZERO new
-   trust (user decision 2026-08-10: codec-form rewrite, not a le_bytes axiom).
+   trust (codec-form, not a le_bytes axiom).
 
-   The pcm `Arm64_extract` stated the byte fact in `to_le_bytes`/`from_le_bytes`
+   The `Arm64_extract` interface stated the byte fact in `to_le_bytes`/`from_le_bytes`
    form, but `Core_models.Num.impl_u64__{to,from}_le_bytes` are `assume val`
    (no semantics) — so that spelling is unprovable without a le_bytes↔bits axiom.
    The real ops share `Arm.Extra`'s `{vst1q,vld1q}_bytes_model`, which are
    byte-granular over the `to_u8x16` CODEC view; we bridge to that.  Consumers
-   (Simd.Arm64.{Store,Load,StoreBlockHelpers}) are being rewritten to the codec
-   form to match.  The u8x16 <-> u64x2 REPACK (`get_lane_u8x16 v (8i+b)` == byte
-   b of `get_lane_u64x2 v i`, via `Canon.lemma_readback` on both views) is a pure
+   (Simd.Arm64.{Store,Load,StoreBlockHelpers}) use the codec form to match.  The
+   u8x16 <-> u64x2 REPACK (`get_lane_u8x16 v (8i+b)` == byte b of
+   `get_lane_u64x2 v i`, via `Canon.lemma_readback` on both views) is a pure
    codec fact — added here once a consumer pins its exact needed form.
    ========================================================================== *)
 
@@ -469,7 +469,7 @@ let lemma_u8x16_u64x2_repack (vv: t_e_uint8x16_t) (i: nat{i < 2}) (b: nat{b < 8}
    (`Trusted.Intrinsics.lemma_u64_{to,from}_le_bytes_*`) so the SHA3 store/load
    consumers — whose `stored` predicate and the to_le_bytes-defined reference
    spec `Hacspec_sha3.Sponge.{squeeze_state,xor_block_into_state}` speak in
-   to_le_bytes / from_le_bytes form — reconnect.  These REPLACE the pcm
+   to_le_bytes / from_le_bytes form — reconnect.  These REPLACE the
    `Arm64_extract` byte op-ensures (which asserted the same le_bytes facts as
    TRUSTED); net trust drops to the two core-models axioms.  See
    [[project_sha3_lebytes_semantics_decision]].
@@ -488,7 +488,7 @@ let lemma_get_lane_u8x16_eq_to_le_bytes (vv: t_e_uint8x16_t) (k: nat{k < 16})
     (get_lane_u64x2 vv (k / 8)) (k % 8)
 #pop-options
 
-(* the pcm `e_vst1q_bytes_u64` op-ensures replacement, in to_le_bytes form:
+(* the `Arm64_extract` `e_vst1q_bytes_u64` op-ensures replacement, in to_le_bytes form:
    the stored byte i is byte (i%8) of to_le_bytes(lane i/8).  Consumers
    (Store.store_block chain, StoreBlockHelpers) establish their window forall
    by calling this per byte. *)

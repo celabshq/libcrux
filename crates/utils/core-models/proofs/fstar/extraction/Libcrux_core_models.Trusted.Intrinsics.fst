@@ -144,7 +144,7 @@ val lemma_testz_si256_lift (a b: bv256)
    analogs) produce the CODEC byte view (`to_u8x16` = bit-level shift/truncate).
    These two axioms PIN the abstract functions to their standard little-endian
    meaning, which lets the SIMD impl byte-I/O proofs reconnect to the to_le_bytes
-   /from_le_bytes-defined spec.  This REPLACES the (much larger, per-op) pcm
+   /from_le_bytes-defined spec.  This REPLACES the (much larger, per-op)
    `Arm64_extract`/`Avx2_extract` byte op-ensures trust surface with two lines —
    net trust drops.  Byte-endianness only; no arithmetic on the abstract functions.
 

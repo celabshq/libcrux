@@ -4,7 +4,7 @@ open FStar.Mul
 open Core_models
 
 (* ============================================================================
-   CANONICAL intrinsics lane-view + op-lemma companion (Option B, Phase 1).
+   CANONICAL intrinsics lane-view + op-lemma companion.
 
    Single source of truth for the SIMD lane view + the proven op-lemma set that
    ml-kem / ml-dsa / sha3 will (eventually) all `open` — replacing ml-dsa's
@@ -24,8 +24,8 @@ open Core_models
    scalar-result / raw-passthrough / set ops inline the same two-step body).
 
    NOTE (SMTPat): op-lemmas are exposed WITHOUT SMTPat — this foundational module
-   stays cascade-free; consumers call them explicitly (or a later phase adds
-   scoped SMTPats).  Ground-term ops (setzero/…) would otherwise mint variable-
+   stays cascade-free; consumers call them explicitly (or add scoped SMTPats
+   themselves).  Ground-term ops (setzero/…) would otherwise mint variable-
    free triggers (Error 276), see ml-kem `Avx2_ml_kem_views` note.
    ============================================================================ *)
 
@@ -50,28 +50,28 @@ module Ssse3  = Libcrux_core_models.Core_arch.X86.Ssse3
 include Libcrux_core_models.Trusted.Intrinsics
 
 (* ── the canonical lane views = core-models `to_iWxL` (re-export, no new axiom) ─ *)
-let to_i16x16  = IVi.e_ee_3__impl__to_i16x16
-let from_i16x16 = IVi.e_ee_3__impl__from_i16x16
-let to_i32x8   = IVi.e_ee_1__impl__to_i32x8
-let from_i32x8  = IVi.e_ee_1__impl__from_i32x8
-let to_i64x4   = IVi.e_ee_2__impl__to_i64x4
-let from_i64x4  = IVi.e_ee_2__impl__from_i64x4
-let to_i8x32   = IVi.e_ee_5__impl__to_i8x32
-let from_i8x32  = IVi.e_ee_5__impl__from_i8x32
-let to_u32x8   = IVi.e_ee_6__impl__to_u32x8
-let to_u64x4   = IVi.e_ee_7__impl__to_u64x4
-let from_u64x4  = IVi.e_ee_7__impl__from_u64x4
-let to_i128x2  = IVi.e_ee_4__impl__to_i128x2
-let from_i128x2 = IVi.e_ee_4__impl__from_i128x2
-let to_i128x1  = IVi.e_ee_13__impl__to_i128x1
-let to_i32x4   = IVi.e_ee_10__impl__to_i32x4
-let from_i32x4  = IVi.e_ee_10__impl__from_i32x4
-let to_i64x2   = IVi.e_ee_11__impl__to_i64x2
-let from_i64x2  = IVi.e_ee_11__impl__from_i64x2
-let to_i16x8   = IVi.e_ee_12__impl__to_i16x8
-let from_i16x8  = IVi.e_ee_12__impl__from_i16x8
-let to_i8x16   = IVi.e_ee_14__impl__to_i8x16
-let from_i8x16  = IVi.e_ee_14__impl__from_i8x16
+let to_i16x16  = IVi.e_ee_2__impl__to_i16x16
+let from_i16x16 = IVi.e_ee_2__impl__from_i16x16
+let to_i32x8   = IVi.e___impl__to_i32x8
+let from_i32x8  = IVi.e___impl__from_i32x8
+let to_i64x4   = IVi.e_ee_1__impl__to_i64x4
+let from_i64x4  = IVi.e_ee_1__impl__from_i64x4
+let to_i8x32   = IVi.e_ee_4__impl__to_i8x32
+let from_i8x32  = IVi.e_ee_4__impl__from_i8x32
+let to_u32x8   = IVi.e_ee_5__impl__to_u32x8
+let to_u64x4   = IVi.e_ee_6__impl__to_u64x4
+let from_u64x4  = IVi.e_ee_6__impl__from_u64x4
+let to_i128x2  = IVi.e_ee_3__impl__to_i128x2
+let from_i128x2 = IVi.e_ee_3__impl__from_i128x2
+let to_i128x1  = IVi.e_ee_12__impl__to_i128x1
+let to_i32x4   = IVi.e_ee_9__impl__to_i32x4
+let from_i32x4  = IVi.e_ee_9__impl__from_i32x4
+let to_i64x2   = IVi.e_ee_10__impl__to_i64x2
+let from_i64x2  = IVi.e_ee_10__impl__from_i64x2
+let to_i16x8   = IVi.e_ee_11__impl__to_i16x8
+let from_i16x8  = IVi.e_ee_11__impl__from_i16x8
+let to_i8x16   = IVi.e_ee_13__impl__to_i8x16
+let from_i8x16  = IVi.e_ee_13__impl__from_i8x16
 
 (* ── the op-agnostic reduction combinators ─────────────────────────────────── *)
 
@@ -492,11 +492,11 @@ let lemma_mm_shuffle_epi8 (a: bv128) (b: bv128)
     Ssse3.e_mm_shuffle_epi8 IV.e_mm_shuffle_epi8 IVL.e_mm_shuffle_epi8' rt_i8x16 a b
 
 (* ============================================================================
-   Task B: movemask bit companion — bit i of the movemask == sign bit of lane i.
+   movemask bit companion — bit i of the movemask == sign bit of lane i.
    Discharged over the core-models movemask FOLD model (`e_movemask_bit_sum_*`,
    Int_vec.fst, a base-2 LSB-first accumulation of lane sign bits) by digit
-   extraction.  This is the bit-level shape the serialize spike (serialize_1 /
-   rejection_sample) needs; it was previously an ASSUMED companion.
+   extraction.  This is the bit-level shape the serialize proofs (serialize_1 /
+   rejection_sample) need.
    ============================================================================ *)
 module MLem = FStar.Math.Lemmas
 
@@ -1415,6 +1415,10 @@ let lemma_sub_i128_i16_128 (x: bv256) (y: bv128) (q: nat{q < 2}) (i: nat{i < 8})
 #pop-options
 
 (* per-lane VALUE of the interpreted madd (the i16-pair dot product, wrapped). *)
+(* #restart-solver: clears accumulated Z3 state from earlier module queries — this
+   nonlinear madd goal proves at rlimit ~28 in isolation but saturates at 300 in-module
+   without a fresh solver (admit_except-passes/full-build-fails; solver-state pollution). *)
+#restart-solver
 #push-options "--fuel 1 --ifuel 2 --z3rlimit 300"
 let lemma_iv_madd_epi16 (a b: Funarr.t_FunArray (mk_u64 16) i16) (j: nat{j < 8})
     : Lemma (v (Funarr.impl_5__get (mk_u64 8) #i32 (IV.e_mm256_madd_epi16 a b) (mk_u64 j)) ==
@@ -1430,6 +1434,9 @@ let lemma_iv_madd_epi16 (a b: Funarr.t_FunArray (mk_u64 16) i16) (j: nat{j < 8})
             v (Funarr.impl_5__get (mk_u64 16) #i16 b (mk_u64 (2 * j + 1)))) @% pow2 32))
     by (FStar.Tactics.norm [delta_only [`%Libcrux_core_models.Core_arch.X86.Interpretations.Int_vec.e_mm256_madd_epi16;
                                         `%Core_models.Num.impl_i32__wrapping_add;
+                                        (* impl_i32__wrapping_add is re-exported as
+                                           Bundle.impl_14__wrapping_add — norm needs this extra hop *)
+                                        `%Core_models.Bundle.impl_14__wrapping_add;
                                         `%Rust_primitives.Arithmetic.wrapping_add_i32;
                                         `%Rust_primitives.Integers.add_mod];
                             iota; zeta; primops];
@@ -1747,12 +1754,12 @@ let lemma_i16x8_from_i8_pair (x y: bv128) (k: nat{k < 8}) (k': nat{k' < 8})
 #pop-options
 
 (* ============================================================================
-   Serialize-migration batch (2026-07-30): per-lane facts for the remaining
-   AVX2 serialize/deserialize register ops — the variable 32-bit left shift,
-   the 64-bit immediate right shift, the 8x32 lane permute, and the 128-bit
-   `set_epi8` twin.  Same recipes as their siblings above (`delta_only` norm
-   + smt for the from_fn index round-trip; the set_epi8 twin mirrors
-   `lemma_iv_set_epi8` at half width).  All PROVEN — no new trust.
+   Per-lane facts for the remaining AVX2 serialize/deserialize register ops —
+   the variable 32-bit left shift, the 64-bit immediate right shift, the 8x32
+   lane permute, and the 128-bit `set_epi8` twin.  Same recipes as their
+   siblings above (`delta_only` norm + smt for the from_fn index round-trip;
+   the set_epi8 twin mirrors `lemma_iv_set_epi8` at half width).  All PROVEN —
+   no new trust.
    ============================================================================ *)
 
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
@@ -1842,9 +1849,9 @@ let lemma_iv_mm_set_epi8 (e15 e14 e13 e12 e11 e10 e9 e8 e7 e6 e5 e4 e3 e2 e1 e0:
         FStar.Tactics.smt ())
 #pop-options
 
-(* ── Serialize-migration batch, tranche 2: mm_packs_epi16 per-lane fact, the
-   128-half i16-lane transfers (castsi256_si128 / extracti128_si256 1), and the
-   I8 lane-value decode (the `lemma_to_i16_val` mirror at 128/I8).  All PROVEN. *)
+(* ── mm_packs_epi16 per-lane fact, the 128-half i16-lane transfers
+   (castsi256_si128 / extracti128_si256 1), and the I8 lane-value decode (the
+   `lemma_to_i16_val` mirror at 128/I8).  All PROVEN. *)
 
 #push-options "--fuel 1 --ifuel 2 --z3rlimit 300"
 let lemma_iv_mm_packs_epi16 (a b: Funarr.t_FunArray (mk_u64 8) i16) (k: nat{k < 16})
@@ -1907,9 +1914,9 @@ let lemma_to_i8_val_128 (vec: bv128) (n: nat{n < 16})
   IVi.lemma_tc_range Int.I8 (IVi.dsum2 reader 0 8)
 #pop-options
 
-(* ── Serialize-migration batch, tranche 3: per-lane slli_epi16, and the
-   ZEROING branch of the 128-bit PSHUFB (negative index byte -> 0), the
-   complement of `lemma_iv_mm_shuffle_epi8_sel` above.  All PROVEN. *)
+(* ── Per-lane slli_epi16, and the ZEROING branch of the 128-bit PSHUFB
+   (negative index byte -> 0), the complement of `lemma_iv_mm_shuffle_epi8_sel`
+   above.  All PROVEN. *)
 
 #push-options "--fuel 1 --ifuel 2 --z3rlimit 200"
 let lemma_iv_slli16 (imm: i32) (arr: Funarr.t_FunArray (mk_u64 16) i16) (j: nat{j < 16})

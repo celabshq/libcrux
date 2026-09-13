@@ -102,11 +102,13 @@ readme = "Readme.md"
 allow-branch = ["main"]
 
 [workspace.dependencies]
-# TEMPORARY: cargo-hax-v0.3.7 + the fstar!-antiquote span-hygiene backport
-# (branch fstar-quote-callsite-spans-037 = tag + 3b003bc5b), required by the
-# crate-wide `proof!` markers. Return to the plain tag once the fix lands in a
-# hax release (main PR branch: fstar-quote-callsite-spans).
-hax-lib = { git = "https://github.com/cryspen/hax", branch = "fstar-quote-callsite-spans-037" }
+# hax 0.4.0 — the real `cargo-hax-v0.4.0` release (commit f8fe6933). It CONTAINS the
+# macro_rules! antiquote span-hygiene fix (PR #2212 / b78d945) that the crate-wide
+# `proof!` markers require; 0.4.0-rc.1 and rc.2 do NOT. The `hax-0.4.0` opam switch
+# is currently built from rc.1 (d0537c7) and must be REBUILT from this same tag
+# before ml-kem/ml-dsa will extract (sha3 + deps extract on either). Match the
+# engine to this tag. Extract with `OPAMSWITCH=hax-0.4.0 opam exec -- <crate>/hax.py extract`.
+hax-lib = { git = "https://github.com/cryspen/hax", tag = "cargo-hax-v0.4.0" }
 libcrux-aead = { version = "=0.0.9", path = "crates/primitives/aead" }
 libcrux-aes = { version = "=0.0.9", path = "crates/algorithms/aes" }
 libcrux-blake2 = { version = "=0.0.8", path = "crates/algorithms/blake2" }

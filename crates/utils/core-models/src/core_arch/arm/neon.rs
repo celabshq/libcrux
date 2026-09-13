@@ -12,8 +12,7 @@
 //! # Source attribution
 //!
 //! Portions of this file are adapted from
-//! `verify-rust-std/testable-simd-models/`, © Cryspen, Apache-2.0,
-//! imported on 2026-05-02 for the libcrux SIMD intrinsics trust-base sprint.
+//! `verify-rust-std/testable-simd-models/`, © Cryspen, Apache-2.0.
 
 #![allow(unused_variables)]
 
