@@ -90,8 +90,7 @@ pub(crate) fn rejection_sample(input: &[u8], output: &mut [i16]) -> usize {
         lemma_half_done ${potential_coefficients} ${lower_coefficients} ${lower_shuffles_vec} ${lower_shuffled} ${lower_shuffles} 0 g0;
         (* The store bridge: lane j of the stored buffer IS lane j of the
            shuffled vector's i16x8 view.  Over core-models the store is a
-           modeled per-lane spine, so this is a proven companion lemma rather
-           than the pcm-era `Seq.slice` reasoning. *)
+           modeled per-lane spine, so this is a proven companion lemma. *)
         Libcrux_intrinsics.Avx2_ml_kem_views.lemma_mm_storeu_si128 ${output_before_lower} ${lower_shuffled};
         assert (forall (j: nat{j < 8}).
             j < Hacspec_ml_kem.Commute.Rej_table.popcount8 g0 ==>
@@ -147,8 +146,9 @@ pub(crate) fn rejection_sample(input: &[u8], output: &mut [i16]) -> usize {
             Seq.index Libcrux_ml_kem.Vector.Rej_sample_table.v_REJECTION_SAMPLE_SHUFFLE_TABLE g1);
         lemma_half_done ${potential_coefficients} ${upper_coefficients} ${upper_shuffles_vec} ${upper_shuffled} ${upper_shuffles} 1 g1;
         (* output indexing through the second store *)
-        let range = { Core_models.Ops.Range.f_start = ${sampled_count};
-                      Core_models.Ops.Range.f_end = ${sampled_count} +! mk_usize 8 } in
+        let range = ({ Core_models.Ops.Range.f_start = ${sampled_count};
+                      Core_models.Ops.Range.f_end = ${sampled_count} +! mk_usize 8 }
+                      <: Core_models.Ops.Range.t_Range usize) in
         let s' = Libcrux_intrinsics.Avx2.mm_storeu_si128
                    ((${output_after_lower}.[ range ] <: t_Slice i16)) ${upper_shuffled} in
         assert (${output} ==

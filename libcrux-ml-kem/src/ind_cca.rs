@@ -543,10 +543,10 @@ pub(crate) mod unpacked {
     }
 
     /// Generate an unpacked key from a serialized key.
-    // FOLLOW-UP (Phase C): ensures weakened to seed_for_A only — the original
-    // legacy ind_cca_unpack_public_key spec-form returned (value, valid), but
-    // the Hacspec analogue returns Result, so the spec-equality shape differs
-    // structurally. Full Hacspec-form ensures pending.
+    // The ensures is weakened to seed_for_A only: the legacy
+    // ind_cca_unpack_public_key spec-form returned (value, valid), but the
+    // Hacspec analogue returns Result, so the spec-equality shape differs
+    // structurally.  Full Hacspec-form ensures pending.
     #[hax_lib::fstar::options("--z3rlimit 300 --split_queries always")]
     #[hax_lib::requires(
         fstar!(r#"Hacspec_ml_kem.Parameters.is_rank $K /\
@@ -591,8 +591,8 @@ pub(crate) mod unpacked {
     #[hax_lib::attributes]
     impl<const K: usize, Vector: Operations> MlKemPublicKeyUnpacked<K, Vector> {
         /// Get the serialized public key.
-        // FOLLOW-UP (Phase C): ensures dropped pending serialize_public_key_mut
-        // bridge lemma; bounds-only requires retained.
+        // Ensures dropped pending the serialize_public_key_mut bridge lemma;
+        // bounds-only requires retained.
         #[inline(always)]
         #[requires(fstar!(r#"let ${self_} = self in
         Hacspec_ml_kem.Parameters.is_rank $K /\
@@ -611,8 +611,8 @@ pub(crate) mod unpacked {
         }
 
         /// Get the serialized public key.
-        // FOLLOW-UP (Phase C): ensures dropped pending serialize_public_key
-        // bridge lemma; bounds-only requires retained.
+        // Ensures dropped pending the serialize_public_key bridge lemma;
+        // bounds-only requires retained.
         #[inline(always)]
         #[requires(fstar!(r#"let ${self_} = self in
         Hacspec_ml_kem.Parameters.is_rank $K /\
@@ -721,8 +721,8 @@ pub(crate) mod unpacked {
         }
 
         /// Get the serialized public key.
-        // FOLLOW-UP (Phase C): ensures dropped pending serialize_public_key_mut
-        // bridge lemma; bounds-only requires retained.
+        // Ensures dropped pending the serialize_public_key_mut bridge lemma;
+        // bounds-only requires retained.
         #[inline(always)]
         #[requires(fstar!(r#"let ${self_} = self in
         Hacspec_ml_kem.Parameters.is_rank $K /\
@@ -738,8 +738,8 @@ pub(crate) mod unpacked {
         }
 
         /// Get the serialized public key.
-        // FOLLOW-UP (Phase C): ensures dropped pending serialize_public_key
-        // bridge lemma; bounds-only requires retained.
+        // Ensures dropped pending the serialize_public_key bridge lemma;
+        // bounds-only requires retained.
         #[inline(always)]
         #[requires(fstar!(r#"let ${self_} = self in
         Hacspec_ml_kem.Parameters.is_rank $K /\

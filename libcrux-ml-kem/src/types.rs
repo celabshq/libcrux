@@ -120,10 +120,9 @@ macro_rules! impl_index_impls_for_generic_struct {
 }
 
 // IndexMut impls are not extracted to F*: hax cannot represent &mut
-// indexing (issue hacspec/hax#420), so the extracted bodies were
-// failure stubs that no longer typecheck against the new
-// `Core_models.Ops.Index.IndexMut.t_IndexMut` shape. They have no
-// other F* users, so we hide them from hax extraction here.
+// indexing (issue hacspec/hax#420), so the extracted bodies would be
+// failure stubs against `Core_models.Ops.Index.IndexMut.t_IndexMut`.
+// They have no other F* users, so we hide them from hax extraction here.
 #[cfg(not(hax))]
 macro_rules! impl_index_mut_impls_for_generic_struct {
     ($name:ident) => {

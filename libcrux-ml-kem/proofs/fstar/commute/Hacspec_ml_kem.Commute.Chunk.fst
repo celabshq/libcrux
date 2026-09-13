@@ -1021,8 +1021,7 @@ let lemma_compress_message_coefficient_fe_commute (fe result: i16) :
     assert(v (i16_to_spec_fe result).f_val == v result);
     ()
 
-(* A8 (parameterized compress): closed Phase 2 / B6 (Wave-A coordinator,
-   2026-04-29).  Statement matches the integer-form post of
+(* Parameterized compress.  Statement matches the integer-form post of
    `compress<D>` in portable/compress.rs.  Each D ∈ {4, 5, 10, 11}
    reduces compress_d's u32 body to the integer formula in `requires`
    once `pow2 (v d)` is concretized; the two `f_val` asserts pin
@@ -1075,10 +1074,9 @@ let lemma_decompress_ciphertext_coefficient_fe_commute
    Reuse the array-length-generic predicates already defined in
    Traits.Spec so Layer 2 at N = 256 can cite the same shape. *)
 
-(* The trait field's post is now in `Spec.Utils.forall16` form (faster
-   for callers per the C4-era forall benchmark — Form 1 was 44× slower
-   at N=16).  These chunk-level lemmas mirror that shape so any caller
-   that used to project from compress_post_N (Form 1) now gets the
+(* The trait field's post is in `Spec.Utils.forall16` form (faster for
+   callers per the forall benchmark — Form 1 was 44× slower at N=16).
+   These chunk-level lemmas mirror that shape so callers get the
    16-conjunction form, consumable lane-by-lane without quantifier
    instantiation. *)
 let lemma_compress_1_chunk_commutes
@@ -1150,7 +1148,7 @@ let lemma_decompress_ciphertext_coefficient_chunk_commutes
    Symmetric layout for the inverse NTT via `ntt_inverse_layer_n`. *)
 
 (* ────────────  Per-branch (concrete-b) layer-1 NTT helpers  ────────────
-   Phase 6 follow-up (agent A2).  At call sites in
+   At call sites in
    `vector/portable.rs::op_ntt_layer_1_step`, the per-branch predicate
    `ntt_layer_1_step_branch_post` selects one of {zeta0..zeta3} via a
    4-way `if b=0 then zeta0 else if b=1 ... else zeta3` ladder.  When the
@@ -1395,9 +1393,9 @@ let lemma_inv_ntt_layer_3_step_chunk_commutes
 
 (* ────────────  NTT multiply  ────────────
    `ntt_multiply_n` at N = 16 consumes four zetas (N / 4).
-   The chunk-commute lemma itself (`lemma_ntt_multiply_chunk_commutes`,
-   formerly an assume val here) lives in the Phase-7b region below,
-   after the `mont_array_lane` / `zetas_4_lane` unfold helpers it needs.
+   The chunk-commute lemma itself (`lemma_ntt_multiply_chunk_commutes`)
+   lives in the region below, after the `mont_array_lane` / `zetas_4_lane`
+   unfold helpers it needs.
 
    Wrapper-side branch lemmas: derive the opaque trait
    `ntt_multiply_branch_post b` from the impl's `ntt_multiply_spec`
@@ -1455,7 +1453,7 @@ let lemma_ntt_multiply_branch_3
     lemma_base_case_mult_pair_commute lhs rhs result (Spec.Utils.neg_i16 zeta3) 7
 #pop-options
 
-(*** Phase 7a Tier-1 commute lemmas — Polynomial ***)
+(*** Tier-1 commute lemmas — Polynomial ***)
 
 (* These lemmas lift per-vector trait posts (already established by the
    trait's `op_*` proofs) to the per-polynomial hacspec equation form,
@@ -1641,7 +1639,7 @@ let lemma_add_to_ring_element_commute
     Classical.forall_intro aux;
     Seq.lemma_eq_intro r_poly hp
 
-(*** Phase 7b — INTT-Mont finalization (agent F) ***)
+(*** INTT-Mont finalization ***)
 
 (* The constants `1441` (the impl's "fused finalization" mont_mul factor)
    and `1353 = R^2 mod q` and `2285 = R mod q` and `169 = R^{-1} mod q`
@@ -2568,7 +2566,7 @@ let lemma_add_message_error_reduce_commute
 (* (lemma_add_message_error_reduce_scaled_eq is defined at end of file, after
    lemma_subtract_reduce_scaled_eq which it mirrors.) *)
 
-(*** Phase 7a Step 7 — to_standard_domain finalization (matrix-mul track) ***)
+(*** to_standard_domain finalization (matrix-mul track) ***)
 
 (* The standard-domain track is the post-matrix-multiply analogue of the
    INTT-Mont finalize.  After `t_as_ntt[i] = add_to_ring_element ∘
@@ -2731,7 +2729,7 @@ let lemma_add_standard_error_reduce_lane
    a single composed mod-q identity:
      `v red % q == (v myself_pre * 1353 * 169 + v error) % q`.
 
-   Used by `add_standard_error_reduce`'s loop invariant (Option B): track
+   Used by `add_standard_error_reduce`'s loop invariant: track
    only this closed form for processed chunks (no need to store
    intermediate `normal`/`sum` values in the invariant via existentials).
    Caller then invokes this lemma per lane in a post-loop forall_intro to
@@ -2775,7 +2773,7 @@ let lemma_add_standard_error_reduce_lane_closed
     L.lemma_mod_add_distr (v plain.P.f_val) (v error_lane) q;
     ()
 
-(* ----- Phase 7a Step 7: poly-level commute for `add_standard_error_reduce` -----
+(* ----- Poly-level commute for `add_standard_error_reduce` -----
 
    Tier-1 lemma assembling the per-chunk FE-add equation (lifted by the
    caller via `lemma_add_standard_error_reduce_lane` per processed chunk)
@@ -2855,7 +2853,7 @@ let lemma_add_standard_error_reduce_commute
 
 #pop-options
 
-(*** Phase 7b — Forward NTT layer commute (target #1: ntt_at_layer_1) ***)
+(*** Forward NTT layer commute (target #1: ntt_at_layer_1) ***)
 
 (* Per-lane unfold helper for `mont_i16_to_spec_array`.  Wraps
    `createi_lemma` to surface the per-lane FE for an i16 array. *)
@@ -2940,11 +2938,11 @@ let lemma_ntt_layer_n_16_2_lane
 #push-options "--z3rlimit 400 --fuel 0 --ifuel 1 --split_queries always"
 
 (* Per-lane bridge for `f_ntt_layer_1_step`, GROUND-LITERAL per-branch form
-   (mirrors the cold-verified `Bridges.lemma_ntt_layer_1_step_branch_*`).  The
-   prior monolithic form used symbolic `b = i / 4`, `idx = i % 4`, `i ± 2`,
-   which drove a non-terminating `Rust_primitives.Integers.div`/`range`/`MkInt`
-   refinement-interpretation cascade (cold-unprovable; only a fragile committed
-   hint masked it).  Each helper here fixes a CONCRETE branch `b ∈ {0,1,2,3}`,
+   (mirrors `Bridges.lemma_ntt_layer_1_step_branch_*`).  A monolithic form with
+   symbolic `b = i / 4`, `idx = i % 4`, `i ± 2` drives a non-terminating
+   `Rust_primitives.Integers.div`/`range`/`MkInt`
+   refinement-interpretation cascade.  Each helper here fixes a CONCRETE branch
+   `b ∈ {0,1,2,3}`,
    so the trait branch_post's if-ladder and every lane index collapse to
    literals and the div/mod cascade never forms.
 
@@ -3892,38 +3890,25 @@ let lemma_ntt_multiply_chunk_commutes
 #pop-options
 
 (* ───── Layer 2 / 3 forward NTT bridges and inverse NTT bridges ─────
-   STATUS: not delivered in this session.
-
-   Same pattern as `lemma_ntt_layer_1_step_to_hacspec` above; each layer
-   needs a `lemma_ntt_layer_n_16_<2*len>_lane` createi unfold, a
-   `zetas_<groups>_lane` zetas unfold, a per-lane bridge that reveals
-   the right branch post for `b = lane → branch` and matches against
-   the trait branch post's per-lane FE equations, and a top-level
+   Not present in this module.  Each would follow the same pattern as
+   `lemma_ntt_layer_1_step_to_hacspec` above: a `lemma_ntt_layer_n_16_<2*len>_lane`
+   createi unfold, a `zetas_<groups>_lane` zetas unfold, a per-lane bridge that
+   reveals the right branch post for `b = lane → branch` and matches against the
+   trait branch post's per-lane FE equations, and a top-level
    `Classical.forall_intro` + `Seq.lemma_eq_intro` composition.
 
-   First-cut implementation of layer 2 forward (lanes-to-branches
-   mapping `b = (i / 8) * 2 + ((i % 4) / 2)`) verified the per-lane
-   unfold and zetas helpers, but the lane bridge itself ran Z3 past
-   2.7 minutes on a single sub-query without reaching any failure or
-   success — likely because Z3 was case-splitting heavily on the
-   layer-2 branch post's nested `if`-ladder for `base`/`off`/`z`.
-
-   Recommended approach for follow-up:
-     (a) Profile via `--query_stats --split_queries always` to identify
-         which sub-query stalls;
-     (b) Either explicitly enumerate `i ∈ {0..15}` to remove the
-         nested arithmetic in `b = ...`, OR
-     (c) Restructure the trait branch post so `b` is consumed by a
-         flat case-split (no nested ifs).
+   For layer 2 forward (lanes-to-branches mapping
+   `b = (i / 8) * 2 + ((i % 4) / 2)`) the lane bridge tends to case-split heavily
+   on the branch post's nested `if`-ladder for `base`/`off`/`z`; enumerating
+   `i ∈ {0..15}` explicitly to remove the nested arithmetic in `b = ...`, or
+   restructuring the branch post so `b` is consumed by a flat case-split (no
+   nested ifs), avoids that.
 
    Inverse NTT layers (`f_inv_ntt_layer_{1,2,3}_step`) follow the same
    pattern with `IN.inv_butterfly` and `IN.ntt_inverse_layer_n` in
-   place of the forward equivalents.
+   place of the forward equivalents. *)
 
-   Estimated remaining work: 1-2 hours per layer × 5 remaining layers
-   = 5-10 hours.  Out of scope for this session. *)
-
-(*** Phase 7a / lane A3 additions ***)
+(*** Array-form to_spec_poly_mont additions ***)
 
 (* Goal: bridge `to_spec_poly_mont (param b)` (record-form) to the array
    form used at the body call site of `subtract_reduce`.  The body has
@@ -3935,9 +3920,7 @@ let lemma_ntt_multiply_chunk_commutes
    Resolution: define `to_spec_poly_mont_arr` (resp. `_plain_arr`) over a
    `t_Array vV 16` directly.  Both record forms unfold to the same array
    form via a one-line lemma — Z3 sees `array == array` directly, no
-   record-projection traversal needed.
-
-   See MLKEM_STATUS.md USER-7 hypothesis (b). *)
+   record-projection traversal needed. *)
 
 (* to_spec_poly_mont_arr / to_spec_poly_plain_arr: transparent interface defs moved to Chunk.fsti *)
 
@@ -4132,7 +4115,7 @@ let lemma_add_message_error_reduce_scaled_eq
   = lemma_subtract_reduce_scaled_eq p q
 
 (* ===================================================================== *)
-(* Phase 7a / lane A5 additions — polynomial-level lift + zetas helpers   *)
+(* Polynomial-level lift + zetas helpers   *)
 (* for `invert_ntt_montgomery` Step 5 strengthening.                       *)
 (*                                                                         *)
 (* `mont_to_spec_poly_256`: flattens a 16-chunk × 16-lane impl polynomial  *)
@@ -4217,7 +4200,7 @@ let zetas_8 (z0 z1 z2 z3 z4 z5 z6 z7: i16)
    (zetas_2_); Layer 7: 1 (zetas_1_).  Provided by Spec module already.    *)
 
 (* ════════════════════════════════════════════════════════════════════════
-   Phase 2a — the d-bit compress BARRETT CORE (shared across all backends).
+   The d-bit compress BARRETT CORE (shared across all backends).
    The (de)compress SIMD spines all compute, per lane, the portable scalar
    Barrett formula  ((fe*2^d + 1664) * 10321340) >> 35  mod 2^d  (the magic
    const 10321340 = ceil(2^35 / 3329)).  This lemma proves that pure integer

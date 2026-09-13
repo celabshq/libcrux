@@ -1,4 +1,4 @@
-FSTAR_INCLUDE_DIRS_EXTRA += ../extraction \
+FSTAR_INCLUDE_DIRS_EXTRA += $(shell git rev-parse --show-toplevel)/specs/ml-kem/proofs/fstar/extraction \
 	      $(shell git rev-parse --show-toplevel)/libcrux-ml-kem/proofs/fstar/spec \
 	      $(shell git rev-parse --show-toplevel)/libcrux-ml-kem/proofs/fstar/extraction \
 	      $(shell git rev-parse --show-toplevel)/fstar-helpers/fstar-bitvec \

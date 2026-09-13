@@ -11,7 +11,7 @@ open Core_models
 
    Documented exception to R10 (no new namespace-squatting):
    `Parameters.Sizes` predates the Hacspec namespace policy; its bodies
-   are real definitions (not unfold-let wrappers).  Future migration
+   are real definitions (not unfold-let wrappers).  A future refactor
    should replace `Hacspec_ml_kem.Parameters.Sizes.v_*` consumers with
    the extracted `Hacspec_ml_kem.Parameters.{t_MlKemParams,
    impl_MlKemParams__*, v_ML_KEM_*}` symbols at which point this file

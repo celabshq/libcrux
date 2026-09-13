@@ -54,7 +54,7 @@ pub(crate) fn invert_ntt_at_layer_1<Vector: Operations>(
                                   "#
                                 )
                         } else {
-                            // Impl-level (Option B): record only the relationship
+                            // Impl-level: record only the relationship
                             // re.coefficients[j] == f_inv_ntt_layer_1_step _re_init[j] (parametric zetas).
                             // The function-form lift to IN.ntt_inverse_layer_n is done once after the loop.
                             spec::is_bounded_vector(3328, &re.coefficients[i])
@@ -102,7 +102,7 @@ pub(crate) fn invert_ntt_at_layer_1<Vector: Operations>(
         );
         *zeta_i -= 3;
     }
-    // Phase 7a (track A) Step 4 — Option B: lift the impl-level loop
+    // Lift the impl-level loop
     // invariant to the function-form citation in the ensures via a
     // post-loop forall_intro over the bridge lemma.  Each chunk j: reveal
     // its `is_i16b_array_opaque (4*3328)` (from the original
@@ -207,7 +207,7 @@ pub(crate) fn invert_ntt_at_layer_2<Vector: Operations>(
                                   "#
                                 )
                         } else {
-                            // Impl-level (Option B): record the per-chunk relation
+                            // Impl-level: record the per-chunk relation
                             // re.coefficients[j] == f_inv_ntt_layer_2_step _re_init[j]
                             //                          (zeta(63 - 2*j)) (zeta(62 - 2*j)).
                             // The function-form lift to IN.ntt_inverse_layer_n is
@@ -323,7 +323,7 @@ pub(crate) fn invert_ntt_at_layer_3<Vector: Operations>(
                                   "#
                                 )
                         } else {
-                            // Impl-level (Option B): record only the relationship
+                            // Impl-level: record only the relationship
                             // re.coefficients[j] == f_inv_ntt_layer_3_step _re_init[j] (zeta(31-j)).
                             // The function-form lift to IN.ntt_inverse_layer_n is done once after the loop.
                             spec::is_bounded_vector(4 * 3328, &re.coefficients[i])
@@ -363,7 +363,7 @@ pub(crate) fn invert_ntt_at_layer_3<Vector: Operations>(
                          (Libcrux_ml_kem.Polynomial.zeta (mk_usize 31 -! round)))"#
         );
     }
-    // Phase 7a (track A) Step 4 layer 3 — Option B: lift the impl-level
+    // Lift the impl-level
     // loop invariant to the function-form citation in the ensures via a
     // post-loop forall_intro over the bridge lemma.  Each chunk j: reveal
     // its `is_i16b_array_opaque (2*3328)` (from the original
@@ -398,7 +398,7 @@ pub(crate) fn invert_ntt_at_layer_3<Vector: Operations>(
     );
 }
 
-// USER-14 Step B opacity fix: the per-lane FUNCTIONAL post of the step
+// Opacity fix: the per-lane FUNCTIONAL post of the step
 // (two `mont_i16_to_spec_fe` foralls) wrapped OPAQUE so it stays inert in
 // `invert_ntt_at_layer_4_plus`'s loop context (it ignited a k!61 ~17.5M
 // machine-int refinement cascade when transparent) and is revealed only by
@@ -467,12 +467,12 @@ pub(crate) fn inv_ntt_layer_int_vec_step_reduce<Vector: Operations>(
 
     let r0 = Vector::barrett_reduce(a_plus_b);
     let r1 = Vector::montgomery_multiply_by_constant(b_minus_a, zeta_r);
-    // Phase 7a Step 3.1 — lift the per-lane mod-q residue equations
+    // Lift the per-lane mod-q residue equations
     // (from `barrett_reduce_post` and `montgomery_multiply_by_constant_post`,
     // composed with `add_post` / `sub_post` of the prior `add_bounded` /
     // `sub_bounded` calls) to per-lane FE equations under
     // `mont_i16_to_spec_fe`.  Two `forall_intro`s — one per output chunk.
-    // Phase 7a Step 5 (lane A5 Q101 fix): explicitly call
+    // Explicitly call
     // `lemma_mod_q_eq_unfold` to extract `v _ % 3329 == _ % 3329` from
     // the trait posts' `mod_q_eq` predicate before invoking the FE
     // commute lemmas.  Without this, Z3 reports "incomplete quantifiers"
@@ -528,7 +528,7 @@ pub(crate) fn inv_ntt_layer_int_vec_step_reduce<Vector: Operations>(
         Classical.forall_intro aux1
       "#
     );
-    // USER-14 Step B opacity fix: fold the two per-lane foralls (established
+    // Opacity fix: fold the two per-lane foralls (established
     // above) into the opaque `inv_ntt_step_post` the strengthened ensures cites.
     proof!(
         r#"reveal_opaque (`%inv_ntt_step_post)
@@ -545,9 +545,9 @@ pub(crate) fn inv_ntt_layer_int_vec_step_reduce<Vector: Operations>(
 // calls (`layer == 5..7`) see the tight `3328` input.  We use the
 // looser `4*3328` precondition uniformly to keep one signature.
 #[inline(always)]
-// USER-14 Step B (CLOSED): the STRENGTHENED post citing `IN.ntt_inverse_layer p
-// layer` at the polynomial level (256-element FE polynomial) is now PROVEN with
-// NO admit.  `invert_ntt_at_layer_4_plus` verifies via the store_block top-down
+// The post cites `IN.ntt_inverse_layer p layer` at the polynomial level
+// (256-element FE polynomial), proven with NO admit.
+// `invert_ntt_at_layer_4_plus` verifies via the store_block top-down
 // recipe — opaque named fold-invariants (`outer_inv`/`inner_inv`, injected below)
 // carry one atom each, and the nested-fold maintenance is discharged by standalone
 // clean-context lemmas (`lemma_inner_step_maintains`, `lemma_inner_to_outer`,
@@ -555,11 +555,10 @@ pub(crate) fn inv_ntt_layer_int_vec_step_reduce<Vector: Operations>(
 // functional post is wrapped opaque (`inv_ntt_step_post`) so it stays inert in the
 // loop and is revealed only by the per-step bridge.
 //
-// The strengthened post is what `invert_ntt_montgomery` consumes to
-// chain layers 4..7 into `IN.ntt_inverse_butterflies`.  Validated
-// downstream against `matrix.rs` consumers (Wave-C surface).
+// This post is what `invert_ntt_montgomery` consumes to chain layers 4..7
+// into `IN.ntt_inverse_butterflies`.
 #[cfg_attr(hax, hax_lib::fstar::before(r#"
-(* USER-14 Step B keystone: from one inv_ntt_layer_int_vec_step_reduce step (vectors
+(* Keystone: from one inv_ntt_layer_int_vec_step_reduce step (vectors
    j and j+step_vec, written to cout = cin updated at j,j+step_vec), establish
    cross_vec_hyp for BOTH written vectors.  Lives here (not Bridges) because it cites
    the opaque `inv_ntt_step_post` from this module's interface; Bridges cannot import
@@ -610,7 +609,7 @@ let lemma_step_keystone
   Hacspec_ml_kem.Commute.Bridges.lemma_cross_vec_from_step #v_Vector cin cout step_vec zs j zeta_r
 #pop-options
 
-(* USER-14 Step B — opaque per-vector "content" predicate (the store_block `stored` analog):
+(* Opaque per-vector "content" predicate (the store_block `stored` analog):
    wraps the per-lane cross_vec_hyp forall for ONE vector m, so the loop invariant carries 16
    opaque atoms (one per i) instead of the 16x16 cross_vec_hyp cross-product that bloated the
    maintenance VC's context (13.7MB, globally flaky). Revealed only inside its own lemmas. *)
@@ -672,7 +671,7 @@ let lemma_cvda_frame1
   Classical.forall_intro aux
 #pop-options
 
-(* USER-14 Step B frame: the two writes (at j1=j, j2=j+step_vec) leave every OTHER vector m
+(* Frame: the two writes (at j1=j, j2=j+step_vec) leave every OTHER vector m
    untouched, so its opaque cross_vec_done_at carries from the pre-step array cb to cf.
    Standalone (clean context) so the body's invariant maintenance is one call. *)
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
@@ -702,7 +701,7 @@ let lemma_cross_vec_frame_others
   Classical.forall_intro aux
 #pop-options
 
-(* USER-14 Step B index helper: in round `round`, inner index j sits in [2*round*sv, 2*round*sv+sv),
+(* Index helper: in round `round`, inner index j sits in [2*round*sv, 2*round*sv+sv),
    so its block (j/(2sv)) is exactly `round` and its position (j%(2sv)) is < sv (low half). Clean
    (fuel0/ifuel0) modular arithmetic, mirrors Bridges.lemma_vec_partner_hi. *)
 #push-options "--fuel 0 --ifuel 0 --z3rlimit 100"
@@ -717,7 +716,7 @@ let lemma_inner_index (round j sv: nat)
   FStar.Math.Lemmas.lemma_mod_plus d round (2 * sv)
 #pop-options
 
-(* USER-14 Step B: offset_vec = (round*step*2)/16 collapses to 2*round*step_vec when step = 16*step_vec.
+(* offset_vec = (round*step*2)/16 collapses to 2*round*step_vec when step = 16*step_vec.
    Clean nat arithmetic, isolated so the heavy body needn't inline the division cancel. *)
 #push-options "--fuel 0 --ifuel 0 --z3rlimit 100"
 let lemma_offset_vec (round step offset offset_vec sv: nat)
@@ -727,7 +726,7 @@ let lemma_offset_vec (round step offset offset_vec sv: nat)
   FStar.Math.Lemmas.cancel_mul_div (2 * round * sv) 16
 #pop-options
 
-(* USER-14 Step B: the per-layer numeric facts (step=2^layer, groups=128/2^layer, e_zeta_i_init=2*groups,
+(* The per-layer numeric facts (step=2^layer, groups=128/2^layer, e_zeta_i_init=2*groups,
    step divisible by 16, etc.).  Proven once in CLEAN context via the assert_norm match — inline in the
    function the 4 match arms were flaky (provable but rlimit-canceled) under the bloated loop-invariant
    context. *)
@@ -762,7 +761,7 @@ let lemma_layer_numeric_facts (layer e_zeta_i_init: usize)
     | _ -> ())
 #pop-options
 
-(* USER-14 Step B keystone wrapper: discharges the index preconditions of lemma_step_keystone
+(* Keystone wrapper: discharges the index preconditions of lemma_step_keystone
    from the loop-shaped facts (j in round's block range, zs[round] the zeta), so the body call
    is a one-liner. *)
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 200 --split_queries always"
@@ -795,7 +794,7 @@ let lemma_step_keystone_loop
   lemma_cvda_intro #v_Vector re_init cf step_vec_n zs (j + step_vec_n)
 #pop-options
 
-(* USER-14 Step B — opaque NAMED invariant predicates (store_block top-down recipe).
+(* Opaque NAMED invariant predicates (store_block top-down recipe).
    The two folds carry ONE opaque atom each instead of the 16x(if-ladder x 2 opaque)
    cross-product; maintenance is discharged by the standalone lemmas below in CLEAN
    context, so the function-level fold WP never sees the unfolded ladder. *)
@@ -853,7 +852,7 @@ let inner_inv
          cross_vec_done_at #v_Vector re_init coeffs step_vec_n zs (v i))
     else b2t true
 
-(* USER-14 Step B: per-index lookups — instantiate the opaque invariant's forall at a
+(* Per-index lookups — instantiate the opaque invariant's forall at a
    specific i.  The ENSURES contains the trigger terms (coeffs.[i], Seq.index coeffs (v i),
    cross_vec_done_at .. (v i)) so the revealed forall instantiates reliably (a bare
    `assert (Seq.index coeffs (v i) == ..)` does NOT carry the auto-selected `coeffs.[i]`
@@ -911,7 +910,7 @@ let lemma_inner_inv_lookup
     (inner_inv #v_Vector re_init coeffs step_vec_n zs offset_vec step_vec j)
 #pop-options
 
-(* USER-14 Step B: outer fold init at round=0 — threshold collapses to 0, every
+(* Outer fold init at round=0 — threshold collapses to 0, every
    vector is PENDING (== re_init, bounded 4*3328). *)
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
 let lemma_outer_inv_init
@@ -934,7 +933,7 @@ let lemma_outer_inv_init
   reveal_opaque (`%outer_inv) (outer_inv #v_Vector re_init coeffs step_vec_n zs (mk_usize 0) step)
 #pop-options
 
-(* USER-14 Step B: inner fold init — at j = offset_vec the inner PENDING disjunction
+(* Inner fold init — at j = offset_vec the inner PENDING disjunction
    collapses to (i >= offset_vec), which is exactly the outer PENDING condition at
    round (threshold == offset_vec).  So inner_inv at offset_vec follows from outer_inv. *)
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 200 --split_queries always"
@@ -959,7 +958,7 @@ let lemma_inner_inv_init
     (inner_inv #v_Vector re_init coeffs step_vec_n zs offset_vec step_vec offset_vec)
 #pop-options
 
-(* USER-14 Step B: the CORE maintenance lemma — one inner-fold step.  Given the inner
+(* The CORE maintenance lemma — one inner-fold step.  Given the inner
    invariant at (cb, j) and one butterfly step writing cf = cb[j:=x][j+sv:=y], establish
    the inner invariant at (cf, j+1).  Proven in CLEAN context: the two newly-written
    vectors {j, j+sv} become DONE via lemma_step_keystone_loop; every other vector keeps
@@ -1045,7 +1044,7 @@ let lemma_inner_step_maintains
     (inner_inv #v_Vector re_init cf step_vec_n zs offset_vec step_vec (j +! mk_usize 1))
 #pop-options
 
-(* USER-14 Step B: inner fold result -> outer invariant at round+1.  At inner exit
+(* Inner fold result -> outer invariant at round+1.  At inner exit
    (j = offset_vec+step_vec) the inner DONE set is [0, offset_vec+2*step_vec), which equals
    the outer DONE set at round+1 since threshold(round+1) == offset_vec + 2*step_vec. *)
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 200 --split_queries always"
@@ -1076,7 +1075,7 @@ let lemma_inner_to_outer
     (outer_inv #v_Vector re_init coeffs step_vec_n zs rnext step)
 #pop-options
 
-(* USER-14 Step B: post-loop bridge — outer_inv at round=groups (threshold==16, ALL
+(* Post-loop bridge — outer_inv at round=groups (threshold==16, ALL
    vectors DONE) -> the full cross_vec_hyp forall the function post consumes. *)
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 200 --split_queries always"
 let lemma_postloop_cross_vec
@@ -1110,7 +1109,7 @@ let lemma_postloop_cross_vec
   Classical.forall_intro_2 aux
 #pop-options
 
-(* USER-14 Step B: the per-round zeta slice (impl Montgomery zetas mapped to spec FEs).
+(* The per-round zeta slice (impl Montgomery zetas mapped to spec FEs).
    Top-level so the function references it instead of a function-scope `let zs = Seq.init`. *)
 let zs_of (groups: usize) (e_zeta_i_init: usize{v e_zeta_i_init >= v groups /\ v e_zeta_i_init <= 128})
     : t_Slice Hacspec_ml_kem.Parameters.t_FieldElement =
@@ -1162,7 +1161,7 @@ pub(crate) fn invert_ntt_at_layer_4_plus<Vector: Operations>(
     #[cfg(hax)]
     let step_vec_n = step / FIELD_ELEMENTS_IN_VECTOR;
 
-    // USER-14 Step B: per-layer numeric facts + outer-fold invariant init.
+    // Per-layer numeric facts + outer-fold invariant init.
     proof!(r#"lemma_layer_numeric_facts ${layer} ${_zeta_i_init}"#);
     proof!(
         r#"lemma_outer_inv_init #$:Vector ${_re_init} ${re}.f_coefficients
@@ -1311,31 +1310,24 @@ pub(crate) fn invert_ntt_at_layer_4_plus<Vector: Operations>(
 /// the hacspec reference, confirming that all Montgomery factors cancel
 /// through this chain.
 #[inline(always)]
-// Phase 7a Step 5 (lane A5) — STRENGTHENED post citing
-// `IN.ntt_inverse_butterflies` at the polynomial level.  This is the
-// critical-path post that gates Wave-C consumers (`subtract_reduce`,
+// The post cites `IN.ntt_inverse_butterflies` at the polynomial level.
+// This is the critical-path post that gates consumers (`subtract_reduce`,
 // `add_message_error_reduce`, `add_error_reduce` in polynomial.rs;
 // `compute_message`, `compute_ring_element_v` in matrix.rs).
 //
-// Body chain admitted via `--admit_smt_queries true` while the bridge
-// from per-chunk `ntt_inverse_layer_n 16` posts (layers 1 and 3, see
-// strengthened posts in this file) to polynomial-level
-// `ntt_inverse_layer 256 _ N` — needed for chaining layers 1, 2, 3
-// into the per-layer polynomial form — is filed as USER-15.
-//
-// Layer 4..7 strengthened posts (Step 4 above) ALREADY cite the
-// polynomial-level `IN.ntt_inverse_layer p layer` form.  Layer 2's
-// post is bounds-only (per layer_2 admit, USER-13) — its functional
-// effect is captured by the COMPOSITION via `ntt_inverse_butterflies`
-// being correct, since runtime tests in `src/ntt.rs`
-// (`ntt_matches_spec`, `full_ntt_multiply_chain_matches_spec`)
-// confirm the spec relationship empirically.
-// USER-15: body fully verified (no panic_free admit).  The 7 per-layer
+// The body is fully verified (no panic_free admit).  The 7 per-layer
 // `poly_step` atoms are composed into the polynomial-level butterflies
 // equality via the `Invert_ntt_bridge` lemmas below; `lemma_compose_7`
 // discharges the functional post.  (The layer-1..3 bridges are themselves
-// SMT-admitted inside `Invert_ntt_bridge` pending the createi cascade fix,
-// USER-15 job B — but the driver here proves its ensures admit-free.)
+// SMT-admitted inside `Invert_ntt_bridge` pending the createi cascade fix
+// — but the driver here proves its ensures admit-free.)
+//
+// Layers 4..7 strengthened posts (above) already cite the polynomial-level
+// `IN.ntt_inverse_layer p layer` form.  Layer 2's post is bounds-only (per
+// its layer_2 admit); its functional effect is captured by the composition
+// via `ntt_inverse_butterflies` being correct, confirmed empirically by the
+// runtime tests in `src/ntt.rs` (`ntt_matches_spec`,
+// `full_ntt_multiply_chain_matches_spec`).
 #[hax_lib::fstar::options("--z3rlimit 200 --ext context_pruning --split_queries always")]
 #[hax_lib::requires((K <= 4).to_prop() & (spec::is_bounded_poly(K * 3328, re)))]
 #[hax_lib::ensures(|result| spec::is_bounded_poly(3328, future(re))
@@ -1355,7 +1347,7 @@ pub(crate) fn invert_ntt_montgomery<const K: usize, Vector: Operations>(
     #[cfg(hax)]
     spec::is_bounded_poly_higher(re, K * 3328, 4 * 3328);
 
-    // USER-15: ghost-only (cfg(hax)) per-layer SSA snapshots so the bridge
+    // Ghost-only (cfg(hax)) per-layer SSA snapshots so the bridge
     // lemmas below can name re0..re7.  No executable-code change.
     #[cfg(hax)]
     let re0 = *re;

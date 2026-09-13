@@ -481,9 +481,9 @@ let cmp_deint_bounds (hv: NA.t_e_int16x8_t) : Lemma
                v (NA.get_lane_u32x4 l1 m) == v (NA.get_lane_i16x8 hv (2 * m + 1)) /\
                v (NA.get_lane_u32x4 l0 m) < 3329 /\ v (NA.get_lane_u32x4 l1 m) < 3329) =
       assert (2 * m < 8 /\ 2 * m + 1 < 8);
-      // The l1 (vshrq_n_u32 16) lane fact no longer auto-injects over core-models
-      // (pcm carried it as an op ensures); call the whole-vector shift op-fact +
-      // the per-lane reinterpret bridge EXPLICITLY (migration-consistent: no SMTPat).
+      // The l1 (vshrq_n_u32 16) lane fact is not auto-injected over core-models,
+      // so call the whole-vector shift op-fact + the per-lane reinterpret bridge
+      // EXPLICITLY (no SMTPat).
       NA.lemma_e_vshrq_n_u32 (mk_i32 16) r;
       NA.lemma_e_vreinterpretq_u32_s16_lane hv m;
       lemma_deint_lo (NA.get_lane_i16x8 hv (2 * m)) (NA.get_lane_i16x8 hv (2 * m + 1));

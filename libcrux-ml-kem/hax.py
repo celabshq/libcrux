@@ -178,10 +178,6 @@ class extractAction(argparse.Action):
         includes = [
             "+**",
             "-libcrux_ml_kem::kem::**",
-            "-libcrux_ml_kem::hash_functions::portable::*",
-            "-libcrux_ml_kem::hash_functions::avx2::*",
-            "-libcrux_ml_kem::hash_functions::neon::*",
-            "+:libcrux_ml_kem::hash_functions::*::*",
             # Incremental-API alloc submodules use `Box<dyn Keys>` / `&dyn Any`
             # which hax extracts as F* `dyn`, an unknown identifier.  These are
             # runtime-dispatch helpers and irrelevant for proofs.
@@ -199,9 +195,6 @@ class extractAction(argparse.Action):
         # one). Reasons use the shared category vocabulary (reason_ok); the bijection
         # {exclusion tokens} == {annotations} is enforced by the V6 lint.
         # trusted-module: -libcrux_ml_kem::kem::** : hax-limitation: top-level kem API/dispatch glue, not extracted (verified via the generic + incremental paths)
-        # trusted-module: -libcrux_ml_kem::hash_functions::portable::* : trusted-extern: SHA3 hash backend verified in the sha3 crate (only the trait signature is re-extracted)
-        # trusted-module: -libcrux_ml_kem::hash_functions::avx2::* : trusted-extern: SHA3 hash backend verified in the sha3 crate (only the trait signature is re-extracted)
-        # trusted-module: -libcrux_ml_kem::hash_functions::neon::* : trusted-extern: SHA3 hash backend verified in the sha3 crate (only the trait signature is re-extracted)
         # trusted-module: -libcrux_ml_kem::ind_cca::incremental::**::as_keypair : hax-limitation: runtime-dispatch helper (Box<dyn Keys> / &dyn Any) has no F* model
         # trusted-module: -libcrux_ml_kem::ind_cca::incremental::**::as_state : hax-limitation: runtime-dispatch helper (Box<dyn Keys> / &dyn Any) has no F* model
         # trusted-module: -libcrux_ml_kem::ind_cca::incremental::multiplexing::alloc::** : hax-limitation: alloc/runtime-dispatch submodule (Box<dyn> / dyn Any) has no F* model
@@ -294,16 +287,28 @@ class proveAction(argparse.Action):
         if args.admit:
             admit_env = {"OTHERFLAGS": "--admit_smt_queries true"}
 
-        output_file = "verification_result.txt"
+        # Always run `make` in ml-kem's OWN extraction dir (absolute path), never
+        # the process CWD.  This previously used `-C proofs/fstar/extraction/`
+        # relative to wherever the script was invoked from, so running
+        # `python3 libcrux-ml-kem/hax.py prove` from the repo root built the
+        # (near-empty) repo-root `proofs/fstar/extraction` tree and reported
+        # "Checked: 0".  The log likewise lands next to the crate (as ml-dsa's
+        # hax.sh does), not in the caller's CWD.
+        output_file = os.path.join(SCRIPT_DIR, "verification_result.txt")
         os_env = os.environ.copy()
         os_env.update(admit_env)
+
+        # Parallel-job count: honor a `JOBS` env var (like the shell drivers),
+        # defaulting to 4.
+        jobs = os.environ.get("JOBS", "4")
 
         print(f"Running F* verification (output saved to {output_file})...")
         print()
 
         with open(output_file, "w") as f:
             proc = subprocess.Popen(
-                ["make", "-k", "-j4", "-C", "proofs/fstar/extraction/"],
+                ["make", "-k", f"-j{jobs}"],
+                cwd=ML_KEM_EXTRACTION_DIR,
                 env=os_env,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,

@@ -728,7 +728,7 @@ fn add_to_ring_element<Vector: Operations>(
         myself.coefficients[i] =
             add_bounded(myself.coefficients[i], _bound, &rhs.coefficients[i], 3328);
     }
-    // Phase 7a (E2): cite Hacspec_ml_kem.Polynomial.add_to_ring_element.
+    // Cite Hacspec_ml_kem.Polynomial.add_to_ring_element.
     // The strengthened loop invariant carries per-vector add_pre + add_post
     // for already-processed chunks; the Tier-1 lemma lifts to poly-level.
     proof!(
@@ -781,7 +781,7 @@ pub(crate) fn poly_barrett_reduce<Vector: Operations>(myself: &mut PolynomialRin
 
         myself.coefficients[i] = Vector::barrett_reduce(myself.coefficients[i]);
     }
-    // Phase 7a (E1): cite Hacspec_ml_kem.Polynomial.poly_barrett_reduce.
+    // Cite Hacspec_ml_kem.Polynomial.poly_barrett_reduce.
     // After the loop, the strengthened invariant gives us, for each chunk,
     // the per-vector `barrett_reduce_post (orig.[k]) (curr.[k])`.  The
     // Tier-1 lemma `lemma_poly_barrett_reduce_commute` lifts this to the
@@ -820,16 +820,13 @@ pub(crate) fn poly_barrett_reduce<Vector: Operations>(myself: &mut PolynomialRin
 ///
 /// See `src/invert_ntt.rs` (above `invert_ntt_montgomery`) for the
 /// upstream chain doc.
-// CLOSED 2026-04-29 (Phase 7a / lane A3): body discharged via
-// hypothesis (b) — array-form `to_spec_poly_mont_arr` + unfold lemma
+// Body discharged via array-form `to_spec_poly_mont_arr` + unfold lemma
 // + parameter unshadowing (loop uses local `b_acc`, parameter `b`
-// reachable from post-loop fragment).  All algebra + commute lemmas
-// in `Hacspec_ml_kem.Commute.Chunk` (commits `c698908ba`, `0a8c7289d`,
-// + Phase 7a/A3 additions: `to_spec_poly_mont_arr`,
+// reachable from the post-loop fragment).  The algebra + commute lemmas
+// live in `Hacspec_ml_kem.Commute.Chunk` (`to_spec_poly_mont_arr`,
 // `lemma_to_spec_poly_mont_unfold`, `lemma_subtract_reduce_scaled_eq`).
-// Sibling fns `add_message_error_reduce` / `add_error_reduce` still
-// have bounds-only posts; strengthening those (per-fe + per-chunk +
-// per-poly commute chain) is open follow-up — see MLKEM_STATUS USER-7.
+// Sibling fns `add_message_error_reduce` / `add_error_reduce` carry
+// bounds-only posts.
 #[inline(always)]
 #[hax_lib::fstar::options("--z3rlimit 800 --ext context_pruning --split_queries always")]
 #[hax_lib::requires(spec::is_bounded_poly(4095, &myself))]
@@ -856,15 +853,13 @@ fn subtract_reduce<Vector: Operations>(
     #[cfg(hax)]
     let _b = b.coefficients;
 
-    // Phase 7a / lane A3: keep the parameter `b` UNSHADOWED so we can
-    // refer to it in the post-loop bridge lemma.  The mutable loop
-    // accumulator goes through a freshly-named local `b_acc`.  The
-    // post (in the .fsti) references the parameter `b`, so reaching it
-    // by name from the body is required for the createi-extensionality
-    // lemma at the end.  Without this rename, hax's shadowing the
-    // parameter inside the `for` made the body unable to talk about
-    // the parameter directly — three prior session attempts hit Q143
-    // saturated rlimit 800 specifically because of this.
+    // Keep the parameter `b` UNSHADOWED so we can refer to it in the
+    // post-loop bridge lemma.  The mutable loop accumulator goes through a
+    // freshly-named local `b_acc`.  The post (in the .fsti) references the
+    // parameter `b`, so reaching it by name from the body is required for
+    // the createi-extensionality lemma at the end.  Without this rename,
+    // hax shadows the parameter inside the `for` loop and the body cannot
+    // talk about the parameter directly.
     let mut b_acc: PolynomialRingElement<Vector> = b;
 
     // Seed F1 (still scoped to the parameter `b`):
@@ -958,7 +953,7 @@ fn subtract_reduce<Vector: Operations>(
     // form `subtract_reduce_helper`; the eq-helper lemma chains it to
     // HP.subtract_reduce.
     //
-    // Phase 7a / lane A3: with the parameter `b` unshadowed (loop uses
+    // With the parameter `b` unshadowed (loop uses
     // `b_acc`), invoke `lemma_subtract_reduce_scaled_eq` directly on
     // `(b, b_input)` — both share `f_coefficients == e_b`, so their
     // createi-of-`to_spec_poly_mont` outputs coincide.  This is the
@@ -1353,55 +1348,15 @@ fn to_standard_domain<T: Operations>(vector: T) -> T {
 /// post-Barrett.  Note `1353 = R² mod q` ≠ `1441 = R²/128 mod q` — the
 /// distinction is the missing `· 128⁻¹` factor that ONLY applies to the
 /// INTT track (where `invert_ntt_montgomery` skips its FIPS-203 finalize).
-// Phase 7a Step 7 (agent-trackD F* infra + agent-trackA Option B
-// attempt, 2026-04-28).  F* per-lane and poly-level commute lemmas
-// landed in `Hacspec_ml_kem.Commute.Chunk` and verified:
-//   - `mont_form_lane`, `mont_form_chunk`: opaque per-lane/chunk
-//      standard-domain (`· R⁻¹`) form predicate.
-//   - `lemma_to_standard_domain_finalize_fe`: per-lane consumer mirror of
-//      `lemma_intt_mont_finalize_fe`.
-//   - `lemma_add_standard_error_reduce_lane{,_closed}`: lane bridge
-//      (mont_mul + add + barrett ⟹ FE-add equation).  The `_closed`
-//      variant takes a single composed mod-q identity instead of three
-//      trait posts (designed for Option B's loop invariant).
-//   - `lemma_add_standard_error_reduce_commute`: poly-level Tier-1 commute
-//      assembling 256 lane equations into the hacspec function identity,
-//      parameterized by a ghost `ntt_product : array t_FieldElement 256`.
-//
-// Step 7.2 (Rust ensures + body) STILL HELD.  Two attempts:
-//   - trackD's nested-forall invariant: Z3 timeout on outer
-//     `forall ntt_lane. mont_form_lane ==> FE-add` (~85 s/query).
-//   - trackA's Option B closed-form invariant
-//     (`forall l. v myself % q == (v _myself * 1353 * 169 + v error) % q`):
-//     Z3 timeout on the loop body subtyping check (~230 s and ~380 s
-//     per failed query at rlimit 800/800 saturated; Q79, Q108, Q109 of
-//     the body fail "canceled").  The closed form is structurally
-//     simpler than the nested-forall, but the per-iteration accumulator
-//     refinement check is still too heavy for Z3.
-//
-// Likely paths forward (try one of these in a future session):
-//   1. Add an explicit ghost `ntt_product` Rust parameter (specialize
-//      the post — drop the universal forall over ntt_product) and a
-//      precondition citing `mont_form_chunk` per chunk.  Loop invariant
-//      then carries specialized per-lane FE-add eq parameterized by
-//      `ntt_product[k*16+l]` directly (no inner forall, no closed-form
-//      mod arithmetic).  Post becomes a direct citation, no
-//      Classical.forall_intro at the boundary.
-//   2. Refactor to factor the body proof into an external lemma that
-//      reasons about the impl trace abstractly, keeping the loop body
-//      simple.  Requires F*-side scaffolding.
-//   3. Hand-decompose the body proof: replace `--split_queries always`
-//      with explicit per-iteration assert/`#push-options`, profiling
-//      each failed sub-query to find the actual hot spot.
-//
-// Tracking: see `proofs/agent-status/agent-trackD.md` for the original
-// hold context, and `agent-trackA.md` for the Option B failure.
+// Per-lane and poly-level commute lemmas for this function live in
+// `Hacspec_ml_kem.Commute.Chunk`; the per-iteration bridges and opaque
+// chunk atoms are defined in the `fstar::before` blocks below.
 #[inline(always)]
 #[hax_lib::fstar::options("--z3rlimit 600 --split_queries always")]
 // Standard-domain lifts emitted into the INTERFACE (.fsti) so the strengthened
 // `ensures` below can reference them, WITHOUT touching the hand-maintained
 // `Hacspec_ml_kem.Commute.Chunk` module (editing Chunk invalidates its heavy
-// NTT lane-bridge replay hints and forces a cold pass that saturates).
+// NTT lane-bridge hints and forces a full re-verification that saturates).
 #[cfg_attr(
     hax,
     hax_lib::fstar::before(
@@ -1751,14 +1706,14 @@ fn add_standard_error_reduce<Vector: Operations>(
 // ))))]
 #[inline(always)]
 #[hax_lib::fstar::options("--z3rlimit 400 --ext context_pruning --split_queries always")]
-// User-approved local assume-val zeta axiom (2026-06-06): zeta lives in this module
+// Local assume-val zeta axiom (user-approved): zeta lives in this module
 // so the Hacspec_ml_kem.Commute.Bridges copy can't be imported (F* module cycle,
 // Error 308); relocating an assume-val also trips the new-module-with-obligation gate.
 // proof-residence: locked(module-cycle) — local assume-val zeta axiom
 #[hax_lib::fstar::before(r#"(* ════════════════════════════════════════════════════════════════════
-   Phase B — `ntt_multiply` poly-level Montgomery commute (re-homed from
-   Hacspec_ml_kem.Commute.Bridges).  See subtract_reduce for the wiring
-   precedent.  The zeta correspondence is the one approved local assume. *)
+   `ntt_multiply` poly-level Montgomery commute.  See subtract_reduce for
+   the wiring precedent.  The zeta correspondence is the one approved local
+   assume. *)
 
 module N    = Hacspec_ml_kem.Ntt
 module P    = Hacspec_ml_kem.Parameters
@@ -1768,10 +1723,9 @@ module V    = Libcrux_ml_kem.Vector
 module Poly = Hacspec_ml_kem.Polynomial
 module CH   = Hacspec_ml_kem.Commute.Chunk
 
-(* APPROVED LOCAL ASSUME (user 2026-06-06): duplicate of the
-   runtime-validated axiom in Hacspec_ml_kem.Commute.Bridges; needed here
-   because zeta lives in this module so the Bridges copy can't be imported
-   (module cycle).  Bumps this module's assume count 1 -> 2. *)
+(* APPROVED LOCAL ASSUME (user): duplicate of the runtime-validated axiom in
+   Hacspec_ml_kem.Commute.Bridges; needed here because zeta lives in this
+   module so the Bridges copy can't be imported (module cycle). *)
 assume val lemma_zeta_eq_vzetas (k: usize)
   : Lemma (requires v k < 128)
           (ensures TS.mont_i16_to_spec_fe (zeta k) == N.v_ZETAS.[ k ])
@@ -1841,8 +1795,9 @@ let lemma_ntt_multiply_n_256_lane
 #pop-options
 
 let zetas_mul_slice : t_Slice P.t_FieldElement =
-  N.v_ZETAS.[ { Core_models.Ops.Range.f_start = mk_usize 64;
-                Core_models.Ops.Range.f_end   = mk_usize 128 } ]
+  N.v_ZETAS.[ ({ Core_models.Ops.Range.f_start = mk_usize 64;
+                 Core_models.Ops.Range.f_end   = mk_usize 128 }
+               <: Core_models.Ops.Range.t_Range usize) ]
 
 #push-options "--z3rlimit 100 --fuel 0 --ifuel 1"
 let lemma_zetas_mul_slice_len (_:unit)
@@ -1899,8 +1854,7 @@ let lemma_mont_lift_lane
     CH.mont_array_lane (T.f_repr (Seq.index x.V.f_coefficients m)) (sz l)
 #pop-options
 
-(* RETROFIT 2026-06-06: single symbolic-lane worker replacing the 16-way
-   per-literal `lemma_poly_lane_l0..l15` + z3refresh split.  Bridges the
+(* Single symbolic-lane worker: bridges the
    256-level out-lift lane `16*m+l` to the chunk-level `ntt_multiply_n 16`
    equation (the `requires`).  Createi-free: the createi_lemma SMTPat is
    excluded; both lane unfolds are supplied via the proven lane lemmas and

@@ -57,7 +57,7 @@ pub(crate) fn ntt_at_layer_1<Vector: Operations>(
                                   "#
                                 )
                         } else {
-                            // Impl-level (Option B): record only the relationship
+                            // Impl-level: record only the relationship
                             // re.coefficients[j] == f_ntt_layer_1_step _re_init[j] (parametric zetas).
                             // Function-form lift to N.ntt_layer_n is done once after the loop.
                             spec::is_bounded_vector(
@@ -107,8 +107,8 @@ pub(crate) fn ntt_at_layer_1<Vector: Operations>(
         );
         *zeta_i += 3;
     }
-    // Phase 7a (track A) Step 4 forward — Option B: lift the impl-level
-    // loop invariant to function-form citation in the ensures via a
+    // Lift the impl-level loop invariant to function-form citation in
+    // the ensures via a
     // post-loop forall_intro over the bridge lemma.  Each chunk j: reveal
     // its `is_i16b_array_opaque (7*3328)` (from the original `is_bounded_poly`
     // precondition on _re_init), then invoke the bridge to lift the impl
@@ -189,7 +189,7 @@ pub(crate) fn ntt_at_layer_2<Vector: Operations>(
                                   "#
                                 )
                         } else {
-                            // Impl-level (Option B): record only the relationship
+                            // Impl-level: record only the relationship
                             // re.coefficients[j] == f_ntt_layer_2_step _re_init[j] (parametric zetas).
                             // Function-form lift to N.ntt_layer_n is done once after the loop.
                             spec::is_bounded_vector(
@@ -230,7 +230,7 @@ pub(crate) fn ntt_at_layer_2<Vector: Operations>(
             Vector::ntt_layer_2_step(re.coefficients[round], zeta(*zeta_i), zeta(*zeta_i + 1));
         *zeta_i += 1;
     }
-    // Phase 7b — Option B: lift the impl-level loop invariant to
+    // Lift the impl-level loop invariant to
     // function-form citation in the ensures via a post-loop forall_intro
     // over the bridge lemma `lemma_ntt_layer_2_step_to_hacspec`.
     proof!(
@@ -302,7 +302,7 @@ pub(crate) fn ntt_at_layer_3<Vector: Operations>(
                                   "#
                                 )
                         } else {
-                            // Impl-level (Option B): record only the relationship
+                            // Impl-level: record only the relationship
                             // re.coefficients[j] == f_ntt_layer_3_step _re_init[j] (single zeta).
                             // Function-form lift to N.ntt_layer_n is done once after the loop.
                             spec::is_bounded_vector(
@@ -338,7 +338,7 @@ pub(crate) fn ntt_at_layer_3<Vector: Operations>(
 
         re.coefficients[round] = Vector::ntt_layer_3_step(re.coefficients[round], zeta(*zeta_i));
     }
-    // Phase 7b — Option B: lift the impl-level loop invariant to
+    // Lift the impl-level loop invariant to
     // function-form citation in the ensures via a post-loop forall_intro
     // over the bridge lemma `lemma_ntt_layer_3_step_to_hacspec`.
     proof!(
@@ -494,7 +494,7 @@ fn ntt_layer_int_vec_step<Vector: Operations>(
 
 #[cfg_attr(hax, hax_lib::fstar::before(r#"
 (* ===== Forward layer-4+ cross-vector scaffold (mirror of the inverse
-   Invert_ntt.fst USER-14 Step B keystone, with the forward butterfly atom
+   Invert_ntt.fst keystone, with the forward butterfly atom
    `cross_vec_hyp_fwd` and the bound parameterized by e_initial_coefficient_bound). ===== *)
 
 (* Keystone: from one ntt_layer_int_vec_step (vectors j and j+step_vec, written to

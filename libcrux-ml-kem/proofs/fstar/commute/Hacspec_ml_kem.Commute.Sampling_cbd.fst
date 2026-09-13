@@ -1,5 +1,5 @@
 module Hacspec_ml_kem.Commute.Sampling_cbd
-/// CBD (centered binomial distribution) sampling bridge for Track C.
+/// CBD (centered binomial distribution) sampling bridge.
 /// Connects the impl's mask-shift-add popcount chunks
 /// (sample_from_binomial_distribution_{2,3}) to the Hacspec spec
 /// `Hacspec_ml_kem.Sampling.sample_poly_cbd` (bytes_to_bits + sum_coins).

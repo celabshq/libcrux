@@ -275,29 +275,42 @@ pub const fn implicit_rejection_hash_input_size(rank: usize) -> usize {
 
 #[allow(non_snake_case)]
 pub mod hash_functions {
-    #[hax_lib::opaque]
+    // HF-pin: these reference-spec hash oracles are DEFINED as the verified
+    // `hacspec_sha3` Keccak spec (== `Hacspec_sha3.Sponge.keccak`), committing the
+    // ML-KEM reference spec to SHA-3 (FIPS-202/203).  Extracted with their real
+    // bodies but marked `[@@ "opaque_to_smt"]` (via `fstar::before`) instead of
+    // `#[hax_lib::opaque]` (which hides the body as an `assume val`): the reference
+    // spec keeps treating them as opaque atoms (no `Ind_cca`/`Ind_cpa` cascade),
+    // while the commute bridges `reveal_opaque` them to prove `SU.v_X == HF.v_X`.
+    #[cfg_attr(hax, hax_lib::fstar::before("[@@ \"opaque_to_smt\"]"))]
     pub fn G(input: &[u8]) -> [u8; 64] {
         hacspec_sha3::sha3_512(input)
     }
 
     pub const H_DIGEST_SIZE: usize = 32;
 
-    #[hax_lib::opaque]
+    #[cfg_attr(hax, hax_lib::fstar::before("[@@ \"opaque_to_smt\"]"))]
     pub fn H(input: &[u8]) -> [u8; H_DIGEST_SIZE] {
         hacspec_sha3::sha3_256(input)
     }
 
-    #[hax_lib::opaque]
+    // `LEN < usize::MAX - 200`: the `shake*` bodies carry this bound (a squeeze-loop
+    // overflow guard); the reference spec calls these with concrete LEN (128/192/...)
+    // that discharge it trivially.
+    #[cfg_attr(hax, hax_lib::fstar::before("[@@ \"opaque_to_smt\"]"))]
+    #[hax_lib::requires(fstar!(r#"v $LEN < v Core_models.Num.impl_usize__MAX - 200"#))]
     pub fn PRF<const LEN: usize>(input: &[u8]) -> [u8; LEN] {
         hacspec_sha3::shake256::<LEN>(input)
     }
 
-    #[hax_lib::opaque]
+    #[cfg_attr(hax, hax_lib::fstar::before("[@@ \"opaque_to_smt\"]"))]
+    #[hax_lib::requires(fstar!(r#"v $LEN < v Core_models.Num.impl_usize__MAX - 200"#))]
     pub fn XOF<const LEN: usize>(input: &[u8]) -> [u8; LEN] {
         hacspec_sha3::shake128::<LEN>(input)
     }
 
-    #[hax_lib::opaque]
+    #[cfg_attr(hax, hax_lib::fstar::before("[@@ \"opaque_to_smt\"]"))]
+    #[hax_lib::requires(fstar!(r#"v $LEN < v Core_models.Num.impl_usize__MAX - 200"#))]
     pub fn J<const LEN: usize>(input: &[u8]) -> [u8; LEN] {
         hacspec_sha3::shake256::<LEN>(input)
     }

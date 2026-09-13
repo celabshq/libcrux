@@ -139,7 +139,7 @@ let lemma_spec_concat (v_CT_SIZE v_U_SIZE: usize) (c1_spec c2_spec: t_Slice u8)
    DEFINITIONAL from the body's two writes.  The slice-through-two-updates
    reasoning (the PERF CLIFF) is discharged HERE via `lemma_impl_concat`, where
    `c1_bytes`/`c2_bytes` are explicit, instead of in the heavy caller context. ── *)
-#push-options "--fuel 1 --ifuel 1 --z3rlimit 300"
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 300 --using_facts_from '* -Hacspec_ml_kem.Ntt -Hacspec_ml_kem.Matrix -Hacspec_ml_kem.Serialize -Hacspec_ml_kem.Invert_ntt -Hacspec_ml_kem.Compress -Hacspec_ml_kem.Sampling'"
 let lemma_encrypt_unpacked_finalize
       (v_K v_C1_LEN v_C2_LEN v_CT_SIZE v_U_COMP v_V_COMP: usize)
       (tt_spec: t_Array poly v_K)

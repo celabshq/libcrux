@@ -482,8 +482,8 @@ let lemma_decompress_half (c0: Libcrux_intrinsics.Avx2_ml_kem_views.t_Vec128) (c
     mullo_lane_nowrap c1 fm j;
     assert (Libcrux_intrinsics.Avx2_ml_kem_views.lane32 d1 j == xv * 3329);
     slli1_lane_nowrap d1 j;
-    (* hand Z3 the (xv*3329)*2 == 2*xv*3329 reassociation explicitly: cold (no
-       hint) it reports "unknown because unknown" on this nonlinear step under
+    (* hand Z3 the (xv*3329)*2 == 2*xv*3329 reassociation explicitly: without it
+       Z3 reports "unknown because unknown" on this nonlinear step under
        the fact-filter, even though the stage lemma supplies the equality. *)
     FStar.Math.Lemmas.paren_mul_right 2 xv 3329;
     assert (Libcrux_intrinsics.Avx2_ml_kem_views.lane32 d2 j ==

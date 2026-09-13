@@ -26,7 +26,7 @@
         "typing_tok_Rust_primitives.Integers.U64@tok"
       ],
       0,
-      "4919621fd013d2b17fad880ee352beab"
+      "f72e7464fad90975fb854c06dc3949c8"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -59,7 +59,7 @@
         "lemma_Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16_slice_ok"
       ],
       0,
-      "52788c0ac8a80f3ba5726b6f3f2a9669"
+      "04d5350e15cf770f79b9a964100903c1"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -80,7 +80,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "58aa90d5966d353d31fdb41057488e89"
+      "faa6cce37a6cc7c1e249d1b6e27199ac"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -92,7 +92,7 @@
         "lemma_Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16_slice_ok"
       ],
       0,
-      "91a1ca225a8766df1a07164978d499cf"
+      "a01c208e6f98a71591cab12782e2147b"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -113,7 +113,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "bcaea606b21133fd61d2ba20513c90c7"
+      "f038a8c8e3b9f231c42b6a77d6f464dc"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -126,7 +126,7 @@
         "refinement_interpretation_Tm_refine_c7a51b2a2002a5cee736e13af295aaa8"
       ],
       0,
-      "f75500b1ad1ee1c5869bdd774c4c4d0a"
+      "6ccaa82fd2e938a035257a598c55bb8a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -147,7 +147,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "698783884d7f41d097813f1d77f223ae"
+      "0734bb04bad824e5fb86c2cdb124bd0b"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -198,7 +198,7 @@
         "typing_tok_Rust_primitives.Integers.U64@tok"
       ],
       0,
-      "4d7f6719866f5a8e4e76265825885b1d"
+      "572b37d44e9d3a6f9ce20e71d9303aa5"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -223,7 +223,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "13da49dc7ff682181e2d5223cf4b45fc"
+      "cbd8b3aee39686a43c7858824aeae4aa"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -275,7 +275,7 @@
         "typing_tok_Rust_primitives.Integers.U64@tok"
       ],
       0,
-      "b1b7db72b2fc76733870a537136feac8"
+      "90b5a8f1f44e1c37870e56da1845a77c"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -300,7 +300,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "4caba8eef881d495e34f05ed07cae237"
+      "d73209bdd0223fee07f6eab75c100be7"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -352,7 +352,7 @@
         "typing_tok_Rust_primitives.Integers.U64@tok"
       ],
       0,
-      "ba20d4618abb4c2a1ab3731185dc61e2"
+      "cbcbac264c867b66eb1d014589c23e15"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -377,7 +377,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "2dd49c85cc1bb2b79caabe5befe0a8d2"
+      "f460e55a81f613930e68c33636a0e504"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -420,7 +420,7 @@
         "typing_tok_Rust_primitives.Integers.I16@tok"
       ],
       0,
-      "0345419e28d33a0475b809f0e1719178"
+      "4da14f9d788f0937493ddddc10347b86"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -445,7 +445,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "31b3e2d733fe3e4c241ec16e3ad71dae"
+      "7ab8e7d32d2470827ef5d8cf1235b340"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -458,7 +458,7 @@
         "refinement_interpretation_Tm_refine_bf6d1ee7c8113c20d5d5c71129d6a7e7"
       ],
       0,
-      "f1e57d652889a2823ec1fce642589be8"
+      "49f84069b2c65e706af9d3642cbb0808"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -490,7 +490,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "f4f1c2bc608d7b8414cc8f0855c53e0a"
+      "416e09ee942e5e5e7cc589e133c2fdca"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -555,7 +555,7 @@
         "typing_tok_Rust_primitives.Integers.I32@tok"
       ],
       0,
-      "743de3622f16ce7868fc806aca191f9e"
+      "953f8bbd55f8f1afd7cf54e4ee32eaa0"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -577,7 +577,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "2f541776c0f3e81cd71055ac7601c491"
+      "17a9774b991040ae29e933e3e910c055"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -596,7 +596,7 @@
         "refinement_interpretation_Tm_refine_46e815ba84d57209a9656a26337816ec"
       ],
       0,
-      "5778f0ba5383fadfcbc03db14b3a2f2f"
+      "535dffa856374664a3890d0e48ce3b7d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -615,7 +615,7 @@
         "refinement_interpretation_Tm_refine_46e815ba84d57209a9656a26337816ec"
       ],
       0,
-      "1921149e5bdafd9326ee3c79ef41d6a0"
+      "ced54b69d0dc4751dafcfff714b38488"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -627,7 +627,7 @@
         "refinement_interpretation_Tm_refine_51465929e4914085da4e4988ae1babbb"
       ],
       0,
-      "864916de1a2a744e083463f13a5cef60"
+      "7a075e79d0ad6bbadfe8641ea912a939"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -660,7 +660,7 @@
         "refinement_interpretation_Tm_refine_b1e54b63e80eaab72b2c3b25336d667f"
       ],
       0,
-      "15dca9a3e106704ebf974a678a1cb54f"
+      "39dd8599b0a97f50a4a7ddc06cb6ddd6"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -711,7 +711,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "db0da73fc143399acd946ef243ff7abf"
+      "683189fe41c722e307c456811b5e4220"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -733,7 +733,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "262ab19a44cd4ce0614afd6a8a6f9f2a"
+      "c7bd1433137b4f25f4bbaa285fe053de"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -752,7 +752,7 @@
         "refinement_interpretation_Tm_refine_1ca9615f0094e0cdfc2c0b78280f8486"
       ],
       0,
-      "5503c9e6382493113771a2c3afacccea"
+      "cfe76f5b16d25b627f5082b6212631ce"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -771,7 +771,7 @@
         "refinement_interpretation_Tm_refine_1ca9615f0094e0cdfc2c0b78280f8486"
       ],
       0,
-      "bbb1e4bb0f2c86f0e3b6dd5a305c1b6b"
+      "994e5ac54acf3f5daa7bf73e8ce0895e"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -783,7 +783,7 @@
         "refinement_interpretation_Tm_refine_51465929e4914085da4e4988ae1babbb"
       ],
       0,
-      "6fbb0eb4f80917b8bbf34bbb05dc4b2e"
+      "eb90a62fc2f4acdd5191dacf91d78341"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -816,7 +816,7 @@
         "refinement_interpretation_Tm_refine_b1e54b63e80eaab72b2c3b25336d667f"
       ],
       0,
-      "26b6d838d90e84caaa7cc9e3953cb591"
+      "3831929c75d124b94b422032c41ead47"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -829,7 +829,7 @@
         "refinement_interpretation_Tm_refine_52cc4e89587e89e0079df421c152e1fb"
       ],
       0,
-      "2a15d789cdf2738b4aa11907996039da"
+      "cdf85e50170adaae8342f4a82a2ff7e9"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -841,7 +841,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "b338c98f61d00bc36971af709b3c8e87"
+      "389047b0b4a5d83afe156a64e44548be"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -853,7 +853,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "a12d57cfd1f5c057a9278a608117d96e"
+      "7cde8c6e2df70a60359b3256509505a6"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -865,7 +865,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "f966f3b6facf3f591169a35c4bac8fc5"
+      "aa2b2c2462547c76285e8e699d6764a4"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -877,7 +877,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "b0123a3c9412af9918ab52f2111ff96f"
+      "70934b51937ab47d06867b71c5934c39"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -889,7 +889,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "7b4d998537badc8d4148f03e1596da4f"
+      "da60bce43e2a8cf9d9e044f0be5705a6"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -901,7 +901,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "c4a483536e37202cc765d7c1041888bf"
+      "904805fcd617f5565465a2a41d10ee92"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -913,7 +913,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "51df3ca68822d4d932239a6681c400d3"
+      "b16ba5f2ea80408a1bef2eaca91f4add"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -925,7 +925,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "3613c0a5cf2a602968ff9eff4e5b952b"
+      "10f63a2587ab6d9e4e54c6e13fe4b26a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -937,7 +937,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "6ff827b8c97c0deebe53f3f35e15eaf1"
+      "dfec54cfd127f013a42425a777e47f60"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -949,7 +949,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "658bd7cdd947b12f1bc20f2c8a214452"
+      "12cde29bcaaa6b6a5ebc7c6c018bd02b"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -961,7 +961,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "0898d20102098c3aab152fb7160be526"
+      "48149c8bca8d19402eb41eeb05e5f97c"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -973,7 +973,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "51ef96527c9c7632ed39d2b0bf6b1e95"
+      "0114c4d4521b1cbb2551cf193724ee32"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -985,7 +985,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "2138f18860a22952986ee17c9f2fa27d"
+      "51982c0239e369d0c46c378a568cb18b"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -997,7 +997,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "d10a6813eb5c9aeb64941d552ad4698f"
+      "0dd3da93bf81a94726f2117b932cf47a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1009,7 +1009,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "fd25057ca53b48c8ef82873b4960ed71"
+      "70f4f20c29628e9f88faf648896d538e"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1021,7 +1021,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "847487d5db0379070b0be52eba2ae014"
+      "bfed038dd2e60ec99d9c0690d8d045eb"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1036,7 +1036,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "14c2670c18309b11a87fc742fc727e2c"
+      "4def58e9bb09ac0b546ef9a3ce21b124"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1051,7 +1051,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "31a436729716a0c7a034e81337e08dd6"
+      "fcf9676ae46c8ce79a45e7917d7b8b5f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1077,7 +1077,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "97c1805b7504f69e01339be28c480eae"
+      "d27d755193ba12895e13a63efe65a1c0"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1103,7 +1103,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "0045bd5933975d67d74e43e2ff6a835c"
+      "8dc23ede7068d2e60233204d7fe4626f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1118,7 +1118,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "4976dddb457e82656616b590c953aeeb"
+      "31d22a31b73985077f6e91592d3c961b"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1133,7 +1133,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "8fd78e4f04a59c5ccdc9a25eca1a4a4b"
+      "40a18e931368eee2ab0cf82907bd36da"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1159,7 +1159,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "b300c5de8097e844581970a5c2867ad2"
+      "ddc77a16316c160d1f62aacbabd7ac12"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1185,7 +1185,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "20544b81fcfdc93620eda634dfc51e83"
+      "7e20cf6afe5cb85005c691434bc2d14a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1200,7 +1200,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "8373301e831fc41e5ea7d4cf033c3751"
+      "d614547d01a98da6310a594cda659a79"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1215,7 +1215,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "6110264dcc3b8bb12a40bfdf323a64e5"
+      "c73f64248cc2eef12802ecfbb22a3f43"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1241,7 +1241,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "e52c771da667b159f9438d98fdabc2a1"
+      "fa8b122962208820081a00cee6256d25"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1267,7 +1267,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "7e652daa045f01378492216c6043dfea"
+      "e1c31a87d37b85c2da1e0bb1bdb5a442"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1282,7 +1282,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "a07e349b81f72ed97e62689a12b112f6"
+      "58974ab36327a88957f9c03735f3e9fb"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1297,7 +1297,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "90add2b794f35abf760d3c8fbdb37970"
+      "60cf36407dc1ba8a072d4140b020aea5"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1323,7 +1323,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "5b0f8c71ea449b7bdae9780c9695098d"
+      "f57eec52b5fec2b358768b3bf50006b7"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1349,7 +1349,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "6c408fd2df6508634b68af0ae027ece3"
+      "c360e714a712dbbc4c142f8fcfce472d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1365,7 +1365,7 @@
         "refinement_interpretation_Tm_refine_f97aabc647eabc4167a68519fca33426"
       ],
       0,
-      "786509a79bab09bdd10088e519a46f7e"
+      "9000fdf4b6d401517eaa4579b6ba676a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1381,7 +1381,7 @@
         "refinement_interpretation_Tm_refine_f97aabc647eabc4167a68519fca33426"
       ],
       0,
-      "9a05aa8fe7a009a83a00b9b9e988ff1a"
+      "7f2b01534b648e04e7ff0fe606edd16f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1397,7 +1397,7 @@
         "refinement_interpretation_Tm_refine_f97aabc647eabc4167a68519fca33426"
       ],
       0,
-      "e0dcb55a0279899df05c0441829bf618"
+      "b040378406d777789ef17e22b475566f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1413,7 +1413,7 @@
         "refinement_interpretation_Tm_refine_f97aabc647eabc4167a68519fca33426"
       ],
       0,
-      "026b30780030cf0b0d880f35321739ed"
+      "c79cc35037954ffe60e21a9d76471ad3"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1429,7 +1429,7 @@
         "refinement_interpretation_Tm_refine_f97aabc647eabc4167a68519fca33426"
       ],
       0,
-      "4976b321199c8230993424dc2a6fff7b"
+      "906b0d449b2e326885dabc31f106aa78"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1445,7 +1445,7 @@
         "refinement_interpretation_Tm_refine_f97aabc647eabc4167a68519fca33426"
       ],
       0,
-      "e5f72e0695852183f82b975672a399bf"
+      "fdd7e6251087f5f75ff3526ae3bb74e6"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1461,7 +1461,7 @@
         "refinement_interpretation_Tm_refine_f97aabc647eabc4167a68519fca33426"
       ],
       0,
-      "5d36bea7e1c887e0266c0d03873df905"
+      "f064cdad8e1ef82e586e3e4ed79ed381"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1477,7 +1477,7 @@
         "refinement_interpretation_Tm_refine_f97aabc647eabc4167a68519fca33426"
       ],
       0,
-      "14ccf337f95f6141452ae23e0279e211"
+      "fffa65a2ed7879e93c6277090e6e4007"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1493,7 +1493,7 @@
         "refinement_interpretation_Tm_refine_f97aabc647eabc4167a68519fca33426"
       ],
       0,
-      "dda90b0029194189f338b23b672216b6"
+      "c67e3df81b6810ec6b6cbdbae60876bc"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1509,7 +1509,7 @@
         "refinement_interpretation_Tm_refine_f97aabc647eabc4167a68519fca33426"
       ],
       0,
-      "c87616bcfee5ba0710b01088ab6fd2b1"
+      "dc518597569bf620ee5c0b4353328e27"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1525,7 +1525,7 @@
         "refinement_interpretation_Tm_refine_f97aabc647eabc4167a68519fca33426"
       ],
       0,
-      "a52253dde2c885d49312fb3bfe4750db"
+      "6ea8c09c4a69d46603ef5cad8321eacd"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1541,7 +1541,7 @@
         "refinement_interpretation_Tm_refine_f97aabc647eabc4167a68519fca33426"
       ],
       0,
-      "992e533f0964700b15c3143d12f83ed0"
+      "89dc9729dc7a0550d84fb04cacc969a7"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1557,7 +1557,7 @@
         "refinement_interpretation_Tm_refine_f97aabc647eabc4167a68519fca33426"
       ],
       0,
-      "0ae4d9219d4d81434d6638e750c0ef4a"
+      "fe236f4dc1e0c3139d7505cb67b2a1c3"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1573,7 +1573,7 @@
         "refinement_interpretation_Tm_refine_f97aabc647eabc4167a68519fca33426"
       ],
       0,
-      "a1ec69544918c8d85398ecd38c83d1e3"
+      "9d4e3c91d0339f7bcd94a1a0b533337f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1589,7 +1589,7 @@
         "refinement_interpretation_Tm_refine_f97aabc647eabc4167a68519fca33426"
       ],
       0,
-      "466afe1834a40173d18fcd6496a093ec"
+      "c4398e641898d1b1de728ee76e5d54df"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1605,7 +1605,7 @@
         "refinement_interpretation_Tm_refine_f97aabc647eabc4167a68519fca33426"
       ],
       0,
-      "982cb8d69caa0a0c0a26829457c850db"
+      "1856eb53f8b20d31f9e44431c552259a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1654,7 +1654,7 @@
         "refinement_interpretation_Tm_refine_e1d7a7d1c9ec74426a83d594994c04cd"
       ],
       0,
-      "a7432c38881549a7f7aa98ecdcd13e95"
+      "25b944adde1cfbdedfa10b2c5dc4ac55"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1673,7 +1673,7 @@
         "refinement_interpretation_Tm_refine_e1d7a7d1c9ec74426a83d594994c04cd"
       ],
       0,
-      "374aa0becca889f2807aa3ba2569e40e"
+      "97ee3a3921274737c1cfcd70489a7a10"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1692,7 +1692,7 @@
         "refinement_interpretation_Tm_refine_e1d7a7d1c9ec74426a83d594994c04cd"
       ],
       0,
-      "88ac921bfc56b1922a7e37ac2010f01d"
+      "477afad26938217ed3d11af1b424f3b2"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1711,7 +1711,7 @@
         "refinement_interpretation_Tm_refine_e1d7a7d1c9ec74426a83d594994c04cd"
       ],
       0,
-      "f67aa712307eade015ae8c59343369d9"
+      "212602618ab3a8297141667ec20db70e"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1730,7 +1730,7 @@
         "refinement_interpretation_Tm_refine_e1d7a7d1c9ec74426a83d594994c04cd"
       ],
       0,
-      "f542bcd7a1e4c09edce2e78d5462c65c"
+      "03bb71fca87213dea9e8c8b1225ecfdf"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1749,7 +1749,7 @@
         "refinement_interpretation_Tm_refine_e1d7a7d1c9ec74426a83d594994c04cd"
       ],
       0,
-      "f4e3904cd11aff20386f9fc3c7b28159"
+      "c865d49aad37c757189cd3f41b311aa0"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1768,7 +1768,7 @@
         "refinement_interpretation_Tm_refine_e1d7a7d1c9ec74426a83d594994c04cd"
       ],
       0,
-      "d88cfa676df6ae8a5477c84500387f63"
+      "dc9a082d672829d7283325530dff0be9"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1787,7 +1787,7 @@
         "refinement_interpretation_Tm_refine_e1d7a7d1c9ec74426a83d594994c04cd"
       ],
       0,
-      "7a485a5b26e7768e085fe4b6afe26563"
+      "09473a90e4936b4b4227fe57a8350525"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1806,7 +1806,7 @@
         "refinement_interpretation_Tm_refine_e1d7a7d1c9ec74426a83d594994c04cd"
       ],
       0,
-      "ea616a6be37bb6a747482025fe52c010"
+      "323449a1ca26c64f16451e26a7ffc587"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1825,7 +1825,7 @@
         "refinement_interpretation_Tm_refine_e1d7a7d1c9ec74426a83d594994c04cd"
       ],
       0,
-      "a32766b2c3dbf5f5f108c182778727da"
+      "e139fe96158125fc2a44ec0e7481b7c3"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1844,7 +1844,7 @@
         "refinement_interpretation_Tm_refine_e1d7a7d1c9ec74426a83d594994c04cd"
       ],
       0,
-      "bb6e403ce3ae3f2cb09d82b913d2fd20"
+      "0b645f19c87460123ddb347bf0a0dd6f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1863,7 +1863,7 @@
         "refinement_interpretation_Tm_refine_e1d7a7d1c9ec74426a83d594994c04cd"
       ],
       0,
-      "8d8225c1cebdade0d748fc1b80a1d7b4"
+      "38482d844d70bc98bc185ba91a5634ba"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1882,7 +1882,7 @@
         "refinement_interpretation_Tm_refine_e1d7a7d1c9ec74426a83d594994c04cd"
       ],
       0,
-      "7ddd2858f63f2a68ce68373936843442"
+      "350c913fdae8ca10d2dbe2308cadaea5"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1901,7 +1901,7 @@
         "refinement_interpretation_Tm_refine_e1d7a7d1c9ec74426a83d594994c04cd"
       ],
       0,
-      "d3289d3e25339de046df59f99538e057"
+      "2b6864ba7cf265a7c3abb9bf1b0bd98c"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1920,7 +1920,7 @@
         "refinement_interpretation_Tm_refine_e1d7a7d1c9ec74426a83d594994c04cd"
       ],
       0,
-      "9575d9d64a88349fcd26ceb4cc223f96"
+      "8f44c1c291060007bdcbddc1f370a711"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1932,7 +1932,7 @@
         "refinement_interpretation_Tm_refine_72f29114b3904518fd1e811d7b6c4bf9"
       ],
       0,
-      "bd9aaa0d28b5c516a030088bd98c1a37"
+      "85139f6a068f317f7ba0e15549fb19fc"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1949,7 +1949,7 @@
         "refinement_interpretation_Tm_refine_f97aabc647eabc4167a68519fca33426"
       ],
       0,
-      "fd528a4b15f5fa40d08596ddd0c64440"
+      "92f0c46bf895329b8f3421c2b98fe373"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step",
@@ -1976,7 +1976,7 @@
         "typing_tok_Rust_primitives.Integers.U64@tok"
       ],
       0,
-      "50d9d4040df31ba7f06f89daf7fda397"
+      "809ca64af9f642dae64abe27b9b54e0c"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2003,7 +2003,7 @@
         "typing_tok_Rust_primitives.Integers.U64@tok"
       ],
       0,
-      "6b5343e89a2c27f3555b7e728c815bdf"
+      "dab3ee5d429dca30a12b2ef01c58fd08"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2036,7 +2036,7 @@
         "lemma_Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16_slice_ok"
       ],
       0,
-      "06cb1d515342d9c494544bed90ec603a"
+      "b7951c5553dbed5dc570beab5222b03c"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2057,7 +2057,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "8952f28eca48e260b43574f8d021bf4d"
+      "792bf25a9d1c30d9a1409c5835f2f69d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2069,7 +2069,7 @@
         "lemma_Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16_slice_ok"
       ],
       0,
-      "e70a24400cc78a5ec07f99933ffee6f5"
+      "b799320b7de4ab64160e3767561f5a1e"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2090,7 +2090,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "159cbd0e0d88cb2db2b0e2f5cfcfa71d"
+      "42a48faf83b31653ba5e18efb6ed17ad"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2103,7 +2103,7 @@
         "refinement_interpretation_Tm_refine_03e3966900291671d979093fb0011499"
       ],
       0,
-      "d479e4f0da207e5429e748656ea18981"
+      "541093596239a24cb63a727c2f48d824"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2175,7 +2175,7 @@
         "typing_tok_Rust_primitives.Integers.U64@tok"
       ],
       0,
-      "f464ce9aa1f96c412da05724943c21f5"
+      "0e09c5a934d369e73a976cd79d501eae"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2200,7 +2200,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "b6313210259122df7f9a468ef264132b"
+      "8db52c90211acb2d6de23daee14ba0c3"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2225,7 +2225,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "da0332d14786b4d60e0f812728573a59"
+      "4463ad372248bff951f89c319d1c9860"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2250,7 +2250,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "44cfd922b880e3810e6c34ed8a56d143"
+      "1156c08be66d88006863be4f39e9404e"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2293,7 +2293,7 @@
         "typing_tok_Rust_primitives.Integers.I16@tok"
       ],
       0,
-      "857a8e402fb5b25e1feaacf57d15f265"
+      "780104c41ea80eec108673a862b6a694"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2318,7 +2318,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "2fbf4e501b52a04a67ee06ff973b9b8a"
+      "b773c7bf603c02746833d154ac7f8bfc"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2343,7 +2343,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "06730b6f659773bfc6e915f7a8b9a311"
+      "91cc329f8e7987718fb0d63813aa3976"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2368,7 +2368,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "8b18190d67e38842baa2b47d203acb00"
+      "325fb419ca5ef753a8fa0ad5ffabaa6f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2381,7 +2381,7 @@
         "refinement_interpretation_Tm_refine_132dbd3b34c3c53e960e783d2a664a02"
       ],
       0,
-      "12cba8901622e115cdbe36b7eae53ce7"
+      "0206e5fc3d7a7fddf90c153ab5d6364a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2413,7 +2413,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "f2f4d912169b4b5fb71597b85cff50d7"
+      "57c165338d1bbb2986ff793305de9954"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2478,7 +2478,7 @@
         "typing_tok_Rust_primitives.Integers.I32@tok"
       ],
       0,
-      "272e33b6a243e4fd8895ccb6f49ac1d2"
+      "0f9e7ae0ce2075352bc5214d4ea52e7f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2500,7 +2500,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "5cbdba7dbfb8e77bfe2a564e0104f3e0"
+      "c470fd7d0c52f78c62c83478657fa20a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2519,7 +2519,7 @@
         "refinement_interpretation_Tm_refine_0b0ad482df7e99d4ee95cc96b9777879"
       ],
       0,
-      "ba2b1eeb56aa31e635ede8385557ff47"
+      "18e00acb76e0391efd8bbb3f89c0601f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2538,7 +2538,7 @@
         "refinement_interpretation_Tm_refine_0b0ad482df7e99d4ee95cc96b9777879"
       ],
       0,
-      "63dd2f3f2ff5022b643d4451b4fd6a0b"
+      "c9e12ced4588925edfee3e78987611cf"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2550,7 +2550,7 @@
         "refinement_interpretation_Tm_refine_866b2ab1e3fc87b7849eedc0597ff232"
       ],
       0,
-      "c23c19032d8e63057caa5c2999ee8e3d"
+      "31b837471b615afc61afa9ce36b3add7"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2583,7 +2583,7 @@
         "refinement_interpretation_Tm_refine_795c4246dbfa99116cd89e4de2fdf6e8"
       ],
       0,
-      "5d302488845cb9e95b672e2bc5b6e529"
+      "a6f5419ae799afe8f5541ec5912edf05"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2634,7 +2634,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "b6efd81dfffe944758111c9f0a9feae9"
+      "f68be587cf646854c667c134cd3b36fe"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2656,7 +2656,7 @@
         "refinement_interpretation_Tm_refine_d6e831656685ecb97edf92c0a0562dd8"
       ],
       0,
-      "de27fadd7ff7ecee5393ec853edab687"
+      "0096a92a55eb297ddd19c2a731c7d05c"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2675,7 +2675,7 @@
         "refinement_interpretation_Tm_refine_d6e831656685ecb97edf92c0a0562dd8"
       ],
       0,
-      "448468b3ed97825b42abb79e6ffabdec"
+      "d39168380219dfca44e3effa4e627ea5"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2694,7 +2694,7 @@
         "refinement_interpretation_Tm_refine_d6e831656685ecb97edf92c0a0562dd8"
       ],
       0,
-      "84bab99df15b893d8dcd19d304e62169"
+      "0f23ef5e7898b36b58b1192f717c714d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2706,7 +2706,7 @@
         "refinement_interpretation_Tm_refine_866b2ab1e3fc87b7849eedc0597ff232"
       ],
       0,
-      "8c8b3101d2e5d3bbaff9355e8a02b079"
+      "d7c7f311361fe0f6280a0bd56e8e6d90"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2739,7 +2739,7 @@
         "refinement_interpretation_Tm_refine_795c4246dbfa99116cd89e4de2fdf6e8"
       ],
       0,
-      "00568aa52f2fc9147ced78d4a61bc368"
+      "70459d4c59acb636ca9987614ac82a01"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2752,7 +2752,7 @@
         "refinement_interpretation_Tm_refine_8efb0995ebb840b452454fdd6967f24e"
       ],
       0,
-      "e0324bfd837cd690fe997821adeaf64b"
+      "0e34e420d30d292bdaa65ea60226c892"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2764,7 +2764,7 @@
         "refinement_interpretation_Tm_refine_4d2c273e3d0eebcc0f04781f678af67e"
       ],
       0,
-      "046c5503880a3a0b731ed2782addc70b"
+      "6490782395244ca9ad6aff202c1343b9"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2776,7 +2776,7 @@
         "refinement_interpretation_Tm_refine_4d2c273e3d0eebcc0f04781f678af67e"
       ],
       0,
-      "ee4bca8451d53e38024e9cfcd4539ce9"
+      "c97a68e27a5404c6da396fc081004f08"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2788,7 +2788,7 @@
         "refinement_interpretation_Tm_refine_4d2c273e3d0eebcc0f04781f678af67e"
       ],
       0,
-      "9374ac41760d7e201bdf056f68a66e62"
+      "d63b0e5316e20aa66d18e3cc77adac43"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2800,7 +2800,7 @@
         "refinement_interpretation_Tm_refine_4d2c273e3d0eebcc0f04781f678af67e"
       ],
       0,
-      "2cf78d82106217f8196cff31455deddd"
+      "b5e78987a0a0b7ba7772166042929715"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2812,7 +2812,7 @@
         "refinement_interpretation_Tm_refine_4d2c273e3d0eebcc0f04781f678af67e"
       ],
       0,
-      "2bbb00d4777d5ae72befbf816f291781"
+      "4fa19f10eee893d1eaa1c151e06356ae"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2824,7 +2824,7 @@
         "refinement_interpretation_Tm_refine_4d2c273e3d0eebcc0f04781f678af67e"
       ],
       0,
-      "7a1fdbf3cbb403db14a45a5251a77436"
+      "89e9c4120c5e6547eb3b5aa058925337"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2836,7 +2836,7 @@
         "refinement_interpretation_Tm_refine_4d2c273e3d0eebcc0f04781f678af67e"
       ],
       0,
-      "2feeecb7bb8bd69907d26079a6b62eb6"
+      "6227c74e5c91cdff918ae996b5a7eada"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2848,7 +2848,7 @@
         "refinement_interpretation_Tm_refine_4d2c273e3d0eebcc0f04781f678af67e"
       ],
       0,
-      "a205ca7df89ae27da917555f4d01c2f6"
+      "6fe300abde4abffd96ef907f631a8fdf"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2860,7 +2860,7 @@
         "refinement_interpretation_Tm_refine_4d2c273e3d0eebcc0f04781f678af67e"
       ],
       0,
-      "088069101e2e65fc20f27033aeb93b50"
+      "e027c2e09254cf6cc7b21f0dc547f2e7"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2872,7 +2872,7 @@
         "refinement_interpretation_Tm_refine_4d2c273e3d0eebcc0f04781f678af67e"
       ],
       0,
-      "0b2e84e5a2cfa5f8b329edff31e984ef"
+      "9f1626ff34dbfd41fd9a795de1a39ce2"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2884,7 +2884,7 @@
         "refinement_interpretation_Tm_refine_4d2c273e3d0eebcc0f04781f678af67e"
       ],
       0,
-      "a4e6c07bb0f1fcf41ba056932f93f7d9"
+      "2f3d495584bb3dc9c820a699ad762a1f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2896,7 +2896,7 @@
         "refinement_interpretation_Tm_refine_4d2c273e3d0eebcc0f04781f678af67e"
       ],
       0,
-      "7ece1420b35420c6f976bc3891cc5698"
+      "3df042a19eb4e6d38f488b5a1b30f3d4"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2908,7 +2908,7 @@
         "refinement_interpretation_Tm_refine_4d2c273e3d0eebcc0f04781f678af67e"
       ],
       0,
-      "4d9fdcb17cfd77dbb4ac39cb8024a101"
+      "edae947cedbf44710579feb8e93daa05"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2920,7 +2920,7 @@
         "refinement_interpretation_Tm_refine_4d2c273e3d0eebcc0f04781f678af67e"
       ],
       0,
-      "9275cdfb722ce2baabe9cc754696ee9d"
+      "ee37e886b76fafa3e7495273583712b4"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2932,7 +2932,7 @@
         "refinement_interpretation_Tm_refine_4d2c273e3d0eebcc0f04781f678af67e"
       ],
       0,
-      "dcc011d618cdd7fe07ae555996383cc4"
+      "39bf528ea555971a8ba757d67a4e0196"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2944,7 +2944,7 @@
         "refinement_interpretation_Tm_refine_4d2c273e3d0eebcc0f04781f678af67e"
       ],
       0,
-      "7c597bbb0def484f2baea529d4d98be6"
+      "23b56ab6f577e7390cd76a17d3b7c3ed"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2959,7 +2959,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "a96edbca8aa00e15ae3aad3a8fe46e50"
+      "f214954b0ad7783eb01f780d65f963fc"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2974,7 +2974,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "3d65950382d60ea3bfb865182439b39b"
+      "4a0219e94e10b77a1c4d38c8bd8efdaa"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -2989,7 +2989,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "c5f4abd376f0089ffd9b8a7c66c3b4b8"
+      "c6910e503e94b71446244b3358c9db64"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3004,7 +3004,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "8ab058e5ff2a1740609b1f88e2055e35"
+      "0a3fa2253fbdd93f50842a8c404374e8"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3030,7 +3030,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "e72e603cf1687548c9e4755a710a4107"
+      "8cb8033c4ccf392f3ae56769052e682c"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3056,7 +3056,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "90845b67da4d86fe41694aac7c384fa1"
+      "a384c9fbc157774481c0817177b1e9ec"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3082,7 +3082,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "a6a5539775668debcec5939e0904aba1"
+      "c14cac120b17597b970c9650bcf84f21"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3108,7 +3108,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "d39ff2406a5e4c725471590ff0ca5b82"
+      "504cbb00019fed23501e3be761b2d613"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3123,7 +3123,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "22416410b96df55661668fff8e20f285"
+      "7db704378e751fff5638577b772082c8"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3138,7 +3138,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "384339b6637f062f7ea4a8f7c01900e5"
+      "2c8bfac419a72745b52db390f9ef3fe8"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3153,7 +3153,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "53a9ad039472abf0cadd601b620d61ab"
+      "80b1cfb84a974e971d7e91b0da87598a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3168,7 +3168,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "15f530ed3d541dc59fb8f39352239d96"
+      "8233b0a9ba39c5e45e722e7883db5e40"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3194,7 +3194,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "0da92212ff40c92e6c52941c0f2586c9"
+      "f11ee1d73b3bda3a11a03281cb42c04b"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3220,7 +3220,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "14bdeca088cfe38fbe2f0af1058e6521"
+      "fb91db5a21fbfb536c2c195a2e7bc96e"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3246,7 +3246,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "fe29b019ed7246bd5e10b0b9c15ae141"
+      "f400bb63eec6bdcbaa86e2aae920b416"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3272,7 +3272,7 @@
         "refinement_interpretation_Tm_refine_a14e1ab470213899c0e606440ba30e2e"
       ],
       0,
-      "45129b39844bb992444c6604be1fdeae"
+      "c0262d7aabaa38c6f4b9685c47430bb9"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3288,7 +3288,7 @@
         "refinement_interpretation_Tm_refine_a0119e378ed94ebf59c9db467fcbfb29"
       ],
       0,
-      "36dd82a15dbdf8798873af40807ab6c0"
+      "60e8ef6b7e52a4e502b633995e03b483"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3304,7 +3304,7 @@
         "refinement_interpretation_Tm_refine_a0119e378ed94ebf59c9db467fcbfb29"
       ],
       0,
-      "3c9afb82c9d43912618d82587d270803"
+      "174a6133029329f877136d216e469418"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3320,7 +3320,7 @@
         "refinement_interpretation_Tm_refine_a0119e378ed94ebf59c9db467fcbfb29"
       ],
       0,
-      "79e691ee17aff59fd01ea5641d01800b"
+      "0e80b1862dbbf115f444baf05194f87b"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3336,7 +3336,7 @@
         "refinement_interpretation_Tm_refine_a0119e378ed94ebf59c9db467fcbfb29"
       ],
       0,
-      "ff6ad2b6a28d43d7584a5689050a1993"
+      "d7a9fc96ba7d7ae450535217c7f30fad"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3352,7 +3352,7 @@
         "refinement_interpretation_Tm_refine_a0119e378ed94ebf59c9db467fcbfb29"
       ],
       0,
-      "9495e3bcb033724299cc9bbab6294b68"
+      "fe86a9f321fc7eeb1350af688ee26951"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3368,7 +3368,7 @@
         "refinement_interpretation_Tm_refine_a0119e378ed94ebf59c9db467fcbfb29"
       ],
       0,
-      "9be449f6fc7b1005a3723cc6f7237bf5"
+      "15c98bc66bc40980888b8c57859becfd"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3384,7 +3384,7 @@
         "refinement_interpretation_Tm_refine_a0119e378ed94ebf59c9db467fcbfb29"
       ],
       0,
-      "ba14484ade4de6f626ae2782a23a79af"
+      "0b4a99c77a4b2530ec772d2929457e8a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3400,7 +3400,7 @@
         "refinement_interpretation_Tm_refine_a0119e378ed94ebf59c9db467fcbfb29"
       ],
       0,
-      "9bff17e589057904f9252d79b27584a2"
+      "d4be2f79a6860d9e75c35e8b474bf1cb"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3416,7 +3416,7 @@
         "refinement_interpretation_Tm_refine_a0119e378ed94ebf59c9db467fcbfb29"
       ],
       0,
-      "d678402f072b80e5c6a56039ac2a897c"
+      "d459eafaa16312f6125551930b8ad66f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3432,7 +3432,7 @@
         "refinement_interpretation_Tm_refine_a0119e378ed94ebf59c9db467fcbfb29"
       ],
       0,
-      "1dde15331d3cad8510fe590dee72917b"
+      "3910bf8e289d51eec7a7e55d8e040e48"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3448,7 +3448,7 @@
         "refinement_interpretation_Tm_refine_a0119e378ed94ebf59c9db467fcbfb29"
       ],
       0,
-      "dcb30b09733d016afdbb2f757bc0311b"
+      "f6f8553ca324b719dba694a83b8f3633"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3464,7 +3464,7 @@
         "refinement_interpretation_Tm_refine_a0119e378ed94ebf59c9db467fcbfb29"
       ],
       0,
-      "548a588b975155c14e74726216176932"
+      "9a52ae5b8fad92c388b7fe26296d61ea"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3480,7 +3480,7 @@
         "refinement_interpretation_Tm_refine_a0119e378ed94ebf59c9db467fcbfb29"
       ],
       0,
-      "7a6c342ca78527bbf4b776d1e6575a91"
+      "b41971fa4ebce23b5ab1d08a297b4bf7"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3496,7 +3496,7 @@
         "refinement_interpretation_Tm_refine_a0119e378ed94ebf59c9db467fcbfb29"
       ],
       0,
-      "2668c76d1c0f3d1925301f1f34658926"
+      "feb3e4d6c3e6c8d230b0cc18cc2dc96a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3512,7 +3512,7 @@
         "refinement_interpretation_Tm_refine_a0119e378ed94ebf59c9db467fcbfb29"
       ],
       0,
-      "79ae031e6ba80d319bf0be765dfeb81f"
+      "356b7d18d121ddcd2a7841ae4e37d272"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3528,7 +3528,7 @@
         "refinement_interpretation_Tm_refine_a0119e378ed94ebf59c9db467fcbfb29"
       ],
       0,
-      "d9fcf7216653b808f8aae0e9bb76438e"
+      "46e1f7bbe492e2ad41582a29014720e3"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3577,7 +3577,7 @@
         "refinement_interpretation_Tm_refine_b57a73a7b45128f835c66ead7415c6b3"
       ],
       0,
-      "1f18ef0fef7cc501bcdb5528d6db71cc"
+      "dc45d58664c5175b37cedb7411afec0e"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3596,7 +3596,7 @@
         "refinement_interpretation_Tm_refine_b57a73a7b45128f835c66ead7415c6b3"
       ],
       0,
-      "ee30a69aceeea51ca561d5cb5c85b47f"
+      "d8e82d4ecc3e4d355fa4ff11a6ea4918"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3615,7 +3615,7 @@
         "refinement_interpretation_Tm_refine_b57a73a7b45128f835c66ead7415c6b3"
       ],
       0,
-      "769dd6331a8a8065faefae362d80aee2"
+      "8d755de54de669af3f89ffd864b7e2b9"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3634,7 +3634,7 @@
         "refinement_interpretation_Tm_refine_b57a73a7b45128f835c66ead7415c6b3"
       ],
       0,
-      "02125e87f1fc3cb044a0f46f3aa0393d"
+      "71c1a6f526940fdb3422deabee9f47e5"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3653,7 +3653,7 @@
         "refinement_interpretation_Tm_refine_b57a73a7b45128f835c66ead7415c6b3"
       ],
       0,
-      "af87ab9ac283b48803509ff2fb14b731"
+      "2e52cc16601494f369fa7fbc83f491f9"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3672,7 +3672,7 @@
         "refinement_interpretation_Tm_refine_b57a73a7b45128f835c66ead7415c6b3"
       ],
       0,
-      "324b25e87a468a903e4f48cbcb7ba9d6"
+      "7235bd72a16aeafbf082e83449c0806f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3691,7 +3691,7 @@
         "refinement_interpretation_Tm_refine_b57a73a7b45128f835c66ead7415c6b3"
       ],
       0,
-      "d98e636fa4b3a21f0495e88c5c7edf65"
+      "a0ba5c2d11bb4d76ad461d946aacb069"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3710,7 +3710,7 @@
         "refinement_interpretation_Tm_refine_b57a73a7b45128f835c66ead7415c6b3"
       ],
       0,
-      "307d409228fa45ec1be5ef49cbbf3765"
+      "4c7dcd12c6892df7b283b258bd38ff96"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3729,7 +3729,7 @@
         "refinement_interpretation_Tm_refine_b57a73a7b45128f835c66ead7415c6b3"
       ],
       0,
-      "d5f70e8c9c5bef5cda46f8608fe92678"
+      "aa27fd722998875ea992f1aa6f7af1fd"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3748,7 +3748,7 @@
         "refinement_interpretation_Tm_refine_b57a73a7b45128f835c66ead7415c6b3"
       ],
       0,
-      "242cbf5c69092b9412cdd60b42ceaf46"
+      "38f817c4eab7f8d5fa546a3b73df7d4c"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3767,7 +3767,7 @@
         "refinement_interpretation_Tm_refine_b57a73a7b45128f835c66ead7415c6b3"
       ],
       0,
-      "ea3dce30e06f0affaf2a739f1f10e837"
+      "910a3b2e4787ab50fe25b7f74fa68b84"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3786,7 +3786,7 @@
         "refinement_interpretation_Tm_refine_b57a73a7b45128f835c66ead7415c6b3"
       ],
       0,
-      "15cd182e7eb4fbc3875dfcb1e671439c"
+      "116654e1d932a2d9c9d172e280821df3"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3805,7 +3805,7 @@
         "refinement_interpretation_Tm_refine_b57a73a7b45128f835c66ead7415c6b3"
       ],
       0,
-      "9f9ef0e619b6ac17ab2f1fc076d74349"
+      "95a7325a886820f254f6fcbd7612e8e8"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3824,7 +3824,7 @@
         "refinement_interpretation_Tm_refine_b57a73a7b45128f835c66ead7415c6b3"
       ],
       0,
-      "f531fcab52ebb78982def9e0f5a2176c"
+      "0967d0ee5d556cc41f2092e5260479f4"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3843,7 +3843,7 @@
         "refinement_interpretation_Tm_refine_b57a73a7b45128f835c66ead7415c6b3"
       ],
       0,
-      "adf7e5097cce704c340bf78bd8dd3ab1"
+      "777bd1417374420be1975641d4275f78"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3855,7 +3855,7 @@
         "refinement_interpretation_Tm_refine_a0119e378ed94ebf59c9db467fcbfb29"
       ],
       0,
-      "d37b21e1b744424985d6f37bffd48105"
+      "9c0fd4266634c9281ae269a4d248ae16"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3872,7 +3872,7 @@
         "refinement_interpretation_Tm_refine_da5fe0ae908ec94596608699eaf16175"
       ],
       0,
-      "b088460d4c5e73648545cf300c48f9be"
+      "5e21606610c848f82d02bb489a56f203"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step",
@@ -3899,7 +3899,7 @@
         "typing_tok_Rust_primitives.Integers.U64@tok"
       ],
       0,
-      "a879fb177947dfd3a2a41a1af8fe0545"
+      "8f8b011d5cfe4ec4569d49a422b29920"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -3926,7 +3926,7 @@
         "typing_tok_Rust_primitives.Integers.U64@tok"
       ],
       0,
-      "2535454cac28396fa1d75469324a52fc"
+      "3b23505ceb1e97a2616ce6666b4b62eb"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -3959,7 +3959,7 @@
         "lemma_Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16_slice_ok"
       ],
       0,
-      "f1c15fef9ed0a426e9bfbfb7966bf3e0"
+      "064621fc5e6927355bc306583e124559"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -3980,7 +3980,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "b8ab88589f0fae02164c303aabee2e77"
+      "5be5b21447c99fc3c581de56b1a93c53"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -3992,7 +3992,7 @@
         "lemma_Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16_slice_ok"
       ],
       0,
-      "83cc45f02838a15d990d876bd5685dbf"
+      "1fd741ec98f28a4b9f74745de06faff6"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4013,7 +4013,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "15949de7bb9a55578608c1e0ec034aa8"
+      "27e8cf5fe14c27889bc1cb34458fbcc1"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4026,7 +4026,7 @@
         "refinement_interpretation_Tm_refine_26abae3dd209bf1af989be6cc31e47f2"
       ],
       0,
-      "a0e3aa6224e6feeae927c4f8484c6a53"
+      "e1bc3014845ddedbdb0c3037129355df"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4041,7 +4041,7 @@
         "refinement_interpretation_Tm_refine_26abae3dd209bf1af989be6cc31e47f2"
       ],
       0,
-      "6cb8077346adbd48fe9e72d27ca258ba"
+      "b37273fa6b479506cfab49785ebd4f40"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4055,7 +4055,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "e8048ea4640a1635793040247d5eec43"
+      "b689150e8fd2f7e28c03584f18e3856c"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4068,7 +4068,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "6ad2f92174bd459665d5d246fdd0651c"
+      "8dbccccfaa5040c9bacd9daa92bf350a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4083,7 +4083,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "e81f02100e376fd23b0676ceebd50910"
+      "00ce31f959a6bfab80f20f43a3321035"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4096,7 +4096,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "bb14d3d54f8480526a505a982acd047d"
+      "4c5a4926b4024369fcc8b797c664f016"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4112,7 +4112,7 @@
         "refinement_interpretation_Tm_refine_26abae3dd209bf1af989be6cc31e47f2"
       ],
       0,
-      "0b39ed9d6c6ed7a8889107fa90e7d53f"
+      "7eb8a52731ca0f3484acc7cb3b8c3b0d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4126,7 +4126,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "6d0be73459e9a0403d19f124852035cf"
+      "f46711470c030be906257e6125d719dd"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4139,7 +4139,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "e8f0018beb337a8f885fd9ce14363859"
+      "95c57277cc52abe2592ef053c5d3b6dd"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4154,7 +4154,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "e4d1186229acb8ab54a026f601060afd"
+      "4b2d91d78f0f30233a45496288886052"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4221,7 +4221,7 @@
         "typing_tok_Rust_primitives.Integers.I32@tok"
       ],
       0,
-      "7866d41cacf46b2d2e146c5f4ec41b69"
+      "10c9544a248ed68d306fd6fdbaa759a0"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4249,7 +4249,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "eb8d0027d9b7c0a17ffac7c4b11d469f"
+      "2c61cb8787cf90fa1c1878860fc04121"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4308,7 +4308,7 @@
         "typing_Libcrux_intrinsics.Avx2.mm_set1_epi16"
       ],
       0,
-      "7f24a458e67938513ee5ce41768ccb3d"
+      "6d8944a3e034d351261bb5e2c69cc7f0"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4352,7 +4352,7 @@
         "typing_Rust_primitives.Integers.sz"
       ],
       0,
-      "e74265beae949b20f7395819de1c0161"
+      "273e8a31bbf0e11fda87cca603bcffee"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4392,7 +4392,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "3f9c129c6c504d685de4d233fcbdceba"
+      "5d60a7c7bff589770c419fd3bcefe877"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4464,7 +4464,7 @@
         "typing_Tm_abs_4c612e88f5a42ebab5c6c84bb88dea85"
       ],
       0,
-      "a8ac8072f7a7cd24cd734b1b67fc96e2"
+      "258c0599b1473023e11372ca537ef39c"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4477,7 +4477,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "0824dc55ca8ee61019601698d9cdbc96"
+      "d39c4f1f2b055caa0ccefe751609ace6"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4490,7 +4490,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "91e13f1ed58d954559c76ae1c768b661"
+      "626704f7d7d937c29579cda210f8b435"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4512,7 +4512,7 @@
         "refinement_interpretation_Tm_refine_d985b5f1c3a9d0cabc6e07c60d1b3380"
       ],
       0,
-      "a6811f17867cb84570e7e04e59feabbf"
+      "5ca43822447b818efd9850df84b06cd9"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4580,7 +4580,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "786e718c8bf82f96411c5c08873097c8"
+      "e62f66a01f44b8c3381765e24f051772"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4592,7 +4592,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "ee9c761239635734e784bc5d5a09ac16"
+      "62a32807b10bbf32fe7789a1aa12a292"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4664,7 +4664,7 @@
         "typing_Tm_abs_4c612e88f5a42ebab5c6c84bb88dea85"
       ],
       0,
-      "85840b71926bd262b07000e1e9635e95"
+      "528eb420a4e0dfb66aeb266d79834a2e"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4746,7 +4746,7 @@
         "typing_tok_Rust_primitives.Integers.I16@tok"
       ],
       0,
-      "ac6bfed00df144d44f7ce4407459d9d0"
+      "1a669923c0aaa850a035c24d6240eeaa"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4759,7 +4759,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "d92f830626d3037e5b7f69a790188c65"
+      "787df5b5a3540331fbb3517c42aaafbc"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4771,7 +4771,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "a036ad526f2f62b3a760c005c659d1ee"
+      "5e6e2dc14dfc021fc337097bd43fc1dc"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4790,7 +4790,7 @@
         "refinement_interpretation_Tm_refine_fc3d0b9b2c5a1e452557cf68a6c9cfa5"
       ],
       0,
-      "366ae27b44e4ce920ef4bfb596b10b7d"
+      "46621cb65fb7e6cc885900269d5481ab"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4809,7 +4809,7 @@
         "refinement_interpretation_Tm_refine_ca3f696b2b1f768f7d0acded0bd9b4f8"
       ],
       0,
-      "8dd23df696bff73a25c5f9e505ba3ba7"
+      "241e4158ded8a930fb88537b4439140d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4849,7 +4849,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "edb5cec00a0b1ef30ba62ba51e1b79ab"
+      "09199485ed53ab4b4096b82159a0881e"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4865,7 +4865,7 @@
         "refinement_interpretation_Tm_refine_ce2fa86590274ebb43ea37e8cfa7679c"
       ],
       0,
-      "1ec10fd36a3d6ba3ec4a77f2950aa750"
+      "891a4a50f8d0b691555905a78dadddfc"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4877,7 +4877,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "7de9ac1e1148dc0cc89793468b65d353"
+      "9645770c63c1bba7470b03da45a3eab5"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4963,7 +4963,7 @@
         "typing_tok_Rust_primitives.Integers.I16@tok"
       ],
       0,
-      "65b749c461905221e6ed9d6bb4ea4817"
+      "921860e25f4e834fd1dcb13e028289fc"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4975,7 +4975,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "568465c6c8161816e7f5b95c9f14952e"
+      "029eb3e08a26b5b2695abcc4b7fdf639"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -4990,7 +4990,7 @@
         "refinement_interpretation_Tm_refine_ce2fa86590274ebb43ea37e8cfa7679c"
       ],
       0,
-      "c69b39f19a7b7666a742e01dc5983211"
+      "d8c722f603b546c11bf0541265defa04"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -5002,7 +5002,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "a193f4921c312ab4bdcf569c76232215"
+      "fceb8d5a4d4bbb340c53b742b24a4638"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -5021,7 +5021,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "5df392924353568aed4461c3ccf22d24"
+      "6a90503853c6f280a414b49cc27765b0"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -5085,7 +5085,7 @@
         "refinement_interpretation_Tm_refine_f02127c44d9b2b6c8814b3f9350a9928"
       ],
       0,
-      "1293d1b6e7e34647785a3925f95eb4b9"
+      "905639c4208abd9ff50ebc57249a936b"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -5098,7 +5098,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "3cedb374ece70d2e94484c37889372fc"
+      "bfc967416b0f3272280dfcc608131913"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -5110,7 +5110,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "bc7462bec3a370e1d844a133c447246b"
+      "80dd9336617e680cc3e398e94f547954"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -5126,7 +5126,7 @@
         "refinement_interpretation_Tm_refine_b09b8dc4265b052be30c5fa153e43d01"
       ],
       0,
-      "e5569680df5e1c15621041094a52ad45"
+      "21387cb59e16efb3fc6b0b35733411d5"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -5139,7 +5139,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "927179657f7d05d6a213951ee6bd59e3"
+      "3bb0fccbf4ab5174774ce46bdea28e36"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -5152,7 +5152,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "b6d4fe3f56b87652934f81a71c5b4c2d"
+      "ea90547272f7facd4d99a6737dca39e0"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -5164,7 +5164,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "6a6d9ca81cf1ae3270c2be01f1264f1a"
+      "513c957e9cc13d4b13128908f2c349be"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -5179,7 +5179,7 @@
         "refinement_interpretation_Tm_refine_b09b8dc4265b052be30c5fa153e43d01"
       ],
       0,
-      "8b4d2151cbafca1e285c8bc3d90a2138"
+      "8f7672f6c9786ca5ad74b41d5ff290dd"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step",
@@ -5286,7 +5286,7 @@
         "typing_tok_Rust_primitives.Integers.U64@tok"
       ],
       0,
-      "aad48f19fd75696808301583c542b2ae"
+      "026675f9baacdd9411ddf049a90201e1"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_mult",
@@ -5313,7 +5313,7 @@
         "typing_tok_Rust_primitives.Integers.U64@tok"
       ],
       0,
-      "34e0e1ce3cc55b0908345616002441da"
+      "d4b2b3a29dfa091d35326dee9e93d5c9"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_mult",
@@ -5355,7 +5355,7 @@
         "typing_tok_Rust_primitives.Integers.U64@tok"
       ],
       0,
-      "54d43d9888e184a44d76ed7a61e848a7"
+      "5125fbf172eb4d3c6a1b66abf0bdd156"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -5382,7 +5382,7 @@
         "typing_tok_Rust_primitives.Integers.U64@tok"
       ],
       0,
-      "7e34bcce60d35ab96714633bc1a0313a"
+      "62a79b65ae702e0e34235e6734200be0"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -5415,7 +5415,7 @@
         "lemma_Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16_slice_ok"
       ],
       0,
-      "3b579c39464ddcab20a7c480e6818759"
+      "718bfc832deb827312a5eb1543f88345"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -5436,7 +5436,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "6a9fc7285cdd160b87068cfc3ed67706"
+      "68f8dc6d882ed79394780d3fb7b7e8a8"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -5448,7 +5448,7 @@
         "lemma_Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16_slice_ok"
       ],
       0,
-      "ee81156937f7a3a21f5233acf06daa68"
+      "2ef9545c85507e3b46fce0543f59989e"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -5469,7 +5469,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "c14ca52469bbb3eca8506f91eb01abae"
+      "6dc04be008874b9549bddca65733606a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -5482,7 +5482,7 @@
         "refinement_interpretation_Tm_refine_9c02f5ce6a038a7dc96484ebbbd65156"
       ],
       0,
-      "049c45bfcf1c6226f035191b2fbb8a92"
+      "d3eb0b4dc849f16d9638acf3bbc6c463"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -5542,7 +5542,7 @@
         "typing_tok_Rust_primitives.Integers.I32@tok"
       ],
       0,
-      "a0458f20d630b11b5ba12bb1f02b8bc2"
+      "bae0f4fd23cd7378fd80a44c827f06d1"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -5564,7 +5564,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "aab495f10335f187836718fa97ce1505"
+      "915289e0ab2e0f48eb8213681d4c9b04"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -5583,7 +5583,7 @@
         "refinement_interpretation_Tm_refine_46e815ba84d57209a9656a26337816ec"
       ],
       0,
-      "109bdd0c9fabd6b7c241fa5bc493a2b2"
+      "0c9a0d82e8ac450cc65929a74dba8820"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -5602,7 +5602,7 @@
         "refinement_interpretation_Tm_refine_46e815ba84d57209a9656a26337816ec"
       ],
       0,
-      "db236fe0ddd716d5502fafdc66ae5213"
+      "4317bdc32beb73783f86c2ec0bdf5042"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -5614,7 +5614,7 @@
         "refinement_interpretation_Tm_refine_0aac216f190afca7991bc248e78132a2"
       ],
       0,
-      "a85e65f495ec712f0dfbdb9c280b1167"
+      "b453a8ba316e74213ad2e1a8db969cd5"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -5663,7 +5663,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "2bd70d8cd093536a2e2f1fc055d33a49"
+      "89658f855f9ece5a0089c820716153a7"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -5685,7 +5685,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "9430fd24681481a454220db66c3cc2a2"
+      "b3197678f7711a7b43046dd50f716796"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -5704,7 +5704,7 @@
         "refinement_interpretation_Tm_refine_1ca9615f0094e0cdfc2c0b78280f8486"
       ],
       0,
-      "ae1ea3d0d9b8f0f19f63a352ebbe746b"
+      "f49db046c79deb16debbbdb394ddfdb0"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -5723,7 +5723,7 @@
         "refinement_interpretation_Tm_refine_1ca9615f0094e0cdfc2c0b78280f8486"
       ],
       0,
-      "41a740b1a7831a9c9a288128ed8b7f19"
+      "0420c7fb4524675b2797dab6d9474f64"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -5735,7 +5735,7 @@
         "refinement_interpretation_Tm_refine_0aac216f190afca7991bc248e78132a2"
       ],
       0,
-      "985fd448c4c2b001c49a93b901082ed1"
+      "64419094944b6c24d69aaea638b84ac4"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -5813,7 +5813,7 @@
         "refinement_interpretation_Tm_refine_c62f6bf110e545a3bd61c9c6fa3df160"
       ],
       0,
-      "5820f3950fa34102de3d543645b036e5"
+      "926d8a6eb7bb1b5a8d18bcd748b0183e"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -5835,7 +5835,7 @@
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "08acbd4557020f7a480808272addc19a"
+      "f5c1c33c0b2f0a25208fddde61c30c83"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -5848,7 +5848,7 @@
         "refinement_interpretation_Tm_refine_c476d7e337c432329bfb1d06d0fad0c0"
       ],
       0,
-      "a5f5f53664896f74183f35cf1fed85c9"
+      "f3b41ff68c7bb058870199fea16bd82e"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -5861,7 +5861,7 @@
         "refinement_interpretation_Tm_refine_c476d7e337c432329bfb1d06d0fad0c0"
       ],
       0,
-      "8b8ab5f3a3489cf20779935e144ab8a4"
+      "8f92dbce55192b30508ead7a41dc164a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -5874,7 +5874,7 @@
         "refinement_interpretation_Tm_refine_c476d7e337c432329bfb1d06d0fad0c0"
       ],
       0,
-      "81dcca88660f9d882d72cf017948e0a8"
+      "2da1aebc34ec9f9ead47803722cc061d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -5887,7 +5887,7 @@
         "refinement_interpretation_Tm_refine_c476d7e337c432329bfb1d06d0fad0c0"
       ],
       0,
-      "2138add640f7e2d518e1b0658f689fb0"
+      "7f288ab89e5b8ec6a0fa34639b9a127f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -5900,7 +5900,7 @@
         "refinement_interpretation_Tm_refine_c476d7e337c432329bfb1d06d0fad0c0"
       ],
       0,
-      "151dca830a7a9af096e2e41dbf94b6a2"
+      "f547ce2b673e3f62af1be7aaec448a45"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -5913,7 +5913,7 @@
         "refinement_interpretation_Tm_refine_c476d7e337c432329bfb1d06d0fad0c0"
       ],
       0,
-      "bcc1cfcb2a873cedec04392c02f3f96f"
+      "5a4e9ab0952a4fa3ff843b994e1db10e"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -5926,7 +5926,7 @@
         "refinement_interpretation_Tm_refine_c476d7e337c432329bfb1d06d0fad0c0"
       ],
       0,
-      "71321a2031b94df0b9f578ad33ea20ba"
+      "282d2f2f7229b0a40fa7353e76f32c30"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -5939,7 +5939,7 @@
         "refinement_interpretation_Tm_refine_c476d7e337c432329bfb1d06d0fad0c0"
       ],
       0,
-      "fd1e6fb5037ac925e4c254f8f0fecfe2"
+      "8ed9f7315cea555cf4b56792627348fe"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -5952,7 +5952,7 @@
         "refinement_interpretation_Tm_refine_c476d7e337c432329bfb1d06d0fad0c0"
       ],
       0,
-      "797b11a26537f9601e8284b8aac730ad"
+      "ca7ce8c468abed5afdc73af51850964d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -5965,7 +5965,7 @@
         "refinement_interpretation_Tm_refine_c476d7e337c432329bfb1d06d0fad0c0"
       ],
       0,
-      "bbf9a7e8a7bd7eed40494f52012641b7"
+      "066935524099848f3aea341914d770d4"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -5978,7 +5978,7 @@
         "refinement_interpretation_Tm_refine_c476d7e337c432329bfb1d06d0fad0c0"
       ],
       0,
-      "98d49263cbe9c47d27132850df68e24e"
+      "4ec84af57800b1f1d7dd68160be5c2a0"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -5991,7 +5991,7 @@
         "refinement_interpretation_Tm_refine_c476d7e337c432329bfb1d06d0fad0c0"
       ],
       0,
-      "c22f69748dd953c5fb4ac1305e9cc205"
+      "b5216cab203d74ee35015296590fa87f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6004,7 +6004,7 @@
         "refinement_interpretation_Tm_refine_c476d7e337c432329bfb1d06d0fad0c0"
       ],
       0,
-      "cd78993ea5f407830bc92fe720b35b2e"
+      "d09482b679b4d5b26359ff8acfcb0052"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6017,7 +6017,7 @@
         "refinement_interpretation_Tm_refine_c476d7e337c432329bfb1d06d0fad0c0"
       ],
       0,
-      "3731c58b8fc2fb8bb36a4477ca2d3902"
+      "8b60372a7b216c7d40d02ac11ce63e0d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6030,7 +6030,7 @@
         "refinement_interpretation_Tm_refine_c476d7e337c432329bfb1d06d0fad0c0"
       ],
       0,
-      "93acf6a4a3014439be934d9553bad22e"
+      "c6f41f7c375b0fdc800a9817481e64a1"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6043,7 +6043,7 @@
         "refinement_interpretation_Tm_refine_c476d7e337c432329bfb1d06d0fad0c0"
       ],
       0,
-      "2e87f18f149fbdb61cc9ff93b5544cc3"
+      "939270367ee0402f19559721941fa205"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6055,7 +6055,7 @@
         "refinement_interpretation_Tm_refine_0a2c7e0f1ecedc8565f4a7d0fb82c027"
       ],
       0,
-      "8210bbf5f9293f6a15ec91efe3f62424"
+      "98605d3d55922553474dd4da8f05106e"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6067,7 +6067,7 @@
         "refinement_interpretation_Tm_refine_0a2c7e0f1ecedc8565f4a7d0fb82c027"
       ],
       0,
-      "8ef6ac11bda04ed4068a3f78e7ffa0ce"
+      "e88f8beb77d9c03340ee6e1b5d46deeb"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6079,7 +6079,7 @@
         "refinement_interpretation_Tm_refine_0a2c7e0f1ecedc8565f4a7d0fb82c027"
       ],
       0,
-      "db150d8f9fb53dd5ad4f0bf5c1195256"
+      "612d6dc274f62be7929972c0a40eaf64"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6091,7 +6091,7 @@
         "refinement_interpretation_Tm_refine_0a2c7e0f1ecedc8565f4a7d0fb82c027"
       ],
       0,
-      "27a136fc4b51413289c0b1948c235c2d"
+      "b709e5f38012bd50b621fbde22f0b906"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6103,7 +6103,7 @@
         "refinement_interpretation_Tm_refine_0a2c7e0f1ecedc8565f4a7d0fb82c027"
       ],
       0,
-      "572de4eac1e3f38a0a92cb19ca04afb9"
+      "a33c4a0e3fd544ab68d22de773b0a8d9"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6115,7 +6115,7 @@
         "refinement_interpretation_Tm_refine_0a2c7e0f1ecedc8565f4a7d0fb82c027"
       ],
       0,
-      "3299e8fb79da82388b33293ccaafaa4b"
+      "d8f499ab191b4916b25f0be79e46f979"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6127,7 +6127,7 @@
         "refinement_interpretation_Tm_refine_0a2c7e0f1ecedc8565f4a7d0fb82c027"
       ],
       0,
-      "e4745efdd9971437b140a6cf0eaa5b73"
+      "b723ae8801716d991c68477e35d04b84"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6139,7 +6139,7 @@
         "refinement_interpretation_Tm_refine_0a2c7e0f1ecedc8565f4a7d0fb82c027"
       ],
       0,
-      "992dbd6b5193f3d79b7a139f9986619a"
+      "439f4026da0c4b2927dea32d9f2d9302"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6151,7 +6151,7 @@
         "refinement_interpretation_Tm_refine_0a2c7e0f1ecedc8565f4a7d0fb82c027"
       ],
       0,
-      "f12331572682f6ebcb440bc296437362"
+      "fe3e925d3a579e76fea4c46c6d77ef80"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6163,7 +6163,7 @@
         "refinement_interpretation_Tm_refine_0a2c7e0f1ecedc8565f4a7d0fb82c027"
       ],
       0,
-      "6e371ce4d2d985059989ca14a366eded"
+      "507c67245c8ee0d41754650beac39192"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6175,7 +6175,7 @@
         "refinement_interpretation_Tm_refine_0a2c7e0f1ecedc8565f4a7d0fb82c027"
       ],
       0,
-      "adf12e81b0d5d89336557bb6226426eb"
+      "ed9b8c6b5e848e66121ccd7c94f68b1c"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6187,7 +6187,7 @@
         "refinement_interpretation_Tm_refine_0a2c7e0f1ecedc8565f4a7d0fb82c027"
       ],
       0,
-      "f56ad0f59055835bc0491bab3d6587e6"
+      "330649077aa4c6152b6db63102bc23eb"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6199,7 +6199,7 @@
         "refinement_interpretation_Tm_refine_0a2c7e0f1ecedc8565f4a7d0fb82c027"
       ],
       0,
-      "1a95cbb5f1d6a5b8ff6a2a555dc1c6d6"
+      "73940af5ccdda53805d4a8e0d3653bfd"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6211,7 +6211,7 @@
         "refinement_interpretation_Tm_refine_0a2c7e0f1ecedc8565f4a7d0fb82c027"
       ],
       0,
-      "95113dca0620fff677d7f79a2fb8b67f"
+      "c5f1cc39c715e25f35e23b207c5c4c20"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6223,7 +6223,7 @@
         "refinement_interpretation_Tm_refine_0a2c7e0f1ecedc8565f4a7d0fb82c027"
       ],
       0,
-      "61b01d6a8bba4b90ccc44e6ca9244276"
+      "a9ba1c4b3cf8b65b2719524f6a0ba5b4"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6235,7 +6235,7 @@
         "refinement_interpretation_Tm_refine_0a2c7e0f1ecedc8565f4a7d0fb82c027"
       ],
       0,
-      "509bc45dbad3ec5d12aea91397749f65"
+      "92e6ec9e8d180b406b16bd972bc1bdfc"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6247,7 +6247,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "74e809399e0eeec996c66d438de22b6a"
+      "9cfe9a03779e44798c99e4c053f88abb"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6259,7 +6259,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "14152834b4e11a7a5b676b31c9e99446"
+      "0adbfb66939fe7e71ed1d73bc03124c7"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6271,7 +6271,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "1c82cf9aaeb2215fcd4720b3df3e55f2"
+      "4b025e6e1339ad348b13954c26f13c92"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6283,7 +6283,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "96b813c8238d81208dd53054309367eb"
+      "36a9fe1412f7d4e0901b258ec38c96c1"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6295,7 +6295,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "65dc9c13bcc0ca48fa8b9c2a3d6e82e6"
+      "a751f37c1af62f52bbbac64b17d1f460"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6307,7 +6307,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "f495ffccb0c5004621a7e9248cdbd10b"
+      "41608f424e1d95fc67cb5266a04d2011"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6319,7 +6319,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "aa9620c6212c3cfc37f8aed15414d91c"
+      "a300133777218a5e441ab543e8b47e3f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6331,7 +6331,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "56bb12fcb36c2b13bce590eb2bbc89fb"
+      "45066283eb1c3d39ed684cb7a8aaa32d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6343,7 +6343,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "6a8daff5b230796c81c84883f0fa546f"
+      "fbb820f09ad1ff4819dcf8619d8c95c4"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6355,7 +6355,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "3b45f171cd2d682f6201e8b4a7f57da2"
+      "4c78bef986b1f55d1769982b159e81b1"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6367,7 +6367,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "03430c63c3118b3df85ddda1c5fd2085"
+      "c2b86c2b00b8c4edf71c8df4e991c019"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6379,7 +6379,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "7639e851a67f979166ed4d74b70550ba"
+      "e1e8381b8fbfe3d166a6fce0473c60c1"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6391,7 +6391,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "834af605f640273ed25444016e08440d"
+      "3a0ea466587a5e9748c97948922c32ab"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6403,7 +6403,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "6c0778a12b2b1aea9f3262f57664e089"
+      "2ffc9b3833fcef7cbfdfc637d08091cf"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6415,7 +6415,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "e2ef2d6ec3fa8d06e3d10e68a80ac12b"
+      "c567acac384822edb2ec73a364eb82e4"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6427,7 +6427,7 @@
         "refinement_interpretation_Tm_refine_3619dd02117ef3fd8bac238477bc0930"
       ],
       0,
-      "6b9ee8b0b13e4614787edf22f5204266"
+      "ad804d933b842bc091024b9e0794dd9d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6498,7 +6498,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "a66a3a8f80b73282bb89e1fcd7cb304c"
+      "1f355c8dd8b67e4059e23b5ac4004da2"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6520,7 +6520,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "e506e8d0775e3b49d9fdda0733e30c08"
+      "bc7ba2621da03a60184ae3af9793bc5a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6542,7 +6542,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "01a195bbb2422da3c69b7570904c8322"
+      "f0fdb065577b6b566e927d16f55f7631"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6564,7 +6564,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "9a78abeffc13b104eac184ef05e7b571"
+      "c9b8000cc78af267cd3bed7dc5dd7da7"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6586,7 +6586,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "d2202b8e8110457f763228c2ee810fc8"
+      "05e094cd08965291588d9609de0f68da"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6608,7 +6608,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "ad93ab1505a9e004945ad145c54efe9f"
+      "a01a5a8ec203683a02e94d19ef05bf4d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6630,7 +6630,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "0bbf8231cfa5212e9c48626582ebe417"
+      "302962bd2d340833ac762b9727891931"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6679,7 +6679,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "e3dd2bd88e73d5b6eb0fb52606debd87"
+      "7654b7d0f13352af38f441dc1af43f99"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6712,7 +6712,7 @@
         "refinement_interpretation_Tm_refine_71d9851126b29cf431bf8472d43099d6"
       ],
       0,
-      "e71854381d55151ce1e630273a90021b"
+      "7fdf769a610dbe3cb164a3ee6c235bd3"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6760,7 +6760,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "125aa310e65a9073bcbb03a7ee73b88b"
+      "a8c42e9619ca539ec7052f93bab3bc21"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6896,7 +6896,7 @@
         "refinement_interpretation_Tm_refine_f5bd6ab08e018bf5e842ac99737fea4c"
       ],
       0,
-      "9e48bd5e44225e1f7324b0b683b3a4df"
+      "df8366110db3dcbe0078ddc10c659674"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6911,7 +6911,7 @@
         "refinement_interpretation_Tm_refine_f5bd6ab08e018bf5e842ac99737fea4c"
       ],
       0,
-      "dbf2c2f86fe01b9697318cc05609a3b9"
+      "c9da9f1f395683266ee330bf738d2e08"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6927,7 +6927,7 @@
         "refinement_interpretation_Tm_refine_f5bd6ab08e018bf5e842ac99737fea4c"
       ],
       0,
-      "7e4b2ea2a28771ddf013c53862687e40"
+      "3ca2c24cd0db0c819ea6246bff8cdc2d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6942,7 +6942,7 @@
         "refinement_interpretation_Tm_refine_f5bd6ab08e018bf5e842ac99737fea4c"
       ],
       0,
-      "00505aba53f54dd93a3e3a3aa01afeef"
+      "f247765f7ce82410661c8605a2a30819"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6957,7 +6957,7 @@
         "refinement_interpretation_Tm_refine_f5bd6ab08e018bf5e842ac99737fea4c"
       ],
       0,
-      "6aa3b85251f0e6a61a8e43bda73a5737"
+      "c607ac11e9d7c390f2ca1d44e688c22e"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6972,7 +6972,7 @@
         "refinement_interpretation_Tm_refine_f5bd6ab08e018bf5e842ac99737fea4c"
       ],
       0,
-      "6ae6bfb7bc307fc7d585fba068d94461"
+      "f3d2a61382fd1b60a7b882d149a04be6"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -6987,7 +6987,7 @@
         "refinement_interpretation_Tm_refine_f5bd6ab08e018bf5e842ac99737fea4c"
       ],
       0,
-      "9117d3fc79068ecbd01a434264554ce4"
+      "2846ad363f4348b9c48e727eb3bd45d7"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7002,7 +7002,7 @@
         "refinement_interpretation_Tm_refine_f5bd6ab08e018bf5e842ac99737fea4c"
       ],
       0,
-      "09d87f6e48921ce87d43e706dd00f960"
+      "a0b53e7df8e3723c846915eed045a2fa"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7017,7 +7017,7 @@
         "refinement_interpretation_Tm_refine_f5bd6ab08e018bf5e842ac99737fea4c"
       ],
       0,
-      "da0b8a557c44fb16d50b933b896be6e8"
+      "1dee59889123b2e929c4a1bc35d75ed1"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7032,7 +7032,7 @@
         "refinement_interpretation_Tm_refine_f5bd6ab08e018bf5e842ac99737fea4c"
       ],
       0,
-      "9859891f7889d763137dfe902dcfe943"
+      "06a316bd522acfde833293fb85f54168"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7047,7 +7047,7 @@
         "refinement_interpretation_Tm_refine_f5bd6ab08e018bf5e842ac99737fea4c"
       ],
       0,
-      "63413caeb7e19494e9ab7ccd78598ae3"
+      "c96013d63af7a7620bc0a60b8c17d66a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7062,7 +7062,7 @@
         "refinement_interpretation_Tm_refine_f5bd6ab08e018bf5e842ac99737fea4c"
       ],
       0,
-      "7a093ecfb2bcf76fa1409a7678c98fac"
+      "38b903ae9f2cafd634d835a1af675372"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7077,7 +7077,7 @@
         "refinement_interpretation_Tm_refine_f5bd6ab08e018bf5e842ac99737fea4c"
       ],
       0,
-      "4b9cc6b9a568c76a608388bd8b60d925"
+      "441203bbdcb94f6f09900a5af51425c8"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7092,7 +7092,7 @@
         "refinement_interpretation_Tm_refine_f5bd6ab08e018bf5e842ac99737fea4c"
       ],
       0,
-      "593af228a3349b34d22a5470b711cb4f"
+      "9040c5b1843e06b3ce457e55b4ff36e5"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7107,7 +7107,7 @@
         "refinement_interpretation_Tm_refine_f5bd6ab08e018bf5e842ac99737fea4c"
       ],
       0,
-      "15a8b544cfb33cc22fc6267a8bce4b0c"
+      "c3e0e129fc87347f50d7cb32c9a4cd99"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7122,7 +7122,7 @@
         "refinement_interpretation_Tm_refine_f5bd6ab08e018bf5e842ac99737fea4c"
       ],
       0,
-      "de34f154161a165003a8733257efead4"
+      "ccf6f106cef674f0a23610a3b6f7ffc8"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7141,7 +7141,7 @@
         "refinement_interpretation_Tm_refine_f5bd6ab08e018bf5e842ac99737fea4c"
       ],
       0,
-      "e5a2a16dbee019e6d21dd4db07bc578d"
+      "9970bcb33c4c64b29a1dbea8dc58a7ca"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7161,7 +7161,7 @@
         "refinement_interpretation_Tm_refine_f5bd6ab08e018bf5e842ac99737fea4c"
       ],
       0,
-      "324e77af6080eb3dc5c50b9c584ec6d7"
+      "0a8df5f678009b76abd82e5c711390d8"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7177,7 +7177,7 @@
         "refinement_interpretation_Tm_refine_4c3ea26920d9e5c2f471d4b089d15ed5"
       ],
       0,
-      "441b11bd34286f39630cc3a3ca4da9db"
+      "3cfe87f78dc38ff04b91277d965dcb0c"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7193,7 +7193,7 @@
         "refinement_interpretation_Tm_refine_4c3ea26920d9e5c2f471d4b089d15ed5"
       ],
       0,
-      "ed21daac5985b1eabe3460c850ace6b0"
+      "24ee3c3854f22b5e7a6b459776ea7d13"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7209,7 +7209,7 @@
         "refinement_interpretation_Tm_refine_4c3ea26920d9e5c2f471d4b089d15ed5"
       ],
       0,
-      "ff39d18f384dd4fd3ad0a06480245758"
+      "9297b9778b901d63ac6503c3638dc193"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7225,7 +7225,7 @@
         "refinement_interpretation_Tm_refine_4c3ea26920d9e5c2f471d4b089d15ed5"
       ],
       0,
-      "a73cd9d0b6ee33fb987a1a51597d2e46"
+      "81a80b07b3947e835480ed8524a37c8d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7241,7 +7241,7 @@
         "refinement_interpretation_Tm_refine_4c3ea26920d9e5c2f471d4b089d15ed5"
       ],
       0,
-      "139f9d5baf7bd3c7e99eb49d7ab66625"
+      "f0a6d44c190a9d9e2e10c17f7fdba9de"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7257,7 +7257,7 @@
         "refinement_interpretation_Tm_refine_4c3ea26920d9e5c2f471d4b089d15ed5"
       ],
       0,
-      "c6a165a5687ee5f75400efc903475e0a"
+      "e0b27e25d8f9edfec5d5299c6427812c"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7273,7 +7273,7 @@
         "refinement_interpretation_Tm_refine_4c3ea26920d9e5c2f471d4b089d15ed5"
       ],
       0,
-      "3bff426973151716fff25b859051e9fd"
+      "e9abd1e5b47ea930a209b8baefb3ac17"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7289,7 +7289,7 @@
         "refinement_interpretation_Tm_refine_4c3ea26920d9e5c2f471d4b089d15ed5"
       ],
       0,
-      "0a5824bee45f7fad443804c1a888430d"
+      "1ae192ee67eb248f4c6feaf2b31aa265"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7305,7 +7305,7 @@
         "refinement_interpretation_Tm_refine_639ca6c7c266721f80fe7dbd817f0721"
       ],
       0,
-      "ede78fd882cb1f06568061194b4269a9"
+      "8263db2950cb0555bc5a23cc8938455d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7320,7 +7320,7 @@
         "refinement_interpretation_Tm_refine_639ca6c7c266721f80fe7dbd817f0721"
       ],
       0,
-      "72074f8e512cb79b70c091033eb535af"
+      "70d1f256f29933d8e4a501d3a986b0b6"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7335,7 +7335,7 @@
         "refinement_interpretation_Tm_refine_a6c6d92203766cf4823ad8be47b0fe5a"
       ],
       0,
-      "6097ee08cbf0cdfd97c6c54067a8c4c6"
+      "c7a774ccdc04bda53fe06c746013da22"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7350,7 +7350,7 @@
         "refinement_interpretation_Tm_refine_a6c6d92203766cf4823ad8be47b0fe5a"
       ],
       0,
-      "1d1a1f9c9131e5213a73475265e03e3e"
+      "5db0ecbdec50cd4e34ea2fc502e7eb9d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7365,7 +7365,7 @@
         "refinement_interpretation_Tm_refine_639ca6c7c266721f80fe7dbd817f0721"
       ],
       0,
-      "29fe48ce85254b1af5955e3726557be1"
+      "cfad606bd2cb908b4049e3ae4de0bd9f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7380,7 +7380,7 @@
         "refinement_interpretation_Tm_refine_639ca6c7c266721f80fe7dbd817f0721"
       ],
       0,
-      "7774e6f28d3c29ce06238ad7c953a8fa"
+      "a6618c55b7505ea9d7555b64bcd634db"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7395,7 +7395,7 @@
         "refinement_interpretation_Tm_refine_a6c6d92203766cf4823ad8be47b0fe5a"
       ],
       0,
-      "088b5293db22bc94da9d617c64efc255"
+      "ea5017ac728dce40ddf368630c20af92"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7410,7 +7410,7 @@
         "refinement_interpretation_Tm_refine_a6c6d92203766cf4823ad8be47b0fe5a"
       ],
       0,
-      "6e0e78588c8299c04793faab336728b9"
+      "7e22f6d65e7cca782f5df4d506af54d9"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7425,7 +7425,7 @@
         "refinement_interpretation_Tm_refine_639ca6c7c266721f80fe7dbd817f0721"
       ],
       0,
-      "a533ceef0cd9f487cf7614207132b2d3"
+      "ee8825d5f644140bf71f90ca909dae12"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7440,7 +7440,7 @@
         "refinement_interpretation_Tm_refine_639ca6c7c266721f80fe7dbd817f0721"
       ],
       0,
-      "f8de84098e7d840b1fa8bd8174ca4c75"
+      "a7b58c71dade1c3b2b96b75cdb7b39c3"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7455,7 +7455,7 @@
         "refinement_interpretation_Tm_refine_a6c6d92203766cf4823ad8be47b0fe5a"
       ],
       0,
-      "863727a185b6b00da35d2056ee084d48"
+      "135d48d6cae83821a0395db639e45c98"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7470,7 +7470,7 @@
         "refinement_interpretation_Tm_refine_a6c6d92203766cf4823ad8be47b0fe5a"
       ],
       0,
-      "952ebb6f4703a99a767b765f9e53562b"
+      "e1f8b7f408e37539f13aa6fc0ada712a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7485,7 +7485,7 @@
         "refinement_interpretation_Tm_refine_639ca6c7c266721f80fe7dbd817f0721"
       ],
       0,
-      "017603f139bdf745f0bb4f0bc351a156"
+      "eb1be2dab1336a09ed28cbcc622822d2"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7500,7 +7500,7 @@
         "refinement_interpretation_Tm_refine_639ca6c7c266721f80fe7dbd817f0721"
       ],
       0,
-      "989a3e186d1b11eb0ba1b1b7713182eb"
+      "2f4b1cc7b7640a8bd3f419be2589f1b0"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7515,7 +7515,7 @@
         "refinement_interpretation_Tm_refine_a6c6d92203766cf4823ad8be47b0fe5a"
       ],
       0,
-      "458bcfc4a4347340c966a21dfc808a95"
+      "afc5cb635d24af6da57051a278f280d0"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7530,7 +7530,7 @@
         "refinement_interpretation_Tm_refine_a6c6d92203766cf4823ad8be47b0fe5a"
       ],
       0,
-      "951ec45cb06f7a278f2b3429c1f01a05"
+      "4783ce7bb37c57891ce12aff38562161"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7543,7 +7543,7 @@
         "refinement_interpretation_Tm_refine_317525302df90027b7a9b65f0dd539f1"
       ],
       0,
-      "cc722cc34743f59fc5202dafbec6aa45"
+      "5bb429c8c48bd17f41bc39a4882f04bf"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7556,7 +7556,7 @@
         "refinement_interpretation_Tm_refine_e205e8214cae2b3093d1cc557e1e5de0"
       ],
       0,
-      "65e896f879d343add9163b7ee4660a90"
+      "cc781bca7e4e59796a6dd89c55061a64"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7572,7 +7572,7 @@
         "refinement_interpretation_Tm_refine_639ca6c7c266721f80fe7dbd817f0721"
       ],
       0,
-      "0f0320e91130e6d89807eed31c0b65f4"
+      "148f33c462e3ccde7cafc648aac3612c"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step",
@@ -7599,7 +7599,7 @@
         "typing_tok_Rust_primitives.Integers.U64@tok"
       ],
       0,
-      "2bf1a475a5ab609796709b6a957fc897"
+      "c769efeb5a2a7f4c30ccaffa14840532"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_mult",
@@ -7626,7 +7626,7 @@
         "typing_tok_Rust_primitives.Integers.U64@tok"
       ],
       0,
-      "6f0ea47426e13ca28ec29c87052fcd8e"
+      "36881f7bbb6c4a63d12ae22b8d31d75a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_mult",
@@ -7668,7 +7668,7 @@
         "typing_tok_Rust_primitives.Integers.U64@tok"
       ],
       0,
-      "02c666aa220098d317a9e530ecc3d66c"
+      "29a62a5da5c07c1fde91a56508302b04"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -7695,7 +7695,7 @@
         "typing_tok_Rust_primitives.Integers.U64@tok"
       ],
       0,
-      "3973f151bbf2e3efa832c5f29ffd6e8a"
+      "7d54a569c3a11900463853ac800e53fb"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -7728,7 +7728,7 @@
         "lemma_Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16_slice_ok"
       ],
       0,
-      "35d6858e19dc44ccf1de8bf8cb749cf2"
+      "9c20a486e1e65dbd93447d1a8cb9962d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -7749,7 +7749,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "178e9d129f35dc7e36ff13ddf1137011"
+      "ff2130d477c6cc5b542b796361b25ed0"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -7761,7 +7761,7 @@
         "lemma_Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16_slice_ok"
       ],
       0,
-      "4e56f1c5f262e44c4a20dce5e1585318"
+      "40a84b16ae3a90d7967453d4a82e1145"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -7782,7 +7782,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "47526c34ecbba0b877965e7e9b112331"
+      "b5dcd655a977436e015d08a093d087a7"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -7795,7 +7795,7 @@
         "refinement_interpretation_Tm_refine_810148e9da502c388665ee82abaf3f0f"
       ],
       0,
-      "4ba06b11db406afd39271e14199a9d98"
+      "9c0201248823d8730b43015a2704ce70"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -7855,7 +7855,7 @@
         "typing_tok_Rust_primitives.Integers.I32@tok"
       ],
       0,
-      "8970ee8f78a9fff9258031a01ff73c36"
+      "2c1b6e7e9c97428e2a60a23bafdcd324"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -7877,7 +7877,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "e3de625ee27f84dd43620c2d12ba9c27"
+      "823701663f188724f504e1dd19efcee5"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -7896,7 +7896,7 @@
         "refinement_interpretation_Tm_refine_46e815ba84d57209a9656a26337816ec"
       ],
       0,
-      "645a4367fcdd7962c31936fbe1fa45a2"
+      "54e4fe13cb9f8d58cad1d1f7d91e95ed"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -7915,7 +7915,7 @@
         "refinement_interpretation_Tm_refine_46e815ba84d57209a9656a26337816ec"
       ],
       0,
-      "aa97c650f4c0eb373f1e00f3347674db"
+      "c094508da3d385b1a795511c5fb43eda"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -7927,7 +7927,7 @@
         "refinement_interpretation_Tm_refine_a73e0e017470e27ac7985efa0f712f94"
       ],
       0,
-      "781c45aaeeda807b387f03c3cf4e9140"
+      "8a66593c69f2fca31d60f9b808ad9a1c"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -7976,7 +7976,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "de0c758d428d832ff775ef2802881aeb"
+      "4dbd494d658fbb09ad6b1e6bc746fd9e"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -7998,7 +7998,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "81b81653c18e41e4223b897282b17805"
+      "829df18ba2041054d06290a8967b1285"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8017,7 +8017,7 @@
         "refinement_interpretation_Tm_refine_1ca9615f0094e0cdfc2c0b78280f8486"
       ],
       0,
-      "c3c2a4f8597482d2dc1b446e2fe29967"
+      "fdea859adf667a6fa04cf3a49375d53e"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8036,7 +8036,7 @@
         "refinement_interpretation_Tm_refine_1ca9615f0094e0cdfc2c0b78280f8486"
       ],
       0,
-      "e7a568c868aeff80376cbf1ae39d0e04"
+      "c5a1962cf8f8e168d6a99ef980e7f008"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8048,7 +8048,7 @@
         "refinement_interpretation_Tm_refine_a73e0e017470e27ac7985efa0f712f94"
       ],
       0,
-      "15fb2e2c4c3303251036850e03c149dd"
+      "1a787366204f62cdcb1cce55881c47e5"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8133,7 +8133,7 @@
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "08d6e95de207a0022d7ee75b65f0ea24"
+      "cf9e1be45aaf40b24f560516282ed64f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8155,7 +8155,7 @@
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "70c4a896955f2e49fc78f868d66c7500"
+      "2d7f9219bfd5dba9dccc1d389d91282a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8168,7 +8168,7 @@
         "refinement_interpretation_Tm_refine_6e441800454d4b36c9d268a06f286113"
       ],
       0,
-      "0fd7a14556ef48a06d1b02008e7e149d"
+      "a9baf55a739b55303b5b9afb76411b79"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8181,7 +8181,7 @@
         "refinement_interpretation_Tm_refine_6e441800454d4b36c9d268a06f286113"
       ],
       0,
-      "92dacd833e5e6f278169dfee759c3376"
+      "8dc75c932a63a08d63bbb1fa0e3a6306"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8194,7 +8194,7 @@
         "refinement_interpretation_Tm_refine_6e441800454d4b36c9d268a06f286113"
       ],
       0,
-      "67c521b3051e2f237b087bfd9e6c451b"
+      "d621090c28c54a72982fd8b1e7155973"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8207,7 +8207,7 @@
         "refinement_interpretation_Tm_refine_6e441800454d4b36c9d268a06f286113"
       ],
       0,
-      "716ba567939b4ca9ed4532dc5aefce5a"
+      "4ed39e5e0706b11a0f21999952650b8c"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8220,7 +8220,7 @@
         "refinement_interpretation_Tm_refine_6e441800454d4b36c9d268a06f286113"
       ],
       0,
-      "19d7e0fdecf4ede69670f07b1b4b9d91"
+      "52ae8fe998e916ce4e767690eaa74b4e"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8233,7 +8233,7 @@
         "refinement_interpretation_Tm_refine_6e441800454d4b36c9d268a06f286113"
       ],
       0,
-      "d004cdcc03e701c7ac78d100977ed7a2"
+      "f9df2abc19f517719a6a9357e20cda8c"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8246,7 +8246,7 @@
         "refinement_interpretation_Tm_refine_6e441800454d4b36c9d268a06f286113"
       ],
       0,
-      "d268811b5f07df456587c501e267af5e"
+      "1f85133c746a36b4bad488298f405329"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8259,7 +8259,7 @@
         "refinement_interpretation_Tm_refine_6e441800454d4b36c9d268a06f286113"
       ],
       0,
-      "6e674e963427340ae1454e25feb1ec38"
+      "0c928eb9feb536f0791ded8bd25c742f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8272,7 +8272,7 @@
         "refinement_interpretation_Tm_refine_6e441800454d4b36c9d268a06f286113"
       ],
       0,
-      "8448de34e14c6f4f87d0110013f56c06"
+      "45571464bc259e7653d92f2ea534d90f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8285,7 +8285,7 @@
         "refinement_interpretation_Tm_refine_6e441800454d4b36c9d268a06f286113"
       ],
       0,
-      "834095df982ea0f2945706a146c37137"
+      "fbba94f7f80447ed876e84b9a6489e93"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8298,7 +8298,7 @@
         "refinement_interpretation_Tm_refine_6e441800454d4b36c9d268a06f286113"
       ],
       0,
-      "4b10e95298f956fc6b8ea40a9e971931"
+      "c0e5c614fae8d45c53404e33b1bb03be"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8311,7 +8311,7 @@
         "refinement_interpretation_Tm_refine_6e441800454d4b36c9d268a06f286113"
       ],
       0,
-      "75ff4358ce7a3e3d90edc92d5e9edde4"
+      "5a4d0a160480bd9e352a07c7748b8d6e"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8324,7 +8324,7 @@
         "refinement_interpretation_Tm_refine_6e441800454d4b36c9d268a06f286113"
       ],
       0,
-      "83246daa1b596d56bc352dae68aa56a8"
+      "d0d0707767d905312032d64d380edecc"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8337,7 +8337,7 @@
         "refinement_interpretation_Tm_refine_6e441800454d4b36c9d268a06f286113"
       ],
       0,
-      "62bee80099580936a5a29c954b286aaa"
+      "121c400158b10502591856c7585fa169"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8350,7 +8350,7 @@
         "refinement_interpretation_Tm_refine_6e441800454d4b36c9d268a06f286113"
       ],
       0,
-      "9a33d47968c2f03cba92d3ceb7ca091e"
+      "65ee70964864663d8fc38b870884ad7f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8363,7 +8363,7 @@
         "refinement_interpretation_Tm_refine_6e441800454d4b36c9d268a06f286113"
       ],
       0,
-      "9bfc649984c66a9ef2cd90fc6169f16e"
+      "5b91bb99422c3b235309bd3e6a4b7a91"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8375,7 +8375,7 @@
         "refinement_interpretation_Tm_refine_ffd886b7d990e43afef6e5d71564f9b7"
       ],
       0,
-      "264f700852c324244de0dd1572a50501"
+      "fd77a71eeef6a9a4c65e92024e2ba7a7"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8387,7 +8387,7 @@
         "refinement_interpretation_Tm_refine_ffd886b7d990e43afef6e5d71564f9b7"
       ],
       0,
-      "3f1a06323b7a445f31c3add98d175e8f"
+      "13d6949dee1fa19f921c0a108a90205a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8399,7 +8399,7 @@
         "refinement_interpretation_Tm_refine_ffd886b7d990e43afef6e5d71564f9b7"
       ],
       0,
-      "8deffb0ce1acb775d80a5b5a155176a6"
+      "b7037305107bf72b93b31b75088d6e7f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8411,7 +8411,7 @@
         "refinement_interpretation_Tm_refine_ffd886b7d990e43afef6e5d71564f9b7"
       ],
       0,
-      "21257e57037924360fef27a302c4aab0"
+      "a1e539cbcad3b6bea542a497cb75d6c5"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8423,7 +8423,7 @@
         "refinement_interpretation_Tm_refine_ffd886b7d990e43afef6e5d71564f9b7"
       ],
       0,
-      "2229125f7c3ea20ece9f597238c8ee87"
+      "8caeef1f7bc88ffb7da9812db324d324"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8435,7 +8435,7 @@
         "refinement_interpretation_Tm_refine_ffd886b7d990e43afef6e5d71564f9b7"
       ],
       0,
-      "7c8016cd7d7c8fc42774e4b660997a47"
+      "3576721fa6b3e5ad847064dff06d1dd6"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8447,7 +8447,7 @@
         "refinement_interpretation_Tm_refine_ffd886b7d990e43afef6e5d71564f9b7"
       ],
       0,
-      "90fb9d2d8d8a3a46fdf8699eaee224ea"
+      "49df1c4e93514e769f217247c52572d1"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8459,7 +8459,7 @@
         "refinement_interpretation_Tm_refine_ffd886b7d990e43afef6e5d71564f9b7"
       ],
       0,
-      "2b163cfbd90dad5dd5b23e3995d38d1e"
+      "216f29b9a8a6c909bde3903e145e442d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8471,7 +8471,7 @@
         "refinement_interpretation_Tm_refine_ffd886b7d990e43afef6e5d71564f9b7"
       ],
       0,
-      "ee1649f7e81ab372da637d2c6653a454"
+      "30b3c6b202be5bbaad59ffa09aa65a5e"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8483,7 +8483,7 @@
         "refinement_interpretation_Tm_refine_ffd886b7d990e43afef6e5d71564f9b7"
       ],
       0,
-      "3a779de3dac9a9bf65a8788f7e6c4a2f"
+      "787a5e855be1ad51fddd7d6594a939a2"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8495,7 +8495,7 @@
         "refinement_interpretation_Tm_refine_ffd886b7d990e43afef6e5d71564f9b7"
       ],
       0,
-      "2e6c20e95015c6fe111ceb8afe369d5d"
+      "0da84048238a2cea7cb6fbe0dc9abf31"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8507,7 +8507,7 @@
         "refinement_interpretation_Tm_refine_ffd886b7d990e43afef6e5d71564f9b7"
       ],
       0,
-      "90cc69a0f43446fb538ecc78a6d5c126"
+      "b2e1e8a403e830f715a9f960690749e2"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8519,7 +8519,7 @@
         "refinement_interpretation_Tm_refine_ffd886b7d990e43afef6e5d71564f9b7"
       ],
       0,
-      "4ed5aa19e32e9f6a382131286593c70f"
+      "e60faa65d184902630f1651d19f29319"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8531,7 +8531,7 @@
         "refinement_interpretation_Tm_refine_ffd886b7d990e43afef6e5d71564f9b7"
       ],
       0,
-      "cb4916c66963660822efc466650c0b78"
+      "388d6122c854762fa90c27da991ab430"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8543,7 +8543,7 @@
         "refinement_interpretation_Tm_refine_ffd886b7d990e43afef6e5d71564f9b7"
       ],
       0,
-      "65c08289e23df1eebf0f936e459fee9a"
+      "ceaaee0053c90331999e7ed1a41af1a2"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8555,7 +8555,7 @@
         "refinement_interpretation_Tm_refine_ffd886b7d990e43afef6e5d71564f9b7"
       ],
       0,
-      "b3b93597bb8ecc7d6ba15c9632625c7b"
+      "8f74e58a698fc32ebe4f67ad1f9a0aae"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8567,7 +8567,7 @@
         "refinement_interpretation_Tm_refine_db123ed58882910bdc5adc727a535310"
       ],
       0,
-      "14e527d681a20003f853cbdb125ff36f"
+      "a8e1a5f1f3729f9a1ae2f4833cfe5b0c"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8579,7 +8579,7 @@
         "refinement_interpretation_Tm_refine_db123ed58882910bdc5adc727a535310"
       ],
       0,
-      "5744dd534e2ab12c4fb8b26d4957d0e0"
+      "4f9523a5647d15389b45073a1fb77f64"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8591,7 +8591,7 @@
         "refinement_interpretation_Tm_refine_db123ed58882910bdc5adc727a535310"
       ],
       0,
-      "e785ffbc634a71441715b38f91fecc29"
+      "496b72404fcd9ef871438627f26aedc5"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8603,7 +8603,7 @@
         "refinement_interpretation_Tm_refine_db123ed58882910bdc5adc727a535310"
       ],
       0,
-      "6d2d625b89b831ed77b1709b07ad7df9"
+      "478e6dd0d3e5750d36b28bcbe2311ed0"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8615,7 +8615,7 @@
         "refinement_interpretation_Tm_refine_db123ed58882910bdc5adc727a535310"
       ],
       0,
-      "e4cad414879e227459d7310bc4fc189d"
+      "f4f9201e3c318cc6d8dd84998022cf2a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8627,7 +8627,7 @@
         "refinement_interpretation_Tm_refine_db123ed58882910bdc5adc727a535310"
       ],
       0,
-      "d5d897a5600cde0409d037a3399fcf48"
+      "f903b5e492d8d7381b833b94c0ac4c3d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8639,7 +8639,7 @@
         "refinement_interpretation_Tm_refine_db123ed58882910bdc5adc727a535310"
       ],
       0,
-      "c16fc1e14dcae6e1a3bdb87702f1dee8"
+      "334282fb5f43eebbc8c49ef1633ad78b"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8651,7 +8651,7 @@
         "refinement_interpretation_Tm_refine_db123ed58882910bdc5adc727a535310"
       ],
       0,
-      "2fadf0c81933a8da1b71a164bd87b5e9"
+      "20d0dc764ec4d5fb01681914d38f85f5"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8663,7 +8663,7 @@
         "refinement_interpretation_Tm_refine_db123ed58882910bdc5adc727a535310"
       ],
       0,
-      "31d1c0bfe3f078b63331a40095729982"
+      "bce9ce11b20f772e3ecd056751721eab"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8675,7 +8675,7 @@
         "refinement_interpretation_Tm_refine_db123ed58882910bdc5adc727a535310"
       ],
       0,
-      "51eb9421299a1ba2a2deae80e1cf2d22"
+      "56a9c2f85c3d14aa9a035e794edb773b"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8687,7 +8687,7 @@
         "refinement_interpretation_Tm_refine_db123ed58882910bdc5adc727a535310"
       ],
       0,
-      "be7285e98e062ca4684ae27d250629b7"
+      "ef50609db2c7fa49377c5584f3e777d2"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8699,7 +8699,7 @@
         "refinement_interpretation_Tm_refine_db123ed58882910bdc5adc727a535310"
       ],
       0,
-      "f6fe51283c7faadeecf22194c46d0562"
+      "83abf577a8813196cf06de30deaa3c5d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8711,7 +8711,7 @@
         "refinement_interpretation_Tm_refine_db123ed58882910bdc5adc727a535310"
       ],
       0,
-      "d46615e427f4a63071b40213cd1fd5d3"
+      "b1f1e58fed03896418ac1b59551781d9"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8723,7 +8723,7 @@
         "refinement_interpretation_Tm_refine_db123ed58882910bdc5adc727a535310"
       ],
       0,
-      "d39a20ccfe3cef791250ae6760656b58"
+      "be3e56d232fc945584bd1c25f56df240"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8735,7 +8735,7 @@
         "refinement_interpretation_Tm_refine_db123ed58882910bdc5adc727a535310"
       ],
       0,
-      "329e86ad567450ab7ca24c096cf6884a"
+      "29f2bfbfba2065efc4335065ea75b93c"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8747,7 +8747,7 @@
         "refinement_interpretation_Tm_refine_db123ed58882910bdc5adc727a535310"
       ],
       0,
-      "362736c2878ce0e4a6b0c065e2c38ef9"
+      "275562d0b0c8779de03037d5b253ed24"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8818,7 +8818,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "9b60029235c2d4023d97e0ba62d247e4"
+      "0fcdba6d06987c72d8a6957c684a6f85"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8840,7 +8840,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "fcf2f2f96a42929cee9b0bc74fadac38"
+      "86528ef11a2eae3fbda95e43deb97df2"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8862,7 +8862,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "52598342c68bf19048bce848bd706b8c"
+      "b5c163ed60f00e9611b44cbafb59b2be"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8884,7 +8884,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "81da35648159959fe1ebd2b636e22882"
+      "0bf2f7cc21a17754bfa4b9b2b6a20e52"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8906,7 +8906,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "bfffe598b83d31711da297358e4a2370"
+      "3299024b74042fd7a83a4e043c26679c"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8928,7 +8928,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "90de66f15ee5e35e5eec2dce7731c8d4"
+      "717e7ee2e95841cedb9b33627f53f76a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8950,7 +8950,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "f4ba79df622a8a80c7d86003ca087f62"
+      "e87b685940f4e6e11e31aeab52f0a15c"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -8999,7 +8999,7 @@
         "refinement_interpretation_Tm_refine_a73e0e017470e27ac7985efa0f712f94"
       ],
       0,
-      "0b4ad14a68fc3de49c066c4f6e9705ab"
+      "9c69dfa1eb90078f8ba0901602495bfc"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9047,7 +9047,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "102a51d484327990c38d6161e89f7f32"
+      "8e019ffea0cfd562e0be5b1fdb014b54"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9062,7 +9062,7 @@
         "typing_Libcrux_intrinsics.Avx2.mm256_set_epi16"
       ],
       0,
-      "7e825bfdef98569a4383b038b42effa8"
+      "86fd7a453ccb2e0acf3a9f24d1266326"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9093,7 +9093,7 @@
         "refinement_interpretation_Tm_refine_a73e0e017470e27ac7985efa0f712f94"
       ],
       0,
-      "d1bdc46348e6dd92aa54637be0478045"
+      "1b2cad551f0e1b0d3f26e21dd3d6a646"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9107,7 +9107,7 @@
         "refinement_interpretation_Tm_refine_4c3ea26920d9e5c2f471d4b089d15ed5"
       ],
       0,
-      "3ee9aa2ac4ae1a7bb2209d8188311ec7"
+      "75a23723b274b63f91e1ea4d4616d545"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9121,7 +9121,7 @@
         "refinement_interpretation_Tm_refine_4c3ea26920d9e5c2f471d4b089d15ed5"
       ],
       0,
-      "72f6416e68d983e09d69769612e89145"
+      "3635b0d3262582a001418fe453033144"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9135,7 +9135,7 @@
         "refinement_interpretation_Tm_refine_4c3ea26920d9e5c2f471d4b089d15ed5"
       ],
       0,
-      "17758003a436be9e2056ae5e93c6e1c3"
+      "d10871e7c5b4cff69880899c3eac3b5c"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9149,7 +9149,7 @@
         "refinement_interpretation_Tm_refine_4c3ea26920d9e5c2f471d4b089d15ed5"
       ],
       0,
-      "2bb38b782952909a1bb3ce58036b9b3b"
+      "ec2664a43e3b2aaa83c44afc4cbab00f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9163,7 +9163,7 @@
         "refinement_interpretation_Tm_refine_4c3ea26920d9e5c2f471d4b089d15ed5"
       ],
       0,
-      "359d2ad57dd9ec5a36e7bc28f8018c6d"
+      "092c6325b6cec0d853c10690bc7e3eb8"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9177,7 +9177,7 @@
         "refinement_interpretation_Tm_refine_4c3ea26920d9e5c2f471d4b089d15ed5"
       ],
       0,
-      "153bcf2847fde4d894f569124524508a"
+      "e7dd32bf55df1e540c2fa56dd75b453f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9191,7 +9191,7 @@
         "refinement_interpretation_Tm_refine_4c3ea26920d9e5c2f471d4b089d15ed5"
       ],
       0,
-      "905233f6fe5a0a6915784dcba00621fc"
+      "a823c04a659bb267177ddd7fca9b4c0f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9205,7 +9205,7 @@
         "refinement_interpretation_Tm_refine_4c3ea26920d9e5c2f471d4b089d15ed5"
       ],
       0,
-      "0bb1809f2be8eaa9fec7b874869dc0f2"
+      "93b3ff64457f8bb21e4ff215d45ae264"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9221,7 +9221,7 @@
         "refinement_interpretation_Tm_refine_dcf04249c695c5ff43a05786a42ff232"
       ],
       0,
-      "5fa036c1a0a06ea10b9babffef610664"
+      "399151f1a470f60ef0325db010035150"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9236,7 +9236,7 @@
         "refinement_interpretation_Tm_refine_dcf04249c695c5ff43a05786a42ff232"
       ],
       0,
-      "f770db85126c64a4f218313697888a63"
+      "5d6f66e07fd8d65906d0eef0389c7e9f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9251,7 +9251,7 @@
         "refinement_interpretation_Tm_refine_dcf04249c695c5ff43a05786a42ff232"
       ],
       0,
-      "1bf0387c476c29d6528808f55e071b89"
+      "809549dbdea0be27a1242b48b8251d84"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9266,7 +9266,7 @@
         "refinement_interpretation_Tm_refine_dcf04249c695c5ff43a05786a42ff232"
       ],
       0,
-      "fb32e6e66495b7f919f5ad83985236c7"
+      "a5bd0058b1a0d61fe580b2ffa8b3e2af"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9282,7 +9282,7 @@
         "refinement_interpretation_Tm_refine_dcf04249c695c5ff43a05786a42ff232"
       ],
       0,
-      "5c35abcd054a805ccdb20c1e9a25e2d7"
+      "6c0ac151243d9a1b0f5162f0fe187568"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9297,7 +9297,7 @@
         "refinement_interpretation_Tm_refine_dcf04249c695c5ff43a05786a42ff232"
       ],
       0,
-      "5aeed789a9ad78b1e75b4e43e8f8bf9b"
+      "ec6d93fe70bc18b3700536d0a5d0c3f5"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9312,7 +9312,7 @@
         "refinement_interpretation_Tm_refine_dcf04249c695c5ff43a05786a42ff232"
       ],
       0,
-      "8e6f5e714702bab40872f6cde4d66625"
+      "b79a6e63717835ec7cd0f63f82c26e0f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9327,7 +9327,7 @@
         "refinement_interpretation_Tm_refine_dcf04249c695c5ff43a05786a42ff232"
       ],
       0,
-      "c997139408af497c8c8e21d72e200a01"
+      "96741387efc5c9834a3482b70fa292f6"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9342,7 +9342,7 @@
         "refinement_interpretation_Tm_refine_dcf04249c695c5ff43a05786a42ff232"
       ],
       0,
-      "e4067ed36640b8592ee178c8e1aacc35"
+      "ce243252c68cdf1f2f528e5a9896f6c1"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9357,7 +9357,7 @@
         "refinement_interpretation_Tm_refine_dcf04249c695c5ff43a05786a42ff232"
       ],
       0,
-      "0c37ee0691fd571cc7b20d4f2747fcc5"
+      "1746b7e0cf0706251cbe2cc3d81a5115"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9372,7 +9372,7 @@
         "refinement_interpretation_Tm_refine_dcf04249c695c5ff43a05786a42ff232"
       ],
       0,
-      "d8f61aba10b9f8e39d09bf6c47013955"
+      "6862ce0798e1a9e0c7047ba28f18062b"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9387,7 +9387,7 @@
         "refinement_interpretation_Tm_refine_dcf04249c695c5ff43a05786a42ff232"
       ],
       0,
-      "d731c3a2c67bbc36697e5ef5e618fc2b"
+      "5817a974b81d478db12f3ab0e7568175"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9402,7 +9402,7 @@
         "refinement_interpretation_Tm_refine_dcf04249c695c5ff43a05786a42ff232"
       ],
       0,
-      "05b550d5acff65904c67f4c97b100120"
+      "0cd04f5d5fc9b11e545a479ae98b257a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9417,7 +9417,7 @@
         "refinement_interpretation_Tm_refine_dcf04249c695c5ff43a05786a42ff232"
       ],
       0,
-      "9096e527d615491199a31b09db291ee5"
+      "ffc474e4c6b4eb5433eb4ba65f1f4f08"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9432,7 +9432,7 @@
         "refinement_interpretation_Tm_refine_dcf04249c695c5ff43a05786a42ff232"
       ],
       0,
-      "7a8d9c630816e902fd6e21ec9c54198c"
+      "4f1f664b1ef777261da6d6dbc04a1421"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9447,7 +9447,7 @@
         "refinement_interpretation_Tm_refine_dcf04249c695c5ff43a05786a42ff232"
       ],
       0,
-      "a87dfe907da7e4f0b063806e2d233a75"
+      "fceac31d5e8e0cb62a5a1cd9c0179996"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9467,7 +9467,7 @@
         "refinement_interpretation_Tm_refine_fd6d62a40c9de81df47f913defd15836"
       ],
       0,
-      "944efd7c5a785d3f259db2864d89d013"
+      "14d0463c1ed13a538dddebbdb000614b"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9483,7 +9483,7 @@
         "refinement_interpretation_Tm_refine_4c3ea26920d9e5c2f471d4b089d15ed5"
       ],
       0,
-      "80e8866f3cc4f78a06388879d04379ef"
+      "5d50da40649f5374e829b84d7190dd1f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9499,7 +9499,7 @@
         "refinement_interpretation_Tm_refine_4c3ea26920d9e5c2f471d4b089d15ed5"
       ],
       0,
-      "bd719949d6afd93f2e7032730caf874c"
+      "2f7fdb5ad7055c1c67276162b9b46171"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9515,7 +9515,7 @@
         "refinement_interpretation_Tm_refine_4c3ea26920d9e5c2f471d4b089d15ed5"
       ],
       0,
-      "230ab242f3f3919a90ee8fa2f917eb1e"
+      "2dfb6f03fea20ee1fd2a2d2431ce9b27"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9531,7 +9531,7 @@
         "refinement_interpretation_Tm_refine_4c3ea26920d9e5c2f471d4b089d15ed5"
       ],
       0,
-      "18598d05b959434ff22427e1d7f70343"
+      "776abe7338d4926fa2510bced99fbd6b"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9547,7 +9547,7 @@
         "refinement_interpretation_Tm_refine_4c3ea26920d9e5c2f471d4b089d15ed5"
       ],
       0,
-      "27b0acf586a5708baa0ceb6107ef0505"
+      "8f6c753ae1ad6766b5d5ea411840998c"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9563,7 +9563,7 @@
         "refinement_interpretation_Tm_refine_4c3ea26920d9e5c2f471d4b089d15ed5"
       ],
       0,
-      "6b038d84b9b40122c700d30aef1621e5"
+      "373f870df078466e8553aee11aa0364a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9579,7 +9579,7 @@
         "refinement_interpretation_Tm_refine_4c3ea26920d9e5c2f471d4b089d15ed5"
       ],
       0,
-      "7c55f7bd9faac8a70f46b0523fc1818e"
+      "ab6e703bbb5aa8330ef23d3cd7a11c5a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9595,7 +9595,7 @@
         "refinement_interpretation_Tm_refine_4c3ea26920d9e5c2f471d4b089d15ed5"
       ],
       0,
-      "e1c5660276600a0c994f45334a0a4eda"
+      "1878b97be200190a84066f16599a93df"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9611,7 +9611,7 @@
         "refinement_interpretation_Tm_refine_dcf04249c695c5ff43a05786a42ff232"
       ],
       0,
-      "8dd74287a6542b86fc5a9dfe5def15e5"
+      "e829fee2208a778a2310626df34405ce"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9626,7 +9626,7 @@
         "refinement_interpretation_Tm_refine_dcf04249c695c5ff43a05786a42ff232"
       ],
       0,
-      "b041385524339535430ac236079a9f19"
+      "6516f7b18a1f1e9d8f1ac37f16398150"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9641,7 +9641,7 @@
         "refinement_interpretation_Tm_refine_dcf04249c695c5ff43a05786a42ff232"
       ],
       0,
-      "30fd0b5e055d8af0fa276c39ccc7cb11"
+      "3ba2e2089f68134eb8c1e9366665be12"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9656,7 +9656,7 @@
         "refinement_interpretation_Tm_refine_dcf04249c695c5ff43a05786a42ff232"
       ],
       0,
-      "d34b269f6ad16dd040c6ee0f5b6569e8"
+      "117366c0aa314efd3ddd106efdd9291f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9671,7 +9671,7 @@
         "refinement_interpretation_Tm_refine_fd6d62a40c9de81df47f913defd15836"
       ],
       0,
-      "04a85a378e993bce1df71b136b2cd969"
+      "e0d012286adc6f6fb18313f8cf43ea6e"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9686,7 +9686,7 @@
         "refinement_interpretation_Tm_refine_fd6d62a40c9de81df47f913defd15836"
       ],
       0,
-      "f0f2ee07819a9b94286c0082ff1cd26a"
+      "441783cc2233c7cac57c75e15a1ff9cf"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9701,7 +9701,7 @@
         "refinement_interpretation_Tm_refine_fd6d62a40c9de81df47f913defd15836"
       ],
       0,
-      "967ce32a81ac2e33ddca5b02de0c6ced"
+      "c05b0428dc06da1e6470cc3786c7ef96"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9716,7 +9716,7 @@
         "refinement_interpretation_Tm_refine_fd6d62a40c9de81df47f913defd15836"
       ],
       0,
-      "7e874649e474d08fe1aa52be13cff730"
+      "bb763064ddd5faeb05d9f19db7872a29"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9731,7 +9731,7 @@
         "refinement_interpretation_Tm_refine_dcf04249c695c5ff43a05786a42ff232"
       ],
       0,
-      "e0f13f53777a11f4462d8d5a5a995d99"
+      "1822e4d2f5a49fa6fb61259f033dd4eb"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9746,7 +9746,7 @@
         "refinement_interpretation_Tm_refine_dcf04249c695c5ff43a05786a42ff232"
       ],
       0,
-      "7330b9a37120e25dda428d50b8ae6ae2"
+      "636f218d6c0ec5925e62ef3e214fd27f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9761,7 +9761,7 @@
         "refinement_interpretation_Tm_refine_dcf04249c695c5ff43a05786a42ff232"
       ],
       0,
-      "66bb458642d6db03d9ca6fd46cb19994"
+      "31d48fb457a07147286d3da78259a502"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9776,7 +9776,7 @@
         "refinement_interpretation_Tm_refine_dcf04249c695c5ff43a05786a42ff232"
       ],
       0,
-      "9a715a6393db8351a2b2369978992a52"
+      "b6ca227b335705b2f7b6752406d8888f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9791,7 +9791,7 @@
         "refinement_interpretation_Tm_refine_fd6d62a40c9de81df47f913defd15836"
       ],
       0,
-      "027dc12f43dd6eb248b989f31f8bffdc"
+      "c789c09aac9c3c04d8503d99c370ed86"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9806,7 +9806,7 @@
         "refinement_interpretation_Tm_refine_fd6d62a40c9de81df47f913defd15836"
       ],
       0,
-      "e989ec026fa6ddf61bdef2bbf926eefa"
+      "06583ad3ada3874ed4d8cd8c4ce9182d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9821,7 +9821,7 @@
         "refinement_interpretation_Tm_refine_fd6d62a40c9de81df47f913defd15836"
       ],
       0,
-      "0622527ba41dce45054d4923fd951e12"
+      "e9df0ebe4b91478faa541d77bf013549"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9836,7 +9836,7 @@
         "refinement_interpretation_Tm_refine_fd6d62a40c9de81df47f913defd15836"
       ],
       0,
-      "07c7e193e1ab74bbb16eb012ef4c3734"
+      "3977ac96ca8fbd892b220bb8378070b7"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9848,7 +9848,7 @@
         "refinement_interpretation_Tm_refine_5aebcfc68883c81921e3b6f1fa1622d2"
       ],
       0,
-      "bcde8afb2064115d56be7c29b650b679"
+      "1ce7ca0e4853859f2d01a0bb36de616a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9861,7 +9861,7 @@
         "refinement_interpretation_Tm_refine_fd6d62a40c9de81df47f913defd15836"
       ],
       0,
-      "afaadc2a8964a93175a1fbdc9254449d"
+      "55fee98c3f797bc2ee993bffce69e339"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9877,7 +9877,7 @@
         "refinement_interpretation_Tm_refine_dae945701bc3d1d49dc3a2d2f8b43686"
       ],
       0,
-      "8647471cf32ba4bc88f2dce26d012980"
+      "a6efcb0dcda8f9892adc5e8d84153e18"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step",
@@ -9904,7 +9904,7 @@
         "typing_tok_Rust_primitives.Integers.U64@tok"
       ],
       0,
-      "824606d87219baa4d7891232e627984b"
+      "188c6a9bd630c452d847f646432b33e4"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -9931,7 +9931,7 @@
         "typing_tok_Rust_primitives.Integers.U64@tok"
       ],
       0,
-      "765cda37f7fae99227d7f0f45450bd03"
+      "eb702cd9786e7319f7ca94f2c744f6ac"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -9964,7 +9964,7 @@
         "lemma_Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16_slice_ok"
       ],
       0,
-      "858f904ae7198ce63553cb580b446bb1"
+      "e018f1dbd5229327a3893291d0e5d0d0"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -9985,7 +9985,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "f564fa8a32a2289d0a3ff682c314cfd8"
+      "fc153a6046f2140f9984eab013dc249d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -9997,7 +9997,7 @@
         "lemma_Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16_slice_ok"
       ],
       0,
-      "4aad06d2190aab36a523f093a66791c5"
+      "87267a8227475f99eeb883232d2a68eb"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10018,7 +10018,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "786ca6639b5c4d80b8ce8fc4097103cc"
+      "c8e6c3bf776cfcbe14a3a4f9a8736e4c"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10031,7 +10031,7 @@
         "refinement_interpretation_Tm_refine_40b913a6e425252cf9d306e2651cf67b"
       ],
       0,
-      "12487c207e851335c58d90e138eb8c89"
+      "a2df036d7488e35153fc28ebe85956a1"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10046,7 +10046,7 @@
         "refinement_interpretation_Tm_refine_40b913a6e425252cf9d306e2651cf67b"
       ],
       0,
-      "049914a7ca0a6b8fa6226bce3a797c0d"
+      "916d02d4cad62e19a0aa48dea5c9a2c2"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10059,7 +10059,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "97407f8f66000115bc07f43fb66a94a3"
+      "6a29c0c174fbd27a7f9614c4eca0505c"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10074,7 +10074,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "a82dc56832b0056fec768007682c57fd"
+      "36e7dd644257260eb7b30d931f0395f8"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10088,7 +10088,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "6184ab19d992404f69a749a0746c862b"
+      "9180d817ddb6e7a06ead35e22047c556"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10101,7 +10101,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "8eb04e73404d9a61226ebe1e9f71cdae"
+      "8224b0d056661856dd6dfcb2c3cf088d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10117,7 +10117,7 @@
         "refinement_interpretation_Tm_refine_40b913a6e425252cf9d306e2651cf67b"
       ],
       0,
-      "13a95cee2cf7d24eee65492c919e40ec"
+      "3f9defda07cedbd0a6605616f754b9e8"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10130,7 +10130,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "125555daa58b0daccc6696c7b8ff0fdc"
+      "13e7c44a2ff239396f96b8d419934873"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10145,7 +10145,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "ac5244a5c33985c4f9e513bdabde90fd"
+      "919bc49bec67b80732078c49568e8faa"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10159,7 +10159,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "03f1a168b4b7a45e5d894226f2b27c93"
+      "3a18a4758cd75fbd2e708cc23425a9d6"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10187,7 +10187,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "89388fd1ad457422a4c5c56550378cfd"
+      "de55710429bf33b9fd03e7b2b2ea75e9"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10226,7 +10226,7 @@
         "typing_tok_Rust_primitives.Integers.I32@tok"
       ],
       0,
-      "1b687859d407729ceaa85f7404380904"
+      "c8081d79f3993b1f4ea834b89f078bb3"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10254,7 +10254,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "b3e2c83fa8fc5e3fd31817f66a32f05b"
+      "6c80130c304621685135d1beb5ff83b8"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10295,7 +10295,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "5a2dfc5165dfa827b50962020f7c9013"
+      "3f9da2cba7f8526613948dde53e7cb67"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10308,7 +10308,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "47f6f57764f46636b43d5913f11b46c9"
+      "6851c7b147b889276ca761c8093b1957"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10405,7 +10405,7 @@
         "typing_tok_Rust_primitives.Integers.I16@tok"
       ],
       0,
-      "37d9c705402be2348aff7081a2f26973"
+      "38270ab98985a3e380df2c31e2f48707"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10467,7 +10467,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "3af50727c36d22f72eb7e0b72ca31ff6"
+      "35a09d14f25ef1d98d2402f04c734d39"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10563,7 +10563,7 @@
         "typing_tok_Rust_primitives.Integers.I16@tok"
       ],
       0,
-      "ee7b4d4f083b652ebb1cfbd6acb6abe1"
+      "e83cb08f1e7cf0e8cc9065450c07cb3c"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10603,7 +10603,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "e1cdc9d32ee161168685a678f056f84e"
+      "496ea169f36b4349c9ae0a971ea5f383"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10616,7 +10616,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "20d8b4acee39e5fe0ce8068b0c8ab767"
+      "6ec98a6dd1361b6dd49b629fe99b1e4f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10629,7 +10629,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "79b49aabcfb7577977ec70d4adacc33b"
+      "179292e734532522ff754cafa75ee3d6"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10642,7 +10642,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "cd066260aa97e8908dea2264e5140976"
+      "53063064ca566edd9019d79073e41ab1"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10739,7 +10739,7 @@
         "typing_tok_Rust_primitives.Integers.I16@tok"
       ],
       0,
-      "418ce41cd2d5d0e10ff35afcdaac16c7"
+      "4ed2f90736c65bedca2f1848b0bcea0d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10818,7 +10818,7 @@
         "typing_Libcrux_intrinsics.Avx2.mm_set1_epi16"
       ],
       0,
-      "8e724280326ebfb3fee382bfdf1f2147"
+      "3452d86688463120a362270ba9debf59"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10862,7 +10862,7 @@
         "typing_Rust_primitives.Integers.sz"
       ],
       0,
-      "d4c9cdbbdcf2a637b31ee6660b373283"
+      "3516bd81980278967ba8a49f2ab43426"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10903,7 +10903,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "fed3dbab7033810a89eb611c72f48e79"
+      "b5eaccb66aae5b582ec084000bec34bc"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10916,7 +10916,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "1d48ab33c1827c7752f6777817e5ccb4"
+      "84d22f99a8be63b891f6124355523bdb"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10929,7 +10929,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "d356efd1a7094608c1de57faa950edde"
+      "012e1b28d1ffc0ffae87bb2036292d6e"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10942,7 +10942,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "3fdd6af13868a640f3aa1080d8dfaba9"
+      "353d2e6f993c338e4ceedb776c122a0e"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10955,7 +10955,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "97da6d2e0a0881b136777b2bd3aa0dc7"
+      "3b908653173347b671ba7ebefce32fc5"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -10974,7 +10974,7 @@
         "refinement_interpretation_Tm_refine_e2292f8ba749ecbff71e35a1339e74c8"
       ],
       0,
-      "edd82d8845ea1c5424774695b8062ce7"
+      "c93ac63c53ceaf848308cdaa1ebe1785"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -11038,7 +11038,7 @@
         "refinement_interpretation_Tm_refine_f02127c44d9b2b6c8814b3f9350a9928"
       ],
       0,
-      "9f8dc75a696b1457028efc4a61520ce5"
+      "c2e0229354981977d0da541d3dd0f3ba"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -11051,7 +11051,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "70f4e4c718b059c9bf9a022168a88192"
+      "e4ed77b6ca52589c67b7b03cb029c428"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -11063,7 +11063,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "30b4bf4c01d8d264c9bbf1ee0e4ed038"
+      "75fdbd05ccf01ac932e49a77af018c43"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -11079,7 +11079,7 @@
         "refinement_interpretation_Tm_refine_d7bbd847030366e56f791ac31c5625b5"
       ],
       0,
-      "50062528b05854218985cb370d543db7"
+      "fb818b7523fc79e4e7ab2df6774b2128"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -11092,7 +11092,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "28ff519e989505e0332800125efc116d"
+      "3cf48c5c06332c501af8da9abf8d07a5"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -11105,7 +11105,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "950a65b7b6dcb3548b8731b4c756b356"
+      "2180ee1716a1331f03e052d16296053a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -11117,7 +11117,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "19c6fdf3ef73f66e0c713ede683f0bb1"
+      "c0a16fbcaca76720a26abfd483d187ef"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -11132,7 +11132,7 @@
         "refinement_interpretation_Tm_refine_627d7292d6eb8eb454f3520ac1d78253"
       ],
       0,
-      "babfe9032a7a3e219dc6c7d4713b114b"
+      "3498ba7807c366d1d80f8fd4b9867443"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step",
@@ -11244,7 +11244,7 @@
         "typing_tok_Rust_primitives.Integers.U64@tok"
       ],
       0,
-      "010188191876907b3a4e377fac7f3bfd"
+      "46766a2ee6e212f4f78ec3e48bea4298"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply__v_PERMUTE_WITH",
@@ -11274,7 +11274,7 @@
         "typing_tok_Rust_primitives.Integers.I32@tok"
       ],
       0,
-      "040ba2a5861e4e130b34bec5055e5608"
+      "d801273929fbbc332b3f94c8492e6fbd"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -11301,7 +11301,7 @@
         "typing_tok_Rust_primitives.Integers.U64@tok"
       ],
       0,
-      "799dda6b0ca89a8e40a056dccee68a93"
+      "4009bc53c06c545a61752fb8aaa3ee8b"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -11364,7 +11364,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "92a5065d8b17e84dd7cc82bfd44af7b0"
+      "05a7c1e95fbb4b58b688e67aef04248d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -11385,7 +11385,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "b391902f8669ca2851e8c15dedaa1761"
+      "c7ae6d2101d49922359610b904c7665e"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -11398,7 +11398,7 @@
         "refinement_interpretation_Tm_refine_bc545242749b2bcf7d40f9ffce88021f"
       ],
       0,
-      "502ef70cfef2636fa944573ddddb27fe"
+      "5686e16a7bb1f5fc18237bbd69daf9bb"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -11448,7 +11448,7 @@
         "typing_tok_Rust_primitives.Integers.I8@tok"
       ],
       0,
-      "35aee6dea028f4b9256d1848a5f7afaa"
+      "1dd32390c1a9a60801616ec8031f5591"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -11476,7 +11476,7 @@
         "refinement_interpretation_Tm_refine_ae088b609204e032b97ba5aef2efdb95"
       ],
       0,
-      "d52d6dd6d4fad1dda8854dd10678f94c"
+      "ffac02e0dbf342eec34376164d1aad56"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -11506,7 +11506,7 @@
         "refinement_interpretation_Tm_refine_ae088b609204e032b97ba5aef2efdb95"
       ],
       0,
-      "00d0f9579aa36dcfc3b22a1685558a09"
+      "e9abe2b9abcbf0f0d893309ce7e363f3"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -11536,7 +11536,7 @@
         "refinement_interpretation_Tm_refine_ae088b609204e032b97ba5aef2efdb95"
       ],
       0,
-      "25cfa338fcebc26a301b15e70d3dc02b"
+      "23b8e03dbd85ce1c2a27198998e6bf70"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -11566,7 +11566,7 @@
         "refinement_interpretation_Tm_refine_ae088b609204e032b97ba5aef2efdb95"
       ],
       0,
-      "ae1c4503ce727a1f619e6763c8f1b633"
+      "f20e37cbf9b7e5838b01e8508b113030"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -11596,7 +11596,7 @@
         "refinement_interpretation_Tm_refine_ae088b609204e032b97ba5aef2efdb95"
       ],
       0,
-      "fde1e3faaa14e39d9ddb3a29328782a2"
+      "0886a7e2397544b2619f13b276cbeca6"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -11626,7 +11626,7 @@
         "refinement_interpretation_Tm_refine_ae088b609204e032b97ba5aef2efdb95"
       ],
       0,
-      "7259576274d4c7ece3429c1bec5d44bc"
+      "b6372f9f691dab440dffb9eda04b56a0"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -11656,7 +11656,7 @@
         "refinement_interpretation_Tm_refine_ae088b609204e032b97ba5aef2efdb95"
       ],
       0,
-      "41d7b8eaaf2b86b68adb67fff166481d"
+      "7aa8373ee6cc0fdf57edfee4acc87008"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -11684,7 +11684,7 @@
         "refinement_interpretation_Tm_refine_ae088b609204e032b97ba5aef2efdb95"
       ],
       0,
-      "c1f8860fc77daf928b8fa3a01b4af477"
+      "7966a58a5af15b899f29bf9d48386348"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -11713,7 +11713,7 @@
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "6e70cbfd929a19711e0e68d7f5c7f73f"
+      "e6e9927c7eea28a800fbb78b50062436"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -11742,7 +11742,7 @@
         "refinement_interpretation_Tm_refine_ece287f9e7760944a5c8d3d973fd554c"
       ],
       0,
-      "7d1f993265cf755b101028a956545cdb"
+      "1e975a1f97a048e8b785fae68a3c1352"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -11771,7 +11771,7 @@
         "refinement_interpretation_Tm_refine_ece287f9e7760944a5c8d3d973fd554c"
       ],
       0,
-      "e0fee20f1e5c08db07f9bf3309c07bb9"
+      "2d0ef2f1fd5764cde60ce4aea5bc41d9"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -11800,7 +11800,7 @@
         "refinement_interpretation_Tm_refine_ae088b609204e032b97ba5aef2efdb95"
       ],
       0,
-      "800311abb7c5db77b9dadd3ea5f61db4"
+      "a18fb91d6b4701a12a0c9da3eeab6922"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -11829,7 +11829,7 @@
         "refinement_interpretation_Tm_refine_ae088b609204e032b97ba5aef2efdb95"
       ],
       0,
-      "6a989fb438f8cd31a322a95067304f35"
+      "31a7458232c1172ebadb8e3ba2e4baf3"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -11859,7 +11859,7 @@
         "refinement_interpretation_Tm_refine_ae088b609204e032b97ba5aef2efdb95"
       ],
       0,
-      "bf412e5f679a81a8e4cfd725b118453f"
+      "7f715974524c9a73445d69a435c59a6d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -11890,7 +11890,7 @@
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "22e301d7526da6b889df2278cf3eea54"
+      "7f001e379dc9cfa7f29a4bbe031146e5"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -11912,7 +11912,7 @@
         "refinement_interpretation_Tm_refine_ae088b609204e032b97ba5aef2efdb95"
       ],
       0,
-      "4e56f40b031a53b839371d8a50712e2c"
+      "9fbd6fa55d181d5ea263e33db6797446"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -11934,7 +11934,7 @@
         "refinement_interpretation_Tm_refine_d9d18e4369512e36ccb63a6c49760883"
       ],
       0,
-      "f8b95d80401678cec408503380aca4c2"
+      "6846a96cd6c22ff7f55ee62b22c7059a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -11956,7 +11956,7 @@
         "refinement_interpretation_Tm_refine_f042b890b4ff0e7a974ed9e79df3d09b"
       ],
       0,
-      "2b0f22e5507a489df5739c941e23cdbd"
+      "d4402f1d93e6410971212735f93e95fd"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -11978,7 +11978,7 @@
         "refinement_interpretation_Tm_refine_db83b9e2643c3bbf99efc8f408186c70"
       ],
       0,
-      "2f56a4090cc13b2e6a4e17b3b65bb91e"
+      "7e1bfb4c433f418c08b93fa4de594c52"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -12000,7 +12000,7 @@
         "refinement_interpretation_Tm_refine_ece287f9e7760944a5c8d3d973fd554c"
       ],
       0,
-      "2078b7bad3fb96dac9bd3665fd73237d"
+      "1a438bf8828b27e2be7b6dcd97118e36"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -12022,7 +12022,7 @@
         "refinement_interpretation_Tm_refine_bcb4c74dd9c0210c7a566434f6c21fa1"
       ],
       0,
-      "07ad192278c95d27116887650f9b1322"
+      "18ab617250e59f4f9010fd40d11b6872"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -12044,7 +12044,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "78981035727c663b9efb7e78179fd7d3"
+      "e2be8131f57e9f370425dd4aa755234d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -12066,7 +12066,7 @@
         "refinement_interpretation_Tm_refine_b9f0f195278594caa954da10b09cc0ed"
       ],
       0,
-      "c8559fa49fe76922de9b99472bf5a059"
+      "7f7ec27ffedccb7c683c1a6a18580db5"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -12088,7 +12088,7 @@
         "refinement_interpretation_Tm_refine_b3220c3a28f19dfb2a3752c85c795915"
       ],
       0,
-      "7fb25bfbb0c5ff1434c049a2026de113"
+      "79f4a9e55acbc8e94f728b2b04e6bf08"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -12110,7 +12110,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "20d20dae7a50c0e604b299076598b2c0"
+      "47494a8412cb6323726f65daf54fb24d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -12132,7 +12132,7 @@
         "refinement_interpretation_Tm_refine_f28626bcf0bc60e1e34e9826c86887d8"
       ],
       0,
-      "19966f9b3d02cf1396b9d840ea866e48"
+      "7e5290382f390cbd4be8b76032603fab"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -12154,7 +12154,7 @@
         "refinement_interpretation_Tm_refine_d8836626372248741cc7d6582bd93782"
       ],
       0,
-      "3027a9dfc809517d4ae7334bfab68196"
+      "b94d34b921439ef62550fedd989ad8c6"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -12176,7 +12176,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "527bd8fa3a880f651bb17297015cdbb3"
+      "1315a85fa5b8c59b03a294275196f40b"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -12198,7 +12198,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "98601881f25c985674372d8adedb475e"
+      "49854a99d1c71f8fd14576e9c4d7fdaf"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -12220,7 +12220,7 @@
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "54ba7b4c45ee77888afde63b6c75cafb"
+      "328b13e1646d8317a0b02cef360b43f0"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -12242,7 +12242,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "33419d36056faf3cfaed926e22711b19"
+      "a7c6012080dc5e698fae08b88b74db01"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -12318,7 +12318,7 @@
         "typing_tok_Rust_primitives.Integers.I32@tok"
       ],
       0,
-      "f06d5c1b588ad2016676e139055516b7"
+      "9a32c9bb817c5923c37888f995d78073"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -12427,7 +12427,7 @@
         "refinement_interpretation_Tm_refine_ee5cc11478aea63d45e8e9c7bd409f49"
       ],
       0,
-      "4cfb25f8e054791513e875c470e2ca8d"
+      "006965dea32c4fb0b91de054114f52c9"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -12512,7 +12512,7 @@
         "refinement_interpretation_Tm_refine_ee5cc11478aea63d45e8e9c7bd409f49"
       ],
       0,
-      "64950899485e26f38fa8fa8e0283a578"
+      "40d4309fb46a4da5efdd29b0d5d7840a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -12613,7 +12613,7 @@
         "refinement_interpretation_Tm_refine_f02127c44d9b2b6c8814b3f9350a9928"
       ],
       0,
-      "54b879315246bf42fde1ba30a3692d2e"
+      "6366e0396ec1b3c0f69c06d58b1febdf"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -12737,7 +12737,7 @@
         "refinement_interpretation_Tm_refine_4bb8998fe69acc99b21e814adae749a3"
       ],
       0,
-      "1228ad9dea153e42b9ee47776aa7c2b6"
+      "26ebdc66feee4b8b3b526a3cc33b8fec"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -12756,7 +12756,7 @@
         "refinement_interpretation_Tm_refine_4bb8998fe69acc99b21e814adae749a3"
       ],
       0,
-      "106651a6c482bdd21bedc59835417f09"
+      "ca9b519efadaf2d9b0a502abfbe64291"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -12775,7 +12775,7 @@
         "refinement_interpretation_Tm_refine_4bb8998fe69acc99b21e814adae749a3"
       ],
       0,
-      "8c59aea6a59f2d9b5d821d6655654379"
+      "40a906694fd24a4eb92f09bc2cbed12d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -12794,7 +12794,7 @@
         "refinement_interpretation_Tm_refine_4bb8998fe69acc99b21e814adae749a3"
       ],
       0,
-      "5bbe00394676f1c965e7038552052771"
+      "fdfb14bffed0b571d0e4a4684870d03d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -12815,7 +12815,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "15f88665f70b61c736aa1743cf336d72"
+      "0080de7a879b1fdc45c7cd59035e9e60"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -12900,7 +12900,7 @@
         "refinement_interpretation_Tm_refine_b3220c3a28f19dfb2a3752c85c795915"
       ],
       0,
-      "7c5dbfa6ecce08cf437e86047d9ae452"
+      "751217c540eea1279b69f08125ed213e"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -12922,7 +12922,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "6f1af18879a026588588723b576617c4"
+      "e4284c066b579865205f268c07b3449c"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -12944,7 +12944,7 @@
         "refinement_interpretation_Tm_refine_ae088b609204e032b97ba5aef2efdb95"
       ],
       0,
-      "daa1b12e50a64abc51668de3871587f6"
+      "d6fd5331358b5524e8c219247c3267e1"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -12966,7 +12966,7 @@
         "refinement_interpretation_Tm_refine_d9d18e4369512e36ccb63a6c49760883"
       ],
       0,
-      "609050260a17054d4b20d5a952b0f20a"
+      "fd4dcbddda9e076af0e6463bdce89e12"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -12988,7 +12988,7 @@
         "refinement_interpretation_Tm_refine_f28626bcf0bc60e1e34e9826c86887d8"
       ],
       0,
-      "cf52ba551872d7d0ffffb8b807cffa58"
+      "bd1d23723f3842f69881f6c8533da4ff"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13010,7 +13010,7 @@
         "refinement_interpretation_Tm_refine_d8836626372248741cc7d6582bd93782"
       ],
       0,
-      "20cafd4fca3cefb43847ab784da32ab8"
+      "c6ab10d1503fc2a9ab704e823676614e"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13032,7 +13032,7 @@
         "refinement_interpretation_Tm_refine_f042b890b4ff0e7a974ed9e79df3d09b"
       ],
       0,
-      "7275d4e46e9f374439a93770ee50c0ea"
+      "3820d19dbac798e26077931fec8d8699"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13054,7 +13054,7 @@
         "refinement_interpretation_Tm_refine_db83b9e2643c3bbf99efc8f408186c70"
       ],
       0,
-      "b49f655c8f833fc3ad66efeb93751477"
+      "737ca68a6b1e7b1008b93bdebd9aebb2"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13076,7 +13076,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "ab221d3288ef7078e3574c495a7739d9"
+      "f1144cd34e086ef896c90c7ad24cba06"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13098,7 +13098,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "1958643bde76b9937b23b05a5d4bee7e"
+      "4ac8076a1119e5aa061657460c35e820"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13120,7 +13120,7 @@
         "refinement_interpretation_Tm_refine_ece287f9e7760944a5c8d3d973fd554c"
       ],
       0,
-      "1cda25fa13a851fdf84ff011a4f36d4c"
+      "157edeb655c0428705eba863b6e759b6"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13142,7 +13142,7 @@
         "refinement_interpretation_Tm_refine_bcb4c74dd9c0210c7a566434f6c21fa1"
       ],
       0,
-      "6d556dc74b40db64ef3cf5a0b335c3f5"
+      "8b143dec1f6db63a79d691da9295cc29"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13164,7 +13164,7 @@
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "2693ba4dc2551fd19ab9bab300670cdd"
+      "cbfd2f45f822aea238643e266de4d6ee"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13186,7 +13186,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "f78d1ca7fbbfbfdf154e86da5d233f13"
+      "5e033b9f0b158eaa901f095635254f91"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13208,7 +13208,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "200b7685ba66801140e54be6a3271f68"
+      "5ae1ef2e9229eee97d3da4e67753a352"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13230,7 +13230,7 @@
         "refinement_interpretation_Tm_refine_b9f0f195278594caa954da10b09cc0ed"
       ],
       0,
-      "569d5efe5b0780c4a29b01fee6a4deaf"
+      "3e21a28a111d4a6d20d52d4e8c35742d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13252,7 +13252,7 @@
         "refinement_interpretation_Tm_refine_b3220c3a28f19dfb2a3752c85c795915"
       ],
       0,
-      "90f7d78aee9b61e2a49ae55ac05e0634"
+      "74df13d1ac79c5ebcfcd9b63fac70ffe"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13274,7 +13274,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "e4aabaeb8ee8acd3ba6c6852d29aecc2"
+      "40276c3809521ab4519d43db3e886db1"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13296,7 +13296,7 @@
         "refinement_interpretation_Tm_refine_ae088b609204e032b97ba5aef2efdb95"
       ],
       0,
-      "df7b38c29735266b8f04554c5539bed0"
+      "e9bad565e569f6d93a7bdc7099d2f701"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13318,7 +13318,7 @@
         "refinement_interpretation_Tm_refine_d9d18e4369512e36ccb63a6c49760883"
       ],
       0,
-      "9f2213ea82385933d72869b764fced6f"
+      "8e16e41d3648256db6b53ae1b0507543"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13340,7 +13340,7 @@
         "refinement_interpretation_Tm_refine_f28626bcf0bc60e1e34e9826c86887d8"
       ],
       0,
-      "fb9d1393bd086bfa25789b56e62499e1"
+      "22067b689584d8415c38d76239c9c881"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13362,7 +13362,7 @@
         "refinement_interpretation_Tm_refine_d8836626372248741cc7d6582bd93782"
       ],
       0,
-      "8ec40b00adbb38b6248fbb8e5cf7dad7"
+      "65c16f228274ecaf196205a553d3ba8c"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13384,7 +13384,7 @@
         "refinement_interpretation_Tm_refine_f042b890b4ff0e7a974ed9e79df3d09b"
       ],
       0,
-      "8cad567a558914e88afa3010d05d705c"
+      "14f9488f221ce207d4f81ee8cab03006"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13406,7 +13406,7 @@
         "refinement_interpretation_Tm_refine_db83b9e2643c3bbf99efc8f408186c70"
       ],
       0,
-      "00521eae5fa8958c8554ca950bf29cd6"
+      "676404941fdabfb4e5a7b317a3007081"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13428,7 +13428,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "f9b363788be6c94ef654f420e9b93531"
+      "88981a3305f259d8cc32434b4b4bc690"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13450,7 +13450,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "c43faa1954840e2eeba99376cd90ffab"
+      "482a0f24a475d981599937dfda6bf17c"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13472,7 +13472,7 @@
         "refinement_interpretation_Tm_refine_ece287f9e7760944a5c8d3d973fd554c"
       ],
       0,
-      "54f68af821306d074431424411f89925"
+      "8b9acb31db77ecc287ac6fa43f2ff097"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13494,7 +13494,7 @@
         "refinement_interpretation_Tm_refine_bcb4c74dd9c0210c7a566434f6c21fa1"
       ],
       0,
-      "691a661a0627f2b0c95126e16d11b209"
+      "6de0670c686bbcd912cfbcfb2ab4004f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13516,7 +13516,7 @@
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "41ac639d9f54fd60e774d5971b05071f"
+      "bd7922ca7d5a756184b5a1bb5bf5dccf"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13538,7 +13538,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "14012e94583f81f7b73a0f5b5feb1ddf"
+      "924ab86ca66489a6607f3cdcacccc72f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13560,7 +13560,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "2498c4b1858e85c63ec0e060e429ed20"
+      "7657817c31da78fabe35432560b9b810"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13582,7 +13582,7 @@
         "refinement_interpretation_Tm_refine_b9f0f195278594caa954da10b09cc0ed"
       ],
       0,
-      "8ad14134ad4fc11b21683d3074d700bf"
+      "74bb0fd6cb058d370771606d67e834eb"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13702,7 +13702,7 @@
         "typing_tok_Rust_primitives.Integers.I32@tok"
       ],
       0,
-      "1f0b9baa9098e83f61f96ba642b5af3e"
+      "0fe842adb1384d267a33aa8729dff706"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13759,7 +13759,7 @@
         "typing_tok_Rust_primitives.Integers.I32@tok"
       ],
       0,
-      "cf8edf3207dc0248827c80ff421d8b26"
+      "313e7edb0b29d2eb79f02c2b4d9d74ac"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13771,7 +13771,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "1f397bb7a6811f19e1804044dd657839"
+      "cd7acd4b930f806e9ae6fd610c307c51"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13783,7 +13783,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "91914313046a9e03708d3716f1b0a68e"
+      "c17ca8eeb300180789827985843a330a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13795,7 +13795,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "e35f637f8e8780fcfb422ab5a95beb19"
+      "7009bb3e5dfc2b789a0952a1c8f46dcf"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13807,7 +13807,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "a29fa1a6fd4ba610ac44ffa00988af01"
+      "c6af1f07a8f6102bb652991d78c270d9"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13819,7 +13819,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "0a5a58fa91aa7597f884af4dee644ca9"
+      "1cc471ddbf23685a10c572ca3d833dcc"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13831,7 +13831,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "8efcb62bf664f976dd5e3cf6f098fb67"
+      "451d1b929e69c3ded8114b59455068c8"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13843,7 +13843,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "1d67ba60af9c5b8c4040f2fb1285f2e7"
+      "ee16120c314be7c4ba95a1c466a6b8f2"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13855,7 +13855,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "71daecce00b4f2de1e0b4826fc7318c4"
+      "29ffda693aef6f94ccd5ebb0a916d826"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13867,7 +13867,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "e5d421e83a27bb3eac209d8edefe9349"
+      "85365be4a80b926630879148e285d7dc"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13879,7 +13879,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "5da633fa8d43985c103f8fece9a83ae6"
+      "341a999ed8d2aac9252beb827b8f12dc"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13891,7 +13891,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "95aa240d0291cf5ba0babbcfb89fe6a1"
+      "5a4fd65a1e7b91aba1eea100ebcddbd2"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13903,7 +13903,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "322106a0372669962dc5fb7c0c6b86c6"
+      "4cab9d034bfe40294857439ddac4df49"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13915,7 +13915,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "2c245842b26730db93ac43362238a605"
+      "5172b26f31f10b6c1b92a91ce757f8b0"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13927,7 +13927,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "e89fec34f52a8c2876caec92ee2d98ea"
+      "3dbdf89a931622b8c4939daa2112b7cb"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13939,7 +13939,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "6aee190f88bde4a5b85e6c014c6df674"
+      "e0b46aea5f0e82f4674bd829b8c3367e"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13951,7 +13951,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "a1eb5e40f91eb077767cd100206137c7"
+      "eeec70148b9891aeff085e346b1fd1e8"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13963,7 +13963,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "7f6f267180472186d2f0f66f90e29b1c"
+      "9394eb27ab833f4abcc25991d2037a7f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13975,7 +13975,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "5cd9fbcbfeea0de36955861698142931"
+      "d636c8eb47efc75861c69d4669c249c3"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13987,7 +13987,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "0f61eda481ea9302ee3094df0b69c2c1"
+      "3f616116e1ceee6e4d437dc2c59ed3ba"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -13999,7 +13999,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "2f92bb8690ed6faf8716b5c0ba6914ce"
+      "1c3cdb01a2d52760deea5924b65e81f8"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14011,7 +14011,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "a303db4eeff190674ac46513f0a2ff9e"
+      "b6873f69851f3334e5c74df35a7ef6da"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14023,7 +14023,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "342f415f1a9690e9e6f7d5c6e559f97e"
+      "ed0615ab7591feb4e5e835495f7b8be5"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14035,7 +14035,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "7980c3ae7971d3998c2a1f3760d5c3c4"
+      "7afd63bf5e74e92ebd2b53735a09697b"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14047,7 +14047,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "3061099dadbea1d7aeda75c597bda020"
+      "a571378e746841b98b368160ad213933"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14059,7 +14059,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "3c9d86e083f17d25e4be69f7af2d57bf"
+      "1f633e402f9f58cf9c38c212fa87f83d"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14071,7 +14071,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "c3460dc905489555888f082df81d264f"
+      "7b7f7161ff6ba2b182a93625f18c28cc"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14083,7 +14083,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "657cc8939f0b291dd55760541554c197"
+      "576eb30283b12e04b2d5a4a9999d9d72"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14095,7 +14095,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "08474301a09edb2f0a5ffecae5c75a19"
+      "fafa09a4e820edaba78d9f01f4f68ae9"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14107,7 +14107,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "fc56fe486d9d89afc6cd67b3a97c8a4e"
+      "13ef7912971ca957dc71b1c11cf4f09e"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14119,7 +14119,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "5b3282f5bad4f89760eb7ae97b5ff770"
+      "254cb239afefeb6c37cbe0d233fc3ca8"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14131,7 +14131,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "9a2e2aaa9755d24a72e992c6be55c8f2"
+      "ca7a123606924713e60e5c58423ded28"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14143,7 +14143,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "6ae81c2e2a1fafc51b45894c85b5f568"
+      "f55cdc67fd8f573fa2075e3dd1c81832"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14155,7 +14155,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "204ac1210e6bdd8b2438accd03b0fa45"
+      "33b75c5f55113fe8bafd831a0e8cf1a8"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14167,7 +14167,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "14274822a2f02fc1b0a207f190d4add5"
+      "9994dbc1743c620f170df3be194e84ef"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14179,7 +14179,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "039e8103de77f6a4dff8b8d479e0b3f4"
+      "1606158a49efa1113574c195b71895ad"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14191,7 +14191,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "ddf4bdaede0bca5974615ce8c622de2f"
+      "d62c528c5e157b6b6165ae0e65da42ee"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14203,7 +14203,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "1f3604fe15c4105bcf0dd4a5eef73acf"
+      "1f6443bdb2712aff59c49577326f845b"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14215,7 +14215,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "e74f8f33642f7890732ac1e3e2226192"
+      "5be0738b71a104623802c4c790dd280e"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14227,7 +14227,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "52bb13b1918d30c4bc4c5ea4b64bc1e4"
+      "408af3c76b48c1743fea085a77be1cab"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14239,7 +14239,7 @@
         "refinement_interpretation_Tm_refine_aac1cf587b96a2bd4f3c3a4e42c0ac1f"
       ],
       0,
-      "c0e0b020e70b097f3576a05e0e1a10f3"
+      "2ed7bca3d4ed58dfa530e992d0cea7c3"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14251,7 +14251,7 @@
         "refinement_interpretation_Tm_refine_6282a9e661d5fe7342285ff6b69e3b46"
       ],
       0,
-      "f01b431b70a2a18bf484e2b520d6e4e0"
+      "b1dada9a071a3693c6783903cf902b9e"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14263,7 +14263,7 @@
         "refinement_interpretation_Tm_refine_6282a9e661d5fe7342285ff6b69e3b46"
       ],
       0,
-      "3fa99507947c793b354d4068eb1a68cc"
+      "080cf6a270d73aac7d0385bf8808f8da"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14275,7 +14275,7 @@
         "refinement_interpretation_Tm_refine_6282a9e661d5fe7342285ff6b69e3b46"
       ],
       0,
-      "8fd8978794f6cadcdf620b35b249e922"
+      "b1799c577389a12b5a61b8f88b74f3ca"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14287,7 +14287,7 @@
         "refinement_interpretation_Tm_refine_6282a9e661d5fe7342285ff6b69e3b46"
       ],
       0,
-      "ade563c45d85f97e1590bd545c0e9866"
+      "e07a2878999a08cd47db221abbf8faf3"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14299,7 +14299,7 @@
         "refinement_interpretation_Tm_refine_6282a9e661d5fe7342285ff6b69e3b46"
       ],
       0,
-      "e36ce463241f426b2af912fad8dc47a1"
+      "1fd159416786d4d8bc067a307ab9a642"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14311,7 +14311,7 @@
         "refinement_interpretation_Tm_refine_6282a9e661d5fe7342285ff6b69e3b46"
       ],
       0,
-      "4a1be72bc3db058c81f2c0e3e3881f5b"
+      "8b925e4035f1eb54d4d9ab961cb49de0"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14323,7 +14323,7 @@
         "refinement_interpretation_Tm_refine_6282a9e661d5fe7342285ff6b69e3b46"
       ],
       0,
-      "5a95bb6e02d93164fd3865d1d74e58e7"
+      "a3f8b780c716d3097ed5a800241a3962"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14335,7 +14335,7 @@
         "refinement_interpretation_Tm_refine_6282a9e661d5fe7342285ff6b69e3b46"
       ],
       0,
-      "79ff829bcf44b5b0d8c1874c4f90b33b"
+      "65328087035aed74ba45bb38252a341f"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14347,7 +14347,7 @@
         "refinement_interpretation_Tm_refine_6282a9e661d5fe7342285ff6b69e3b46"
       ],
       0,
-      "1f03eabaee667ca1a847164c178ec6bf"
+      "7dec8ee7f2c93807ce024dfb77d5a0a8"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14359,7 +14359,7 @@
         "refinement_interpretation_Tm_refine_6282a9e661d5fe7342285ff6b69e3b46"
       ],
       0,
-      "64fce0c08945969e1e42dd98e4abed41"
+      "caa7594d1efabd86b138e023a1ee6d87"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14371,7 +14371,7 @@
         "refinement_interpretation_Tm_refine_6282a9e661d5fe7342285ff6b69e3b46"
       ],
       0,
-      "086c666be327fd2e93f70f29c48c0f4c"
+      "ccdbcacaa5ccef3975678da9eda412f0"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14383,7 +14383,7 @@
         "refinement_interpretation_Tm_refine_6282a9e661d5fe7342285ff6b69e3b46"
       ],
       0,
-      "7f9b2d1621931ba85ac16d8f6f297598"
+      "a5d0eca3071742926a4682488031988e"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14395,7 +14395,7 @@
         "refinement_interpretation_Tm_refine_6282a9e661d5fe7342285ff6b69e3b46"
       ],
       0,
-      "9f4849d6969de9d6a86943d83242ae7a"
+      "6df4cd11ceed613e80c9c440bca56a52"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14407,7 +14407,7 @@
         "refinement_interpretation_Tm_refine_6282a9e661d5fe7342285ff6b69e3b46"
       ],
       0,
-      "67624029d21434990deda3311e75aea9"
+      "4b3ecaefee6df5575d3395418768b121"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14419,7 +14419,7 @@
         "refinement_interpretation_Tm_refine_6282a9e661d5fe7342285ff6b69e3b46"
       ],
       0,
-      "77c028c7cb952fbd2910ddcc60e3b9ae"
+      "05a0446e7a2871512c91a89a88a1d6d3"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14431,7 +14431,7 @@
         "refinement_interpretation_Tm_refine_6282a9e661d5fe7342285ff6b69e3b46"
       ],
       0,
-      "d2dafd84b9ef30453e5a932fefd3b4b4"
+      "8091f768dd35a07b183edccbdf5e63e8"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14444,7 +14444,7 @@
         "refinement_interpretation_Tm_refine_d5822762f8176a3192d0ce198e64dbdd"
       ],
       0,
-      "5d5575f1ed79d8c5057bbe1233c4b9b0"
+      "3838a2383b0b2fd13552f4916af6cad4"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14456,7 +14456,7 @@
         "refinement_interpretation_Tm_refine_51c8ffcb3e1cf013051ab9674351548b"
       ],
       0,
-      "c13dd924f9ac402d80d6d143d14c07ab"
+      "bc049cc49ddf0ccf06681803d72cceef"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14468,7 +14468,7 @@
         "refinement_interpretation_Tm_refine_51c8ffcb3e1cf013051ab9674351548b"
       ],
       0,
-      "fcefa7fc64dbbcc57c2dc295face4237"
+      "cb020285ed12a245b0175ea89f4a78a7"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14484,7 +14484,7 @@
         "refinement_interpretation_Tm_refine_e85d82b43545eef69ca08ad3d853e455"
       ],
       0,
-      "37e9205a9bf59cae4c0dd4a834adb269"
+      "41b65b10048e19b6aa61f8d86d13d518"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",
@@ -14511,7 +14511,7 @@
         "typing_tok_Rust_primitives.Integers.U64@tok"
       ],
       0,
-      "ab4f4357b60cdb7dda57dadd0c98a08c"
+      "076d22a4f32634d7f2240bf311c07454"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply",

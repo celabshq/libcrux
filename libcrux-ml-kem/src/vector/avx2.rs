@@ -22,8 +22,8 @@ pub struct SIMD256Vector {
 
 #[inline(always)]
 #[hax_lib::ensures(|result| fstar!(r#"repr ${result} == Seq.create 16 (mk_i16 0)"#))]
-// 2026-06-30: bring the relocated ml-kem storeu/loadu bit_vec SMTPats into
-// scope (moved out of Avx2_extract to keep sha3's interface lean).
+// Bring the ml-kem storeu/loadu bit_vec SMTPats into scope (they live
+// outside Avx2_extract so sha3's interface stays lean).
 #[hax_lib::fstar::before(
     r#"open Libcrux_intrinsics.Avx2
 open Libcrux_intrinsics.Avx2_ml_kem_views"#
@@ -44,7 +44,7 @@ fn vec_to_i16_array(v: SIMD256Vector) -> [i16; 16] {
     let mut output = [0i16; 16];
     // `output` has length 16; surface that fact, then call the store's view
     // bridge explicitly (over core-models the store is a modeled per-lane
-    // spine, so the post no longer falls out of the intrinsic's own ensures).
+    // spine, so the post does not fall out of the intrinsic's own ensures).
     proof!(
         r#"assert (Core_models.Slice.impl__len #i16 output == mk_usize 16);
 Libcrux_intrinsics.Avx2_ml_kem_views.lemma_mm256_storeu_si256_i16 (output <: t_Slice i16) ${v}.f_elements"#
@@ -93,9 +93,8 @@ pub(super) fn from_bytes(array: &[u8]) -> SIMD256Vector {
     //     == get_bit head.[i/8] (i%8)              (the u8 load's bit lemma)
     //     == bit_vec_of_int_t_array head 8 i       (definitional, via `on`)
     //
-    // NB the old `${result}.f_elements i` form only typechecked under pcm,
-    // where `bit_vec 256` WAS the function `i:nat{i<256} -> bit`.  Over
-    // core-models `t_BitVec` is not a function; bit access is `bv_bit`.
+    // NB over core-models `t_BitVec` is not a function, so bit access is
+    // `bv_bit`, not a direct `${result}.f_elements i` function application.
     proof!(
         r#"
 assert (Seq.length ${head} == 32);
@@ -121,14 +120,9 @@ BitVecEq.bit_vec_equal_intro
 // Carries the trait's `to_le_bytes_post_N` post directly so the trait
 // wrapper in `impl Operations` is a one-line call.
 //
-// NOTE (2026-07-31): this comment previously claimed the function was
-// "marked panic_free" with the bit_vec bridge "admitted at this layer".
-// That is stale -- there is no panic_free/lax attribute here and
-// `fstar_admits` reports no admit in this module beyond hax's generated
-// `Copy` instance, so the post below is genuinely proof obligation, not
-// an assumption.  The proof block below has since been migrated off pcm
-// to core-models and is PROVEN (cold, rlimit 6.8/80) -- it is no longer
-// the module's frontier; `Vector.Avx2` verifies end to end.
+// There is no panic_free/lax attribute here, so the post below is a
+// genuine proof obligation, not an assumption; the proof block below is
+// PROVEN and `Vector.Avx2` verifies end to end.
 #[inline(always)]
 #[hax_lib::requires(bytes.len() >= 32)]
 #[hax_lib::ensures(|_| fstar!(r#"
@@ -158,8 +152,8 @@ pub(super) fn to_bytes(x: SIMD256Vector, bytes: &mut [u8]) {
     // where `update_at_range`'s frame gives `Seq.slice bytes_future 0 32 == stored`.
     proof!(
         r#"
-let range = { Core_models.Ops.Range.f_start = mk_usize 0;
-              Core_models.Ops.Range.f_end = mk_usize 32 } in
+let range = ({ Core_models.Ops.Range.f_start = mk_usize 0;
+              Core_models.Ops.Range.f_end = mk_usize 32 } <: Core_models.Ops.Range.t_Range usize) in
 let src : t_Slice u8 = ${bytes_pre}.[ range ] in
 assert (Seq.length src == 32);
 let stored : t_Slice u8 = Libcrux_intrinsics.Avx2.mm256_storeu_si256_u8 src ${x}.f_elements in
@@ -231,9 +225,8 @@ impl crate::vector::traits::Repr for SIMD256Vector {}
 // type; without these wrappers, the trait impl methods do an inline
 // `{ elements: arithmetic::add(lhs.elements, rhs.elements) }` record
 // reconstruction at every method, inflating impl_3's combined-query
-// check past rlimit 80 (cold-baseline saturation observed
-// 2026-05-08).  Hoisting the wrap into op_* keeps each impl method a
-// thin direct call.
+// check past rlimit 80.  Hoisting the wrap into op_* keeps each impl
+// method a thin direct call.
 #[inline(always)]
 #[hax_lib::requires(fstar!(r#"${spec::add_pre} (impl.f_repr ${lhs}) (impl.f_repr ${rhs})"#))]
 #[hax_lib::ensures(|result| fstar!(r#"${spec::add_post} (impl.f_repr ${lhs}) (impl.f_repr ${rhs}) (impl.f_repr ${result})"#))]
@@ -576,35 +569,35 @@ fn op_decompress_ciphertext_coefficient<const COEFFICIENT_BITS: i32>(
 // Layer-0.5 admits — same on portable).
 #[hax_lib::fstar::before(
     r#"
-// `op_ntt_layer_1_step_bridge` is no longer admitted: the strengthened post of
+// `op_ntt_layer_1_step` needs no separate bridge lemma: the strengthened post of
 // `Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step` (`ntt_layer_1_butterfly_post`
 // + bound `8*3328`) plus the four `lemma_ntt_layer_1_step_branch_{0..3}`
 // (Commute.Chunk) discharge the trait post directly.  Wrapper does this inline.
 
-// `op_ntt_layer_2_step_bridge` is no longer admitted: the strengthened post of
+// `op_ntt_layer_2_step` needs no separate bridge lemma: the strengthened post of
 // `Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step` (`ntt_layer_2_butterfly_post`
 // + bound `7*3328`) plus 8 `lemma_butterfly_pair_commute` applications discharge
 // the trait post directly.  Wrapper does this inline.
 
-// `op_ntt_layer_3_step_bridge` is no longer admitted: the strengthened
+// `op_ntt_layer_3_step` needs no separate bridge lemma: the strengthened
 // post of `Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step` (per-lane
 // butterfly residue + bound) plus 8 `lemma_butterfly_pair_commute`
 // applications (one per pair (i, i+8)) discharge the trait post
 // directly.  The wrapper does this inline; no bridge needed.
 
-// `op_inv_ntt_layer_1_step_bridge` is no longer admitted: the strengthened
+// `op_inv_ntt_layer_1_step` needs no separate bridge lemma: the strengthened
 // post of `Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step`
 // (`inv_ntt_layer_1_butterfly_post` + bound `3328`) plus the four
 // `lemma_inv_ntt_layer_1_step_branch_{0..3}` (Commute.Chunk) discharge the
 // trait post directly.  The wrapper does this inline; no bridge needed.
 
-// `op_inv_ntt_layer_2_step_bridge` is no longer admitted: the strengthened
+// `op_inv_ntt_layer_2_step` needs no separate bridge lemma: the strengthened
 // post of `Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step`
 // (`inv_ntt_layer_2_butterfly_post` + bound `2*3328`) plus 8
 // `lemma_inv_butterfly_pair_commute` applications discharge the trait post
 // directly.  The wrapper does this inline; no bridge needed.
 
-// `op_inv_ntt_layer_3_step_bridge` is no longer admitted: the strengthened
+// `op_inv_ntt_layer_3_step` needs no separate bridge lemma: the strengthened
 // post of `Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step` (per-lane
 // inv-butterfly residue + bound `4*3328`) plus 8
 // `lemma_inv_butterfly_pair_commute` applications discharge the trait post
@@ -931,7 +924,7 @@ fn op_inv_ntt_layer_3_step(vector: SIMD256Vector, zeta: i16) -> SIMD256Vector {
     SIMD256Vector { elements }
 }
 
-// `op_ntt_multiply` — no longer admitted: the strengthened post of
+// `op_ntt_multiply` needs no separate bridge lemma: the strengthened post of
 // `Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply` (`ntt_multiply_butterfly_post`
 // + bound `3328`) plus the four `lemma_ntt_multiply_branch_{0..3}`
 // (Commute.Chunk) discharge the trait post directly.  Wrapper does this
@@ -1137,6 +1130,12 @@ fn op_deserialize_5(bytes: &[u8]) -> SIMD256Vector {
 // (`vec_zero`, `vec_to_i16_array`, `vec_from_i16_array`, `from_bytes`,
 // `to_bytes`).  No proof code lives inside the impl.
 // =====================================================================
+// The combined t_Operations record-WF query is heavy and sensitive to solver
+// state accumulated by the sibling lemmas.  Restart the solver and split it
+// into per-field sub-queries so it verifies deterministically.
+#[hax_lib::fstar::before(r#"#restart-solver
+#push-options "--split_queries always --z3rlimit 300""#)]
+#[hax_lib::fstar::after(r#"#pop-options"#)]
 #[hax_lib::attributes]
 impl Operations for SIMD256Vector {
     #[inline(always)]

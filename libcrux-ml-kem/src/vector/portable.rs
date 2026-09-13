@@ -119,14 +119,14 @@ fn deserialize_12(a: &[u8]) -> PortableVector {
 }
 
 // =====================================================================
-// `op_*` wrappers — Phase 1 of the impl-flattening refactor.
+// `op_*` wrappers (impl-flattening refactor).
 //
 // Each `op_*` carries the *exact* trait pre/post for its
 // `impl Operations for PortableVector` counterpart, so the impl method
 // body collapses to a one-line `op_<name>(args)` call (the trait
 // subtyping check is then `P ==> P`, trivial).  Each op_* verifies in
-// its own SMT scope; all proof bridging that used to live in the impl
-// method body lives here.
+// its own SMT scope; all proof bridging lives here rather than in the
+// impl method body.
 //
 // Methods omitted from this section (no `op_*` needed):
 //   ZERO, from_i16_array, to_i16_array, from_bytes, to_bytes,
@@ -134,9 +134,9 @@ fn deserialize_12(a: &[u8]) -> PortableVector {
 // — for these the underlying primitive's pre/post already matches the
 // trait's exactly, so the impl method body is already a one-line call.
 //
-// Phase 2 (deferred): for some `op_*` we may be able to fold the
-// bridging directly into the underlying primitive's annotations and
-// drop the wrapper.  Tracked separately.
+// Possible future simplification: for some `op_*` the bridging could be
+// folded directly into the underlying primitive's annotations, dropping
+// the wrapper.
 // =====================================================================
 
 #[hax_lib::requires(spec::cond_subtract_3329_pre(&vec.repr()))]
@@ -402,7 +402,7 @@ fn op_decompress_ciphertext_coefficient<const COEFFICIENT_BITS: i32>(
            in
            Classical.forall_intro aux"#
     );
-    // Strengthened post (2026-05-02): expose the i16 result bound
+    // The post exposes the i16 result bound
     // `bounded_i16_array (mk_i16 0) (mk_i16 3328) result.f_elements`
     // (= [0, FIELD_MODULUS - 1]).  The inner `decompress_ciphertext_coefficient`'s
     // ensures already gives `forall i. 0 <= v result.f_elements[i] < FIELD_MODULUS`;
@@ -424,7 +424,7 @@ fn op_decompress_ciphertext_coefficient<const COEFFICIENT_BITS: i32>(
 // Layer 1 has a 4-way zeta dispatch (`if b=0 then zeta0 .. else zeta3`).
 // Asserting the per-branch predicate inline made Z3 case-split the
 // ladder under all 16 butterfly facts — a single sub-query ran >10 min
-// at rlimit 800 (Phase 6, 2026-04-27).  Closed by the concrete-`b`
+// at rlimit 800.  Closed by the concrete-`b`
 // `lemma_{,inv_}ntt_layer_1_step_branch_{0..3}` in `Commute.Chunk`: each
 // fixes `b` to a literal so the ladder collapses to one zeta in a clean
 // SMT context.  The wrapper reveals the butterfly residues and conjoins
@@ -740,7 +740,7 @@ fn op_inv_ntt_layer_2_step(a: PortableVector, zeta0: i16, zeta1: i16) -> Portabl
 #[hax_lib::requires(fstar!(r#"${spec::inv_ntt_layer_3_step_pre} ${a}.f_elements zeta"#))]
 #[hax_lib::ensures(|out| fstar!(r#"${spec::inv_ntt_layer_3_step_post} ${a}.f_elements zeta ${out}.f_elements"#))]
 fn op_inv_ntt_layer_3_step(a: PortableVector, zeta: i16) -> PortableVector {
-    // Trait pre is now `is_i16b_array_opaque (2*3328)` (previously `3328`);
+    // Trait pre is `is_i16b_array_opaque (2*3328)`;
     // see comment on `inv_ntt_layer_3_step_post` in `src/vector/traits.rs`.
     // Reveal at the new bound so the underlying primitive's pre
     // (which we also loosen to `is_i16b_array (2*3328)`) discharges.
@@ -814,7 +814,7 @@ fn op_inv_ntt_layer_3_step(a: PortableVector, zeta: i16) -> PortableVector {
     out
 }
 
-// `op_ntt_multiply` — no longer admitted (was `panic_free`, C4f): the
+// `op_ntt_multiply`: the
 // primitive's `ntt_multiply_butterfly_post` plus the four
 // `lemma_ntt_multiply_branch_{0..3}` (Commute.Chunk, built on the closed
 // `lemma_base_case_mult_{even,odd}_*` Layer-0.5 lemmas) discharge the
@@ -857,7 +857,7 @@ fn op_ntt_multiply(
 // =====================================================================
 // `impl Operations for PortableVector`
 //
-// After Phase 1 of the impl-flattening refactor, every method body is
+// After the impl-flattening refactor, every method body is
 // either (a) a one-line call to a free function with matching pre/post
 // (so the impl-method VC is `P ==> P`), or (b) a one-line call to an
 // underlying primitive whose pre/post already match the trait's

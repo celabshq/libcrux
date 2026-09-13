@@ -241,18 +241,15 @@ module Funarr = Libcrux_core_models.Abstractions.Funarr
 (* ── `mm256_si256_from_two_si128` — the 128+128 -> 256 concatenation ─────────
    `mm256_castsi128_si256` zero-extends into the low half and
    `mm256_inserti128_si256 1` replaces the HIGH 128-bit lane, so the
-   composition is a pure concatenation.  Under pcm neither op had a model
-   ("the upper 128 bits are undefined"), so the wrapper carried a
-   `fstar::replace(interface)` stub — an unverified hand-written substitute for
-   the real body.  Over core-models both ops ARE modelled, so the stub goes and
-   the wrapper gets a contract proven from its actual code.
+   composition is a pure concatenation.  Over core-models both ops ARE modelled,
+   so the wrapper gets a contract proven from its actual code.
 
    Trust accounting: `castsi128_si256` rests on the tested lift axiom
    `Canon.lemma_castsi128_si256_lift` (same class as xor / setzero — a
    differential-tested raw-op identity); `inserti128_si256` on the i128x2 lane
    view plus `Canon.lemma_readback` at I128, exactly the route
-   `lemma_mm_storeu_bytes_si128` takes at U8.  Net: one `fstar::replace` stub
-   retired for one already-present tested identity.
+   `lemma_mm_storeu_bytes_si128` takes at U8.  Net: no `fstar::replace` stub; the
+   contract rests on one already-present tested identity.
 
    Developed here per `feedback_develop_locally_upstream_once`; belongs next to
    `lemma_bv_bit_castsi256_si128` / `lemma_bv_bit_extracti128_si256_1` in
@@ -1012,9 +1009,7 @@ let lemma_deserialize_5_bits (c: t_Vec128) (co: t_Vec256) (i: nat{i < 256})
    deserialize_10 gather uses, because both are the "one extra byte per 8-byte
    group" stride of a sub-byte-aligned code.
 
-   Session 9 deleted the sixteen pcm-era per-k bridges here (they applied a
-   bit-vector as a FUNCTION and were a type error, i.e. a hard stop); this is
-   their core-models replacement, and unlike them it is ONE lemma, not 16. *)
+   This is a single lemma covering all k, rather than a per-k family. *)
 
 (* bit (8n + t) of a 128-bit vector IS bit t of its byte n. *)
 #push-options "--fuel 1 --ifuel 1 --z3rlimit 300"
@@ -1110,7 +1105,7 @@ let lemma_deser5_outer_index (l: nat{l < 16}) (b: nat{b < 5})
    byte locals enter as free parameters pinned to `Seq.index bytes k` by
    EQUATIONAL requires, so the caller discharges them from its own
    let-equations and no slice reasoning enters this context — the
-   `lemma_store_glue_two_writes` shape from session 8. *)
+   `lemma_store_glue_two_writes` shape. *)
 #push-options "--fuel 1 --ifuel 1 --z3rlimit 400 --split_queries always"
 let lemma_deserialize_5_outer_bits
       (bytes: t_Slice u8) (b0 b1 b2 b3 b4 b5 b6 b7 b8 b9: u8) (r: t_Vec256) (i: nat{i < 256})

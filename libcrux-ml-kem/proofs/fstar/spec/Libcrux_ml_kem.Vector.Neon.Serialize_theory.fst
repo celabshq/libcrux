@@ -398,8 +398,7 @@ let lemma_ser1_shift_amounts (shift: Libcrux_intrinsics.Arm64_ml_kem_views.t_e_i
 (* TRUSTED AXIOM modeling Core_models.Num.impl_u64__to_le_bytes (a bare
    `assume val` in hax-lib core proof-libs with NO functional ensures): byte b
    of the little-endian encoding is (x / 2^(8b)) mod 2^8.  VALIDATED bit-exact
-   vs Rust std u64::to_le_bytes (24,000,072 checks, 0 fails):
-   ~/hax-fstar-mcp/libcrux-notes/agent-status/u64_to_le_bytes_validate-2026-06-23.rs *)
+   vs Rust std u64::to_le_bytes (24,000,072 checks, 0 fails). *)
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 50"
 [@@ "trusted: trusted-extern: little-endian byte b of u64 is (x >> 8b) mod 256 (hax-lib to_le_bytes primitive, bit-exact validated)"]
 assume

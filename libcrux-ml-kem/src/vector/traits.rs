@@ -754,7 +754,7 @@ let ntt_multiply_branch_post
         // The exact conditional conjunct (all backends compute exactly
         // this) gives consumers the output range: for 0 <= x < 4096 the
         // result lands in [0, 3328], which `deserialize_to_reduced_ring_element`
-        // needs for its `is_bounded_poly 3328` post (Serialize Track B).
+        // needs for its `is_bounded_poly 3328` post.
         hax_lib::fstar_prop_expr!(
             r#"forall i.
                 let x = Seq.index $vec i in
@@ -868,8 +868,8 @@ let ntt_multiply_branch_post
     }
 
     pub(crate) fn decompress_1_post(vec: &[i16; 16], result: &[i16; 16]) -> hax_lib::Prop {
-        // Strengthened 2026-06-09 (mirror of decompress_ciphertext_coefficient_post's
-        // 2026-05-02 strengthening): expose the i16 result bound `[0, 3328]` that all
+        // Mirror of decompress_ciphertext_coefficient_post: expose the i16
+        // result bound `[0, 3328]` that all
         // impls naturally maintain (Portable's decompress_1 returns lanes in {0, 1665};
         // Avx2/Neon wrappers admit panic-freedom hence also satisfy this).  Needed by
         // `deserialize_then_decompress_message`, whose ensures carries
@@ -887,7 +887,7 @@ let ntt_multiply_branch_post
         coefficient_bits: i32,
         result: &[i16; 16],
     ) -> hax_lib::Prop {
-        // Strengthened 2026-05-02: in addition to the FE-level spec equality,
+        // In addition to the FE-level spec equality,
         // expose the i16 result bound `[0, FIELD_MODULUS - 1] = [0, 3328]`
         // that all impls naturally maintain (Vector.Portable.Compress maintains
         // it via loop invariant; Avx2/Neon wrappers admit panic-freedom hence

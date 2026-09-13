@@ -548,10 +548,10 @@ pub(crate) fn montgomery_multiply_m128i_by_constants(vec: Vec128, constants: Vec
                                        (let x = Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $a) i in
                                         let y = Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $result) i in
                                         (v y >= 0 /\ v y <= 3328 /\ (v y % 3329 == v x % 3329)))"#))]
-// Migration (core-models): the return type is now `t_BitVec (mk_u64 256)`, so
-// the intermediate `let t` annotation carries a `256 in range_t U64` VC absent
-// under pcm; it saturates in this fn's heavy forall-cascade context at the
-// module-default rlimit. `--split_queries always` isolates that trivial check.
+// The return type is `t_BitVec (mk_u64 256)`, so the intermediate `let t`
+// annotation carries a `256 in range_t U64` VC that saturates in this fn's
+// heavy forall-cascade context at the module-default rlimit.
+// `--split_queries always` isolates that trivial check.
 #[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 200 --split_queries always"))]
 #[inline(always)]
 pub(crate) fn to_unsigned_representative(a: Vec256) -> Vec256 {

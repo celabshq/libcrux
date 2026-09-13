@@ -10,14 +10,7 @@ module I = Libcrux_intrinsics.Avx2
    `hax_lib::fstar::before` blocks (byte-exact raw-string contents, verified verbatim
    against the green extracted module). Consumed only by that module. *)
 
-(* HISTORY (Track I, 2026-06-10 → retired 2026-07-30): this file used to carry
-   the trusted axiom `mm_shuffle_epi8_no_semantics_lemma` giving PSHUFB
-   hardware semantics to pcm's uninterpreted dynamic-mask shuffle symbol.
-   Over core-models the shuffle IS modeled (`IV.e_mm_shuffle_epi8`), so the
-   same bit formula is now the PROVEN companion lemma
-   `AVX.lemma_bv_bit_mm_shuffle_epi8` — the axiom is retired. *)
-
-(* Trusted axiom (Track I M2, 2026-06-10): `u8::count_ones` counts set bits.
+(* Trusted axiom: `u8::count_ones` counts set bits.
    `Rust_primitives.Arithmetic.count_ones_u8` is an uninterpreted `val` in
    hax-lib (only `v r <= 8` is known); this axiom gives it popcount
    semantics via the bit recursion `popcount8 g = if g = 0 then 0 else

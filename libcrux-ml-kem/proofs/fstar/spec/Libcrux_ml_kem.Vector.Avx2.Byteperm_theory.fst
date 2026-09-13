@@ -24,9 +24,8 @@ module IVi    = Libcrux_core_models.Abstractions.Bitvec.Int_vec_interp
    `feedback_develop_locally_upstream_once`, to be upstreamed to core-models
    once the width sweep has exercised it.
 
-   Own module, not appended to `Libcrux_intrinsics.Avx2_ml_kem_views`, for the
-   reason item 1 of this session measured: a 2000-line host costs these proofs
-   an order of magnitude, and iterating on them there costs ~18 min a cycle.
+   Own module, not appended to `Libcrux_intrinsics.Avx2_ml_kem_views`, because a
+   2000-line host costs these proofs an order of magnitude.
 
    SELECT INDEX AS A FREE PARAMETER.  Both lemmas take the resolved source
    index (`sel`) as a parameter constrained in the `requires`, rather than

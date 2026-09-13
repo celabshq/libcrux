@@ -1,20 +1,16 @@
 use super::*;
 use crate::vector::portable::PortableVector;
 
-// NOTE (Track I, 2026-06-10): this function previously required
-// `forall i. i % 16 >= 1 ==> vector i == 0`. That requires is semantically
-// unnecessary — the body's first operation `mm256_slli_epi16::<15>` discards
-// bits 1..15 of every lane, so the post holds for ARBITRARY input — and it is
-// no longer satisfiable at rejection_sample's call site now that
-// `mm256_cmpgt_epi16` carries its true hardware semantics (whole lane set on
-// a true compare).
+// This function needs no precondition: the body's first operation
+// `mm256_slli_epi16::<15>` discards bits 1..15 of every lane, so the post
+// holds for ARBITRARY input.
 #[inline(always)]
 #[hax_lib::fstar::options(
     "--ext context_pruning --compat_pre_core 0 --split_queries always --z3rlimit 400"
 )]
 #[hax_lib::ensures(|result| fstar!(r#"forall (i: nat{i < 16}). bit_vec_of_int_t_array $result 8 i == Libcrux_intrinsics.Avx2_ml_kem_views.bv_bit $vector (i * 16)"#))]
-// 2026-06-30: bring the relocated ml-kem srli i16-view SMTPat into scope
-// (moved out of Avx2_extract to keep sha3's interface lean).
+// Bring the ml-kem srli i16-view SMTPat into scope (it lives outside
+// Avx2_extract so sha3's interface stays lean).
 #[hax_lib::fstar::before(
     r#"open Libcrux_intrinsics.Avx2
 open Libcrux_intrinsics.Avx2_ml_kem_views"#
@@ -180,10 +176,8 @@ with Libcrux_intrinsics.Avx2_ml_kem_views.lemma_deserialize_1_bits $a $b i
 /// of the shape `0b0…0b₁…bₙa₁…aₙ`, if `x` is a sequence of pairs of
 /// 16 bits, of the shape `(0b0…0a₁…aₙ, 0b0…0b₁…bₙ)` (where the last
 /// `n` bits are non-zero).
-// 2026-07-30 (core-models migration): the pcm-era
-// `#[hax_lib::fstar::replace(interface, "include BitVec.Intrinsics {…}")]` stub is
-// DELETED — the real body extracts fine over core-models, and the bit-concatenation
-// post is PROVEN by `Concat_pairs_theory.lemma_concat_pairs_bits` (no new trust).
+// The bit-concatenation post is PROVEN by
+// `Concat_pairs_theory.lemma_concat_pairs_bits` (no assumed facts).
 // `n` is unshadowed to `sh` so both stay nameable from the `fstar!` antiquotes.
 #[inline(always)]
 #[hax_lib::fstar::options("--ext context_pruning --split_queries always --z3rlimit 300")]
@@ -575,13 +569,8 @@ with ()
 /// into the low half and `mm256_inserti128_si256::<1>` replaces the high
 /// 128-bit lane.
 ///
-/// Under the previous `BitVec.Intrinsics` model neither op was modelled — the
-/// comment here used to read "`mm256_inserti128_si256` produces a Vec256 where
-/// the upper 128 bits are undefined, thus it is not pure" — and this wrapper
-/// carried a whole-function `fstar::replace(interface)` stub, i.e. an
-/// unverified hand-written F* substitute for its body.  Over core-models BOTH
-/// ops have models, so the stub is gone and the contract below is proven from
-/// the actual code.
+/// Over core-models both ops have models, so the contract below is proven
+/// directly from the actual code.
 #[inline(always)]
 #[hax_lib::fstar::options("--ext context_pruning --z3rlimit 300")]
 #[hax_lib::ensures(|r| fstar!(r#"forall (i: nat{i < 256}).

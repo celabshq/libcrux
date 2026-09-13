@@ -75,7 +75,7 @@ pub(super) fn compress_then_serialize_message<Vector: Operations>(
         // `bounded_i16_array (mk_i16 0) (mk_i16 1)`) to serialize_1's pre
         // `serialize_pre_N 1 r` (= `forall j. bounded r[j] 1`).  Targeted
         // reveal (Rule SD4) — unfolds the opaque only for THIS instance,
-        // not universally; previously the global form polluted Z3 every
+        // not universally; the global form would pollute Z3 every
         // loop iteration with the unbound forall.
         proof!(
             r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.bounded_i16_array)
@@ -449,11 +449,10 @@ pub(super) fn deserialize_ring_elements_reduced_out<const K: usize, Vector: Oper
 
 /// See [deserialize_ring_elements_reduced_out].
 #[inline(always)]
-// deserialize_ring_elements_reduced verifies in isolation (admit_except, rlimit <=173) but its
-// fold-body split-subquery saturates COLD in the full module (rlimit 400.0) from Z3 solver-state
-// pollution accumulated by earlier Serialize decls whose committed hints the Serialize_bits /
-// Serialize_compress .fsti firewalls invalidated — NOT a logic gap.  #restart-solver runs it on
-// clean state (verified: full check/Libcrux_ml_kem.Serialize.fst GREEN with this line).
+// deserialize_ring_elements_reduced verifies in isolation but its fold-body
+// split-subquery saturates in the full module (rlimit 400) from Z3 solver-state
+// pollution accumulated by earlier Serialize decls — NOT a logic gap.
+// #restart-solver runs it on clean state.
 #[hax_lib::fstar::before(r#"#restart-solver"#)]
 #[hax_lib::fstar::options("--z3rlimit 400 --ext context_pruning --split_queries always")]
 #[hax_lib::requires(

@@ -366,14 +366,14 @@ type t_Result a b =
 
 val v_G (input: t_Slice u8) : t_Array u8 (sz 64)
 val v_H (input: t_Slice u8) : t_Array u8 (sz 32)
-val v_PRF (v_LEN: usize{v v_LEN < pow2 32}) (input: t_Slice u8) : t_Array u8 v_LEN
+val v_PRF (v_LEN: usize{v v_LEN < v Core_models.Num.impl_usize__MAX - 200}) (input: t_Slice u8) : t_Array u8 v_LEN
 
-val v_PRFxN (r:usize{v r == 2 \/ v r == 3 \/ v r == 4}) (v_LEN: usize{v v_LEN < pow2 32})
+val v_PRFxN (r:usize{v r == 2 \/ v r == 3 \/ v r == 4}) (v_LEN: usize{v v_LEN < v Core_models.Num.impl_usize__MAX - 200})
   (input: t_Array (t_Array u8 (sz 33)) r) : t_Array (t_Array u8 v_LEN) r
 
 val v_J (input: t_Slice u8) : t_Array u8 (sz 32)
 
-val v_XOF (v_LEN: usize{v v_LEN < pow2 32}) (input: t_Slice u8) : t_Array u8 v_LEN
+val v_XOF (v_LEN: usize{v v_LEN < v Core_models.Num.impl_usize__MAX - 200}) (input: t_Slice u8) : t_Array u8 v_LEN
 
 val update_at_range_lemma #n
   (s: t_Slice 't)

@@ -13,7 +13,7 @@ module ML = FStar.Math.Lemmas
    Each Gentleman–Sande inverse butterfly `inv_butterfly zeta a b = (a+b, zeta·(b-a))`
    is jointly homogeneous in (a,b) (zeta fixed); ntt_inverse_layer_n is a createi over
    these butterflies; ntt_inverse_butterflies composes 7 layers.
-   This is the keystone for the INTT-track finalize (compute_vector_u / ring_element_v /
+   This is the keystone for the inverse-NTT finalize (compute_vector_u / ring_element_v /
    message): the impl computes the inverse NTT in Mont domain (to_spec_poly_mont) while the
    spec's `ntt_inverse` is applied to the standard-domain dot product `product`, which differ
    by a scalar (R²); linearity moves that scalar through the inverse NTT. *)
@@ -213,8 +213,9 @@ let lemma_inv_layer_scale
         else P.impl_FieldElement__new (mk_u16 0))
   in
   let tbl_slice : t_Slice P.t_FieldElement =
-    zetas_tbl.[ { Core_models.Ops.Range.f_start = mk_usize 0;
-                  Core_models.Ops.Range.f_end = groups } ] in
+    zetas_tbl.[ ({ Core_models.Ops.Range.f_start = mk_usize 0;
+                   Core_models.Ops.Range.f_end = groups }
+                 <: Core_models.Ops.Range.t_Range usize) ] in
   (* shift / divisibility facts for v len == pow2 (v layer), layer in 1..7 *)
   lemma_len_groups layer;
   assert (v groups == v (mk_usize 128 /! len <: usize));

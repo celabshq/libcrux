@@ -1428,8 +1428,8 @@ let lemma_nttmul_assemble (iv_l iv_r ov: t_Array i16 (mk_usize 16)) (z1 z2 z3 z4
 (* array_of_list -> per-lane Seq.index facts, in a high-fuel helper (List.length 16 +
    seq_of_list indexing need fuel ~16; isolated here so the fuel never touches a heavy
    proof).  ntt_multiply discharges the requires definitionally (indexes IS that array).
-   rlimit 80 -> 200 on relocation: in situ this replayed a recorded hint; the companion
-   verifies it cold and 80 starves the fuel-16 list normalization (used 71.5/80). *)
+   rlimit 200 (not 80): the fuel-16 list normalization starves at 80
+   (uses ~71.5/80). *)
 #push-options "--fuel 20 --ifuel 2 --z3rlimit 200"
 let lemma_indexes_vals (indexes: t_Array u8 (mk_usize 16)) : Lemma
   (requires
@@ -1445,10 +1445,9 @@ let lemma_indexes_vals (indexes: t_Array u8 (mk_usize 16)) : Lemma
     Seq.index indexes 10 == mk_u8 6  /\ Seq.index indexes 11 == mk_u8 7  /\
     Seq.index indexes 12 == mk_u8 12 /\ Seq.index indexes 13 == mk_u8 13 /\
     Seq.index indexes 14 == mk_u8 14 /\ Seq.index indexes 15 == mk_u8 15)
-  = (* cold-stable proof (relocation): in situ this was `()` + a recorded hint; hintless,
-       Z3 gives up ("incomplete quantifiers", used 71.5 at both rlimit 80 and 200).  The
+  = (* A bare `()` proof leaves Z3 with "incomplete quantifiers"; instead the
        normalizer reduces the literal array_of_list indexing to ground facts
-       deterministically; the requires equation then transfers them to `indexes`. *)
+       deterministically, and the requires equation then transfers them to `indexes`. *)
     assert_norm (
       let arr = Rust_primitives.Hax.array_of_list 16
         [mk_u8 0; mk_u8 1; mk_u8 2; mk_u8 3; mk_u8 8; mk_u8 9; mk_u8 10; mk_u8 11;

@@ -22,9 +22,9 @@ module FA = Libcrux_ml_kem.Vector.Avx2.Arithmetic
 // Per-lane lifting lemmas: confine the map2/createi reasoning to these two
 // once-proven bodies (verify at module-default rlimit, no cascade), so the
 // *_sums helpers' lane foralls reason over clean `+.`/`mul_mod` equalities.
-// NO SMTPat — global triggers regressed the forward ntt_layer_1/2 leaves
-// ("incomplete quantifiers" under 0.3.7); these are called explicitly from
-// the forall-aux inside lemma_inv_l2_sums instead (createi paid once, here).
+// NO SMTPat — a global trigger here causes "incomplete quantifiers" on the
+// forward ntt_layer_1/2 leaves; these are called explicitly from the
+// forall-aux inside lemma_inv_l2_sums instead (createi paid once, here).
 let lemma_get_lane_add (a b: Libcrux_intrinsics.Avx2_ml_kem_views.t_Vec256) (i:nat{i < 16}) : Lemma
   (ensures Libcrux_intrinsics.Avx2_ml_kem_views.get_lane (Libcrux_intrinsics.Avx2.mm256_add_epi16 a b) i == (Libcrux_intrinsics.Avx2_ml_kem_views.get_lane a i) +. (Libcrux_intrinsics.Avx2_ml_kem_views.get_lane b i))
   = ()
@@ -432,8 +432,7 @@ let lemma_mm256_castsi256_si128 (v: Libcrux_intrinsics.Avx2_ml_kem_views.t_Vec25
         Libcrux_intrinsics.Avx2_ml_kem_views.bit_vec_of_int_t_array_vec256_as_i16x16_lemma v 16 k;
         assert (k / 16 == i);
         assert (k % 16 == nthv);
-        (* pcm applied the vector as a `bit_vec` FUNCTION here; over core-models the
-           same step is the PROVEN companion bit fact. *)
+        (* Over core-models this step is the PROVEN companion bit fact. *)
         Libcrux_intrinsics.Avx2_ml_kem_views.lemma_bv_bit_castsi256_si128 v k
       in
       Classical.forall_intro auxb;
@@ -476,8 +475,7 @@ let lemma_mm256_extracti128_si256_1 (v: Libcrux_intrinsics.Avx2_ml_kem_views.t_V
         assert (k % 16 == nthv);
         assert (k' / 16 == i + 8);
         assert (k' % 16 == nthv);
-        (* pcm applied the vector as a `bit_vec` FUNCTION here; over core-models the
-           same step is the PROVEN companion bit fact. *)
+        (* Over core-models this step is the PROVEN companion bit fact. *)
         Libcrux_intrinsics.Avx2_ml_kem_views.lemma_bv_bit_extracti128_si256_1 v k
       in
       Classical.forall_intro auxb;
@@ -785,7 +783,7 @@ let lemma_blend_240 (a b: Libcrux_intrinsics.Avx2_ml_kem_views.t_Vec256) : Lemma
     blendsel240 8; blendsel240 9; blendsel240 10; blendsel240 11;
     blendsel240 12; blendsel240 13; blendsel240 14; blendsel240 15
 
-// Createi-free under 0.3.7: a per-lane forall-aux calls lemma_get_lane_mullo /
+// Createi-free: a per-lane forall-aux calls lemma_get_lane_mullo /
 // lemma_get_lane_add (above) explicitly, paying the map2/createi reasoning once
 // inside those two bodies (no SMTPat — see the note at their definition); with
 // the per-lane bounds in hand, Z3's native i16 model lifts `mul_mod`/`+.` to
@@ -877,7 +875,7 @@ let lemma_inv_l2_sums_v (vector lhs rhs0 mult rhs sum: Libcrux_intrinsics.Avx2_m
      v (Libcrux_intrinsics.Avx2_ml_kem_views.get_lane sum 15) == v (Libcrux_intrinsics.Avx2_ml_kem_views.get_lane vector 15) - v (Libcrux_intrinsics.Avx2_ml_kem_views.get_lane vector 11))
   = lemma_inv_l2_sums lhs rhs0 mult rhs sum;
     // re-assert l2_sums' post forall to pull it into each per-lane sub-query
-    // under --split_queries always (else the lane instantiations do not fire on 0.3.7).
+    // under --split_queries always (else the lane instantiations do not fire).
     assert (forall (i:nat). i < 16 ==>
         v (Libcrux_intrinsics.Avx2_ml_kem_views.get_lane sum i) ==
           v (Libcrux_intrinsics.Avx2_ml_kem_views.get_lane lhs i) + v (Libcrux_intrinsics.Avx2_ml_kem_views.get_lane rhs0 i) * v (Libcrux_intrinsics.Avx2_ml_kem_views.get_lane mult i))
@@ -945,12 +943,9 @@ let lemma_inv_l2_post
 // ─────────────────────────────────────────────────────────────────────────
 
 (* ── shuffle_epi8 (256-bit PSHUFB) ─────────────────────────────────────────────
-   RE-HOMED onto core-models (was: a hand-written, UNTESTED `assume val`
-   `mm256_shuffle_epi8_no_semantics_lemma` stating PSHUFB's bit semantics over
-   pcm's `bit_vec`, because `BitVec.Intrinsics`'s tactic routed a non-literal
-   mask to an uninterpreted symbol).  core-models MODELS the op
-   (`Int_vec.e_mm256_shuffle_epi8`) and the model is differentially tested against
-   the real intrinsic, so the axiom is gone: the per-lane bridge below is PROVEN
+   core-models MODELS the op (`Int_vec.e_mm256_shuffle_epi8`) and the model is
+   differentially tested against the real intrinsic, so the per-lane bridge below
+   is PROVEN
    from `Canon.lemma_mm256_shuffle_epi8` (the tested lift + the proven codec
    round-trip), `Canon.lemma_iv_shuffle_epi8_sel` (the model's select branch) and
    `Canon.lemma_i16_from_i8_pair` (two agreeing i8 sub-lanes give an agreeing i16
@@ -1012,9 +1007,8 @@ let swap_mask8 : Libcrux_intrinsics.Avx2_ml_kem_views.t_Vec256 =
   (mk_i8 3) (mk_i8 2)
 
 (* Byte values of the two concrete PSHUFB masks, from the canonical `set_epi8`
-   op-lemma + its per-lane interpretation lemma.  (Under pcm these were
-   `assert_norm`s over the concrete `bit_vec` model; over core-models the lane
-   view is a codec, so the values come from lemmas instead of normalisation.) *)
+   op-lemma + its per-lane interpretation lemma.  (Over core-models the lane view
+   is a codec, so the values come from lemmas rather than normalisation.) *)
 #push-options "--fuel 1 --ifuel 2 --z3rlimit 400"
 let lemma_group_mask8_byte (n: nat{n < 32})
   : Lemma (mbv group_mask8 n ==
@@ -1289,9 +1283,8 @@ let lemma_set32_i16x2_to_i32 (lo hi: i16) (x: i32)
 #pop-options
 
 (* PROVEN from the canonical set_epi32 op-lemma + its per-lane interpretation
-   lemma + the lane32<->to_i32x8 bridge.  (Under pcm this was a ~45-line per-bit
-   argument that applied the vector as a `bit_vec` FUNCTION; over core-models the
-   i32 lane view IS the codec, so the fact is direct.) *)
+   lemma + the lane32<->to_i32x8 bridge.  (Over core-models the i32 lane view IS
+   the codec, so the fact is direct.) *)
 #push-options "--fuel 1 --ifuel 2 --z3rlimit 200"
 let lemma_nttmul_set32_lane (e7 e6 e5 e4 e3 e2 e1 e0: i32) (j: nat{j < 8}) : Lemma
   (ZA.lane32 (Libcrux_intrinsics.Avx2.mm256_set_epi32 e7 e6 e5 e4 e3 e2 e1 e0) j ==
@@ -1700,8 +1693,8 @@ let lemma_nttmul_zv (zeta0 zeta1 zeta2 zeta3: i16) (zv: Libcrux_intrinsics.Avx2_
     ()
 #pop-options
 
-(* LEFT phase of avx2 ntt_multiply: even output lanes.  Split out of the old
-   monolithic lemma_nttmul_main so each half cold-verifies at the 4096 input
+(* LEFT phase of avx2 ntt_multiply: even output lanes.  Split out of a
+   monolithic lemma_nttmul_main so each half verifies at the 4096 input
    bound.  The zeta multiplier vector `zv` is a FREE PARAMETER (the impl passes
    its `neg (cast zeta)` set_epi32 and proves the per-lane facts there); keeping
    `neg` out of this lemma avoids a cold subtyping cascade under split_queries. *)

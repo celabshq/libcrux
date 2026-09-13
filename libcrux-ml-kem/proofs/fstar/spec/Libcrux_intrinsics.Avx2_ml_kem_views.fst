@@ -4,7 +4,7 @@ open FStar.Mul
 open Core_models
 open Libcrux_intrinsics.Avx2
 
-(* Canonical Option-B intrinsics view + PROVEN op-lemmas (Phase-3 A-on-B adapter). *)
+(* Intrinsics lane view + PROVEN op-lemmas (thin adapter over core-models Avx2). *)
 module Funarr = Libcrux_core_models.Abstractions.Funarr
 module Canon  = Libcrux_core_models.Intrinsics_views
 module IV     = Libcrux_core_models.Core_arch.X86.Interpretations.Int_vec
@@ -12,31 +12,24 @@ module Avx2c  = Libcrux_core_models.Core_arch.X86.Avx2
 module Sse2c  = Libcrux_core_models.Core_arch.X86.Sse2
 
 (* ============================================================================
-   ml-kem AVX2 lane-view + per-op fact companion (core-models migration).
+   ml-kem AVX2 lane-view + per-op fact companion.
 
-   HISTORY.  This module was originally a small file holding five ml-kem-only
-   SMTPat view-axioms relocated out of the shared `Libcrux_intrinsics.Avx2_extract`
-   interface (2026-06-30).  As part of the `intrinsics-cm-migration` campaign
-   (2026-07-28) it becomes the SINGLE ml-kem lane-view/fact companion over the
-   REAL `Libcrux_intrinsics.Avx2` ops (which rest on the differentially-tested
-   `libcrux-core-models` model), replacing the hand-written, untested pcm
-   `Libcrux_intrinsics.Avx2_extract` (bit_vec) intrinsics model.
+   This module is the SINGLE ml-kem lane-view/fact companion over the REAL
+   `Libcrux_intrinsics.Avx2` ops (which rest on the differentially-tested
+   `libcrux-core-models` model).
 
-   DESIGN (clean ml-dsa-style; NO `Avx2_extract` shim).  The lane VIEWS
-   (`vec256_as_i16x16` / `get_lane` / `lane32` / ...) and per-op FACT lemmas that
-   the pcm `Avx2_extract.fsti` carried as op `ensures` are MOVED here, phrased
-   over the real ops (`open Libcrux_intrinsics.Avx2`).  The op BODIES come from
-   the real `Avx2` (core-models `e_mm256_OP`); this module only re-exposes the
-   lane-view fact surface ml-kem's proofs consume.
+   DESIGN (NO `Avx2_extract` shim).  The lane VIEWS (`vec256_as_i16x16` /
+   `get_lane` / `lane32` / ...) and per-op FACT lemmas are phrased over the real
+   ops (`open Libcrux_intrinsics.Avx2`).  The op BODIES come from the real `Avx2`
+   (core-models `e_mm256_OP`); this module only re-exposes the lane-view fact
+   surface ml-kem's proofs consume.
 
-   TRUST (current).  This module is now a THIN ADAPTER: the Seq lane view is a
-   per-index read of the canonical core-models FunArray view (`Canon.to_i16x16` /
-   `to_i16x8`), and every op-fact below is PROVEN from the canonical op-lemma set
-   in `Libcrux_core_models.Intrinsics_views` (which itself rests only on the
+   TRUST.  This module is a THIN ADAPTER: the Seq lane view is a per-index read
+   of the canonical core-models FunArray view (`Canon.to_i16x16` / `to_i16x8`),
+   and every op-fact below is PROVEN from the canonical op-lemma set in
+   `Libcrux_core_models.Intrinsics_views` (which itself rests only on the
    differentially-tested `Int_vec.Lemmas` lifts plus the PROVEN codec round-trip).
-   Under pcm these same facts were abstract `val`s / assumed `#[ensures]`, so the
-   trust surface here has strictly SHRUNK.  As of 2026-07-29 NO fact in this
-   module is assumed: the last one (`lemma_mm256_mul_epu32`, the only one crossing
+   NO fact in this module is assumed: `lemma_mm256_mul_epu32` (the only one crossing
    both a signedness and a width change) is proven from the canonical unsigned
    codec bridges `Canon.lemma_u32_of_i32` / `Canon.lemma_u64_concat32`.
    The views keep ml-kem's Seq/Array shape (`vec256_as_i16x16 : t_Array i16 (sz
@@ -44,18 +37,15 @@ module Sse2c  = Libcrux_core_models.Core_arch.X86.Sse2
 
    ml-kem uses ONLY the i16x16 / lane32 / vec128 views.  The u64x4 view
    (`vec256_as_u64x4` / `get_lane_u64x4` / `lemma_mm256_*_u64x4`) is sha3-only and
-   is NOT declared here.  The bit-level lane bridges
-   (`bit_vec_of_int_t_array_*`), which the pcm interface carried as abstract
-   `val`s, are now PROVEN here — over core-models the lane view is the concrete
-   codec, so each is one call to `Canon.lemma_readback`.  The remaining pcm
-   bit-level shapes not yet needed (`mm256_{storeu,loadu}_si256_u8` bit_vec,
-   `mm256_cmpgt_epi16` bit-form) are preserved verbatim in the DEFERRED block at
-   the bottom of this file.
+   is NOT declared here.  The bit-level lane bridges (`bit_vec_of_int_t_array_*`)
+   are PROVEN here — over core-models the lane view is the concrete codec, so each
+   is one call to `Canon.lemma_readback`.  The bit-level shapes not yet needed
+   (`mm256_{storeu,loadu}_si256_u8` bit_vec, `mm256_cmpgt_epi16` bit-form) are
+   preserved verbatim in the DEFERRED block at the bottom of this file.
 
    This module lives in `proofs/fstar/spec/` (hand-maintained, NOT the
    hax-extraction dir), so `cargo hax into` never clobbers it; it is on ml-kem's
-   include path but not sha3's.  See
-   ~/hax-fstar-mcp/libcrux-notes/agent-status/sprint-2026-07-28-cm-migration-rollup.md.
+   include path but not sha3's.
    ========================================================================== *)
 
 (* ── Lane-view types + abstract views ─────────────────────────────────────── *)
@@ -63,25 +53,24 @@ module Sse2c  = Libcrux_core_models.Core_arch.X86.Sse2
 unfold type t_Vec256 = Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 256)
 unfold type t_Vec128 = Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 128)
 
-(* Abstract i16x16 lane view (pcm `val vec256_as_i16x16`).  Uninterpreted at P1;
-   semantics carried by the admitted fact-lemmas below (validated by the
-   core-models differential tests).  P2 gives it a body = core-models
-   `to_i16x16` (FunArray -> t_Array via createi). *)
-(* A-on-B adapter: Seq view = per-lane read of the canonical FunArray view.
+(* i16x16 lane view.  Its semantics are the core-models `to_i16x16`
+   (FunArray -> t_Array via createi); the fact-lemmas below are PROVEN from the
+   canonical op-lemma set. *)
+(* Seq view = per-lane read of the canonical FunArray view.
 
-   OPAQUE (2026-07-29).  Under pcm this was an abstract `assume val`, so consumers
-   could only ever see it as an ATOM of type `t_Array i16 (sz 16)`.  Giving it a
-   body made it TRANSPARENT, and that regressed consumers two ways:
+   OPAQUE.  This definition is marked `opaque_to_smt` because exposing its body
+   TRANSPARENTLY hurts consumers two ways:
      * the `t_Array i16 (sz 16)` -> `t_Slice i16` coercion VC
-       (`Seq.length … <= max_usize`) stopped following from the declared result
-       type and had to be re-derived through `Seq.init`, which STARVES under
+       (`Seq.length … <= max_usize`) does not follow from the declared result
+       type and must be re-derived through `Seq.init`, which STARVES under
        `--ext context_pruning`; and
-     * every `Seq.index (view x) i` goal acquired a second, dead-end path (unfold
+     * every `Seq.index (view x) i` goal acquires a second, dead-end path (unfold
        to `Seq.init`, then the OPAQUE `Canon.to_i16x16`) competing with the
        op-fact lemmas — 16 lanes of that saturates a split sub-query.
-   `opaque_to_smt` restores pcm's abstraction while keeping the definition (so it
-   is still PROVEN, not assumed).  The ONLY route from the Seq view to the
-   canonical FunArray view is `vec256_index` below, which reveals internally. *)
+   `opaque_to_smt` keeps consumers seeing it as an ATOM while keeping the
+   definition (so it is still PROVEN, not assumed).  The ONLY route from the Seq
+   view to the canonical FunArray view is `vec256_index` below, which reveals
+   internally. *)
 [@@ "opaque_to_smt"]
 let vec256_as_i16x16 (x: t_Vec256) : t_Array i16 (sz 16) =
   Seq.init 16 (fun i -> Funarr.impl_5__get (mk_u64 16) #i16 (Canon.to_i16x16 x) (mk_u64 i))
@@ -316,8 +305,8 @@ let lemma_mm256_set_epi16 (v15 v14 v13 v12 v11 v10 v9 v8 v7 v6 v5 v4 v3 v2 v1 v0
 (* NB: NO SMTPat.  `mm256_setzero_si256 ()` is a fully GROUND core-models
    `t_BitVec` term, so an SMTPat on `vec256_as_i16x16 (mm256_setzero_si256 ())`
    is a variable-free trigger → Z3 emits "pattern does not contain any variable",
-   which corrupts F*'s output parse into an Error 276 (whereas under pcm the
-   `bit_vec` result carried a variable).  Consumers call this explicitly. *)
+   which corrupts F*'s output parse into an Error 276.  Consumers call this
+   explicitly. *)
 #push-options "--fuel 1 --ifuel 1 --z3rlimit 150"
 let lemma_mm256_setzero_si256 (u: Prims.unit)
   : Lemma (vec256_as_i16x16 (mm256_setzero_si256 ()) == Seq.create 16 (mk_i16 0)) =
@@ -365,7 +354,7 @@ let lemma_mm256_srli_epi16 (v_SHIFT_BY: i32 {v v_SHIFT_BY >= 0 /\ v v_SHIFT_BY <
        (vec256_as_i16x16 vector))
 #pop-options
 
-(* ── cross-width bridge wrapper + lane32-half helper (Phase-3 gap-2) ───────── *)
+(* ── cross-width bridge wrapper + lane32-half helper ──────────────────────── *)
 
 (* thin ml-kem wrapper over the crate-independent canonical bridge: the i16-pair
    `lane32` value equals the native i32 decode of the same 32 bits. *)
@@ -458,10 +447,10 @@ let lemma_mm256_mullo_epi32 (lhs rhs: t_Vec256)
 #pop-options
 
 (* The `lane64u` view is the only lane fact crossing BOTH a signedness change
-   (`to_u32x8` vs `to_i32x8`) and a width change (32 -> 64 unsigned), so it needed
+   (`to_u32x8` vs `to_i32x8`) and a width change (32 -> 64 unsigned), so it needs
    two extra codec bridges in the canonical module that the rest of the set does
-   not: `Canon.lemma_u32_of_i32` and `Canon.lemma_u64_concat32`.  Both are now
-   PROVEN there, so this fact is no longer assumed.  Consumer: Compress's
+   not: `Canon.lemma_u32_of_i32` and `Canon.lemma_u64_concat32`.  Both are
+   PROVEN there, so this fact is not assumed.  Consumer: Compress's
    `mul_epu32_lane_nn`. *)
 (* PROVEN from the canonical unsigned codec bridges.  The chain, per 64-bit lane
    `i`:  `lane64u r i` is the base-2^32 concatenation of the two i32 sub-lanes
@@ -803,9 +792,8 @@ let lemma_permute64_src_ctl2 (c: i32) (q: nat{q < 4})
    lane domain.  The const-generic controls ml-kem passes are literals in
    [0,256) (68/160/238/245 for shuffle, 160/216/245 for permute, 170/204/240 for
    blend, 1 for inserti128), so taking the range as a `requires` is honest and
-   discharges at every call site by normalisation.  Under pcm these facts were
-   stated unconditionally — i.e. they also claimed something unprovable (and in
-   general false) for out-of-range immediates. *)
+   discharges at every call site by normalisation.  An unconditional form would
+   claim something unprovable (and in general false) for out-of-range immediates. *)
 #push-options "--fuel 1 --ifuel 2 --z3rlimit 300"
 let lemma_mm256_shuffle_epi32 (v_CONTROL: i32) (vector: t_Vec256)
   : Lemma (requires v v_CONTROL >= 0 /\ v v_CONTROL < 256)
@@ -1029,13 +1017,10 @@ let lemma_mm_set1_epi16 (constant: i16)
 
 (* ── Bit-function view of a core-models t_BitVec ──────────────────────────────
    core-models `t_BitVec N` is structurally a bit-array (a `t_FunArray` of
-   `t_Bit`).  `bv_bit` is its DEFINITIONAL view as a pcm-style bit function
+   `t_Bit`).  `bv_bit` is its DEFINITIONAL view as a bit function
    (`nat -> bit`): it reads bit `i` through the `t_Index` instance and maps
-   `t_Bit` to `{0,1}`.  This is a DEFINITION, NOT a trusted axiom — it replaces
-   the pcm `bit_vec` FUNCTION application (`v (idx)`) that the deferred bridges
-   below used, phrasing them over the real core-models struct instead.  The
-   migrated Serialize/Compress/Sampling bit proofs apply the vector via `bv_bit`
-   in place of the pcm direct application. *)
+   `t_Bit` to `{0,1}`.  This is a DEFINITION, NOT a trusted axiom.  The
+   Serialize/Compress/Sampling bit proofs apply the vector via `bv_bit`. *)
 let bv_bit (#n: u64) (bv: Libcrux_core_models.Abstractions.Bitvec.t_BitVec n)
            (i: nat{i < v n}) : Rust_primitives.Integers.bit =
   match bv.[ mk_u64 i ] <: Libcrux_core_models.Abstractions.Bit.t_Bit with
@@ -1045,8 +1030,8 @@ let bv_bit (#n: u64) (bv: Libcrux_core_models.Abstractions.Bitvec.t_BitVec n)
 (* Cast / extract preserve the underlying bits — PROVEN from the transparent
    core-models ops (`e_mm256_castsi256_si128 v = from_fn (fun i -> v.[i])`,
    `e_mm256_extracti128_si256 1 v = from_fn (fun i -> v.[i + 128])`).  NOT
-   trusted axioms; they discharge the `cast vc k == vc k` step that pcm's
-   Compress/Ntt bit proofs relied on. *)
+   trusted axioms; they discharge the `cast vc k == vc k` step the
+   Compress/Ntt bit proofs rely on. *)
 let lemma_bv_bit_castsi256_si128 (vc: t_Vec256) (k: nat{k < 128})
   : Lemma (bv_bit (mm256_castsi256_si128 vc) k == bv_bit vc k)
   = reveal_opaque (`%mm256_castsi256_si128) mm256_castsi256_si128
@@ -1059,13 +1044,12 @@ let lemma_bv_bit_extracti128_si256_1 (vc: t_Vec256) (k: nat{k < 128})
    The i16x16 / i16x8 lane view's `d`-bit-per-element serialization at bit `i`
    equals raw bit `(i/d)*16 + i%d` of the underlying vector.
 
-   PROVEN (was a trusted axiom under pcm, where the lane view was an abstract
-   `val`): over core-models the view is the CONCRETE codec, so this is exactly
+   PROVEN: over core-models the view is the CONCRETE codec, so this is exactly
    the canonical read-back lemma `Canon.lemma_readback` at I16 — bit `b` of lane
    `l` of the `to_iv` view IS raw bit `16*l + b`.  This is the bridge the
-   bit-level modules (Serialize / Sampling / top-Avx2) consume, so retiring it
-   as an axiom removes the last representational assumption between the lane
-   view and the raw bit vector. *)
+   bit-level modules (Serialize / Sampling / top-Avx2) consume; proving it
+   (rather than assuming it) removes the last representational assumption between
+   the lane view and the raw bit vector. *)
 #push-options "--fuel 1 --ifuel 1 --z3rlimit 250"
 let bit_vec_of_int_t_array_vec256_as_i16x16_lemma
       (vec: t_Vec256) (d: nat{d > 0 /\ d <= 16}) (i: nat{i < 16 * d})
@@ -1097,14 +1081,12 @@ let bit_vec_of_int_t_array_vec128_as_i16x8_lemma
 #pop-options
 
 (* ============================================================================
-   DEFERRED — bit-level bridges + byte store/load, authored per-module when
-   Serialize / Compress / Sampling migrate (they need a `t_BitVec`-struct
-   representation adaptation: the pcm form below applies the underlying vector as
-   a `bit_vec` FUNCTION (`v (idx)`), invalid over core-models `t_BitVec`; the
-   replacement indexes via `t_Index` / `to_vec`).  Preserved verbatim from the
-   pcm `Libcrux_intrinsics.Avx2_extract.fsti` (source of truth) so the exact fact
-   shapes are recoverable.  Consumers of these (top-`Avx2`, `Serialize`,
-   `Sampling`) stay RED until then.
+   DEFERRED — bit-level bridges + byte store/load whose reference shapes are
+   parked here.  They need a `t_BitVec`-struct representation adaptation: the
+   reference form below applies the underlying vector as a `bit_vec` FUNCTION
+   (`v (idx)`), invalid over core-models `t_BitVec`; the replacement indexes via
+   `t_Index` / `to_vec`.  The reference `val` shapes are kept below so the exact
+   fact shapes are recoverable.
 
    val bit_vec_of_int_t_array_vec256_as_i16x16_lemma
          (v: bit_vec 256) (d: nat{d > 0 /\ d <= 16}) (i: nat{i < 16 * d})
@@ -1196,11 +1178,8 @@ let lemma_mm256_set_epi16_bound (v15 v14 v13 v12 v11 v10 v9 v8 v7 v6 v5 v4 v3 v2
 #pop-options
 
 (* ── `mm256_cmpgt_epi16`: lane form, and the bit-0 form its consumers need ─────
-   pcm stated this as an `ensures` on the op itself (an unvalidated axiom in
-   `Avx2_extract.fsti`); the migrated `Libcrux_intrinsics.Avx2` op carries no
-   ensures at all and the DEFERRED note above parked the shape.  Both facts below
-   are PROVEN: over core-models the op IS modeled, `IV.e_mm256_cmpgt_epi16`
-   yielding `mk_i16 (-1)` or `mk_i16 0` per lane.
+   Both facts below are PROVEN: over core-models the op IS modeled,
+   `IV.e_mm256_cmpgt_epi16` yielding `mk_i16 (-1)` or `mk_i16 0` per lane.
 
    Stated at TWO granularities on purpose.  The lane form is the primitive; the
    bit form is what the consumers actually ask for, and note their bit index is
@@ -1245,7 +1224,7 @@ let lemma_bv_bit0_mm256_cmpgt_epi16 (lhs rhs: t_Vec256) (l: nat{l < 16})
 #pop-options
 
 (* ============================================================================
-   SERIALIZE / SAMPLING MIGRATION BATCH (2026-07-30)
+   SERIALIZE / SAMPLING bit proofs
    ============================================================================ *)
 
 module IVi = Libcrux_core_models.Abstractions.Bitvec.Int_vec_interp
@@ -1261,8 +1240,8 @@ let lemma_bv_bit_reader (#n: u64) (w: pos)
   assert (l <= w * l)
 #pop-options
 
-(* ── PROVEN slice-I/O semantics (2026-07-30; formerly 5 tagged trusted axioms) ─
-   The memory-op WRAPPERS in `crates/utils/intrinsics/src/avx2.rs` now carry
+(* ── PROVEN slice-I/O semantics ─────────────────────────────────────────────
+   The memory-op WRAPPERS in `crates/utils/intrinsics/src/avx2.rs` carry
    extractable model bodies under the hax cfg: they delegate to the slice-I/O
    models in core-models' `Extra` module (loads: `from_iv` over a guarded
    byte/lane read; stores: a ground spine of guarded per-lane writes), so the
@@ -1271,9 +1250,9 @@ let lemma_bv_bit_reader (#n: u64) (w: pos)
    (`IVi.lemma_conv_rt`), `Canon.lemma_readback`, and `lemma_bv_bit_reader`.
    The models are differentially tested against the real intrinsics
    (`*_model_diff` tests in core-models interpretations.rs, including the
-   previously-missing i16-store test, plus host-independent round-trips).
-   Companion trusted-extern axioms: 5 -> 0.  The u8 256-bit pair (consumed by
-   `Vector.Avx2` from_bytes/to_bytes) is proven here too, so no new axiom is
+   i16-store test, plus host-independent round-trips).
+   No trusted-extern axioms remain for slice-I/O.  The u8 256-bit pair (consumed
+   by `Vector.Avx2` from_bytes/to_bytes) is proven here too, so no new axiom is
    ever needed for it. *)
 
 module Extra = Libcrux_core_models.Core_arch.X86.Extra
@@ -1387,7 +1366,7 @@ let lemma_mm_storeu_bytes_si128 (output: t_Slice u8) (vector: t_Vec128)
   reveal_opaque (`%mm_storeu_bytes_si128) mm_storeu_bytes_si128;
   reveal_opaque (`%Extra.mm_storeu_bytes_si128_model) Extra.mm_storeu_bytes_si128_model;
   let output' = mm_storeu_bytes_si128 output vector in
-  let lanes = IVi.e_ee_18__impl__to_u8x16 vector in
+  let lanes = IVi.e_ee_17__impl__to_u8x16 vector in
   let s0 = Rust_primitives.Hax.Monomorphized_update_at.update_at_usize output (mk_usize 0) (lanes.[ mk_u64 0 ] <: u8) in
   let s1 = Rust_primitives.Hax.Monomorphized_update_at.update_at_usize s0 (mk_usize 1) (lanes.[ mk_u64 1 ] <: u8) in
   let s2 = Rust_primitives.Hax.Monomorphized_update_at.update_at_usize s1 (mk_usize 2) (lanes.[ mk_u64 2 ] <: u8) in
@@ -1428,7 +1407,7 @@ let lemma_mm256_storeu_si256_i16 (output: t_Slice i16) (vector: t_Vec256)
   reveal_opaque (`%mm256_storeu_si256_i16) mm256_storeu_si256_i16;
   reveal_opaque (`%Extra.mm256_storeu_si256_i16_model) Extra.mm256_storeu_si256_i16_model;
   let output' = mm256_storeu_si256_i16 output vector in
-  let lanes = IVi.e_ee_3__impl__to_i16x16 vector in
+  let lanes = IVi.e_ee_2__impl__to_i16x16 vector in
   let s0 = Rust_primitives.Hax.Monomorphized_update_at.update_at_usize output (mk_usize 0) (lanes.[ mk_u64 0 ] <: i16) in
   let s1 = Rust_primitives.Hax.Monomorphized_update_at.update_at_usize s0 (mk_usize 1) (lanes.[ mk_u64 1 ] <: i16) in
   let s2 = Rust_primitives.Hax.Monomorphized_update_at.update_at_usize s1 (mk_usize 2) (lanes.[ mk_u64 2 ] <: i16) in
@@ -1465,7 +1444,7 @@ let lemma_mm256_storeu_si256_u8 (output: t_Slice u8) (vector: t_Vec256)
   reveal_opaque (`%mm256_storeu_si256_u8) mm256_storeu_si256_u8;
   reveal_opaque (`%Extra.mm256_storeu_si256_u8_model) Extra.mm256_storeu_si256_u8_model;
   let output' = mm256_storeu_si256_u8 output vector in
-  let lanes = IVi.e_ee_9__impl__to_u8x32 vector in
+  let lanes = IVi.e_ee_8__impl__to_u8x32 vector in
   let s0 = Rust_primitives.Hax.Monomorphized_update_at.update_at_usize output (mk_usize 0) (lanes.[ mk_u64 0 ] <: u8) in
   let s1 = Rust_primitives.Hax.Monomorphized_update_at.update_at_usize s0 (mk_usize 1) (lanes.[ mk_u64 1 ] <: u8) in
   let s2 = Rust_primitives.Hax.Monomorphized_update_at.update_at_usize s1 (mk_usize 2) (lanes.[ mk_u64 2 ] <: u8) in
@@ -1522,7 +1501,7 @@ let lemma_mm256_storeu_si256_u8 (output: t_Slice u8) (vector: t_Vec256)
   FStar.Classical.forall_intro aux
 #pop-options
 
-(* ── PROVEN serialize_1 machinery (spike port + the A1 sign analog) ─────────── *)
+(* ── PROVEN serialize_1 machinery (the A1 sign analog) ──────────────────────── *)
 
 (* value of an i16 lane shifted left by 15 (as u16, cast back): only the parity
    of the input lane survives, as the sign bit. *)
@@ -1538,8 +1517,8 @@ let lemma_shl15_value (x: i16)
 #pop-options
 
 (* (A1) sign bit of byte i of `packs(cast(slli15 v), extract1(slli15 v))` ==
-   raw bit 16*i of v — the last spike assumption, now PROVEN from the canonical
-   per-lane facts (slli16 value, 128-half transfers, packs saturation). *)
+   raw bit 16*i of v — PROVEN from the canonical per-lane facts (slli16
+   value, 128-half transfers, packs saturation). *)
 #push-options "--fuel 1 --ifuel 1 --z3rlimit 400"
 let lemma_slli15_packs_sign (vector: t_Vec256) (i: nat{i < 16})
   : Lemma
@@ -1573,7 +1552,7 @@ let lemma_slli15_packs_sign (vector: t_Vec256) (i: nat{i < 16})
   FStar.Math.Lemmas.lemma_mod_plus (v x) 32768 2
 #pop-options
 
-(* migrated-op movemask wrappers over the canonical PROVEN movemask companions *)
+(* movemask wrappers over the canonical PROVEN movemask companions *)
 #push-options "--fuel 1 --ifuel 1 --z3rlimit 200"
 let lemma_mm_movemask_bound (a: t_Vec128)
   : Lemma (0 <= v (mm_movemask_epi8 a) /\ v (mm_movemask_epi8 a) < pow2 16) =
@@ -1588,7 +1567,7 @@ let lemma_bv_bit_mm_movemask_epi8 (a: t_Vec128) (i: nat{i < 16})
   Canon.movemask_epi8_bit a i
 #pop-options
 
-(* byte packaging (spike P7, ported verbatim): bit i of the 2-byte array
+(* byte packaging: bit i of the 2-byte array
    [x as u8; (x >> 8) as u8] == bit i of the movemask scalar x. *)
 #push-options "--fuel 0 --ifuel 0 --z3rlimit 100"
 let lemma_bit_mod (x: nat) (n: nat{n >= 1}) (i: nat{i < n})
@@ -2032,14 +2011,13 @@ let lemma_bv_bit_lane16_digit (x: t_Vec256) (l: nat{l < 16}) (c: nat{c < 16})
   Canon.lemma_readback Rust_primitives.Integers.I16 (mk_u64 256) (mk_u64 16) x (mk_u64 l) c
 #pop-options
 
-(* ── concat-pairs keystone: RELOCATED 2026-07-30 ───────────────────────────
-   `lemma_concat_pairs_lane32` / `lemma_concat_pairs_bits` used to live here and
-   could only be landed behind a per-decl `#restart-solver` (solver-state
-   pollution from this module's ~2000 preceding lines of queries; 480 s cold for
-   the lane32 arm dispatch alone).  They now live in
-   `Libcrux_ml_kem.Vector.Avx2.Concat_pairs_theory`, which reaches the facts
-   below by EXPLICIT CALL (per feedback_smtpat_only_for_user_consumed_lemmas)
-   and verifies in 9 s cold with no restart-solver.  The digit bridges above
+(* ── concat-pairs keystone ─────────────────────────────────────────────────
+   `lemma_concat_pairs_lane32` / `lemma_concat_pairs_bits` live in
+   `Libcrux_ml_kem.Vector.Avx2.Concat_pairs_theory` (kept out of this module
+   because in-module they suffer solver-state pollution from the preceding ~2000
+   lines of queries and need a per-decl `#restart-solver`).  They reach the facts
+   below by EXPLICIT CALL (per feedback_smtpat_only_for_user_consumed_lemmas).
+   The digit bridges above
    (`lemma_bv_bit_lane32_digit` / `lemma_bv_bit_lane16_digit` /
    `lemma_lane_high_zero_bound` / `lemma_concat_digit` / `lemma_dsum2_zero` /
    `lemma_get_bit_nonneg`) STAY here: they are width-generic and every

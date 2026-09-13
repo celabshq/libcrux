@@ -8,8 +8,8 @@ open Core_models
    verbatim against the green extracted module). Consumed only by that module. *)
 
 (* Clean-context bridge: the inner `decompress_1`'s per-lane `{0, 1665}`
-   disjunction to the opaque `[0, 3328]` bound atom that the (2026-06-09
-   strengthened) `decompress_1_post` carries.  Standalone top-level lemma so the
+   disjunction to the opaque `[0, 3328]` bound atom that `decompress_1_post`
+   carries.  Standalone top-level lemma so the
    literal range checks + the opaque-atom intro stay out of `op_decompress_1`'s
    heavy VC context (inline, even the trivial `mk_i16 3328` range sub-query
    saturates at rlimit 200 under `--split_queries always`). *)

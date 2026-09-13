@@ -152,7 +152,7 @@ let lemma_transpose_write
    two runs hit the rejection-sampling Err on exactly the same (i,j) (is_Ok coupling)
    and the Ok-results are transposes (A[i][j] vs A[j][i] write slot).
 
-   PROOF PLAN (next session): instantiate lemma_frr_rel TWICE with
+   PROOF PLAN: instantiate lemma_frr_rel TWICE with
    rel (a_t,xof_t) (a_f,xof_f) := (a_t == transpose v_K a_f /\ xof_t == xof_f):
      - INNER fold (fixed i): step-commute hypothesis is lemma_transpose_write (Ok branch)
        + same-Err (both Break(Break(Err err)) since same xof => same sample_ntt).

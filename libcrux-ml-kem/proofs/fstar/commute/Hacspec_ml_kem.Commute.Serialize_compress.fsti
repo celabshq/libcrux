@@ -178,3 +178,15 @@ val lemma_vector_to_spec_decode_12_finalize
           S.byte_decode (mk_usize 384) (mk_usize 3072)
             (Seq.slice public_key (j * 384) (j * 384 + 384)) (mk_usize 12)))
     (ensures VS.vector_to_spec v_K pk == S.vector_decode_12_ v_K public_key)
+
+(* Round-trip identity for the compress_then_serialize_4_/5_
+   `serialized_old = serialized.to_vec().as_slice()` pre-update snapshot.  Tight
+   SMTPat (fires only on the exact round-trip term) — does not cascade.  See the
+   .fst for the full rationale; mirror of sha3's `lemma_as_slice_to_vec_id_u8`. *)
+val lemma_as_slice_to_vec_id_u8 (s: t_Slice u8)
+  : Lemma
+      (ensures
+        Alloc.Vec.impl_1__as_slice #u8 #Alloc.Alloc.t_Global
+          (Alloc.Slice.impl__to_vec #u8 s) == s)
+      [SMTPat (Alloc.Vec.impl_1__as_slice #u8 #Alloc.Alloc.t_Global
+          (Alloc.Slice.impl__to_vec #u8 s))]

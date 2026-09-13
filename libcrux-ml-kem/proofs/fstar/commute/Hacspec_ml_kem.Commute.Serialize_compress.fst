@@ -46,8 +46,8 @@ let lemma_bits_to_bytes_bit_d
            == (if Seq.index bv (8 * m + t) then 1 else 0))
   = let mm = mk_usize m in
     assert (m == v mm);
-    (* Serialize_bits is now firewalled; re-inject its get_bit_cast_bool fact
-       explicitly (its [SMTPat] no longer crosses the .fsti boundary). *)
+    (* Serialize_bits is firewalled, so re-inject its get_bit_cast_bool fact
+       explicitly (its [SMTPat] does not cross the .fsti boundary). *)
     FStar.Classical.forall_intro_2 SB.lemma_get_bit_cast_bool;
     assert (Seq.index (S.bits_to_bytes (mk_usize (32 * v d)) (mk_usize (256 * v d)) bv) (v mm)
             == ((((((((Rust_primitives.cast #bool #u8 (bv.[ mk_usize 8 *! mm <: usize ] <: bool) <: u8) |.
@@ -1158,4 +1158,23 @@ let lemma_vector_to_spec_decode_12_finalize
     in
     FStar.Classical.forall_intro aux;
     Seq.lemma_eq_intro (VS.vector_to_spec v_K pk) target
+#pop-options
+
+(* Round-trip identity for compress_then_serialize_4_/5_: those two composers
+   snapshot the pre-update slice as `serialized_old = serialized.to_vec().as_slice()`
+   (the `&mut [u8]`-isn't-Copy idiom).  The prefix-frame assert + the
+   `lemma_chunk_byte_enc_extend_d` loop-invariant transport (both stated over
+   `serialized_old`) discharge against `update_at_range`'s own prefix post only
+   once the `as_slice (to_vec s) == s` round-trip is available.  This SMTPat
+   supplies that identity (fires on the snapshot term itself, no need to name the
+   shadowed pre-update binding).  Mirror of sha3's `lemma_as_slice_to_vec_id_u8`. *)
+#push-options "--fuel 0 --ifuel 0 --z3rlimit 50"
+let lemma_as_slice_to_vec_id_u8 (s: t_Slice u8)
+  : Lemma
+      (ensures
+        Alloc.Vec.impl_1__as_slice #u8 #Alloc.Alloc.t_Global
+          (Alloc.Slice.impl__to_vec #u8 s) == s)
+      [SMTPat (Alloc.Vec.impl_1__as_slice #u8 #Alloc.Alloc.t_Global
+          (Alloc.Slice.impl__to_vec #u8 s))]
+  = Seq.append_empty_l s
 #pop-options

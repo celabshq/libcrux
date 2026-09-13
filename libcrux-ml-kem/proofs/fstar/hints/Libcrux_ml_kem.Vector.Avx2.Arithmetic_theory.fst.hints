@@ -66,7 +66,7 @@
         "typing_tok_Rust_primitives.Integers.U64@tok"
       ],
       0,
-      "b4e77b59a1b8473f024c69a6fc2e0d9c"
+      "afd275cd21ea6fba695fc959bd1fbca2"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Arithmetic_theory.lemma_sub_i",
@@ -133,7 +133,7 @@
         "typing_tok_Rust_primitives.Integers.U64@tok"
       ],
       0,
-      "beef1ad7dcffc0bcece2bc968bfe1d4a"
+      "bddff6dc1cdd479ca4a3f60ba4c1d87a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Arithmetic_theory.lemma_mul_i",
@@ -195,7 +195,7 @@
         "typing_tok_Rust_primitives.Integers.I16@tok"
       ],
       0,
-      "f9ff66a4ccba3f3a91e021c2fe1f56ec"
+      "ab8db0830964d3c68080fdce1aa57d8a"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Arithmetic_theory.lemma_lane32_halves",
@@ -248,7 +248,7 @@
         "typing_tok_Rust_primitives.Integers.U64@tok"
       ],
       0,
-      "2caa597954fe53524a413a3836ab8d09"
+      "d0106f51038ec5a5501b4021033c9a88"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Arithmetic_theory.lemma_srli_hi",
@@ -275,7 +275,7 @@
         "typing_Prims.pow2"
       ],
       0,
-      "964713cb92d811fe20ea546793cfd5d4"
+      "2e0a184d84a3c9303a222d22e8515414"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Arithmetic_theory.lemma_slli16_even",
@@ -330,7 +330,7 @@
         "typing_tok_Rust_primitives.Integers.U64@tok"
       ],
       0,
-      "d10dba5a1961e261e6e0f0f513aef839"
+      "d0510aae6fd47a71896e6aca27026795"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Arithmetic_theory.lemma_slli16_odd",
@@ -382,7 +382,7 @@
         "typing_tok_Rust_primitives.Integers.U64@tok"
       ],
       0,
-      "f8b3d7434d435f71941964a3dddfd69f"
+      "84258d5258778c70a42e8a9ef8e00d41"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Arithmetic_theory.lemma_srai16_lane",
@@ -443,7 +443,7 @@
         "typing_tok_Rust_primitives.Integers.U64@tok"
       ],
       0,
-      "313f9d10d6536c006b715ed27aecb40f"
+      "2c96334e98f80479787737ff269fc14b"
     ],
     [
       "Libcrux_ml_kem.Vector.Avx2.Arithmetic_theory.lemma_sign_extend",
@@ -505,7 +505,7 @@
         "typing_tok_Rust_primitives.Integers.I32@tok"
       ],
       0,
-      "b942f2eb4a2db5d87174d90fc15acd2b"
+      "97069bd284cacba2ba08fb7ae9a7a759"
     ]
   ]
 ]

@@ -40,32 +40,32 @@ pub(crate) trait Hash<const K: usize> {
     fn H(input: &[u8]) -> [u8; H_DIGEST_SIZE];
 
     /// PRF aka SHAKE256
-    #[requires(fstar!(r#"v $LEN < pow2 32"#))]
+    #[requires(fstar!(r#"v $LEN < v Core_models.Num.impl_usize__MAX - 200"#))]
     #[ensures(|result|
         // We need to repeat the pre-condition here because of https://github.com/hacspec/hax/issues/784
-        fstar!(r#"v $LEN < pow2 32 ==> $result == Spec.Utils.v_PRF $LEN $input"#))
+        fstar!(r#"v $LEN < v Core_models.Num.impl_usize__MAX - 200 ==> $result == Spec.Utils.v_PRF $LEN $input"#))
     ]
     fn PRF<const LEN: usize>(input: &[u8]) -> [u8; LEN];
 
     /// PRFxN aka N SHAKE256
-    #[requires(fstar!(r#"v $LEN < pow2 32 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)"#))]
+    #[requires(fstar!(r#"v $LEN < v Core_models.Num.impl_usize__MAX - 200 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)"#))]
     #[ensures(|result|
         // We need to repeat the pre-condition here because of https://github.com/hacspec/hax/issues/784
-        fstar!(r#"(v $LEN < pow2 32 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)) ==>
+        fstar!(r#"(v $LEN < v Core_models.Num.impl_usize__MAX - 200 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)) ==>
             $result == Spec.Utils.v_PRFxN $K $LEN $input"#))
     ]
     fn PRFxN<const LEN: usize>(input: &[[u8; 33]; K]) -> [[u8; LEN]; K];
 
     /// Create a SHAKE128 state and absorb the input.
-    #[requires(true)]
+    #[requires(fstar!(r#"v $K == 2 \/ v $K == 3 \/ v $K == 4"#))]
     fn shake128_init_absorb_final(input: &[[u8; 34]; K]) -> Self;
 
     /// Squeeze 3 blocks out of the SHAKE128 state.
-    #[requires(true)]
+    #[requires(fstar!(r#"v $K == 2 \/ v $K == 3 \/ v $K == 4"#))]
     fn shake128_squeeze_first_three_blocks(&mut self) -> [[u8; THREE_BLOCKS]; K];
 
     /// Squeeze 1 block out of the SHAKE128 state.
-    #[requires(true)]
+    #[requires(fstar!(r#"v $K == 2 \/ v $K == 3 \/ v $K == 4"#))]
     fn shake128_squeeze_next_block(&mut self) -> [[u8; BLOCK_SIZE]; K];
 }
 
@@ -78,10 +78,14 @@ pub(crate) mod portable {
     ///
     /// It's only used for SHAKE128.
     /// All other functions don't actually use any members.
-    #[libcrux_macros::trusted(
-        opaque,
-        "trusted-extern: opaque Keccak/SHAKE state; underlying hash is a trusted-extern primitive (signature-only extraction)"
-    )]
+    //
+    // Extracted transparently as a real record over sha3's proven portable
+    // Keccak state; the trust boundary is sha3's Keccak primitive, not this
+    // thin ml-kem wrapper.  The `friend Spec.Utils` directive (emitted into the
+    // module's `.fst`) makes the `Spec.Utils.v_*` hash oracles unfold to their
+    // `Hacspec_sha3.Sponge.keccak` definitions here, so the one-shot bodies can
+    // discharge their `== Spec.Utils.v_*` posts from sha3's proven one-shot posts.
+    #[cfg_attr(hax, hax_lib::fstar::before("friend Spec.Utils"))]
     pub(crate) struct PortableHash<const K: usize> {
         shake128_state: [KeccakState; K],
     }
@@ -106,7 +110,7 @@ pub(crate) mod portable {
         digest
     }
 
-    #[hax_lib::requires(fstar!(r#"v $LEN < pow2 32"#))]
+    #[hax_lib::requires(fstar!(r#"v $LEN < v Core_models.Num.impl_usize__MAX - 200"#))]
     #[hax_lib::ensures(|result|
         fstar!(r#"$result == Spec.Utils.v_PRF $LEN $input"#))
     ]
@@ -117,7 +121,7 @@ pub(crate) mod portable {
         digest
     }
 
-    #[hax_lib::requires(fstar!(r#"v $LEN < pow2 32 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)"#))]
+    #[hax_lib::requires(fstar!(r#"v $LEN < v Core_models.Num.impl_usize__MAX - 200 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)"#))]
     #[hax_lib::ensures(|result|
         fstar!(r#"$result == Spec.Utils.v_PRFxN $K $LEN $input"#))
     ]
@@ -127,11 +131,22 @@ pub(crate) mod portable {
 
         let mut out = [[0u8; LEN]; K];
         for i in 0..K {
+            hax_lib::loop_invariant!(|i: usize| fstar!(
+                r#"v $i <= v $K /\
+                   (forall (j: nat). j < v $i ==>
+                     Seq.index $out j == Spec.Utils.v_PRF $LEN (Seq.index $input j <: t_Slice u8))"#
+            ));
             portable::shake256(&mut out[i], &input[i]);
         }
+        // `v_PRFxN K LEN input` unfolds (friend Spec.Utils) to
+        // `createi K (fun j -> keccak LEN 136 31 input[j])`; the loop invariant
+        // gives the same per-row value, so pointwise equality closes via
+        // `lemma_createi_index`'s SMTPat.
+        hax_lib::fstar!(r#"Seq.lemma_eq_intro $out (Spec.Utils.v_PRFxN $K $LEN $input)"#);
         out
     }
 
+    #[hax_lib::requires(fstar!(r#"v $K == 2 \/ v $K == 3 \/ v $K == 4"#))]
     #[inline]
     fn shake128_init_absorb_final<const K: usize>(input: &[[u8; 34]; K]) -> PortableHash<K> {
         debug_assert!(K == 2 || K == 3 || K == 4);
@@ -146,6 +161,7 @@ pub(crate) mod portable {
         shake128_state
     }
 
+    #[hax_lib::requires(fstar!(r#"v $K == 2 \/ v $K == 3 \/ v $K == 4"#))]
     #[inline]
     fn shake128_squeeze_first_three_blocks<const K: usize>(
         st: &mut PortableHash<K>,
@@ -162,6 +178,7 @@ pub(crate) mod portable {
         out
     }
 
+    #[hax_lib::requires(fstar!(r#"v $K == 2 \/ v $K == 3 \/ v $K == 4"#))]
     #[inline]
     fn shake128_squeeze_next_block<const K: usize>(
         st: &mut PortableHash<K>,
@@ -193,19 +210,19 @@ pub(crate) mod portable {
             H(input)
         }
 
-        #[requires(fstar!(r#"v $LEN < pow2 32"#))]
+        #[requires(fstar!(r#"v $LEN < v Core_models.Num.impl_usize__MAX - 200"#))]
         #[ensures(|out|
             // We need to repeat the pre-condition here because of https://github.com/hacspec/hax/issues/784
-            fstar!(r#"v $LEN < pow2 32 ==> $out == Spec.Utils.v_PRF $LEN $input"#))
+            fstar!(r#"v $LEN < v Core_models.Num.impl_usize__MAX - 200 ==> $out == Spec.Utils.v_PRF $LEN $input"#))
         ]
         #[inline]
         fn PRF<const LEN: usize>(input: &[u8]) -> [u8; LEN] {
             PRF::<LEN>(input)
         }
 
-        #[requires(fstar!(r#"v $LEN < pow2 32 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)"#))]
+        #[requires(fstar!(r#"v $LEN < v Core_models.Num.impl_usize__MAX - 200 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)"#))]
         #[ensures(|out|
-            fstar!(r#"(v $LEN < pow2 32 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)) ==>
+            fstar!(r#"(v $LEN < v Core_models.Num.impl_usize__MAX - 200 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)) ==>
                 $out == Spec.Utils.v_PRFxN $K $LEN $input"#))
         ]
         #[inline]
@@ -213,16 +230,19 @@ pub(crate) mod portable {
             PRFxN::<K, LEN>(input)
         }
 
+        #[requires(fstar!(r#"v $K == 2 \/ v $K == 3 \/ v $K == 4"#))]
         #[inline]
         fn shake128_init_absorb_final(input: &[[u8; 34]; K]) -> Self {
             shake128_init_absorb_final(input)
         }
 
+        #[requires(fstar!(r#"v $K == 2 \/ v $K == 3 \/ v $K == 4"#))]
         #[inline]
         fn shake128_squeeze_first_three_blocks(&mut self) -> [[u8; THREE_BLOCKS]; K] {
             shake128_squeeze_first_three_blocks(self)
         }
 
+        #[requires(fstar!(r#"v $K == 2 \/ v $K == 3 \/ v $K == 4"#))]
         #[inline]
         fn shake128_squeeze_next_block(&mut self) -> [[u8; BLOCK_SIZE]; K] {
             shake128_squeeze_next_block(self)
@@ -243,10 +263,19 @@ pub(crate) mod avx2 {
     ///
     /// It's only used for SHAKE128.
     /// All other functions don't actually use any members.
-    #[libcrux_macros::trusted(
-        opaque,
-        "trusted-extern: opaque Keccak/SHAKE state; underlying hash is a trusted-extern primitive (signature-only extraction)"
-    )]
+    //
+    // Extracted transparently as a real record over sha3's AVX2 x4 Keccak state;
+    // the trust boundary is sha3's Keccak primitive (verified behind the
+    // `Libcrux_sha3.Avx2.X4[.Incremental]` interfaces), not this thin wrapper.
+    // `friend Spec.Utils` (emitted into the module's `.fst`) unfolds the
+    // `Spec.Utils.v_*` oracles to `Hacspec_sha3.Sponge.keccak` so the one-shot
+    // bodies discharge their `== Spec.Utils.v_*` posts from sha3's interface posts.
+    // `noeq`: `shake128_state` wraps sha3's ABSTRACT AVX2 x4 incremental
+    // `t_KeccakState` (`val ... : Type0`, no decidable equality), so this record
+    // has no derivable `hasEq`.  The type is emitted into the module's `.fsti`,
+    // so target the interface (mirrors portable's `before(interface, ...)`).
+    #[cfg_attr(hax, hax_lib::fstar::before(interface, "noeq"))]
+    #[cfg_attr(hax, hax_lib::fstar::before("friend Spec.Utils"))]
     pub(crate) struct Simd256Hash {
         shake128_state: KeccakState,
     }
@@ -271,7 +300,7 @@ pub(crate) mod avx2 {
         digest
     }
 
-    #[hax_lib::requires(fstar!(r#"v $LEN < pow2 32"#))]
+    #[hax_lib::requires(fstar!(r#"v $LEN < v Core_models.Num.impl_usize__MAX - 200"#))]
     #[hax_lib::ensures(|result|
         fstar!(r#"$result == Spec.Utils.v_PRF $LEN $input"#))
     ]
@@ -282,10 +311,18 @@ pub(crate) mod avx2 {
         digest
     }
 
-    #[hax_lib::requires(fstar!(r#"v $LEN < pow2 32 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)"#))]
+    #[hax_lib::requires(fstar!(r#"v $LEN < v Core_models.Num.impl_usize__MAX - 200 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)"#))]
     #[hax_lib::ensures(|result|
         fstar!(r#"$result == Spec.Utils.v_PRFxN $K $LEN $input"#))
     ]
+    // AVX2 `x4::shake256` is only LENGTH-specified by sha3 (the functional
+    // Avx2-keccak4 == keccak Driver is not completed sha3-side — the `Avx2`
+    // equivalence Steps exist, but no Driver wires them to `x4::shake256`), so
+    // the functional `== Spec.Utils.v_PRFxN` post is admitted here as a validated
+    // axiom: the AVX2 4-way batched SHAKE256 computes 4 independent SHAKE256
+    // (== keccak per lane), which sha3 length-proves + differential-tests.
+    // Panic-freedom IS verified.  (Portable and Neon are fully functional.)
+    #[libcrux_macros::trusted(panic_free, "validated-axiom: avx2 x4 batched shake256 == 4 lane-wise SHAKE256/keccak; sha3-side functional Avx2-keccak4 Driver incomplete")]
     #[inline(always)]
     fn PRFxN<const K: usize, const LEN: usize>(input: &[[u8; 33]; K]) -> [[u8; LEN]; K] {
         debug_assert!(K == 2 || K == 3 || K == 4);
@@ -328,6 +365,7 @@ pub(crate) mod avx2 {
         out
     }
 
+    #[hax_lib::requires(fstar!(r#"v $K == 2 \/ v $K == 3 \/ v $K == 4"#))]
     #[inline(always)]
     fn shake128_init_absorb_final<const K: usize>(input: &[[u8; 34]; K]) -> Simd256Hash {
         debug_assert!(K == 2 || K == 3 || K == 4);
@@ -369,6 +407,7 @@ pub(crate) mod avx2 {
         state
     }
 
+    #[hax_lib::requires(fstar!(r#"v $K == 2 \/ v $K == 3 \/ v $K == 4"#))]
     #[inline(always)]
     fn shake128_squeeze_first_three_blocks<const K: usize>(
         st: &mut Simd256Hash,
@@ -407,6 +446,7 @@ pub(crate) mod avx2 {
         out
     }
 
+    #[hax_lib::requires(fstar!(r#"v $K == 2 \/ v $K == 3 \/ v $K == 4"#))]
     #[inline(always)]
     fn shake128_squeeze_next_block<const K: usize>(st: &mut Simd256Hash) -> [[u8; BLOCK_SIZE]; K] {
         debug_assert!(K == 2 || K == 3 || K == 4);
@@ -461,19 +501,19 @@ pub(crate) mod avx2 {
             H(input)
         }
 
-        #[requires(fstar!(r#"v $LEN < pow2 32"#))]
+        #[requires(fstar!(r#"v $LEN < v Core_models.Num.impl_usize__MAX - 200"#))]
         #[hax_lib::ensures(|out|
             // We need to repeat the pre-condition here because of https://github.com/hacspec/hax/issues/784
-            fstar!(r#"v $LEN < pow2 32 ==> $out == Spec.Utils.v_PRF $LEN $input"#))
+            fstar!(r#"v $LEN < v Core_models.Num.impl_usize__MAX - 200 ==> $out == Spec.Utils.v_PRF $LEN $input"#))
         ]
         #[inline(always)]
         fn PRF<const LEN: usize>(input: &[u8]) -> [u8; LEN] {
             PRF::<LEN>(input)
         }
 
-        #[requires(fstar!(r#"v $LEN < pow2 32 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)"#))]
+        #[requires(fstar!(r#"v $LEN < v Core_models.Num.impl_usize__MAX - 200 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)"#))]
         #[ensures(|out|
-            fstar!(r#"(v $LEN < pow2 32 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)) ==>
+            fstar!(r#"(v $LEN < v Core_models.Num.impl_usize__MAX - 200 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)) ==>
                 $out == Spec.Utils.v_PRFxN $K $LEN $input"#))
         ]
         #[inline(always)]
@@ -481,16 +521,19 @@ pub(crate) mod avx2 {
             PRFxN::<K, LEN>(input)
         }
 
+        #[requires(fstar!(r#"v $K == 2 \/ v $K == 3 \/ v $K == 4"#))]
         #[inline(always)]
         fn shake128_init_absorb_final(input: &[[u8; 34]; K]) -> Self {
             shake128_init_absorb_final(input)
         }
 
+        #[requires(fstar!(r#"v $K == 2 \/ v $K == 3 \/ v $K == 4"#))]
         #[inline(always)]
         fn shake128_squeeze_first_three_blocks(&mut self) -> [[u8; THREE_BLOCKS]; K] {
             shake128_squeeze_first_three_blocks(self)
         }
 
+        #[requires(fstar!(r#"v $K == 2 \/ v $K == 3 \/ v $K == 4"#))]
         #[inline(always)]
         fn shake128_squeeze_next_block(&mut self) -> [[u8; BLOCK_SIZE]; K] {
             shake128_squeeze_next_block(self)
@@ -508,10 +551,18 @@ pub(crate) mod neon {
     ///
     /// It's only used for SHAKE128.
     /// All other functions don't actually use any members.
-    #[libcrux_macros::trusted(
-        opaque,
-        "trusted-extern: opaque Keccak/SHAKE state; underlying hash is a trusted-extern primitive (signature-only extraction)"
-    )]
+    //
+    // Extracted transparently as a real record over sha3's NEON x2 Keccak state;
+    // the trust boundary is sha3's Keccak primitive (verified behind the
+    // `Libcrux_sha3.Neon.X2[.Incremental]` interfaces), not this thin wrapper.
+    // `friend Spec.Utils` (emitted into the `.fst`) unfolds the `Spec.Utils.v_*`
+    // oracles to `Hacspec_sha3.Sponge.keccak` so the one-shot bodies discharge
+    // their `== Spec.Utils.v_*` posts from sha3's neon interface posts.
+    // `noeq`: `shake128_state` is an array of sha3's ABSTRACT NEON x2 incremental
+    // `t_KeccakState` (`val ... : Type0`, no decidable equality); target the
+    // interface (the type is emitted into the `.fsti`).
+    #[cfg_attr(hax, hax_lib::fstar::before(interface, "noeq"))]
+    #[cfg_attr(hax, hax_lib::fstar::before("friend Spec.Utils"))]
     pub(crate) struct Simd128Hash {
         shake128_state: [KeccakState; 2],
     }
@@ -536,7 +587,7 @@ pub(crate) mod neon {
         digest
     }
 
-    #[hax_lib::requires(fstar!(r#"v $LEN < pow2 32"#))]
+    #[hax_lib::requires(fstar!(r#"v $LEN < v Core_models.Num.impl_usize__MAX - 200"#))]
     #[hax_lib::ensures(|result|
         fstar!(r#"$result == Spec.Utils.v_PRF $LEN $input"#))
     ]
@@ -548,7 +599,7 @@ pub(crate) mod neon {
         digest
     }
 
-    #[hax_lib::requires(fstar!(r#"v $LEN < pow2 32 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)"#))]
+    #[hax_lib::requires(fstar!(r#"v $LEN < v Core_models.Num.impl_usize__MAX - 200 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)"#))]
     #[hax_lib::ensures(|result|
         fstar!(r#"$result == Spec.Utils.v_PRFxN $K $LEN $input"#))
     ]
@@ -560,11 +611,16 @@ pub(crate) mod neon {
         let mut out1 = [0u8; LEN];
         let mut out2 = [0u8; LEN];
         let mut out3 = [0u8; LEN];
+        // Each `x2::shake256` lane is functional (`out == keccak LEN 136 31
+        // input[j]`), and `v_PRFxN K LEN input` unfolds (friend Spec.Utils) to
+        // `createi K (fun j -> keccak LEN 136 31 input[j])`.  Per concrete branch
+        // K, pointwise equality closes via `Seq.lemma_eq_intro`.
         match K as u8 {
             2 => {
                 x2::shake256(&input[0], &input[1], &mut out0, &mut out1);
                 out[0] = out0;
                 out[1] = out1;
+                hax_lib::fstar!(r#"Seq.lemma_eq_intro $out (Spec.Utils.v_PRFxN $K $LEN $input)"#);
             }
             3 => {
                 x2::shake256(&input[0], &input[1], &mut out0, &mut out1);
@@ -572,6 +628,7 @@ pub(crate) mod neon {
                 out[0] = out0;
                 out[1] = out1;
                 out[2] = out2;
+                hax_lib::fstar!(r#"Seq.lemma_eq_intro $out (Spec.Utils.v_PRFxN $K $LEN $input)"#);
             }
             4 => {
                 x2::shake256(&input[0], &input[1], &mut out0, &mut out1);
@@ -580,12 +637,14 @@ pub(crate) mod neon {
                 out[1] = out1;
                 out[2] = out2;
                 out[3] = out3;
+                hax_lib::fstar!(r#"Seq.lemma_eq_intro $out (Spec.Utils.v_PRFxN $K $LEN $input)"#);
             }
             _ => unreachable!("Only 2, 3, or 4 are supported for N"),
         }
         out
     }
 
+    #[hax_lib::requires(fstar!(r#"v $K == 2 \/ v $K == 3 \/ v $K == 4"#))]
     #[inline(always)]
     fn shake128_init_absorb_final<const K: usize>(input: &[[u8; 34]; K]) -> Simd128Hash {
         debug_assert!(K == 2 || K == 3 || K == 4);
@@ -610,6 +669,7 @@ pub(crate) mod neon {
         }
     }
 
+    #[hax_lib::requires(fstar!(r#"v $K == 2 \/ v $K == 3 \/ v $K == 4"#))]
     #[inline(always)]
     fn shake128_squeeze_first_three_blocks<const K: usize>(
         st: &mut Simd128Hash,
@@ -668,6 +728,7 @@ pub(crate) mod neon {
         out
     }
 
+    #[hax_lib::requires(fstar!(r#"v $K == 2 \/ v $K == 3 \/ v $K == 4"#))]
     #[inline(always)]
     fn shake128_squeeze_next_block<const K: usize>(st: &mut Simd128Hash) -> [[u8; BLOCK_SIZE]; K] {
         debug_assert!(K == 2 || K == 3 || K == 4);
@@ -742,20 +803,20 @@ pub(crate) mod neon {
             H(input)
         }
 
-        #[requires(fstar!(r#"v $LEN < pow2 32"#))]
+        #[requires(fstar!(r#"v $LEN < v Core_models.Num.impl_usize__MAX - 200"#))]
         #[ensures(|out|
             // We need to repeat the pre-condition here because of https://github.com/hacspec/hax/issues/784
-            fstar!(r#"v $LEN < pow2 32 ==> $out == Spec.Utils.v_PRF $LEN $input"#))
+            fstar!(r#"v $LEN < v Core_models.Num.impl_usize__MAX - 200 ==> $out == Spec.Utils.v_PRF $LEN $input"#))
         ]
         #[inline(always)]
         fn PRF<const LEN: usize>(input: &[u8]) -> [u8; LEN] {
             PRF::<LEN>(input)
         }
 
-        #[requires(fstar!(r#"v $LEN < pow2 32 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)"#))]
+        #[requires(fstar!(r#"v $LEN < v Core_models.Num.impl_usize__MAX - 200 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)"#))]
         #[ensures(|out|
             // We need to repeat the pre-condition here because of https://github.com/hacspec/hax/issues/784
-            fstar!(r#"(v $LEN < pow2 32 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)) ==>
+            fstar!(r#"(v $LEN < v Core_models.Num.impl_usize__MAX - 200 /\ (v $K == 2 \/ v $K == 3 \/ v $K == 4)) ==>
                 $out == Spec.Utils.v_PRFxN $K $LEN $input"#))
         ]
         #[inline(always)]
@@ -763,16 +824,19 @@ pub(crate) mod neon {
             PRFxN::<K, LEN>(input)
         }
 
+        #[requires(fstar!(r#"v $K == 2 \/ v $K == 3 \/ v $K == 4"#))]
         #[inline(always)]
         fn shake128_init_absorb_final(input: &[[u8; 34]; K]) -> Self {
             shake128_init_absorb_final(input)
         }
 
+        #[requires(fstar!(r#"v $K == 2 \/ v $K == 3 \/ v $K == 4"#))]
         #[inline(always)]
         fn shake128_squeeze_first_three_blocks(&mut self) -> [[u8; THREE_BLOCKS]; K] {
             shake128_squeeze_first_three_blocks(self)
         }
 
+        #[requires(fstar!(r#"v $K == 2 \/ v $K == 3 \/ v $K == 4"#))]
         #[inline(always)]
         fn shake128_squeeze_next_block(&mut self) -> [[u8; BLOCK_SIZE]; K] {
             shake128_squeeze_next_block(self)

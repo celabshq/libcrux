@@ -5,33 +5,29 @@ open Core_models
 open Libcrux_intrinsics.Arm64
 
 (* ============================================================================
-   ml-kem NEON lane-view + per-op fact companion (core-models migration, WS C).
+   ml-kem NEON lane-view + per-op fact companion.
 
    The ARM/NEON analog of `Libcrux_intrinsics.Avx2_ml_kem_views`.  It exposes to
    ml-kem's NEON proofs the lane VIEWS (`vec128_as_i16x8` / `get_lane_i16x8` /
-   ...) and per-op FACT lemmas that the hand-written pcm
-   `Libcrux_intrinsics.Arm64_extract` interface carried as op `ensures`, now
-   phrased over the REAL `Libcrux_intrinsics.Arm64` ops (which delegate to the
-   differentially-tested `libcrux-core-models` NEON model).
+   ...) and per-op FACT lemmas phrased over the REAL `Libcrux_intrinsics.Arm64`
+   ops (which delegate to the differentially-tested `libcrux-core-models` NEON
+   model).
 
    TRUST.  The Seq lane view is a per-index read of the canonical core-models
    FunArray codec (`Canon.to_i16x8` = `Int_vec_interp` width 128), and every
    op-fact is PROVEN from the canonical NEON op-lemma set in
    `Libcrux_core_models.Neon_views` (which rests only on the differentially
    tested `Arm.Interpretations.Int_vec.Lemmas` lifts + the PROVEN codec
-   round-trip).  Under pcm these facts were assumed op `ensures`; the trust
-   surface here has strictly SHRUNK.  NO fact in this module is assumed.
+   round-trip).  NO fact in this module is assumed.
 
-   STATUS (WIP — cm-migration, 2026-08-08).  This file currently carries the
-   VALIDATED i16x8 "per-lane-codec backbone" (8 op-facts): the structural i16x8
-   lane view + arithmetic (`vadd/vsub/vmul/vmul_n_s16`), transpose
-   (`vtrn1q/vtrn2q_s16`), broadcast (`vdupq_n_s16`) and right-shift
+   CONTENTS.  This file carries the i16x8 "per-lane-codec backbone" (8 op-facts):
+   the structural i16x8 lane view + arithmetic (`vadd/vsub/vmul/vmul_n_s16`),
+   transpose (`vtrn1q/vtrn2q_s16`), broadcast (`vdupq_n_s16`) and right-shift
    (`vshrq_n_s16`), which prove directly from the `Neon_views` codec op-lemmas
    (`ArmIV.OP` is a per-lane FunArray op, so `Seq.init`/`map2 f (view a) (view b)`
-   matches by `Seq.lemma_eq_intro`).  All gated green via `make check/...` at
-   rlimit < 2.4.
+   matches by `Seq.lemma_eq_intro`).
 
-   REMAINING (next sessions), by tier — each needs a companion op-fact and, where
+   NOT YET COVERED, by tier — each needs a companion op-fact and, where
    noted, a FOUNDATION lemma in `Neon_views` (width-128 analog of an existing
    `Intrinsics_views` width-256 lemma):
      * Logical (vand/veor/vbic/veor3/vbcax): `ArmIV.OP` is a BIT-LEVEL
@@ -57,14 +53,12 @@ open Libcrux_intrinsics.Arm64
        from_bytes/to_bytes): mirror `Avx2_ml_kem_views.bit_vec_of_int_t_array_
        vec128_as_i16x8_lemma` (one `Canon.lemma_readback` call).
      * Helper lets (`i16_bits_as_u32`, `u32_lo16_as_i16`, `i16x2_as_i32`,
-       `i64_i16lane`, `arm_sshl_i16`, ...) re-exported verbatim from the pcm
-       `Arm64_extract.fsti` (referenced by the reinterpret facts + consumer
-       proofs).
+       `i64_i16lane`, `arm_sshl_i16`, ...) needed by the reinterpret facts +
+       consumer proofs.
 
    Lives in `proofs/fstar/spec/` (hand-maintained, NOT the hax-extraction dir),
    so `cargo hax into` never clobbers it; on ml-kem's include path only.  It is
-   NOT a make ROOT — it verifies only as a dependency once the NEON consumers are
-   repointed (`Arm64_extract.X` -> `Arm64_ml_kem_views.X`) and lib.rs is flipped.
+   NOT a make ROOT — it verifies only as a dependency of ml-kem's NEON consumers.
    ========================================================================== *)
 
 module Funarr = Libcrux_core_models.Abstractions.Funarr
@@ -76,7 +70,7 @@ module IVi    = Libcrux_core_models.Abstractions.Bitvec.Int_vec_interp
 module Int    = Rust_primitives.Integers
 module Bit    = Libcrux_core_models.Abstractions.Bit
 
-(* ── Lane-view types (mirror the pcm `t_e_*` abstract vector types) ────────── *)
+(* ── Lane-view types (the NEON `t_e_*` vector types, all 128-bit) ──────────── *)
 unfold type t_e_int16x8_t  = BV.t_BitVec (mk_u64 128)
 unfold type t_e_int32x4_t  = BV.t_BitVec (mk_u64 128)
 unfold type t_e_uint32x4_t = BV.t_BitVec (mk_u64 128)
@@ -87,8 +81,8 @@ unfold type t_e_uint64x2_t = BV.t_BitVec (mk_u64 128)
 unfold type t_e_int16x4_t  = BV.t_BitVec (mk_u64 64)
 unfold type t_e_uint16x4_t = BV.t_BitVec (mk_u64 64)
 
-(* ── i16x8 lane view (A-on-B adapter over canonical to_i16x8).  OPAQUE for the
-      same reasons as x86's `vec256_as_i16x16`: keeps pcm's abstraction (still
+(* ── i16x8 lane view (adapter over canonical to_i16x8).  OPAQUE for the
+      same reasons as x86's `vec256_as_i16x16`: keeps the view abstract (still
       PROVEN, not assumed); the ONLY route to the codec is `vec128_index`. ──── *)
 [@@ "opaque_to_smt"]
 let vec128_as_i16x8 (x: t_e_int16x8_t) : t_Array i16 (sz 8) =
@@ -464,9 +458,8 @@ let lemma_e_vshrq_n_u16 (v_SHIFT_BY: i32) (v: t_e_uint16x8_t)
                         else x >>! v_SHIFT_BY))
 #pop-options
 
-(* ── ARM variable-shift helper lets (copied verbatim from the pcm
-      `Arm64_extract.fsti` — referenced by the vshlq_s16/u16 op-facts and by
-      consumer proofs). ───────────────────────────────────────────────────── *)
+(* ── ARM variable-shift helper lets (referenced by the vshlq_s16/u16 op-facts
+      and by consumer proofs). ─────────────────────────────────────────────── *)
 let arm_sshl_i16 (a b: i16) : i16 =
   let s = v (b %! mk_i16 256) in
   if s < 128 then (if s < 16 then a <<! mk_i32 s else mk_i16 0)
@@ -531,7 +524,7 @@ let lemma_e_vcgeq_s16 (v c: t_e_int16x8_t)
 #pop-options
 
 (* vshlq_s16 / vshlq_u16 op-facts deferred: `arm_sshl_i16` / `arm_ushl_u16`
-   (pcm's `v (b %! 256)` split-at-128 encoding) are only PROVABLY equal to the
+   (the `v (b %! 256)` split-at-128 encoding) are only PROVABLY equal to the
    core-models `ArmIV.vshlq_s16` lane body (sign-extended low-byte + data-
    dependent shift) via a dedicated per-lane byte/shift bridge lemma; see the
    `lemma_arm_sshl_eq` work below. *)
@@ -637,7 +630,7 @@ let lemma_e_vmull_high_s16 (a b: t_e_int16x8_t)
 
 (* vaddvq_s16 / vaddv_u16 horizontal-reduction op-facts deferred: the core-models
    `ArmIV.vaddvq_s16` is a LEFT fold_range (wrapping_add accumulate), while the
-   pcm/consumer form is the BALANCED sum tree `((a0+a1)+(a2+a3))+((a4+a5)+(a6+a7))`.
+   consumer form is the BALANCED sum tree `((a0+a1)+(a2+a3))+((a4+a5)+(a6+a7))`.
    Equal by i16 add_mod AC + fold unfolding, but a naive `fuel 9` unroll SATURATES
    (>75 s, killed).  Needs a dedicated reduction bridge lemma that unrolls the fold
    step-by-step and applies add_mod associativity as discrete rewrites. *)
@@ -765,7 +758,7 @@ let lemma_to_u32x4_val (x: t_e_uint32x4_t) (k: nat{k < 4})
 #pop-options
 
 (* Per-lane signedness bridge between the i32x4 and u32x4 views of the same reg
-   (mirrors the pcm `e_vreinterpret_i32_u32_lane_bridge`; consumed by compress). *)
+   (mirrors `e_vreinterpret_i32_u32_lane_bridge`; consumed by compress). *)
 #push-options "--fuel 1 --ifuel 2 --z3rlimit 200"
 let e_vreinterpret_i32_u32_lane_bridge (x: BV.t_BitVec (mk_u64 128)) (k: nat{k < 4})
   : Lemma
@@ -1105,10 +1098,7 @@ let lemma_e_veorq_s16 (a b: t_e_int16x8_t)
        `lemma_reader_lo_128` / `lemma_reader_hi_128` (the same 32<->16 reader
        agreement that fed the width-128 VALUE bridge `lemma_lane_i16i32_128`).
      * The repack helper lets + their bit lemmas (`lemma_i16_bits_as_u32_bit`,
-       `lemma_i16x2_as_i32_{lo,hi,bit}`) ported verbatim from the pcm
-       `Arm64_extract.fsti` (helpers) and `Vector.Neon.Ntt_theory` (lemmas), so
-       consumers repointed `Arm64_extract.` -> `Arm64_ml_kem_views.` see identical
-       defs.  Nothing here is assumed.
+       `lemma_i16x2_as_i32_{lo,hi,bit}`).  Nothing here is assumed.
    ========================================================================== *)
 
 (* ── repack helper lets (verbatim from Arm64_extract.fsti 561-592) ─────────── *)
@@ -1762,7 +1752,7 @@ let lemma_e_vld1q_u8_lane (ptr: t_Slice u8) (i: nat{i < 16})
 (* ============================================================================
    Tier F STORES.  The store ops write N lanes of the vector `vec` into the
    output slice via a straight chain of N `update_at_usize` (= `Seq.upd`) under
-   `if len >= N`.  The compound pcm post (length + per-lane write + frame) is
+   `if len >= N`.  The compound post (length + per-lane write + frame) is
    split into per-index SMTPat op-facts to dodge the `.fst`-ensures elaboration
    wall (see [[feedback_fst_ensures_refinement_under_forall]]).
 
@@ -1972,17 +1962,17 @@ let lemma_e_vst1q_bytes (out: t_Slice u8) (vec: t_e_int16x8_t)
 #pop-options
 
 (* ============================================================================
-   Item-4 SHIFTS — vsliq_n_s32 / _s64 (shift-left-and-insert).  The pcm op-fact
+   Item-4 SHIFTS — vsliq_n_s32 / _s64 (shift-left-and-insert).  The op-fact
    ensures `(a[i] &. arm_low_mask (v v_N)) |. (b[i] <<! v_N)` fails to ELABORATE
    in a `.fst` Lemma (the requires' `v v_N < 32` isn't in scope under the
    refinement-carrying `arm_low_mask_i32 (v v_N)` / `<<! v_N`).  Dodge: an
    UNREFINED guarded helper `vsli_lane` (refinements internal), so the ensures
    carries no refinement obligation.  Consumers use concrete N (10/12/20/24) so
-   the helper unfolds to the pcm form.  Model = ArmIV.vsliq (per-lane FunArray
+   the helper unfolds to the target form.  Model = ArmIV.vsliq (per-lane FunArray
    under NV foundation), else-branch = u32 mask + shift, bridged to the i32 form
    by two scalar lemmas. ─────────────────────────────────────────────────────── *)
 
-(* low-N-bits mask 2^N-1 (copied from pcm Arm64_extract). *)
+(* low-N-bits mask 2^N-1. *)
 let arm_low_mask_i32 (n: nat{n < 32}) : i32 =
   FStar.Math.Lemmas.pow2_le_compat 31 n;
   mk_i32 (pow2 n - 1)
@@ -2021,7 +2011,7 @@ let lemma_vsli_mask_i32 (v_N: i32) : Lemma
    foundation gives the ArmIV per-lane FunArray; under 0<v_N<32 the model's
    else-branch (u32 mask + shift) bridges to vsli_lane_i32 by the two scalar
    lemmas.  Consumers use concrete N in (0,32) so vsli_lane_i32 unfolds to the
-   pcm form (a[i] &. arm_low_mask (v v_N)) |. (b[i] <<! v_N). *)
+   target form (a[i] &. arm_low_mask (v v_N)) |. (b[i] <<! v_N). *)
 #push-options "--fuel 2 --ifuel 2 --z3rlimit 300"
 let lemma_e_vsliq_n_s32_lane (v_N: i32) (a b: t_e_int32x4_t) (i: nat{i < 4})
   : Lemma (requires v v_N > 0 /\ v v_N < 32)
@@ -2156,7 +2146,7 @@ let lemma_e_vshlq_u16_lane (a: t_e_uint16x8_t) (b: t_e_int16x8_t) (i: nat{i < 8}
   lemma_arm_ushl_eq (get_lane_u16x8 a i) (get_lane_i16x8 b i)
 #pop-options
 
-(* ── vaddvq_s16 / vaddv_u16 (horizontal add) — DONE (session 7).  Model is a
+(* ── vaddvq_s16 / vaddv_u16 (horizontal add).  Model is a
    `fold_range 0 N` LEFT fold of `impl_iN__wrapping_add` (== `+.` == add_mod) from
    0; consumer wants a balanced tree.  Three routes SATURATE (fuel-unroll, step
    lemma, unroll-lemma — all hit the fold_range CLOSURE-INEQUALITY / heavy-context
@@ -2187,13 +2177,12 @@ let lemma_arm_vaddvq_s16_unroll (a: Funarr.t_FunArray (mk_u64 8) i16)
 #pop-options
 
 (* ── add_mod (i16 `+.`) associativity, DETERMINISTIC ────────────────────────
-   The 8-term `+.` AC below used to prove by a bare `= ()` nonlinear/modular
-   SMT search (isolated: 123/400, ~29 s; in-module: 252/400, ~50 s) whose
-   recorded unsat-core does NOT replay (hint-poison: a slow/flaky query banks a
-   lucky Z3 path).  We restructure to fast-stable: prove `@%` add-distributivity
-   from FStar.Math.Lemmas once, lift to `add_mod` assoc / left-zero, then
-   re-associate the left fold into the balanced tree by a 5-step `calc` — pure
-   ground re-association, zero Z3 modular search. *)
+   A bare `= ()` proof of the 8-term `+.` AC below drives a nonlinear/modular
+   SMT search whose recorded unsat-core does NOT replay (a slow/flaky query
+   banks a lucky Z3 path).  We restructure to fast-stable: prove `@%`
+   add-distributivity from FStar.Math.Lemmas once, lift to `add_mod` assoc /
+   left-zero, then re-associate the left fold into the balanced tree by a 5-step
+   `calc` — pure ground re-association, zero Z3 modular search. *)
 #push-options "--fuel 1 --ifuel 1 --z3rlimit 60"
 
 (* `@%` (wrap into [-p/2,p/2[) depends only on the residue mod p *)
@@ -2318,9 +2307,9 @@ let lemma_e_vaddv_u16 (a: t_e_uint16x4_t)
 #pop-options
 
 (* ── vmlal_s16 / _high_s16 (widening multiply-accumulate) op-facts.  Foundation
-   NV.lemma_vmlal_s16 now lives in core-models Neon_views (proven twin of
-   NV.lemma_vmull_s16); the op-fact mirrors lemma_e_vmull_s16 exactly (pcm form,
-   direct Seq.lemma_eq_intro).  impl_i32__wrapping_add == (+.); cast b *! cast c ==
+   NV.lemma_vmlal_s16 lives in core-models Neon_views (proven twin of
+   NV.lemma_vmull_s16); the op-fact mirrors lemma_e_vmull_s16 exactly (direct
+   Seq.lemma_eq_intro).  impl_i32__wrapping_add == (+.); cast b *! cast c ==
    cast b *. cast c (i16*i16 fits i32) — the same bridges vmull's op-fact does. *)
 #push-options "--fuel 2 --ifuel 1 --z3rlimit 300"
 let lemma_e_vmlal_s16 (a: t_e_int32x4_t) (b c: t_e_int16x4_t)
@@ -2351,9 +2340,8 @@ let lemma_e_vmlal_high_s16 (a: t_e_int32x4_t) (b c: t_e_int16x8_t)
 #pop-options
 
 (* ══ codec bridge: i16 <-> u16 same-width lane views (PROVEN, zero new axioms) ══
-   Reinstates the per-lane fact the pcm `Arm64_extract._vreinterpretq_s16_u16`
-   ensures carried (`get_lane_i16x8 result i == cast_mod (get_lane_u16x8 m0 i)`),
-   now proven from the shared codec: the signed (i16) and unsigned (u16) 16-bit
+   The per-lane fact (`get_lane_i16x8 result i == cast_mod (get_lane_u16x8 m0 i)`),
+   proven from the shared codec: the signed (i16) and unsigned (u16) 16-bit
    lane views of the SAME 128-bit vec share `lane_reader` (bits I16 = bits U16 =
    16); only `decode_lane`'s signedness differs, so each i16 lane is the
    two's-complement (`cast_mod`) reinterpret of the u16 lane.  Consumed by NEON
@@ -2430,8 +2418,7 @@ let lemma_e_vreinterpretq_u16_s16_lane (m0: t_e_int16x8_t) (i: nat{i < 8})
 #pop-options
 
 (* ── per-lane get_lane facts for the whole-vector arith/logical/transpose ops ──
-   The pcm `Arm64_extract` ops carried PER-LANE `get_lane` ensures; the migrated
-   op-facts are WHOLE-vector (`vec128_as_* (op) == map2 OP ..`).  Per-lane consumers
+   The op-facts are WHOLE-vector (`vec128_as_* (op) == map2 OP ..`).  Per-lane consumers
    (the hand-written NEON theory companions) index those at a symbolic lane.  These
    lemmas expose the clean per-lane fact.  NO SMTPat — a global `get_lane (op) i`
    pattern compounds with the whole-vector SMTPat + the `map2`/`createi` index into
@@ -2501,9 +2488,9 @@ let lemma_e_vdupq_n_u32_lane (c: u32) (i: nat{i < 4})
    `Avx2.Byteperm_theory.lemma_store_glue_bits`.  The caller supplies the four
    frame foralls, so `update_at_range` and its unbounded forall never enter THIS
    query; the heavy `bit_vec_of_int_t_array` unfold for a symbolic `i` is proven
-   here ONCE, keeping it OUT of the `forall_intro` spine below (which used to
-   swallow the whole per-byte cross-product and re-prove cold at ~45-59 s /
-   120 rlimit — a hint that would not replay). *)
+   here ONCE, keeping it OUT of the `forall_intro` spine below (which would
+   otherwise swallow the whole per-byte cross-product and re-prove it, slow and
+   with a hint that would not replay). *)
 #push-options "--fuel 1 --ifuel 1 --z3rlimit 300 --split_queries always"
 let lemma_store_glue_bits_neon
       (fin: t_Slice u8) (head: t_Array u8 (sz 32))
@@ -2577,9 +2564,8 @@ let lemma_store_glue_two_writes_neon
   FStar.Classical.forall_intro aux
 #pop-options
 
-(* ── i32x4 saturating doubling multiply-high (vqdmulh) — the s32 op-fact that the
-   pcm Arm64_extract `e_vqdmulhq_n_s32` ensures carried per-lane; MISSED in the
-   migration (only the s16 forms were ported).  Used by `Neon.Compress`
+(* ── i32x4 saturating doubling multiply-high (vqdmulh) — the s32 op-fact for
+   `e_vqdmulhq_n_s32` (the s16 forms exist elsewhere).  Used by `Neon.Compress`
    `cmp_compress_u32_lane`.  Mirrors `lemma_e_vqdmulhq_n_s16` at the i32x4 width
    (i32 product widens to i64, shift 31, clamp to i32 MAX/MIN). ──────────────── *)
 #push-options "--fuel 2 --ifuel 1 --z3rlimit 200"
@@ -2597,7 +2583,7 @@ let lemma_e_vqdmulhq_n_s32 (a: t_e_int32x4_t) (b: i32)
                         else if prod <. mk_i64 (- 2147483648) then mk_i32 (- 2147483648) else (cast prod <: i32)))
 #pop-options
 
-(* per-lane form matching the pcm ensures (`get_lane_i32x4`); this is what
+(* per-lane form (`get_lane_i32x4`); this is what
    `cmp_compress_u32_lane` consumes.  SMTPat is narrow — `e_vqdmulhq_n_s32` is
    used only in Compress. *)
 #push-options "--fuel 2 --ifuel 1 --z3rlimit 200"

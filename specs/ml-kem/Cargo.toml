@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 hacspec_sha3 = { path = "../sha3" }
-hax-lib = { git = "https://github.com/cryspen/hax", branch = "fstar-quote-callsite-spans-037" }
+hax-lib = { git = "https://github.com/cryspen/hax", tag = "cargo-hax-v0.4.0" }
 
 [dev-dependencies]
 hacspec_sha3 = { path = "../sha3" }

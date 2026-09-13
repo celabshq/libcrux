@@ -497,9 +497,9 @@ let lemma_bits_to_bytes_bit
            == (if Seq.index bv (8 * m + t) then 1 else 0))
   = let mm = mk_usize m in
     assert (m == v mm);
-    (* lemma_get_bit_cast_bool is exposed as a no-SMTPat val in the .fsti firewall,
-       so its [SMTPat] no longer auto-fires (interface is authoritative) — re-inject
-       the fact explicitly here, mirroring the cross-module consumer fix. *)
+    (* lemma_get_bit_cast_bool is exposed as a no-SMTPat val in the .fsti firewall
+       (interface is authoritative), so its [SMTPat] does not auto-fire here —
+       re-inject the fact explicitly. *)
     FStar.Classical.forall_intro_2 lemma_get_bit_cast_bool;
     assert (Seq.index (S.bits_to_bytes (mk_usize 384) (mk_usize 3072) bv) (v mm)
             == ((((((((Rust_primitives.cast #bool #u8 (bv.[ mk_usize 8 *! mm <: usize ] <: bool) <: u8) |.
@@ -819,7 +819,7 @@ let lemma_chunk_byte_enc_unfold
 #pop-options
 
 (* ================================================================== *)
-(* DECODE-12-REDUCED (Track B): deserialize_12 then cond_subtract_3329.*)
+(* DECODE-12-REDUCED: deserialize_12 then cond_subtract_3329.*)
 (* The reduced composer stores g = cond_subtract_3329 (deserialize_12  *)
 (* bytes): mod-q congruence (the trait post's mod_q_eq) preserves the  *)
 (* i16_to_spec_fe image, so the chunk still decodes to byte_decode;    *)

@@ -1,5 +1,4 @@
 SLOW_MODULES += Libcrux_ml_kem.Vector.Rej_sample_table.fsti
-SLOW_MODULES += Libcrux_ml_kem.Matrix.fst
 SLOW_MODULES += Libcrux_ml_kem.Vector.Portable.Serialize.fst
 
 # G3 module-trust mirror (annotation_lint V5 / trust_ledger --check): every module
@@ -7,7 +6,6 @@ SLOW_MODULES += Libcrux_ml_kem.Vector.Portable.Serialize.fst
 # themselves are gitignored/extracted, so the Makefile is the git-tracked authority
 # for this trust surface. Reasons use the shared category vocabulary (reason_ok).
 # trusted-module: Libcrux_ml_kem.Vector.Rej_sample_table.fsti : slow-proof: large rejection-sample shuffle-table VCs, verified on cadence
-# trusted-module: Libcrux_ml_kem.Matrix.fst : slow-proof: heavy matrix compute VCs, verified on cadence
 # trusted-module: Libcrux_ml_kem.Vector.Portable.Serialize.fst : slow-proof: portable serialize bit-manipulation VCs, verified on cadence
 
 ADMIT_MODULES =
@@ -128,7 +126,19 @@ ADMIT_MODULES =
 FSTAR_INCLUDE_DIRS_EXTRA += ../spec \
 	      ../intrinsics \
 	      $(shell git rev-parse --show-toplevel)/fstar-helpers/fstar-bitvec \
-	      $(shell git rev-parse --show-toplevel)/specs/ml-kem/proofs/fstar/commute
+	      ../commute \
+	      $(shell git rev-parse --show-toplevel)/crates/algorithms/sha3/proofs/fstar/equivalence \
+	      $(shell git rev-parse --show-toplevel)/crates/algorithms/sha3/proofs/fstar/spec
+
+# Hash wiring: with `hash_functions::portable` extracted transparently, ml-kem's
+# Hash_functions.Portable depends on libcrux_sha3's transparent portable Keccak
+# `.fst` bodies (Libcrux_sha3.Portable + Generic_keccak), reached via the
+# auto-discovered sha3 `extraction` dir, plus the hand-written equivalence
+# helpers (EquivImplSpec) under sha3's `equivalence` dir which is not
+# auto-discovered.  The sha3 `stubs` dir is deliberately NOT included: it holds
+# only a stub `Spec.Utils` (a sha3-standalone shim lacking the ml-kem hash
+# oracles) that would shadow ml-kem's real `../spec/Spec.Utils` and break the
+# `Spec.Utils.v_*` references.
 
 ENABLE_HINTS = --use_hints --record_hints
 

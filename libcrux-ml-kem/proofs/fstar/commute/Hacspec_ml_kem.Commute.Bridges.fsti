@@ -16,11 +16,10 @@ module VV = Libcrux_ml_kem.Vector
 (* ============================================================================
    ABSTRACT INTERFACE for the commute-layer NTT/INTT hacspec bridges.
 
-   Purpose (2026-08-21, ml-kem verification restore): consumers of this module
-   typecheck against this cheap, stable `.fsti.checked` rather than the heavy
-   `Bridges.fst.checked`, whose per-lane `lemma_*_lane_bridge` proofs are not
-   robustly cold-provable (symbolic i/4, i%4 + SIMD-helper opaque-reveal chains
-   that hang cold after the PR#1568 intrinsics-migration digest cascade).
+   Purpose: consumers of this module typecheck against this cheap, stable
+   `.fsti.checked` rather than the heavy `Bridges.fst.checked`, whose per-lane
+   `lemma_*_lane_bridge` proofs are not robustly provable (symbolic i/4,
+   i%4 + SIMD-helper opaque-reveal chains).
 
    Consumers are the extraction impl (Libcrux_ml_kem.Ntt, Libcrux_ml_kem.Invert_ntt)
    AND the sibling commute bridges (Commute.Ntt_bridge, Commute.Invert_ntt_bridge,
@@ -157,7 +156,7 @@ val poly_to_spec_eq_to_spec_poly_plain
   : Lemma
     (VS.poly_to_spec #vV p == to_spec_poly_plain #vV p)
 
-(*** USER-14 — Layer 4+ cross-vector inverse-NTT composition (Level A + index
+(*** Layer 4+ cross-vector inverse-NTT composition (Level A + index
      helpers + Level B).  Used bare by Commute.Ntt_bridge / Invert_ntt_bridge. ***)
 
 val lemma_ntt_inverse_layer_n_256_compose
@@ -288,8 +287,7 @@ val lemma_zeta_eq_vzetas (k: usize)
 (* `len` explicit (= pow2 layer in {16,32,64,128}) with the ntt_inverse_layer_n
    precondition (`((Seq.length zs)*2)*v len == 256`) in `requires`, so the ensures
    TYPE is well-formed directly — no signature-time pow2/product cascade over the
-   disjunctive `layer`, hence NO firewall (dropped the former
-   `--admit_smt_queries true` interim).  Matches the cold-verified siblings
+   disjunctive `layer`.  Matches the siblings
    `Invert_ntt_bridge.lemma_ntt_inverse_layer_unfold_lo` and `Ntt_bridge.lemma_ntt_layer_unfold`. *)
 val lemma_ntt_inverse_layer_unfold
     (p: t_Array P.t_FieldElement (mk_usize 256))

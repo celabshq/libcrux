@@ -29,7 +29,7 @@ module TS = Libcrux_ml_kem.Vector.Traits.Spec
 module N  = Hacspec_ml_kem.Ntt
 module IN = Hacspec_ml_kem.Invert_ntt
 
-(*** Phase 7a (track A) — Inverse spec function unfold helper ***)
+(*** Inverse spec function unfold helper ***)
 
 (* Per-lane unfold for `IN.ntt_inverse_layer_n (mk_usize 16) p (mk_usize 2) zs`
    at concrete lane `i ∈ [0, 16)`.  Mirror of `lemma_ntt_layer_n_16_2_lane`
@@ -78,16 +78,16 @@ let lemma_ntt_inverse_layer_n_16_2_lane
       (sz i)
 #pop-options
 
-(*** Phase 7b — Forward NTT layer 1 hacspec bridge ***)
+(*** Forward NTT layer 1 hacspec bridge ***)
 
 #push-options "--z3rlimit 400 --fuel 0 --ifuel 1 --split_queries always"
 
 (* Per-lane bridge for `f_ntt_layer_1_step`, GROUND-LITERAL per-branch form
-   (mirrors `lemma_ntt_layer_2_step_branch_*_lane_bridge`).  The prior
-   monolithic form used symbolic `b = i / 4`, `idx = i % 4`, `i ± 2`, which
-   drove a non-terminating `Rust_primitives.Integers.div`/`range`/`MkInt`
-   refinement-interpretation cascade (cold-unprovable; only a fragile 147-fact
-   hint masked it).  Each helper here fixes a CONCRETE branch `b ∈ {0,1,2,3}`,
+   (mirrors `lemma_ntt_layer_2_step_branch_*_lane_bridge`).  A monolithic form
+   with symbolic `b = i / 4`, `idx = i % 4`, `i ± 2` drives a non-terminating
+   `Rust_primitives.Integers.div`/`range`/`MkInt`
+   refinement-interpretation cascade.  Each helper here fixes a CONCRETE branch
+   `b ∈ {0,1,2,3}`,
    so the trait branch_post's if-ladder and every lane index collapse to
    literals and the div/mod cascade never forms.
 
@@ -309,7 +309,7 @@ let lemma_ntt_layer_1_step_to_hacspec
 #pop-options
 
 
-(*** Phase 7a (track A) — Inverse NTT layer 1 hacspec bridge ***)
+(*** Inverse NTT layer 1 hacspec bridge ***)
 
 #push-options "--z3rlimit 400 --fuel 0 --ifuel 1 --split_queries always"
 
@@ -504,7 +504,7 @@ let lemma_inv_ntt_layer_1_step_lane_bridge
    one in-vector layer-1 inverse-NTT step equals
    `IN.ntt_inverse_layer_n` applied to the Mont-lifted input.  Caller
    chains 16 of these (one per chunk) to lift to a poly-level equation
-   for `invert_ntt_at_layer_1`'s post (Step 4 of the Phase 7a plan). *)
+   for `invert_ntt_at_layer_1`'s post. *)
 let lemma_inv_ntt_layer_1_step_to_hacspec
     (#vV: Type0) {| i: T.t_Operations vV |}
     (vec: vV) (zeta0 zeta1 zeta2 zeta3: i16) :
@@ -536,7 +536,7 @@ let lemma_inv_ntt_layer_1_step_to_hacspec
 
 #pop-options
 
-(*** Phase 7a (track A) — Inverse NTT layer 3 hacspec bridge ***)
+(*** Inverse NTT layer 3 hacspec bridge ***)
 
 (* Per-lane unfold helper for `zetas_1_`.  Layer-3 inverse uses a single
    zeta, so `Seq.index (zetas_1_ z0) 0 == mont_i16_to_spec_fe z0`. *)
@@ -600,10 +600,10 @@ let lemma_ntt_inverse_layer_n_16_8_lane
 #push-options "--z3rlimit 400 --fuel 0 --ifuel 1 --split_queries always"
 
 (* Per-lane bridge for `f_inv_ntt_layer_3_step`, GROUND-LITERAL per-branch form
-   (mirrors `lemma_ntt_layer_3_step_branch_*_lane_bridge`).  The prior
-   monolithic form used symbolic `b = (i%8)/2` and `i ± 8`, which drove a
+   (mirrors `lemma_ntt_layer_3_step_branch_*_lane_bridge`).  A monolithic form
+   with symbolic `b = (i%8)/2` and `i ± 8` drives a
    non-terminating `Rust_primitives.Integers.div`/`range`/`MkInt` refinement
-   cascade (cold-unprovable; only a fragile hint masked it).  Each helper here
+   cascade.  Each helper here
    fixes a CONCRETE branch `b ∈ {0,1,2,3}`, so the trait branch_post's lane
    indices `(2b, 2b+1, 2b+8, 2b+9)` collapse to literals and the div/mod
    cascade never forms.
@@ -786,8 +786,7 @@ let lemma_inv_ntt_layer_3_step_lane_bridge
    `Seq.lemma_eq_intro`.
 
    Caller chains 16 of these (one per chunk) to lift to a poly-level
-   equation for `invert_ntt_at_layer_3`'s post (Step 4 layer 3 of the
-   Phase 7a plan). *)
+   equation for `invert_ntt_at_layer_3`'s post. *)
 let lemma_inv_ntt_layer_3_step_to_hacspec
     (#vV: Type0) {| i: T.t_Operations vV |}
     (vec: vV) (zeta0: i16) :
@@ -818,7 +817,7 @@ let lemma_inv_ntt_layer_3_step_to_hacspec
 
 #pop-options
 
-(*** Phase 7a (track A) — Inverse NTT layer 2 hacspec bridge ***)
+(*** Inverse NTT layer 2 hacspec bridge ***)
 
 (* Per-lane unfold helper for `zetas_2_`. *)
 let zetas_2_lane (z0 z1: i16) (i: usize { v i < 2 }) :
@@ -1108,7 +1107,7 @@ let lemma_inv_ntt_layer_2_step_to_hacspec
     Seq.lemma_eq_intro r_fe rhs
 
 #pop-options
-(*** Phase 7b — Forward NTT layer 2 hacspec bridge ***)
+(*** Forward NTT layer 2 hacspec bridge ***)
 
 #push-options "--z3rlimit 200 --fuel 0 --ifuel 1"
 
@@ -1391,7 +1390,7 @@ let lemma_ntt_layer_2_step_to_hacspec
 
 #pop-options
 
-(*** Phase 7b — Forward NTT layer 3 hacspec bridge ***)
+(*** Forward NTT layer 3 hacspec bridge ***)
 
 #push-options "--z3rlimit 200 --fuel 0 --ifuel 1"
 
@@ -1647,7 +1646,7 @@ let lemma_ntt_layer_3_step_to_hacspec
 
 #pop-options
 
-(*** Phase 7a (track A) — Layer 4_plus chunk-pair hacspec bridge ***)
+(*** Layer 4_plus chunk-pair hacspec bridge ***)
 
 (* `inv_ntt_layer_int_vec_step_reduce` (above the trait, in
    `src/invert_ntt.rs`) operates on a CHUNK-PAIR (two `vV`-vectors) rather
@@ -1692,9 +1691,9 @@ let lemma_inv_ntt_layer_int_vec_step_reduce_to_hacspec
   = ()
 
 (* ───── Layer 2 forward NTT bridge ─────
-   STATUS: layer 1 forward + inverse, layer 2 inverse, and layer 3 inverse
-   bridges are done above (track A, Phase 7a).  Layer 2 forward remains.
-   Same pattern: 4 per-branch helper lemmas at concrete `b` to collapse
+   Layer 1 forward + inverse, layer 2 inverse, and layer 3 inverse bridges
+   are done above; the forward layer 2 bridge is not yet present.  It would
+   follow the same pattern: 4 per-branch helper lemmas at concrete `b` to collapse
    the nested if-ladder in the trait branch_post, plus a per-vector
    composition via `Classical.forall_intro` + `Seq.lemma_eq_intro`. *)
 
@@ -1729,8 +1728,8 @@ let poly_to_spec_eq_to_spec_poly_plain
     Seq.lemma_eq_intro lhs rhs
 #pop-options
 
-(*** USER-14 — Layer 4+ cross-vector inverse-NTT composition bridge ***)
-(* Authored 2026-05-30.  Lifts the impl's per-vector-pair `inv_butterfly`
+(*** Layer 4+ cross-vector inverse-NTT composition bridge ***)
+(* Lifts the impl's per-vector-pair `inv_butterfly`
    operations (cross-vector partners j and j+step_vec) to the spec's
    per-coefficient 256-element `IN.ntt_inverse_layer_n`, for layers 4..7
    (len = 2^layer ∈ {16,32,64,128}, step_vec = len/16, groups = 128/len).
@@ -1971,18 +1970,17 @@ let lemma_layer_4_plus_cross_vector
     lemma_ntt_inverse_layer_n_256_compose p q len zs
 #pop-options
 
-(* lemma_zeta_eq_vzetas — the user-approved Option B zeta-correspondence axiom
+(* lemma_zeta_eq_vzetas — the user-approved zeta-correspondence axiom
    (full justification in the .fsti).  Declared `val` in Bridges.fsti; here it is
    discharged by `admit ()` — F* forbids `assume val` in an interface, so the
-   axiom moves to this `= admit ()` body.  Trust is UNCHANGED from the prior
-   `assume val` form (one relocated axiom, no new trust); the correspondence is
-   validated at runtime by `ntt_matches_spec` in `src/ntt.rs`. *)
+   axiom lives in this `= admit ()` body (one axiom, no new trust); the
+   correspondence is validated at runtime by `ntt_matches_spec` in `src/ntt.rs`. *)
 let lemma_zeta_eq_vzetas (k: usize)
   : Lemma (requires v k < 128)
           (ensures mont_i16_to_spec_fe (Libcrux_ml_kem.Polynomial.zeta k) == N.v_ZETAS.[ k ])
   = admit ()
 
-(* === USER-14 unfold lemma: table-building `IN.ntt_inverse_layer` -> explicit
+(* === unfold lemma: table-building `IN.ntt_inverse_layer` -> explicit
    `IN.ntt_inverse_layer_n` for layers 4..7, against a caller-supplied zeta slice
    `zs` whose entries match the spec's internal table `v_ZETAS[2*groups-1-round]`.
    Purely structural (no zeta correspondence inside): unfolds the table-building
@@ -1991,11 +1989,10 @@ let lemma_zeta_eq_vzetas (k: usize)
 (* Take `len` explicitly (= pow2 layer in {16,32,64,128}) with the
    ntt_inverse_layer_n precondition in `requires`, so the ensures TYPE is well-formed
    directly (the precond `((Seq.length zs)*2)*v len == 256` is a hypothesis) -- no
-   from-scratch nonlinear pow2/product reasoning at signature time, which cold-saturates
-   over the disjunctive `layer` (the cliff the old `1<<layer`-in-ensures form + the
-   .fsti `--admit_smt_queries true` firewall existed for).  Mirrors the cold-verified
-   siblings `Invert_ntt_bridge.lemma_ntt_inverse_layer_unfold_lo` (layers 1..3) and the
-   forward `Ntt_bridge.lemma_ntt_layer_unfold` (layers 4..7).  Cold-provable, no firewall.
+   from-scratch nonlinear pow2/product reasoning at signature time, which would
+   saturate over the disjunctive `layer`.  Mirrors the siblings
+   `Invert_ntt_bridge.lemma_ntt_inverse_layer_unfold_lo` (layers 1..3) and the
+   forward `Ntt_bridge.lemma_ntt_layer_unfold` (layers 4..7).
    `--split_queries always` + `#restart-solver`: the createi/FACT2 congruence auto-splits
    (Warning 349) — make it explicit so each lane sub-query is fast-stable, and clear
    solver state accumulated by earlier Bridges decls. *)
@@ -2035,8 +2032,9 @@ let lemma_ntt_inverse_layer_unfold
           else P.impl_FieldElement__new (mk_u16 0))
     in
     let tbl_slice : t_Slice P.t_FieldElement =
-      zetas_tbl.[ { Core_models.Ops.Range.f_start = mk_usize 0;
-                    Core_models.Ops.Range.f_end = groups } ] in
+      zetas_tbl.[ ({ Core_models.Ops.Range.f_start = mk_usize 0;
+                     Core_models.Ops.Range.f_end = groups }
+                   <: Core_models.Ops.Range.t_Range usize) ] in
     assert (IN.ntt_inverse_layer p layer ==
             IN.ntt_inverse_layer_n (mk_usize 256) p len' tbl_slice)
       by (FStar.Tactics.norm [delta_only [`%IN.ntt_inverse_layer]; iota; zeta; primops];
@@ -2060,7 +2058,7 @@ let lemma_ntt_inverse_layer_unfold
     Seq.lemma_eq_intro tbl_slice zs
 #pop-options
 
-(* === USER-14 end-to-end chain test (validates Option B): assuming the loop
+(* === end-to-end chain test: assuming the loop
    produced the per-vector cross_vec_hyp, the function's strengthened post
    (table-form `IN.ntt_inverse_layer`) follows by composing the verified
    lemmas: cross-vector bridge -> unfold -> to_spec_poly_mont_unfold.  This is
@@ -2100,7 +2098,7 @@ let lemma_layer_4_plus_post_from_cross_vec
     lemma_ntt_inverse_layer_unfold (to_spec_poly_mont_arr #vV re_in.VV.f_coefficients) layer len zs
 #pop-options
 
-(* === USER-14 keystone: from one inv_ntt_layer_int_vec_step_reduce step (vectors
+(* === keystone: from one inv_ntt_layer_int_vec_step_reduce step (vectors
    j and j+step_vec, low/high halves of block = j/(2*step_vec)), establish
    cross_vec_hyp for BOTH written vectors.  This is the per-inner-iteration fact
    the body's loop accumulates.  `cout` is `cin` updated at j and j+step_vec; the
@@ -2165,7 +2163,7 @@ let lemma_cross_vec_from_step
     Classical.forall_intro aux_hi
 #pop-options
 
-(* === USER-14 frame lemma: cross_vec_hyp reads `cout` only at index m, so an update
+(* === frame lemma: cross_vec_hyp reads `cout` only at index m, so an update
    to `cout` at indices other than m preserves it.  Lets the body's loop carry the
    already-done vectors' cross_vec_hyp across each Seq.upd of the two written vectors. *)
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 100"

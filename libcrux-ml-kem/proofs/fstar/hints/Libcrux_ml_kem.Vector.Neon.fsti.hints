@@ -20,7 +20,7 @@
         "typing_Libcrux_ml_kem.Vector.Neon.impl"
       ],
       0,
-      "f148581d97c05d7e6b464837ce359225"
+      "cdb196cb52f74f7135da0dcf76702ab3"
     ],
     [
       "Libcrux_ml_kem.Vector.Neon.op_to_unsigned_representative",
@@ -41,7 +41,7 @@
         "typing_Libcrux_ml_kem.Vector.Neon.impl"
       ],
       0,
-      "1694c055b331140db0ab11fbeded2655"
+      "4616128a0ee6960c09c98f5fc216081f"
     ],
     [
       "Libcrux_ml_kem.Vector.Neon.op_compress_1_",
@@ -62,7 +62,7 @@
         "typing_Libcrux_ml_kem.Vector.Neon.impl"
       ],
       0,
-      "3263a8fa44606a2130ba072c3dbbe20c"
+      "a31cefffa18c706b6023b91914ddbe66"
     ],
     [
       "Libcrux_ml_kem.Vector.Neon.op_compress",
@@ -86,7 +86,7 @@
         "typing_Libcrux_ml_kem.Vector.Neon.impl"
       ],
       0,
-      "b43efe6b91baf54f0af7725e91abb8ff"
+      "78a56fd485fd3c668fc27db0dd756d95"
     ],
     [
       "Libcrux_ml_kem.Vector.Neon.op_decompress_1_",
@@ -107,7 +107,7 @@
         "typing_Libcrux_ml_kem.Vector.Neon.impl"
       ],
       0,
-      "b0ca61093fac2e28b0e79c9a9649badd"
+      "71be491aa469fa1ecc8ff3464202a32c"
     ],
     [
       "Libcrux_ml_kem.Vector.Neon.op_decompress_ciphertext_coefficient",
@@ -131,7 +131,7 @@
         "typing_Libcrux_ml_kem.Vector.Neon.impl"
       ],
       0,
-      "422b5e03ac4ae21137f7ab1a5c5edb9d"
+      "e50a2073f8d4e64507fdcb3d14108ca9"
     ],
     [
       "Libcrux_ml_kem.Vector.Neon.op_ntt_layer_1_step",
@@ -155,7 +155,7 @@
         "typing_Libcrux_ml_kem.Vector.Neon.impl"
       ],
       0,
-      "2057396b12036cad8a0027d98aa238e0"
+      "e50ddab9d80cc9da634bcc8e7be5a9be"
     ],
     [
       "Libcrux_ml_kem.Vector.Neon.op_ntt_layer_2_step",
@@ -179,7 +179,7 @@
         "typing_Libcrux_ml_kem.Vector.Neon.impl"
       ],
       0,
-      "e98a0780a28b2b3bd2ca75e0801b801c"
+      "1b8c78ce4f80512f352c7222f1be39cd"
     ],
     [
       "Libcrux_ml_kem.Vector.Neon.op_ntt_layer_3_step",
@@ -203,7 +203,7 @@
         "typing_Libcrux_ml_kem.Vector.Neon.impl"
       ],
       0,
-      "12955b767b46636fc60f7c016de37986"
+      "b659adb1f03d198bca7a9b081e2302ea"
     ],
     [
       "Libcrux_ml_kem.Vector.Neon.op_inv_ntt_layer_1_step",
@@ -227,7 +227,7 @@
         "typing_Libcrux_ml_kem.Vector.Neon.impl"
       ],
       0,
-      "f9f11f6b693089bd390695501f579923"
+      "e591cac5bca802109d2cb077e1c0b0d8"
     ],
     [
       "Libcrux_ml_kem.Vector.Neon.op_inv_ntt_layer_2_step",
@@ -251,7 +251,7 @@
         "typing_Libcrux_ml_kem.Vector.Neon.impl"
       ],
       0,
-      "996505142b023ca8610bec3371f96f74"
+      "2dbeeb6a75b705e3052f7e689256d938"
     ],
     [
       "Libcrux_ml_kem.Vector.Neon.op_inv_ntt_layer_3_step",
@@ -275,7 +275,7 @@
         "typing_Libcrux_ml_kem.Vector.Neon.impl"
       ],
       0,
-      "65e34d0e888f3fbe353723223b3633fe"
+      "a1fe793640f157ca493e095c5b2a8f34"
     ],
     [
       "Libcrux_ml_kem.Vector.Neon.op_ntt_multiply",
@@ -299,7 +299,7 @@
         "typing_Libcrux_ml_kem.Vector.Neon.impl"
       ],
       0,
-      "2e0966bb7e5a6d999a02135ffb0af05c"
+      "41d832bb81f5b7ca472d26b0619d135e"
     ],
     [
       "Libcrux_ml_kem.Vector.Neon.op_serialize_1_",
@@ -345,7 +345,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "c19efb6ba4fbd4e18c2dd16b660adce4"
+      "c3fe826af041312b59f8c324e16d49ae"
     ],
     [
       "Libcrux_ml_kem.Vector.Neon.op_serialize_4_",
@@ -391,7 +391,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e24bddf6535186cf7adba6619dc4981a"
+      "08d18a488184ab6fd634b7ea5ed240ba"
     ],
     [
       "Libcrux_ml_kem.Vector.Neon.op_serialize_10_",
@@ -438,7 +438,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "856d4f0fd6fa643ac8f17d909c11b492"
+      "ea4949f9da9db1e5abc348730131c922"
     ],
     [
       "Libcrux_ml_kem.Vector.Neon.op_serialize_12_",
@@ -485,7 +485,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "9adf5671bb07606fd32f19e959e1cce2"
+      "145aae529c6bcfe177826b04d6c2b219"
     ],
     [
       "Libcrux_ml_kem.Vector.Neon.op_deserialize_12_",
@@ -540,7 +540,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e7d079ee9e6ebc6446b2ea211d8b3f68"
+      "7b13cc432e67918f38855d1ad9c2a2ba"
     ],
     [
       "Libcrux_ml_kem.Vector.Neon.rej_sample",
@@ -558,7 +558,8 @@
         "equality_tok_Rust_primitives.Integers.I16@tok",
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
         "equation_Core_models.Ops.Index.f_index_pre",
-        "equation_Core_models.Slice.impl_11", "equation_Prims.nat",
+        "equation_Core_models.Slice.impl_10",
+        "equation_Core_models.Slice.impl__len", "equation_Prims.nat",
         "equation_Rust_primitives.Arrays.t_Slice",
         "equation_Rust_primitives.Integers.bits",
         "equation_Rust_primitives.Integers.i16",
@@ -577,8 +578,8 @@
         "equation_Rust_primitives.Integers.v",
         "fuel_guarded_inversion_Rust_primitives.Integers.int_t",
         "int_inversion", "int_typing",
+        "interpretation_Tm_abs_aed667363465ba744e352ad378c160c3",
         "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
-        "interpretation_Tm_abs_e4ad8c1bfeedd85414fb6d3d7efd6033",
         "lemma_Rust_primitives.Integers.pow2_values",
         "lemma_Spec.Utils.pow2_more_values", "primitive_Prims.op_AmpAmp",
         "primitive_Prims.op_Equality", "primitive_Prims.op_LessThan",
@@ -605,7 +606,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "0f95b128af5e60dcfc9b10df8dd2586b"
+      "97b60a3a4bb67702582e2b7dc9310284"
     ],
     [
       "Libcrux_ml_kem.Vector.Neon.op_rej_sample",
@@ -623,7 +624,8 @@
         "equality_tok_Rust_primitives.Integers.I16@tok",
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
         "equation_Core_models.Ops.Index.f_index_pre",
-        "equation_Core_models.Slice.impl_11", "equation_Prims.nat",
+        "equation_Core_models.Slice.impl_10",
+        "equation_Core_models.Slice.impl__len", "equation_Prims.nat",
         "equation_Rust_primitives.Arrays.t_Slice",
         "equation_Rust_primitives.Integers.bits",
         "equation_Rust_primitives.Integers.i16",
@@ -642,8 +644,8 @@
         "equation_Rust_primitives.Integers.v",
         "fuel_guarded_inversion_Rust_primitives.Integers.int_t",
         "int_inversion", "int_typing",
+        "interpretation_Tm_abs_aed667363465ba744e352ad378c160c3",
         "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
-        "interpretation_Tm_abs_e4ad8c1bfeedd85414fb6d3d7efd6033",
         "lemma_Rust_primitives.Integers.pow2_values",
         "lemma_Spec.Utils.pow2_more_values", "primitive_Prims.op_AmpAmp",
         "primitive_Prims.op_Equality", "primitive_Prims.op_LessThan",
@@ -669,7 +671,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "7341d4bb5f8525d8d23a3ac0b0accf9e"
+      "e5bdff0f88949f8642aad8810e0f5bce"
     ]
   ]
 ]

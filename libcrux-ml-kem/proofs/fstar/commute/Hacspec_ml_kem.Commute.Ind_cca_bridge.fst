@@ -9,7 +9,7 @@ module HCP = Hacspec_ml_kem.Ind_cpa
 module SU  = Spec.Utils
 
 (* ════════════════════════════════════════════════════════════════════════
-   ind_cca PACKED-API composition bridges (Phase 1).
+   ind_cca PACKED-API composition bridges.
 
    These relate the impl (Libcrux_ml_kem.Ind_cca.{generate_keypair,...}) to the
    hacspec reference (Hacspec_ml_kem.Ind_cca.{generate_keypair,...}) by composing
@@ -19,23 +19,24 @@ module SU  = Spec.Utils
    HASH-SPEC CONSISTENCY: the impl/Hash-trait side is specced against the abstract
    Spec.Utils.v_{G,H,PRF,J}; the hacspec reference uses the abstract
    Hacspec_ml_kem.Parameters.Hash_functions.v_{G,H,PRF,J}.  Both denote the same
-   SHA3 primitives.  The equalities below are PROVEN by `Spec.Utils.lemma_v_*_eq`
-   once Spec.Utils.v_* are made concrete aliases of the hacspec hashes (the final
-   net-stronger upstream step).  DURING DEVELOPMENT they are admitted here.
+   SHA3 primitives.  The equalities below are admitted here; they become PROVEN by
+   `Spec.Utils.lemma_v_*_eq` once Spec.Utils.v_* are made concrete aliases of the
+   hacspec hashes (the net-stronger upstream step).
    ════════════════════════════════════════════════════════════════════════ *)
 
 (* FO-glue hash-spec consistency: the impl/Hash-trait side is specced vs the
    abstract Spec.Utils.v_H; the hacspec reference uses HF.v_H. Both denote
-   SHA3-256. This is an ASSUMED, sound, Phase-2-dischargeable bridge (kept
-   admitted — making it proven would require cold-rebuilding the foundational
-   Spec.Utils, which currently has pre-existing stale-cache breakage). *)
+   SHA3-256. This is an ASSUMED, sound bridge (kept admitted; proving it would
+   require rebuilding the foundational Spec.Utils). *)
 let lemma_v_H_bridge (x: t_Slice u8)
   : Lemma (ensures SU.v_H x == HF.v_H x)
-  = admit ()
+  = Hacspec_ml_kem.Commute.Hash_reveal.lemma_v_H_eq x; reveal_opaque (`%HF.v_H) (HF.v_H x)
 
-(* FO-glue slice<->array coercion for the 32-byte seed/z splits. Same category
-   as the existing (assumed) Spec.Utils.slice_to_array_id (len-16); a known-true
-   Core_models try_into fact. *)
+(* FO-glue slice<->array coercion for the 32-byte seed/z splits: the Core_models
+   try_into (slice -> [_;32]) returns Ok (array_from_fn ...) when the length
+   matches, so unwrap is the identity. Mirrors the proven generic
+   Serialize_compress.lemma_slice_to_array_id and Spec.Utils.slice_to_array_id. *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 150"
 let lemma_slice_to_array_id_32 (array: t_Slice u8)
   : Lemma (requires Seq.length array == 32)
           (ensures Core_models.Result.impl__unwrap
@@ -45,7 +46,18 @@ let lemma_slice_to_array_id_32 (array: t_Slice u8)
                 #(t_Array u8 (mk_usize 32))
                 #FStar.Tactics.Typeclasses.solve
                 array) == array)
-  = admit ()
+  = let a:t_Array u8 (mk_usize 32) =
+      Core_models.Result.impl__unwrap
+        #(t_Array u8 (mk_usize 32))
+        #Core_models.Array.t_TryFromSliceError
+        (Core_models.Convert.f_try_into #(t_Slice u8)
+          #(t_Array u8 (mk_usize 32))
+          #FStar.Tactics.Typeclasses.solve
+          array)
+    in
+    assert (Core_models.Slice.impl__len #u8 array == mk_usize 32);
+    Seq.lemma_eq_intro a array
+#pop-options
 
 (* ─────────────────────────────────────────────────────────────────────────
    generate_keypair: ind_cca's MlKemKeyPair relates to the spec's (ek,dk).
@@ -319,7 +331,7 @@ let lemma_generate_keypair_post
    SHA3-512. Sibling to lemma_v_H_bridge — same sanctioned, admitted glue. *)
 let lemma_v_G_bridge (x: t_Slice u8)
   : Lemma (ensures SU.v_G x == HF.v_G x)
-  = admit ()
+  = Hacspec_ml_kem.Commute.Hash_reveal.lemma_v_G_eq x; reveal_opaque (`%HF.v_G) (HF.v_G x)
 
 (* ─────────────────────────────────────────────────────────────────────────
    CONSTRUCTION BRIDGE for encaps: encaps_internal's 2-way update_at build of
@@ -421,7 +433,7 @@ let lemma_rank_encrypt_facts (v_K: usize)
    randomness and F* bridges by congruence).
    ───────────────────────────────────────────────────────────────────────── *)
 #restart-solver
-#push-options "--fuel 2 --ifuel 1 --z3rlimit 800"
+#push-options "--fuel 2 --ifuel 1 --z3rlimit 800 --using_facts_from '* -Hacspec_ml_kem.Ntt -Hacspec_ml_kem.Matrix -Hacspec_ml_kem.Serialize -Hacspec_ml_kem.Invert_ntt -Hacspec_ml_kem.Compress -Hacspec_ml_kem.Sampling'"
 let lemma_encapsulate_post
       (v_K v_PUBLIC_KEY_SIZE v_C1_SIZE v_C2_SIZE v_CIPHERTEXT_SIZE: usize)
       (pk_value: t_Array u8 v_PUBLIC_KEY_SIZE)
@@ -486,7 +498,7 @@ let lemma_encapsulate_post
 #pop-options
 
 (* ════════════════════════════════════════════════════════════════════════
-   decapsulate bridges (Phase 1).
+   decapsulate bridges.
    ════════════════════════════════════════════════════════════════════════ *)
 
 (* FO-glue hash-spec consistency for J (implicit rejection): the impl/Hash-trait
@@ -495,7 +507,7 @@ let lemma_encapsulate_post
    admitted glue as lemma_v_H_bridge / lemma_v_G_bridge. *)
 let lemma_v_PRF_J_32 (x: t_Slice u8)
   : Lemma (ensures SU.v_PRF (mk_usize 32) x == HF.v_J (mk_usize 32) x)
-  = admit ()
+  = Hacspec_ml_kem.Commute.Hash_reveal.lemma_v_PRF_eq (mk_usize 32) x; reveal_opaque (`%HF.v_J) (HF.v_J (mk_usize 32) x)
 
 (* ─────────────────────────────────────────────────────────────────────────
    CONSTRUCTION BRIDGE for decaps: decaps_internal's 2-way update_at build of
@@ -746,14 +758,16 @@ let lemma_decapsulate_post
    takes the precomputed `public_key_hash`, `tt_as_ntt` (= vector_to_spec f_tt),
    `m_A` (= matrix_to_spec f_A, raw sample_matrix_A(false) form) directly, so these
    are SIMPLER than the packed bridges (no pubkey deserialization, no v_H bridge).
-   The `m_A` here is the raw form that ind_cpa::encrypt_unpacked consumes directly
-   (the reference spec's spurious untranspose was removed 2026-06-24).
+   The `m_A` here is the raw form that ind_cpa::encrypt_unpacked consumes directly.
    ════════════════════════════════════════════════════════════════════════ *)
 
 (* encapsulate (unpacked): the impl-body facts (encaps_prepare = SU.v_G(concat
    randomness pk_hash), the split, the Ind_cpa.encrypt_unpacked contract, the
    result-wrap) compose into ind_cca_unpack_encapsulate's Ok post. 2-way analog of
    lemma_encapsulate_post with pk_hash given directly + encrypt_unpacked. *)
+(* #restart-solver clears solver-state accumulated by the sibling lemmas,
+   which otherwise tips this query over the rlimit cap in-module. *)
+#restart-solver
 #push-options "--fuel 2 --ifuel 1 --z3rlimit 400"
 let lemma_unpack_encapsulate_post
       (v_K v_C1_SIZE v_C2_SIZE v_CIPHERTEXT_SIZE: usize)

@@ -1,11 +1,11 @@
 module Hacspec_ml_kem.Commute.Rej_table
 
-(* Track I M2 (2026-06-10): ground machinery for the AVX2 rejection-sampling
+(* Ground machinery for the AVX2 rejection-sampling
    shuffle table.  The extracted
    `Libcrux_ml_kem.Vector.Rej_sample_table.v_REJECTION_SAMPLE_SHUFFLE_TABLE`
    is a `Seq` built by `array_of_list`/`seq_of_list`; `Seq.index` is
-   interface-abstract, so `assert_norm` cannot evaluate lookups into it
-   (Track I M1 cliff note).  This module carries a DUPLICATE `list (list u8)`
+   interface-abstract, so `assert_norm` cannot evaluate lookups into it.
+   This module carries a DUPLICATE `list (list u8)`
    literal of the table (generated mechanically from
    `libcrux-ml-kem/src/vector/rej_sample_table.rs`), bridges it to the
    extracted Seq once by normalization-reflexivity (`lemma_table_eq`), proves
@@ -880,7 +880,7 @@ let lemma_vec256_lane_bounded (vec: AVX.t_Vec256) (n: nat{n > 0 /\ n <= 16}) (i:
    cost), and only the leaf lemma that needs a forall reveals its own.
    Without this, the ite + div-sum formula hypothesis is re-instantiated
    in every split sub-query and saturates Z3 on trivial arithmetic
-   (build d43a3f6c / 99987b26: rlimit_used 200.000, qi-profile flat).    *)
+   (rlimit_used 200.000, qi-profile flat).    *)
 (* ===================================================================== *)
 
 [@@ "opaque_to_smt"]

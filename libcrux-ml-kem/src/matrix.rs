@@ -315,11 +315,11 @@ pub(crate) fn compute_ring_element_v<const K: usize, Vector: Operations>(
 
 /// Compute u := InvertNTT(Aᵀ ◦ r̂) + e₁
 #[inline(always)]
-// rlimit 700 (no split_queries; cap is 800): the honest-4096 cascade weakened
-// ntt_multiply's `self` pre to is_bounded_poly 4096, so this all-sampled-3328 path
-// widens A explicitly per multiply, pushing cold cost to ~498 (>400). rlimit is a
-// CAP not a target — the passing run still stops at ~498; this just removes the
-// 400-saturation cliff and avoids a fragile budget-bound hint that won't replay.
+// rlimit 700 (no split_queries; cap is 800): ntt_multiply's `self` pre is
+// is_bounded_poly 4096, so this all-sampled-3328 path widens A explicitly per
+// multiply, pushing the cost to ~498 (>400).  rlimit is a CAP not a target —
+// the passing run still stops at ~498; this clears the 400-saturation cliff and
+// avoids a fragile budget-bound hint that won't replay.
 #[hax_lib::fstar::options("--z3rlimit 700 --fuel 1 --ifuel 1 --ext context_pruning --using_facts_from '* -Hacspec_ml_kem.Parameters.createi_lemma -Libcrux_ml_kem.Polynomial.Spec'")]
 #[hax_lib::requires((K <= 4).to_prop() & (
         hax_lib::forall(|i:usize| hax_lib::implies(i < K,
@@ -446,7 +446,7 @@ pub(crate) fn compute_vector_u<const K: usize, Vector: Operations>(
                                 spec::is_bounded_poly(3328, &future(t_as_ntt)[i])))
     & (crate::vector::spec::vector_to_spec(&future(t_as_ntt))
         == hacspec_ml_kem::matrix::compute_As_plus_e::<K>(
-            // NOTE (2026-06-07): the impl computes t[i] = Σⱼ matrix_A[i][j]·s[j]
+            // The impl computes t[i] = Σⱼ matrix_A[i][j]·s[j]
             // (row i of matrix_A), whereas the hacspec `multiply_matrix_by_column`
             // indexes `matrix[j][i]`. `matrix_to_spec` is index-preserving, so the
             // spec must receive the TRANSPOSE for the post to be true. This matches

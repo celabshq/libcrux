@@ -15,13 +15,11 @@ open Libcrux_intrinsics.Avx2_ml_kem_views
    (n <= b < 2n), and 0 otherwise.  This is the shared P2 obligation behind
    serialize_4 / _5 / _10 / _12.
 
-   WHY ITS OWN MODULE (2026-07-30, session 7).  These two lemmas were developed
-   at the tail of `Libcrux_intrinsics.Avx2_ml_kem_views` (2100+ lines, ~50 SMTPat
-   view/op facts) and could only be landed there behind a per-decl
-   `#restart-solver`: the same ground per-arm assertions flip-flopped between
-   0.2/400 and canceled-400.000 ACROSS ATTEMPTS, i.e. solver-state pollution
-   accumulated from the host module's earlier queries (skill §7 step 0.5).  A
-   dedicated module gives them a fresh solver and a small pruned context, and —
+   WHY ITS OWN MODULE.  In `Libcrux_intrinsics.Avx2_ml_kem_views` (2100+ lines,
+   ~50 SMTPat view/op facts) these two lemmas suffer solver-state pollution from
+   the host module's earlier queries: the same ground per-arm assertions
+   flip-flop between passing and canceled-400.000.  A dedicated module gives them
+   a fresh solver and a small pruned context, and —
    per the SMTPat rule (`feedback_smtpat_only_for_user_consumed_lemmas`) — the
    proof below reaches every companion fact by an EXPLICIT CALL rather than by
    ambient pattern firing.  Digit-bridge helpers (`lemma_bv_bit_lane32_digit`,

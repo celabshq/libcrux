@@ -93,17 +93,14 @@
     },
     "fstar": {
       "by_kind": {
-        "admit": 9,
+        "admit": 4,
         "admit_smt_queries": 1,
-        "assume": 5,
-        "assume_val": 63
+        "assume": 4,
+        "assume_val": 14
       },
       "by_module": {
-        "Libcrux_intrinsics.Arm64_extract": 18,
-        "Libcrux_intrinsics.Avx2": 4,
-        "Libcrux_ml_kem.Hash_functions.Avx2": 9,
-        "Libcrux_ml_kem.Hash_functions.Neon": 9,
-        "Libcrux_ml_kem.Hash_functions.Portable": 9,
+        "Hacspec_ml_kem.Commute.Bridges": 1,
+        "Libcrux_ml_kem.Hash_functions.Avx2": 1,
         "Libcrux_ml_kem.Ind_cca.Incremental": 1,
         "Libcrux_ml_kem.Ind_cca.Incremental.Types": 8,
         "Libcrux_ml_kem.Polynomial": 1,
@@ -115,15 +112,14 @@
         "Libcrux_ml_kem.Vector.Neon.Vector_type": 1,
         "Libcrux_ml_kem.Vector.Portable.Vector_type": 1,
         "Proof_utils": 1,
-        "Spec.Utils": 11
+        "Spec.Utils": 3
       },
-      "scanned_files": 183,
-      "total": 78
+      "scanned_files": 219,
+      "total": 23
     },
     "makefile": {
       "admit_modules": [],
       "slow_modules": [
-        "Libcrux_ml_kem.Matrix",
         "Libcrux_ml_kem.Vector.Portable.Serialize",
         "Libcrux_ml_kem.Vector.Rej_sample_table"
       ]

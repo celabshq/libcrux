@@ -6,9 +6,9 @@ open Libcrux_ml_kem.Vector.Traits.Spec
 open Hacspec_ml_kem.Commute.Chunk
 open Hacspec_ml_kem.Commute.Bridges
 
-(* USER-15 — layers 1-3 intra-vector inverse-NTT -> polynomial composition.
+(* Layers 1-3 intra-vector inverse-NTT -> polynomial composition.
    Split out of Hacspec_ml_kem.Commute.Bridges so that editing these lemmas does
-   NOT invalidate Bridges.fst.checked (which holds the slow rlimit-800 USER-14
+   NOT invalidate Bridges.fst.checked (which holds the slow rlimit-800 layer-4+
    lemmas).  Depends on Bridges (tspm_arr_lane, lemma_zeta_eq_vzetas, zetas_{1,2}_lane,
    lemma_ntt_inverse_layer_n_256_compose) and Chunk (to_spec_poly_mont[_arr],
    lemma_to_spec_poly_mont_unfold, mont_array_lane, zetas_4_lane). *)
@@ -29,13 +29,14 @@ let lemma_shift_pow2_lo (layer: usize {v layer == 1 \/ v layer == 2 \/ v layer =
     else assert_norm (v (mk_usize 1 <<! mk_usize 3) == pow2 3)
 #pop-options
 
-(* === USER-15 sibling of lemma_ntt_inverse_layer_unfold for layers 1..3.
+(* === Sibling of lemma_ntt_inverse_layer_unfold for layers 1..3.
    Takes `len` explicitly (= pow2 layer ∈ {2,4,8}) with the ntt_inverse_layer_n
    precondition in `requires` so the ensures type is well-formed by case-split
    (no from-scratch abstract nonlinear / shift reasoning needed at type level,
    which has no hint for this new lemma).  The verified layer-4+ unfold above
    is untouched. === *)
-#push-options "--fuel 1 --ifuel 1 --z3rlimit 400"
+#restart-solver
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 400 --split_queries always"
 let lemma_ntt_inverse_layer_unfold_lo
     (p: t_Array P.t_FieldElement (mk_usize 256))
     (layer len: usize)
@@ -66,8 +67,9 @@ let lemma_ntt_inverse_layer_unfold_lo
           else P.impl_FieldElement__new (mk_u16 0))
     in
     let tbl_slice : t_Slice P.t_FieldElement =
-      zetas_tbl.[ { Core_models.Ops.Range.f_start = mk_usize 0;
-                    Core_models.Ops.Range.f_end = groups } ] in
+      zetas_tbl.[ ({ Core_models.Ops.Range.f_start = mk_usize 0;
+                     Core_models.Ops.Range.f_end = groups }
+                   <: Core_models.Ops.Range.t_Range usize) ] in
     assert (IN.ntt_inverse_layer p layer ==
             IN.ntt_inverse_layer_n (mk_usize 256) p len' tbl_slice)
       by (FStar.Tactics.norm [delta_only [`%IN.ntt_inverse_layer]; iota; zeta; primops];
@@ -91,8 +93,8 @@ let lemma_ntt_inverse_layer_unfold_lo
     Seq.lemma_eq_intro tbl_slice zs
 #pop-options
 
-(*** USER-15 — Layers 1-3 intra-vector inverse-NTT composition bridge ***)
-(* Authored 2026-05-31.  Mirror of the USER-14 layer-4+ cross-vector machinery,
+(*** Layers 1-3 intra-vector inverse-NTT composition bridge ***)
+(* Mirror of the layer-4+ cross-vector machinery,
    but for layers 1..3 where len = 2^layer ∈ {2,4,8} < 16, so each
    Gentleman-Sande butterfly partner (lane l ± len) stays WITHIN a single
    16-lane vector m.  The layer_{1,2,3} function posts are per-16-vector
@@ -104,7 +106,7 @@ let lemma_ntt_inverse_layer_unfold_lo
    for len<16, 2*len | 16, so the partner i±len lives in vector m as well.
    The global group i/(2len) = (8/len)*m + l/(2len), and the global zeta slice
    index for vector m, per-vector group g is (8/len)*m + g.  Two levels:
-     LEVEL A  lemma_ntt_inverse_layer_n_256_compose (REUSED from USER-14).
+     LEVEL A  lemma_ntt_inverse_layer_n_256_compose (reused from the layer-4+ bridge).
      LEVEL B' lemma_intra_vec_per_coeff — reduces the per-vector
               `ntt_inverse_layer_n 16` hypothesis to Level A's per-coefficient
               form via the intra-vector index algebra. *)
@@ -217,7 +219,7 @@ let lemma_gv_lt (l: nat {l < 16}) (len: pos {len == 2 \/ len == 4 \/ len == 8})
    `pvz_m[g] == zs[(8/len)*m+g]`, build Level A's per-coefficient hypothesis
    for `IN.ntt_inverse_layer_n 256`.  Mirror of `lemma_layer_4_plus_per_coeff`
    but intra-vector (partner lane l±len stays in vector m). *)
-(* === USER-15 job B: opaque per-vector layer-post atom ===
+(* === Opaque per-vector layer-post atom ===
    The per-vector relation `mont_arr cout[m] == ntt_inverse_layer_n 16 (mont_arr cin[m]) len pv`
    carries NESTED createi terms (mont_i16_to_spec_array + ntt_inverse_layer_n).  Matching a
    16-fold `forall m` of it triggers the createi_lemma SMTPat cascade.  Wrapping it in this
@@ -424,7 +426,7 @@ let lemma_ntt_inverse_butterflies_unfold (p: t_Array P.t_FieldElement (mk_usize 
 #pop-options
 
 (* ============================================================================
-   USER-15 top-down OPAQUE composition layer.
+   Top-down OPAQUE composition layer.
    `poly_step re_in re_out layer` is the opaque polynomial-form step.  The driver
    chains these atoms (instant, no transparent-spec unfolding).  Layers 1-3
    bridges (raw 16-vector post ==> poly_step) are ADMITTED here and drilled down
@@ -543,10 +545,10 @@ let lemma_layer1_to_poly_step (#vV: Type0) {| iop: T.t_Operations vV |}
 #pop-options
 
 (* === LAYER 2 (len=4, groups=32, 2 zetas/vector) ===
-   Body is COMPLETE and verified once (build 6fd5b8eb, 2026-06-01); but it sits right at
-   the createi_lemma e-matching cliff (queries cancel at rlimit 300 nondeterministically —
-   passed in 6fd5b8eb, cascaded in ff04f530).  SMT-ADMITTED for a DETERMINISTIC base until
-   the module-wide createi fix (drop the admit + prune createi_lemma — see layer-1 note). *)
+   The body is complete but sits right at the createi_lemma e-matching cliff
+   (queries cancel at rlimit 300 nondeterministically).  SMT-ADMITTED for a
+   DETERMINISTIC base until the module-wide createi fix (drop the admit + prune
+   createi_lemma — see layer-1 note). *)
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 400 --split_queries always"
 let lemma_layer2_to_poly_step (#vV: Type0) {| iop: T.t_Operations vV |}
     (re_in re_out: VV.t_PolynomialRingElement vV)
@@ -604,8 +606,8 @@ let lemma_layer2_to_poly_step (#vV: Type0) {| iop: T.t_Operations vV |}
 #pop-options
 
 (* === LAYER 3 (len=8, groups=16, 1 zeta/vector) ===
-   Body COMPLETE and verified once (build 6fd5b8eb); smallest context (16 groups, 1 zeta)
-   so least cliff-prone, but same createi_lemma e-matching risk.  SMT-ADMITTED for a
+   The body is complete; smallest context (16 groups, 1 zeta) so least
+   cliff-prone, but same createi_lemma e-matching risk.  SMT-ADMITTED for a
    DETERMINISTIC base until the module-wide createi fix (drop the admit + prune). *)
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 400 --split_queries always"
 let lemma_layer3_to_poly_step (#vV: Type0) {| iop: T.t_Operations vV |}

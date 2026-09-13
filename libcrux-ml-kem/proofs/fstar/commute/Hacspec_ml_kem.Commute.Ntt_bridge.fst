@@ -8,7 +8,7 @@ open Hacspec_ml_kem.Commute.Bridges
 
 (* FORWARD NTT — layers 1-7 per-vector/cross-vector -> polynomial composition.
    Mirror of Hacspec_ml_kem.Commute.Invert_ntt_bridge (layers 1-3) and the
-   Bridges USER-14 layer-4+ keystone, but for the Cooley-Tukey forward butterfly
+   Bridges layer-4+ keystone, but for the Cooley-Tukey forward butterfly
    and stated in PLAIN form (`to_spec_poly_plain`) to match `ntt_vector_u`'s post.
    The per-vector layer posts are MONT (`mont_i16_to_spec_array`); the
    mont->plain (169-scaling) reconciliation is done per-coefficient in `per_coeff`
@@ -155,6 +155,16 @@ let lemma_shift_pow2_lo (layer: usize {v layer == 1 \/ v layer == 2 \/ v layer =
   = if v layer = 1 then assert_norm (v (mk_usize 1 <<! mk_usize 1) == pow2 1)
     else if v layer = 2 then assert_norm (v (mk_usize 1 <<! mk_usize 2) == pow2 2)
     else assert_norm (v (mk_usize 1 <<! mk_usize 3) == pow2 3)
+#pop-options
+
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 100"
+let lemma_shift_pow2_hi
+    (layer: usize {v layer == 4 \/ v layer == 5 \/ v layer == 6 \/ v layer == 7})
+  : Lemma (v (mk_usize 1 <<! layer) == pow2 (v layer))
+  = if v layer = 4 then assert_norm (v (mk_usize 1 <<! mk_usize 4) == pow2 4)
+    else if v layer = 5 then assert_norm (v (mk_usize 1 <<! mk_usize 5) == pow2 5)
+    else if v layer = 6 then assert_norm (v (mk_usize 1 <<! mk_usize 6) == pow2 6)
+    else assert_norm (v (mk_usize 1 <<! mk_usize 7) == pow2 7)
 #pop-options
 
 #push-options "--z3rlimit 100 --fuel 0 --ifuel 1"
@@ -335,8 +345,9 @@ let lemma_ntt_layer_unfold_lo
     let groups : usize = mk_usize 128 /! len' in
     assert (v groups == 128 / v len /\ v groups <= 64);
     let tbl_slice : t_Slice P.t_FieldElement =
-      N.v_ZETAS.[ { Core_models.Ops.Range.f_start = groups;
-                    Core_models.Ops.Range.f_end = mk_usize 2 *! groups <: usize } ] in
+      N.v_ZETAS.[ ({ Core_models.Ops.Range.f_start = groups;
+                     Core_models.Ops.Range.f_end = mk_usize 2 *! groups <: usize }
+                   <: Core_models.Ops.Range.t_Range usize) ] in
     (* FACT 1: ntt_layer unfolds definitionally to ntt_layer_n on the v_ZETAS slice. *)
     assert (N.ntt_layer p layer == N.ntt_layer_n (mk_usize 256) p len' tbl_slice)
       by (FStar.Tactics.norm [delta_only [`%N.ntt_layer]; iota; zeta; primops];
@@ -374,18 +385,16 @@ let lemma_ntt_layer_unfold
          Seq.index zs round == N.v_ZETAS.[ sz (groups + round) ]))
     (ensures
       N.ntt_layer p layer == N.ntt_layer_n (mk_usize 256) p len zs)
-  = (if v layer = 4 then assert_norm (v (mk_usize 1 <<! mk_usize 4) == pow2 4)
-     else if v layer = 5 then assert_norm (v (mk_usize 1 <<! mk_usize 5) == pow2 5)
-     else if v layer = 6 then assert_norm (v (mk_usize 1 <<! mk_usize 6) == pow2 6)
-     else assert_norm (v (mk_usize 1 <<! mk_usize 7) == pow2 7));
+  = lemma_shift_pow2_hi layer;
     let len' : usize = mk_usize 1 <<! layer in
     assert (v len' == v len);
     assert (len' == len);
     let groups : usize = mk_usize 128 /! len' in
     assert (v groups == 128 / v len /\ v groups <= 8);
     let tbl_slice : t_Slice P.t_FieldElement =
-      N.v_ZETAS.[ { Core_models.Ops.Range.f_start = groups;
-                    Core_models.Ops.Range.f_end = mk_usize 2 *! groups <: usize } ] in
+      N.v_ZETAS.[ ({ Core_models.Ops.Range.f_start = groups;
+                     Core_models.Ops.Range.f_end = mk_usize 2 *! groups <: usize }
+                   <: Core_models.Ops.Range.t_Range usize) ] in
     (* FACT 1: ntt_layer unfolds definitionally to ntt_layer_n on the v_ZETAS slice. *)
     assert (N.ntt_layer p layer == N.ntt_layer_n (mk_usize 256) p len' tbl_slice)
       by (FStar.Tactics.norm [delta_only [`%N.ntt_layer]; iota; zeta; primops];
@@ -810,7 +819,7 @@ let lemma_layer1_to_poly_step (#vV: Type0) {| iop: T.t_Operations vV |}
 
 (* =====================================================================
    SECTION 7 — FORWARD layer 4-7 cross-vector keystone (F-B).
-   Mirror of the Bridges USER-14 inverse keystone (cross_vec_hyp /
+   Mirror of the Bridges inverse keystone (cross_vec_hyp /
    lemma_layer_4_plus_per_coeff / lemma_layer_4_plus_cross_vector /
    lemma_layer_4_plus_post_from_cross_vec / lemma_cross_vec_from_step /
    lemma_cross_vec_frame) but for the Cooley-Tukey forward butterfly, and

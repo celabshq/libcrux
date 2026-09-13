@@ -2,10 +2,9 @@ module Hacspec_ml_kem.Commute.Ntt_bridge
 
 (* Abstract-interface firewall for the Ntt_bridge commute module (forward NTT).
 
-   Sole consumer: Libcrux_ml_kem.Ntt (.fst + .fsti; no open, no spec companion) —
-   the module hardened for the layer_7 cold gap.  Firewalling Ntt_bridge shrinks
-   Ntt's SMT context (the per-vector forward-layer chainer + cross-vector
-   machinery no longer leak in).
+   Sole consumer: Libcrux_ml_kem.Ntt (.fst + .fsti; no open, no spec companion).
+   Firewalling Ntt_bridge shrinks Ntt's SMT context (the per-vector forward-layer
+   chainer + cross-vector machinery do not leak in).
 
    Surface = 12 abstract vals: 3 opaque predicates (pv_post, poly_step,
    cross_vec_hyp_fwd) + the 9 lemmas Ntt drives (pv_post_intro, lemma_compose_7,
