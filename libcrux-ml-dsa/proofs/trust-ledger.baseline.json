@@ -95,10 +95,9 @@
         "admit": 38,
         "admit_smt_queries": 5,
         "assume": 1,
-        "assume_val": 64
+        "assume_val": 60
       },
       "by_module": {
-        "Libcrux_intrinsics.Avx2": 4,
         "Libcrux_ml_dsa.Arithmetic": 3,
         "Libcrux_ml_dsa.Constants": 1,
         "Libcrux_ml_dsa.Encoding.Signature": 5,
@@ -121,8 +120,8 @@
         "Libcrux_ml_dsa.Types": 2,
         "Spec.Intrinsics": 2
       },
-      "scanned_files": 103,
-      "total": 108
+      "scanned_files": 104,
+      "total": 104
     },
     "makefile": {
       "admit_modules": [],

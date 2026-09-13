@@ -7,10 +7,10 @@ use libcrux_intrinsics::avx2::*;
 #[inline(always)]
 #[hax_lib::fstar::before(r"open Spec.MLDSA.NttConstants")]
 #[hax_lib::fstar::before(r"open Spec.Intrinsics")]
-// The theory formerly inlined here now lives in the hand-written companion
+// The theory for this file lives in the hand-written companion
 // `Libcrux_ml_dsa.Simd.Avx2.Ntt_theory`.  The opens/alias below are NOT
-// decoration: they restore exactly the scope that block established for the
-// code beneath it (F* module abbreviations are file-scoped and are not
+// decoration: they establish exactly the scope the code beneath needs
+// (F* module abbreviations are file-scoped and are not
 // re-exported by `open`, and the Core_models/FStar.Mul re-opens take
 // resolution precedence over the NttConstants/Intrinsics opens above).
 #[hax_lib::fstar::before(
@@ -441,13 +441,13 @@ unsafe fn ntt_at_layer_7_and_6(re: &mut AVX2RingElement) {
     // Runtime-identical (#[inline(always)]).
     #[inline(always)]
     // The q76 standalone drivers here are deliberately host-side copies
-    // ("Copied from Avx2NttTheory…") with #restart-solver; relocation shifts
-    // the solver-state placement the L7/6 composer needs (Plan-C class).
+    // (of Avx2NttTheory helpers) with #restart-solver: relocating them would shift
+    // the solver-state placement the L7/6 composer needs.
     // proof-residence: clean-context
     #[hax_lib::fstar::before(
         r#"
 (* ============================================================================
-   IN-BODY 7_6 (Phase C): prove comp_7_6_done OVER THE REAL 32 Montgomery
+   IN-BODY 7_6: prove comp_7_6_done OVER THE REAL 32 Montgomery
    butterflies (ntt_at_layer_7_and_6___mul), no fstar::replace, mirroring
    Avx2NttTheory.build_out_impl + ntt_at_layer_7_and_6_interleaved_o in-body.
 

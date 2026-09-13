@@ -46,6 +46,18 @@ module ST = Libcrux_ml_dsa.Simd.Avx2.Rejection_sample.Shuffle_table
 module R = Core_models.Ops.Range
 module M = Spec.MLDSA.Math
 
+(* `sample`'s leaf_post is stated over the ghost snapshot `as_slice (to_vec output)`
+   while the body mutates the raw `output` param; this round-trip identity
+   `as_slice (to_vec s) == s` relates them. *)
+let lemma_as_slice_to_vec_id_i32 (s: t_Slice i32)
+  : Lemma
+      (ensures
+        Alloc.Vec.impl_1__as_slice #i32 #Alloc.Alloc.t_Global
+          (Alloc.Slice.impl__to_vec #i32 s) == s)
+      [SMTPat (Alloc.Vec.impl_1__as_slice #i32 #Alloc.Alloc.t_Global
+          (Alloc.Slice.impl__to_vec #i32 s))]
+  = Seq.append_empty_l s
+
 (* =============== Layer A (field_modulus): bytestream gather == spec coeff =============== *)
 (* the leaf's two control vectors *)
 unfold let cpm : bv256 = I.mm256_set_epi32 (mk_i32 0) (mk_i32 5) (mk_i32 4) (mk_i32 3)
@@ -248,6 +260,10 @@ let lemma_spec_fm_bound (input: t_Slice u8)
   lemma_filt8_bound (cand8v potential) (acc8b potential (mk_i32 8380417)) 0 8380416;
   lemma_filt8_is_spec input
 #pop-options
+
+(* Clear solver state accumulated by the sibling lemmas above, so the trivial
+   `f_index_pre` range-bounds check inside `sample` does not trigger-gap in-module. *)
+#restart-solver
 "#)]
 #[hax_lib::requires(input.len() == 24 && output.len() >= 8)]
 #[hax_lib::ensures(|r| fstar!(r#"

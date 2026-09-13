@@ -60,8 +60,7 @@ function extract_all() {
     # not be resolved).  Mirrors libcrux-ml-kem/hax.py's spec extraction.
     # NOTE: if cargo reports the crate is fresh and skips it (writes no
     # THIR export -> hax panics with a NotFound in run_command), force a
-    # rebuild with `touch specs/ml-dsa/src/*.rs` (or `cargo clean -p
-    # hacspec_ml_dsa`) before re-running.
+    # rebuild with `cargo clean -p hacspec_ml_dsa` before re-running.
     extract specs/ml-dsa into -i "+**" fstar
 
     # G3 module-trust mirror (annotation_lint V6 / trust_ledger --check): every

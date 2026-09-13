@@ -156,15 +156,13 @@ pub(crate) trait Operations: Copy + Clone + Repr {
             (f_repr ${simd_unit}) $bound $result"#))]
     fn infinity_norm_exceeds(simd_unit: &Self, bound: i32) -> bool;
 
-    // F-11 (2026-04-29): originally tightened `low_future` post to
-    // `is_i32b_strict_lower_array_opaque γ2`.  REVERTED 2026-04-29
-    // (F-13): FIPS 204 Algorithm 36's special-case adjustment
-    // `r0 ← r0 - 1` (when `r_q - r_g == q - 1`) drives `r0` to exactly
-    // `-γ2` at the boundary, breaking the strict-lower bound.  Concrete
-    // counter-example: γ2=95232, r=8285185 → r0=-95232.  Closed
-    // `is_i32b_array_opaque γ2` is the correct bound for `decompose`'s
-    // `low_future`.  F-8 / F-9 / F-10 retain strict-lower (those are
-    // pure `mod^±` outputs without the special-case adjustment).
+    // `low_future` uses the CLOSED bound `is_i32b_array_opaque γ2`, not the
+    // strict-lower variant: FIPS 204 Algorithm 36's special-case adjustment
+    // `r0 ← r0 - 1` (when `r_q - r_g == q - 1`) drives `r0` to exactly `-γ2`
+    // at the boundary, which the strict-lower bound would exclude.  Concrete
+    // witness: γ2=95232, r=8285185 → r0=-95232.  The strict-lower bounds used
+    // for the pure `mod^±` outputs (power2round / the serialize posts) do not
+    // apply here because those lack the special-case adjustment.
     #[hax_lib::requires(fstar!(r#"
         (v $gamma2 == v ${crate::constants::GAMMA2_V261_888} \/
          v $gamma2 == v ${crate::constants::GAMMA2_V95_232}) /\
@@ -249,14 +247,12 @@ pub(crate) trait Operations: Copy + Clone + Repr {
     #[hax_lib::requires(fstar!(r#"
         Spec.Utils.is_i32b_array_opaque (v ${specs::NTT_OUTPUT_BOUND}) (${lhs.repr()}) /\
         Spec.Utils.is_i32b_array_opaque (v ${specs::NTT_OUTPUT_BOUND}) (${rhs.repr()})"#))]
-    // 2026-05-08 (audit Phase A item 10): dropped third clause
-    //   `forall (i:nat). i < 8 ==> Seq.index ... == Spec.MLDSA.Math.mont_mul ...`
-    // because `mont_mul` is a non-opaque (transparent) wrapper over `mont_red`/`i32_mul`,
-    // so the bare `forall i<8` Skolem leaked raw arithmetic above the trait at every
-    // call site (k!61 cascade candidate per
-    // proofs/agent-status/abstraction-boundary-audit-2026-05-07.md).  Audit confirmed
-    // zero above-trait consumers reference `Spec.MLDSA.Math.mont_mul`, so this is a
-    // free clause-drop.  The free-fn posts (avx2/arithmetic.rs, portable/arithmetic.rs,
+    // The trait post omits a per-lane `Seq.index ... == Spec.MLDSA.Math.mont_mul ...`
+    // clause: `mont_mul` is a non-opaque (transparent) wrapper over `mont_red`/`i32_mul`,
+    // so a bare `forall i<8` Skolem would leak raw arithmetic above the trait at every
+    // call site (k!61 cascade candidate).  No consumer above the trait boundary
+    // references `Spec.MLDSA.Math.mont_mul`, so dropping the clause is free.  The free-fn posts
+    // (avx2/arithmetic.rs, portable/arithmetic.rs,
     // portable.rs::montgomery_multiply_with_proof) retain the mont_mul clause; that
     // lives below the trait boundary and is fine.
     #[hax_lib::ensures(|result| fstar!(r#"
@@ -269,8 +265,8 @@ pub(crate) trait Operations: Copy + Clone + Repr {
     fn montgomery_multiply(lhs: &mut Self, rhs: &Self);
 
     // 261631 is the largest x such that x * pow2 13 <= 2143289343 (the barrett reduce input bound)
-    // 2026-05-08: bare `forall i. i < 8 ==> ...` → `Spec.Utils.forall8` (transparent macro
-    // that unfolds to a finite 8-way conjunction; no Z3 quantifier instantiation).
+    // Uses `Spec.Utils.forall8` (a transparent macro that unfolds to a finite 8-way
+    // conjunction; no Z3 quantifier instantiation) rather than a bare `forall i. i < 8`.
     #[hax_lib::requires(fstar!(r#"v $SHIFT_BY == 13 /\
         Spec.Utils.forall8 (fun (i: nat{i < 8}) ->
             v (Seq.index (f_repr ${simd_unit}) i) >= 0 /\
@@ -283,11 +279,11 @@ pub(crate) trait Operations: Copy + Clone + Repr {
     fn shift_left_then_reduce<const SHIFT_BY: i32>(simd_unit: &mut Self);
 
     // Decomposition operations
-    // F-9 (2026-04-29): `t0_future` post tightened from closed
-    // `is_i32b_array_opaque (pow2 12)` to half-open
-    // `is_i32b_strict_lower_array_opaque (pow2 12)` matching FIPS 204
-    // Algorithm 35 (Power2Round), where t0 ∈ (-2^12, 2^12].  Chain-critical
-    // with F-8: `power2round → t0_serialize` flow now lines up.
+    // `t0_future` post uses the half-open
+    // `is_i32b_strict_lower_array_opaque (pow2 12)` (not the closed
+    // `is_i32b_array_opaque (pow2 12)`), matching FIPS 204 Algorithm 35
+    // (Power2Round), where t0 ∈ (-2^12, 2^12].  This lines up the
+    // `power2round → t0_serialize` flow.
     #[hax_lib::requires(fstar!(r#"
         Spec.Utils.is_i32b_array_opaque (v ${specs::FIELD_MAX}) (f_repr ${t0})"#))]
     #[hax_lib::ensures(|_| fstar!(r#"
@@ -347,10 +343,10 @@ pub(crate) trait Operations: Copy + Clone + Repr {
     // Gamma1: serialized length is 8 * (gamma1_exponent + 1) / 8 = gamma1_exponent + 1 bytes
     // per 8-coefficient SIMD unit, but with each coefficient using w = gamma1_exponent + 1 bits
     // (w in {18, 20}). For 8 lanes that's 18 or 20 bytes.
-    // F-3 (2026-04-28): pre uses non-negative-bounded `is_pos_array_opaque`
-    // since the impl operates on the shifted (non-negative) representation.
-    // F-7 (2026-04-29): tighten upper bound to `pow2 d - 1` (strict `< pow2 d`)
-    // so the trait pre matches the free fns' `bounded x d` (= `< pow2 d`) exactly.
+    // Pre uses non-negative-bounded `is_pos_array_opaque` since the impl operates
+    // on the shifted (non-negative) representation, with upper bound `pow2 d - 1`
+    // (strict `< pow2 d`) so the trait pre matches the free fns' `bounded x d`
+    // (= `< pow2 d`) exactly.
     #[hax_lib::requires(fstar!(r#"
         (v $gamma1_exponent == 17 \/ v $gamma1_exponent == 19) /\
         Seq.length $serialized == 1 + v $gamma1_exponent /\
@@ -368,10 +364,10 @@ pub(crate) trait Operations: Copy + Clone + Repr {
     fn gamma1_deserialize(serialized: &[u8], out: &mut Self, gamma1_exponent: usize);
 
     // Commitment: 4 bytes for gamma2 = 261888 (4-bit packing) or 6 for gamma2 = 95232 (6-bit).
-    // F-3 (2026-04-28): pre uses non-negative-bounded `is_pos_array_opaque`
-    // since commitment values are the high half of decompose, in [0, 16) or [0, 44).
-    // F-7 (2026-04-29): tighten upper bound to `pow2 d - 1` (strict `< pow2 d`)
-    // so the trait pre matches the free fns' `bounded x d` (= `< pow2 d`) exactly.
+    // Pre uses non-negative-bounded `is_pos_array_opaque` since commitment values
+    // are the high half of decompose, in [0, 16) or [0, 44), with upper bound
+    // `pow2 d - 1` (strict `< pow2 d`) so the trait pre matches the free fns'
+    // `bounded x d` (= `< pow2 d`) exactly.
     #[hax_lib::requires(fstar!(r#"
         (Seq.length $serialized == 4 \/ Seq.length $serialized == 6) /\
         Libcrux_ml_dsa.Simd.Traits.Specs.is_pos_array_opaque (pow2 (Seq.length $serialized) - 1)
@@ -381,9 +377,8 @@ pub(crate) trait Operations: Copy + Clone + Repr {
     fn commitment_serialize(simd_unit: &Self, serialized: &mut [u8]);
 
     // Error: 3 bytes for eta = 2 (3-bit), 4 bytes for eta = 4 (4-bit).
-    // F-3 (2026-04-28): pre uses non-negative-bounded `is_pos_array_opaque`
-    // since the impl operates on the shifted (non-negative) representation
-    // of error values (eta - x).
+    // Pre uses non-negative-bounded `is_pos_array_opaque` since the impl operates
+    // on the shifted (non-negative) representation of error values (eta - x).
     #[hax_lib::requires(fstar!(r#"
         Seq.length $serialized == (match $eta with
                                    | Libcrux_ml_dsa.Constants.Eta_Two -> 3
@@ -411,17 +406,15 @@ pub(crate) trait Operations: Copy + Clone + Repr {
     fn error_deserialize(eta: Eta, serialized: &[u8], out: &mut Self);
 
     // t0: bit_pack with width 13.
-    // F-3 (2026-04-28): pre uses non-negative-bounded `is_pos_array_opaque`
-    // since the impl operates on the shifted (non-negative) t0 representation.
-    // F-6 (2026-04-29): switch t0_serialize back to centered `is_i32b_array_opaque (pow2 12)`.
-    // The AVX2 free fn requires `(POW_2_BITS_IN_LOWER_PART_OF_T_MINUS_ONE - lane) in (0, pow2 13)`,
-    // i.e. lane in (-4095, 4096], which is the centered semantic of t0 inputs (lower 13 signed
-    // bits of t centered around 0). The non-negative `is_pos_array_opaque (pow2 13)` allowed
-    // boundary `lane == 8192`, which made the AVX2 pre fail (`4096 - 8192 = -4096 < 0`).
-    // F-8 (2026-04-29): tighten further to half-open `is_i32b_strict_lower_array_opaque (pow2 12)`
-    // = (-pow2 12, pow2 12], because the AVX2 free fn requires `(POW_2_..._MINUS_ONE - lane) < pow2 13`
-    // which solves to `lane > -pow2 12` (strict).  At the closed-form boundary `lane == -4096`,
-    // the AVX2 free fn pre fails (4096 - (-4096) = 8192 = pow2 13, not strictly less).
+    // Pre is the half-open `is_i32b_strict_lower_array_opaque (pow2 12)`
+    // = (-pow2 12, pow2 12], the centered semantic of t0 inputs (lower 13 signed
+    // bits of t centered around 0).  The AVX2 free fn requires
+    // `(POW_2_BITS_IN_LOWER_PART_OF_T_MINUS_ONE - lane) in (0, pow2 13)`, i.e.
+    // `lane in (-4095, 4096]`.  A non-negative `is_pos_array_opaque (pow2 13)` would
+    // allow `lane == 8192` (AVX2 pre fails: `4096 - 8192 = -4096 < 0`); a closed
+    // centered bound would allow `lane == -4096` (AVX2 pre fails:
+    // `4096 - (-4096) = 8192 = pow2 13`, not strictly less).  Hence the strict-lower
+    // half-open bound.
     #[hax_lib::requires(fstar!(r#"
         Seq.length $out == 13 /\
         Spec.Utils.is_i32b_strict_lower_array_opaque (pow2 12)
@@ -429,7 +422,7 @@ pub(crate) trait Operations: Copy + Clone + Repr {
     #[hax_lib::ensures(|_| fstar!(r#"
         Seq.length ${out}_future == Seq.length ${out}"#))]
     fn t0_serialize(simd_unit: &Self, out: &mut [u8]); // out len 13
-                                                       // F-10 (2026-04-29): post tightened to half-open `is_i32b_strict_lower_array_opaque (pow2 12)`
+                                                       // Post is the half-open `is_i32b_strict_lower_array_opaque (pow2 12)`
                                                        // for round-trip symmetry with `t0_serialize`.
     #[hax_lib::requires(serialized.len() == 13)]
     #[hax_lib::ensures(|_| fstar!(r#"
@@ -437,7 +430,7 @@ pub(crate) trait Operations: Copy + Clone + Repr {
     fn t0_deserialize(serialized: &[u8], out: &mut Self);
 
     // t1: simple_bit_pack with width 10.
-    // 2026-05-08: bare `forall (i: nat). i < 8 ==> ...` → `Spec.Utils.forall8`.
+    // Uses `Spec.Utils.forall8` rather than a bare `forall (i: nat). i < 8 ==> ...`.
     #[hax_lib::requires(fstar!(r#"
         Seq.length $out == 10 /\
         Spec.Utils.forall8 (fun (i: nat{i < 8}) ->
@@ -454,9 +447,9 @@ pub(crate) trait Operations: Copy + Clone + Repr {
     fn t1_deserialize(serialized: &[u8], out: &mut Self);
 
     // NTT
-    // 2026-05-08: bare `forall (i:nat). i < 32 ==> ...` → `Spec.Utils.forall32` here
-    // and on `invert_ntt_montgomery` / `reduce` below.  Same rationale as forall8:
-    // transparent macro unfolds to a 32-way conjunction so Z3 doesn't instantiate
+    // Uses `Spec.Utils.forall32` rather than a bare `forall (i:nat). i < 32 ==> ...`
+    // here and on `invert_ntt_montgomery` / `reduce` below.  Same rationale as forall8:
+    // the transparent macro unfolds to a 32-way conjunction so Z3 doesn't instantiate
     // a quantifier at the call site.
     #[hax_lib::requires(fstar!(r#"
         Spec.Utils.forall32 (fun (i: nat{i < 32}) ->

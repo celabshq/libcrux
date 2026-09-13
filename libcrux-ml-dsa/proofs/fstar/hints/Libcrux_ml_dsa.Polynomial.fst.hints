@@ -28,7 +28,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "7cdb9001c775af2f3aaf627b5597a961"
+      "0aad6ab624ea0720f2bf7e71f0cee62a"
     ],
     [
       "Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement",
@@ -57,7 +57,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "09f6c29eedc6a56a79f80e7c27a58b22"
+      "6be5f961f07219c6162c0d16546cb887"
     ],
     [
       "Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement",
@@ -73,7 +73,7 @@
         "lemma_FStar.Seq.Base.hasEq_lemma"
       ],
       0,
-      "c4da14deff1ee3a5c234f58168e498ff"
+      "0109675dd0f56b77738f1e1b07f19bbf"
     ],
     [
       "Libcrux_ml_dsa.Polynomial.__proj__Mkt_PolynomialRingElement__item__f_simd_units",
@@ -114,7 +114,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e2ac8c1a7c24a288f2d8acb5982c5a05"
+      "843879142283ead9fe2b62564bf2a4df"
     ],
     [
       "Libcrux_ml_dsa.Polynomial.__proj__Mkt_PolynomialRingElement__item__f_simd_units",
@@ -155,7 +155,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "fe59256f78b7ab7adc90cddddfe06c1a"
+      "7457efecc7e35ca83c6a573c8f455084"
     ],
     [
       "Libcrux_ml_dsa.Polynomial.impl_2__to_i32_array",
@@ -178,7 +178,7 @@
         "data_elim_Libcrux_ml_dsa.Simd.Traits.Mkt_Repr",
         "equality_tok_Rust_primitives.Integers.I32@tok",
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
-        "equation_Core_models.Array.impl_26",
+        "equation_Core_models.Bundle.impl_28",
         "equation_Core_models.Ops.Index.f_index",
         "equation_Core_models.Ops.Index.f_index_pre",
         "equation_Core_models.Slice.impl__len",
@@ -219,12 +219,12 @@
         "function_token_typing_Rust_primitives.Integers.i32",
         "int_inversion", "int_typing",
         "interpretation_Tm_abs_4ab552b3415220d2b607f7d57c958117",
-        "interpretation_Tm_abs_56844a6a588223e03e0559cf4d1c8eea",
-        "interpretation_Tm_abs_61251814636ed8a91b652d10d977a8a7",
         "interpretation_Tm_abs_9e51361188a25d28bb48d6a215e0ee9b",
+        "interpretation_Tm_abs_c8b392bb3dee3f129480db173fd660b6",
         "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
         "interpretation_Tm_abs_d175eeaaa95464a0d60f149dab3d969e",
         "interpretation_Tm_abs_ed0ae0c7cea38f0f93baa4db13b5b348",
+        "interpretation_Tm_abs_f413ea7219fad5c10ffd6b71dfe8fe9e",
         "lemma_FStar.Seq.Base.lemma_len_slice",
         "lemma_Rust_primitives.Integers.pow2_values",
         "primitive_Prims.op_Addition", "primitive_Prims.op_AmpAmp",
@@ -232,9 +232,9 @@
         "primitive_Prims.op_LessThan", "primitive_Prims.op_LessThanOrEqual",
         "primitive_Prims.op_Minus", "primitive_Prims.op_Multiply",
         "primitive_Prims.op_Subtraction",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_start",
         "proj_equation_Core_models.Ops.Index.Mkt_Index_@f_Output",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_start",
         "proj_equation_Libcrux_ml_dsa.Polynomial.Mkt_PolynomialRingElement_@f_simd_units",
         "proj_equation_Libcrux_ml_dsa.Simd.Traits.Mkt_Operations_@_super_i2",
         "proj_equation_Libcrux_ml_dsa.Simd.Traits.Mkt_Operations_@f_to_coefficient_array_post",
@@ -242,11 +242,11 @@
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxBool_proj_0",
         "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_start",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_Output",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index_pre",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_start",
         "projection_inverse_Rust_primitives.Hax.Mkupdate_at_tc_@super_index",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
@@ -269,7 +269,7 @@
         "token_correspondence_Rust_primitives.Hax.super_index",
         "token_correspondence_Rust_primitives.Slice.array_slice",
         "token_correspondence_Rust_primitives.Slice.slice_slice",
-        "typing_Core_models.Slice.impl__len", "typing_FStar.Seq.Base.length",
+        "typing_FStar.Seq.Base.length",
         "typing_Libcrux_ml_dsa.Simd.Traits.__proj__Mkt_Operations__item___super_i2",
         "typing_Prims.pow2", "typing_Rust_primitives.Integers.bits",
         "typing_Rust_primitives.Integers.lte",
@@ -279,7 +279,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "052e61ee89977386ee3c7628d1e3778e"
+      "6b37c4128914a08b1adf9ed21079cae0"
     ],
     [
       "Libcrux_ml_dsa.Polynomial.impl_2__zero",
@@ -372,7 +372,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok", "unit_typing"
       ],
       0,
-      "c6ff5afc0b6f3c81c0dfe6cd4578a311"
+      "e3601739c663e1258e74183f63fefd4b"
     ],
     [
       "Libcrux_ml_dsa.Polynomial.impl_2__from_i32_array",
@@ -384,7 +384,8 @@
         "@fuel_correspondence_Prims.pow2.fuel_instrumented", "@query",
         "Core_models.Ops.Function_interpretation_Tm_arrow_527d0c4b8598d265b3ecc95b6df26a30",
         "FStar.Seq.Base_pretyping_aec2ec0359b5151fd30ba679a2daadcd",
-        "Libcrux_ml_dsa.Simd.Traits_interpretation_Tm_arrow_625e51b40efd8f44b3d0923ec00cf3f3",
+        "Libcrux_ml_dsa.Simd.Traits_interpretation_Tm_arrow_a0b07ec9f4567cf20b8616d97b4d4a86",
+        "Libcrux_ml_dsa.Simd.Traits_interpretation_Tm_arrow_ece504f7dd7f9be8c91ae156505f9bee",
         "Libcrux_ml_dsa.Simd.Traits_interpretation_Tm_arrow_f72c443d6fe6f7b568b7d718770ce51a",
         "assumption_Rust_primitives.Integers.int_t__uu___haseq", "b2t_def",
         "bool_inversion", "bool_typing",
@@ -395,7 +396,7 @@
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
         "equation_Core_models.Ops.Index.f_index",
         "equation_Core_models.Ops.Index.f_index_pre",
-        "equation_Core_models.Slice.impl_7",
+        "equation_Core_models.Slice.impl_6",
         "equation_Core_models.Slice.impl__len",
         "equation_Libcrux_ml_dsa.Simd.Traits.f_repr",
         "equation_Libcrux_ml_dsa.Simd.Traits.v_COEFFICIENTS_IN_SIMD_UNIT",
@@ -428,14 +429,15 @@
         "fuel_guarded_inversion_Libcrux_ml_dsa.Simd.Traits.t_Operations",
         "fuel_guarded_inversion_Libcrux_ml_dsa.Simd.Traits.t_Repr",
         "fuel_guarded_inversion_Rust_primitives.Integers.int_t",
+        "function_token_typing_Libcrux_ml_dsa.Simd.Traits.__proj__Mkt_Operations__item__f_from_coefficient_array_post",
         "function_token_typing_Rust_primitives.Integers.i32",
         "int_inversion", "int_typing",
         "interpretation_Tm_abs_4ab552b3415220d2b607f7d57c958117",
-        "interpretation_Tm_abs_87065fc1a6f4731576ff09a0c8e20742",
-        "interpretation_Tm_abs_900369f04b4ab299c3cdf8970be0a9f8",
         "interpretation_Tm_abs_9e51361188a25d28bb48d6a215e0ee9b",
         "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
         "interpretation_Tm_abs_ed0ae0c7cea38f0f93baa4db13b5b348",
+        "interpretation_Tm_abs_f9c2728f19ddd20263287eca3242b7dc",
+        "interpretation_Tm_abs_fd6f2e57ab8d0296c22b4aca283c828d",
         "lemma_FStar.Seq.Base.lemma_index_upd1",
         "lemma_FStar.Seq.Base.lemma_index_upd2",
         "lemma_FStar.Seq.Base.lemma_len_slice",
@@ -445,23 +447,22 @@
         "primitive_Prims.op_GreaterThanOrEqual",
         "primitive_Prims.op_LessThan", "primitive_Prims.op_LessThanOrEqual",
         "primitive_Prims.op_Multiply", "primitive_Prims.op_Subtraction",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_start",
         "proj_equation_Core_models.Ops.Index.Mkt_Index_@f_Output",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_start",
         "proj_equation_Libcrux_ml_dsa.Polynomial.Mkt_PolynomialRingElement_@f_simd_units",
         "proj_equation_Libcrux_ml_dsa.Simd.Traits.Mkt_Operations_@_super_i2",
-        "proj_equation_Libcrux_ml_dsa.Simd.Traits.Mkt_Operations_@f_from_coefficient_array_post",
         "proj_equation_Libcrux_ml_dsa.Simd.Traits.Mkt_Operations_@f_from_coefficient_array_pre",
         "proj_equation_Libcrux_ml_dsa.Simd.Traits.Mkt_Repr_@f_repr",
         "proj_equation_Libcrux_ml_dsa.Simd.Traits.Mkt_Repr_@f_repr_pre",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxBool_proj_0",
         "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_start",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_Output",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index_pre",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_start",
         "projection_inverse_Libcrux_ml_dsa.Polynomial.Mkt_PolynomialRingElement_@f_simd_units",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_005f0546014b1dab9457127a06afafdd",
@@ -471,11 +472,11 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
         "refinement_interpretation_Tm_refine_5a92b6e4e7af9363bc35e43d9d7f3f13",
         "refinement_interpretation_Tm_refine_6cba8b694d7fbf759331b42d86bb8cbd",
-        "refinement_interpretation_Tm_refine_7b6967b4553d6780d0dc9dcea6fe89d4",
         "refinement_interpretation_Tm_refine_853abb7c3cff60f27862ff8aa13095d0",
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
         "refinement_interpretation_Tm_refine_b045b04f0bb15cd7c94a2ec78d3283ce",
         "refinement_interpretation_Tm_refine_b91dc7b2c386bb58d3871d0e3ced0f9a",
+        "refinement_interpretation_Tm_refine_cc6ef35620472a2263b12a108ae8de29",
         "refinement_interpretation_Tm_refine_e0fa23184ec667f177567dda013c8fc6",
         "refinement_interpretation_Tm_refine_e263604a64d343fa5112de970172906b",
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca",
@@ -490,6 +491,7 @@
         "typing_Libcrux_ml_dsa.Polynomial.__proj__Mkt_PolynomialRingElement__item__f_simd_units",
         "typing_Libcrux_ml_dsa.Simd.Traits.__proj__Mkt_Operations__item___super_i2",
         "typing_Libcrux_ml_dsa.Simd.Traits.v_SIMD_UNITS_IN_RING_ELEMENT",
+        "typing_Rust_primitives.Integers.__proj__MkInt__item___0",
         "typing_Rust_primitives.Integers.bits",
         "typing_Rust_primitives.Integers.lte",
         "typing_Rust_primitives.Integers.range",
@@ -498,7 +500,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f6b5e78f818ba36a6896485d103abf24"
+      "4d875b8d057d19c0085fbc12b9c66c72"
     ],
     [
       "Libcrux_ml_dsa.Polynomial.impl_2__infinity_norm_exceeds",
@@ -623,7 +625,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "d3e583641f37b7543a40ba989c323835"
+      "ccb3596efee0448107a56fe21edcc02f"
     ],
     [
       "Libcrux_ml_dsa.Polynomial.impl_2__add",
@@ -741,7 +743,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "abe0a32871128c2ef52ccd97baa96060"
+      "2de208eee0bcaef4dcbddebd5f6e06f4"
     ],
     [
       "Libcrux_ml_dsa.Polynomial.impl_2__add_bounded",
@@ -871,7 +873,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "24737e4ff526a8887bd8e54e05cbda46"
+      "b1da97aeea14a09005ce147f51fb7f05"
     ],
     [
       "Libcrux_ml_dsa.Polynomial.impl_2__subtract_bounded",
@@ -1001,7 +1003,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "a84cdbf896a32543d7ac9fbdb4185952"
+      "b11d919d6463db8ae0f8e065fa0b56aa"
     ],
     [
       "Libcrux_ml_dsa.Polynomial.impl_2__subtract",
@@ -1119,7 +1121,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4b4f4a3e9c332490d27c80562ab0b191"
+      "31edfdbb7272a5ea3d8a42629bf051de"
     ]
   ]
 ]

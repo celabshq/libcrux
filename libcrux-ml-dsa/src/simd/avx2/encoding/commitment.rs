@@ -75,9 +75,9 @@ fn serialize_4(simd_unit: &Vec256) -> Vec128 {
 }
 
 #[inline(always)]
-// Cold-verify repair 2026-07-22: the composer VC fails at default budget
-// (ifuel 1, rlimit 80, "incomplete quantifiers") once its hint goes stale;
-// mirror the sibling encoding composers' options (cf. error.rs serialize).
+// The composer VC fails at the default budget (ifuel 1, rlimit 80, "incomplete
+// quantifiers"); it uses the sibling encoding composers' options (cf. error.rs
+// serialize).
 #[hax_lib::fstar::before(r#"#restart-solver"#)]
 #[hax_lib::fstar::options("--ifuel 2 --z3rlimit 300 --split_queries always")]
 #[hax_lib::requires(out.len() == 4 || out.len() == 6)]

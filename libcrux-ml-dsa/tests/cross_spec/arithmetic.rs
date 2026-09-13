@@ -14,8 +14,8 @@
 //!    are all `pub(crate)`.
 //!
 //! The intended test logic is inlined in each `// TODO:` comment block
-//! so that the next session can drop in real call-sites once both crates
-//! expose the relevant items behind a `test-utils` feature gate.
+//! so the real call-sites can be dropped in once both crates expose the
+//! relevant items behind a `test-utils` feature gate.
 
 #![allow(dead_code, unused_imports, unused_variables)]
 

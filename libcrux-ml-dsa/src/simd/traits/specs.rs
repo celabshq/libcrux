@@ -8,22 +8,18 @@ pub(crate) const FIELD_MAX: u32 = 8380416;
 
 pub(crate) const FIELD_MID: u32 = 4190208;
 
-// Option C (above-trait request 2026-04-28): widened from FIELD_MID
-// (q/2) to FIELD_MAX (q-1) so the `reduce → ntt` chain composes
-// directly.  `Operations::reduce`'s post is `is_i32b_array_opaque
-// FIELD_MAX`, which now matches `Operations::ntt`'s pre.  Existing
-// callers passing FIELD_MID-bounded inputs still satisfy the wider
-// bound (FIELD_MID < FIELD_MAX).  Internal NTT peak rises from
-// FIELD_MID + 8q ≈ 71M to FIELD_MAX + 8q ≈ 75M — still ~28× under
-// i32::MAX, so panic-free proofs hold.
+// FIELD_MAX (q-1) is chosen so the `reduce → ntt` chain composes directly:
+// `Operations::reduce`'s post is `is_i32b_array_opaque FIELD_MAX`, matching
+// `Operations::ntt`'s pre.  Callers passing FIELD_MID-bounded inputs still
+// satisfy this wider bound (FIELD_MID < FIELD_MAX).  The internal NTT peak is
+// FIELD_MAX + 8q ≈ 75M — still ~28× under i32::MAX, so panic-free proofs hold.
 pub(crate) const NTT_BASE_BOUND: u32 = FIELD_MAX;
 
 // Forward NTT lazily accumulates to NTT_BASE_BOUND + 8*FIELD_MAX = 9*FIELD_MAX
 // and is deliberately NOT reduced (the subsequent montgomery multiply absorbs
 // it: with both operands <= 9*FIELD_MAX, the product is < FIELD_MAX*2^31 so the
 // montgomery_reduce_element output stays FIELD_MAX-bounded). This is the
-// truthful post-condition of `Operations::ntt` (the prior FIELD_MAX claim was
-// an over-claim masked by admit()s in the Portable/Avx2 ntt wrappers).
+// post-condition of `Operations::ntt`.
 pub(crate) const NTT_OUTPUT_BOUND: u32 = 9 * FIELD_MAX;
 
 const COEFFICIENTS_IN_SIMD_UNIT: usize = 8;
@@ -34,12 +30,12 @@ pub(crate) fn int_is_i32(i: Int) -> bool {
     i <= i32::MAX.to_int() && i >= i32::MIN.to_int()
 }
 
-// Phase 1 lane-post preamble. All per-lane opaque post predicates (citing
+// Lane-post preamble. All per-lane opaque post predicates (citing
 // canonical `Hacspec_ml_dsa.*` helpers) are injected as raw F* below, in
 // front of the existing `add_pre` definition. Pattern mirrors
 // `libcrux-ml-kem/src/vector/traits.rs::spec`. The dual-trigger lookup
 // lemmas + named-intro lemmas (style guide §3.2-3.3) live alongside each
-// opaque atom for use by Phase 2/3 impl proofs.
+// opaque atom for use by the impl proofs.
 // proof-residence: spec-host: this module's opaque spec-atom vocabulary + lemma API
 #[cfg_attr(
     hax,
@@ -120,12 +116,11 @@ let lemma_is_binary_256_array_slice_intro
             (ensures is_binary_256_array_slice arr) =
   reveal_opaque (`%is_binary_256_array_slice) (is_binary_256_array_slice arr)
 
-(* F-3 (2026-04-28): the *_serialize trait pres need a non-negative
-   bound, not the centered `is_i32b_array_opaque b` (which allows
-   |x| <= b including negative).  The impls of commitment_serialize,
-   gamma1_serialize, t0_serialize, error_serialize require lane values
-   in [0, b].  Mirror ML-KEM's `bounded_pos_i16_array` with the
-   ml-dsa version below. *)
+(* The *_serialize trait pres need a non-negative bound, not the centered
+   `is_i32b_array_opaque b` (which allows |x| <= b including negative).  The
+   impls of commitment_serialize, gamma1_serialize, t0_serialize,
+   error_serialize require lane values in [0, b].  Mirrors ML-KEM's
+   `bounded_pos_i16_array`, with the ml-dsa version below. *)
 
 let is_pos_array (l: nat) (x: t_Array i32 (mk_usize 8)) : prop =
   forall (i: nat). i < 8 ==>
@@ -210,15 +205,14 @@ let lemma_decompose_lane_intro (gamma2 input low high: i32)
   reveal_opaque (`%decompose_lane_post) (decompose_lane_post gamma2 input low high)
 
 (* compute_hint: hint[i] = compute_one_hint low high gamma2 (Spec.MLDSA.Math).
-   F-4 (2026-04-28): switched from `Hacspec_ml_dsa.Arithmetic.make_hint`
-   (literal FIPS 204 algorithm 39) to `Spec.MLDSA.Math.compute_one_hint`
+   The post cites `Spec.MLDSA.Math.compute_one_hint` rather than
+   `Hacspec_ml_dsa.Arithmetic.make_hint` (literal FIPS 204 algorithm 39)
    because the two disagree at the boundary `low = -gamma2, high != 0`:
    compute_one_hint returns 1 there, make_hint computes via FIPS 204 high_bits
-   which evaluates differently.  The impl computes per compute_one_hint;
-   citing make_hint creates an unprovable equivalence at this boundary.
-   Trade-off: drops the cross-spec link to FIPS 204; recovered later if
-   a Hacspec helper that mirrors compute_one_hint's optimized boundary
-   handling lands. *)
+   which evaluates differently.  The impl computes per compute_one_hint, so
+   citing make_hint would create an unprovable equivalence at this boundary.
+   This drops the cross-spec link to FIPS 204, recoverable via a Hacspec helper
+   that mirrors compute_one_hint's boundary handling. *)
 [@@ "opaque_to_smt"]
 let compute_hint_lane_post (gamma2 low high hint: i32) : prop =
   ((v gamma2 == 95232) \/ (v gamma2 == 261888)) /\
@@ -293,8 +287,8 @@ let lemma_montgomery_multiply_lane_intro (lhs rhs future_lhs: i32)
    congruence with `input * 2^13`.  This is the natural shape both
    impls actually compute — `barrett_red(input <<! 13)` lives in
    `(-q, q)` (not in `[0, q-1]` like Hacspec's `mod_q`-normalised form),
-   so the previous strict-equality post against
-   `Hacspec_ml_dsa.Arithmetic.shift_left_then_reduce` was unsound for
+   so a strict-equality post against
+   `Hacspec_ml_dsa.Arithmetic.shift_left_then_reduce` would be unsound for
    the impl bodies.  Mirrors `reduce_lane_post`.
 
    FUTURE SPEC AUDIT: this post talks about i32 representatives, not

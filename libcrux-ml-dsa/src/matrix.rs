@@ -613,8 +613,8 @@ pub(crate) fn vector_times_ring_element<SIMDUnit: Operations>(
         ));
         #[cfg(hax)]
         let iter_start: &[PolynomialRingElement<SIMDUnit>] = vector.to_vec().as_slice();
-        // vector[i] == e_vector_orig[i] (tail frame) and e_vector_orig is now
-        // NTT_OUTPUT_BOUND-bounded (relaxed slice pre), giving directly the
+        // vector[i] == e_vector_orig[i] (tail frame) and e_vector_orig is
+        // NTT_OUTPUT_BOUND-bounded (from the relaxed slice pre), giving directly the
         // NTT_OUTPUT_BOUND bound ntt_multiply_montgomery needs on vector[i].
         proof!(
             r#"

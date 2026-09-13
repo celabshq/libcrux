@@ -451,9 +451,8 @@ val mm256_set_epi16_lemma
   [SMTPat (to_i16x16 (I.mm256_set_epi16 v0 v1 v2 v3 v4 v5 v6 v7 v8 v9 v10 v11 v12 v13 v14 v15) i)]
 
 #push-options "--z3rlimit 80"
-// CORRECTED (soundness fix, session 16): the previous `requires` bound
-// `local_32 = i / 32` (a copy-paste bug for `i % 32`) and stated a degenerate
-// bit-disjointness that does NOT imply the ensures.  madd of the 6-bit-packing
+// The `requires` below uses `local_32 = i % 32` and states the bit conditions
+// needed for the ensures to hold.  madd of the 6-bit-packing
 // const `set_epi16(..,2^6,1,..,2^6,1)` produces, in i32 lanes 0 and 4,
 // `x + y*2^6` where x = low i16-lane, y = high i16-lane.  For the bit layout
 // below to hold carry-free we need: the LOW lane is a 6-bit value (bits 6..15
@@ -463,8 +462,8 @@ val mm256_set_epi16_lemma
 val mm256_madd_epi16_specialized_lemma vec i:
   Lemma
   (requires
-    (* Trigger-rewrite (session 18): for i < 256, nth_32_block*32 + local_32 == i,
-       so both accesses are `vec.(mk_int i)` — LOGICALLY IDENTICAL to the prior
+    (* For i < 256, nth_32_block*32 + local_32 == i,
+       so both accesses are `vec.(mk_int i)` — LOGICALLY IDENTICAL to the
        `vec.(mk_int (nth_32_block*32+local_32))` form, but with a literal-matchable
        `{:pattern vec.(mk_int i)}` so a concrete `vec.(mk_int c)` in a consumer/the
        proof fires it (the div/mod trigger pathology is defeated). *)
@@ -586,17 +585,16 @@ val mm256_srai_epi32_lemma (v_IMM8: i32) (a: bv256) (i:u64{v i < 8}):
          ))
          [SMTPat (to_i32x8 (Libcrux_intrinsics.Avx2.mm256_srai_epi32 v_IMM8 a) i)]
 
-// CORRECTNESS FIX (2026-07-31): this was an UNPROVABLE axiom without the
-// `requires`.  For an out-of-[0,255] IMM8 the axiom and the CPU-differentially-
-// tested core-models model DIVERGE: the axiom returns 0 whenever `IMM8 < 0`,
-// while `e_mm256_slli_epi32` shifts by `IMM8.rem_euclid(256)` — so at e.g.
-// IMM8 = -256 the model returns `a` unchanged, not 0.  The two agree on ALL of
-// IMM8 in [0,255]; the divergent region is not CPU-differential-tested (`mk!`
-// covers <0>..<255>), is unreachable (every ml-dsa call site uses IMM8 in {1,13},
-// one of them behind `requires v SHIFT_BY == 13`), and is not expressible by the
-// hardware, whose IMM8 is an 8-bit immediate.  Adding the (already-satisfied)
-// range precondition turns a possibly-wrong trusted axiom into a PROVEN lemma.
-// The `ensures` is kept in its original `if` shape so consumers see the same fact.
+// The `requires v_IMM8 in [0,31]` is what makes this a PROVEN lemma rather than an
+// unprovable trusted axiom.  For an out-of-[0,255] IMM8 a `requires`-free version
+// and the CPU-differentially-tested core-models model DIVERGE: it would return 0
+// whenever `IMM8 < 0`, while `e_mm256_slli_epi32` shifts by `IMM8.rem_euclid(256)`
+// — so at e.g. IMM8 = -256 the model returns `a` unchanged, not 0.  The two agree
+// on ALL of IMM8 in [0,255]; the divergent region is not CPU-differential-tested
+// (`mk!` covers <0>..<255>), is unreachable (every ml-dsa call site uses IMM8 in
+// {1,13}, one of them behind `requires v SHIFT_BY == 13`), and is not expressible
+// by the hardware, whose IMM8 is an 8-bit immediate.  The `ensures` is kept in `if`
+// shape so consumers see the same fact.
 val mm256_slli_epi32_lemma (v_IMM8: i32) (a: bv256) (i:u64{v i < 8}):
   Lemma (requires v v_IMM8 >= 0 /\ v v_IMM8 <= 31)
         (ensures to_i32x8 (Libcrux_intrinsics.Avx2.mm256_slli_epi32 v_IMM8 a) i ==
@@ -833,10 +831,10 @@ let mk_i32x8 (f: (i:u64{v i < 8}) -> i32): r: bv256 {forall i. to_i32x8 r i == f
    from_i32x8 (FStar.FunctionalExtensionality.on (n:u64{v n < 8}) f)
 
 (* ============================================================================
-   ML-DSA AVX2 intrinsic-model lemmas (D6.3 F* spec layer), upstreamed from
-   libcrux-ml-dsa-proofs for rebase consistency. Each is the trusted F* spec for a
-   CPU-differential-tested core-models model (D6.1 model + D6.2 `mk!` test vs real
-   x86 `upstream::`). Grouped: (1) compute_hint/use_hint set, (2) rejection_sample set.
+   ML-DSA AVX2 intrinsic-model lemmas (F* spec layer). Each is the trusted F* spec
+   for a CPU-differential-tested core-models model (the model + the `mk!` test vs
+   real x86 `upstream::`). Grouped: (1) compute_hint/use_hint set,
+   (2) rejection_sample set.
    ============================================================================ *)
 
 (* --- (1) compute_hint / use_hint models (store/load/setzero/blend/cmpeq/or/sign) --- *)
@@ -937,7 +935,7 @@ val mm256_movemask_ps_lemma (a: bv256)
            (if to_i32x8 a (mk_u64 6) <. mk_i32 0 then 64 else 0) +
            (if to_i32x8 a (mk_u64 7) <. mk_i32 0 then 128 else 0))
 
-(* NEW (D6.3): the masked 3-byte coefficient's bit decomposition. Analog of
+(* The masked 3-byte coefficient's bit decomposition. Analog of
    shl_casted_u8_bv_lemma (2-byte); matches rejection_sample_coefficient_lemma. *)
 val coeff_gather_bv_lemma (a b c: u8) (i: u64{v i<32})
   : Lemma (i32_to_bv (((((cast c <: i32) <<! mk_i32 16 <: i32) |. ((cast b <: i32) <<! mk_i32 8 <: i32) <: i32)
@@ -947,7 +945,7 @@ val coeff_gather_bv_lemma (a b c: u8) (i: u64{v i<32})
             else if v i >= 8 then u8_to_bv b (mk_int (v i - 8))
             else u8_to_bv a i))
 
-(* NEW (D6.3): u8-nibble bit lemmas (u8_to_bv abstract). low nibble (& 15) keeps
+(* u8-nibble bit lemmas (u8_to_bv abstract). low nibble (& 15) keeps
    bits 0..3, zeroes 4..7; high nibble (>> 4) moves bits 4..7 to 0..3, zeroes 4..7. *)
 val u8_to_bv_logand15_lemma (x: u8) (i: u64{v i < 8})
   : Lemma (u8_to_bv (x &. mk_u8 15) i == (if v i < 4 then u8_to_bv x i else Bit_Zero))

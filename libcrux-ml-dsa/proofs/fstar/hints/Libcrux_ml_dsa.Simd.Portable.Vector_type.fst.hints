@@ -28,7 +28,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4cd4a6586b2c99b080c984f020961c0f"
+      "b5ce6ae701f00f5de187fab37d614290"
     ],
     [
       "Libcrux_ml_dsa.Simd.Portable.Vector_type.t_Coefficients",
@@ -57,7 +57,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f4636dde2fd7e5d8178a9967df994c07"
+      "2a41a07acd9599c3bf67266a21781972"
     ],
     [
       "Libcrux_ml_dsa.Simd.Portable.Vector_type.t_Coefficients",
@@ -76,7 +76,7 @@
         "typing_tok_Rust_primitives.Integers.I32@tok"
       ],
       0,
-      "a55c286e5062afb3d3a35e093f2e2e3f"
+      "1911fbcfd1cafc07f3c67597b46ec979"
     ],
     [
       "Libcrux_ml_dsa.Simd.Portable.Vector_type.__proj__Mkt_Coefficients__item__f_values",
@@ -118,7 +118,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "b69139f08fa571f8e7387af4779af32c"
+      "3ac9c1011d3dd6f1d108e7dccbf8a765"
     ],
     [
       "Libcrux_ml_dsa.Simd.Portable.Vector_type.__proj__Mkt_Coefficients__item__f_values",
@@ -160,7 +160,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "b8b4b6f46578571aaf5586a52bd79d4a"
+      "768027f180faf90331c1a59e308a5fe1"
     ],
     [
       "Libcrux_ml_dsa.Simd.Portable.Vector_type.zero",
@@ -196,7 +196,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "105fd0769261084254b8af94625765c2"
+      "c8257c644bb0d6b85aba3c6649f11dd8"
     ],
     [
       "Libcrux_ml_dsa.Simd.Portable.Vector_type.from_coefficient_array",
@@ -213,7 +213,7 @@
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
         "equation_Core_models.Ops.Index.f_index",
         "equation_Core_models.Ops.Index.f_index_pre",
-        "equation_Core_models.Slice.impl_7",
+        "equation_Core_models.Slice.impl_6",
         "equation_Core_models.Slice.impl__copy_from_slice",
         "equation_Core_models.Slice.impl__len",
         "equation_Libcrux_ml_dsa.Simd.Traits.v_COEFFICIENTS_IN_SIMD_UNIT",
@@ -231,30 +231,29 @@
         "equation_Rust_primitives.Integers.unsigned",
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v",
-        "equation_Rust_primitives.Mem.replace",
         "equation_Rust_primitives.Notations.op_String_Access",
+        "equation_Rust_primitives.Slice.slice_clone_from_slice",
         "equation_Rust_primitives.Slice.slice_length",
         "equation_Rust_primitives.Slice.slice_slice",
         "fuel_guarded_inversion_Libcrux_ml_dsa.Simd.Portable.Vector_type.t_Coefficients",
         "function_token_typing_Rust_primitives.Integers.i32",
         "int_inversion",
         "interpretation_Tm_abs_4ab552b3415220d2b607f7d57c958117",
-        "interpretation_Tm_abs_87065fc1a6f4731576ff09a0c8e20742",
-        "interpretation_Tm_abs_900369f04b4ab299c3cdf8970be0a9f8",
         "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
+        "interpretation_Tm_abs_f9c2728f19ddd20263287eca3242b7dc",
+        "interpretation_Tm_abs_fd6f2e57ab8d0296c22b4aca283c828d",
         "lemma_FStar.Seq.Properties.slice_length",
         "primitive_Prims.op_AmpAmp", "primitive_Prims.op_LessThanOrEqual",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_start",
         "proj_equation_Libcrux_ml_dsa.Simd.Portable.Vector_type.Mkt_Coefficients_@f_values",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxBool_proj_0",
         "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_start",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index_pre",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_start",
-        "projection_inverse_FStar.Pervasives.Native.Mktuple2_@_1",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
@@ -267,7 +266,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "7ef8ced31cf6bc81b2337ded35615c23"
+      "f7545dbc0fd14b6324d9d5a5ef3859a0"
     ],
     [
       "Libcrux_ml_dsa.Simd.Portable.Vector_type.to_coefficient_array",
@@ -304,7 +303,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4a7551df468531917c84bdf870f2e08a"
+      "6e40f5ba8b71fdb63b558ac79be66b5e"
     ]
   ]
 ]

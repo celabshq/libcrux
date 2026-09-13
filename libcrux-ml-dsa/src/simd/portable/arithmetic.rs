@@ -248,7 +248,7 @@ pub(crate) fn montgomery_multiply(lhs: &mut Coefficients, rhs: &Coefficients) {
               (forall j. j >= v $i ==> (Seq.index ${lhs}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values j) == (Seq.index ${_lhs0}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values j))"#
             )
         });
-        // Widened operand bound: both lhs[i] and rhs[i] are now bounded by
+        // Widened operand bound: both lhs[i] and rhs[i] are bounded by
         // 9*FIELD_MAX (NTT_OUTPUT_BOUND), so the product fits in i64 with
         // |product| <= (9*FIELD_MAX)^2 <= 8380416*pow2 32 = montgomery_reduce's pre.
         proof!(

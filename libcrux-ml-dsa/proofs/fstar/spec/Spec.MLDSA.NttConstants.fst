@@ -1,16 +1,14 @@
  module Spec.MLDSA.NttConstants
  (*
-   Permanent home for the ML-DSA NTT constant tables, re-homed out of the
-   (now-deletable) Spec.MLDSA.Ntt in D1 (2026-06-06):
+   Home for the ML-DSA NTT constant tables:
 
    - `zeta`   : the raw zeta_i table (0..255), values in [0, q).
    - `zeta_r` : the Montgomery-domain / centered zeta the implementation uses as
                 round constants; carries the bridge ensures
                 `mod_q result == mod_q (zeta i * pow2 32)`.
 
-   Also holds `ntt_step`/`inv_ntt_step` — the per-step butterfly spec the AVX2
-   NTT proofs still cite (pending their migration to the canonical `ntt_layer`,
-   the way the Portable backend already was).
+   Also holds `ntt_step`/`inv_ntt_step` — the per-step butterfly spec cited by
+   the AVX2 NTT proofs.
 
    The CANONICAL NTT spec (ntt/intt/ntt_layer/intt_layer/v_ZETAS) lives in the
    extracted `Hacspec_ml_dsa.Ntt`; these proof-only helpers cannot live there

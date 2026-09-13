@@ -37,7 +37,7 @@ let layer_bound_factor (step_by:usize) : n:nat{n <= 128} =
     | MkInt 16 -> 128
     | _ -> 128
 
-(* ---- INVERSE cross-chunk GS-FE atom + bridge lemmas (Phase C).
+(* ---- INVERSE cross-chunk GS-FE atom + bridge lemmas.
    GS butterfly: co_lo = ci_lo + ci_hi (plain add); co_hi is the mont result of
    (ci_hi - ci_lo), a direct mod-q relation (NO separate `t` witness). *)
 [@@ "opaque_to_smt"]
@@ -1003,7 +1003,7 @@ let lemma_intt_compose_8 (f0 f1 f2 f3 f4 f5 f6 f7 ffinal : t_Array i32 (mk_usize
     assert (intt_unscaled f0 == g7)
 #pop-options
 
-(* ---- Phase E: scaling wrapper.  out ≡ to_mont(intt in) (mod q), with
+(* ---- scaling wrapper.  out ≡ to_mont(intt in) (mod q), with
    to_mont x = mod_q(R·x), R = 2^32 mod q = 4193792.  The impl stays in the
    Montgomery domain (mont_mul by 41978 = R·256^{-1}), so it is off the clean
    intt by R. *)

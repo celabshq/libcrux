@@ -3,7 +3,7 @@
 // so the code can be formally verified. They are not called anywhere
 // except in a unit-test in this file.
 //
-// |SHUFFLE_TABLE| was originally generated using a
+// |SHUFFLE_TABLE| was generated using a
 // python script.
 //
 // They are excluded from F* extraction (dead code outside the unit

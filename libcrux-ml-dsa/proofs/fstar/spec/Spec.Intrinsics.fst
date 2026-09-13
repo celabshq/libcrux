@@ -34,7 +34,7 @@ let to_i16x16 (x: bv256): i16x16 = (Canon.to_i16x16 x)._0
 let to_i32x4  (x: bv128): i32x4  = (Canon.to_i32x4 x)._0
 let to_i32x8  (x: bv256): i32x8  = (Canon.to_i32x8 x)._0
 let to_i64x4  (x: bv256): i64x4  = (Canon.to_i64x4 x)._0
-let to_u8x16  (x: bv128): u8x16  = (IVi.e_ee_18__impl__to_u8x16 x)._0
+let to_u8x16  (x: bv128): u8x16  = (IVi.e_ee_17__impl__to_u8x16 x)._0
 
 (**** (#8) Int vec -> bit vec *)
 let from_i32x8 (x:i32x8):  bv256 = Canon.from_i32x8 (Funarr.FunArray x)
@@ -125,7 +125,7 @@ let cast_u8_i8 (a: u8) : Lemma ((cast a <: i8) == Ints.cast_mod #Ints.U8 #Ints.I
 #pop-options
 
 (* u8x32 view of a bv256 (private; the 256-bit analogue of to_u8x16). *)
-let to_u8x32p (x: bv256) : t_FunArray (mk_u64 32) u8 = (IVi.e_ee_9__impl__to_u8x32 x)._0
+let to_u8x32p (x: bv256) : t_FunArray (mk_u64 32) u8 = (IVi.e_ee_8__impl__to_u8x32 x)._0
 #push-options "--fuel 2 --ifuel 2 --z3rlimit 250"
 let u8_to_bv_to_u8x32_inv (vec: bv256) (i: u64{v i < 32}) (j: u64{v j < 8})
   : Lemma (u8_to_bv (to_u8x32p vec i) j == vec.(mk_int (v i * 8 + v j))) =
@@ -1250,7 +1250,7 @@ let mm256_blend_epi32_lemma imm8 a b i =
   reveal_opaque (`%I.mm256_blend_epi32) I.mm256_blend_epi32;
   Canon.lemma_mm256_blend_epi32 imm8 a b
 #pop-options
-(* set_m128i is a bit-level concat; its lift now lives in Trusted.Intrinsics. *)
+(* set_m128i is a bit-level concat; its lift lives in Trusted.Intrinsics. *)
 #push-options "--fuel 1 --ifuel 2 --z3rlimit 250"
 let mm256_set_m128i_bv_lemma hi lo i =
   reveal_opaque (`%I.mm256_set_m128i) I.mm256_set_m128i;
@@ -1562,7 +1562,7 @@ let mm256_cmpeq_epi32_lemma a b i =
   reveal_opaque (`%I.mm256_cmpeq_epi32) I.mm256_cmpeq_epi32;
   Canon.lemma_mm256_cmpeq_epi32 a b
 #pop-options
-(* raw-bit semantics of the hardware `or` (mirror of mm256_xor_bv), now that the
+(* raw-bit semantics of the hardware `or` (mirror of mm256_xor_bv); the
    lift lives in Trusted.Intrinsics. *)
 #push-options "--fuel 1 --ifuel 2 --z3rlimit 250"
 let mm256_or_bv (a b: bv256) (k: u64{v k < 256})

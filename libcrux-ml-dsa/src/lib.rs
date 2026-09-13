@@ -5,7 +5,11 @@
 // expansion.  Compile-time only — does not affect extracted F* or runtime.
 #![recursion_limit = "1024"]
 #![deny(unsafe_code)]
-#![deny(unused_qualifications)]
+// `warn` (not `deny`): the crate-wide `proof!` macro forwards to `hax_lib::fstar!`,
+// and a newer toolchain misflags that load-bearing qualified path inside the
+// `macro_rules!` transcriber as an unnecessary qualification. Denying it fails the
+// hax `cargo build` and aborts extraction (ml-kem does not gate on this lint).
+#![warn(unused_qualifications)]
 
 #[cfg(feature = "std")]
 extern crate std;
