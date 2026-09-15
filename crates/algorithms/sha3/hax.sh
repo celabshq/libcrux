@@ -71,10 +71,16 @@ function extract_all() {
     # freshly generated *.fst (F* prefers the interface), hiding definitions
     # behind opaque `val`s -> spurious "incomplete quantifiers" proof failures.
     # (This is exactly what broke the SIMD load/store proofs: 7 stale
-    # Libcrux_sha3.*.fsti hid get_ij/set_ij.)  The 4 hand-written proof modules
-    # (no Rust source) are restored from git after extraction.
-    rm -f "$SCRIPT_DIR/proofs/fstar/extraction"/*.fst \
-          "$SCRIPT_DIR/proofs/fstar/extraction"/*.fsti
+    # Libcrux_sha3.*.fsti hid get_ij/set_ij.)
+    #
+    # Remove GENERATED files only.  git's ignore rules are the single record of
+    # which files here are generated: extraction output is ignored, hand-written
+    # proof modules are tracked via `!` exceptions, and `git clean -X` cannot
+    # touch a tracked file.  A blind `rm *.fst *.fsti` took the hand-written
+    # modules too, which is why this used to be followed by a `git checkout --`
+    # restore -- and that restore silently reverted the freshly extracted
+    # Libcrux_sha3.Proof_utils.fst to a stale committed copy.
+    git clean -Xdfq "$SCRIPT_DIR/proofs/fstar/extraction"
 
     # Generate ABSTRACT interfaces (.fsti) for the `portable` module subtree so
     # external consumers (ml-kem / ml-dsa / kmac) verify against sha3's PUBLIC
@@ -182,16 +188,6 @@ function patch_fstar_extractions() {
     go_to "crates/algorithms/sha3"
     local target_dir="proofs/fstar/extraction"
 
-    # Restore the hand-written proof modules removed by the pre-extract clean.
-    # These have no Rust source (hax does not regenerate them); Proof_utils.fst
-    # is hand-written and intentionally shadows any hax-generated version.
-    git checkout -- \
-        "$target_dir/Libcrux_sha3.Proof_utils.fst" \
-        "$target_dir/Libcrux_sha3.Proof_utils.Lemmas.fst" \
-        "$target_dir/Libcrux_sha3.Simd.Arm64.StoreBlockHelpers.fst" \
-        "$target_dir/Libcrux_sha3.Simd.Avx2.StoreBlockHelpers.fst" \
-        "$target_dir/Libcrux_sha3.Avx2.X4.Incremental.fsti" \
-        "$target_dir/Libcrux_sha3.Neon.X2.Incremental.fsti" 2>/dev/null || true
     # hax emits Core_models.Array.from_fn which has the wrong type;
     # replace with Rust_primitives.Slice.array_from_fn and supply the
     # extra implicit #(usize -> u8) that array_from_fn requires.
