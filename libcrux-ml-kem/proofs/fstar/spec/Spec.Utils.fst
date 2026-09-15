@@ -330,16 +330,17 @@ let update_at_range_lemma #n
                  /\ Seq.index (Seq.slice s' 0 len) i == Seq.index s' i ))  
 
 
-[@@ "trusted: trusted-extern: RNG fill_bytes precondition holds (external Rng trait contract)"]
-let fill_bytes_pre_true #v_Self #i0 self bytes = assume (i0.f_fill_bytes_pre self bytes)
+/// The `RngCore` contract, recovered from the refinements hax puts on the class
+/// fields rather than assumed; `Rand_core.Fill_bytes_spec` in hax-lib proves it.
+let fill_bytes_pre_true #v_Self #i0 self bytes =
+  Rand_core.Fill_bytes_spec.fill_bytes_pre #v_Self #i0 self bytes
 
-[@@ "trusted: trusted-extern: RNG fill_bytes postcondition + fills exactly bytes-length (external Rng trait contract)"]
 let fill_bytes_post_true #v_Self #i0 self bytes result =
-  assume (i0.f_fill_bytes_post self bytes result /\
-          Seq.length (snd result) == Seq.length bytes)
+  Rand_core.Fill_bytes_spec.fill_bytes_post_len #v_Self #i0 self bytes result
 
-[@@ "trusted: trusted-extern: i16 abs semantics (core-models impl_i16__abs primitive)"]
-let impl_i16__abs_value (x: i16) = assume (v (Core_models.Num.impl_i16__abs x) == Prims.abs (v x))
+/// `i16::abs` is a transparent model in hax now, so this is a proof;
+/// `Core_models.Num.Abs_spec` states the same contract over `abs_int`.
+let impl_i16__abs_value (x: i16) = Core_models.Num.Abs_spec.abs_i16_v x
 
 #push-options "--fuel 1 --ifuel 1 --z3rlimit 150"
 let slice_to_array_id (array: t_Slice 'a) =

@@ -10,19 +10,19 @@ module I = Libcrux_intrinsics.Avx2
    `hax_lib::fstar::before` blocks (byte-exact raw-string contents, verified verbatim
    against the green extracted module). Consumed only by that module. *)
 
-(* Trusted axiom: `u8::count_ones` counts set bits.
-   `Rust_primitives.Arithmetic.count_ones_u8` is an uninterpreted `val` in
-   hax-lib (only `v r <= 8` is known); this axiom gives it popcount
-   semantics via the bit recursion `popcount8 g = if g = 0 then 0 else
-   g % 2 + popcount8 (g / 2)` (Hacspec_ml_kem.Commute.Rej_table.popcount8).
-   Validated exhaustively (x in 0..=255) against the executable
-   `u8::count_ones` by the core-models test
-   `track_i_axiom_transcription_tests::count_ones_popcount8_formula` in
-   `crates/utils/core-models/src/core_arch/x86/interpretations.rs`. *)
-[@@ "trusted: validated-axiom: u8 count_ones equals popcount8 (exhaustively tested 0..=255)"]
-assume val count_ones_u8_popcount8 (x: u8)
-  : Lemma (v (Rust_primitives.Arithmetic.count_ones_u8 x) ==
+(* `u8::count_ones` counts set bits.  This was a trusted axiom while
+   `Rust_primitives.Arithmetic.count_ones_u8` was an uninterpreted `val` in
+   hax-lib (only `v r <= 8` was known).  hax now models `count_ones` as a sum
+   over the bits and discharges the popcount contract in
+   `Core_models.Num.Count_ones_spec`, so this is a proof.
+
+   `Count_ones_spec.popcount` and `Rej_table.popcount8` are the same bit
+   recursion declared independently on each side; the bridge relates them. *)
+let count_ones_u8_popcount8 (x: u8)
+  : Lemma (v (Core_models.Num.impl_u8__count_ones x) ==
            Hacspec_ml_kem.Commute.Rej_table.popcount8 (v x))
+  = Core_models.Num.Count_ones_spec.count_ones_u8_popcount x;
+    Hacspec_ml_kem.Commute.Rej_table.lemma_popcount8_agrees (v x)
 
 (* Seal the PROVEN shuffle semantics into the
    Hacspec_ml_kem.Commute.Rej_table.shuffle_semantics atom in its own

@@ -156,10 +156,12 @@ val lemma_testz_si256_lift (a b: bv256)
    tests: `to_le_bytes_index` / `from_le_bytes_bit`).
    ========================================================================== *)
 
-assume
-val lemma_u64_to_le_bytes_index (x: u64) (b: nat{b < 8})
+(* No longer assumed: hax models `to_le_bytes` as the shifted bytes and proves
+   the byte-index contract in `Core_models.Num.To_le_bytes_spec`. *)
+let lemma_u64_to_le_bytes_index (x: u64) (b: nat{b < 8})
     : Lemma ((Core_models.Num.impl_u64__to_le_bytes x <: t_Array u8 (mk_usize 8)).[ mk_usize b ]
              == (cast (x >>! mk_u32 (8 * b)) <: u8))
+  = Core_models.Num.To_le_bytes_spec.to_le_bytes_u64_index x b
 
 assume
 val lemma_u64_from_le_bytes_bit (bs: t_Array u8 (mk_usize 8)) (k: nat{k < 64})

@@ -395,18 +395,18 @@ let lemma_ser1_shift_amounts (shift: Libcrux_intrinsics.Arm64_ml_kem_views.t_e_i
    Each group sum g (g<4) = Sum_{m<4} coeff_{4g+m} * 2^{4m}, and the whole u64
    is Sum_{c<16} coeff_c * 2^{4c} (base-16); byte b holds coeffs 2b, 2b+1. *)
 
-(* TRUSTED AXIOM modeling Core_models.Num.impl_u64__to_le_bytes (a bare
-   `assume val` in hax-lib core proof-libs with NO functional ensures): byte b
-   of the little-endian encoding is (x / 2^(8b)) mod 2^8.  VALIDATED bit-exact
-   vs Rust std u64::to_le_bytes (24,000,072 checks, 0 fails). *)
+(* Byte b of the little-endian encoding is (x / 2^(8b)) mod 2^8.  This was a
+   trusted axiom while `Core_models.Num.impl_u64__to_le_bytes` was a bare
+   `assume val` in hax-lib with no functional ensures; hax now models
+   `to_le_bytes` as the shifted bytes and proves the contract in
+   `Core_models.Num.To_le_bytes_spec`. *)
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 50"
-[@@ "trusted: trusted-extern: little-endian byte b of u64 is (x >> 8b) mod 256 (hax-lib to_le_bytes primitive, bit-exact validated)"]
-assume
-val lemma_u64_to_le_bytes_index (x: u64) (b: nat{b < 8})
+let lemma_u64_to_le_bytes_index (x: u64) (b: nat{b < 8})
     : Lemma
       (ensures
         v (Seq.index (Core_models.Num.impl_u64__to_le_bytes x) b)
         == (v x / pow2 (8 * b)) % pow2 8)
+  = Core_models.Num.To_le_bytes_spec.to_le_bytes_u64_index x b
 #pop-options
 
 (* Bit p of byte b of to_le_bytes(x) is bit (8b+p) of x. *)

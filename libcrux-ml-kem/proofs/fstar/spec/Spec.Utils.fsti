@@ -388,8 +388,8 @@ val update_at_range_lemma #n
     ))
     [SMTPat (Rust_primitives.Hax.Monomorphized_update_at.update_at_range s i x)]
 
-/// TODO: This assumption should be moved to Rand_core.fsti in hax-lib,
-/// where f_fill_bytes_pre should be defined as True.
+/// Forwarders to `Rand_core.Fill_bytes_spec` in hax-lib, which proves the
+/// `RngCore` contract from the refinements hax puts on the class fields.
 val fill_bytes_pre_true
       (#v_Self: Type0)
       (#i0: Rand_core.t_RngCore v_Self)
@@ -398,19 +398,22 @@ val fill_bytes_pre_true
     : Lemma (i0.f_fill_bytes_pre self bytes)
       [SMTPat (i0.f_fill_bytes_pre self bytes)]
 
-/// TODO: This assumption should be moved to Rand_core.fsti in hax-lib,
-/// where f_fill_bytes_post should guarantee the output has the same length.
+/// Note the shape change: this used to assert `f_fill_bytes_post` itself, for an
+/// arbitrary `result`, which is not something the trait contract gives you — the
+/// post is what a *call* to `fill_bytes` returns. It is now an implication, so
+/// what it adds is only the length consequence, at the call sites that have the
+/// post. The SMTPat still fires there, so no consumer needs to change.
 val fill_bytes_post_true
       (#v_Self: Type0)
       (#i0: Rand_core.t_RngCore v_Self)
       (self: v_Self)
       (bytes: t_Slice u8)
       (result: v_Self & t_Slice u8)
-    : Lemma (i0.f_fill_bytes_post self bytes result /\
-             Seq.length (snd result) == Seq.length bytes)
+    : Lemma (requires i0.f_fill_bytes_post self bytes result)
+            (ensures Seq.length (snd result) == Seq.length bytes)
       [SMTPat (i0.f_fill_bytes_post self bytes result)]
 
-/// TODO: This assumption should be moved to Core_models.Num in hax-lib.
+/// Proved from the transparent `i16::abs` model; see `Core_models.Num.Abs_spec`.
 val impl_i16__abs_value (x: i16)
     : Lemma (requires v x > -32768)
             (ensures v (Core_models.Num.impl_i16__abs x) == Prims.abs (v x))

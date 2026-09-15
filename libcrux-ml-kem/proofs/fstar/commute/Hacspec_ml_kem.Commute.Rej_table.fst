@@ -1130,3 +1130,10 @@ let lemma_half_of_cast (a: AVX.t_Vec128) (potential: AVX.t_Vec256) (half: nat{ha
     else Classical.forall_intro (AVX.lemma_bv_bit_extracti128_si256_1 potential);
     intro_half_of a potential half
 #pop-options
+
+#push-options "--fuel 1 --ifuel 0"
+let rec lemma_popcount8_agrees (n: nat)
+  : Lemma (ensures popcount8 n == Core_models.Num.Count_ones_spec.popcount n)
+          (decreases n)
+  = if n = 0 then () else lemma_popcount8_agrees (n / 2)
+#pop-options

@@ -1149,12 +1149,17 @@ let mm256_xor_si256_lemma a b i =
   FStar.Classical.forall_intro aux;
   Ints.lemma_int_t_eq_via_bits r (xa ^. xb)
 #pop-options
-(* CLIFF: core-models e_mm256_abs_epi32 delegates to Core_models.Num.impl_i32__abs =
-   Rust_primitives.Arithmetic.abs_i32, an UNINTERPRETED `val abs_i32 : i32 -> i32`
-   with no ensures anywhere in the hax proof-libs. Cannot bridge to abs_int
-   (= mk_int (abs (v x))) without an axiom about abs_i32. Blocked by a missing
-   primitive spec, not by the model. *)
-[@@ "trusted: pending-proof(hax#2107): needs a spec for Rust_primitives.Arithmetic.abs_i32; the 2-line proof is validated (cold, rlimit 1.134) against a locally-patched hax and lands when the pin advances"] let mm256_abs_epi32_lemma = admit ()
+(* core-models `e_mm256_abs_epi32` delegates to `Core_models.Num.impl_i32__abs`,
+   which used to be `Rust_primitives.Arithmetic.abs_i32` — an uninterpreted `val`
+   with no ensures anywhere in the hax proof-libs — so this was admitted (hax#2107).
+   hax now models `i32::abs` directly and `Core_models.Num.Abs_spec` bridges it to
+   `abs_int`; the `requires` rules out the `i32::MIN` lane the model special-cases. *)
+#push-options "--fuel 2 --ifuel 1 --z3rlimit 200"
+let mm256_abs_epi32_lemma a i =
+  reveal_opaque (`%I.mm256_abs_epi32) I.mm256_abs_epi32;
+  Canon.lemma_mm256_abs_epi32 a;
+  Core_models.Num.Abs_spec.abs_i32 (to_i32x8 a i)
+#pop-options
 #push-options "--fuel 2 --ifuel 1 --z3rlimit 200"
 let mm256_cmpgt_epi32_lemma a b i =
   reveal_opaque (`%I.mm256_cmpgt_epi32) I.mm256_cmpgt_epi32;
