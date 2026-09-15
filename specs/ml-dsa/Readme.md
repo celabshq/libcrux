@@ -9,12 +9,12 @@ implementations.
 Prerequisites:
 * [Lean](https://lean-lang.org/install/)
 * [cargo](https://rust-lang.org/tools/install/)
-* hax 0.4.0 on `PATH` (`cargo hax`); charon and aeneas are downloaded
-  automatically on first use
+* [cargo-binstall](https://github.com/cargo-bins/cargo-binstall#installation)
+* (hax, charon, aeneas will be downloaded automatically)
 
 To extract the Lean code, run the following in the `specs` directory:
 ```
-cargo hax extract hacspec-ml-dsa
+cargo bin cargo-hax extract hacspec-ml-dsa
 ```
 
 To type check the extracted Lean run the following in the `specs/ml-dsa/proofs/hacspec-ml-dsa/lean` directory:
