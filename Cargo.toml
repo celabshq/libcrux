@@ -102,13 +102,16 @@ readme = "Readme.md"
 allow-branch = ["main"]
 
 [workspace.dependencies]
-# hax 0.4.0 — the real `cargo-hax-v0.4.0` release (commit f8fe6933). It CONTAINS the
-# macro_rules! antiquote span-hygiene fix (PR #2212 / b78d945) that the crate-wide
-# `proof!` markers require; 0.4.0-rc.1 and rc.2 do NOT. The `hax-0.4.0` opam switch
-# is currently built from rc.1 (d0537c7) and must be REBUILT from this same tag
-# before ml-kem/ml-dsa will extract (sha3 + deps extract on either). Match the
-# engine to this tag. Extract with `OPAMSWITCH=hax-0.4.0 opam exec -- <crate>/hax.py extract`.
-hax-lib = { git = "https://github.com/cryspen/hax", tag = "cargo-hax-v0.4.0" }
+# hax at the #2235 merge (f14d83bd6), NOT the `cargo-hax-v0.4.0` tag (f8fe6933):
+# the sha3 `Proof_utils.Lemmas` reveal `Core_models.Num.impl_u64__rotate_left`,
+# which #2235 made a transparent `opaque_to_smt` let. At the tag it is still an
+# `assume val` and `reveal_opaque` fails. Move back to a tag once one containing
+# #2235 is cut. f14d83bd6 also contains the macro_rules! antiquote span-hygiene
+# fix (PR #2212 / b78d945) the crate-wide `proof!` markers require. The
+# `hax-0.4.0` opam switch must be built from this same commit before ml-kem/ml-dsa
+# will extract (sha3 + deps extract on either): match the engine to this rev.
+# Extract with `OPAMSWITCH=hax-0.4.0 opam exec -- <crate>/hax.py extract`.
+hax-lib = { git = "https://github.com/cryspen/hax", rev = "f14d83bd6c664515d26ca68af7f1a57962656f18" }
 libcrux-aead = { version = "=0.0.9", path = "crates/primitives/aead" }
 libcrux-aes = { version = "=0.0.9", path = "crates/algorithms/aes" }
 libcrux-blake2 = { version = "=0.0.8", path = "crates/algorithms/blake2" }
