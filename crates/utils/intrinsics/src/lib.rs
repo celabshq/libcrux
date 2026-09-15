@@ -1,19 +1,14 @@
 #![no_std]
-#[cfg(all(feature = "simd128", not(hax)))]
+
+// Every crate now routes to the REAL intrinsics modules — under both a normal
+// `cargo build` (`not(hax)`) and hax extraction (`hax`). During extraction the
+// real `arm64`/`avx2` op bodies route through the differentially-tested
+// core-models `Libcrux_intrinsics.{Arm64,Avx2}`. The historical `pre_core_models`
+// / `pre_core_models_{arm64,avx2}` "bit_vec stub" cfg-gates (which selected the
+// hand-written `{arm64,avx2}_extract.rs` modules) have been retired now that
+// ml-kem, ml-dsa, sha3, and aes all extract off the real core-models path.
+#[cfg(feature = "simd128")]
 pub mod arm64;
-#[cfg(all(feature = "simd256", not(hax)))]
-pub mod avx2;
 
-// When extracting F* we only want dummy files here.
-#[cfg(all(feature = "simd128", hax))]
-pub mod arm64_extract;
-#[cfg(all(feature = "simd128", hax))]
-pub use arm64_extract as arm64;
-
-#[cfg(all(feature = "simd256", hax, pre_core_models))]
-pub mod avx2_extract;
-#[cfg(all(feature = "simd256", hax, pre_core_models))]
-pub use avx2_extract as avx2;
-
-#[cfg(all(feature = "simd256", hax, not(pre_core_models)))]
+#[cfg(feature = "simd256")]
 pub mod avx2;

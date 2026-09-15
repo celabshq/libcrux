@@ -261,14 +261,19 @@ let pow2_more_values (x:nat) =
   assert_norm(pow2( 254 ) == 28948022309329048855892746252171976963317496166410141009864396001978282409984 );
   assert_norm(pow2( 255 ) == 57896044618658097711785492504343953926634992332820282019728792003956564819968 )
 
-let rec repeati #acc l f acc0 =
-    if l = 0 then acc0 else
-    f (l -! sz 1) (repeati #acc (l -! sz 1) acc0)
+let rec repeati #acc l f acc0 : Tot acc (decreases (v l)) =
+    if l = sz 0 then acc0 else
+    f (l -! sz 1) (repeati #acc (l -! sz 1) f acc0)
 
+#push-options "--fuel 1"
 let eq_repeati0 #a n f acc0 = ()
+#pop-options
 
-[@@ "trusted: pending-proof(E1): repeati unfold step at index i (proof pending)"]
-let unfold_repeati #a n f acc0 i = admit ()
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 50"
+let unfold_repeati #a n f acc0 i =
+  assert (v (i +! sz 1) == v i + 1);
+  assert ((i +! sz 1) -! sz 1 == i)
+#pop-options
 
 let lemma_createL_index #a len l i = ()
 
@@ -299,19 +304,20 @@ let lemma_create_index #a len c i = ()
 let lemma_bitand_properties #t (x:int_t t) =
     logand_lemma #t x x
 
-(** Hash Function: assumed definitions *)
-[@@ "trusted: trusted-extern: SHA3 G hash oracle (unextractable reference spec)"]
-let v_G input = admit()
-[@@ "trusted: trusted-extern: SHA3 H hash oracle (unextractable reference spec)"]
-let v_H input = admit()
-[@@ "trusted: trusted-extern: SHA3 PRF oracle (unextractable reference spec)"]
-let v_PRF v_LEN input = admit()
-[@@ "trusted: trusted-extern: SHA3 PRFxN oracle (unextractable reference spec)"]
-let v_PRFxN r v_LEN input = admit()
-[@@ "trusted: trusted-extern: SHA3 J oracle (unextractable reference spec)"]
-let v_J (input: t_Slice u8) : t_Array u8 (sz 32) = admit()
-[@@ "trusted: trusted-extern: SHAKE XOF oracle (unextractable reference spec)"]
-let v_XOF v_LEN input = admit()
+(** Hash Functions: defined via the verified sha3 Keccak spec `Hacspec_sha3.Sponge.keccak`.
+    Rate/delimiter params mirror sha3's own portable one-shot posts (Libcrux_sha3.Portable):
+    SHA3-512 = rate 72 delim 6, SHA3-256 = rate 136 delim 6, SHAKE256 = rate 136 delim 31,
+    SHAKE128 = rate 168 delim 31.  This replaces the former opaque `admit()` oracles: the ml-kem
+    hash spec now IS the verified FIPS-202 sha3 spec, so the Hash_functions wrappers can discharge
+    their `== Spec.Utils.v_*` posts from sha3's proven one-shot posts. *)
+let v_G input = Hacspec_sha3.Sponge.keccak (sz 64) (sz 72) (mk_u8 6) input
+let v_H input = Hacspec_sha3.Sponge.keccak (sz 32) (sz 136) (mk_u8 6) input
+let v_PRF v_LEN input = Hacspec_sha3.Sponge.keccak v_LEN (sz 136) (mk_u8 31) input
+let v_PRFxN r v_LEN input =
+  map_array #(t_Array u8 (sz 33)) #(t_Array u8 v_LEN) #r
+    (fun row -> Hacspec_sha3.Sponge.keccak v_LEN (sz 136) (mk_u8 31) (row <: t_Slice u8)) input
+let v_J input = Hacspec_sha3.Sponge.keccak (sz 32) (sz 136) (mk_u8 31) input
+let v_XOF v_LEN input = Hacspec_sha3.Sponge.keccak v_LEN (sz 168) (mk_u8 31) input
 
 let update_at_range_lemma #n
   (s: t_Slice 't)
@@ -335,15 +341,20 @@ let fill_bytes_post_true #v_Self #i0 self bytes result =
 [@@ "trusted: trusted-extern: i16 abs semantics (core-models impl_i16__abs primitive)"]
 let impl_i16__abs_value (x: i16) = assume (v (Core_models.Num.impl_i16__abs x) == Prims.abs (v x))
 
-[@@ "trusted: hax-limitation: length-16 slice try_into [_;16] then unwrap is identity (opaque core conversion)"]
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 150"
 let slice_to_array_id (array: t_Slice 'a) =
-  assume (Core_models.Result.impl__unwrap
-    #(t_Array 'a (mk_usize 16))
-    #Core_models.Array.t_TryFromSliceError
-    (Core_models.Convert.f_try_into #(t_Slice 'a)
+  let a:t_Array 'a (mk_usize 16) =
+    Core_models.Result.impl__unwrap
       #(t_Array 'a (mk_usize 16))
-      #FStar.Tactics.Typeclasses.solve
-      array) == array)
+      #Core_models.Array.t_TryFromSliceError
+      (Core_models.Convert.f_try_into #(t_Slice 'a)
+        #(t_Array 'a (mk_usize 16))
+        #FStar.Tactics.Typeclasses.solve
+        array)
+  in
+  assert (Core_models.Slice.impl__len #'a array == mk_usize 16);
+  Seq.lemma_eq_intro a array
+#pop-options
 
 /// Bounded integers
 

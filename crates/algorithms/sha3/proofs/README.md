@@ -1,27 +1,32 @@
 # SHA-3 proofs
 
 Machine-checked **functional-correctness** proofs (F*, via [hax](https://github.com/hacspec/hax))
-for this crate's SHA-3 / SHAKE implementations. Every public hashing API is proven to compute
-exactly what the Hacspec specification (the `hacspec_sha3` crate) says it should.
+for this crate's SHA-3 / SHAKE implementations. The one-shot hashing APIs (all backends) are proven
+to compute exactly what the Hacspec specification (the `hacspec_sha3` crate) says; the incremental
+APIs are proven panic-free (see the coverage note below).
 
-**Status:** zero admits, 0 unverified functions, 269 / 269 functions panic-safe — see
-[`verification_status.md`](verification_status.md). Trust reduces to the F* toolchain plus the
-per-lane SIMD intrinsic axioms in `Libcrux_intrinsics.{Arm64,Avx2}_extract` (the only external
-assumptions; noted at the relevant lemmas).
+**Status:** zero admits; all three backends (Portable, Neon, AVX2) fully verified. The per-function
+proof-tier tally is auto-generated in [`verification_status.md`](verification_status.md) — the
+authoritative counts live there, not hand-typed here. Two coverage boundaries: the RustCrypto
+`Digest`-trait glue in `src/impl_digest_trait.rs` (`new`/`reset`/`update`/`finish`/`hash`) is not
+extracted to F\*, and the incremental APIs are panic-free only, not yet spec-equivalent (see
+"Known coverage gap" below). Trust reduces to the F\* toolchain plus the per-lane SIMD intrinsic
+axioms in `Libcrux_intrinsics.{Arm64,Avx2}_extract` (the only external assumptions).
 
 ## Where the main theorems live
 
 The top-level correctness theorems — one per algorithm, per backend — are in three clearly-named
-files under `fstar/equivalence/`. Start here:
+files under [`fstar/equivalence/`](fstar/equivalence/). Start here:
 
 | File | Backend | Theorems | Guarantee (per algorithm) |
 | --- | --- | --- | --- |
-| `EquivImplSpec.Correctness.Portable.fst` | Portable (N=1) | `lemma_{sha224,sha256,sha384,sha512,shake128,shake256}_portable` | `Libcrux_sha3.Portable.<algo> digest data == Hacspec_sha3.Sha3.<algo> data` |
-| `EquivImplSpec.Correctness.Neon.fst` | Neon / Arm64 (N=2) | `lemma_{sha224,sha256,sha384,sha512,shake128,shake256}_arm64` | `Libcrux_sha3.Neon.<algo> digest data == Hacspec_sha3.Sha3.<algo> data` (lane-0 of the 2-way driver) |
-| `EquivImplSpec.Correctness.Avx2.fst` | AVX2 x4 (N=4) | `lemma_shake256_x4_avx2` | `Libcrux_sha3.Avx2.X4.shake256` output lane `l` `== Hacspec_sha3.Sha3.shake256 (data[l])` |
+| [`EquivImplSpec.Correctness.Portable.fst`](fstar/equivalence/EquivImplSpec.Correctness.Portable.fst) | Portable (N=1) | `lemma_{sha224,sha256,sha384,sha512,shake128,shake256}_portable` | `Libcrux_sha3.Portable.<algo> digest data == Hacspec_sha3.Sha3.<algo> data` |
+| [`EquivImplSpec.Correctness.Neon.fst`](fstar/equivalence/EquivImplSpec.Correctness.Neon.fst) | Neon / Arm64 (N=2) | `lemma_{sha224,sha256,sha384,sha512,shake128,shake256}_arm64` | `Libcrux_sha3.Neon.<algo> digest data == Hacspec_sha3.Sha3.<algo> data` (lane-0 of the 2-way driver) |
+| [`EquivImplSpec.Correctness.Avx2.fst`](fstar/equivalence/EquivImplSpec.Correctness.Avx2.fst) | AVX2 x4 (N=4) | `lemma_shake256_x4_avx2` | `Libcrux_sha3.Avx2.X4.shake256` output lane `l` `== Hacspec_sha3.Sha3.shake256 (data[l])` |
 
 The spec hashers (`sha3_224_/256_/384_/512_`, `shake128/256`) are defined in
-`Hacspec_sha3.Sha3` (in the `hacspec_sha3` crate, `specs/sha3/`).
+[`Hacspec_sha3.Sha3`](../../../../specs/sha3/proofs/fstar/extraction/Hacspec_sha3.Sha3.fst) (in the
+`hacspec_sha3` crate, [`specs/sha3/`](../../../../specs/sha3/)).
 
 ### Why the backends don't have identical theorem sets
 
@@ -39,14 +44,13 @@ what to expose, so they prove different theorems:
   one-shot entry point is `shake256_x4` (proven by `lemma_shake256_x4_avx2`); it has **no
   `sha224/256/384/512` functions at all** — so there is no `lemma_sha256_avx2` because there is no
   `avx2::sha256` to be about. (NEON provides single-buffer hashers by wasting 1 of 2 lanes; the AVX2
-  module simply never added the analogous 4-way-waste-3 wrappers. That asymmetry is a *library API*
-  choice, not a verification gap — the proofs cover exactly the functions that exist.)
+  module does not provide the analogous 4-way wrappers. The asymmetry is a *library API* choice, not
+  a verification gap — the proofs cover exactly the functions that exist.)
 
-**Known coverage gap (uniform across backends):** the *incremental* APIs — AVX2's
+**Coverage boundary (uniform across backends):** the *incremental* APIs — AVX2's
 `shake{128,256}_absorb_final` / `*_squeeze_*`, and the corresponding Portable/Neon incremental
-paths — are currently proven **panic-free with state-machine invariants only, not spec-equivalent**
-to `Hacspec_sha3`. Closing that (an incremental-sponge ≡ spec refinement) is the genuine remaining
-functional-correctness work; it is not specific to AVX2.
+paths — are proven **panic-free with state-machine invariants only, not spec-equivalent** to
+`Hacspec_sha3`. An incremental-sponge ≡ spec refinement would close this; it is not specific to AVX2.
 
 ## Architecture (spec ← equivalence layers)
 
@@ -82,17 +86,14 @@ make -C crates/algorithms/sha3/proofs/fstar/equivalence check/EquivImplSpec.Corr
 Regenerate the status report after a build:
 `python3 proofs/generate_verification_status.py --root . --config proofs/verification_status.config.json --output proofs/verification_status.md`
 
-## Notes for future readers
+## Notes
 
-- **Campaign history** (per-sprint agent prompts, status logs, milestones) has been moved out of the
-  way into [`campaign-history/`](campaign-history/); it is historical and not needed to read or
-  rebuild the proofs.
 - **`Hacspec_sha3.Sponge.Lemmas.fst`** (in `fstar/equivalence/`) is a *hand-written, implementation-
   side* helper despite living in the `Hacspec_sha3` namespace — it is part of these proofs, not the
   spec crate.
 - **The spec extraction** (`Hacspec_sha3.*` under `specs/sha3/proofs/fstar/extraction/`) is generated
   from `specs/sha3/src` and lives with the spec crate by design (it is regenerated by `hax.sh` and
   also feeds the Lean/aeneas backend); the equivalence build picks it up automatically.
-- Internal module names still use the historical `EquivImplSpec.Sponge.*` / `.Keccakf.*` scheme;
-  these are referenced by name in `fstar!` blocks in the Rust sources, so they are intentionally
-  left unrenamed (only the top-level theorem files were renamed for discoverability).
+- The supporting sponge and keccak-f modules use the `EquivImplSpec.Sponge.*` /
+  `EquivImplSpec.Keccakf.*` namespace and are referenced by name from `fstar!` blocks in the Rust
+  sources; the top-level theorems live in the `EquivImplSpec.Correctness.*` files listed above.

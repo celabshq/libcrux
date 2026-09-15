@@ -24,15 +24,15 @@ Each function is classified at exactly one proof tier (highest wins):
 The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free + Math
 + Bounds + Hacspec — i.e., total minus lax minus unverified.
 
-**Accepted carve-outs (`Lax` by design, not actionable).** A handful of `Lax` markers are
-*not* on the zero-lax work-list: they wrap unbounded rejection-sampling loops
-(`while !done { … }`) whose termination is only probabilistic, so F\* cannot discharge
-panic-freedom/termination without a statistical argument. These are trusted by design,
-mirroring ML-KEM's `sample_from_xof` carve-out. In ML-DSA they are the 3 rejection loops
-in `sample` (`sample_up_to_four_ring_elements_flat`, `sample_four_error_ring_elements`,
-`sample_challenge_ring_element`) and the 2 X4-XOF panic-freedom markers in `samplex4`
-(`t_X4Sampler`, `matrix_flat`). Subtracting these ~5 accepted carve-outs from the `Lax`
-column gives the actionable zero-lax target.
+**The `Lax` column has two kinds of entry.** (1) *Accepted carve-outs, not actionable*: a
+few markers wrap unbounded rejection-sampling loops (`while !done { … }`) whose
+termination is only probabilistic, so F\* cannot discharge it without a statistical
+argument — trusted by design, mirroring ML-KEM's `sample_from_xof` carve-out. (2) *The
+actionable work-list*: `#[libcrux_macros::trusted(inline-admit | inline-assume)]` markers on
+the top-level `sign`/`verify`/`generate_key_pair` and the signature/key encoding, whose
+functional-correctness obligations are admitted pending proof — enumerated in the
+*Body-admit sites (audit)* section below. (`trusted(replace)` sites — hand-written F\* that
+F\* still checks — are a separate trust class, not counted here; see the appendix.)
 
 | Category   | File              | Mods | Fns | Lax | Unv |  PF | Math | Bounds | Hacspec |
 | ---------- | ----------------- | ---- | --- | --- | --- | --- | ---- | ------ | ------- |
@@ -44,19 +44,19 @@ column gives the actionable zero-lax target.
 |            | specs             |    1 |   6 |   0 |     |   6 |    0 |      0 |       0 |
 |            | polynomial        |    1 |  17 |   0 |     |  10 |    3 |      4 |       0 |
 |            | ntt               |    1 |  10 |   0 |     |   6 |    0 |      2 |       2 |
-|            | arithmetic        |    1 |   7 |   0 |     |   0 |    1 |      6 |       0 |
+|            | arithmetic        |    1 |   7 |   1 |     |   0 |    1 |      5 |       0 |
 |            | matrix            |    1 |  11 |   0 |     |   0 |    0 |     11 |       0 |
 |            | sample            |    1 |  21 |   2 |     |  12 |    5 |      2 |       0 |
 |            | samplex4          |    1 |   7 |   0 |     |   0 |    1 |      6 |       0 |
 |            | pre_hash          |    1 |   9 |   0 |     |   7 |    2 |      0 |       0 |
 |            | hash_functions    |    1 |  79 |   0 |     |  69 |   10 |      0 |       0 |
-|            | encoding          |    6 |  46 |   0 |     |  30 |   10 |      6 |       0 |
-|            | ml_dsa_generic    |    4 |  43 |   0 |     |  43 |    0 |      0 |       0 |
+|            | encoding          |    6 |  46 |   2 |     |  29 |    9 |      6 |       0 |
+|            | ml_dsa_generic    |    4 |  43 |   6 |     |  37 |    0 |      0 |       0 |
 |            | ml_dsa_*          |    3 |  46 |   0 |     |  46 |    0 |      0 |       0 |
 |            | simd (top)        |    1 |   0 |   0 |     |   0 |    0 |      0 |       0 |
 |            | simd/traits       |    2 |  33 |   0 |     |   6 |   15 |      4 |       8 |
 |            | simd/tests        |    1 |   6 |   0 |   6 |   0 |    0 |      0 |       0 |
-|            | **Generic total** | **31** | **362** | **2** | **6** | **256** | **47** | **41** |  **10** |
+|            | **Generic total** | **31** | **362** | **11** | **6** | **249** | **46** | **40** |  **10** |
 |            |                   |      |     |     |     |     |      |        |         |
 | _Portable_ | vector_type       |    1 |   3 |   0 |     |   3 |    0 |      0 |       0 |
 |            | arithmetic        |    1 |  21 |   0 |     |   2 |    3 |      1 |      15 |
@@ -80,19 +80,19 @@ column gives the actionable zero-lax target.
 
 - **Total modules**: 58
 - **Total functions**: 620
-- **Lax** (admitted): 2 (0.3%)
+- **Lax** (admitted): 11 (1.8%)
 - **Unverified** (not extracted): 6 (1.0%)
-- **Panic-safe** (PF + Math + Bounds + Hacspec): 612 (98.7%)
-  - Panic-free only (no further proof): 275 (44.4%)
-  - Math (non-trivial ensures, no bounds/spec match): 156 (25.2%)
-  - Bounds (range/interval ensures): 90 (14.5%)
+- **Panic-safe** (PF + Math + Bounds + Hacspec): 603 (97.3%)
+  - Panic-free only (no further proof): 268 (43.2%)
+  - Math (non-trivial ensures, no bounds/spec match): 155 (25.0%)
+  - Bounds (range/interval ensures): 89 (14.4%)
   - Hacspec (cites high-level spec): 91 (14.7%)
 
 ### Modules per category
 
 | Category     | Modules |  Fns | Lax | Unv |  PF | Math | Bounds | Hacspec |
 | ------------ | ------- | ---- | --- | --- | --- | ---- | ------ | ------- |
-| Generic      |      31 |  362 |   2 |   6 | 256 |   47 |     41 |      10 |
+| Generic      |      31 |  362 |  11 |   6 | 249 |   46 |     40 |      10 |
 | Portable     |      12 |  121 |   0 |   0 |  10 |   40 |     24 |      47 |
 | Avx2         |      15 |  137 |   0 |   0 |   9 |   69 |     25 |      34 |
 
@@ -104,26 +104,49 @@ These Rust modules have no corresponding F\* file in the extraction directory �
 | ------------------------------ | ---------------------------------------- | --- |
 | Generic/simd/tests             | src/simd/tests.rs                        |   6 |
 
+## Body-admit sites (audit)
+
+Functions classified as lax due to `admit ()` (or `--admit_smt_queries true`) inside their body. Auditable so the script's classification decisions are traceable.
+
+| Module                    |  Line |
+| ------------------------- | ----- |
+| Generic/arithmetic        |   115 |
+| Generic/encoding          |    83 |
+| Generic/encoding          |    39 |
+| Generic/ml_dsa_generic    |    82 |
+| Generic/ml_dsa_generic    |   257 |
+| Generic/ml_dsa_generic    |  1007 |
+| Generic/ml_dsa_generic    |  1049 |
+| Generic/ml_dsa_generic    |  1237 |
+| Generic/ml_dsa_generic    |  1293 |
+
 # Appendix (hand-written; appended by generate_verification_status.py)
+
+## Coverage boundaries
+
+ML-DSA is a work in progress. The arithmetic core (NTT/inverse-NTT, Montgomery/Barrett,
+decompose/`make_hint`/`use_hint`) and the (de)serialization bounds are functionally correct against
+`Hacspec_ml_dsa`, and essentially the whole API is panic-free. Not yet covered by functional
+correctness (per-function tiers are in the tables above):
+
+- **Top-level API — FC admitted.** The public `sign`/`verify`/`generate_key_pair`
+  (`ml_dsa_generic`, per parameter set) are proven panic-free, but their functional-correctness
+  `ensures` are **admitted** (`trusted(inline-admit)`) — the end-to-end FIPS-204 equivalence theorem
+  is not yet closed. These sites appear in the `Lax` column and the *Body-admit sites (audit)*
+  section above.
+- **`trusted(replace)` sites.** A few functions carry a hand-written F\* body via
+  `#[hax_lib::fstar::replace]` (F\*-checked, but a distinct trust class from the extracted code). They
+  are not reflected in the `Lax`/`Panic-safe` tally and are tracked separately (reclassification
+  pending).
+- **Lax and Unverified:** the `sample` rejection-sampling `lax` markers (unbounded loops,
+  probabilistic termination — trusted by design) and `src/simd/tests.rs` test functions (not
+  extracted), both listed in the body above.
 
 ## Proof times
 
-The ml-dsa proof sources (src annotations, `proofs/fstar/spec/` companions,
-committed hints) are byte-identical to the campaign state at `6584a585c`, so
-the campaign's timing data remains authoritative. Headline numbers (Apple
-Silicon, serial builds, committed hints via `--use_hints`):
-
-- Full ml-dsa F* closure: on the order of 1–2 hours cold; minutes warm with
-  the committed hints and a seeded `.checked` cache.
-- Heaviest module: `Libcrux_ml_dsa.Simd.Avx2.Invntt` — ~8.4 min for a clean
-  single-module re-verify with committed hints (2026-07-25 spot-check on the
-  merge branch; down from ~311 min pre-`#restart-solver` restructure, see the
-  per-decl `#restart-solver` campaign note).
-- The `--z3refresh`/`--split_queries always` declaration set (~7% of decls)
-  dominates build wall (~68%): the AVX2/portable NTT and inverse-NTT layer
-  proofs, `sign_internal`/`verify_internal` composition, and the encoding
-  serializers.
-
-Detailed per-function top-20 tables are tracked in the engineering log
-(`fstar-perf-top20.md`, snapshots through 2026-07); regenerate after any full
-cold build by aggregating `Query-stats` lines from the build log.
+Verification runs with the committed hints (`--use_hints`); a full cold build is on the order of
+one to two hours, and a warm build with a seeded `.checked` cache is minutes. Per-module timings are
+not pinned here — they drift with F\*/Z3 versions and hint state — so obtain current figures by
+aggregating the `Query-stats` lines from a cold `make` run. The heaviest modules are the AVX2 and
+portable NTT / inverse-NTT layer proofs, the `sign_internal`/`verify_internal` composition, and the
+encoding serializers (the declarations carrying `--split_queries always` / `#restart-solver`).

@@ -6,6 +6,29 @@ use crate::{
 
 #[inline(always)]
 #[hax_lib::fstar::before(r#"open Libcrux_ml_dsa.Arithmetic_theory"#)]
+// `uuse_hint`'s loop snapshots the pre-update ring-element vector as
+// `iter_start = as_slice (to_vec re_vector)`, and its per-iteration call to
+// `lemma_is_bounded_poly_range_extend_after_update` needs the round-trip identity
+// `as_slice (to_vec s) == s` to relate that snapshot to the mutated slice. This
+// SMTPat lemma over poly slices supplies it.
+#[hax_lib::fstar::before(
+    r#"let lemma_as_slice_to_vec_id_poly
+      (#v_SIMDUnit: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Libcrux_ml_dsa.Simd.Traits.t_Operations v_SIMDUnit)
+      (s: t_Slice (Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement v_SIMDUnit))
+  : Lemma
+      (ensures
+        Alloc.Vec.impl_1__as_slice #(Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement v_SIMDUnit)
+            #Alloc.Alloc.t_Global
+          (Alloc.Slice.impl__to_vec #(Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement v_SIMDUnit) s)
+          == s)
+      [SMTPat (Alloc.Vec.impl_1__as_slice #(Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement
+              v_SIMDUnit)
+            #Alloc.Alloc.t_Global
+          (Alloc.Slice.impl__to_vec #(Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement v_SIMDUnit) s)
+        )]
+  = Seq.append_empty_l s"#
+)]
 #[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
 // Input bound relaxed to `2·(q-1) = 16760832` (was `q-1`); see the SIMD trait
 // declaration in `simd/traits.rs`.  The narrowing ensures below is exact for
@@ -174,7 +197,7 @@ fn power2round_one_ring_element<SIMDUnit: Operations>(
          ${high.len()} == dimension /\
          Libcrux_ml_dsa.Polynomial.Spec.is_bounded_poly_slice (mk_usize 8380416) $t"#))]
 // `is_lane_range_poly_range` (the opaque range predicate + intro/lookup/extend
-// lemmas mirroring `is_bounded_poly_range`) now lives in the companion
+// lemmas mirroring `is_bounded_poly_range`) lives in the companion
 // `Libcrux_ml_dsa.Arithmetic_theory` module (opened at the top of this file).
 // `decompose_vector` uses it to accumulate the per-row non-negativity of the
 // `high` (HighBits) output, surfaced (via `lemma_lane_range_slice_high_all_nonneg`)
@@ -434,7 +457,7 @@ pub(crate) fn decompose_vector<SIMDUnit: Operations>(
 #[inline(always)]
 // `make_hint` functional-correctness theory (the `high_all_nonneg` guard, the
 // per-row / per-unit hint sums, the `to_i32_array` fold characterization, and
-// the inner/outer maintenance lemmas) now lives in the companion
+// the inner/outer maintenance lemmas) lives in the companion
 // `Libcrux_ml_dsa.Arithmetic_theory` module (opened at the top of this file).
 #[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
 #[hax_lib::fstar::options("--z3rlimit 200")]
@@ -525,7 +548,7 @@ pub(crate) fn make_hint<SIMDUnit: Operations>(
 #[inline(always)]
 #[hax_lib::fstar::before(r#"let use_hint_bound (gamma2:i32) : usize = if v gamma2 = v Libcrux_ml_dsa.Constants.v_GAMMA2_V95_232_ then mk_usize 44 else mk_usize 16"#)]
 // `use_hint_serialize_bound` (the non-negative commitment-serialization width,
-// 63 resp. 15) is now defined as a `fstar::before` on `decompose_vector`
+// 63 resp. 15) is defined as a `fstar::before` on `decompose_vector`
 // (earlier in this file), so it is in scope here without a duplicate `let`.
 #[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
 #[hax_lib::fstar::options("--z3rlimit 300 --split_queries always")]

@@ -13,7 +13,7 @@ module EquivImplSpec.Keccakf.Avx2
    [t_Vec256 = bit_vec 256] uses bit_vec-level intrinsics
    (mm256_xor_si256, mm256_set1_epi64x, ...).  Their per-u64-lane
    semantics are exposed via the [lemma_mm256_*_u64x4] SMTPats in
-   [Libcrux_intrinsics.Avx2_extract] (the AVX2 analogue of the NEON
+   [Libcrux_intrinsics.Avx2_sha3_views] (the AVX2 analogue of the NEON
    per-lane ensures), so the seven [lane_correctness] field proofs are
    discharged here by SMT — same external trust boundary as Arm64.
 
@@ -29,13 +29,13 @@ open FStar.Mul
 open Core_models
 
 module G = EquivImplSpec.Keccakf.Generic
-module I = Libcrux_intrinsics.Avx2_extract
+module I = Libcrux_intrinsics.Avx2_sha3_views
 
 (* Bring the AVX2 typeclass instance into scope so
    t_KeccakItem t_Vec256 (mk_usize 4) resolves to
    [Libcrux_sha3.Simd.Avx2.impl]. *)
 let _ =
-  let open Libcrux_intrinsics.Avx2_extract in
+  let open Libcrux_intrinsics.Avx2_sha3_views in
   let open Libcrux_sha3.Traits in
   let open Libcrux_sha3.Simd.Avx2 in
   ()
@@ -45,10 +45,10 @@ let _ =
 
    Mirrors the arm64 pattern: rather than reasoning at the bit_vec
    level, we use [get_lane_u64x4] (declared in
-   [Libcrux_intrinsics.Avx2_extract] alongside an opaque
+   [Libcrux_intrinsics.Avx2_sha3_views] alongside an opaque
    [vec256_as_u64x4]) and rely on the [lemma_mm256_*_u64x4] SMTPats
    on the AVX2 intrinsics for per-u64-lane semantics.  The lane
-   primitives are axiomatized (admit'd) in [Libcrux_intrinsics.Avx2_extract.fst]
+   primitives are axiomatized (admit'd) in [Libcrux_intrinsics.Avx2_sha3_views.fst]
    — the external trust boundary; this module then closes the [lc_*]
    proofs by unfolding [avx2_lane] onto those per-lane SMTPats (like arm64).
    ================================================================ *)
@@ -70,7 +70,7 @@ let lemma_avx2_lane_unfold (vec: I.t_Vec256) (l: nat{l < 4})
    through the per-u64-lane semantics of the underlying AVX2 intrinsics
    (mm256_xor_si256, mm256_set1_epi64x, mm256_andnot_si256,
    mm256_slli_epi64, mm256_srli_epi64), which are exposed via the
-   [lemma_mm256_*_u64x4] SMTPats in [Libcrux_intrinsics.Avx2_extract].
+   [lemma_mm256_*_u64x4] SMTPats in [Libcrux_intrinsics.Avx2_sha3_views].
    That intrinsic layer is the (external) trust boundary, exactly as for
    the NEON per-lane ensures in [Arm64_extract].
    ================================================================ *)
@@ -79,7 +79,7 @@ let lemma_avx2_lane_unfold (vec: I.t_Vec256) (l: nat{l < 4})
    structurally — they unfold the typeclass-dispatched [f_*] to the
    concrete [Simd.Avx2.{e_*, _v*}] helpers, which call AVX2
    intrinsics whose per-u64-lane semantics are now SMTPat'd via
-   [lemma_mm256_*_u64x4] (admitted in [Libcrux_intrinsics.Avx2_extract.fst]).
+   [lemma_mm256_*_u64x4] (admitted in [Libcrux_intrinsics.Avx2_sha3_views.fst]).
    Same trust boundary as arm64, where [Arm64_extract] declares
    [vec128_as_u64x2] + per-lane [ensures] clauses on the NEON
    intrinsics. *)
@@ -228,7 +228,7 @@ let lc_avx2 : G.lane_correctness (mk_usize 4) #I.t_Vec256 =
 
    Direct specialization of [lemma_keccakf1600_to_spec], via the seven
    lane-correctness primitives above (which rest on the AVX2 intrinsic
-   SMTPats in [Libcrux_intrinsics.Avx2_extract] — external trust).
+   SMTPats in [Libcrux_intrinsics.Avx2_sha3_views] — external trust).
    ================================================================ *)
 
 let lemma_keccakf1600_avx2

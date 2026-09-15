@@ -50,8 +50,8 @@ fn chunk_size(eta: Eta) -> usize {
     }
 }
 
-// F-16 (2026-04-30): strengthen post to expose a per-simd-unit signed
-// bound that holds for both eta values.  The trait post on
+// The post exposes a per-simd-unit signed bound that holds for both eta values.
+// The trait post on
 // `error_deserialize` is the eta-conditional `forall8`
 // (`eta=2 ==> -5 <= v <= 2`, `eta=4 ==> -11 <= v <= 4`).  Both cases
 // satisfy `is_i32b 11`, so we expose `is_i32b_array_opaque 11` per j.
@@ -102,7 +102,7 @@ fn deserialize<SIMDUnit: Operations>(
     }
 }
 
-// F-16 (2026-04-30): close body admit by mirroring T0's recipe.  Per-iter
+// This mirrors T0's recipe.  The per-iter
 // `deserialize` call gives `forall j<32. is_i32b_array_opaque 11 (...)`
 // (post bridged from eta-conditional `forall8` inside `deserialize`).
 // `11 ≤ NTT_BASE_BOUND` is lifted via `is_i32b_array_larger`, then

@@ -90,7 +90,16 @@ define FINDLIBS
     function find_hax_libraries_at_path() { \
         path="$$1" ; \
         : "if there is a [proofs/fstar/extraction] subfolder, then that s a F* library" ; \
-        print_if_exists "$$path/proofs/fstar/extraction" ; \
+        : "EXCEPT the shared intrinsics crate: each algorithm now carries its own" ; \
+        : "Libcrux_intrinsics.* copy (extracted via --output-dir into the algorithm own" ; \
+        : "already-included dir). Keeping crates/utils/intrinsics on the include" ; \
+        : "path would re-introduce the cross-crate flip-flop / stale-.fsti" ; \
+        : "contamination (its Avx2_extract.fst vs Avx2.fst flip between ml-kem and" ; \
+        : "ml-dsa clobbers a single shared tree)." ; \
+        case "$$path" in \
+            */crates/utils/intrinsics|*/libcrux-intrinsics) : "shared intrinsics: intentionally excluded" ;; \
+            *) print_if_exists "$$path/proofs/fstar/extraction" ;; \
+        esac ; \
         : "Maybe the [proof-libs] folder of hax is around?" ; \
 		MAYBE_PROOF_LIBS=$$(realpath -q "$$path/proof-libs/fstar" || realpath -q "$$path/../proof-libs/fstar") ; \
 		if [ -n "$$MAYBE_PROOF_LIBS" ]; then \

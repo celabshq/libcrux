@@ -508,6 +508,21 @@ theorem
   := by sorry
 
 @[spec]
+theorem parameters.hash_functions.PRF.spec.proof (LEN : Std.Usize)
+  (input : Slice Std.U8) : parameters.hash_functions.PRF.spec LEN input
+  := by sorry
+
+@[spec]
+theorem parameters.hash_functions.XOF.spec.proof (LEN : Std.Usize)
+  (input : Slice Std.U8) : parameters.hash_functions.XOF.spec LEN input
+  := by sorry
+
+@[spec]
+theorem parameters.hash_functions.J.spec.proof (LEN : Std.Usize)
+  (input : Slice Std.U8) : parameters.hash_functions.J.spec LEN input
+  := by sorry
+
+@[spec]
 theorem parameters.FieldElement.new.spec.proof (val : Std.U16) :
   parameters.FieldElement.new.spec val
   := by sorry

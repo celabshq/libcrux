@@ -1,0 +1,85 @@
+name: Intrinsics - differential tests
+
+# Runs the core-models `mk!` DIFFERENTIAL test suites that validate each
+# executable Rust intrinsic MODEL (`super::f` in core-models) against the REAL
+# hardware intrinsic (`upstream::f`), `model == hardware` over 1000 random
+# inputs plus the `corners_vs_avx2` / `vqdmulh_corners_vs_hardware` sweeps.
+#
+# These tests are what makes each `mk_lift_lemma!` lift axiom trustworthy: the
+# lift `hardware == model` is an F* `assume val`, discharged ONLY by an EXECUTED
+# diff-test. A lift whose diff-test never runs in CI is trusted on faith.
+#
+# Two runners are needed because the tests are `cfg`-gated by ISA:
+#   * x86 (AVX2/SSE/SSSE3 + AES/CLMUL): `#[cfg(any(target_arch = "x86",
+#     "x86_64"))]`; the AES/CLMUL diff-tests are additionally
+#     `#[cfg(target_feature = "aes")]` / pclmulqdq, so they only COMPILE (and
+#     thus run) with those features enabled -> ubuntu-latest (x86_64) + RUSTFLAGS.
+#   * NEON + ARM-AES (`vaeseq_u8` / `vaesmcq_u8` / `vmull_p64`):
+#     `#[cfg(target_arch = "aarch64")]` -> macos-14 (Apple silicon). No CI runner
+#     covered these before, so the ARM models — including ARM-AES — were only
+#     ever validated locally.
+
+on:
+  merge_group:
+    paths:
+      - "crates/utils/core-models/**"
+      - ".github/workflows/intrinsics-difftest.yml"
+  pull_request:
+    branches: ["dev", "main", "proofs"]
+    paths:
+      - "crates/utils/core-models/**"
+      - ".github/workflows/intrinsics-difftest.yml"
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  difftest-x86:
+    name: x86 model==hardware (AVX2 + AES/CLMUL)
+    runs-on: ubuntu-latest
+    env:
+      # Enable the AES/CLMUL `cfg(target_feature=...)` gates so those diff-tests
+      # COMPILE and RUN (they are silently excluded otherwise). AVX2 tests
+      # already run via runtime dispatch; +avx2/+ssse3 make the codegen
+      # explicit. GitHub x86_64 runners provide AES-NI + PCLMULQDQ + AVX2.
+      RUSTFLAGS: "-C target-feature=+aes,+pclmulqdq,+avx2,+ssse3,+sse2"
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - name: Show enabled target features
+        run: rustc --print=cfg -C target-feature=+aes,+pclmulqdq,+avx2 | grep target_feature || true
+      - name: Run core-models differential tests (x86, AES/CLMUL enabled)
+        run: cargo test -p libcrux-core-models --no-fail-fast
+
+  difftest-aarch64:
+    name: aarch64 model==hardware (NEON + ARM-AES)
+    runs-on: macos-14
+    env:
+      # macos-14 is Apple-silicon aarch64. NEON is baseline; +aes ensures the
+      # ARM-AES (`vaeseq_u8`/`vaesmcq_u8`/`vmull_p64`)
+      # `#[cfg(target_feature = "aes")]` diff-tests compile and run.
+      RUSTFLAGS: "-C target-feature=+aes"
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - name: Show enabled target features
+        run: rustc --print=cfg -C target-feature=+aes | grep target_feature || true
+      - name: Run core-models differential tests (aarch64, ARM-AES enabled)
+        run: cargo test -p libcrux-core-models --no-fail-fast
+
+  intrinsics-difftest-status:
+    if: ${{ always() }}
+    needs: [difftest-x86, difftest-aarch64]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Successful
+        if: ${{ !(contains(needs.*.result, 'failure')) }}
+        run: exit 0
+      - name: Failing
+        if: ${{ (contains(needs.*.result, 'failure')) }}
+        run: exit 1

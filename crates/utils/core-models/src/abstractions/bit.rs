@@ -69,6 +69,15 @@ impl From<bool> for Bit {
 
 /// A trait for types that represent machine integers.
 #[hax_lib::attributes]
+#[hax_lib::fstar::after(
+    r"
+instance impl_MachineInteger_poly (t: inttype): t_MachineInteger (int_t t) =
+  { f_bits = (fun () -> mk_u32 (bits t));
+    f_bits_pre = (fun () -> True);
+    f_bits_post = (fun () r -> r == mk_u32 (bits t));
+    f_SIGNED = signed t }
+"
+)]
 pub trait MachineInteger {
     /// The size of this integer type in bits.
     #[hax_lib::requires(true)]
@@ -89,17 +98,6 @@ macro_rules! generate_machine_integer_impls {
     };
 }
 generate_machine_integer_impls!(u8, u16, u32, u64, u128, i8, i16, i32, i64, i128);
-
-#[hax_lib::fstar::replace(
-    r"
-instance impl_MachineInteger_poly (t: inttype): t_MachineInteger (int_t t) =
-  { f_bits = (fun () -> mk_u32 (bits t));
-    f_bits_pre = (fun () -> True);
-    f_bits_post = (fun () r -> r == mk_u32 (bits t));
-    f_SIGNED = signed t }
-"
-)]
-const _: () = {};
 
 #[hax_lib::exclude]
 impl Bit {

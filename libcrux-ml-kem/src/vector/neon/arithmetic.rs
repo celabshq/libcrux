@@ -124,9 +124,9 @@ pub(crate) fn cond_subtract_3329(mut vec: SIMD128Vector) -> SIMD128Vector {
       v y == (if v x >= 3329 then v x - 3329 else v x)))
 with begin
   if j < 8 then begin
-    Rust_primitives.Integers.logand_lemma (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${c} j) (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${rm0} j)
+    Rust_primitives.Integers.logand_lemma (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${c} j) (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${rm0} j)
   end else begin
-    Rust_primitives.Integers.logand_lemma (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${c} (j - 8)) (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${rm1} (j - 8))
+    Rust_primitives.Integers.logand_lemma (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${c} (j - 8)) (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${rm1} (j - 8))
   end
 end"#
     );
@@ -155,11 +155,11 @@ open Libcrux_ml_kem.Vector.Neon.Arithmetic_theory
 #[hax_lib::fstar::options("--z3rlimit 300")]
 #[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
 #[hax_lib::ensures(|result| fstar!(r#"(forall (i: nat{i < 8}).
-      Spec.Utils.is_i16b 28296 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i)) ==>
+      Spec.Utils.is_i16b 28296 (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${a} i)) ==>
     (forall (i: nat{i < 8}).
-      Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) /\
-      v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) % 3329 ==
-      v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i) % 3329)"#))]
+      Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${result} i) /\
+      v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${result} i) % 3329 ==
+      v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${a} i) % 3329)"#))]
 pub(crate) fn barrett_reduce_int16x8_t(a: _int16x8_t) -> _int16x8_t {
     // This is what we are trying to do in portable:
     // let t = (value as i32 * BARRETT_MULTIPLIER) + (BARRETT_R >> 1);
@@ -174,20 +174,20 @@ pub(crate) fn barrett_reduce_int16x8_t(a: _int16x8_t) -> _int16x8_t {
     let result = _vsubq_s16(a, sub);
     proof!(
         r#"introduce
-  (forall (i: nat{i < 8}). Spec.Utils.is_i16b 28296 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i)) ==>
+  (forall (i: nat{i < 8}). Spec.Utils.is_i16b 28296 (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${a} i)) ==>
   (forall (i: nat{i < 8}).
-      Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) /\
-      v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) % 3329 ==
-      v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i) % 3329)
+      Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${result} i) /\
+      v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${result} i) % 3329 ==
+      v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${a} i) % 3329)
   with _h.
   introduce
   forall (i: nat{i < 8}).
-      Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) /\
-      v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) % 3329 ==
-      v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i) % 3329
-  with (assert (Spec.Utils.is_i16b 28296 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i));
-    lemma_barrett_lane_eq (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i);
-    Spec.Utils.lemma_barrett_red (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i))"#
+      Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${result} i) /\
+      v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${result} i) % 3329 ==
+      v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${a} i) % 3329
+  with (assert (Spec.Utils.is_i16b 28296 (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${a} i));
+    lemma_barrett_lane_eq (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${a} i);
+    Spec.Utils.lemma_barrett_red (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${a} i))"#
     );
     result
 }
@@ -212,10 +212,10 @@ pub(crate) fn barrett_reduce(mut vec: SIMD128Vector) -> SIMD128Vector {
     proof!(
         r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque 28296);
            reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque) (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque 3328);
-           assert (forall (i: nat{i < 8}). Seq.index (repr ${vec}) i == Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${vec}.f_low i);
-           assert (forall (i: nat{i < 8}). Seq.index (repr ${vec}) (i + 8) == Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${vec}.f_high i);
-           assert (forall (i: nat{i < 8}). Spec.Utils.is_i16b 28296 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${vec}.f_low i));
-           assert (forall (i: nat{i < 8}). Spec.Utils.is_i16b 28296 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${vec}.f_high i))"#
+           assert (forall (i: nat{i < 8}). Seq.index (repr ${vec}) i == Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${vec}.f_low i);
+           assert (forall (i: nat{i < 8}). Seq.index (repr ${vec}) (i + 8) == Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${vec}.f_high i);
+           assert (forall (i: nat{i < 8}). Spec.Utils.is_i16b 28296 (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${vec}.f_low i));
+           assert (forall (i: nat{i < 8}). Spec.Utils.is_i16b 28296 (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${vec}.f_high i))"#
     );
     vec.low = barrett_reduce_int16x8_t(vec.low);
     vec.high = barrett_reduce_int16x8_t(vec.high);
@@ -234,9 +234,9 @@ pub(crate) fn barrett_reduce(mut vec: SIMD128Vector) -> SIMD128Vector {
 #[hax_lib::fstar::options("--z3rlimit 300")]
 #[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
 #[hax_lib::ensures(|result| fstar!(r#"forall (i: nat{i < 8}).
-    Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i ==
-    Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${high} i -.
-    (cast (((cast (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${low} i *. (mk_i16 (-3327))) <: i32) *. (mk_i32 3329)) >>! (mk_i32 16)) <: i16)"#))]
+    Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${result} i ==
+    Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${high} i -.
+    (cast (((cast (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${low} i *. (mk_i16 (-3327))) <: i32) *. (mk_i32 3329)) >>! (mk_i32 16)) <: i16)"#))]
 pub(crate) fn montgomery_reduce_int16x8_t(low: _int16x8_t, high: _int16x8_t) -> _int16x8_t {
     // This is what we are trying to do in portable:
     // let k = low as i16 * INVERSE_OF_MODULUS_MOD_MONTGOMERY_R;
@@ -253,12 +253,12 @@ pub(crate) fn montgomery_reduce_int16x8_t(low: _int16x8_t, high: _int16x8_t) -> 
     proof!(
         r#"introduce
   forall (i: nat{i < 8}).
-      Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i ==
-      Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${high} i -.
-      (cast (((cast (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${low} i *. (mk_i16 (-3327))) <: i32) *. (mk_i32 3329)) >>! (mk_i32 16)) <: i16)
-  with (lemma_u16_detour (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${low} i);
-    assert (Spec.Utils.is_intb (pow2 28) (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${k} i) * v Libcrux_ml_kem.Vector.Traits.v_FIELD_MODULUS));
-    lemma_qdmulh_shift1 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${k} i) Libcrux_ml_kem.Vector.Traits.v_FIELD_MODULUS)"#
+      Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${result} i ==
+      Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${high} i -.
+      (cast (((cast (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${low} i *. (mk_i16 (-3327))) <: i32) *. (mk_i32 3329)) >>! (mk_i32 16)) <: i16)
+  with (lemma_u16_detour (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${low} i);
+    assert (Spec.Utils.is_intb (pow2 28) (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${k} i) * v Libcrux_ml_kem.Vector.Traits.v_FIELD_MODULUS));
+    lemma_qdmulh_shift1 (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${k} i) Libcrux_ml_kem.Vector.Traits.v_FIELD_MODULUS)"#
     );
     result
 }
@@ -268,9 +268,9 @@ pub(crate) fn montgomery_reduce_int16x8_t(low: _int16x8_t, high: _int16x8_t) -> 
 #[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
 #[hax_lib::requires(fstar!(r#"Spec.Utils.is_i16b 1664 ${c}"#))]
 #[hax_lib::ensures(|result| fstar!(r#"forall (i: nat{i < 8}).
-    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) /\
-    v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) % 3329 ==
-    (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i) * v ${c} * 169) % 3329"#))]
+    Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${result} i) /\
+    v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${result} i) % 3329 ==
+    (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${a} i) * v ${c} * 169) % 3329"#))]
 pub(crate) fn montgomery_multiply_by_constant_int16x8_t(a: _int16x8_t, c: i16) -> _int16x8_t {
     // This is what we are trying to do in portable:
     // let value = v as i16 * c
@@ -286,13 +286,13 @@ pub(crate) fn montgomery_multiply_by_constant_int16x8_t(a: _int16x8_t, c: i16) -
     proof!(
         r#"introduce
   forall (i: nat{i < 8}).
-      Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) /\
-      v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) % 3329 ==
-      (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i) * v ${c} * 169) % 3329
-  with (assert (Spec.Utils.is_intb (pow2 28) (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i) * v ${c}));
-    lemma_qdmulh_shift1 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i) ${c};
-    assert (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i == Spec.Utils.mont_mul_red_i16 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i) ${c});
-    Spec.Utils.lemma_mont_mul_red_i16 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i) ${c})"#
+      Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${result} i) /\
+      v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${result} i) % 3329 ==
+      (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${a} i) * v ${c} * 169) % 3329
+  with (assert (Spec.Utils.is_intb (pow2 28) (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${a} i) * v ${c}));
+    lemma_qdmulh_shift1 (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${a} i) ${c};
+    assert (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${result} i == Spec.Utils.mont_mul_red_i16 (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${a} i) ${c});
+    Spec.Utils.lemma_mont_mul_red_i16 (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${a} i) ${c})"#
     );
     result
 }
@@ -306,15 +306,15 @@ pub(crate) fn montgomery_multiply_by_constant_int16x8_t(a: _int16x8_t, c: i16) -
 #[hax_lib::fstar::options("--fuel 1 --ifuel 1 --z3rlimit 300")]
 #[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
 #[hax_lib::ensures(|result| fstar!(r#"(forall (i: nat{i < 8}).
-      Spec.Utils.is_i16b 1664 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${c} i) \/
+      Spec.Utils.is_i16b 1664 (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${c} i) \/
       Spec.Utils.is_intb (3326 * pow2 15)
-        (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i) *
-          v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${c} i))) ==>
+        (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${a} i) *
+          v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${c} i))) ==>
     (forall (i: nat{i < 8}).
-      Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) /\
-      v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) % 3329 ==
-      (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i) *
-        v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${c} i) * 169) % 3329)"#))]
+      Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${result} i) /\
+      v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${result} i) % 3329 ==
+      (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${a} i) *
+        v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${c} i) * 169) % 3329)"#))]
 pub(crate) fn montgomery_multiply_int16x8_t(a: _int16x8_t, c: _int16x8_t) -> _int16x8_t {
     // This is what we are trying to do in portable:
     // let value = v as i16 * c
@@ -330,27 +330,27 @@ pub(crate) fn montgomery_multiply_int16x8_t(a: _int16x8_t, c: _int16x8_t) -> _in
     proof!(
         r#"introduce
   (forall (i: nat{i < 8}).
-      Spec.Utils.is_i16b 1664 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${c} i) \/
+      Spec.Utils.is_i16b 1664 (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${c} i) \/
       Spec.Utils.is_intb (3326 * pow2 15)
-        (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i) *
-          v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${c} i))) ==>
+        (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${a} i) *
+          v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${c} i))) ==>
   (forall (i: nat{i < 8}).
-      Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) /\
-      v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) % 3329 ==
-      (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i) *
-        v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${c} i) * 169) % 3329)
+      Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${result} i) /\
+      v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${result} i) % 3329 ==
+      (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${a} i) *
+        v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${c} i) * 169) % 3329)
   with _h.
   introduce forall (i: nat{i < 8}).
-      Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) /\
-      v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i) % 3329 ==
-      (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i) *
-        v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${c} i) * 169) % 3329
-  with (let ai = Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${a} i in
-    let ci = Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${c} i in
+      Spec.Utils.is_i16b 3328 (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${result} i) /\
+      v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${result} i) % 3329 ==
+      (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${a} i) *
+        v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${c} i) * 169) % 3329
+  with (let ai = Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${a} i in
+    let ci = Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${c} i in
     assert (Spec.Utils.is_i16b 1664 ci \/ Spec.Utils.is_intb (3326 * pow2 15) (v ai * v ci));
     assert (Spec.Utils.is_intb (pow2 28) (v ai * v ci));
     lemma_qdmulh_shift1 ai ci;
-    assert (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${result} i ==
+    assert (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${result} i ==
         Spec.Utils.mont_mul_red_i16 ai ci);
     Spec.Utils.lemma_mont_mul_red_i16 ai ci)"#
     );

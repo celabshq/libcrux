@@ -54,15 +54,12 @@ let spec_state = t_Array u64 (mk_usize 25)
 (* ================================================================
    Lane index equivalence (reused from EquivImplSpec.Sponge.Core, N-independent)
 
-   After the FIPS-native layout flip, [lane_index] was removed from the
-   Rust spec (it collapsed to the identity and was inlined). The impl
-   writes lane [i] at flat index [5*(i/5) + i%5 = i] under
+   The impl writes lane [i] at flat index [5*(i/5) + i%5 = i] under
    [get_ij(N, state, i/5, i%5) = state[5*(i/5) + i%5]].
 
-   [lemma_lane_index_is_impl_index] now reflects that identity:
-   spec-side lane [i] sits at impl flat index [i], i.e.
-   [5*(i/5) + i%5 = i]. Consumers that formerly called
-   [Hacspec_sha3.Sponge.lane_index i] must now use [i] directly. *)
+   [lemma_lane_index_is_impl_index] reflects that identity: spec-side lane
+   [i] sits at impl flat index [i], i.e. [5*(i/5) + i%5 = i]. Consumers use
+   [i] directly. *)
 
 let lemma_lane_index_is_impl_index (i: usize)
   : Lemma (requires v i < 25)

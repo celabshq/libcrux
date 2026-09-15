@@ -1,5 +1,4 @@
 SLOW_MODULES += Libcrux_ml_kem.Vector.Rej_sample_table.fsti
-SLOW_MODULES += Libcrux_ml_kem.Matrix.fst
 SLOW_MODULES += Libcrux_ml_kem.Vector.Portable.Serialize.fst
 
 # G3 module-trust mirror (annotation_lint V5 / trust_ledger --check): every module
@@ -7,10 +6,53 @@ SLOW_MODULES += Libcrux_ml_kem.Vector.Portable.Serialize.fst
 # themselves are gitignored/extracted, so the Makefile is the git-tracked authority
 # for this trust surface. Reasons use the shared category vocabulary (reason_ok).
 # trusted-module: Libcrux_ml_kem.Vector.Rej_sample_table.fsti : slow-proof: large rejection-sample shuffle-table VCs, verified on cadence
-# trusted-module: Libcrux_ml_kem.Matrix.fst : slow-proof: heavy matrix compute VCs, verified on cadence
 # trusted-module: Libcrux_ml_kem.Vector.Portable.Serialize.fst : slow-proof: portable serialize bit-manipulation VCs, verified on cadence
 
 ADMIT_MODULES =
+# ===================================================================
+# TEMPORARY — commute-layer lane-bridge cliffs (regression, 2026-08-21)
+# ===================================================================
+# These commute modules carry the per-lane SIMD `lemma_*_lane_bridge`
+# proofs (symbolic i/4, i%4 + SIMD-helper opaque-reveal chains).  They
+# were VERIFIED before; the intrinsics/core-models migration (PR #1568,
+# d98cbff57) cascaded new .checked digests that invalidated their
+# recorded hints, and cold they hit a non-terminating Z3 path (hang
+# 67+ min without hitting rlimit).  This is a hint-context REGRESSION,
+# not a proof defect — no new trust axiom, the obligations were
+# discharged previously.  Admitting these bodies lets the ENTIRE rest
+# of the crate verify while the lane bridges are made cold-fast
+# separately (per-lane `match i` restructure — multi-session).
+#
+# REMOVE each entry as its lane bridges are restructured to be robustly
+# cold-provable.  The firewall plan adds a hand-written `.fsti` to each
+# so consumers depend on the cheap, stable X.fsti.checked instead of the
+# hanging X.fst.checked (Bridges.fsti landed 2026-08-21; Bridges.fst is
+# therefore no longer a dep of the extraction graph, but stays listed
+# for the commute-dir build).
+# DROPPED 2026-08-25 — Chunk.fsti firewall landed (3bc8d94f3): consumers (Ntt/Invert_ntt/Polynomial/
+#   Vector.*) depend on the stable Chunk.fsti, so dropping Chunk from ADMIT re-proves ONLY Chunk.fst
+#   itself (cold-green as-is: --split_queries always on the 6 saturating helper blocks, commit
+#   00d3743af; 202KB, heavy but non-saturating).  Ntt's layer_7 cold gap is closed by #restart-solver
+#   (d664a1110).  Supersedes the 2026-08-24 CONFIRM-TEST that re-admitted Chunk to confirm this.
+# ADMIT_MODULES += Hacspec_ml_kem.Commute.Chunk.fst
+# DROPPED 2026-08-24 — cold-verifies fast-stable as-is (helpers already carry split); NOT in the extraction graph (consumers use Bridges.fsti).
+# ADMIT_MODULES += Hacspec_ml_kem.Commute.Bridges.fst
+# DROPPED 2026-08-22 — cold-hardened (family-i per-coeff two-knob, commit b8bdb4f7e); cold-verifies e2e.
+# ADMIT_MODULES += Hacspec_ml_kem.Commute.Ntt_bridge.fst
+# DROPPED 2026-08-22 — cold-hardened (family-i per-coeff two-knob, commit cb05479f2); cold-verifies e2e.
+# ADMIT_MODULES += Hacspec_ml_kem.Commute.Invert_ntt_bridge.fst
+# DROPPED 2026-08-24 — cold-verifies green as-is (no lane bridges; batch-admitted defensively @85c712f3e).
+# ADMIT_MODULES += Hacspec_ml_kem.Commute.Invert_scale.fst
+# DROPPED 2026-08-24 — cold-verifies as-is, non-saturating (SLOW normalizer-heavy shuffle-table; rides committed hint).
+# ADMIT_MODULES += Hacspec_ml_kem.Commute.Rej_table.fst
+# DROPPED 2026-08-22 — cold-hardened (family-iii, commits 53b7abddf/b69e4e8c8); cold-verify e2e.
+# ADMIT_MODULES += Hacspec_ml_kem.Commute.Serialize_bits.fst
+# ADMIT_MODULES += Hacspec_ml_kem.Commute.Serialize_compress.fst
+# DROPPED 2026-08-24 — cold-verify green as-is (no lane bridges; batch-admitted defensively @85c712f3e).
+# ADMIT_MODULES += Hacspec_ml_kem.Commute.Compute_dot_bridge.fst
+# ADMIT_MODULES += Hacspec_ml_kem.Commute.Compute_u_bridge.fst
+# ADMIT_MODULES += Hacspec_ml_kem.Commute.Matrix_bilin.fst
+# ADMIT_MODULES += Hacspec_ml_kem.Commute.Matrix_bridge.fst
 # NOTE: ALL incremental modules are now VERIFIED (removed from ADMIT_MODULES):
 # Ind_cca.Incremental{,.Types,.Avx2,.Portable,.Multiplexing} and
 # Mlkem{512,768,1024}.Incremental.  The Types/Incremental closure (2026-06-03)
@@ -74,10 +116,29 @@ ADMIT_MODULES =
 # inv_ntt_layer_2_step_branch_post) eliminates the SMT context flooding.
 # ADMIT_MODULES += Libcrux_ml_kem.Invert_ntt.fst
 
+# NOTE: the shared crates/utils/intrinsics extraction dir is intentionally NOT
+# on the include path — ml-kem carries its own Libcrux_intrinsics.* copy in the
+# sibling `../intrinsics` dir (extracted via --output-dir under ml-kem's
+# pre_core_models config) to avoid the cross-crate flip-flop / stale-.fsti
+# contamination. `../intrinsics` is a dedicated dir (NOT `../extraction`) so
+# FINDLIBS never auto-includes it on sibling crates' paths. See
+# fstar-helpers/Makefile.generic.
 FSTAR_INCLUDE_DIRS_EXTRA += ../spec \
+	      ../intrinsics \
 	      $(shell git rev-parse --show-toplevel)/fstar-helpers/fstar-bitvec \
-	      $(shell git rev-parse --show-toplevel)/libcrux-intrinsics/proofs/fstar/extraction \
-	      $(shell git rev-parse --show-toplevel)/specs/ml-kem/proofs/fstar/commute
+	      ../commute \
+	      $(shell git rev-parse --show-toplevel)/crates/algorithms/sha3/proofs/fstar/equivalence \
+	      $(shell git rev-parse --show-toplevel)/crates/algorithms/sha3/proofs/fstar/spec
+
+# Hash wiring: with `hash_functions::portable` extracted transparently, ml-kem's
+# Hash_functions.Portable depends on libcrux_sha3's transparent portable Keccak
+# `.fst` bodies (Libcrux_sha3.Portable + Generic_keccak), reached via the
+# auto-discovered sha3 `extraction` dir, plus the hand-written equivalence
+# helpers (EquivImplSpec) under sha3's `equivalence` dir which is not
+# auto-discovered.  The sha3 `stubs` dir is deliberately NOT included: it holds
+# only a stub `Spec.Utils` (a sha3-standalone shim lacking the ml-kem hash
+# oracles) that would shadow ml-kem's real `../spec/Spec.Utils` and break the
+# `Spec.Utils.v_*` references.
 
 ENABLE_HINTS = --use_hints --record_hints
 

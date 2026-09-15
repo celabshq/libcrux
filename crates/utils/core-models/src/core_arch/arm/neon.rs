@@ -12,8 +12,7 @@
 //! # Source attribution
 //!
 //! Portions of this file are adapted from
-//! `verify-rust-std/testable-simd-models/`, © Cryspen, Apache-2.0,
-//! imported on 2026-05-02 for the libcrux SIMD intrinsics trust-base sprint.
+//! `verify-rust-std/testable-simd-models/`, © Cryspen, Apache-2.0.
 
 #![allow(unused_variables)]
 
@@ -22,201 +21,234 @@ use super::*;
 // --------- Arithmetic: add/sub/mul ----------------------------------------
 
 /// [ARM intrinsics guide](https://developer.arm.com/architectures/instruction-sets/intrinsics/vaddq_s16)
-#[hax_lib::opaque]
+#[libcrux_macros::trusted(opaque, "validated-axiom: vaddq_s16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vaddq_s16(_a: int16x8_t, _b: int16x8_t) -> int16x8_t {
     unimplemented!()
 }
 
 /// [ARM intrinsics guide](https://developer.arm.com/architectures/instruction-sets/intrinsics/vaddq_u32)
-#[hax_lib::opaque]
+#[libcrux_macros::trusted(opaque, "validated-axiom: vaddq_u32 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vaddq_u32(_a: uint32x4_t, _b: uint32x4_t) -> uint32x4_t {
     unimplemented!()
 }
 
 /// [ARM intrinsics guide](https://developer.arm.com/architectures/instruction-sets/intrinsics/vsubq_s16)
-#[hax_lib::opaque]
+#[libcrux_macros::trusted(opaque, "validated-axiom: vsubq_s16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vsubq_s16(_a: int16x8_t, _b: int16x8_t) -> int16x8_t {
     unimplemented!()
 }
 
 /// Across-vector add (signed 16-bit, full 128-bit register).
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vaddvq_s16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vaddvq_s16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vaddvq_s16(_a: int16x8_t) -> i16 {
     unimplemented!()
 }
 
 /// Across-vector add (unsigned 16-bit, full 128-bit register).
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vaddvq_u16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vaddvq_u16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vaddvq_u16(_a: uint16x8_t) -> u16 {
     unimplemented!()
 }
 
 /// Across-vector add (unsigned 16-bit, half 64-bit register).
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vaddv_u16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vaddv_u16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vaddv_u16(_a: uint16x4_t) -> u16 {
     unimplemented!()
 }
 
 /// Multiply by scalar.
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vmulq_n_s16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vmulq_n_s16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vmulq_n_s16(_a: int16x8_t, _b: i16) -> int16x8_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vmulq_n_u16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vmulq_n_u16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vmulq_n_u16(_a: uint16x8_t, _b: u16) -> uint16x8_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vmulq_n_u32)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vmulq_n_u32 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vmulq_n_u32(_a: uint32x4_t, _b: u32) -> uint32x4_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vmulq_s16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vmulq_s16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vmulq_s16(_a: int16x8_t, _b: int16x8_t) -> int16x8_t {
     unimplemented!()
 }
 
 /// Signed widening multiply (low half).
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vmull_s16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vmull_s16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vmull_s16(_a: int16x4_t, _b: int16x4_t) -> int32x4_t {
     unimplemented!()
 }
 
 /// Signed widening multiply (high half).
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vmull_high_s16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vmull_high_s16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vmull_high_s16(_a: int16x8_t, _b: int16x8_t) -> int32x4_t {
     unimplemented!()
 }
 
 /// Signed widening multiply-accumulate (low half).
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vmlal_s16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vmlal_s16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vmlal_s16(_a: int32x4_t, _b: int16x4_t, _c: int16x4_t) -> int32x4_t {
     unimplemented!()
 }
 
 /// Signed widening multiply-accumulate (high half).
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vmlal_high_s16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vmlal_high_s16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vmlal_high_s16(_a: int32x4_t, _b: int16x8_t, _c: int16x8_t) -> int32x4_t {
     unimplemented!()
 }
 
 /// Saturating doubling multiply, returning the high half.
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vqdmulhq_s16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vqdmulhq_s16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vqdmulhq_s16(_a: int16x8_t, _b: int16x8_t) -> int16x8_t {
     unimplemented!()
 }
 
 /// Saturating doubling multiply by scalar, returning the high half.
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vqdmulhq_n_s16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vqdmulhq_n_s16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vqdmulhq_n_s16(_a: int16x8_t, _b: i16) -> int16x8_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vqdmulhq_n_s32)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vqdmulhq_n_s32 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vqdmulhq_n_s32(_a: int32x4_t, _b: i32) -> int32x4_t {
     unimplemented!()
 }
 
 // --------- Bitwise --------------------------------------------------------
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vandq_s16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vandq_s16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vandq_s16(_a: int16x8_t, _b: int16x8_t) -> int16x8_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vandq_u16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vandq_u16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vandq_u16(_a: uint16x8_t, _b: uint16x8_t) -> uint16x8_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vandq_u32)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vandq_u32 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vandq_u32(_a: uint32x4_t, _b: uint32x4_t) -> uint32x4_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vbicq_u64)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vbicq_u64 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vbicq_u64(_a: uint64x2_t, _b: uint64x2_t) -> uint64x2_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/veorq_s16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: veorq_s16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn veorq_s16(_a: int16x8_t, _b: int16x8_t) -> int16x8_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/veorq_u32)
+#[libcrux_macros::trusted(opaque, "validated-axiom: veorq_u32 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn veorq_u32(_a: uint32x4_t, _b: uint32x4_t) -> uint32x4_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/veorq_u64)
+#[libcrux_macros::trusted(opaque, "validated-axiom: veorq_u64 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn veorq_u64(_a: uint64x2_t, _b: uint64x2_t) -> uint64x2_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/veorq_u8)
+#[libcrux_macros::trusted(opaque, "validated-axiom: veorq_u8 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn veorq_u8(_a: uint8x16_t, _b: uint8x16_t) -> uint8x16_t {
     unimplemented!()
 }
 
 // --------- Comparisons ----------------------------------------------------
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vcgeq_s16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vcgeq_s16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vcgeq_s16(_a: int16x8_t, _b: int16x8_t) -> uint16x8_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vcleq_s16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vcleq_s16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vcleq_s16(_a: int16x8_t, _b: int16x8_t) -> uint16x8_t {
     unimplemented!()
 }
 
 // --------- Duplicate / set / lane access ----------------------------------
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vdupq_n_s16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vdupq_n_s16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vdupq_n_s16(_a: i16) -> int16x8_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vdupq_n_u16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vdupq_n_u16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vdupq_n_u16(_a: u16) -> uint16x8_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vdupq_n_u32)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vdupq_n_u32 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vdupq_n_u32(_a: u32) -> uint32x4_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vdupq_n_u64)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vdupq_n_u64 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vdupq_n_u64(_a: u64) -> uint64x2_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vdupq_n_u8)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vdupq_n_u8 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vdupq_n_u8(_a: u8) -> uint8x16_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vdupq_laneq_u32)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vdupq_laneq_u32 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vdupq_laneq_u32<const N: i32>(_a: uint32x4_t) -> uint32x4_t {
     unimplemented!()
 }
 
 /// Get the low half of a 128-bit signed 16-bit vector.
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vget_low_s16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vget_low_s16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vget_low_s16(_a: int16x8_t) -> int16x4_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vget_low_u16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vget_low_u16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vget_low_u16(_a: uint16x8_t) -> uint16x4_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vget_high_u16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vget_high_u16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vget_high_u16(_a: uint16x8_t) -> uint16x4_t {
     unimplemented!()
 }
@@ -291,196 +323,234 @@ pub unsafe fn vst1q_u8(ptr: *mut u8, v: uint8x16_t) {
 
 // --------- Reinterprets (semantic identity at the bit-vec layer) ---------
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vreinterpretq_s16_s32)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vreinterpretq_s16_s32 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vreinterpretq_s16_s32(_a: int32x4_t) -> int16x8_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vreinterpretq_s16_s64)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vreinterpretq_s16_s64 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vreinterpretq_s16_s64(_a: int64x2_t) -> int16x8_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vreinterpretq_s16_u16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vreinterpretq_s16_u16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vreinterpretq_s16_u16(_a: uint16x8_t) -> int16x8_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vreinterpretq_s16_u32)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vreinterpretq_s16_u32 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vreinterpretq_s16_u32(_a: uint32x4_t) -> int16x8_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vreinterpretq_s16_u8)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vreinterpretq_s16_u8 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vreinterpretq_s16_u8(_a: uint8x16_t) -> int16x8_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vreinterpretq_s32_s16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vreinterpretq_s32_s16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vreinterpretq_s32_s16(_a: int16x8_t) -> int32x4_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vreinterpretq_s32_u32)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vreinterpretq_s32_u32 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vreinterpretq_s32_u32(_a: uint32x4_t) -> int32x4_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vreinterpretq_s64_s16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vreinterpretq_s64_s16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vreinterpretq_s64_s16(_a: int16x8_t) -> int64x2_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vreinterpretq_s64_s32)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vreinterpretq_s64_s32 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vreinterpretq_s64_s32(_a: int32x4_t) -> int64x2_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vreinterpretq_u16_s16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vreinterpretq_u16_s16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vreinterpretq_u16_s16(_a: int16x8_t) -> uint16x8_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vreinterpretq_u16_u8)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vreinterpretq_u16_u8 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vreinterpretq_u16_u8(_a: uint8x16_t) -> uint16x8_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vreinterpretq_u32_s16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vreinterpretq_u32_s16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vreinterpretq_u32_s16(_a: int16x8_t) -> uint32x4_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vreinterpretq_u32_s32)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vreinterpretq_u32_s32 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vreinterpretq_u32_s32(_a: int32x4_t) -> uint32x4_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vreinterpretq_u32_u8)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vreinterpretq_u32_u8 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vreinterpretq_u32_u8(_a: uint8x16_t) -> uint32x4_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vreinterpretq_u8_s16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vreinterpretq_u8_s16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vreinterpretq_u8_s16(_a: int16x8_t) -> uint8x16_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vreinterpretq_u8_s64)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vreinterpretq_u8_s64 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vreinterpretq_u8_s64(_a: int64x2_t) -> uint8x16_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vreinterpretq_u8_u32)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vreinterpretq_u8_u32 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vreinterpretq_u8_u32(_a: uint32x4_t) -> uint8x16_t {
     unimplemented!()
 }
 
 // --------- Shifts ---------------------------------------------------------
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vshlq_n_s16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vshlq_n_s16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vshlq_n_s16<const N: i32>(_a: int16x8_t) -> int16x8_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vshlq_n_u32)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vshlq_n_u32 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vshlq_n_u32<const N: i32>(_a: uint32x4_t) -> uint32x4_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vshlq_n_u64)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vshlq_n_u64 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vshlq_n_u64<const N: i32>(_a: uint64x2_t) -> uint64x2_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vshlq_s16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vshlq_s16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vshlq_s16(_a: int16x8_t, _b: int16x8_t) -> int16x8_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vshlq_u16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vshlq_u16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vshlq_u16(_a: uint16x8_t, _b: int16x8_t) -> uint16x8_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vshrq_n_s16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vshrq_n_s16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vshrq_n_s16<const N: i32>(_a: int16x8_t) -> int16x8_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vshrq_n_u16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vshrq_n_u16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vshrq_n_u16<const N: i32>(_a: uint16x8_t) -> uint16x8_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vshrq_n_u32)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vshrq_n_u32 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vshrq_n_u32<const N: i32>(_a: uint32x4_t) -> uint32x4_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vshrq_n_u64)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vshrq_n_u64 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vshrq_n_u64<const N: i32>(_a: uint64x2_t) -> uint64x2_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vsliq_n_s32)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vsliq_n_s32 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vsliq_n_s32<const N: i32>(_a: int32x4_t, _b: int32x4_t) -> int32x4_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vsliq_n_s64)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vsliq_n_s64 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vsliq_n_s64<const N: i32>(_a: int64x2_t, _b: int64x2_t) -> int64x2_t {
     unimplemented!()
 }
 
 // --------- Permutations / extracts ---------------------------------------
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vextq_u32)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vextq_u32 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vextq_u32<const N: i32>(_a: uint32x4_t, _b: uint32x4_t) -> uint32x4_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vtrn1q_s16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vtrn1q_s16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vtrn1q_s16(_a: int16x8_t, _b: int16x8_t) -> int16x8_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vtrn2q_s16)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vtrn2q_s16 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vtrn2q_s16(_a: int16x8_t, _b: int16x8_t) -> int16x8_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vtrn1q_s32)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vtrn1q_s32 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vtrn1q_s32(_a: int32x4_t, _b: int32x4_t) -> int32x4_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vtrn2q_s32)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vtrn2q_s32 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vtrn2q_s32(_a: int32x4_t, _b: int32x4_t) -> int32x4_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vtrn1q_s64)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vtrn1q_s64 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vtrn1q_s64(_a: int64x2_t, _b: int64x2_t) -> int64x2_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vtrn2q_s64)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vtrn2q_s64 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vtrn2q_s64(_a: int64x2_t, _b: int64x2_t) -> int64x2_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vtrn1q_u64)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vtrn1q_u64 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vtrn1q_u64(_a: uint64x2_t, _b: uint64x2_t) -> uint64x2_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vtrn2q_u64)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vtrn2q_u64 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vtrn2q_u64(_a: uint64x2_t, _b: uint64x2_t) -> uint64x2_t {
     unimplemented!()
 }
 
-#[hax_lib::opaque]
+/// [Arm Documentation](https://developer.arm.com/architectures/instruction-sets/intrinsics/vqtbl1q_u8)
+#[libcrux_macros::trusted(opaque, "validated-axiom: vqtbl1q_u8 hardware intrinsic; int-vec model + mk_lift_lemma! lift + mk! difftest")]
 pub fn vqtbl1q_u8(_t: uint8x16_t, _idx: uint8x16_t) -> uint8x16_t {
     unimplemented!()
 }

@@ -23,13 +23,13 @@ open FStar.Mul
 open Core_models
 
 module G = EquivImplSpec.Keccakf.Generic
-module I = Libcrux_intrinsics.Arm64_extract
+module I = Libcrux_intrinsics.Arm64_sha3_views
 
 (* Bring the Arm64 typeclass instance into scope so
    t_KeccakItem t_e_uint64x2_t (mk_usize 2) resolves to
    [Libcrux_sha3.Simd.Arm64.impl]. *)
 let _ =
-  let open Libcrux_intrinsics.Arm64_extract in
+  let open Libcrux_intrinsics.Arm64_sha3_views in
   let open Libcrux_sha3.Traits in
   let open Libcrux_sha3.Simd.Arm64 in
   ()
@@ -113,7 +113,13 @@ let arm64_lc_xor_and_rotate (v_LEFT v_RIGHT: i32) (a b: I.t_e_uint64x2_t) (l: na
           #FStar.Tactics.Typeclasses.solve v_LEFT v_RIGHT a b) l ==
         Core_models.Num.impl_u64__rotate_left
           (arm64_lane a l ^. arm64_lane b l) (cast (v_LEFT <: i32) <: u32))
-  = lemma_arm64_lane_unfold a l;
+  = (* The core-models vxarq model computes rotate_left by ((64 - v_RIGHT%64)%64);
+       with v_LEFT + v_RIGHT = 64 and 0 < v_RIGHT < 64 that amount is exactly
+       (cast v_LEFT), so the model form matches the spec's rotate_left(cast v_LEFT). *)
+    assert (v v_LEFT + v v_RIGHT == 64);
+    assert ((mk_u32 64 -! ((cast v_RIGHT <: u32) %! mk_u32 64 <: u32) <: u32) %! mk_u32 64
+            == (cast v_LEFT <: u32));
+    lemma_arm64_lane_unfold a l;
     lemma_arm64_lane_unfold b l;
     lemma_arm64_lane_unfold
       (Libcrux_sha3.Traits.f_xor_and_rotate

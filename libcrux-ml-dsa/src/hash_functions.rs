@@ -22,11 +22,10 @@ pub(crate) mod shake256 {
         #[requires(true)]
         #[ensures(|_| fstar!(r#"Seq.length ${out}_future == v $OUTPUT_LENGTH"#))]
         fn shake256<const OUTPUT_LENGTH: usize>(input: &[u8], out: &mut [u8; OUTPUT_LENGTH]);
-        // Sound-hardening (audit 2026-06-18): the proven `shake256_absorb_final`
-        // in libcrux-sha3 requires `len(data) < rate` (136). Match it here rather
-        // than `true` so the trusted-boundary assumption is no broader than the
-        // sha3 proof. Real seeds are 34/66 B (both < 136), so this is vacuous at
-        // every call site.
+        // The proven `shake256_absorb_final` in libcrux-sha3 requires
+        // `len(data) < rate` (136). Match it here rather than `true` so the
+        // trusted-boundary assumption is no broader than the sha3 proof. Real seeds
+        // are 34/66 B (both < 136), so this is vacuous at every call site.
         #[requires(input.len() < BLOCK_SIZE)]
         fn init_absorb_final(input: &[u8]) -> Self;
         // TODO: There should only be a `squeeze_block`
@@ -41,10 +40,9 @@ pub(crate) mod shake256 {
     // See the `DsaXof` doc comment above for the rationale of `requires(true)`.
     #[hax_lib::attributes]
     pub(crate) trait XofX4 {
-        // Sound-hardening (audit 2026-06-18): the proven AVX2 x4
-        // `shake256_absorb_final` requires `len(data0) < rate` (136) AND all four
-        // inputs equal-length. Match it here rather than `true`. Real seeds are
-        // 66 B fixed-size arrays (all equal, < 136), so this is vacuous.
+        // The proven AVX2 x4 `shake256_absorb_final` requires `len(data0) < rate`
+        // (136) AND all four inputs equal-length. Match it here rather than `true`.
+        // Real seeds are 66 B fixed-size arrays (all equal, < 136), so this is vacuous.
         #[requires(input0.len() < BLOCK_SIZE && input0.len() == input1.len() && input0.len() == input2.len() && input0.len() == input3.len())]
         fn init_absorb_x4(input0: &[u8], input1: &[u8], input2: &[u8], input3: &[u8]) -> Self;
         #[requires(true)]
@@ -113,7 +111,7 @@ pub(crate) mod shake256 {
         // Length preservation stated with `Seq.length` (not `.len()`/`impl__len`)
         // so a caller squeezing into a fixed-size `[u8; N]` buffer can coerce the
         // returned slice back to the array (the array refinement is on
-        // `Seq.length`). Equivalent to the previous `future(out).len() == out.len()`;
+        // `Seq.length`). Equivalent to the `future(out).len() == out.len()` form;
         // squeeze writes in place and never changes the buffer length. Matches the
         // `Seq.length`-form posts of the sibling `f_shake256`/`squeeze_first_block`.
         #[requires(true)]
@@ -139,10 +137,10 @@ pub(crate) mod shake128 {
     // See the `shake256::DsaXof` doc comment for the rationale of `requires(true)`.
     #[hax_lib::attributes]
     pub(crate) trait XofX4 {
-        // Sound-hardening (audit 2026-06-18): the proven AVX2 x4
-        // `shake128_absorb_final` requires `len(data0) < rate` (168) AND all four
-        // inputs equal-length. Match it here rather than `true`. Real matrix seeds
-        // are 34 B fixed-size arrays (all equal, < 168), so this is vacuous.
+        // The proven AVX2 x4 `shake128_absorb_final` requires `len(data0) < rate`
+        // (168) AND all four inputs equal-length. Match it here rather than `true`.
+        // Real matrix seeds are 34 B fixed-size arrays (all equal, < 168), so this
+        // is vacuous.
         #[requires(input0.len() < BLOCK_SIZE && input0.len() == input1.len() && input0.len() == input2.len() && input0.len() == input3.len())]
         fn init_absorb(input0: &[u8], input1: &[u8], input2: &[u8], input3: &[u8]) -> Self;
         #[requires(true)]

@@ -460,8 +460,8 @@ unsafe fn invert_ntt_at_layer_2(re: &mut AVX2RingElement) {
 #[inline(always)]
 #[hax_lib::fstar::before(
     r#"
-(* The hand-written F* theory that used to live inline in this file now lives in
-   the companion module Libcrux_ml_dsa.Simd.Avx2.Invntt_theory (git-tracked, NOT
+(* The hand-written F* theory for this file lives in the companion module
+   Libcrux_ml_dsa.Simd.Avx2.Invntt_theory (git-tracked, NOT
    generated -- see proofs/fstar/extraction/).
 
    F* module abbreviations are file-scoped and are NOT re-exported by `open`, so

@@ -40,7 +40,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "ae99e00a020578fc59572a02018b7355"
+      "5dcb5ed5db18de843f88ab906134cf99"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized__v_VK_HASH_END",
@@ -81,7 +81,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "7aea597c927e4b1dfc42fa941acbad09"
+      "8ebcd5d62e1adbe04e533c1484637f9f"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -97,7 +97,7 @@
         "refinement_interpretation_Tm_refine_5869a658f3e9d4fc11c86c31e0a72776"
       ],
       0,
-      "de66d2ae16a8e1015bdd95fecf0ca11a"
+      "501ed9902c36427d328ba640e4175e45"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -113,7 +113,7 @@
         "refinement_interpretation_Tm_refine_5869a658f3e9d4fc11c86c31e0a72776"
       ],
       0,
-      "d5202d863ba32521687650753933d54b"
+      "9141a29792e34cdca1e54295edd85721"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -145,7 +145,7 @@
         "typing_Libcrux_ml_dsa.Simd.Traits.__proj__Mkt_Operations__item___super_i2"
       ],
       0,
-      "17b0eff2f7d00b84e4e0350945322d8b"
+      "1d8a4d1558705682ad2e516cb6495d6b"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -177,7 +177,7 @@
         "typing_Libcrux_ml_dsa.Simd.Traits.__proj__Mkt_Operations__item___super_i2"
       ],
       0,
-      "e335646fe905726fe5eb3fa4f5f689f4"
+      "10aab68476228706ee1735b13d7a3695"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -221,7 +221,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "ec49b9639ebd3e19897b663bf712b220"
+      "1b205249cd64d2a5cc10c6f396944704"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -237,7 +237,7 @@
         "refinement_interpretation_Tm_refine_5869a658f3e9d4fc11c86c31e0a72776"
       ],
       0,
-      "7fa5cdf66fa7c70f23db0d6275282f17"
+      "729051bcb352a59f41c9bd957ae1e81c"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -253,7 +253,7 @@
         "refinement_interpretation_Tm_refine_5869a658f3e9d4fc11c86c31e0a72776"
       ],
       0,
-      "a459dbf6c05090f5579d543e40c151f5"
+      "62c69aa594fd051b88a9f688580cbf9f"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -285,7 +285,7 @@
         "typing_Libcrux_ml_dsa.Simd.Traits.__proj__Mkt_Operations__item___super_i2"
       ],
       0,
-      "e5dc8767094e67340e5a3582f9d38985"
+      "7c4a966d383247ec1e43875df913da16"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -317,7 +317,7 @@
         "typing_Libcrux_ml_dsa.Simd.Traits.__proj__Mkt_Operations__item___super_i2"
       ],
       0,
-      "1add954d41ba76a8ad51c04d74f7c34f"
+      "71ec974d195081914d265f9007817549"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -361,7 +361,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f59cebd5868cd3389194a05008cbf4af"
+      "d2045f47b901f297bc04155d6553a13a"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -385,7 +385,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "8c81af4031edd82d4e112a47c98ef9f4"
+      "a1f70c7f7375a1b0f91eb6332fe64a29"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -407,7 +407,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "4cda26f90e685a5745d0eced31366fc0"
+      "e41ad9d66b121723549bb686eaa12cb5"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -420,8 +420,7 @@
         "data_elim_Rust_primitives.Integers.MkInt",
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
         "equation_Core_models.Ops.Index.f_index_pre",
-        "equation_Core_models.Slice.impl_7",
-        "equation_Core_models.Slice.impl__len",
+        "equation_Core_models.Slice.impl_6",
         "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_A_SIZE",
         "equation_Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized__v_SEED_MATRIX_END",
         "equation_Prims.nat", "equation_Rust_primitives.Arrays.t_Slice",
@@ -437,28 +436,28 @@
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v",
         "equation_Rust_primitives.Slice.slice_length",
-        "fuel_guarded_inversion_Core_models.Ops.Range.t_Range",
+        "fuel_guarded_inversion_Core_models.Bundle.t_Range",
         "fuel_guarded_inversion_Libcrux_ml_dsa.Constants.t_Eta",
         "fuel_guarded_inversion_Rust_primitives.Integers.int_t",
-        "interpretation_Tm_abs_87065fc1a6f4731576ff09a0c8e20742",
         "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
+        "interpretation_Tm_abs_f9c2728f19ddd20263287eca3242b7dc",
         "kinding_Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement@tok",
         "primitive_Prims.op_Addition", "primitive_Prims.op_AmpAmp",
         "primitive_Prims.op_LessThanOrEqual", "primitive_Prims.op_Multiply",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_start",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxBool_proj_0",
         "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_start",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index_pre",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_start",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_4bb8998fe69acc99b21e814adae749a3",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
         "refinement_interpretation_Tm_refine_55cb77d236cf8608da148febbca8ce70",
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
-        "refinement_interpretation_Tm_refine_eb103a40d8deb755db624b14c6b35096",
+        "refinement_interpretation_Tm_refine_b041d808c8f57977ec3279a956764ced",
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7",
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca",
         "token_correspondence_Core_models.Ops.Index.f_index_pre",
@@ -466,7 +465,7 @@
         "typing_Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized__v_SEED_MATRIX_END"
       ],
       0,
-      "8de4dc5ca403e7ad9946558d81274b45"
+      "35bce37cad644ed9bf21fafa81ae276f"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -479,7 +478,7 @@
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
         "equation_Core_models.Ops.Index.f_index",
         "equation_Core_models.Ops.Index.f_index_pre",
-        "equation_Core_models.Slice.impl_7",
+        "equation_Core_models.Slice.impl_6",
         "equation_Core_models.Slice.impl__len",
         "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_A_SIZE",
         "equation_Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized__v_SEED_MATRIX_END",
@@ -494,42 +493,43 @@
         "equation_Rust_primitives.Notations.op_String_Access",
         "equation_Rust_primitives.Slice.slice_length",
         "equation_Rust_primitives.Slice.slice_slice",
-        "fuel_guarded_inversion_Core_models.Ops.Range.t_Range",
+        "fuel_guarded_inversion_Core_models.Bundle.t_Range",
         "function_token_typing_Rust_primitives.Integers.u8",
         "interpretation_Tm_abs_4ab552b3415220d2b607f7d57c958117",
-        "interpretation_Tm_abs_87065fc1a6f4731576ff09a0c8e20742",
-        "interpretation_Tm_abs_900369f04b4ab299c3cdf8970be0a9f8",
         "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
+        "interpretation_Tm_abs_f9c2728f19ddd20263287eca3242b7dc",
+        "interpretation_Tm_abs_fd6f2e57ab8d0296c22b4aca283c828d",
         "lemma_FStar.Seq.Base.lemma_len_slice", "primitive_Prims.op_AmpAmp",
+        "primitive_Prims.op_LessThanOrEqual",
         "primitive_Prims.op_Subtraction",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_start",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxBool_proj_0",
         "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_start",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index_pre",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_start",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
-        "refinement_interpretation_Tm_refine_1472c885f92c0d1474d0ee8fd804cebe",
+        "refinement_interpretation_Tm_refine_169458e55c8b6302b205b03a3ab6acf3",
         "refinement_interpretation_Tm_refine_4bb8998fe69acc99b21e814adae749a3",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
         "refinement_interpretation_Tm_refine_55cb77d236cf8608da148febbca8ce70",
         "refinement_interpretation_Tm_refine_5a92b6e4e7af9363bc35e43d9d7f3f13",
-        "refinement_interpretation_Tm_refine_e9a8809d6e2bd8ffb804f2b8af5a2e4a",
-        "refinement_interpretation_Tm_refine_eb103a40d8deb755db624b14c6b35096",
+        "refinement_interpretation_Tm_refine_aaa2da7e84700d8c2216383aaffac5e6",
+        "refinement_interpretation_Tm_refine_b041d808c8f57977ec3279a956764ced",
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7",
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca",
         "token_correspondence_Core_models.Ops.Index.f_index",
         "token_correspondence_Core_models.Ops.Index.f_index_pre",
-        "typing_Core_models.Slice.impl__len", "typing_FStar.Seq.Base.length",
+        "typing_FStar.Seq.Base.length",
         "typing_Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized__v_SEED_MATRIX_END",
         "typing_Rust_primitives.Integers.lte",
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "cef5c07d872d3fd30b96e034d8aaacfd"
+      "2038342e56be9f73e11d45456e84e96c"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -543,15 +543,15 @@
         "equation_Rust_primitives.Integers.mk_usize",
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_start",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxInt_proj_0",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_start",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_4bb8998fe69acc99b21e814adae749a3"
       ],
       0,
-      "8d27b9df3451c0aa78e64ded215604e4"
+      "1a160ea20d1f3def317b5abfb115d0ef"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -568,10 +568,10 @@
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v",
         "function_token_typing_Rust_primitives.Integers.u8",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_start",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxInt_proj_0",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_start",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_4bb8998fe69acc99b21e814adae749a3",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
@@ -579,7 +579,7 @@
         "typing_FStar.Seq.Base.length"
       ],
       0,
-      "a216dea141defc6f623bcf9f1be15169"
+      "93abda97d83aa2d30f2f0112d6f43e0f"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -590,8 +590,9 @@
         "@MaxIFuel_assumption", "@query", "b2t_def",
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
         "equation_Core_models.Ops.Index.f_index_pre",
-        "equation_Core_models.Slice.impl_7",
-        "equation_Core_models.Slice.impl__len",
+        "equation_Core_models.Slice.impl_6",
+        "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_A_SIZE",
+        "equation_Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized__v_SEED_MATRIX_END",
         "equation_Rust_primitives.Arrays.t_Slice",
         "equation_Rust_primitives.Integers.lte",
         "equation_Rust_primitives.Integers.mk_int",
@@ -601,23 +602,23 @@
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v",
         "equation_Rust_primitives.Slice.slice_length",
-        "fuel_guarded_inversion_Core_models.Ops.Range.t_Range",
-        "interpretation_Tm_abs_87065fc1a6f4731576ff09a0c8e20742",
+        "fuel_guarded_inversion_Core_models.Bundle.t_Range",
         "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
+        "interpretation_Tm_abs_f9c2728f19ddd20263287eca3242b7dc",
         "primitive_Prims.op_AmpAmp", "primitive_Prims.op_LessThanOrEqual",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index_pre",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
-        "refinement_interpretation_Tm_refine_1472c885f92c0d1474d0ee8fd804cebe",
-        "refinement_interpretation_Tm_refine_e9a8809d6e2bd8ffb804f2b8af5a2e4a",
-        "refinement_interpretation_Tm_refine_eb103a40d8deb755db624b14c6b35096",
+        "refinement_interpretation_Tm_refine_169458e55c8b6302b205b03a3ab6acf3",
+        "refinement_interpretation_Tm_refine_aaa2da7e84700d8c2216383aaffac5e6",
+        "refinement_interpretation_Tm_refine_b041d808c8f57977ec3279a956764ced",
         "token_correspondence_Core_models.Ops.Index.f_index_pre"
       ],
       0,
-      "d578680a9375588aab3c4e18379961da"
+      "e7fc19de60b61e5b05570c2709727138"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -630,28 +631,26 @@
         "equation_Core_models.Slice.impl__copy_from_slice",
         "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_A_SIZE",
         "equation_Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized__v_SEED_MATRIX_END",
-        "equation_Rust_primitives.Arrays.t_Slice",
         "equation_Rust_primitives.Integers.mk_int",
         "equation_Rust_primitives.Integers.mk_usize",
         "equation_Rust_primitives.Integers.u8",
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v",
-        "equation_Rust_primitives.Mem.replace",
         "equation_Rust_primitives.Notations.op_String_Access",
+        "equation_Rust_primitives.Slice.slice_clone_from_slice",
         "primitive_Prims.op_Subtraction",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_start",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxInt_proj_0",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_start",
-        "projection_inverse_FStar.Pervasives.Native.Mktuple2_@_1",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_start",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_4bb8998fe69acc99b21e814adae749a3",
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7"
       ],
       0,
-      "2d65a2b0afe73d4397709c0748b3ba6d"
+      "0505df89563022bc9ad4ec1d01509869"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -670,11 +669,11 @@
         "equation_Rust_primitives.Integers.v",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
-        "refinement_interpretation_Tm_refine_ec269a5d3eb2d57857ad97bae43eb037",
+        "refinement_interpretation_Tm_refine_90548dec0eb0e5b2a777011eae96be36",
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "07ce20eb148caacabd5f300be1aec445"
+      "fcf3b416b165cff3e1a7f9a71c83c8b8"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -685,8 +684,7 @@
         "@MaxIFuel_assumption", "@query", "b2t_def",
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
         "equation_Core_models.Ops.Index.f_index_pre",
-        "equation_Core_models.Slice.impl_7",
-        "equation_Core_models.Slice.impl__len",
+        "equation_Core_models.Slice.impl_6",
         "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_A_SIZE",
         "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_SIGNING_SIZE",
         "equation_Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized__v_SEED_MATRIX_END",
@@ -703,34 +701,35 @@
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v",
         "equation_Rust_primitives.Slice.slice_length",
-        "fuel_guarded_inversion_Core_models.Ops.Range.t_Range",
+        "fuel_guarded_inversion_Core_models.Bundle.t_Range",
         "fuel_guarded_inversion_Libcrux_ml_dsa.Constants.t_Eta",
-        "interpretation_Tm_abs_87065fc1a6f4731576ff09a0c8e20742",
         "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
+        "interpretation_Tm_abs_f9c2728f19ddd20263287eca3242b7dc",
         "kinding_Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement@tok",
         "primitive_Prims.op_Addition", "primitive_Prims.op_AmpAmp",
         "primitive_Prims.op_LessThanOrEqual", "primitive_Prims.op_Multiply",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_start",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxBool_proj_0",
         "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_start",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index_pre",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_start",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
-        "refinement_interpretation_Tm_refine_1d5968a699f89514387df701741256f8",
+        "refinement_interpretation_Tm_refine_2149db6571e4dbac18044f34377d23da",
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
+        "refinement_interpretation_Tm_refine_4bb8998fe69acc99b21e814adae749a3",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
-        "refinement_interpretation_Tm_refine_d041195a43c1fd76e0925dd431b0722e",
-        "refinement_interpretation_Tm_refine_eb103a40d8deb755db624b14c6b35096",
+        "refinement_interpretation_Tm_refine_9d01d5610b34273b0b5f407e25ae3c6b",
+        "refinement_interpretation_Tm_refine_b041d808c8f57977ec3279a956764ced",
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7",
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca",
         "token_correspondence_Core_models.Ops.Index.f_index_pre",
         "typing_FStar.Seq.Base.length"
       ],
       0,
-      "2c4a011c52b2b4f3fc87aee2c40f8234"
+      "e6d4193c97c01b0c716ec5a8a78e0104"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -742,7 +741,7 @@
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
         "equation_Core_models.Ops.Index.f_index",
         "equation_Core_models.Ops.Index.f_index_pre",
-        "equation_Core_models.Slice.impl_7",
+        "equation_Core_models.Slice.impl_6",
         "equation_Core_models.Slice.impl__len",
         "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_A_SIZE",
         "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_SIGNING_SIZE",
@@ -762,50 +761,50 @@
         "equation_Rust_primitives.Notations.op_String_Access",
         "equation_Rust_primitives.Slice.slice_length",
         "equation_Rust_primitives.Slice.slice_slice",
-        "fuel_guarded_inversion_Core_models.Ops.Range.t_Range",
+        "fuel_guarded_inversion_Core_models.Bundle.t_Range",
         "function_token_typing_Rust_primitives.Integers.u8", "int_typing",
         "interpretation_Tm_abs_4ab552b3415220d2b607f7d57c958117",
-        "interpretation_Tm_abs_87065fc1a6f4731576ff09a0c8e20742",
-        "interpretation_Tm_abs_900369f04b4ab299c3cdf8970be0a9f8",
         "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
+        "interpretation_Tm_abs_f9c2728f19ddd20263287eca3242b7dc",
+        "interpretation_Tm_abs_fd6f2e57ab8d0296c22b4aca283c828d",
         "lemma_FStar.Seq.Base.lemma_len_slice",
         "primitive_Prims.op_Addition", "primitive_Prims.op_AmpAmp",
         "primitive_Prims.op_LessThanOrEqual",
         "primitive_Prims.op_Subtraction",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_start",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxBool_proj_0",
         "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_start",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index_pre",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_start",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
-        "refinement_interpretation_Tm_refine_1472c885f92c0d1474d0ee8fd804cebe",
-        "refinement_interpretation_Tm_refine_1d5968a699f89514387df701741256f8",
+        "refinement_interpretation_Tm_refine_169458e55c8b6302b205b03a3ab6acf3",
+        "refinement_interpretation_Tm_refine_2149db6571e4dbac18044f34377d23da",
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
         "refinement_interpretation_Tm_refine_4bb8998fe69acc99b21e814adae749a3",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
         "refinement_interpretation_Tm_refine_55cb77d236cf8608da148febbca8ce70",
         "refinement_interpretation_Tm_refine_5a92b6e4e7af9363bc35e43d9d7f3f13",
-        "refinement_interpretation_Tm_refine_8da2f1d10ed0353c885844dacd442e39",
-        "refinement_interpretation_Tm_refine_a8097e7a6965500dd378f74e9b9f8a39",
-        "refinement_interpretation_Tm_refine_d041195a43c1fd76e0925dd431b0722e",
-        "refinement_interpretation_Tm_refine_e9a8809d6e2bd8ffb804f2b8af5a2e4a",
-        "refinement_interpretation_Tm_refine_eb103a40d8deb755db624b14c6b35096",
+        "refinement_interpretation_Tm_refine_aaa2da7e84700d8c2216383aaffac5e6",
+        "refinement_interpretation_Tm_refine_b041d808c8f57977ec3279a956764ced",
+        "refinement_interpretation_Tm_refine_c45abee983f2f84bb459e852e6a62e3b",
+        "refinement_interpretation_Tm_refine_c5bcc626f22a9c0faca6389e4f22e347",
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7",
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca",
         "token_correspondence_Core_models.Ops.Index.f_index",
         "token_correspondence_Core_models.Ops.Index.f_index_pre",
-        "typing_Core_models.Slice.impl__len", "typing_FStar.Seq.Base.length",
+        "typing_FStar.Seq.Base.length",
         "typing_Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized__v_SEED_MATRIX_END",
         "typing_Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized__v_SEED_SIGNING_END",
+        "typing_Rust_primitives.Arrays.length",
         "typing_Rust_primitives.Integers.lte",
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "0d0b6f30659451f2651bd7a1f674783b"
+      "6d6836f79bf575167a4c24730922b5d4"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -813,62 +812,21 @@
       0,
       1,
       [
-        "@MaxIFuel_assumption", "@query", "b2t_def", "bool_inversion",
-        "constructor_distinct_Rust_primitives.Integers.USIZE",
-        "equality_tok_Rust_primitives.Integers.USIZE@tok",
-        "equation_Core_models.Ops.Index.f_index",
-        "equation_Core_models.Ops.Index.f_index_pre",
-        "equation_Core_models.Slice.impl_7",
-        "equation_Core_models.Slice.impl__len",
+        "@query", "equality_tok_Rust_primitives.Integers.USIZE@tok",
         "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_A_SIZE",
         "equation_Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized__v_SEED_MATRIX_END",
-        "equation_Prims.nat", "equation_Rust_primitives.Arrays.t_Slice",
-        "equation_Rust_primitives.Integers.lte",
         "equation_Rust_primitives.Integers.mk_int",
         "equation_Rust_primitives.Integers.mk_usize",
-        "equation_Rust_primitives.Integers.sz",
-        "equation_Rust_primitives.Integers.u8",
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v",
-        "equation_Rust_primitives.Notations.op_String_Access",
-        "equation_Rust_primitives.Slice.slice_length",
-        "equation_Rust_primitives.Slice.slice_slice",
-        "fuel_guarded_inversion_Core_models.Ops.Range.t_Range",
-        "function_token_typing_Rust_primitives.Integers.u8",
-        "interpretation_Tm_abs_4ab552b3415220d2b607f7d57c958117",
-        "interpretation_Tm_abs_87065fc1a6f4731576ff09a0c8e20742",
-        "interpretation_Tm_abs_900369f04b4ab299c3cdf8970be0a9f8",
-        "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
-        "lemma_FStar.Seq.Base.lemma_len_slice", "primitive_Prims.op_AmpAmp",
-        "primitive_Prims.op_Subtraction",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_start",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
-        "projection_inverse_BoxBool_proj_0",
         "projection_inverse_BoxInt_proj_0",
-        "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index",
-        "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index_pre",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_start",
-        "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
-        "refinement_interpretation_Tm_refine_1472c885f92c0d1474d0ee8fd804cebe",
-        "refinement_interpretation_Tm_refine_1b784c58e4bb610481af4087b29304f2",
-        "refinement_interpretation_Tm_refine_4bb8998fe69acc99b21e814adae749a3",
-        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
-        "refinement_interpretation_Tm_refine_55cb77d236cf8608da148febbca8ce70",
-        "refinement_interpretation_Tm_refine_5a92b6e4e7af9363bc35e43d9d7f3f13",
-        "refinement_interpretation_Tm_refine_e9a8809d6e2bd8ffb804f2b8af5a2e4a",
-        "refinement_interpretation_Tm_refine_eb103a40d8deb755db624b14c6b35096",
-        "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca",
-        "token_correspondence_Core_models.Ops.Index.f_index",
-        "token_correspondence_Core_models.Ops.Index.f_index_pre",
-        "typing_Core_models.Slice.impl__len", "typing_FStar.Seq.Base.length",
-        "typing_Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized__v_SEED_MATRIX_END",
-        "typing_Rust_primitives.Integers.lte",
-        "typing_tok_Rust_primitives.Integers.USIZE@tok"
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_start",
+        "projection_inverse_Rust_primitives.Integers.MkInt_@_0"
       ],
       0,
-      "5ea9cd26401d54d5be2f8cbd95b88d48"
+      "5278577d35c55de79cd02f4c401c94ee"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -879,8 +837,7 @@
         "@MaxIFuel_assumption", "@query", "b2t_def",
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
         "equation_Core_models.Ops.Index.f_index_pre",
-        "equation_Core_models.Slice.impl_7",
-        "equation_Core_models.Slice.impl__len",
+        "equation_Core_models.Slice.impl_6",
         "equation_Rust_primitives.Arrays.length",
         "equation_Rust_primitives.Arrays.t_Array",
         "equation_Rust_primitives.Arrays.t_Slice",
@@ -889,25 +846,25 @@
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v",
         "equation_Rust_primitives.Slice.slice_length",
-        "fuel_guarded_inversion_Core_models.Ops.Range.t_Range",
-        "interpretation_Tm_abs_87065fc1a6f4731576ff09a0c8e20742",
+        "fuel_guarded_inversion_Core_models.Bundle.t_Range",
         "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
+        "interpretation_Tm_abs_f9c2728f19ddd20263287eca3242b7dc",
         "primitive_Prims.op_AmpAmp", "primitive_Prims.op_LessThanOrEqual",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_start",
         "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_start",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index_pre",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_start",
-        "refinement_interpretation_Tm_refine_1472c885f92c0d1474d0ee8fd804cebe",
-        "refinement_interpretation_Tm_refine_1d5968a699f89514387df701741256f8",
+        "refinement_interpretation_Tm_refine_169458e55c8b6302b205b03a3ab6acf3",
+        "refinement_interpretation_Tm_refine_2149db6571e4dbac18044f34377d23da",
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
-        "refinement_interpretation_Tm_refine_e9a8809d6e2bd8ffb804f2b8af5a2e4a",
-        "refinement_interpretation_Tm_refine_eb103a40d8deb755db624b14c6b35096",
+        "refinement_interpretation_Tm_refine_aaa2da7e84700d8c2216383aaffac5e6",
+        "refinement_interpretation_Tm_refine_b041d808c8f57977ec3279a956764ced",
         "token_correspondence_Core_models.Ops.Index.f_index_pre"
       ],
       0,
-      "17779110a1c44e4a710ffe81380805dd"
+      "a0cd8da101c43ec6ac3708c22909f6bc"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -918,8 +875,7 @@
         "@MaxIFuel_assumption", "@query", "b2t_def",
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
         "equation_Core_models.Ops.Index.f_index_pre",
-        "equation_Core_models.Slice.impl_7",
-        "equation_Core_models.Slice.impl__len",
+        "equation_Core_models.Slice.impl_6",
         "equation_Rust_primitives.Arrays.length",
         "equation_Rust_primitives.Arrays.t_Array",
         "equation_Rust_primitives.Arrays.t_Slice",
@@ -931,23 +887,23 @@
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v",
         "equation_Rust_primitives.Slice.slice_length",
-        "interpretation_Tm_abs_87065fc1a6f4731576ff09a0c8e20742",
         "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
+        "interpretation_Tm_abs_f9c2728f19ddd20263287eca3242b7dc",
         "primitive_Prims.op_AmpAmp", "primitive_Prims.op_LessThanOrEqual",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index_pre",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
-        "refinement_interpretation_Tm_refine_1d5968a699f89514387df701741256f8",
+        "refinement_interpretation_Tm_refine_2149db6571e4dbac18044f34377d23da",
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
-        "refinement_interpretation_Tm_refine_8da2f1d10ed0353c885844dacd442e39",
-        "refinement_interpretation_Tm_refine_a8097e7a6965500dd378f74e9b9f8a39",
+        "refinement_interpretation_Tm_refine_c45abee983f2f84bb459e852e6a62e3b",
+        "refinement_interpretation_Tm_refine_c5bcc626f22a9c0faca6389e4f22e347",
         "token_correspondence_Core_models.Ops.Index.f_index_pre"
       ],
       0,
-      "6dfec79d3f0efa3d820cd73f9d748142"
+      "f8f96ad2c09275bf7c6d12dc3073e685"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -962,28 +918,26 @@
         "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_SIGNING_SIZE",
         "equation_Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized__v_SEED_MATRIX_END",
         "equation_Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized__v_SEED_SIGNING_END",
-        "equation_Rust_primitives.Arrays.t_Slice",
         "equation_Rust_primitives.Integers.add",
         "equation_Rust_primitives.Integers.mk_int",
         "equation_Rust_primitives.Integers.mk_usize",
         "equation_Rust_primitives.Integers.u8",
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v",
-        "equation_Rust_primitives.Mem.replace",
         "equation_Rust_primitives.Notations.op_String_Access",
+        "equation_Rust_primitives.Slice.slice_clone_from_slice",
         "primitive_Prims.op_Addition", "primitive_Prims.op_Subtraction",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_start",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxInt_proj_0",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_start",
-        "projection_inverse_FStar.Pervasives.Native.Mktuple2_@_1",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_start",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7"
       ],
       0,
-      "315d45dacb5f61a3d6448f9cab4a2bf3"
+      "957b5a3e525ce380e750dc9f33df19fe"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -1002,12 +956,12 @@
         "equation_Rust_primitives.Integers.v",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
-        "refinement_interpretation_Tm_refine_d041195a43c1fd76e0925dd431b0722e",
-        "refinement_interpretation_Tm_refine_dc2cb5d2d1aef33c8ba5412d24e22c4c",
+        "refinement_interpretation_Tm_refine_9d01d5610b34273b0b5f407e25ae3c6b",
+        "refinement_interpretation_Tm_refine_b2d51105e848974c560da70703e9dc6e",
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "d050263a0d014a1a6665f055452254a2"
+      "2fc0721bfc3ea059a5e6ff8eb2b69319"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -1028,21 +982,21 @@
         "equation_Rust_primitives.Integers.range_t",
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v",
-        "fuel_guarded_inversion_Core_models.Ops.Range.t_Range",
+        "fuel_guarded_inversion_Core_models.Bundle.t_Range",
         "primitive_Prims.op_Addition",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxInt_proj_0",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
-        "refinement_interpretation_Tm_refine_eb103a40d8deb755db624b14c6b35096",
+        "refinement_interpretation_Tm_refine_b041d808c8f57977ec3279a956764ced",
         "typing_Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized__v_SEED_SIGNING_END",
         "typing_Rust_primitives.Integers.v",
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "7d3ed9758ef4ee2ce9377907e90b7b2e"
+      "0b2d6d16f296722de09e6896386a6561"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -1071,7 +1025,7 @@
         "typing_tok_Rust_primitives.Integers.U8@tok"
       ],
       0,
-      "fa7b1196d4b6a889e5a6e722895f094f"
+      "3419ab1e009e7c3df34c4b6907294646"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -1092,21 +1046,21 @@
         "equation_Rust_primitives.Integers.range_t",
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v",
-        "fuel_guarded_inversion_Core_models.Ops.Range.t_Range",
+        "fuel_guarded_inversion_Core_models.Bundle.t_Range",
         "primitive_Prims.op_Addition",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxInt_proj_0",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
-        "refinement_interpretation_Tm_refine_eb103a40d8deb755db624b14c6b35096",
+        "refinement_interpretation_Tm_refine_b041d808c8f57977ec3279a956764ced",
         "typing_Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized__v_SEED_SIGNING_END",
         "typing_Rust_primitives.Integers.v",
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f45709a597287026de73438cb5999a3a"
+      "4bf7a8736f350a223eb3201a95408088"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -1131,7 +1085,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "008328fe254c480bdcd0e0092f97bf9c"
+      "5167be60a8ba81510300ccd59b51ae88"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -1156,7 +1110,7 @@
         "refinement_interpretation_Tm_refine_e1dbac4ed608803ee339af32736c8723"
       ],
       0,
-      "0c877d4299cbed32ecd7e141d26d9422"
+      "b83b9964f64424a5fd1af56360082b59"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -1181,7 +1135,7 @@
         "refinement_interpretation_Tm_refine_e1dbac4ed608803ee339af32736c8723"
       ],
       0,
-      "0c877d4299cbed32ecd7e141d26d9422"
+      "b83b9964f64424a5fd1af56360082b59"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -1200,7 +1154,7 @@
         "token_correspondence_Libcrux_ml_dsa.Hash_functions.Shake256.f_shake256_pre"
       ],
       0,
-      "2389a3cbed00d8ca361777d658dc57aa"
+      "65743b366dc961b2f1517e8b0a2812fc"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -1211,8 +1165,7 @@
         "@MaxIFuel_assumption", "@query", "b2t_def",
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
         "equation_Core_models.Ops.Index.f_index_pre",
-        "equation_Core_models.Slice.impl_7",
-        "equation_Core_models.Slice.impl__len",
+        "equation_Core_models.Slice.impl_6",
         "equation_Libcrux_ml_dsa.Constants.v_BYTES_FOR_VERIFICATION_KEY_HASH",
         "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_A_SIZE",
         "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_SIGNING_SIZE",
@@ -1231,32 +1184,32 @@
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v",
         "equation_Rust_primitives.Slice.slice_length",
-        "fuel_guarded_inversion_Core_models.Ops.Range.t_Range",
+        "fuel_guarded_inversion_Core_models.Bundle.t_Range",
         "fuel_guarded_inversion_Libcrux_ml_dsa.Constants.t_Eta",
         "function_token_typing_Rust_primitives.Integers.u8",
-        "interpretation_Tm_abs_87065fc1a6f4731576ff09a0c8e20742",
         "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
+        "interpretation_Tm_abs_f9c2728f19ddd20263287eca3242b7dc",
         "kinding_Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement@tok",
         "lemma_Rust_primitives.Integers.mk_int_v_lemma",
         "primitive_Prims.op_Addition", "primitive_Prims.op_AmpAmp",
         "primitive_Prims.op_LessThanOrEqual", "primitive_Prims.op_Multiply",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_start",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxBool_proj_0",
         "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_start",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index_pre",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_start",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
-        "refinement_interpretation_Tm_refine_1d5968a699f89514387df701741256f8",
+        "refinement_interpretation_Tm_refine_2149db6571e4dbac18044f34377d23da",
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
         "refinement_interpretation_Tm_refine_4bb8998fe69acc99b21e814adae749a3",
+        "refinement_interpretation_Tm_refine_50543789316a7833203c89063e036970",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
         "refinement_interpretation_Tm_refine_ab6a89e8f28f563e5276cd4d86befa1d",
-        "refinement_interpretation_Tm_refine_be8587903c1775e80ddbfdfa905988a1",
+        "refinement_interpretation_Tm_refine_b041d808c8f57977ec3279a956764ced",
         "refinement_interpretation_Tm_refine_e1dbac4ed608803ee339af32736c8723",
-        "refinement_interpretation_Tm_refine_eb103a40d8deb755db624b14c6b35096",
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7",
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca",
         "token_correspondence_Core_models.Ops.Index.f_index_pre",
@@ -1265,7 +1218,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4d64eac3d4209fd156ce18bedd3ec913"
+      "e3dffa999e1f5fef96d6d21aa979d8e6"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -1276,8 +1229,7 @@
         "@MaxIFuel_assumption", "@query", "b2t_def",
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
         "equation_Core_models.Ops.Index.f_index_pre",
-        "equation_Core_models.Slice.impl_7",
-        "equation_Core_models.Slice.impl__len",
+        "equation_Core_models.Slice.impl_6",
         "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_A_SIZE",
         "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_SIGNING_SIZE",
         "equation_Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized__v_SEED_MATRIX_END",
@@ -1294,36 +1246,36 @@
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v",
         "equation_Rust_primitives.Slice.slice_length",
-        "fuel_guarded_inversion_Core_models.Ops.Range.t_Range",
+        "fuel_guarded_inversion_Core_models.Bundle.t_Range",
         "function_token_typing_Rust_primitives.Integers.u8",
-        "interpretation_Tm_abs_87065fc1a6f4731576ff09a0c8e20742",
         "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
+        "interpretation_Tm_abs_f9c2728f19ddd20263287eca3242b7dc",
         "lemma_Rust_primitives.Integers.mk_int_v_lemma",
         "primitive_Prims.op_Addition", "primitive_Prims.op_AmpAmp",
         "primitive_Prims.op_LessThanOrEqual",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxBool_proj_0",
         "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index_pre",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
-        "refinement_interpretation_Tm_refine_1d5968a699f89514387df701741256f8",
+        "refinement_interpretation_Tm_refine_2149db6571e4dbac18044f34377d23da",
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
-        "refinement_interpretation_Tm_refine_8da2f1d10ed0353c885844dacd442e39",
         "refinement_interpretation_Tm_refine_935bb2f8adc852ac8933a58a3e83a787",
-        "refinement_interpretation_Tm_refine_a8097e7a6965500dd378f74e9b9f8a39",
+        "refinement_interpretation_Tm_refine_9d01d5610b34273b0b5f407e25ae3c6b",
         "refinement_interpretation_Tm_refine_ab6a89e8f28f563e5276cd4d86befa1d",
-        "refinement_interpretation_Tm_refine_d041195a43c1fd76e0925dd431b0722e",
+        "refinement_interpretation_Tm_refine_b041d808c8f57977ec3279a956764ced",
+        "refinement_interpretation_Tm_refine_c45abee983f2f84bb459e852e6a62e3b",
+        "refinement_interpretation_Tm_refine_c5bcc626f22a9c0faca6389e4f22e347",
         "refinement_interpretation_Tm_refine_e1dbac4ed608803ee339af32736c8723",
-        "refinement_interpretation_Tm_refine_eb103a40d8deb755db624b14c6b35096",
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca",
         "token_correspondence_Core_models.Ops.Index.f_index_pre",
         "typing_Rust_primitives.Arrays.length",
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "65648449417a531e01095949d7e5e146"
+      "c47c9e845194b770e81a5fff7f6b7e2b"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -1336,7 +1288,7 @@
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
         "equation_Core_models.Ops.Index.f_index",
         "equation_Core_models.Ops.Index.f_index_pre",
-        "equation_Core_models.Slice.impl_7",
+        "equation_Core_models.Slice.impl_6",
         "equation_Core_models.Slice.impl__len",
         "equation_Libcrux_ml_dsa.Constants.v_BYTES_FOR_VERIFICATION_KEY_HASH",
         "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_A_SIZE",
@@ -1358,42 +1310,41 @@
         "equation_Rust_primitives.Notations.op_String_Access",
         "equation_Rust_primitives.Slice.slice_length",
         "equation_Rust_primitives.Slice.slice_slice",
-        "fuel_guarded_inversion_Core_models.Ops.Range.t_Range",
+        "fuel_guarded_inversion_Core_models.Bundle.t_Range",
         "function_token_typing_Rust_primitives.Integers.u8", "int_inversion",
         "int_typing",
         "interpretation_Tm_abs_4ab552b3415220d2b607f7d57c958117",
-        "interpretation_Tm_abs_87065fc1a6f4731576ff09a0c8e20742",
-        "interpretation_Tm_abs_900369f04b4ab299c3cdf8970be0a9f8",
         "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
+        "interpretation_Tm_abs_f9c2728f19ddd20263287eca3242b7dc",
+        "interpretation_Tm_abs_fd6f2e57ab8d0296c22b4aca283c828d",
         "lemma_FStar.Seq.Base.lemma_len_slice",
         "lemma_Rust_primitives.Integers.mk_int_v_lemma",
         "primitive_Prims.op_Addition", "primitive_Prims.op_AmpAmp",
         "primitive_Prims.op_Subtraction",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_start",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxBool_proj_0",
         "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_start",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index_pre",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_start",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
-        "refinement_interpretation_Tm_refine_0449e3d9f4d1a4ee9716ea83067efcb9",
         "refinement_interpretation_Tm_refine_04a4f266bdaad95308c5a4924be88048",
-        "refinement_interpretation_Tm_refine_1a40d78f7b464b2435ec1e7be973b948",
-        "refinement_interpretation_Tm_refine_1d5968a699f89514387df701741256f8",
+        "refinement_interpretation_Tm_refine_2149db6571e4dbac18044f34377d23da",
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
+        "refinement_interpretation_Tm_refine_221d4150bb2b93e4544031fb3d017ab1",
+        "refinement_interpretation_Tm_refine_50543789316a7833203c89063e036970",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
         "refinement_interpretation_Tm_refine_5a92b6e4e7af9363bc35e43d9d7f3f13",
+        "refinement_interpretation_Tm_refine_8b70117a24320fec988a04a277fc02d1",
         "refinement_interpretation_Tm_refine_ab6a89e8f28f563e5276cd4d86befa1d",
-        "refinement_interpretation_Tm_refine_be8587903c1775e80ddbfdfa905988a1",
-        "refinement_interpretation_Tm_refine_d9510e8089095fc85db969990e7cc1c3",
+        "refinement_interpretation_Tm_refine_b041d808c8f57977ec3279a956764ced",
         "refinement_interpretation_Tm_refine_e1dbac4ed608803ee339af32736c8723",
-        "refinement_interpretation_Tm_refine_eb103a40d8deb755db624b14c6b35096",
         "token_correspondence_Core_models.Ops.Index.f_index",
         "token_correspondence_Core_models.Ops.Index.f_index_pre",
-        "typing_Core_models.Slice.impl__len", "typing_FStar.Seq.Base.length",
+        "typing_FStar.Seq.Base.length",
         "typing_Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized__v_SEED_SIGNING_END",
         "typing_Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized__v_VK_HASH_END",
         "typing_Rust_primitives.Arrays.length",
@@ -1401,7 +1352,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "9698e8454d8563dd9ae7933ae4fe1a9f"
+      "618ac3c97974c91172d147e2c3ee5876"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -1420,19 +1371,19 @@
         "equation_Rust_primitives.Integers.mk_usize",
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v",
-        "fuel_guarded_inversion_Core_models.Ops.Range.t_Range",
+        "fuel_guarded_inversion_Core_models.Bundle.t_Range",
         "primitive_Prims.op_Addition",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_start",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxInt_proj_0",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_start",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
-        "refinement_interpretation_Tm_refine_eb103a40d8deb755db624b14c6b35096"
+        "refinement_interpretation_Tm_refine_b041d808c8f57977ec3279a956764ced"
       ],
       0,
-      "841595b2c9726e19035a1b23ed83afaf"
+      "a986b1d2025a5160da063f612ff7c12e"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -1443,8 +1394,7 @@
         "@MaxIFuel_assumption", "@query", "b2t_def",
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
         "equation_Core_models.Ops.Index.f_index_pre",
-        "equation_Core_models.Slice.impl_7",
-        "equation_Core_models.Slice.impl__len",
+        "equation_Core_models.Slice.impl_6",
         "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_A_SIZE",
         "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_SIGNING_SIZE",
         "equation_Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized__v_SEED_MATRIX_END",
@@ -1461,37 +1411,37 @@
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v",
         "equation_Rust_primitives.Slice.slice_length",
-        "fuel_guarded_inversion_Core_models.Ops.Range.t_Range",
+        "fuel_guarded_inversion_Core_models.Bundle.t_Range",
         "function_token_typing_Rust_primitives.Integers.u8", "int_inversion",
         "int_typing",
-        "interpretation_Tm_abs_87065fc1a6f4731576ff09a0c8e20742",
         "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
+        "interpretation_Tm_abs_f9c2728f19ddd20263287eca3242b7dc",
         "lemma_Rust_primitives.Integers.mk_int_v_lemma",
         "primitive_Prims.op_Addition", "primitive_Prims.op_AmpAmp",
         "primitive_Prims.op_LessThanOrEqual",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_start",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxBool_proj_0",
         "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_start",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index_pre",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_start",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
-        "refinement_interpretation_Tm_refine_1d5968a699f89514387df701741256f8",
+        "refinement_interpretation_Tm_refine_2149db6571e4dbac18044f34377d23da",
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
-        "refinement_interpretation_Tm_refine_8da2f1d10ed0353c885844dacd442e39",
-        "refinement_interpretation_Tm_refine_a8097e7a6965500dd378f74e9b9f8a39",
+        "refinement_interpretation_Tm_refine_50543789316a7833203c89063e036970",
         "refinement_interpretation_Tm_refine_ab6a89e8f28f563e5276cd4d86befa1d",
-        "refinement_interpretation_Tm_refine_be8587903c1775e80ddbfdfa905988a1",
+        "refinement_interpretation_Tm_refine_b041d808c8f57977ec3279a956764ced",
+        "refinement_interpretation_Tm_refine_c45abee983f2f84bb459e852e6a62e3b",
+        "refinement_interpretation_Tm_refine_c5bcc626f22a9c0faca6389e4f22e347",
         "refinement_interpretation_Tm_refine_e1dbac4ed608803ee339af32736c8723",
-        "refinement_interpretation_Tm_refine_eb103a40d8deb755db624b14c6b35096",
         "token_correspondence_Core_models.Ops.Index.f_index_pre",
         "typing_Rust_primitives.Arrays.length",
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "58c78642f697e8d8bd9698f68f4f6bdc"
+      "e8a7edc548c1f94172d9be6bac4b7c4a"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -1502,8 +1452,7 @@
         "@MaxIFuel_assumption", "@query", "b2t_def",
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
         "equation_Core_models.Ops.Index.f_index_pre",
-        "equation_Core_models.Slice.impl_7",
-        "equation_Core_models.Slice.impl__len",
+        "equation_Core_models.Slice.impl_6",
         "equation_Rust_primitives.Arrays.length",
         "equation_Rust_primitives.Arrays.t_Array",
         "equation_Rust_primitives.Arrays.t_Slice",
@@ -1516,27 +1465,27 @@
         "equation_Rust_primitives.Integers.v",
         "equation_Rust_primitives.Slice.slice_length",
         "function_token_typing_Rust_primitives.Integers.u8",
-        "interpretation_Tm_abs_87065fc1a6f4731576ff09a0c8e20742",
         "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
+        "interpretation_Tm_abs_f9c2728f19ddd20263287eca3242b7dc",
         "lemma_Rust_primitives.Integers.mk_int_v_lemma",
         "primitive_Prims.op_AmpAmp", "primitive_Prims.op_LessThanOrEqual",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index_pre",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
-        "refinement_interpretation_Tm_refine_0449e3d9f4d1a4ee9716ea83067efcb9",
-        "refinement_interpretation_Tm_refine_1d5968a699f89514387df701741256f8",
+        "refinement_interpretation_Tm_refine_2149db6571e4dbac18044f34377d23da",
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
-        "refinement_interpretation_Tm_refine_be8587903c1775e80ddbfdfa905988a1",
-        "refinement_interpretation_Tm_refine_d9510e8089095fc85db969990e7cc1c3",
+        "refinement_interpretation_Tm_refine_221d4150bb2b93e4544031fb3d017ab1",
+        "refinement_interpretation_Tm_refine_50543789316a7833203c89063e036970",
+        "refinement_interpretation_Tm_refine_8b70117a24320fec988a04a277fc02d1",
         "token_correspondence_Core_models.Ops.Index.f_index_pre",
         "typing_Rust_primitives.Arrays.length",
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "31ece028137567367f7906b997fcb243"
+      "e3ede28101ff30221b81a650d2621448"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -1550,23 +1499,21 @@
         "equation_Libcrux_ml_dsa.Constants.v_BYTES_FOR_VERIFICATION_KEY_HASH",
         "equation_Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized__v_VK_HASH_END",
         "equation_Rust_primitives.Arrays.t_Array",
-        "equation_Rust_primitives.Arrays.t_Slice",
         "equation_Rust_primitives.Integers.add",
         "equation_Rust_primitives.Integers.mk_int",
         "equation_Rust_primitives.Integers.mk_usize",
         "equation_Rust_primitives.Integers.u8",
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v",
-        "equation_Rust_primitives.Mem.replace",
         "equation_Rust_primitives.Notations.op_String_Access",
+        "equation_Rust_primitives.Slice.slice_clone_from_slice",
         "primitive_Prims.op_Addition", "primitive_Prims.op_Subtraction",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_start",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxInt_proj_0",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_start",
-        "projection_inverse_FStar.Pervasives.Native.Mktuple2_@_1",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_start",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_04a4f266bdaad95308c5a4924be88048",
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
@@ -1574,7 +1521,7 @@
         "refinement_interpretation_Tm_refine_e1dbac4ed608803ee339af32736c8723"
       ],
       0,
-      "4a0c30ed513bfe209cbc6e512ac614fd"
+      "bd263d5bc5e2f68f20ea45938db4c6ec"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -1595,13 +1542,13 @@
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
-        "refinement_interpretation_Tm_refine_9346b852db222ace67b383fd730be37c",
-        "refinement_interpretation_Tm_refine_be8587903c1775e80ddbfdfa905988a1",
-        "refinement_interpretation_Tm_refine_d041195a43c1fd76e0925dd431b0722e",
+        "refinement_interpretation_Tm_refine_50543789316a7833203c89063e036970",
+        "refinement_interpretation_Tm_refine_9d01d5610b34273b0b5f407e25ae3c6b",
+        "refinement_interpretation_Tm_refine_de587141da7d5089fe328b4c4f1acccd",
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "8313f68b7b675371251d73478b8680a3"
+      "bca2846571028bd81a4c090d145e7be3"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -1676,7 +1623,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "2eb7e611e134326290af1fb9e3890e38"
+      "9106f911572184c892bbf998bbd9031b"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -1732,7 +1679,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "ef92d17c0d0d7ca98ec103336fa6fc59"
+      "f51e095cbc7096afbf27c4a92e1a54b0"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -1752,7 +1699,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "363dfc93b7fa43a98c8eaa43bbede384"
+      "42de8a1fae7aab94edcabfcc34561f71"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -1772,7 +1719,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "595a08b8beb27c900af197f3db17b9df"
+      "2908cb864e5226a0ce171281ca5c3e81"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -1830,7 +1777,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "d0d577d0d78edb441723f08fd0efd74c"
+      "c25b164de7b87eddcf5545184b13b205"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -1842,7 +1789,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "28e13982e8fed6c9b7f57e63756b0964"
+      "1a31c4e4f525d72124a958654cbee0a0"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -1858,7 +1805,7 @@
         "refinement_interpretation_Tm_refine_5869a658f3e9d4fc11c86c31e0a72776"
       ],
       0,
-      "b923299499575eb19cf8079514401fad"
+      "c94c29a7ed7e39d8d3c4a0b3c69d2b2b"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -1874,7 +1821,7 @@
         "refinement_interpretation_Tm_refine_5869a658f3e9d4fc11c86c31e0a72776"
       ],
       0,
-      "19f787ea30251ed11d41c5de84c752b7"
+      "a093499d39b2e9f5bf04001db2f4d428"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -1913,7 +1860,7 @@
         "typing_Libcrux_ml_dsa.Simd.Traits.__proj__Mkt_Operations__item___super_i2"
       ],
       0,
-      "b55720cc591090440765839d715a02a3"
+      "370b85e35d4a7f3f5bc9fd0bde96ab93"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -1952,7 +1899,7 @@
         "typing_Libcrux_ml_dsa.Simd.Traits.__proj__Mkt_Operations__item___super_i2"
       ],
       0,
-      "93693f54a4cc038bf0513150a1481b82"
+      "1ef0e98d0bce41c3a53daffceda0a4cb"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -1976,7 +1923,7 @@
         "typing_FStar.Seq.Base.length"
       ],
       0,
-      "448694bc97d195aa2d70728cc5dedd52"
+      "82324a08a63dddfecb091648d98f5a53"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -1988,7 +1935,7 @@
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7"
       ],
       0,
-      "8bb2fa3b2f229ff091f514c18a091272"
+      "e1b2d1b4c432c85dff8774661c1fbe1d"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -2007,7 +1954,7 @@
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0"
       ],
       0,
-      "a6dfd44ad89ead1ce2b4fa2ed645c34f"
+      "664e27c8ccd4918f2ee55cd6f9ee2c9b"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -2021,7 +1968,7 @@
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7"
       ],
       0,
-      "e732ad985987b4e5ae7f96b53b9e0da7"
+      "7e3265a1599a5f7dd8f835479ff44d91"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -2040,14 +1987,14 @@
         "equation_Rust_primitives.Integers.v", "primitive_Prims.op_Addition",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
-        "refinement_interpretation_Tm_refine_1d5968a699f89514387df701741256f8",
+        "refinement_interpretation_Tm_refine_09884a4aaa4646413671c646ad9a8768",
+        "refinement_interpretation_Tm_refine_2149db6571e4dbac18044f34377d23da",
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
-        "refinement_interpretation_Tm_refine_3bd33a0b999467965a255592bf0877c6",
-        "refinement_interpretation_Tm_refine_be8587903c1775e80ddbfdfa905988a1",
+        "refinement_interpretation_Tm_refine_50543789316a7833203c89063e036970",
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7"
       ],
       0,
-      "be66982ce30b151ae42a7ff18a202001"
+      "aead5539d37f25abd944a85ba85b1cab"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -2059,7 +2006,7 @@
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7"
       ],
       0,
-      "f1b8cd25e9ae8948cfcdef581496a12a"
+      "979f24f8c7f6b09f1240de69afb9a00e"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -2074,7 +2021,7 @@
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7"
       ],
       0,
-      "f218ddfb86734a15e9bf429294042456"
+      "2964cb823a4f501d3522bb9009eafc74"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -2094,7 +2041,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "ba964d7aa04161726996279603f31cec"
+      "945cec97498b0b902e01da83cecab320"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -2103,7 +2050,7 @@
       1,
       [ "@query", "b2t_def" ],
       0,
-      "a618a24dee0963484f7a7171c1ddbf98"
+      "dda07d380803ebaf5407c9e9e923edc8"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -2115,7 +2062,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "0b59cc7f359db23b5600b007e76180a2"
+      "727cefbb6743250bb00a945e8b58b15f"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -2131,7 +2078,7 @@
         "refinement_interpretation_Tm_refine_5869a658f3e9d4fc11c86c31e0a72776"
       ],
       0,
-      "c9a3017a3df4aba36475c5fd1ef5d75b"
+      "f1a68984621f36f0bde24f2c6ab072b9"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -2147,7 +2094,7 @@
         "refinement_interpretation_Tm_refine_5869a658f3e9d4fc11c86c31e0a72776"
       ],
       0,
-      "b5204715b1a4d2046e349bc60389eecd"
+      "dcf2f97b2e123e72b49a896a3986e4cc"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -2186,7 +2133,7 @@
         "typing_Libcrux_ml_dsa.Simd.Traits.__proj__Mkt_Operations__item___super_i2"
       ],
       0,
-      "060931b1b91f4a9989a909b1985b2209"
+      "58a4c4fb7622048c99b1ab8e06138cd4"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -2225,7 +2172,7 @@
         "typing_Libcrux_ml_dsa.Simd.Traits.__proj__Mkt_Operations__item___super_i2"
       ],
       0,
-      "cc8876a18d52e5171b5203c6645115f1"
+      "e13f6fc0e6b268d787ad0dd40b7d53aa"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -2237,7 +2184,7 @@
         "refinement_interpretation_Tm_refine_6e4084a02ad61da59eaadb472b12c38a"
       ],
       0,
-      "eaff61ff3091b888f419492212aa5a7f"
+      "312851460258b6cdf75190496fe04916"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -2254,7 +2201,7 @@
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7"
       ],
       0,
-      "eb001e5d207cab9ed4830e2b2935d9cf"
+      "73dff2c84dd57be6e60369295834559d"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -2280,7 +2227,7 @@
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7"
       ],
       0,
-      "c452b1da3859f6fd7f9292408bee42cb"
+      "1971d3e38703fcf2b9afbddc35e2be9e"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -2335,7 +2282,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "045648e29cb37747c15ece6fa2f427a6"
+      "92a1aba91cb5508a482923b71ce2b218"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -2388,7 +2335,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "cd7dadbcfac8b40e03635f77aca0af11"
+      "8a9625dacb747c64e9369e366ae241b7"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -2441,7 +2388,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "ea47be80d2b246248d59d799dff8f9ed"
+      "01a88a7692b85571646a39fc082282ad"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -2452,20 +2399,20 @@
         "@MaxIFuel_assumption", "@query",
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
         "equation_Core_models.Ops.Index.f_index_pre",
-        "equation_Core_models.Slice.impl_11",
+        "equation_Core_models.Slice.impl_10",
         "equation_Core_models.Slice.impl__len",
         "equation_Rust_primitives.Arrays.t_Slice",
         "equation_Rust_primitives.Integers.lt",
         "equation_Rust_primitives.Integers.usize",
         "fuel_guarded_inversion_Rust_primitives.Integers.int_t",
+        "interpretation_Tm_abs_aed667363465ba744e352ad378c160c3",
         "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
-        "interpretation_Tm_abs_e4ad8c1bfeedd85414fb6d3d7efd6033",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index_pre",
         "refinement_interpretation_Tm_refine_6e4084a02ad61da59eaadb472b12c38a",
         "token_correspondence_Core_models.Ops.Index.f_index_pre"
       ],
       0,
-      "cf0293ddcc4be222a9b9589d52f5058a"
+      "b546b9bf68fa70f0ca0cf23c89f3002c"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -2477,9 +2424,8 @@
         "constructor_distinct_Rust_primitives.Integers.USIZE",
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
         "equation_Core_models.Ops.Index.f_index_pre",
-        "equation_Core_models.Slice.impl_11",
-        "equation_Core_models.Slice.impl_7",
-        "equation_Core_models.Slice.impl__len",
+        "equation_Core_models.Slice.impl_10",
+        "equation_Core_models.Slice.impl_6",
         "equation_Libcrux_ml_dsa.Constants.v_BYTES_FOR_VERIFICATION_KEY_HASH",
         "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_A_SIZE",
         "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_SIGNING_SIZE",
@@ -2503,28 +2449,26 @@
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v",
         "equation_Rust_primitives.Slice.slice_length",
-        "fuel_guarded_inversion_Core_models.Ops.Range.t_Range",
-        "function_token_typing_Rust_primitives.Integers.u8",
+        "fuel_guarded_inversion_Core_models.Bundle.t_Range",
         "function_token_typing_Rust_primitives.Integers.usize",
-        "interpretation_Tm_abs_87065fc1a6f4731576ff09a0c8e20742",
         "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
+        "interpretation_Tm_abs_f9c2728f19ddd20263287eca3242b7dc",
         "kinding_Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement@tok",
-        "lemma_Rust_primitives.Integers.mk_int_v_lemma",
         "primitive_Prims.op_Addition", "primitive_Prims.op_AmpAmp",
         "primitive_Prims.op_LessThanOrEqual", "primitive_Prims.op_Multiply",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_start",
         "proj_equation_Core_models.Ops.Index.Mkt_Index_@f_Output",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_start",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxBool_proj_0",
         "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_start",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_Output",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index_pre",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_start",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_061c300549df5f8f5d98c0067794b393",
-        "refinement_interpretation_Tm_refine_1d5968a699f89514387df701741256f8",
+        "refinement_interpretation_Tm_refine_2149db6571e4dbac18044f34377d23da",
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
         "refinement_interpretation_Tm_refine_4bb8998fe69acc99b21e814adae749a3",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
@@ -2533,20 +2477,19 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
         "refinement_interpretation_Tm_refine_a73d91e3adf089cfc5157710ef7fd84e",
         "refinement_interpretation_Tm_refine_ab6a89e8f28f563e5276cd4d86befa1d",
+        "refinement_interpretation_Tm_refine_b041d808c8f57977ec3279a956764ced",
         "refinement_interpretation_Tm_refine_e1dbac4ed608803ee339af32736c8723",
-        "refinement_interpretation_Tm_refine_eb103a40d8deb755db624b14c6b35096",
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7",
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca",
         "token_correspondence_Core_models.Ops.Index.f_index_pre",
         "typing_Core_models.Ops.Index.__proj__Mkt_Index__item__f_Output",
-        "typing_Core_models.Slice.impl_11", "typing_FStar.Seq.Base.length",
-        "typing_Rust_primitives.Arrays.length",
+        "typing_Core_models.Slice.impl_10", "typing_FStar.Seq.Base.length",
         "typing_Rust_primitives.Arrays.t_Slice",
         "typing_Rust_primitives.Integers.v",
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f0712c3ecd02141b5ec2da1be861ae3c"
+      "515e9c15467331a694a653fcbc372c58"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -2559,8 +2502,7 @@
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
         "equation_Core_models.Ops.Index.f_index",
         "equation_Core_models.Ops.Index.f_index_pre",
-        "equation_Core_models.Slice.impl_7",
-        "equation_Core_models.Slice.impl__len",
+        "equation_Core_models.Slice.impl_6",
         "equation_Libcrux_ml_dsa.Constants.v_BYTES_FOR_VERIFICATION_KEY_HASH",
         "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_A_SIZE",
         "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_SIGNING_SIZE",
@@ -2586,56 +2528,55 @@
         "equation_Rust_primitives.Notations.op_String_Access",
         "equation_Rust_primitives.Slice.slice_length",
         "equation_Rust_primitives.Slice.slice_slice",
-        "fuel_guarded_inversion_Core_models.Ops.Range.t_Range",
+        "fuel_guarded_inversion_Core_models.Bundle.t_Range",
         "fuel_guarded_inversion_Libcrux_ml_dsa.Constants.t_Eta",
         "function_token_typing_Rust_primitives.Integers.u8", "int_inversion",
         "int_typing",
         "interpretation_Tm_abs_4ab552b3415220d2b607f7d57c958117",
-        "interpretation_Tm_abs_87065fc1a6f4731576ff09a0c8e20742",
-        "interpretation_Tm_abs_900369f04b4ab299c3cdf8970be0a9f8",
         "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
+        "interpretation_Tm_abs_f9c2728f19ddd20263287eca3242b7dc",
+        "interpretation_Tm_abs_fd6f2e57ab8d0296c22b4aca283c828d",
         "lemma_FStar.Seq.Base.lemma_len_slice",
         "lemma_Rust_primitives.Integers.mk_int_v_lemma",
         "primitive_Prims.op_Addition", "primitive_Prims.op_AmpAmp",
         "primitive_Prims.op_LessThan", "primitive_Prims.op_LessThanOrEqual",
         "primitive_Prims.op_Multiply", "primitive_Prims.op_Subtraction",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_start",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxBool_proj_0",
         "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_start",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index_pre",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_start",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_061c300549df5f8f5d98c0067794b393",
-        "refinement_interpretation_Tm_refine_1d5968a699f89514387df701741256f8",
+        "refinement_interpretation_Tm_refine_2149db6571e4dbac18044f34377d23da",
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
         "refinement_interpretation_Tm_refine_4bb8998fe69acc99b21e814adae749a3",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
         "refinement_interpretation_Tm_refine_5a92b6e4e7af9363bc35e43d9d7f3f13",
         "refinement_interpretation_Tm_refine_6e4084a02ad61da59eaadb472b12c38a",
         "refinement_interpretation_Tm_refine_7319c9b6d89fcb397e52df395b692959",
+        "refinement_interpretation_Tm_refine_817080a74a6c73e60c31cd5161ccb55e",
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
         "refinement_interpretation_Tm_refine_a73d91e3adf089cfc5157710ef7fd84e",
+        "refinement_interpretation_Tm_refine_aaa2da7e84700d8c2216383aaffac5e6",
         "refinement_interpretation_Tm_refine_ab6a89e8f28f563e5276cd4d86befa1d",
-        "refinement_interpretation_Tm_refine_d9eba027add819d6fc4f789df1ec797c",
+        "refinement_interpretation_Tm_refine_b041d808c8f57977ec3279a956764ced",
         "refinement_interpretation_Tm_refine_e1dbac4ed608803ee339af32736c8723",
-        "refinement_interpretation_Tm_refine_e9a8809d6e2bd8ffb804f2b8af5a2e4a",
-        "refinement_interpretation_Tm_refine_eb103a40d8deb755db624b14c6b35096",
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7",
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca",
         "token_correspondence_Core_models.Ops.Index.f_index",
         "token_correspondence_Core_models.Ops.Index.f_index_pre",
-        "typing_Core_models.Slice.impl__len",
         "typing_Rust_primitives.Arrays.length",
         "typing_Rust_primitives.Integers.lte",
         "typing_Rust_primitives.Integers.v",
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "3b7538ccecb493caaf9f3d0a0710ea9b"
+      "cc68949de2612eb4ecfcdedeec82ccdb"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -2646,10 +2587,7 @@
         "@MaxIFuel_assumption", "@query", "b2t_def",
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
         "equation_Core_models.Ops.Index.f_index",
-        "equation_Core_models.Slice.impl_11",
-        "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_A_SIZE",
-        "equation_Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized__v_SEED_MATRIX_END",
-        "equation_Prims.nat", "equation_Rust_primitives.Arrays.t_Array",
+        "equation_Core_models.Slice.impl_10", "equation_Prims.nat",
         "equation_Rust_primitives.Arrays.t_Slice",
         "equation_Rust_primitives.Integers.mk_int",
         "equation_Rust_primitives.Integers.mk_usize",
@@ -2657,41 +2595,29 @@
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v",
         "equation_Rust_primitives.Notations.op_String_Access",
-        "equation_Rust_primitives.Slice.slice_index",
-        "fuel_guarded_inversion_Core_models.Ops.Range.t_Range",
-        "fuel_guarded_inversion_Libcrux_ml_dsa.Simd.Traits.t_Operations",
-        "int_inversion",
+        "equation_Rust_primitives.Slice.slice_index", "int_inversion",
         "interpretation_Tm_abs_4ab552b3415220d2b607f7d57c958117",
         "interpretation_Tm_abs_4e4fb4f1da82d1347bc902058b81f833",
         "primitive_Prims.op_LessThan",
-        "proj_equation_Core_models.Ops.Index.Mkt_Index_@f_Output",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "proj_equation_Libcrux_ml_dsa.Polynomial.Mkt_PolynomialRingElement_@f_simd_units",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxBool_proj_0",
         "projection_inverse_BoxInt_proj_0",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_Output",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_0dee8cb03258a67c2f7ec66427696212",
-        "refinement_interpretation_Tm_refine_160fe7faad9a466b3cae8455bac5be60",
-        "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
         "refinement_interpretation_Tm_refine_4bb8998fe69acc99b21e814adae749a3",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
         "refinement_interpretation_Tm_refine_55cb77d236cf8608da148febbca8ce70",
-        "refinement_interpretation_Tm_refine_5a97f570801d34b42d83ba8fbec1f777",
         "refinement_interpretation_Tm_refine_6e4084a02ad61da59eaadb472b12c38a",
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
-        "refinement_interpretation_Tm_refine_eb103a40d8deb755db624b14c6b35096",
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7",
         "token_correspondence_Core_models.Ops.Index.f_index",
-        "typing_Libcrux_ml_dsa.Polynomial.__proj__Mkt_PolynomialRingElement__item__f_simd_units",
         "typing_Rust_primitives.Integers.v",
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "9ac0bf78cca6384d89a18ae2b24b73bd"
+      "8616d966ee72d7479a5650635175b774"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -2710,18 +2636,18 @@
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v", "primitive_Prims.op_Addition",
         "primitive_Prims.op_AmpAmp", "primitive_Prims.op_LessThanOrEqual",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_start",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxBool_proj_0",
         "projection_inverse_BoxInt_proj_0",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_start",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_324718f6af31412c22943fe4da448169",
         "refinement_interpretation_Tm_refine_4bb8998fe69acc99b21e814adae749a3",
         "refinement_interpretation_Tm_refine_567fbc9992cfaa301d9a342bd17198f5"
       ],
       0,
-      "fd60a55f4bc73d6c15c3c8beb2613e42"
+      "7546e2bf34b558df38f9488209f95f54"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -2732,7 +2658,7 @@
         "@MaxIFuel_assumption", "@query", "b2t_def",
         "constructor_distinct_Rust_primitives.Integers.USIZE",
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
-        "equation_Core_models.Slice.impl_11",
+        "equation_Core_models.Slice.impl_10",
         "equation_Libcrux_ml_dsa.Constants.v_BYTES_FOR_VERIFICATION_KEY_HASH",
         "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_A_SIZE",
         "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_SIGNING_SIZE",
@@ -2751,20 +2677,20 @@
         "equation_Rust_primitives.Integers.unsigned",
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v",
-        "fuel_guarded_inversion_Core_models.Ops.Range.t_Range",
+        "fuel_guarded_inversion_Core_models.Bundle.t_Range",
         "function_token_typing_Rust_primitives.Integers.usize",
         "kinding_Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement@tok",
         "primitive_Prims.op_Addition", "primitive_Prims.op_AmpAmp",
         "primitive_Prims.op_LessThanOrEqual", "primitive_Prims.op_Multiply",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_start",
         "proj_equation_Core_models.Ops.Index.Mkt_Index_@f_Output",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_start",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxBool_proj_0",
         "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_start",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_Output",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_start",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_4bb8998fe69acc99b21e814adae749a3",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
@@ -2772,18 +2698,18 @@
         "refinement_interpretation_Tm_refine_7319c9b6d89fcb397e52df395b692959",
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
         "refinement_interpretation_Tm_refine_ab6a89e8f28f563e5276cd4d86befa1d",
+        "refinement_interpretation_Tm_refine_b041d808c8f57977ec3279a956764ced",
         "refinement_interpretation_Tm_refine_e1dbac4ed608803ee339af32736c8723",
-        "refinement_interpretation_Tm_refine_eb103a40d8deb755db624b14c6b35096",
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7",
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca",
         "typing_Core_models.Ops.Index.__proj__Mkt_Index__item__f_Output",
-        "typing_Core_models.Slice.impl_11", "typing_FStar.Seq.Base.length",
+        "typing_Core_models.Slice.impl_10", "typing_FStar.Seq.Base.length",
         "typing_Rust_primitives.Arrays.t_Slice",
         "typing_Rust_primitives.Integers.v",
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "da20b5c815dd9c8e6b9e7b3ce47d3d23"
+      "0df0ddd2d308e2fbab689d910ae3e882"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -2793,7 +2719,7 @@
       [
         "@MaxIFuel_assumption", "@query", "b2t_def",
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
-        "equation_Core_models.Slice.impl_11",
+        "equation_Core_models.Slice.impl_10",
         "equation_Libcrux_ml_dsa.Constants.v_BYTES_FOR_VERIFICATION_KEY_HASH",
         "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_A_SIZE",
         "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_SIGNING_SIZE",
@@ -2808,34 +2734,34 @@
         "equation_Rust_primitives.Integers.u8",
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v",
-        "fuel_guarded_inversion_Core_models.Ops.Range.t_Range",
+        "fuel_guarded_inversion_Core_models.Bundle.t_Range",
         "function_token_typing_Rust_primitives.Integers.usize",
         "kinding_Libcrux_ml_dsa.Polynomial.t_PolynomialRingElement@tok",
         "primitive_Prims.op_Addition", "primitive_Prims.op_LessThanOrEqual",
         "primitive_Prims.op_Multiply",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
         "proj_equation_Core_models.Ops.Index.Mkt_Index_@f_Output",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxBool_proj_0",
         "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_Output",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
         "refinement_interpretation_Tm_refine_6e4084a02ad61da59eaadb472b12c38a",
         "refinement_interpretation_Tm_refine_7319c9b6d89fcb397e52df395b692959",
         "refinement_interpretation_Tm_refine_a73d91e3adf089cfc5157710ef7fd84e",
         "refinement_interpretation_Tm_refine_ab6a89e8f28f563e5276cd4d86befa1d",
+        "refinement_interpretation_Tm_refine_b041d808c8f57977ec3279a956764ced",
         "refinement_interpretation_Tm_refine_e1dbac4ed608803ee339af32736c8723",
-        "refinement_interpretation_Tm_refine_eb103a40d8deb755db624b14c6b35096",
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7",
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca",
         "typing_Core_models.Ops.Index.__proj__Mkt_Index__item__f_Output",
-        "typing_Core_models.Slice.impl_11", "typing_FStar.Seq.Base.length",
+        "typing_Core_models.Slice.impl_10", "typing_FStar.Seq.Base.length",
         "typing_Rust_primitives.Arrays.t_Slice"
       ],
       0,
-      "755ed3f13631ea4cb009a4b3e697380f"
+      "07033f989a9be7c522a1e33086f29877"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -2848,8 +2774,7 @@
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
         "equation_Core_models.Ops.Index.f_index",
         "equation_Core_models.Ops.Index.f_index_pre",
-        "equation_Core_models.Slice.impl_7",
-        "equation_Core_models.Slice.impl__len",
+        "equation_Core_models.Slice.impl_6",
         "equation_Libcrux_ml_dsa.Constants.v_BYTES_FOR_VERIFICATION_KEY_HASH",
         "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_A_SIZE",
         "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_SIGNING_SIZE",
@@ -2875,55 +2800,54 @@
         "equation_Rust_primitives.Notations.op_String_Access",
         "equation_Rust_primitives.Slice.slice_length",
         "equation_Rust_primitives.Slice.slice_slice",
-        "fuel_guarded_inversion_Core_models.Ops.Range.t_Range",
+        "fuel_guarded_inversion_Core_models.Bundle.t_Range",
         "function_token_typing_Rust_primitives.Integers.u8", "int_typing",
         "interpretation_Tm_abs_4ab552b3415220d2b607f7d57c958117",
-        "interpretation_Tm_abs_87065fc1a6f4731576ff09a0c8e20742",
-        "interpretation_Tm_abs_900369f04b4ab299c3cdf8970be0a9f8",
         "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
+        "interpretation_Tm_abs_f9c2728f19ddd20263287eca3242b7dc",
+        "interpretation_Tm_abs_fd6f2e57ab8d0296c22b4aca283c828d",
         "lemma_FStar.Seq.Base.lemma_len_slice",
         "lemma_Rust_primitives.Integers.mk_int_v_lemma",
         "primitive_Prims.op_Addition", "primitive_Prims.op_AmpAmp",
         "primitive_Prims.op_LessThan", "primitive_Prims.op_LessThanOrEqual",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_start",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxBool_proj_0",
         "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_start",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index_pre",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_start",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_061c300549df5f8f5d98c0067794b393",
-        "refinement_interpretation_Tm_refine_1d5968a699f89514387df701741256f8",
+        "refinement_interpretation_Tm_refine_2149db6571e4dbac18044f34377d23da",
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
+        "refinement_interpretation_Tm_refine_3c28c25c158110798b44bb66760d9b17",
         "refinement_interpretation_Tm_refine_4bb8998fe69acc99b21e814adae749a3",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
         "refinement_interpretation_Tm_refine_5a92b6e4e7af9363bc35e43d9d7f3f13",
         "refinement_interpretation_Tm_refine_6e4084a02ad61da59eaadb472b12c38a",
         "refinement_interpretation_Tm_refine_7319c9b6d89fcb397e52df395b692959",
+        "refinement_interpretation_Tm_refine_817080a74a6c73e60c31cd5161ccb55e",
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
         "refinement_interpretation_Tm_refine_a73d91e3adf089cfc5157710ef7fd84e",
+        "refinement_interpretation_Tm_refine_aaa2da7e84700d8c2216383aaffac5e6",
         "refinement_interpretation_Tm_refine_ab6a89e8f28f563e5276cd4d86befa1d",
-        "refinement_interpretation_Tm_refine_d9eba027add819d6fc4f789df1ec797c",
+        "refinement_interpretation_Tm_refine_b041d808c8f57977ec3279a956764ced",
+        "refinement_interpretation_Tm_refine_b1cccf049fe19927e2a30a77ece04bc4",
         "refinement_interpretation_Tm_refine_e1dbac4ed608803ee339af32736c8723",
-        "refinement_interpretation_Tm_refine_e9a8809d6e2bd8ffb804f2b8af5a2e4a",
-        "refinement_interpretation_Tm_refine_eb103a40d8deb755db624b14c6b35096",
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7",
-        "refinement_interpretation_Tm_refine_fd67d5e6b6a88953f9e2d4928e86ca95",
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca",
-        "refinement_interpretation_Tm_refine_fe68d119bbca040bbcbbd09733a0d29b",
         "token_correspondence_Core_models.Ops.Index.f_index",
         "token_correspondence_Core_models.Ops.Index.f_index_pre",
-        "typing_Core_models.Slice.impl__len",
         "typing_Rust_primitives.Arrays.length",
         "typing_Rust_primitives.Integers.lte",
         "typing_Rust_primitives.Integers.v",
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "a91f76fc2e97a9d0de9c6be7bbce9d8e"
+      "246515ad4ed3aa78e0d39c26ce699dcf"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -2936,16 +2860,16 @@
         "equation_Rust_primitives.Arrays.t_Array",
         "equation_Rust_primitives.Arrays.t_Slice",
         "equation_Rust_primitives.Integers.u8",
-        "refinement_interpretation_Tm_refine_1d5968a699f89514387df701741256f8",
+        "refinement_interpretation_Tm_refine_2149db6571e4dbac18044f34377d23da",
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
         "refinement_interpretation_Tm_refine_6e4084a02ad61da59eaadb472b12c38a",
-        "refinement_interpretation_Tm_refine_79b7bc18c2dc9de4e0600213c5401cb1",
-        "refinement_interpretation_Tm_refine_d041195a43c1fd76e0925dd431b0722e",
+        "refinement_interpretation_Tm_refine_7c23895193524ab86797d51d59b9cbca",
+        "refinement_interpretation_Tm_refine_9d01d5610b34273b0b5f407e25ae3c6b",
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7",
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "6cd14ef97d3f9e35022e433f5115af33"
+      "a9e3f5a1b02f75e010e85257b4176028"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -2963,7 +2887,7 @@
         "refinement_interpretation_Tm_refine_6e4084a02ad61da59eaadb472b12c38a"
       ],
       0,
-      "9beee70e8bfb15648bc803c0a66f852b"
+      "1453a8ea3f1f7616b1beee2017b7d22a"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -2975,7 +2899,7 @@
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7"
       ],
       0,
-      "15d4a6b11fd2aa6bc6c4dd9d8f0e2cc9"
+      "4abea6f8a7fe1f17986c29ea4563dced"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -2994,7 +2918,7 @@
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0"
       ],
       0,
-      "8164a6ddb16dca381e94dd47ada59f9f"
+      "2e590a437d696d40290201878b7e76a6"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3006,7 +2930,7 @@
         "refinement_interpretation_Tm_refine_6e4084a02ad61da59eaadb472b12c38a"
       ],
       0,
-      "7fb0f7aa606a4c80b5c6bb882320f5c9"
+      "b8eed63e1d1a2587df7f927f1f3def9f"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3026,12 +2950,12 @@
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
-        "refinement_interpretation_Tm_refine_54e722cf6b2d190e41d9a6796d9be747",
         "refinement_interpretation_Tm_refine_6e4084a02ad61da59eaadb472b12c38a",
+        "refinement_interpretation_Tm_refine_7989d0ce5d68f873ab255f473c33e287",
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7"
       ],
       0,
-      "616a283a816ace6f1fd4c090e43bd860"
+      "54c06923fe85716683432416c8b97e8f"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3043,7 +2967,7 @@
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7"
       ],
       0,
-      "e1d2159f3d0718af27286b4ce3c90f4f"
+      "e90fc41d2c0b00887119cec54f3fe015"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3058,7 +2982,7 @@
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7"
       ],
       0,
-      "8d90e538cb356ebcb24ea3acf99dd625"
+      "4e561a656c14ee3a92c8976e11674513"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3078,7 +3002,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "ef14de9fae9ae056826e16035e07e4ff"
+      "e5dfd73da039aec79bbb4821f212e54d"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3098,7 +3022,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "7fe572c29b62242ff8abab97046ac22b"
+      "1d48c4cc3f238661d0cc29f5daa23f38"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3107,7 +3031,7 @@
       1,
       [ "@query", "b2t_def" ],
       0,
-      "793709d1cd2a7eddc1e39ba0bf1c782e"
+      "3aae456b30d608c90735538efc1d35f5"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3119,7 +3043,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "4cf867d12b88cc3626768eafd52c8d78"
+      "a92c081ffb369ce4cbe4664545b9ecba"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3198,7 +3122,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "a01f5cd2712fd99ebf49a7a2ce069026"
+      "f7e9eb973192aac506fa31d3cf713626"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3222,7 +3146,7 @@
         "typing_FStar.Seq.Base.length"
       ],
       0,
-      "e585b9296c6d33747a886dd2bd8aa096"
+      "92c2c816a13d82882844ebff570a43a5"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3234,7 +3158,7 @@
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7"
       ],
       0,
-      "949393dc88fdb5a70a24edb0b63f076f"
+      "062e368bb087787419ddca9722574641"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3253,7 +3177,7 @@
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0"
       ],
       0,
-      "306ba9d64c9c8448f5914ea38fc96234"
+      "a2fda2c9d2bb243b39db0b617d8e24fc"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3279,12 +3203,12 @@
         "refinement_interpretation_Tm_refine_4bb8998fe69acc99b21e814adae749a3",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
         "refinement_interpretation_Tm_refine_55cb77d236cf8608da148febbca8ce70",
-        "refinement_interpretation_Tm_refine_e3dd62feea8c8173bf41b53fd03923a9",
+        "refinement_interpretation_Tm_refine_c7eb5ead782cac212dada42fe239df78",
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca",
         "typing_FStar.Seq.Base.length"
       ],
       0,
-      "2c183c707519771a5cd40b2acdbceb2a"
+      "87f35bc78d928a7e507ec254e6f87cc0"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3323,7 +3247,7 @@
         "refinement_interpretation_Tm_refine_eb103a40d8deb755db624b14c6b35096"
       ],
       0,
-      "dd096db6b7cd9dc66a74ff4a907d2646"
+      "b67b2221efe349a02580f4881c0baff2"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3364,7 +3288,7 @@
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7"
       ],
       0,
-      "7b993c0857dd15d43dcdb8dbdaf5a560"
+      "9cc2984ae1b4d44d6057fc38314f94fd"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3392,28 +3316,28 @@
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v",
         "equation_Rust_primitives.Slice.slice_length",
-        "fuel_guarded_inversion_Core_models.Ops.Range.t_Range",
-        "int_inversion", "int_typing", "primitive_Prims.op_Addition",
+        "fuel_guarded_inversion_Core_models.Bundle.t_Range", "int_inversion",
+        "int_typing", "primitive_Prims.op_Addition",
         "primitive_Prims.op_Multiply",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxInt_proj_0",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
-        "refinement_interpretation_Tm_refine_1d5968a699f89514387df701741256f8",
+        "refinement_interpretation_Tm_refine_09884a4aaa4646413671c646ad9a8768",
+        "refinement_interpretation_Tm_refine_0a57e64fc5425120aa9d8a7e7ffdd74b",
+        "refinement_interpretation_Tm_refine_2149db6571e4dbac18044f34377d23da",
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
-        "refinement_interpretation_Tm_refine_3bd33a0b999467965a255592bf0877c6",
         "refinement_interpretation_Tm_refine_423435fb60222c11e29fcdcb8fba6c88",
-        "refinement_interpretation_Tm_refine_6863434425d017c2350a1a4a8b1c99d1",
+        "refinement_interpretation_Tm_refine_50543789316a7833203c89063e036970",
         "refinement_interpretation_Tm_refine_ab6a89e8f28f563e5276cd4d86befa1d",
-        "refinement_interpretation_Tm_refine_be8587903c1775e80ddbfdfa905988a1",
+        "refinement_interpretation_Tm_refine_b041d808c8f57977ec3279a956764ced",
+        "refinement_interpretation_Tm_refine_c7eb5ead782cac212dada42fe239df78",
         "refinement_interpretation_Tm_refine_e1dbac4ed608803ee339af32736c8723",
-        "refinement_interpretation_Tm_refine_e3dd62feea8c8173bf41b53fd03923a9",
-        "refinement_interpretation_Tm_refine_eb103a40d8deb755db624b14c6b35096",
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7"
       ],
       0,
-      "f66f50dc8af444609fe27b1c7c059658"
+      "054168cf4c8cad9455429217379eef7c"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3425,7 +3349,7 @@
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7"
       ],
       0,
-      "0e5c1bdc11b2b9af27866826df17db71"
+      "91fa49ce354bf28bbc55fccff36c2f9a"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3445,7 +3369,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "975294a560bdf7b775beb328e95cc3f3"
+      "651356a979fed610dce0a685df9bcbc6"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3454,7 +3378,7 @@
       1,
       [ "@query", "b2t_def" ],
       0,
-      "c10940053436fd84c939dc583f4dbf63"
+      "45233a3c4eb785d99c11d48e125d263e"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3466,7 +3390,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "6d88475e571880881a1789677561097f"
+      "7ad80ba43cdc8616d6d3b85543bcdfd7"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3550,7 +3474,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "5a241b9fcd6eccc98959ffd9e6f2f6a3"
+      "c188cd2211661ea11b065ab913f3bc33"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3618,7 +3542,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "b0ecb60d8b975eaca3d1c78a75a28326"
+      "5da2c0862c1eb83919af743be3f11145"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3630,7 +3554,7 @@
         "refinement_interpretation_Tm_refine_47e7f133b879868e55e2389dbc95b9be"
       ],
       0,
-      "9a0232949d95b1e07215685c77bb7749"
+      "a04ec18c7dcd7cf4a08e8848bc2b8a83"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3644,7 +3568,7 @@
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7"
       ],
       0,
-      "ef985c2af8dd90fcb1d82d64a3d2b753"
+      "d3f743c450f265fa0e624b1437e5f15d"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3657,7 +3581,7 @@
         "refinement_interpretation_Tm_refine_47e7f133b879868e55e2389dbc95b9be"
       ],
       0,
-      "b595032261168148f7541a61836e82f3"
+      "9a2a2dbf3195a2e9f0b186eb250c433a"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3737,7 +3661,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "bcc996b1c94b798e5923f433c0a56051"
+      "a6f5de56ff40754e50618be2003af01f"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3758,7 +3682,7 @@
         "refinement_interpretation_Tm_refine_4bb8998fe69acc99b21e814adae749a3"
       ],
       0,
-      "e23fea384d21c53cb6fa72c6d6b088e5"
+      "15518636f2cb645bfe43e933d7bcfa0f"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3770,7 +3694,7 @@
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7"
       ],
       0,
-      "531aac7e120f5d532bc7c0ff5be8687c"
+      "ed2fbaa709712706476bc1335a8caaab"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3782,7 +3706,7 @@
         "refinement_interpretation_Tm_refine_47e7f133b879868e55e2389dbc95b9be"
       ],
       0,
-      "1d157ae86491374523051176cca79e8c"
+      "ceef8836cbb515418d719ad1cf921a09"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3794,7 +3718,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "7a082be12b97b2cbf3d4b58c3a59cefc"
+      "25815d012d8eec2f0c47cb95f36764e7"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3807,7 +3731,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "4a89add5bdafc67743dd52741b9175a6"
+      "32a3f26325955deb084ae33aa85f8d07"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3819,7 +3743,7 @@
         "refinement_interpretation_Tm_refine_47e7f133b879868e55e2389dbc95b9be"
       ],
       0,
-      "2941f5faf8a115c0ed30bf5cd7b33a6c"
+      "819439d8b22aa85967fc85cfcc75ee49"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3842,7 +3766,7 @@
         "refinement_interpretation_Tm_refine_da1b0dfb8283502ec162998a8bbb6431"
       ],
       0,
-      "3d64b05f7ad0d7393a5ff6286a6f412e"
+      "f64525682c98272bee5f80718a755766"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3863,7 +3787,7 @@
         "typing_Libcrux_ml_dsa.Simd.Traits.__proj__Mkt_Operations__item___super_i2"
       ],
       0,
-      "b60c2322afd7a633045ba2f0a6f73d12"
+      "8907e5a7ac1db90d57f89af6f5acd1ab"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3886,7 +3810,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "3204a4058a93aab8e5ac92e4f2df5165"
+      "bc18e3c6cd0a0ee4c67fc04f41d625ea"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3898,7 +3822,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "7a082be12b97b2cbf3d4b58c3a59cefc"
+      "25815d012d8eec2f0c47cb95f36764e7"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3911,7 +3835,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "4a89add5bdafc67743dd52741b9175a6"
+      "32a3f26325955deb084ae33aa85f8d07"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3923,7 +3847,7 @@
         "refinement_interpretation_Tm_refine_47e7f133b879868e55e2389dbc95b9be"
       ],
       0,
-      "2941f5faf8a115c0ed30bf5cd7b33a6c"
+      "819439d8b22aa85967fc85cfcc75ee49"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3946,7 +3870,7 @@
         "refinement_interpretation_Tm_refine_da1b0dfb8283502ec162998a8bbb6431"
       ],
       0,
-      "3d64b05f7ad0d7393a5ff6286a6f412e"
+      "f64525682c98272bee5f80718a755766"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3967,7 +3891,7 @@
         "typing_Libcrux_ml_dsa.Simd.Traits.__proj__Mkt_Operations__item___super_i2"
       ],
       0,
-      "b60c2322afd7a633045ba2f0a6f73d12"
+      "8907e5a7ac1db90d57f89af6f5acd1ab"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -3990,7 +3914,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "3204a4058a93aab8e5ac92e4f2df5165"
+      "bc18e3c6cd0a0ee4c67fc04f41d625ea"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -4005,7 +3929,7 @@
         "refinement_interpretation_Tm_refine_fdf4024a57a512741a48b5bc7ee6466f"
       ],
       0,
-      "03d3529ec1b69abbb1b7c02f394a8376"
+      "7caf6c31c184fba9216d5dda09c99694"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -4042,7 +3966,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "6bcf8d54c0f5683fa32569ed9dea640d"
+      "f89ed9d15edff38e1292ffaa9616e860"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -4066,7 +3990,7 @@
         "token_correspondence_Core_models.Ops.Index.f_index_pre"
       ],
       0,
-      "8031258beb837df0a932b046e0427bb6"
+      "2083e3bc5aad3bb6ff1da914c10e3b5a"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -4130,7 +4054,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "8d4c9ab81ec75fef1b06b1aa607a11cc"
+      "645f7d88594e53656ecc6c0638e2b1cc"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -4149,7 +4073,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok", "unit_inversion"
       ],
       0,
-      "606dc54dafe03e79579af3b71e29dbda"
+      "2bef0a3962e01a03e4a2f57dd9c0e792"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -4161,7 +4085,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "d65ab2f8906678719536e69715cfdbcf"
+      "ef02ea841cc129ddd49e776050a5db66"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -4198,7 +4122,7 @@
         "refinement_interpretation_Tm_refine_b0a82badf9647f532e7b1b200165bca3"
       ],
       0,
-      "aa9b5bf4489a8f2bea2d09d6e8a4e44f"
+      "a4fd1f66655cac63a6413b167c7278b2"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -4224,7 +4148,7 @@
         "refinement_interpretation_Tm_refine_56e0327eb14ab61604173ad9dde51b49"
       ],
       0,
-      "267a789143417cf0b554a6b0284477b2"
+      "2eccb5ffcdd99c1a39cc281cf2adf76a"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -4247,7 +4171,7 @@
         "refinement_interpretation_Tm_refine_da1b0dfb8283502ec162998a8bbb6431"
       ],
       0,
-      "19dd585bce15b8889615a830e40c3822"
+      "1d633eb2ca3342b40dce026192f9961e"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -4268,7 +4192,7 @@
         "typing_Libcrux_ml_dsa.Simd.Traits.__proj__Mkt_Operations__item___super_i2"
       ],
       0,
-      "8e28c4abcad257f2417323e7ac5b56cc"
+      "42089ee4883273fc8a04665fca507221"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -4291,7 +4215,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "5f860f4e44582e2859ff25368b2e8381"
+      "249c03cbde1a90ee35352ba1f17237a2"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -4346,7 +4270,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e876254ebac2a63b73ce34b456bcae97"
+      "dd639218d5bc4193149858d63f2c738b"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -4385,7 +4309,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "78d21fcbe2893efa403971000c63febe"
+      "4dfc4a8201fd84094d11bd155a5cc963"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -4441,7 +4365,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "636d66072d7bd20f781982bea2e7c2b3"
+      "662f7b94ef4e887712197f7c7d8dec08"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -4452,20 +4376,20 @@
         "@MaxIFuel_assumption", "@query",
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
         "equation_Core_models.Ops.Index.f_index_pre",
-        "equation_Core_models.Slice.impl_11",
+        "equation_Core_models.Slice.impl_10",
         "equation_Core_models.Slice.impl__len",
         "equation_Rust_primitives.Arrays.t_Slice",
         "equation_Rust_primitives.Integers.lt",
         "equation_Rust_primitives.Integers.usize",
         "fuel_guarded_inversion_Rust_primitives.Integers.int_t",
+        "interpretation_Tm_abs_aed667363465ba744e352ad378c160c3",
         "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
-        "interpretation_Tm_abs_e4ad8c1bfeedd85414fb6d3d7efd6033",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index_pre",
         "refinement_interpretation_Tm_refine_47e7f133b879868e55e2389dbc95b9be",
         "token_correspondence_Core_models.Ops.Index.f_index_pre"
       ],
       0,
-      "6bb67810b5a95c55aa29d20434445b3d"
+      "5c84fabac2b8efd7c5c19ee46737fde7"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -4473,11 +4397,10 @@
       0,
       1,
       [
-        "@MaxIFuel_assumption", "@query", "b2t_def",
-        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "@MaxIFuel_assumption", "@query", "b2t_def", "bool_inversion",
+        "bool_typing", "equality_tok_Rust_primitives.Integers.USIZE@tok",
         "equation_Core_models.Ops.Index.f_index_pre",
-        "equation_Core_models.Slice.impl_7",
-        "equation_Core_models.Slice.impl__len",
+        "equation_Core_models.Slice.impl_6",
         "equation_Rust_primitives.Arrays.length",
         "equation_Rust_primitives.Arrays.t_Array",
         "equation_Rust_primitives.Arrays.t_Slice",
@@ -4486,40 +4409,43 @@
         "equation_Rust_primitives.Integers.mk_int",
         "equation_Rust_primitives.Integers.mk_usize",
         "equation_Rust_primitives.Integers.mul",
+        "equation_Rust_primitives.Integers.range",
         "equation_Rust_primitives.Integers.sz",
         "equation_Rust_primitives.Integers.u8",
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v",
-        "equation_Rust_primitives.Slice.slice_length",
-        "function_token_typing_Rust_primitives.Integers.u8",
-        "interpretation_Tm_abs_87065fc1a6f4731576ff09a0c8e20742",
+        "equation_Rust_primitives.Slice.slice_length", "int_typing",
         "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
-        "lemma_Rust_primitives.Integers.mk_int_v_lemma",
+        "interpretation_Tm_abs_f9c2728f19ddd20263287eca3242b7dc",
         "primitive_Prims.op_Addition", "primitive_Prims.op_AmpAmp",
-        "primitive_Prims.op_LessThanOrEqual", "primitive_Prims.op_Multiply",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "primitive_Prims.op_LessThan", "primitive_Prims.op_LessThanOrEqual",
+        "primitive_Prims.op_Multiply",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_start",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxBool_proj_0",
         "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_start",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index_pre",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_start",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_00525d37911fa3710a575b4b1af14b02",
         "refinement_interpretation_Tm_refine_183ef469ba4fe6a28de2352caee93716",
-        "refinement_interpretation_Tm_refine_1d5968a699f89514387df701741256f8",
+        "refinement_interpretation_Tm_refine_1f51b3f74fef2249ffcd4c954de69558",
+        "refinement_interpretation_Tm_refine_2149db6571e4dbac18044f34377d23da",
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
         "refinement_interpretation_Tm_refine_47e7f133b879868e55e2389dbc95b9be",
+        "refinement_interpretation_Tm_refine_567fbc9992cfaa301d9a342bd17198f5",
         "refinement_interpretation_Tm_refine_56e0327eb14ab61604173ad9dde51b49",
         "refinement_interpretation_Tm_refine_7d433a94b4a1347d3b3b26e641e77ae7",
+        "refinement_interpretation_Tm_refine_b0a82badf9647f532e7b1b200165bca3",
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7",
         "token_correspondence_Core_models.Ops.Index.f_index_pre",
-        "typing_Rust_primitives.Arrays.length",
+        "typing_Rust_primitives.Integers.range",
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "a916840cd3a0ea1c01d99119d6d8ed5b"
+      "08861de66253e96f4d1627556592f40c"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -4532,8 +4458,7 @@
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
         "equation_Core_models.Ops.Index.f_index",
         "equation_Core_models.Ops.Index.f_index_pre",
-        "equation_Core_models.Slice.impl_7",
-        "equation_Core_models.Slice.impl__len",
+        "equation_Core_models.Slice.impl_6",
         "equation_Libcrux_ml_dsa.Constants.v_BYTES_FOR_VERIFICATION_KEY_HASH",
         "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_A_SIZE",
         "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_SIGNING_SIZE",
@@ -4559,60 +4484,57 @@
         "equation_Rust_primitives.Notations.op_String_Access",
         "equation_Rust_primitives.Slice.slice_length",
         "equation_Rust_primitives.Slice.slice_slice",
-        "fuel_guarded_inversion_Core_models.Ops.Range.t_Range",
+        "fuel_guarded_inversion_Core_models.Bundle.t_Range",
         "function_token_typing_Rust_primitives.Integers.u8", "int_typing",
         "interpretation_Tm_abs_4ab552b3415220d2b607f7d57c958117",
-        "interpretation_Tm_abs_87065fc1a6f4731576ff09a0c8e20742",
-        "interpretation_Tm_abs_900369f04b4ab299c3cdf8970be0a9f8",
         "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
+        "interpretation_Tm_abs_f9c2728f19ddd20263287eca3242b7dc",
+        "interpretation_Tm_abs_fd6f2e57ab8d0296c22b4aca283c828d",
         "lemma_FStar.Seq.Base.lemma_len_slice",
         "lemma_Rust_primitives.Integers.mk_int_v_lemma",
         "primitive_Prims.op_Addition", "primitive_Prims.op_AmpAmp",
         "primitive_Prims.op_LessThan", "primitive_Prims.op_LessThanOrEqual",
         "primitive_Prims.op_Multiply", "primitive_Prims.op_Subtraction",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_start",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxBool_proj_0",
         "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_start",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index_pre",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_start",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_00525d37911fa3710a575b4b1af14b02",
         "refinement_interpretation_Tm_refine_183ef469ba4fe6a28de2352caee93716",
-        "refinement_interpretation_Tm_refine_1d5968a699f89514387df701741256f8",
-        "refinement_interpretation_Tm_refine_1f51b3f74fef2249ffcd4c954de69558",
+        "refinement_interpretation_Tm_refine_2149db6571e4dbac18044f34377d23da",
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
+        "refinement_interpretation_Tm_refine_3be7f6a380da5243f2f019aab9340e6d",
         "refinement_interpretation_Tm_refine_423435fb60222c11e29fcdcb8fba6c88",
         "refinement_interpretation_Tm_refine_47e7f133b879868e55e2389dbc95b9be",
         "refinement_interpretation_Tm_refine_4bb8998fe69acc99b21e814adae749a3",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
-        "refinement_interpretation_Tm_refine_55cb77d236cf8608da148febbca8ce70",
-        "refinement_interpretation_Tm_refine_567fbc9992cfaa301d9a342bd17198f5",
         "refinement_interpretation_Tm_refine_56e0327eb14ab61604173ad9dde51b49",
         "refinement_interpretation_Tm_refine_5a92b6e4e7af9363bc35e43d9d7f3f13",
-        "refinement_interpretation_Tm_refine_5fd208f51cc082dac667e0fb2d8054e0",
         "refinement_interpretation_Tm_refine_7d433a94b4a1347d3b3b26e641e77ae7",
+        "refinement_interpretation_Tm_refine_98ed96c03addc31040f7ddf0767ece20",
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
+        "refinement_interpretation_Tm_refine_aaa2da7e84700d8c2216383aaffac5e6",
         "refinement_interpretation_Tm_refine_ab6a89e8f28f563e5276cd4d86befa1d",
+        "refinement_interpretation_Tm_refine_b041d808c8f57977ec3279a956764ced",
         "refinement_interpretation_Tm_refine_b0a82badf9647f532e7b1b200165bca3",
         "refinement_interpretation_Tm_refine_e1dbac4ed608803ee339af32736c8723",
-        "refinement_interpretation_Tm_refine_e9a8809d6e2bd8ffb804f2b8af5a2e4a",
-        "refinement_interpretation_Tm_refine_eb103a40d8deb755db624b14c6b35096",
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7",
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca",
         "token_correspondence_Core_models.Ops.Index.f_index",
         "token_correspondence_Core_models.Ops.Index.f_index_pre",
-        "typing_Core_models.Slice.impl__len",
         "typing_Rust_primitives.Arrays.length",
         "typing_Rust_primitives.Integers.lte",
         "typing_Rust_primitives.Integers.v",
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e2bec31f52a5944c8535a9420265f684"
+      "be9d8299126bf707e8a5e9a1209a1cc6"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -4622,7 +4544,7 @@
       [
         "@MaxIFuel_assumption", "@query", "b2t_def",
         "equation_Core_models.Ops.Index.f_index",
-        "equation_Core_models.Slice.impl_11", "equation_Prims.nat",
+        "equation_Core_models.Slice.impl_10", "equation_Prims.nat",
         "equation_Rust_primitives.Arrays.t_Slice",
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Notations.op_String_Access",
@@ -4639,7 +4561,7 @@
         "token_correspondence_Core_models.Ops.Index.f_index"
       ],
       0,
-      "2c968a7a9de82710f81b0809b94979c3"
+      "0a4913af98241bcebdaebf14315238f6"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -4660,11 +4582,11 @@
         "equation_Rust_primitives.Integers.v", "primitive_Prims.op_Addition",
         "primitive_Prims.op_AmpAmp", "primitive_Prims.op_LessThanOrEqual",
         "primitive_Prims.op_Multiply",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_start",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxBool_proj_0",
         "projection_inverse_BoxInt_proj_0",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_start",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_00525d37911fa3710a575b4b1af14b02",
         "refinement_interpretation_Tm_refine_1f51b3f74fef2249ffcd4c954de69558",
@@ -4676,7 +4598,7 @@
         "refinement_interpretation_Tm_refine_b0a82badf9647f532e7b1b200165bca3"
       ],
       0,
-      "1c595674d222aecf5b4c8df641c882bf"
+      "2cc14c611ef58e8120c039a1a7853edc"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -4692,17 +4614,17 @@
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v", "primitive_Prims.op_Addition",
         "primitive_Prims.op_Multiply",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_start",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxInt_proj_0",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_start",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_00525d37911fa3710a575b4b1af14b02",
         "refinement_interpretation_Tm_refine_47e7f133b879868e55e2389dbc95b9be",
         "refinement_interpretation_Tm_refine_56e0327eb14ab61604173ad9dde51b49"
       ],
       0,
-      "4c0f50f2f7af1adcc8d60d51ad1aee81"
+      "034323fa17a380e378016e3b18c6651e"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -4718,10 +4640,10 @@
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v", "primitive_Prims.op_Addition",
         "primitive_Prims.op_Multiply",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxInt_proj_0",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_00525d37911fa3710a575b4b1af14b02",
         "refinement_interpretation_Tm_refine_183ef469ba4fe6a28de2352caee93716",
@@ -4729,7 +4651,7 @@
         "refinement_interpretation_Tm_refine_56e0327eb14ab61604173ad9dde51b49"
       ],
       0,
-      "ac8798d1156f4876cda72c74b73af7ab"
+      "cf9bd2b7850a88654daa222060162e9b"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -4742,8 +4664,7 @@
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
         "equation_Core_models.Ops.Index.f_index",
         "equation_Core_models.Ops.Index.f_index_pre",
-        "equation_Core_models.Slice.impl_7",
-        "equation_Core_models.Slice.impl__len",
+        "equation_Core_models.Slice.impl_6",
         "equation_Libcrux_ml_dsa.Constants.v_BYTES_FOR_VERIFICATION_KEY_HASH",
         "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_A_SIZE",
         "equation_Libcrux_ml_dsa.Constants.v_SEED_FOR_SIGNING_SIZE",
@@ -4769,31 +4690,30 @@
         "equation_Rust_primitives.Notations.op_String_Access",
         "equation_Rust_primitives.Slice.slice_length",
         "equation_Rust_primitives.Slice.slice_slice",
-        "fuel_guarded_inversion_Core_models.Ops.Range.t_Range",
+        "fuel_guarded_inversion_Core_models.Bundle.t_Range",
         "function_token_typing_Rust_primitives.Integers.u8", "int_typing",
         "interpretation_Tm_abs_4ab552b3415220d2b607f7d57c958117",
-        "interpretation_Tm_abs_87065fc1a6f4731576ff09a0c8e20742",
-        "interpretation_Tm_abs_900369f04b4ab299c3cdf8970be0a9f8",
         "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
+        "interpretation_Tm_abs_f9c2728f19ddd20263287eca3242b7dc",
+        "interpretation_Tm_abs_fd6f2e57ab8d0296c22b4aca283c828d",
         "lemma_FStar.Seq.Base.lemma_len_slice",
         "lemma_Rust_primitives.Integers.mk_int_v_lemma",
         "primitive_Prims.op_Addition", "primitive_Prims.op_AmpAmp",
         "primitive_Prims.op_LessThan", "primitive_Prims.op_LessThanOrEqual",
         "primitive_Prims.op_Multiply", "primitive_Prims.op_Subtraction",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_start",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_start",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxBool_proj_0",
         "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_start",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index_pre",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_start",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_00525d37911fa3710a575b4b1af14b02",
-        "refinement_interpretation_Tm_refine_1d5968a699f89514387df701741256f8",
+        "refinement_interpretation_Tm_refine_2149db6571e4dbac18044f34377d23da",
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
-        "refinement_interpretation_Tm_refine_260eab59be25e62a0e76672556e6923c",
         "refinement_interpretation_Tm_refine_423435fb60222c11e29fcdcb8fba6c88",
         "refinement_interpretation_Tm_refine_47e7f133b879868e55e2389dbc95b9be",
         "refinement_interpretation_Tm_refine_4bb8998fe69acc99b21e814adae749a3",
@@ -4801,27 +4721,27 @@
         "refinement_interpretation_Tm_refine_55cb77d236cf8608da148febbca8ce70",
         "refinement_interpretation_Tm_refine_56e0327eb14ab61604173ad9dde51b49",
         "refinement_interpretation_Tm_refine_5a92b6e4e7af9363bc35e43d9d7f3f13",
-        "refinement_interpretation_Tm_refine_5fd208f51cc082dac667e0fb2d8054e0",
         "refinement_interpretation_Tm_refine_7d433a94b4a1347d3b3b26e641e77ae7",
+        "refinement_interpretation_Tm_refine_98ed96c03addc31040f7ddf0767ece20",
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
+        "refinement_interpretation_Tm_refine_aaa2da7e84700d8c2216383aaffac5e6",
         "refinement_interpretation_Tm_refine_ab6a89e8f28f563e5276cd4d86befa1d",
+        "refinement_interpretation_Tm_refine_b041d808c8f57977ec3279a956764ced",
         "refinement_interpretation_Tm_refine_b0a82badf9647f532e7b1b200165bca3",
+        "refinement_interpretation_Tm_refine_d154fb08e8bfd7adf4f30a813d6e6872",
+        "refinement_interpretation_Tm_refine_d30b402404aa84748dfd6fb44c194a82",
         "refinement_interpretation_Tm_refine_e1dbac4ed608803ee339af32736c8723",
-        "refinement_interpretation_Tm_refine_e9a8809d6e2bd8ffb804f2b8af5a2e4a",
-        "refinement_interpretation_Tm_refine_eb103a40d8deb755db624b14c6b35096",
-        "refinement_interpretation_Tm_refine_f5acae871cb0d5f075757f95db7c479b",
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7",
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca",
         "token_correspondence_Core_models.Ops.Index.f_index",
         "token_correspondence_Core_models.Ops.Index.f_index_pre",
-        "typing_Core_models.Slice.impl__len",
         "typing_Rust_primitives.Arrays.length",
         "typing_Rust_primitives.Integers.lte",
         "typing_Rust_primitives.Integers.v",
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "b66493290407293dbb60ad7baf9a5b0a"
+      "5ee86d50c0e0273800de781e4fd7ada9"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -4834,16 +4754,16 @@
         "equation_Rust_primitives.Arrays.t_Array",
         "equation_Rust_primitives.Arrays.t_Slice",
         "equation_Rust_primitives.Integers.u8",
-        "refinement_interpretation_Tm_refine_1d5968a699f89514387df701741256f8",
+        "refinement_interpretation_Tm_refine_2149db6571e4dbac18044f34377d23da",
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
         "refinement_interpretation_Tm_refine_47e7f133b879868e55e2389dbc95b9be",
-        "refinement_interpretation_Tm_refine_94b9f33c7bd0f902b7f8bf46f59eb3be",
-        "refinement_interpretation_Tm_refine_d041195a43c1fd76e0925dd431b0722e",
+        "refinement_interpretation_Tm_refine_99b68bcfce8d61eef4f627bfb6113f44",
+        "refinement_interpretation_Tm_refine_9d01d5610b34273b0b5f407e25ae3c6b",
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7",
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "6a025e84fe15180c31c9eae02382d715"
+      "b5bd74b91ca51b47fe32453b40fd556a"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -4861,7 +4781,7 @@
         "refinement_interpretation_Tm_refine_47e7f133b879868e55e2389dbc95b9be"
       ],
       0,
-      "a350ca962d1b79c66a46aa7104609149"
+      "d628c84f4d51be8864737c241ad22b08"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -4873,7 +4793,7 @@
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7"
       ],
       0,
-      "8c9a6351b71479c477f63c50c1f06c3d"
+      "a80eef0058cc9157f52db3ad72ac3607"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -4885,7 +4805,7 @@
         "refinement_interpretation_Tm_refine_47e7f133b879868e55e2389dbc95b9be"
       ],
       0,
-      "c2f0d56b79167d0f313f5f89568eb931"
+      "be74c6e09108d7b4b858794f74487ba2"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -4897,7 +4817,7 @@
         "refinement_interpretation_Tm_refine_47e7f133b879868e55e2389dbc95b9be"
       ],
       0,
-      "f041fcca400679a2728295e014eac3c4"
+      "c2f07dd35500cbc3039f158c3951c7d9"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -4909,7 +4829,7 @@
         "refinement_interpretation_Tm_refine_47e7f133b879868e55e2389dbc95b9be"
       ],
       0,
-      "72a9f1bd25228591fd28fd3b412b0e5a"
+      "63feef55b1ec9478a6f6eeae1a2aaf1e"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -4921,7 +4841,7 @@
         "refinement_interpretation_Tm_refine_47e7f133b879868e55e2389dbc95b9be"
       ],
       0,
-      "37bcc8b846649d963c5844f843753149"
+      "5588044200406e91aabd5c94fd0a0d23"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -4942,10 +4862,10 @@
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
         "refinement_interpretation_Tm_refine_47e7f133b879868e55e2389dbc95b9be",
-        "refinement_interpretation_Tm_refine_9e4d9d986fba819bab6c0a489ed31960"
+        "refinement_interpretation_Tm_refine_9245e940dd28aa6aab2b902d86c76147"
       ],
       0,
-      "ee3f15268f525d1e8703c32a2a0cfc1d"
+      "03317c69f5636803b46688333ee529b7"
     ],
     [
       "Libcrux_ml_dsa.Encoding.Signing_key.generate_serialized",
@@ -4957,7 +4877,7 @@
         "refinement_interpretation_Tm_refine_fce4cfad845a18cf133330bc479883b7"
       ],
       0,
-      "aa0fdec8caac97616ca7b879888e588a"
+      "f0ac2b93e8df4f0427516ae0cd46170b"
     ]
   ]
 ]

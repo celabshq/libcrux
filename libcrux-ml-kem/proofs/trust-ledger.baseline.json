@@ -93,37 +93,33 @@
     },
     "fstar": {
       "by_kind": {
-        "admit": 14,
+        "admit": 4,
         "admit_smt_queries": 1,
-        "assume": 5,
-        "assume_val": 43
+        "assume": 4,
+        "assume_val": 14
       },
       "by_module": {
-        "Libcrux_intrinsics.Avx2_ml_kem_views": 5,
-        "Libcrux_ml_kem.Hash_functions.Avx2": 9,
-        "Libcrux_ml_kem.Hash_functions.Neon": 9,
-        "Libcrux_ml_kem.Hash_functions.Portable": 9,
+        "Hacspec_ml_kem.Commute.Bridges": 1,
+        "Libcrux_ml_kem.Hash_functions.Avx2": 1,
         "Libcrux_ml_kem.Ind_cca.Incremental": 1,
         "Libcrux_ml_kem.Ind_cca.Incremental.Types": 8,
         "Libcrux_ml_kem.Polynomial": 1,
         "Libcrux_ml_kem.Sampling": 1,
         "Libcrux_ml_kem.Vector": 1,
         "Libcrux_ml_kem.Vector.Avx2": 1,
-        "Libcrux_ml_kem.Vector.Avx2.Ntt_theory": 1,
-        "Libcrux_ml_kem.Vector.Avx2.Sampling_theory": 2,
+        "Libcrux_ml_kem.Vector.Avx2.Sampling_theory": 1,
         "Libcrux_ml_kem.Vector.Neon.Serialize_theory": 1,
         "Libcrux_ml_kem.Vector.Neon.Vector_type": 1,
         "Libcrux_ml_kem.Vector.Portable.Vector_type": 1,
         "Proof_utils": 1,
-        "Spec.Utils": 11
+        "Spec.Utils": 3
       },
-      "scanned_files": 174,
-      "total": 63
+      "scanned_files": 219,
+      "total": 23
     },
     "makefile": {
       "admit_modules": [],
       "slow_modules": [
-        "Libcrux_ml_kem.Matrix",
         "Libcrux_ml_kem.Vector.Portable.Serialize",
         "Libcrux_ml_kem.Vector.Rej_sample_table"
       ]

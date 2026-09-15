@@ -343,12 +343,13 @@ TRUST_CATEGORIES = (
     "hax-limitation",
     "trusted-extern",
     "validated-axiom",
+    "nospec",  # uninterpreted intrinsic symbol: no int-vec model/lift yet
     "slow-proof",
     "pending-proof",  # requires a (<ref>) suffix — see _REASON_RE
 )
 _REASON_RE = re.compile(
     r"^(?:unprovable-termination|hax-limitation|trusted-extern|validated-axiom"
-    r"|slow-proof|pending-proof\([^)]+\)):\s"
+    r"|nospec|slow-proof|pending-proof\([^)]+\)):\s"
 )
 
 # The G1 body wrappers and the fn-level summary label.
@@ -361,10 +362,22 @@ _TRUSTED_LABEL_RE = re.compile(
 # where <kind> emits the corresponding hax mechanism (see crates/utils/macros). The
 # `\b` (not a required comma) lets the scanner also catch a reason-less `#[trusted(opaque)]`
 # so V2 can flag the missing reason instead of silently ignoring it.
-_TRUSTED_ATTR_KINDS = ("lax", "panic_free", "opaque", "exclude")
+#
+# `replace` is a PURE marker (like inline-admit): it emits no mechanism, it sits
+# alongside a sibling `#[hax_lib::fstar::replace(...)]` attribute purely as the
+# declaration the V8 replace-bijection lint counts. It carries a `"<category>: <reason>"`
+# 2nd arg (validated by reason_ok), so it lives in the `attr` bucket with the G2 kinds
+# rather than the reason-less `labels` bucket.
+_TRUSTED_ATTR_KINDS = ("lax", "panic_free", "opaque", "exclude", "replace")
 _TRUSTED_ATTR_RE = re.compile(
-    r"#\[\s*libcrux_macros::trusted\s*\(\s*(lax|panic_free|opaque|exclude)\b"
+    r"#\[\s*libcrux_macros::trusted\s*\(\s*(lax|panic_free|opaque|exclude|replace)\b"
 )
+# `#[hax_lib::fstar::replace(...)]` / `#[fstar::replace_body(...)]` SITES — the OBSERVED
+# side of the replace trust surface. Match the attribute HEAD only (on comment-masked
+# text), so a `fstar::replace` mention inside a replacement string or a comment is never
+# miscounted. `replace_body` (body-only substitution) is the same class of trust surface
+# — F* verifies hand-written text, not the extracted body — and is counted the same.
+_FSTAR_REPLACE_SITE_RE = re.compile(r"#\[\s*(?:hax_lib::)?fstar::replace(?:_body)?\b")
 # Raw obligation-producing mechanisms that MUST now be wrapped (V3 ban).
 _RAW_ADMIT_RE = re.compile(r'\bproof!\s*\(\s*"admit \(\)"\s*\)')
 _RAW_ASSUME_RE = re.compile(r'\bproof!\s*\(\s*r?#*"?\s*assume\b')
@@ -557,6 +570,18 @@ def scan_file_trust_markers(path, repo_root):
             "raw_admit": raw_admit, "raw_assume": raw_assume}
 
 
+def scan_file_replace_sites(path, repo_root):
+    """Return [{file, line}] for every `#[hax_lib::fstar::replace(...)]` /
+    `#[fstar::replace_body(...)]` attribute HEAD in one .rs file (comment-masked, so a
+    `fstar::replace` mention in a comment or inside a replacement string is ignored)."""
+    with open(path, encoding="utf-8", errors="replace") as f:
+        text = f.read()
+    masked = mask_rust_comments(text)
+    rel = os.path.relpath(path, repo_root)
+    return [{"file": rel, "line": masked.count("\n", 0, m.start()) + 1}
+            for m in _FSTAR_REPLACE_SITE_RE.finditer(masked)]
+
+
 def scan_rust_trust_markers(src_root, repo_root):
     """Walk `src_root` (a crate's src/) for .rs files and aggregate trust markers.
     Excludes the wrapper-definition file (proof_macros.rs)."""
@@ -575,6 +600,111 @@ def scan_rust_trust_markers(src_root, repo_root):
 def reason_ok(reason):
     """True iff a trust reason starts with a valid category prefix (V2)."""
     return bool(_REASON_RE.match(reason.strip()))
+
+
+# ===========================================================================
+# WS5 — core-models "silent surface" scanners (mk_lift_lemma! + opaque stubs)
+#
+# Two trust surfaces that a naive `assume`/`admit` grep MISSES because they say
+# neither word in Rust, yet each becomes an F* axiom on extraction:
+#
+#   * `mk_lift_lemma!(NAME(...) == ...)` expands (see core_arch/*/interpretations.rs)
+#     to an opaque `#[hax_lib::lemma]` carrying `[@@ LIFT_LEMMA]`, which hax extracts
+#     as a `[@@ v_LIFT_LEMMA] assume val NAME_interp : ... -> Lemma (...)` — an
+#     UNPROVEN (differentially mk!-tested) axiom relating the opaque hardware symbol
+#     to its int-vec model. ~150 of these, invisible to the F* `assume`-token plane
+#     until post-extraction (and even then they read as ordinary `assume val`s with
+#     no back-link to the Rust site).
+#
+#   * `#[hax_lib::opaque] fn NAME(..) { unimplemented!()/todo!() }` extracts to an
+#     UNINTERPRETED F* `val NAME : ty` (no body). If NO `mk_lift_lemma!` names it,
+#     F* knows *nothing* about it — a "no-spec" hardware symbol (e.g. x86 AES/CLMUL).
+#
+# These run on the git-tracked core-models Rust source, so they are visible on a
+# plain checkout even though the generated `.fst` tree is gitignored.
+# ===========================================================================
+
+# A `mk_lift_lemma!(NAME ...)` INVOCATION (not the `macro_rules! mk_lift_lemma {`
+# definition, which is followed by `{` not `!(`). Captures the intrinsic name.
+_MK_LIFT_LEMMA_RE = re.compile(r"\bmk_lift_lemma!\s*\(\s*([A-Za-z_][A-Za-z0-9_]*)")
+# The two source forms of an opaque hardware-symbol tag:
+#   (a) the bare `#[hax_lib::opaque]` attribute head, and
+#   (b) the LOUD `#[libcrux_macros::trusted(opaque, "…")]` marker introduced by the
+#       trust-hardening sweep, which emits the SAME `#[cfg_attr(hax, hax_lib::opaque)]`
+#       mechanism (byte-identical F* extraction) but is greppable and reason-tagged.
+# Both must be recognised so the enumerator does not lose sight of a symbol once it
+# is marked; the `marked` flag records which symbols carry the loud form.
+_HAX_OPAQUE_RE = re.compile(r"#\[\s*hax_lib::opaque\s*\]")
+_TRUSTED_OPAQUE_RE = re.compile(r"#\[\s*libcrux_macros::trusted\s*\(\s*opaque\b")
+# Empty-body markers that make an opaque fn a pure stub (no executable Rust model).
+_STUB_BODY_RE = re.compile(r"\b(?:unimplemented|todo)!\s*\(")
+
+
+def scan_file_mk_lift_lemmas(path, repo_root=None):
+    """Return [{file, line, name}] for every `mk_lift_lemma!(NAME ...)` invocation
+    in one .rs file (comment-masked, so the `macro_rules!` definition and the `//!`
+    guide examples in x86.rs are ignored). `name` is the lifted intrinsic."""
+    with open(path, encoding="utf-8", errors="replace") as f:
+        text = f.read()
+    masked = mask_rust_comments(text)
+    rel = os.path.relpath(path, repo_root) if repo_root else path
+    out = []
+    for m in _MK_LIFT_LEMMA_RE.finditer(masked):
+        out.append({
+            "file": rel,
+            "line": masked.count("\n", 0, m.start()) + 1,
+            "name": m.group(1),
+        })
+    return out
+
+
+def scan_file_opaque_intrinsics(path, repo_root=None):
+    """Return [{file, line, name, stub_body, marked}] for every opaque-tagged
+    *function* in one .rs file, where "opaque-tagged" means either a bare
+    `#[hax_lib::opaque]` OR a `#[libcrux_macros::trusted(opaque, "…")]` marker.
+    `stub_body` is True iff the body is an empty `unimplemented!()`/`todo!()` (no
+    executable Rust model — the worst no-spec form). `marked` is True iff the loud
+    `trusted(opaque, …)` form is used (the trust-hardening sweep's greppable marker).
+    Comment-masked, so the `//!`-guide example in x86.rs is ignored. Opaque items
+    that are NOT functions (opaque structs/consts) are skipped."""
+    with open(path, encoding="utf-8", errors="replace") as f:
+        text = f.read()
+    masked = mask_rust_comments(text)
+    lines = masked.split("\n")
+    rel = os.path.relpath(path, repo_root) if repo_root else path
+    out = []
+    for i, line in enumerate(lines):
+        marked = bool(_TRUSTED_OPAQUE_RE.search(line))
+        if not (marked or _HAX_OPAQUE_RE.search(line)):
+            continue
+        # The fn may sit a few attribute/blank lines below the opaque attr.
+        for j in range(i + 1, min(i + 30, len(lines))):
+            m = _RUST_FN_RE.match(lines[j])
+            if m:
+                # Body window: from the fn line up to the next attribute block,
+                # capped — opaque intrinsic bodies are 1-3 lines.
+                window = "\n".join(lines[j:j + 40]).split("\n#")[0][:800]
+                out.append({
+                    "file": rel,
+                    "line": j + 1,
+                    "name": m.group(1),
+                    "stub_body": bool(_STUB_BODY_RE.search(window)),
+                    "marked": marked,
+                })
+                break
+            # A non-fn item (struct/const/type/impl) directly under the attr:
+            # this opaque tag is not an intrinsic-fn axiom — stop looking.
+            if re.match(r"\s*(?:pub\s*(?:\([^)]*\)\s*)?)?"
+                        r"(?:struct|enum|const|static|type|impl|trait|mod)\b", lines[j]):
+                break
+    return out
+
+
+def file_sha256(path):
+    """Hex sha256 of a file's bytes (for content-hash dedup of byte-identical
+    F* modules extracted into more than one crate)."""
+    with open(path, "rb") as fh:
+        return hashlib.sha256(fh.read()).hexdigest()
 
 
 def marker_soundness(markers):

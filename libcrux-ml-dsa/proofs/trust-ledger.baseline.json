@@ -92,7 +92,7 @@
     },
     "fstar": {
       "by_kind": {
-        "admit": 37,
+        "admit": 38,
         "admit_smt_queries": 5,
         "assume": 1,
         "assume_val": 60
@@ -118,10 +118,10 @@
         "Libcrux_ml_dsa.Simd.Avx2.Vector_type": 1,
         "Libcrux_ml_dsa.Simd.Portable.Vector_type": 1,
         "Libcrux_ml_dsa.Types": 2,
-        "Spec.Intrinsics": 1
+        "Spec.Intrinsics": 2
       },
-      "scanned_files": 101,
-      "total": 103
+      "scanned_files": 104,
+      "total": 104
     },
     "makefile": {
       "admit_modules": [],

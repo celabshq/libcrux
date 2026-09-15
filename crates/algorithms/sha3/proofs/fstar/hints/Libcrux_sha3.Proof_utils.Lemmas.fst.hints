@@ -1,5 +1,5 @@
 [
-  "a6ce874eb5bf11121517e89db132437a",
+  "b7705752ade74c426875a3d0ae870b59",
   [
     [
       "Libcrux_sha3.Proof_utils.Lemmas.lemma_div_mul_mod",
@@ -48,7 +48,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4f8698603bc6812556753adf5018f67f"
+      "f64ecb9ecad4aaa58f539a65582970b1"
     ],
     [
       "Libcrux_sha3.Proof_utils.Lemmas.lemma_mul_succ_le",
@@ -89,26 +89,27 @@
         "unit_typing", "well-founded-ordering-on-nat"
       ],
       0,
-      "dab0be86ee063696a649f3c402145e2f"
+      "ebf70ddcc7c8603ecd3868354904032f"
     ],
     [
       "Libcrux_sha3.Proof_utils.Lemmas.lemma_shl_xor_shr_is_rotate_left",
       1,
-      0,
+      1,
       1,
       [
         "@MaxFuel_assumption", "@MaxIFuel_assumption",
-        "@fuel_correspondence_Prims.pow2.fuel_instrumented", "@query",
+        "@fuel_correspondence_Prims.pow2.fuel_instrumented",
+        "@fuel_irrelevance_Prims.pow2.fuel_instrumented", "@query",
+        "Rust_primitives_interpretation_Tm_arrow_814388202aec1fb7483132389195bf0b",
         "bool_inversion", "bool_typing",
         "constructor_distinct_Rust_primitives.Integers.I32",
         "constructor_distinct_Rust_primitives.Integers.U32",
         "constructor_distinct_Rust_primitives.Integers.U64",
-        "constructor_distinct_Rust_primitives.Integers.USIZE",
         "data_elim_Rust_primitives.Integers.MkInt",
         "equality_tok_Rust_primitives.Integers.I32@tok",
         "equality_tok_Rust_primitives.Integers.U32@tok",
         "equality_tok_Rust_primitives.Integers.U64@tok",
-        "equation_Core_models.Num.impl_u64__rotate_left",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
         "equation_Prims.nat", "equation_Prims.pos",
         "equation_Rust_primitives.Integers.bits",
         "equation_Rust_primitives.Integers.cast_mod",
@@ -125,14 +126,16 @@
         "equation_Rust_primitives.Integers.sub",
         "equation_Rust_primitives.Integers.u32",
         "equation_Rust_primitives.Integers.u64",
-        "equation_Rust_primitives.Integers.u64_inttype",
         "equation_Rust_primitives.Integers.unsigned",
+        "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v",
         "equation_Rust_primitives.cast",
         "equation_Rust_primitives.cast_tc_integers",
         "fuel_guarded_inversion_Rust_primitives.Integers.int_t",
+        "function_token_typing_Core_models.Bundle.impl_9__rotate_left",
         "int_inversion", "int_typing",
         "interpretation_Tm_abs_4e41eaf5703de6128b17c2c81e94b989",
+        "interpretation_Tm_abs_6d630d301009510197d63197ce63abb8",
         "interpretation_Tm_abs_9b420abd7c3e11c07b133e6053abbd21",
         "lemma_Rust_primitives.Integers.pow2_values",
         "lemma_Rust_primitives.Integers.shift_left_positive_lemma",
@@ -157,16 +160,17 @@
         "typing_Rust_primitives.Integers.bits",
         "typing_Rust_primitives.Integers.mk_u32",
         "typing_Rust_primitives.Integers.modulus",
-        "typing_Rust_primitives.Integers.range",
         "typing_Rust_primitives.Integers.shift_left",
         "typing_Rust_primitives.Integers.shift_right",
         "typing_Rust_primitives.Integers.sub",
+        "typing_Rust_primitives.Integers.v",
+        "typing_Tm_abs_9b420abd7c3e11c07b133e6053abbd21",
         "typing_tok_Rust_primitives.Integers.I32@tok",
         "typing_tok_Rust_primitives.Integers.U32@tok",
         "typing_tok_Rust_primitives.Integers.U64@tok"
       ],
       0,
-      "85587e695b9fa8ae4d7fc236d81df85f"
+      "ce821212ec675b35fab274f7807ac0dd"
     ]
   ]
 ]

@@ -13,6 +13,7 @@ pub mod simd {
                 (randomness.len() / 3 <= 4_294_967_295 && randomness.len() / 3 <= out.len()).into()
             }
 
+            #[libcrux_macros::trusted(replace, "hax-limitation: F*-only spec postcondition predicate (relates output to Spec.MLDSA.Math)")]
             #[fstar::replace_body(
                 r#"let s = Spec.MLDSA.Math.rejection_sample_field_modulus $randomness in
                 v $r <= Seq.length out /\ v $r == Seq.length s /\
@@ -33,6 +34,7 @@ pub mod simd {
                 (randomness.len() <= 2_147_483_647 && randomness.len() * 2 <= out.len()).into()
             }
 
+            #[libcrux_macros::trusted(replace, "hax-limitation: F*-only spec postcondition predicate (relates output to Spec.MLDSA.Math)")]
             #[fstar::replace_body(
                 r#"let s = Spec.MLDSA.Math.rejection_sample_eta_2 $randomness in
                 v $r <= Seq.length out /\ v $r == Seq.length s /\
@@ -53,6 +55,7 @@ pub mod simd {
                 (randomness.len() <= 2_147_483_647 && randomness.len() * 2 <= out.len()).into()
             }
 
+            #[libcrux_macros::trusted(replace, "hax-limitation: F*-only spec postcondition predicate (relates output to Spec.MLDSA.Math)")]
             #[fstar::replace_body(
                 r#"let s = Spec.MLDSA.Math.rejection_sample_eta_4 $randomness in
                 v $r <= Seq.length out /\ v $r == Seq.length s /\

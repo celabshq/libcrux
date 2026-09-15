@@ -52,7 +52,7 @@ def keccak_f.pi.closure := Array Std.U64 25#usize
 def keccak_f.chi.closure := Array Std.U64 25#usize
 
 /-- [hacspec_sha3::sponge::squeeze::closure]
-    Source: 'sha3/src/sponge.rs', lines 143:12-148:5 -/
+    Source: 'sha3/src/sponge.rs', lines 171:12-176:5 -/
 def sponge.squeeze.closure (OUTPUT_LEN : Std.Usize) :=
   Std.Usize × Array Std.U64 25#usize
 

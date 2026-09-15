@@ -74,56 +74,61 @@ let lemma_tail_bit15 (x: i16) : Lemma
 (* Per-half characterization of the compress_1 SIMD chain on one i16x8.
    For each lane with input in [0,3329), the chain output lane equals
    `((vec_k*4+3329)/6658) % 2`, and that value is in {0,1}. *)
-let lemma_compress_1_half (vin: Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t)
+let lemma_compress_1_half (vin: Libcrux_intrinsics.Arm64_ml_kem_views.t_e_int16x8_t)
     : Lemma
       (requires
         (forall (k: nat{k < 8}).
-            v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vin k) >= 0 /\
-            v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vin k) < 3329))
+            v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vin k) >= 0 /\
+            v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vin k) < 3329))
       (ensures
-        (let half = Libcrux_intrinsics.Arm64_extract.e_vdupq_n_s16 (mk_i16 1664) in
-         let quarter = Libcrux_intrinsics.Arm64_extract.e_vdupq_n_s16 (mk_i16 832) in
-         let shifted = Libcrux_intrinsics.Arm64_extract.e_vsubq_s16 half vin in
-         let mask = Libcrux_intrinsics.Arm64_extract.e_vshrq_n_s16 (mk_i32 15) shifted in
-         let stp = Libcrux_intrinsics.Arm64_extract.e_veorq_s16 mask shifted in
-         let spir = Libcrux_intrinsics.Arm64_extract.e_vsubq_s16 stp quarter in
+        (let half = Libcrux_intrinsics.Arm64.e_vdupq_n_s16 (mk_i16 1664) in
+         let quarter = Libcrux_intrinsics.Arm64.e_vdupq_n_s16 (mk_i16 832) in
+         let shifted = Libcrux_intrinsics.Arm64.e_vsubq_s16 half vin in
+         let mask = Libcrux_intrinsics.Arm64.e_vshrq_n_s16 (mk_i32 15) shifted in
+         let stp = Libcrux_intrinsics.Arm64.e_veorq_s16 mask shifted in
+         let spir = Libcrux_intrinsics.Arm64.e_vsubq_s16 stp quarter in
          let out =
-           Libcrux_intrinsics.Arm64_extract.e_vreinterpretq_s16_u16
-             (Libcrux_intrinsics.Arm64_extract.e_vshrq_n_u16 (mk_i32 15)
-               (Libcrux_intrinsics.Arm64_extract.e_vreinterpretq_u16_s16 spir)) in
+           Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u16
+             (Libcrux_intrinsics.Arm64.e_vshrq_n_u16 (mk_i32 15)
+               (Libcrux_intrinsics.Arm64.e_vreinterpretq_u16_s16 spir)) in
          forall (k: nat{k < 8}).
-           (let vec_k = v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vin k) in
-            let res_k = v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 out k) in
+           (let vec_k = v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vin k) in
+            let res_k = v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 out k) in
             res_k >= 0 /\ res_k < 2 /\ res_k == ((vec_k * 4 + 3329) / 6658) % 2)))
-  = let half = Libcrux_intrinsics.Arm64_extract.e_vdupq_n_s16 (mk_i16 1664) in
-    let quarter = Libcrux_intrinsics.Arm64_extract.e_vdupq_n_s16 (mk_i16 832) in
-    let shifted = Libcrux_intrinsics.Arm64_extract.e_vsubq_s16 half vin in
-    let mask = Libcrux_intrinsics.Arm64_extract.e_vshrq_n_s16 (mk_i32 15) shifted in
-    let stp = Libcrux_intrinsics.Arm64_extract.e_veorq_s16 mask shifted in
-    let spir = Libcrux_intrinsics.Arm64_extract.e_vsubq_s16 stp quarter in
-    let u16v = Libcrux_intrinsics.Arm64_extract.e_vreinterpretq_u16_s16 spir in
-    let sh = Libcrux_intrinsics.Arm64_extract.e_vshrq_n_u16 (mk_i32 15) u16v in
-    let out = Libcrux_intrinsics.Arm64_extract.e_vreinterpretq_s16_u16 sh in
+  = let half = Libcrux_intrinsics.Arm64.e_vdupq_n_s16 (mk_i16 1664) in
+    let quarter = Libcrux_intrinsics.Arm64.e_vdupq_n_s16 (mk_i16 832) in
+    let shifted = Libcrux_intrinsics.Arm64.e_vsubq_s16 half vin in
+    let mask = Libcrux_intrinsics.Arm64.e_vshrq_n_s16 (mk_i32 15) shifted in
+    let stp = Libcrux_intrinsics.Arm64.e_veorq_s16 mask shifted in
+    let spir = Libcrux_intrinsics.Arm64.e_vsubq_s16 stp quarter in
+    let u16v = Libcrux_intrinsics.Arm64.e_vreinterpretq_u16_s16 spir in
+    let sh = Libcrux_intrinsics.Arm64.e_vshrq_n_u16 (mk_i32 15) u16v in
+    let out = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u16 sh in
     let aux (k: nat{k < 8}) : Lemma
-      (let vec_k = v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vin k) in
-       let res_k = v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 out k) in
+      (let vec_k = v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vin k) in
+       let res_k = v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 out k) in
        res_k >= 0 /\ res_k < 2 /\ res_k == ((vec_k * 4 + 3329) / 6658) % 2) =
-      let vec_k = v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vin k) in
-      assert (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half k) == 1664);
-      assert (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 quarter k) == 832);
-      assert (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 shifted k) == 1664 - vec_k);
-      assert (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 mask k) ==
+      let vec_k = v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vin k) in
+      Libcrux_intrinsics.Arm64_ml_kem_views.lemma_e_vdupq_n_s16_lane (mk_i16 1664) k;
+      Libcrux_intrinsics.Arm64_ml_kem_views.lemma_e_vdupq_n_s16_lane (mk_i16 832) k;
+      Libcrux_intrinsics.Arm64_ml_kem_views.lemma_e_vsubq_s16_lane half vin k;
+      Libcrux_intrinsics.Arm64_ml_kem_views.lemma_e_veorq_s16_lane mask shifted k;
+      Libcrux_intrinsics.Arm64_ml_kem_views.lemma_e_vsubq_s16_lane stp quarter k;
+      assert (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 half k) == 1664);
+      assert (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 quarter k) == 832);
+      assert (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 shifted k) == 1664 - vec_k);
+      assert (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 mask k) ==
               (if 1664 - vec_k < 0 then -1 else 0));
-      lemma_i16_xor_mask_left (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 mask k)
-                              (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 shifted k);
-      assert (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 stp k) ==
+      lemma_i16_xor_mask_left (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 mask k)
+                              (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 shifted k);
+      assert (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 stp k) ==
               (if 1664 - vec_k < 0 then -(1664 - vec_k) - 1 else 1664 - vec_k));
-      assert (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 spir k) ==
+      assert (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 spir k) ==
               (if 1664 - vec_k < 0 then vec_k - 2497 else 832 - vec_k));
-      assert ((v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 spir k) < 0) ==
+      assert ((v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 spir k) < 0) ==
               (833 <= vec_k && vec_k <= 2496));
-      lemma_tail_bit15 (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 spir k);
-      assert (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 out k) ==
+      lemma_tail_bit15 (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 spir k);
+      assert (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 out k) ==
               (if 833 <= vec_k && vec_k <= 2496 then 1 else 0));
       lemma_compress_1_arith vec_k
     in
@@ -131,7 +136,7 @@ let lemma_compress_1_half (vin: Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t)
 
 #pop-options
 
-module NA = Libcrux_intrinsics.Arm64_extract
+module NA = Libcrux_intrinsics.Arm64_ml_kem_views
 
 (* `1 <<! (cb-1)` as u32 has value 2^(d-1). *)
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 80"
@@ -169,10 +174,10 @@ let lemma_decompress_u32_lane (vv: NA.t_e_uint32x4_t) (cb: i32) (k: nat{k < 4})
     (requires (v cb == 4 \/ v cb == 5 \/ v cb == 10 \/ v cb == 11) /\
               Rust_primitives.Integers.v (NA.get_lane_u32x4 vv k) < pow2 (v cb))
     (ensures
-      (let coeff = NA.e_vdupq_n_u32 (mk_u32 1 <<! (cb -! mk_i32 1 <: i32) <: u32) in
-       let d1 = NA.e_vmulq_n_u32 vv (cast (Libcrux_ml_kem.Vector.Traits.v_FIELD_MODULUS <: i16) <: u32) in
-       let d2 = NA.e_vaddq_u32 d1 coeff in
-       let r = NA.e_vshrq_n_u32 cb d2 in
+      (let coeff = Libcrux_intrinsics.Arm64.e_vdupq_n_u32 (mk_u32 1 <<! (cb -! mk_i32 1 <: i32) <: u32) in
+       let d1 = Libcrux_intrinsics.Arm64.e_vmulq_n_u32 vv (cast (Libcrux_ml_kem.Vector.Traits.v_FIELD_MODULUS <: i16) <: u32) in
+       let d2 = Libcrux_intrinsics.Arm64.e_vaddq_u32 d1 coeff in
+       let r = Libcrux_intrinsics.Arm64.e_vshrq_n_u32 cb d2 in
        let a = Rust_primitives.Integers.v (NA.get_lane_u32x4 vv k) in
        Rust_primitives.Integers.v (NA.get_lane_u32x4 r k) ==
          (a * 3329 + pow2 (v cb - 1)) / pow2 (v cb) /\
@@ -184,9 +189,9 @@ let lemma_decompress_u32_lane (vv: NA.t_e_uint32x4_t) (cb: i32) (k: nat{k < 4})
       (cast (Libcrux_ml_kem.Vector.Traits.v_FIELD_MODULUS <: i16) <: u32) == 3329);
     lemma_neon_twopow_m1 cb;
     lemma_decompress_u32_bound a (v cb);
-    let coeff = NA.e_vdupq_n_u32 (mk_u32 1 <<! (cb -! mk_i32 1 <: i32) <: u32) in
-    let d1 = NA.e_vmulq_n_u32 vv (cast (Libcrux_ml_kem.Vector.Traits.v_FIELD_MODULUS <: i16) <: u32) in
-    let d2 = NA.e_vaddq_u32 d1 coeff in
+    let coeff = Libcrux_intrinsics.Arm64.e_vdupq_n_u32 (mk_u32 1 <<! (cb -! mk_i32 1 <: i32) <: u32) in
+    let d1 = Libcrux_intrinsics.Arm64.e_vmulq_n_u32 vv (cast (Libcrux_ml_kem.Vector.Traits.v_FIELD_MODULUS <: i16) <: u32) in
+    let d2 = Libcrux_intrinsics.Arm64.e_vaddq_u32 d1 coeff in
     (* coeff lane k == 2^(d-1) *)
     assert (NA.get_lane_u32x4 coeff k == (mk_u32 1 <<! (cb -! mk_i32 1 <: i32) <: u32));
     (* a * 3329 < 2^32 so the u32 mul does not wrap *)
@@ -290,16 +295,17 @@ let lemma_assemble_lane (l0d l1d: NA.t_e_uint32x4_t) (j: nat{j < 8}) : Lemma
   (requires v (NA.get_lane_u32x4 l0d (j / 2)) < pow2 15 /\
             v (NA.get_lane_u32x4 l1d (j / 2)) < pow2 15)
   (ensures
-    (let out = NA.e_vtrn1q_s16 (NA.e_vreinterpretq_s16_u32 l0d) (NA.e_vreinterpretq_s16_u32 l1d) in
+    (let out = Libcrux_intrinsics.Arm64.e_vtrn1q_s16 (Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u32 l0d) (Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u32 l1d) in
      0 <= v (NA.get_lane_i16x8 out j) /\ v (NA.get_lane_i16x8 out j) < pow2 15 /\
      v (NA.get_lane_i16x8 out j) ==
        (if j % 2 = 0
         then v (NA.get_lane_u32x4 l0d (j / 2))
         else v (NA.get_lane_u32x4 l1d (j / 2)))))
-  = let aa = NA.e_vreinterpretq_s16_u32 l0d in
-    let bb = NA.e_vreinterpretq_s16_u32 l1d in
+  = let aa = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u32 l0d in
+    let bb = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u32 l1d in
     let k = j / 2 in
     FStar.Math.Lemmas.lemma_div_mod j 2;
+    NA.lemma_e_vtrn1q_s16_lane aa bb j;
     if j % 2 = 0
     then lemma_u32_lo16_val (NA.get_lane_u32x4 l0d k)
     else lemma_u32_lo16_val (NA.get_lane_u32x4 l1d k)
@@ -314,22 +320,24 @@ let lemma_deint_bounds (hv: NA.t_e_int16x8_t) (cb: i32) : Lemma
             (forall (m: nat). m < 8 ==>
               0 <= v (NA.get_lane_i16x8 hv m) /\ v (NA.get_lane_i16x8 hv m) < pow2 (v cb)))
   (ensures
-    (let r = NA.e_vreinterpretq_u32_s16 hv in
-     let l0 = NA.e_vandq_u32 r (NA.e_vdupq_n_u32 (mk_u32 65535)) in
-     let l1 = NA.e_vshrq_n_u32 (mk_i32 16) r in
+    (let r = Libcrux_intrinsics.Arm64.e_vreinterpretq_u32_s16 hv in
+     let l0 = Libcrux_intrinsics.Arm64.e_vandq_u32 r (Libcrux_intrinsics.Arm64.e_vdupq_n_u32 (mk_u32 65535)) in
+     let l1 = Libcrux_intrinsics.Arm64.e_vshrq_n_u32 (mk_i32 16) r in
      forall (m: nat). m < 4 ==>
        v (NA.get_lane_u32x4 l0 m) == v (NA.get_lane_i16x8 hv (2 * m)) /\
        v (NA.get_lane_u32x4 l1 m) == v (NA.get_lane_i16x8 hv (2 * m + 1)) /\
        v (NA.get_lane_u32x4 l0 m) < pow2 (v cb) /\ v (NA.get_lane_u32x4 l1 m) < pow2 (v cb)))
-  = let r = NA.e_vreinterpretq_u32_s16 hv in
-    let l0 = NA.e_vandq_u32 r (NA.e_vdupq_n_u32 (mk_u32 65535)) in
-    let l1 = NA.e_vshrq_n_u32 (mk_i32 16) r in
+  = let r = Libcrux_intrinsics.Arm64.e_vreinterpretq_u32_s16 hv in
+    let l0 = Libcrux_intrinsics.Arm64.e_vandq_u32 r (Libcrux_intrinsics.Arm64.e_vdupq_n_u32 (mk_u32 65535)) in
+    let l1 = Libcrux_intrinsics.Arm64.e_vshrq_n_u32 (mk_i32 16) r in
     let aux (m: nat{m < 4})
       : Lemma (v (NA.get_lane_u32x4 l0 m) == v (NA.get_lane_i16x8 hv (2 * m)) /\
                v (NA.get_lane_u32x4 l1 m) == v (NA.get_lane_i16x8 hv (2 * m + 1)) /\
                v (NA.get_lane_u32x4 l0 m) < pow2 (v cb) /\
                v (NA.get_lane_u32x4 l1 m) < pow2 (v cb)) =
       assert (2 * m < 8 /\ 2 * m + 1 < 8);
+      NA.lemma_e_vandq_u32_lane r (Libcrux_intrinsics.Arm64.e_vdupq_n_u32 (mk_u32 65535)) m;
+      NA.lemma_e_vdupq_n_u32_lane (mk_u32 65535) m;
       lemma_deint_lo (NA.get_lane_i16x8 hv (2 * m)) (NA.get_lane_i16x8 hv (2 * m + 1));
       lemma_deint_hi (NA.get_lane_i16x8 hv (2 * m)) (NA.get_lane_i16x8 hv (2 * m + 1))
     in

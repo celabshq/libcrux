@@ -30,7 +30,7 @@ impl crate::vector::traits::Repr for SIMD128Vector {
 impl crate::vector::traits::Repr for SIMD128Vector {}
 
 // =====================================================================
-// `op_*` wrappers — Track B trait-layer plumbing (mirrors avx2.rs).
+// `op_*` wrappers — trait-layer plumbing (mirrors avx2.rs).
 //
 // Each `op_*` carries the *exact* trait pre/post for its
 // `impl Operations for SIMD128Vector` counterpart so the impl method is a
@@ -275,10 +275,10 @@ fn op_ntt_layer_1_step(
     result
 }
 
-// Cold-fragile NTT layer-2 keystone (z3rlimit 600 + split_queries): relocating it
-// shifts its recorded solver hints and it saturates cold, exactly the reverted poly
-// ntt/invert pair class. Needs a fast-stable (transport-lemma) restructure first.
-// proof-residence: hint-keystone — cold-fragile, relocation shifts hints
+// NTT layer-2 keystone (z3rlimit 600 + split_queries): sensitive to its recorded
+// solver hints — relocating it shifts the hints and it fails to replay.  A
+// fast-stable (transport-lemma) restructure would remove that fragility.
+// proof-residence: hint-keystone
 #[hax_lib::fstar::before(r#"#push-options "--z3rlimit 600 --fuel 1 --ifuel 1 --split_queries always"
 
 let lemma_neon_ntt_layer_2_post (vec out: t_Array i16 (mk_usize 16)) (zeta0 zeta1: i16)

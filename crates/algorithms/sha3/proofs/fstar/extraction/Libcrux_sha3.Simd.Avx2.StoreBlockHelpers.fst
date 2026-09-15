@@ -3,7 +3,22 @@ module Libcrux_sha3.Simd.Avx2.StoreBlockHelpers
 open FStar.Mul
 open Core_models
 open Rust_primitives
-open Libcrux_intrinsics.Avx2_extract
+open Libcrux_intrinsics.Avx2_sha3_views
+
+(* The `store_u64x4x4` bridges relate the `old_out_k = as_slice (to_vec out_k)`
+   snapshot to the pre-update slice, which needs an explicit round-trip lemma:
+   `to_vec` then `as_slice` is the identity (`seq_extend seq_empty s ==
+   Seq.append Seq.empty s == s`).  The SMTPat fires on the snapshot term itself,
+   so the bridges can relate `old_out_k` back to the pre-update `out_k` without
+   naming the shadowed pre-update binding. *)
+let lemma_as_slice_to_vec_id_u8 (s: t_Slice u8)
+  : Lemma
+      (ensures
+        Alloc.Vec.impl_1__as_slice #u8 #Alloc.Alloc.t_Global
+          (Alloc.Slice.impl__to_vec #u8 s) == s)
+      [SMTPat (Alloc.Vec.impl_1__as_slice #u8 #Alloc.Alloc.t_Global
+          (Alloc.Slice.impl__to_vec #u8 s))]
+  = Seq.append_empty_l s
 
 /// Generic per-byte bridge for `update_at_range` composed with
 /// `mm256_storeu_si256_u8`. Given the abstract facts that
@@ -156,14 +171,14 @@ let store_block_window_byte_of_storeu_call out out_new vec a j =
   // here against the single concrete `store_res` in scope; the
   // caller may have several other `mm256_storeu_si256_u8` calls
   // active, and an unguided e-matching saturation across all of
-  // them is what previously cliffed `store_u64x4x4`.
+  // them is what would cliff `store_u64x4x4`.
   introduce forall (k:nat{k < 32}).
               Seq.index store_res k ==
               Seq.index
                 (Core_models.Num.impl_u64__to_le_bytes (get_lane_u64 vec (mk_usize (k / 8))))
                 (k % 8)
   with begin
-    Libcrux_intrinsics.Avx2_extract.lemma_mm256_storeu_si256_u8_byte
+    Libcrux_intrinsics.Avx2_sha3_views.lemma_mm256_storeu_si256_u8_byte
       (Seq.slice out a (a + 32)) vec k
   end;
   store_block_window_byte_of_storeu out out_new store_res vec a j
@@ -195,7 +210,7 @@ let mm256_storeu_si256_u8_byte_window init vec =
                 (Core_models.Num.impl_u64__to_le_bytes (get_lane_u64 vec (mk_usize (k / 8))))
                 (k % 8)
   with begin
-    Libcrux_intrinsics.Avx2_extract.lemma_mm256_storeu_si256_u8_byte init vec k
+    Libcrux_intrinsics.Avx2_sha3_views.lemma_mm256_storeu_si256_u8_byte init vec k
   end
 
 /// Layer 4 per-(j,lane) bridge: from `store_u64x4x4`'s 4-branch `s_k`

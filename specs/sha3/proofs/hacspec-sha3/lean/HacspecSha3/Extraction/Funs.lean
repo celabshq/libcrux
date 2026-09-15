@@ -454,7 +454,7 @@ def keccak_f.keccak_f
 @[global_simps, irreducible] def sha3.SHAKE_DELIM : Std.U8 := 31#u8
 
 /-- [hacspec_sha3::sponge::iterate_keccak_f]:
-    Source: 'sha3/src/sponge.rs', lines 120:0-126:1
+    Source: 'sha3/src/sponge.rs', lines 148:0-154:1
     Visibility: public -/
 def sponge.iterate_keccak_f
   (n : Std.Usize) (state : Array Std.U64 25#usize) :
@@ -469,7 +469,7 @@ def sponge.iterate_keccak_f
 partial_fixpoint
 
 /-- [hacspec_sha3::sponge::squeeze::{impl core::ops::function::FnMut<(usize,), u8> for hacspec_sha3::sponge::squeeze::closure<'_0, '_1, OUTPUT_LEN>}::call_mut]:
-    Source: 'sha3/src/sponge.rs', lines 143:12-148:5 -/
+    Source: 'sha3/src/sponge.rs', lines 171:12-176:5 -/
 def sponge.squeeze.closure.Insts.CoreOpsFunctionFnMutTupleUsizeU8.call_mut
   {OUTPUT_LEN : Std.Usize} (c : sponge.squeeze.closure OUTPUT_LEN)
   (tupled_args : Std.Usize) :
@@ -488,7 +488,7 @@ def sponge.squeeze.closure.Insts.CoreOpsFunctionFnMutTupleUsizeU8.call_mut
   ok (i5, c)
 
 /-- [hacspec_sha3::sponge::squeeze::{impl core::ops::function::FnOnce<(usize,), u8> for hacspec_sha3::sponge::squeeze::closure<'_0, '_1, OUTPUT_LEN>}::call_once]:
-    Source: 'sha3/src/sponge.rs', lines 143:12-148:5 -/
+    Source: 'sha3/src/sponge.rs', lines 171:12-176:5 -/
 def sponge.squeeze.closure.Insts.CoreOpsFunctionFnOnceTupleUsizeU8.call_once
   {OUTPUT_LEN : Std.Usize} (c : sponge.squeeze.closure OUTPUT_LEN)
   (i : Std.Usize) :
@@ -499,7 +499,7 @@ def sponge.squeeze.closure.Insts.CoreOpsFunctionFnOnceTupleUsizeU8.call_once
   ok i1
 
 /-- Trait implementation: [hacspec_sha3::sponge::squeeze::{impl core::ops::function::FnOnce<(usize,), u8> for hacspec_sha3::sponge::squeeze::closure<'_0, '_1, OUTPUT_LEN>}]
-    Source: 'sha3/src/sponge.rs', lines 143:12-148:5 -/
+    Source: 'sha3/src/sponge.rs', lines 171:12-176:5 -/
 @[reducible]
 def sponge.squeeze.closure.Insts.CoreOpsFunctionFnOnceTupleUsizeU8 (OUTPUT_LEN
   : Std.Usize) : core.ops.function.FnOnce (sponge.squeeze.closure OUTPUT_LEN)
@@ -509,7 +509,7 @@ def sponge.squeeze.closure.Insts.CoreOpsFunctionFnOnceTupleUsizeU8 (OUTPUT_LEN
 }
 
 /-- Trait implementation: [hacspec_sha3::sponge::squeeze::{impl core::ops::function::FnMut<(usize,), u8> for hacspec_sha3::sponge::squeeze::closure<'_0, '_1, OUTPUT_LEN>}]
-    Source: 'sha3/src/sponge.rs', lines 143:12-148:5 -/
+    Source: 'sha3/src/sponge.rs', lines 171:12-176:5 -/
 @[reducible]
 def sponge.squeeze.closure.Insts.CoreOpsFunctionFnMutTupleUsizeU8 (OUTPUT_LEN :
   Std.Usize) : core.ops.function.FnMut (sponge.squeeze.closure OUTPUT_LEN)
@@ -521,7 +521,7 @@ def sponge.squeeze.closure.Insts.CoreOpsFunctionFnMutTupleUsizeU8 (OUTPUT_LEN :
 }
 
 /-- [hacspec_sha3::sponge::squeeze]:
-    Source: 'sha3/src/sponge.rs', lines 142:0-149:1
+    Source: 'sha3/src/sponge.rs', lines 170:0-177:1
     Visibility: public -/
 def sponge.squeeze
   (OUTPUT_LEN : Std.Usize) (state : Array Std.U64 25#usize) (rate : Std.Usize)
@@ -533,7 +533,7 @@ def sponge.squeeze
     (rate, state)
 
 /-- [hacspec_sha3::sponge::pad_last_block]:
-    Source: 'sha3/src/sponge.rs', lines 59:0-71:1
+    Source: 'sha3/src/sponge.rs', lines 87:0-99:1
     Visibility: public -/
 def sponge.pad_last_block
   (message : Slice Std.U8) (msg_offset : Std.Usize) (remaining : Std.Usize)
@@ -636,7 +636,7 @@ def sponge.xor_block_into_state
     (rate, state, block)
 
 /-- [hacspec_sha3::sponge::absorb_block]:
-    Source: 'sha3/src/sponge.rs', lines 48:0-51:1
+    Source: 'sha3/src/sponge.rs', lines 76:0-79:1
     Visibility: public -/
 def sponge.absorb_block
   (state : Array Std.U64 25#usize) (block : Slice Std.U8) (rate : Std.Usize) :
@@ -646,7 +646,7 @@ def sponge.absorb_block
   keccak_f.keccak_f state1
 
 /-- [hacspec_sha3::sponge::absorb_final]:
-    Source: 'sha3/src/sponge.rs', lines 79:0-89:1
+    Source: 'sha3/src/sponge.rs', lines 107:0-117:1
     Visibility: public -/
 def sponge.absorb_final
   (state : Array Std.U64 25#usize) (message : Slice Std.U8)
@@ -663,7 +663,7 @@ def sponge.absorb_final
   sponge.absorb_block state s rate
 
 /-- [hacspec_sha3::sponge::absorb_rec]:
-    Source: 'sha3/src/sponge.rs', lines 97:0-104:1
+    Source: 'sha3/src/sponge.rs', lines 125:0-132:1
     Visibility: public -/
 def sponge.absorb_rec
   (state : Array Std.U64 25#usize) (rate : Std.Usize) (delim : Std.U8)
@@ -687,7 +687,7 @@ def sponge.absorb_rec
 partial_fixpoint
 
 /-- [hacspec_sha3::sponge::absorb]:
-    Source: 'sha3/src/sponge.rs', lines 114:0-116:1
+    Source: 'sha3/src/sponge.rs', lines 142:0-144:1
     Visibility: public -/
 def sponge.absorb
   (rate : Std.Usize) (delim : Std.U8) (message : Slice Std.U8) :
@@ -697,7 +697,7 @@ def sponge.absorb
   sponge.absorb_rec a rate delim message
 
 /-- [hacspec_sha3::sponge::keccak]:
-    Source: 'sha3/src/sponge.rs', lines 163:0-165:1
+    Source: 'sha3/src/sponge.rs', lines 191:0-193:1
     Visibility: public -/
 def sponge.keccak
   (OUTPUT_LEN : Std.Usize) (rate : Std.Usize) (delim : Std.U8)
@@ -826,5 +826,22 @@ def sponge.squeeze_state
       Std.U8)) bytes { start := 0#usize, «end» := len }
   let s2 ← core.slice.Slice.copy_from_slice core.U8.Insts.CoreMarkerCopy s s1
   ok (index_mut_back s2)
+
+/-- [hacspec_sha3::sponge::squeeze_last]:
+    Source: 'sha3/src/sponge.rs', lines 56:0-70:1
+    Visibility: public -/
+def sponge.squeeze_last
+  {OUTPUT_LEN : Std.Usize} (state : Array Std.U64 25#usize)
+  (output : Array Std.U8 OUTPUT_LEN) (rate : Std.Usize)
+  (output_rem : Std.Usize) :
+  RustM ((Array Std.U64 25#usize) × (Array Std.U8 OUTPUT_LEN))
+  := do
+  if output_rem != 0#usize
+  then
+    let state1 ← keccak_f.keccak_f state
+    let i ← OUTPUT_LEN - output_rem
+    let output1 ← sponge.squeeze_state state1 output i output_rem
+    ok (state1, output1)
+  else ok (state, output)
 
 end hacspec_sha3

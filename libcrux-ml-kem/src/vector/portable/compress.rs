@@ -315,7 +315,59 @@ pub(crate) fn compress_1(mut a: PortableVector) -> PortableVector {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--fuel 0 --ifuel 0 --z3rlimit 500")]
+#[hax_lib::fstar::options("--fuel 0 --ifuel 1 --z3rlimit 500")]
+// Opacity + standalone loop-maintenance lemma so the `compress` loop body's VC
+// stays trivial.  `compress_d_val` seals the nonlinear FIPS-203 value (the
+// `% pow2 D` mod-by-a-variable) into an atom so it never pollutes the
+// per-element / loop sub-queries; `compress_maintain_inv` discharges the
+// invariant extension in clean context (`p` abstracts `pow2 D` as a `pos`).
+#[hax_lib::fstar::before(
+    r#"
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+
+[@@ "opaque_to_smt"]
+let compress_d_val (x: int) (p: pos) : int = ((x * 2 * p + 3329) / 6658) % p
+
+let lemma_compress_d_val_eq (x: int) (p: pos)
+    : Lemma (compress_d_val x p == ((x * 2 * p + 3329) / 6658) % p)
+  = reveal_opaque (`%compress_d_val) compress_d_val
+
+let compress_maintain_inv
+      (v_orig v_pre v_next: Libcrux_ml_kem.Vector.Portable.Vector_type.t_PortableVector)
+      (i: usize{v i < 16})
+      (p: pos)
+    : Lemma
+      (requires
+        v_next.f_elements == Seq.upd v_pre.f_elements (v i) (v_next.f_elements.[ i ] <: i16) /\
+        (forall (j: nat).
+            (j >= v i /\ j < 16) ==>
+            Seq.index v_pre.f_elements j == Seq.index v_orig.f_elements j /\
+            v (cast (v_pre.f_elements.[ sz j ]) <: u16) <
+            v (cast (Libcrux_ml_kem.Vector.Traits.v_FIELD_MODULUS) <: u16)) /\
+        (forall (j: nat).
+            j < v i ==>
+            v (v_pre.f_elements.[ sz j ] <: i16) >= 0 /\ v (v_pre.f_elements.[ sz j ] <: i16) < p /\
+            v (v_pre.f_elements.[ sz j ] <: i16) ==
+            compress_d_val (v (Seq.index v_orig.f_elements j)) p) /\
+        (v (v_next.f_elements.[ i ] <: i16) >= 0 /\ v (v_next.f_elements.[ i ] <: i16) < p /\
+          v (v_next.f_elements.[ i ] <: i16) ==
+          compress_d_val (v (Seq.index v_orig.f_elements (v i))) p))
+      (ensures
+        (forall (j: nat).
+            (j >= v (i +! mk_usize 1) /\ j < 16) ==>
+            Seq.index v_next.f_elements j == Seq.index v_orig.f_elements j /\
+            v (cast (v_next.f_elements.[ sz j ]) <: u16) <
+            v (cast (Libcrux_ml_kem.Vector.Traits.v_FIELD_MODULUS) <: u16)) /\
+        (forall (j: nat).
+            j < v (i +! mk_usize 1) ==>
+            v (v_next.f_elements.[ sz j ] <: i16) >= 0 /\
+            v (v_next.f_elements.[ sz j ] <: i16) < p /\
+            v (v_next.f_elements.[ sz j ] <: i16) ==
+            compress_d_val (v (Seq.index v_orig.f_elements j)) p)) = ()
+
+#pop-options
+"#
+)]
 #[hax_lib::requires(fstar!(r#"(v $COEFFICIENT_BITS == 4 \/
         v $COEFFICIENT_BITS == 5 \/
         v $COEFFICIENT_BITS == 10 \/
@@ -358,15 +410,26 @@ pub(crate) fn compress<const COEFFICIENT_BITS: i32>(mut a: PortableVector) -> Po
                     (forall (j:nat). j < v $i ==> v (${a}.f_elements.[ sz j ] <: i16) >= 0 /\
                      v (${a}.f_elements.[ sz j ] <: i16) < pow2 (v $COEFFICIENT_BITS) /\
                      v (${a}.f_elements.[ sz j ] <: i16) ==
-                     ((v (Seq.index ${a_orig}.f_elements j) * 2 * pow2 (v $COEFFICIENT_BITS) + 3329)
-                       / 6658) % pow2 (v $COEFFICIENT_BITS))"#
+                     compress_d_val (v (Seq.index ${a_orig}.f_elements j)) (pow2 (v $COEFFICIENT_BITS)))"#
             )
         });
+
+        proof!(
+            r#"assert_norm (pow2 4 == 16);
+            assert_norm (pow2 5 == 32);
+            assert_norm (pow2 10 == 1024);
+            assert_norm (pow2 11 == 2048);
+            assert (v (cast ($COEFFICIENT_BITS) <: u8) == v $COEFFICIENT_BITS);
+            assert (pow2 (v $COEFFICIENT_BITS) >= 1 /\ pow2 (v $COEFFICIENT_BITS) <= 2048)"#
+        );
 
         proof!(
             r#"assert (Seq.index ${a}.f_elements (v $i) == Seq.index ${a_orig}.f_elements (v $i));
             assert (v (cast (${a}.f_elements.[ $i ]) <: u16) == v (Seq.index ${a_orig}.f_elements (v $i)))"#
         );
+
+        #[cfg(hax)]
+        let a_pre = a;
 
         a.elements[i] =
             compress_ciphertext_coefficient(COEFFICIENT_BITS as u8, a.elements[i].as_u16())
@@ -375,22 +438,27 @@ pub(crate) fn compress<const COEFFICIENT_BITS: i32>(mut a: PortableVector) -> Po
         proof!(
             r#"assert (v (${a}.f_elements.[ $i ] <: i16) >= 0 /\
             v (${a}.f_elements.[ $i ] <: i16) < pow2 (v $COEFFICIENT_BITS));
+            lemma_compress_d_val_eq (v (Seq.index ${a_orig}.f_elements (v $i)))
+              (pow2 (v $COEFFICIENT_BITS));
             assert (v (${a}.f_elements.[ $i ] <: i16) ==
-                ((v (Seq.index ${a_orig}.f_elements (v $i)) * 2 * pow2 (v $COEFFICIENT_BITS) + 3329)
-                  / 6658) % pow2 (v $COEFFICIENT_BITS))"#
+                compress_d_val (v (Seq.index ${a_orig}.f_elements (v $i)))
+                  (pow2 (v $COEFFICIENT_BITS)))"#
         );
-        // Frame: untouched elements still equal the original and satisfy the bound
+        // Loop-invariant maintenance discharged by the standalone clean-context lemma
         proof!(
-            r#"assert (forall (j: nat). (j > v $i /\ j < 16) ==>
-                Seq.index ${a}.f_elements j == Seq.index ${a_orig}.f_elements j /\
-                v (cast (${a}.f_elements.[ sz j ]) <: u16) <
-                v (cast ($FIELD_MODULUS) <: u16))"#
+            r#"assert (${a}.f_elements ==
+                Seq.upd ${a_pre}.f_elements (v $i) (${a}.f_elements.[ $i ] <: i16));
+            compress_maintain_inv ${a_orig} ${a_pre} ${a} $i (pow2 (v $COEFFICIENT_BITS))"#
         );
     }
     proof!(
-        r#"assert (forall (i:nat). i < 16 ==>
+        r#"reveal_opaque (`%compress_d_val) compress_d_val;
+        assert (forall (i:nat). i < 16 ==>
                     (v (${a}.f_elements.[ sz i ] <: i16) >= 0 /\
-                     v (${a}.f_elements.[ sz i ] <: i16) < pow2 (v $COEFFICIENT_BITS)))"#
+                     v (${a}.f_elements.[ sz i ] <: i16) < pow2 (v $COEFFICIENT_BITS) /\
+                     v (${a}.f_elements.[ sz i ] <: i16) ==
+                     ((v (Seq.index ${a_orig}.f_elements i) * 2 * pow2 (v $COEFFICIENT_BITS) + 3329)
+                       / 6658) % pow2 (v $COEFFICIENT_BITS)))"#
     );
 
     a

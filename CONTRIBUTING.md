@@ -91,7 +91,7 @@ If a new `hax` release is required for your PR to be merged, please [open an iss
 
 ### Policy on LLM-Assisted Submissions
 
-LLMs can be a helpful tool, and we do not object to contributors using it as part of their workflow for writing code, drafting issues, or conducting security research.
+LLMs can be a helpful tool, and we do not object to contributors using it as part of their workflow for writing code or conducting security research.
 
 However, submissions to this project must meet a reasonable quality bar and remain suitable for human review.
 AI-generated content can be produced very quickly, but it frequently contains hallucinations, inaccurate claims, repetitive reports, or non-functional code.
@@ -102,6 +102,7 @@ To keep our review process sustainable, we enforce the following guidelines:
 - **Provide Actionable Context**: Issues and PRs must include clear, verified context. Bug reports must have actual reproduction steps, and security reports must have a working proof-of-concept (PoC) rather than purely theoretical or AI-hallucinated exploits.
 - **Low-Quality Submissions Will Be Closed**: If our maintainers determine that an issue, pull request, or security report appears to be mass-generated, low-quality, or insufficiently validated, it may be closed without detailed review or response.
 - **Use of LLM tools must be disclosed**: Contributors must disclose whether LLM tools were used in their submission and detail the capacity in which they were utilized.
+- **Issues and PR descriptions must not be written by an LLM**: We prefer to read human-written words in communications such as issues, PR descriptions, and comments. If your primary language is not English, you may use an LLM to translate to English as closely as possible and include your original writing in the communication.
 
 This is not a ban on AI-assisted contributions.
 It is a practical policy intended to focus our efforts on submissions that are specific, verified, and actionable.
@@ -109,6 +110,7 @@ It is a practical policy intended to focus our efforts on submissions that are s
 ## General Contribution Workflow
 When you are ready to contribute code or documentation:
 1. **Check Existing Issues**: Before starting work, check the issue tracker to see if someone is already working on the same problem.
+    - **Comment in the Issue**: If there is an existing issue that you want to work on, please first ask in the issue if this is suitable to work on and to discuss your proposal.
 2. **Open an Issue First**: For significant changes or new features, please open an issue to discuss your proposal with the maintainers before writing the code.
 3. **Drafting your Pull Request**:
     - Keep your PRs focused and as small as reasonably possible.

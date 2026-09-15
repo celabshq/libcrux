@@ -93,8 +93,7 @@ pub(crate) fn serialize<SIMDUnit: Operations>(
     signature: &mut [u8],
 ) {
     // Body admit retained pending two distinct sub-proof obligations
-    // that this scaffolding does not yet discharge (left to a follow-up
-    // session — see `proofs/outstanding-admits.md` "Signature.serialize"):
+    // (listed below):
     //
     //   1. The inner `gamma1::serialize` call requires a polynomial-
     //      element bound on each `signer_response[i].simd_units[j]`
@@ -109,15 +108,11 @@ pub(crate) fn serialize<SIMDUnit: Operations>(
     //      = j as u8` requires `v true_hints_seen < v max_ones_in_hint`.
     //      The `count_total_ones $hint <= v $max_ones_in_hint`
     //      precondition (above) plus a per-row monotonicity invariant
-    //      using `count_row_ones` would establish this.  The invariant
-    //      shape is documented in the `proofs/post-merge-handoff.md`
-    //      Session B note.  A previous attempt at adding the loop
-    //      invariants (commit history of this branch) showed that
-    //      defending the `count_total_ones` chain through the
-    //      fold-range step required additional auxiliary lemmas
-    //      (`lemma_count_total_ones_split`, plus a row-monotonicity
-    //      lemma) which would have to be discharged without `admit ()`
-    //      to satisfy the no-new-axioms rule.  Estimated 2-3 hr.
+    //      using `count_row_ones` would establish this.  Defending the
+    //      `count_total_ones` chain through the fold-range step requires
+    //      additional auxiliary lemmas (`lemma_count_total_ones_split`, plus a
+    //      row-monotonicity lemma) which would have to be discharged without
+    //      `admit ()` to satisfy the no-new-axioms rule.
     trusted_admit!(
         "pending-proof(E3): gamma1::serialize per-elt bound not exposed as precond + \
          hint-pack loop needs count_total_ones monotonicity invariant (~2-3hr)"
@@ -290,8 +285,8 @@ pub(crate) fn deserialize<SIMDUnit: Operations>(
     }
     // While there are several ways to encode the same hint vector, we
     // allow only one such encoding, to ensure strong unforgeability.
-    // Two helpers carry the FIPS-mandated panic-freedom obligation
-    // that PR 1348 fixed; the validate pass establishes the per-row
+    // Two helpers carry the FIPS-mandated panic-freedom obligation:
+    // the validate pass establishes the per-row
     // counter bounds, and the write pass commits the indices into
     // `out_hint`.  Splitting this way keeps each helper's loop
     // accumulator small (and so its fold_range init-state subtyping
@@ -341,8 +336,8 @@ fn set_hint(out_hint: &mut [[i32; 256]], i: usize, j: usize) {
 /// just `(bool, usize)` so the fold_range init-state subtyping check
 /// closes cleanly.
 ///
-/// PR 1348's bug: guarded `previous < max_ones_in_hint` instead of
-/// `current > max_ones_in_hint`, letting `current` exceed ω and the
+/// The guard must be `current > max_ones_in_hint`, not
+/// `previous < max_ones_in_hint`: the latter lets `current` exceed ω and the
 /// inner index loop run past the slice bound.  F* refuses
 /// panic-freedom for the buggy variant on the inner
 /// `hint_serialized[j]` access.

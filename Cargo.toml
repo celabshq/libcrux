@@ -102,11 +102,16 @@ readme = "Readme.md"
 allow-branch = ["main"]
 
 [workspace.dependencies]
-# TEMPORARY: cargo-hax-v0.3.7 + the fstar!-antiquote span-hygiene backport
-# (branch fstar-quote-callsite-spans-037 = tag + 3b003bc5b), required by the
-# crate-wide `proof!` markers. Return to the plain tag once the fix lands in a
-# hax release (main PR branch: fstar-quote-callsite-spans).
-hax-lib = { git = "https://github.com/cryspen/hax", branch = "fstar-quote-callsite-spans-037" }
+# hax at the #2235 merge (f14d83bd6), NOT the `cargo-hax-v0.4.0` tag (f8fe6933):
+# the sha3 `Proof_utils.Lemmas` reveal `Core_models.Num.impl_u64__rotate_left`,
+# which #2235 made a transparent `opaque_to_smt` let. At the tag it is still an
+# `assume val` and `reveal_opaque` fails. Move back to a tag once one containing
+# #2235 is cut. f14d83bd6 also contains the macro_rules! antiquote span-hygiene
+# fix (PR #2212 / b78d945) the crate-wide `proof!` markers require. The
+# `hax-0.4.0` opam switch must be built from this same commit before ml-kem/ml-dsa
+# will extract (sha3 + deps extract on either): match the engine to this rev.
+# Extract with `OPAMSWITCH=hax-0.4.0 opam exec -- <crate>/hax.py extract`.
+hax-lib = { git = "https://github.com/cryspen/hax", rev = "f14d83bd6c664515d26ca68af7f1a57962656f18" }
 libcrux-aead = { version = "=0.0.9", path = "crates/primitives/aead" }
 libcrux-aes = { version = "=0.0.9", path = "crates/algorithms/aes" }
 libcrux-blake2 = { version = "=0.0.8", path = "crates/algorithms/blake2" }

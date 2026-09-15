@@ -7,7 +7,7 @@ use libcrux_intrinsics::arm64::*;
 // `repr` index to the corresponding `get_lane_i16x8` of `.f_low` / `.f_high`.
 #[hax_lib::fstar::before(
     r#"
-module NA = Libcrux_intrinsics.Arm64_extract
+module NA = Libcrux_intrinsics.Arm64_ml_kem_views
 open Libcrux_ml_kem.Vector.Neon.Compress_theory
 "#
 )]
@@ -29,11 +29,11 @@ pub(crate) fn compress_1(mut v: SIMD128Vector) -> SIMD128Vector {
     proof!(
         r#"assert (forall (k: nat{k < 8}).
               Seq.index (Libcrux_ml_kem.Vector.Neon.Vector_type.repr ${v}) k ==
-                Libcrux_intrinsics.Arm64_extract.get_lane_i16x8
+                Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8
                   ${v}.f_low k);
            assert (forall (k: nat{k < 8}).
               Seq.index (Libcrux_ml_kem.Vector.Neon.Vector_type.repr ${v}) (k + 8) ==
-                Libcrux_intrinsics.Arm64_extract.get_lane_i16x8
+                Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8
                   ${v}.f_high k);
            lemma_compress_1_half ${v}.f_low; lemma_compress_1_half ${v}.f_high"#
     );
@@ -68,11 +68,11 @@ pub(crate) fn compress_1(mut v: SIMD128Vector) -> SIMD128Vector {
     proof!(
         r#"assert (forall (k: nat{k < 8}).
               Seq.index (Libcrux_ml_kem.Vector.Neon.Vector_type.repr ${v}) k ==
-                Libcrux_intrinsics.Arm64_extract.get_lane_i16x8
+                Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8
                   ${v}.f_low k);
            assert (forall (k: nat{k < 8}).
               Seq.index (Libcrux_ml_kem.Vector.Neon.Vector_type.repr ${v}) (k + 8) ==
-                Libcrux_intrinsics.Arm64_extract.get_lane_i16x8
+                Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8
                   ${v}.f_high k)"#
     );
     v
@@ -140,7 +140,7 @@ fn compress_int32x4_t<const COEFFICIENT_BITS: i32>(v: _uint32x4_t) -> _uint32x4_
 // proof-residence: locked(module-cycle) — cites own compress_int32x4_t
 #[hax_lib::fstar::before(
     r#"
-module NC = Libcrux_intrinsics.Arm64_extract
+module NC = Libcrux_intrinsics.Arm64_ml_kem_views
 
 (* per-u32-lane compress core: compress_int32x4_t lane k computes the Barrett
    (unmasked) compression value, bounded below 2^15.  Uses the validated arm64
@@ -157,13 +157,13 @@ let cmp_compress_u32_lane (vv: NC.t_e_uint32x4_t) (cb: i32) (k: nat{k < 4}) : Le
   = let a = v (NC.get_lane_u32x4 vv k) in
     assert_norm (pow2 11 == 2048);
     FStar.Math.Lemmas.pow2_le_compat 11 (v cb);
-    let half = NC.e_vdupq_n_u32 (mk_u32 1664) in
-    let c1 = NC.e_vshlq_n_u32 cb vv in
-    let c2 = NC.e_vaddq_u32 c1 half in
-    let s32 = NC.e_vreinterpretq_s32_u32 c2 in
-    let mulres = NC.e_vqdmulhq_n_s32 s32 (mk_i32 10321340) in
-    let u32res = NC.e_vreinterpretq_u32_s32 mulres in
-    let r = NC.e_vshrq_n_u32 (mk_i32 4) u32res in
+    let half = Libcrux_intrinsics.Arm64.e_vdupq_n_u32 (mk_u32 1664) in
+    let c1 = Libcrux_intrinsics.Arm64.e_vshlq_n_u32 cb vv in
+    let c2 = Libcrux_intrinsics.Arm64.e_vaddq_u32 c1 half in
+    let s32 = Libcrux_intrinsics.Arm64.e_vreinterpretq_s32_u32 c2 in
+    let mulres = Libcrux_intrinsics.Arm64.e_vqdmulhq_n_s32 s32 (mk_i32 10321340) in
+    let u32res = Libcrux_intrinsics.Arm64.e_vreinterpretq_u32_s32 mulres in
+    let r = Libcrux_intrinsics.Arm64.e_vshrq_n_u32 (mk_i32 4) u32res in
     assert (v (NC.get_lane_u32x4 half k) == 1664);
     FStar.Math.Lemmas.lemma_mult_le_right (pow2 (v cb)) a 3328;
     assert_norm (3328 * 2048 < pow2 32);
@@ -248,11 +248,11 @@ pub(crate) fn compress<const COEFFICIENT_BITS: i32>(mut v: SIMD128Vector) -> SIM
     Rust_primitives.Integers.v $COEFFICIENT_BITS == 10 \/
     Rust_primitives.Integers.v $COEFFICIENT_BITS == 11"#))]
 #[hax_lib::ensures(|result| fstar!(r#"(forall (k: nat). k < 4 ==>
-    Rust_primitives.Integers.v (Libcrux_intrinsics.Arm64_extract.get_lane_u32x4 ${v} k) <
+    Rust_primitives.Integers.v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_u32x4 ${v} k) <
     pow2 (Rust_primitives.Integers.v $COEFFICIENT_BITS)) ==>
   (forall (k: nat). k < 4 ==>
-    (let a = Rust_primitives.Integers.v (Libcrux_intrinsics.Arm64_extract.get_lane_u32x4 ${v} k) in
-     let r = Rust_primitives.Integers.v (Libcrux_intrinsics.Arm64_extract.get_lane_u32x4 ${result} k) in
+    (let a = Rust_primitives.Integers.v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_u32x4 ${v} k) in
+     let r = Rust_primitives.Integers.v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_u32x4 ${result} k) in
      r == (a * 3329 + pow2 (Rust_primitives.Integers.v $COEFFICIENT_BITS - 1)) /
           pow2 (Rust_primitives.Integers.v $COEFFICIENT_BITS) /\
      r < 3329))"#))]
@@ -362,20 +362,20 @@ let lemma_neon_out_lane (hv: NA.t_e_int16x8_t) (cb: i32) (j: nat{j < 8}) : Lemma
             (forall (m: nat). m < 8 ==>
               0 <= v (NA.get_lane_i16x8 hv m) /\ v (NA.get_lane_i16x8 hv m) < pow2 (v cb)))
   (ensures
-    (let mask16 = NA.e_vdupq_n_u32 (mk_u32 65535) in
-     let r = NA.e_vreinterpretq_u32_s16 hv in
-     let l0 = NA.e_vandq_u32 r mask16 in
-     let l1 = NA.e_vshrq_n_u32 (mk_i32 16) r in
+    (let mask16 = Libcrux_intrinsics.Arm64.e_vdupq_n_u32 (mk_u32 65535) in
+     let r = Libcrux_intrinsics.Arm64.e_vreinterpretq_u32_s16 hv in
+     let l0 = Libcrux_intrinsics.Arm64.e_vandq_u32 r mask16 in
+     let l1 = Libcrux_intrinsics.Arm64.e_vshrq_n_u32 (mk_i32 16) r in
      let l0d = decompress_uint32x4_t cb l0 in
      let l1d = decompress_uint32x4_t cb l1 in
-     let out = NA.e_vtrn1q_s16 (NA.e_vreinterpretq_s16_u32 l0d) (NA.e_vreinterpretq_s16_u32 l1d) in
+     let out = Libcrux_intrinsics.Arm64.e_vtrn1q_s16 (Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u32 l0d) (Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u32 l1d) in
      0 <= v (NA.get_lane_i16x8 out j) /\ v (NA.get_lane_i16x8 out j) < 3329 /\
      v (NA.get_lane_i16x8 out j) ==
        (v (NA.get_lane_i16x8 hv j) * 3329 + pow2 (v cb - 1)) / pow2 (v cb)))
-  = let mask16 = NA.e_vdupq_n_u32 (mk_u32 65535) in
-    let r = NA.e_vreinterpretq_u32_s16 hv in
-    let l0 = NA.e_vandq_u32 r mask16 in
-    let l1 = NA.e_vshrq_n_u32 (mk_i32 16) r in
+  = let mask16 = Libcrux_intrinsics.Arm64.e_vdupq_n_u32 (mk_u32 65535) in
+    let r = Libcrux_intrinsics.Arm64.e_vreinterpretq_u32_s16 hv in
+    let l0 = Libcrux_intrinsics.Arm64.e_vandq_u32 r mask16 in
+    let l1 = Libcrux_intrinsics.Arm64.e_vshrq_n_u32 (mk_i32 16) r in
     let k = j / 2 in
     FStar.Math.Lemmas.lemma_div_mod j 2;
     lemma_deint_bounds hv cb;
@@ -399,25 +399,25 @@ let lemma_decompress_half_out (hv: NA.t_e_int16x8_t) (cb: i32) : Lemma
             (forall (m: nat). m < 8 ==>
               0 <= v (NA.get_lane_i16x8 hv m) /\ v (NA.get_lane_i16x8 hv m) < pow2 (v cb)))
   (ensures
-    (let mask16 = NA.e_vdupq_n_u32 (mk_u32 65535) in
-     let r = NA.e_vreinterpretq_u32_s16 hv in
-     let l0 = NA.e_vandq_u32 r mask16 in
-     let l1 = NA.e_vshrq_n_u32 (mk_i32 16) r in
+    (let mask16 = Libcrux_intrinsics.Arm64.e_vdupq_n_u32 (mk_u32 65535) in
+     let r = Libcrux_intrinsics.Arm64.e_vreinterpretq_u32_s16 hv in
+     let l0 = Libcrux_intrinsics.Arm64.e_vandq_u32 r mask16 in
+     let l1 = Libcrux_intrinsics.Arm64.e_vshrq_n_u32 (mk_i32 16) r in
      let l0d = decompress_uint32x4_t cb l0 in
      let l1d = decompress_uint32x4_t cb l1 in
-     let out = NA.e_vtrn1q_s16 (NA.e_vreinterpretq_s16_u32 l0d) (NA.e_vreinterpretq_s16_u32 l1d) in
+     let out = Libcrux_intrinsics.Arm64.e_vtrn1q_s16 (Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u32 l0d) (Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u32 l1d) in
      forall (j: nat). j < 8 ==>
        0 <= v (NA.get_lane_i16x8 out j) /\ v (NA.get_lane_i16x8 out j) < 3329 /\
        v (NA.get_lane_i16x8 out j) ==
          (v (NA.get_lane_i16x8 hv j) * 3329 + pow2 (v cb - 1)) / pow2 (v cb)))
   = introduce forall (j: nat). j < 8 ==>
-      (let mask16 = NA.e_vdupq_n_u32 (mk_u32 65535) in
-       let r = NA.e_vreinterpretq_u32_s16 hv in
-       let l0 = NA.e_vandq_u32 r mask16 in
-       let l1 = NA.e_vshrq_n_u32 (mk_i32 16) r in
+      (let mask16 = Libcrux_intrinsics.Arm64.e_vdupq_n_u32 (mk_u32 65535) in
+       let r = Libcrux_intrinsics.Arm64.e_vreinterpretq_u32_s16 hv in
+       let l0 = Libcrux_intrinsics.Arm64.e_vandq_u32 r mask16 in
+       let l1 = Libcrux_intrinsics.Arm64.e_vshrq_n_u32 (mk_i32 16) r in
        let l0d = decompress_uint32x4_t cb l0 in
        let l1d = decompress_uint32x4_t cb l1 in
-       let out = NA.e_vtrn1q_s16 (NA.e_vreinterpretq_s16_u32 l0d) (NA.e_vreinterpretq_s16_u32 l1d) in
+       let out = Libcrux_intrinsics.Arm64.e_vtrn1q_s16 (Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u32 l0d) (Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u32 l1d) in
        0 <= v (NA.get_lane_i16x8 out j) /\ v (NA.get_lane_i16x8 out j) < 3329 /\
        v (NA.get_lane_i16x8 out j) ==
          (v (NA.get_lane_i16x8 hv j) * 3329 + pow2 (v cb - 1)) / pow2 (v cb))
@@ -466,21 +466,26 @@ let cmp_deint_bounds (hv: NA.t_e_int16x8_t) : Lemma
   (requires (forall (m: nat). m < 8 ==>
               0 <= v (NA.get_lane_i16x8 hv m) /\ v (NA.get_lane_i16x8 hv m) < 3329))
   (ensures
-    (let r = NA.e_vreinterpretq_u32_s16 hv in
-     let l0 = NA.e_vandq_u32 r (NA.e_vdupq_n_u32 (mk_u32 65535)) in
-     let l1 = NA.e_vshrq_n_u32 (mk_i32 16) r in
+    (let r = Libcrux_intrinsics.Arm64.e_vreinterpretq_u32_s16 hv in
+     let l0 = Libcrux_intrinsics.Arm64.e_vandq_u32 r (Libcrux_intrinsics.Arm64.e_vdupq_n_u32 (mk_u32 65535)) in
+     let l1 = Libcrux_intrinsics.Arm64.e_vshrq_n_u32 (mk_i32 16) r in
      forall (m: nat). m < 4 ==>
        v (NA.get_lane_u32x4 l0 m) == v (NA.get_lane_i16x8 hv (2 * m)) /\
        v (NA.get_lane_u32x4 l1 m) == v (NA.get_lane_i16x8 hv (2 * m + 1)) /\
        v (NA.get_lane_u32x4 l0 m) < 3329 /\ v (NA.get_lane_u32x4 l1 m) < 3329))
-  = let r = NA.e_vreinterpretq_u32_s16 hv in
-    let l0 = NA.e_vandq_u32 r (NA.e_vdupq_n_u32 (mk_u32 65535)) in
-    let l1 = NA.e_vshrq_n_u32 (mk_i32 16) r in
+  = let r = Libcrux_intrinsics.Arm64.e_vreinterpretq_u32_s16 hv in
+    let l0 = Libcrux_intrinsics.Arm64.e_vandq_u32 r (Libcrux_intrinsics.Arm64.e_vdupq_n_u32 (mk_u32 65535)) in
+    let l1 = Libcrux_intrinsics.Arm64.e_vshrq_n_u32 (mk_i32 16) r in
     let aux (m: nat{m < 4})
       : Lemma (v (NA.get_lane_u32x4 l0 m) == v (NA.get_lane_i16x8 hv (2 * m)) /\
                v (NA.get_lane_u32x4 l1 m) == v (NA.get_lane_i16x8 hv (2 * m + 1)) /\
                v (NA.get_lane_u32x4 l0 m) < 3329 /\ v (NA.get_lane_u32x4 l1 m) < 3329) =
       assert (2 * m < 8 /\ 2 * m + 1 < 8);
+      // The l1 (vshrq_n_u32 16) lane fact is not auto-injected over core-models,
+      // so call the whole-vector shift op-fact + the per-lane reinterpret bridge
+      // EXPLICITLY (no SMTPat).
+      NA.lemma_e_vshrq_n_u32 (mk_i32 16) r;
+      NA.lemma_e_vreinterpretq_u32_s16_lane hv m;
       lemma_deint_lo (NA.get_lane_i16x8 hv (2 * m)) (NA.get_lane_i16x8 hv (2 * m + 1));
       lemma_deint_hi (NA.get_lane_i16x8 hv (2 * m)) (NA.get_lane_i16x8 hv (2 * m + 1))
     in
@@ -500,20 +505,20 @@ let cmp_out_lane (hv: NA.t_e_int16x8_t) (cb: i32) (j: nat{j < 8}) : Lemma
             (forall (m: nat). m < 8 ==>
               0 <= v (NA.get_lane_i16x8 hv m) /\ v (NA.get_lane_i16x8 hv m) < 3329))
   (ensures
-    (let mask16 = NA.e_vdupq_n_u32 (mk_u32 65535) in
-     let r = NA.e_vreinterpretq_u32_s16 hv in
-     let l0 = NA.e_vandq_u32 r mask16 in
-     let l1 = NA.e_vshrq_n_u32 (mk_i32 16) r in
+    (let mask16 = Libcrux_intrinsics.Arm64.e_vdupq_n_u32 (mk_u32 65535) in
+     let r = Libcrux_intrinsics.Arm64.e_vreinterpretq_u32_s16 hv in
+     let l0 = Libcrux_intrinsics.Arm64.e_vandq_u32 r mask16 in
+     let l1 = Libcrux_intrinsics.Arm64.e_vshrq_n_u32 (mk_i32 16) r in
      let l0c = compress_int32x4_t cb l0 in
      let l1c = compress_int32x4_t cb l1 in
-     let out = NA.e_vtrn1q_s16 (NA.e_vreinterpretq_s16_u32 l0c) (NA.e_vreinterpretq_s16_u32 l1c) in
+     let out = Libcrux_intrinsics.Arm64.e_vtrn1q_s16 (Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u32 l0c) (Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u32 l1c) in
      0 <= v (NA.get_lane_i16x8 out j) /\ v (NA.get_lane_i16x8 out j) < pow2 15 /\
      v (NA.get_lane_i16x8 out j) ==
        (((v (NA.get_lane_i16x8 hv j) * pow2 (v cb) + 1664) * 10321340) / pow2 35)))
-  = let mask16 = NA.e_vdupq_n_u32 (mk_u32 65535) in
-    let r = NA.e_vreinterpretq_u32_s16 hv in
-    let l0 = NA.e_vandq_u32 r mask16 in
-    let l1 = NA.e_vshrq_n_u32 (mk_i32 16) r in
+  = let mask16 = Libcrux_intrinsics.Arm64.e_vdupq_n_u32 (mk_u32 65535) in
+    let r = Libcrux_intrinsics.Arm64.e_vreinterpretq_u32_s16 hv in
+    let l0 = Libcrux_intrinsics.Arm64.e_vandq_u32 r mask16 in
+    let l1 = Libcrux_intrinsics.Arm64.e_vshrq_n_u32 (mk_i32 16) r in
     let k = j / 2 in
     FStar.Math.Lemmas.lemma_div_mod j 2;
     cmp_deint_bounds hv;
@@ -532,25 +537,25 @@ let cmp_half_out (hv: NA.t_e_int16x8_t) (cb: i32) : Lemma
             (forall (m: nat). m < 8 ==>
               0 <= v (NA.get_lane_i16x8 hv m) /\ v (NA.get_lane_i16x8 hv m) < 3329))
   (ensures
-    (let mask16 = NA.e_vdupq_n_u32 (mk_u32 65535) in
-     let r = NA.e_vreinterpretq_u32_s16 hv in
-     let l0 = NA.e_vandq_u32 r mask16 in
-     let l1 = NA.e_vshrq_n_u32 (mk_i32 16) r in
+    (let mask16 = Libcrux_intrinsics.Arm64.e_vdupq_n_u32 (mk_u32 65535) in
+     let r = Libcrux_intrinsics.Arm64.e_vreinterpretq_u32_s16 hv in
+     let l0 = Libcrux_intrinsics.Arm64.e_vandq_u32 r mask16 in
+     let l1 = Libcrux_intrinsics.Arm64.e_vshrq_n_u32 (mk_i32 16) r in
      let l0c = compress_int32x4_t cb l0 in
      let l1c = compress_int32x4_t cb l1 in
-     let out = NA.e_vtrn1q_s16 (NA.e_vreinterpretq_s16_u32 l0c) (NA.e_vreinterpretq_s16_u32 l1c) in
+     let out = Libcrux_intrinsics.Arm64.e_vtrn1q_s16 (Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u32 l0c) (Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u32 l1c) in
      forall (j: nat). j < 8 ==>
        0 <= v (NA.get_lane_i16x8 out j) /\ v (NA.get_lane_i16x8 out j) < pow2 15 /\
        v (NA.get_lane_i16x8 out j) ==
          (((v (NA.get_lane_i16x8 hv j) * pow2 (v cb) + 1664) * 10321340) / pow2 35)))
   = introduce forall (j: nat). j < 8 ==>
-      (let mask16 = NA.e_vdupq_n_u32 (mk_u32 65535) in
-       let r = NA.e_vreinterpretq_u32_s16 hv in
-       let l0 = NA.e_vandq_u32 r mask16 in
-       let l1 = NA.e_vshrq_n_u32 (mk_i32 16) r in
+      (let mask16 = Libcrux_intrinsics.Arm64.e_vdupq_n_u32 (mk_u32 65535) in
+       let r = Libcrux_intrinsics.Arm64.e_vreinterpretq_u32_s16 hv in
+       let l0 = Libcrux_intrinsics.Arm64.e_vandq_u32 r mask16 in
+       let l1 = Libcrux_intrinsics.Arm64.e_vshrq_n_u32 (mk_i32 16) r in
        let l0c = compress_int32x4_t cb l0 in
        let l1c = compress_int32x4_t cb l1 in
-       let out = NA.e_vtrn1q_s16 (NA.e_vreinterpretq_s16_u32 l0c) (NA.e_vreinterpretq_s16_u32 l1c) in
+       let out = Libcrux_intrinsics.Arm64.e_vtrn1q_s16 (Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u32 l0c) (Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u32 l1c) in
        0 <= v (NA.get_lane_i16x8 out j) /\ v (NA.get_lane_i16x8 out j) < pow2 15 /\
        v (NA.get_lane_i16x8 out j) ==
          (((v (NA.get_lane_i16x8 hv j) * pow2 (v cb) + 1664) * 10321340) / pow2 35))
@@ -577,7 +582,7 @@ let cmp_mask_lemma (x: i16) (cb: i32) : Lemma
 (* vdupq_n_s16 broadcast lane value (clean context, avoids context-pruning drop). *)
 #push-options "--fuel 1 --ifuel 1 --z3rlimit 50"
 let cmp_dup_lane (x: i16) (m: nat{m < 8}) : Lemma
-  (ensures NA.get_lane_i16x8 (NA.e_vdupq_n_s16 x) m == x)
+  (ensures NA.get_lane_i16x8 (Libcrux_intrinsics.Arm64.e_vdupq_n_s16 x) m == x)
   = FStar.Seq.Base.lemma_index_create 8 x m
 #pop-options
 
@@ -589,8 +594,8 @@ let cmp_masked_lane (lowv: NA.t_e_int16x8_t) (cb: i32) (i: nat{i < 8}) : Lemma
   (requires (v cb == 4 \/ v cb == 5 \/ v cb == 10 \/ v cb == 11) /\
             0 <= v (NA.get_lane_i16x8 lowv i))
   (ensures
-    (let m = NA.e_vdupq_n_s16 (mask_n_least_significant_bits (cast (cb <: i32) <: i16)) in
-     v (NA.get_lane_i16x8 (NA.e_vandq_s16 lowv m) i) == (v (NA.get_lane_i16x8 lowv i)) % pow2 (v cb) /\
+    (let m = Libcrux_intrinsics.Arm64.e_vdupq_n_s16 (mask_n_least_significant_bits (cast (cb <: i32) <: i16)) in
+     v (NA.get_lane_i16x8 (Libcrux_intrinsics.Arm64.e_vandq_s16 lowv m) i) == (v (NA.get_lane_i16x8 lowv i)) % pow2 (v cb) /\
      0 <= (v (NA.get_lane_i16x8 lowv i)) % pow2 (v cb) /\
      (v (NA.get_lane_i16x8 lowv i)) % pow2 (v cb) < pow2 (v cb)))
   = cmp_dup_lane (mask_n_least_significant_bits (cast (cb <: i32) <: i16)) i;
@@ -606,19 +611,19 @@ let cmp_compress_unfold (cb: i32)
   (ensures
     (let flo = vin.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low in
      let fhi = vin.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high in
-     let mask = NA.e_vdupq_n_s16 (mask_n_least_significant_bits (cast (cb <: i32) <: i16)) in
-     let mask16 = NA.e_vdupq_n_u32 (mk_u32 65535) in
-     let rlo = NA.e_vreinterpretq_u32_s16 flo in
-     let low = NA.e_vtrn1q_s16
-       (NA.e_vreinterpretq_s16_u32 (compress_int32x4_t cb (NA.e_vandq_u32 rlo mask16)))
-       (NA.e_vreinterpretq_s16_u32 (compress_int32x4_t cb (NA.e_vshrq_n_u32 (mk_i32 16) rlo))) in
-     let rhi = NA.e_vreinterpretq_u32_s16 fhi in
-     let high = NA.e_vtrn1q_s16
-       (NA.e_vreinterpretq_s16_u32 (compress_int32x4_t cb (NA.e_vandq_u32 rhi mask16)))
-       (NA.e_vreinterpretq_s16_u32 (compress_int32x4_t cb (NA.e_vshrq_n_u32 (mk_i32 16) rhi))) in
+     let mask = Libcrux_intrinsics.Arm64.e_vdupq_n_s16 (mask_n_least_significant_bits (cast (cb <: i32) <: i16)) in
+     let mask16 = Libcrux_intrinsics.Arm64.e_vdupq_n_u32 (mk_u32 65535) in
+     let rlo = Libcrux_intrinsics.Arm64.e_vreinterpretq_u32_s16 flo in
+     let low = Libcrux_intrinsics.Arm64.e_vtrn1q_s16
+       (Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u32 (compress_int32x4_t cb (Libcrux_intrinsics.Arm64.e_vandq_u32 rlo mask16)))
+       (Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u32 (compress_int32x4_t cb (Libcrux_intrinsics.Arm64.e_vshrq_n_u32 (mk_i32 16) rlo))) in
+     let rhi = Libcrux_intrinsics.Arm64.e_vreinterpretq_u32_s16 fhi in
+     let high = Libcrux_intrinsics.Arm64.e_vtrn1q_s16
+       (Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u32 (compress_int32x4_t cb (Libcrux_intrinsics.Arm64.e_vandq_u32 rhi mask16)))
+       (Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u32 (compress_int32x4_t cb (Libcrux_intrinsics.Arm64.e_vshrq_n_u32 (mk_i32 16) rhi))) in
      let result = compress cb vin in
-     result.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low == NA.e_vandq_s16 low mask /\
-     result.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high == NA.e_vandq_s16 high mask))
+     result.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low == Libcrux_intrinsics.Arm64.e_vandq_s16 low mask /\
+     result.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high == Libcrux_intrinsics.Arm64.e_vandq_s16 high mask))
   = ()
 #pop-options
 
@@ -640,23 +645,23 @@ let cmp_compress_post (cb: i32) (vin: Libcrux_ml_kem.Vector.Neon.Vector_type.t_S
   = let flo = vin.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low in
     let fhi = vin.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high in
     let result = compress cb vin in
-    let mask = NA.e_vdupq_n_s16 (mask_n_least_significant_bits (cast (cb <: i32) <: i16)) in
-    let mask16 = NA.e_vdupq_n_u32 (mk_u32 65535) in
-    let rlo = NA.e_vreinterpretq_u32_s16 flo in
-    let llo0 = NA.e_vandq_u32 rlo mask16 in
-    let llo1 = NA.e_vshrq_n_u32 (mk_i32 16) rlo in
+    let mask = Libcrux_intrinsics.Arm64.e_vdupq_n_s16 (mask_n_least_significant_bits (cast (cb <: i32) <: i16)) in
+    let mask16 = Libcrux_intrinsics.Arm64.e_vdupq_n_u32 (mk_u32 65535) in
+    let rlo = Libcrux_intrinsics.Arm64.e_vreinterpretq_u32_s16 flo in
+    let llo0 = Libcrux_intrinsics.Arm64.e_vandq_u32 rlo mask16 in
+    let llo1 = Libcrux_intrinsics.Arm64.e_vshrq_n_u32 (mk_i32 16) rlo in
     let llo0c = compress_int32x4_t cb llo0 in
     let llo1c = compress_int32x4_t cb llo1 in
-    let low = NA.e_vtrn1q_s16 (NA.e_vreinterpretq_s16_u32 llo0c) (NA.e_vreinterpretq_s16_u32 llo1c) in
-    let rhi = NA.e_vreinterpretq_u32_s16 fhi in
-    let lhi0 = NA.e_vandq_u32 rhi mask16 in
-    let lhi1 = NA.e_vshrq_n_u32 (mk_i32 16) rhi in
+    let low = Libcrux_intrinsics.Arm64.e_vtrn1q_s16 (Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u32 llo0c) (Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u32 llo1c) in
+    let rhi = Libcrux_intrinsics.Arm64.e_vreinterpretq_u32_s16 fhi in
+    let lhi0 = Libcrux_intrinsics.Arm64.e_vandq_u32 rhi mask16 in
+    let lhi1 = Libcrux_intrinsics.Arm64.e_vshrq_n_u32 (mk_i32 16) rhi in
     let lhi0c = compress_int32x4_t cb lhi0 in
     let lhi1c = compress_int32x4_t cb lhi1 in
-    let high = NA.e_vtrn1q_s16 (NA.e_vreinterpretq_s16_u32 lhi0c) (NA.e_vreinterpretq_s16_u32 lhi1c) in
+    let high = Libcrux_intrinsics.Arm64.e_vtrn1q_s16 (Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u32 lhi0c) (Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u32 lhi1c) in
     cmp_compress_unfold cb vin;
-    assert (result.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low == NA.e_vandq_s16 low mask);
-    assert (result.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high == NA.e_vandq_s16 high mask);
+    assert (result.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low == Libcrux_intrinsics.Arm64.e_vandq_s16 low mask);
+    assert (result.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high == Libcrux_intrinsics.Arm64.e_vandq_s16 high mask);
     assert (forall (m: nat). m < 8 ==> Seq.index (repr vin) m == NA.get_lane_i16x8 flo m);
     assert (forall (m: nat). m < 8 ==> Seq.index (repr vin) (m + 8) == NA.get_lane_i16x8 fhi m);
     assert (forall (m: nat). m < 8 ==>

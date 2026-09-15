@@ -37,7 +37,7 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 |            | ind_cca           |    1 |  27 |   0 |     |  16 |    1 |      0 |      10 |
 |            | instantiations    |    2 |  40 |   0 |     |  31 |    0 |      0 |       9 |
 |            | multiplexing      |    2 |  20 |   0 |     |  15 |    2 |      0 |       3 |
-|            | incremental       |    2 |  45 |   0 |     |  28 |   12 |      5 |       0 |
+|            | incremental       |    2 |  45 |   3 |     |  25 |   12 |      5 |       0 |
 |            | polynomial        |    1 |  59 |   0 |     |  21 |    9 |     20 |       9 |
 |            | invert_ntt        |    1 |   7 |   0 |     |   1 |    0 |      1 |       5 |
 |            | ntt               |    1 |  12 |   0 |     |   4 |    0 |      1 |       7 |
@@ -48,7 +48,7 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 |            | vector (top)      |    1 |   3 |   0 |     |   3 |    0 |      0 |       0 |
 |            | vector/traits     |    1 | 111 |   0 |     |  73 |   36 |      0 |       2 |
 |            | rej_sample_table  |    1 |   0 |   0 |     |   0 |    0 |      0 |       0 |
-|            | **Generic total** | **27** | **620** | **0** | **3** | **376** | **83** | **27** | **131** |
+|            | **Generic total** | **27** | **620** | **3** | **3** | **373** | **83** | **27** | **131** |
 |            |                   |      |     |     |     |     |      |        |         |
 | _Portable_ | arithmetic        |    1 |  13 |   0 |     |   6 |    7 |      0 |       0 |
 |            | ntt               |    1 |  10 |   0 |     |   0 |    0 |     10 |       0 |
@@ -60,12 +60,12 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 |            | **Portable total** | **6** | **121** | **0** |     | **31** | **51** | **10** |  **29** |
 |            |                   |      |     |     |     |     |      |        |         |
 | _Avx2_     | arithmetic        |    1 |  12 |   0 |     |   5 |    7 |      0 |       0 |
-|            | ntt               |    1 |   7 |   0 |     |   0 |    0 |      7 |       0 |
-|            | serialize         |    1 |  24 |   0 |     |   2 |   22 |      0 |       0 |
+|            | ntt               |    1 |   9 |   0 |     |   0 |    2 |      7 |       0 |
+|            | serialize         |    1 |  24 |   0 |     |   0 |   24 |      0 |       0 |
 |            | compress          |    1 |   5 |   0 |     |   1 |    4 |      0 |       0 |
 |            | sampling          |    0 |   1 |   0 |     |   0 |    1 |      0 |       0 |
 |            | vector            |    1 |  72 |   0 |     |   1 |   43 |      0 |      28 |
-|            | **Avx2 total**    | **5** | **121** | **0** |     | **9** | **77** |  **7** |  **28** |
+|            | **Avx2 total**    | **5** | **123** | **0** |     | **7** | **81** |  **7** |  **28** |
 |            |                   |      |     |     |     |     |      |        |         |
 | _Neon_     | arithmetic        |    1 |  13 |   0 |     |   0 |   10 |      3 |       0 |
 |            | ntt               |    1 |   7 |   0 |     |   0 |    0 |      7 |       0 |
@@ -79,12 +79,12 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 ## Summary
 
 - **Total modules**: 44
-- **Total functions**: 963
-- **Lax** (admitted): 0 (0.0%)
+- **Total functions**: 965
+- **Lax** (admitted): 3 (0.3%)
 - **Unverified** (not extracted): 3 (0.3%)
-- **Panic-safe** (PF + Math + Bounds + Hacspec): 960 (99.7%)
-  - Panic-free only (no further proof): 419 (43.5%)
-  - Math (non-trivial ensures, no bounds/spec match): 274 (28.5%)
+- **Panic-safe** (PF + Math + Bounds + Hacspec): 959 (99.4%)
+  - Panic-free only (no further proof): 414 (42.9%)
+  - Math (non-trivial ensures, no bounds/spec match): 278 (28.8%)
   - Bounds (range/interval ensures): 54 (5.6%)
   - Hacspec (cites high-level spec): 213 (22.1%)
 
@@ -92,9 +92,9 @@ The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free 
 
 | Category     | Modules |  Fns | Lax | Unv |  PF | Math | Bounds | Hacspec |
 | ------------ | ------- | ---- | --- | --- | --- | ---- | ------ | ------- |
-| Generic      |      27 |  620 |   0 |   3 | 376 |   83 |     27 |     131 |
+| Generic      |      27 |  620 |   3 |   3 | 373 |   83 |     27 |     131 |
 | Portable     |       6 |  121 |   0 |   0 |  31 |   51 |     10 |      29 |
-| Avx2         |       5 |  121 |   0 |   0 |   9 |   77 |      7 |      28 |
+| Avx2         |       5 |  123 |   0 |   0 |   7 |   81 |      7 |      28 |
 | Neon         |       6 |  101 |   0 |   0 |   3 |   63 |     10 |      25 |
 
 ## Unverified Rust modules (not extracted to F\*)
@@ -105,24 +105,37 @@ These Rust modules have no corresponding F\* file in the extraction directory �
 | ------------------------------ | ---------------------------------------- | --- |
 | Generic/lib                    | src/lib.rs                               |   3 |
 
+## Body-admit sites (audit)
+
+Functions classified as lax due to `admit ()` (or `--admit_smt_queries true`) inside their body. Auditable so the script's classification decisions are traceable.
+
+| Module                    |  Line |
+| ------------------------- | ----- |
+| Generic/incremental       |   126 |
+| Generic/incremental       |   306 |
+| Generic/incremental       |   379 |
+
 # Appendix (hand-written; appended by generate_verification_status.py)
+
+## Coverage boundaries
+
+All three backends are functionally correct for the one-shot KEM API and the arithmetic core, and
+essentially the whole API is at least panic-free (per-function tiers in the tables above).
+Boundaries not covered by functional correctness:
+
+- **Incremental API — panic-free, not spec-equivalent.** The `ind_cca::incremental` key/encaps
+  paths are proven panic-free and precondition-respecting, but carry no `Hacspec_ml_kem`
+  equivalence (unlike the one-shot API). An incremental ≡ one-shot refinement would extend
+  functional correctness to these paths.
+- **Lax and Unverified:** listed in the body above — `sampling::sample_from_xof` and two
+  incremental-API `From`-instance bodies (lax; hax-limited), plus `src/lib.rs` top-level glue
+  (unverified, not extracted).
 
 ## Proof times
 
-The ml-kem proof sources (src annotations, `proofs/fstar/spec/` companions,
-committed hints) are byte-identical to the campaign state at `6584a585c`, so
-the campaign's timing data remains authoritative. Headline numbers (Apple
-Silicon, serial builds, committed hints via `--use_hints`):
-
-- Full ml-kem F* closure: ~22 min of Z3 wall cold (2026-05 cold baseline);
-  ~6–13 min for full `make` gates warm with committed hints.
-- Heaviest single queries: `Vector.Avx2.Serialize.deserialize_5_` (~35 s),
-  the portable `op_{ntt,inv_ntt}_layer_{2,3}_step` wrappers (50–70 s each
-  cold at rlimit 600/800), and the `Hacspec_ml_kem.Commute.*` NTT bridge
-  lemmas (`lemma_intra_vec_per_coeff` ~224 s in incremental gates).
-- Warm incremental `make all` gates run ~1–13 min depending on which cone a
-  change invalidates.
-
-Detailed per-function top-20/25 tables are tracked in the engineering log
-(`fstar-perf-top20.md`, snapshots through 2026-07); regenerate after any full
-cold build by aggregating `Query-stats` lines from the build log.
+Verification runs with the committed hints (`--use_hints`); a warm full-crate `make all` re-checks
+the whole crate in a few minutes, and a cold build is longer. Per-module timings are not pinned
+here — they drift with F\*/Z3 versions and hint state — so obtain current figures by aggregating the
+`Query-stats` lines from a cold `make` run. The heaviest queries are the AVX2 serialization
+routines, the portable NTT / inverse-NTT layer-step wrappers, and the `Hacspec_ml_kem.Commute.*`
+NTT-bridge lemmas.

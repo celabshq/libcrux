@@ -12,7 +12,7 @@ use crate::vector::traits::spec;
 )]
 #[hax_lib::fstar::before(
     r#"
-module NI = Libcrux_intrinsics.Arm64_extract
+module NI = Libcrux_intrinsics.Arm64_ml_kem_views
 module BV = Rust_primitives.BitVectors
 module I = Rust_primitives.Integers
 module VT = Libcrux_ml_kem.Vector.Neon.Vector_type
@@ -34,7 +34,7 @@ pub(crate) fn serialize_1(v: SIMD128Vector) -> [u8; 2] {
     proof!(
         r#"(* shift-amount facts from the concrete shifter (lane j shifts by j) *)
 assert (forall (j: nat{j < 8}).
-      Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${shift} j == Seq.index ${shifter} j);
+      Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${shift} j == Seq.index ${shifter} j);
 assert (Seq.index ${shifter} 0 == mk_i16 0 /\ Seq.index ${shifter} 1 == mk_i16 1 /\
         Seq.index ${shifter} 2 == mk_i16 2 /\ Seq.index ${shifter} 3 == mk_i16 3 /\
         Seq.index ${shifter} 4 == mk_i16 4 /\ Seq.index ${shifter} 5 == mk_i16 5 /\
@@ -67,9 +67,9 @@ pub(crate) fn deserialize_1(a: &[u8]) -> SIMD128Vector {
 let rr : t_Array i16 (mk_usize 16) = Libcrux_ml_kem.Vector.Neon.Vector_type.repr ${result} in
 let pre0 : i16 = cast (${a}.[ mk_usize 0 ] <: u8) <: i16 in
 let pre1 : i16 = cast (${a}.[ mk_usize 1 ] <: u8) <: i16 in
-assert (forall (m: nat{m < 8}). Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${one} m == mk_i16 1);
+assert (forall (m: nat{m < 8}). Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${one} m == mk_i16 1);
 assert (forall (m: nat{m < 8}).
-          Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${shift} m == Seq.index ${shifter} m);
+          Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${shift} m == Seq.index ${shifter} m);
 let aux (i: nat{i < 16}) : Lemma
   (Rust_primitives.Integers.get_bit (Seq.index rr i) (mk_usize 0)
      == Rust_primitives.Integers.get_bit (Seq.index ${a} (i / 8)) (sz (i % 8))
@@ -92,7 +92,7 @@ let aux (i: nat{i < 16}) : Lemma
    then lemma_deser1_half_lane pre0 ${shift} ${one} ${shifter} k
    else lemma_deser1_half_lane pre1 ${shift} ${one} ${shifter} k);
   assert (Seq.index rr i
-          == (Libcrux_intrinsics.Arm64_extract.arm_sshl_i16 pre_lane shk &. mk_i16 1));
+          == (Libcrux_intrinsics.Arm64_ml_kem_views.arm_sshl_i16 pre_lane shk &. mk_i16 1));
   assert (byte == Seq.index ${a} (i / 8));
   assert (k == i % 8);
   assert (cast byte == pre_lane);
@@ -129,7 +129,7 @@ pub(crate) fn serialize_4(v: SIMD128Vector) -> [u8; 8] {
     let result = sum.to_le_bytes();
     proof!(
         r#"assert (forall (j: nat{j < 8}).
-      Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 ${shift} j == Seq.index ${shifter} j);
+      Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 ${shift} j == Seq.index ${shifter} j);
 assert (Seq.index ${shifter} 0 == mk_i16 0 /\ Seq.index ${shifter} 1 == mk_i16 4 /\
         Seq.index ${shifter} 2 == mk_i16 8 /\ Seq.index ${shifter} 3 == mk_i16 12 /\
         Seq.index ${shifter} 4 == mk_i16 0 /\ Seq.index ${shifter} 5 == mk_i16 4 /\
@@ -234,15 +234,15 @@ pub(crate) fn serialize_10(v: SIMD128Vector) -> [u8; 20] {
     proof!(
         r#"
     let _:squash (forall (k: nat{k < 16}).
-          Seq.index (Seq.slice ${result32} 0 16) k == NI.get_lane_u8x16 (NI.e_vreinterpretq_u8_s64 ${low_mix}) k) =
+          Seq.index (Seq.slice ${result32} 0 16) k == NI.get_lane_u8x16 (Libcrux_intrinsics.Arm64.e_vreinterpretq_u8_s64 ${low_mix}) k) =
       introduce forall (k: nat{k < 16}).
-          Seq.index (Seq.slice ${result32} 0 16) k == NI.get_lane_u8x16 (NI.e_vreinterpretq_u8_s64 ${low_mix}) k
+          Seq.index (Seq.slice ${result32} 0 16) k == NI.get_lane_u8x16 (Libcrux_intrinsics.Arm64.e_vreinterpretq_u8_s64 ${low_mix}) k
       with ()
     in
     let _:squash (forall (k: nat{k < 16}).
-          Seq.index (Seq.slice ${result32} 16 32) k == NI.get_lane_u8x16 (NI.e_vreinterpretq_u8_s64 ${high_mix}) k) =
+          Seq.index (Seq.slice ${result32} 16 32) k == NI.get_lane_u8x16 (Libcrux_intrinsics.Arm64.e_vreinterpretq_u8_s64 ${high_mix}) k) =
       introduce forall (k: nat{k < 16}).
-          Seq.index (Seq.slice ${result32} 16 32) k == NI.get_lane_u8x16 (NI.e_vreinterpretq_u8_s64 ${high_mix}) k
+          Seq.index (Seq.slice ${result32} 16 32) k == NI.get_lane_u8x16 (Libcrux_intrinsics.Arm64.e_vreinterpretq_u8_s64 ${high_mix}) k
       with ()
     in
     lemma_store32_to_bytes ${low_mix} ${high_mix} ${result32};
@@ -358,15 +358,15 @@ pub(crate) fn serialize_12(v: SIMD128Vector) -> [u8; 24] {
     proof!(
         r#"
     let _:squash (forall (k: nat{k < 16}).
-          Seq.index (Seq.slice ${result32} 0 16) k == NI.get_lane_u8x16 (NI.e_vreinterpretq_u8_s64 ${low_mix}) k) =
+          Seq.index (Seq.slice ${result32} 0 16) k == NI.get_lane_u8x16 (Libcrux_intrinsics.Arm64.e_vreinterpretq_u8_s64 ${low_mix}) k) =
       introduce forall (k: nat{k < 16}).
-          Seq.index (Seq.slice ${result32} 0 16) k == NI.get_lane_u8x16 (NI.e_vreinterpretq_u8_s64 ${low_mix}) k
+          Seq.index (Seq.slice ${result32} 0 16) k == NI.get_lane_u8x16 (Libcrux_intrinsics.Arm64.e_vreinterpretq_u8_s64 ${low_mix}) k
       with ()
     in
     let _:squash (forall (k: nat{k < 16}).
-          Seq.index (Seq.slice ${result32} 16 32) k == NI.get_lane_u8x16 (NI.e_vreinterpretq_u8_s64 ${high_mix}) k) =
+          Seq.index (Seq.slice ${result32} 16 32) k == NI.get_lane_u8x16 (Libcrux_intrinsics.Arm64.e_vreinterpretq_u8_s64 ${high_mix}) k) =
       introduce forall (k: nat{k < 16}).
-          Seq.index (Seq.slice ${result32} 16 32) k == NI.get_lane_u8x16 (NI.e_vreinterpretq_u8_s64 ${high_mix}) k
+          Seq.index (Seq.slice ${result32} 16 32) k == NI.get_lane_u8x16 (Libcrux_intrinsics.Arm64.e_vreinterpretq_u8_s64 ${high_mix}) k
       with ()
     in
     lemma_store32_to_bytes ${low_mix} ${high_mix} ${result32};

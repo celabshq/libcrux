@@ -59,13 +59,13 @@ pub(crate) mod generic {
         hax,
         hax_lib::fstar::options("--z3rlimit 400 --ext context_pruning --split_queries always")
     )]
-    // FOLLOW-UP (2026-05-08): the requires clause
+    // The requires clause
     //   signing_key.len() == SIGNING_KEY_SIZE && verification_key.len() == VERIFICATION_KEY_SIZE
-    // (added by 60a8497e8) was dropped here to restore HEAD to a clean verify.
-    // The wrapper modules (Ml_dsa_generic.Instantiations.{Avx2,Portable,Neon}.Ml_dsa_*_)
-    // call this function with arbitrary &[u8] slices and have no analogous precondition
-    // to discharge it from.  Restore once the wrapper Rust functions also surface the
-    // length precondition (or once the function takes fixed-size arrays).
+    // is deliberately omitted here: the wrapper modules
+    // (Ml_dsa_generic.Instantiations.{Avx2,Portable,Neon}.Ml_dsa_*_) call this function
+    // with arbitrary &[u8] slices and have no analogous precondition to discharge it from.
+    // TODO: add it once the wrapper Rust functions also surface the length precondition
+    // (or once the function takes fixed-size arrays).
     #[cfg_attr(hax, hax_lib::ensures(|_| {
         let (pk_spec, sk_spec) = hacspec_ml_dsa::keygen_internal::<
             { HACSPEC_PARAMS.k },
@@ -91,14 +91,10 @@ pub(crate) mod generic {
         signing_key: &mut [u8],
         verification_key: &mut [u8],
     ) {
-        // FOLLOW-UP (2026-05-08): body re-admitted to restore HEAD to a clean
-        // verify so the trait-level opacity remediation (per
-        // proofs/agent-status/abstraction-boundary-audit-2026-05-07.md) can
-        // be measured against a baseline.  q60 of this function cliffs at
-        // rlimit 400, ~65s, with k!63 ~624K instances; the keygen-cone
-        // opacification scaffolding (commits c4fe50bd3, bbd27bbea,
-        // fe3ea2881, 9b5b75b4b) stays in tree.  Remove this admit after the
-        // trait-surface fixes land and q60 profile is clean.
+        // The functional post is admitted: q60 of this function cliffs at rlimit
+        // 400 (~65s), with k!63 producing ~624K quantifier instances. TODO: remove
+        // the admit once trait-surface opacity is tightened and the q60 profile is
+        // clean.
         trusted_admit!(
             "pending-proof(campaign): keygen q60 cliffs at rlimit 400 (k!63 ~624K \
              instances); re-admitted 2026-05-08 pending trait-surface opacity fixes"
@@ -492,7 +488,7 @@ pub(crate) mod generic {
             let mut commitment_hash_candidate = [0; COMMITMENT_HASH_SIZE];
             {
                 let mut commitment_serialized = [0u8; COMMITMENT_VECTOR_SIZE];
-                // decompose_vector (chunk 2 step B) now gives `commitment` (its
+                // decompose_vector gives `commitment` (its
                 // HighBits output) the tight non-negative lane range
                 // `is_lane_range_poly_slice 0 (use_hint_serialize_bound GAMMA2)`.
                 // Mirror the verify path (verify_internal serialize_vector block):
@@ -523,8 +519,8 @@ pub(crate) mod generic {
 
                 shake.squeeze(&mut commitment_hash_candidate);
             }
-            // The shake absorb/absorb_final/squeeze XOF ops above are now verified
-            // (chunk 3): Shake256Xof::{init,absorb,absorb_final,squeeze} all carry
+            // The shake absorb/absorb_final/squeeze XOF ops above are verified:
+            // Shake256Xof::{init,absorb,absorb_final,squeeze} all carry
             // `requires(true)`, mirroring verify_internal's proven shake block and
             // sign_internal's own mask_seed shake block (both above this point).
             let mut verifier_challenge = PolynomialRingElement::zero();
@@ -534,16 +530,14 @@ pub(crate) mod generic {
                 &mut verifier_challenge,
             );
             ntt(&mut verifier_challenge);
-            // The sample_challenge_ring_element + ntt calls above are now verified
-            // (chunk 4): sample_challenge carries `requires(true)` and ensures
+            // The sample_challenge_ring_element + ntt calls above are verified:
+            // sample_challenge carries `requires(true)` and ensures
             // `is_bounded_poly 8380416 verifier_challenge`, which discharges ntt's
             // precond `is_bounded_poly 8380416` directly (same opaque atom, same
-            // term); ntt then yields `is_bounded_poly 75423744 verifier_challenge`
-            // (available to downstream chunks).
-            // FOLLOW-UP (chunks 7-9): the three vector_infinity_norm_exceeds calls,
-            // add_vectors(w0, challenge_times_t0), make_hint (FC done 419ab93a0), the
-            // Bundle t_Option invariant, and the per-iteration invariant maintenance —
-            // remain admitted.
+            // term); ntt then yields `is_bounded_poly 75423744 verifier_challenge`.
+            // Still admitted: the three vector_infinity_norm_exceeds calls,
+            // add_vectors(w0, challenge_times_t0), make_hint, the Bundle t_Option
+            // invariant, and the per-iteration invariant maintenance.
 
             // We need to clone here in case we need s1_as_ntt or s2_as_ntt again in
             // another iteration of the loop.
@@ -552,27 +546,28 @@ pub(crate) mod generic {
 
             vector_times_ring_element::<SIMDUnit>(&mut challenge_times_s1, &verifier_challenge);
             vector_times_ring_element::<SIMDUnit>(&mut challenge_times_s2, &verifier_challenge);
-            // Chunk 5: the two vector_times_ring_element calls above are now verified.
+            // The two vector_times_ring_element calls above are verified.
             // Each requires `is_bounded_poly_slice 75423744 vector` on the (cloned) s1/s2
             // operand and `is_bounded_poly 75423744 ring_element` on verifier_challenge.
             // The loop invariant carries `is_bounded_poly_slice 75423744 {s1,s2}_as_ntt`;
             // the array clone's return type is refined `r == self`, so the bound transfers
             // to challenge_times_s{1,2} by congruence. verifier_challenge carries
-            // `is_bounded_poly 75423744` from chunk 4's ntt post. Both vtre calls then
+            // `is_bounded_poly 75423744` from the ntt post above. Both vtre calls then
             // yield `is_bounded_poly_slice 8380416 challenge_times_s{1,2}`.
 
             add_vectors::<SIMDUnit>(COLUMNS_IN_A, &mut mask, &challenge_times_s1);
             subtract_vectors::<SIMDUnit>(ROWS_IN_A, &mut w0, &challenge_times_s2);
-            // Chunk 6: the add_vectors + subtract_vectors calls above are now verified.
+            // The add_vectors + subtract_vectors calls above are verified.
             // Both share the contract `requires is_bounded_poly_slice 8380416 {lhs,rhs}`,
             // `ensures is_bounded_poly_slice 16760832 lhs_future`. All four operand bounds
             // are already in scope: `mask` carries `is_bounded_poly_slice 8380416` from
             // sample_mask_vector (the mask NTT loop mutated the clone `mask_ntt`, not
             // `mask`); `w0` carries it from decompose_vector's low post; and
-            // challenge_times_s{1,2} carry it from chunk 5's vtre post. Lengths are
-            // COLUMNS_IN_A / ROWS_IN_A respectively. After these, `mask` and `w0` both
-            // carry `is_bounded_poly_slice 16760832` (= 2q), matching the 2q-relaxed
-            // precond of the chunk-7 vector_infinity_norm_exceeds wrappers.
+            // challenge_times_s{1,2} carry it from the vector_times_ring_element post
+            // above. Lengths are COLUMNS_IN_A / ROWS_IN_A respectively. After these,
+            // `mask` and `w0` both carry `is_bounded_poly_slice 16760832` (= 2q),
+            // matching the 2q-relaxed precond of the vector_infinity_norm_exceeds
+            // wrappers below.
             trusted_admit!(
                 "pending-proof(campaign): sign_internal rejection-loop chunk-7 body \
                  (vector_infinity_norm_exceeds region) proof pending; chunks 1-6 verified"
@@ -798,7 +793,7 @@ pub(crate) mod generic {
     #[inline(always)]
     // verify_internal's monolithic VC splits into ~160 sub-queries; the heaviest
     // (compute_w_approx's precondition in the ML-DSA-87 context, k=8/l=7) is
-    // budget-bound.  `` is REQUIRED alongside `--split_queries always`:
+    // budget-bound.  `#restart-solver` is REQUIRED alongside `--split_queries always`:
     // without it, Z3's state accumulates across sub-queries in the full-module build
     // and that one query drifts past 800 (flaky cold); with a fresh solver per
     // sub-query it lands at ~640/800 deterministically.  (44/65 use <45.)

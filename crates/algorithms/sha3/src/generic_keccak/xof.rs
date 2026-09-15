@@ -60,6 +60,7 @@ pub(crate) struct KeccakXofState<
 /// type `(x: usize{x <. v_N}) -> t_Slice u8`, not the bare `usize -> t_Slice u8`
 /// that `t_FnOnce` resolves against), so it must be given explicitly.
 #[inline(always)]
+#[libcrux_macros::trusted(replace, "hax-limitation: implicit t_FnOnce arg unresolvable from refined closure (F* v2026.03.24)")]
 #[hax_lib::fstar::replace(
     "let buf_to_slices
       (v_PARALLEL_LANES v_RATE: usize)

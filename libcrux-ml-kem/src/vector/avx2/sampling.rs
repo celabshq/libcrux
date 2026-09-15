@@ -6,6 +6,8 @@ use super::{
 
 #[hax_lib::fstar::before(
     r#"
+open Libcrux_intrinsics.Avx2
+open Libcrux_intrinsics.Avx2_ml_kem_views
 open Libcrux_ml_kem.Vector.Avx2.Sampling_theory
 "#
 )]
@@ -61,25 +63,35 @@ pub(crate) fn rejection_sample(input: &[u8], output: &mut [i16]) -> usize {
     let lower_shuffled = mm_shuffle_epi8(lower_coefficients, lower_shuffles_vec);
 
     // ... then write them out ...
+    // Proof-only snapshot of the buffer before the first store, so the store
+    // bridge lemma below can name its pre-state operand (the `mm_storeu_si128`
+    // call rebinds `output`).
+    #[cfg(hax)]
+    let output_before_lower: &[i16] = &*output;
+
     mm_storeu_si128(output, lower_shuffled);
 
     proof!(
         r#"
         let g0: nat = v (${good}.[ mk_usize 0 ] <: u8) in
-        assert (forall (i: nat{i < 256}).
-            ${compare_with_field_modulus} i ==
-            (if 3329 > v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${potential_coefficients}) (i / 16))
-             then 1 else 0));
+        introduce forall (l: nat{l < 16}).
+            Libcrux_intrinsics.Avx2_ml_kem_views.bv_bit ${compare_with_field_modulus} (16 * l) ==
+            (if 3329 > v (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${potential_coefficients}) l)
+             then 1 else 0)
+        with (
+          Libcrux_intrinsics.Avx2_ml_kem_views.lemma_bv_bit0_mm256_cmpgt_epi16 ${field_modulus} ${potential_coefficients} l;
+          assert (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${field_modulus}) l ==
+                  Libcrux_ml_kem.Vector.Traits.v_FIELD_MODULUS)
+        );
         Hacspec_ml_kem.Commute.Rej_table.lemma_good_bits ${good} ${compare_with_field_modulus} ${potential_coefficients} 0;
         Hacspec_ml_kem.Commute.Rej_table.intro_top_bits_clear ${potential_coefficients};
         assert (${lower_shuffles} ==
             Seq.index Libcrux_ml_kem.Vector.Rej_sample_table.v_REJECTION_SAMPLE_SHUFFLE_TABLE g0);
-        assert (${lower_shuffled} ==
-            BitVec.Intrinsics.mm_shuffle_epi8_no_semantics ${lower_coefficients} ${lower_shuffles_vec});
         lemma_half_done ${potential_coefficients} ${lower_coefficients} ${lower_shuffles_vec} ${lower_shuffled} ${lower_shuffles} 0 g0;
-        introduce forall (j: nat{j < 8}).
-            Seq.index ${output} j == Seq.index (Libcrux_intrinsics.Avx2_extract.vec128_as_i16x8 ${lower_shuffled}) j
-        with FStar.Seq.lemma_index_slice ${output} 0 8 j;
+        (* The store bridge: lane j of the stored buffer IS lane j of the
+           shuffled vector's i16x8 view.  Over core-models the store is a
+           modeled per-lane spine, so this is a proven companion lemma. *)
+        Libcrux_intrinsics.Avx2_ml_kem_views.lemma_mm_storeu_si128 ${output_before_lower} ${lower_shuffled};
         assert (forall (j: nat{j < 8}).
             j < Hacspec_ml_kem.Commute.Rej_table.popcount8 g0 ==>
             (v (Seq.index ${output} j) >= 0 /\ v (Seq.index ${output} j) <= 3328))
@@ -119,37 +131,43 @@ pub(crate) fn rejection_sample(input: &[u8], output: &mut [i16]) -> usize {
         assert (v ${sampled_count} == c0);
         assert (v ${result} == c0 + c1);
         (* upper-half driver *)
-        assert (forall (i: nat{i < 256}).
-            ${compare_with_field_modulus} i ==
-            (if 3329 > v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${potential_coefficients}) (i / 16))
-             then 1 else 0));
+        introduce forall (l: nat{l < 16}).
+            Libcrux_intrinsics.Avx2_ml_kem_views.bv_bit ${compare_with_field_modulus} (16 * l) ==
+            (if 3329 > v (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${potential_coefficients}) l)
+             then 1 else 0)
+        with (
+          Libcrux_intrinsics.Avx2_ml_kem_views.lemma_bv_bit0_mm256_cmpgt_epi16 ${field_modulus} ${potential_coefficients} l;
+          assert (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${field_modulus}) l ==
+                  Libcrux_ml_kem.Vector.Traits.v_FIELD_MODULUS)
+        );
         Hacspec_ml_kem.Commute.Rej_table.lemma_good_bits ${good} ${compare_with_field_modulus} ${potential_coefficients} 1;
         Hacspec_ml_kem.Commute.Rej_table.intro_top_bits_clear ${potential_coefficients};
         assert (${upper_shuffles} ==
             Seq.index Libcrux_ml_kem.Vector.Rej_sample_table.v_REJECTION_SAMPLE_SHUFFLE_TABLE g1);
-        assert (${upper_shuffled} ==
-            BitVec.Intrinsics.mm_shuffle_epi8_no_semantics ${upper_coefficients} ${upper_shuffles_vec});
         lemma_half_done ${potential_coefficients} ${upper_coefficients} ${upper_shuffles_vec} ${upper_shuffled} ${upper_shuffles} 1 g1;
         (* output indexing through the second store *)
-        let range = { Core_models.Ops.Range.f_start = ${sampled_count};
-                      Core_models.Ops.Range.f_end = ${sampled_count} +! mk_usize 8 } in
-        let s' = Libcrux_intrinsics.Avx2_extract.mm_storeu_si128
+        let range = ({ Core_models.Ops.Range.f_start = ${sampled_count};
+                      Core_models.Ops.Range.f_end = ${sampled_count} +! mk_usize 8 }
+                      <: Core_models.Ops.Range.t_Range usize) in
+        let s' = Libcrux_intrinsics.Avx2.mm_storeu_si128
                    ((${output_after_lower}.[ range ] <: t_Slice i16)) ${upper_shuffled} in
         assert (${output} ==
             Rust_primitives.Hax.Monomorphized_update_at.update_at_range ${output_after_lower} range s');
         assert (Seq.length ${output} == 16);
+        Hacspec_ml_kem.Commute.Rej_table.lemma_popcount8_le 8 g0;
+        Hacspec_ml_kem.Commute.Rej_table.lemma_popcount8_le 8 g1;
+        (* Frame the second store: below c0 the buffer is untouched, inside
+           [c0, c0+8) it is s'.  Then the store bridge turns s' into the
+           upper shuffled vector's i16x8 view, whose kept lanes lemma_half_done
+           has already bounded. *)
+        Rust_primitives.Hax.Monomorphized_update_at_Lemmas.lemma_index_update_at_range
+            ${output_after_lower} range s';
+        Libcrux_intrinsics.Avx2_ml_kem_views.lemma_mm_storeu_si128
+            ((${output_after_lower}.[ range ] <: t_Slice i16)) ${upper_shuffled};
         introduce forall (j: nat{j < v ${result}}).
             (v (Seq.index ${output} j) >= 0 /\ v (Seq.index ${output} j) <= 3328)
         with begin
-          if j < c0
-          then begin
-            FStar.Seq.lemma_index_slice ${output} 0 c0 j;
-            FStar.Seq.lemma_index_slice ${output_after_lower} 0 c0 j
-          end
-          else begin
-            FStar.Seq.lemma_index_slice ${output} c0 (c0 + 8) (j - c0);
-            FStar.Seq.lemma_index_slice s' 0 8 (j - c0)
-          end
+          if j < c0 then () else assert (j - c0 < c1)
         end
     "#
     );

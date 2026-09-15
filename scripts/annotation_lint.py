@@ -32,6 +32,12 @@ Checks the hax-verified crates for convention violations:
   V6  A `-<crate>::…` hax extraction-exclusion (`-i` filter) without a
       `# trusted-module: <token> : <reason>` mirror in hax.py / hax.sh.
 
+  V7  A core-models hardware *intrinsic* symbol (`_mm*` / `v[a-z]*`) still tagged
+      with a bare `#[hax_lib::opaque]` instead of the loud, reason-carrying
+      `#[libcrux_macros::trusted(opaque, "…")]` marker. Enforces the trust-
+      hardening sweep's marking going forward. Non-intrinsic opaque (rewrite-lemma
+      helpers, foundation primitives) are NOT flagged.
+
 V4/V5/V6 share their implementation with `trust_ledger.py --check` (they are its
 CLAIMS-side lints) and run on the committed tree — no extraction needed.
 
@@ -48,13 +54,32 @@ import trust_scan as ts
 import trust_ledger as tl
 
 CRATES = ["libcrux-ml-kem/src", "libcrux-ml-dsa/src"]
+CORE_MODELS_SRC = "crates/utils/core-models/src"
+# A hardware intrinsic symbol name: x86 `_mm…` or ARM `v<lowercase>…` (matches the
+# marking sweep's transformation rule; excludes `_rw_*` rewrite lemmas & foundation).
+_INTRINSIC_NAME_RX = re.compile(r"^(?:_mm\w+|v[a-z]\w+)$")
 BA_RX = re.compile(
     r"#\[\s*(?:cfg_attr\s*\(\s*hax\s*,\s*)?hax_lib::fstar::(before|after)\s*\("
 )
 DEF_RX = re.compile(r"\blet\b|\bval\b|\bLemma\b")
+DEF_NAME_RX = re.compile(r"\b(?:let|val)\s+([A-Za-z_][A-Za-z0-9_']*)")
 TAG_RX = re.compile(
     r"proof-residence:\s*(locked|hint-keystone|cold-gate|spec-host|clean-context)"
 )
+
+# ---------------------------------------------------------------------------
+# V1 ratchet (see scripts/README-trust-ledger.md). `--strict` gates CI, but a few
+# inline `before/after` lemma blocks pre-date the convention and live in files a
+# different workstream owns (they cannot be relocated/tagged from here without
+# risking byte-identical extraction). Each is pinned by a STABLE signature
+# (relpath, first-F*-definition-name) so line drift never re-arms it and a NEW
+# untagged block in the same file still trips the gate. Non-increasing: shrink
+# only. Reasons documented so the owner can retire each entry.
+_V1_ALLOWLIST = {
+    # compress<>'s clean-context loop-maintenance lemma; relocation tracked with the
+    # post-merge Portable.Compress.compress work (MEMORY: mlkem-postmerge-compress).
+    ("libcrux-ml-kem/src/vector/portable/compress.rs", "compress_d_val"),
+}
 
 
 def raw_string_body(text, start, cap=30000):
@@ -90,8 +115,10 @@ def check_file(path, repo_root):
         context = "\n".join(text.split("\n")[max(0, lineno - 3) : lineno])
         if TAG_RX.search(context):
             continue
+        dm = DEF_NAME_RX.search(body)
+        sig = dm.group(1) if dm else "?"
         violations.append(
-            (os.path.relpath(path, repo_root), lineno + 1, n_lines)
+            (os.path.relpath(path, repo_root), lineno + 1, n_lines, sig)
         )
     return violations
 
@@ -128,6 +155,26 @@ def marker_violations(repo_root):
     return v2, v2b, v3
 
 
+def opaque_marker_violations(repo_root):
+    """V7 — a core-models hardware *intrinsic* symbol tagged with a bare
+    #[hax_lib::opaque] instead of the loud #[libcrux_macros::trusted(opaque, "…")]
+    marker. Returns [(file, line, name)]. Only intrinsic-named symbols are gated;
+    non-intrinsic opaque (rewrite-lemma Proof helpers, foundation primitives) pass."""
+    root = os.path.join(repo_root, CORE_MODELS_SRC)
+    out = []
+    if not os.path.isdir(root):
+        return out
+    for dp, dn, fns in os.walk(root):
+        dn[:] = [d for d in dn if d not in ts._SKIP_DIRS]
+        for fn in sorted(fns):
+            if not fn.endswith(".rs") or fn in ts._MARKER_SKIP_FILES:
+                continue
+            for r in ts.scan_file_opaque_intrinsics(os.path.join(dp, fn), repo_root):
+                if not r.get("marked") and _INTRINSIC_NAME_RX.match(r["name"]):
+                    out.append((r["file"], r["line"], r["name"]))
+    return out
+
+
 def main():
     strict = "--strict" in sys.argv
     repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -140,6 +187,7 @@ def main():
                         os.path.join(dirpath, f), repo_root
                     )
     v2, v2b, v3 = marker_violations(repo_root)
+    v7 = opaque_marker_violations(repo_root)
 
     # V4/V5/V6 — companion-axiom tags + module/config mirrors. Shared with
     # trust_ledger --check; scoped to the two hax-verified crates with companions.
@@ -150,13 +198,20 @@ def main():
         v4 += creg
         v5v6 += vreg
 
+    # V1 ratchet: split known-accepted (allowlisted) from active violations.
+    v1_active = [v for v in all_violations if (v[0], v[3]) not in _V1_ALLOWLIST]
+    v1_allowed = [v for v in all_violations if (v[0], v[3]) in _V1_ALLOWLIST]
     if all_violations:
         print(
-            f"V1: {len(all_violations)} untagged multi-line definition block(s) "
-            "in before/after attributes (see PROOF_CONVENTIONS.md):"
+            f"V1: {len(v1_active)} untagged multi-line definition block(s) "
+            "in before/after attributes (see PROOF_CONVENTIONS.md)"
+            + (f" [+{len(v1_allowed)} allowlisted, not gated]" if v1_allowed else "")
+            + ":"
         )
-        for path, line, n in sorted(all_violations):
-            print(f"  {path}:{line}  ({n} lines)")
+        for path, line, n, sig in sorted(v1_active):
+            print(f"  {path}:{line}  ({n} lines, first-def `{sig}`)")
+        for path, line, n, sig in sorted(v1_allowed):
+            print(f"  (allowlisted) {path}:{line}  ({n} lines, first-def `{sig}`)")
     if v2:
         print(f"V2: {len(v2)} trust reason(s) without a valid category prefix:")
         for path, line, kind, reason in sorted(v2):
@@ -177,12 +232,23 @@ def main():
         print(f"V5/V6: {len(v5v6)} module/config trust-mirror issue(s):")
         for msg in sorted(v5v6):
             print(f"  {msg}")
+    if v7:
+        print(f"V7: {len(v7)} core-models intrinsic(s) with a bare "
+              "#[hax_lib::opaque] (want #[libcrux_macros::trusted(opaque, \"…\")]):")
+        for path, line, name in sorted(v7):
+            print(f"  {path}:{line}  {name}")
 
-    total = (len(all_violations) + len(v2) + len(v2b) + len(v3)
-             + len(v4) + len(v5v6))
-    if total == 0:
+    # Reported total counts every finding; the GATE counts only active (non-
+    # allowlisted) ones so a documented pre-existing block can't red-CI.
+    reported = (len(all_violations) + len(v2) + len(v2b) + len(v3)
+                + len(v4) + len(v5v6) + len(v7))
+    gated = (len(v1_active) + len(v2) + len(v2b) + len(v3)
+             + len(v4) + len(v5v6) + len(v7))
+    if reported == 0:
         print("annotation lint: clean")
-    sys.exit(1 if strict and total else 0)
+    elif gated == 0:
+        print(f"annotation lint: clean (gate) — {reported} allowlisted finding(s) only")
+    sys.exit(1 if strict and gated else 0)
 
 
 if __name__ == "__main__":

@@ -14,7 +14,7 @@ use libcrux_intrinsics::avx2::*;
 use crate::traits::*;
 
 #[inline(always)]
-#[hax_lib::requires(0 <= LEFT && LEFT <= 64 && 0 <= RIGHT && RIGHT <= 64)]
+#[hax_lib::requires(0 <= LEFT && LEFT <= 64 && 0 < RIGHT && RIGHT < 64)]
 fn rotate_left<const LEFT: i32, const RIGHT: i32>(x: Vec256) -> Vec256 {
     #[cfg(not(any(eurydice, hax)))]
     debug_assert!(LEFT + RIGHT == 64);
@@ -40,7 +40,7 @@ fn _vrax1q_u64(a: Vec256, b: Vec256) -> Vec256 {
 }
 
 #[inline(always)]
-#[hax_lib::requires(0 <= LEFT && LEFT <= 64 && 0 <= RIGHT && RIGHT <= 64)]
+#[hax_lib::requires(0 <= LEFT && LEFT <= 64 && 0 < RIGHT && RIGHT < 64)]
 fn _vxarq_u64<const LEFT: i32, const RIGHT: i32>(a: Vec256, b: Vec256) -> Vec256 {
     let ab = mm256_xor_si256(a, b);
     rotate_left::<LEFT, RIGHT>(ab)

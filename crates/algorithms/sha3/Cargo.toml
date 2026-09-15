@@ -18,6 +18,8 @@ libcrux-platform = { version = "0.0.3", path = "../../sys/platform" }
 libcrux-intrinsics.workspace = true
 libcrux-traits.workspace = true
 hax-lib.workspace = true
+# Trust markers (#[libcrux_macros::trusted(replace, …)]); extraction-neutral.
+libcrux-macros.workspace = true
 
 [features]
 simd128 = ["libcrux-intrinsics/simd128"]

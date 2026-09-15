@@ -7,7 +7,7 @@
 //!   `load_last`, helpers, and the `Absorb<4>` impl.
 //! - [`store`] (`Libcrux_sha3.Simd.Avx2.Store`) — `store_block` and
 //!   the `Squeeze4` impl. (The store_block body is currently
-//!   admitted; a follow-up sprint discharges it.)
+//!   admitted.)
 //!
 //! Keeping this file content-free is what tells hax NOT to emit a
 //! `Libcrux_sha3.Simd.Avx2.Bundle.fst`.

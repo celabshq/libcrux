@@ -1,0 +1,48 @@
+name: Trust - Lint
+
+# Source-only trust-annotation gate (no hax extract / F* needed). Runs the
+# trust-tooling self-tests, the STRICT annotation lint (fails on untagged /
+# undocumented trust markers), and prints the deduped, source-backed trusted-base
+# inventory (scripts/enumerate_trust.py) to the log for reviewers. The observed
+# post-extraction F* regression gate lives in the per-crate `*-hax` workflows
+# (trust_ledger.py --check); this job covers the git-tracked CLAIMS side, so it is
+# correct on a plain checkout where the generated `.fst` tree is gitignored.
+
+on:
+  merge_group:
+  push:
+    branches: ["main", "dev"]
+  pull_request:
+    branches: ["main", "dev"]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  trust-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+
+      - name: 🧪 Trust-tooling self-tests
+        run: python3 scripts/test_trust_ledger.py
+
+      - name: 🔒 Strict annotation lint (gate)
+        run: python3 scripts/annotation_lint.py --strict
+
+      - name: 📋 Trusted-base inventory (visibility, non-gating)
+        run: python3 scripts/enumerate_trust.py
+
+  trust-lint-status:
+    if: ${{ always() }}
+    needs: [trust-lint]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Successful
+        if: ${{ !(contains(needs.*.result, 'failure')) }}
+        run: exit 0
+      - name: Failing
+        if: ${{ (contains(needs.*.result, 'failure')) }}
+        run: exit 1

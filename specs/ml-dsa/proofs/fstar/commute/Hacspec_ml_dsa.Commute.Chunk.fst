@@ -176,7 +176,7 @@ let lemma_power2round_t1_bound (input: i32)
      if m > pow2 12 then t0 = m - pow2 13 ∈ (-pow2 12, 0)
      else (m <= pow2 12) t0 = m ∈ [0, pow2 12].
    Combined: t0 ∈ (-pow2 12, pow2 12].  Unlike `decompose`, there is
-   no special-case adjustment, so the half-open bound holds (cf. F-13). *)
+   no special-case adjustment, so the half-open bound holds. *)
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 200"
 let lemma_power2round_t0_strict_lower_bound (input: i32)
     = let q : pos = 8380417 in
@@ -217,7 +217,7 @@ let lemma_shift_left_then_reduce_lane_commute_mod_q
     reveal_opaque (`%TS.shift_left_then_reduce_lane_post)
                   (TS.shift_left_then_reduce_lane_post input future)
 
-(* === F-1 restructuring (above-trait verdict 7a4dc28df, option d) ===
+(* === Trait-pre / lane-post bound restructuring ===
    The trait pre `is_i32b_array_opaque FIELD_MAX` for use_hint /
    decompose / compute_hint is intentionally weaker than the lane
    posts' `[0, q)`-conditional `==>` shape.  Each impl-side commute
@@ -512,11 +512,11 @@ let lemma_compute_hint_bound (hint: t_Array i32 (sz 8))
     = lemma_compute_hint_bound_aux hint 8
 
 (* Conditional equation for compute_hint (paired-lemma template).
-   Trivial under F-4 (cdb6e946e): `compute_hint_lane_post` now cites
-   `Spec.MLDSA.Math.compute_one_hint` directly, matching the lemma's
-   `requires` exactly.  The `make_hint` cross-spec link was dropped
-   on the above-trait side because it is unprovable at the boundary
-   `low = -gamma2, high != 0` (Spec returns 1, Hacspec returns 0). *)
+   `compute_hint_lane_post` cites `Spec.MLDSA.Math.compute_one_hint`
+   directly, matching the lemma's `requires` exactly.  There is no
+   `make_hint` cross-spec link on the above-trait side because it is
+   unprovable at the boundary `low = -gamma2, high != 0`
+   (Spec returns 1, Hacspec returns 0). *)
 let lemma_compute_hint_lane_commute_conditional
     (gamma2 low high hint_future: i32)
     = reveal_opaque (`%TS.compute_hint_lane_post)
@@ -3119,7 +3119,7 @@ let lemma_intt_layer_7_cross_to_hacspec_poly
 #pop-options
 
 
-(* === Step 12 Track B: AVX2 decompose impl-side bridge === *)
+(* === AVX2 decompose impl-side bridge === *)
 
 (* --- Bit-trick correctness, integer level ---
 

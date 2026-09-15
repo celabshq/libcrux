@@ -9,6 +9,62 @@ pub mod int_vec {
     #[allow(unused)]
     use crate::core_arch::x86;
 
+    // ── movemask models as Z3-friendly base-2 folds ──
+    // The extracted movemask models (`_mm{,256}_movemask_ps/epi8`) were a flat
+    // 16-/8-way `+` spine that Z3 cannot reason about (the value-vs-bit
+    // characterization saturates: proving `bit i == sign of lane i` by unfolding
+    // times out both at low and high ifuel).  We `#[exclude]` those bodies and
+    // define the models here as a base-2 (LSB-first) accumulation of the per-lane
+    // sign bits — the SAME numeric value (differentially tested), but a `Tot nat`
+    // recursion over which the `movemask_bit` companion is a trivial digit
+    // extraction.  Self-contained (no `int_vec_interp` dependency, avoiding a
+    // circular import).  Grandfathered-OK primitive-model shaping.
+    #[libcrux_macros::trusted(replace, "trusted-extern: e_movemask_bit_sum recursive F* model (interpretation)")]
+    #[hax_lib::fstar::replace(
+        r#"
+let rec e_movemask_bit_sum_i8
+    (a: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 16) i8)
+    (off: nat) (n: nat{off + n <= 16}) : Tot nat (decreases n) =
+  if n = 0 then 0
+  else (if (a.[ mk_u64 off ] <: i8) <. mk_i8 0 then 1 else 0)
+       + 2 * e_movemask_bit_sum_i8 a (off + 1) (n - 1)
+
+let rec e_movemask_bit_sum_i32
+    (a: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 8) i32)
+    (off: nat) (n: nat{off + n <= 8}) : Tot nat (decreases n) =
+  if n = 0 then 0
+  else (if (a.[ mk_u64 off ] <: i32) <. mk_i32 0 then 1 else 0)
+       + 2 * e_movemask_bit_sum_i32 a (off + 1) (n - 1)
+
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 60"
+let rec e_movemask_bit_sum_i8_bound
+    (a: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 16) i8)
+    (off: nat) (n: nat{off + n <= 16})
+    : Lemma (ensures e_movemask_bit_sum_i8 a off n < pow2 n) (decreases n) =
+  if n = 0 then assert_norm (pow2 0 == 1)
+  else (e_movemask_bit_sum_i8_bound a (off + 1) (n - 1); FStar.Math.Lemmas.pow2_plus 1 (n - 1))
+
+let rec e_movemask_bit_sum_i32_bound
+    (a: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 8) i32)
+    (off: nat) (n: nat{off + n <= 8})
+    : Lemma (ensures e_movemask_bit_sum_i32 a off n < pow2 n) (decreases n) =
+  if n = 0 then assert_norm (pow2 0 == 1)
+  else (e_movemask_bit_sum_i32_bound a (off + 1) (n - 1); FStar.Math.Lemmas.pow2_plus 1 (n - 1))
+#pop-options
+
+let e_mm_movemask_epi8 (a: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 16) i8) : i32 =
+  e_movemask_bit_sum_i8_bound a 0 16;
+  assert_norm (pow2 16 == 65536);
+  mk_i32 (e_movemask_bit_sum_i8 a 0 16)
+
+let e_mm256_movemask_ps (a: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 8) i32) : i32 =
+  e_movemask_bit_sum_i32_bound a 0 8;
+  assert_norm (pow2 8 == 256);
+  mk_i32 (e_movemask_bit_sum_i32 a 0 8)
+"#
+    )]
+    const _: () = {};
+
     pub fn _mm256_set1_epi32(x: i32) -> i32x8 {
         i32x8::from_fn(|_| x)
     }
@@ -138,6 +194,10 @@ pub mod int_vec {
         a
     }
 
+    // Model body replaced by a base-2 fold in the `fstar::replace` block above
+    // (Z3-friendly `e_movemask_bit_sum_*`); the flat `+` spine here is kept for
+    // cargo/differential-testing only.  See that block for the F* definition.
+    #[hax_lib::exclude]
     pub fn _mm256_movemask_ps(a: i32x8) -> i32 {
         let a0: i32 = if a[0] < 0 { 1 } else { 0 };
         let a1 = if a[1] < 0 { 2 } else { 0 };
@@ -433,7 +493,10 @@ pub mod int_vec {
         i32x8::from_fn(|i| if mask[i] < 0 { b[i] } else { a[i] })
     }
 
-    #[hax_lib::fstar::verification_status(lax)]
+    // Model body replaced by a base-2 fold in the `fstar::replace` block above
+    // (Z3-friendly `e_movemask_bit_sum_*`); the flat `+` spine here is kept for
+    // cargo/differential-testing only.  See that block for the F* definition.
+    #[hax_lib::exclude]
     pub fn _mm_movemask_epi8(a: i8x16) -> i32 {
         let a0 = if a[0] < 0 { 1 } else { 0 };
         let a1 = if a[1] < 0 { 2 } else { 0 };
@@ -561,11 +624,10 @@ pub mod int_vec {
     }
 
     // ===========================================================================
-    // Phase B-AVX2 backfill: int-vec bodies for previously-bitvec-only intrinsics.
+    // int-vec bodies for the AVX2 intrinsics.
     //
     // Portions of this section are adapted from
-    // `verify-rust-std/testable-simd-models/`, (c) Cryspen, Apache-2.0,
-    // imported on 2026-05-02 for the libcrux SIMD intrinsics trust-base sprint.
+    // `verify-rust-std/testable-simd-models/`, (c) Cryspen, Apache-2.0.
     //
     // Note: the bit-vec-layer stubs in `core_arch/x86.rs` keep their
     // `#[hax_lib::opaque]` attribute. These int-vec bodies are the
@@ -579,7 +641,7 @@ pub mod int_vec {
         BitVec::from_fn(|i| a[i])
     }
 
-    // ---- Track B: Load/store typed wrappers (L0-nospec → L2) ----
+    // ---- Load/store typed wrappers (L0-nospec → L2) ----
 
     // _mm256_loadu_si256_i16: load 16 i16 lanes from a slice.
     // NB (PR2 cross-validation): these load/store typed wrappers call
@@ -623,7 +685,7 @@ pub mod int_vec {
         output.copy_from_slice(&ints);
     }
 
-    // ---- Batch D bodies: ports of L0 / L0-nospec wrappers ----
+    // ---- Bodies for L0 / L0-nospec wrappers ----
 
     // _mm_set_epi8: lane-wise set, low-to-high.
     pub fn _mm_set_epi8(
@@ -969,6 +1031,196 @@ pub mod int_vec {
         })
     }
 
+    // ===========================================================================
+    // AES / CLMUL (WS1 trust-base completion).
+    //
+    // Executable Rust models for the four x86 AES-NI / carryless-multiply
+    // intrinsics (`_mm_aesenc_si128`, `_mm_aesenclast_si128`,
+    // `_mm_aeskeygenassist_si128`, `_mm_clmulepi64_si128`), giving them a full
+    // category-A trust chain (model + differential test + `mk_lift_lemma!`
+    // lift). The AES S-box, `xtime`, MixColumns and the GF(2) 64x64 carryless
+    // multiply are the SAME FIPS-197 math used by the ARM NEON models in
+    // `core_arch/arm/interpretations.rs` (`vaeseq_u8` / `vaesmcq_u8` /
+    // `vmull_p64`); the small helpers/table are duplicated here (rather than
+    // cross-arch imported) so the x86 F* extraction stays self-contained. The
+    // two int-vec model families are cross-checked against each other
+    // host-independently in `super`'s `aes_clmul_tests` — and the ARM side is
+    // itself differentially tested against real ARM AES/PMULL hardware.
+    //
+    // State convention (matches Intel and ARM NEON): the 128-bit register holds
+    // the AES state in column-major byte order, i.e. byte `4*c + r` is
+    // `state[row r][col c]`.
+    // ===========================================================================
+
+    /// AES forward S-box. Standard FIPS-197 table (identical to the copy in
+    /// `arm/interpretations.rs`).
+    const AES_SBOX: [u8; 256] = [
+        0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab,
+        0x76, 0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4,
+        0x72, 0xc0, 0xb7, 0xfd, 0x93, 0x26, 0x36, 0x3f, 0xf7, 0xcc, 0x34, 0xa5, 0xe5, 0xf1, 0x71,
+        0xd8, 0x31, 0x15, 0x04, 0xc7, 0x23, 0xc3, 0x18, 0x96, 0x05, 0x9a, 0x07, 0x12, 0x80, 0xe2,
+        0xeb, 0x27, 0xb2, 0x75, 0x09, 0x83, 0x2c, 0x1a, 0x1b, 0x6e, 0x5a, 0xa0, 0x52, 0x3b, 0xd6,
+        0xb3, 0x29, 0xe3, 0x2f, 0x84, 0x53, 0xd1, 0x00, 0xed, 0x20, 0xfc, 0xb1, 0x5b, 0x6a, 0xcb,
+        0xbe, 0x39, 0x4a, 0x4c, 0x58, 0xcf, 0xd0, 0xef, 0xaa, 0xfb, 0x43, 0x4d, 0x33, 0x85, 0x45,
+        0xf9, 0x02, 0x7f, 0x50, 0x3c, 0x9f, 0xa8, 0x51, 0xa3, 0x40, 0x8f, 0x92, 0x9d, 0x38, 0xf5,
+        0xbc, 0xb6, 0xda, 0x21, 0x10, 0xff, 0xf3, 0xd2, 0xcd, 0x0c, 0x13, 0xec, 0x5f, 0x97, 0x44,
+        0x17, 0xc4, 0xa7, 0x7e, 0x3d, 0x64, 0x5d, 0x19, 0x73, 0x60, 0x81, 0x4f, 0xdc, 0x22, 0x2a,
+        0x90, 0x88, 0x46, 0xee, 0xb8, 0x14, 0xde, 0x5e, 0x0b, 0xdb, 0xe0, 0x32, 0x3a, 0x0a, 0x49,
+        0x06, 0x24, 0x5c, 0xc2, 0xd3, 0xac, 0x62, 0x91, 0x95, 0xe4, 0x79, 0xe7, 0xc8, 0x37, 0x6d,
+        0x8d, 0xd5, 0x4e, 0xa9, 0x6c, 0x56, 0xf4, 0xea, 0x65, 0x7a, 0xae, 0x08, 0xba, 0x78, 0x25,
+        0x2e, 0x1c, 0xa6, 0xb4, 0xc6, 0xe8, 0xdd, 0x74, 0x1f, 0x4b, 0xbd, 0x8b, 0x8a, 0x70, 0x3e,
+        0xb5, 0x66, 0x48, 0x03, 0xf6, 0x0e, 0x61, 0x35, 0x57, 0xb9, 0x86, 0xc1, 0x1d, 0x9e, 0xe1,
+        0xf8, 0x98, 0x11, 0x69, 0xd9, 0x8e, 0x94, 0x9b, 0x1e, 0x87, 0xe9, 0xce, 0x55, 0x28, 0xdf,
+        0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb,
+        0x16,
+    ];
+
+    /// `xtime`: multiply by 2 in GF(2^8) mod 0x11b (mirrors `arm`'s `aes_xtime`).
+    fn aes_xtime(x: u8) -> u8 {
+        let high_bit = x & 0x80;
+        let shifted = x << 1;
+        if high_bit != 0 {
+            shifted ^ 0x1b
+        } else {
+            shifted
+        }
+    }
+
+    /// SubBytes ∘ ShiftRows on the column-major state. SubBytes (byte-wise) and
+    /// ShiftRows (a byte permutation) commute, so composition order is
+    /// immaterial. ShiftRows on the column-major layout is the byte permutation
+    /// `[0,5,10,15,4,9,14,3,8,13,2,7,12,1,6,11]` (same as `arm`'s `vaeseq_u8`).
+    /// This is the shared core of AESENC and AESENCLAST.
+    fn aes_shift_rows_sub_bytes(state: u8x16) -> u8x16 {
+        let perm: [u64; 16] = [0, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7, 12, 1, 6, 11];
+        let after_sr = u8x16::from_fn(|i| state[perm[i as usize] % 16]);
+        u8x16::from_fn(|i| AES_SBOX[after_sr[i] as usize])
+    }
+
+    /// MixColumns on the column-major state (mirrors `arm`'s `vaesmcq_u8`).
+    /// Each column `[s0,s1,s2,s3]` maps to
+    /// `[2·s0+3·s1+s2+s3, s0+2·s1+3·s2+s3, s0+s1+2·s2+3·s3, 3·s0+s1+s2+2·s3]`
+    /// in GF(2^8) (`·` = GF mult, `+` = XOR; `3·x = xtime(x)^x`).
+    fn aes_mix_columns(state: u8x16) -> u8x16 {
+        let mut out = [0u8; 16];
+        let s: [u8; 16] = core::array::from_fn(|i| state[i as u64]);
+        for col in 0..4 {
+            let s0 = s[col * 4];
+            let s1 = s[col * 4 + 1];
+            let s2 = s[col * 4 + 2];
+            let s3 = s[col * 4 + 3];
+            out[col * 4] = aes_xtime(s0) ^ aes_xtime(s1) ^ s1 ^ s2 ^ s3;
+            out[col * 4 + 1] = s0 ^ aes_xtime(s1) ^ aes_xtime(s2) ^ s2 ^ s3;
+            out[col * 4 + 2] = s0 ^ s1 ^ aes_xtime(s2) ^ aes_xtime(s3) ^ s3;
+            out[col * 4 + 3] = aes_xtime(s0) ^ s0 ^ s1 ^ s2 ^ aes_xtime(s3);
+        }
+        u8x16::from_fn(|i| out[i as usize])
+    }
+
+    /// AESENC: `MixColumns(SubBytes(ShiftRows(a))) XOR round_key`.
+    pub fn _mm_aesenc_si128(a: u8x16, round_key: u8x16) -> u8x16 {
+        let core = aes_mix_columns(aes_shift_rows_sub_bytes(a));
+        u8x16::from_fn(|i| core[i] ^ round_key[i])
+    }
+
+    /// AESENCLAST: `SubBytes(ShiftRows(a)) XOR round_key` (no MixColumns).
+    pub fn _mm_aesenclast_si128(a: u8x16, round_key: u8x16) -> u8x16 {
+        let core = aes_shift_rows_sub_bytes(a);
+        u8x16::from_fn(|i| core[i] ^ round_key[i])
+    }
+
+    /// SubWord: apply the S-box to each byte of a 4-byte word.
+    fn aes_sub_word(w: [u8; 4]) -> [u8; 4] {
+        [
+            AES_SBOX[w[0] as usize],
+            AES_SBOX[w[1] as usize],
+            AES_SBOX[w[2] as usize],
+            AES_SBOX[w[3] as usize],
+        ]
+    }
+
+    /// RotWord: `[b0,b1,b2,b3] -> [b1,b2,b3,b0]` (== `w.rotate_right(8)` on the
+    /// little-endian 32-bit word).
+    fn aes_rot_word(w: [u8; 4]) -> [u8; 4] {
+        [w[1], w[2], w[3], w[0]]
+    }
+
+    /// AESKEYGENASSIST. Views `a` as four little-endian dwords `X0..X3`
+    /// (`X_k` = bytes `4k..4k+4`). `RCON` = low byte of `imm8`, zero-extended
+    /// into the dword and XORed (so it affects only the byte-0 lane of the
+    /// rotated words). Result dwords:
+    ///   `d0 = SubWord(X1)`,
+    ///   `d1 = RotWord(SubWord(X1)) XOR RCON`,
+    ///   `d2 = SubWord(X3)`,
+    ///   `d3 = RotWord(SubWord(X3)) XOR RCON`.
+    #[hax_lib::fstar::options("--z3rlimit 200 --split_queries always")]
+    pub fn _mm_aeskeygenassist_si128(a: u8x16, imm8: i32) -> u8x16 {
+        let rcon = ((imm8 as u32) & 0xff) as u8;
+        let x1 = [a[4], a[5], a[6], a[7]];
+        let x3 = [a[12], a[13], a[14], a[15]];
+        let sub_x1 = aes_sub_word(x1);
+        let sub_x3 = aes_sub_word(x3);
+        let rot_x1 = aes_rot_word(sub_x1);
+        let rot_x3 = aes_rot_word(sub_x3);
+        let d1 = [rot_x1[0] ^ rcon, rot_x1[1], rot_x1[2], rot_x1[3]];
+        let d3 = [rot_x3[0] ^ rcon, rot_x3[1], rot_x3[2], rot_x3[3]];
+        u8x16::from_fn(|i| match i {
+            0 => sub_x1[0],
+            1 => sub_x1[1],
+            2 => sub_x1[2],
+            3 => sub_x1[3],
+            4 => d1[0],
+            5 => d1[1],
+            6 => d1[2],
+            7 => d1[3],
+            8 => sub_x3[0],
+            9 => sub_x3[1],
+            10 => sub_x3[2],
+            11 => sub_x3[3],
+            12 => d3[0],
+            13 => d3[1],
+            14 => d3[2],
+            15 => d3[3],
+            _ => unreachable!(),
+        })
+    }
+
+    /// GF(2) carryless 64x64 -> 128 multiply (mirrors `arm`'s `vmull_p64`).
+    fn clmul64(a: u64, b: u64) -> u128 {
+        let mut acc: u128 = 0;
+        let mut a128 = a as u128;
+        for i in 0..64 {
+            if (b >> i) & 1 == 1 {
+                acc ^= a128;
+            }
+            a128 <<= 1;
+        }
+        acc
+    }
+
+    /// Read a little-endian `u64` from 8 bytes of the view starting at `off`.
+    /// `off` selects a 64-bit half, so it is 0 or 8; the `off <= 8` bound makes
+    /// the `off + i` index (i < 8) provably in-bounds and overflow-free.
+    #[hax_lib::requires(off <= 8)]
+    fn u64_from_u8x16_le(v: u8x16, off: u64) -> u64 {
+        let mut acc: u64 = 0;
+        for i in 0..8u64 {
+            acc |= (v[off + i] as u64) << (8 * i);
+        }
+        acc
+    }
+
+    /// PCLMULQDQ. `imm8` bit 0 selects the 64-bit half of `a` (0 = low bytes
+    /// 0..8, 1 = high bytes 8..16); bit 4 selects the half of `b`. Result =
+    /// GF(2) carryless product of the two selected 64-bit halves, written
+    /// little-endian into the 16 output bytes.
+    pub fn _mm_clmulepi64_si128(a: u8x16, b: u8x16, imm8: i32) -> u8x16 {
+        let a_half = u64_from_u8x16_le(a, if imm8 & 0x01 == 0 { 0 } else { 8 });
+        let b_half = u64_from_u8x16_le(b, if imm8 & 0x10 == 0 { 0 } else { 8 });
+        let prod = clmul64(a_half, b_half);
+        u8x16::from_fn(|i| ((prod >> (8 * i)) & 0xff) as u8)
+    }
+
     pub use lemmas::flatten_circuit;
     pub mod lemmas {
         //! This module provides lemmas allowing to lift the intrinsics modeled in `super` from their version operating on AVX2 vectors to functions operating on machine integer vectors (e.g. on `i32x8`).
@@ -1000,13 +1252,14 @@ pub mod int_vec {
         #[hax_lib::fstar::before("irreducible")]
         pub const LIFT_LEMMA: () = ();
 
+        #[libcrux_macros::trusted(replace, "validated-axiom: mk!-tested LIFT_LEMMA _mm256_set_epi32 interp")]
         #[hax_lib::fstar::replace(r#"
 [@@ v_LIFT_LEMMA ]
 assume val _mm256_set_epi32_interp: e7: i32 -> e6: i32 -> e5: i32 -> e4: i32 -> e3: i32 -> e2: i32 -> e1: i32 -> e0: i32 -> (i: u64 {v i < 8})
   -> Lemma
         (
             (
-                Libcrux_core_models.Abstractions.Bitvec.Int_vec_interp.e_ee_1__impl__to_i32x8
+                Libcrux_core_models.Abstractions.Bitvec.Int_vec_interp.e___impl__to_i32x8
                     (Libcrux_core_models.Core_arch.X86.Avx.e_mm256_set_epi32 e7 e6 e5 e4 e3 e2 e1 e0)
             ).[ i ]
          == ( match i with
@@ -1135,12 +1388,12 @@ assume val _mm256_set_epi32_interp: e7: i32 -> e6: i32 -> e5: i32 -> e4: i32 -> 
         mk_lift_lemma!(_mm256_permute2x128_si256<const IMM8: i32>(a: __m256i, b: __m256i) ==
 		       __m256i::from_i128x2(super::_mm256_permute2x128_si256::<IMM8>(BitVec::to_i128x2(a), BitVec::to_i128x2(b))));
 
-        // Phase B-AVX2 backfill: lift lemmas for int-vec bodies whose lift was missing.
+        // Lift lemmas for int-vec bodies.
         mk_lift_lemma!(_mm_sub_epi16(a: __m128i, b: __m128i) ==
 		       __m128i::from_i16x8(super::_mm_sub_epi16(BitVec::to_i16x8(a), BitVec::to_i16x8(b))));
         mk_lift_lemma!(_mm256_cmpeq_epi32(a: __m256i, b: __m256i) ==
 		       __m256i::from_i32x8(super::_mm256_cmpeq_epi32(BitVec::to_i32x8(a), BitVec::to_i32x8(b))));
-        // Lift lemmas for int-vec bodies added during Batch C backfill.
+        // Further lift lemmas for int-vec bodies.
         mk_lift_lemma!(_mm256_castsi256_si128(a: __m256i) ==
 		       super::_mm256_castsi256_si128(a));
         mk_lift_lemma!(_mm256_extracti128_si256<const IMM8: i32>(a: __m256i) ==
@@ -1158,7 +1411,7 @@ assume val _mm256_set_epi32_interp: e7: i32 -> e6: i32 -> e5: i32 -> e4: i32 -> 
         mk_lift_lemma!(_mm256_shuffle_epi8(a: __m256i, b: __m256i) ==
 		       __m256i::from_i8x32(super::_mm256_shuffle_epi8(BitVec::to_i8x32(a), BitVec::to_i8x32(b))));
 
-        // Batch D lift lemmas: ports of L0/L0-nospec wrappers.
+        // Lift lemmas for L0/L0-nospec wrappers.
         mk_lift_lemma!(_mm_set_epi8(
             e15: i8, e14: i8, e13: i8, e12: i8,
             e11: i8, e10: i8, e9: i8, e8: i8,
@@ -1218,6 +1471,20 @@ assume val _mm256_set_epi32_interp: e7: i32 -> e6: i32 -> e5: i32 -> e4: i32 -> 
         mk_lift_lemma!(_mm_shuffle_epi8(a: __m128i, b: __m128i) ==
 		       __m128i::from_i8x16(super::_mm_shuffle_epi8(BitVec::to_i8x16(a), BitVec::to_i8x16(b))));
 
+        // -------- AES / CLMUL --------
+        // Bridge the opaque `x86::other` hardware wrappers to the executable
+        // u8x16 models above. `imm8` stays a runtime `i32` argument (NOT a
+        // const generic) so the extracted F* `val` signature is unchanged.
+        mk_lift_lemma!(_mm_aesenc_si128(a: __m128i, b: __m128i) ==
+		       __m128i::from_u8x16(super::_mm_aesenc_si128(BitVec::to_u8x16(a), BitVec::to_u8x16(b))));
+        mk_lift_lemma!(_mm_aesenclast_si128(a: __m128i, b: __m128i) ==
+		       __m128i::from_u8x16(super::_mm_aesenclast_si128(BitVec::to_u8x16(a), BitVec::to_u8x16(b))));
+        mk_lift_lemma!(_mm_aeskeygenassist_si128(a: __m128i, imm8: i32) ==
+		       __m128i::from_u8x16(super::_mm_aeskeygenassist_si128(BitVec::to_u8x16(a), imm8)));
+        mk_lift_lemma!(_mm_clmulepi64_si128(a: __m128i, b: __m128i, imm8: i32) ==
+		       __m128i::from_u8x16(super::_mm_clmulepi64_si128(BitVec::to_u8x16(a), BitVec::to_u8x16(b), imm8)));
+
+        #[libcrux_macros::trusted(replace, "hax-limitation: F*-native flatten_circuit tactic (proof machinery)")]
         #[hax_lib::fstar::replace(
             r#"
         let ${flatten_circuit} (): FStar.Tactics.Tac unit =
@@ -1478,24 +1745,24 @@ assume val _mm256_set_epi32_interp: e7: i32 -> e6: i32 -> e5: i32 -> e4: i32 -> 
         mk!([100]_mm256_permute2x128_si256{<0>,<1>,<2>,<3>,<4>,<5>,<6>,<7>,<8>,<9>,<10>,<11>,<12>,<13>,<14>,<15>,<16>,<17>,<18>,<19>,<20>,<21>,<22>,<23>,<24>,<25>,<26>,<27>,<28>,<29>,<30>,<31>,<32>,<33>,<34>,<35>,<36>,<37>,<38>,<39>,<40>,<41>,<42>,<43>,<44>,<45>,<46>,<47>,<48>,<49>,<50>,<51>,<52>,<53>,<54>,<55>,<56>,<57>,<58>,<59>,<60>,<61>,<62>,<63>,<64>,<65>,<66>,<67>,<68>,<69>,<70>,<71>,<72>,<73>,<74>,<75>,<76>,<77>,<78>,<79>,<80>,<81>,<82>,<83>,<84>,<85>,<86>,<87>,<88>,<89>,<90>,<91>,<92>,<93>,<94>,<95>,<96>,<97>,<98>,<99>,<100>,<101>,<102>,<103>,<104>,<105>,<106>,<107>,<108>,<109>,<110>,<111>,<112>,<113>,<114>,<115>,<116>,<117>,<118>,<119>,<120>,<121>,<122>,<123>,<124>,<125>,<126>,<127>,<128>,<129>,<130>,<131>,<132>,<133>,<134>,<135>,<136>,<137>,<138>,<139>,<140>,<141>,<142>,<143>,<144>,<145>,<146>,<147>,<148>,<149>,<150>,<151>,<152>,<153>,<154>,<155>,<156>,<157>,<158>,<159>,<160>,<161>,<162>,<163>,<164>,<165>,<166>,<167>,<168>,<169>,<170>,<171>,<172>,<173>,<174>,<175>,<176>,<177>,<178>,<179>,<180>,<181>,<182>,<183>,<184>,<185>,<186>,<187>,<188>,<189>,<190>,<191>,<192>,<193>,<194>,<195>,<196>,<197>,<198>,<199>,<200>,<201>,<202>,<203>,<204>,<205>,<206>,<207>,<208>,<209>,<210>,<211>,<212>,<213>,<214>,<215>,<216>,<217>,<218>,<219>,<220>,<221>,<222>,<223>,<224>,<225>,<226>,<227>,<228>,<229>,<230>,<231>,<232>,<233>,<234>,<235>,<236>,<237>,<238>,<239>,<240>,<241>,<242>,<243>,<244>,<245>,<246>,<247>,<248>,<249>,<250>,<251>,<252>,<253>,<254>,<255>}(a: BitVec, b: BitVec));
 
         // ===========================================================================
-        // Phase B-AVX2 backfill: mk! invocations for L1 wrappers (body present, no test)
+        // mk! invocations for L1 wrappers (body present, no test)
         // ===========================================================================
 
-        // Batch A: int-vec body + lift lemma already exist.
+        // int-vec body + lift lemma already exist.
         mk!(_mm256_mul_epu32(a: BitVec, b: BitVec));
         mk!(_mm256_mulhi_epi16(a: BitVec, b: BitVec));
         mk!(_mm256_unpackhi_epi32(a: BitVec, b: BitVec));
         mk!(_mm256_unpackhi_epi64(a: BitVec, b: BitVec));
         mk!(_mm256_unpacklo_epi32(a: BitVec, b: BitVec));
 
-        // Batch B: int-vec body present, lift lemma freshly added above.
+        // int-vec body present, lift lemma added above.
         mk!(_mm_sub_epi16(a: BitVec, b: BitVec));
         mk!(_mm256_cmpeq_epi32(a: BitVec, b: BitVec));
 
         // Permute over the full 0..256 IMM8 range like sibling permute intrinsics.
         mk!([100]_mm256_permute4x64_epi64{<0>,<1>,<2>,<3>,<4>,<5>,<6>,<7>,<8>,<9>,<10>,<11>,<12>,<13>,<14>,<15>,<16>,<17>,<18>,<19>,<20>,<21>,<22>,<23>,<24>,<25>,<26>,<27>,<28>,<29>,<30>,<31>,<32>,<33>,<34>,<35>,<36>,<37>,<38>,<39>,<40>,<41>,<42>,<43>,<44>,<45>,<46>,<47>,<48>,<49>,<50>,<51>,<52>,<53>,<54>,<55>,<56>,<57>,<58>,<59>,<60>,<61>,<62>,<63>,<64>,<65>,<66>,<67>,<68>,<69>,<70>,<71>,<72>,<73>,<74>,<75>,<76>,<77>,<78>,<79>,<80>,<81>,<82>,<83>,<84>,<85>,<86>,<87>,<88>,<89>,<90>,<91>,<92>,<93>,<94>,<95>,<96>,<97>,<98>,<99>,<100>,<101>,<102>,<103>,<104>,<105>,<106>,<107>,<108>,<109>,<110>,<111>,<112>,<113>,<114>,<115>,<116>,<117>,<118>,<119>,<120>,<121>,<122>,<123>,<124>,<125>,<126>,<127>,<128>,<129>,<130>,<131>,<132>,<133>,<134>,<135>,<136>,<137>,<138>,<139>,<140>,<141>,<142>,<143>,<144>,<145>,<146>,<147>,<148>,<149>,<150>,<151>,<152>,<153>,<154>,<155>,<156>,<157>,<158>,<159>,<160>,<161>,<162>,<163>,<164>,<165>,<166>,<167>,<168>,<169>,<170>,<171>,<172>,<173>,<174>,<175>,<176>,<177>,<178>,<179>,<180>,<181>,<182>,<183>,<184>,<185>,<186>,<187>,<188>,<189>,<190>,<191>,<192>,<193>,<194>,<195>,<196>,<197>,<198>,<199>,<200>,<201>,<202>,<203>,<204>,<205>,<206>,<207>,<208>,<209>,<210>,<211>,<212>,<213>,<214>,<215>,<216>,<217>,<218>,<219>,<220>,<221>,<222>,<223>,<224>,<225>,<226>,<227>,<228>,<229>,<230>,<231>,<232>,<233>,<234>,<235>,<236>,<237>,<238>,<239>,<240>,<241>,<242>,<243>,<244>,<245>,<246>,<247>,<248>,<249>,<250>,<251>,<252>,<253>,<254>,<255>}(a: BitVec));
 
-        // Batch C: int-vec bodies freshly added above.
+        // int-vec bodies added above.
         mk!(_mm256_castsi256_si128(a: BitVec));
         mk!([2]_mm256_extracti128_si256{<0>,<1>}(a: BitVec));
         mk!(_mm256_sllv_epi32(a: BitVec, b: BitVec));
@@ -1505,7 +1772,7 @@ assume val _mm256_set_epi32_interp: e7: i32 -> e6: i32 -> e5: i32 -> e4: i32 -> 
         mk!([100]_mm256_slli_epi16{<0>,<1>,<2>,<3>,<4>,<5>,<6>,<7>,<8>,<9>,<10>,<11>,<12>,<13>,<14>,<15>,<16>,<17>,<18>,<19>,<20>,<21>,<22>,<23>,<24>,<25>,<26>,<27>,<28>,<29>,<30>,<31>,<32>,<33>,<34>,<35>,<36>,<37>,<38>,<39>,<40>,<41>,<42>,<43>,<44>,<45>,<46>,<47>,<48>,<49>,<50>,<51>,<52>,<53>,<54>,<55>,<56>,<57>,<58>,<59>,<60>,<61>,<62>,<63>,<64>,<65>,<66>,<67>,<68>,<69>,<70>,<71>,<72>,<73>,<74>,<75>,<76>,<77>,<78>,<79>,<80>,<81>,<82>,<83>,<84>,<85>,<86>,<87>,<88>,<89>,<90>,<91>,<92>,<93>,<94>,<95>,<96>,<97>,<98>,<99>,<100>,<101>,<102>,<103>,<104>,<105>,<106>,<107>,<108>,<109>,<110>,<111>,<112>,<113>,<114>,<115>,<116>,<117>,<118>,<119>,<120>,<121>,<122>,<123>,<124>,<125>,<126>,<127>,<128>,<129>,<130>,<131>,<132>,<133>,<134>,<135>,<136>,<137>,<138>,<139>,<140>,<141>,<142>,<143>,<144>,<145>,<146>,<147>,<148>,<149>,<150>,<151>,<152>,<153>,<154>,<155>,<156>,<157>,<158>,<159>,<160>,<161>,<162>,<163>,<164>,<165>,<166>,<167>,<168>,<169>,<170>,<171>,<172>,<173>,<174>,<175>,<176>,<177>,<178>,<179>,<180>,<181>,<182>,<183>,<184>,<185>,<186>,<187>,<188>,<189>,<190>,<191>,<192>,<193>,<194>,<195>,<196>,<197>,<198>,<199>,<200>,<201>,<202>,<203>,<204>,<205>,<206>,<207>,<208>,<209>,<210>,<211>,<212>,<213>,<214>,<215>,<216>,<217>,<218>,<219>,<220>,<221>,<222>,<223>,<224>,<225>,<226>,<227>,<228>,<229>,<230>,<231>,<232>,<233>,<234>,<235>,<236>,<237>,<238>,<239>,<240>,<241>,<242>,<243>,<244>,<245>,<246>,<247>,<248>,<249>,<250>,<251>,<252>,<253>,<254>,<255>}(a: BitVec));
         mk!([100]_mm256_srli_epi64{<0>,<1>,<2>,<3>,<4>,<5>,<6>,<7>,<8>,<9>,<10>,<11>,<12>,<13>,<14>,<15>,<16>,<17>,<18>,<19>,<20>,<21>,<22>,<23>,<24>,<25>,<26>,<27>,<28>,<29>,<30>,<31>,<32>,<33>,<34>,<35>,<36>,<37>,<38>,<39>,<40>,<41>,<42>,<43>,<44>,<45>,<46>,<47>,<48>,<49>,<50>,<51>,<52>,<53>,<54>,<55>,<56>,<57>,<58>,<59>,<60>,<61>,<62>,<63>,<64>,<65>,<66>,<67>,<68>,<69>,<70>,<71>,<72>,<73>,<74>,<75>,<76>,<77>,<78>,<79>,<80>,<81>,<82>,<83>,<84>,<85>,<86>,<87>,<88>,<89>,<90>,<91>,<92>,<93>,<94>,<95>,<96>,<97>,<98>,<99>,<100>,<101>,<102>,<103>,<104>,<105>,<106>,<107>,<108>,<109>,<110>,<111>,<112>,<113>,<114>,<115>,<116>,<117>,<118>,<119>,<120>,<121>,<122>,<123>,<124>,<125>,<126>,<127>,<128>,<129>,<130>,<131>,<132>,<133>,<134>,<135>,<136>,<137>,<138>,<139>,<140>,<141>,<142>,<143>,<144>,<145>,<146>,<147>,<148>,<149>,<150>,<151>,<152>,<153>,<154>,<155>,<156>,<157>,<158>,<159>,<160>,<161>,<162>,<163>,<164>,<165>,<166>,<167>,<168>,<169>,<170>,<171>,<172>,<173>,<174>,<175>,<176>,<177>,<178>,<179>,<180>,<181>,<182>,<183>,<184>,<185>,<186>,<187>,<188>,<189>,<190>,<191>,<192>,<193>,<194>,<195>,<196>,<197>,<198>,<199>,<200>,<201>,<202>,<203>,<204>,<205>,<206>,<207>,<208>,<209>,<210>,<211>,<212>,<213>,<214>,<215>,<216>,<217>,<218>,<219>,<220>,<221>,<222>,<223>,<224>,<225>,<226>,<227>,<228>,<229>,<230>,<231>,<232>,<233>,<234>,<235>,<236>,<237>,<238>,<239>,<240>,<241>,<242>,<243>,<244>,<245>,<246>,<247>,<248>,<249>,<250>,<251>,<252>,<253>,<254>,<255>}(a: BitVec));
 
-        // Batch D: int-vec bodies for L0 / L0-nospec wrappers.
+        // int-vec bodies for L0 / L0-nospec wrappers.
         mk!(_mm_set_epi8(
             e15: i8, e14: i8, e13: i8, e12: i8,
             e11: i8, e10: i8, e9: i8, e8: i8,
@@ -1670,6 +1937,292 @@ assume val _mm256_set_epi32_interp: e7: i32 -> e6: i32 -> e5: i32 -> e4: i32 -> 
                 }
                 assert_eq!(&data[..], &out[..]);
             }
+        }
+
+        // Differential tests for the extractable slice-I/O models in
+        // `x86::extra` (`*_model`): each compares the MODEL's result against
+        // the real intrinsic operating on the same data. These are the models
+        // the `libcrux-intrinsics` wrappers delegate to under the hax cfg, so
+        // every slice-I/O semantics lemma is grounded here.
+        use crate::core_arch::x86::extra;
+
+        #[test]
+        fn mm_loadu_si128_model_diff() {
+            for _ in 0..1000 {
+                let bytes: Vec<u8> = (0..16).map(|_| rand::random::<u8>()).collect();
+                let hw = unsafe { upstream::_mm_loadu_si128(bytes.as_ptr() as *const _) };
+                let mut hw_out = [0u8; 16];
+                unsafe {
+                    upstream::_mm_storeu_si128(hw_out.as_mut_ptr() as *mut _, hw);
+                }
+                let model_bytes: Vec<u8> = extra::mm_loadu_si128_model(&bytes).to_vec();
+                assert_eq!(&model_bytes[..], &hw_out[..]);
+            }
+        }
+
+        #[test]
+        fn mm256_loadu_si256_u8_model_diff() {
+            for _ in 0..1000 {
+                let bytes: Vec<u8> = (0..32).map(|_| rand::random::<u8>()).collect();
+                let hw = unsafe { upstream::_mm256_loadu_si256(bytes.as_ptr() as *const _) };
+                let mut hw_out = [0u8; 32];
+                unsafe {
+                    upstream::_mm256_storeu_si256(hw_out.as_mut_ptr() as *mut _, hw);
+                }
+                let model_bytes: Vec<u8> = extra::mm256_loadu_si256_u8_model(&bytes).to_vec();
+                assert_eq!(&model_bytes[..], &hw_out[..]);
+            }
+        }
+
+        #[test]
+        fn mm256_loadu_si256_i16_model_diff() {
+            for _ in 0..1000 {
+                let data: Vec<i16> = (0..16).map(|_| rand::random::<i16>()).collect();
+                let hw = unsafe { upstream::_mm256_loadu_si256(data.as_ptr() as *const _) };
+                let mut hw_out = [0i16; 16];
+                unsafe {
+                    upstream::_mm256_storeu_si256(hw_out.as_mut_ptr() as *mut _, hw);
+                }
+                let model_lanes: Vec<i16> = extra::mm256_loadu_si256_i16_model(&data).to_vec();
+                assert_eq!(&model_lanes[..], &hw_out[..]);
+            }
+        }
+
+        #[test]
+        fn mm_storeu_si128_i16_model_diff() {
+            // Store into a LONGER slice (12 lanes, sentinel-filled) so the
+            // "write 8 lanes, frame the tail" semantics is compared against
+            // hardware too, not just the exact-width case.
+            for _ in 0..1000 {
+                let bv: BitVec<128> = BitVec::random();
+                let bytes: Vec<u8> = bv.to_vec();
+                let hw = unsafe { upstream::_mm_loadu_si128(bytes.as_ptr() as *const _) };
+                let mut hw_out = [0x7C7Ci16; 12];
+                unsafe {
+                    upstream::_mm_storeu_si128(hw_out.as_mut_ptr() as *mut _, hw);
+                }
+                let mut model_out = [0x7C7Ci16; 12];
+                extra::mm_storeu_si128_i16_model(&mut model_out, bv);
+                assert_eq!(&model_out[..], &hw_out[..]);
+            }
+        }
+
+        #[test]
+        fn mm_storeu_bytes_si128_model_diff() {
+            for _ in 0..1000 {
+                let bv: BitVec<128> = BitVec::random();
+                let bytes: Vec<u8> = bv.to_vec();
+                let hw = unsafe { upstream::_mm_loadu_si128(bytes.as_ptr() as *const _) };
+                let mut hw_out = [0u8; 16];
+                unsafe {
+                    upstream::_mm_storeu_si128(hw_out.as_mut_ptr() as *mut _, hw);
+                }
+                let mut model_out = [0u8; 16];
+                extra::mm_storeu_bytes_si128_model(&mut model_out, bv);
+                assert_eq!(&model_out[..], &hw_out[..]);
+            }
+        }
+
+        #[test]
+        fn mm256_storeu_si256_i16_model_diff() {
+            // Dedicated differential store test for mm256_storeu_si256_i16.
+            for _ in 0..1000 {
+                let bv: BitVec<256> = BitVec::random();
+                let bytes: Vec<u8> = bv.to_vec();
+                let hw = unsafe { upstream::_mm256_loadu_si256(bytes.as_ptr() as *const _) };
+                let mut hw_out = [0i16; 16];
+                unsafe {
+                    upstream::_mm256_storeu_si256(hw_out.as_mut_ptr() as *mut _, hw);
+                }
+                let mut model_out = [0i16; 16];
+                extra::mm256_storeu_si256_i16_model(&mut model_out, bv);
+                assert_eq!(&model_out[..], &hw_out[..]);
+            }
+        }
+
+        #[test]
+        fn mm256_storeu_si256_u8_model_diff() {
+            for _ in 0..1000 {
+                let bv: BitVec<256> = BitVec::random();
+                let bytes: Vec<u8> = bv.to_vec();
+                let hw = unsafe { upstream::_mm256_loadu_si256(bytes.as_ptr() as *const _) };
+                let mut hw_out = [0u8; 32];
+                unsafe {
+                    upstream::_mm256_storeu_si256(hw_out.as_mut_ptr() as *mut _, hw);
+                }
+                let mut model_out = [0u8; 32];
+                extra::mm256_storeu_si256_u8_model(&mut model_out, bv);
+                assert_eq!(&model_out[..], &hw_out[..]);
+            }
+        }
+
+        #[test]
+        fn mm256_loadu_si256_i32_model_diff() {
+            for _ in 0..1000 {
+                let data: Vec<i32> = (0..8).map(|_| rand::random::<i32>()).collect();
+                let hw = unsafe { upstream::_mm256_loadu_si256(data.as_ptr() as *const _) };
+                let mut hw_out = [0i32; 8];
+                unsafe {
+                    upstream::_mm256_storeu_si256(hw_out.as_mut_ptr() as *mut _, hw);
+                }
+                let model_lanes: Vec<i32> = extra::mm256_loadu_si256_i32_model(&data).to_vec();
+                assert_eq!(&model_lanes[..], &hw_out[..]);
+            }
+        }
+
+        #[test]
+        fn mm256_storeu_si256_i32_model_diff() {
+            for _ in 0..1000 {
+                let bv: BitVec<256> = BitVec::random();
+                let bytes: Vec<u8> = bv.to_vec();
+                let hw = unsafe { upstream::_mm256_loadu_si256(bytes.as_ptr() as *const _) };
+                let mut hw_out = [0i32; 8];
+                unsafe {
+                    upstream::_mm256_storeu_si256(hw_out.as_mut_ptr() as *mut _, hw);
+                }
+                let mut model_out = [0i32; 8];
+                extra::mm256_storeu_si256_i32_model(&mut model_out, bv);
+                assert_eq!(&model_out[..], &hw_out[..]);
+            }
+        }
+
+        #[test]
+        fn mm_storeu_si128_i32_model_diff() {
+            // Store into a LONGER slice (6 lanes, sentinel-filled) so the
+            // "write 4 lanes, frame the tail" semantics is compared against
+            // hardware too, not just the exact-width case.
+            for _ in 0..1000 {
+                let bv: BitVec<128> = BitVec::random();
+                let bytes: Vec<u8> = bv.to_vec();
+                let hw = unsafe { upstream::_mm_loadu_si128(bytes.as_ptr() as *const _) };
+                let mut hw_out = [0x7C7C7C7Ci32; 6];
+                unsafe {
+                    upstream::_mm_storeu_si128(hw_out.as_mut_ptr() as *mut _, hw);
+                }
+                let mut model_out = [0x7C7C7C7Ci32; 6];
+                extra::mm_storeu_si128_i32_model(&mut model_out, bv);
+                assert_eq!(&model_out[..], &hw_out[..]);
+            }
+        }
+
+        #[test]
+        fn get_lane_u64_model_diff() {
+            // Compare the model against the wrapper's own semantics on hardware:
+            // load 256 bits, store to a [u64; 4], index each lane.
+            for _ in 0..1000 {
+                let bv: BitVec<256> = BitVec::random();
+                let bytes: Vec<u8> = bv.to_vec();
+                let hw = unsafe { upstream::_mm256_loadu_si256(bytes.as_ptr() as *const _) };
+                let mut hw_lanes = [0u64; 4];
+                unsafe {
+                    upstream::_mm256_storeu_si256(hw_lanes.as_mut_ptr() as *mut _, hw);
+                }
+                for lane in 0..4 {
+                    assert_eq!(extra::get_lane_u64_model(bv, lane), hw_lanes[lane]);
+                }
+            }
+        }
+
+        #[test]
+        fn mm_loadu_si128_u128_model_diff() {
+            for _ in 0..1000 {
+                let x: u128 = rand::random();
+                let hw = unsafe { upstream::_mm_loadu_si128(&x as *const u128 as *const _) };
+                let mut hw_out = [0u8; 16];
+                unsafe {
+                    upstream::_mm_storeu_si128(hw_out.as_mut_ptr() as *mut _, hw);
+                }
+                let model_bytes: Vec<u8> = extra::mm_loadu_si128_u128_model(&x).to_vec();
+                assert_eq!(&model_bytes[..], &hw_out[..]);
+            }
+        }
+
+        #[test]
+        fn mm_storeu_si128_u128_model_diff() {
+            for _ in 0..1000 {
+                let bv: BitVec<128> = BitVec::random();
+                let bytes: Vec<u8> = bv.to_vec();
+                let hw = unsafe { upstream::_mm_loadu_si128(bytes.as_ptr() as *const _) };
+                let mut hw_out: u128 = 0;
+                unsafe {
+                    upstream::_mm_storeu_si128(&mut hw_out as *mut u128 as *mut _, hw);
+                }
+                let mut model_out: u128 = 0;
+                extra::mm_storeu_si128_u128_model(&mut model_out, bv);
+                assert_eq!(model_out, hw_out);
+            }
+        }
+
+        // ===========================================================================
+        // AES / CLMUL differential tests against the real CPU. Gated on the
+        // relevant target features (on hosts lacking them the upstream intrinsic
+        // is unavailable). Placed directly in `mod tests` so the `mk!`-emitted
+        // `super::NAME` resolves to the `int_vec` model. `super::NAME` = model,
+        // `upstream::NAME` = real hardware intrinsic.
+        // ===========================================================================
+
+        // AESENC / AESENCLAST: plain two-operand intrinsics — `mk!` compares the
+        // u8x16 model to `BitVec::from(upstream::..).into()` (u8x16), exactly
+        // like the int-lane intrinsics above.
+        #[cfg(target_feature = "aes")]
+        mk!(_mm_aesenc_si128(a: BitVec, b: BitVec));
+        #[cfg(target_feature = "aes")]
+        mk!(_mm_aesenclast_si128(a: BitVec, b: BitVec));
+
+        // AESKEYGENASSIST takes imm8 as a *const generic* on the real intrinsic
+        // but a runtime `i32` in the model, so `mk!` can't be used. Loop over the
+        // representative RCON literals, each in its own const context, comparing
+        // model vs hardware as `BitVec`.
+        #[cfg(target_feature = "aes")]
+        #[test]
+        fn _mm_aeskeygenassist_si128() {
+            macro_rules! check {
+                ($imm:literal) => {
+                    for _ in 0..200 {
+                        let a: BitVec<128> = BitVec::random();
+                        let m = BitVec::from(super::_mm_aeskeygenassist_si128(a.into(), $imm));
+                        let h = BitVec::from(unsafe {
+                            upstream::_mm_aeskeygenassist_si128::<$imm>(a.into())
+                        });
+                        assert_eq!(m, h, "aeskeygenassist imm8={}", $imm);
+                    }
+                };
+            }
+            check!(0x01);
+            check!(0x02);
+            check!(0x04);
+            check!(0x08);
+            check!(0x10);
+            check!(0x20);
+            check!(0x40);
+            check!(0x80);
+            check!(0x1b);
+            check!(0x36);
+            check!(0x00);
+        }
+
+        // PCLMULQDQ: same const-generic-imm8 story — manual test over the four
+        // half-select codes {0x00, 0x01, 0x10, 0x11}.
+        #[cfg(target_feature = "pclmulqdq")]
+        #[test]
+        fn _mm_clmulepi64_si128() {
+            macro_rules! check {
+                ($imm:literal) => {
+                    for _ in 0..500 {
+                        let a: BitVec<128> = BitVec::random();
+                        let b: BitVec<128> = BitVec::random();
+                        let m = BitVec::from(super::_mm_clmulepi64_si128(a.into(), b.into(), $imm));
+                        let h = BitVec::from(unsafe {
+                            upstream::_mm_clmulepi64_si128::<$imm>(a.into(), b.into())
+                        });
+                        assert_eq!(m, h, "clmulepi64 imm8={}", $imm);
+                    }
+                };
+            }
+            check!(0x00);
+            check!(0x01);
+            check!(0x10);
+            check!(0x11);
         }
     }
 }
@@ -1883,9 +2436,9 @@ mod corner_tests {
     }
 }
 
-/// Track I (2026-06-10): differential validation of the F* TRUST AXIOMS added/fixed
-/// for the ML-KEM AVX2 rejection-sampling proof, against the executable core-models
-/// reference semantics in this file / `x86.rs` (which are themselves hardware-validated
+/// Differential validation of the F* TRUST AXIOMS for the ML-KEM AVX2
+/// rejection-sampling proof, against the executable core-models reference
+/// semantics in this file / `x86.rs` (which are themselves hardware-validated
 /// by the `mk!` differential tests above, on x86 hosts).
 ///
 /// Each test transcribes the F* axiom's formula literally to Rust and compares it with
@@ -2379,8 +2932,8 @@ mod track_i_axiom_transcription_tests {
         }
     }
 
-    /// F* axiom `count_ones_u8_popcount8` (Track I M2, landed in the
-    /// `fstar::before` block of `libcrux-ml-kem/src/vector/avx2/sampling.rs`):
+    /// F* axiom `count_ones_u8_popcount8` (in the `fstar::before` block of
+    /// `libcrux-ml-kem/src/vector/avx2/sampling.rs`):
     /// `v (count_ones_u8 x) == popcount8 (v x)` with
     /// `popcount8 g = if g = 0 then 0 else g % 2 + popcount8 (g / 2)`
     /// (defined in `Hacspec_ml_kem.Commute.Rej_table`).
@@ -2398,6 +2951,65 @@ mod track_i_axiom_transcription_tests {
         }
         for x in 0..=255u8 {
             assert_eq!(x.count_ones(), popcount8(x as u32));
+        }
+    }
+
+    /// F* axioms `lemma_count_ones_nibble` / `lemma_count_ones_byte`
+    /// (`libcrux-ml-dsa/proofs/fstar/spec/Libcrux_ml_dsa.Proof_utils.fst:15,21`):
+    ///   `0 <= v x < 16  ==> v (impl_i32__count_ones x) <= 4`
+    ///   `0 <= v x < 256 ==> v (impl_i32__count_ones x) <= 8`
+    /// Model anchor: Rust core's `i32::count_ones` — the operation that
+    /// `Rust_primitives.Arithmetic.count_ones_i32` models. That F* val is
+    /// UNINTERPRETED and carries only the trivial refinement `r:u32{v r <= 32}`,
+    /// so these tighter bounds are not derivable in F* and are genuine axioms.
+    /// Both domains are tiny, so we validate them exhaustively.
+    #[test]
+    fn count_ones_i32_nibble_and_byte_bounds() {
+        for x in 0..16i32 {
+            assert!(x.count_ones() <= 4, "nibble bound failed at x={x}");
+        }
+        for x in 0..256i32 {
+            assert!(x.count_ones() <= 8, "byte bound failed at x={x}");
+        }
+    }
+
+    /// F* axiom `lemma_count_ones_nibble_exact`
+    /// (`…Simd.Avx2.Rejection_sample.Proof_helpers.fst:812`):
+    ///   `0 <= v x < 16 ==> v (impl_i32__count_ones x) == popcount4 (v x)`
+    /// with (same file:146-147)
+    ///   `bitj m j   = match j with 0 -> m%2 | 1 -> (m/2)%2 | 2 -> (m/4)%2 | _ -> (m/8)%2`
+    ///   `popcount4 m = bitj m 0 + bitj m 1 + bitj m 2 + bitj m 3`
+    /// Exhaustive over all 16 inputs.
+    #[test]
+    fn count_ones_i32_popcount4_formula() {
+        fn bitj(m: u32, j: u32) -> u32 {
+            match j {
+                0 => m % 2,
+                1 => (m / 2) % 2,
+                2 => (m / 4) % 2,
+                _ => (m / 8) % 2,
+            }
+        }
+        fn popcount4(m: u32) -> u32 {
+            bitj(m, 0) + bitj(m, 1) + bitj(m, 2) + bitj(m, 3)
+        }
+        for x in 0..16i32 {
+            assert_eq!(x.count_ones(), popcount4(x as u32), "x={x}");
+        }
+    }
+
+    /// F* axiom `lemma_count_ones_byte_exact`
+    /// (`libcrux-ml-dsa/proofs/fstar/spec/Libcrux_ml_dsa.Proof_utils.fst:28`):
+    /// for `m` assembled from eight bools with weights 1,2,4,…,128,
+    /// `v (impl_i32__count_ones m)` equals the number of true bools.
+    /// Exhaustive over all 2^8 bool assignments.
+    #[test]
+    fn count_ones_i32_byte_exact_from_bools() {
+        for bits in 0..256u32 {
+            let b: [bool; 8] = core::array::from_fn(|k| (bits >> k) & 1 == 1);
+            let m: i32 = (0..8).map(|k| if b[k] { 1i32 << k } else { 0 }).sum();
+            let expected: u32 = b.iter().filter(|&&t| t).count() as u32;
+            assert_eq!(m.count_ones(), expected, "bits={bits:#010b}");
         }
     }
 
@@ -2558,6 +3170,251 @@ mod track_i_axiom_transcription_tests {
             let sv: Vec<i16> = s.to_vec();
             for k in 0..16 {
                 assert_eq!(sv[k], ain[sigma_swap(k)]);
+            }
+        }
+    }
+}
+
+/// Host-independent tests for the slice-I/O models in `x86::extra`
+/// (`*_model`): pure-Rust semantics checks that run on every target, arm
+/// included. The model-vs-hardware differential twins live in the arch-gated
+/// `tests` module above (run on x86, e.g. via the podman cross recipe).
+#[cfg(test)]
+mod slice_io_model_tests {
+    use crate::abstractions::bitvec::BitVec;
+    use crate::core_arch::x86::extra;
+    use crate::helpers::test::HasRandom;
+
+    /// Loads agree with the canonical byte/lane serialization (`from_slice`).
+    #[test]
+    fn load_models_match_from_slice() {
+        for _ in 0..100 {
+            let b16: Vec<u8> = (0..16).map(|_| rand::random::<u8>()).collect();
+            assert_eq!(
+                extra::mm_loadu_si128_model(&b16),
+                BitVec::from_slice(&b16, 8)
+            );
+            let b32: Vec<u8> = (0..32).map(|_| rand::random::<u8>()).collect();
+            assert_eq!(
+                extra::mm256_loadu_si256_u8_model(&b32),
+                BitVec::from_slice(&b32, 8)
+            );
+            let l16: Vec<i16> = (0..16).map(|_| rand::random::<i16>()).collect();
+            assert_eq!(
+                extra::mm256_loadu_si256_i16_model(&l16),
+                BitVec::from_slice(&l16, 16)
+            );
+        }
+    }
+
+    /// store(load(x)) == x for every load/store pair, at exact slice width.
+    #[test]
+    fn store_load_roundtrips() {
+        for _ in 0..100 {
+            let b16: Vec<u8> = (0..16).map(|_| rand::random::<u8>()).collect();
+            let mut out16 = [0u8; 16];
+            extra::mm_storeu_bytes_si128_model(&mut out16, extra::mm_loadu_si128_model(&b16));
+            assert_eq!(&out16[..], &b16[..]);
+
+            let b32: Vec<u8> = (0..32).map(|_| rand::random::<u8>()).collect();
+            let mut out32 = [0u8; 32];
+            extra::mm256_storeu_si256_u8_model(&mut out32, extra::mm256_loadu_si256_u8_model(&b32));
+            assert_eq!(&out32[..], &b32[..]);
+
+            let l16: Vec<i16> = (0..16).map(|_| rand::random::<i16>()).collect();
+            let mut lout16 = [0i16; 16];
+            extra::mm256_storeu_si256_i16_model(
+                &mut lout16,
+                extra::mm256_loadu_si256_i16_model(&l16),
+            );
+            assert_eq!(&lout16[..], &l16[..]);
+
+            let l8: Vec<i16> = (0..8).map(|_| rand::random::<i16>()).collect();
+            let mut lout8 = [0i16; 8];
+            extra::mm_storeu_si128_i16_model(&mut lout8, BitVec::from_slice(&l8, 16));
+            assert_eq!(&lout8[..], &l8[..]);
+        }
+    }
+
+    /// The 128-bit i16 store writes lanes 0..8 and frames the tail.
+    #[test]
+    fn mm_storeu_si128_i16_model_frames_tail() {
+        for _ in 0..100 {
+            let v: BitVec<128> = BitVec::random();
+            let lanes: Vec<i16> = v.to_vec();
+            let mut out = [0x7C7Ci16; 12];
+            extra::mm_storeu_si128_i16_model(&mut out, v);
+            assert_eq!(&out[..8], &lanes[..]);
+            assert_eq!(&out[8..], &[0x7C7Ci16; 4][..]);
+        }
+    }
+
+    /// Stores into a too-short slice write nothing at all (totality of the
+    /// models — one top-level length guard; unreachable from the real
+    /// wrappers, which always pass at least the vector width).
+    #[test]
+    fn short_slice_stores_are_total() {
+        let v: BitVec<128> = BitVec::random();
+        let bytes: Vec<u8> = v.to_vec();
+        let mut out = [0xABu8; 5];
+        extra::mm_storeu_bytes_si128_model(&mut out, v);
+        assert_eq!(&out[..], &[0xABu8; 5][..]);
+        // Short loads read 0 past the end.
+        let bv = extra::mm_loadu_si128_model(&bytes[..5]);
+        let loaded: Vec<u8> = bv.to_vec();
+        assert_eq!(&loaded[..5], &bytes[..5]);
+        assert_eq!(&loaded[5..], &[0u8; 11][..]);
+    }
+}
+
+/// Host-independent correctness tests for the AES / CLMUL int-vec models
+/// (`int_vec::_mm_aes*` / `_mm_clmulepi64_si128`). These run on EVERY target
+/// (arm included) — the model-vs-real-CPU differential twins are in the
+/// arch-gated `int_vec::tests::{aes,clmul}` modules. Evidence here:
+///   * FIPS-197 Appendix B known-answer tests for AESENC / AESENCLAST;
+///   * a randomized cross-check that the x86 models agree with the ARM NEON
+///     models, which ARE differentially tested against real ARM AES/PMULL
+///     hardware — transitively validating the x86 math on arm64;
+///   * hand-computed GF(2) products and an AESKEYGENASSIST KAT.
+#[cfg(test)]
+mod aes_clmul_tests {
+    use crate::abstractions::bitvec::int_vec_interp::u8x16;
+    use crate::abstractions::bitvec::BitVec;
+    use crate::core_arch::arm::interpretations::int_vec as arm;
+    use crate::core_arch::x86::interpretations::int_vec as x86;
+    use crate::helpers::test::HasRandom;
+
+    fn iv(b: [u8; 16]) -> u8x16 {
+        u8x16::from_fn(|i| b[i as usize])
+    }
+    fn bytes(v: u8x16) -> [u8; 16] {
+        core::array::from_fn(|i| v[i as u64])
+    }
+
+    // FIPS-197 Appendix B, round 1. Bytes are in COLUMN-MAJOR (`__m128i`) order,
+    // i.e. byte `4*c+r` = state[row r][col c]; this is the convention Intel and
+    // ARM AES-NI hardware use, and the one the input array is given in.
+    const FIPS_STATE: [u8; 16] = [
+        0x19, 0x3d, 0xe3, 0xbe, 0xa0, 0xf4, 0xe2, 0x2b, 0x9a, 0xc6, 0x8d, 0x2a, 0xe9, 0xf8, 0x48,
+        0x08,
+    ];
+    const FIPS_RK: [u8; 16] = [
+        0xa0, 0xfa, 0xfe, 0x17, 0x88, 0x54, 0x2c, 0xb1, 0x23, 0xa3, 0x39, 0x39, 0x2a, 0x6c, 0x76,
+        0x05,
+    ];
+    // Correct COLUMN-MAJOR AESENC output = the FIPS start-of-round-2 state read
+    // column-by-column (re-derived from Appendix B). NB: this is the TRANSPOSE
+    // of the row-major array `[a4,68,6b,02, 9c,9f,5b,6a, 7f,35,ea,50, f2,2b,43,49]`
+    // quoted in the WS1 brief — see the discrepancy note in the task report.
+    const FIPS_AESENC: [u8; 16] = [
+        0xa4, 0x9c, 0x7f, 0xf2, 0x68, 0x9f, 0x35, 0x2b, 0x6b, 0x5b, 0xea, 0x43, 0x02, 0x6a, 0x50,
+        0x49,
+    ];
+    // AESENCLAST = SubBytes(ShiftRows(state)) XOR rk (no MixColumns), column-major.
+    const FIPS_AESENCLAST: [u8; 16] = [
+        0x74, 0x45, 0xa3, 0x27, 0x68, 0xe0, 0x7e, 0x1f, 0x9b, 0xe2, 0x28, 0xc8, 0x34, 0x4b, 0xee,
+        0xe0,
+    ];
+
+    #[test]
+    fn aesenc_fips197_kat() {
+        assert_eq!(
+            bytes(x86::_mm_aesenc_si128(iv(FIPS_STATE), iv(FIPS_RK))),
+            FIPS_AESENC
+        );
+    }
+
+    #[test]
+    fn aesenclast_fips197_kat() {
+        assert_eq!(
+            bytes(x86::_mm_aesenclast_si128(iv(FIPS_STATE), iv(FIPS_RK))),
+            FIPS_AESENCLAST
+        );
+    }
+
+    /// Strongest arm64-local evidence: both x86 AES models agree with the ARM
+    /// NEON models over random inputs. ARM `vaeseq_u8(d, k) = SubBytes(ShiftRows(d
+    /// XOR k))`, so `vaeseq_u8(s, ZERO)` is exactly the x86 SubBytes∘ShiftRows
+    /// core; `vaesmcq_u8 = MixColumns`. Since the ARM models are differentially
+    /// tested against real ARM AES hardware, this transitively pins the x86 math.
+    #[test]
+    fn aes_models_match_arm_hardware_tested_models() {
+        let zero: u8x16 = u8x16::from_fn(|_| 0u8);
+        for _ in 0..1000 {
+            let s = BitVec::to_u8x16(BitVec::<128>::random());
+            let rk = BitVec::to_u8x16(BitVec::<128>::random());
+
+            // core = SubBytes(ShiftRows(s))
+            let core = arm::vaeseq_u8(s, zero);
+            // AESENCLAST == core XOR rk
+            let want_last: u8x16 = u8x16::from_fn(|i| core[i] ^ rk[i]);
+            assert_eq!(x86::_mm_aesenclast_si128(s, rk), want_last);
+            // AESENC == MixColumns(core) XOR rk
+            let mc = arm::vaesmcq_u8(core);
+            let want_enc: u8x16 = u8x16::from_fn(|i| mc[i] ^ rk[i]);
+            assert_eq!(x86::_mm_aesenc_si128(s, rk), want_enc);
+        }
+    }
+
+    #[test]
+    fn aeskeygenassist_kat() {
+        // X1 = bytes 4..8 = 01,02,03,04 ; X3 = bytes 12..16 = 05,06,07,08.
+        let a = iv([0, 0, 0, 0, 1, 2, 3, 4, 0, 0, 0, 0, 5, 6, 7, 8]);
+        // SubWord(X1)=[7c,77,7b,f2]; RotWord=[77,7b,f2,7c]; low byte ^ rcon.
+        // SubWord(X3)=[6b,6f,c5,30]; RotWord=[6f,c5,30,6b]; low byte ^ rcon.
+        // rcon = 0x01:
+        assert_eq!(
+            bytes(x86::_mm_aeskeygenassist_si128(a, 0x01)),
+            [
+                0x7c, 0x77, 0x7b, 0xf2, 0x76, 0x7b, 0xf2, 0x7c, 0x6b, 0x6f, 0xc5, 0x30, 0x6e, 0xc5,
+                0x30, 0x6b
+            ]
+        );
+        // rcon = 0x00: rotated words unmodified.
+        assert_eq!(
+            bytes(x86::_mm_aeskeygenassist_si128(a, 0x00)),
+            [
+                0x7c, 0x77, 0x7b, 0xf2, 0x77, 0x7b, 0xf2, 0x7c, 0x6b, 0x6f, 0xc5, 0x30, 0x6f, 0xc5,
+                0x30, 0x6b
+            ]
+        );
+    }
+
+    #[test]
+    fn clmul_hand_kats() {
+        // x^1 * x^1 = x^2 : lo = 2 (bit 1), hi = 2 -> 4 (bit 2).
+        let x = iv([2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+        let mut w = [0u8; 16];
+        w[0] = 4;
+        assert_eq!(bytes(x86::_mm_clmulepi64_si128(x, x, 0x00)), w);
+        // (x+1)*(x+1) = x^2 + 1 : lo = hi = 3 -> 5 (0b101).
+        let y = iv([3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+        let mut w = [0u8; 16];
+        w[0] = 5;
+        assert_eq!(bytes(x86::_mm_clmulepi64_si128(y, y, 0x00)), w);
+    }
+
+    /// Lane selection + the GF(2) product cross-checked against ARM's
+    /// hardware-validated `vmull_p64` over the four `imm8` half-select codes.
+    #[test]
+    fn clmul_lane_select_matches_vmull_p64() {
+        for _ in 0..1000 {
+            let a = BitVec::<128>::random();
+            let b = BitVec::<128>::random();
+            let av = BitVec::to_u8x16(a);
+            let bv = BitVec::to_u8x16(b);
+            let a64 = BitVec::to_u64x2(a);
+            let b64 = BitVec::to_u64x2(b);
+            for &imm8 in &[0x00i32, 0x01, 0x10, 0x11] {
+                let a_half = if (imm8 & 0x01) == 0 { a64[0] } else { a64[1] };
+                let b_half = if (imm8 & 0x10) == 0 { b64[0] } else { b64[1] };
+                let prod = arm::vmull_p64(a_half, b_half);
+                let want: u8x16 = u8x16::from_fn(|i| ((prod >> (8 * i)) & 0xff) as u8);
+                assert_eq!(
+                    x86::_mm_clmulepi64_si128(av, bv, imm8),
+                    want,
+                    "imm8={imm8:#x}"
+                );
             }
         }
     }

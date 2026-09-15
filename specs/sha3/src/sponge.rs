@@ -41,6 +41,34 @@ pub fn squeeze_state<const OUTPUT_LEN: usize>(
     output
 }
 
+/// Final partial-block step of [squeeze]: if `output_rem != 0`, apply
+/// one Keccak-f permutation and extract the trailing `output_rem`
+/// bytes; otherwise a no-op.  Factored out so the libcrux impl's
+/// corresponding helper (`KeccakState::squeeze_last` / the SIMD
+/// `squeeze_last4`) can have a matching shape, keeping the equivalence
+/// proof's final reconciliation local.  This is byteform (keccak_f +
+/// squeeze_state); restored after the byteform rewrite because the SIMD
+/// impl ghost blocks still reconcile against it.
+#[hax_lib::requires(rate > 0 && rate <= 200 && rate % 8 == 0
+                     && output_rem < rate
+                     && output_rem <= OUTPUT_LEN
+                     && OUTPUT_LEN < usize::MAX - 200)]
+pub fn squeeze_last<const OUTPUT_LEN: usize>(
+    state: State,
+    output: [u8; OUTPUT_LEN],
+    rate: usize,
+    output_rem: usize,
+) -> (State, [u8; OUTPUT_LEN]) {
+    let _ = rate;
+    if output_rem != 0 {
+        let state = keccak_f(state);
+        let output = squeeze_state(&state, output, OUTPUT_LEN - output_rem, output_rem);
+        (state, output)
+    } else {
+        (state, output)
+    }
+}
+
 /// Absorb one full block: XOR it into the state, then apply Keccak-f.
 ///
 /// Corresponds to one iteration of the absorb loop in Algorithm 8 (step 6).

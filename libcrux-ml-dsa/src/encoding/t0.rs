@@ -12,13 +12,11 @@ use crate::simd::traits::specs::*;
 
 const OUTPUT_BYTES_PER_SIMD_UNIT: usize = 13;
 
-// F-6 (2026-04-29): caller pre uses centered `is_i32b_array_opaque (pow2 12)` to
-// match the trait pre after F-6's swap (was non-negative `is_pos_array_opaque (pow2 13)`).
-// The semantically correct interval for t0 inputs is the lower 13 signed bits of t,
-// centered around 0 (i.e. |x| <= 4096).
-// F-8 (2026-04-29): tighten further to half-open `is_i32b_strict_lower_array_opaque (pow2 12)`
-// to match the trait pre after F-8's swap.  Required because AVX2 free fn pre is half-open
-// `(-pow2 12, pow2 12]` strict on the lower end.
+// The caller pre is the half-open `is_i32b_strict_lower_array_opaque (pow2 12)`
+// = `(-pow2 12, pow2 12]`, matching the trait pre.  This is the semantically
+// correct interval for t0 inputs (the lower 13 signed bits of t, centered around
+// 0, i.e. |x| <= 4096), and is strict on the lower end because the AVX2 free fn
+// pre is half-open.
 #[inline(always)]
 #[hax_lib::requires(fstar!(r#"
     Seq.length $serialized == 32 * 13 /\
@@ -45,7 +43,7 @@ pub(crate) fn serialize<SIMDUnit: Operations>(
     }
 }
 
-// F-10 (2026-04-29): wrapper post + loop invariant tightened to half-open
+// Wrapper post + loop invariant use the half-open
 // `is_i32b_strict_lower_array_opaque (pow2 12)` for round-trip symmetry with
 // `serialize` and to match the trait `t0_deserialize` post.
 #[inline(always)]
@@ -72,7 +70,7 @@ fn deserialize<SIMDUnit: Operations>(
     }
 }
 
-// F-13 (2026-04-29): close body admit.  The loop processes one polynomial per
+// The loop processes one polynomial per
 // iteration: deserialize gives `is_i32b_strict_lower_array_opaque (pow2 12)`
 // per simd_unit (lifted to `is_i32b_array_opaque (pow2 12)` via the
 // strict_lower SMTPat), `pow2 12 ≤ NTT_BASE_BOUND` lets `ntt`'s pre fire (we

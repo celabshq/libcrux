@@ -28,6 +28,7 @@ pub(crate) fn modifies_range(a: &[u8], fa: &[u8], lo: usize, hi: usize) -> Prop 
 /// lemma the outer loop / composer needs about `modifies_range`; both
 /// `modifies_range` occurrences are revealed here so callers never do.
 #[cfg(hax)]
+#[libcrux_macros::trusted(replace, "hax-limitation: F*-native proof lemma (opaque-range reveal/induction, no Rust equivalent)")]
 #[hax_lib::fstar::replace(
     r#"
 let lemma_modifies_range_union (a b c: t_Slice u8) (lo mid hi: usize)
@@ -53,6 +54,7 @@ pub(crate) fn lemma_modifies_range_union(
 /// (it equals itself everywhere). Used to seed loop-invariant base
 /// cases. Reveals `modifies_range`.
 #[cfg(hax)]
+#[libcrux_macros::trusted(replace, "hax-limitation: F*-native proof lemma (opaque-range reveal/induction, no Rust equivalent)")]
 #[hax_lib::fstar::replace(
     r#"
 let lemma_modifies_range_refl (a: t_Slice u8) (lo hi: usize)
@@ -67,6 +69,7 @@ pub(crate) fn lemma_modifies_range_refl(_a: &[u8], _lo: usize, _hi: usize) {}
 /// `modifies_range`; lets leaf producers package their frame without
 /// revealing in their own body.
 #[cfg(hax)]
+#[libcrux_macros::trusted(replace, "hax-limitation: F*-native proof lemma (opaque-range reveal/induction, no Rust equivalent)")]
 #[hax_lib::fstar::replace(
     r#"
 let lemma_modifies_range_intro (a b: t_Slice u8) (lo hi: usize)
@@ -109,6 +112,7 @@ mod lemmas {
     ///
     /// This is used in the `squeeze` function to verify correct buffer indexing
     /// when squeezing multiple blocks.
+    #[libcrux_macros::trusted(replace, "hax-limitation: F*-native proof lemma (opaque-range reveal/induction, no Rust equivalent)")]
     #[hax_lib::fstar::replace(
         r#"
 let lemma_div_mul_mod (a b: usize)
@@ -127,6 +131,7 @@ let lemma_div_mul_mod (a b: usize)
     ///
     /// This is used in the `keccak` functions to verify that block iterations
     /// stay within bounds.
+    #[libcrux_macros::trusted(replace, "hax-limitation: F*-native proof lemma (opaque-range reveal/induction, no Rust equivalent)")]
     #[hax_lib::fstar::replace(
         r#"
 let rec lemma_mul_succ_le (k n d: usize)
@@ -153,6 +158,7 @@ let rec lemma_mul_succ_le (k n d: usize)
     /// as a delegation to `Rust_primitives.Integers.rotate_left_u`
     /// — `(x <<! n) ^. (x >>! (64 - n))` — making this lemma a real
     /// proof via per-bit reasoning + bit-extensionality.
+    #[libcrux_macros::trusted(replace, "hax-limitation: F*-native proof lemma (opaque-range reveal/induction, no Rust equivalent)")]
     #[hax_lib::fstar::replace(
         r#"
 let lemma_shl_xor_shr_is_rotate_left (x: u64) (v_LEFT v_RIGHT: i32)

@@ -24,16 +24,18 @@ module EquivImplSpec.Sponge.Arm64.SqueezeDriver
 open FStar.Mul
 open Core_models
 
-module G     = EquivImplSpec.Keccakf.Generic
-module KA    = EquivImplSpec.Keccakf.Arm64
-module SA    = EquivImplSpec.Sponge.Arm64
-module Steps = EquivImplSpec.Sponge.Arm64.Steps
-module HS    = Hacspec_sha3.Sponge
-module I     = Libcrux_intrinsics.Arm64_extract
+module G       = EquivImplSpec.Keccakf.Generic
+module KA      = EquivImplSpec.Keccakf.Arm64
+module SA      = EquivImplSpec.Sponge.Arm64
+module Steps   = EquivImplSpec.Sponge.Arm64.Steps
+module OneStep = EquivImplSpec.Sponge.Arm64.OneStep
+module HS      = Hacspec_sha3.Sponge
+module HSL     = Hacspec_sha3.Sponge.Lemmas
+module I       = Libcrux_intrinsics.Arm64_sha3_views
 
 (* Bring Arm64 typeclass instances into scope so t_Squeeze2 at N=2 resolves. *)
 let _ =
-  let open Libcrux_intrinsics.Arm64_extract in
+  let open Libcrux_intrinsics.Arm64_sha3_views in
   let open Libcrux_sha3.Traits in
   let open Libcrux_sha3.Simd.Arm64 in
   ()
@@ -87,7 +89,11 @@ let lemma_squeeze_length
    First block (offset 0, length rate, NO preceding keccakf).
    Establishes [squeezed_upto .. rate] off the initial state.
    ================================================================ *)
-#push-options "--z3rlimit 400 --split_queries always"
+(* Byteform first step (block 0, offset 0, N=2), mirror of first_step_avx2:
+   per-index connection made explicit via the reusable characterizations
+   (store body helpers excluded via [--using_facts_from]). *)
+#restart-solver
+#push-options "--z3rlimit 800 --split_queries always --using_facts_from '* -Rust_primitives.Slice.array_from_fn -Core_models.Num.impl_u64__rem_euclid -Core_models.Num.impl_u32__rem_euclid -Libcrux_sha3.Simd.Arm64.Store.store_block_full -Libcrux_sha3.Simd.Arm64.Store.store_block_tail -Libcrux_sha3.Simd.Arm64.Store.store_tail_high -Libcrux_sha3.Simd.Arm64.Store.store_tail_low -Libcrux_sha3.Simd.Arm64.Store.store_u64x2x2'"
 let lemma_squeeze_first_step_arm64
       (rate: usize{Libcrux_sha3.Proof_utils.valid_rate rate})
       (s_init_st: t_Array I.t_e_uint64x2_t (mk_usize 25))
@@ -118,9 +124,13 @@ let lemma_squeeze_first_step_arm64
       : Lemma (Seq.index (outX' <: Seq.seq u8) k == Seq.index (spec <: Seq.seq u8) k) =
       let kk : usize = mk_usize k in
       assert (v kk == k);
-      assert (v kk / 8 < 25);
       FStar.Math.Lemmas.small_div k (v rate);
-      assert (k / v rate == 0)
+      assert (k / v rate == 0);
+      lemma_iterate_keccak_f_zero lane_st_init;
+      SA.lemma_sq_lane_byte_eq_arm64 rate s_init_st outputs (mk_usize 0) len l k;
+      HSL.lemma_squeeze_state_index outlen lane_st_init
+        (outputs.[ mk_usize l ] <: t_Array u8 outlen) (mk_usize 0) len kk;
+      HSL.lemma_squeeze_index outlen lane_st_init rate kk
     in
     FStar.Classical.forall_intro aux
 #pop-options
@@ -168,14 +178,18 @@ let lemma_squeeze_mid_step_arm64
                       (HS.squeeze outlen lane_st_init rate <: Seq.seq u8)
                       ((v i + 1) * v rate)))
   = reveal_opaque (`%squeezed_upto) squeezed_upto;
-    Steps.lemma_squeeze_one_step_arm64 rate s_init_st ks_pre outputs_pre i l
+    OneStep.lemma_squeeze_one_step_arm64 rate s_init_st ks_pre outputs_pre i l
 #pop-options
 
 (* ================================================================
    Trailing partial block (offset blocks*rate, length outlen-last,
    keccakf first).  Extends [squeezed_upto] to the full [outlen].
    ================================================================ *)
-#push-options "--z3rlimit 400 --split_queries always"
+(* Tail step (partial last block [last, outlen), N=2), mirror of tail_step_avx2:
+   in-range → byteform of block [blocks]; out-of-range prefix → frame + revealed
+   loop invariant.  MONOLITHIC + store-body facts-filter. *)
+#restart-solver
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 800 --using_facts_from '* -Rust_primitives.Slice.array_from_fn -Core_models.Num.impl_u64__rem_euclid -Core_models.Num.impl_u32__rem_euclid -Libcrux_sha3.Simd.Arm64.Store.store_block_full -Libcrux_sha3.Simd.Arm64.Store.store_block_tail -Libcrux_sha3.Simd.Arm64.Store.store_tail_high -Libcrux_sha3.Simd.Arm64.Store.store_tail_low -Libcrux_sha3.Simd.Arm64.Store.store_u64x2x2'"
 let lemma_squeeze_tail_step_arm64
       (rate: usize{Libcrux_sha3.Proof_utils.valid_rate rate})
       (s_init_st: t_Array I.t_e_uint64x2_t (mk_usize 25))
@@ -223,29 +237,33 @@ let lemma_squeeze_tail_step_arm64
       SA.sq_lane_arm64 rate ks_post.Libcrux_sha3.Generic_keccak.f_st
         outputs last (outlen -! last) l in
     let spec = HS.squeeze outlen lane_st_init rate in
+    let state_i = G.extract_lane (mk_usize 2) KA.lc_arm64
+                    ks_post.Libcrux_sha3.Generic_keccak.f_st l in
+    (* tail state: state_i == iterate_keccak_f blocks lane_st_init (from lemma_squeeze_last_arm64). *)
+    assert (state_i == HS.iterate_keccak_f blocks lane_st_init);
     let aux (k: nat{k < v outlen})
       : Lemma (Seq.index (outX' <: Seq.seq u8) k == Seq.index (spec <: Seq.seq u8) k) =
       let kk : usize = mk_usize k in
       assert (v kk == k);
-      if k < v last then ()
+      (* outX'.[k] == squeeze_state state_i (outputs.[l]) last (outlen-last) .[k] (per-index, any k). *)
+      SA.lemma_sq_lane_byte_eq_arm64 rate ks_post.Libcrux_sha3.Generic_keccak.f_st
+        outputs last (outlen -! last) l k;
+      HSL.lemma_squeeze_state_index outlen state_i
+        (outputs.[ mk_usize l ] <: t_Array u8 outlen) last (outlen -! last) kk;
+      if k < v last then
+        (* out-of-range: squeeze_state.[k]==outputs.[l].[k]; revealed loop invariant
+           gives outputs.[l].[k]==squeeze.[k]. *)
+        ()
       else begin
-        assert (v rate > 0);
+        (* in-range tail block [last, outlen): block index b == blocks, j == k-last. *)
         assert (v blocks * v rate <= k);
         assert (k - v blocks * v rate < v rate);
-        assert ((k - v blocks * v rate) / 8 < 25);
-        (* k / rate == blocks, deterministically: name the nonlinear product so
-           the (k - blocks*rate) + blocks*rate == k step is linear, then read off
-           the quotient via small_div + lemma_div_plus. *)
         FStar.Math.Lemmas.small_div (k - v blocks * v rate) (v rate);
         FStar.Math.Lemmas.lemma_div_plus (k - v blocks * v rate) (v blocks) (v rate);
-        assert ((k - v blocks * v rate) + v blocks * v rate == k);
-        assert (k / v rate == v blocks);
         let b : usize = kk /! rate in
-        assert (v b == k / v rate);
         assert (v b == v blocks);
-        let j : usize = kk -! (b *! rate) in
-        assert (v j == k - v blocks * v rate);
-        assert (v j / 8 < 25)
+        assert (b == blocks);
+        HSL.lemma_squeeze_index outlen lane_st_init rate kk
       end
     in
     FStar.Classical.forall_intro aux
@@ -449,7 +467,7 @@ let lemma_squeeze_tail_driver_arm64
 (* ================================================================
    Driver-arithmetic bridges (placed LAST so they never enter the SMT
    context of the step lemmas above — their div/mod assertions are
-   fragile and adding lemmas earlier perturbed them).
+   fragile and adding lemmas before them perturbs those assertions).
 
    The [squeeze2] composer runs at [--fuel 0] with [squeeze]/[extract_lane]
    excluded from facts.  Asking it to CHAIN intermediate div_mod facts

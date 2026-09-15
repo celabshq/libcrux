@@ -237,12 +237,6 @@ let lemma_squeeze_last_portable
     KP.lemma_extract_lane_portable_identity state'
 
 
-(* [portable_squeeze_composed] — DELETED with the byteform migration
-   (Note C in proof_milestones.md).  Was a sugar for the recursive
-   [squeeze_blocks] / [squeeze_last] composition; consumers now cite
-   [Hacspec_sha3.Sponge.squeeze] (byteform) directly. *)
-
-
 (* ================================================================
    Per-iteration step lemma for the byteform-shaped Portable.squeeze
    loop.  Captures one (keccakf1600 ; f_squeeze at offset i*rate) step.
@@ -263,6 +257,12 @@ let lemma_squeeze_last_portable
 
    Same shape as the Arm64 byteform step lemma at N=2; this is N=1.
    ================================================================ *)
+(* [#restart-solver]: this byteform step lemma passes in isolation (worst split
+   sub-query ~181/400) but saturates at 400.000 in the full module — the Z3
+   solver-STATE accumulated by earlier decls pushes its marginal sub-query past
+   the split cap.  Restarting the solver clears that state.  (See
+   fstar-for-libcrux §7 Phase 0.5: admit_except-pass / full-build-saturate.) *)
+#restart-solver
 #push-options "--fuel 1 --ifuel 1 --z3rlimit 400 --split_queries always"
 let lemma_squeeze_one_step_portable
       (rate: usize{Libcrux_sha3.Proof_utils.valid_rate rate})
@@ -356,6 +356,10 @@ let lemma_squeeze_one_step_portable
    equalities with [Hacspec_sha3.Sponge.squeeze].
    ================================================================ *)
 
+(* [#restart-solver]: this per-byte composition lemma hit the Z3 4.13.3
+   LP-solver crash (Error 276, lar_solver.cpp) in the full module on the
+   solver state accumulated by earlier decls.  Restart clears it. *)
+#restart-solver
 #push-options "--fuel 1 --ifuel 1 --z3rlimit 300"
 
 let lemma_squeeze_trailing_byteform_portable

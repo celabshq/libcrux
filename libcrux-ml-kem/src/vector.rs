@@ -61,8 +61,8 @@ pub(crate) struct PolynomialRingElement<Vector: Operations> {
 /// lifts compose `i16_to_spec_array` with the trait `to_i16_array`
 /// extraction over the 16 chunks.
 ///
-/// One source of truth: the `_t` suffix of the prior F* injection is
-/// dropped (no longer F*-only).  These extract to
+/// One source of truth: these are Rust definitions (not F*-only
+/// injections) and extract to
 /// `Libcrux_ml_kem.Vector.Spec.{poly_to_spec, vector_to_spec, matrix_to_spec}`.
 #[cfg(hax)]
 #[allow(dead_code, unused_variables)]

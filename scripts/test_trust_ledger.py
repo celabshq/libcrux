@@ -13,6 +13,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import trust_scan as ts
 import trust_ledger as tl
+import enumerate_trust as et
 
 FAILURES = []
 
@@ -260,10 +261,12 @@ def test_attr_markers(tmp):
 
 def test_reason_format():
     for good in ["hax-limitation: x", "pending-proof(E5): y", "validated-axiom: z",
-                 "  slow-proof: trimmed", "unprovable-termination: t", "trusted-extern: e"]:
+                 "  slow-proof: trimmed", "unprovable-termination: t", "trusted-extern: e",
+                 "nospec: _mm256_and_si256 hardware intrinsic; uninterpreted, no model/lift yet"]:
         check(ts.reason_ok(good), f"reason_ok True: {good!r}")
+    check("nospec" in ts.TRUST_CATEGORIES, "nospec registered as a trust category")
     for bad in ["pending-proof: missing ref", "random: z", "hax-limitation no colon",
-                "", "hax-limitation:no-space"]:
+                "", "hax-limitation:no-space", "nospec no colon", "nospec:no-space"]:
         check(not ts.reason_ok(bad), f"reason_ok False: {bad!r}")
 
 
@@ -344,6 +347,155 @@ def test_makefile_comment_stripping(tmp):
     check(admit == [], f"empty ADMIT list: got {admit}")
 
 
+# --------------------------------------------------------------------------
+# WS5 — core-models silent-surface scanners (mk_lift_lemma! + opaque stubs)
+# --------------------------------------------------------------------------
+_LIFT_SRC = r'''pub mod int_vec {
+    //! Guide example in a doc comment must be IGNORED:
+    //! mk_lift_lemma!(_mm256_doc_example(x: __m256i) == whatever);
+
+    // The macro DEFINITION is not an invocation (followed by `{`, not `!(`).
+    macro_rules! mk_lift_lemma {
+        ($name:ident($($x:ident : $ty:ty),*) == $lhs:expr) => {
+            #[hax_lib::opaque]
+            #[hax_lib::lemma]
+            fn $name($($x : $ty,)*) -> Proof<{ hax_lib::eq(0, $lhs) }> {}
+        }
+    }
+    mk_lift_lemma!(_mm256_add_epi32(a: __m256i, b: __m256i) ==
+        __m256i::from_i32x8(super::_mm256_add_epi32(x, y)));
+    mk_lift_lemma!(vaddq_s16(a: int16x8_t) == super::vaddq_s16(a));
+    // a mention of mk_lift_lemma!(not_real) inside a // comment is masked
+}
+'''
+
+
+def test_mk_lift_lemma_scan(tmp):
+    p = os.path.join(tmp, "lift.rs")
+    open(p, "w").write(_LIFT_SRC)
+    got = ts.scan_file_mk_lift_lemmas(p, tmp)
+    names = sorted(r["name"] for r in got)
+    check(names == ["_mm256_add_epi32", "vaddq_s16"],
+          f"2 real mk_lift_lemma! invocations (doc example + macro def + comment ignored): got {names}")
+
+
+_OPAQUE_SRC = r'''use super::*;
+/// doc example, must be ignored:
+/// #[hax_lib::opaque]
+/// pub fn _mm_doc_example() -> __m128i { unimplemented!() }
+#[hax_lib::opaque]
+pub fn _mm_packs_epi16(_: __m128i, _: __m128i) -> __m128i {
+    unimplemented!()
+}
+#[hax_lib::exclude]
+#[hax_lib::opaque]
+pub fn _mm_real_model(a: __m128i) -> __m128i {
+    let z = a;
+    z
+}
+#[hax_lib::opaque]
+pub fn _mm_set_epi8() -> __m128i {
+    todo!()
+}
+// The LOUD trust-marker form must be recognised too (Part A of the sweep):
+#[libcrux_macros::trusted(opaque, "validated-axiom: _mm_marked hardware intrinsic; model + lift + difftest")]
+pub fn _mm_marked(_: __m128i) -> __m128i {
+    unimplemented!()
+}
+#[hax_lib::opaque]
+pub struct NotAFn { x: u8 }
+'''
+
+
+def test_opaque_intrinsic_scan(tmp):
+    p = os.path.join(tmp, "op.rs")
+    open(p, "w").write(_OPAQUE_SRC)
+    got = ts.scan_file_opaque_intrinsics(p, tmp)
+    by = {r["name"]: r for r in got}
+    check(sorted(by) == ["_mm_marked", "_mm_packs_epi16", "_mm_real_model", "_mm_set_epi8"],
+          f"4 opaque FNs incl. trusted(opaque) (doc example + opaque struct excluded): got {sorted(by)}")
+    check(by["_mm_packs_epi16"]["stub_body"] is True, "unimplemented!() body -> stub")
+    check(by["_mm_set_epi8"]["stub_body"] is True, "todo!() body -> stub")
+    check(by["_mm_real_model"]["stub_body"] is False, "real body -> not a stub")
+    # `marked` distinguishes the loud #[trusted(opaque,…)] form from bare #[hax_lib::opaque].
+    check(by["_mm_marked"]["marked"] is True, "trusted(opaque,…) marker -> marked=True")
+    check(by["_mm_packs_epi16"]["marked"] is False, "bare hax_lib::opaque -> marked=False")
+
+
+# --------------------------------------------------------------------------
+# WS5 — enumerate_trust dedup (content-hash) + stale (*_extract) exclusion
+# --------------------------------------------------------------------------
+def _write(path, text):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    open(path, "w").write(text)
+
+
+def test_enumerate_dedup_and_stale(tmp):
+    root = os.path.join(tmp, "repo")
+    # Byte-IDENTICAL shared core-models module extracted into TWO crates.
+    shared = ("module Libcrux_core_models.Foo\n"
+              "assume val a : int\nassume val b : int\n")
+    _write(os.path.join(root, "libcrux-ml-kem/proofs/fstar/extraction/Libcrux_core_models.Foo.fst"), shared)
+    _write(os.path.join(root, "libcrux-ml-dsa/proofs/fstar/extraction/Libcrux_core_models.Foo.fst"), shared)
+    # A source-less stale build leftover (`*_extract`) — must be DROPPED.
+    _write(os.path.join(root, "libcrux-ml-kem/proofs/fstar/extraction/Libcrux_ml_kem.Bar_extract.fst"),
+           "module Libcrux_ml_kem.Bar_extract\nassume val ghost : int\n")
+    # A crate-local, non-shared obligation (kept, counted once).
+    _write(os.path.join(root, "libcrux-ml-dsa/proofs/fstar/extraction/Libcrux_ml_dsa.Baz.fst"),
+           "module Libcrux_ml_dsa.Baz\nlet f = admit ()\n")
+
+    fo = et.enumerate_fstar_observed(root)
+    check(fo["raw_total"] == 5,
+          f"raw = 2(Foo@kem)+2(Foo@dsa)+1(Baz); stale Bar_extract excluded: got {fo['raw_total']}")
+    check(fo["deduped_total"] == 3,
+          f"deduped = Foo(2, once) + Baz(1): got {fo['deduped_total']}")
+    check(fo["duplicate_obligations_collapsed"] == 2,
+          f"2 duplicate Foo obligations collapsed: got {fo['duplicate_obligations_collapsed']}")
+    stale_mods = [s["module"] for s in fo["stale_excluded"]]
+    check(stale_mods == ["Libcrux_ml_kem.Bar_extract"],
+          f"the *_extract module is the only stale one: got {stale_mods}")
+    shared_mods = [s["module"] for s in fo["shared_modules"]]
+    check(shared_mods == ["Libcrux_core_models.Foo"],
+          f"Foo flagged as shared across crates: got {shared_mods}")
+
+
+def test_source_backing_classifier(tmp):
+    root = os.path.join(tmp, "repo2")
+    os.makedirs(root, exist_ok=True)
+    tracked = set()
+    # stale: *_extract suffix
+    check(et._source_backing("Libcrux_ml_kem.Vector_extract",
+                             os.path.join(root, "x.fst"), root, tracked) == "stale",
+          "`*_extract` module classified stale")
+    # external: non-crate module (no crate prefix) -> kept
+    check(et._source_backing("Spec.Utils", os.path.join(root, "y.fst"), root, tracked) == "external",
+          "non-crate Spec.* module classified external (kept)")
+    # tracked path -> backed regardless of name
+    tp = os.path.join(root, "z.fst")
+    check(et._source_backing("Libcrux_ml_kem.Whatever_extract", tp, root, {os.path.normpath(tp)}) == "tracked",
+          "git-tracked file always source-backed (even *_extract name)")
+
+
+# --------------------------------------------------------------------------
+# WS5 — annotation_lint V1 signature extraction (feeds the ratchet allowlist)
+# --------------------------------------------------------------------------
+def test_annotation_lint_v1_signature(tmp):
+    import annotation_lint as al
+    src = ('#[hax_lib::fstar::before(\n'
+           '    r#"\n'
+           'let my_helper (x: int) : int = x + 1\n'
+           'let my_lemma (x: int) : Lemma (my_helper x == x + 1) = ()\n'
+           '"#\n'
+           ')]\n'
+           'pub fn thing() {}\n')
+    p = os.path.join(tmp, "blk.rs")
+    open(p, "w").write(src)
+    vs = al.check_file(p, tmp)
+    check(len(vs) == 1, f"one untagged multi-line before-block flagged: got {len(vs)}")
+    check(len(vs[0]) == 4 and vs[0][3] == "my_helper",
+          f"V1 record carries a stable first-def signature `my_helper`: got {vs[0]}")
+
+
 def main():
     import tempfile
     with tempfile.TemporaryDirectory() as tmp:
@@ -360,6 +512,13 @@ def main():
         test_module_annotation_scanner()
         test_hax_exclusion_tokens()
         test_makefile_comment_stripping(tmp)
+        print("[ws5-silent-surfaces]")
+        test_mk_lift_lemma_scan(tmp)
+        test_opaque_intrinsic_scan(tmp)
+        print("[ws5-enumerate]")
+        test_enumerate_dedup_and_stale(tmp)
+        test_source_backing_classifier(tmp)
+        test_annotation_lint_v1_signature(tmp)
     print("[reason-format]")
     test_reason_format()
     print("[rust-comment-masking]")

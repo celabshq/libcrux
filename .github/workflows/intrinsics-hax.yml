@@ -13,7 +13,9 @@ on:
   merge_group:
     paths:
       - "crates/utils/intrinsics/**"
+      - "crates/utils/core-models/**"
       - "fstar-helpers/fstar-bitvec/Bitvec.U64Rotate.fst"
+      - "fstar-helpers/fstar-bitvec/Bitvec.Arm64Views.fst"
       - "fstar-helpers/fstar-bitvec/Bitvec.VxarqProof.fst"
       - "fstar-helpers/fstar-bitvec/Bitvec.Sha3FallbackProof.fst"
       - ".github/workflows/intrinsics-hax.yml"
@@ -21,7 +23,9 @@ on:
     branches: ["dev", "main"]
     paths:
       - "crates/utils/intrinsics/**"
+      - "crates/utils/core-models/**"
       - "fstar-helpers/fstar-bitvec/Bitvec.U64Rotate.fst"
+      - "fstar-helpers/fstar-bitvec/Bitvec.Arm64Views.fst"
       - "fstar-helpers/fstar-bitvec/Bitvec.VxarqProof.fst"
       - "fstar-helpers/fstar-bitvec/Bitvec.Sha3FallbackProof.fst"
       - ".github/workflows/intrinsics-hax.yml"
@@ -59,24 +63,38 @@ jobs:
           hax_reference: ${{ github.event.inputs.hax_ref || needs.get-hax-ref.outputs.hax_ref }}
           fstar: v2026.03.24
 
-      - name: 🏃 Extract intrinsics crate (NEON SHA3 fallbacks)
+      - name: 🏃 Extract shared deps (platform, core-models)
+        run: |
+          # The REAL `Libcrux_intrinsics.Arm64` (below) references the EXTRACTED
+          # core-models model (`Libcrux_core_models.Core_arch.Arm.*`,
+          # `Libcrux_core_models.Neon_views`, ...), so core-models (and its
+          # platform dep) must be hax-extracted first — via their canonical
+          # hax.py, exactly as crates/algorithms/sha3/hax.sh's dep_extract does.
+          python3 crates/sys/platform/hax.py extract
+          python3 crates/utils/core-models/hax.py extract
+
+      - name: 🏃 Extract intrinsics crate (real core-models Arm64)
         working-directory: crates/utils/intrinsics
         run: |
-          # Same invocation as `extract crates/utils/intrinsics` in
-          # crates/algorithms/sha3/hax.sh: `--cfg pre_core_models` routes the
-          # AVX2 backend to the bit_vec stub, `-i "-core_models::**"` keeps the
-          # core-models crate external (its `Core_models.*` model is provided by
-          # the hax proof-libs), and `--interfaces "+**"` emits the .fsti specs.
-          RUSTFLAGS="--cfg pre_core_models" cargo hax \
+          # Real core-models flip: NO `--cfg pre_core_models`, so lib.rs routes
+          # simd128 -> the REAL core-models `Libcrux_intrinsics.Arm64` instead of
+          # the retired `arm64_extract.rs` bit_vec stub. This removes the last CI
+          # dependency on arm64_extract.rs. `-i "-libcrux_core_models::**"` keeps
+          # the (already-extracted) core-models crate external, and
+          # `--interfaces "-**"` keeps the real module TRANSPARENT (no .fsti) so
+          # the `Bitvec.Arm64Views` op-facts can reduce each `e_*` wrapper to its
+          # `Neon.*` model. Matches crates/algorithms/sha3/hax.sh's intrinsics
+          # invocation.
+          cargo hax \
             -C --features simd128,simd256 ";" \
-            into -i "-core_models::**" \
-            fstar --z3rlimit 80 --interfaces "+**"
-          # Mirror the canonical extract() rename (no-op for Arm64_extract.fsti,
-          # kept for fidelity with sha3/hax.sh).
+            into -i "-libcrux_core_models::**" \
+            fstar --z3rlimit 80 --interfaces "-**"
+          # Canonical extract() rename (Core_models.* -> Libcrux_core_models.*).
+          # No .fsti under `--interfaces "-**"`, so only .fst files are rewritten.
           sed -i \
             -e 's/Core_models\.Abstractions/Libcrux_core_models.Abstractions/g' \
             -e 's/Core_models\.Core_arch/Libcrux_core_models.Core_arch/g' \
-            proofs/fstar/extraction/*.fst proofs/fstar/extraction/*.fsti
+            proofs/fstar/extraction/*.fst
 
       - name: 🏃 Verify NEON SHA3 fallback proofs (F*)
         working-directory: crates/utils/intrinsics/proofs/fstar

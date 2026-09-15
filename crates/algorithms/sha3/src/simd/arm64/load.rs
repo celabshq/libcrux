@@ -20,8 +20,7 @@ use super::wrappers::uint64x2_t;
 // extensionality lemma `load_lane_u64_lane_extensionality` injected
 // via `fstar::after`, which lets the loop_invariant's per-lane
 // equality (provided by `get_lane_u64`) bridge to per-`load_lane_u64`
-// equality without unfolding the body. Mirrors the AVX2 cascade
-// closure (commit 3b9fc054c).
+// equality without unfolding the body. Mirrors the AVX2 side.
 #[cfg(hax)]
 #[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
 #[hax_lib::fstar::after(
@@ -30,7 +29,7 @@ use super::wrappers::uint64x2_t;
 val load_lane_u64_lane_extensionality
       (blocks: t_Array (t_Slice u8) (mk_usize 2))
       (offset i: usize)
-      (s1 s2: Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t)
+      (s1 s2: Libcrux_intrinsics.Arm64_sha3_views.t_e_uint64x2_t)
       (lane: usize)
   : Lemma
     (requires
@@ -51,8 +50,8 @@ val load_lane_u64_lane_extensionality
              usize)
          <:
          Hax_lib.Int.t_Int)) /\
-      Libcrux_intrinsics.Arm64_extract.get_lane_u64 s1 lane ==
-      Libcrux_intrinsics.Arm64_extract.get_lane_u64 s2 lane)
+      Libcrux_intrinsics.Arm64_sha3_views.get_lane_u64 s1 lane ==
+      Libcrux_intrinsics.Arm64_sha3_views.get_lane_u64 s2 lane)
     (ensures
       load_lane_u64 blocks offset i s1 lane ==
       load_lane_u64 blocks offset i s2 lane)
@@ -65,7 +64,7 @@ val load_lane_u64_lane_extensionality
 let load_lane_u64_lane_extensionality
       (blocks: t_Array (t_Slice u8) (mk_usize 2))
       (offset i: usize)
-      (s1 s2: Libcrux_intrinsics.Arm64_extract.t_e_uint64x2_t)
+      (s1 s2: Libcrux_intrinsics.Arm64_sha3_views.t_e_uint64x2_t)
       (lane: usize)
   : Lemma
     (requires
@@ -86,8 +85,8 @@ let load_lane_u64_lane_extensionality
              usize)
          <:
          Hax_lib.Int.t_Int)) /\
-      Libcrux_intrinsics.Arm64_extract.get_lane_u64 s1 lane ==
-      Libcrux_intrinsics.Arm64_extract.get_lane_u64 s2 lane)
+      Libcrux_intrinsics.Arm64_sha3_views.get_lane_u64 s1 lane ==
+      Libcrux_intrinsics.Arm64_sha3_views.get_lane_u64 s2 lane)
     (ensures
       load_lane_u64 blocks offset i s1 lane ==
       load_lane_u64 blocks offset i s2 lane)
@@ -145,11 +144,14 @@ fn load_u64x2(blocks: &[&[u8]; 2], offset: usize, i: usize, statei: uint64x2_t) 
             .unwrap(),
     );
     let uvec = _vld1q_u64(&u);
+    // lemma_e_vld1q_u64 carries NO SMTPat: seed `get_lane_u64x2 uvec i == u.[i]` (i<2)
+    // explicitly so the ensures connects the loaded lanes to `u` cold (no hint).
+    hax_lib::fstar!(r#"Libcrux_intrinsics.Arm64_sha3_views.lemma_e_vld1q_u64 (u <: t_Slice u64)"#);
     _veorq_u64(statei, uvec)
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always")]
+#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always --fuel 2 --ifuel 1")]
 #[hax_lib::requires(i < 12
         && blocks[0].len() == blocks[1].len()
         && offset.to_int() + (16.to_int() * i.to_int()) + 16.to_int() <= blocks[0].len().to_int())]
@@ -171,19 +173,60 @@ fn load_u64x2x2(
     hax_lib::fstar!(r#"reveal_opaque (`%load_lane_u64) load_lane_u64"#);
     let v0 = _vld1q_bytes_u64(&blocks[0][offset + 16 * i..offset + 16 * i + 16]);
     let v1 = _vld1q_bytes_u64(&blocks[1][offset + 16 * i..offset + 16 * i + 16]);
+    // Per-lane byte bridge: name the two vld1q windows, reduce the Core_models
+    // range-index to `Seq.slice` (f_index unfold), split each 16-byte window into
+    // two 8-byte halves (FStar.Seq.slice_slice), reconcile the `try_into` arrays
+    // with those halves (lemma_slice8_as_array), then seed each lane's codec value
+    // in canonical `Seq.slice` form so the return's ensures composes via the
+    // veorq/vtrn/get_lane_u64 op-fact SMTPats.  All four lanes need this uniformly.
+    hax_lib::fstar!(
+        r#"
+        let a:usize = offset +! (mk_usize 16 *! i <: usize) in
+        let w0:t_Slice u8 = blocks.[ mk_usize 0 ] in
+        let w1:t_Slice u8 = blocks.[ mk_usize 1 ] in
+        assert (v a == v offset + 16 * v i);
+        assert (v (mk_usize 8 *! (mk_usize 2 *! i <: usize) <: usize) == 16 * v i);
+        assert (v (mk_usize 8 *! ((mk_usize 2 *! i <: usize) +! mk_usize 1 <: usize) <: usize)
+                == 16 * v i + 8);
+        assert (v (a +! mk_usize 8 <: usize) == v offset + 16 * v i + 8);
+        let a16:usize = a +! mk_usize 16 in
+        assert (v a16 == v a + 16);
+        assert ((w0.[ ({ Core_models.Ops.Range.f_start = a; Core_models.Ops.Range.f_end = a16 }
+                     <: Core_models.Ops.Range.t_Range usize) ] <: t_Slice u8)
+                == Seq.slice w0 (v a) (v a + 16));
+        assert ((w1.[ ({ Core_models.Ops.Range.f_start = a; Core_models.Ops.Range.f_end = a16 }
+                     <: Core_models.Ops.Range.t_Range usize) ] <: t_Slice u8)
+                == Seq.slice w1 (v a) (v a + 16));
+        FStar.Seq.Properties.slice_slice w0 (v a) (v a + 16) 0 8;
+        FStar.Seq.Properties.slice_slice w0 (v a) (v a + 16) 8 16;
+        FStar.Seq.Properties.slice_slice w1 (v a) (v a + 16) 0 8;
+        FStar.Seq.Properties.slice_slice w1 (v a) (v a + 16) 8 16;
+        Libcrux_intrinsics.Arm64_sha3_views.lemma_slice8_as_array w0 a;
+        Libcrux_intrinsics.Arm64_sha3_views.lemma_slice8_as_array w1 a;
+        Libcrux_intrinsics.Arm64_sha3_views.lemma_slice8_as_array w0 (a +! mk_usize 8 <: usize);
+        Libcrux_intrinsics.Arm64_sha3_views.lemma_slice8_as_array w1 (a +! mk_usize 8 <: usize);
+        assert (Libcrux_intrinsics.Arm64_sha3_views.get_lane_u64x2 v0 0 ==
+                Core_models.Num.impl_u64__from_le_bytes (Seq.slice w0 (v a) (v a + 8) <: t_Array u8 (mk_usize 8)));
+        assert (Libcrux_intrinsics.Arm64_sha3_views.get_lane_u64x2 v0 1 ==
+                Core_models.Num.impl_u64__from_le_bytes (Seq.slice w0 (v a + 8) (v a + 16) <: t_Array u8 (mk_usize 8)));
+        assert (Libcrux_intrinsics.Arm64_sha3_views.get_lane_u64x2 v1 0 ==
+                Core_models.Num.impl_u64__from_le_bytes (Seq.slice w1 (v a) (v a + 8) <: t_Array u8 (mk_usize 8)));
+        assert (Libcrux_intrinsics.Arm64_sha3_views.get_lane_u64x2 v1 1 ==
+                Core_models.Num.impl_u64__from_le_bytes (Seq.slice w1 (v a + 8) (v a + 16) <: t_Array u8 (mk_usize 8)))
+        "#
+    );
     (
         _veorq_u64(in0, _vtrn1q_u64(v0, v1)),
         _veorq_u64(in1, _vtrn2q_u64(v0, v1)),
     )
 }
 
-// Cliff closure 2026-05-07: opacified `load_lane_u64` + `load_u64x2`
-// + `load_u64x2x2` and added `load_lane_u64_lane_extensionality`
-// SMTPat lemma. Mirrors the AVX2 cascade closure (commits 7bb581f8b
-// .. 3b9fc054c) which discharged the same `k!61` /
-// `Rust_primitives.Slice.array_from_fn` cascade at q301.
+// `load_lane_u64`, `load_u64x2`, and `load_u64x2x2` are opacified, plus a
+// `load_lane_u64_lane_extensionality` SMTPat lemma. This discharges the
+// `k!61` / `Rust_primitives.Slice.array_from_fn` refinement-interpretation
+// cascade (the AVX2 side handles the same cascade).
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always --using_facts_from '* -Rust_primitives.Slice.array_from_fn -Core_models.Num.impl_u64__rem_euclid -Core_models.Num.impl_u32__rem_euclid'")]
+#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always --using_facts_from '* -Rust_primitives.Slice.array_from_fn -Core_models.Num.impl_u64__rem_euclid -Core_models.Num.impl_u32__rem_euclid -Libcrux_intrinsics.Arm64_sha3_views'")]
 #[hax_lib::requires(valid_rate(RATE)
             && blocks[0].len() == blocks[1].len()
             && offset.to_int() + RATE.to_int() <= blocks[0].len().to_int()

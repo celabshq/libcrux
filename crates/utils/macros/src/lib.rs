@@ -131,6 +131,17 @@ pub fn ml_dsa_parameter_sets(args: TokenStream, item: TokenStream) -> TokenStrea
 /// attribute. (`inline-admit` tokenises as `inline - admit`; the leading
 /// hyphenated kind is normalised by stripping whitespace.)
 ///
+/// **The `replace` kind is also a pure marker.** It sits ALONGSIDE a sibling
+/// `#[hax_lib::fstar::replace(...)]` / `#[fstar::replace_body(...)]` attribute and
+/// records that the extracted F* for that item is hand-written (a trust surface
+/// invisible to the observed F* plane — the substitute `let` LOOKS like a real
+/// definition). The marker CANNOT generate the replacement mechanism: the F* text
+/// is the hax attribute's own argument. So, exactly like `inline-admit`, `replace`
+/// expands to the annotated item verbatim (extraction-neutral) and exists purely as
+/// the declaration `scripts/trust_ledger.py`'s replace-bijection lint (V8) counts.
+/// The `"<category>: <reason>"` argument is validated by `reason_ok`; a NEW unmarked
+/// `fstar::replace` site fails CI.
+///
 /// **G2 whole-function kinds (`lax` / `panic_free` / `opaque` / `exclude`)** are
 /// *attribute-as-mechanism*: the wrapper EMITS the same underlying `hax_lib`
 /// attribute the site used before the wrapper, so extraction stays byte-identical,
@@ -175,9 +186,14 @@ pub fn trusted(args: TokenStream, item: TokenStream) -> TokenStream {
         _ => None,
     };
     match kind.as_str() {
-        // Pure summary markers — the real obligation is on the body macro.
-        // Return the item verbatim (extraction-neutral).
-        "inline-admit" | "inline-assume" => item,
+        // Pure summary markers — the real obligation is on the body macro
+        // (inline-admit/-assume: a `trusted_admit!`/`trusted_assume!` at the body
+        // site) or on the sibling `#[hax_lib::fstar::replace(...)]` attribute
+        // (replace: the hand-written F* is that attribute's own argument, which this
+        // marker cannot and must not regenerate). Return the item verbatim
+        // (extraction-neutral): under hax these expand away before THIR, so hax never
+        // sees the marker and extraction stays byte-identical.
+        "inline-admit" | "inline-assume" | "replace" => item,
         // Attribute-as-mechanism: prepend the cfg(hax)-gated hax_lib attribute,
         // then return the item unchanged. Under hax this is byte-identical to the
         // site's prior attribute; under a normal build it expands to nothing.
@@ -192,7 +208,7 @@ pub fn trusted(args: TokenStream, item: TokenStream) -> TokenStream {
         }
         other => panic!(
             "#[libcrux_macros::trusted]: unsupported kind `{other}` \
-             (supported: inline-admit, inline-assume, lax, panic_free, opaque, exclude)"
+             (supported: inline-admit, inline-assume, replace, lax, panic_free, opaque, exclude)"
         ),
     }
 }

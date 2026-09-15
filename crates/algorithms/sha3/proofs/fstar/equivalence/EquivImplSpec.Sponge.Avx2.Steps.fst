@@ -24,7 +24,7 @@ module EquivImplSpec.Sponge.Avx2.Steps
    - the lane-wise keccakf1600 theorem [lemma_keccakf1600_avx2]
      (which itself rests on the seven lane-correctness primitives in
      [EquivImplSpec.Keccakf.Avx2], discharged via the AVX2 intrinsic
-     SMTPats in [Libcrux_intrinsics.Avx2_extract] — external trust).
+     SMTPats in [Libcrux_intrinsics.Avx2_sha3_views] — external trust).
 
    The N=4 extract_lane is NOT an identity, so it is carried through
    the statements rather than collapsed.
@@ -38,12 +38,12 @@ open Core_models
 module G  = EquivImplSpec.Keccakf.Generic
 module KA = EquivImplSpec.Keccakf.Avx2
 module SA = EquivImplSpec.Sponge.Avx2
-module I  = Libcrux_intrinsics.Avx2_extract
+module I  = Libcrux_intrinsics.Avx2_sha3_views
 
 (* Bring AVX2 typeclass instances into scope so t_KeccakItem /
    t_Absorb / t_Squeeze4 at N=4 resolve. *)
 let _ =
-  let open Libcrux_intrinsics.Avx2_extract in
+  let open Libcrux_intrinsics.Avx2_sha3_views in
   let open Libcrux_sha3.Traits in
   let open Libcrux_sha3.Simd.Avx2 in
   ()

@@ -29,7 +29,7 @@ impl Repr for AVX2SIMDUnit {
 impl Repr for AVX2SIMDUnit {}
 
 // ---------------------------------------------------------------------------
-// Track B (Step 10): one-line-wrapper refactor for non-trivial impl methods.
+// One-line-wrapper refactor for non-trivial impl methods.
 // See `src/simd/portable.rs` for the Portable counterparts and rationale.
 // ---------------------------------------------------------------------------
 
@@ -126,10 +126,10 @@ pub(crate) fn power2round_with_proof(t0: &mut AVX2SIMDUnit, t1: &mut AVX2SIMDUni
                 (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${t0}) k)
         in
         Classical.forall_intro pf;
-        // Track 0 (c6c68bbca propagation): half-open (-pow2 12, pow2 12] post.
-        // The AVX2 free fn post on `arithmetic::power2round` only states the
-        // closed `is_i32b (pow2 12)` bound; the math lemma supplies the
-        // strict-lower side.  cf. F-13 for why `decompose` cannot do the same.
+        // Half-open (-pow2 12, pow2 12] post.  The AVX2 free fn post on
+        // `arithmetic::power2round` only states the closed `is_i32b (pow2 12)`
+        // bound; the math lemma supplies the strict-lower side.  `decompose` cannot
+        // do the same because its special-case adjustment reaches the boundary.
         let pf_t0 (k: nat{k < 8}) : Lemma
             (ensures
                 v (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${t0}) k) > -(pow2 12) /\
@@ -809,12 +809,10 @@ pub(crate) fn invert_ntt_with_proof(simd_units: &mut AVX2RingElement) {
 }
 
 /// Implementing the [`Operations`] for AVX2.
-// 2026-06-15: `--z3rlimit 400 --split_queries always`.  The functional `ntt`
-// post made the monolithic impl_1 record query saturate COLD at rlimit 400
-// (re-extraction invalidates its hint → cold re-prove).  Splitting makes each
-// field its own sub-query; the opaque `ntt_func_post` atom keeps the split
-// f_ntt sub-query free of a prunable raw `forall`.  (Was `--z3rlimit 400`
-// monolithic, state (d), which fit only WARM via the recorded hint.)
+// `--z3rlimit 400 --split_queries always`.  The functional `ntt` post makes the
+// monolithic impl_1 record query saturate at rlimit 400.  Splitting makes each
+// field its own sub-query; the opaque `ntt_func_post` atom keeps the split f_ntt
+// sub-query free of a prunable raw `forall`.
 #[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 400 --split_queries always"))]
 #[hax_lib::attributes]
 impl Operations for AVX2SIMDUnit {
@@ -1149,7 +1147,7 @@ impl Operations for AVX2SIMDUnit {
     #[ensures(|_| fstar!(r#"
         Seq.length ${out}_future == Seq.length ${out}"#))]
     fn t0_serialize(simd_unit: &Self, out: &mut [u8]) {
-        // Track 0 (c6c68bbca propagation): expose the half-open
+        // Expose the half-open
         // (-pow2 12, pow2 12] bound in `to_i32x8`-shape so the AVX2
         // free fn pre `forall i. POW_2_BITS_IN_LOWER_PART_OF_T_MINUS_ONE
         // - to_i32x8 simd_unit i ∈ [0, pow2 13)` discharges.

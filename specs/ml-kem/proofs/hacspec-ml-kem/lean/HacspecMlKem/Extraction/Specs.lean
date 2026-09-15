@@ -2268,8 +2268,53 @@ def
   ⦃ ⇓ res => ⌜ True ⌝ ⦄
 
 
+/-- [hacspec_ml_kem::parameters::hash_functions::PRF::pre]:
+    Source: 'ml-kem/src/parameters.rs', lines 301:4-301:87 -/
+@[reducible]
+def parameters.hash_functions.PRF.pre
+  (LEN : Std.Usize) (input : Slice Std.U8) : RustM hax_lib.prop.Prop := do
+  hax_lib.prop.Prop.from_bool true
+
+def parameters.hash_functions.PRF.spec (LEN : Std.Usize) (input : Slice Std.U8)
+  : Prop :=
+  (parameters.hash_functions.PRF.pre LEN input).holds →
+  ⦃ ⌜ True ⌝ ⦄
+  parameters.hash_functions.PRF LEN input
+  ⦃ ⇓ res => ⌜ True ⌝ ⦄
+
+
+/-- [hacspec_ml_kem::parameters::hash_functions::XOF::pre]:
+    Source: 'ml-kem/src/parameters.rs', lines 307:4-307:87 -/
+@[reducible]
+def parameters.hash_functions.XOF.pre
+  (LEN : Std.Usize) (input : Slice Std.U8) : RustM hax_lib.prop.Prop := do
+  hax_lib.prop.Prop.from_bool true
+
+def parameters.hash_functions.XOF.spec (LEN : Std.Usize) (input : Slice Std.U8)
+  : Prop :=
+  (parameters.hash_functions.XOF.pre LEN input).holds →
+  ⦃ ⌜ True ⌝ ⦄
+  parameters.hash_functions.XOF LEN input
+  ⦃ ⇓ res => ⌜ True ⌝ ⦄
+
+
+/-- [hacspec_ml_kem::parameters::hash_functions::J::pre]:
+    Source: 'ml-kem/src/parameters.rs', lines 313:4-313:87 -/
+@[reducible]
+def parameters.hash_functions.J.pre
+  (LEN : Std.Usize) (input : Slice Std.U8) : RustM hax_lib.prop.Prop := do
+  hax_lib.prop.Prop.from_bool true
+
+def parameters.hash_functions.J.spec (LEN : Std.Usize) (input : Slice Std.U8)
+  : Prop :=
+  (parameters.hash_functions.J.pre LEN input).holds →
+  ⦃ ⌜ True ⌝ ⦄
+  parameters.hash_functions.J LEN input
+  ⦃ ⇓ res => ⌜ True ⌝ ⦄
+
+
 /-- [hacspec_ml_kem::parameters::{hacspec_ml_kem::parameters::FieldElement}::new::pre]:
-    Source: 'ml-kem/src/parameters.rs', lines 321:4-321:45 -/
+    Source: 'ml-kem/src/parameters.rs', lines 334:4-334:45 -/
 @[reducible]
 def parameters.FieldElement.new.pre (val : Std.U16) : RustM Bool := do
   ok (val < parameters.FIELD_MODULUS)

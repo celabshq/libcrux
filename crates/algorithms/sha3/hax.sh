@@ -2,27 +2,43 @@
 set -ex
 
 function extract_all() {
-    # `--cfg pre_core_models` routes the AVX2 backend to
-    # `avx2_extract.rs` (the bit_vec stub), mirroring the arm64
-    # pattern.  Without it, hax pulls in the full
-    # `core_models::arch::x86::*` chain (Bitvec/Funarr) which we do
-    # not need for the SHA-3 proofs.
-    export RUSTFLAGS="${RUSTFLAGS:-} --cfg pre_core_models"
+    # AVX2 flip COMPLETE: no `pre_core_models_*` RUSTFLAG.  lib.rs now routes
+    # BOTH backends to the REAL core-models intrinsics: arm64 ->
+    # `Libcrux_intrinsics.Arm64` (via the `Arm64_sha3_views` companion), avx2 ->
+    # `Libcrux_intrinsics.Avx2` (via the `Avx2_sha3_views` companion).  Both are
+    # differentially-tested; the hand-written `{arm64,avx2}_extract.rs` bit_vec
+    # stubs are no longer on sha3's path (retired once aes/ml-kem also flip).
 
-    extract crates/sys/platform \
-        into -i "+:** -**::x86::init::cpuid -**::x86::init::cpuid_count" \
-        fstar --z3rlimit 80 --interfaces "+**"
+    # Uniform shared deps via their canonical scripts (single source of truth;
+    # idempotent).  They are content-invariant to pre_core_models, so a canonical
+    # config serves sha3 too.  This also UNIFIES sha3's secrets: it previously
+    # omitted `--interfaces "-**"`, drifting from ml-kem/ml-dsa; the canonical
+    # secrets script always extracts transparently (`--interfaces "-**"`).
+    dep_extract crates/sys/platform
+    dep_extract crates/utils/core-models
 
-    extract crates/utils/core-models into fstar
-
+    # Extract intrinsics into sha3's OWN dedicated intrinsics dir (--output-dir),
+    # so the shared crates/utils/intrinsics tree is never clobbered.  Both
+    # backends now route to the REAL core-models `Libcrux_intrinsics.{Arm64,Avx2}`
+    # (no `pre_core_models_*` flag).  `--interfaces "-**"` keeps BOTH real modules
+    # TRANSPARENT (no `.fsti`) so the `{Arm64,Avx2}_sha3_views` op-facts can
+    # `reveal`/reduce each `e_*` wrapper to its `Neon.*` / `Avx2.*` model.
+    #
+    # Force a rebuild of the intrinsics crate (touch its sources) so the
+    # per-ISA variant is regenerated even if a prior extraction in this working
+    # tree built it under a DIFFERENT config: hax reuses the cached THIR when
+    # cargo thinks the crate is fresh, so without this touch sha3 can silently
+    # pick up another crate's `Arm64.fst`/`Avx2.fst` (cross-crate cargo-freshness
+    # flip). Harmless in single-crate CI (one extra intrinsics recompile).
+    touch "$REPO_ROOT/crates/utils/intrinsics/src/"*.rs
+    clean_generated_fstar "$SHA3_INTRINSICS_DIR"
     extract crates/utils/intrinsics \
         -C --features simd128,simd256 ";" \
         into -i "-libcrux_core_models::**" \
-        fstar --z3rlimit 80 --interfaces "+**"
+        --output-dir "$SHA3_INTRINSICS_DIR" \
+        fstar --z3rlimit 80 --interfaces "-**"
 
-    extract crates/utils/secrets \
-        into -i "+**" \
-        fstar --z3rlimit 80
+    dep_extract crates/utils/secrets
 
     # Minimal libcrux-traits surface needed by sha3's
     # `impl_digest_trait` module: only the `digest::arrayref` oneshot
@@ -40,6 +56,15 @@ function extract_all() {
         into -i "-** +libcrux_traits::digest::arrayref::Hash +libcrux_traits::digest::arrayref::HashError" \
         fstar --z3rlimit 80
 
+    # Extract the sha3 reference spec (crate `hacspec_sha3`).  The sha3 proofs
+    # verify against `Hacspec_sha3.*` (Sha3/Sponge/Keccak_f) — a real dependency of
+    # Libcrux_sha3.Generic_keccak.* / Libcrux_sha3.fst — so it MUST be re-extracted
+    # here.  This step was missing; libcrux-ml-kem/hax.py and libcrux-ml-dsa/hax.sh
+    # already extract their own specs (specs/sha3/hax.sh is the standalone equivalent).
+    # NOTE: if cargo reports the crate fresh and skips it (writes no THIR export ->
+    # hax panics with a NotFound), force a rebuild with `cargo clean -p hacspec_sha3`.
+    extract specs/sha3 into -i "+**" fstar --z3rlimit 80
+
     # Remove stale generated F* before re-extracting.  hax never deletes files
     # for modules that were removed/renamed, nor old interface (*.fsti) files
     # when a module stops emitting one.  A leftover *.fsti silently SHADOWS the
@@ -51,10 +76,34 @@ function extract_all() {
     rm -f "$SCRIPT_DIR/proofs/fstar/extraction"/*.fst \
           "$SCRIPT_DIR/proofs/fstar/extraction"/*.fsti
 
+    # Generate ABSTRACT interfaces (.fsti) for the `portable` module subtree so
+    # external consumers (ml-kem / ml-dsa / kmac) verify against sha3's PUBLIC
+    # function contracts (`sha512`/`shake256`/... : `== Hacspec_sha3.Sponge.keccak`;
+    # incremental: length/state posts) WITHOUT dragging in sha3's internal Keccak
+    # equivalence proof cone (Generic_keccak.Portable, EquivImplSpec.*,
+    # Hacspec_sha3.Sponge.Lemmas). sha3's OWN build still verifies each `.fst`
+    # against its `.fsti`; the interface is the trust/verification boundary. The
+    # concrete `t_KeccakState` record is kept in the interface (consumers + the
+    # internal incremental `Bundle` need `.f_state`), which hax places in the
+    # `.fsti` and omits from the `.fst` automatically.
+    #
+    # EXCEPTION — the SIMD *incremental* subtrees (`avx2::x4::incremental`,
+    # `neon::x2::incremental`) are DELIBERATELY excluded from `--interfaces`, so
+    # hax extracts them TRANSPARENTLY (concrete `.fst`, no generated `.fsti`).  A
+    # hax-GENERATED concrete `.fsti` for these is broken: it drops `noeq` on the
+    # `BitVec`-field `t_KeccakState` record (F* Error 19, decidable-equality) and
+    # drags the heavy `Simd.{Avx2,Arm64}` lane cone into every consumer's
+    # `.fsti.checked`.  Instead a hand-written ABSTRACT `.fsti` (`val
+    # t_KeccakState : Type0`, length-only posts — ca6ea1dac technique) is provided
+    # for each and restored in patch_fstar_extractions; consumers (ml-kem/ml-dsa/
+    # kmac) depend only on that LIGHT interface, never the SIMD cone.  The wrapper
+    # state is never read field-wise by any sha3-internal module, so abstracting
+    # it is transparent to sha3 (whose own build verifies the concrete `.fst`
+    # implements the abstract `.fsti`).
     extract crates/algorithms/sha3 \
         -C --features simd128,simd256 ";" \
         into -i "+**" \
-        fstar --z3rlimit 80
+        fstar --z3rlimit 80 --interfaces "-** +libcrux_sha3::portable +libcrux_sha3::portable::** +libcrux_sha3::avx2::x4 +libcrux_sha3::avx2::x4::** -libcrux_sha3::avx2::x4::incremental -libcrux_sha3::avx2::x4::incremental::** +libcrux_sha3::neon +libcrux_sha3::neon::** -libcrux_sha3::neon::x2::incremental -libcrux_sha3::neon::x2::incremental::**"
 
     patch_fstar_extractions
 }
@@ -91,6 +140,18 @@ function init_vars() {
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
     SCRIPT_PATH="${SCRIPT_DIR}/${SCRIPT_NAME}"
+    REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+    # sha3 carries its OWN copy of the shared intrinsics modules
+    # (Libcrux_intrinsics.{Avx2_extract,Arm64_extract}), extracted via --output-dir
+    # into this DEDICATED subdir (not the main `extraction` tree).  FINDLIBS
+    # (Makefile.generic) auto-includes every workspace crate's
+    # `proofs/fstar/extraction` on every other crate's path, so a per-algorithm
+    # intrinsics copy in `extraction/` would collide (same module names, DIFFERENT
+    # content) on sibling paths.  A `proofs/fstar/intrinsics` sibling dir is NOT
+    # auto-discovered by FINDLIBS, so it is added ONLY to sha3's own include path
+    # via FSTAR_INCLUDE_DIRS_EXTRA (`../intrinsics`).  The shared
+    # crates/utils/intrinsics tree is likewise excluded in Makefile.generic.
+    SHA3_INTRINSICS_DIR="$SCRIPT_DIR/proofs/fstar/intrinsics"
 
     detect_sed
 
@@ -128,7 +189,9 @@ function patch_fstar_extractions() {
         "$target_dir/Libcrux_sha3.Proof_utils.fst" \
         "$target_dir/Libcrux_sha3.Proof_utils.Lemmas.fst" \
         "$target_dir/Libcrux_sha3.Simd.Arm64.StoreBlockHelpers.fst" \
-        "$target_dir/Libcrux_sha3.Simd.Avx2.StoreBlockHelpers.fst" 2>/dev/null || true
+        "$target_dir/Libcrux_sha3.Simd.Avx2.StoreBlockHelpers.fst" \
+        "$target_dir/Libcrux_sha3.Avx2.X4.Incremental.fsti" \
+        "$target_dir/Libcrux_sha3.Neon.X2.Incremental.fsti" 2>/dev/null || true
     # hax emits Core_models.Array.from_fn which has the wrong type;
     # replace with Rust_primitives.Slice.array_from_fn and supply the
     # extra implicit #(usize -> u8) that array_from_fn requires.
@@ -162,6 +225,31 @@ function patch_fstar_extractions() {
         [ -f "$target_dir/$f" ] && $SED -i 's/^type t_KeccakState =/noeq type t_KeccakState =/' "$target_dir/$f"
     done
 
+    # core-models flip: the multi-block squeeze composers (impl__squeeze_first_three_blocks,
+    # impl__squeeze_first_five_blocks) saturate cold from the Arm64_sha3_views companion
+    # SMTPat cascade (composer pollution, same as the Store composers). `fstar::options`
+    # is illegal on an inherent-impl method (anon const) and is dropped on the impl block,
+    # so wrap the two decls (three_blocks .. five_blocks, the last decls) in a
+    # companion-excluding #push-options / #pop-options here.
+    local simd128f="$target_dir/Libcrux_sha3.Generic_keccak.Simd128.fst"
+    if [ -f "$simd128f" ] && grep -q '^let impl__squeeze_first_three_blocks' "$simd128f"; then
+        SQZ_OPTS="#push-options \"--fuel 0 --ifuel 1 --z3rlimit 400 --using_facts_from '* -Hacspec_sha3.Sponge.squeeze -EquivImplSpec.Keccakf.Generic.extract_lane -Libcrux_intrinsics.Arm64_sha3_views'\"" \
+            perl -i -pe 'print "$ENV{SQZ_OPTS}\n\n" if /^let impl__squeeze_first_three_blocks$/' "$simd128f"
+        printf '\n#pop-options\n' >> "$simd128f"
+    fi
+
+    # AVX2 flip analog: the Simd256 (X4) squeeze composers cascade the same way
+    # from the `Avx2_sha3_views` companion's `get_lane_u64_post` SMTPat.  The
+    # inner push inherits the impl-block's `--split_queries always` (from
+    # `_keccak_state_impl4_opts`) and just adds the companion exclusion; scoped
+    # to three_blocks..five_blocks (the last two decls -> pop at EOF).
+    local simd256f="$target_dir/Libcrux_sha3.Generic_keccak.Simd256.fst"
+    if [ -f "$simd256f" ] && grep -q '^let impl__squeeze_first_three_blocks' "$simd256f"; then
+        SQZ_OPTS="#push-options \"--fuel 0 --ifuel 1 --z3rlimit 400 --using_facts_from '* -Hacspec_sha3.Sponge.squeeze -EquivImplSpec.Keccakf.Generic.extract_lane -Libcrux_intrinsics.Avx2_sha3_views'\"" \
+            perl -i -pe 'print "$ENV{SQZ_OPTS}\n\n" if /^let impl__squeeze_first_three_blocks$/' "$simd256f"
+        printf '\n#pop-options\n' >> "$simd256f"
+    fi
+
     # Note: per-u64-lane SMTPat lemma admits (lemma_mm256_*_u64x4)
     # are now injected directly from avx2_extract.rs via
     # `#[hax_lib::fstar::after(...)]` on each intrinsic.  No patch
@@ -178,6 +266,33 @@ function extract() {
         msg "$RED" "extract extraction failed for ${BOLD}$1${RESET}"
         exit 1
     }
+}
+
+# Invoke a canonical per-dependency extraction script (single source of truth
+# for that uniform shared dep; idempotent — skips if already extracted).  Keeps
+# the shared platform/core-models/secrets trees from flip-flopping between
+# per-algorithm configs (feedback_shared_coremodels_extraction_contamination).
+# NOTE: the dep scripts do NOT set `--cfg pre_core_models`, and these deps are
+# content-invariant to it (empirically verified), so a canonical config serves
+# sha3 too even though sha3 extracts its own code under pre_core_models.
+function dep_extract() {
+    local dep="$1"   # e.g. crates/sys/platform
+    msg "$BLUE" "dep_extract ${BOLD}$dep${RESET}"
+    python3 "$REPO_ROOT/$dep/hax.py" extract || {
+        msg "$RED" "dep extraction failed for ${BOLD}$dep${RESET}"
+        exit 1
+    }
+}
+
+# Remove generated .fst/.fsti from an extraction dir BEFORE re-extracting.  hax
+# extracts incrementally and NEVER deletes a .fsti when a module stops emitting
+# one; a leftover .fsti then silently SHADOWS the fresh .fst (the stale-.fsti
+# contamination that broke the SHA-3 SIMD proofs).  The dedicated intrinsics dir
+# holds only generated files, so removing all is safe.
+function clean_generated_fstar() {
+    local dir="$1"
+    [ -d "$dir" ] && rm -f "$dir"/*.fst "$dir"/*.fsti
+    return 0
 }
 
 function extract_to_lean() {

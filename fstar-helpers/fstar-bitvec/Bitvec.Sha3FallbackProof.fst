@@ -11,17 +11,17 @@
  * trusted as axioms; nobody proves the body discharges the spec.
  *
  * This module closes that gap.  For each fallback it states the body
- * (mirrored verbatim from the hax-extracted `Libcrux_intrinsics.Arm64_extract.fst`)
- * as a `Pure` function whose `ensures` is the fallback's spec, and lets F*
- * verify the body against it.  The proof rests ONLY on:
- *   - the basic NEON ops' per-lane specs (`e_veorq_u64`, `e_vbicq_u64`,
- *     `e_vshlq_n_u64`, `e_vshrq_n_u64` from `Arm64_extract.fsti`), and
+ * (mirrored verbatim from the hax-extracted `Libcrux_intrinsics.Arm64.fst`,
+ * the REAL core-models-backed intrinsics — NOT the retired `Arm64_extract`
+ * bit_vec stub) as a `Pure` function whose `ensures` is the fallback's spec,
+ * and lets F* verify the body against it.  The proof rests ONLY on:
+ *   - the basic NEON ops' per-lane view facts (`lemma_e_veorq_u64`,
+ *     `lemma_e_vbicq_u64`, `lemma_e_vshlq_n_u64`, `lemma_e_vshrq_n_u64` in
+ *     `Bitvec.Arm64Views`), which are PROVEN from the canonical core-models
+ *     `Libcrux_core_models.Neon_views` op-lemma set (zero assumptions), and
  *   - the bit-width rotate identity `Bitvec.U64Rotate.lemma_u64_rotate_left_decomp`
  *     (one auditable assume; see that module's header) for the two
  *     rotate-bearing fallbacks.
- * It does NOT depend on any of the `unimplemented!()` model ops (e.g.
- * `e_vdupq_n_s16`) that prevent `Arm64_extract.fst` from verifying as a
- * whole — which is why these proofs are isolated here.
  *
  *   _veor3q_u64 a b c   == (a ^ b) ^ c                    (triple XOR)
  *   _vbcaxq_u64 a b c   == a ^ (b & ~c)                   (XOR-and-bit-clear)
@@ -32,7 +32,7 @@ module Bitvec.Sha3FallbackProof
 
 open Core_models
 open Bitvec.U64Rotate
-open Libcrux_intrinsics.Arm64_extract
+open Bitvec.Arm64Views
 
 (* These are leaf per-lane equalities over the basic NEON op specs; give a
    modest, deterministic rlimit so CI does not depend on Z3's split/retry
@@ -81,8 +81,17 @@ let vrax1q_u64_fallback_body (a b: t_e_uint64x2_t)
         (get_lane_u64x2 a i ^.
           Core_models.Num.impl_u64__rotate_left (get_lane_u64x2 b i) (mk_u32 1)))
 =
-  e_veorq_u64 a
-    (e_veorq_u64 (e_vshlq_n_u64 (mk_i32 1) b) (e_vshrq_n_u64 (mk_i32 63) b))
+  let result: t_e_uint64x2_t =
+    e_veorq_u64 a
+      (e_veorq_u64 (e_vshlq_n_u64 (mk_i32 1) b) (e_vshrq_n_u64 (mk_i32 63) b))
+  in
+  (* ground cast facts so the shift-lane amounts match the rotate decomposition
+     of `rotate_left b 1`: `(b <<! 1) ^. (b >>! 63)`. *)
+  assert (Rust_primitives.Integers.v (cast (mk_i32 1)  <: u32) == 1);
+  assert (Rust_primitives.Integers.v (cast (mk_i32 63) <: u32) == 63);
+  assert ((cast (mk_i32 63) <: u32) == (mk_u32 64 -! (cast (mk_i32 1) <: u32)));
+  assert (in_range64 (cast (mk_i32 1) <: u32));
+  result
 
 (* ----------------------------------------------------------------------- *)
 (* _vxarq_u64<LEFT,RIGHT> : XOR-and-rotate, `rotate_left(a ^ b, LEFT)`
@@ -106,4 +115,13 @@ let vxarq_u64_fallback_body (left right: i32) (a b: t_e_uint64x2_t)
           (cast left <: u32))
 =
   let a_xor_b: t_e_uint64x2_t = e_veorq_u64 a b in
-  e_veorq_u64 (e_vshlq_n_u64 left a_xor_b) (e_vshrq_n_u64 right a_xor_b)
+  let result: t_e_uint64x2_t =
+    e_veorq_u64 (e_vshlq_n_u64 left a_xor_b) (e_vshrq_n_u64 right a_xor_b)
+  in
+  (* i32 -> u32 casts preserve value in-range, and 64 - v left == v right, so the
+     shift-right amount matches the rotate decomposition's `64 -! cast left`. *)
+  assert (Rust_primitives.Integers.v (cast left  <: u32) == Rust_primitives.Integers.v left);
+  assert (Rust_primitives.Integers.v (cast right <: u32) == Rust_primitives.Integers.v right);
+  assert ((cast right <: u32) == (mk_u32 64 -! (cast left <: u32)));
+  assert (in_range64 (cast left <: u32));
+  result

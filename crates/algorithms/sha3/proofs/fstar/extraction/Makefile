@@ -1,6 +1,11 @@
+# NOTE: the shared crates/utils/intrinsics extraction dir is intentionally NOT
+# on the include path — each algorithm carries its own Libcrux_intrinsics.*
+# copy (extracted via --output-dir into THIS dir) to avoid the cross-crate
+# flip-flop / stale-.fsti contamination. See fstar-helpers/Makefile.generic.
 FSTAR_INCLUDE_DIRS_EXTRA += \
 	$(shell git rev-parse --show-toplevel)/fstar-helpers/fstar-bitvec \
-	$(shell git rev-parse --show-toplevel)/libcrux-intrinsics/proofs/fstar/extraction \
+	../intrinsics \
+	../spec \
 	../stubs \
 	../equivalence
 

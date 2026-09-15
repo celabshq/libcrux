@@ -2,21 +2,24 @@
 # fallback correctness proofs.
 #
 # These proof modules live under fstar-helpers/fstar-bitvec/ and prove that the
-# four REAL fallback bodies in crates/utils/intrinsics/src/arm64_extract.rs
+# four REAL fallback bodies in crates/utils/intrinsics/src/arm64.rs
 #   _veor3q_u64 / _vbcaxq_u64 / _vrax1q_u64 / _vxarq_u64
-# satisfy their #[hax_lib::ensures] specs, using only the basic NEON op specs
-# from the extracted Libcrux_intrinsics.Arm64_extract.fsti (plus the one
-# auditable u64 rotate identity in Bitvec.U64Rotate).
+# satisfy their software-fallback specs, using only the basic NEON op per-lane
+# view facts in Bitvec.Arm64Views (PROVEN from the core-models
+# Libcrux_core_models.Neon_views op-lemma set over the REAL core-models-backed
+# Libcrux_intrinsics.Arm64), plus the one auditable u64 rotate identity in
+# Bitvec.U64Rotate. There is NO dependency on the retired Arm64_extract bit_vec
+# stub.
 #
-# This deliberately does NOT root Libcrux_intrinsics.Arm64_extract.fst /
-# Avx2_extract.fst: those mix the proven fallbacks with unimplemented!() model
-# ops whose `.fst` bodies cannot discharge (they remain trusted as `.fsti`
-# axioms, as in every other consumer crate). Isolating the fallback proofs here
-# lets CI actually prove them without dragging in the model-op axioms.
+# This does NOT root Libcrux_intrinsics.Arm64.fst / Avx2.fst directly; they are
+# picked up as dependencies of the Bitvec.Arm64Views view module via the
+# intrinsics extraction dir added below to FSTAR_INCLUDE_DIRS_EXTRA (FINDLIBS
+# excludes the shared crates/utils/intrinsics tree).
 #
 # Prerequisite: the intrinsics + core-models crates must be hax-extracted first
-# (the intrinsics-hax CI workflow does this) so their proofs/fstar/extraction
-# dirs exist and FINDLIBS can discover them.
+# (the intrinsics-hax CI workflow does this, WITHOUT --cfg pre_core_models so the
+# real Arm64 is produced) so their proofs/fstar/extraction dirs exist and
+# FINDLIBS can discover them.
 
 FSTAR_INCLUDE_DIRS_EXTRA += \
 	      $(shell git rev-parse --show-toplevel)/fstar-helpers/fstar-bitvec \
@@ -28,6 +31,7 @@ vpath %.fst $(shell git rev-parse --show-toplevel)/fstar-helpers/fstar-bitvec
 
 ROOTS = \
 	Bitvec.U64Rotate.fst \
+	Bitvec.Arm64Views.fst \
 	Bitvec.VxarqProof.fst \
 	Bitvec.Sha3FallbackProof.fst
 

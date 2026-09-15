@@ -35,10 +35,14 @@ SLOW_MODULES +=
 #   `SHUFFLE_TABLE` constant — admit ELIMINATED.
 ADMIT_MODULES =
 
+# NOTE: the shared crates/utils/intrinsics extraction dir is intentionally NOT
+# on the include path — ml-dsa carries its own Libcrux_intrinsics.* copy
+# (extracted via --output-dir into THIS dir) to avoid the cross-crate flip-flop
+# / stale-.fsti contamination. See fstar-helpers/Makefile.generic.
 FSTAR_INCLUDE_DIRS_EXTRA += ../spec \
+	      ../intrinsics \
 	      $(shell git rev-parse --show-toplevel)/fstar-helpers/fstar-bitvec \
 	      $(shell git rev-parse --show-toplevel)/libcrux-ml-kem/proofs/fstar/spec \
-	      $(shell git rev-parse --show-toplevel)/libcrux-intrinsics/proofs/fstar/extraction \
 	      $(shell git rev-parse --show-toplevel)/specs/ml-dsa/proofs/fstar/commute
 
 ENABLE_HINTS = --use_hints --record_hints
@@ -68,4 +72,5 @@ include $(shell git rev-parse --show-toplevel)/fstar-helpers/Makefile.base
 # =====================================================================
 verify: $(CACHE_DIR)/Avx2NttTheory.fst.checked $(CACHE_DIR)/Avx2NttCompose.fst.checked \
         $(CACHE_DIR)/Hacspec_ml_dsa.Commute.Chunk.fst.checked \
-        $(CACHE_DIR)/Spec.MLDSA.Math.fst.checked
+        $(CACHE_DIR)/Spec.MLDSA.Math.fst.checked \
+        $(CACHE_DIR)/Spec.Intrinsics.fst.checked

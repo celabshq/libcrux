@@ -1982,7 +1982,7 @@ let ntt_5to3_l5block_proto
 #pop-options
 
 (* ============================================================================
-   PHASE 0 REDESIGN (2026-06-08): opaque-atom round-post theory.
+   Opaque-atom round-post theory.
 
    Defeats the block-fn accumulation cliff (ntt_l4_block / ntt_l3_block > rlimit
    800).  ROOT CAUSE: round_ws's whole post (modifies_range_32 [32] + bound

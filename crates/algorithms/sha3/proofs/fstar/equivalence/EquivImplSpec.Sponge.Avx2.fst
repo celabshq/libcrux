@@ -20,15 +20,16 @@ module EquivImplSpec.Sponge.Avx2
 open FStar.Mul
 open Core_models
 
-module G  = EquivImplSpec.Keccakf.Generic
-module KA = EquivImplSpec.Keccakf.Avx2
-module SC = EquivImplSpec.Sponge.Generic.Core
-module SP = EquivImplSpec.Sponge.Portable
-module I  = Libcrux_intrinsics.Avx2_extract
+module G   = EquivImplSpec.Keccakf.Generic
+module KA  = EquivImplSpec.Keccakf.Avx2
+module SC  = EquivImplSpec.Sponge.Generic.Core
+module SP  = EquivImplSpec.Sponge.Portable
+module I   = Libcrux_intrinsics.Avx2_sha3_views
+module HSL = Hacspec_sha3.Sponge.Lemmas
 
 (* Bring AVX2 typeclass instances into scope. *)
 let _ =
-  let open Libcrux_intrinsics.Avx2_extract in
+  let open Libcrux_intrinsics.Avx2_sha3_views in
   let open Libcrux_sha3.Traits in
   let open Libcrux_sha3.Simd.Avx2 in
   ()
@@ -441,7 +442,9 @@ let lemma_stored_index
 #pop-options
 
 (* Consumer for [squeeze_state]'s post [forall]: the single per-byte equation
-   at [i] (covers in/out range), isolated so the [result.[i]] trigger fires. *)
+   at [i] (covers in/out range).  Delegates to the canonical, explicitly-proven
+   [HSL.lemma_squeeze_state_index] rather than the [= ()] auto-firing chain
+   (which does not reliably close in this context). *)
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
 let lemma_squeeze_state_index
       (out_len: usize)
@@ -460,7 +463,7 @@ let lemma_squeeze_state_index
                    (state.[ (i -! out_offset) /! mk_usize 8 <: usize ])
                  <: t_Array u8 (mk_usize 8)).[ (i -! out_offset) %! mk_usize 8 <: usize ])
          else (output.[ i ] <: u8)))
-  = ()
+  = HSL.lemma_squeeze_state_index out_len state output out_offset len i
 #pop-options
 
 (* Per-[i] byte equation [sq_lane_avx2.[i] == squeeze_state.[i]], proved from

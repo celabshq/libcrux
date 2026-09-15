@@ -9,7 +9,7 @@ use libcrux_intrinsics::arm64::*;
 )]
 #[hax_lib::fstar::before(
     r#"
-module NI = Libcrux_intrinsics.Arm64_extract
+module NI = Libcrux_intrinsics.Arm64_ml_kem_views
 module NS = Spec.Utils
 module NA = Libcrux_ml_kem.Vector.Neon.Arithmetic
 open Libcrux_ml_kem.Vector.Neon.Ntt_theory

@@ -15,17 +15,24 @@ use hax_lib::prop::ToProp;
 
 #[derive(Clone, Copy)]
 #[hax_lib::fstar::before(interface, "noeq")]
-#[hax_lib::fstar::after(interface,"let repr (x:t_SIMD256Vector) : t_Array i16 (sz 16) = Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 x.f_elements")]
+#[hax_lib::fstar::after(interface,"let repr (x:t_SIMD256Vector) : t_Array i16 (sz 16) = Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 x.f_elements")]
 pub struct SIMD256Vector {
     elements: Vec256,
 }
 
 #[inline(always)]
 #[hax_lib::ensures(|result| fstar!(r#"repr ${result} == Seq.create 16 (mk_i16 0)"#))]
-// 2026-06-30: bring the relocated ml-kem storeu/loadu bit_vec SMTPats into
-// scope (moved out of Avx2_extract to keep sha3's interface lean).
-#[hax_lib::fstar::before(r#"open Libcrux_intrinsics.Avx2_ml_kem_views"#)]
+// Bring the ml-kem storeu/loadu bit_vec SMTPats into scope (they live
+// outside Avx2_extract so sha3's interface stays lean).
+#[hax_lib::fstar::before(
+    r#"open Libcrux_intrinsics.Avx2
+open Libcrux_intrinsics.Avx2_ml_kem_views"#
+)]
 fn vec_zero() -> SIMD256Vector {
+    // `mm256_setzero_si256 ()` is a fully ground core-models term, so its
+    // view lemma deliberately carries no SMTPat (an SMTPat on a ground term
+    // fires everywhere) — it has to be called explicitly, as Compress does.
+    proof!(r#"Libcrux_intrinsics.Avx2_ml_kem_views.lemma_mm256_setzero_si256 ()"#);
     SIMD256Vector {
         elements: mm256_setzero_si256(),
     }
@@ -35,9 +42,13 @@ fn vec_zero() -> SIMD256Vector {
 #[hax_lib::ensures(|result| fstar!(r#"${result} == repr ${v}"#))]
 fn vec_to_i16_array(v: SIMD256Vector) -> [i16; 16] {
     let mut output = [0i16; 16];
-    // `output` has length 16; surface that fact so the intrinsic's
-    // length-guarded `ensures` discharges `result == repr v`.
-    proof!(r#"assert (Core_models.Slice.impl__len #i16 output == mk_usize 16)"#);
+    // `output` has length 16; surface that fact, then call the store's view
+    // bridge explicitly (over core-models the store is a modeled per-lane
+    // spine, so the post does not fall out of the intrinsic's own ensures).
+    proof!(
+        r#"assert (Core_models.Slice.impl__len #i16 output == mk_usize 16);
+Libcrux_intrinsics.Avx2_ml_kem_views.lemma_mm256_storeu_si256_i16 (output <: t_Slice i16) ${v}.f_elements"#
+    );
     mm256_storeu_si256_i16(&mut output, v.elements);
 
     output
@@ -47,6 +58,9 @@ fn vec_to_i16_array(v: SIMD256Vector) -> [i16; 16] {
 #[hax_lib::requires(array.len() == 16)]
 #[hax_lib::ensures(|result| fstar!(r#"repr ${result} == ${array}"#))]
 fn vec_from_i16_array(array: &[i16]) -> SIMD256Vector {
+    // Dual of `vec_to_i16_array`: the load's view bridge is a proven companion
+    // lemma over core-models and must be called explicitly.
+    proof!(r#"Libcrux_intrinsics.Avx2_ml_kem_views.lemma_mm256_loadu_si256_i16 ${array}"#);
     SIMD256Vector {
         elements: mm256_loadu_si256_i16(array),
     }
@@ -59,37 +73,56 @@ fn vec_from_i16_array(array: &[i16]) -> SIMD256Vector {
     (let head : t_Slice u8 = Seq.slice ${array} 0 32 in
      Libcrux_ml_kem.Vector.Traits.Spec.from_le_bytes_post_N
        #(mk_usize 16) head
-       (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}.f_elements))
+       (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${result}.f_elements))
 "#))]
 pub(super) fn from_bytes(array: &[u8]) -> SIMD256Vector {
+    // Name the loaded sub-slice so the load's bit lemma and the post's
+    // `Seq.slice array 0 32` are the SAME term in the proof below.
+    let head = &array[0..32];
     let result = SIMD256Vector {
-        elements: mm256_loadu_si256_u8(&array[0..32]),
+        elements: mm256_loadu_si256_u8(head),
     };
-    // Bridge the intrinsic's `bit_vec_equal` ensures (bit-vec form) to the
-    // `from_le_bytes_post_N` (i16x16 byte-view) post: the i16x16 view of the
-    // loaded vector is bit-for-bit the loaded vector, so the byte-array and
-    // i16-array views share the same bit vector.
+    // Bridge the load to the `from_le_bytes_post_N` post, which unfolds to
+    // `bit_vec_of_int_t_array head 8 == bit_vec_of_int_t_array (i16x16 view) 16`
+    // -- an equality of two bit_vec FUNCTIONS, so it needs a pointwise intro.
+    //
+    // Per-index chain, for i < 256:
+    //   bit_vec_of_int_t_array (vec256_as_i16x16 elts) 16 i
+    //     == bv_bit elts ((i/16)*16 + i%16)        (the i16x16 readback lemma)
+    //     == bv_bit elts i                         (euclidean division at 16)
+    //     == get_bit head.[i/8] (i%8)              (the u8 load's bit lemma)
+    //     == bit_vec_of_int_t_array head 8 i       (definitional, via `on`)
+    //
+    // NB over core-models `t_BitVec` is not a function, so bit access is
+    // `bv_bit`, not a direct `${result}.f_elements i` function application.
     proof!(
         r#"
+assert (Seq.length ${head} == 32);
+let head_arr : t_Array u8 (mk_usize 32) = ${head} in
 introduce forall (i: nat{i < 256}).
-    Rust_primitives.BitVectors.bit_vec_of_int_t_array
-      (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}.f_elements) 16 i
-    == ${result}.f_elements i
-with Libcrux_intrinsics.Avx2_extract.bit_vec_of_int_t_array_vec256_as_i16x16_lemma
-       ${result}.f_elements 16 i;
+    Rust_primitives.BitVectors.bit_vec_of_int_t_array head_arr 8 i
+    == Rust_primitives.BitVectors.bit_vec_of_int_t_array
+         (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${result}.f_elements) 16 i
+with (
+  FStar.Math.Lemmas.euclidean_division_definition i 16;
+  Libcrux_intrinsics.Avx2_ml_kem_views.bit_vec_of_int_t_array_vec256_as_i16x16_lemma
+    ${result}.f_elements 16 i;
+  Libcrux_intrinsics.Avx2_ml_kem_views.lemma_bv_bit_mm256_loadu_si256_u8 ${head} i
+);
 BitVecEq.bit_vec_equal_intro
+  (Rust_primitives.BitVectors.bit_vec_of_int_t_array head_arr 8)
   (Rust_primitives.BitVectors.bit_vec_of_int_t_array
-     (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}.f_elements) 16)
-  ${result}.f_elements"#
+     (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${result}.f_elements) 16)"#
     );
     result
 }
 
 // Carries the trait's `to_le_bytes_post_N` post directly so the trait
-// wrapper in `impl Operations` is a one-line call.  Marked `panic_free`:
-// body is panic-checked, but the bridge from `mm256_storeu_si256_u8`'s
-// strengthened val ensures (bit_vec form) through `update_at_range` to
-// `to_le_bytes_post_N` is admitted at this layer.
+// wrapper in `impl Operations` is a one-line call.
+//
+// There is no panic_free/lax attribute here, so the post below is a
+// genuine proof obligation, not an assumption; the proof block below is
+// PROVEN and `Vector.Avx2` verifies end to end.
 #[inline(always)]
 #[hax_lib::requires(bytes.len() >= 32)]
 #[hax_lib::ensures(|_| fstar!(r#"
@@ -99,26 +132,50 @@ BitVecEq.bit_vec_equal_intro
      (let head : t_Slice u8 = Seq.slice bytes_future 0 32 in
       Libcrux_ml_kem.Vector.Traits.Spec.to_le_bytes_post_N
         #(mk_usize 16)
-        (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${x}.f_elements) head))
+        (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${x}.f_elements) head))
 "#))]
 pub(super) fn to_bytes(x: SIMD256Vector, bytes: &mut [u8]) {
+    // Proof-only snapshot: the store rebinds `bytes`, so without this the
+    // store bridge has no way to name its pre-state operand.
+    #[cfg(hax)]
+    let bytes_pre: &[u8] = &*bytes;
+
     mm256_storeu_si256_u8(&mut bytes[0..32], x.elements);
-    // `update_at_range`'s post gives `head == stored bytes` and length
-    // preservation; the intrinsic gives `head`'s bit-vec == x.elements; and
-    // the i16x16 view of x.elements is bit-for-bit x.elements — so the i16
-    // and byte views share a bit vector (`to_le_bytes_post_N`).
+
+    // Mirror of `from_bytes`, plus the sub-slice framing.  `to_le_bytes_post_N`
+    // unfolds to an equality of two bit_vec FUNCTIONS, so it needs a pointwise
+    // intro.  Per index i < 256:
+    //   bit_vec_of_int_t_array (vec256_as_i16x16 elts) 16 i
+    //     == bv_bit elts i                    (readback lemma + euclidean at 16)
+    //     == bit_vec_of_int_t_array stored 8 i (the u8 store's bit lemma)
+    //     == bit_vec_of_int_t_array head_arr 8 i
+    // where `update_at_range`'s frame gives `Seq.slice bytes_future 0 32 == stored`.
     proof!(
         r#"
+let range = ({ Core_models.Ops.Range.f_start = mk_usize 0;
+              Core_models.Ops.Range.f_end = mk_usize 32 } <: Core_models.Ops.Range.t_Range usize) in
+let src : t_Slice u8 = ${bytes_pre}.[ range ] in
+assert (Seq.length src == 32);
+let stored : t_Slice u8 = Libcrux_intrinsics.Avx2.mm256_storeu_si256_u8 src ${x}.f_elements in
+Libcrux_intrinsics.Avx2_ml_kem_views.lemma_mm256_storeu_si256_u8 src ${x}.f_elements;
+Rust_primitives.Hax.Monomorphized_update_at_Lemmas.lemma_index_update_at_range
+    ${bytes_pre} range stored;
+assert (Seq.length ${bytes} == Seq.length ${bytes_pre});
+Seq.lemma_eq_intro (Seq.slice ${bytes} 0 32) stored;
+let head_arr : t_Array u8 (mk_usize 32) = Seq.slice ${bytes} 0 32 in
 introduce forall (i: nat{i < 256}).
     Rust_primitives.BitVectors.bit_vec_of_int_t_array
-      (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${x}.f_elements) 16 i
-    == ${x}.f_elements i
-with Libcrux_intrinsics.Avx2_extract.bit_vec_of_int_t_array_vec256_as_i16x16_lemma
-       ${x}.f_elements 16 i;
+      (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${x}.f_elements) 16 i
+    == Rust_primitives.BitVectors.bit_vec_of_int_t_array head_arr 8 i
+with (
+  FStar.Math.Lemmas.euclidean_division_definition i 16;
+  Libcrux_intrinsics.Avx2_ml_kem_views.bit_vec_of_int_t_array_vec256_as_i16x16_lemma
+    ${x}.f_elements 16 i
+);
 BitVecEq.bit_vec_equal_intro
   (Rust_primitives.BitVectors.bit_vec_of_int_t_array
-     (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${x}.f_elements) 16)
-  ${x}.f_elements"#
+     (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${x}.f_elements) 16)
+  (Rust_primitives.BitVectors.bit_vec_of_int_t_array head_arr 8)"#
     );
 }
 
@@ -168,9 +225,8 @@ impl crate::vector::traits::Repr for SIMD256Vector {}
 // type; without these wrappers, the trait impl methods do an inline
 // `{ elements: arithmetic::add(lhs.elements, rhs.elements) }` record
 // reconstruction at every method, inflating impl_3's combined-query
-// check past rlimit 80 (cold-baseline saturation observed
-// 2026-05-08).  Hoisting the wrap into op_* keeps each impl method a
-// thin direct call.
+// check past rlimit 80.  Hoisting the wrap into op_* keeps each impl
+// method a thin direct call.
 #[inline(always)]
 #[hax_lib::requires(fstar!(r#"${spec::add_pre} (impl.f_repr ${lhs}) (impl.f_repr ${rhs})"#))]
 #[hax_lib::ensures(|result| fstar!(r#"${spec::add_post} (impl.f_repr ${lhs}) (impl.f_repr ${rhs}) (impl.f_repr ${result})"#))]
@@ -348,16 +404,16 @@ fn op_compress_1(vector: SIMD256Vector) -> SIMD256Vector {
     proof!(
         r#"let aux (j: nat{j < 16}) :
               Lemma (Libcrux_ml_kem.Vector.Traits.Spec.i16_to_spec_fe
-                       (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16
+                       (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16
                                      ${result}.f_elements) j) ==
                      Hacspec_ml_kem.Compress.compress_d
                        (Libcrux_ml_kem.Vector.Traits.Spec.i16_to_spec_fe
-                          (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16
+                          (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16
                                         ${vector}.f_elements) j))
                        (mk_usize 1)) =
              Hacspec_ml_kem.Commute.Chunk.lemma_compress_message_coefficient_fe_commute
-               (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}.f_elements) j)
-               (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}.f_elements) j)
+               (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${vector}.f_elements) j)
+               (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${result}.f_elements) j)
            in
            aux 0;  aux 1;  aux 2;  aux 3;
            aux 4;  aux 5;  aux 6;  aux 7;
@@ -377,12 +433,12 @@ fn op_compress<const COEFFICIENT_BITS: i32>(vector: SIMD256Vector) -> SIMD256Vec
         r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.bounded_i16_array)
              (Libcrux_ml_kem.Vector.Traits.Spec.bounded_i16_array (mk_i16 0)
                  (mk_i16 3328)
-                 (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}.f_elements));
+                 (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${vector}.f_elements));
            assert (forall (i: nat).
-                 {:pattern Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}.f_elements) i}
+                 {:pattern Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${vector}.f_elements) i}
                  i < 16 ==>
-                 v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}.f_elements) i) >= 0 /\
-                 v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}.f_elements) i) < 3329)"#
+                 v (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${vector}.f_elements) i) >= 0 /\
+                 v (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${vector}.f_elements) i) < 3329)"#
     );
     let result = SIMD256Vector {
         elements: compress::compress_ciphertext_coefficient::<COEFFICIENT_BITS>(vector.elements),
@@ -390,22 +446,22 @@ fn op_compress<const COEFFICIENT_BITS: i32>(vector: SIMD256Vector) -> SIMD256Vec
     proof!(
         r#"Libcrux_ml_kem.Vector.Traits.Spec.lemma_bounded_i16_array_intro (mk_i16 0)
              (mk_i16 (pow2 (v $COEFFICIENT_BITS) - 1))
-             (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}.f_elements);
+             (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${result}.f_elements);
            let aux (j: nat{j < 16})
                : Lemma
                (Libcrux_ml_kem.Vector.Traits.Spec.compress_d_lane_post (mk_usize (v $COEFFICIENT_BITS))
-                   (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}.f_elements) j)
-                   (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}.f_elements) j)) =
+                   (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${vector}.f_elements) j)
+                   (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${result}.f_elements) j)) =
              reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.compress_d_lane_post)
                (Libcrux_ml_kem.Vector.Traits.Spec.compress_d_lane_post (mk_usize (v $COEFFICIENT_BITS))
-                   (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}.f_elements) j)
-                   (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}.f_elements) j));
+                   (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${vector}.f_elements) j)
+                   (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${result}.f_elements) j));
              Hacspec_ml_kem.Commute.Chunk.lemma_compress_d_barrett_eq
-               (v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}.f_elements) j))
+               (v (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${vector}.f_elements) j))
                (v $COEFFICIENT_BITS);
              Hacspec_ml_kem.Commute.Chunk.lemma_compress_ciphertext_coefficient_fe_commute
-               (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}.f_elements) j)
-               (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}.f_elements) j)
+               (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${vector}.f_elements) j)
+               (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${result}.f_elements) j)
                (mk_usize (v $COEFFICIENT_BITS))
            in
            Classical.forall_intro aux"#
@@ -424,31 +480,31 @@ fn op_decompress_1(a: SIMD256Vector) -> SIMD256Vector {
            reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.bounded_i16_array)
              (Libcrux_ml_kem.Vector.Traits.Spec.bounded_i16_array (mk_i16 0)
                  (mk_i16 1)
-                 (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${a}.f_elements));
+                 (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${a}.f_elements));
            assert (forall (i: nat).
-                 {:pattern Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${a}.f_elements) i}
+                 {:pattern Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${a}.f_elements) i}
                  i < 16 ==>
-                 v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${a}.f_elements) i) >= 0 /\
-                 v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${a}.f_elements) i) <= 1)"#
+                 v (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${a}.f_elements) i) >= 0 /\
+                 v (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${a}.f_elements) i) <= 1)"#
     );
     let result = SIMD256Vector {
         elements: compress::decompress_1(a.elements),
     };
     proof!(
         r#"Libcrux_ml_kem.Vector.Traits.Spec.lemma_bounded_i16_array_intro (mk_i16 0) (mk_i16 3328)
-             (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}.f_elements);
+             (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${result}.f_elements);
            let aux (j: nat{j < 16})
                : Lemma
                (Libcrux_ml_kem.Vector.Traits.Spec.decompress_1_lane_post
-                   (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${a}.f_elements) j)
-                   (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}.f_elements) j)) =
+                   (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${a}.f_elements) j)
+                   (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${result}.f_elements) j)) =
              reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.decompress_1_lane_post)
                (Libcrux_ml_kem.Vector.Traits.Spec.decompress_1_lane_post
-                   (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${a}.f_elements) j)
-                   (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}.f_elements) j));
+                   (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${a}.f_elements) j)
+                   (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${result}.f_elements) j));
              Hacspec_ml_kem.Commute.Chunk.lemma_decompress_1_fe_commute_int
-               (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${a}.f_elements) j)
-               (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}.f_elements) j)
+               (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${a}.f_elements) j)
+               (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${result}.f_elements) j)
            in
            Classical.forall_intro aux"#
     );
@@ -469,8 +525,8 @@ fn op_decompress_ciphertext_coefficient<const COEFFICIENT_BITS: i32>(
            reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.bounded_i16_array)
              (Libcrux_ml_kem.Vector.Traits.Spec.bounded_i16_array);
            assert (forall (i: nat). i < 16 ==>
-                 0 <= v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}.f_elements) i) /\
-                 v (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}.f_elements) i) <
+                 0 <= v (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${vector}.f_elements) i) /\
+                 v (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${vector}.f_elements) i) <
                  pow2 (v $COEFFICIENT_BITS))"#
     );
     let result = SIMD256Vector {
@@ -478,19 +534,19 @@ fn op_decompress_ciphertext_coefficient<const COEFFICIENT_BITS: i32>(
     };
     proof!(
         r#"Libcrux_ml_kem.Vector.Traits.Spec.lemma_bounded_i16_array_intro (mk_i16 0) (mk_i16 3328)
-             (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}.f_elements);
+             (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${result}.f_elements);
            let aux (j: nat{j < 16})
                : Lemma
                (Libcrux_ml_kem.Vector.Traits.Spec.decompress_d_lane_post (mk_usize (v $COEFFICIENT_BITS))
-                   (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}.f_elements) j)
-                   (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}.f_elements) j)) =
+                   (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${vector}.f_elements) j)
+                   (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${result}.f_elements) j)) =
              reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.decompress_d_lane_post)
                (Libcrux_ml_kem.Vector.Traits.Spec.decompress_d_lane_post (mk_usize (v $COEFFICIENT_BITS))
-                   (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}.f_elements) j)
-                   (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}.f_elements) j));
+                   (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${vector}.f_elements) j)
+                   (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${result}.f_elements) j));
              Hacspec_ml_kem.Commute.Chunk.lemma_decompress_ciphertext_coefficient_fe_commute
-               (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}.f_elements) j)
-               (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}.f_elements) j)
+               (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${vector}.f_elements) j)
+               (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${result}.f_elements) j)
                (mk_usize (v $COEFFICIENT_BITS))
            in
            Classical.forall_intro aux"#
@@ -513,35 +569,35 @@ fn op_decompress_ciphertext_coefficient<const COEFFICIENT_BITS: i32>(
 // Layer-0.5 admits — same on portable).
 #[hax_lib::fstar::before(
     r#"
-// `op_ntt_layer_1_step_bridge` is no longer admitted: the strengthened post of
+// `op_ntt_layer_1_step` needs no separate bridge lemma: the strengthened post of
 // `Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_1_step` (`ntt_layer_1_butterfly_post`
 // + bound `8*3328`) plus the four `lemma_ntt_layer_1_step_branch_{0..3}`
 // (Commute.Chunk) discharge the trait post directly.  Wrapper does this inline.
 
-// `op_ntt_layer_2_step_bridge` is no longer admitted: the strengthened post of
+// `op_ntt_layer_2_step` needs no separate bridge lemma: the strengthened post of
 // `Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_2_step` (`ntt_layer_2_butterfly_post`
 // + bound `7*3328`) plus 8 `lemma_butterfly_pair_commute` applications discharge
 // the trait post directly.  Wrapper does this inline.
 
-// `op_ntt_layer_3_step_bridge` is no longer admitted: the strengthened
+// `op_ntt_layer_3_step` needs no separate bridge lemma: the strengthened
 // post of `Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_layer_3_step` (per-lane
 // butterfly residue + bound) plus 8 `lemma_butterfly_pair_commute`
 // applications (one per pair (i, i+8)) discharge the trait post
 // directly.  The wrapper does this inline; no bridge needed.
 
-// `op_inv_ntt_layer_1_step_bridge` is no longer admitted: the strengthened
+// `op_inv_ntt_layer_1_step` needs no separate bridge lemma: the strengthened
 // post of `Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_1_step`
 // (`inv_ntt_layer_1_butterfly_post` + bound `3328`) plus the four
 // `lemma_inv_ntt_layer_1_step_branch_{0..3}` (Commute.Chunk) discharge the
 // trait post directly.  The wrapper does this inline; no bridge needed.
 
-// `op_inv_ntt_layer_2_step_bridge` is no longer admitted: the strengthened
+// `op_inv_ntt_layer_2_step` needs no separate bridge lemma: the strengthened
 // post of `Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_2_step`
 // (`inv_ntt_layer_2_butterfly_post` + bound `2*3328`) plus 8
 // `lemma_inv_butterfly_pair_commute` applications discharge the trait post
 // directly.  The wrapper does this inline; no bridge needed.
 
-// `op_inv_ntt_layer_3_step_bridge` is no longer admitted: the strengthened
+// `op_inv_ntt_layer_3_step` needs no separate bridge lemma: the strengthened
 // post of `Libcrux_ml_kem.Vector.Avx2.Ntt.inv_ntt_layer_3_step` (per-lane
 // inv-butterfly residue + bound `4*3328`) plus 8
 // `lemma_inv_butterfly_pair_commute` applications discharge the trait post
@@ -567,8 +623,8 @@ fn op_ntt_layer_1_step(
     proof!(
         r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
                     (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque (8*3328));
-           let vec = Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}.f_elements in
-           let out = Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${elements} in
+           let vec = Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${vector}.f_elements in
+           let out = Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${elements} in
            reveal_opaque (`%Spec.Utils.ntt_layer_1_butterfly_post)
                     (Spec.Utils.ntt_layer_1_butterfly_post vec);
            Hacspec_ml_kem.Commute.Chunk.lemma_ntt_layer_1_step_branch_0 vec out zeta0 zeta1 zeta2 zeta3;
@@ -594,8 +650,8 @@ fn op_ntt_layer_2_step(vector: SIMD256Vector, zeta0: i16, zeta1: i16) -> SIMD256
     proof!(
         r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
                     (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque (7*3328));
-           let vec = Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}.f_elements in
-           let out = Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${elements} in
+           let vec = Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${vector}.f_elements in
+           let out = Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${elements} in
            reveal_opaque (`%Spec.Utils.ntt_layer_2_butterfly_post)
                     (Spec.Utils.ntt_layer_2_butterfly_post vec);
            Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute vec out zeta0 0 4;
@@ -663,8 +719,8 @@ fn op_ntt_layer_3_step(vector: SIMD256Vector, zeta: i16) -> SIMD256Vector {
     proof!(
         r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
                     (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque (6*3328));
-           let vec = Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}.f_elements in
-           let out = Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${elements} in
+           let vec = Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${vector}.f_elements in
+           let out = Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${elements} in
            Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute vec out zeta 0 8;
            Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute vec out zeta 1 9;
            Hacspec_ml_kem.Commute.Chunk.lemma_butterfly_pair_commute vec out zeta 2 10;
@@ -731,8 +787,8 @@ fn op_inv_ntt_layer_1_step(
     proof!(
         r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
                     (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque 3328);
-           let vec = Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}.f_elements in
-           let out = Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${elements} in
+           let vec = Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${vector}.f_elements in
+           let out = Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${elements} in
            reveal_opaque (`%Spec.Utils.inv_ntt_layer_1_butterfly_post)
                     (Spec.Utils.inv_ntt_layer_1_butterfly_post vec);
            Hacspec_ml_kem.Commute.Chunk.lemma_inv_ntt_layer_1_step_branch_0 vec out zeta0 zeta1 zeta2 zeta3;
@@ -758,8 +814,8 @@ fn op_inv_ntt_layer_2_step(vector: SIMD256Vector, zeta0: i16, zeta1: i16) -> SIM
     proof!(
         r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
                     (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque (2*3328));
-           let vec = Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}.f_elements in
-           let out = Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${elements} in
+           let vec = Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${vector}.f_elements in
+           let out = Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${elements} in
            reveal_opaque (`%Spec.Utils.inv_ntt_layer_2_butterfly_post)
                     (Spec.Utils.inv_ntt_layer_2_butterfly_post vec);
            Hacspec_ml_kem.Commute.Chunk.lemma_inv_butterfly_pair_commute vec out zeta0 0 4;
@@ -823,8 +879,8 @@ fn op_inv_ntt_layer_3_step(vector: SIMD256Vector, zeta: i16) -> SIMD256Vector {
     proof!(
         r#"reveal_opaque (`%Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque)
                     (Libcrux_ml_kem.Vector.Traits.Spec.is_i16b_array_opaque (4*3328));
-           let vec = Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector}.f_elements in
-           let out = Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${elements} in
+           let vec = Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${vector}.f_elements in
+           let out = Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${elements} in
            Hacspec_ml_kem.Commute.Chunk.lemma_inv_butterfly_pair_commute vec out zeta 0 8;
            Hacspec_ml_kem.Commute.Chunk.lemma_inv_butterfly_pair_commute vec out zeta 1 9;
            Hacspec_ml_kem.Commute.Chunk.lemma_inv_butterfly_pair_commute vec out zeta 2 10;
@@ -868,7 +924,7 @@ fn op_inv_ntt_layer_3_step(vector: SIMD256Vector, zeta: i16) -> SIMD256Vector {
     SIMD256Vector { elements }
 }
 
-// `op_ntt_multiply` — no longer admitted: the strengthened post of
+// `op_ntt_multiply` needs no separate bridge lemma: the strengthened post of
 // `Libcrux_ml_kem.Vector.Avx2.Ntt.ntt_multiply` (`ntt_multiply_butterfly_post`
 // + bound `3328`) plus the four `lemma_ntt_multiply_branch_{0..3}`
 // (Commute.Chunk) discharge the trait post directly.  Wrapper does this
@@ -893,9 +949,9 @@ fn op_ntt_multiply(
     );
     let elements = ntt::ntt_multiply(lhs.elements, rhs.elements, zeta0, zeta1, zeta2, zeta3);
     proof!(
-        r#"let l = Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${lhs}.f_elements in
-           let r = Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${rhs}.f_elements in
-           let out = Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${elements} in
+        r#"let l = Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${lhs}.f_elements in
+           let r = Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${rhs}.f_elements in
+           let out = Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${elements} in
            reveal_opaque (`%Spec.Utils.ntt_multiply_butterfly_post)
                          (Spec.Utils.ntt_multiply_butterfly_post l r out zeta0 zeta1 zeta2 zeta3);
            Hacspec_ml_kem.Commute.Chunk.lemma_ntt_multiply_branch_0 l r out zeta0 zeta1 zeta2 zeta3;
@@ -1074,6 +1130,12 @@ fn op_deserialize_5(bytes: &[u8]) -> SIMD256Vector {
 // (`vec_zero`, `vec_to_i16_array`, `vec_from_i16_array`, `from_bytes`,
 // `to_bytes`).  No proof code lives inside the impl.
 // =====================================================================
+// The combined t_Operations record-WF query is heavy and sensitive to solver
+// state accumulated by the sibling lemmas.  Restart the solver and split it
+// into per-field sub-queries so it verifies deterministically.
+#[hax_lib::fstar::before(r#"#restart-solver
+#push-options "--split_queries always --z3rlimit 300""#)]
+#[hax_lib::fstar::after(r#"#pop-options"#)]
 #[hax_lib::attributes]
 impl Operations for SIMD256Vector {
     #[inline(always)]

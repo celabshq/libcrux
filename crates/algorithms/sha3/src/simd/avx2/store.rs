@@ -44,10 +44,11 @@ pub(crate) fn stored(
 /// the producer to carry the already-written prefix past the new
 /// window. Reveals both opaque predicates internally.
 #[cfg(hax)]
+#[libcrux_macros::trusted(replace, "hax-limitation: F*-native proof lemma (store_block opaque-range machinery, no Rust equivalent)")]
 #[hax_lib::fstar::replace(
     r#"
 let lemma_stored_frame
-      (s: t_Array Libcrux_intrinsics.Avx2_extract.t_Vec256 (mk_usize 25))
+      (s: t_Array Libcrux_intrinsics.Avx2_sha3_views.t_Vec256 (mk_usize 25))
       (a b: t_Slice u8)
       (start lane lo hi mlo mhi: usize)
   : Lemma
@@ -77,10 +78,11 @@ fn lemma_stored_frame(
 /// `stored` is additive over adjacent ranges: correct on `[lo,mid)`
 /// and `[mid,hi)` gives correct on `[lo,hi)`. Reveals `stored`.
 #[cfg(hax)]
+#[libcrux_macros::trusted(replace, "hax-limitation: F*-native proof lemma (store_block opaque-range machinery, no Rust equivalent)")]
 #[hax_lib::fstar::replace(
     r#"
 let lemma_stored_union
-      (s: t_Array Libcrux_intrinsics.Avx2_extract.t_Vec256 (mk_usize 25))
+      (s: t_Array Libcrux_intrinsics.Avx2_sha3_views.t_Vec256 (mk_usize 25))
       (out: t_Slice u8)
       (start lane lo mid hi: usize)
   : Lemma
@@ -105,10 +107,11 @@ fn lemma_stored_union(
 /// `stored` over an empty range `[lo,lo)` holds vacuously. Seeds the
 /// loop-invariant base case. Reveals `stored`.
 #[cfg(hax)]
+#[libcrux_macros::trusted(replace, "hax-limitation: F*-native proof lemma (store_block opaque-range machinery, no Rust equivalent)")]
 #[hax_lib::fstar::replace(
     r#"
 let lemma_stored_empty
-      (s: t_Array Libcrux_intrinsics.Avx2_extract.t_Vec256 (mk_usize 25))
+      (s: t_Array Libcrux_intrinsics.Avx2_sha3_views.t_Vec256 (mk_usize 25))
       (out: t_Slice u8)
       (start lane lo: usize)
   : Lemma (ensures stored s out start lane lo lo)
@@ -124,12 +127,13 @@ fn lemma_stored_empty(_s: &[Vec256; 25], _out: &[u8], _start: usize, _lane: usiz
 /// `reveal` of `stored` is confined HERE (verified once in clean
 /// context) so the caller's bridge sub-queries are never polluted.
 #[cfg(hax)]
+#[libcrux_macros::trusted(replace, "hax-limitation: F*-native proof lemma (store_block opaque-range machinery, no Rust equivalent)")]
 #[hax_lib::fstar::replace(
     r#"
 #push-options "--z3rlimit 400"
 let lemma_window_stored
-      (s: t_Array Libcrux_intrinsics.Avx2_extract.t_Vec256 (mk_usize 25))
-      (s0 s1 s2 s3: Libcrux_intrinsics.Avx2_extract.t_Vec256)
+      (s: t_Array Libcrux_intrinsics.Avx2_sha3_views.t_Vec256 (mk_usize 25))
+      (s0 s1 s2 s3: Libcrux_intrinsics.Avx2_sha3_views.t_Vec256)
       (start i: usize)
       (lane_m: nat{lane_m < 4})
       (out_m: t_Slice u8)
@@ -145,16 +149,16 @@ let lemma_window_stored
         (v start + 32 * v i <= j_n /\ j_n < v start + 32 * (v i + 1) /\ j_n < Seq.length out_m) ==>
         (if (j_n - v start) / 8 = 4 * v i then
            Seq.index out_m j_n == Seq.index
-             (Core_models.Num.impl_u64__to_le_bytes (Libcrux_intrinsics.Avx2_extract.get_lane_u64 s0 (mk_usize lane_m))) ((j_n - v start) % 8)
+             (Core_models.Num.impl_u64__to_le_bytes (Libcrux_intrinsics.Avx2_sha3_views.get_lane_u64 s0 (mk_usize lane_m))) ((j_n - v start) % 8)
          else if (j_n - v start) / 8 = 4 * v i + 1 then
            Seq.index out_m j_n == Seq.index
-             (Core_models.Num.impl_u64__to_le_bytes (Libcrux_intrinsics.Avx2_extract.get_lane_u64 s1 (mk_usize lane_m))) ((j_n - v start) % 8)
+             (Core_models.Num.impl_u64__to_le_bytes (Libcrux_intrinsics.Avx2_sha3_views.get_lane_u64 s1 (mk_usize lane_m))) ((j_n - v start) % 8)
          else if (j_n - v start) / 8 = 4 * v i + 2 then
            Seq.index out_m j_n == Seq.index
-             (Core_models.Num.impl_u64__to_le_bytes (Libcrux_intrinsics.Avx2_extract.get_lane_u64 s2 (mk_usize lane_m))) ((j_n - v start) % 8)
+             (Core_models.Num.impl_u64__to_le_bytes (Libcrux_intrinsics.Avx2_sha3_views.get_lane_u64 s2 (mk_usize lane_m))) ((j_n - v start) % 8)
          else
            Seq.index out_m j_n == Seq.index
-             (Core_models.Num.impl_u64__to_le_bytes (Libcrux_intrinsics.Avx2_extract.get_lane_u64 s3 (mk_usize lane_m))) ((j_n - v start) % 8))))
+             (Core_models.Num.impl_u64__to_le_bytes (Libcrux_intrinsics.Avx2_sha3_views.get_lane_u64 s3 (mk_usize lane_m))) ((j_n - v start) % 8))))
     (ensures
       stored s out_m start (mk_usize lane_m)
         (start +! (mk_usize 32 *! i)) (start +! (mk_usize 32 *! (i +! mk_usize 1))))
@@ -182,6 +186,7 @@ fn lemma_window_stored(
 /// equal lengths, concludes the opaque `modifies_range`. `reveal`
 /// confined here.
 #[cfg(hax)]
+#[libcrux_macros::trusted(replace, "hax-limitation: F*-native proof lemma (store_block opaque-range machinery, no Rust equivalent)")]
 #[hax_lib::fstar::replace(
     r#"
 let lemma_window_modifies (out_old out_new: t_Slice u8) (start i: usize)
@@ -208,12 +213,13 @@ fn lemma_window_modifies(_out_old: &[u8], _out_new: &[u8], _start: usize, _i: us
 /// tail's `store_chunk8x4` / `store_tail_ragged_avx2` leaves. Reveals
 /// `stored` here so those leaves never reveal in their own body.
 #[cfg(hax)]
+#[libcrux_macros::trusted(replace, "hax-limitation: F*-native proof lemma (store_block opaque-range machinery, no Rust equivalent)")]
 #[hax_lib::fstar::replace(
     r#"
 #push-options "--z3rlimit 400"
 let lemma_window_stored_single
-      (s: t_Array Libcrux_intrinsics.Avx2_extract.t_Vec256 (mk_usize 25))
-      (vec: Libcrux_intrinsics.Avx2_extract.t_Vec256)
+      (s: t_Array Libcrux_intrinsics.Avx2_sha3_views.t_Vec256 (mk_usize 25))
+      (vec: Libcrux_intrinsics.Avx2_sha3_views.t_Vec256)
       (out_m: t_Slice u8)
       (start: usize)
       (lane_m: nat{lane_m < 4})
@@ -227,7 +233,7 @@ let lemma_window_stored_single
       (forall (j_n: nat).
         (v off <= j_n /\ j_n < v off + v w /\ j_n < Seq.length out_m) ==>
         Seq.index out_m j_n == Seq.index
-          (Core_models.Num.impl_u64__to_le_bytes (Libcrux_intrinsics.Avx2_extract.get_lane_u64 vec (mk_usize lane_m)))
+          (Core_models.Num.impl_u64__to_le_bytes (Libcrux_intrinsics.Avx2_sha3_views.get_lane_u64 vec (mk_usize lane_m)))
           (j_n - v off)))
     (ensures stored s out_m start (mk_usize lane_m) off (off +! w))
   = reveal_opaque (`%stored) stored;
@@ -235,7 +241,7 @@ let lemma_window_stored_single
       Lemma ((v off <= j_n /\ j_n < v off + v w) ==>
         Seq.index out_m j_n == Seq.index
           (Core_models.Num.impl_u64__to_le_bytes
-            (Libcrux_intrinsics.Avx2_extract.get_lane_u64 (Seq.index s ((j_n - v start) / 8)) (mk_usize lane_m)))
+            (Libcrux_intrinsics.Avx2_sha3_views.get_lane_u64 (Seq.index s ((j_n - v start) / 8)) (mk_usize lane_m)))
           ((j_n - v start) % 8))
       = if v off <= j_n && j_n < v off + v w then begin
           // off - start = 8 * base; j_n - start = (j_n - off) + 8 * base,
@@ -343,6 +349,10 @@ fn store_u64x4x4(
         assert (a_pos + 32 <= Seq.length old_out1);
         assert (a_pos + 32 <= Seq.length old_out2);
         assert (a_pos + 32 <= Seq.length old_out3);
+        assert (Seq.slice out0 a_pos (a_pos + 32) == Libcrux_intrinsics.Avx2.mm256_storeu_si256_u8 (Seq.slice old_out0 a_pos (a_pos + 32)) v0);
+        assert (Seq.slice out1 a_pos (a_pos + 32) == Libcrux_intrinsics.Avx2.mm256_storeu_si256_u8 (Seq.slice old_out1 a_pos (a_pos + 32)) v1);
+        assert (Seq.slice out2 a_pos (a_pos + 32) == Libcrux_intrinsics.Avx2.mm256_storeu_si256_u8 (Seq.slice old_out2 a_pos (a_pos + 32)) v2);
+        assert (Seq.slice out3 a_pos (a_pos + 32) == Libcrux_intrinsics.Avx2.mm256_storeu_si256_u8 (Seq.slice old_out3 a_pos (a_pos + 32)) v3);
         let bridge_out0 (j_n:nat{j_n < Seq.length old_out0}) :
             Lemma (
               if j_n < a_pos then
@@ -351,7 +361,7 @@ fn store_u64x4x4(
                 Seq.index out0 j_n ==
                   Seq.index
                     (Core_models.Num.impl_u64__to_le_bytes
-                       (Libcrux_intrinsics.Avx2_extract.get_lane_u64 v0 (mk_usize ((j_n - a_pos) / 8))))
+                       (Libcrux_intrinsics.Avx2_sha3_views.get_lane_u64 v0 (mk_usize ((j_n - a_pos) / 8))))
                     ((j_n - a_pos) % 8)
               else
                 Seq.index out0 j_n == Seq.index old_out0 j_n)
@@ -366,7 +376,7 @@ fn store_u64x4x4(
                 Seq.index out1 j_n ==
                   Seq.index
                     (Core_models.Num.impl_u64__to_le_bytes
-                       (Libcrux_intrinsics.Avx2_extract.get_lane_u64 v1 (mk_usize ((j_n - a_pos) / 8))))
+                       (Libcrux_intrinsics.Avx2_sha3_views.get_lane_u64 v1 (mk_usize ((j_n - a_pos) / 8))))
                     ((j_n - a_pos) % 8)
               else
                 Seq.index out1 j_n == Seq.index old_out1 j_n)
@@ -381,7 +391,7 @@ fn store_u64x4x4(
                 Seq.index out2 j_n ==
                   Seq.index
                     (Core_models.Num.impl_u64__to_le_bytes
-                       (Libcrux_intrinsics.Avx2_extract.get_lane_u64 v2 (mk_usize ((j_n - a_pos) / 8))))
+                       (Libcrux_intrinsics.Avx2_sha3_views.get_lane_u64 v2 (mk_usize ((j_n - a_pos) / 8))))
                     ((j_n - a_pos) % 8)
               else
                 Seq.index out2 j_n == Seq.index old_out2 j_n)
@@ -396,7 +406,7 @@ fn store_u64x4x4(
                 Seq.index out3 j_n ==
                   Seq.index
                     (Core_models.Num.impl_u64__to_le_bytes
-                       (Libcrux_intrinsics.Avx2_extract.get_lane_u64 v3 (mk_usize ((j_n - a_pos) / 8))))
+                       (Libcrux_intrinsics.Avx2_sha3_views.get_lane_u64 v3 (mk_usize ((j_n - a_pos) / 8))))
                     ((j_n - a_pos) % 8)
               else
                 Seq.index out3 j_n == Seq.index old_out3 j_n)
@@ -517,7 +527,7 @@ fn store_chunk8x4(
                    Seq.index out_new j_n ==
                      Seq.index
                        (Core_models.Num.impl_u64__to_le_bytes
-                          (Libcrux_intrinsics.Avx2_extract.get_lane_u64 vec (mk_usize m_lane)))
+                          (Libcrux_intrinsics.Avx2_sha3_views.get_lane_u64 vec (mk_usize m_lane)))
                        (j_n - a_pos)
                  else
                    Seq.index out_new j_n == Seq.index out_old j_n))
@@ -545,7 +555,7 @@ fn store_chunk8x4(
               else if j_n < a_pos + 8 then
                 Seq.index out0 j_n == Seq.index
                   (Core_models.Num.impl_u64__to_le_bytes
-                     (Libcrux_intrinsics.Avx2_extract.get_lane_u64 vec (mk_usize 0))) (j_n - a_pos)
+                     (Libcrux_intrinsics.Avx2_sha3_views.get_lane_u64 vec (mk_usize 0))) (j_n - a_pos)
               else Seq.index out0 j_n == Seq.index old_out0 j_n)
           = bridge_out_m 0 old_out0 out0 j_n
         in
@@ -555,7 +565,7 @@ fn store_chunk8x4(
               else if j_n < a_pos + 8 then
                 Seq.index out1 j_n == Seq.index
                   (Core_models.Num.impl_u64__to_le_bytes
-                     (Libcrux_intrinsics.Avx2_extract.get_lane_u64 vec (mk_usize 1))) (j_n - a_pos)
+                     (Libcrux_intrinsics.Avx2_sha3_views.get_lane_u64 vec (mk_usize 1))) (j_n - a_pos)
               else Seq.index out1 j_n == Seq.index old_out1 j_n)
           = bridge_out_m 1 old_out1 out1 j_n
         in
@@ -565,7 +575,7 @@ fn store_chunk8x4(
               else if j_n < a_pos + 8 then
                 Seq.index out2 j_n == Seq.index
                   (Core_models.Num.impl_u64__to_le_bytes
-                     (Libcrux_intrinsics.Avx2_extract.get_lane_u64 vec (mk_usize 2))) (j_n - a_pos)
+                     (Libcrux_intrinsics.Avx2_sha3_views.get_lane_u64 vec (mk_usize 2))) (j_n - a_pos)
               else Seq.index out2 j_n == Seq.index old_out2 j_n)
           = bridge_out_m 2 old_out2 out2 j_n
         in
@@ -575,7 +585,7 @@ fn store_chunk8x4(
               else if j_n < a_pos + 8 then
                 Seq.index out3 j_n == Seq.index
                   (Core_models.Num.impl_u64__to_le_bytes
-                     (Libcrux_intrinsics.Avx2_extract.get_lane_u64 vec (mk_usize 3))) (j_n - a_pos)
+                     (Libcrux_intrinsics.Avx2_sha3_views.get_lane_u64 vec (mk_usize 3))) (j_n - a_pos)
               else Seq.index out3 j_n == Seq.index old_out3 j_n)
           = bridge_out_m 3 old_out3 out3 j_n
         in
@@ -684,7 +694,7 @@ fn store_tail_ragged_avx2(
                    Seq.index out_new j_n ==
                      Seq.index
                        (Core_models.Num.impl_u64__to_le_bytes
-                          (Libcrux_intrinsics.Avx2_extract.get_lane_u64 vec (mk_usize m_lane)))
+                          (Libcrux_intrinsics.Avx2_sha3_views.get_lane_u64 vec (mk_usize m_lane)))
                        (j_n - a_pos)
                  else
                    Seq.index out_new j_n == Seq.index out_old j_n))
@@ -713,7 +723,7 @@ fn store_tail_ragged_avx2(
               else if j_n < a_pos + r then
                 Seq.index out0 j_n == Seq.index
                   (Core_models.Num.impl_u64__to_le_bytes
-                     (Libcrux_intrinsics.Avx2_extract.get_lane_u64 vec (mk_usize 0))) (j_n - a_pos)
+                     (Libcrux_intrinsics.Avx2_sha3_views.get_lane_u64 vec (mk_usize 0))) (j_n - a_pos)
               else Seq.index out0 j_n == Seq.index old_out0 j_n)
           = bridge_partial_out_m 0 old_out0 out0 j_n
         in
@@ -723,7 +733,7 @@ fn store_tail_ragged_avx2(
               else if j_n < a_pos + r then
                 Seq.index out1 j_n == Seq.index
                   (Core_models.Num.impl_u64__to_le_bytes
-                     (Libcrux_intrinsics.Avx2_extract.get_lane_u64 vec (mk_usize 1))) (j_n - a_pos)
+                     (Libcrux_intrinsics.Avx2_sha3_views.get_lane_u64 vec (mk_usize 1))) (j_n - a_pos)
               else Seq.index out1 j_n == Seq.index old_out1 j_n)
           = bridge_partial_out_m 1 old_out1 out1 j_n
         in
@@ -733,7 +743,7 @@ fn store_tail_ragged_avx2(
               else if j_n < a_pos + r then
                 Seq.index out2 j_n == Seq.index
                   (Core_models.Num.impl_u64__to_le_bytes
-                     (Libcrux_intrinsics.Avx2_extract.get_lane_u64 vec (mk_usize 2))) (j_n - a_pos)
+                     (Libcrux_intrinsics.Avx2_sha3_views.get_lane_u64 vec (mk_usize 2))) (j_n - a_pos)
               else Seq.index out2 j_n == Seq.index old_out2 j_n)
           = bridge_partial_out_m 2 old_out2 out2 j_n
         in
@@ -743,7 +753,7 @@ fn store_tail_ragged_avx2(
               else if j_n < a_pos + r then
                 Seq.index out3 j_n == Seq.index
                   (Core_models.Num.impl_u64__to_le_bytes
-                     (Libcrux_intrinsics.Avx2_extract.get_lane_u64 vec (mk_usize 3))) (j_n - a_pos)
+                     (Libcrux_intrinsics.Avx2_sha3_views.get_lane_u64 vec (mk_usize 3))) (j_n - a_pos)
               else Seq.index out3 j_n == Seq.index old_out3 j_n)
           = bridge_partial_out_m 3 old_out3 out3 j_n
         in
@@ -768,7 +778,7 @@ fn store_tail_ragged_avx2(
 /// Verified via an opaque-`stored`/`modifies_range` loop invariant with
 /// per-iteration frame/union carryover.
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 800 --split_queries no --z3refresh --using_facts_from '* -Rust_primitives.Slice.array_from_fn -Core_models.Num.impl_u64__rem_euclid -Core_models.Num.impl_u32__rem_euclid'")]
+#[hax_lib::fstar::options("--z3rlimit 800 --split_queries no --z3refresh --using_facts_from '* -Rust_primitives.Slice.array_from_fn -Core_models.Num.impl_u64__rem_euclid -Core_models.Num.impl_u32__rem_euclid -Libcrux_intrinsics.Avx2_sha3_views'")]
 #[hax_lib::requires(
     out0.len() == out1.len()
     && out0.len() == out2.len()
@@ -808,10 +818,6 @@ fn store_block_full_avx2(
     let old_out3 = out3.to_vec().as_slice();
     hax_lib::fstar!(
         r#"
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out0) == out0);
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out1) == out1);
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out2) == out2);
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out3) == out3);
         assert (old_out0 == out0); assert (old_out1 == out1);
         assert (old_out2 == out2); assert (old_out3 == out3);
         // Seed the loop-invariant base case (i = 0): empty `stored`
@@ -849,10 +855,6 @@ fn store_block_full_avx2(
         let p3 = out3.to_vec().as_slice();
         hax_lib::fstar!(
             r#"
-            assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out0) == out0);
-            assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out1) == out1);
-            assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out2) == out2);
-            assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out3) == out3);
             assert (p0 == out0); assert (p1 == out1); assert (p2 == out2); assert (p3 == out3);
             // Discharge store_u64x4x4's `s_k == s[4*i+k]` link: get_ij
             // linearises 5*((4i+k)/5)+(4i+k)%5 == 4*i+k (Euclidean).
@@ -907,7 +909,7 @@ fn store_block_full_avx2(
 /// loop (`store_chunk8x4`) and the ragged remainder
 /// (`store_tail_ragged_avx2`), composing their opaque posts.
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 800 --split_queries no --z3refresh --using_facts_from '* -Rust_primitives.Slice.array_from_fn -Core_models.Num.impl_u64__rem_euclid -Core_models.Num.impl_u32__rem_euclid'")]
+#[hax_lib::fstar::options("--z3rlimit 800 --split_queries no --z3refresh --using_facts_from '* -Rust_primitives.Slice.array_from_fn -Core_models.Num.impl_u64__rem_euclid -Core_models.Num.impl_u32__rem_euclid -Libcrux_intrinsics.Avx2_sha3_views'")]
 #[hax_lib::requires(
     out0.len() == out1.len()
     && out0.len() == out2.len()
@@ -950,10 +952,6 @@ fn store_block_tail_avx2(
     let old_out3 = out3.to_vec().as_slice();
     hax_lib::fstar!(
         r#"
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out0) == out0);
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out1) == out1);
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out2) == out2);
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out3) == out3);
         assert (old_out0 == out0); assert (old_out1 == out1);
         assert (old_out2 == out2); assert (old_out3 == out3);
         Libcrux_sha3.Proof_utils.lemma_modifies_range_refl out0 (start +! (mk_usize 32 *! q)) (start +! (mk_usize 32 *! q));
@@ -990,10 +988,6 @@ fn store_block_tail_avx2(
         let p3 = out3.to_vec().as_slice();
         hax_lib::fstar!(
             r#"
-            assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out0) == out0);
-            assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out1) == out1);
-            assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out2) == out2);
-            assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out3) == out3);
             assert (p0 == out0); assert (p1 == out1); assert (p2 == out2); assert (p3 == out3);
             FStar.Math.Lemmas.lemma_div_mod (4 * v q + v k) 5
             "#
@@ -1042,10 +1036,6 @@ fn store_block_tail_avx2(
         let r3 = out3.to_vec().as_slice();
         hax_lib::fstar!(
             r#"
-            assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out0) == out0);
-            assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out1) == out1);
-            assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out2) == out2);
-            assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out3) == out3);
             assert (r0 == out0); assert (r1 == out1); assert (r2 == out2); assert (r3 == out3);
             FStar.Math.Lemmas.lemma_div_mod (4 * v q + v chunks8) 5
             "#
@@ -1146,10 +1136,6 @@ pub(crate) fn store_block<const RATE: usize>(
     let e3 = out3.to_vec().as_slice();
     hax_lib::fstar!(
         r#"
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out0) == out0);
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out1) == out1);
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out2) == out2);
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out3) == out3);
         assert (e0 == out0); assert (e1 == out1); assert (e2 == out2); assert (e3 == out3);
         assert (v len == 32 * v chunks + v rem);
         assert (v chunks <= 6);
@@ -1177,10 +1163,6 @@ pub(crate) fn store_block<const RATE: usize>(
     let mid3 = out3.to_vec().as_slice();
     hax_lib::fstar!(
         r#"
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out0) == out0);
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out1) == out1);
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out2) == out2);
-        assert_norm (Alloc.Vec.impl_1__as_slice (Alloc.Slice.impl__to_vec out3) == out3);
         assert (mid0 == out0); assert (mid1 == out1); assert (mid2 == out2); assert (mid3 == out3)
         "#
     );

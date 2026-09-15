@@ -31,7 +31,7 @@ impl Repr for Coefficients {
 impl Repr for Coefficients {}
 
 // ---------------------------------------------------------------------------
-// Track B (Step 10): one-line-wrapper refactor for non-trivial impl methods.
+// One-line-wrapper refactor for non-trivial impl methods.
 // Each `*_with_proof` free function carries the strong trait-side pre/post
 // and the full proof body; the impl method below is a one-liner that
 // dispatches to it.  This splits `Simd.Portable.fst impl_1`'s function-level
@@ -150,10 +150,10 @@ pub(crate) fn power2round_with_proof(t0: &mut Coefficients, t1: &mut Coefficient
                 (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${t0}) k)
         in
         Classical.forall_intro pf;
-        // Track 0 (c6c68bbca propagation): half-open (-pow2 12, pow2 12] post.
-        // Math lemma applies; FIPS 204 Algorithm 35 has no special-case
-        // adjustment, so the strict-lower bound on t0 holds (cf. F-13 for
-        // why the analogous `decompose` strict-lower is unprovable).
+        // Half-open (-pow2 12, pow2 12] post: the math lemma applies because FIPS
+        // 204 Algorithm 35 has no special-case adjustment, so the strict-lower bound
+        // on t0 holds (unlike `decompose`, whose special-case adjustment makes the
+        // analogous strict-lower bound unprovable).
         let pf_t0 (k: nat{k < 8}) : Lemma
             (ensures
                 v (Seq.index (Libcrux_ml_dsa.Simd.Traits.f_repr ${t0}) k) > -(pow2 12) /\
@@ -176,7 +176,7 @@ pub(crate) fn power2round_with_proof(t0: &mut Coefficients, t1: &mut Coefficient
     );
 }
 
-// 2026-05-08: `--z3rlimit 200` (state (d)) — see Avx2 impl block comment.
+// `--z3rlimit 200` — see the Avx2 impl block comment.
 #[hax_lib::fstar::options("--z3rlimit 200")]
 #[hax_lib::requires(fstar!(r#"
     Spec.Utils.forall32 (fun (i: nat{i < 32}) ->
@@ -365,14 +365,13 @@ pub(crate) fn invert_ntt_with_proof(simd_units: &mut [Coefficients; SIMD_UNITS_I
     );
 }
 
-// 2026-06-15: `--z3rlimit 200 --split_queries always`.  TWO fixes are needed
-// together for the functional `ntt` post: (1) `--split_queries always` — the
-// monolithic impl_1 record query doesn't fit COLD (after re-extraction shifts
-// lines, its hint goes stale and it re-proves cold → saturates at rlimit 200);
-// splitting makes each field its own small sub-query.  (2) the opaque
-// `ntt_func_post` atom — under split, a raw `forall` in the f_ntt post is pruned
-// from its sub-query ("incomplete quantifiers"); wrapping it in the opaque atom
-// makes the f_ntt dispatch propagate one atomic term.  Neither alone suffices.
+// `--z3rlimit 200 --split_queries always`.  TWO fixes are needed together for the
+// functional `ntt` post: (1) `--split_queries always` — the monolithic impl_1
+// record query saturates at rlimit 200; splitting makes each field its own small
+// sub-query.  (2) the opaque `ntt_func_post` atom — under split, a raw `forall` in
+// the f_ntt post is pruned from its sub-query ("incomplete quantifiers"); wrapping
+// it in the opaque atom makes the f_ntt dispatch propagate one atomic term.
+// Neither alone suffices.
 #[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 200 --split_queries always"))]
 #[hax_lib::attributes]
 impl Operations for Coefficients {
@@ -449,8 +448,7 @@ impl Operations for Coefficients {
         arithmetic::decompose(gamma2, simd_unit, low, high);
         proof!(
             r#"
-            // F-1 verdict (above-trait commit 7a4dc28df, option d):
-            // discharge per-lane decompose_lane_post via paired commute lemma.
+            // Discharge per-lane decompose_lane_post via the paired commute lemma.
             // The arithmetic post gives `v low[k] == r0_s /\ v high[k] == r1_s`
             // (per-lane Spec.MLDSA.Math.decompose match) which is exactly the
             // commute lemma's precondition.  We help Z3 by extracting the
@@ -533,8 +531,7 @@ impl Operations for Coefficients {
         let result = arithmetic::compute_hint(low, high, gamma2, hint);
         proof!(
             r#"
-            // F-1 verdict (above-trait commit 7a4dc28df, option d):
-            // discharge bound + conditional equation via paired commute lemmas.
+            // Discharge bound + conditional equation via the paired commute lemmas.
             let pf_eq (k: nat{k < 8}) : Lemma
                 (ensures Libcrux_ml_dsa.Simd.Traits.Specs.compute_hint_lane_post
                     $gamma2
@@ -606,8 +603,7 @@ impl Operations for Coefficients {
         arithmetic::use_hint(gamma2, simd_unit, hint);
         proof!(
             r#"
-            // F-1 verdict (above-trait commit 7a4dc28df, option d):
-            // discharge bound + conditional equation via paired commute lemmas.
+            // Discharge bound + conditional equation via the paired commute lemmas.
             let pf_eq (k: nat{k < 8}) : Lemma
                 (ensures Libcrux_ml_dsa.Simd.Traits.Specs.use_hint_lane_post
                     $gamma2

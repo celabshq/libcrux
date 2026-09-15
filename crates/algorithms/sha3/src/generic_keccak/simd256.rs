@@ -72,19 +72,19 @@ pub(crate) fn absorb4<const RATE: usize, const DELIM: u8>(
                    v $i <= v $data_blocks /\
                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
                       EquivImplSpec.Keccakf.Avx2.lc_avx2 $s.st 0) ==
-                     Hacspec_sha3.Sponge.absorb_blocks
+                     Hacspec_sha3.Sponge.Lemmas.absorb_blocks
                        zeros $RATE (mk_usize 0) $i (Core_models.Ops.Index.f_index $data (mk_usize 0)) /\
                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
                       EquivImplSpec.Keccakf.Avx2.lc_avx2 $s.st 1) ==
-                     Hacspec_sha3.Sponge.absorb_blocks
+                     Hacspec_sha3.Sponge.Lemmas.absorb_blocks
                        zeros $RATE (mk_usize 0) $i (Core_models.Ops.Index.f_index $data (mk_usize 1)) /\
                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
                       EquivImplSpec.Keccakf.Avx2.lc_avx2 $s.st 2) ==
-                     Hacspec_sha3.Sponge.absorb_blocks
+                     Hacspec_sha3.Sponge.Lemmas.absorb_blocks
                        zeros $RATE (mk_usize 0) $i (Core_models.Ops.Index.f_index $data (mk_usize 2)) /\
                    (EquivImplSpec.Keccakf.Generic.extract_lane (mk_usize 4)
                       EquivImplSpec.Keccakf.Avx2.lc_avx2 $s.st 3) ==
-                     Hacspec_sha3.Sponge.absorb_blocks
+                     Hacspec_sha3.Sponge.Lemmas.absorb_blocks
                        zeros $RATE (mk_usize 0) $i (Core_models.Ops.Index.f_index $data (mk_usize 3))"#
             )
         });
@@ -658,7 +658,7 @@ impl KeccakState<4, Vec256> {
                     FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length l) 4);
                     Rust_primitives.Hax.array_of_list 4 l in
                 let ks_pre : Libcrux_sha3.Generic_keccak.t_KeccakState (mk_usize 4)
-                                Libcrux_intrinsics.Avx2_extract.t_Vec256 =
+                                Libcrux_intrinsics.Avx2_sha3_views.t_Vec256 =
                     { Libcrux_sha3.Generic_keccak.f_st = $self_original_st } in
                 let start : usize = (Core_models.Slice.impl__len #u8 $out0) -! $output_rem in
                 EquivImplSpec.Sponge.Avx2.Steps.lemma_squeeze_last_avx2

@@ -18,13 +18,13 @@ let lemma_repr_of_two_loads (array: t_Array i16 (mk_usize 16))
       (ensures
         Libcrux_ml_kem.Vector.Neon.Vector_type.repr
           ({ Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
-               = Libcrux_intrinsics.Arm64_extract.e_vld1q_s16 (Seq.slice array 0 8 <: t_Slice i16);
+               = Libcrux_intrinsics.Arm64.e_vld1q_s16 (Seq.slice array 0 8 <: t_Slice i16);
              Libcrux_ml_kem.Vector.Neon.Vector_type.f_high
-               = Libcrux_intrinsics.Arm64_extract.e_vld1q_s16 (Seq.slice array 8 16 <: t_Slice i16) }
+               = Libcrux_intrinsics.Arm64.e_vld1q_s16 (Seq.slice array 8 16 <: t_Slice i16) }
            <: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector)
         == array) =
-  let low = Libcrux_intrinsics.Arm64_extract.e_vld1q_s16 (Seq.slice array 0 8 <: t_Slice i16) in
-  let high = Libcrux_intrinsics.Arm64_extract.e_vld1q_s16 (Seq.slice array 8 16 <: t_Slice i16) in
+  let low = Libcrux_intrinsics.Arm64.e_vld1q_s16 (Seq.slice array 0 8 <: t_Slice i16) in
+  let high = Libcrux_intrinsics.Arm64.e_vld1q_s16 (Seq.slice array 8 16 <: t_Slice i16) in
   let r = { Libcrux_ml_kem.Vector.Neon.Vector_type.f_low = low;
             Libcrux_ml_kem.Vector.Neon.Vector_type.f_high = high }
           <: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector in
@@ -39,11 +39,11 @@ let lemma_deser1_lane (byte: u8) (k: nat{k < 8}) (shk: i16)
     : Lemma
       (requires v (shk %! mk_i16 256) == (if k = 0 then 0 else 256 - k))
       (ensures
-        (let lane = (Libcrux_intrinsics.Arm64_extract.arm_sshl_i16 (cast byte <: i16) shk) &. mk_i16 1 in
+        (let lane = (Libcrux_intrinsics.Arm64_ml_kem_views.arm_sshl_i16 (cast byte <: i16) shk) &. mk_i16 1 in
          Rust_primitives.Integers.get_bit lane (mk_usize 0)
            == Rust_primitives.Integers.get_bit byte (mk_usize k) /\
          Rust_primitives.BitVectors.bounded lane 1)) =
-  let lane = (Libcrux_intrinsics.Arm64_extract.arm_sshl_i16 (cast byte <: i16) shk) &. mk_i16 1 in
+  let lane = (Libcrux_intrinsics.Arm64_ml_kem_views.arm_sshl_i16 (cast byte <: i16) shk) &. mk_i16 1 in
   assert (forall (nth: usize {v nth < bits i16_inttype}).
             v nth > 1 ==> Rust_primitives.Integers.get_bit lane nth == 0);
   Rust_primitives.BitVectors.lemma_get_bit_bounded' lane 1
@@ -53,19 +53,23 @@ let lemma_deser1_lane (byte: u8) (k: nat{k < 8}) (shk: i16)
    (arm_sshl_i16 pre shift[j]) &. 1.  Factored out so the consumer's per-bit
    forall does not re-instantiate the four intrinsic lane foralls each time. *)
 let lemma_deser1_half_lane
-      (pre: i16) (shift one: Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t)
+      (pre: i16) (shift one: Libcrux_intrinsics.Arm64_ml_kem_views.t_e_int16x8_t)
       (shifter: t_Array i16 (mk_usize 8)) (j: nat{j < 8})
     : Lemma
       (requires
-        (forall (m: nat{m < 8}). Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 one m == mk_i16 1) /\
-        (forall (m: nat{m < 8}). Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 shift m == Seq.index shifter m))
+        (forall (m: nat{m < 8}). Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 one m == mk_i16 1) /\
+        (forall (m: nat{m < 8}). Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 shift m == Seq.index shifter m))
       (ensures
-        (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8
-          (Libcrux_intrinsics.Arm64_extract.e_vandq_s16
-             (Libcrux_intrinsics.Arm64_extract.e_vshlq_s16
-                (Libcrux_intrinsics.Arm64_extract.e_vdupq_n_s16 pre) shift) one) j <: i16)
-        == (((Libcrux_intrinsics.Arm64_extract.arm_sshl_i16 pre (Seq.index shifter j)) &. mk_i16 1) <: i16)) =
-  ()
+        (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8
+          (Libcrux_intrinsics.Arm64.e_vandq_s16
+             (Libcrux_intrinsics.Arm64.e_vshlq_s16
+                (Libcrux_intrinsics.Arm64.e_vdupq_n_s16 pre) shift) one) j <: i16)
+        == (((Libcrux_intrinsics.Arm64_ml_kem_views.arm_sshl_i16 pre (Seq.index shifter j)) &. mk_i16 1) <: i16)) =
+  Libcrux_intrinsics.Arm64_ml_kem_views.lemma_e_vdupq_n_s16_lane pre j;
+  Libcrux_intrinsics.Arm64_ml_kem_views.lemma_e_vshlq_s16_lane
+    (Libcrux_intrinsics.Arm64.e_vdupq_n_s16 pre) shift j;
+  Libcrux_intrinsics.Arm64_ml_kem_views.lemma_e_vandq_s16_lane
+    (Libcrux_intrinsics.Arm64.e_vshlq_s16 (Libcrux_intrinsics.Arm64.e_vdupq_n_s16 pre) shift) one j
 
 #push-options "--fuel 2 --ifuel 1 --z3rlimit 300"
 let rec ser1_bitsum (c: nat -> nat) (d: nat) : Tot nat (decreases d) =
@@ -105,7 +109,7 @@ let rec lemma_ser1_bitsum_bit (c: nat -> nat) (d: nat) (k: nat{k < d})
 let lemma_ser1_shift_lane (c shk: i16) (s: nat{s < 8})
     : Lemma
       (requires Rust_primitives.BitVectors.bounded c 1 /\ v (shk %! mk_i16 256) == s)
-      (ensures v (Libcrux_intrinsics.Arm64_extract.arm_sshl_i16 c shk) == (v c) * pow2 s) =
+      (ensures v (Libcrux_intrinsics.Arm64_ml_kem_views.arm_sshl_i16 c shk) == (v c) * pow2 s) =
   FStar.Math.Lemmas.pow2_le_compat 7 s
 #pop-options
 
@@ -130,52 +134,52 @@ let lemma_ser1_bitsum_flat (c: nat -> nat)
 (* Value of one packed byte: vaddvq of vshlq(half, [0..7]) equals the no-carry
    binary (weighted) sum of the 8 one-bit lanes. *)
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 300"
-let lemma_ser1_half (half shift: Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t)
+let lemma_ser1_half (half shift: Libcrux_intrinsics.Arm64_ml_kem_views.t_e_int16x8_t)
     : Lemma
       (requires
         (forall (j: nat{j < 8}).
-            Rust_primitives.BitVectors.bounded (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half j) 1) /\
+            Rust_primitives.BitVectors.bounded (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 half j) 1) /\
         (forall (j: nat{j < 8}).
-            v ((Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 shift j) %! mk_i16 256) == j))
+            v ((Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 shift j) %! mk_i16 256) == j))
       (ensures
-        v (Libcrux_intrinsics.Arm64_extract.e_vaddvq_s16
-              (Libcrux_intrinsics.Arm64_extract.e_vshlq_s16 half shift))
-        == (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 0)) * 1
-         + (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 1)) * 2
-         + (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 2)) * 4
-         + (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 3)) * 8
-         + (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 4)) * 16
-         + (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 5)) * 32
-         + (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 6)) * 64
-         + (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 7)) * 128) =
-  let sh = Libcrux_intrinsics.Arm64_extract.e_vshlq_s16 half shift in
+        v (Libcrux_intrinsics.Arm64.e_vaddvq_s16
+              (Libcrux_intrinsics.Arm64.e_vshlq_s16 half shift))
+        == (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 half 0)) * 1
+         + (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 half 1)) * 2
+         + (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 half 2)) * 4
+         + (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 half 3)) * 8
+         + (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 half 4)) * 16
+         + (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 half 5)) * 32
+         + (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 half 6)) * 64
+         + (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 half 7)) * 128) =
+  let sh = Libcrux_intrinsics.Arm64.e_vshlq_s16 half shift in
   let aux (j: nat{j < 8})
       : Lemma
-        (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 sh j)
-          == (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half j)) * pow2 j) =
-    lemma_ser1_shift_lane (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half j)
-      (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 shift j) j
+        (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 sh j)
+          == (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 half j)) * pow2 j) =
+    lemma_ser1_shift_lane (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 half j)
+      (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 shift j) j
   in
   Classical.forall_intro aux;
   assert_norm (pow2 0 == 1 /\ pow2 1 == 2 /\ pow2 2 == 4 /\ pow2 3 == 8 /\
                pow2 4 == 16 /\ pow2 5 == 32 /\ pow2 6 == 64 /\ pow2 7 == 128);
-  let l0 = Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 sh 0 in
-  let l1 = Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 sh 1 in
-  let l2 = Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 sh 2 in
-  let l3 = Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 sh 3 in
-  let l4 = Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 sh 4 in
-  let l5 = Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 sh 5 in
-  let l6 = Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 sh 6 in
-  let l7 = Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 sh 7 in
+  let l0 = Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 sh 0 in
+  let l1 = Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 sh 1 in
+  let l2 = Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 sh 2 in
+  let l3 = Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 sh 3 in
+  let l4 = Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 sh 4 in
+  let l5 = Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 sh 5 in
+  let l6 = Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 sh 6 in
+  let l7 = Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 sh 7 in
   (* lane values + small bounds (each lane < 256, so the nested adds do not wrap) *)
-  assert (v l0 == (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 0)) * 1 /\ v l0 <= 1);
-  assert (v l1 == (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 1)) * 2 /\ v l1 <= 2);
-  assert (v l2 == (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 2)) * 4 /\ v l2 <= 4);
-  assert (v l3 == (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 3)) * 8 /\ v l3 <= 8);
-  assert (v l4 == (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 4)) * 16 /\ v l4 <= 16);
-  assert (v l5 == (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 5)) * 32 /\ v l5 <= 32);
-  assert (v l6 == (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 6)) * 64 /\ v l6 <= 64);
-  assert (v l7 == (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half 7)) * 128 /\ v l7 <= 128);
+  assert (v l0 == (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 half 0)) * 1 /\ v l0 <= 1);
+  assert (v l1 == (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 half 1)) * 2 /\ v l1 <= 2);
+  assert (v l2 == (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 half 2)) * 4 /\ v l2 <= 4);
+  assert (v l3 == (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 half 3)) * 8 /\ v l3 <= 8);
+  assert (v l4 == (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 half 4)) * 16 /\ v l4 <= 16);
+  assert (v l5 == (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 half 5)) * 32 /\ v l5 <= 32);
+  assert (v l6 == (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 half 6)) * 64 /\ v l6 <= 64);
+  assert (v l7 == (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 half 7)) * 128 /\ v l7 <= 128);
   (* nested vaddvq sum is exact (no i16 wrap) *)
   assert (v (l0 +. l1) == v l0 + v l1);
   assert (v (l2 +. l3) == v l2 + v l3);
@@ -189,23 +193,23 @@ let lemma_ser1_half (half shift: Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t)
 
 (* Bit k of the packed byte (cast of the vaddvq sum) equals bit 0 of lane k. *)
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 300"
-let lemma_ser1_byte (half shift: Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t) (byte: u8) (k: nat{k < 8})
+let lemma_ser1_byte (half shift: Libcrux_intrinsics.Arm64_ml_kem_views.t_e_int16x8_t) (byte: u8) (k: nat{k < 8})
     : Lemma
       (requires
         (forall (j: nat{j < 8}).
-            Rust_primitives.BitVectors.bounded (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half j) 1) /\
+            Rust_primitives.BitVectors.bounded (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 half j) 1) /\
         (forall (j: nat{j < 8}).
-            v ((Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 shift j) %! mk_i16 256) == j) /\
-        byte == (cast (Libcrux_intrinsics.Arm64_extract.e_vaddvq_s16
-                        (Libcrux_intrinsics.Arm64_extract.e_vshlq_s16 half shift)) <: u8))
+            v ((Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 shift j) %! mk_i16 256) == j) /\
+        byte == (cast (Libcrux_intrinsics.Arm64.e_vaddvq_s16
+                        (Libcrux_intrinsics.Arm64.e_vshlq_s16 half shift)) <: u8))
       (ensures
         Rust_primitives.Integers.get_bit byte (sz k)
         == Rust_primitives.Integers.get_bit
-             (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half k) (mk_usize 0)) =
+             (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 half k) (mk_usize 0)) =
   let c:(nat -> nat) =
     (fun (j: nat) ->
         if j < 8
-        then (let x = v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half j) in
+        then (let x = v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 half j) in
               if x >= 0 then x else 0)
         else 0)
   in
@@ -213,12 +217,12 @@ let lemma_ser1_byte (half shift: Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t)
   lemma_ser1_bitsum_flat c;
   lemma_ser1_bitsum_bound c 8;
   lemma_ser1_bitsum_bit c 8 k;
-  let s = Libcrux_intrinsics.Arm64_extract.e_vaddvq_s16
-            (Libcrux_intrinsics.Arm64_extract.e_vshlq_s16 half shift)
+  let s = Libcrux_intrinsics.Arm64.e_vaddvq_s16
+            (Libcrux_intrinsics.Arm64.e_vshlq_s16 half shift)
   in
   Rust_primitives.Integers.get_bit_cast #i16_inttype #u8_inttype s (sz k);
   lemma_get_bit_val #i16_inttype s (sz k);
-  lemma_get_bit_val #i16_inttype (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 half k) (mk_usize 0)
+  lemma_get_bit_val #i16_inttype (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 half k) (mk_usize 0)
 #pop-options
 
 (* Both 8-lane bound foralls, derived once from serialize_pre_N in a CLEAN
@@ -230,9 +234,9 @@ let lemma_ser1_bounded_halves (vec: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIM
       (requires Libcrux_ml_kem.Vector.Traits.Spec.serialize_pre_N 1 (repr vec))
       (ensures
         (forall (j: nat{j < 8}).
-            Rust_primitives.BitVectors.bounded (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low j) 1) /\
+            Rust_primitives.BitVectors.bounded (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low j) 1) /\
         (forall (j: nat{j < 8}).
-            Rust_primitives.BitVectors.bounded (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high j) 1)) =
+            Rust_primitives.BitVectors.bounded (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high j) 1)) =
   assert (forall (j: nat{j < 8}).
         Rust_primitives.BitVectors.bounded (Seq.index (repr vec) j) 1 /\
         Rust_primitives.BitVectors.bounded (Seq.index (repr vec) (j + 8)) 1)
@@ -258,20 +262,20 @@ let lemma_idx8 (i: nat{i < 16})
    introduce-forall call (no 16-way match, no monolithic saturation). *)
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
 let lemma_ser1_bit (vec: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector)
-      (shift: Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t)
+      (shift: Libcrux_intrinsics.Arm64_ml_kem_views.t_e_int16x8_t)
       (result: t_Array u8 (mk_usize 2))
       (i: nat{i < 16})
     : Lemma
       (requires
         Libcrux_ml_kem.Vector.Traits.Spec.serialize_pre_N 1 (repr vec) /\
         (forall (j: nat{j < 8}).
-            v ((Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 shift j) %! mk_i16 256) == j) /\
+            v ((Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 shift j) %! mk_i16 256) == j) /\
         Seq.index result 0
-          == (cast (Libcrux_intrinsics.Arm64_extract.e_vaddvq_s16
-                     (Libcrux_intrinsics.Arm64_extract.e_vshlq_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low shift)) <: u8) /\
+          == (cast (Libcrux_intrinsics.Arm64.e_vaddvq_s16
+                     (Libcrux_intrinsics.Arm64.e_vshlq_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low shift)) <: u8) /\
         Seq.index result 1
-          == (cast (Libcrux_intrinsics.Arm64_extract.e_vaddvq_s16
-                     (Libcrux_intrinsics.Arm64_extract.e_vshlq_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high shift)) <: u8))
+          == (cast (Libcrux_intrinsics.Arm64.e_vaddvq_s16
+                     (Libcrux_intrinsics.Arm64.e_vshlq_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high shift)) <: u8))
       (ensures
         Rust_primitives.Integers.get_bit (Seq.index result (i / 8)) (sz (i % 8))
         == Rust_primitives.Integers.get_bit (Seq.index (repr vec) i) (mk_usize 0)) =
@@ -286,19 +290,19 @@ let lemma_ser1_bit (vec: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector)
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
 let lemma_ser1_bits
       (vec: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector)
-      (shift: Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t)
+      (shift: Libcrux_intrinsics.Arm64_ml_kem_views.t_e_int16x8_t)
       (result: t_Array u8 (mk_usize 2))
     : Lemma
       (requires
         Libcrux_ml_kem.Vector.Traits.Spec.serialize_pre_N 1 (repr vec) /\
         (forall (j: nat{j < 8}).
-            v ((Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 shift j) %! mk_i16 256) == j) /\
+            v ((Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 shift j) %! mk_i16 256) == j) /\
         Seq.index result 0
-          == (cast (Libcrux_intrinsics.Arm64_extract.e_vaddvq_s16
-                     (Libcrux_intrinsics.Arm64_extract.e_vshlq_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low shift)) <: u8) /\
+          == (cast (Libcrux_intrinsics.Arm64.e_vaddvq_s16
+                     (Libcrux_intrinsics.Arm64.e_vshlq_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low shift)) <: u8) /\
         Seq.index result 1
-          == (cast (Libcrux_intrinsics.Arm64_extract.e_vaddvq_s16
-                     (Libcrux_intrinsics.Arm64_extract.e_vshlq_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high shift)) <: u8))
+          == (cast (Libcrux_intrinsics.Arm64.e_vaddvq_s16
+                     (Libcrux_intrinsics.Arm64.e_vshlq_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high shift)) <: u8))
       (ensures
         forall (i: nat{i < 16}).
           Rust_primitives.Integers.get_bit (Seq.index result (i / 8)) (sz (i % 8))
@@ -340,20 +344,20 @@ let lemma_bv_eq_from_bits
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
 let lemma_serialize_1_post
       (vec: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector)
-      (shift: Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t)
+      (shift: Libcrux_intrinsics.Arm64_ml_kem_views.t_e_int16x8_t)
       (result: t_Array u8 (mk_usize 2))
     : Lemma
       (requires
         Libcrux_ml_kem.Vector.Traits.Spec.serialize_pre_N 1 (repr vec) /\
         (forall (j: nat{j < 8}).
-            v ((Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 shift j) %! mk_i16 256) == j) /\
+            v ((Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 shift j) %! mk_i16 256) == j) /\
         Seq.index result 0
-          == (cast (Libcrux_intrinsics.Arm64_extract.e_vaddvq_s16
-                     (Libcrux_intrinsics.Arm64_extract.e_vshlq_s16
+          == (cast (Libcrux_intrinsics.Arm64.e_vaddvq_s16
+                     (Libcrux_intrinsics.Arm64.e_vshlq_s16
                         vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low shift)) <: u8) /\
         Seq.index result 1
-          == (cast (Libcrux_intrinsics.Arm64_extract.e_vaddvq_s16
-                     (Libcrux_intrinsics.Arm64_extract.e_vshlq_s16
+          == (cast (Libcrux_intrinsics.Arm64.e_vaddvq_s16
+                     (Libcrux_intrinsics.Arm64.e_vshlq_s16
                         vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high shift)) <: u8))
       (ensures Libcrux_ml_kem.Vector.Traits.Spec.serialize_post_N 1 (repr vec) result) =
   lemma_ser1_bits vec shift result;
@@ -365,21 +369,21 @@ let lemma_serialize_1_post
    values): the 8-way match enumeration saturates if done inline in the
    serialize_1_ body amid the array_of_list / vaddvq / cast machinery. *)
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
-let lemma_ser1_shift_amounts (shift: Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t)
+let lemma_ser1_shift_amounts (shift: Libcrux_intrinsics.Arm64_ml_kem_views.t_e_int16x8_t)
       (shifter: t_Array i16 (mk_usize 8))
     : Lemma
       (requires
         (forall (j: nat{j < 8}).
-            Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 shift j == Seq.index shifter j) /\
+            Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 shift j == Seq.index shifter j) /\
         Seq.index shifter 0 == mk_i16 0 /\ Seq.index shifter 1 == mk_i16 1 /\
         Seq.index shifter 2 == mk_i16 2 /\ Seq.index shifter 3 == mk_i16 3 /\
         Seq.index shifter 4 == mk_i16 4 /\ Seq.index shifter 5 == mk_i16 5 /\
         Seq.index shifter 6 == mk_i16 6 /\ Seq.index shifter 7 == mk_i16 7)
       (ensures
         forall (j: nat{j < 8}).
-          v ((Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 shift j) %! mk_i16 256) == j) =
+          v ((Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 shift j) %! mk_i16 256) == j) =
   introduce forall (j: nat{j < 8}).
-      v ((Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 shift j) %! mk_i16 256) == j
+      v ((Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 shift j) %! mk_i16 256) == j
   with (match j with
         | 0 -> () | 1 -> () | 2 -> () | 3 -> () | 4 -> () | 5 -> () | 6 -> () | _ -> ())
 #pop-options
@@ -394,8 +398,7 @@ let lemma_ser1_shift_amounts (shift: Libcrux_intrinsics.Arm64_extract.t_e_int16x
 (* TRUSTED AXIOM modeling Core_models.Num.impl_u64__to_le_bytes (a bare
    `assume val` in hax-lib core proof-libs with NO functional ensures): byte b
    of the little-endian encoding is (x / 2^(8b)) mod 2^8.  VALIDATED bit-exact
-   vs Rust std u64::to_le_bytes (24,000,072 checks, 0 fails):
-   ~/hax-fstar-mcp/libcrux-notes/agent-status/u64_to_le_bytes_validate-2026-06-23.rs *)
+   vs Rust std u64::to_le_bytes (24,000,072 checks, 0 fails). *)
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 50"
 [@@ "trusted: trusted-extern: little-endian byte b of u64 is (x >> 8b) mod 256 (hax-lib to_le_bytes primitive, bit-exact validated)"]
 assume
@@ -509,19 +512,19 @@ let lemma_nib4_bit (n0 n1 n2 n3: nat) (m: nat{m < 16})
 (* Per-lane value: reinterpret coeff (bounded 4) to u16 then shift left by
    the shifter amount 4*(j%4) gives coeff * 2^{4*(j%4)} (no u16 wrap). *)
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 300"
-let lemma_ser4_lane (vsrc shift: Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t) (j: nat{j < 8})
+let lemma_ser4_lane (vsrc shift: Libcrux_intrinsics.Arm64_ml_kem_views.t_e_int16x8_t) (j: nat{j < 8})
     : Lemma
       (requires
-        Rust_primitives.BitVectors.bounded (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vsrc j) 4 /\
-        v ((Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 shift j) %! mk_i16 256) == 4 * (j % 4))
+        Rust_primitives.BitVectors.bounded (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vsrc j) 4 /\
+        v ((Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 shift j) %! mk_i16 256) == 4 * (j % 4))
       (ensures
-        v (Libcrux_intrinsics.Arm64_extract.get_lane_u16x8
-              (Libcrux_intrinsics.Arm64_extract.e_vshlq_u16
-                 (Libcrux_intrinsics.Arm64_extract.e_vreinterpretq_u16_s16 vsrc) shift) j)
-        == (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vsrc j)) * pow2 (4 * (j % 4))) =
-  let coeff = Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vsrc j in
-  let rv = Libcrux_intrinsics.Arm64_extract.e_vreinterpretq_u16_s16 vsrc in
-  let u16coeff = Libcrux_intrinsics.Arm64_extract.get_lane_u16x8 rv j in
+        v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_u16x8
+              (Libcrux_intrinsics.Arm64.e_vshlq_u16
+                 (Libcrux_intrinsics.Arm64.e_vreinterpretq_u16_s16 vsrc) shift) j)
+        == (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vsrc j)) * pow2 (4 * (j % 4))) =
+  let coeff = Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vsrc j in
+  let rv = Libcrux_intrinsics.Arm64.e_vreinterpretq_u16_s16 vsrc in
+  let u16coeff = Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_u16x8 rv j in
   let s = 4 * (j % 4) in
   assert (u16coeff == Rust_primitives.Integers.cast_mod #i16_inttype #u16_inttype coeff);
   FStar.Math.Lemmas.small_mod (v coeff) (pow2 16);
@@ -537,21 +540,21 @@ let lemma_ser4_lane (vsrc shift: Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t)
 (* vaddv_u16 over 4 lanes holding (n0, n1*16, n2*256, n3*4096) with each
    n<16 is the exact flat sum (no u16 wrap; max = 15*4369 = 65535). *)
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 200"
-let lemma_ser4_vaddv (a: Libcrux_intrinsics.Arm64_extract.t_e_uint16x4_t) (n0 n1 n2 n3: nat)
+let lemma_ser4_vaddv (a: Libcrux_intrinsics.Arm64_ml_kem_views.t_e_uint16x4_t) (n0 n1 n2 n3: nat)
     : Lemma
       (requires
         n0 < 16 /\ n1 < 16 /\ n2 < 16 /\ n3 < 16 /\
-        v (Libcrux_intrinsics.Arm64_extract.get_lane_u16x4 a 0) == n0 * 1 /\
-        v (Libcrux_intrinsics.Arm64_extract.get_lane_u16x4 a 1) == n1 * 16 /\
-        v (Libcrux_intrinsics.Arm64_extract.get_lane_u16x4 a 2) == n2 * 256 /\
-        v (Libcrux_intrinsics.Arm64_extract.get_lane_u16x4 a 3) == n3 * 4096)
+        v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_u16x4 a 0) == n0 * 1 /\
+        v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_u16x4 a 1) == n1 * 16 /\
+        v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_u16x4 a 2) == n2 * 256 /\
+        v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_u16x4 a 3) == n3 * 4096)
       (ensures
-        v (Libcrux_intrinsics.Arm64_extract.e_vaddv_u16 a)
+        v (Libcrux_intrinsics.Arm64.e_vaddv_u16 a)
         == n0 * 1 + n1 * 16 + n2 * 256 + n3 * 4096) =
-  let l0 = Libcrux_intrinsics.Arm64_extract.get_lane_u16x4 a 0 in
-  let l1 = Libcrux_intrinsics.Arm64_extract.get_lane_u16x4 a 1 in
-  let l2 = Libcrux_intrinsics.Arm64_extract.get_lane_u16x4 a 2 in
-  let l3 = Libcrux_intrinsics.Arm64_extract.get_lane_u16x4 a 3 in
+  let l0 = Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_u16x4 a 0 in
+  let l1 = Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_u16x4 a 1 in
+  let l2 = Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_u16x4 a 2 in
+  let l3 = Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_u16x4 a 3 in
   assert (v (l0 +. l1) == v l0 + v l1);
   assert (v (l2 +. l3) == v l2 + v l3);
   assert (v ((l0 +. l1) +. (l2 +. l3)) == v l0 + v l1 + v l2 + v l3)
@@ -559,79 +562,79 @@ let lemma_ser4_vaddv (a: Libcrux_intrinsics.Arm64_extract.t_e_uint16x4_t) (n0 n1
 
 (* Low half (lanes 0-3) group sum value. *)
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 300"
-let lemma_ser4_low_sum (vsrc shift: Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t)
+let lemma_ser4_low_sum (vsrc shift: Libcrux_intrinsics.Arm64_ml_kem_views.t_e_int16x8_t)
     : Lemma
       (requires
-        (forall (j: nat{j < 8}). Rust_primitives.BitVectors.bounded (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vsrc j) 4) /\
-        (forall (j: nat{j < 8}). v ((Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 shift j) %! mk_i16 256) == 4 * (j % 4)))
+        (forall (j: nat{j < 8}). Rust_primitives.BitVectors.bounded (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vsrc j) 4) /\
+        (forall (j: nat{j < 8}). v ((Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 shift j) %! mk_i16 256) == 4 * (j % 4)))
       (ensures
-        v (Libcrux_intrinsics.Arm64_extract.e_vaddv_u16
-              (Libcrux_intrinsics.Arm64_extract.e_vget_low_u16
-                 (Libcrux_intrinsics.Arm64_extract.e_vshlq_u16 (Libcrux_intrinsics.Arm64_extract.e_vreinterpretq_u16_s16 vsrc) shift)))
-        == (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vsrc 0)) * 1
-         + (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vsrc 1)) * 16
-         + (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vsrc 2)) * 256
-         + (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vsrc 3)) * 4096) =
-  let lowhi = Libcrux_intrinsics.Arm64_extract.e_vshlq_u16 (Libcrux_intrinsics.Arm64_extract.e_vreinterpretq_u16_s16 vsrc) shift in
-  let a = Libcrux_intrinsics.Arm64_extract.e_vget_low_u16 lowhi in
+        v (Libcrux_intrinsics.Arm64.e_vaddv_u16
+              (Libcrux_intrinsics.Arm64.e_vget_low_u16
+                 (Libcrux_intrinsics.Arm64.e_vshlq_u16 (Libcrux_intrinsics.Arm64.e_vreinterpretq_u16_s16 vsrc) shift)))
+        == (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vsrc 0)) * 1
+         + (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vsrc 1)) * 16
+         + (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vsrc 2)) * 256
+         + (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vsrc 3)) * 4096) =
+  let lowhi = Libcrux_intrinsics.Arm64.e_vshlq_u16 (Libcrux_intrinsics.Arm64.e_vreinterpretq_u16_s16 vsrc) shift in
+  let a = Libcrux_intrinsics.Arm64.e_vget_low_u16 lowhi in
   assert_norm (pow2 0 == 1 /\ pow2 4 == 16 /\ pow2 8 == 256 /\ pow2 12 == 4096);
   lemma_ser4_lane vsrc shift 0;
   lemma_ser4_lane vsrc shift 1;
   lemma_ser4_lane vsrc shift 2;
   lemma_ser4_lane vsrc shift 3;
   lemma_ser4_vaddv a
-    (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vsrc 0))
-    (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vsrc 1))
-    (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vsrc 2))
-    (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vsrc 3))
+    (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vsrc 0))
+    (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vsrc 1))
+    (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vsrc 2))
+    (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vsrc 3))
 #pop-options
 
 (* High half (lanes 4-7) group sum value. *)
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 300"
-let lemma_ser4_high_sum (vsrc shift: Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t)
+let lemma_ser4_high_sum (vsrc shift: Libcrux_intrinsics.Arm64_ml_kem_views.t_e_int16x8_t)
     : Lemma
       (requires
-        (forall (j: nat{j < 8}). Rust_primitives.BitVectors.bounded (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vsrc j) 4) /\
-        (forall (j: nat{j < 8}). v ((Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 shift j) %! mk_i16 256) == 4 * (j % 4)))
+        (forall (j: nat{j < 8}). Rust_primitives.BitVectors.bounded (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vsrc j) 4) /\
+        (forall (j: nat{j < 8}). v ((Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 shift j) %! mk_i16 256) == 4 * (j % 4)))
       (ensures
-        v (Libcrux_intrinsics.Arm64_extract.e_vaddv_u16
-              (Libcrux_intrinsics.Arm64_extract.e_vget_high_u16
-                 (Libcrux_intrinsics.Arm64_extract.e_vshlq_u16 (Libcrux_intrinsics.Arm64_extract.e_vreinterpretq_u16_s16 vsrc) shift)))
-        == (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vsrc 4)) * 1
-         + (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vsrc 5)) * 16
-         + (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vsrc 6)) * 256
-         + (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vsrc 7)) * 4096) =
-  let lowhi = Libcrux_intrinsics.Arm64_extract.e_vshlq_u16 (Libcrux_intrinsics.Arm64_extract.e_vreinterpretq_u16_s16 vsrc) shift in
-  let a = Libcrux_intrinsics.Arm64_extract.e_vget_high_u16 lowhi in
+        v (Libcrux_intrinsics.Arm64.e_vaddv_u16
+              (Libcrux_intrinsics.Arm64.e_vget_high_u16
+                 (Libcrux_intrinsics.Arm64.e_vshlq_u16 (Libcrux_intrinsics.Arm64.e_vreinterpretq_u16_s16 vsrc) shift)))
+        == (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vsrc 4)) * 1
+         + (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vsrc 5)) * 16
+         + (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vsrc 6)) * 256
+         + (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vsrc 7)) * 4096) =
+  let lowhi = Libcrux_intrinsics.Arm64.e_vshlq_u16 (Libcrux_intrinsics.Arm64.e_vreinterpretq_u16_s16 vsrc) shift in
+  let a = Libcrux_intrinsics.Arm64.e_vget_high_u16 lowhi in
   assert_norm (pow2 0 == 1 /\ pow2 4 == 16 /\ pow2 8 == 256 /\ pow2 12 == 4096);
   lemma_ser4_lane vsrc shift 4;
   lemma_ser4_lane vsrc shift 5;
   lemma_ser4_lane vsrc shift 6;
   lemma_ser4_lane vsrc shift 7;
   lemma_ser4_vaddv a
-    (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vsrc 4))
-    (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vsrc 5))
-    (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vsrc 6))
-    (v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vsrc 7))
+    (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vsrc 4))
+    (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vsrc 5))
+    (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vsrc 6))
+    (v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vsrc 7))
 #pop-options
 
 (* The 8 shift-amount facts from the concrete shifter [0;4;8;12;0;4;8;12]. *)
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
-let lemma_ser4_shift_amounts (shift: Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t)
+let lemma_ser4_shift_amounts (shift: Libcrux_intrinsics.Arm64_ml_kem_views.t_e_int16x8_t)
       (shifter: t_Array i16 (mk_usize 8))
     : Lemma
       (requires
         (forall (j: nat{j < 8}).
-            Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 shift j == Seq.index shifter j) /\
+            Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 shift j == Seq.index shifter j) /\
         Seq.index shifter 0 == mk_i16 0 /\ Seq.index shifter 1 == mk_i16 4 /\
         Seq.index shifter 2 == mk_i16 8 /\ Seq.index shifter 3 == mk_i16 12 /\
         Seq.index shifter 4 == mk_i16 0 /\ Seq.index shifter 5 == mk_i16 4 /\
         Seq.index shifter 6 == mk_i16 8 /\ Seq.index shifter 7 == mk_i16 12)
       (ensures
         forall (j: nat{j < 8}).
-          v ((Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 shift j) %! mk_i16 256) == 4 * (j % 4)) =
+          v ((Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 shift j) %! mk_i16 256) == 4 * (j % 4)) =
   introduce forall (j: nat{j < 8}).
-      v ((Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 shift j) %! mk_i16 256) == 4 * (j % 4)
+      v ((Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 shift j) %! mk_i16 256) == 4 * (j % 4)
   with (match j with
         | 0 -> () | 1 -> () | 2 -> () | 3 -> () | 4 -> () | 5 -> () | 6 -> () | _ -> ())
 #pop-options
@@ -643,9 +646,9 @@ let lemma_ser4_bounded (vec: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vec
       (requires Libcrux_ml_kem.Vector.Traits.Spec.serialize_pre_N 4 (repr vec))
       (ensures
         (forall (j: nat{j < 8}).
-            Rust_primitives.BitVectors.bounded (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low j) 4) /\
+            Rust_primitives.BitVectors.bounded (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low j) 4) /\
         (forall (j: nat{j < 8}).
-            Rust_primitives.BitVectors.bounded (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high j) 4)) =
+            Rust_primitives.BitVectors.bounded (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high j) 4)) =
   assert (forall (j: nat{j < 8}).
         Rust_primitives.BitVectors.bounded (Seq.index (repr vec) j) 4 /\
         Rust_primitives.BitVectors.bounded (Seq.index (repr vec) (j + 8)) 4)
@@ -877,16 +880,16 @@ let lemma_bv_eq_from_bits4
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 200"
 let lemma_ser4_sumval_lo
       (vec: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector)
-      (vsrc shift: Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t)
+      (vsrc shift: Libcrux_intrinsics.Arm64_ml_kem_views.t_e_int16x8_t)
       (sg: u64) (base: nat{base + 7 < 16})
     : Lemma
       (requires
-        (forall (j: nat{j < 8}). Rust_primitives.BitVectors.bounded (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vsrc j) 4) /\
-        (forall (j: nat{j < 8}). v ((Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 shift j) %! mk_i16 256) == 4 * (j % 4)) /\
-        (forall (j: nat{j < 8}). v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vsrc j) == v (Seq.index (repr vec) (base + j))) /\
-        sg == (cast (Libcrux_intrinsics.Arm64_extract.e_vaddv_u16
-                       (Libcrux_intrinsics.Arm64_extract.e_vget_low_u16
-                          (Libcrux_intrinsics.Arm64_extract.e_vshlq_u16 (Libcrux_intrinsics.Arm64_extract.e_vreinterpretq_u16_s16 vsrc) shift)) <: u16) <: u64))
+        (forall (j: nat{j < 8}). Rust_primitives.BitVectors.bounded (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vsrc j) 4) /\
+        (forall (j: nat{j < 8}). v ((Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 shift j) %! mk_i16 256) == 4 * (j % 4)) /\
+        (forall (j: nat{j < 8}). v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vsrc j) == v (Seq.index (repr vec) (base + j))) /\
+        sg == (cast (Libcrux_intrinsics.Arm64.e_vaddv_u16
+                       (Libcrux_intrinsics.Arm64.e_vget_low_u16
+                          (Libcrux_intrinsics.Arm64.e_vshlq_u16 (Libcrux_intrinsics.Arm64.e_vreinterpretq_u16_s16 vsrc) shift)) <: u16) <: u64))
       (ensures
         v sg < pow2 16 /\
         v sg == (v (Seq.index (repr vec) base)) * 1 + (v (Seq.index (repr vec) (base + 1))) * 16
@@ -898,16 +901,16 @@ let lemma_ser4_sumval_lo
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 200"
 let lemma_ser4_sumval_hi
       (vec: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector)
-      (vsrc shift: Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t)
+      (vsrc shift: Libcrux_intrinsics.Arm64_ml_kem_views.t_e_int16x8_t)
       (sg: u64) (base: nat{base + 7 < 16})
     : Lemma
       (requires
-        (forall (j: nat{j < 8}). Rust_primitives.BitVectors.bounded (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vsrc j) 4) /\
-        (forall (j: nat{j < 8}). v ((Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 shift j) %! mk_i16 256) == 4 * (j % 4)) /\
-        (forall (j: nat{j < 8}). v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vsrc j) == v (Seq.index (repr vec) (base + j))) /\
-        sg == (cast (Libcrux_intrinsics.Arm64_extract.e_vaddv_u16
-                       (Libcrux_intrinsics.Arm64_extract.e_vget_high_u16
-                          (Libcrux_intrinsics.Arm64_extract.e_vshlq_u16 (Libcrux_intrinsics.Arm64_extract.e_vreinterpretq_u16_s16 vsrc) shift)) <: u16) <: u64))
+        (forall (j: nat{j < 8}). Rust_primitives.BitVectors.bounded (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vsrc j) 4) /\
+        (forall (j: nat{j < 8}). v ((Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 shift j) %! mk_i16 256) == 4 * (j % 4)) /\
+        (forall (j: nat{j < 8}). v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vsrc j) == v (Seq.index (repr vec) (base + j))) /\
+        sg == (cast (Libcrux_intrinsics.Arm64.e_vaddv_u16
+                       (Libcrux_intrinsics.Arm64.e_vget_high_u16
+                          (Libcrux_intrinsics.Arm64.e_vshlq_u16 (Libcrux_intrinsics.Arm64.e_vreinterpretq_u16_s16 vsrc) shift)) <: u16) <: u64))
       (ensures
         v sg < pow2 16 /\
         v sg == (v (Seq.index (repr vec) (base + 4))) * 1 + (v (Seq.index (repr vec) (base + 5))) * 16
@@ -920,20 +923,20 @@ let lemma_ser4_sumval_hi
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 300 --split_queries always"
 let lemma_serialize_4_post
       (vec: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector)
-      (shift: Libcrux_intrinsics.Arm64_extract.t_e_int16x8_t)
+      (shift: Libcrux_intrinsics.Arm64_ml_kem_views.t_e_int16x8_t)
       (sum0 sum1 sum2 sum3 sum: u64)
       (result: t_Array u8 (mk_usize 8))
     : Lemma
       (requires
         Libcrux_ml_kem.Vector.Traits.Spec.serialize_pre_N 4 (repr vec) /\
         (forall (j: nat{j < 8}).
-            v ((Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 shift j) %! mk_i16 256) == 4 * (j % 4)) /\
-        (let lowt = Libcrux_intrinsics.Arm64_extract.e_vshlq_u16 (Libcrux_intrinsics.Arm64_extract.e_vreinterpretq_u16_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low) shift in
-         let hight = Libcrux_intrinsics.Arm64_extract.e_vshlq_u16 (Libcrux_intrinsics.Arm64_extract.e_vreinterpretq_u16_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high) shift in
-         sum0 == (cast (Libcrux_intrinsics.Arm64_extract.e_vaddv_u16 (Libcrux_intrinsics.Arm64_extract.e_vget_low_u16 lowt) <: u16) <: u64) /\
-         sum1 == (cast (Libcrux_intrinsics.Arm64_extract.e_vaddv_u16 (Libcrux_intrinsics.Arm64_extract.e_vget_high_u16 lowt) <: u16) <: u64) /\
-         sum2 == (cast (Libcrux_intrinsics.Arm64_extract.e_vaddv_u16 (Libcrux_intrinsics.Arm64_extract.e_vget_low_u16 hight) <: u16) <: u64) /\
-         sum3 == (cast (Libcrux_intrinsics.Arm64_extract.e_vaddv_u16 (Libcrux_intrinsics.Arm64_extract.e_vget_high_u16 hight) <: u16) <: u64)) /\
+            v ((Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 shift j) %! mk_i16 256) == 4 * (j % 4)) /\
+        (let lowt = Libcrux_intrinsics.Arm64.e_vshlq_u16 (Libcrux_intrinsics.Arm64.e_vreinterpretq_u16_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low) shift in
+         let hight = Libcrux_intrinsics.Arm64.e_vshlq_u16 (Libcrux_intrinsics.Arm64.e_vreinterpretq_u16_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high) shift in
+         sum0 == (cast (Libcrux_intrinsics.Arm64.e_vaddv_u16 (Libcrux_intrinsics.Arm64.e_vget_low_u16 lowt) <: u16) <: u64) /\
+         sum1 == (cast (Libcrux_intrinsics.Arm64.e_vaddv_u16 (Libcrux_intrinsics.Arm64.e_vget_high_u16 lowt) <: u16) <: u64) /\
+         sum2 == (cast (Libcrux_intrinsics.Arm64.e_vaddv_u16 (Libcrux_intrinsics.Arm64.e_vget_low_u16 hight) <: u16) <: u64) /\
+         sum3 == (cast (Libcrux_intrinsics.Arm64.e_vaddv_u16 (Libcrux_intrinsics.Arm64.e_vget_high_u16 hight) <: u16) <: u64)) /\
         sum ==
         (((sum0 |. (sum1 <<! mk_i32 16 <: u64) <: u64) |. (sum2 <<! mk_i32 32 <: u64) <: u64) |.
           (sum3 <<! mk_i32 48 <: u64)) /\
@@ -942,9 +945,9 @@ let lemma_serialize_4_post
   lemma_ser4_bounded vec;
   (* (repr vec).[k] bridges to the f_low/f_high lanes via the append index SMTPat *)
   assert (forall (j: nat{j < 8}).
-        v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low j) == v (Seq.index (repr vec) (0 + j)));
+        v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low j) == v (Seq.index (repr vec) (0 + j)));
   assert (forall (j: nat{j < 8}).
-        v (Libcrux_intrinsics.Arm64_extract.get_lane_i16x8 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high j) == v (Seq.index (repr vec) (8 + j)));
+        v (Libcrux_intrinsics.Arm64_ml_kem_views.get_lane_i16x8 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high j) == v (Seq.index (repr vec) (8 + j)));
   lemma_ser4_sumval_lo vec vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low shift sum0 0;
   lemma_ser4_sumval_hi vec vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low shift sum1 0;
   lemma_ser4_sumval_lo vec vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high shift sum2 8;
@@ -953,7 +956,7 @@ let lemma_serialize_4_post
   lemma_bv_eq_from_bits4 (repr vec) result
 #pop-options
 
-module NI = Libcrux_intrinsics.Arm64_extract
+module NI = Libcrux_intrinsics.Arm64_ml_kem_views
 module BV = Rust_primitives.BitVectors
 module I = Rust_primitives.Integers
 module VT = Libcrux_ml_kem.Vector.Neon.Vector_type
@@ -1086,15 +1089,15 @@ let lemma_i64_byte_bit (x: i64) (e: nat{e < 8}) (p: nat{p < 8})
 (* opaque atoms: the s32 mixt and full i64x2 packed spine of one 8-coeff half. *)
 [@@ "opaque_to_smt"]
 let half_mixt (half: NI.t_e_int16x8_t) (d: nat{0 < d /\ d <= 12}) : NI.t_e_int32x4_t =
-  NI.e_vsliq_n_s32 (mk_i32 d)
-    (NI.e_vreinterpretq_s32_s16 (NI.e_vtrn1q_s16 half half))
-    (NI.e_vreinterpretq_s32_s16 (NI.e_vtrn2q_s16 half half))
+  Libcrux_intrinsics.Arm64.e_vsliq_n_s32 (mk_i32 d)
+    (Libcrux_intrinsics.Arm64.e_vreinterpretq_s32_s16 (Libcrux_intrinsics.Arm64.e_vtrn1q_s16 half half))
+    (Libcrux_intrinsics.Arm64.e_vreinterpretq_s32_s16 (Libcrux_intrinsics.Arm64.e_vtrn2q_s16 half half))
 
 [@@ "opaque_to_smt"]
 let half_spine (half: NI.t_e_int16x8_t) (d: nat{0 < d /\ d <= 12}) : NI.t_e_int64x2_t =
-  NI.e_vsliq_n_s64 (mk_i32 (2 * d))
-    (NI.e_vreinterpretq_s64_s32 (NI.e_vtrn1q_s32 (half_mixt half d) (half_mixt half d)))
-    (NI.e_vreinterpretq_s64_s32 (NI.e_vtrn2q_s32 (half_mixt half d) (half_mixt half d)))
+  Libcrux_intrinsics.Arm64.e_vsliq_n_s64 (mk_i32 (2 * d))
+    (Libcrux_intrinsics.Arm64.e_vreinterpretq_s64_s32 (Libcrux_intrinsics.Arm64.e_vtrn1q_s32 (half_mixt half d) (half_mixt half d)))
+    (Libcrux_intrinsics.Arm64.e_vreinterpretq_s64_s32 (Libcrux_intrinsics.Arm64.e_vtrn2q_s32 (half_mixt half d) (half_mixt half d)))
 
 (* B2: the recompute lemma — bit q (<4d) of lane g (g<2) of the packed i64x2
    `low_mix == half_spine half d` is bit (q%d) of coeff (4g + q/d) of half. *)
@@ -1293,9 +1296,9 @@ let lemma_store32_to_bytes (low_mix high_mix: NI.t_e_int64x2_t) (result32: t_Arr
     : Lemma
       (requires
         (forall (k: nat{k < 16}).
-           Seq.index (Seq.slice result32 0 16) k == NI.get_lane_u8x16 (NI.e_vreinterpretq_u8_s64 low_mix) k) /\
+           Seq.index (Seq.slice result32 0 16) k == NI.get_lane_u8x16 (Libcrux_intrinsics.Arm64.e_vreinterpretq_u8_s64 low_mix) k) /\
         (forall (k: nat{k < 16}).
-           Seq.index (Seq.slice result32 16 32) k == NI.get_lane_u8x16 (NI.e_vreinterpretq_u8_s64 high_mix) k))
+           Seq.index (Seq.slice result32 16 32) k == NI.get_lane_u8x16 (Libcrux_intrinsics.Arm64.e_vreinterpretq_u8_s64 high_mix) k))
       (ensures
         (forall (k: nat{k < 16}).
            Seq.index result32 k == NI.i64_byte (NI.get_lane_i64x2 low_mix (k / 8)) (k % 8)) /\
@@ -1327,7 +1330,7 @@ let lemma_spine_r2 (vec: VT.t_SIMD128Vector) (low_mix high_mix: NI.t_e_int64x2_t
         else lemma_half_lane_bit vec.VT.f_high high_mix (g - 2) d q)
 #pop-options
 
-module NI = Libcrux_intrinsics.Arm64_extract
+module NI = Libcrux_intrinsics.Arm64_ml_kem_views
 module BV = Rust_primitives.BitVectors
 module I = Rust_primitives.Integers
 
@@ -1437,20 +1440,20 @@ let lemma_deser12_out_lane
         ((s == 0 /\ v (NI.get_lane_i16x8 shift_vec c %! mk_i16 256) == 0) \/
          (s == 4 /\ v (NI.get_lane_i16x8 shift_vec c %! mk_i16 256) == 252)))
       (ensures
-        (let low = NI.e_vreinterpretq_s16_u16
-                     (NI.e_vandq_u16
-                        (NI.e_vshlq_u16
-                           (NI.e_vreinterpretq_u16_u8 (NI.e_vqtbl1q_u8 input_vec index_vec))
+        (let low = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u16
+                     (Libcrux_intrinsics.Arm64.e_vandq_u16
+                        (Libcrux_intrinsics.Arm64.e_vshlq_u16
+                           (Libcrux_intrinsics.Arm64.e_vreinterpretq_u16_u8 (Libcrux_intrinsics.Arm64.e_vqtbl1q_u8 input_vec index_vec))
                            shift_vec)
                         mask12) in
          BV.bounded (NI.get_lane_i16x8 low c) 12 /\
          I.get_bit (NI.get_lane_i16x8 low c) (sz b) ==
          I.get_bit (NI.u8x2_as_u16 vA vB) (sz (s + b)))) =
-  let tbl = NI.e_vqtbl1q_u8 input_vec index_vec in
-  let moved = NI.e_vreinterpretq_u16_u8 tbl in
-  let shifted = NI.e_vshlq_u16 moved shift_vec in
-  let masked = NI.e_vandq_u16 shifted mask12 in
-  let low = NI.e_vreinterpretq_s16_u16 masked in
+  let tbl = Libcrux_intrinsics.Arm64.e_vqtbl1q_u8 input_vec index_vec in
+  let moved = Libcrux_intrinsics.Arm64.e_vreinterpretq_u16_u8 tbl in
+  let shifted = Libcrux_intrinsics.Arm64.e_vshlq_u16 moved shift_vec in
+  let masked = Libcrux_intrinsics.Arm64.e_vandq_u16 shifted mask12 in
+  let low = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u16 masked in
   assert (NI.get_lane_u8x16 tbl (2 * c) == vA);
   assert (NI.get_lane_u8x16 tbl (2 * c + 1) == vB);
   assert (NI.get_lane_u16x8 moved c == NI.u8x2_as_u16 vA vB);
@@ -1490,10 +1493,10 @@ let lemma_deser12_coeff_bit
         8 * byteA + s == 12 * cc /\
         vA == Seq.index inp byteA /\ vB == Seq.index inp (byteA + 1))
       (ensures
-        (let low = NI.e_vreinterpretq_s16_u16
-                     (NI.e_vandq_u16
-                        (NI.e_vshlq_u16
-                           (NI.e_vreinterpretq_u16_u8 (NI.e_vqtbl1q_u8 input_vec index_vec))
+        (let low = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u16
+                     (Libcrux_intrinsics.Arm64.e_vandq_u16
+                        (Libcrux_intrinsics.Arm64.e_vshlq_u16
+                           (Libcrux_intrinsics.Arm64.e_vreinterpretq_u16_u8 (Libcrux_intrinsics.Arm64.e_vqtbl1q_u8 input_vec index_vec))
                            shift_vec)
                         mask12) in
          BV.bounded (NI.get_lane_i16x8 low c) 12 /\
@@ -1662,9 +1665,9 @@ let lemma_deser12_dispatch
       (requires
         Seq.length inp == 24 /\
         result.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low ==
-          NI.e_vreinterpretq_s16_u16 (NI.e_vandq_u16 (NI.e_vshlq_u16 (NI.e_vreinterpretq_u16_u8 (NI.e_vqtbl1q_u8 input_vec0 index_vec)) shift_vec) mask12) /\
+          Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u16 (Libcrux_intrinsics.Arm64.e_vandq_u16 (Libcrux_intrinsics.Arm64.e_vshlq_u16 (Libcrux_intrinsics.Arm64.e_vreinterpretq_u16_u8 (Libcrux_intrinsics.Arm64.e_vqtbl1q_u8 input_vec0 index_vec)) shift_vec) mask12) /\
         result.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high ==
-          NI.e_vreinterpretq_s16_u16 (NI.e_vandq_u16 (NI.e_vshlq_u16 (NI.e_vreinterpretq_u16_u8 (NI.e_vqtbl1q_u8 input_vec1 index_vec)) shift_vec) mask12) /\
+          Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u16 (Libcrux_intrinsics.Arm64.e_vandq_u16 (Libcrux_intrinsics.Arm64.e_vshlq_u16 (Libcrux_intrinsics.Arm64.e_vreinterpretq_u16_u8 (Libcrux_intrinsics.Arm64.e_vqtbl1q_u8 input_vec1 index_vec)) shift_vec) mask12) /\
         v (NI.get_lane_u8x16 index_vec 0) == 0 /\ v (NI.get_lane_u8x16 index_vec 1) == 1 /\
         v (NI.get_lane_u8x16 index_vec 2) == 1 /\ v (NI.get_lane_u8x16 index_vec 3) == 2 /\
         v (NI.get_lane_u8x16 index_vec 4) == 3 /\ v (NI.get_lane_u8x16 index_vec 5) == 4 /\
@@ -1750,9 +1753,9 @@ let lemma_deser12_post
       (requires
         Seq.length inp == 24 /\
         result.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low ==
-          NI.e_vreinterpretq_s16_u16 (NI.e_vandq_u16 (NI.e_vshlq_u16 (NI.e_vreinterpretq_u16_u8 (NI.e_vqtbl1q_u8 input_vec0 index_vec)) shift_vec) mask12) /\
+          Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u16 (Libcrux_intrinsics.Arm64.e_vandq_u16 (Libcrux_intrinsics.Arm64.e_vshlq_u16 (Libcrux_intrinsics.Arm64.e_vreinterpretq_u16_u8 (Libcrux_intrinsics.Arm64.e_vqtbl1q_u8 input_vec0 index_vec)) shift_vec) mask12) /\
         result.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high ==
-          NI.e_vreinterpretq_s16_u16 (NI.e_vandq_u16 (NI.e_vshlq_u16 (NI.e_vreinterpretq_u16_u8 (NI.e_vqtbl1q_u8 input_vec1 index_vec)) shift_vec) mask12) /\
+          Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u16 (Libcrux_intrinsics.Arm64.e_vandq_u16 (Libcrux_intrinsics.Arm64.e_vshlq_u16 (Libcrux_intrinsics.Arm64.e_vreinterpretq_u16_u8 (Libcrux_intrinsics.Arm64.e_vqtbl1q_u8 input_vec1 index_vec)) shift_vec) mask12) /\
         v (NI.get_lane_u8x16 index_vec 0) == 0 /\ v (NI.get_lane_u8x16 index_vec 1) == 1 /\
         v (NI.get_lane_u8x16 index_vec 2) == 1 /\ v (NI.get_lane_u8x16 index_vec 3) == 2 /\
         v (NI.get_lane_u8x16 index_vec 4) == 3 /\ v (NI.get_lane_u8x16 index_vec 5) == 4 /\

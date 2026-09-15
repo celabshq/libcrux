@@ -1,5 +1,5 @@
 [
-  "7d367f369c25e5e91efd01cfe0f8b888",
+  "2ca93c9addda4021fb9fb4759db7ce35",
   [
     [
       "BitVec.Intrinsics.mm256_slli_epi16",
@@ -19,7 +19,7 @@
         "refinement_interpretation_Tm_refine_e15520089e5643fc8b170fa037d34e3b"
       ],
       0,
-      "d3223dfd8ff698fa6a16f03e1f63a43a"
+      "353b04834a7981c097ba35ae907ab610"
     ],
     [
       "BitVec.Intrinsics.mm256_srli_epi16",
@@ -40,7 +40,7 @@
         "refinement_interpretation_Tm_refine_e15520089e5643fc8b170fa037d34e3b"
       ],
       0,
-      "84ea419a3a9ac30ccc7145497769b338"
+      "977825c747d6f32854f0ddf5b8e3fbee"
     ],
     [
       "BitVec.Intrinsics.mm256_srli_epi64",
@@ -61,7 +61,7 @@
         "refinement_interpretation_Tm_refine_ff71549b655f08cf4ac91a7d995f01b0"
       ],
       0,
-      "fa608d46d092554affd3aeefa423549c"
+      "36b12becf5af473d42903bf09a403eac"
     ],
     [
       "BitVec.Intrinsics.mm256_castsi256_si128",
@@ -70,7 +70,7 @@
       1,
       [ "@query", "projection_inverse_BoxInt_proj_0" ],
       0,
-      "eff11ecfeda7048d862fbc2e66706aa0"
+      "fcb841be08d756efff110854ccd0c9c2"
     ],
     [
       "BitVec.Intrinsics.mm256_extracti128_si256",
@@ -85,7 +85,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "da9e7a83d9d58bd3e0a4c466ab42d341"
+      "cdf87d3f923d973aa011b5ce872e011f"
     ],
     [
       "BitVec.Intrinsics.mm256_extracti128_si256",
@@ -123,7 +123,7 @@
         "typing_tok_Rust_primitives.Integers.I32@tok"
       ],
       0,
-      "9db70004e39074db5214c75ab8dfd8df"
+      "64b24ae886599720704a47d43e8c7c06"
     ],
     [
       "BitVec.Intrinsics.mm256_si256_from_two_si128",
@@ -140,7 +140,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "7f130ca43dc51fd4decced948a484efa"
+      "7f26769eb357fce9b38059fd3b167b42"
     ],
     [
       "BitVec.Intrinsics.mm_loadu_si128",
@@ -191,7 +191,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "0402677f4b2e821cd3fa110c0121973c"
+      "b8ae4904f8d2774f7033a2e00cb30691"
     ],
     [
       "BitVec.Intrinsics.mm_loadu_si128",
@@ -221,7 +221,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "370ab8fde88be98727cc77f49d400b05"
+      "00f9b839dc54d15a5eb3b345c6f73dbf"
     ],
     [
       "BitVec.Intrinsics.mm256_set_epi32",
@@ -264,7 +264,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "6750df30864047d02f7e1829327ff160"
+      "aa406e3d7124dbaf70f2b8f7ee7163d7"
     ],
     [
       "BitVec.Intrinsics.mm256_set_epi16",
@@ -301,7 +301,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "9868a47d46d74c60ce6e72971000ba35"
+      "6b2a2fe6f383eff46e84d61f548d533e"
     ],
     [
       "BitVec.Intrinsics.mm_set_epi8",
@@ -338,7 +338,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e923e379ba2b34808a95db1e24052a0e"
+      "764ab2c36654eaf3c397ea553a134048"
     ],
     [
       "BitVec.Intrinsics.mm256_set_epi8",
@@ -375,7 +375,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "ed3ccafb915c7009844c8a24fa95408d"
+      "7ec6f8610f3f6d1c7c75a56d84d8b52c"
     ],
     [
       "BitVec.Intrinsics.mm256_slli_epi64",
@@ -395,7 +395,7 @@
         "refinement_interpretation_Tm_refine_ff71549b655f08cf4ac91a7d995f01b0"
       ],
       0,
-      "9cc7b2d339b9f25129127d7b51a889b7"
+      "04923b080657d84783c3e8fc6ed66668"
     ],
     [
       "BitVec.Intrinsics.mm256_set1_epi64x",
@@ -436,7 +436,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "430250852d23ff942da9c28045b52414"
+      "28562961d0301b2f229214050f8d04d7"
     ],
     [
       "BitVec.Intrinsics.mm256_set_epi64x",
@@ -477,7 +477,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f78a5ccfefa35c11382321f713a5e89c"
+      "c74608338ab346522b1d6c2e6aa5c8ba"
     ],
     [
       "BitVec.Intrinsics.mm256_unpacklo_epi64",
@@ -493,7 +493,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "e86ce15d640b2be6cf4ba7350a85f598"
+      "ddfc60585c3041f57ed3c90db54efa75"
     ],
     [
       "BitVec.Intrinsics.mm256_unpackhi_epi64",
@@ -510,7 +510,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "0e030ac363579339da9e4dd4be30b8b6"
+      "699566f24e71ff77ba71bba9f2cdcdc0"
     ],
     [
       "BitVec.Intrinsics.mm256_permute2x128_si256",
@@ -536,7 +536,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "67e341ae612cc36e450493d240a73500"
+      "c0fe72131d87f6075481fc706d37a751"
     ],
     [
       "BitVec.Intrinsics.saturate8",
@@ -551,7 +551,7 @@
         "refinement_interpretation_Tm_refine_26d768cc241c6628db9e0d45d45d9136"
       ],
       0,
-      "c26e9c8509a09e5552b62e0d5156506b"
+      "87ba6efe7783565fc63f4e9d9b501d25"
     ],
     [
       "BitVec.Intrinsics.mm_movemask_epi8_bv",
@@ -568,7 +568,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "5fa176fc6fb4db7b71683ef0f13dfc24"
+      "dbf61ff21207e51fd902a5d28a99546d"
     ],
     [
       "BitVec.Intrinsics.mm_movemask_epi8",
@@ -582,7 +582,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "b92bfd185b29799a451f4f7b39bb8bd9"
+      "3599dceba6db51fc58612f98a8e969c0"
     ],
     [
       "BitVec.Intrinsics.mm_packs_epi16",
@@ -600,7 +600,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "8c5e7ab0724c730448f47680afcd396e"
+      "e06df546fcb891f832eafdcb8465e4e5"
     ],
     [
       "BitVec.Intrinsics.mm256_mullo_epi16_specialized1",
@@ -618,7 +618,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "aa1bd0d62760f1bd797017d65f163cfd"
+      "5feb301304e5cc376de968ae5c17ea1b"
     ],
     [
       "BitVec.Intrinsics.mm256_mullo_epi16_specialized2",
@@ -637,7 +637,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "9f135e332e9b94878d7f5e6804df554d"
+      "62a08aa890cab9d821ad398f4f52cd00"
     ],
     [
       "BitVec.Intrinsics.mm256_mullo_epi16_specialized3",
@@ -656,7 +656,27 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "05365004abba4891d8983165fbd8b9b2"
+      "097bd956fc1674aeaf91537747db416c"
+    ],
+    [
+      "BitVec.Intrinsics.mm256_mullo_epi16_specialized4",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query", "equation_Prims.nat",
+        "int_inversion", "primitive_Prims.op_Addition",
+        "primitive_Prims.op_Division",
+        "primitive_Prims.op_GreaterThanOrEqual",
+        "primitive_Prims.op_Modulus", "primitive_Prims.op_Multiply",
+        "primitive_Prims.op_Subtraction",
+        "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_BoxInt_proj_0",
+        "refinement_interpretation_Tm_refine_31c7d3d85d92cb942c95a78642e657c7",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
+      ],
+      0,
+      "647a351c04b4326ce7693153d4747782"
     ],
     [
       "BitVec.Intrinsics.mm256_mullo_epi16",
@@ -696,7 +716,7 @@
         "typing_tok_Rust_primitives.Integers.I16@tok"
       ],
       0,
-      "2878bb1e3e17427237bfde4e51f70a06"
+      "c8d2ff34a66a3abc15d9c28407c90584"
     ],
     [
       "BitVec.Intrinsics.madd_rhs",
@@ -738,7 +758,7 @@
         "typing_tok_Rust_primitives.Integers.I16@tok"
       ],
       0,
-      "2f80ee0cc3f299f231f2e1b0c2006ccb"
+      "dcfe2fb5eb6e3e9de8f000dd689a7f54"
     ],
     [
       "BitVec.Intrinsics.forall_bool",
@@ -765,7 +785,7 @@
         "well-founded-ordering-on-nat"
       ],
       0,
-      "7d21722d07cf43275902fa5a7e9698cd"
+      "10b2b1d33fd675fef8e43327431c5aff"
     ],
     [
       "BitVec.Intrinsics.mm256_madd_epi16_specialized'",
@@ -784,7 +804,7 @@
         "refinement_interpretation_Tm_refine_f4ec0a04344e7130939ebe4f31f6bd8f"
       ],
       0,
-      "90d4b1ca9adb25a69acbe71f4b67d6f8"
+      "7bf00f1a06233381978e7985a5b48a61"
     ],
     [
       "BitVec.Intrinsics.mm256_concat_pairs_n",
@@ -804,7 +824,7 @@
         "refinement_interpretation_Tm_refine_26c49ec9c094c33dd7788d2b5e963b3a"
       ],
       0,
-      "5ae3a228548df2542783885fa67d1489"
+      "1f92472a2e6fa456b47e04bb8efbb8e8"
     ],
     [
       "BitVec.Intrinsics.mm_shuffle_epi8_u8",
@@ -822,7 +842,7 @@
         "refinement_interpretation_Tm_refine_7db6d7a699dc41a7479e5a1a7ee64683"
       ],
       0,
-      "015ed2d9fb5b9a394d3611599328293c"
+      "a431fa707f07cfb65fd8fffdf9e713a4"
     ],
     [
       "BitVec.Intrinsics.mm256_shuffle_epi8_i8",
@@ -840,7 +860,7 @@
         "refinement_interpretation_Tm_refine_d1a31893323b85829d04dd2e886a906d"
       ],
       0,
-      "8f677051a9db685e869725ae21516a94"
+      "ae54fae26bc6a7591924b2008a8c55e6"
     ],
     [
       "BitVec.Intrinsics.mm256_permutevar8x32_epi32_i32",
@@ -858,7 +878,7 @@
         "refinement_interpretation_Tm_refine_64009066619f5429f903fe99fb97a8c2"
       ],
       0,
-      "4fb44125bed7851ccb4ecd7e723034ba"
+      "ebaa5de06d4b68714bd69a86be6038a1"
     ],
     [
       "BitVec.Intrinsics.mm256_sllv_epi32_i32",
@@ -878,7 +898,7 @@
         "refinement_interpretation_Tm_refine_64009066619f5429f903fe99fb97a8c2"
       ],
       0,
-      "c470c147aaaf2e97e1ab6d7ed56a8d59"
+      "8797905b1d992be140f38264ba4ba9d9"
     ],
     [
       "BitVec.Intrinsics.mm_storeu_bytes_si128",
@@ -911,7 +931,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "dd7e6866c06e5a9ea7a13002c6c58d58"
+      "9f0c9a5af037722afed6908f63ac8f7c"
     ],
     [
       "BitVec.Intrinsics.bv_to_string",
@@ -927,7 +947,7 @@
         "well-founded-ordering-on-nat"
       ],
       0,
-      "43c7544a40b2272cfc059993b8ace92e"
+      "662f43dc7f84fda1460e4f120c223148"
     ],
     [
       "BitVec.Intrinsics.bv_of_string",
@@ -943,7 +963,7 @@
         "refinement_interpretation_Tm_refine_9d6af3f3535473623f7aec2f0501897f"
       ],
       0,
-      "52687242456dab333869770db7199923"
+      "91622f7b2b64388fb31d5f8741b20784"
     ],
     [
       "BitVec.Intrinsics.y",
@@ -979,7 +999,7 @@
         "typing_tok_Rust_primitives.Integers.I32@tok"
       ],
       0,
-      "60283f5b9dd140cac2c67864799cac39"
+      "9b8b1f4e1cea864188aed69df874095c"
     ]
   ]
 ]

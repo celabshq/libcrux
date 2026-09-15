@@ -21,7 +21,7 @@ Each module provides the following API:
 
 ### Portable and Optimized Implementations
 The crate provides portable, as well as AVX2- and NEON-optimized
-implementations of the above API. By defautl, the crate's `build.rs`
+implementations of the above API. By default, the crate's `build.rs`
 will include the portable implementation and one of the optimized
 implementations in the build, according to the value of
 `CARGO_CFG_TARGET_ARCH`.
@@ -166,10 +166,14 @@ instructions.
 ## Verification
 ![verified]
 
-The portable and AVX2 code for field arithmetic, NTT polynomial arithmetic, serialization, and the generic code for high-level algorithms
-is formally verified using [hax](https://cryspen.com/hax) and  [F*](https://fstar-lang.org).
+The Rust source is verified with [hax](https://cryspen.com/hax), which extracts it to
+[F\*](https://fstar-lang.org); the portable, AVX2, and Neon backends are covered. The one-shot KEM
+API (`generate_key_pair`/`encapsulate`/`decapsulate`, all parameter sets) is proven functionally
+correct against the `hacspec_ml_kem` reference specification, and essentially the whole API is
+proven panic-free.
 
-Please refer to [this file](proofs/ml_kem_verification_status.md) for detail on the verification of this crate.
+See [`proofs/README.md`](proofs/README.md) for the proofs: the top-level theorems, the spec ←
+implementation layering, the per-function verification status, and the coverage boundaries.
 
 [verified]: ../.assets/verified-brightgreen.svg
 

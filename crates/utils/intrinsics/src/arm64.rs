@@ -22,51 +22,113 @@ pub fn _vdupq_n_u64(i: u64) -> uint64x2_t {
     unsafe { vdupq_n_u64(i) }
 }
 
+// The raw-pointer NEON load/store ops (`.as_ptr()` / `.as_mut_ptr()`) are FFI
+// hax rejects, so under the hax cfg their bodies delegate to the extractable
+// slice-I/O models in core-models' arm `extra` module (mirror of avx2.rs's
+// delegation to `x86::extra`). The non-hax path (real NEON) is unchanged.
+#[hax_lib::ensures(|_r| future(out).len() == out.len())]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
 #[inline(always)]
 pub fn _vst1q_s16(out: &mut [i16], v: int16x8_t) {
-    unsafe { vst1q_s16(out.as_mut_ptr(), v) }
+    #[cfg(not(hax))]
+    unsafe {
+        vst1q_s16(out.as_mut_ptr(), v)
+    }
+    #[cfg(hax)]
+    extra::vst1q_s16_model(out, v)
 }
 
+#[hax_lib::ensures(|_r| future(out).len() == out.len())]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
 #[inline(always)]
 pub fn _vst1q_bytes(out: &mut [u8], v: int16x8_t) {
-    unsafe { vst1q_u8(out.as_mut_ptr(), vreinterpretq_u8_s16(v)) }
+    #[cfg(not(hax))]
+    unsafe {
+        vst1q_u8(out.as_mut_ptr(), vreinterpretq_u8_s16(v))
+    }
+    #[cfg(hax)]
+    extra::vst1q_bytes_model(out, v)
 }
 
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
 #[inline(always)]
 pub fn _vld1q_bytes(bytes: &[u8]) -> int16x8_t {
-    unsafe { vreinterpretq_s16_u8(vld1q_u8(bytes.as_ptr())) }
+    #[cfg(not(hax))]
+    unsafe {
+        vreinterpretq_s16_u8(vld1q_u8(bytes.as_ptr()))
+    }
+    #[cfg(hax)]
+    extra::vld1q_bytes_model(bytes)
 }
 
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
 #[inline(always)]
 pub fn _vld1q_s16(array: &[i16]) -> int16x8_t {
-    unsafe { vld1q_s16(array.as_ptr()) }
+    #[cfg(not(hax))]
+    unsafe {
+        vld1q_s16(array.as_ptr())
+    }
+    #[cfg(hax)]
+    extra::vld1q_s16_model(array)
 }
 
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
 #[inline(always)]
 pub fn _vld1q_bytes_u64(array: &[u8]) -> uint64x2_t {
-    unsafe { vld1q_u64(array.as_ptr() as *const u64) }
+    #[cfg(not(hax))]
+    unsafe {
+        vld1q_u64(array.as_ptr() as *const u64)
+    }
+    #[cfg(hax)]
+    extra::vld1q_bytes_model(array)
 }
 
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
 #[inline(always)]
 pub fn _vld1q_u64(array: &[u64]) -> uint64x2_t {
-    unsafe { vld1q_u64(array.as_ptr()) }
+    #[cfg(not(hax))]
+    unsafe {
+        vld1q_u64(array.as_ptr())
+    }
+    #[cfg(hax)]
+    extra::vld1q_u64_model(array)
 }
 
+#[hax_lib::ensures(|_r| future(out).len() == out.len())]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
 #[inline(always)]
 pub fn _vst1q_u64(out: &mut [u64], v: uint64x2_t) {
-    unsafe { vst1q_u64(out.as_mut_ptr(), v) }
+    #[cfg(not(hax))]
+    unsafe {
+        vst1q_u64(out.as_mut_ptr(), v)
+    }
+    #[cfg(hax)]
+    extra::vst1q_u64_model(out, v)
 }
 
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
 #[inline(always)]
 pub fn get_lane_u64(vec: uint64x2_t, lane: usize) -> u64 {
-    let mut tmp = [0u64; 2];
-    _vst1q_u64(&mut tmp, vec);
-    tmp[lane]
+    #[cfg(not(hax))]
+    {
+        let mut tmp = [0u64; 2];
+        _vst1q_u64(&mut tmp, vec);
+        tmp[lane]
+    }
+    #[cfg(hax)]
+    extra::get_lane_u64_model(vec, lane)
 }
 
+#[hax_lib::ensures(|_r| future(out).len() == out.len())]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
 #[inline(always)]
 pub fn _vst1q_bytes_u64(out: &mut [u8], v: uint64x2_t) {
-    unsafe { vst1q_u64(out.as_mut_ptr() as *mut u64, v) }
+    #[cfg(not(hax))]
+    unsafe {
+        vst1q_u64(out.as_mut_ptr() as *mut u64, v)
+    }
+    #[cfg(hax)]
+    extra::vst1q_bytes_model(out, v)
 }
 
 #[inline(always)]
@@ -290,14 +352,26 @@ pub fn _vmlal_s16(a: int32x4_t, b: int16x4_t, c: int16x4_t) -> int32x4_t {
 pub fn _vmlal_high_s16(a: int32x4_t, b: int16x8_t, c: int16x8_t) -> int32x4_t {
     unsafe { vmlal_high_s16(a, b, c) }
 }
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
 #[inline(always)]
 pub fn _vld1q_u8(ptr: &[u8]) -> uint8x16_t {
-    unsafe { vld1q_u8(ptr.as_ptr()) }
+    #[cfg(not(hax))]
+    unsafe {
+        vld1q_u8(ptr.as_ptr())
+    }
+    #[cfg(hax)]
+    extra::vld1q_bytes_model(ptr)
 }
 
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
 #[inline(always)]
 pub fn _vld1q_u32(ptr: &[u32]) -> uint32x4_t {
-    unsafe { vld1q_u32(ptr.as_ptr()) }
+    #[cfg(not(hax))]
+    unsafe {
+        vld1q_u32(ptr.as_ptr())
+    }
+    #[cfg(hax)]
+    extra::vld1q_u32_model(ptr)
 }
 
 #[inline(always)]
@@ -357,9 +431,16 @@ pub fn _vreinterpretq_u8_s64(a: int64x2_t) -> uint8x16_t {
     unsafe { vreinterpretq_u8_s64(a) }
 }
 
+#[hax_lib::ensures(|_r| future(out).len() == out.len())]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
 #[inline(always)]
 pub fn _vst1q_u8(out: &mut [u8], v: uint8x16_t) {
-    unsafe { vst1q_u8(out.as_mut_ptr(), v) }
+    #[cfg(not(hax))]
+    unsafe {
+        vst1q_u8(out.as_mut_ptr(), v)
+    }
+    #[cfg(hax)]
+    extra::vst1q_bytes_model(out, v)
 }
 #[inline(always)]
 pub fn _vdupq_n_u16(value: u16) -> uint16x8_t {
@@ -373,9 +454,15 @@ pub fn _vandq_u16(a: uint16x8_t, b: uint16x8_t) -> uint16x8_t {
 pub fn _vreinterpretq_u16_u8(a: uint8x16_t) -> uint16x8_t {
     unsafe { vreinterpretq_u16_u8(a) }
 }
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
 #[inline(always)]
 pub fn _vld1q_u16(ptr: &[u16]) -> uint16x8_t {
-    unsafe { vld1q_u16(ptr.as_ptr()) }
+    #[cfg(not(hax))]
+    unsafe {
+        vld1q_u16(ptr.as_ptr())
+    }
+    #[cfg(hax)]
+    extra::vld1q_u16_model(ptr)
 }
 #[inline(always)]
 pub fn _vcleq_s16(a: int16x8_t, b: int16x8_t) -> uint16x8_t {
@@ -412,7 +499,7 @@ pub fn _veorq_u32(a: uint32x4_t, b: uint32x4_t) -> uint32x4_t {
 
 #[inline]
 pub fn _vextq_u32<const N: i32>(a: uint32x4_t, b: uint32x4_t) -> uint32x4_t {
-    unsafe { vextq_u32(a, b, N) }
+    unsafe { vextq_u32::<N>(a, b) }
 }
 
 #[inline(always)]
@@ -434,6 +521,11 @@ pub fn _veor3q_u64(a: uint64x2_t, b: uint64x2_t, c: uint64x2_t) -> uint64x2_t {
 }
 
 #[inline(always)]
+// The op's documented contract (`LEFT + RIGHT == 64`); stated over the integer
+// projection so the extracted `debug_assert!` `+!` is bounded. Uncalled by
+// ml-kem/ml-dsa (the not(pre_core_models) real-arm64 path); sha3/aes use the
+// `arm64_extract` model under pre_core_models, so no caller cascade.
+#[hax_lib::requires(fstar!(r#"Rust_primitives.Integers.v v_LEFT + Rust_primitives.Integers.v v_RIGHT == 64"#))]
 pub fn _vxarq_u64<const LEFT: i32, const RIGHT: i32>(a: uint64x2_t, b: uint64x2_t) -> uint64x2_t {
     debug_assert!(LEFT + RIGHT == 64);
     #[cfg(all(
@@ -503,5 +595,5 @@ pub fn _vdupq_n_u8(value: u8) -> uint8x16_t {
 
 #[inline]
 pub fn _vdupq_laneq_u32<const N: i32>(a: uint32x4_t) -> uint32x4_t {
-    unsafe { vdupq_laneq_u32(a, N) }
+    unsafe { vdupq_laneq_u32::<N>(a) }
 }

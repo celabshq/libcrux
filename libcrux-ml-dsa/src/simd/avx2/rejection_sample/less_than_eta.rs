@@ -43,6 +43,18 @@ module E = Libcrux_ml_dsa.Simd.Avx2.Encoding.Error
 module C = Libcrux_ml_dsa.Constants
 module M = Spec.MLDSA.Math
 
+(* `sample`'s leaf_post is stated over the ghost snapshot `as_slice (to_vec output)`
+   while the body mutates the raw `output` param; this round-trip identity
+   `as_slice (to_vec s) == s` relates them. *)
+let lemma_as_slice_to_vec_id_i32 (s: t_Slice i32)
+  : Lemma
+      (ensures
+        Alloc.Vec.impl_1__as_slice #i32 #Alloc.Alloc.t_Global
+          (Alloc.Slice.impl__to_vec #i32 s) == s)
+      [SMTPat (Alloc.Vec.impl_1__as_slice #i32 #Alloc.Alloc.t_Global
+          (Alloc.Slice.impl__to_vec #i32 s))]
+  = Seq.append_empty_l s
+
 (* =============== Layer A_eta(a): deserialize lane == cast nibble =============== *)
 (* lane 2m holds byte m's low nibble (try_0 = byte & 15);
    lane 2m+1 holds byte m's high nibble (try_1 = byte >> 4) *)
@@ -306,6 +318,10 @@ let lemma_spec_eta4_bound (input: t_Slice u8)
   lemma_filt8_bound (cand8v sh) (acc8b p (mk_i32 9)) (-4) 4;
   lemma_eta4_filt8_is_spec input
 #pop-options
+
+(* Clear solver state accumulated by the sibling lemmas above, so the trivial
+   `f_index_pre` range-bounds check inside `sample` does not trigger-gap in-module. *)
+#restart-solver
 "#
 )]
 #[hax_lib::requires((ETA == 2 || ETA == 4) && input.len() == 4 && output.len() >= 8)]

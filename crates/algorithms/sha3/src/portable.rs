@@ -8,6 +8,15 @@ use hax_lib::prop::*;
 use crate::generic_keccak::{self, portable::keccak1};
 
 /// The Keccak state for the incremental API.
+// The `.fsti` interface (generated when this module is extracted with
+// `--interfaces`) exposes the concrete `t_KeccakState` record, whose field type
+// `GenericState<1, u64>` carries a `KeccakItem u64 1` typeclass constraint.  hax
+// emits the implicit-dependency `let _` that resolves that instance into the
+// `.fst` but not the `.fsti`, so name it explicitly for the interface here.
+#[cfg_attr(hax, hax_lib::fstar::before(interface, r#"let _ =
+  let open Libcrux_sha3.Simd.Portable in
+  let open Libcrux_sha3.Traits in
+  ()"#))]
 #[derive(Clone, Copy)]
 pub struct KeccakState {
     state: GenericState<1, u64>,

@@ -412,6 +412,17 @@ def parse_file(filepath, spec_re, range_re):
             pending_opaque = True
             continue
 
+        # `#[libcrux_macros::trusted(inline-admit|inline-assume)]` — G1 "pure"
+        # markers whose admit/assume is injected by a sibling trusted_admit!/
+        # trusted_assume! body macro, which `has_body_admit` (scoped to
+        # `hax_lib::fstar!(...)` blocks) cannot see. Route them through the same
+        # body-admit path so they classify as `lax`. `trusted(replace)` is NOT
+        # handled here (tracked separately; see the appendix).
+        if re.match(r'\s*#\[', stripped) and \
+           re.search(r'trusted\(\s*inline-(?:admit|assume)\b', stripped):
+            pending_options_admit = True
+            continue
+
         # verification_status attribute
         m = VSTATUS_RE.search(stripped)
         if m:
@@ -570,15 +581,15 @@ Each function is classified at exactly one proof tier (highest wins):
 The "Panic-safe" aggregate (sometimes useful for headline numbers) = Panic-free + Math
 + Bounds + Hacspec — i.e., total minus lax minus unverified.
 
-**Accepted carve-outs (`Lax` by design, not actionable).** A handful of `Lax` markers are
-*not* on the zero-lax work-list: they wrap unbounded rejection-sampling loops
-(`while !done {{ … }}`) whose termination is only probabilistic, so F\\* cannot discharge
-panic-freedom/termination without a statistical argument. These are trusted by design,
-mirroring ML-KEM's `sample_from_xof` carve-out. In ML-DSA they are the 3 rejection loops
-in `sample` (`sample_up_to_four_ring_elements_flat`, `sample_four_error_ring_elements`,
-`sample_challenge_ring_element`) and the 2 X4-XOF panic-freedom markers in `samplex4`
-(`t_X4Sampler`, `matrix_flat`). Subtracting these ~5 accepted carve-outs from the `Lax`
-column gives the actionable zero-lax target.
+**The `Lax` column has two kinds of entry.** (1) *Accepted carve-outs, not actionable*: a
+few markers wrap unbounded rejection-sampling loops (`while !done {{ … }}`) whose
+termination is only probabilistic, so F\\* cannot discharge it without a statistical
+argument — trusted by design, mirroring ML-KEM's `sample_from_xof` carve-out. (2) *The
+actionable work-list*: `#[libcrux_macros::trusted(inline-admit | inline-assume)]` markers on
+the top-level `sign`/`verify`/`generate_key_pair` and the signature/key encoding, whose
+functional-correctness obligations are admitted pending proof — enumerated in the
+*Body-admit sites (audit)* section below. (`trusted(replace)` sites — hand-written F\\* that
+F\\* still checks — are a separate trust class, not counted here; see the appendix.)
 
 """
 

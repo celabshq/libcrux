@@ -378,6 +378,74 @@ def check_module_mirrors(repo_root, crate_name):
 
 
 # ===========================================================================
+# V8 — fstar::replace bijection (repo-global CLAIMS-side lint)
+#
+# `#[hax_lib::fstar::replace(...)]` / `#[fstar::replace_body(...)]` DISCARDS the F*
+# hax extracts from a Rust body and substitutes hand-written F*. F* then verifies the
+# SUBSTITUTE, not the code — a trust surface AS BAD OR WORSE than an assume val, and
+# INVISIBLE to the observed F* plane (the substitute `let` looks like a real definition;
+# `trust_scan`'s plane-1 tokenizer never sees the .rs attribute). So the only way to
+# force a REASON at each site and fail CI on a NEW unmarked block is this CLAIMS-side
+# bijection: every replace site carries exactly one `#[libcrux_macros::trusted(replace,
+# "<category>: <reason>")]` marker (reason_ok), counted per .rs file (a struct that
+# stacks an `interface` + impl replace pair thus needs two markers). Mirrors the V4
+# companion-tag check, but repo-global (replace blocks live in intrinsics/core-models/
+# specs too, not just the three registered crates' src).
+# ===========================================================================
+
+# Roots that can contain `fstar::replace` sites, scoped to the WORKSPACE crates the
+# trust ledger governs. Walked once, _SKIP_DIRS pruned.
+#
+# `specs/*` is deliberately OUT of scope: the Hacspec spec crates are standalone
+# (outside the main workspace, pinned to a different git hax-lib and extracted
+# independently), so they cannot take the `libcrux-macros` dep the marker needs
+# without risk. They carry 3 `assume val createi` replace blocks (one per spec crate:
+# specs/ml-dsa, specs/ml-kem, specs/sha3) — a known SPEC-LAYER trusted primitive
+# (array-from-fn), a distinct trust surface from this intrinsics campaign. Revisit if
+# the spec crates are folded into the workspace.
+REPLACE_SCAN_ROOTS = ("crates", "libcrux-ml-dsa", "libcrux-ml-kem")
+
+
+def check_replace_markers(repo_root):
+    """V8 — every fstar::replace / replace_body SITE carries exactly one
+    `#[libcrux_macros::trusted(replace, …)]` MARKER (reason_ok), per .rs file.
+    Returns (regressions, notes). Repo-global; runs on the committed tree."""
+    regressions, notes = [], []
+    n_site = n_mark = 0
+    for root in REPLACE_SCAN_ROOTS:
+        aroot = _abs(repo_root, root)
+        if not os.path.isdir(aroot):
+            continue
+        for dirpath, dirnames, filenames in os.walk(aroot):
+            dirnames[:] = [d for d in dirnames if d not in ts._SKIP_DIRS]
+            for fn in sorted(filenames):
+                if not fn.endswith(".rs") or fn in ts._MARKER_SKIP_FILES:
+                    continue
+                p = os.path.join(dirpath, fn)
+                sites = ts.scan_file_replace_sites(p, repo_root)
+                markers = [a for a in ts.scan_file_trust_markers(p, repo_root)["attr"]
+                           if a["kind"] == "replace"]
+                if not sites and not markers:
+                    continue
+                n_site += len(sites)
+                n_mark += len(markers)
+                rel = os.path.relpath(p, repo_root)
+                if len(sites) != len(markers):
+                    regressions.append(
+                        f"[replace-bijection V8] {rel}: {len(sites)} fstar::replace site(s) "
+                        f"but {len(markers)} `trusted(replace,…)` marker(s) "
+                        "(need exactly one per site)")
+                for mk in markers:
+                    if not ts.reason_ok(mk["reason"]):
+                        regressions.append(
+                            f"[replace-bijection V8] {rel}:{mk['line']} marker reason lacks a "
+                            f"valid category prefix: {mk['reason'][:60]!r}")
+    if n_site or n_mark:
+        notes.append(f"[replace-bijection V8] {n_mark}/{n_site} fstar::replace site(s) marked")
+    return regressions, notes
+
+
+# ===========================================================================
 # Reporting
 # ===========================================================================
 
@@ -431,6 +499,15 @@ def main():
 
     # default: --check
     exit_code = 0
+    # V8 replace-bijection is repo-global (replace blocks live outside the three
+    # registered crates), so it runs ONCE, not per-crate.
+    rreg, rnotes = check_replace_markers(repo_root)
+    for n in rnotes:
+        print(f"  note: {n}")
+    for r in rreg:
+        print(f"  REGRESSION: {r}")
+    if rreg:
+        exit_code = 1
     for c in crates:
         observed = observe(repo_root, c)
         print(summarize(observed))

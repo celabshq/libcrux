@@ -48,6 +48,28 @@ pub fn serialize(simd_unit: &Coefficients, serialized: &mut [u8]) {
 
 #[inline(always)]
 #[hax_lib::fstar::options("--z3rlimit 300 --split_queries always")]
+// Clean-context helper: turn 8 ground per-index range facts into the forall
+// postcondition.  Proven outside `deserialize`'s heavy body context so the
+// forall decomposition (an 8-way case split) is not drowned by the logand /
+// change_t0_interval SMTPat cascade that saturates the in-body VC.
+#[hax_lib::fstar::before(
+    r#"let deserialize__lemma_forall_of_ground
+      (s: t_Array i32 (mk_usize 8))
+    : Lemma
+      (requires
+        (v (Seq.index s 0) > -(pow2 12) /\ v (Seq.index s 0) <= pow2 12) /\
+        (v (Seq.index s 1) > -(pow2 12) /\ v (Seq.index s 1) <= pow2 12) /\
+        (v (Seq.index s 2) > -(pow2 12) /\ v (Seq.index s 2) <= pow2 12) /\
+        (v (Seq.index s 3) > -(pow2 12) /\ v (Seq.index s 3) <= pow2 12) /\
+        (v (Seq.index s 4) > -(pow2 12) /\ v (Seq.index s 4) <= pow2 12) /\
+        (v (Seq.index s 5) > -(pow2 12) /\ v (Seq.index s 5) <= pow2 12) /\
+        (v (Seq.index s 6) > -(pow2 12) /\ v (Seq.index s 6) <= pow2 12) /\
+        (v (Seq.index s 7) > -(pow2 12) /\ v (Seq.index s 7) <= pow2 12))
+      (ensures
+        (forall (i: nat).
+            i < 8 ==>
+            v (Seq.index s i) > -(pow2 12) /\ v (Seq.index s i) <= pow2 12)) = ()"#
+)]
 #[hax_lib::requires(serialized.len() == 13)]
 #[hax_lib::ensures(|_| fstar!(r#"
     (forall (i: nat). i < 8 ==>
@@ -116,6 +138,19 @@ pub fn deserialize(serialized: &[u8], simd_unit: &mut Coefficients) {
                                                 `%Libcrux_ml_dsa.Simd.Portable.Encoding.T0.deserialize__v_BITS_IN_LOWER_PART_OF_T_MASK];
                                     primops])"#
     );
+    // Establish each coefficient's [0, pow2 13) bound in a focused context (via
+    // the logand_mask_lemma SMTPat), mirroring the passing t1/gamma1 siblings.
+    // Deriving all 8 lazily in the postcondition context saturates rlimit 300.
+    proof!(
+        r#"assert (v $coefficient0 >= 0 /\ v $coefficient0 < pow2 13);
+           assert (v $coefficient1 >= 0 /\ v $coefficient1 < pow2 13);
+           assert (v $coefficient2 >= 0 /\ v $coefficient2 < pow2 13);
+           assert (v $coefficient3 >= 0 /\ v $coefficient3 < pow2 13);
+           assert (v $coefficient4 >= 0 /\ v $coefficient4 < pow2 13);
+           assert (v $coefficient5 >= 0 /\ v $coefficient5 < pow2 13);
+           assert (v $coefficient6 >= 0 /\ v $coefficient6 < pow2 13);
+           assert (v $coefficient7 >= 0 /\ v $coefficient7 < pow2 13)"#
+    );
 
     simd_unit.values[0] = change_t0_interval(coefficient0);
     simd_unit.values[1] = change_t0_interval(coefficient1);
@@ -125,4 +160,19 @@ pub fn deserialize(serialized: &[u8], simd_unit: &mut Coefficients) {
     simd_unit.values[5] = change_t0_interval(coefficient5);
     simd_unit.values[6] = change_t0_interval(coefficient6);
     simd_unit.values[7] = change_t0_interval(coefficient7);
+
+    // Resolve each final coefficient's range per ground index (frame + the
+    // change_t0_interval range post), then lift the 8 grounds to the forall
+    // postcondition via the clean-context helper.
+    proof!(
+        r#"assert (v (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values 0) > -(pow2 12) /\ v (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values 0) <= pow2 12);
+           assert (v (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values 1) > -(pow2 12) /\ v (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values 1) <= pow2 12);
+           assert (v (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values 2) > -(pow2 12) /\ v (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values 2) <= pow2 12);
+           assert (v (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values 3) > -(pow2 12) /\ v (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values 3) <= pow2 12);
+           assert (v (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values 4) > -(pow2 12) /\ v (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values 4) <= pow2 12);
+           assert (v (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values 5) > -(pow2 12) /\ v (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values 5) <= pow2 12);
+           assert (v (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values 6) > -(pow2 12) /\ v (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values 6) <= pow2 12);
+           assert (v (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values 7) > -(pow2 12) /\ v (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values 7) <= pow2 12);
+           deserialize__lemma_forall_of_ground ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values"#
+    );
 }

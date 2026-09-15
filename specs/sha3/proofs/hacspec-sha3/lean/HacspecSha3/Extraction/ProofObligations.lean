@@ -61,6 +61,13 @@ theorem sponge.squeeze_state.spec.proof {OUTPUT_LEN : Std.Usize}
   := by sorry
 
 @[spec]
+theorem sponge.squeeze_last.spec.proof {OUTPUT_LEN : Std.Usize}
+  (state : Array Std.U64 25#usize) (output : Array Std.U8 OUTPUT_LEN)
+  (rate : Std.Usize) (output_rem : Std.Usize) :
+  sponge.squeeze_last.spec state output rate output_rem
+  := by sorry
+
+@[spec]
 theorem sponge.absorb_block.spec.proof (state : Array Std.U64 25#usize)
   (block : Slice Std.U8) (rate : Std.Usize) :
   sponge.absorb_block.spec state block rate

@@ -44,14 +44,25 @@ macro_rules! wycheproof_sign_test {
                         let message = test.msg;
                         let context = test.ctx;
 
+                        if test.flags.contains(&Flag::InvalidPrivateKey) {
+                            // We do not perform validation of s1/s2 during signing. This is
+                            // not required by FIPS 204 or FIPS 140-3.
+                            // Additional context: https://github.com/pq-code-package/mldsa-native/pull/1003
+                            continue;
+                        }
+
                         let signature = $sign(&signing_key, &message, &context, signing_randomness);
 
                         if let Err(SigningError::ContextTooLongError) = signature {
-                            assert!(test.result == SignResult::Invalid)
+                            assert!(test.result == TestResult::Invalid);
+                            assert!(test.flags.contains(&Flag::InvalidContext));
+                            continue;
                         }
 
-                        if test.result == SignResult::Valid {
+                        if test.result == TestResult::Valid {
                             assert_eq!(signature.unwrap().as_slice(), test.sig.as_slice());
+                        } else {
+                            panic!("tc_id: {}, unexpected test failure", test.tc_id)
                         }
                     }
                 }
@@ -76,14 +87,14 @@ macro_rules! wycheproof_sign_test {
                         let signature = $sign(&signing_key, &message, &context, signing_randomness);
 
                         if let Err(SigningError::ContextTooLongError) = signature {
-                            assert!(test.result == SignResult::Invalid)
+                            assert!(test.result == TestResult::Invalid)
                         }
 
                         if let Ok(signature) = signature {
-                            if test.result == SignResult::Valid {
+                            if test.result == TestResult::Valid {
                                 // check that the signature matches the expected signature
                                 assert_eq!(signature.as_slice(), test.sig.as_slice());
-                            } else if test.result == SignResult::Invalid {
+                            } else if test.result == TestResult::Invalid {
                                 // if a signature is generated, but it is invalid,
                                 // check that our own implementation agrees with this judgement,
                                 let verification_result =

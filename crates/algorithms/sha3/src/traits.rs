@@ -104,6 +104,7 @@ pub(crate) trait Absorb<const N: usize> {
 /// handle the mutability required for a generic implementation.
 ///
 /// Store blocks `N = 1`
+#[libcrux_macros::trusted(replace, "hax-limitation: F* typeclass model of the Squeeze trait")]
 #[hax_lib::fstar::replace(
     interface, "
 class t_Squeeze (v_Self: Type0) (v_T: Type0) = {

@@ -39,9 +39,9 @@ module EquivImplSpec.Sponge.Arm64.Driver
        ↓
      lemma_keccak2_arm64  : per-lane keccak2 ≡ scalar keccak
 
-   [lemma_squeeze2_arm64] is now PROVEN (no admit): it reads lane [l]
+   [lemma_squeeze2_arm64] is PROVEN (no admit): it reads lane [l]
    off [Generic_keccak.Simd128.squeeze2]'s strong per-lane functional
-   post via [match l].  Under hax-lib 0.3.7 the key is the facts filter
+   post via [match l].  The key is the facts filter
    `-Libcrux_sha3.Generic_keccak.Simd128.squeeze2_blocks` (plus -squeeze
    / -extract_lane): it stops F* unfolding squeeze2's loop body and forces
    use of squeeze2's opaque post atomically — 2.9 rlimit instead of a
@@ -55,7 +55,7 @@ module EquivImplSpec.Sponge.Arm64.Driver
 open FStar.Mul
 open Core_models
 
-module I = Libcrux_intrinsics.Arm64_extract
+module I = Libcrux_intrinsics.Arm64_sha3_views
 module KA = EquivImplSpec.Keccakf.Arm64
 
 
@@ -126,8 +126,8 @@ let lemma_squeeze2_arm64
          <: t_Slice u8)))
   = let _ = Libcrux_sha3.Generic_keccak.Simd128.squeeze2 rate s out0 out1 in
     (* squeeze2's post gives out0'/out1' == squeeze(extract_lane s 0/1); pick the
-       concrete lane so the if-ladder collapses to the matching conjunct (the
-       symbolic `if l=0` forced a case split that cascaded hint-free). *)
+       concrete lane so the if-ladder collapses to the matching conjunct (without
+       pinning the lane, the symbolic `if l=0` forces a case split that cascades). *)
     (match l with
      | 0 -> ()
      | _ -> ())

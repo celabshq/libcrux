@@ -10,9 +10,9 @@
 //! Gated behind the `cross-spec-tests` feature so the default `cargo test`
 //! workflow is unaffected.
 //!
-//! ## Accessibility wall (2026-04-27)
+//! ## Accessibility wall
 //!
-//! At the time of writing both `libcrux_ml_dsa::simd::*` and the hacspec
+//! Both `libcrux_ml_dsa::simd::*` and the hacspec
 //! internal modules (`hacspec_ml_dsa::{arithmetic, encoding, ntt,
 //! sampling, polynomial, ...}`) are `pub(crate)`. External integration
 //! tests (this file lives in `tests/`, which is a separate crate) cannot

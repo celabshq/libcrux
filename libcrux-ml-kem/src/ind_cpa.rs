@@ -171,6 +171,17 @@ pub(crate) fn serialize_vector<const K: usize, Vector: Operations>(
                 )
             });
 
+            // The `out[i*BPRE..(i+1)*BPRE]` slice-index range-validity precond
+            // reduces to the nonlinear
+            // `(v i + 1) * v BYTES_PER_RING_ELEMENT <= Seq.length out`, which the
+            // fold's heavy WP does not discharge on its own.  Establish it
+            // explicitly via mult-monotonicity.
+            proof!(r#"
+                assert (v $i < v $K);
+                assert (Seq.length $out == v $K * v $BYTES_PER_RING_ELEMENT);
+                FStar.Math.Lemmas.lemma_mult_le_right (v $BYTES_PER_RING_ELEMENT) (v $i + 1) (v $K);
+                assert ((v $i + 1) * v $BYTES_PER_RING_ELEMENT <= Seq.length $out)"#);
+
             out[i * BYTES_PER_RING_ELEMENT..(i + 1) * BYTES_PER_RING_ELEMENT]
             .copy_from_slice(&serialize_uncompressed_ring_element(&re));
 
@@ -196,7 +207,7 @@ pub(crate) fn serialize_vector<const K: usize, Vector: Operations>(
 
 /// Sample a vector of ring elements from a centered binomial distribution.
 //
-// FULLY VERIFIED (2026-06-18): functional return-post proven; `panic_free` removed.
+// Functional return-post proven; no `panic_free` admit.
 // The tuple-return wall (post on the `&mut error_1` future array-component failing
 // "incomplete quantifiers" — F* matched the goal's full fold-step term against the finalize
 // lemma's stripped one) is closed by `Ind_cpa_sampling.lemma_cbd_prefix_done_post_smtpat`:
@@ -434,8 +445,8 @@ fn sample_vector_cbd_then_ntt<
 #[allow(non_snake_case)]
 #[hax_lib::fstar::before(r#"[@ "opaque_to_smt"]"#)]
 // `--split_queries always` (and rlimit 800) so the whole-function VC splits into per-conjunct
-// sub-queries that verify cold — `sample_vector_cbd_then_ntt`'s now-discharged functional post
-// (previously `panic_free`) thickens this caller's context enough to saturate the monolithic VC.
+// sub-queries that verify — `sample_vector_cbd_then_ntt`'s functional post
+// thickens this caller's context enough to saturate the monolithic VC.
 #[hax_lib::fstar::options("--z3rlimit 800 --ext context_pruning --split_queries always --using_facts_from '* -Hacspec_ml_kem.Matrix -Hacspec_ml_kem.Ind_cpa.sample_vector_cbd_then_ntt'")]
 // Use .to_prop() & to create logical (l_and) conjunction so F* can propagate
 // is_rank(K) as a hypothesis when type-checking eta1_randomness_size(K)'s precondition.
@@ -1332,23 +1343,7 @@ pub(crate) fn build_unpacked_public_key_mut<
 
 /// Call [`deserialize_then_decompress_ring_element_u`] on each ring element
 /// in the `ciphertext`.
-// FOLLOW-UP (Phase F Stream 2 retry 2026-05-06): ntt_vector_u now has the
-// functional ensures (src/ntt.rs line 561-563), so the original blocker is
-// gone. New blockers (~10 errors at extracted Ind_cpa.fst:1050-1106 under
-// panic_free):
-//   1. deserialize_then_decompress_ring_element_u's ensures
-//      (`poly_to_spec result == decompress(byte_decode_dyn ...)`) lacks the
-//      `is_bounded_poly(3328, result)` conjunct that ntt_vector_u requires.
-//      Decompress's spec output is in [0, q-1], but the impl-level bound
-//      doesn't propagate from poly_to_spec.
-//   2. The loop invariant uses `poly_to_spec` while ntt_vector_u uses
-//      `to_spec_poly_plain`. Bridge lemma `poly_to_spec_eq_to_spec_poly_plain`
-//      exists in Hacspec_ml_kem.Commute.Bridges but must be applied each
-//      iteration to convert.
-//   3. The functional ensures requires loop-invariant maintenance through
-//      both deserialize_then_decompress_ring_element_u AND ntt_vector_u
-//      composing correctly. 60+ min dedicated session.
-// FULLY VERIFIED (2026-06-21): functional return-post proven; `panic_free` removed.
+// Functional return-post proven; no `panic_free` admit.
 // Per-element produce-then-NTT loop, mirror of `sample_vector_cbd_then_ntt`: the loop
 // invariant carries the opaque `cbd_ntt_prefix_done` atom (target-generic, reused from
 // `Commute.Ind_cpa_sampling`) instantiated at `target = deserialize_then_decompress_u_then_ntt
@@ -1665,7 +1660,7 @@ pub(crate) fn decrypt_unpacked<
         ciphertext,
     )
 )]
-// FULLY VERIFIED (2026-06-21): functional return-post proven; `panic_free` removed.
+// Functional return-post proven; no `panic_free` admit.
 // Clean composition: `deserialize_vector` gives `vector_to_spec secret_as_ntt ==
 // vector_decode_12_ K secret_key` (+ is_bounded_polynomial_vector 4096, which is exactly
 // decrypt_unpacked's precondition after the honest-4096 cascade); `decrypt_unpacked` gives

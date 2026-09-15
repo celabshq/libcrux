@@ -1,5 +1,5 @@
 [
-  "b149608fb5b43a9269e5a04c56455e64",
+  "420f1359f9d465be8fc43bcdde352057",
   [
     [
       "Libcrux_ml_kem.Vector.Neon.Compress.compress_1_",
@@ -24,7 +24,7 @@
         "typing_Libcrux_ml_kem.Vector.Neon.Vector_type.repr"
       ],
       0,
-      "e1acdb34080f9637807625ab311be352"
+      "a9ebe0a1054a3c19f0cc3bb93cd0636c"
     ],
     [
       "Libcrux_ml_kem.Vector.Neon.Compress.mask_n_least_significant_bits",
@@ -36,7 +36,35 @@
         "refinement_interpretation_Tm_refine_a17213b13a8e1199a5af51c4e40b1d82"
       ],
       0,
-      "d96a69b676a82ec241a3a77bfb47f100"
+      "d185479aada8a4af253f3b8a7bdcbcd0"
+    ],
+    [
+      "Libcrux_ml_kem.Vector.Neon.Compress.compress_int32x4_t",
+      1,
+      0,
+      1,
+      [
+        "@MaxFuel_assumption", "@MaxIFuel_assumption",
+        "@fuel_correspondence_Prims.pow2.fuel_instrumented", "@query",
+        "constructor_distinct_Rust_primitives.Integers.I32",
+        "constructor_distinct_Rust_primitives.Integers.U64",
+        "equality_tok_Rust_primitives.Integers.U64@tok",
+        "equation_Prims.nat", "equation_Rust_primitives.Integers.bits",
+        "equation_Rust_primitives.Integers.maxint",
+        "equation_Rust_primitives.Integers.minint",
+        "equation_Rust_primitives.Integers.range",
+        "equation_Rust_primitives.Integers.unsigned", "int_inversion",
+        "lemma_Rust_primitives.Integers.pow2_values",
+        "primitive_Prims.op_AmpAmp", "primitive_Prims.op_LessThanOrEqual",
+        "primitive_Prims.op_Subtraction",
+        "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_BoxInt_proj_0",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "typing_Rust_primitives.Integers.bits",
+        "typing_tok_Rust_primitives.Integers.U64@tok"
+      ],
+      0,
+      "23350b4a4de966f664bd780793715831"
     ],
     [
       "Libcrux_ml_kem.Vector.Neon.Compress.decompress_uint32x4_t",
@@ -44,19 +72,32 @@
       0,
       1,
       [
-        "@MaxIFuel_assumption", "@query",
-        "constructor_distinct_Rust_primitives.Integers.U32",
+        "@MaxFuel_assumption", "@MaxIFuel_assumption",
+        "@fuel_correspondence_Prims.pow2.fuel_instrumented", "@query",
+        "constructor_distinct_Rust_primitives.Integers.I32",
+        "constructor_distinct_Rust_primitives.Integers.U64",
         "equality_tok_Rust_primitives.Integers.I32@tok",
+        "equality_tok_Rust_primitives.Integers.U64@tok",
+        "equation_Prims.nat", "equation_Rust_primitives.Integers.bits",
         "equation_Rust_primitives.Integers.i32",
+        "equation_Rust_primitives.Integers.maxint",
         "equation_Rust_primitives.Integers.minint",
+        "equation_Rust_primitives.Integers.range",
         "equation_Rust_primitives.Integers.unsigned",
         "equation_Rust_primitives.Integers.v",
         "fuel_guarded_inversion_Rust_primitives.Integers.int_t",
-        "primitive_Prims.op_Subtraction", "projection_inverse_BoxInt_proj_0",
-        "refinement_interpretation_Tm_refine_cdaad9b98a19f1662a3158ace816d084"
+        "int_inversion", "lemma_Rust_primitives.Integers.pow2_values",
+        "primitive_Prims.op_AmpAmp", "primitive_Prims.op_LessThanOrEqual",
+        "primitive_Prims.op_Subtraction",
+        "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_BoxInt_proj_0",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_f78c555d2573c040d49b5c3daa29249c",
+        "typing_Rust_primitives.Integers.bits",
+        "typing_tok_Rust_primitives.Integers.U64@tok"
       ],
       0,
-      "552fd17b55d0125108e3402a21d97a0c"
+      "2ad58b530beaf1edc667233ab00c1225"
     ],
     [
       "Libcrux_ml_kem.Vector.Neon.Compress.decompress_1_",
@@ -111,7 +152,7 @@
         "typing_tok_Rust_primitives.Integers.I16@tok"
       ],
       0,
-      "4a5ce49a76e3692a572ed49b28a2401a"
+      "9c9c1480ba87adc903bc719218a60b72"
     ],
     [
       "Libcrux_ml_kem.Vector.Neon.Compress.decompress_ciphertext_coefficient",
@@ -142,7 +183,7 @@
         "typing_Libcrux_ml_kem.Vector.Neon.Vector_type.repr"
       ],
       0,
-      "05834ee34c72157b2198f4d64bc24cc6"
+      "1b3c5378a403df7853667e53686ce23a"
     ],
     [
       "Libcrux_ml_kem.Vector.Neon.Compress.cmp_compress_post",
@@ -171,7 +212,7 @@
         "typing_Libcrux_ml_kem.Vector.Neon.Vector_type.repr"
       ],
       0,
-      "1f6f60b6d8f9bdbcd7d4eb88e8b0e812"
+      "fc7f98446974cd75147aff4294afea27"
     ]
   ]
 ]

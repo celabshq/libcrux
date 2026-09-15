@@ -3,7 +3,11 @@ use crate::vector::{traits::INVERSE_OF_MODULUS_MOD_MONTGOMERY_R, FIELD_MODULUS};
 use super::*;
 
 #[inline(always)]
-#[hax_lib::fstar::before(interface, "open Libcrux_intrinsics.Avx2_extract")]
+#[hax_lib::fstar::before(
+    interface,
+    "open Libcrux_intrinsics.Avx2
+open Libcrux_intrinsics.Avx2_ml_kem_views"
+)]
 #[hax_lib::fstar::before(
     r#"
 open Libcrux_ml_kem.Vector.Avx2.Arithmetic_theory
@@ -51,7 +55,7 @@ pub(crate) fn multiply_by_constant(vector: Vec256, constant: i16) -> Vec256 {
 
     proof!(
         r#"Seq.lemma_eq_intro (vec256_as_i16x16 ${result})
-                        (Spec.Utils.map_array (fun x -> x *. $constant) (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $vector))"#
+                        (Spec.Utils.map_array (fun x -> x *. $constant) (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $vector))"#
     );
 
     proof!(
@@ -64,15 +68,15 @@ pub(crate) fn multiply_by_constant(vector: Vec256, constant: i16) -> Vec256 {
 }
 
 #[inline(always)]
-#[hax_lib::ensures(|result| fstar!(r#"Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $result == 
-                           Spec.Utils.map_array (fun x -> x &. $constant) (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $vector)"#))]
+#[hax_lib::ensures(|result| fstar!(r#"Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $result == 
+                           Spec.Utils.map_array (fun x -> x &. $constant) (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $vector)"#))]
 pub(crate) fn bitwise_and_with_constant(vector: Vec256, constant: i16) -> Vec256 {
     let cv = mm256_set1_epi16(constant);
     let result = mm256_and_si256(vector, cv);
 
     proof!(
-        r#"Seq.lemma_eq_intro (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result})
-                        (Spec.Utils.map_array (fun x -> x &. $constant) (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $vector))"#
+        r#"Seq.lemma_eq_intro (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${result})
+                        (Spec.Utils.map_array (fun x -> x &. $constant) (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $vector))"#
     );
 
     result
@@ -81,15 +85,15 @@ pub(crate) fn bitwise_and_with_constant(vector: Vec256, constant: i16) -> Vec256
 #[inline(always)]
 #[hax_lib::requires(SHIFT_BY >= 0 && SHIFT_BY < 16)]
 #[hax_lib::ensures(|result| fstar!(r#"(v_SHIFT_BY >=. (mk_i32 0) /\ v_SHIFT_BY <. (mk_i32 16)) ==> 
-                            Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $result == 
-                            Spec.Utils.map_array (fun x -> x >>! ${SHIFT_BY}) (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $vector)"#))]
+                            Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $result == 
+                            Spec.Utils.map_array (fun x -> x >>! ${SHIFT_BY}) (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $vector)"#))]
 pub(crate) fn shift_right<const SHIFT_BY: i32>(vector: Vec256) -> Vec256 {
     let result = mm256_srai_epi16::<{ SHIFT_BY }>(vector);
 
     proof!(
-        "Seq.lemma_eq_intro (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result})
+        "Seq.lemma_eq_intro (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${result})
                         (Spec.Utils.map_array (fun x -> x >>! ${SHIFT_BY}) 
-                           (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $vector))"
+                           (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $vector))"
     );
 
     result
@@ -97,7 +101,7 @@ pub(crate) fn shift_right<const SHIFT_BY: i32>(vector: Vec256) -> Vec256 {
 
 #[inline(always)]
 #[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 100"))]
-#[hax_lib::requires(fstar!(r#"Spec.Utils.is_i16b_array (pow2 12 - 1) (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $vector)"#))]
+#[hax_lib::requires(fstar!(r#"Spec.Utils.is_i16b_array (pow2 12 - 1) (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $vector)"#))]
 #[hax_lib::ensures(|result| fstar!(r#"forall i. i < 16 ==> 
                 get_lane $result i == 
                 (if (get_lane $vector i) >=. (mk_i16 3329) then get_lane $vector i -! (mk_i16 3329) else get_lane $vector i)"#))]
@@ -144,8 +148,8 @@ const BARRETT_MULTIPLIER: i16 = 20159;
 /// of this code.
 #[inline(always)]
 #[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 200"))]
-#[cfg_attr(hax, hax_lib::requires(fstar!(r#"Spec.Utils.is_i16b_array 28296 (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${vector})"#)))]
-#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"Spec.Utils.is_i16b_array 3328 (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}) /\
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"Spec.Utils.is_i16b_array 28296 (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${vector})"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"Spec.Utils.is_i16b_array 3328 (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${result}) /\
                 (forall i. i < 16 ==> v (get_lane $result i) % 3329 == 
                                       (v (get_lane $vector i) % 3329))"#)))]
 pub(crate) fn barrett_reduce(vector: Vec256) -> Vec256 {
@@ -184,7 +188,7 @@ pub(crate) fn barrett_reduce(vector: Vec256) -> Vec256 {
                     assert (forall i. v (get_lane $result i) % 3329 == v (get_lane $vector i) % 3329);
                     assert (forall i. Spec.Utils.is_i16b 3328 (get_lane $result i));
                     assert (forall (i:nat). i < 16 ==> Spec.Utils.is_i16b 3328 (get_lane $result i));
-                    assert (Spec.Utils.is_i16b_array 3328 (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $result))"#
+                    assert (Spec.Utils.is_i16b_array 3328 (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $result))"#
     );
 
     result
@@ -193,7 +197,7 @@ pub(crate) fn barrett_reduce(vector: Vec256) -> Vec256 {
 #[inline(always)]
 #[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 100 --ext context_pruning"))]
 #[cfg_attr(hax, hax_lib::requires(fstar!(r#"Spec.Utils.is_i16b 1664 constant"#)))]
-#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"Spec.Utils.is_i16b_array 3328 (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}) /\
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"Spec.Utils.is_i16b_array 3328 (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${result}) /\
                 (forall i. i < 16 ==> v (get_lane $result i) % 3329 == 
                                       ((v (get_lane $vector i) * v constant * 169) % 3329))"#)))]
 pub(crate) fn montgomery_multiply_by_constant(vector: Vec256, constant: i16) -> Vec256 {
@@ -217,10 +221,10 @@ pub(crate) fn montgomery_multiply_by_constant(vector: Vec256, constant: i16) -> 
     let k_times_modulus = mm256_mulhi_epi16(k, modulus);
 
     proof!(
-        r#"assert (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $k_times_modulus == 
+        r#"assert (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $k_times_modulus == 
                         Spec.Utils.map2 (fun x y -> cast (((cast x <: i32) *. (cast y <: i32)) >>! (mk_i32 16)) <: i16)
-                                (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $k)
-                                (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $modulus));
+                                (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $k)
+                                (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $modulus));
                      assert (forall i. get_lane $k_times_modulus i == 
                         (cast (((cast (get_lane $k i) <: i32) *. (cast (get_lane $modulus i) <: i32)) >>! (mk_i32 16)) <: i16))"#
     );
@@ -243,7 +247,7 @@ pub(crate) fn montgomery_multiply_by_constant(vector: Vec256, constant: i16) -> 
                     assert (forall i. get_lane $result i == Spec.Utils.mont_mul_red_i16 (get_lane $vector i) $constant);
                     assert (forall i. Spec.Utils.is_i16b 3328 (get_lane $result i));
                     assert (forall (i:nat). i < 16 ==> Spec.Utils.is_i16b 3328 (get_lane $result i));
-                    assert (Spec.Utils.is_i16b_array 3328 (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $result));
+                    assert (Spec.Utils.is_i16b_array 3328 (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $result));
                     assert (forall i. v (get_lane $result i) % 3329 == ((v (get_lane $vector i) * v $constant * 169) % 3329))"#
     );
     result
@@ -251,8 +255,8 @@ pub(crate) fn montgomery_multiply_by_constant(vector: Vec256, constant: i16) -> 
 
 #[inline(always)]
 #[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 100"))]
-#[cfg_attr(hax, hax_lib::requires(fstar!(r#"Spec.Utils.is_i16b_array 1664 (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $constants))"#)))]
-#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"Spec.Utils.is_i16b_array 3328 (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${result}) /\
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"Spec.Utils.is_i16b_array 1664 (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $constants))"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"Spec.Utils.is_i16b_array 3328 (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${result}) /\
                 (forall i. i < 16 ==> v (get_lane $result i) % 3329 == 
                                       ((v (get_lane $vec i) * v (get_lane $constants i) * 169) % 3329))"#)))]
 pub(crate) fn montgomery_multiply_by_constants(vec: Vec256, constants: Vec256) -> Vec256 {
@@ -273,10 +277,10 @@ pub(crate) fn montgomery_multiply_by_constants(vec: Vec256, constants: Vec256) -
     let k_times_modulus = mm256_mulhi_epi16(k, modulus);
 
     proof!(
-        r#"assert (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $k_times_modulus == 
+        r#"assert (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $k_times_modulus == 
                         Spec.Utils.map2 (fun x y -> cast (((cast x <: i32) *. (cast y <: i32)) >>! (mk_i32 16)) <: i16)
-                                (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $k)
-                                (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $modulus));
+                                (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $k)
+                                (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $modulus));
                     assert (forall i. get_lane $k_times_modulus i == 
                         (cast (((cast (get_lane $k i) <: i32) *. (cast (get_lane $modulus i) <: i32)) >>! (mk_i32 16)) <: i16))"#
     );
@@ -298,7 +302,7 @@ pub(crate) fn montgomery_multiply_by_constants(vec: Vec256, constants: Vec256) -
                     assert (forall i. get_lane $result i == Spec.Utils.mont_mul_red_i16 (get_lane $vec i) (get_lane $constants i));
                     assert (forall i. Spec.Utils.is_i16b 3328 (get_lane $result i));
                     assert (forall (i:nat). i < 16 ==> Spec.Utils.is_i16b 3328 (get_lane $result i));
-                    assert (Spec.Utils.is_i16b_array 3328 (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $result));
+                    assert (Spec.Utils.is_i16b_array 3328 (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $result));
                     assert (forall i. v (get_lane $result i) % 3329 == ((v (get_lane $vec i) * v (get_lane $constants i) * 169) % 3329))"#
     );
 
@@ -335,15 +339,15 @@ pub(crate) fn montgomery_multiply_by_constants(vec: Vec256, constants: Vec256) -
     interface,
     r#"
 [@@ "opaque_to_smt"]
-let lane32 (vv: Libcrux_intrinsics.Avx2_extract.t_Vec256) (j: nat{j < 8}) : int =
-  (v (Libcrux_intrinsics.Avx2_extract.get_lane vv (2*j)) % 65536) +
-  65536 * v (Libcrux_intrinsics.Avx2_extract.get_lane vv (2*j + 1))
+let lane32 (vv: Libcrux_intrinsics.Avx2_ml_kem_views.t_Vec256) (j: nat{j < 8}) : int =
+  (v (Libcrux_intrinsics.Avx2_ml_kem_views.get_lane vv (2*j)) % 65536) +
+  65536 * v (Libcrux_intrinsics.Avx2_ml_kem_views.get_lane vv (2*j + 1))
 
 (* Ground-literal per-lane triple: bound + sign-extension + residue.  Stated
    per concrete lane (no quantifier) so consumers chain by congruence only. *)
 unfold let mont_red_i32_lane
-    (vec result: Libcrux_intrinsics.Avx2_extract.t_Vec256) (j: nat{j < 8}) : Type0 =
-  let r16 = Libcrux_intrinsics.Avx2_extract.get_lane result (2 * j) in
+    (vec result: Libcrux_intrinsics.Avx2_ml_kem_views.t_Vec256) (j: nat{j < 8}) : Type0 =
+  let r16 = Libcrux_intrinsics.Avx2_ml_kem_views.get_lane result (2 * j) in
   Spec.Utils.is_i16b 3328 r16 /\ lane32 result j == v r16 /\
   v r16 % 3329 == ((lane32 vec j) * 169) % 3329
 "#
@@ -359,35 +363,35 @@ unfold let mont_red_i32_lane
    `slli 16; srai 16` sign-extends it into the full i32 lane. *)
 #push-options "--fuel 1 --ifuel 1 --z3rlimit 400 --split_queries always --z3refresh"
 let mont_reduce_lane
-      (vec k ktm vh r1 r2 r3: Libcrux_intrinsics.Avx2_extract.t_Vec256)
+      (vec k ktm vh r1 r2 r3: Libcrux_intrinsics.Avx2_ml_kem_views.t_Vec256)
       (j: nat{j < 8})
     : Lemma
       (requires
         Spec.Utils.is_intb (3328 * pow2 15) (lane32 vec j) /\
         k ==
-          Libcrux_intrinsics.Avx2_extract.mm256_mullo_epi16 vec
-            (Libcrux_intrinsics.Avx2_extract.mm256_set1_epi32 (cast (Libcrux_ml_kem.Vector.Traits.v_INVERSE_OF_MODULUS_MOD_MONTGOMERY_R
+          Libcrux_intrinsics.Avx2.mm256_mullo_epi16 vec
+            (Libcrux_intrinsics.Avx2.mm256_set1_epi32 (cast (Libcrux_ml_kem.Vector.Traits.v_INVERSE_OF_MODULUS_MOD_MONTGOMERY_R
                       <:
                       u32)
                   <:
                   i32)) /\
         ktm ==
-          Libcrux_intrinsics.Avx2_extract.mm256_mulhi_epi16 k
-            (Libcrux_intrinsics.Avx2_extract.mm256_set1_epi32 (cast (Libcrux_ml_kem.Vector.Traits.v_FIELD_MODULUS
+          Libcrux_intrinsics.Avx2.mm256_mulhi_epi16 k
+            (Libcrux_intrinsics.Avx2.mm256_set1_epi32 (cast (Libcrux_ml_kem.Vector.Traits.v_FIELD_MODULUS
                       <:
                       i16)
                   <:
                   i32)) /\
-        vh == Libcrux_intrinsics.Avx2_extract.mm256_srli_epi32 (mk_i32 16) vec /\
-        r1 == Libcrux_intrinsics.Avx2_extract.mm256_sub_epi16 vh ktm /\
-        r2 == Libcrux_intrinsics.Avx2_extract.mm256_slli_epi32 (mk_i32 16) r1 /\
-        r3 == Libcrux_intrinsics.Avx2_extract.mm256_srai_epi32 (mk_i32 16) r2)
+        vh == Libcrux_intrinsics.Avx2.mm256_srli_epi32 (mk_i32 16) vec /\
+        r1 == Libcrux_intrinsics.Avx2.mm256_sub_epi16 vh ktm /\
+        r2 == Libcrux_intrinsics.Avx2.mm256_slli_epi32 (mk_i32 16) r1 /\
+        r3 == Libcrux_intrinsics.Avx2.mm256_srai_epi32 (mk_i32 16) r2)
       (ensures mont_red_i32_lane vec r3 j)
   = reveal_opaque (`%lane32)
       (lane32);
-    let vlo = Libcrux_intrinsics.Avx2_extract.get_lane vec (2 * j) in
-    let vhi = Libcrux_intrinsics.Avx2_extract.get_lane vec (2 * j + 1) in
-    let vV = Libcrux_intrinsics.Avx2_extract.lane32 vec j in
+    let vlo = Libcrux_intrinsics.Avx2_ml_kem_views.get_lane vec (2 * j) in
+    let vhi = Libcrux_intrinsics.Avx2_ml_kem_views.get_lane vec (2 * j + 1) in
+    let vV = Libcrux_intrinsics.Avx2_ml_kem_views.lane32 vec j in
     lemma_lane32_halves vec j;
     assert_norm (3328 * pow2 15 < pow2 31);
     let pf:i32 = mk_int #i32_inttype vV in
@@ -404,12 +408,12 @@ let mont_reduce_lane
     (* value_high low lane == high i16 sub-lane of vec. *)
     lemma_srli_hi vV;
     lemma_lane32_halves vh j;
-    assert (Libcrux_intrinsics.Avx2_extract.get_lane vh (2 * j) == vhi);
+    assert (Libcrux_intrinsics.Avx2_ml_kem_views.get_lane vh (2 * j) == vhi);
     (* result_sub low lane is exactly mont_red_i32 pf. *)
-    assert (Libcrux_intrinsics.Avx2_extract.get_lane r1 (2 * j) == Spec.Utils.mont_red_i32 pf);
+    assert (Libcrux_intrinsics.Avx2_ml_kem_views.get_lane r1 (2 * j) == Spec.Utils.mont_red_i32 pf);
     assert (Spec.Utils.is_i32b (3328 * pow2 15) pf);
     Spec.Utils.lemma_mont_red_i32 pf;
-    let t = Libcrux_intrinsics.Avx2_extract.get_lane r1 (2 * j) in
+    let t = Libcrux_intrinsics.Avx2_ml_kem_views.get_lane r1 (2 * j) in
     (* slli 16; srai 16 sign-extends t into the full i32 lane (clean context). *)
     lemma_sign_extend r1 r2 r3 j t
 #pop-options
@@ -479,8 +483,8 @@ pub(crate) fn montgomery_reduce_i32s(vec: Vec256) -> Vec256 {
 
 #[inline(always)]
 #[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 100"))]
-#[cfg_attr(hax, hax_lib::requires(fstar!(r#"Spec.Utils.is_i16b_array 1664 (Libcrux_intrinsics.Avx2_extract.vec128_as_i16x8 $constants))"#)))]
-#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"Spec.Utils.is_i16b_array 3328 (Libcrux_intrinsics.Avx2_extract.vec128_as_i16x8 ${result}) /\
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"Spec.Utils.is_i16b_array 1664 (Libcrux_intrinsics.Avx2_ml_kem_views.vec128_as_i16x8 $constants))"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"Spec.Utils.is_i16b_array 3328 (Libcrux_intrinsics.Avx2_ml_kem_views.vec128_as_i16x8 ${result}) /\
                 (forall i. i < 8 ==> v (get_lane128 $result i) % 3329 == 
                                       ((v (get_lane128 $vec i) * v (get_lane128 $constants i) * 169) % 3329))"#)))]
 pub(crate) fn montgomery_multiply_m128i_by_constants(vec: Vec128, constants: Vec128) -> Vec128 {
@@ -506,10 +510,10 @@ pub(crate) fn montgomery_multiply_m128i_by_constants(vec: Vec128, constants: Vec
     let k_times_modulus = mm_mulhi_epi16(k, modulus);
 
     proof!(
-        r#"assert (Libcrux_intrinsics.Avx2_extract.vec128_as_i16x8 $k_times_modulus == 
+        r#"assert (Libcrux_intrinsics.Avx2_ml_kem_views.vec128_as_i16x8 $k_times_modulus == 
                         Spec.Utils.map2 (fun x y -> cast (((cast x <: i32) *. (cast y <: i32)) >>! (mk_i32 16)) <: i16)
-                                (Libcrux_intrinsics.Avx2_extract.vec128_as_i16x8 $k)
-                                (Libcrux_intrinsics.Avx2_extract.vec128_as_i16x8 $modulus));
+                                (Libcrux_intrinsics.Avx2_ml_kem_views.vec128_as_i16x8 $k)
+                                (Libcrux_intrinsics.Avx2_ml_kem_views.vec128_as_i16x8 $modulus));
                     assert (forall i. get_lane128 $k_times_modulus i == 
                         (cast (((cast (get_lane128 $k i) <: i32) *. (cast (get_lane128 $modulus i) <: i32)) >>! (mk_i32 16)) <: i16))"#
     );
@@ -532,28 +536,33 @@ pub(crate) fn montgomery_multiply_m128i_by_constants(vec: Vec128, constants: Vec
                     assert (forall i. get_lane128 $result i == Spec.Utils.mont_mul_red_i16 (get_lane128 $vec i) (get_lane128 $constants i));
                     assert (forall i. Spec.Utils.is_i16b 3328 (get_lane128 $result i));
                     assert (forall (i:nat). i < 8 ==> Spec.Utils.is_i16b 3328 (get_lane128 $result i));
-                    assert (Spec.Utils.is_i16b_array 3328 (Libcrux_intrinsics.Avx2_extract.vec128_as_i16x8 $result));
+                    assert (Spec.Utils.is_i16b_array 3328 (Libcrux_intrinsics.Avx2_ml_kem_views.vec128_as_i16x8 $result));
                     assert (forall i. v (get_lane128 $result i) % 3329 == ((v (get_lane128 $vec i) * v (get_lane128 $constants i) * 169) % 3329))"#
     );
 
     result
 }
 
-#[hax_lib::requires(fstar!(r#"Spec.Utils.is_i16b_array 3328 (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $a)"#))]
+#[hax_lib::requires(fstar!(r#"Spec.Utils.is_i16b_array 3328 (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $a)"#))]
 #[hax_lib::ensures(|result| fstar!(r#"forall i.
-                                       (let x = Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $a) i in
-                                        let y = Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $result) i in
+                                       (let x = Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $a) i in
+                                        let y = Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $result) i in
                                         (v y >= 0 /\ v y <= 3328 /\ (v y % 3329 == v x % 3329)))"#))]
+// The return type is `t_BitVec (mk_u64 256)`, so the intermediate `let t`
+// annotation carries a `256 in range_t U64` VC that saturates in this fn's
+// heavy forall-cascade context at the module-default rlimit.
+// `--split_queries always` isolates that trivial check.
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 200 --split_queries always"))]
 #[inline(always)]
 pub(crate) fn to_unsigned_representative(a: Vec256) -> Vec256 {
     let t = shift_right::<15>(a);
 
     proof!(
         r#"
-  assert (forall i. Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $t) i == 
-                    ((Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $a) i) >>! (mk_i32 15)));
-  assert (forall i. Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $a) i >=. mk_i16 0 ==> Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $t) i == mk_i16 0);
-  assert (forall i. Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $a) i <. mk_i16 0 ==> Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $t) i == mk_i16 (-1))
+  assert (forall i. Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $t) i == 
+                    ((Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $a) i) >>! (mk_i32 15)));
+  assert (forall i. Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $a) i >=. mk_i16 0 ==> Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $t) i == mk_i16 0);
+  assert (forall i. Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $a) i <. mk_i16 0 ==> Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $t) i == mk_i16 (-1))
     "#
     );
 
@@ -561,9 +570,9 @@ pub(crate) fn to_unsigned_representative(a: Vec256) -> Vec256 {
 
     proof!(
         r#"
-  assert (forall i. Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${fm}) i == (Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $t) i &. Libcrux_ml_kem.Vector.Traits.v_FIELD_MODULUS));
-  assert (forall i. Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $a) i >=. mk_i16 0 ==> Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${fm}) i == mk_i16 0);
-  assert (forall i. Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 $a) i <. mk_i16 0 ==> Seq.index (Libcrux_intrinsics.Avx2_extract.vec256_as_i16x16 ${fm}) i == mk_i16 3329)
+  assert (forall i. Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${fm}) i == (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $t) i &. Libcrux_ml_kem.Vector.Traits.v_FIELD_MODULUS));
+  assert (forall i. Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $a) i >=. mk_i16 0 ==> Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${fm}) i == mk_i16 0);
+  assert (forall i. Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 $a) i <. mk_i16 0 ==> Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 ${fm}) i == mk_i16 3329)
     "#
     );
 

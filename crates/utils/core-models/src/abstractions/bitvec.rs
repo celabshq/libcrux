@@ -88,6 +88,7 @@ fn int_from_bit_slice<T: TryFrom<i128> + MachineInteger + Copy>(bits: &[Bit]) ->
     n
 }
 
+#[libcrux_macros::trusted(replace, "trusted-extern: BitVec::from_fn F* model (bit-vector primitive)")]
 #[hax_lib::fstar::replace(
     r#"
 let ${BitVec::<0>::from_fn::<fn(u64)->Bit>}
@@ -160,6 +161,7 @@ impl<const N: u64> BitVec<N> {
     }
 }
 
+#[libcrux_macros::trusted(replace, "hax-limitation: F*-native functional-extensionality lemma (proof machinery)")]
 #[hax_lib::fstar::replace(
     r#"
 open FStar.FunctionalExtensionality
@@ -312,7 +314,10 @@ pub mod int_vec_interp {
                 pub type $name = FunArray<$m, $ty>;
                 pastey::paste! {
                     const _: ()  = {
-                        #[hax_lib::opaque]
+                        // Concretized to real F* defs via the module-level
+                        // `fstar::replace` block below (excluded here so the
+                        // hand-written defs are the sole extraction).
+                        #[hax_lib::exclude]
                         impl BitVec<$n> {
                             #[doc = concat!("Conversion from ", stringify!($ty), " vectors of size ", stringify!($m), "to  bit vectors of size ", stringify!($n))]
                             pub fn [< from_ $name >](iv: $name) -> BitVec<$n> {
@@ -358,6 +363,370 @@ pub mod int_vec_interp {
     // int32x2_t = i32x2, int16x4_t = i16x4, int8x8_t = i8x8, etc.
     interpretations!(64; i32x2 [i32; 2], i16x4 [i16; 4], i8x8 [i8; 8], i64x1 [i64; 1],
 		     u32x2 [u32; 2], u16x4 [u16; 4], u8x8 [u8; 8], u64x1 [u64; 1]);
+
+    /// Concrete lane-view conversions (bit-slice + two's-complement) with a
+    /// single generic round-trip lemma `lemma_conv_rt` (SMTPat). Gives the
+    /// macro conversions real F* definitions rather than opaque stubs.
+    #[libcrux_macros::trusted(replace, "trusted-extern: BitVec concrete lane-view conversions (bit-vector primitive)")]
+    #[hax_lib::fstar::replace(
+        r#"
+(* ============================================================
+   Concrete lane-view conversions for core-models BitVec.
+   Generic base-2 / two's-complement codec + generic tiling
+   (from_iv / to_iv) + a single generic round-trip lemma.
+   Each per-width conversion below is a thin instantiation.
+   (Grandfathered-OK primitive modeling for the BitVec base.)
+   ============================================================ *)
+
+let bval (b: Libcrux_core_models.Abstractions.Bit.t_Bit) : n: nat{n < 2} =
+  match b with
+  | Libcrux_core_models.Abstractions.Bit.Bit_Zero  -> 0
+  | Libcrux_core_models.Abstractions.Bit.Bit_One  -> 1
+
+let ebit (m: nat) (b: nat) : Libcrux_core_models.Abstractions.Bit.t_Bit =
+  if (m / pow2 b) % 2 = 1
+  then Libcrux_core_models.Abstractions.Bit.Bit_One
+  else Libcrux_core_models.Abstractions.Bit.Bit_Zero
+
+let rec dsum2 (f: nat -> Libcrux_core_models.Abstractions.Bit.t_Bit) (off: nat) (n: nat)
+    : Tot nat (decreases n) =
+  if n = 0 then 0 else bval (f off) + 2 * dsum2 f (off + 1) (n - 1)
+
+let lemA2 (m: nat) (off: nat) : Lemma (m / pow2 (off + 1) == (m / pow2 off) / 2) =
+  FStar.Math.Lemmas.pow2_plus off 1;
+  FStar.Math.Lemmas.division_multiplication_lemma m (pow2 off) 2
+
+let lemB (m: nat) (k: pos) : Lemma ((m % 2) + 2 * ((m / 2) % k) == m % (2 * k)) =
+  FStar.Math.Lemmas.lemma_div_mod m 2;
+  FStar.Math.Lemmas.lemma_div_mod (m / 2) k;
+  FStar.Math.Lemmas.lemma_mod_plus (m % 2 + 2 * ((m / 2) % k)) ((m / 2) / k) (2 * k);
+  FStar.Math.Lemmas.small_mod (m % 2 + 2 * ((m / 2) % k)) (2 * k)
+
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 60"
+let rec lemma_dsum2 (f: nat -> Libcrux_core_models.Abstractions.Bit.t_Bit) (m: nat) (off: nat) (n: nat)
+      (h: (b: nat) -> Lemma (bval (f b) == (m / pow2 b) % 2))
+    : Lemma (ensures dsum2 f off n == (m / pow2 off) % pow2 n) (decreases n) =
+  if n = 0
+  then (assert_norm (pow2 0 == 1))
+  else
+    (lemma_dsum2 f m (off + 1) (n - 1) h;
+      h off;
+      lemA2 m off;
+      lemB (m / pow2 off) (pow2 (n - 1));
+      FStar.Math.Lemmas.pow2_plus 1 (n - 1))
+
+let rec dsum2_bound (f: nat -> Libcrux_core_models.Abstractions.Bit.t_Bit) (off n: nat)
+    : Lemma (ensures dsum2 f off n < pow2 n) (decreases n) =
+  if n = 0 then () else (dsum2_bound f (off + 1) (n - 1); FStar.Math.Lemmas.pow2_plus 1 (n - 1))
+#pop-options
+
+let ebit_bit (m: nat) (b: nat) : Lemma (bval (ebit m b) == (m / pow2 b) % 2) = ()
+
+let bits_ge1 (t: Rust_primitives.Integers.inttype)
+    : Lemma (Rust_primitives.Integers.bits t >= 8) = ()
+
+let bits_le128 (t: Rust_primitives.Integers.inttype)
+    : Lemma (Rust_primitives.Integers.bits t <= 128) = ()
+
+let div_lt (a b c: nat) : Lemma (requires c >= 1 /\ b >= 1 /\ a < b * c) (ensures a / c < b) =
+  FStar.Math.Lemmas.lemma_div_plus (c - 1) (b - 1) c;
+  FStar.Math.Lemmas.small_div (c - 1) c;
+  FStar.Math.Lemmas.lemma_div_le a (b * c - 1) c
+
+let pow2_split (n: nat)
+    : Lemma (requires n >= 1) (ensures pow2 n == 2 * pow2 (n - 1)) =
+  FStar.Math.Lemmas.pow2_plus 1 (n - 1)
+
+let encode_bit (t: Rust_primitives.Integers.inttype) (x: Rust_primitives.Integers.int_t t) (b: nat)
+    : Libcrux_core_models.Abstractions.Bit.t_Bit =
+  ebit ((Rust_primitives.Integers.v x) % pow2 (Rust_primitives.Integers.bits t)) b
+
+let tc_of_u (t: Rust_primitives.Integers.inttype) (u: nat) : int =
+  if Rust_primitives.Integers.signed t && u >= pow2 (Rust_primitives.Integers.bits t - 1)
+  then u - pow2 (Rust_primitives.Integers.bits t)
+  else u
+
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 100"
+let lemma_tc_of_u_rt (t: Rust_primitives.Integers.inttype) (x: Rust_primitives.Integers.int_t t)
+    : Lemma (tc_of_u t ((Rust_primitives.Integers.v x) % pow2 (Rust_primitives.Integers.bits t)) ==
+        Rust_primitives.Integers.v x) =
+  bits_ge1 t;
+  pow2_split (Rust_primitives.Integers.bits t);
+  let n = Rust_primitives.Integers.bits t in
+  let vx = Rust_primitives.Integers.v x in
+  if Rust_primitives.Integers.signed t
+  then
+    (if vx >= 0
+      then FStar.Math.Lemmas.small_mod vx (pow2 n)
+      else
+        (FStar.Math.Lemmas.lemma_mod_plus vx 1 (pow2 n);
+          FStar.Math.Lemmas.small_mod (vx + pow2 n) (pow2 n)))
+  else FStar.Math.Lemmas.small_mod vx (pow2 n)
+
+let lemma_encode_dsum2 (t: Rust_primitives.Integers.inttype) (x: Rust_primitives.Integers.int_t t)
+    : Lemma (dsum2 (fun b -> encode_bit t x b) 0 (Rust_primitives.Integers.bits t) ==
+        (Rust_primitives.Integers.v x) % pow2 (Rust_primitives.Integers.bits t)) =
+  let n = Rust_primitives.Integers.bits t in
+  let u = (Rust_primitives.Integers.v x) % pow2 n in
+  FStar.Math.Lemmas.lemma_mod_lt (Rust_primitives.Integers.v x) (pow2 n);
+  lemma_dsum2 (fun b -> encode_bit t x b) u 0 n (fun b -> ebit_bit u b);
+  assert_norm (pow2 0 == 1);
+  FStar.Math.Lemmas.small_mod u (pow2 n)
+#pop-options
+
+#push-options "--fuel 1 --ifuel 2 --z3rlimit 100"
+let lemma_tc_range (t: Rust_primitives.Integers.inttype) (u: nat)
+    : Lemma (requires u < pow2 (Rust_primitives.Integers.bits t))
+      (ensures Rust_primitives.Integers.range (tc_of_u t u) t) =
+  bits_ge1 t;
+  pow2_split (Rust_primitives.Integers.bits t)
+
+let decode_lane (t: Rust_primitives.Integers.inttype) (f: nat -> Libcrux_core_models.Abstractions.Bit.t_Bit)
+    : Rust_primitives.Integers.int_t t =
+  bits_ge1 t;
+  dsum2_bound f 0 (Rust_primitives.Integers.bits t);
+  let u = dsum2 f 0 (Rust_primitives.Integers.bits t) in
+  lemma_tc_range t u;
+  Rust_primitives.Integers.mk_int #t (tc_of_u t u)
+
+let lemma_decode_encode (t: Rust_primitives.Integers.inttype) (x: Rust_primitives.Integers.int_t t)
+    : Lemma (decode_lane t (fun b -> encode_bit t x b) == x) =
+  lemma_encode_dsum2 t x;
+  lemma_tc_of_u_rt t x
+#pop-options
+
+let lane_reader (n: u64) (w: nat) (bv: Libcrux_core_models.Abstractions.Bitvec.t_BitVec n) (i: u64) (b: nat)
+    : Libcrux_core_models.Abstractions.Bit.t_Bit =
+  if b < w && w * v i + b < v n
+  then
+    Libcrux_core_models.Abstractions.Funarr.impl_5__get n
+      #Libcrux_core_models.Abstractions.Bit.t_Bit bv._0 (mk_u64 (w * v i + b))
+  else Libcrux_core_models.Abstractions.Bit.Bit_Zero
+
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 200"
+[@@ "opaque_to_smt"]
+let from_iv
+      (t: Rust_primitives.Integers.inttype)
+      (n m: u64)
+      (iv: Libcrux_core_models.Abstractions.Funarr.t_FunArray m (Rust_primitives.Integers.int_t t))
+    : Prims.Pure (Libcrux_core_models.Abstractions.Bitvec.t_BitVec n)
+      (requires v n == v m * Rust_primitives.Integers.bits t)
+      (ensures fun _ -> True) =
+  bits_ge1 t;
+  bits_le128 t;
+  let w:u64 = mk_u64 (Rust_primitives.Integers.bits t) in
+  Libcrux_core_models.Abstractions.Bitvec.impl_9__from_fn n
+    #(u64 -> Libcrux_core_models.Abstractions.Bit.t_Bit)
+    (fun (j: u64{v j < v n}) ->
+        div_lt (v j) (v m) (v w);
+        let lane_idx:u64 = j /! w in
+        encode_bit t
+          (Libcrux_core_models.Abstractions.Funarr.impl_5__get m #(Rust_primitives.Integers.int_t t) iv lane_idx)
+          (v (j %! w)))
+
+[@@ "opaque_to_smt"]
+let to_iv
+      (t: Rust_primitives.Integers.inttype)
+      (n m: u64)
+      (bv: Libcrux_core_models.Abstractions.Bitvec.t_BitVec n)
+    : Prims.Pure (Libcrux_core_models.Abstractions.Funarr.t_FunArray m (Rust_primitives.Integers.int_t t))
+      (requires v n == v m * Rust_primitives.Integers.bits t)
+      (ensures fun _ -> True) =
+  bits_ge1 t;
+  Libcrux_core_models.Abstractions.Funarr.impl_5__from_fn m
+    #(Rust_primitives.Integers.int_t t)
+    #(u64 -> Rust_primitives.Integers.int_t t)
+    (fun (i: u64{v i < v m}) -> decode_lane t (lane_reader n (Rust_primitives.Integers.bits t) bv i))
+#pop-options
+
+let funarr_ext
+      (m: u64)
+      (#elem: Type0)
+      (a b: Libcrux_core_models.Abstractions.Funarr.t_FunArray m elem)
+      (h: (i: u64{v i < v m}) -> Lemma (a._0 i == b._0 i))
+    : Lemma (a == b) =
+  introduce forall (i: u64{v i < v m}). a._0 i == b._0 i with (h i);
+  assert (FStar.FunctionalExtensionality.feq a._0 b._0);
+  Libcrux_core_models.Abstractions.Bitvec.extensionality' a._0 b._0
+
+#push-options "--fuel 1 --z3rlimit 200"
+let reader_h_gen
+      (t: Rust_primitives.Integers.inttype)
+      (n m: u64)
+      (iv: Libcrux_core_models.Abstractions.Funarr.t_FunArray m (Rust_primitives.Integers.int_t t))
+      (i: u64{v i < v m})
+      (b: nat)
+    : Lemma (requires v n == v m * Rust_primitives.Integers.bits t)
+      (ensures
+        bval (lane_reader n (Rust_primitives.Integers.bits t) (from_iv t n m iv) i b) ==
+        (((v (Libcrux_core_models.Abstractions.Funarr.impl_5__get m #(Rust_primitives.Integers.int_t t) iv i)) %
+            pow2 (Rust_primitives.Integers.bits t)) /
+          pow2 b) %
+        2) =
+  reveal_opaque (`%from_iv) from_iv;
+  bits_ge1 t;
+  let w = Rust_primitives.Integers.bits t in
+  let iv_i = Libcrux_core_models.Abstractions.Funarr.impl_5__get m #(Rust_primitives.Integers.int_t t) iv i in
+  let u = (v iv_i) % pow2 w in
+  if b < w
+  then
+    (FStar.Math.Lemmas.lemma_div_plus b (v i) w;
+      FStar.Math.Lemmas.lemma_mod_plus b (v i) w;
+      FStar.Math.Lemmas.small_div b w;
+      FStar.Math.Lemmas.small_mod b w;
+      ebit_bit u b)
+  else
+    (FStar.Math.Lemmas.pow2_le_compat b w;
+      FStar.Math.Lemmas.small_div u (pow2 b))
+#pop-options
+
+#push-options "--fuel 1 --z3rlimit 200"
+let my_lane_gen
+      (t: Rust_primitives.Integers.inttype)
+      (n m: u64)
+      (iv: Libcrux_core_models.Abstractions.Funarr.t_FunArray m (Rust_primitives.Integers.int_t t))
+      (i: u64{v i < v m})
+    : Lemma (requires v n == v m * Rust_primitives.Integers.bits t)
+      (ensures
+        (to_iv t n m (from_iv t n m iv))._0 i ==
+        Libcrux_core_models.Abstractions.Funarr.impl_5__get m #(Rust_primitives.Integers.int_t t) iv i) =
+  reveal_opaque (`%to_iv) to_iv;
+  bits_ge1 t;
+  let w = Rust_primitives.Integers.bits t in
+  let bv = from_iv t n m iv in
+  let iv_i = Libcrux_core_models.Abstractions.Funarr.impl_5__get m #(Rust_primitives.Integers.int_t t) iv i in
+  let u = (v iv_i) % pow2 w in
+  assert_norm (pow2 0 == 1);
+  dsum2_bound (lane_reader n w bv i) 0 w;
+  let aux (b: nat) : Lemma (bval (lane_reader n w bv i b) == (u / pow2 b) % 2) =
+    reader_h_gen t n m iv i b
+  in
+  lemma_dsum2 (lane_reader n w bv i) u 0 w aux;
+  FStar.Math.Lemmas.lemma_mod_lt (v iv_i) (pow2 w);
+  FStar.Math.Lemmas.small_mod u (pow2 w);
+  lemma_tc_of_u_rt t iv_i
+#pop-options
+
+#push-options "--fuel 1 --z3rlimit 200"
+let lemma_conv_rt
+      (t: Rust_primitives.Integers.inttype)
+      (n m: u64)
+      (iv: Libcrux_core_models.Abstractions.Funarr.t_FunArray m (Rust_primitives.Integers.int_t t))
+    : Lemma (requires v n == v m * Rust_primitives.Integers.bits t)
+      (ensures to_iv t n m (from_iv t n m iv) == iv)
+      [SMTPat (to_iv t n m (from_iv t n m iv))] =
+  funarr_ext m #(Rust_primitives.Integers.int_t t)
+    (to_iv t n m (from_iv t n m iv)) iv (my_lane_gen t n m iv)
+#pop-options
+
+(* ---- per-width conversions (thin instantiations) ---- *)
+let ${BitVec::<256>::from_i32x8} (iv: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 8) i32) : Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 256) =
+  from_iv Rust_primitives.Integers.I32 (mk_u64 256) (mk_u64 8) iv
+let ${BitVec::<256>::to_i32x8} (bv: Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 256)) : Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 8) i32 =
+  to_iv Rust_primitives.Integers.I32 (mk_u64 256) (mk_u64 8) bv
+let ${BitVec::<256>::from_i64x4} (iv: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 4) i64) : Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 256) =
+  from_iv Rust_primitives.Integers.I64 (mk_u64 256) (mk_u64 4) iv
+let ${BitVec::<256>::to_i64x4} (bv: Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 256)) : Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 4) i64 =
+  to_iv Rust_primitives.Integers.I64 (mk_u64 256) (mk_u64 4) bv
+let ${BitVec::<256>::from_i16x16} (iv: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 16) i16) : Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 256) =
+  from_iv Rust_primitives.Integers.I16 (mk_u64 256) (mk_u64 16) iv
+let ${BitVec::<256>::to_i16x16} (bv: Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 256)) : Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 16) i16 =
+  to_iv Rust_primitives.Integers.I16 (mk_u64 256) (mk_u64 16) bv
+let ${BitVec::<256>::from_i128x2} (iv: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 2) i128) : Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 256) =
+  from_iv Rust_primitives.Integers.I128 (mk_u64 256) (mk_u64 2) iv
+let ${BitVec::<256>::to_i128x2} (bv: Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 256)) : Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 2) i128 =
+  to_iv Rust_primitives.Integers.I128 (mk_u64 256) (mk_u64 2) bv
+let ${BitVec::<256>::from_i8x32} (iv: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 32) i8) : Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 256) =
+  from_iv Rust_primitives.Integers.I8 (mk_u64 256) (mk_u64 32) iv
+let ${BitVec::<256>::to_i8x32} (bv: Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 256)) : Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 32) i8 =
+  to_iv Rust_primitives.Integers.I8 (mk_u64 256) (mk_u64 32) bv
+let ${BitVec::<256>::from_u32x8} (iv: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 8) u32) : Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 256) =
+  from_iv Rust_primitives.Integers.U32 (mk_u64 256) (mk_u64 8) iv
+let ${BitVec::<256>::to_u32x8} (bv: Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 256)) : Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 8) u32 =
+  to_iv Rust_primitives.Integers.U32 (mk_u64 256) (mk_u64 8) bv
+let ${BitVec::<256>::from_u64x4} (iv: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 4) u64) : Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 256) =
+  from_iv Rust_primitives.Integers.U64 (mk_u64 256) (mk_u64 4) iv
+let ${BitVec::<256>::to_u64x4} (bv: Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 256)) : Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 4) u64 =
+  to_iv Rust_primitives.Integers.U64 (mk_u64 256) (mk_u64 4) bv
+let ${BitVec::<256>::from_u16x16} (iv: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 16) u16) : Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 256) =
+  from_iv Rust_primitives.Integers.U16 (mk_u64 256) (mk_u64 16) iv
+let ${BitVec::<256>::to_u16x16} (bv: Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 256)) : Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 16) u16 =
+  to_iv Rust_primitives.Integers.U16 (mk_u64 256) (mk_u64 16) bv
+let ${BitVec::<256>::from_u8x32} (iv: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 32) u8) : Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 256) =
+  from_iv Rust_primitives.Integers.U8 (mk_u64 256) (mk_u64 32) iv
+let ${BitVec::<256>::to_u8x32} (bv: Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 256)) : Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 32) u8 =
+  to_iv Rust_primitives.Integers.U8 (mk_u64 256) (mk_u64 32) bv
+let ${BitVec::<128>::from_i32x4} (iv: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 4) i32) : Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 128) =
+  from_iv Rust_primitives.Integers.I32 (mk_u64 128) (mk_u64 4) iv
+let ${BitVec::<128>::to_i32x4} (bv: Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 128)) : Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 4) i32 =
+  to_iv Rust_primitives.Integers.I32 (mk_u64 128) (mk_u64 4) bv
+let ${BitVec::<128>::from_i64x2} (iv: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 2) i64) : Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 128) =
+  from_iv Rust_primitives.Integers.I64 (mk_u64 128) (mk_u64 2) iv
+let ${BitVec::<128>::to_i64x2} (bv: Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 128)) : Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 2) i64 =
+  to_iv Rust_primitives.Integers.I64 (mk_u64 128) (mk_u64 2) bv
+let ${BitVec::<128>::from_i16x8} (iv: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 8) i16) : Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 128) =
+  from_iv Rust_primitives.Integers.I16 (mk_u64 128) (mk_u64 8) iv
+let ${BitVec::<128>::to_i16x8} (bv: Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 128)) : Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 8) i16 =
+  to_iv Rust_primitives.Integers.I16 (mk_u64 128) (mk_u64 8) bv
+let ${BitVec::<128>::from_i128x1} (iv: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 1) i128) : Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 128) =
+  from_iv Rust_primitives.Integers.I128 (mk_u64 128) (mk_u64 1) iv
+let ${BitVec::<128>::to_i128x1} (bv: Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 128)) : Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 1) i128 =
+  to_iv Rust_primitives.Integers.I128 (mk_u64 128) (mk_u64 1) bv
+let ${BitVec::<128>::from_i8x16} (iv: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 16) i8) : Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 128) =
+  from_iv Rust_primitives.Integers.I8 (mk_u64 128) (mk_u64 16) iv
+let ${BitVec::<128>::to_i8x16} (bv: Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 128)) : Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 16) i8 =
+  to_iv Rust_primitives.Integers.I8 (mk_u64 128) (mk_u64 16) bv
+let ${BitVec::<128>::from_u32x4} (iv: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 4) u32) : Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 128) =
+  from_iv Rust_primitives.Integers.U32 (mk_u64 128) (mk_u64 4) iv
+let ${BitVec::<128>::to_u32x4} (bv: Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 128)) : Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 4) u32 =
+  to_iv Rust_primitives.Integers.U32 (mk_u64 128) (mk_u64 4) bv
+let ${BitVec::<128>::from_u64x2} (iv: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 2) u64) : Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 128) =
+  from_iv Rust_primitives.Integers.U64 (mk_u64 128) (mk_u64 2) iv
+let ${BitVec::<128>::to_u64x2} (bv: Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 128)) : Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 2) u64 =
+  to_iv Rust_primitives.Integers.U64 (mk_u64 128) (mk_u64 2) bv
+let ${BitVec::<128>::from_u16x8} (iv: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 8) u16) : Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 128) =
+  from_iv Rust_primitives.Integers.U16 (mk_u64 128) (mk_u64 8) iv
+let ${BitVec::<128>::to_u16x8} (bv: Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 128)) : Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 8) u16 =
+  to_iv Rust_primitives.Integers.U16 (mk_u64 128) (mk_u64 8) bv
+let ${BitVec::<128>::from_u8x16} (iv: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 16) u8) : Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 128) =
+  from_iv Rust_primitives.Integers.U8 (mk_u64 128) (mk_u64 16) iv
+let ${BitVec::<128>::to_u8x16} (bv: Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 128)) : Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 16) u8 =
+  to_iv Rust_primitives.Integers.U8 (mk_u64 128) (mk_u64 16) bv
+let ${BitVec::<64>::from_i32x2} (iv: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 2) i32) : Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 64) =
+  from_iv Rust_primitives.Integers.I32 (mk_u64 64) (mk_u64 2) iv
+let ${BitVec::<64>::to_i32x2} (bv: Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 64)) : Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 2) i32 =
+  to_iv Rust_primitives.Integers.I32 (mk_u64 64) (mk_u64 2) bv
+let ${BitVec::<64>::from_i16x4} (iv: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 4) i16) : Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 64) =
+  from_iv Rust_primitives.Integers.I16 (mk_u64 64) (mk_u64 4) iv
+let ${BitVec::<64>::to_i16x4} (bv: Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 64)) : Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 4) i16 =
+  to_iv Rust_primitives.Integers.I16 (mk_u64 64) (mk_u64 4) bv
+let ${BitVec::<64>::from_i8x8} (iv: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 8) i8) : Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 64) =
+  from_iv Rust_primitives.Integers.I8 (mk_u64 64) (mk_u64 8) iv
+let ${BitVec::<64>::to_i8x8} (bv: Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 64)) : Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 8) i8 =
+  to_iv Rust_primitives.Integers.I8 (mk_u64 64) (mk_u64 8) bv
+let ${BitVec::<64>::from_i64x1} (iv: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 1) i64) : Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 64) =
+  from_iv Rust_primitives.Integers.I64 (mk_u64 64) (mk_u64 1) iv
+let ${BitVec::<64>::to_i64x1} (bv: Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 64)) : Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 1) i64 =
+  to_iv Rust_primitives.Integers.I64 (mk_u64 64) (mk_u64 1) bv
+let ${BitVec::<64>::from_u32x2} (iv: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 2) u32) : Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 64) =
+  from_iv Rust_primitives.Integers.U32 (mk_u64 64) (mk_u64 2) iv
+let ${BitVec::<64>::to_u32x2} (bv: Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 64)) : Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 2) u32 =
+  to_iv Rust_primitives.Integers.U32 (mk_u64 64) (mk_u64 2) bv
+let ${BitVec::<64>::from_u16x4} (iv: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 4) u16) : Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 64) =
+  from_iv Rust_primitives.Integers.U16 (mk_u64 64) (mk_u64 4) iv
+let ${BitVec::<64>::to_u16x4} (bv: Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 64)) : Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 4) u16 =
+  to_iv Rust_primitives.Integers.U16 (mk_u64 64) (mk_u64 4) bv
+let ${BitVec::<64>::from_u8x8} (iv: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 8) u8) : Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 64) =
+  from_iv Rust_primitives.Integers.U8 (mk_u64 64) (mk_u64 8) iv
+let ${BitVec::<64>::to_u8x8} (bv: Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 64)) : Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 8) u8 =
+  to_iv Rust_primitives.Integers.U8 (mk_u64 64) (mk_u64 8) bv
+let ${BitVec::<64>::from_u64x1} (iv: Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 1) u64) : Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 64) =
+  from_iv Rust_primitives.Integers.U64 (mk_u64 64) (mk_u64 1) iv
+let ${BitVec::<64>::to_u64x1} (bv: Libcrux_core_models.Abstractions.Bitvec.t_BitVec (mk_u64 64)) : Libcrux_core_models.Abstractions.Funarr.t_FunArray (mk_u64 1) u64 =
+  to_iv Rust_primitives.Integers.U64 (mk_u64 64) (mk_u64 1) bv
+"#
+    )]
+    const _: () = ();
 
     impl i64x4 {
         pub fn into_i32x8(self) -> i32x8 {
@@ -405,6 +774,7 @@ pub mod int_vec_interp {
     }
 
     /// Normalize `from` calls that convert from one type to itself
+    #[libcrux_macros::trusted(replace, "hax-limitation: F*-native SIMPLIFICATION_LEMMA rewrite (proof machinery)")]
     #[hax_lib::fstar::replace(
         r#"
         [@@ $SIMPLIFICATION_LEMMA ]

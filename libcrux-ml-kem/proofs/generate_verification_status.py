@@ -418,6 +418,17 @@ def parse_file(filepath, spec_re, range_re):
             pending_opaque = True
             continue
 
+        # `#[libcrux_macros::trusted(inline-admit|inline-assume)]` — G1 "pure"
+        # markers whose admit/assume is injected by a sibling trusted_admit!/
+        # trusted_assume! body macro, which `has_body_admit` (scoped to
+        # `hax_lib::fstar!(...)` blocks) cannot see. Route them through the same
+        # body-admit path so they classify as `lax`. `trusted(replace)` is NOT
+        # handled here (tracked separately; see the appendix).
+        if re.match(r'\s*#\[', stripped) and \
+           re.search(r'trusted\(\s*inline-(?:admit|assume)\b', stripped):
+            pending_options_admit = True
+            continue
+
         # verification_status attribute
         m = VSTATUS_RE.search(stripped)
         if m:

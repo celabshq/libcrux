@@ -114,14 +114,14 @@ fn store_u64x2x2(
                 Seq.index out0 j_n ==
                   Seq.index
                     (Core_models.Num.impl_u64__to_le_bytes
-                       (Libcrux_intrinsics.Arm64_extract.get_lane_u64x2 v0 ((j_n - a_pos) / 8)))
+                       (Libcrux_intrinsics.Arm64_sha3_views.get_lane_u64x2 v0 ((j_n - a_pos) / 8)))
                     ((j_n - a_pos) % 8)
               else
                 Seq.index out0 j_n == Seq.index old_out0 j_n)
           = Libcrux_sha3.Simd.Arm64.StoreBlockHelpers.store_block_window_byte_of_vst
               old_out0
               out0
-              (Libcrux_intrinsics.Arm64_extract.e_vst1q_bytes_u64
+              (Libcrux_intrinsics.Arm64_sha3_views.e_vst1q_bytes_u64
                  (Seq.slice old_out0 a_pos (a_pos + 16))
                  v0)
               v0
@@ -136,14 +136,14 @@ fn store_u64x2x2(
                 Seq.index out1 j_n ==
                   Seq.index
                     (Core_models.Num.impl_u64__to_le_bytes
-                       (Libcrux_intrinsics.Arm64_extract.get_lane_u64x2 v1 ((j_n - a_pos) / 8)))
+                       (Libcrux_intrinsics.Arm64_sha3_views.get_lane_u64x2 v1 ((j_n - a_pos) / 8)))
                     ((j_n - a_pos) % 8)
               else
                 Seq.index out1 j_n == Seq.index old_out1 j_n)
           = Libcrux_sha3.Simd.Arm64.StoreBlockHelpers.store_block_window_byte_of_vst
               old_out1
               out1
-              (Libcrux_intrinsics.Arm64_extract.e_vst1q_bytes_u64
+              (Libcrux_intrinsics.Arm64_sha3_views.e_vst1q_bytes_u64
                  (Seq.slice old_out1 a_pos (a_pos + 16))
                  v1)
               v1
@@ -242,7 +242,7 @@ fn store_tail_high(
                  Seq.index out0 j_n ==
                  Seq.index
                    (Core_models.Num.impl_u64__to_le_bytes
-                      (Libcrux_intrinsics.Arm64_extract.get_lane_u64x2 v0 (k / 8)))
+                      (Libcrux_intrinsics.Arm64_sha3_views.get_lane_u64x2 v0 (k / 8)))
                    (k % 8))
               else
                 Seq.index out0 j_n == Seq.index old_out0 j_n)
@@ -271,7 +271,7 @@ fn store_tail_high(
                  Seq.index out1 j_n ==
                  Seq.index
                    (Core_models.Num.impl_u64__to_le_bytes
-                      (Libcrux_intrinsics.Arm64_extract.get_lane_u64x2 v1 (k / 8)))
+                      (Libcrux_intrinsics.Arm64_sha3_views.get_lane_u64x2 v1 (k / 8)))
                    (k % 8))
               else
                 Seq.index out1 j_n == Seq.index old_out1 j_n)
@@ -365,7 +365,7 @@ fn store_tail_low(
                  Seq.index out0 j_n ==
                  Seq.index
                    (Core_models.Num.impl_u64__to_le_bytes
-                      (Libcrux_intrinsics.Arm64_extract.get_lane_u64x2 s_2q 0))
+                      (Libcrux_intrinsics.Arm64_sha3_views.get_lane_u64x2 s_2q 0))
                    k)
               else
                 Seq.index out0 j_n == Seq.index old_out0 j_n)
@@ -395,7 +395,7 @@ fn store_tail_low(
                  Seq.index out1 j_n ==
                  Seq.index
                    (Core_models.Num.impl_u64__to_le_bytes
-                      (Libcrux_intrinsics.Arm64_extract.get_lane_u64x2 s_2q 1))
+                      (Libcrux_intrinsics.Arm64_sha3_views.get_lane_u64x2 s_2q 1))
                    k)
               else
                 Seq.index out1 j_n == Seq.index old_out1 j_n)
@@ -431,13 +431,12 @@ fn store_tail_low(
 /// additively with the tail (`store_block_tail`) without forcing
 /// in-body Euclidean div/mod bridging on the function ensures.
 ///
-/// Verifies as a monolithic query (matching the prior verified shape
-/// of `store_block` at commit `c14f94d2c`); split_queries with rlimit
-/// 400 cliffs at the fold_range usize-range subtype check inside the
-/// per-iteration body. `--z3refresh` keeps the SMT context fresh
-/// across runs so that hint replay does not cause cliffs.
+/// Verifies as a monolithic query; split_queries with rlimit 400 cliffs
+/// at the fold_range usize-range subtype check inside the per-iteration
+/// body. `--z3refresh` keeps the SMT context fresh across runs so that
+/// hint replay does not cause cliffs.
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 800 --split_queries no --z3refresh --using_facts_from '* -Rust_primitives.Slice.array_from_fn -Core_models.Num.impl_u64__rem_euclid -Core_models.Num.impl_u32__rem_euclid'")]
+#[hax_lib::fstar::options("--z3rlimit 800 --split_queries no --z3refresh --using_facts_from '* -Rust_primitives.Slice.array_from_fn -Core_models.Num.impl_u64__rem_euclid -Core_models.Num.impl_u32__rem_euclid -Libcrux_intrinsics.Arm64_sha3_views'")]
 #[hax_lib::requires(
     out0.len() == out1.len()
     && q <= 12
@@ -481,12 +480,8 @@ fn store_block_full(
     let old_out1 = out1.to_vec().as_slice(); // ghost variable
     hax_lib::fstar!(
         r#"
-        assert_norm (
-          Alloc.Vec.impl_1__as_slice
-            (Alloc.Slice.impl__to_vec out0) == out0);
-        assert_norm (
-          Alloc.Vec.impl_1__as_slice
-            (Alloc.Slice.impl__to_vec out1) == out1);
+        // as_slice(to_vec _) == _ discharges via the round-trip SMTPat
+        // lemma_as_slice_to_vec_id_u8 in Arm64.StoreBlockHelpers.
         assert (old_out0 == out0);
         assert (old_out1 == out1)
         "#
@@ -537,7 +532,7 @@ fn store_block_full(
 /// Verifies as a monolithic query (matching `store_block_full`).
 /// `--z3refresh` keeps SMT context fresh across runs.
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 800 --split_queries no --z3refresh --using_facts_from '* -Rust_primitives.Slice.array_from_fn -Core_models.Num.impl_u64__rem_euclid -Core_models.Num.impl_u32__rem_euclid'")]
+#[hax_lib::fstar::options("--z3rlimit 800 --split_queries no --z3refresh --using_facts_from '* -Rust_primitives.Slice.array_from_fn -Core_models.Num.impl_u64__rem_euclid -Core_models.Num.impl_u32__rem_euclid -Libcrux_intrinsics.Arm64_sha3_views'")]
 #[hax_lib::requires(
     out0.len() == out1.len()
     && q <= 12
@@ -584,12 +579,8 @@ fn store_block_tail(
     let old_out1 = out1.to_vec().as_slice(); // ghost variable
     hax_lib::fstar!(
         r#"
-        assert_norm (
-          Alloc.Vec.impl_1__as_slice
-            (Alloc.Slice.impl__to_vec out0) == out0);
-        assert_norm (
-          Alloc.Vec.impl_1__as_slice
-            (Alloc.Slice.impl__to_vec out1) == out1);
+        // as_slice(to_vec _) == _ discharges via the round-trip SMTPat
+        // lemma_as_slice_to_vec_id_u8 in Arm64.StoreBlockHelpers.
         assert (old_out0 == out0);
         assert (old_out1 == out1)
         "#
@@ -637,10 +628,17 @@ fn store_block_tail(
 
 #[inline(always)]
 // Composer of `store_block_full` + `store_block_tail` into the opaque `stored`
-// / `modifies_range` posts.  The per-byte-forall reveal saturates cold at
-// rlimit 400 (it was hint-dependent in the campaign); verify it as a monolithic
-// query at 800 with `--z3refresh`, matching `store_block_full`/`store_block_tail`.
-#[hax_lib::fstar::options("--z3rlimit 800 --split_queries no --z3refresh --using_facts_from '* -Rust_primitives.Slice.array_from_fn -Core_models.Num.impl_u64__rem_euclid -Core_models.Num.impl_u32__rem_euclid'")]
+// / `modifies_range` posts.  The per-byte-forall reveal saturates as a MONOLITHIC
+// query.  Unlike the fold-bearing `store_block_full`/`store_block_tail`, this
+// composer is straight-line, so `--split_queries always` (each stored/modifies
+// conjunct its own sub-query) discharges it.  Companion excluded (composes
+// get_lane_u64/to_le_bytes atoms).
+// BUDGET (marginal): the heaviest sub-query is large, and its SMT context is
+// sensitive to foundation content (Integers.fsti overflow/operator definitions,
+// core-models digests) even though this proof's operands `to_le_bytes`/
+// `update_at_range` are unaffected. Set to 800 for headroom rather than
+// re-tightening the context.
+#[hax_lib::fstar::options("--z3rlimit 800 --split_queries always --z3refresh --using_facts_from '* -Rust_primitives.Slice.array_from_fn -Core_models.Num.impl_u64__rem_euclid -Core_models.Num.impl_u32__rem_euclid -Core_models.Bundle.impl_9__rem_euclid -Core_models.Bundle.impl_8__rem_euclid -Libcrux_intrinsics.Arm64_sha3_views'")]
 #[hax_lib::requires(valid_rate(RATE) && len <= RATE && start.to_int() + len.to_int() <= out0.len().to_int() && out0.len() == out1.len())]
 #[hax_lib::ensures(|_| (future(out0).len() == out0.len()).to_prop()
     & (future(out1).len() == out1.len()).to_prop()

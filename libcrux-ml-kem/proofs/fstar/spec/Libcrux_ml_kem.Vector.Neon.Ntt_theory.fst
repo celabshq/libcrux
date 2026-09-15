@@ -9,7 +9,7 @@ open Core_models
 
 unfold let repr = Libcrux_ml_kem.Vector.Neon.Vector_type.repr
 
-module NI = Libcrux_intrinsics.Arm64_extract
+module NI = Libcrux_intrinsics.Arm64_ml_kem_views
 module NS = Spec.Utils
 module NA = Libcrux_ml_kem.Vector.Neon.Arithmetic
 
@@ -157,9 +157,9 @@ let lemma_i16x4_as_i64_lane (a b c d: i16) (j: nat{j < 4}) : Lemma
    AVX2 backend's admitted shuffle/permute lane lemmas.  A wrong permutation
    here would be caught downstream: the butterfly_post proofs would fail. *)
 let lemma_trn1_s32_reinterpret (lo hi: NI.t_e_int16x8_t) : Lemma
-  (ensures (let r = NI.e_vreinterpretq_s16_s32
-                      (NI.e_vtrn1q_s32 (NI.e_vreinterpretq_s32_s16 lo)
-                                       (NI.e_vreinterpretq_s32_s16 hi)) in
+  (ensures (let r = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s32
+                      (Libcrux_intrinsics.Arm64.e_vtrn1q_s32 (Libcrux_intrinsics.Arm64.e_vreinterpretq_s32_s16 lo)
+                                       (Libcrux_intrinsics.Arm64.e_vreinterpretq_s32_s16 hi)) in
      NI.get_lane_i16x8 r 0 == NI.get_lane_i16x8 lo 0 /\
      NI.get_lane_i16x8 r 1 == NI.get_lane_i16x8 lo 1 /\
      NI.get_lane_i16x8 r 2 == NI.get_lane_i16x8 hi 0 /\
@@ -168,18 +168,26 @@ let lemma_trn1_s32_reinterpret (lo hi: NI.t_e_int16x8_t) : Lemma
      NI.get_lane_i16x8 r 5 == NI.get_lane_i16x8 lo 5 /\
      NI.get_lane_i16x8 r 6 == NI.get_lane_i16x8 hi 4 /\
      NI.get_lane_i16x8 r 7 == NI.get_lane_i16x8 hi 5))
-  = let lo32 = NI.e_vreinterpretq_s32_s16 lo in
-    let hi32 = NI.e_vreinterpretq_s32_s16 hi in
-    let t = NI.e_vtrn1q_s32 lo32 hi32 in
-    let r = NI.e_vreinterpretq_s16_s32 t in
+  = let lo32 = Libcrux_intrinsics.Arm64.e_vreinterpretq_s32_s16 lo in
+    let hi32 = Libcrux_intrinsics.Arm64.e_vreinterpretq_s32_s16 hi in
+    let t = Libcrux_intrinsics.Arm64.e_vtrn1q_s32 lo32 hi32 in
+    let r = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s32 t in
     assert (NI.get_lane_i32x4 lo32 0 == NI.i16x2_as_i32 (NI.get_lane_i16x8 lo 0) (NI.get_lane_i16x8 lo 1));
     assert (NI.get_lane_i32x4 lo32 2 == NI.i16x2_as_i32 (NI.get_lane_i16x8 lo 4) (NI.get_lane_i16x8 lo 5));
     assert (NI.get_lane_i32x4 hi32 0 == NI.i16x2_as_i32 (NI.get_lane_i16x8 hi 0) (NI.get_lane_i16x8 hi 1));
     assert (NI.get_lane_i32x4 hi32 2 == NI.i16x2_as_i32 (NI.get_lane_i16x8 hi 4) (NI.get_lane_i16x8 hi 5));
+    NI.lemma_e_vtrn1q_s32_lane lo32 hi32 0;
+    NI.lemma_e_vtrn1q_s32_lane lo32 hi32 1;
+    NI.lemma_e_vtrn1q_s32_lane lo32 hi32 2;
+    NI.lemma_e_vtrn1q_s32_lane lo32 hi32 3;
     assert (NI.get_lane_i32x4 t 0 == NI.get_lane_i32x4 lo32 0);
     assert (NI.get_lane_i32x4 t 1 == NI.get_lane_i32x4 hi32 0);
     assert (NI.get_lane_i32x4 t 2 == NI.get_lane_i32x4 lo32 2);
     assert (NI.get_lane_i32x4 t 3 == NI.get_lane_i32x4 hi32 2);
+    NI.lemma_e_vreinterpretq_s16_s32_lane t 0;
+    NI.lemma_e_vreinterpretq_s16_s32_lane t 1;
+    NI.lemma_e_vreinterpretq_s16_s32_lane t 2;
+    NI.lemma_e_vreinterpretq_s16_s32_lane t 3;
     lemma_i16x2_as_i32_lo (NI.get_lane_i16x8 lo 0) (NI.get_lane_i16x8 lo 1);
     lemma_i16x2_as_i32_hi (NI.get_lane_i16x8 lo 0) (NI.get_lane_i16x8 lo 1);
     lemma_i16x2_as_i32_lo (NI.get_lane_i16x8 hi 0) (NI.get_lane_i16x8 hi 1);
@@ -190,9 +198,9 @@ let lemma_trn1_s32_reinterpret (lo hi: NI.t_e_int16x8_t) : Lemma
     lemma_i16x2_as_i32_hi (NI.get_lane_i16x8 hi 4) (NI.get_lane_i16x8 hi 5)
 
 let lemma_trn2_s32_reinterpret (lo hi: NI.t_e_int16x8_t) : Lemma
-  (ensures (let r = NI.e_vreinterpretq_s16_s32
-                      (NI.e_vtrn2q_s32 (NI.e_vreinterpretq_s32_s16 lo)
-                                       (NI.e_vreinterpretq_s32_s16 hi)) in
+  (ensures (let r = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s32
+                      (Libcrux_intrinsics.Arm64.e_vtrn2q_s32 (Libcrux_intrinsics.Arm64.e_vreinterpretq_s32_s16 lo)
+                                       (Libcrux_intrinsics.Arm64.e_vreinterpretq_s32_s16 hi)) in
      NI.get_lane_i16x8 r 0 == NI.get_lane_i16x8 lo 2 /\
      NI.get_lane_i16x8 r 1 == NI.get_lane_i16x8 lo 3 /\
      NI.get_lane_i16x8 r 2 == NI.get_lane_i16x8 hi 2 /\
@@ -201,18 +209,26 @@ let lemma_trn2_s32_reinterpret (lo hi: NI.t_e_int16x8_t) : Lemma
      NI.get_lane_i16x8 r 5 == NI.get_lane_i16x8 lo 7 /\
      NI.get_lane_i16x8 r 6 == NI.get_lane_i16x8 hi 6 /\
      NI.get_lane_i16x8 r 7 == NI.get_lane_i16x8 hi 7))
-  = let lo32 = NI.e_vreinterpretq_s32_s16 lo in
-    let hi32 = NI.e_vreinterpretq_s32_s16 hi in
-    let t = NI.e_vtrn2q_s32 lo32 hi32 in
-    let r = NI.e_vreinterpretq_s16_s32 t in
+  = let lo32 = Libcrux_intrinsics.Arm64.e_vreinterpretq_s32_s16 lo in
+    let hi32 = Libcrux_intrinsics.Arm64.e_vreinterpretq_s32_s16 hi in
+    let t = Libcrux_intrinsics.Arm64.e_vtrn2q_s32 lo32 hi32 in
+    let r = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s32 t in
     assert (NI.get_lane_i32x4 lo32 1 == NI.i16x2_as_i32 (NI.get_lane_i16x8 lo 2) (NI.get_lane_i16x8 lo 3));
     assert (NI.get_lane_i32x4 lo32 3 == NI.i16x2_as_i32 (NI.get_lane_i16x8 lo 6) (NI.get_lane_i16x8 lo 7));
     assert (NI.get_lane_i32x4 hi32 1 == NI.i16x2_as_i32 (NI.get_lane_i16x8 hi 2) (NI.get_lane_i16x8 hi 3));
     assert (NI.get_lane_i32x4 hi32 3 == NI.i16x2_as_i32 (NI.get_lane_i16x8 hi 6) (NI.get_lane_i16x8 hi 7));
+    NI.lemma_e_vtrn2q_s32_lane lo32 hi32 0;
+    NI.lemma_e_vtrn2q_s32_lane lo32 hi32 1;
+    NI.lemma_e_vtrn2q_s32_lane lo32 hi32 2;
+    NI.lemma_e_vtrn2q_s32_lane lo32 hi32 3;
     assert (NI.get_lane_i32x4 t 0 == NI.get_lane_i32x4 lo32 1);
     assert (NI.get_lane_i32x4 t 1 == NI.get_lane_i32x4 hi32 1);
     assert (NI.get_lane_i32x4 t 2 == NI.get_lane_i32x4 lo32 3);
     assert (NI.get_lane_i32x4 t 3 == NI.get_lane_i32x4 hi32 3);
+    NI.lemma_e_vreinterpretq_s16_s32_lane t 0;
+    NI.lemma_e_vreinterpretq_s16_s32_lane t 1;
+    NI.lemma_e_vreinterpretq_s16_s32_lane t 2;
+    NI.lemma_e_vreinterpretq_s16_s32_lane t 3;
     lemma_i16x2_as_i32_lo (NI.get_lane_i16x8 lo 2) (NI.get_lane_i16x8 lo 3);
     lemma_i16x2_as_i32_hi (NI.get_lane_i16x8 lo 2) (NI.get_lane_i16x8 lo 3);
     lemma_i16x2_as_i32_lo (NI.get_lane_i16x8 hi 2) (NI.get_lane_i16x8 hi 3);
@@ -226,11 +242,11 @@ let lemma_trn2_s32_reinterpret (lo hi: NI.t_e_int16x8_t) : Lemma
    i64_i16lane as opaque atoms, so unfolding their nested OR/shift/cast bodies here
    only saturates Z3 (canceled at full rlimit). Excluding their definitional facts
    makes the composition a pure congruence over the op-ensures + lane-lemma posts. *)
-#push-options "--z3rlimit 100 --split_queries always --using_facts_from '* -Libcrux_intrinsics.Arm64_extract.i16x4_as_i64 -Libcrux_intrinsics.Arm64_extract.i64_i16lane'"
+#push-options "--z3rlimit 100 --split_queries always --using_facts_from '* -Libcrux_intrinsics.Arm64_ml_kem_views.i16x4_as_i64 -Libcrux_intrinsics.Arm64_ml_kem_views.i64_i16lane'"
 let lemma_trn1_s64_reinterpret (lo hi: NI.t_e_int16x8_t) : Lemma
-  (ensures (let r = NI.e_vreinterpretq_s16_s64
-                      (NI.e_vtrn1q_s64 (NI.e_vreinterpretq_s64_s16 lo)
-                                       (NI.e_vreinterpretq_s64_s16 hi)) in
+  (ensures (let r = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s64
+                      (Libcrux_intrinsics.Arm64.e_vtrn1q_s64 (Libcrux_intrinsics.Arm64.e_vreinterpretq_s64_s16 lo)
+                                       (Libcrux_intrinsics.Arm64.e_vreinterpretq_s64_s16 hi)) in
      NI.get_lane_i16x8 r 0 == NI.get_lane_i16x8 lo 0 /\
      NI.get_lane_i16x8 r 1 == NI.get_lane_i16x8 lo 1 /\
      NI.get_lane_i16x8 r 2 == NI.get_lane_i16x8 lo 2 /\
@@ -239,10 +255,10 @@ let lemma_trn1_s64_reinterpret (lo hi: NI.t_e_int16x8_t) : Lemma
      NI.get_lane_i16x8 r 5 == NI.get_lane_i16x8 hi 1 /\
      NI.get_lane_i16x8 r 6 == NI.get_lane_i16x8 hi 2 /\
      NI.get_lane_i16x8 r 7 == NI.get_lane_i16x8 hi 3))
-  = let lo64 = NI.e_vreinterpretq_s64_s16 lo in
-    let hi64 = NI.e_vreinterpretq_s64_s16 hi in
-    let t = NI.e_vtrn1q_s64 lo64 hi64 in
-    let r = NI.e_vreinterpretq_s16_s64 t in
+  = let lo64 = Libcrux_intrinsics.Arm64.e_vreinterpretq_s64_s16 lo in
+    let hi64 = Libcrux_intrinsics.Arm64.e_vreinterpretq_s64_s16 hi in
+    let t = Libcrux_intrinsics.Arm64.e_vtrn1q_s64 lo64 hi64 in
+    let r = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s64 t in
     assert (NI.get_lane_i64x2 lo64 0 == NI.i16x4_as_i64 (NI.get_lane_i16x8 lo 0) (NI.get_lane_i16x8 lo 1)
                                                         (NI.get_lane_i16x8 lo 2) (NI.get_lane_i16x8 lo 3));
     assert (NI.get_lane_i64x2 hi64 0 == NI.i16x4_as_i64 (NI.get_lane_i16x8 hi 0) (NI.get_lane_i16x8 hi 1)
@@ -267,9 +283,9 @@ let lemma_trn1_s64_reinterpret (lo hi: NI.t_e_int16x8_t) : Lemma
     lemma_i16x4_as_i64_lane (NI.get_lane_i16x8 hi 0) (NI.get_lane_i16x8 hi 1) (NI.get_lane_i16x8 hi 2) (NI.get_lane_i16x8 hi 3) 3
 
 let lemma_trn2_s64_reinterpret (lo hi: NI.t_e_int16x8_t) : Lemma
-  (ensures (let r = NI.e_vreinterpretq_s16_s64
-                      (NI.e_vtrn2q_s64 (NI.e_vreinterpretq_s64_s16 lo)
-                                       (NI.e_vreinterpretq_s64_s16 hi)) in
+  (ensures (let r = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s64
+                      (Libcrux_intrinsics.Arm64.e_vtrn2q_s64 (Libcrux_intrinsics.Arm64.e_vreinterpretq_s64_s16 lo)
+                                       (Libcrux_intrinsics.Arm64.e_vreinterpretq_s64_s16 hi)) in
      NI.get_lane_i16x8 r 0 == NI.get_lane_i16x8 lo 4 /\
      NI.get_lane_i16x8 r 1 == NI.get_lane_i16x8 lo 5 /\
      NI.get_lane_i16x8 r 2 == NI.get_lane_i16x8 lo 6 /\
@@ -278,10 +294,10 @@ let lemma_trn2_s64_reinterpret (lo hi: NI.t_e_int16x8_t) : Lemma
      NI.get_lane_i16x8 r 5 == NI.get_lane_i16x8 hi 5 /\
      NI.get_lane_i16x8 r 6 == NI.get_lane_i16x8 hi 6 /\
      NI.get_lane_i16x8 r 7 == NI.get_lane_i16x8 hi 7))
-  = let lo64 = NI.e_vreinterpretq_s64_s16 lo in
-    let hi64 = NI.e_vreinterpretq_s64_s16 hi in
-    let t = NI.e_vtrn2q_s64 lo64 hi64 in
-    let r = NI.e_vreinterpretq_s16_s64 t in
+  = let lo64 = Libcrux_intrinsics.Arm64.e_vreinterpretq_s64_s16 lo in
+    let hi64 = Libcrux_intrinsics.Arm64.e_vreinterpretq_s64_s16 hi in
+    let t = Libcrux_intrinsics.Arm64.e_vtrn2q_s64 lo64 hi64 in
+    let r = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s64 t in
     assert (NI.get_lane_i64x2 lo64 1 == NI.i16x4_as_i64 (NI.get_lane_i16x8 lo 4) (NI.get_lane_i16x8 lo 5)
                                                         (NI.get_lane_i16x8 lo 6) (NI.get_lane_i16x8 lo 7));
     assert (NI.get_lane_i64x2 hi64 1 == NI.i16x4_as_i64 (NI.get_lane_i16x8 hi 4) (NI.get_lane_i16x8 hi 5)
@@ -318,12 +334,12 @@ let lemma_trn_s64_bound
     (aa bb: NI.t_e_int16x8_t) (b: nat) : Lemma
   (requires
     NS.is_i16b_array b (repr vec) /\
-    aa == NI.e_vreinterpretq_s16_s64 (NI.e_vtrn1q_s64
-            (NI.e_vreinterpretq_s64_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low)
-            (NI.e_vreinterpretq_s64_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high)) /\
-    bb == NI.e_vreinterpretq_s16_s64 (NI.e_vtrn2q_s64
-            (NI.e_vreinterpretq_s64_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low)
-            (NI.e_vreinterpretq_s64_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high)))
+    aa == Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s64 (Libcrux_intrinsics.Arm64.e_vtrn1q_s64
+            (Libcrux_intrinsics.Arm64.e_vreinterpretq_s64_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low)
+            (Libcrux_intrinsics.Arm64.e_vreinterpretq_s64_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high)) /\
+    bb == Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s64 (Libcrux_intrinsics.Arm64.e_vtrn2q_s64
+            (Libcrux_intrinsics.Arm64.e_vreinterpretq_s64_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low)
+            (Libcrux_intrinsics.Arm64.e_vreinterpretq_s64_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high)))
   (ensures
     NS.forall8 (fun i -> NS.is_i16b b (NI.get_lane_i16x8 aa i)) /\
     NS.forall8 (fun i -> NS.is_i16b b (NI.get_lane_i16x8 bb i)))
@@ -338,7 +354,7 @@ let lemma_trn_s64_bound
 #push-options "--z3rlimit 400 --split_queries always"
 let lemma_vadd_bound (aa bb summ: NI.t_e_int16x8_t) (b: nat) : Lemma
   (requires
-    summ == NI.e_vaddq_s16 aa bb /\
+    summ == Libcrux_intrinsics.Arm64.e_vaddq_s16 aa bb /\
     2 * b < pow2 15 /\
     NS.forall8 (fun i -> NS.is_i16b b (NI.get_lane_i16x8 aa i)) /\
     NS.forall8 (fun i -> NS.is_i16b b (NI.get_lane_i16x8 bb i)))
@@ -365,14 +381,14 @@ let lemma_vadd_bound (aa bb summ: NI.t_e_int16x8_t) (b: nat) : Lemma
    when b1+b2 < 2^15.  Clean per-lane, no SIMD machinery. *)
 #push-options "--z3rlimit 200 --split_queries always"
 let lemma_vadd_bound_asym (aa bb summ: NI.t_e_int16x8_t) (b1 b2: nat) : Lemma
-  (requires summ == NI.e_vaddq_s16 aa bb /\ b1 + b2 < pow2 15 /\
+  (requires summ == Libcrux_intrinsics.Arm64.e_vaddq_s16 aa bb /\ b1 + b2 < pow2 15 /\
     NS.forall8 (fun i -> NS.is_i16b b1 (NI.get_lane_i16x8 aa i)) /\
     NS.forall8 (fun i -> NS.is_i16b b2 (NI.get_lane_i16x8 bb i)))
   (ensures NS.forall8 (fun i -> NS.is_i16b (b1 + b2) (NI.get_lane_i16x8 summ i)))
   = ()
 
 let lemma_vsub_bound_asym (aa bb diff: NI.t_e_int16x8_t) (b1 b2: nat) : Lemma
-  (requires diff == NI.e_vsubq_s16 aa bb /\ b1 + b2 < pow2 15 /\
+  (requires diff == Libcrux_intrinsics.Arm64.e_vsubq_s16 aa bb /\ b1 + b2 < pow2 15 /\
     NS.forall8 (fun i -> NS.is_i16b b1 (NI.get_lane_i16x8 aa i)) /\
     NS.forall8 (fun i -> NS.is_i16b b2 (NI.get_lane_i16x8 bb i)))
   (ensures NS.forall8 (fun i -> NS.is_i16b (b1 + b2) (NI.get_lane_i16x8 diff i)))
@@ -382,17 +398,17 @@ let lemma_vsub_bound_asym (aa bb diff: NI.t_e_int16x8_t) (b1 b2: nat) : Lemma
 (* Output-array bound for the forward layer-2 result: res.f_low/f_high are the
    trn1/trn2 of (a,b), so every repr entry is some a/b lane — bound carries.
    The dual of lemma_trn_s64_bound (a,b are the inputs, res the trn output). *)
-#push-options "--z3rlimit 300 --split_queries always --using_facts_from '* -Libcrux_intrinsics.Arm64_extract.i16x4_as_i64 -Libcrux_intrinsics.Arm64_extract.i64_i16lane'"
+#push-options "--z3rlimit 300 --split_queries always --using_facts_from '* -Libcrux_intrinsics.Arm64_ml_kem_views.i16x4_as_i64 -Libcrux_intrinsics.Arm64_ml_kem_views.i64_i16lane'"
 let lemma_fwd_l2_outbound
     (res: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector)
     (a b: NI.t_e_int16x8_t) (bnd: nat) : Lemma
   (requires
     NS.forall8 (fun i -> NS.is_i16b bnd (NI.get_lane_i16x8 a i)) /\
     NS.forall8 (fun i -> NS.is_i16b bnd (NI.get_lane_i16x8 b i)) /\
-    res.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low == NI.e_vreinterpretq_s16_s64
-      (NI.e_vtrn1q_s64 (NI.e_vreinterpretq_s64_s16 a) (NI.e_vreinterpretq_s64_s16 b)) /\
-    res.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high == NI.e_vreinterpretq_s16_s64
-      (NI.e_vtrn2q_s64 (NI.e_vreinterpretq_s64_s16 a) (NI.e_vreinterpretq_s64_s16 b)))
+    res.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low == Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s64
+      (Libcrux_intrinsics.Arm64.e_vtrn1q_s64 (Libcrux_intrinsics.Arm64.e_vreinterpretq_s64_s16 a) (Libcrux_intrinsics.Arm64.e_vreinterpretq_s64_s16 b)) /\
+    res.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high == Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s64
+      (Libcrux_intrinsics.Arm64.e_vtrn2q_s64 (Libcrux_intrinsics.Arm64.e_vreinterpretq_s64_s16 a) (Libcrux_intrinsics.Arm64.e_vreinterpretq_s64_s16 b)))
   (ensures NS.is_i16b_array bnd (repr res))
   = lemma_trn1_s64_reinterpret a b;
     lemma_trn2_s64_reinterpret a b
@@ -403,15 +419,15 @@ let lemma_fwd_l2_resultv
   (requires
     NS.is_i16b_array (6 * 3328) (repr vec) /\
     (forall (i: nat{i < 8}). NS.is_i16b 3328 (NI.get_lane_i16x8 t i)) /\
-    dup_a == NI.e_vreinterpretq_s16_s64 (NI.e_vtrn1q_s64
-               (NI.e_vreinterpretq_s64_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low)
-               (NI.e_vreinterpretq_s64_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high)) /\
-    a == NI.e_vaddq_s16 dup_a t /\
-    b == NI.e_vsubq_s16 dup_a t /\
-    res.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low == NI.e_vreinterpretq_s16_s64
-      (NI.e_vtrn1q_s64 (NI.e_vreinterpretq_s64_s16 a) (NI.e_vreinterpretq_s64_s16 b)) /\
-    res.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high == NI.e_vreinterpretq_s16_s64
-      (NI.e_vtrn2q_s64 (NI.e_vreinterpretq_s64_s16 a) (NI.e_vreinterpretq_s64_s16 b)))
+    dup_a == Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s64 (Libcrux_intrinsics.Arm64.e_vtrn1q_s64
+               (Libcrux_intrinsics.Arm64.e_vreinterpretq_s64_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low)
+               (Libcrux_intrinsics.Arm64.e_vreinterpretq_s64_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high)) /\
+    a == Libcrux_intrinsics.Arm64.e_vaddq_s16 dup_a t /\
+    b == Libcrux_intrinsics.Arm64.e_vsubq_s16 dup_a t /\
+    res.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low == Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s64
+      (Libcrux_intrinsics.Arm64.e_vtrn1q_s64 (Libcrux_intrinsics.Arm64.e_vreinterpretq_s64_s16 a) (Libcrux_intrinsics.Arm64.e_vreinterpretq_s64_s16 b)) /\
+    res.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high == Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s64
+      (Libcrux_intrinsics.Arm64.e_vtrn2q_s64 (Libcrux_intrinsics.Arm64.e_vreinterpretq_s64_s16 a) (Libcrux_intrinsics.Arm64.e_vreinterpretq_s64_s16 b)))
   (ensures
     NS.is_i16b_array (7 * 3328) (repr res) /\
     v (Seq.index (repr res) 0)  == v (Seq.index (repr vec) 0)  + v (NI.get_lane_i16x8 t 0) /\
@@ -432,8 +448,8 @@ let lemma_fwd_l2_resultv
     v (Seq.index (repr res) 15) == v (Seq.index (repr vec) 11) - v (NI.get_lane_i16x8 t 7))
   = let f_low = vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low in
     let f_high = vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high in
-    let bb_dummy = NI.e_vreinterpretq_s16_s64
-      (NI.e_vtrn2q_s64 (NI.e_vreinterpretq_s64_s16 f_low) (NI.e_vreinterpretq_s64_s16 f_high)) in
+    let bb_dummy = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s64
+      (Libcrux_intrinsics.Arm64.e_vtrn2q_s64 (Libcrux_intrinsics.Arm64.e_vreinterpretq_s64_s16 f_low) (Libcrux_intrinsics.Arm64.e_vreinterpretq_s64_s16 f_high)) in
     (* dup_a lanes are repr vec entries 0..3,8..11 (value eqs) + bound 6*3328 *)
     lemma_trn1_s64_reinterpret f_low f_high;
     lemma_trn_s64_bound vec dup_a bb_dummy (6 * 3328);
@@ -629,19 +645,19 @@ let lemma_neon_inv_l1_post
    (lemma_trn{1,2}_s64_reinterpret, lemma_trn_s64_bound): it is the admitted lane
    permutation composed with an exact integer subtract (each diff is iv_j - iv_k,
    |.| <= 2*3328 < 2^15, so vsubq is exact). *)
-#push-options "--z3rlimit 200 --split_queries always --using_facts_from '* -Libcrux_intrinsics.Arm64_extract.i16x4_as_i64 -Libcrux_intrinsics.Arm64_extract.i64_i16lane'"
+#push-options "--z3rlimit 200 --split_queries always --using_facts_from '* -Libcrux_intrinsics.Arm64_ml_kem_views.i16x4_as_i64 -Libcrux_intrinsics.Arm64_ml_kem_views.i64_i16lane'"
 let lemma_inv_l2_bdiff
     (vec: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector)
     (aa bb b_minus_a: NI.t_e_int16x8_t) : Lemma
   (requires
     NS.is_i16b_array 3328 (repr vec) /\
-    aa == NI.e_vreinterpretq_s16_s64 (NI.e_vtrn1q_s64
-            (NI.e_vreinterpretq_s64_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low)
-            (NI.e_vreinterpretq_s64_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high)) /\
-    bb == NI.e_vreinterpretq_s16_s64 (NI.e_vtrn2q_s64
-            (NI.e_vreinterpretq_s64_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low)
-            (NI.e_vreinterpretq_s64_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high)) /\
-    b_minus_a == NI.e_vsubq_s16 bb aa)
+    aa == Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s64 (Libcrux_intrinsics.Arm64.e_vtrn1q_s64
+            (Libcrux_intrinsics.Arm64.e_vreinterpretq_s64_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low)
+            (Libcrux_intrinsics.Arm64.e_vreinterpretq_s64_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high)) /\
+    bb == Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s64 (Libcrux_intrinsics.Arm64.e_vtrn2q_s64
+            (Libcrux_intrinsics.Arm64.e_vreinterpretq_s64_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low)
+            (Libcrux_intrinsics.Arm64.e_vreinterpretq_s64_s16 vec.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high)) /\
+    b_minus_a == Libcrux_intrinsics.Arm64.e_vsubq_s16 bb aa)
   (ensures
     v (NI.get_lane_i16x8 b_minus_a 0) == v (Seq.index (repr vec) 4)  - v (Seq.index (repr vec) 0)  /\
     v (NI.get_lane_i16x8 b_minus_a 1) == v (Seq.index (repr vec) 5)  - v (Seq.index (repr vec) 1)  /\
@@ -784,9 +800,9 @@ let lemma_nttmul_in
   (requires
     NS.is_i16b_array b (repr lhs) /\ NS.is_i16b_array b (repr rhs) /\
     NS.is_i16b 1664 z1 /\ NS.is_i16b 1664 z2 /\ NS.is_i16b 1664 z3 /\ NS.is_i16b 1664 z4 /\
-    a1 == NI.e_vtrn2q_s16 lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+    a1 == Libcrux_intrinsics.Arm64.e_vtrn2q_s16 lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
                           lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high /\
-    b1 == NI.e_vtrn2q_s16 rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+    b1 == Libcrux_intrinsics.Arm64.e_vtrn2q_s16 rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
                           rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high /\
     NI.get_lane_i16x8 zeta 0 == z1 /\
     NI.get_lane_i16x8 zeta 1 == z3 /\
@@ -827,8 +843,8 @@ let lemma_nttmul_in
     let lh = lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high in
     let rf = rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low in
     let rh = rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high in
-    let a1c = NI.e_vtrn2q_s16 lf lh in
-    let b1c = NI.e_vtrn2q_s16 rf rh in
+    let a1c = Libcrux_intrinsics.Arm64.e_vtrn2q_s16 lf lh in
+    let b1c = Libcrux_intrinsics.Arm64.e_vtrn2q_s16 rf rh in
     let insta (i: nat{i < 4}) : Lemma
       (NI.get_lane_i16x8 a1c (2*i)   == NI.get_lane_i16x8 lf (2*i+1) /\
        NI.get_lane_i16x8 a1c (2*i+1) == NI.get_lane_i16x8 lh (2*i+1)) = () in
@@ -865,17 +881,17 @@ let lemma_nttmul_montval_fst
     NS.is_i16b_array 4096 (repr lhs) /\ NS.is_i16b_array 4096 (repr rhs) /\
     (forall (i: nat{i < 8}). NS.is_i16b 3328 (NI.get_lane_i16x8 a1b1 i)) /\
     (forall (i: nat{i < 8}). NS.is_i16b 1664 (NI.get_lane_i16x8 zeta i)) /\
-    a0 == NI.e_vtrn1q_s16 lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+    a0 == Libcrux_intrinsics.Arm64.e_vtrn1q_s16 lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
                           lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high /\
-    b0 == NI.e_vtrn1q_s16 rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+    b0 == Libcrux_intrinsics.Arm64.e_vtrn1q_s16 rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
                           rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high /\
-    a1b1_low == NI.e_vmull_s16 (NI.e_vget_low_s16 a1b1) (NI.e_vget_low_s16 zeta) /\
-    a1b1_high == NI.e_vmull_high_s16 a1b1 zeta /\
-    fst_low == NI.e_vreinterpretq_s16_s32
-                 (NI.e_vmlal_s16 a1b1_low (NI.e_vget_low_s16 a0) (NI.e_vget_low_s16 b0)) /\
-    fst_high == NI.e_vreinterpretq_s16_s32 (NI.e_vmlal_high_s16 a1b1_high a0 b0) /\
-    flo == NI.e_vtrn1q_s16 fst_low fst_high /\
-    fhi == NI.e_vtrn2q_s16 fst_low fst_high)
+    a1b1_low == Libcrux_intrinsics.Arm64.e_vmull_s16 (Libcrux_intrinsics.Arm64.e_vget_low_s16 a1b1) (Libcrux_intrinsics.Arm64.e_vget_low_s16 zeta) /\
+    a1b1_high == Libcrux_intrinsics.Arm64.e_vmull_high_s16 a1b1 zeta /\
+    fst_low == Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s32
+                 (Libcrux_intrinsics.Arm64.e_vmlal_s16 a1b1_low (Libcrux_intrinsics.Arm64.e_vget_low_s16 a0) (Libcrux_intrinsics.Arm64.e_vget_low_s16 b0)) /\
+    fst_high == Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s32 (Libcrux_intrinsics.Arm64.e_vmlal_high_s16 a1b1_high a0 b0) /\
+    flo == Libcrux_intrinsics.Arm64.e_vtrn1q_s16 fst_low fst_high /\
+    fhi == Libcrux_intrinsics.Arm64.e_vtrn2q_s16 fst_low fst_high)
   (ensures
     rt_ok flo fhi 0 /\ rt_ok flo fhi 1 /\ rt_ok flo fhi 2 /\ rt_ok flo fhi 3 /\
     rt_ok flo fhi 4 /\ rt_ok flo fhi 5 /\ rt_ok flo fhi 6 /\ rt_ok flo fhi 7 /\
@@ -900,12 +916,12 @@ let lemma_nttmul_montval_fst
   let lh = lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high in
   let rf = rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low in
   let rh = rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high in
-  let mlo = NI.e_vmlal_s16 a1b1_low (NI.e_vget_low_s16 a0) (NI.e_vget_low_s16 b0) in
-  let mhi = NI.e_vmlal_high_s16 a1b1_high a0 b0 in
-  let flchk = NI.e_vreinterpretq_s16_s32 mlo in
-  let fhchk = NI.e_vreinterpretq_s16_s32 mhi in
-  let rlo = NI.e_vreinterpretq_s32_s16 fst_low in
-  let rhi = NI.e_vreinterpretq_s32_s16 fst_high in
+  let mlo = Libcrux_intrinsics.Arm64.e_vmlal_s16 a1b1_low (Libcrux_intrinsics.Arm64.e_vget_low_s16 a0) (Libcrux_intrinsics.Arm64.e_vget_low_s16 b0) in
+  let mhi = Libcrux_intrinsics.Arm64.e_vmlal_high_s16 a1b1_high a0 b0 in
+  let flchk = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s32 mlo in
+  let fhchk = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s32 mhi in
+  let rlo = Libcrux_intrinsics.Arm64.e_vreinterpretq_s32_s16 fst_low in
+  let rhi = Libcrux_intrinsics.Arm64.e_vreinterpretq_s32_s16 fst_high in
   assert_norm (pow2 15 == 32768);
   assert (fst_low == flchk);
   assert (fst_high == fhchk);
@@ -986,21 +1002,21 @@ let lemma_nttmul_montval_snd
     (snd_low snd_high slo shi: NI.t_e_int16x8_t) : Lemma
   (requires
     NS.is_i16b_array 4096 (repr lhs) /\ NS.is_i16b_array 4096 (repr rhs) /\
-    a0 == NI.e_vtrn1q_s16 lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+    a0 == Libcrux_intrinsics.Arm64.e_vtrn1q_s16 lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
                           lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high /\
-    a1 == NI.e_vtrn2q_s16 lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+    a1 == Libcrux_intrinsics.Arm64.e_vtrn2q_s16 lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
                           lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high /\
-    b0 == NI.e_vtrn1q_s16 rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+    b0 == Libcrux_intrinsics.Arm64.e_vtrn1q_s16 rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
                           rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high /\
-    b1 == NI.e_vtrn2q_s16 rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+    b1 == Libcrux_intrinsics.Arm64.e_vtrn2q_s16 rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
                           rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high /\
-    a0b1_low == NI.e_vmull_s16 (NI.e_vget_low_s16 a0) (NI.e_vget_low_s16 b1) /\
-    a0b1_high == NI.e_vmull_high_s16 a0 b1 /\
-    snd_low == NI.e_vreinterpretq_s16_s32
-                 (NI.e_vmlal_s16 a0b1_low (NI.e_vget_low_s16 a1) (NI.e_vget_low_s16 b0)) /\
-    snd_high == NI.e_vreinterpretq_s16_s32 (NI.e_vmlal_high_s16 a0b1_high a1 b0) /\
-    slo == NI.e_vtrn1q_s16 snd_low snd_high /\
-    shi == NI.e_vtrn2q_s16 snd_low snd_high)
+    a0b1_low == Libcrux_intrinsics.Arm64.e_vmull_s16 (Libcrux_intrinsics.Arm64.e_vget_low_s16 a0) (Libcrux_intrinsics.Arm64.e_vget_low_s16 b1) /\
+    a0b1_high == Libcrux_intrinsics.Arm64.e_vmull_high_s16 a0 b1 /\
+    snd_low == Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s32
+                 (Libcrux_intrinsics.Arm64.e_vmlal_s16 a0b1_low (Libcrux_intrinsics.Arm64.e_vget_low_s16 a1) (Libcrux_intrinsics.Arm64.e_vget_low_s16 b0)) /\
+    snd_high == Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s32 (Libcrux_intrinsics.Arm64.e_vmlal_high_s16 a0b1_high a1 b0) /\
+    slo == Libcrux_intrinsics.Arm64.e_vtrn1q_s16 snd_low snd_high /\
+    shi == Libcrux_intrinsics.Arm64.e_vtrn2q_s16 snd_low snd_high)
   (ensures
     rt_ok slo shi 0 /\ rt_ok slo shi 1 /\ rt_ok slo shi 2 /\ rt_ok slo shi 3 /\
     rt_ok slo shi 4 /\ rt_ok slo shi 5 /\ rt_ok slo shi 6 /\ rt_ok slo shi 7 /\
@@ -1025,12 +1041,12 @@ let lemma_nttmul_montval_snd
   let lh = lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high in
   let rf = rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low in
   let rh = rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high in
-  let mlo = NI.e_vmlal_s16 a0b1_low (NI.e_vget_low_s16 a1) (NI.e_vget_low_s16 b0) in
-  let mhi = NI.e_vmlal_high_s16 a0b1_high a1 b0 in
-  let flchk = NI.e_vreinterpretq_s16_s32 mlo in
-  let fhchk = NI.e_vreinterpretq_s16_s32 mhi in
-  let rlo = NI.e_vreinterpretq_s32_s16 snd_low in
-  let rhi = NI.e_vreinterpretq_s32_s16 snd_high in
+  let mlo = Libcrux_intrinsics.Arm64.e_vmlal_s16 a0b1_low (Libcrux_intrinsics.Arm64.e_vget_low_s16 a1) (Libcrux_intrinsics.Arm64.e_vget_low_s16 b0) in
+  let mhi = Libcrux_intrinsics.Arm64.e_vmlal_high_s16 a0b1_high a1 b0 in
+  let flchk = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s32 mlo in
+  let fhchk = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s32 mhi in
+  let rlo = Libcrux_intrinsics.Arm64.e_vreinterpretq_s32_s16 snd_low in
+  let rhi = Libcrux_intrinsics.Arm64.e_vreinterpretq_s32_s16 snd_high in
   assert_norm (pow2 15 == 32768);
   assert (snd_low == flchk);
   assert (snd_high == fhchk);
@@ -1148,13 +1164,13 @@ let lemma_u8x2_i16_byte (x: i16) : Lemma
 let lemma_out_u8lane
     (src res: NI.t_e_int16x8_t) (index: NI.t_e_uint8x16_t) (i: nat{i < 8}) (p: nat{p < 8}) : Lemma
   (requires
-    res == NI.e_vreinterpretq_s16_u8 (NI.e_vqtbl1q_u8 (NI.e_vreinterpretq_u8_s16 src) index) /\
+    res == Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u8 (Libcrux_intrinsics.Arm64.e_vqtbl1q_u8 (Libcrux_intrinsics.Arm64.e_vreinterpretq_u8_s16 src) index) /\
     v (NI.get_lane_u8x16 index (2*i))   == 2*p /\
     v (NI.get_lane_u8x16 index (2*i+1)) == 2*p+1)
   (ensures NI.get_lane_i16x8 res i == NI.get_lane_i16x8 src p)
-  = let su8 = NI.e_vreinterpretq_u8_s16 src in
-    let pu8 = NI.e_vqtbl1q_u8 su8 index in
-    let rc  = NI.e_vreinterpretq_s16_u8 pu8 in
+  = let su8 = Libcrux_intrinsics.Arm64.e_vreinterpretq_u8_s16 src in
+    let pu8 = Libcrux_intrinsics.Arm64.e_vqtbl1q_u8 su8 index in
+    let rc  = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u8 pu8 in
     (* div/mod facts so the u8<-s16 forall (i16_byte (a (k/2)) (k%2)) reduces at k=2p,2p+1 *)
     FStar.Math.Lemmas.cancel_mul_div p 2;
     FStar.Math.Lemmas.cancel_mul_mod p 2;
@@ -1179,12 +1195,12 @@ let lemma_nttmul_out
     (low0 high0: NI.t_e_int32x4_t)
     (index: NI.t_e_uint8x16_t) : Lemma
   (requires
-    low0 == NI.e_vreinterpretq_s32_s16 (NI.e_vtrn1q_s16 fst snd) /\
-    high0 == NI.e_vreinterpretq_s32_s16 (NI.e_vtrn2q_s16 fst snd) /\
-    low1 == NI.e_vreinterpretq_s16_s32 (NI.e_vtrn1q_s32 low0 high0) /\
-    high1 == NI.e_vreinterpretq_s16_s32 (NI.e_vtrn2q_s32 low0 high0) /\
-    low2 == NI.e_vreinterpretq_s16_u8 (NI.e_vqtbl1q_u8 (NI.e_vreinterpretq_u8_s16 low1) index) /\
-    high2 == NI.e_vreinterpretq_s16_u8 (NI.e_vqtbl1q_u8 (NI.e_vreinterpretq_u8_s16 high1) index) /\
+    low0 == Libcrux_intrinsics.Arm64.e_vreinterpretq_s32_s16 (Libcrux_intrinsics.Arm64.e_vtrn1q_s16 fst snd) /\
+    high0 == Libcrux_intrinsics.Arm64.e_vreinterpretq_s32_s16 (Libcrux_intrinsics.Arm64.e_vtrn2q_s16 fst snd) /\
+    low1 == Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s32 (Libcrux_intrinsics.Arm64.e_vtrn1q_s32 low0 high0) /\
+    high1 == Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s32 (Libcrux_intrinsics.Arm64.e_vtrn2q_s32 low0 high0) /\
+    low2 == Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u8 (Libcrux_intrinsics.Arm64.e_vqtbl1q_u8 (Libcrux_intrinsics.Arm64.e_vreinterpretq_u8_s16 low1) index) /\
+    high2 == Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u8 (Libcrux_intrinsics.Arm64.e_vqtbl1q_u8 (Libcrux_intrinsics.Arm64.e_vreinterpretq_u8_s16 high1) index) /\
     v (NI.get_lane_u8x16 index 0)  == 0  /\ v (NI.get_lane_u8x16 index 1)  == 1  /\
     v (NI.get_lane_u8x16 index 2)  == 2  /\ v (NI.get_lane_u8x16 index 3)  == 3  /\
     v (NI.get_lane_u8x16 index 4)  == 8  /\ v (NI.get_lane_u8x16 index 5)  == 9  /\
@@ -1210,8 +1226,8 @@ let lemma_nttmul_out
     NI.get_lane_i16x8 high2 5 == NI.get_lane_i16x8 snd 3 /\
     NI.get_lane_i16x8 high2 6 == NI.get_lane_i16x8 fst 7 /\
     NI.get_lane_i16x8 high2 7 == NI.get_lane_i16x8 snd 7)
-  = let t1 = NI.e_vtrn1q_s16 fst snd in
-    let t2 = NI.e_vtrn2q_s16 fst snd in
+  = let t1 = Libcrux_intrinsics.Arm64.e_vtrn1q_s16 fst snd in
+    let t2 = Libcrux_intrinsics.Arm64.e_vtrn2q_s16 fst snd in
     lemma_trn1_s32_reinterpret t1 t2;
     lemma_trn2_s32_reinterpret t1 t2;
     let it1 (i: nat{i < 4}) : Lemma
@@ -1412,8 +1428,8 @@ let lemma_nttmul_assemble (iv_l iv_r ov: t_Array i16 (mk_usize 16)) (z1 z2 z3 z4
 (* array_of_list -> per-lane Seq.index facts, in a high-fuel helper (List.length 16 +
    seq_of_list indexing need fuel ~16; isolated here so the fuel never touches a heavy
    proof).  ntt_multiply discharges the requires definitionally (indexes IS that array).
-   rlimit 80 -> 200 on relocation: in situ this replayed a recorded hint; the companion
-   verifies it cold and 80 starves the fuel-16 list normalization (used 71.5/80). *)
+   rlimit 200 (not 80): the fuel-16 list normalization starves at 80
+   (uses ~71.5/80). *)
 #push-options "--fuel 20 --ifuel 2 --z3rlimit 200"
 let lemma_indexes_vals (indexes: t_Array u8 (mk_usize 16)) : Lemma
   (requires
@@ -1429,10 +1445,9 @@ let lemma_indexes_vals (indexes: t_Array u8 (mk_usize 16)) : Lemma
     Seq.index indexes 10 == mk_u8 6  /\ Seq.index indexes 11 == mk_u8 7  /\
     Seq.index indexes 12 == mk_u8 12 /\ Seq.index indexes 13 == mk_u8 13 /\
     Seq.index indexes 14 == mk_u8 14 /\ Seq.index indexes 15 == mk_u8 15)
-  = (* cold-stable proof (relocation): in situ this was `()` + a recorded hint; hintless,
-       Z3 gives up ("incomplete quantifiers", used 71.5 at both rlimit 80 and 200).  The
+  = (* A bare `()` proof leaves Z3 with "incomplete quantifiers"; instead the
        normalizer reduces the literal array_of_list indexing to ground facts
-       deterministically; the requires equation then transfers them to `indexes`. *)
+       deterministically, and the requires equation then transfers them to `indexes`. *)
     assert_norm (
       let arr = Rust_primitives.Hax.array_of_list 16
         [mk_u8 0; mk_u8 1; mk_u8 2; mk_u8 3; mk_u8 8; mk_u8 9; mk_u8 10; mk_u8 11;
@@ -1453,7 +1468,7 @@ let lemma_indexes_vals (indexes: t_Array u8 (mk_usize 16)) : Lemma
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 50"
 let lemma_nttmul_index (index: NI.t_e_uint8x16_t) (indexes: t_Array u8 (mk_usize 16)) : Lemma
   (requires
-    index == NI.e_vld1q_u8 (indexes <: t_Slice u8) /\ Seq.length indexes == 16 /\
+    index == Libcrux_intrinsics.Arm64.e_vld1q_u8 (indexes <: t_Slice u8) /\ Seq.length indexes == 16 /\
     Seq.index indexes 0  == mk_u8 0  /\ Seq.index indexes 1  == mk_u8 1  /\
     Seq.index indexes 2  == mk_u8 2  /\ Seq.index indexes 3  == mk_u8 3  /\
     Seq.index indexes 4  == mk_u8 8  /\ Seq.index indexes 5  == mk_u8 9  /\
@@ -1471,7 +1486,7 @@ let lemma_nttmul_index (index: NI.t_e_uint8x16_t) (indexes: t_Array u8 (mk_usize
     v (NI.get_lane_u8x16 index 10) == 6  /\ v (NI.get_lane_u8x16 index 11) == 7  /\
     v (NI.get_lane_u8x16 index 12) == 12 /\ v (NI.get_lane_u8x16 index 13) == 13 /\
     v (NI.get_lane_u8x16 index 14) == 14 /\ v (NI.get_lane_u8x16 index 15) == 15)
-  = let idx = NI.e_vld1q_u8 (indexes <: t_Slice u8) in ()
+  = let idx = Libcrux_intrinsics.Arm64.e_vld1q_u8 (indexes <: t_Slice u8) in ()
 #pop-options
 
 (* zeta-side mirror of lemma_indexes_vals: the 8 zetas array element values from the
@@ -1501,7 +1516,7 @@ let lemma_nttmul_zeta (zeta: NI.t_e_int16x8_t) (zetas: t_Array i16 (mk_usize 8))
     (zeta1 zeta2 zeta3 zeta4: i16) : Lemma
   (requires
     NS.is_i16b 1664 zeta1 /\ NS.is_i16b 1664 zeta2 /\ NS.is_i16b 1664 zeta3 /\ NS.is_i16b 1664 zeta4 /\
-    zeta == NI.e_vld1q_s16 (zetas <: t_Slice i16) /\ Seq.length zetas == 8 /\
+    zeta == Libcrux_intrinsics.Arm64.e_vld1q_s16 (zetas <: t_Slice i16) /\ Seq.length zetas == 8 /\
     Seq.index zetas 0 == zeta1 /\ Seq.index zetas 1 == zeta3 /\
     Seq.index zetas 2 == Rust_primitives.Arithmetic.neg zeta1 /\
     Seq.index zetas 3 == Rust_primitives.Arithmetic.neg zeta3 /\
@@ -1515,7 +1530,7 @@ let lemma_nttmul_zeta (zeta: NI.t_e_int16x8_t) (zetas: t_Array i16 (mk_usize 8))
     NI.get_lane_i16x8 zeta 4 == zeta2 /\ NI.get_lane_i16x8 zeta 5 == zeta4 /\
     NI.get_lane_i16x8 zeta 6 == Rust_primitives.Arithmetic.neg zeta2 /\
     NI.get_lane_i16x8 zeta 7 == Rust_primitives.Arithmetic.neg zeta4)
-  = let z = NI.e_vld1q_s16 (zetas <: t_Slice i16) in ()
+  = let z = Libcrux_intrinsics.Arm64.e_vld1q_s16 (zetas <: t_Slice i16) in ()
 #pop-options
 
 (* `unfold` wrapper so the t_Array i16 16 -> t_Slice i16 coercion that is_i16b_array needs
@@ -1584,69 +1599,69 @@ let lemma_nttmul_compute
     v (NI.get_lane_u8x16 index 12) == 12 /\ v (NI.get_lane_u8x16 index 13) == 13 /\
     v (NI.get_lane_u8x16 index 14) == 14 /\ v (NI.get_lane_u8x16 index 15) == 15)
   (ensures
-    (let a0 = NI.e_vtrn1q_s16 lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+    (let a0 = Libcrux_intrinsics.Arm64.e_vtrn1q_s16 lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
                              lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high in
-     let a1 = NI.e_vtrn2q_s16 lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+     let a1 = Libcrux_intrinsics.Arm64.e_vtrn2q_s16 lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
                              lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high in
-     let b0 = NI.e_vtrn1q_s16 rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+     let b0 = Libcrux_intrinsics.Arm64.e_vtrn1q_s16 rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
                              rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high in
-     let b1 = NI.e_vtrn2q_s16 rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+     let b1 = Libcrux_intrinsics.Arm64.e_vtrn2q_s16 rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
                              rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high in
      let a1b1 = Libcrux_ml_kem.Vector.Neon.Arithmetic.montgomery_multiply_int16x8_t a1 b1 in
-     let a1b1_low = NI.e_vmull_s16 (NI.e_vget_low_s16 a1b1) (NI.e_vget_low_s16 zeta) in
-     let a1b1_high = NI.e_vmull_high_s16 a1b1 zeta in
-     let fst_low = NI.e_vreinterpretq_s16_s32 (NI.e_vmlal_s16 a1b1_low (NI.e_vget_low_s16 a0) (NI.e_vget_low_s16 b0)) in
-     let fst_high = NI.e_vreinterpretq_s16_s32 (NI.e_vmlal_high_s16 a1b1_high a0 b0) in
-     let a0b1_low = NI.e_vmull_s16 (NI.e_vget_low_s16 a0) (NI.e_vget_low_s16 b1) in
-     let a0b1_high = NI.e_vmull_high_s16 a0 b1 in
-     let snd_low = NI.e_vreinterpretq_s16_s32 (NI.e_vmlal_s16 a0b1_low (NI.e_vget_low_s16 a1) (NI.e_vget_low_s16 b0)) in
-     let snd_high = NI.e_vreinterpretq_s16_s32 (NI.e_vmlal_high_s16 a0b1_high a1 b0) in
-     let fst_low16 = NI.e_vtrn1q_s16 fst_low fst_high in
-     let fst_high16 = NI.e_vtrn2q_s16 fst_low fst_high in
-     let snd_low16 = NI.e_vtrn1q_s16 snd_low snd_high in
-     let snd_high16 = NI.e_vtrn2q_s16 snd_low snd_high in
+     let a1b1_low = Libcrux_intrinsics.Arm64.e_vmull_s16 (Libcrux_intrinsics.Arm64.e_vget_low_s16 a1b1) (Libcrux_intrinsics.Arm64.e_vget_low_s16 zeta) in
+     let a1b1_high = Libcrux_intrinsics.Arm64.e_vmull_high_s16 a1b1 zeta in
+     let fst_low = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s32 (Libcrux_intrinsics.Arm64.e_vmlal_s16 a1b1_low (Libcrux_intrinsics.Arm64.e_vget_low_s16 a0) (Libcrux_intrinsics.Arm64.e_vget_low_s16 b0)) in
+     let fst_high = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s32 (Libcrux_intrinsics.Arm64.e_vmlal_high_s16 a1b1_high a0 b0) in
+     let a0b1_low = Libcrux_intrinsics.Arm64.e_vmull_s16 (Libcrux_intrinsics.Arm64.e_vget_low_s16 a0) (Libcrux_intrinsics.Arm64.e_vget_low_s16 b1) in
+     let a0b1_high = Libcrux_intrinsics.Arm64.e_vmull_high_s16 a0 b1 in
+     let snd_low = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s32 (Libcrux_intrinsics.Arm64.e_vmlal_s16 a0b1_low (Libcrux_intrinsics.Arm64.e_vget_low_s16 a1) (Libcrux_intrinsics.Arm64.e_vget_low_s16 b0)) in
+     let snd_high = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s32 (Libcrux_intrinsics.Arm64.e_vmlal_high_s16 a0b1_high a1 b0) in
+     let fst_low16 = Libcrux_intrinsics.Arm64.e_vtrn1q_s16 fst_low fst_high in
+     let fst_high16 = Libcrux_intrinsics.Arm64.e_vtrn2q_s16 fst_low fst_high in
+     let snd_low16 = Libcrux_intrinsics.Arm64.e_vtrn1q_s16 snd_low snd_high in
+     let snd_high16 = Libcrux_intrinsics.Arm64.e_vtrn2q_s16 snd_low snd_high in
      let fst = Libcrux_ml_kem.Vector.Neon.Arithmetic.montgomery_reduce_int16x8_t fst_low16 fst_high16 in
      let snd = Libcrux_ml_kem.Vector.Neon.Arithmetic.montgomery_reduce_int16x8_t snd_low16 snd_high16 in
-     let low0 = NI.e_vreinterpretq_s32_s16 (NI.e_vtrn1q_s16 fst snd) in
-     let high0 = NI.e_vreinterpretq_s32_s16 (NI.e_vtrn2q_s16 fst snd) in
-     let low1 = NI.e_vreinterpretq_s16_s32 (NI.e_vtrn1q_s32 low0 high0) in
-     let high1 = NI.e_vreinterpretq_s16_s32 (NI.e_vtrn2q_s32 low0 high0) in
-     let low2 = NI.e_vreinterpretq_s16_u8 (NI.e_vqtbl1q_u8 (NI.e_vreinterpretq_u8_s16 low1) index) in
-     let high2 = NI.e_vreinterpretq_s16_u8 (NI.e_vqtbl1q_u8 (NI.e_vreinterpretq_u8_s16 high1) index) in
+     let low0 = Libcrux_intrinsics.Arm64.e_vreinterpretq_s32_s16 (Libcrux_intrinsics.Arm64.e_vtrn1q_s16 fst snd) in
+     let high0 = Libcrux_intrinsics.Arm64.e_vreinterpretq_s32_s16 (Libcrux_intrinsics.Arm64.e_vtrn2q_s16 fst snd) in
+     let low1 = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s32 (Libcrux_intrinsics.Arm64.e_vtrn1q_s32 low0 high0) in
+     let high1 = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s32 (Libcrux_intrinsics.Arm64.e_vtrn2q_s32 low0 high0) in
+     let low2 = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u8 (Libcrux_intrinsics.Arm64.e_vqtbl1q_u8 (Libcrux_intrinsics.Arm64.e_vreinterpretq_u8_s16 low1) index) in
+     let high2 = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u8 (Libcrux_intrinsics.Arm64.e_vqtbl1q_u8 (Libcrux_intrinsics.Arm64.e_vreinterpretq_u8_s16 high1) index) in
      let res = ({ Libcrux_ml_kem.Vector.Neon.Vector_type.f_low = low2;
                   Libcrux_ml_kem.Vector.Neon.Vector_type.f_high = high2 }
                 <: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector) in
      is_i16b_arr16 3328 (repr res) /\
      NS.ntt_multiply_butterfly_post (repr lhs) (repr rhs) (repr res) zeta1 zeta2 zeta3 zeta4))
-  = let a0 = NI.e_vtrn1q_s16 lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+  = let a0 = Libcrux_intrinsics.Arm64.e_vtrn1q_s16 lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
                             lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high in
-    let a1 = NI.e_vtrn2q_s16 lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+    let a1 = Libcrux_intrinsics.Arm64.e_vtrn2q_s16 lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
                             lhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high in
-    let b0 = NI.e_vtrn1q_s16 rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+    let b0 = Libcrux_intrinsics.Arm64.e_vtrn1q_s16 rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
                             rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high in
-    let b1 = NI.e_vtrn2q_s16 rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
+    let b1 = Libcrux_intrinsics.Arm64.e_vtrn2q_s16 rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_low
                             rhs.Libcrux_ml_kem.Vector.Neon.Vector_type.f_high in
     let a1b1 = Libcrux_ml_kem.Vector.Neon.Arithmetic.montgomery_multiply_int16x8_t a1 b1 in
-    let a1b1_low = NI.e_vmull_s16 (NI.e_vget_low_s16 a1b1) (NI.e_vget_low_s16 zeta) in
-    let a1b1_high = NI.e_vmull_high_s16 a1b1 zeta in
-    let fst_low = NI.e_vreinterpretq_s16_s32 (NI.e_vmlal_s16 a1b1_low (NI.e_vget_low_s16 a0) (NI.e_vget_low_s16 b0)) in
-    let fst_high = NI.e_vreinterpretq_s16_s32 (NI.e_vmlal_high_s16 a1b1_high a0 b0) in
-    let a0b1_low = NI.e_vmull_s16 (NI.e_vget_low_s16 a0) (NI.e_vget_low_s16 b1) in
-    let a0b1_high = NI.e_vmull_high_s16 a0 b1 in
-    let snd_low = NI.e_vreinterpretq_s16_s32 (NI.e_vmlal_s16 a0b1_low (NI.e_vget_low_s16 a1) (NI.e_vget_low_s16 b0)) in
-    let snd_high = NI.e_vreinterpretq_s16_s32 (NI.e_vmlal_high_s16 a0b1_high a1 b0) in
-    let fst_low16 = NI.e_vtrn1q_s16 fst_low fst_high in
-    let fst_high16 = NI.e_vtrn2q_s16 fst_low fst_high in
-    let snd_low16 = NI.e_vtrn1q_s16 snd_low snd_high in
-    let snd_high16 = NI.e_vtrn2q_s16 snd_low snd_high in
+    let a1b1_low = Libcrux_intrinsics.Arm64.e_vmull_s16 (Libcrux_intrinsics.Arm64.e_vget_low_s16 a1b1) (Libcrux_intrinsics.Arm64.e_vget_low_s16 zeta) in
+    let a1b1_high = Libcrux_intrinsics.Arm64.e_vmull_high_s16 a1b1 zeta in
+    let fst_low = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s32 (Libcrux_intrinsics.Arm64.e_vmlal_s16 a1b1_low (Libcrux_intrinsics.Arm64.e_vget_low_s16 a0) (Libcrux_intrinsics.Arm64.e_vget_low_s16 b0)) in
+    let fst_high = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s32 (Libcrux_intrinsics.Arm64.e_vmlal_high_s16 a1b1_high a0 b0) in
+    let a0b1_low = Libcrux_intrinsics.Arm64.e_vmull_s16 (Libcrux_intrinsics.Arm64.e_vget_low_s16 a0) (Libcrux_intrinsics.Arm64.e_vget_low_s16 b1) in
+    let a0b1_high = Libcrux_intrinsics.Arm64.e_vmull_high_s16 a0 b1 in
+    let snd_low = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s32 (Libcrux_intrinsics.Arm64.e_vmlal_s16 a0b1_low (Libcrux_intrinsics.Arm64.e_vget_low_s16 a1) (Libcrux_intrinsics.Arm64.e_vget_low_s16 b0)) in
+    let snd_high = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s32 (Libcrux_intrinsics.Arm64.e_vmlal_high_s16 a0b1_high a1 b0) in
+    let fst_low16 = Libcrux_intrinsics.Arm64.e_vtrn1q_s16 fst_low fst_high in
+    let fst_high16 = Libcrux_intrinsics.Arm64.e_vtrn2q_s16 fst_low fst_high in
+    let snd_low16 = Libcrux_intrinsics.Arm64.e_vtrn1q_s16 snd_low snd_high in
+    let snd_high16 = Libcrux_intrinsics.Arm64.e_vtrn2q_s16 snd_low snd_high in
     let fst = Libcrux_ml_kem.Vector.Neon.Arithmetic.montgomery_reduce_int16x8_t fst_low16 fst_high16 in
     let snd = Libcrux_ml_kem.Vector.Neon.Arithmetic.montgomery_reduce_int16x8_t snd_low16 snd_high16 in
-    let low0 = NI.e_vreinterpretq_s32_s16 (NI.e_vtrn1q_s16 fst snd) in
-    let high0 = NI.e_vreinterpretq_s32_s16 (NI.e_vtrn2q_s16 fst snd) in
-    let low1 = NI.e_vreinterpretq_s16_s32 (NI.e_vtrn1q_s32 low0 high0) in
-    let high1 = NI.e_vreinterpretq_s16_s32 (NI.e_vtrn2q_s32 low0 high0) in
-    let low2 = NI.e_vreinterpretq_s16_u8 (NI.e_vqtbl1q_u8 (NI.e_vreinterpretq_u8_s16 low1) index) in
-    let high2 = NI.e_vreinterpretq_s16_u8 (NI.e_vqtbl1q_u8 (NI.e_vreinterpretq_u8_s16 high1) index) in
+    let low0 = Libcrux_intrinsics.Arm64.e_vreinterpretq_s32_s16 (Libcrux_intrinsics.Arm64.e_vtrn1q_s16 fst snd) in
+    let high0 = Libcrux_intrinsics.Arm64.e_vreinterpretq_s32_s16 (Libcrux_intrinsics.Arm64.e_vtrn2q_s16 fst snd) in
+    let low1 = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s32 (Libcrux_intrinsics.Arm64.e_vtrn1q_s32 low0 high0) in
+    let high1 = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_s32 (Libcrux_intrinsics.Arm64.e_vtrn2q_s32 low0 high0) in
+    let low2 = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u8 (Libcrux_intrinsics.Arm64.e_vqtbl1q_u8 (Libcrux_intrinsics.Arm64.e_vreinterpretq_u8_s16 low1) index) in
+    let high2 = Libcrux_intrinsics.Arm64.e_vreinterpretq_s16_u8 (Libcrux_intrinsics.Arm64.e_vqtbl1q_u8 (Libcrux_intrinsics.Arm64.e_vreinterpretq_u8_s16 high1) index) in
     let res = ({ Libcrux_ml_kem.Vector.Neon.Vector_type.f_low = low2;
                  Libcrux_ml_kem.Vector.Neon.Vector_type.f_high = high2 }
                <: Libcrux_ml_kem.Vector.Neon.Vector_type.t_SIMD128Vector) in

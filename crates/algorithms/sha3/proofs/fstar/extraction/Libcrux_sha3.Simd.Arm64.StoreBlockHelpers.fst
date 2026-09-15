@@ -3,7 +3,22 @@ module Libcrux_sha3.Simd.Arm64.StoreBlockHelpers
 open FStar.Mul
 open Core_models
 open Rust_primitives
-open Libcrux_intrinsics.Arm64_extract
+open Libcrux_intrinsics.Arm64_sha3_views
+
+(* The store_block bridges relate the `old_out_k = as_slice (to_vec out_k)`
+   snapshot to the pre-update slice.  This needs an explicit round-trip lemma:
+   `to_vec` then `as_slice` is the identity (`seq_extend seq_empty s ==
+   Seq.append Seq.empty s == s`).  The SMTPat fires on the snapshot term itself,
+   so `bridge_out{0,1}` can relate `old_out_k` back to the pre-update `out_k`
+   without naming the shadowed pre-update binding. *)
+let lemma_as_slice_to_vec_id_u8 (s: t_Slice u8)
+  : Lemma
+      (ensures
+        Alloc.Vec.impl_1__as_slice #u8 #Alloc.Alloc.t_Global
+          (Alloc.Slice.impl__to_vec #u8 s) == s)
+      [SMTPat (Alloc.Vec.impl_1__as_slice #u8 #Alloc.Alloc.t_Global
+          (Alloc.Slice.impl__to_vec #u8 s))]
+  = Seq.append_empty_l s
 
 /// Generic per-byte bridge for `update_at_range` composed with
 /// `e_vst1q_bytes_u64`. Given the abstract facts that

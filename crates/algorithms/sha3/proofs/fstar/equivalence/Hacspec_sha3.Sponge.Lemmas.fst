@@ -9,13 +9,6 @@ module Hacspec_sha3.Sponge.Lemmas
    the extracted Rust code (via [hax_lib::fstar!] ghost blocks in
    [Libcrux_sha3.Generic_keccak.Portable]) can reference them
    without introducing a dependency cycle.
-
-   Note: the historical [lemma_squeeze_blocks_base/_unfold/_tail],
-   [lemma_squeeze_unfold], and [lemma_squeeze_last_extensional]
-   were removed when [Hacspec_sha3.Sponge.squeeze] was rewritten
-   to its byteform definition (see Note C in proof_milestones.md).
-   The recursive [squeeze_blocks] / [squeeze_last] helpers no
-   longer exist; consumers index the byteform output directly.
    ================================================================ *)
 
 #set-options "--fuel 0 --ifuel 1 --z3rlimit 100"
@@ -25,6 +18,46 @@ open Core_models
 open Rust_primitives.Integers
 
 module HS = Hacspec_sha3.Sponge
+
+(* ================================================================
+   [absorb_blocks] — the block-INDEXED absorb, a proof-side helper.
+   The spec uses the slice-tail-recursive [HS.absorb_rec]; the proofs
+   reason with this indexed shape (it lines up with the impl's
+   `absorb_blocks` loop) and bridge to the spec's [HS.absorb_rec] via
+   [lemma_absorb_rec_via_blocks] below. *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 50"
+let rec absorb_blocks
+      (state: t_Array u64 (mk_usize 25))
+      (rate i input_blocks: usize)
+      (input: t_Slice u8)
+    : Prims.Pure (t_Array u64 (mk_usize 25))
+      (requires
+        rate >. mk_usize 0 && rate <=. mk_usize 200 && (rate %! mk_usize 8 <: usize) =. mk_usize 0 &&
+        i <=. input_blocks &&
+        input_blocks <=. ((Core_models.Slice.impl__len #u8 input <: usize) /! rate <: usize))
+      (fun _ -> Prims.l_True)
+      (decreases
+        ((Rust_primitives.Hax.Int.from_machine input_blocks <: Hax_lib.Int.t_Int) -
+          (Rust_primitives.Hax.Int.from_machine i <: Hax_lib.Int.t_Int)
+          <:
+          Hax_lib.Int.t_Int)) =
+  if i <. input_blocks
+  then
+    let state:t_Array u64 (mk_usize 25) =
+      HS.absorb_block state
+        (input.[ {
+              Core_models.Ops.Range.f_start = i *! rate <: usize;
+              Core_models.Ops.Range.f_end = (i *! rate <: usize) +! rate <: usize
+            }
+            <:
+            Core_models.Ops.Range.t_Range usize ]
+          <:
+          t_Slice u8)
+        rate
+    in
+    absorb_blocks state rate (i +! mk_usize 1 <: usize) input_blocks input
+  else state
+#pop-options
 
 
 (* Trivial transitive equality for closing the squeeze ensures VC. *)
@@ -42,11 +75,79 @@ let lemma_seq_trans
   = ()
 #pop-options
 
+(* Reusable byte-level characterization of [squeeze_state]: index [i] of the
+   result is the [to_le_bytes] byte of the state limb inside the write range
+   [[out_offset, out_offset+len)], and the pre-array byte [output.[i]] outside.
+
+   Proven EXPLICITLY here (rather than the [= ()] that the
+   [EquivImplSpec.Sponge.{Avx2,Arm64}] twins get away with in their richer
+   trigger scope) so this minimal-scope module — the home of the byte helpers
+   consumed by both the equivalence proofs and the impl ghost blocks — is
+   hint-independent.  The 5-step chain: unfold [squeeze_state]
+   to [update_at_range output r (copy_from_slice (output.[r]) (bytes.[0..len]))]
+   with [bytes = createi 200 (fun j -> to_le_bytes (state.[j/8]).[j%8])];
+   [copy_from_slice] returns its src, so the write payload is [bytes.[0..len]];
+   [Proof_Utils.Lemmas.lemma_index_update_at_range] gives the 3-region per-index
+   split; [Seq.lemma_index_slice] bridges the [bytes.[0..len]] subslice to
+   [bytes]; and [createi]'s ensures gives the byte value. *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 100"
+let lemma_squeeze_state_index
+      (out_len: usize)
+      (state: t_Array u64 (mk_usize 25))
+      (output: t_Array u8 out_len)
+      (out_offset len i: usize)
+  : Lemma
+      (requires
+        v len <= 200 /\ v out_len >= v len /\ v out_offset + v len <= v out_len /\
+        v i < v out_len)
+      (ensures
+        ((HS.squeeze_state out_len state output out_offset len).[ i ] <: u8)
+        ==
+        (if v out_offset <= v i && v i < v out_offset + v len
+         then ((Core_models.Num.impl_u64__to_le_bytes
+                   (state.[ (i -! out_offset) /! mk_usize 8 <: usize ])
+                 <: t_Array u8 (mk_usize 8)).[ (i -! out_offset) %! mk_usize 8 <: usize ])
+         else (output.[ i ] <: u8)))
+  = let bytes:t_Array u8 (mk_usize 200) =
+      Hacspec_sha3.createi #u8 (mk_usize 200) #(usize -> u8)
+        (fun i ->
+            let i:usize = i in
+            (Core_models.Num.impl_u64__to_le_bytes (state.[ i /! mk_usize 8 <: usize ] <: u64)
+              <: t_Array u8 (mk_usize 8)).[ i %! mk_usize 8 <: usize ] <: u8) in
+    let r:Core_models.Ops.Range.t_Range usize =
+      { Core_models.Ops.Range.f_start = out_offset;
+        Core_models.Ops.Range.f_end = out_offset +! len } in
+    let src:t_Slice u8 =
+      Core_models.Slice.impl__copy_from_slice #u8
+        (output.[ r ] <: t_Slice u8)
+        (bytes.[ { Core_models.Ops.Range.f_start = mk_usize 0;
+                   Core_models.Ops.Range.f_end = len } <: Core_models.Ops.Range.t_Range usize ] <: t_Slice u8) in
+    assert (HS.squeeze_state out_len state output out_offset len ==
+            Rust_primitives.Hax.Monomorphized_update_at.update_at_range output r src);
+    Proof_Utils.Lemmas.lemma_index_update_at_range #u8 output r src;
+    if v out_offset <= v i && v i < v out_offset + v len then begin
+      let k:nat = v i - v out_offset in
+      let kk:usize = mk_usize k in
+      assert (v kk == v (i -! out_offset));
+      assert (src == (bytes.[ { Core_models.Ops.Range.f_start = mk_usize 0;
+                                Core_models.Ops.Range.f_end = len } <: Core_models.Ops.Range.t_Range usize ] <: t_Slice u8));
+      assert ((bytes.[ { Core_models.Ops.Range.f_start = mk_usize 0;
+                         Core_models.Ops.Range.f_end = len } <: Core_models.Ops.Range.t_Range usize ] <: t_Slice u8)
+              == Seq.slice (bytes <: Seq.seq u8) 0 (v len));
+      Seq.lemma_index_slice (bytes <: Seq.seq u8) 0 (v len) k;
+      assert (Seq.index (bytes <: Seq.seq u8) (v kk) ==
+        (Core_models.Num.impl_u64__to_le_bytes (state.[ kk /! mk_usize 8 <: usize ] <: u64)
+          <: t_Array u8 (mk_usize 8)).[ kk %! mk_usize 8 <: usize ])
+    end
+#pop-options
+
 (* Helper: byte-level equality between two [squeeze_state] applications
    that share the state, write range, and rate but differ in their
    pre-array.  Inside the write range both produce the same byte; outside
-   they preserve their respective pre-arrays. *)
-#push-options "--fuel 1 --ifuel 1 --z3rlimit 200"
+   they preserve their respective pre-arrays.  Delegates to
+   [lemma_squeeze_state_index] on each side (only the in-range case matters:
+   both reduce to the same [to_le_bytes] byte, independent of the pre-array). *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 100"
 let lemma_squeeze_state_byte_eq_in_range
       (output_len: usize)
       (state: t_Array u64 (mk_usize 25))
@@ -65,8 +166,8 @@ let lemma_squeeze_state_byte_eq_in_range
         Seq.index (HS.squeeze_state output_len state out_b out_offset len <: Seq.seq u8) k)
   = let ki : usize = mk_usize k in
     assert (v ki == k);
-    if k < v out_offset then ()
-    else assert ((k - v out_offset) / 8 < 25)
+    lemma_squeeze_state_index output_len state out_a out_offset len ki;
+    lemma_squeeze_state_index output_len state out_b out_offset len ki
 #pop-options
 
 (* Helper: byte-level equality between [squeeze_state] and its pre-array
@@ -87,12 +188,13 @@ let lemma_squeeze_state_byte_preserve
         Seq.index (HS.squeeze_state output_len state out_pre out_offset len <: Seq.seq u8) k ==
         Seq.index (out_pre <: Seq.seq u8) k)
   = let ki : usize = mk_usize k in
-    assert (v ki == k)
+    assert (v ki == k);
+    lemma_squeeze_state_index output_len state out_pre out_offset len ki
 #pop-options
 
 
 (* ================================================================
-   Absorb-side helpers about [Hacspec_sha3.Sponge.absorb_blocks].
+   Absorb-side helpers about the block-indexed [absorb_blocks] (defined above).
 
    [absorb_blocks] mirrors [squeeze_blocks]: a tail-recursive helper
    over a block index in [i..input_blocks), applying [absorb_block]
@@ -112,7 +214,7 @@ let lemma_absorb_blocks_base
       (requires
         Libcrux_sha3.Proof_utils.valid_rate rate /\
         v i <= Seq.length #u8 input / v rate)
-      (ensures HS.absorb_blocks state rate i i input == state)
+      (ensures absorb_blocks state rate i i input == state)
   = ()
 #pop-options
 
@@ -133,8 +235,8 @@ let lemma_absorb_blocks_unfold
                     Core_models.Ops.Range.f_end   = i *! rate +! rate } <:
                   Core_models.Ops.Range.t_Range usize ] in
         let state' = HS.absorb_block state block rate in
-        HS.absorb_blocks state rate i input_blocks input ==
-        HS.absorb_blocks state' rate (i +! mk_usize 1) input_blocks input))
+        absorb_blocks state rate i input_blocks input ==
+        absorb_blocks state' rate (i +! mk_usize 1) input_blocks input))
   = FStar.Math.Lemmas.lemma_div_le
       (v input_blocks * v rate) (Seq.length #u8 input) (v rate);
     FStar.Math.Lemmas.cancel_mul_div (v input_blocks) (v rate)
@@ -154,13 +256,13 @@ let rec lemma_absorb_blocks_tail
         v k == v j + 1 /\
         v k <= Seq.length #u8 input / v rate)
       (ensures (
-        let state_j = HS.absorb_blocks state rate i j input in
+        let state_j = absorb_blocks state rate i j input in
         let block : t_Slice u8 =
           input.[ { Core_models.Ops.Range.f_start = j *! rate;
                     Core_models.Ops.Range.f_end   = j *! rate +! rate } <:
                   Core_models.Ops.Range.t_Range usize ] in
         let state_next = HS.absorb_block state_j block rate in
-        HS.absorb_blocks state rate i k input == state_next))
+        absorb_blocks state rate i k input == state_next))
       (decreases v j - v i)
   = if i =. j then
       lemma_absorb_blocks_unfold state rate i k input
@@ -277,8 +379,8 @@ let rec lemma_absorb_blocks_shift
         let tail : t_Slice u8 =
           input.[ { Core_models.Ops.Range.f_start = rate } <:
                   Core_models.Ops.Range.t_RangeFrom usize ] in
-        HS.absorb_blocks state rate (mk_usize 0) (k +! mk_usize 1) input ==
-        HS.absorb_blocks state' rate (mk_usize 0) k tail))
+        absorb_blocks state rate (mk_usize 0) (k +! mk_usize 1) input ==
+        absorb_blocks state' rate (mk_usize 0) k tail))
       (decreases v k)
   = let block_0 : t_Slice u8 =
       input.[ { Core_models.Ops.Range.f_start = mk_usize 0;
@@ -299,8 +401,8 @@ let rec lemma_absorb_blocks_shift
       lemma_absorb_blocks_base state' rate (mk_usize 0) tail
     end else begin
       let km1 : usize = k -! mk_usize 1 in
-      let state_ih = HS.absorb_blocks state rate (mk_usize 0) k input in
-      let state_tail_km1 = HS.absorb_blocks state' rate (mk_usize 0) km1 tail in
+      let state_ih = absorb_blocks state rate (mk_usize 0) k input in
+      let state_tail_km1 = absorb_blocks state' rate (mk_usize 0) km1 tail in
       (* Step LHS: absorb_blocks state rate 0 (k+1) input
                 == absorb_block (absorb_blocks state rate 0 k input) input[k*rate..(k+1)*rate] rate *)
       lemma_absorb_blocks_tail state rate (mk_usize 0) k (k +! mk_usize 1) input;
@@ -308,7 +410,7 @@ let rec lemma_absorb_blocks_shift
         input.[ { Core_models.Ops.Range.f_start = k *! rate;
                   Core_models.Ops.Range.f_end   = k *! rate +! rate } <:
                 Core_models.Ops.Range.t_Range usize ] in
-      assert (HS.absorb_blocks state rate (mk_usize 0) (k +! mk_usize 1) input ==
+      assert (absorb_blocks state rate (mk_usize 0) (k +! mk_usize 1) input ==
               HS.absorb_block state_ih input_block_k rate);
       (* Step RHS: absorb_blocks state' rate 0 k tail
                 == absorb_block (absorb_blocks state' rate 0 km1 tail) tail[km1*rate..k*rate] rate *)
@@ -317,7 +419,7 @@ let rec lemma_absorb_blocks_shift
         tail.[ { Core_models.Ops.Range.f_start = km1 *! rate;
                  Core_models.Ops.Range.f_end   = km1 *! rate +! rate } <:
                Core_models.Ops.Range.t_Range usize ] in
-      assert (HS.absorb_blocks state' rate (mk_usize 0) k tail ==
+      assert (absorb_blocks state' rate (mk_usize 0) k tail ==
               HS.absorb_block state_tail_km1 tail_block_km1 rate);
       (* IH: state_ih == state_tail_km1 *)
       lemma_absorb_blocks_shift state rate km1 input;
@@ -373,6 +475,12 @@ let lemma_absorb_final_shift
 #pop-options
 
 
+(* [#restart-solver]: this recursive slice-of-slice absorb lemma proves in
+   isolation (rlimit ~30) but, in the full module, the Z3 4.13.3 LP-solver
+   crashes (lar_solver.cpp:1066) on the solver state accumulated by the earlier
+   decls — a solver-STATE pollution, not a proof gap.  Restarting the solver
+   clears that state.  (See fstar-for-libcrux §7 Phase 0.5.) *)
+#restart-solver
 #push-options "--fuel 1 --ifuel 1 --z3rlimit 300"
 let rec lemma_absorb_rec_via_blocks
       (state: t_Array u64 (mk_usize 25))
@@ -384,7 +492,7 @@ let rec lemma_absorb_rec_via_blocks
         let input_len : usize = Core_models.Slice.impl__len #u8 input in
         let input_blocks : usize = input_len /! rate in
         let input_rem : usize = input_len %! rate in
-        let state_k = HS.absorb_blocks state rate (mk_usize 0) input_blocks input in
+        let state_k = absorb_blocks state rate (mk_usize 0) input_blocks input in
         HS.absorb_rec state rate delim input ==
         HS.absorb_final state_k input (input_len -! input_rem) input_rem rate delim))
       (decreases Seq.length #u8 input)
@@ -429,9 +537,41 @@ let rec lemma_absorb_rec_via_blocks
       let final_offset_tail : usize = tail_blocks *! rate in
       let final_offset_input : usize = input_blocks *! rate in
       assert (v final_offset_input == v rate + v final_offset_tail);
-      let state_k = HS.absorb_blocks state rate (mk_usize 0) input_blocks input in
+      let state_k = absorb_blocks state rate (mk_usize 0) input_blocks input in
       lemma_absorb_final_shift state_k rate delim input final_offset_tail tail_rem
     end
+#pop-options
+
+(* Reusable byte-level characterization of the top-level [squeeze]: index [k] is
+   the [to_le_bytes] byte of the [(j/8)]-th limb of [iterate_keccak_f b state],
+   where [b = k/rate], [j = k - b*rate] are the block index and within-block
+   offset.  [squeeze] is a single [createi], so its VC closes directly from the
+   [createi] ensures in this minimal scope (unlike the multi-step [squeeze_state]).
+   Consumers (the SIMD squeeze-step lemmas) delegate here rather than unfolding
+   [squeeze]'s [createi] in their heavy SMT context (which saturates).
+   [#restart-solver] + rlimit 300: the [createi] unfold is ~51 rlimit in isolation
+   but rides above 100 in the full module (solver state from the absorb lemmas). *)
+#restart-solver
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 300"
+let lemma_squeeze_index
+      (out_len: usize)
+      (state: t_Array u64 (mk_usize 25))
+      (rate k: usize)
+  : Lemma
+      (requires
+        rate >. mk_usize 0 /\ rate <=. mk_usize 200 /\
+        (rate %! mk_usize 8 <: usize) =. mk_usize 0 /\
+        v out_len < v Core_models.Num.impl_usize__MAX - 200 /\
+        v k < v out_len)
+      (ensures
+        ((HS.squeeze out_len state rate).[ k ] <: u8)
+        ==
+        (let b:usize = k /! rate in
+         let j:usize = k -! (b *! rate) in
+         (Core_models.Num.impl_u64__to_le_bytes
+            ((HS.iterate_keccak_f b state).[ j /! mk_usize 8 <: usize ] <: u64)
+          <: t_Array u8 (mk_usize 8)).[ j %! mk_usize 8 <: usize ]))
+  = ()
 #pop-options
 
 
