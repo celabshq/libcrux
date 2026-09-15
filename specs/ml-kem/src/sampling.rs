@@ -1,6 +1,7 @@
 use crate::{parameters::*, serialize::*};
 
-#[derive(Debug)]
+// Debug's derived impl is not translatable by aeneas; keep it for F*/native only.
+#[cfg_attr(not(hax_backend_lean), derive(Debug))]
 pub struct BadRejectionSamplingRandomnessError;
 
 /// If `bytes` contains a set of uniformly random bytes, this function
@@ -57,6 +58,8 @@ pub fn rej_sample_step(bytes: [u8; 24]) -> ([FieldElement; 16], usize) {
     let mut result = [FieldElement::new(0); 16];
     let mut count: usize = 0;
     for i in 0..16 {
+        #[cfg(hax)]
+        #[cfg(not(hax_backend_lean))]
         hax_lib::loop_invariant!(|i: usize| count <= i);
         if decoded[i] < FIELD_MODULUS {
             result[count] = FieldElement::new(decoded[i]);
@@ -97,6 +100,8 @@ fn sum_coins(eta: usize, coins: &[bool]) -> FieldElement {
     hax_lib::debug_assert!(eta <= 4 && coins.len() == eta);
     let mut sum: u16 = 0;
     for i in 0..eta {
+        #[cfg(hax)]
+        #[cfg(not(hax_backend_lean))]
         hax_lib::loop_invariant!(|i: usize| sum <= (i as u16));
         sum += coins[i] as u16;
     }

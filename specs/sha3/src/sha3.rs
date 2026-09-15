@@ -39,7 +39,7 @@ pub fn sha3_512(message: &[u8]) -> [u8; 64] {
 /// FIPS 202 places no upper bound on the output length `N`.
 /// The `N < usize::MAX - 200` precondition is a Rust implementation artifact
 /// to prevent arithmetic overflow during squeeze-loop bound computation.
-#[hax_lib::requires(N < usize::MAX - 200)]
+#[cfg_attr(hax, hax_lib::requires(N < usize::MAX - 200))]
 pub fn shake128<const N: usize>(message: &[u8]) -> [u8; N] {
     keccak::<N>(SHAKE128_RATE, SHAKE_DELIM, message)
 }
@@ -49,7 +49,7 @@ pub fn shake128<const N: usize>(message: &[u8]) -> [u8; N] {
 /// FIPS 202 places no upper bound on the output length `N`.
 /// The `N < usize::MAX - 200` precondition is a Rust implementation artifact
 /// to prevent arithmetic overflow during squeeze-loop bound computation.
-#[hax_lib::requires(N < usize::MAX - 200)]
+#[cfg_attr(hax, hax_lib::requires(N < usize::MAX - 200))]
 pub fn shake256<const N: usize>(message: &[u8]) -> [u8; N] {
     keccak::<N>(SHAKE256_RATE, SHAKE_DELIM, message)
 }

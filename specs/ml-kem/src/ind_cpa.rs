@@ -26,7 +26,12 @@ fn sample_secret(eta: usize, prf_input: &[u8; 33]) -> Polynomial {
             let out: [u8; 192] = PRF(prf_input);
             sample_poly_cbd::<192, 1536>(3, &out)
         }
+        // Lean has no `core::fmt` model, so the message drops its format
+        // argument there; F*/native keep the offending value in the message.
+        #[cfg(not(hax_backend_lean))]
         _ => panic!("unsupported eta={}", eta),
+        #[cfg(hax_backend_lean)]
+        _ => panic!("unsupported eta"),
     }
 }
 

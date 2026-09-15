@@ -4,7 +4,7 @@ This is a hacspec-style Rust implementation of SHA-3, closely following FIPS-202
 is to serve as a reference implementation for verifying functional correctness of more efficient
 implementations.
 
-## Extraction via HAX
+## Extraction via hax
 
 ### F*
 
@@ -18,11 +18,18 @@ Run `hax_fstar.sh extract` to produce the F* files, and `hax_fstar.sh prove` to 
 ### Lean
 
 Prerequisites:
-* Hax from `hax-evit`, commit `1f85fc1`
-  https://github.com/cryspen/hax-evit/tree/1f85fc13b9967080cc657863e2000ba5d4aa8647
-  (This is a not publicly available yet.)
-* Aeneas `8d2077c`
-  (https://github.com/cryspen/aeneas/releases/tag/nightly-2026.06.04)
+* [Lean](https://lean-lang.org/install/)
+* [cargo](https://rust-lang.org/tools/install/)
+* hax 0.4.0 on `PATH` (`cargo hax`); charon and aeneas are downloaded
+  automatically on first use
 
-Run `hax_aeneas.py` to extract. Run `cd proofs/aeneas-lean && lake update && lake build` to
-type-check.
+To extract the Lean code, run the following in the `specs` directory:
+```
+cargo hax extract hacspec-sha3
+```
+
+To type check the extracted Lean run the following in the `specs/sha3/proofs/hacspec-sha3/lean` directory:
+```
+lake exe cache get
+lake build
+```

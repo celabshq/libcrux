@@ -7,7 +7,8 @@ fuzz/artifacts
 __pycache__
 kyber-crate/
 *.llbc
-.cargo/
+/.cargo/
+.bin/
 Cargo.lock
 
 # When using sed

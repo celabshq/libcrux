@@ -12,30 +12,45 @@ on:
     - cron: "0 0 * * *"
 
   workflow_dispatch:
+    inputs:
+      hax_ref:
+        description: "The hax revision you want this job to use"
+        required: false
+        type: string
 
 env:
   CARGO_TERM_COLOR: always
-  FSTAR_REV: v2026.03.24
-  HAX_LIB_VERSION: 0.3.7
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  # NOTE: This always runs, even if the `hax_ref` workflow input is provided.
+  # TODO: Move this reusable workflow to a standalone action
+  get-hax-ref:
+    uses: ./.github/workflows/get-hax-ref.yml
+
   extract:
     runs-on: ubuntu-latest
+    needs:
+      - get-hax-ref
 
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@v6
       - uses: hacspec/hax-actions@main
         with:
-          hax_reference: hax-lib-v${{ env.HAX_LIB_VERSION }}
-          fstar: ${{ env.FSTAR_REV }}
-          
+          hax_reference: ${{ github.event.inputs.hax_ref || needs.get-hax-ref.outputs.hax_ref }}
+
       - name: 🏃 Extract ML-KEM crate
         working-directory: libcrux-ml-kem
         run: ./hax.py extract
+
+      # Trust-surface regression gate against the freshly-extracted tree
+      # (scripts/README-trust-ledger.md). Warn-only until the CI hax version is
+      # confirmed to reproduce the committed baseline; drop --warn-only to block.
+      - name: 🔒 Trust-ledger regression gate (warn-only)
+        run: python3 scripts/trust_ledger.py --crate ml-kem --check --warn-only
 
       - name: ↑ Upload F* extraction
         uses: actions/upload-artifact@v7
@@ -49,15 +64,16 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event_name != 'merge_group' }}
     needs:
+      - get-hax-ref
       - extract
 
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@v6
       - uses: hacspec/hax-actions@main
         with:
-          hax_reference: hax-lib-v${{ env.HAX_LIB_VERSION }}
-          fstar: ${{ env.FSTAR_REV }}
-          
+          hax_reference: ${{ github.event.inputs.hax_ref || needs.get-hax-ref.outputs.hax_ref }}
+          fstar: v2026.03.24
+
       - uses: actions/download-artifact@v8
         with:
           name: fstar-extractions
@@ -65,35 +81,38 @@ jobs:
       - name: 🏃 Lax ML-KEM crate
         working-directory: libcrux-ml-kem
         run: ./hax.py prove --admit
-        
-  # XXX: Is the caching performed by hacspec/hax-actions enough to get CI minutes down for paid runners?
-  # prove:
-  #   runs-on: #TODO
-  #   if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
-  #   needs:
-  #     - extract
-  #   steps:
-  #     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-  #     - uses: hacspec/hax-actions@main
-  #       with:
-  #         hax_reference: hax-lib-v${{ env.HAX_LIB_VERSION }}
-  #         fstar: ${{ env.FSTAR_REV }}
-          
-  #     - name: Use precise version of hax-lib
-  #       run: cargo update hax-lib --precise $HAX_LIB_VERSION
-      
-  #     - uses: actions/download-artifact@v8
-  #       with:
-  #         name: fstar-extractions
-  #         path: .
 
-  #     - name: 🏃 Prove ML-KEM crate
-  #       working-directory: libcrux-ml-kem
-  #       run: FSTAR_HOME=~/.nix-profile ./hax.py prove
+  prove:
+    runs-on: self-hosted
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+    needs:
+      - get-hax-ref
+      - extract
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6
+        with:
+          repository: cryspen/hax
+          path: hax
+          ref: ${{ github.event.inputs.hax_ref || needs.get-hax-ref.outputs.hax_ref }}
+      - name: ⤵ Install hax
+        run: |
+          nix profile install ./hax
+      - name: ⤵ Install FStar
+        run: nix profile install github:FStarLang/FStar/v2026.03.24
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: fstar-extractions
+          path: .
+
+      - name: 🏃 Prove ML-KEM crate
+        working-directory: libcrux-ml-kem
+        run: FSTAR_HOME=~/.nix-profile ./hax.py prove
   
   mlkem-extract-hax-status:
     if: ${{ always() }}
-    needs: [extract]
+    needs: [get-hax-ref, extract]
     runs-on: ubuntu-latest
     steps:
       - name: Successful
@@ -105,7 +124,7 @@ jobs:
   
   mlkem-lax-hax-status:
     if: ${{ always() }}
-    needs: [lax]
+    needs: [get-hax-ref, lax]
     runs-on: ubuntu-latest
     steps:
       - name: Successful

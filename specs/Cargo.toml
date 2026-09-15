@@ -4,3 +4,6 @@ resolver = "2"
 
 [workspace.dependencies]
 hax-lib = { git = "https://github.com/cryspen/hax", rev = "f14d83bd6c664515d26ca68af7f1a57962656f18" }
+
+[workspace.metadata.bin]
+cargo-hax = { version = "0.4.0", bins = ["cargo-hax"], locked = true }

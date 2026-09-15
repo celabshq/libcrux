@@ -65,6 +65,7 @@ pub fn transpose<const RANK: usize>(matrix: &Matrix<RANK>) -> Matrix<RANK> {
 /// When `transpose` is false, A_transpose[i][j] = sampled(i, j).
 #[allow(non_snake_case)]
 #[hax_lib::requires(seed_for_A.len() == 32  && RANK <= 4)]
+#[cfg(not(hax_backend_lean))]
 pub fn sample_matrix_A<const RANK: usize>(
     seed_for_A: &[u8],
     transpose: bool,
@@ -83,6 +84,36 @@ pub fn sample_matrix_A<const RANK: usize>(
             } else {
                 A_as_ntt[i][j] = sampled;
             }
+        }
+    }
+    Ok(A_as_ntt)
+}
+
+// Aeneas does not yet support early returns (the `?` operator) inside nested
+// loops, so the Lean extraction uses a flattened single loop over
+// `k in 0..RANK*RANK` with `i = k / RANK`, `j = k % RANK`. Semantically
+// identical to the F* variant above.
+#[allow(non_snake_case)]
+#[hax_lib::requires(seed_for_A.len() == 32  && RANK <= 4)]
+#[cfg(hax_backend_lean)]
+pub fn sample_matrix_A<const RANK: usize>(
+    seed_for_A: &[u8],
+    transpose: bool,
+) -> Result<Matrix<RANK>, BadRejectionSamplingRandomnessError> {
+    let mut A_as_ntt: Matrix<RANK> = [[[FieldElement::new(0); 256]; RANK]; RANK];
+    let mut xof_input = [0u8; 34];
+    xof_input[..32].copy_from_slice(seed_for_A);
+    for k in 0..RANK * RANK {
+        let i = k / RANK;
+        let j = k % RANK;
+        xof_input[32] = i as u8;
+        xof_input[33] = j as u8;
+        let xof_bytes: [u8; REJECTION_SAMPLING_SEED_SIZE] = XOF(&xof_input);
+        let sampled = crate::sampling::sample_ntt::<70, 560, 840, 6720>(xof_bytes)?;
+        if transpose {
+            A_as_ntt[j][i] = sampled;
+        } else {
+            A_as_ntt[i][j] = sampled;
         }
     }
     Ok(A_as_ntt)

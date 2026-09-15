@@ -319,7 +319,10 @@ pub mod hash_functions {
 /// An ML-KEM field element:
 /// - after reduction modulo FIELD_MODULUS, it is an integer in the range [0, FIELD_MODULUS - 1]
 /// - it is represented as a u16
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
+// Debug's derived impl is not translatable by aeneas, so drop it for the lean
+// backend only; F*/native keep the original full derive (byte-identical output).
+#[cfg_attr(not(hax_backend_lean), derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug))]
+#[cfg_attr(hax_backend_lean, derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord))]
 #[hax_lib::attributes]
 pub struct FieldElement {
     #[refine(val < FIELD_MODULUS)]
@@ -397,7 +400,15 @@ assume val createi_lemma
        [SMTPat (Seq.index (createi #v_T v_N #v_F f) (v i))]
 "#
 )]
+#[cfg(not(hax_backend_lean))]
 pub fn createi<T, const N: usize, F: Fn(usize) -> T>(f: F) -> [T; N] {
+    core::array::from_fn(f)
+}
+
+// For Lean extraction, we need to use this alternative function taking `FnMut` instead of `Fn`.
+// This is due to an Aeneas bug: https://github.com/AeneasVerif/aeneas/issues/924
+#[cfg(hax_backend_lean)]
+pub fn createi<T, const N: usize, F: FnMut(usize) -> T>(f: F) -> [T; N] {
     core::array::from_fn(f)
 }
 

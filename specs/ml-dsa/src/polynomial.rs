@@ -121,8 +121,12 @@ pub(crate) fn vector_low_bits<const N: usize>(v: &[Polynomial; N], gamma2: i32) 
 pub(crate) fn count_hints<const N: usize>(h: &[[bool; 256]; N]) -> usize {
     let mut total = 0usize;
     for i in 0usize..N {
+        #[cfg(hax)]
+        #[cfg(not(hax_backend_lean))]
         hax_lib::loop_invariant!(|i: usize| total <= i * 256);
         for j in 0usize..256usize {
+            #[cfg(hax)]
+            #[cfg(not(hax_backend_lean))]
             hax_lib::loop_invariant!(|j: usize| total <= i * 256 + j);
             if h[i][j] {
                 total += 1;

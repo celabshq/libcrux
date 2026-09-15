@@ -11,31 +11,47 @@ on:
     - cron: "0 0 * * *"
 
   workflow_dispatch:
+    inputs:
+      hax_ref:
+        description: "The hax revision you want this job to use"
+        required: false
+        type: string
 
 env:
   CARGO_TERM_COLOR: always
-  FSTAR_REV: v2026.03.24
-  HAX_LIB_VERSION: 0.3.7
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  # NOTE: This always runs, even if the `hax_ref` workflow input is provided.
+  # TODO: Move this reusable workflow to a standalone action
+  get-hax-ref:
+    uses: ./.github/workflows/get-hax-ref.yml
+
   extract-portable:
     if: ${{ github.event_name != 'merge_group' }}
     runs-on: ubuntu-latest
+    needs:
+      - get-hax-ref
 
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@v6
       - uses: hacspec/hax-actions@main
         with:
-          hax_reference: hax-lib-v${{ env.HAX_LIB_VERSION }}
-          fstar: ${{ env.FSTAR_REV }}
-          
+          hax_reference: ${{ github.event.inputs.hax_ref || needs.get-hax-ref.outputs.hax_ref }}
+          fstar: v2026.03.24
+
       - name: 🏃 Extract SHA3 crate (portable)
         working-directory: crates/algorithms/sha3
         run: ./hax.sh extract
+
+      # Trust-surface regression gate against the freshly-extracted tree
+      # (scripts/README-trust-ledger.md). Warn-only until the CI hax version is
+      # confirmed to reproduce the committed baseline; drop --warn-only to block.
+      - name: 🔒 Trust-ledger regression gate (warn-only)
+        run: python3 scripts/trust_ledger.py --crate sha3 --check --warn-only
 
       - name: ↑ Upload F* extraction (standard)
         uses: actions/upload-artifact@v7
@@ -48,14 +64,15 @@ jobs:
   lax-portable:
     runs-on: ubuntu-latest
     needs:
+      - get-hax-ref
       - extract-portable
     if: ${{ github.event_name != 'merge_group' }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@v6
       - uses: hacspec/hax-actions@main
         with:
-          hax_reference: hax-lib-v${{ env.HAX_LIB_VERSION }}
-          fstar: ${{ env.FSTAR_REV }}
+          hax_reference: ${{ github.event.inputs.hax_ref || needs.get-hax-ref.outputs.hax_ref }}
+          fstar: v2026.03.24
 
       - uses: actions/download-artifact@v8
         with:
@@ -69,14 +86,15 @@ jobs:
   type-check-portable:
     runs-on: ubuntu-latest
     needs:
+      - get-hax-ref
       - extract-portable
     if: ${{ github.event_name != 'merge_group' }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@v6
       - uses: hacspec/hax-actions@main
         with:
-          hax_reference: hax-lib-v${{ env.HAX_LIB_VERSION }}
-          fstar: ${{ env.FSTAR_REV }}
+          hax_reference: ${{ github.event.inputs.hax_ref || needs.get-hax-ref.outputs.hax_ref }}
+          fstar: v2026.03.24
 
       - uses: actions/download-artifact@v8
         with:
@@ -89,7 +107,7 @@ jobs:
 
   sha3-extract-hax-status:
     if: ${{ always() }}
-    needs: [extract-portable]
+    needs: [get-hax-ref, extract-portable]
     runs-on: ubuntu-latest
     steps:
       - name: Successful
@@ -101,7 +119,7 @@ jobs:
 
   sha3-type-check-portable-hax-status:
     if: ${{ always() }}
-    needs: [lax-portable, type-check-portable]
+    needs: [get-hax-ref, lax-portable, type-check-portable]
     runs-on: ubuntu-latest
     steps:
       - name: Successful

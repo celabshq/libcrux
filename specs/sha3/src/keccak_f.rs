@@ -12,7 +12,7 @@ pub type State = [u64; 25];
 
 /// Read lane `A[x, y]`.
 #[inline]
-#[hax_lib::requires(x < 5 && y < 5)]
+#[cfg_attr(hax, hax_lib::requires(x < 5 && y < 5))]
 pub fn get(state: &State, x: usize, y: usize) -> u64 {
     state[5 * y + x]
 }
@@ -114,7 +114,7 @@ pub fn chi(state: State) -> State {
 /// ι step — FIPS 202, Algorithm 6.
 ///
 ///   A′[0,0] = A[0,0] ⊕ RC[ir]
-#[hax_lib::requires(round < 24)]
+#[cfg_attr(hax, hax_lib::requires(round < 24))]
 pub fn iota(mut state: State, round: usize) -> State {
     state[0] ^= ROUND_CONSTANTS[round];
     state

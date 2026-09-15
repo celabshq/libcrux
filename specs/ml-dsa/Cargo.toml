@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 hacspec_sha3 = { path = "../sha3" }
-hax-lib = { git = "https://github.com/cryspen/hax", rev = "f14d83bd6c664515d26ca68af7f1a57962656f18" }
+hax-lib.workspace = true
 
 [dev-dependencies]
 hex = { version = "0.4.3", features = ["serde"] }
@@ -13,3 +13,11 @@ proptest = "1.2.0"
 rand = "0.9"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = [
+    'cfg(hax)',
+    'cfg(hax_backend_lean)',
+    'cfg(hax_compilation)',
+    'cfg(hax_backend_fstar)',
+] }
