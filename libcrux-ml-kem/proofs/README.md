@@ -145,6 +145,7 @@ minutes; a cold run is longer. A module verifies cleanly when F\* prints
 | Path | Contents |
 | --- | --- |
 | `fstar/extraction/` | hax-extracted `.fst`/`.fsti` + the `Makefile` (the proofs) |
-| `fstar/spec/`, `../../specs/ml-kem/` | the hacspec reference spec + commute lemmas |
+| `fstar/spec/`, `fstar/commute/` | proof-side spec companions + the spec↔impl commute lemmas |
+| `../../specs/ml-kem/` | the hacspec reference spec |
 | `ml_kem_verification_status.md` | auto-generated per-function proof-tier tally |
 | `generate_verification_status.py` / `.sh`, `verification_status.config.json` | status generator |
