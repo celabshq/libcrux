@@ -40,10 +40,10 @@ ADMIT_MODULES =
 # (extracted via --output-dir into THIS dir) to avoid the cross-crate flip-flop
 # / stale-.fsti contamination. See fstar-helpers/Makefile.generic.
 FSTAR_INCLUDE_DIRS_EXTRA += ../spec \
+	      ../commute \
 	      ../intrinsics \
 	      $(shell git rev-parse --show-toplevel)/fstar-helpers/fstar-bitvec \
-	      $(shell git rev-parse --show-toplevel)/libcrux-ml-kem/proofs/fstar/spec \
-	      $(shell git rev-parse --show-toplevel)/specs/ml-dsa/proofs/fstar/commute
+	      $(shell git rev-parse --show-toplevel)/libcrux-ml-kem/proofs/fstar/spec
 
 ENABLE_HINTS = --use_hints --record_hints
 
@@ -63,8 +63,8 @@ include $(shell git rev-parse --show-toplevel)/fstar-helpers/Makefile.base
 # proof bodies. Force-gate the .fst modules here so CI re-checks them.
 #
 #  - Avx2NttTheory / Avx2NttCompose: committed AVX2 forward-NTT commute
-#    theory under specs/ml-dsa/proofs/fstar/commute/ (on the include path
-#    above). (Avx2NttCompose has no .fsti; listing it is explicit/harmless.)
+#    theory under ../commute (on the include path above).
+#    (Avx2NttCompose has no .fsti; listing it is explicit/harmless.)
 #  - Hacspec_ml_dsa.Commute.Chunk (commute/) and Spec.MLDSA.Math (../spec):
 #    shared per-lane commute + integer-spec libraries. Each gained a hand-
 #    written .fsti so closing an admit in their .fst body no longer reproves

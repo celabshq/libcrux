@@ -9,11 +9,11 @@ module Spec.MLDSA.Math
   opacity in the spec body.
 
   The companion Tier-2 layer
-  (`specs/ml-dsa/proofs/fstar/commute/Hacspec_ml_dsa.Commute.Chunk.fst`)
+  (`libcrux-ml-dsa/proofs/fstar/commute/Hacspec_ml_dsa.Commute.Chunk.fst`)
   proves the hacspec-lift property for each spec here — i.e., what
   the integer-level definition means after lifting modulo q.
 
-  Eventual relocation into `specs/ml-dsa/proofs/fstar/commute/` (or
+  Eventual relocation into `libcrux-ml-dsa/proofs/fstar/commute/` (or
   a sibling) is fine for cleanliness but is *not* a deletion.  This
   is the shared-spec layer of the proof.
 *)
@@ -226,7 +226,7 @@ let lemma_mont_red_bound_256_field_max_times_41978 (value: i64)
    (`hi`, `low`, `k`, `c`) via `reveal_opaque mont_red value`, then
    run the two calc-chains above with those bindings.  See also
    `lemma_mont_mul_bound_and_mod_q` in
-   `specs/ml-dsa/proofs/fstar/commute/Hacspec_ml_dsa.Commute.Chunk.fst:656`
+   `libcrux-ml-dsa/proofs/fstar/commute/Hacspec_ml_dsa.Commute.Chunk.fst:656`
    which proves the same property for `mont_mul` (= `mont_red ∘ i32_mul`)
    with a fully-spelled-out proof.  *)
 #push-options "--z3rlimit 600 --fuel 0 --ifuel 1"
