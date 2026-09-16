@@ -1651,6 +1651,57 @@ generate_test_case!(
     HpkeRustCrypto
 );
 
+// P521 based test cases
+
+generate_test_case!(
+    base_dhkemp521_hkdfsha512_Aes256Gcm,
+    HpkeMode::Base,
+    KemAlgorithm::DhKemP521,
+    KdfAlgorithm::HkdfSha512,
+    AeadAlgorithm::Aes256Gcm,
+    HpkeRustCrypto
+);
+generate_test_case!(
+    base_dhkemp521_hkdfsha512_Aes128Gcm,
+    HpkeMode::Base,
+    KemAlgorithm::DhKemP521,
+    KdfAlgorithm::HkdfSha512,
+    AeadAlgorithm::Aes128Gcm,
+    HpkeRustCrypto
+);
+generate_test_case!(
+    base_dhkemp521_hkdfsha512_chacha20poly1305,
+    HpkeMode::Base,
+    KemAlgorithm::DhKemP521,
+    KdfAlgorithm::HkdfSha512,
+    AeadAlgorithm::ChaCha20Poly1305,
+    HpkeRustCrypto
+);
+generate_test_case!(
+    psk_dhkemp521_hkdfsha512_Aes256Gcm,
+    HpkeMode::Psk,
+    KemAlgorithm::DhKemP521,
+    KdfAlgorithm::HkdfSha512,
+    AeadAlgorithm::Aes256Gcm,
+    HpkeRustCrypto
+);
+generate_test_case!(
+    auth_dhkemp521_hkdfsha512_Aes256Gcm,
+    HpkeMode::Auth,
+    KemAlgorithm::DhKemP521,
+    KdfAlgorithm::HkdfSha512,
+    AeadAlgorithm::Aes256Gcm,
+    HpkeRustCrypto
+);
+generate_test_case!(
+    authpsk_dhkemp521_hkdfsha512_Aes256Gcm,
+    HpkeMode::AuthPsk,
+    KemAlgorithm::DhKemP521,
+    KdfAlgorithm::HkdfSha512,
+    AeadAlgorithm::Aes256Gcm,
+    HpkeRustCrypto
+);
+
 // ML-KEM based test cases
 
 #[cfg(feature = "experimental")]
