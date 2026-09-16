@@ -39,4 +39,17 @@ FSTAR_INCLUDE_DIRS_EXTRA += \
 	      $(HAX_PROOF_LIBS)/proofs/fstar/extraction
 endif
 
+# core-models' hand-written companions live in `proofs/fstar/spec`, which FINDLIBS
+# does not discover (it only looks for `proofs/fstar/extraction`). That dir is the
+# shared foundation every algorithm crate builds on: Libcrux_core_models.Trusted.
+# Intrinsics (the axiom home), Intrinsics_views, Neon_views and Tactics.Circuits.
+# ml-kem, ml-dsa and sha3 spec companions all reference those modules, as does
+# core-models' own Int_vec.Lemmas, so without this they fail to resolve.
+# Only core-models' spec dir is added globally, deliberately: blanket-including
+# every crate's spec dir would risk module shadowing — e.g. the generic-named
+# `Spec.Utils`, which lives in ml-kem's spec dir and which ml-dsa reaches across
+# for.
+FSTAR_INCLUDE_DIRS_EXTRA += \
+	      $(shell git rev-parse --show-toplevel)/crates/utils/core-models/proofs/fstar/spec
+
 include $(shell git rev-parse --show-toplevel)/fstar-helpers/Makefile.generic
