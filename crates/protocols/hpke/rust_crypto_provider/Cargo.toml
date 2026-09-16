@@ -24,7 +24,7 @@ k256 = { version = "0.13", features = [
 ], default-features = false }
 p384 = { version = "0.13", default-features = false, features = ["arithmetic"] }
 x25519-dalek = { version = "2", features = ["static_secrets"] }
-chacha20poly1305 = { version = "0.10", default-features = false, features = [
+chacha20poly1305 = { version = "0.11", default-features = false, features = [
     "alloc",
 ] }
 aes-gcm = { version = "0.10", default-features = false, features = ["aes"] }
