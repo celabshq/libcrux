@@ -145,12 +145,9 @@ pub(crate) fn load_last<const RATE: usize, const DELIMITER: u8>(
 /// Per-iteration store wrapper for the `store_block` loop body: writes the
 /// 8-byte window `out[start+8*i .. start+8*i+8)` from `word`.
 ///
-/// Factored out of `store_block` so its strong per-byte ensures isolates the
-/// `update_at_range` reasoning from the outer loop's invariant. Mirrors
-/// `store_u64x2x2` on Arm64 and `store_u64x4x4` on AVX2; portable was the only
-/// backend still storing inline, which left re-establishing the loop invariant
-/// inside the fold's own weakest-precondition, and that query does not fit
-/// under the rlimit ceiling.
+/// Factored out of `store_block` so its strong per-byte ensures keeps the
+/// `update_at_range` reasoning out of the outer loop's invariant. Mirrors
+/// `store_u64x2x2` on Arm64 and `store_u64x4x4` on AVX2.
 #[inline(always)]
 #[hax_lib::fstar::options("--z3rlimit 400 --split_queries always")]
 #[hax_lib::requires(
@@ -181,13 +178,8 @@ fn store_u64x1(out: &mut [u8], word: u64, start: usize, i: usize) {
 }
 
 #[inline(always)]
-// Cold cost of this per-byte store proof is ~441 rlimit. A tighter budget only
-// passes while the recorded hint replays, and that hint goes stale whenever the
-// hax-lib foundation moves (the proof is a `fold_range`, so it is invalidated by
-// any change to `Rust_primitives.Hax.Folds`). The cold query then exhausts the
-// ceiling and reports `used rlimit <cap>.000`, which reads as saturation but is
-// only a budget shortfall. Budgeting above the measured cold cost keeps this
-// module provable without a hint. Within the project cap of 800.
+// Budgeted above the measured cold cost so this does not ride its recorded
+// hint. Within the project cap of 800.
 #[hax_lib::fstar::options("--z3rlimit 800")]
 #[hax_lib::requires(
     valid_rate(RATE) &&
@@ -233,8 +225,7 @@ pub(crate) fn store_block<const RATE: usize>(
             }));
 
         // get_ij linearises 5*(i/5)+(i%5) == i, so the word stored here is the
-        // one s.[(j-start)/8] names in the invariant. Without the bridge the
-        // fold rediscovers the Euclidean identity per byte per window.
+        // one s.[(j-start)/8] names in the invariant.
         hax_lib::fstar!(r#"FStar.Math.Lemmas.lemma_div_mod (v $i) 5"#);
         store_u64x1(out, *get_ij(s, i / 5, i % 5), start, i);
     }

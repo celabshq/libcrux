@@ -266,22 +266,13 @@ fn squeeze_blocks<const RATE: usize>(
 
     s.squeeze::<RATE>(output, 0, RATE);
 
+    // First-block forall established in clean context; proven inline it lands
+    // in this function's WP and the fold's init check then saturates.
     hax_lib::fstar!(
-        r#"let spec_out : t_Slice u8 =
-                   Hacspec_sha3.Sponge.squeeze $output_len $s_init_st $RATE in
-               assert (v $output_blocks >= 1);
-               assert (v $RATE <= 200);
-               assert (s_init_st == Hacspec_sha3.Sponge.iterate_keccak_f (mk_usize 0) s_init_st);
-               let aux (k: nat{k < v $RATE })
-                 : Lemma (Seq.index ($output <: Seq.seq u8) k ==
-                          Seq.index (spec_out <: Seq.seq u8) k)
-                 = let i : usize = mk_usize k in
-                   assert (v i == k);
-                   assert (v i / 8 < 25);
-                   FStar.Math.Lemmas.small_div k (v $RATE);
-                   assert (v i / v $RATE = 0)
-               in
-               FStar.Classical.forall_intro aux"#
+        r#"assert (v $output_blocks >= 1);
+           assert (s_init_st == Hacspec_sha3.Sponge.iterate_keccak_f (mk_usize 0) s_init_st);
+           EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_first_block_portable
+             $RATE $s_init_st $output $output_len"#
     );
 
     for i in 1..output_blocks {
@@ -358,6 +349,9 @@ fn squeeze_blocks<const RATE: usize>(
                  $s.st
                  $RATE <: t_Slice u8)"#)
 })]
+// Clears the Z3 state accumulated by earlier declarations in this module;
+// without it this proof is sensitive to edits in its neighbours.
+#[cfg_attr(hax, hax_lib::fstar::before(r#"#restart-solver"#))]
 #[hax_lib::fstar::options("--fuel 1 --ifuel 1 --z3rlimit 400")]
 #[inline]
 pub(crate) fn squeeze<const RATE: usize>(mut s: KeccakState<1, u64>, output: &mut [u8]) {
@@ -370,10 +364,8 @@ pub(crate) fn squeeze<const RATE: usize>(mut s: KeccakState<1, u64>, output: &mu
 
     if output_blocks == 0 {
         s.squeeze::<RATE>(output, 0, output_len);
-        // The whole-sequence assembly lives in a clean-context lemma rather
-        // than here: elaborated inside this function's WP it cost ~1358
-        // rlimit, over the project cap, so it only ever closed while its
-        // recorded unsat core replayed.
+        // The sequence assembly lives in a clean-context lemma; elaborated in
+        // this function's WP it cost more than the project rlimit cap.
         hax_lib::fstar!(
             r#"EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_short_portable
                  $RATE $s_init_st $output"#
@@ -398,10 +390,8 @@ pub(crate) fn squeeze<const RATE: usize>(mut s: KeccakState<1, u64>, output: &mu
                          ($output_blocks -! mk_usize 1) $s_init_st));
             let output_after_blocks_slice : t_Slice u8 =
                 Alloc.Vec.impl_1__as_slice $output_after_blocks in
-            (* The per-byte dispatch and the Classical.forall_intro /
-               Seq.lemma_eq_intro assembly are discharged in clean context by
-               lemma_squeeze_assemble_portable; only the state-chaining fact,
-               which is position-bound to this call sequence, is asserted here. *)
+            (* Per-byte dispatch and assembly are discharged in clean context;
+               only the state-chaining fact is asserted here. *)
             EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_assemble_portable
               $RATE $s_init_st $s.st output_after_blocks_slice $output
               $output_blocks $output_rem

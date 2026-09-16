@@ -513,10 +513,7 @@ fn store_block_full(
                 true
             }));
         // Discharge store_u64x2x2's `s_k == s[2*i+k]` link: get_ij linearises
-        // 5*((2i+k)/5)+(2i+k)%5 == 2*i+k. Without these the fold has to
-        // rediscover the Euclidean identity for every byte of every window,
-        // which is what made this proof cost more than the rlimit ceiling.
-        // store_block_tail and the AVX2 sibling already bridge it this way.
+        // 5*((2i+k)/5)+(2i+k)%5 == 2*i+k.  As store_block_tail and AVX2 do.
         hax_lib::fstar!(
             r#"
             FStar.Math.Lemmas.lemma_div_mod (2 * v i) 5;
