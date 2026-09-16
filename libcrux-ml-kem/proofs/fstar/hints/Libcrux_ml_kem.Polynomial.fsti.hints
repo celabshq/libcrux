@@ -31,7 +31,7 @@
         "typing_tok_Rust_primitives.Integers.I16@tok"
       ],
       0,
-      "681dbc9bbe2f09b70199d617b3959144"
+      "a8ea663f56ca176b069bbf25fda0d117"
     ],
     [
       "Libcrux_ml_kem.Polynomial.zeta",
@@ -74,7 +74,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "ef04719e405e19fa82c86d10795608b6"
+      "a75c51cd628e77838e4e375fed84fbe4"
     ],
     [
       "Libcrux_ml_kem.Polynomial.add_bounded",
@@ -139,7 +139,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "0226da4cfea7bc29e6e481b7ca4c06c1"
+      "1551d48a741870735dbf367ed173b938"
     ],
     [
       "Libcrux_ml_kem.Polynomial.sub_bounded",
@@ -204,7 +204,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "233a60d8c994be8c395dfd0613d0a919"
+      "04880b85ccb33cf94e6418c8c978d3a5"
     ],
     [
       "Libcrux_ml_kem.Polynomial.multiply_by_constant_bounded",
@@ -226,15 +226,16 @@
         "equality_tok_Rust_primitives.Integers.I16@tok",
         "equality_tok_Rust_primitives.Integers.I32@tok",
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
-        "equation_Core_models.Num.impl_i16__MIN",
-        "equation_Core_models.Num.impl_i16__abs",
+        "equation_Core_models.Bundle.impl_13__MIN",
+        "equation_Core_models.Bundle.impl_13__abs",
         "equation_Libcrux_ml_kem.Vector.Traits.f_to_i16_array",
-        "equation_Prims.nat", "equation_Prims.pos",
+        "equation_Prims.abs", "equation_Prims.nat", "equation_Prims.pos",
         "equation_Rust_primitives.Arrays.t_Array",
         "equation_Rust_primitives.Integers.bits",
         "equation_Rust_primitives.Integers.gt",
         "equation_Rust_primitives.Integers.gte",
         "equation_Rust_primitives.Integers.i16",
+        "equation_Rust_primitives.Integers.lt",
         "equation_Rust_primitives.Integers.maxint",
         "equation_Rust_primitives.Integers.minint",
         "equation_Rust_primitives.Integers.mk_i16",
@@ -253,6 +254,7 @@
         "int_inversion", "int_typing",
         "interpretation_Tm_abs_239121a0ca345d485189822787eefd72",
         "lemma_Rust_primitives.Integers.pow2_values",
+        "lemma_Spec.Utils.impl_i16__abs_value",
         "lemma_Spec.Utils.pow2_more_values", "primitive_Prims.op_AmpAmp",
         "primitive_Prims.op_GreaterThan",
         "primitive_Prims.op_GreaterThanOrEqual",
@@ -269,22 +271,26 @@
         "refinement_interpretation_Tm_refine_774ba3f728d91ead8ef40be66c9802e5",
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
         "refinement_interpretation_Tm_refine_b045b04f0bb15cd7c94a2ec78d3283ce",
+        "refinement_interpretation_Tm_refine_b1819fe88082d36cb509f89da1e32c50",
         "refinement_interpretation_Tm_refine_e263604a64d343fa5112de970172906b",
-        "refinement_interpretation_Tm_refine_edbf994576cc014d00d31f11f091165c",
+        "refinement_interpretation_Tm_refine_fdf689111ef002ebf1d0e151f090a981",
         "token_correspondence_Libcrux_ml_kem.Vector.Traits.__proj__Mkt_Repr__item__f_repr_pre",
         "token_correspondence_Libcrux_ml_kem.Vector.Traits.f_to_i16_array",
+        "typing_Core_models.Bundle.impl_13__abs",
         "typing_FStar.Seq.Base.length",
         "typing_Libcrux_ml_kem.Vector.Traits.uu___4", "typing_Prims.pow2",
         "typing_Rust_primitives.Integers.bits",
+        "typing_Rust_primitives.Integers.gte",
         "typing_Rust_primitives.Integers.maxint",
         "typing_Rust_primitives.Integers.minint",
+        "typing_Rust_primitives.Integers.mk_int",
         "typing_Rust_primitives.Integers.range",
         "typing_Rust_primitives.Integers.size_bits",
         "typing_tok_Rust_primitives.Integers.I16@tok",
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "b8400d41d1bab7fd5ab15865b89d324c"
+      "6014bcf973675f2cca6b8c30d6153fb0"
     ],
     [
       "Libcrux_ml_kem.Polynomial.v_ZERO",
@@ -326,7 +332,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "542d25bdddc42467f9a5842786d40605"
+      "6baeb38fb91b61e8509c2f57771dae99"
     ],
     [
       "Libcrux_ml_kem.Polynomial.from_i16_array",
@@ -384,7 +390,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "477076aa571e950bbd6092486f1f2ddd"
+      "f0bd63eedc1854e466575f6ca9e31b06"
     ],
     [
       "Libcrux_ml_kem.Polynomial.to_i16_array",
@@ -431,7 +437,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "48ae3dcfaf20c5271aa65720d276d01c"
+      "1e2a34161a9e0fd4bd4a19b678811082"
     ],
     [
       "Libcrux_ml_kem.Polynomial.from_bytes",
@@ -468,7 +474,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "6951bbf692dd1d5e0ddac681ac6d1ed9"
+      "25db30605abc44b69f22068442033ba6"
     ],
     [
       "Libcrux_ml_kem.Polynomial.to_bytes",
@@ -513,7 +519,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f65362c6fc6a7f90b7b554c42294e595"
+      "5793a70af4cfaed5816df7ad2d13990f"
     ],
     [
       "Libcrux_ml_kem.Polynomial.vector_within_field_bound",
@@ -542,7 +548,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "734a5357f237f5da38ca8ee26b0128c0"
+      "476030ca88652f2cf9c8ba7021bd9471"
     ],
     [
       "Libcrux_ml_kem.Polynomial.poly_within_field_bound",
@@ -583,7 +589,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "357ec2a1bcfaed510dfc9b4cfd761e0c"
+      "662a9f2e1ac13f6f960b1080f3c6aea5"
     ],
     [
       "Libcrux_ml_kem.Polynomial.polyvec_within_field_bound",
@@ -612,7 +618,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "bdd21cfe21f07c051034bcb5a4c80ab8"
+      "90f36f8408680be47024f2e0c593deba"
     ],
     [
       "Libcrux_ml_kem.Polynomial.matrix_within_field_bound",
@@ -641,7 +647,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "cca7d78f93413deb68341592bf5f5774"
+      "10cda5dbc24f6682598b3f23d442cc4e"
     ],
     [
       "Libcrux_ml_kem.Polynomial.add_to_ring_element",
@@ -692,7 +698,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "6190f685263a8d7a0bfec65d3cb72cdb"
+      "1b40cfe453a5b0c29171bf7ce0fc9421"
     ],
     [
       "Libcrux_ml_kem.Polynomial.poly_barrett_reduce",
@@ -734,7 +740,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "c0bb26e80db48e0a81cdc4feeba733fe"
+      "733ae7e7b62e4a8a6baa9286e7bcb81a"
     ],
     [
       "Libcrux_ml_kem.Polynomial.subtract_reduce",
@@ -781,7 +787,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "7c2d3b308e035df6726cf74d86e249f4"
+      "ae732eb2f81a9535610cc44d4b6c78c0"
     ],
     [
       "Libcrux_ml_kem.Polynomial.add_message_error_reduce",
@@ -828,7 +834,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e1f30346d3077e06158819afe9ece871"
+      "fce471967462ce00ad333cd75ba6e586"
     ],
     [
       "Libcrux_ml_kem.Polynomial.add_error_reduce",
@@ -876,7 +882,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "170175c43c85026f30a02a3795d9cea5"
+      "bc8ee2d20cb7f96696684f2ff4bb7056"
     ],
     [
       "Libcrux_ml_kem.Polynomial.to_standard_domain",
@@ -920,7 +926,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "42c943008337a2c4006b354bd127e273"
+      "53b731476bbffb88af5ed4912d62a264"
     ],
     [
       "Libcrux_ml_kem.Polynomial.std_i16_to_spec_fe",
@@ -996,7 +1002,7 @@
         "typing_tok_Rust_primitives.Integers.U16@tok"
       ],
       0,
-      "e3789c090beefcf3c354f8ce96a0702e"
+      "a7819da8a34deb972868fc9f5705122a"
     ],
     [
       "Libcrux_ml_kem.Polynomial.to_spec_poly_standard",
@@ -1052,7 +1058,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "fb29e7350d22835402f9a8fa01c97ed7"
+      "4ab72bca7ab7fb858d2a933df97447ec"
     ],
     [
       "Libcrux_ml_kem.Polynomial.add_standard_error_reduce",
@@ -1093,7 +1099,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "7d542c56395640f2b0874027cc48c0b1"
+      "4894bb1befd3aea3ae4739a356edd99d"
     ],
     [
       "Libcrux_ml_kem.Polynomial.ntt_multiply",
@@ -1134,7 +1140,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "52f5359452cde620f4aa5ce7b0637879"
+      "ef4a61825f120bd10c0e0c5b870bff02"
     ],
     [
       "Libcrux_ml_kem.Polynomial.impl__ZERO",
@@ -1176,7 +1182,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "ed69eda5bae6ba2444e463b4fb605fb2"
+      "c1e519a345917857ce1026c8681522c8"
     ],
     [
       "Libcrux_ml_kem.Polynomial.impl__num_bytes",
@@ -1206,7 +1212,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "848cde5a5f740d2121db0245fa74dceb"
+      "8f1ad2645876d375a48e28a460f64add"
     ],
     [
       "Libcrux_ml_kem.Polynomial.vec_len_bytes",
@@ -1249,7 +1255,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "83a58ae32e35f4e3a3b4b422dbc4a3a2"
+      "4a7e8615fa1ff5b9da9a0015fd2fdcf5"
     ],
     [
       "Libcrux_ml_kem.Polynomial.impl__from_i16_array",
@@ -1307,7 +1313,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "535fb8123f42adf847bda68306d21e63"
+      "61cd2a0b9e9963e92d9ef9a22fbb824a"
     ],
     [
       "Libcrux_ml_kem.Polynomial.impl__to_i16_array",
@@ -1354,7 +1360,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "89b10b72362d671d8a4b56702476ed81"
+      "611c5ea5b4b6faab686a626e3daf6e52"
     ],
     [
       "Libcrux_ml_kem.Polynomial.impl__from_bytes",
@@ -1392,7 +1398,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "cafafc7c62d00a0f26e5aad9d552f529"
+      "8b3605aac648823f276f532e10e5a69b"
     ],
     [
       "Libcrux_ml_kem.Polynomial.vec_from_bytes",
@@ -1445,7 +1451,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "8101b2301c8317ea2486a51074eb438a"
+      "76a1a950b4d37f01a84c8dbed10e5464"
     ],
     [
       "Libcrux_ml_kem.Polynomial.impl__to_bytes",
@@ -1498,7 +1504,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "9032780776673fd5fecc2795a94b9ed5"
+      "db557f1570e1de40a9ff1ffdd4d2f4f8"
     ],
     [
       "Libcrux_ml_kem.Polynomial.vec_to_bytes",
@@ -1548,7 +1554,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "410469156aa47b14a5d36ef81e4a7787"
+      "9f4962e71c98c08383ee42896790c38c"
     ],
     [
       "Libcrux_ml_kem.Polynomial.impl__add_to_ring_element",
@@ -1599,7 +1605,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "130acdfb41d252b73ec0e716596a8585"
+      "7603c18430a5b7a9cd59ebe96de5b04a"
     ],
     [
       "Libcrux_ml_kem.Polynomial.impl__poly_barrett_reduce",
@@ -1641,7 +1647,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "b0ef19e8f87d620bd2fa075c1746c4af"
+      "bdf58f73f869f813848efc5a0240b2d3"
     ],
     [
       "Libcrux_ml_kem.Polynomial.impl__subtract_reduce",
@@ -1683,7 +1689,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "1a4f3d108ede66877851cc5fe1635c03"
+      "2b2eb2914679d5ad27ff30c0fd374844"
     ],
     [
       "Libcrux_ml_kem.Polynomial.impl__add_message_error_reduce",
@@ -1724,7 +1730,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "3e2d0be1625d0ec6cb33f559e1e07d76"
+      "383a3275784674ee59d57769b1073fd9"
     ],
     [
       "Libcrux_ml_kem.Polynomial.impl__add_error_reduce",
@@ -1765,7 +1771,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "a76479d826059f656ce5bb316806ce2a"
+      "6447f01f42be85f029aa31a6ca6dc711"
     ],
     [
       "Libcrux_ml_kem.Polynomial.impl__add_standard_error_reduce",
@@ -1806,7 +1812,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "7c565ce112dda9e7eb74b24a7eebd585"
+      "09702995c5a46edf60a96d4e6e35e8b2"
     ],
     [
       "Libcrux_ml_kem.Polynomial.impl__ntt_multiply",
@@ -1847,7 +1853,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "91b2dc4bd851d9a1e0e77a629f4bd08d"
+      "bb83cf6728d0a153b4f7d2d32e9b6470"
     ],
     [
       "Libcrux_ml_kem.Polynomial.e_iimpl_functional_bridges_anchor",
@@ -1888,7 +1894,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "31061527d20e20fbd77ff515920a2772"
+      "a576d1d3d6a258b64fb6aac62ade74f0"
     ],
     [
       "Libcrux_ml_kem.Polynomial.lemma_impl_ntt_multiply_spec",
@@ -1931,7 +1937,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "2f8d662f7b53c844c6f22d31439db891"
+      "83f7e5fb7c4f69d61bde1004ab63b0e8"
     ],
     [
       "Libcrux_ml_kem.Polynomial.lemma_impl_add_to_ring_element_spec",
@@ -1980,7 +1986,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "aa4567d55b71de6a2769a9b1741798f6"
+      "f9af2200f0c3b676cc60dfe592f49c2e"
     ],
     [
       "Libcrux_ml_kem.Polynomial.lemma_impl_add_standard_error_reduce_spec",
@@ -2024,7 +2030,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "69ca66525a7b1a8735cd26e01af0dbbf"
+      "a61d6495216a483493af3a5a695f66d2"
     ],
     [
       "Libcrux_ml_kem.Polynomial.lemma_impl_add_error_reduce_spec",
@@ -2074,7 +2080,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "77627c7d76de0cfbdc034a7d212abc97"
+      "e4c805baa0fb1950bee1bddd7b7521f4"
     ],
     [
       "Libcrux_ml_kem.Polynomial.lemma_impl_subtract_reduce_spec",
@@ -2123,7 +2129,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4ab49cbdc43a3720145200aefdedddd4"
+      "86614c9ac08a5f7c690dde8e15f2779d"
     ],
     [
       "Libcrux_ml_kem.Polynomial.lemma_impl_add_message_error_reduce_spec",
@@ -2171,7 +2177,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "8105d96bbde4af588a50980712974e54"
+      "846ba05fb4e8a788a16bdc42e73f3566"
     ],
     [
       "Libcrux_ml_kem.Polynomial.lemma_impl__poly_barrett_reduce_spec",
@@ -2215,7 +2221,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "5e1953278e89f42d2dc516e27132fb3a"
+      "42e034fd2b50c3c59e3ddd2b6f3dbd52"
     ]
   ]
 ]

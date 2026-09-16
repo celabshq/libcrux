@@ -33,7 +33,7 @@
         "typing_Prims.__proj__Cons__item__tl"
       ],
       0,
-      "af88dfe200cc1309ee7f4e1bdbc51735"
+      "5b4c3eba97424d7c5a02c146e857a6e1"
     ],
     [
       "Tactics.Pow2.expect_pow2_minus_one_literal",
@@ -69,7 +69,7 @@
         "typing_Prims.__proj__Cons__item__tl"
       ],
       0,
-      "e54ce5c1a6dd187e2b2a4381f41dc775"
+      "6a4db4a26d25be7546425942d230c1cf"
     ],
     [
       "Tactics.Pow2.log2",
@@ -99,7 +99,7 @@
         "typing_Prims.pow2", "well-founded-ordering-on-nat"
       ],
       0,
-      "db399366b52ae2be39961e12ac9c195b"
+      "510e156536cb9470383ba7303d9ecbd5"
     ],
     [
       "Tactics.Pow2.log2",
@@ -108,7 +108,7 @@
       1,
       [ "@query" ],
       0,
-      "e9275f4d4c9fb2396a2f0f06a283e0bf"
+      "3bfabbae384653f450ae1c55d21a19da"
     ],
     [
       "Tactics.Pow2.rewrite_pow2_minus_one",
@@ -125,7 +125,7 @@
         "refinement_interpretation_Tm_refine_54733759c4e23a76d87344ec95e62202"
       ],
       0,
-      "9f8e4cd679b4cc5e484a16f16d386f40"
+      "5eecdccb3c19cce9e08ce639f3182da0"
     ],
     [
       "Tactics.Pow2.uu___0",
@@ -139,7 +139,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "6f0bc8fdc0471adeeae61d3fcf5fa06d"
+      "d7e927c4919c7767becfbc28adf94a25"
     ]
   ]
 ]

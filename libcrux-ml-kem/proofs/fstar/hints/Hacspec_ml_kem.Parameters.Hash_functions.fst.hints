@@ -1,8 +1,8 @@
 [
-  "b3fbbe62f8f6e26ac27516bfc5ed91ec",
+  "3a3d0fa48d3797a66e2df9a3280dad5b",
   [
     [
-      "Hacspec_ml_kem.Parameters.Hash_functions.v_G'",
+      "Hacspec_ml_kem.Parameters.Hash_functions.v_G",
       1,
       0,
       1,
@@ -28,7 +28,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "8540abdc793d6172b7f9b60abbbf5d8e"
+      "4b9373e3e5fafbafeed3495d0a6e1786"
     ],
     [
       "Hacspec_ml_kem.Parameters.Hash_functions.v_H_DIGEST_SIZE",
@@ -57,10 +57,10 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "c3e33f251407a19bfc108fbf134f2536"
+      "038d8ce35e522b90f0a1cb4b5f1b544c"
     ],
     [
-      "Hacspec_ml_kem.Parameters.Hash_functions.v_H'",
+      "Hacspec_ml_kem.Parameters.Hash_functions.v_H",
       1,
       0,
       1,
@@ -86,7 +86,82 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "dea48f04238195f4a9cb158f263524e6"
+      "8544a977a707464031bd783d581fbb90"
+    ],
+    [
+      "Hacspec_ml_kem.Parameters.Hash_functions.v_PRF",
+      1,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Core_models.Bundle.impl_11__MAX",
+        "equation_Rust_primitives.Integers.lt",
+        "equation_Rust_primitives.Integers.mk_int",
+        "equation_Rust_primitives.Integers.mk_usize",
+        "equation_Rust_primitives.Integers.sub",
+        "equation_Rust_primitives.Integers.usize",
+        "equation_Rust_primitives.Integers.v",
+        "fuel_guarded_inversion_Rust_primitives.Integers.int_t",
+        "primitive_Prims.op_LessThan", "primitive_Prims.op_Subtraction",
+        "proj_equation_Rust_primitives.Integers.MkInt_@_0",
+        "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Rust_primitives.Integers.MkInt_@_0"
+      ],
+      0,
+      "06ed9cce241dffa8d305f111ec616e4c"
+    ],
+    [
+      "Hacspec_ml_kem.Parameters.Hash_functions.v_XOF",
+      1,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Core_models.Bundle.impl_11__MAX",
+        "equation_Rust_primitives.Integers.lt",
+        "equation_Rust_primitives.Integers.mk_int",
+        "equation_Rust_primitives.Integers.mk_usize",
+        "equation_Rust_primitives.Integers.sub",
+        "equation_Rust_primitives.Integers.usize",
+        "equation_Rust_primitives.Integers.v",
+        "fuel_guarded_inversion_Rust_primitives.Integers.int_t",
+        "primitive_Prims.op_LessThan", "primitive_Prims.op_Subtraction",
+        "proj_equation_Rust_primitives.Integers.MkInt_@_0",
+        "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Rust_primitives.Integers.MkInt_@_0"
+      ],
+      0,
+      "d0836b89dd90873bf076a4cf40392fad"
+    ],
+    [
+      "Hacspec_ml_kem.Parameters.Hash_functions.v_J",
+      1,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Core_models.Bundle.impl_11__MAX",
+        "equation_Rust_primitives.Integers.lt",
+        "equation_Rust_primitives.Integers.mk_int",
+        "equation_Rust_primitives.Integers.mk_usize",
+        "equation_Rust_primitives.Integers.sub",
+        "equation_Rust_primitives.Integers.usize",
+        "equation_Rust_primitives.Integers.v",
+        "fuel_guarded_inversion_Rust_primitives.Integers.int_t",
+        "primitive_Prims.op_LessThan", "primitive_Prims.op_Subtraction",
+        "proj_equation_Rust_primitives.Integers.MkInt_@_0",
+        "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Rust_primitives.Integers.MkInt_@_0"
+      ],
+      0,
+      "77a14799de2395ada7e61ba7b721615d"
     ]
   ]
 ]

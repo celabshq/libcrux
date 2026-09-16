@@ -19,7 +19,7 @@
         "equality_tok_Rust_primitives.Integers.U16@tok",
         "equality_tok_Rust_primitives.Integers.U32@tok",
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
-        "equation_Core_models.Num.impl_u32__pow",
+        "equation_Core_models.Bundle.impl_8__pow",
         "equation_Hacspec_ml_kem.Parameters.v_FIELD_MODULUS",
         "equation_Prims.nat", "equation_Prims.pos",
         "equation_Rust_primitives.Integers.bits",
@@ -82,7 +82,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "2678ad6c32fc6be0cc7b8c938eedb852"
+      "b0bb6eee2b75e0cf8ec2811b1073d667"
     ],
     [
       "Hacspec_ml_kem.Compress.compress",
@@ -134,7 +134,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "768d1bae88c1f659904563a1057782fc"
+      "5ecfc110e9e64e682091cebcef82176b"
     ],
     [
       "Hacspec_ml_kem.Compress.compress",
@@ -163,7 +163,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "0448294d2b75fbc0c0b277c590fa2f2c"
+      "0fbbafab665d926c3bd44be1fc6cb1e9"
     ],
     [
       "Hacspec_ml_kem.Compress.decompress_d",
@@ -183,7 +183,7 @@
         "equality_tok_Rust_primitives.Integers.U16@tok",
         "equality_tok_Rust_primitives.Integers.U32@tok",
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
-        "equation_Core_models.Num.impl_u32__pow",
+        "equation_Core_models.Bundle.impl_8__pow",
         "equation_Hacspec_ml_kem.Parameters.v_FIELD_MODULUS",
         "equation_Prims.nat", "equation_Prims.pos",
         "equation_Rust_primitives.Integers.add",
@@ -240,6 +240,7 @@
         "typing_Hacspec_ml_kem.Parameters.v_FIELD_MODULUS",
         "typing_Prims.pow2", "typing_Rust_primitives.Arithmetic.pow_u32",
         "typing_Rust_primitives.Integers.bits",
+        "typing_Rust_primitives.Integers.cast_mod",
         "typing_Rust_primitives.Integers.maxint",
         "typing_Rust_primitives.Integers.mk_u16",
         "typing_Rust_primitives.Integers.op_At_Percent_Dot",
@@ -252,7 +253,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4f3e340eb40aa1780c951ddad9a19e36"
+      "d002704838a1df84d2ac10dc40be7dfb"
     ],
     [
       "Hacspec_ml_kem.Compress.decompress",
@@ -312,7 +313,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "1841a2530c299969fa3784bc438534ce"
+      "eb231db77e06836d8dd20a2dd1360896"
     ],
     [
       "Hacspec_ml_kem.Compress.decompress",
@@ -341,7 +342,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "60e184c6d42fc9f557a83158248f2d78"
+      "799cdf9878f0a26bacf443854e0334b4"
     ]
   ]
 ]

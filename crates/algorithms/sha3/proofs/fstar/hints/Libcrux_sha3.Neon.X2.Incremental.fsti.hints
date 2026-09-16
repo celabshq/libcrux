@@ -1,0 +1,103 @@
+[
+  "b17a8d4c0c498cc5b3ed2c8bb1d5ede3",
+  [
+    [
+      "Libcrux_sha3.Neon.X2.Incremental.shake128_absorb_final",
+      1,
+      0,
+      1,
+      [
+        "@query", "assumption_Rust_primitives.Integers.int_t__uu___haseq",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Rust_primitives.Integers.usize",
+        "typing_tok_Rust_primitives.Integers.USIZE@tok"
+      ],
+      0,
+      "12649f4b9064f1a109662a1931e4c306"
+    ],
+    [
+      "Libcrux_sha3.Neon.X2.Incremental.shake256_absorb_final",
+      1,
+      0,
+      1,
+      [
+        "@query", "assumption_Rust_primitives.Integers.int_t__uu___haseq",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Rust_primitives.Integers.usize",
+        "typing_tok_Rust_primitives.Integers.USIZE@tok"
+      ],
+      0,
+      "531e5b177d1cd0d2ec100fa5a3a28299"
+    ],
+    [
+      "Libcrux_sha3.Neon.X2.Incremental.shake128_squeeze_first_three_blocks",
+      1,
+      0,
+      1,
+      [
+        "@query", "assumption_Rust_primitives.Integers.int_t__uu___haseq",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Rust_primitives.Integers.usize",
+        "typing_tok_Rust_primitives.Integers.USIZE@tok"
+      ],
+      0,
+      "a21f7ad0d6e376b81f45b252a129a366"
+    ],
+    [
+      "Libcrux_sha3.Neon.X2.Incremental.shake128_squeeze_first_five_blocks",
+      1,
+      0,
+      1,
+      [
+        "@query", "assumption_Rust_primitives.Integers.int_t__uu___haseq",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Rust_primitives.Integers.usize",
+        "typing_tok_Rust_primitives.Integers.USIZE@tok"
+      ],
+      0,
+      "236703bb33a2e2cead4a2ec7e3125897"
+    ],
+    [
+      "Libcrux_sha3.Neon.X2.Incremental.shake256_squeeze_first_block",
+      1,
+      0,
+      1,
+      [
+        "@query", "assumption_Rust_primitives.Integers.int_t__uu___haseq",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Rust_primitives.Integers.usize",
+        "typing_tok_Rust_primitives.Integers.USIZE@tok"
+      ],
+      0,
+      "feabb4eeca172442aa1c19ae0c0983c7"
+    ],
+    [
+      "Libcrux_sha3.Neon.X2.Incremental.shake256_squeeze_next_block",
+      1,
+      0,
+      1,
+      [
+        "@query", "assumption_Rust_primitives.Integers.int_t__uu___haseq",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Rust_primitives.Integers.usize",
+        "typing_tok_Rust_primitives.Integers.USIZE@tok"
+      ],
+      0,
+      "feabb4eeca172442aa1c19ae0c0983c7"
+    ],
+    [
+      "Libcrux_sha3.Neon.X2.Incremental.shake128_squeeze_next_block",
+      1,
+      0,
+      1,
+      [
+        "@query", "assumption_Rust_primitives.Integers.int_t__uu___haseq",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Rust_primitives.Integers.usize",
+        "typing_tok_Rust_primitives.Integers.USIZE@tok"
+      ],
+      0,
+      "bb1de63a59780171c89aa806b4b05650"
+    ]
+  ]
+]

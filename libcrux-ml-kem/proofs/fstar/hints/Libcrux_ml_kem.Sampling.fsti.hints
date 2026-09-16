@@ -66,7 +66,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4b9bb8f3522174576c428ffa7b2989b2"
+      "ea9f646ce69066878fc1773adc74d1f8"
     ],
     [
       "Libcrux_ml_kem.Sampling.sample_from_xof",
@@ -84,9 +84,12 @@
         "disc_equation_Core_models.Bundle.Result_Ok",
         "equality_tok_Hacspec_ml_kem.Sampling.BadRejectionSamplingRandomnessError@tok",
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Core_models.Bundle.impl_11__MAX",
         "equation_Core_models.Ops.Index.f_index_pre",
         "equation_Hacspec_ml_kem.Serialize.v_MAX_BYTES",
-        "equation_Prims.nat", "equation_Rust_primitives.Arrays.t_Array",
+        "equation_Prims.nat",
+        "equation_Rust_primitives.Arithmetic.v_USIZE_MAX",
+        "equation_Rust_primitives.Arrays.t_Array",
         "equation_Rust_primitives.Hax.impl__index",
         "equation_Rust_primitives.Integers.bits",
         "equation_Rust_primitives.Integers.div",
@@ -141,7 +144,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "873964ddefbe39b0277452000b9022fd"
+      "8026cebd3e2c6700583e3eff7e7b9d3e"
     ],
     [
       "Libcrux_ml_kem.Sampling.sample_from_binomial_distribution_2_",
@@ -190,7 +193,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "c3e8c7613e9b507f58726b51de7fba83"
+      "4fc65c7983cf392f8c0ae0500d1837af"
     ],
     [
       "Libcrux_ml_kem.Sampling.sample_from_binomial_distribution_3_",
@@ -240,7 +243,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "61e577cc055ba5804615f7eb5e0903e1"
+      "aa36bf9982946403d31abedd605b1acf"
     ],
     [
       "Libcrux_ml_kem.Sampling.sample_from_binomial_distribution",
@@ -297,7 +300,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "6d413221f1812dccedb123baca613ada"
+      "c4c4b653c602066c1c49bb5580efc47b"
     ]
   ]
 ]

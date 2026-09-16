@@ -34,7 +34,7 @@
         "typing_tok_Rust_primitives.Integers.U16@tok"
       ],
       0,
-      "817ad0b09c32d6e29748fbb15cc8ded2"
+      "551bc9608b6e657ead23c5e517cdd22c"
     ],
     [
       "Hacspec_ml_kem.Invert_ntt.ntt_inverse_layer_n",
@@ -50,7 +50,7 @@
         "data_elim_Rust_primitives.Integers.MkInt",
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
         "equation_Core_models.Ops.Index.f_index_pre",
-        "equation_Core_models.Slice.impl_11",
+        "equation_Core_models.Slice.impl_10",
         "equation_Core_models.Slice.impl__len", "equation_Prims.nat",
         "equation_Rust_primitives.Arrays.t_Array",
         "equation_Rust_primitives.Arrays.t_Slice",
@@ -76,10 +76,10 @@
         "equation_Rust_primitives.Integers.v",
         "equation_Rust_primitives.Slice.slice_length",
         "fuel_guarded_inversion_Rust_primitives.Integers.int_t",
-        "int_inversion",
+        "int_inversion", "int_typing",
         "interpretation_Tm_abs_9e51361188a25d28bb48d6a215e0ee9b",
+        "interpretation_Tm_abs_aed667363465ba744e352ad378c160c3",
         "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
-        "interpretation_Tm_abs_e4ad8c1bfeedd85414fb6d3d7efd6033",
         "kinding_Hacspec_ml_kem.Parameters.t_FieldElement@tok",
         "lemma_FStar.Int.pow2_values",
         "lemma_Rust_primitives.Integers.pow2_values",
@@ -101,7 +101,7 @@
         "refinement_interpretation_Tm_refine_eea4a7aaf0d9fd792b6bd561042bfd5e",
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca",
         "token_correspondence_Core_models.Ops.Index.f_index_pre",
-        "typing_Core_models.Slice.impl__len", "typing_FStar.Seq.Base.length",
+        "typing_FStar.Seq.Base.length",
         "typing_Rust_primitives.Integers.bits",
         "typing_Rust_primitives.Integers.lt",
         "typing_Rust_primitives.Integers.range",
@@ -110,7 +110,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "db29c4020db94e241939e633759ab73f"
+      "cd97a2dc9ee14dd2e7f0a35354f986af"
     ],
     [
       "Hacspec_ml_kem.Invert_ntt.ntt_inverse_layer",
@@ -126,7 +126,7 @@
         "data_elim_Rust_primitives.Integers.MkInt",
         "equality_tok_Rust_primitives.Integers.U16@tok",
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
-        "equation_Core_models.Array.impl_26",
+        "equation_Core_models.Bundle.impl_28",
         "equation_Core_models.Ops.Index.f_index",
         "equation_Core_models.Ops.Index.f_index_pre",
         "equation_Core_models.Slice.impl__len",
@@ -144,6 +144,7 @@
         "equation_Rust_primitives.Integers.gte",
         "equation_Rust_primitives.Integers.lt",
         "equation_Rust_primitives.Integers.lte",
+        "equation_Rust_primitives.Integers.max_usize",
         "equation_Rust_primitives.Integers.maxint",
         "equation_Rust_primitives.Integers.minint",
         "equation_Rust_primitives.Integers.mk_int",
@@ -167,11 +168,11 @@
         "fuel_guarded_inversion_Rust_primitives.Integers.int_t",
         "int_inversion", "int_typing",
         "interpretation_Tm_abs_4ab552b3415220d2b607f7d57c958117",
-        "interpretation_Tm_abs_56844a6a588223e03e0559cf4d1c8eea",
-        "interpretation_Tm_abs_61251814636ed8a91b652d10d977a8a7",
         "interpretation_Tm_abs_9e51361188a25d28bb48d6a215e0ee9b",
+        "interpretation_Tm_abs_c8b392bb3dee3f129480db173fd660b6",
         "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
         "interpretation_Tm_abs_d175eeaaa95464a0d60f149dab3d969e",
+        "interpretation_Tm_abs_f413ea7219fad5c10ffd6b71dfe8fe9e",
         "kinding_Hacspec_ml_kem.Parameters.t_FieldElement@tok",
         "lemma_FStar.Int.pow2_values",
         "lemma_FStar.Seq.Base.lemma_len_slice",
@@ -183,17 +184,17 @@
         "primitive_Prims.op_LessThan", "primitive_Prims.op_LessThanOrEqual",
         "primitive_Prims.op_Modulus", "primitive_Prims.op_Multiply",
         "primitive_Prims.op_Subtraction",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_end",
+        "proj_equation_Core_models.Bundle.Mkt_Range_@f_start",
         "proj_equation_Core_models.Ops.Index.Mkt_Index_@f_Output",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "proj_equation_Core_models.Ops.Range.Mkt_Range_@f_start",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxBool_proj_0",
         "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_end",
+        "projection_inverse_Core_models.Bundle.Mkt_Range_@f_start",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_Output",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index_pre",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_end",
-        "projection_inverse_Core_models.Ops.Range.Mkt_Range_@f_start",
         "projection_inverse_Rust_primitives.Hax.Mkupdate_at_tc_@super_index",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_175498aa4326455d289339658b3d8b6c",
@@ -214,6 +215,7 @@
         "typing_FStar.Seq.Base.length",
         "typing_Hacspec_ml_kem.Parameters.v_FIELD_MODULUS",
         "typing_Rust_primitives.Integers.bits",
+        "typing_Rust_primitives.Integers.lte",
         "typing_Rust_primitives.Integers.minint",
         "typing_Rust_primitives.Integers.size_bits",
         "typing_Rust_primitives.Integers.v",
@@ -221,7 +223,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "d04b6bcb0f00dc69186e46832bfd2af7"
+      "f4de3adb67536ae4aeb18aa8cc8af8d2"
     ],
     [
       "Hacspec_ml_kem.Invert_ntt.ntt_inverse_layer",
@@ -250,7 +252,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "9a72cffacc000e9e814c3cd6e6e092c1"
+      "05db4f5ee6360617b4aa7be295752fb1"
     ],
     [
       "Hacspec_ml_kem.Invert_ntt.reduce_polynomial",
@@ -299,7 +301,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "bdff1089b44ba32c62b90c1924993199"
+      "667e261d03f22eb35c30a714cc1da8cd"
     ],
     [
       "Hacspec_ml_kem.Invert_ntt.reduce_polynomial",
@@ -328,7 +330,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "e05363c1a9991bf2a711deab1b6070e8"
+      "d508235dea61a9e4a846943cd5db5413"
     ],
     [
       "Hacspec_ml_kem.Invert_ntt.ntt_inverse_butterflies",
@@ -367,7 +369,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "36332e468fb8e201a30e922184588946"
+      "a659cb41c1ce892f16a3c58b07caf725"
     ],
     [
       "Hacspec_ml_kem.Invert_ntt.ntt_inverse_butterflies",
@@ -396,7 +398,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "7a77251cd92590138ad36bc6294b9a62"
+      "a97014de83031fd81ea4375c5a36d31f"
     ],
     [
       "Hacspec_ml_kem.Invert_ntt.ntt_inverse",
@@ -435,7 +437,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "fdf38e463d3e949cf5d7d473a68603fc"
+      "3b9da7536f75cbc513253b264b3f7bd1"
     ],
     [
       "Hacspec_ml_kem.Invert_ntt.ntt_inverse",
@@ -464,7 +466,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "59c2c093fbc1e4fd7c45d083417e9c88"
+      "7deaeafb240f0fde96223006358a30fe"
     ],
     [
       "Hacspec_ml_kem.Invert_ntt.vector_inverse_ntt",
@@ -510,7 +512,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "846914596904238e69c670495bb2ba99"
+      "9cd58cae00d72c58642eede9539844b0"
     ],
     [
       "Hacspec_ml_kem.Invert_ntt.vector_inverse_ntt",
@@ -539,7 +541,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4810d84e5f7f8321b6270a94d8aabaae"
+      "37cd5f83dc7362b5f577c8c53acad332"
     ],
     [
       "Hacspec_ml_kem.Invert_ntt.poly_barrett_reduce",
@@ -594,7 +596,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "39b92f4db71f742f3efd4c0c097c5b54"
+      "590999de0439a65de7011436c47ac475"
     ],
     [
       "Hacspec_ml_kem.Invert_ntt.poly_barrett_reduce",
@@ -623,7 +625,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "fbdcaa4fe1d8a41d996b2e2a549b3444"
+      "7bd6a332bf3a4144ae4ed15fe61c32cd"
     ]
   ]
 ]

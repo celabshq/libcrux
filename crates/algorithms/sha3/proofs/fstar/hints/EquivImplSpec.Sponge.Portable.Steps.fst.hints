@@ -96,7 +96,7 @@
         "typing_Libcrux_sha3.Proof_utils.valid_rate"
       ],
       0,
-      "e915878d9509a2a4f4538a6a79325f1c"
+      "d75200a100c14bdc1e57298908ef8537"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_absorb_block_portable",
@@ -132,7 +132,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "b32c451fb520d2468ca0183422544e2c"
+      "3c7335ec19d83abdd10d1ec6c97170d9"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_absorb_last_portable",
@@ -207,7 +207,7 @@
         "typing_Libcrux_sha3.Proof_utils.valid_rate"
       ],
       0,
-      "88919c6907eb1a0ad143a2e7d5ef3744"
+      "49a36237ecd8ed0f21d5b4808a67bfbc"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_absorb_last_portable",
@@ -251,7 +251,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "7297b7fe4ecc2c713ad7d31b92a9bb21"
+      "f1b38e76a1f8ebc77aa9b3a74ae9f337"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_block_portable",
@@ -372,7 +372,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4d7575d76dda863b2d9944ce2537d90f"
+      "6b705e375e27030356a438223060b7f7"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_block_portable",
@@ -407,7 +407,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "a6e0fc61498fef06ef0ba510bef28a8d"
+      "76d4cb806e06796d37f096a0b2f21451"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_last_portable",
@@ -528,7 +528,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "9495c9081a34496d6ed5d0cd58c4dcd5"
+      "04a47ce85ded54145e4865dc2d8c0410"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_last_portable",
@@ -563,7 +563,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "31eec2e867a3aae5440bd04696a77d45"
+      "7e68ea02efc69e9553b1f8a70681c360"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -600,7 +600,7 @@
         "typing_FStar.Seq.Base.length"
       ],
       0,
-      "a89fd1505b8af54eee506f73633da671"
+      "5c7686a61aa7b9ee08d0f8f8c9aa9fd1"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -643,7 +643,7 @@
         "typing_FStar.Seq.Base.length"
       ],
       0,
-      "e7c58773d6017c6c66c73012d700e9ff"
+      "422796cf1b39e04374d91e9b72eb84ed"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -666,7 +666,7 @@
         "refinement_interpretation_Tm_refine_fd7410d90f514f741bed88caf703d4c4"
       ],
       0,
-      "939ae147675d84d3154bfc557f2e8e9f"
+      "84f49ab2347d9ab89da00e413a0ae341"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -689,7 +689,7 @@
         "refinement_interpretation_Tm_refine_fd7410d90f514f741bed88caf703d4c4"
       ],
       0,
-      "a3f898d75b8eddd02ee94038fee1b720"
+      "ec41cb245fe368f30b1e068d8bca5246"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -726,7 +726,7 @@
         "typing_FStar.Seq.Base.length"
       ],
       0,
-      "6c4a42dc102af6eb10125e1573c2ddf6"
+      "86b6784b655e102181c8332844546170"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -763,7 +763,7 @@
         "typing_FStar.Seq.Base.length"
       ],
       0,
-      "a4d5a77f77b48b466fc8ba86c768cdb3"
+      "c5b03f0c60fd049275f5f91394d7b269"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -788,7 +788,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "a7e72a5472626730cdabfbef57e55afc"
+      "73295e15e5f2ee8d14d218006c726e16"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -821,7 +821,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "2c16060bf7d21e26b80694738533ec3d"
+      "e969dbb9459c766b08cb68f5e2c22866"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -851,7 +851,7 @@
         "refinement_interpretation_Tm_refine_fd7410d90f514f741bed88caf703d4c4"
       ],
       0,
-      "253f21da09f01ee9e31a5afe1f0847c0"
+      "0aa278d49766cfdcfece76a99032bd9e"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -874,7 +874,7 @@
         "refinement_interpretation_Tm_refine_fd7410d90f514f741bed88caf703d4c4"
       ],
       0,
-      "e565dad6b4443c939eb7924b0f763a53"
+      "32ee082b4491c27dc21f2add20b36cfe"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -894,7 +894,7 @@
         "refinement_interpretation_Tm_refine_fd7410d90f514f741bed88caf703d4c4"
       ],
       0,
-      "f8dc6f0429116d9c0ff230e8e451f57a"
+      "fb277c6ba4c72b7db4584680ea90d716"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -911,7 +911,7 @@
         "refinement_interpretation_Tm_refine_fd7410d90f514f741bed88caf703d4c4"
       ],
       0,
-      "ea5b9b3f4858476da45f7d4140f503fa"
+      "4371d5f33334c2994ad4ce2cad7a06b2"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -933,7 +933,7 @@
         "refinement_interpretation_Tm_refine_ac7f4460e691848fe44e7b34fcbd5dd3"
       ],
       0,
-      "aa008c492a58f7fdfa9ef17e39afb15c"
+      "a4e6c8ea8382b91d1146886a6f5d34fc"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -963,7 +963,7 @@
         "refinement_interpretation_Tm_refine_fd7410d90f514f741bed88caf703d4c4"
       ],
       0,
-      "9462c721022809e91cb858392fe6fc01"
+      "a2aee2b084682b5b3a942bae43df6331"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1000,7 +1000,7 @@
         "typing_FStar.Seq.Base.length"
       ],
       0,
-      "db40ea3af8072440009b7f973e90ed5b"
+      "c70118c3f73fbda0ba288a74e424d95e"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1051,7 +1051,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "51453ed1dd38e75f2fa3865a25206286"
+      "09c8b65615adaae537ed54e8009ad66b"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1074,7 +1074,7 @@
         "refinement_interpretation_Tm_refine_fd7410d90f514f741bed88caf703d4c4"
       ],
       0,
-      "2343e7eb7c11f2c3f7275e4c254d5df6"
+      "8f52f4ad163f8ddf9f6e404b0c604e5e"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1097,7 +1097,7 @@
         "refinement_interpretation_Tm_refine_fd7410d90f514f741bed88caf703d4c4"
       ],
       0,
-      "f0ad78395c905215898007cfa6203800"
+      "e3bbbd85979d9d9bf74cfafd2a9e12ea"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1134,7 +1134,7 @@
         "typing_FStar.Seq.Base.length"
       ],
       0,
-      "424b29d677b6822f0092faccec34e313"
+      "aa0f4aa550ae9a3619d2ce517a6201af"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1171,7 +1171,7 @@
         "typing_FStar.Seq.Base.length"
       ],
       0,
-      "57c45445a334d4f1c7ee272d1cd4fc0c"
+      "7555e33cb43360c9a299ab807412a1a8"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1196,7 +1196,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "945c590fd1759231e7a6268296ff2255"
+      "0fac650b7f006b550e2670ce8a942178"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1229,7 +1229,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "30cca9c2419310d51c6ff84c66ac0e1f"
+      "609d8416a06f55e96d41df854cb2a4e1"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1259,7 +1259,7 @@
         "refinement_interpretation_Tm_refine_fd7410d90f514f741bed88caf703d4c4"
       ],
       0,
-      "6e8c8d7c6ba4d2e76b02087cd7bab486"
+      "5089f0f91e39f62061fbda44ea1daf61"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1282,7 +1282,7 @@
         "refinement_interpretation_Tm_refine_fd7410d90f514f741bed88caf703d4c4"
       ],
       0,
-      "718663e79bcfef8e55eabbf61b7727f7"
+      "977dc2098b83182cb373696a4ae494cd"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1302,7 +1302,7 @@
         "refinement_interpretation_Tm_refine_fd7410d90f514f741bed88caf703d4c4"
       ],
       0,
-      "ddf9f5cbc744fe5fcc7cbd08e4d87ad9"
+      "0bea6732d52e9cfe50b5465d012e9480"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1319,7 +1319,7 @@
         "refinement_interpretation_Tm_refine_fd7410d90f514f741bed88caf703d4c4"
       ],
       0,
-      "11451ea503b0d157af4d9f50bb8fa882"
+      "18ff72f0c9e626533dd1c6c132ec1461"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1342,7 +1342,7 @@
         "refinement_interpretation_Tm_refine_ac7f4460e691848fe44e7b34fcbd5dd3"
       ],
       0,
-      "43d0fbef91525de968ff0b17f58fa01f"
+      "39f6d97a590ef6f1e091c41fa68f00ec"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1372,7 +1372,7 @@
         "refinement_interpretation_Tm_refine_fd7410d90f514f741bed88caf703d4c4"
       ],
       0,
-      "6f0c649e725222731b6d6715f2635930"
+      "373d936175c4b610c28fd0c4b84e5349"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1409,7 +1409,7 @@
         "typing_FStar.Seq.Base.length"
       ],
       0,
-      "af636f6629f6dbb3df5cbad1aa080401"
+      "48fabf76e0f6d817cd27a6ee88ff6478"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1446,7 +1446,7 @@
         "typing_FStar.Seq.Base.length"
       ],
       0,
-      "af636f6629f6dbb3df5cbad1aa080401"
+      "48fabf76e0f6d817cd27a6ee88ff6478"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1529,7 +1529,7 @@
         "refinement_interpretation_Tm_refine_cc4c45217c2057a1b264b467940e5f5a"
       ],
       0,
-      "93b1e46a0b6d6dece081855af269486e"
+      "a38f72168f46b3f72bf675aa2ce7e32f"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1563,7 +1563,7 @@
         "token_correspondence_Libcrux_sha3.Traits.__proj__Mkt_Squeeze__item__f_squeeze_pre"
       ],
       0,
-      "801af662be643e4c7129cd63d05f19c6"
+      "6a53bd0219a0bd89a9b44ec4ee11d886"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1577,7 +1577,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "2e6b91f4ae81840cd63937b79feac535"
+      "dff6fa7317c01ca365882f4c61724829"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1619,7 +1619,7 @@
         "typing_Libcrux_sha3.Proof_utils.valid_rate"
       ],
       0,
-      "c21d9131836b82b09de680958f3cef3e"
+      "938b47e3faf150244865a744c3e1af82"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1640,7 +1640,7 @@
         "refinement_interpretation_Tm_refine_e9fd75cceaaeb3c4516e200cfb4bee15"
       ],
       0,
-      "4a52c50c48cf6c455ffa777796c9beb0"
+      "c55fd7a8abcc9ab0921f7cbcc2e657d1"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1666,7 +1666,7 @@
         "refinement_interpretation_Tm_refine_982ab3ea893c916b48120fc624bbee81"
       ],
       0,
-      "d0759575146c47bfddf2fdeb681df375"
+      "b3586a6e63438d94ae2db8c85790c972"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1690,7 +1690,7 @@
         "refinement_interpretation_Tm_refine_fd7410d90f514f741bed88caf703d4c4"
       ],
       0,
-      "5193d0b327434e56c312113960b0cfa3"
+      "3460cb969e4267f09f9ebcf834e96e6c"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1711,7 +1711,7 @@
         "refinement_interpretation_Tm_refine_fd7410d90f514f741bed88caf703d4c4"
       ],
       0,
-      "477a73042fcfb7360151468cc75f8b2a"
+      "1e29fc9f30effc27d3d219434e333530"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1729,7 +1729,7 @@
         "refinement_interpretation_Tm_refine_fd7410d90f514f741bed88caf703d4c4"
       ],
       0,
-      "417764e16ed73062dd84fdaef37e2414"
+      "750c58219180d333d755f5e6d1e9eaac"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1752,7 +1752,7 @@
         "refinement_interpretation_Tm_refine_cc4c45217c2057a1b264b467940e5f5a"
       ],
       0,
-      "b413078361783dbcf18c63ecd524b542"
+      "3bbcdb6fdc9e2a60ba9101cb2e090571"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1770,7 +1770,7 @@
         "refinement_interpretation_Tm_refine_ecedaac0aa736e12c0054ea939bef58b"
       ],
       0,
-      "7da8920965277c03c13f019a60b589c0"
+      "3122a2ed8a13e66047a0253c98cca957"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1807,7 +1807,7 @@
         "typing_FStar.Seq.Base.length"
       ],
       0,
-      "b009883113e1434b1fd5a954a1bea96a"
+      "0181fe098d8fa194873bdf6a5b4407f5"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1844,7 +1844,7 @@
         "typing_FStar.Seq.Base.length"
       ],
       0,
-      "5df02b38e48a6572c9f974cd59158011"
+      "0181fe098d8fa194873bdf6a5b4407f5"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1869,7 +1869,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "1a349f59ed39c5eeab6ff3a9a92a5dcb"
+      "de25b4deb442545e42825e6b2a1930f0"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1927,7 +1927,7 @@
         "refinement_interpretation_Tm_refine_00017e55023ae1b16cb9c55185ac632b"
       ],
       0,
-      "9d1c21aacfa1cafd30a8c73e3f60baa4"
+      "c6d969b34fe62e2f32c78648f361cd2c"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1960,7 +1960,7 @@
         "token_correspondence_Libcrux_sha3.Traits.__proj__Mkt_Squeeze__item__f_squeeze_pre"
       ],
       0,
-      "9e7397cc94accac4493174834788e42d"
+      "4896f359bd491fdb245a37b47daf0a0a"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -1982,7 +1982,7 @@
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v",
         "equation_Rust_primitives.Slice.slice_length",
-        "interpretation_Tm_abs_0701cd9849fa3a46d2f2f7eeb3543f78",
+        "interpretation_Tm_abs_d10769acb0b4121f50541937cdab760e",
         "l_and-interp", "primitive_Prims.op_Equality",
         "proj_equation_Libcrux_sha3.Traits.Mkt_Squeeze_@f_squeeze_post",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
@@ -2019,7 +2019,7 @@
         "refinement_interpretation_Tm_refine_fd7410d90f514f741bed88caf703d4c4"
       ],
       0,
-      "29c186d5840d82ba7c2da382505ff585"
+      "bd2de01fef6e4b90b99f92810380469f"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2040,7 +2040,7 @@
         "refinement_interpretation_Tm_refine_fd7410d90f514f741bed88caf703d4c4"
       ],
       0,
-      "c1ffec16a6f3d4321363a51b7dc3698a"
+      "c36914a04b44ffe1c4c075a2b3100b65"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2058,7 +2058,7 @@
         "refinement_interpretation_Tm_refine_fd7410d90f514f741bed88caf703d4c4"
       ],
       0,
-      "bc4d3c8e004dfc0ee99821d4e5eb375b"
+      "e5c92c472a8b5a13136f1b0279200f2c"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2080,7 +2080,7 @@
         "refinement_interpretation_Tm_refine_00017e55023ae1b16cb9c55185ac632b"
       ],
       0,
-      "96455bafcc55edb406bf29e1693d5836"
+      "70f942fd1f7d6a983a238d722b9d7166"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2097,7 +2097,7 @@
         "refinement_interpretation_Tm_refine_ecedaac0aa736e12c0054ea939bef58b"
       ],
       0,
-      "554a7887f18628aeea16bcc4c6b276fc"
+      "878dc9cfe27ab4f7f5a817c768053145"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2119,7 +2119,7 @@
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v",
         "equation_Rust_primitives.Slice.slice_length",
-        "interpretation_Tm_abs_0701cd9849fa3a46d2f2f7eeb3543f78",
+        "interpretation_Tm_abs_d10769acb0b4121f50541937cdab760e",
         "l_and-interp", "primitive_Prims.op_Equality",
         "proj_equation_Libcrux_sha3.Traits.Mkt_Squeeze_@f_squeeze_post",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
@@ -2156,7 +2156,7 @@
         "refinement_interpretation_Tm_refine_fd7410d90f514f741bed88caf703d4c4"
       ],
       0,
-      "29c186d5840d82ba7c2da382505ff585"
+      "bd2de01fef6e4b90b99f92810380469f"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2177,7 +2177,7 @@
         "refinement_interpretation_Tm_refine_fd7410d90f514f741bed88caf703d4c4"
       ],
       0,
-      "c1ffec16a6f3d4321363a51b7dc3698a"
+      "c36914a04b44ffe1c4c075a2b3100b65"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2195,7 +2195,7 @@
         "refinement_interpretation_Tm_refine_fd7410d90f514f741bed88caf703d4c4"
       ],
       0,
-      "bc4d3c8e004dfc0ee99821d4e5eb375b"
+      "e5c92c472a8b5a13136f1b0279200f2c"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2217,7 +2217,7 @@
         "refinement_interpretation_Tm_refine_00017e55023ae1b16cb9c55185ac632b"
       ],
       0,
-      "96455bafcc55edb406bf29e1693d5836"
+      "70f942fd1f7d6a983a238d722b9d7166"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2234,7 +2234,7 @@
         "refinement_interpretation_Tm_refine_ecedaac0aa736e12c0054ea939bef58b"
       ],
       0,
-      "554a7887f18628aeea16bcc4c6b276fc"
+      "878dc9cfe27ab4f7f5a817c768053145"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2266,7 +2266,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "4598514885c63b7c899686d2caba598e"
+      "ce7a8ca1d0fc8fc8ee100ae46c022482"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2275,7 +2275,7 @@
       1,
       [ "@query", "b2t_def" ],
       0,
-      "e42a86241efc214e19374fee889c7d35"
+      "a73aba170b4e7356d819dc7dd554e8c1"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2288,7 +2288,7 @@
         "refinement_interpretation_Tm_refine_501ac498c594b21b379c2136d400f07b"
       ],
       0,
-      "50a14a45515da27c476a772d802034b5"
+      "1c350b0058b0c64761aa6b7f76f5bf54"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2307,7 +2307,7 @@
         "refinement_interpretation_Tm_refine_dfb8d5008b2d22f162df60b079a9add1"
       ],
       0,
-      "04053b9cdaaea5e78b79408ae1a4c374"
+      "686f0ea6825ccc197104d8d5c3c5cb36"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2332,10 +2332,10 @@
         "equation_Rust_primitives.Integers.v",
         "equation_Rust_primitives.Notations.op_String_Access",
         "equation_Rust_primitives.Slice.slice_index",
-        "interpretation_Tm_abs_0701cd9849fa3a46d2f2f7eeb3543f78",
         "interpretation_Tm_abs_4ab552b3415220d2b607f7d57c958117",
         "interpretation_Tm_abs_4e4fb4f1da82d1347bc902058b81f833",
-        "l_and-interp", "l_quant_interp_9b473cbaaf2133ac0b8a8692dfcae958",
+        "interpretation_Tm_abs_d10769acb0b4121f50541937cdab760e",
+        "l_and-interp", "l_quant_interp_23bf38c370000a3700266acd9a54f2c9",
         "primitive_Prims.op_Equality", "primitive_Prims.op_LessThan",
         "primitive_Prims.op_Multiply",
         "proj_equation_Libcrux_sha3.Traits.Mkt_Squeeze_@f_squeeze_post",
@@ -2373,7 +2373,7 @@
         "refinement_interpretation_Tm_refine_6b76287424bf843aba1860bd3f2e23a3"
       ],
       0,
-      "b81d4334b21c2a36df772c4351fbbcb0"
+      "eed0d225dcd85cd74345701096e31fa2"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2395,7 +2395,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "338dee809cc1ddf00f238aa701a8e5d5"
+      "a97326d6c070dbd2d7c5b65d230a1f72"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2413,7 +2413,7 @@
         "refinement_interpretation_Tm_refine_43256f9a2884166334eb11fc4be1f616"
       ],
       0,
-      "275debf9aed6e4cdb1af2c819a77f888"
+      "eb7fa643a4e2c2add875fe0f78d10d40"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2437,7 +2437,7 @@
         "refinement_interpretation_Tm_refine_fd7410d90f514f741bed88caf703d4c4"
       ],
       0,
-      "47a99475c4b20b1169c8631adb6bfa6b"
+      "b0e62fcfac49b3efea40bbadd46069d6"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2451,7 +2451,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "c8e371639bce975bd85feaca39b9d32c"
+      "ed518846d2d0d30bd4629393b5f9699b"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2466,7 +2466,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "aa20d7a4d6882f6e1ccfce9d215b03bf"
+      "d8136f2eff346f1f2db7b8451eb853df"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2478,7 +2478,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "cef75a24e79a2af2215c566067494ef1"
+      "a4776f126dcdf5507ccc3fe3937e7472"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2493,7 +2493,7 @@
         "projection_inverse_BoxInt_proj_0"
       ],
       0,
-      "d0851a24f7e075472af4d0314dbf5c94"
+      "f28d46f5a4aaab0abfc74b836ee7b2dd"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2506,7 +2506,7 @@
         "refinement_interpretation_Tm_refine_774ba3f728d91ead8ef40be66c9802e5"
       ],
       0,
-      "fc0d9ad22bd165aa0f80070045048484"
+      "87c98e0528bc978c714eff52a1ef9f83"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2520,7 +2520,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "f08c9776fa0b99a5db452934710d6c77"
+      "f69a61afab20ab3ff7725cfffd347e50"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2551,7 +2551,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "9e1ecaaa7a9920f73cfee257412af65e"
+      "993047161ae9fb26fcbc357ff464a1a0"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2572,7 +2572,7 @@
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0"
       ],
       0,
-      "f9624de74301ba70d1ed3198daa2ab67"
+      "5e012e37b5aaed915ea7e9795ad632fd"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2615,7 +2615,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "8f8c9c6ef4d16328f683e5036c1f4691"
+      "e30848e8a20279cff59f07b40fa611e1"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2637,7 +2637,7 @@
         "refinement_interpretation_Tm_refine_abf45d2b40966ce25a7fa8e006c412d1"
       ],
       0,
-      "b44691910b068b7df14b4eff1fbffc27"
+      "5f34c63ec7bc00919b1be7d5351e63b6"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2650,7 +2650,7 @@
         "refinement_interpretation_Tm_refine_7a95f9f8714b921d1bf9d7dcb729e697"
       ],
       0,
-      "74392e5a364b5989676960c4e4ad851b"
+      "87fc9e196ffb3157608d72ba917c61f7"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2702,11 +2702,11 @@
         "equation_with_fuel_Hacspec_sha3.Sponge.iterate_keccak_f.fuel_instrumented",
         "fuel_guarded_inversion_Rust_primitives.Integers.int_t",
         "function_token_typing_Rust_primitives.Integers.u8", "int_typing",
-        "interpretation_Tm_abs_0701cd9849fa3a46d2f2f7eeb3543f78",
         "interpretation_Tm_abs_4ab552b3415220d2b607f7d57c958117",
         "interpretation_Tm_abs_4e4fb4f1da82d1347bc902058b81f833",
-        "interpretation_Tm_abs_823ca0f4a27abf0ab9ff2c7f13534dc8",
-        "l_and-interp", "l_quant_interp_9b473cbaaf2133ac0b8a8692dfcae958",
+        "interpretation_Tm_abs_affc5c453f12588aeee132d66a7648d5",
+        "interpretation_Tm_abs_d10769acb0b4121f50541937cdab760e",
+        "l_and-interp", "l_quant_interp_23bf38c370000a3700266acd9a54f2c9",
         "primitive_Prims.op_AmpAmp", "primitive_Prims.op_BarBar",
         "primitive_Prims.op_Equality", "primitive_Prims.op_GreaterThan",
         "primitive_Prims.op_LessThan", "primitive_Prims.op_LessThanOrEqual",
@@ -2747,7 +2747,7 @@
         "typing_Rust_primitives.Arrays.createi",
         "typing_Rust_primitives.Integers.mk_usize",
         "typing_Rust_primitives.Integers.v",
-        "typing_Tm_abs_823ca0f4a27abf0ab9ff2c7f13534dc8",
+        "typing_Tm_abs_affc5c453f12588aeee132d66a7648d5",
         "typing_tok_Rust_primitives.Integers.USIZE@tok", "unit_inversion",
         "unit_typing"
       ],
@@ -2768,7 +2768,7 @@
         "unit_inversion", "unit_typing"
       ],
       0,
-      "c937979e7dadd1a11c719e925e7f10e2"
+      "68bc580c90f54a4bb6b8e27055f5ad6a"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2790,7 +2790,7 @@
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v",
         "equation_Rust_primitives.Slice.slice_length",
-        "interpretation_Tm_abs_0701cd9849fa3a46d2f2f7eeb3543f78",
+        "interpretation_Tm_abs_d10769acb0b4121f50541937cdab760e",
         "l_and-interp", "primitive_Prims.op_Equality",
         "proj_equation_Libcrux_sha3.Traits.Mkt_Squeeze_@f_squeeze_post",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
@@ -2827,7 +2827,7 @@
         "refinement_interpretation_Tm_refine_fd7410d90f514f741bed88caf703d4c4"
       ],
       0,
-      "815ae41a3e4c959ba09c659d070a3e02"
+      "011af5f3377eeb655410f729c2527fea"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2848,7 +2848,7 @@
         "refinement_interpretation_Tm_refine_fd7410d90f514f741bed88caf703d4c4"
       ],
       0,
-      "daf9f55a53bdcab59eec67c77dbaafab"
+      "64d7beaad9b62b90c70cae2430b083b3"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2866,7 +2866,7 @@
         "refinement_interpretation_Tm_refine_fd7410d90f514f741bed88caf703d4c4"
       ],
       0,
-      "2c92c497b2a9106e6e6419c9250dd737"
+      "679c48df7d88c98fce1261cb08dfeed3"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2888,7 +2888,7 @@
         "refinement_interpretation_Tm_refine_00017e55023ae1b16cb9c55185ac632b"
       ],
       0,
-      "5d7e468f7d3673faeaf052e089d93500"
+      "c1fa0e40182ab4f1f6ba313b31c3f797"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2905,7 +2905,7 @@
         "refinement_interpretation_Tm_refine_ecedaac0aa736e12c0054ea939bef58b"
       ],
       0,
-      "a50bca4c5fdaeb9bf822511004d30e8b"
+      "c126285989e0de326f821c911c2e5f40"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -2937,7 +2937,7 @@
         "equation_with_fuel_Hacspec_sha3.Sponge.iterate_keccak_f.fuel_instrumented",
         "fuel_guarded_inversion_Rust_primitives.Integers.int_t",
         "int_inversion",
-        "interpretation_Tm_abs_0701cd9849fa3a46d2f2f7eeb3543f78",
+        "interpretation_Tm_abs_d10769acb0b4121f50541937cdab760e",
         "l_and-interp", "primitive_Prims.op_Addition",
         "primitive_Prims.op_AmpAmp", "primitive_Prims.op_Equality",
         "primitive_Prims.op_GreaterThan", "primitive_Prims.op_Multiply",
@@ -2994,7 +2994,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "fbca8c6787c4e4335545a24189fd4ebe"
+      "3d118c140975dcd6ecfed859570c7733"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_one_step_portable",
@@ -3029,7 +3029,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "129279eb0c196b5e2e14698603ad74c2"
+      "489ce82813ae72ee6c903f83d29f0233"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_trailing_byteform_portable",
@@ -3048,6 +3048,7 @@
         "data_elim_Rust_primitives.Integers.MkInt",
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
         "equation_Core_models.Bundle.impl_11__MAX",
+        "equation_Core_models.Bundle.impl_9__to_le_bytes",
         "equation_Core_models.Ops.Index.f_index_pre",
         "equation_Core_models.Slice.impl__len",
         "equation_Hacspec_sha3.Sponge.squeeze",
@@ -3080,8 +3081,8 @@
         "fuel_guarded_inversion_Rust_primitives.Integers.int_t",
         "function_token_typing_Rust_primitives.Integers.u8", "int_inversion",
         "int_typing",
-        "interpretation_Tm_abs_823ca0f4a27abf0ab9ff2c7f13534dc8",
         "interpretation_Tm_abs_9e51361188a25d28bb48d6a215e0ee9b",
+        "interpretation_Tm_abs_affc5c453f12588aeee132d66a7648d5",
         "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
         "lemma_Rust_primitives.Integers.v_mk_int_lemma",
         "primitive_Prims.op_Addition", "primitive_Prims.op_AmpAmp",
@@ -3101,7 +3102,7 @@
         "refinement_interpretation_Tm_refine_414b3103e63acaca337a620ee42bb932",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
-        "refinement_interpretation_Tm_refine_eafe0de1f548194ba5628fd5cbe5f36d",
+        "refinement_interpretation_Tm_refine_e0f28905ec191d928d27f37e6ab8ca17",
         "refinement_interpretation_Tm_refine_fd7410d90f514f741bed88caf703d4c4",
         "token_correspondence_Core_models.Ops.Index.f_index_pre",
         "typing_Core_models.Slice.impl__len",
@@ -3110,11 +3111,11 @@
         "typing_Rust_primitives.Integers.mk_int",
         "typing_Rust_primitives.Integers.range",
         "typing_Rust_primitives.Integers.v",
-        "typing_Tm_abs_823ca0f4a27abf0ab9ff2c7f13534dc8",
+        "typing_Tm_abs_affc5c453f12588aeee132d66a7648d5",
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "15ddd0745628170d2400c5aa93c7d97b"
+      "dbbfd52ee52b02e0706d0a198a2aeacd"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_trailing_byteform_portable",
@@ -3151,7 +3152,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "89f5dc454f66f42cd7cc16e3751dd144"
+      "aa909da66cc2c5274395e9372f00402c"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_prefix_preserved_portable",
@@ -3208,7 +3209,7 @@
         "typing_Libcrux_sha3.Proof_utils.valid_rate"
       ],
       0,
-      "679a9de4883b65285644b2bae6d2e917"
+      "1484d8e9889ffccc242923664bbd1109"
     ],
     [
       "EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_prefix_preserved_portable",
@@ -3243,7 +3244,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "bc44876ff2cb4f0db0374eaef6fe324b"
+      "260eb4a78bfc2832f980eb18ed629f85"
     ]
   ]
 ]

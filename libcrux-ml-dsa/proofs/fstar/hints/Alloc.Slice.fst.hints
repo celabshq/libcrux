@@ -1,0 +1,23 @@
+[
+  "34bae2ef1e9f2bfc71b5df9d232fc6ed",
+  [
+    [
+      "Alloc.Slice.impl__to_vec",
+      1,
+      0,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "equation_Rust_primitives.Arrays.t_Slice",
+        "equation_Rust_primitives.Sequence.seq_empty",
+        "fuel_guarded_inversion_Core_models.Clone.t_Clone",
+        "primitive_Prims.op_Addition", "projection_inverse_BoxInt_proj_0",
+        "refinement_interpretation_Tm_refine_0ce91af3d6762ea7d913b870f9e33a01",
+        "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca",
+        "typing_FStar.Seq.Base.empty"
+      ],
+      0,
+      "3915317a70af382112c659bfba84f64a"
+    ]
+  ]
+]

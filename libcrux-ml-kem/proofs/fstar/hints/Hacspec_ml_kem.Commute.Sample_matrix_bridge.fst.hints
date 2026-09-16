@@ -29,7 +29,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "9b438e1748db06794dcf2aea90ee5c7c"
+      "620f184413142a9a7706c44e2f9172d4"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.sma_xof_base",
@@ -79,7 +79,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "5c64157b162fb1492080a6ac2f69ebe9"
+      "051176e49b4a4f3e1b4f9c2c9e85d068"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.sma_xof_input",
@@ -132,7 +132,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "8f99216504cfe0e288721fa1d02e97d0"
+      "e876ad4a7b146356ff1c1bdf12fc50f4"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.sma_sample",
@@ -147,10 +147,12 @@
         "constructor_distinct_Rust_primitives.Integers.U8",
         "constructor_distinct_Rust_primitives.Integers.USIZE",
         "data_elim_Rust_primitives.Integers.MkInt",
-        "equality_tok_Rust_primitives.Integers.U8@tok",
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Core_models.Bundle.impl_11__MAX",
         "equation_Hacspec_ml_kem.Serialize.v_MAX_BYTES",
-        "equation_Prims.nat", "equation_Rust_primitives.Arrays.t_Slice",
+        "equation_Prims.nat",
+        "equation_Rust_primitives.Arithmetic.v_USIZE_MAX",
+        "equation_Rust_primitives.Arrays.t_Slice",
         "equation_Rust_primitives.Integers.bits",
         "equation_Rust_primitives.Integers.div",
         "equation_Rust_primitives.Integers.lte",
@@ -169,7 +171,6 @@
         "fuel_guarded_inversion_Rust_primitives.Integers.int_t",
         "function_token_typing_Rust_primitives.Integers.u8", "int_inversion",
         "int_typing", "lemma_Rust_primitives.Integers.pow2_values",
-        "lemma_Rust_primitives.Integers.v_mk_int_lemma",
         "lemma_Spec.Utils.pow2_more_values", "primitive_Prims.op_AmpAmp",
         "primitive_Prims.op_Division", "primitive_Prims.op_Equality",
         "primitive_Prims.op_LessThanOrEqual", "primitive_Prims.op_Multiply",
@@ -185,13 +186,11 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca",
         "typing_FStar.Seq.Base.length",
         "typing_Rust_primitives.Integers.bits",
-        "typing_Rust_primitives.Integers.range",
         "typing_Rust_primitives.Integers.size_bits",
-        "typing_tok_Rust_primitives.Integers.U8@tok",
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "cc7ed64c3a8549e59997fddfbe79ff8b"
+      "ed75523b07316a53246cf2804e6eac57"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_seeds_step",
@@ -307,7 +306,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "d0e1b545019164c86b01cf344f717579"
+      "abeed4bfbb9199b0b4ddb053da067b69"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_seeds_step",
@@ -337,7 +336,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "2a6eab9699b03c23a22c83d6a6543e73"
+      "03361f89660957235f5b059be916208d"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.cf_inv_post",
@@ -352,7 +351,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "59d6bc81496cb7d8f6201b0f220431d8"
+      "30296022765d86413f3a4fcdca1da91b"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_frr_inv",
@@ -440,7 +439,7 @@
         "unit_typing", "well-founded-ordering-on-nat"
       ],
       0,
-      "3eb722a178646393781fcc59092151e2"
+      "52795c3af17a73827daf76b9b88dada4"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_frr_inv",
@@ -472,7 +471,7 @@
         "typing_Rust_primitives.Integers.v", "unit_typing"
       ],
       0,
-      "11ecbb2205aedb90a6aba1e9c45866a3"
+      "c8b6636aa4db73f043257b4aa4c4a08c"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_xof2_eq",
@@ -566,7 +565,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f24749e35e29e8658ace5d2d241c4739"
+      "cb9af97a6ffaeeea45f79815eff343cb"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_xof2_eq",
@@ -611,7 +610,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f724e03187e97dc417d77d4f07a6115b"
+      "c7d2b2bfe29ab0951b132ec0a227fc71"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_matrix_upd_entry",
@@ -682,7 +681,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "76a4e45bba5e001b4ede25289e2a8d8f"
+      "9759364d04c6938151d24dae394486f3"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.written_upto",
@@ -691,7 +690,7 @@
       1,
       [ "@query" ],
       0,
-      "2cb70bc18cbd7f6540ad7bf328eaa740"
+      "528372f8df71233e82e40ed8c60cec81"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.inner_p",
@@ -756,7 +755,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "399383e7c6cd234bd4ffe51339fa570b"
+      "593c7a05a98f3091815e05b215de983d"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_inner_done_extend",
@@ -768,8 +767,10 @@
         "Core_models.Ops.Index_interpretation_Tm_arrow_05fe4ff7055e98bccfe80fa62bb6aeaf",
         "Hacspec_ml_kem.Sampling_pretyping_aa331e96c5e9752763ebb95afa7fd921",
         "b2t_def", "bool_inversion", "bool_typing",
+        "constructor_distinct_Core_models.Bundle.Result_Err",
         "constructor_distinct_Core_models.Bundle.Result_Ok",
         "constructor_distinct_Rust_primitives.Integers.USIZE",
+        "data_elim_Core_models.Bundle.Result_Err",
         "data_elim_Core_models.Ops.Index.Mkt_Index",
         "disc_equation_Core_models.Bundle.Result_Err",
         "disc_equation_Core_models.Bundle.Result_Ok",
@@ -779,6 +780,7 @@
         "equation_Core_models.Ops.Index.f_index",
         "equation_Core_models.Ops.Index.f_index_pre",
         "equation_Hacspec_ml_kem.Commute.Sample_matrix_bridge.sma_sample",
+        "equation_Hacspec_ml_kem.Sampling.sample_ntt",
         "equation_Hacspec_ml_kem.Serialize.v_MAX_BYTES",
         "equation_Prims.nat", "equation_Rust_primitives.Arrays.length",
         "equation_Rust_primitives.Arrays.t_Array",
@@ -799,6 +801,7 @@
         "equation_Rust_primitives.Integers.v",
         "equation_Rust_primitives.Notations.op_String_Access",
         "fuel_guarded_inversion_Core_models.Bundle.t_Result",
+        "fuel_guarded_inversion_Hacspec_ml_kem.Sampling.t_BadRejectionSamplingRandomnessError",
         "fuel_guarded_inversion_Rust_primitives.Integers.int_t",
         "function_token_typing_Rust_primitives.Integers.usize",
         "int_inversion",
@@ -851,7 +854,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "a2033b1869ddc509c0d77f15df767181"
+      "25a82f4ff3af62532c7f8052d1bb76eb"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_inner_pres_extend",
@@ -927,7 +930,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "12566bbee7aed4af9971cb25f35509b2"
+      "d3ed825e742cd697ae65fce883a5b9a3"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_inner_step_maintain",
@@ -958,6 +961,7 @@
         "eq2-interp",
         "equality_tok_Hacspec_ml_kem.Sampling.BadRejectionSamplingRandomnessError@tok",
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Core_models.Bundle.impl_11__MAX",
         "equation_Core_models.Bundle.impl__is_ok",
         "equation_Core_models.Ops.Index.f_index_pre",
         "equation_Hacspec_ml_kem.Commute.Keygen_bridge.is_err_pred",
@@ -965,7 +969,9 @@
         "equation_Hacspec_ml_kem.Commute.Sample_matrix_bridge.sma_sample",
         "equation_Hacspec_ml_kem.Sampling.sample_ntt",
         "equation_Hacspec_ml_kem.Serialize.v_MAX_BYTES",
-        "equation_Prims.nat", "equation_Rust_primitives.Arrays.length",
+        "equation_Prims.nat",
+        "equation_Rust_primitives.Arithmetic.v_USIZE_MAX",
+        "equation_Rust_primitives.Arrays.length",
         "equation_Rust_primitives.Arrays.t_Array",
         "equation_Rust_primitives.Arrays.t_Slice",
         "equation_Rust_primitives.Hax.impl__index",
@@ -1043,7 +1049,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok", "unit_typing"
       ],
       0,
-      "17563b51835af9bf5b8ed53ed3d5e146"
+      "574ac22be58cb774c26e8ad0b1ea53c0"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_inner_step_maintain",
@@ -1067,7 +1073,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "ffe44b48fd33674ca3915e4ff1a469f1"
+      "2cafc355d01411cf35e9ae1f2bd006a6"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_inner_row",
@@ -1168,7 +1174,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok", "unit_typing"
       ],
       0,
-      "a3603e3c727206447c5b9d73001952c4"
+      "ec5f73164bd62e9be880480995e41516"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_inner_row",
@@ -1206,7 +1212,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "53b3bbf6f37b6477b90dee106258da09"
+      "6ffbd28f0b34c5f158bd1a797de9f2df"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.outer_p",
@@ -1270,7 +1276,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "46beb9affe741a7df84ff8e28b579f2f"
+      "f52e97e24cd88425db321509f969a5f7"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_outer_step_maintain",
@@ -1353,7 +1359,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok", "unit_typing"
       ],
       0,
-      "494c6c93cf2f0054cf762b0031850745"
+      "b472d1e052f3c413e5e0e8cd41da3acd"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_outer_step_maintain",
@@ -1377,7 +1383,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "0216f1e2289bee1e554f9d99ec911df2"
+      "ff4c01301d7f2b91c123f79d9fcdfbfa"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -1415,7 +1421,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f43d238a740a330dedbc988b7d6fc685"
+      "5340ad89449bc9dc732953a7d05d7923"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -1453,7 +1459,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "f43d238a740a330dedbc988b7d6fc685"
+      "5340ad89449bc9dc732953a7d05d7923"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -1469,7 +1475,7 @@
         "refinement_interpretation_Tm_refine_245aabcc25e5eda82adf1a92107dbb8d"
       ],
       0,
-      "6225fa4067641131599f1dfcc1aa1871"
+      "6cdaf40eee8249aef0ddd4a2408ad495"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -1489,7 +1495,7 @@
         "refinement_interpretation_Tm_refine_2de20c066034c13bf76e9c0b94f4806c"
       ],
       0,
-      "6c4c7077bc828136f2a5e3623507a230"
+      "f050c3ee80f8eed4f26381686dc5bb73"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -1510,7 +1516,7 @@
         "typing_tok_Hacspec_ml_kem.Sampling.BadRejectionSamplingRandomnessError@tok"
       ],
       0,
-      "e8ded96adef2f11528e7a89e1f1ddb1c"
+      "e4c6207398b4c2874a8f03afb5a04790"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -1535,7 +1541,7 @@
         "typing_tok_Hacspec_ml_kem.Sampling.BadRejectionSamplingRandomnessError@tok"
       ],
       0,
-      "04f22bf6ee0f3b91adb905cef3924e5f"
+      "b53f72f3c9ba3d9d37f16767141a5091"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -1567,7 +1573,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "d4215471304e1bfe892286a147068eeb"
+      "c647a3c051975e036d9361c45edc5bec"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -1587,7 +1593,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "48dff38e62c7d2257fe0842e9b5aa37e"
+      "3d5059b7bd939d79c88df51fa2ecade0"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -1607,7 +1613,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "569283debd4e67ef07cb983a20a8af1d"
+      "1e503c9bf4764f4da3fef98623f32a2e"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -1626,7 +1632,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "fb393cc64e1a63510cd3e0254dd6275c"
+      "f8e7e7543b500a89905f452190092756"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -1640,7 +1646,7 @@
         "refinement_interpretation_Tm_refine_f5af6c081dbff28bc27fa089f93beda8"
       ],
       0,
-      "e808194c5e2e5b8ccf66068e7e5a84a0"
+      "d2fdedfc37acb8fa5aa48bd4fa6e7d05"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -1659,7 +1665,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "7c9b6aa9ff3f10921d8828d912768602"
+      "92008054d08fed968da53a64ace7ae2d"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -1674,7 +1680,7 @@
         "refinement_interpretation_Tm_refine_f5af6c081dbff28bc27fa089f93beda8"
       ],
       0,
-      "df0f88bca58450a3c2a4781a9cc47e9f"
+      "f799972390619b73d439e6e74f2e948f"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -1686,7 +1692,7 @@
         "refinement_interpretation_Tm_refine_245aabcc25e5eda82adf1a92107dbb8d"
       ],
       0,
-      "2295e08da2923dc48cdc196ebf3644db"
+      "573e9fec775bde9b5f39bf1fce1e3cbf"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -1698,7 +1704,7 @@
         "refinement_interpretation_Tm_refine_32693b0c9112c96b919fac483cb776f3"
       ],
       0,
-      "a47bf19ecd23a25099cdd8b3ad2effe9"
+      "570b4c726364d9655c980f55b178fb5d"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -1722,7 +1728,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "26a26f83daa01af17df8d09b630753a5"
+      "edf06d1326a4ae55e64727084ea9af06"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -1746,7 +1752,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "08a26c84093fab69ba945e42ecbe1f79"
+      "5bbbccc390facf84390f7bdd1774b61a"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -1778,7 +1784,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4cf75e39b93bb1ed0c7737a76ec367b5"
+      "23b49fd7f245a1c8bfed45512b3db04c"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -1805,7 +1811,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "6be99424c248fe9e2412476e01bae916"
+      "1d7569fc0457fb51934cb37f5999ca5d"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -1857,7 +1863,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "94b150d8e87a010633a8b79ee9962ca0"
+      "93686f39d20e3cd6b11de254e1772cca"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -1884,7 +1890,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "0b0cc70c12606acc50e74e0bd2e59b84"
+      "427e60383fe9bfc72983b46f732033e2"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -1943,7 +1949,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "6be99424c248fe9e2412476e01bae916"
+      "1d7569fc0457fb51934cb37f5999ca5d"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -2034,7 +2040,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "6be99424c248fe9e2412476e01bae916"
+      "1d7569fc0457fb51934cb37f5999ca5d"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -2086,7 +2092,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "94b150d8e87a010633a8b79ee9962ca0"
+      "93686f39d20e3cd6b11de254e1772cca"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -2113,7 +2119,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "0b0cc70c12606acc50e74e0bd2e59b84"
+      "427e60383fe9bfc72983b46f732033e2"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -2172,7 +2178,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "6be99424c248fe9e2412476e01bae916"
+      "1d7569fc0457fb51934cb37f5999ca5d"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -2263,7 +2269,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "6be99424c248fe9e2412476e01bae916"
+      "1d7569fc0457fb51934cb37f5999ca5d"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -2322,7 +2328,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "6be99424c248fe9e2412476e01bae916"
+      "1d7569fc0457fb51934cb37f5999ca5d"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -2374,7 +2380,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "94b150d8e87a010633a8b79ee9962ca0"
+      "93686f39d20e3cd6b11de254e1772cca"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -2401,7 +2407,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "0b0cc70c12606acc50e74e0bd2e59b84"
+      "427e60383fe9bfc72983b46f732033e2"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -2431,7 +2437,7 @@
         "unit_typing"
       ],
       0,
-      "f2e2877620574bace398192ec6240290"
+      "226524e80b9d142b035008d9e6fe3362"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -2455,7 +2461,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "feefc531e2154fbd324cf0afa73be42f"
+      "4daf3593caf6529a9fcef83231d242b8"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -2479,7 +2485,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "abf8b7596acc98225c977874b89ed6e1"
+      "6d2f05511d097ba2a788f5c0284f0be8"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -2538,7 +2544,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "afa1bb19d2f58d0754d2c4fc010bf561"
+      "086acd9eac847be90d91eef9fe96a251"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -2590,7 +2596,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "44c015298b0f343ebfeb2df73910f87c"
+      "e747068824b7377b8cf1f4557e901e67"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -2617,7 +2623,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "a2cc963ad1860a46a1a132fd40ff07f7"
+      "b8345eb900f1e3a1a4492c1c14f5e5db"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -2676,7 +2682,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "afa1bb19d2f58d0754d2c4fc010bf561"
+      "086acd9eac847be90d91eef9fe96a251"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -2767,7 +2773,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "afa1bb19d2f58d0754d2c4fc010bf561"
+      "086acd9eac847be90d91eef9fe96a251"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -2819,7 +2825,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "44c015298b0f343ebfeb2df73910f87c"
+      "e747068824b7377b8cf1f4557e901e67"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -2846,7 +2852,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "a2cc963ad1860a46a1a132fd40ff07f7"
+      "b8345eb900f1e3a1a4492c1c14f5e5db"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -2905,7 +2911,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "afa1bb19d2f58d0754d2c4fc010bf561"
+      "086acd9eac847be90d91eef9fe96a251"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -2996,7 +3002,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "afa1bb19d2f58d0754d2c4fc010bf561"
+      "086acd9eac847be90d91eef9fe96a251"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -3055,7 +3061,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "afa1bb19d2f58d0754d2c4fc010bf561"
+      "086acd9eac847be90d91eef9fe96a251"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -3107,7 +3113,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "44c015298b0f343ebfeb2df73910f87c"
+      "e747068824b7377b8cf1f4557e901e67"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -3134,7 +3140,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "a2cc963ad1860a46a1a132fd40ff07f7"
+      "b8345eb900f1e3a1a4492c1c14f5e5db"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -3164,7 +3170,7 @@
         "unit_typing"
       ],
       0,
-      "84b81bcc5a706de71810ef633aeb0b6a"
+      "8910eaf7fa4c70928bf199742da33019"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -3188,7 +3194,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "5d99c1cbf7309eb7c944a86b04c7be8d"
+      "b13a71fab1df26ed7e8c874ac45ac72e"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -3247,7 +3253,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "3e2f1782d304cc0d612973a1b1e659fc"
+      "a3b2f6f47072c0ade991a54ded1f307f"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -3299,7 +3305,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "a2c1b0d52b09357d78f7f32d598db4be"
+      "9b539b027597e4b5011460ad3cd7a156"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -3326,7 +3332,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "d6bc9e04cb89f82753e11e4ab7a90f65"
+      "9cdf7831e398326ea62bdd1dd7e3138e"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -3385,7 +3391,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "3e2f1782d304cc0d612973a1b1e659fc"
+      "a3b2f6f47072c0ade991a54ded1f307f"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -3476,7 +3482,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "3e2f1782d304cc0d612973a1b1e659fc"
+      "a3b2f6f47072c0ade991a54ded1f307f"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -3528,7 +3534,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "a2c1b0d52b09357d78f7f32d598db4be"
+      "9b539b027597e4b5011460ad3cd7a156"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -3555,7 +3561,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "d6bc9e04cb89f82753e11e4ab7a90f65"
+      "9cdf7831e398326ea62bdd1dd7e3138e"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -3614,7 +3620,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "3e2f1782d304cc0d612973a1b1e659fc"
+      "a3b2f6f47072c0ade991a54ded1f307f"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -3705,7 +3711,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "3e2f1782d304cc0d612973a1b1e659fc"
+      "a3b2f6f47072c0ade991a54ded1f307f"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -3764,7 +3770,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "3e2f1782d304cc0d612973a1b1e659fc"
+      "a3b2f6f47072c0ade991a54ded1f307f"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -3816,7 +3822,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "a2c1b0d52b09357d78f7f32d598db4be"
+      "9b539b027597e4b5011460ad3cd7a156"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -3843,7 +3849,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "d6bc9e04cb89f82753e11e4ab7a90f65"
+      "9cdf7831e398326ea62bdd1dd7e3138e"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -3873,7 +3879,7 @@
         "unit_typing"
       ],
       0,
-      "4bab97d42265a70071381b95b310765e"
+      "f866dab5e829fad739892bbf51ea1824"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -3932,7 +3938,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "3d6549becfc017d502e8e180d48b0f1f"
+      "6e1fdb7061abf45289a97a6c43ea7d46"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -3984,7 +3990,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "c272e05adbeb45e25ea407d3149627f7"
+      "68f43e743f32f651bff2f48b4db2aac9"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -4011,7 +4017,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "a6f738d99f68ca8e536e3411d87df575"
+      "bbe7387a9fe201d975b18d6995bbcdd9"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -4070,7 +4076,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "3d6549becfc017d502e8e180d48b0f1f"
+      "6e1fdb7061abf45289a97a6c43ea7d46"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -4161,7 +4167,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "3d6549becfc017d502e8e180d48b0f1f"
+      "6e1fdb7061abf45289a97a6c43ea7d46"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -4213,7 +4219,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "c272e05adbeb45e25ea407d3149627f7"
+      "68f43e743f32f651bff2f48b4db2aac9"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -4240,7 +4246,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "a6f738d99f68ca8e536e3411d87df575"
+      "bbe7387a9fe201d975b18d6995bbcdd9"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -4299,7 +4305,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "3d6549becfc017d502e8e180d48b0f1f"
+      "6e1fdb7061abf45289a97a6c43ea7d46"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -4390,7 +4396,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "3d6549becfc017d502e8e180d48b0f1f"
+      "6e1fdb7061abf45289a97a6c43ea7d46"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -4449,7 +4455,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "3d6549becfc017d502e8e180d48b0f1f"
+      "6e1fdb7061abf45289a97a6c43ea7d46"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -4501,7 +4507,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "c272e05adbeb45e25ea407d3149627f7"
+      "68f43e743f32f651bff2f48b4db2aac9"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -4528,7 +4534,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "a6f738d99f68ca8e536e3411d87df575"
+      "bbe7387a9fe201d975b18d6995bbcdd9"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -4558,7 +4564,7 @@
         "unit_typing"
       ],
       0,
-      "71a34475149d08fa6942552b2179ef80"
+      "e11b129074c8521245d1d0cefa97bee0"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -4570,7 +4576,7 @@
         "refinement_interpretation_Tm_refine_32693b0c9112c96b919fac483cb776f3"
       ],
       0,
-      "de838622b17f85068648720905e2ff48"
+      "af0c0cb9197c0be157ba8288d940d36b"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -4586,7 +4592,7 @@
         "refinement_interpretation_Tm_refine_8cf356d6de735df916517525c536c761"
       ],
       0,
-      "952a598784e98d328e02a2ae4267f1b3"
+      "8fbebb36026e8d63c1cd7d7ab6d4001a"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -4615,7 +4621,7 @@
         "typing_tok_Hacspec_ml_kem.Sampling.BadRejectionSamplingRandomnessError@tok"
       ],
       0,
-      "1c26c0683a1194946269a9a4cdf5866d"
+      "12e38d87980ab5e42c5c3477c7438a1f"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -4643,7 +4649,7 @@
         "typing_tok_Hacspec_ml_kem.Sampling.BadRejectionSamplingRandomnessError@tok"
       ],
       0,
-      "8a6727c836e9eb3abaae7c956a03e719"
+      "37d5e14cb8e947510e07b261ee505ad0"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -4667,7 +4673,7 @@
         "typing_tok_Hacspec_ml_kem.Sampling.BadRejectionSamplingRandomnessError@tok"
       ],
       0,
-      "39c7b9a345ce904830853a6858a80518"
+      "743dab8397b11d860f3efc49d49b180c"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -4683,7 +4689,7 @@
         "refinement_interpretation_Tm_refine_17e066656c3ac72ab0100d4c14d9a225"
       ],
       0,
-      "d5323f60f6828b70c9b2244e08170c65"
+      "c0ded0ddb34bd864c8640daafd735168"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -4700,7 +4706,7 @@
         "refinement_interpretation_Tm_refine_171501e00ff6d76d86ee36e57a9d155e"
       ],
       0,
-      "98c7d9aa561c55ff3e1923c5e2bb3b3f"
+      "f0fbaa95a74b5eb9838f6d6208106377"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -4721,7 +4727,7 @@
         "refinement_interpretation_Tm_refine_86d52a2f98f3a59e4b66f8caf0529841"
       ],
       0,
-      "756f667a630c8999c512fdcf58f14551"
+      "0bbdc45cf21337d09561263a6c527240"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -4741,7 +4747,7 @@
         "refinement_interpretation_Tm_refine_c46ad5a45564de2bb2fa48e18a21b650"
       ],
       0,
-      "f226bde41b1bdedfe7fe2f610bbd8987"
+      "210a3297ac949d14a16895e73d16f4f6"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -4774,7 +4780,7 @@
         "typing_tok_Hacspec_ml_kem.Sampling.BadRejectionSamplingRandomnessError@tok"
       ],
       0,
-      "32ce6732f00a477b0a1634f7de04e6bc"
+      "83eefd5744badc1b2c12ce7bf078277d"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -4806,7 +4812,7 @@
         "typing_tok_Hacspec_ml_kem.Sampling.BadRejectionSamplingRandomnessError@tok"
       ],
       0,
-      "bc421c2bbac46835f7c2d190069b34e1"
+      "4db20524b529abfdfd2daa17d7ca82b5"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -4830,7 +4836,7 @@
         "typing_tok_Hacspec_ml_kem.Sampling.BadRejectionSamplingRandomnessError@tok"
       ],
       0,
-      "64d38706dcdbac10f9a29af41d4f2a7f"
+      "6975587ef93bd80e06eb5b94d4a60363"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -4846,7 +4852,7 @@
         "refinement_interpretation_Tm_refine_17e066656c3ac72ab0100d4c14d9a225"
       ],
       0,
-      "1f6bf4d24a100eb432b6b50f290ccdb9"
+      "1b7f7ad01cb3a4af11a585e7023e1fea"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -4868,7 +4874,7 @@
         "typing_Hacspec_ml_kem.Commute.Keygen_bridge.sma_outer_step"
       ],
       0,
-      "2d090723d4b4f406f488e600a785b194"
+      "077c1055372a9ed673d85fbdda46a106"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -4969,7 +4975,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "7107faf1340a07d3e92016b42171a1e0"
+      "3a61e4e4f605f3893347a46d0b7b5020"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -4995,7 +5001,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "a3a416bd4067b3947392241954d2f8f2"
+      "19f20bd658b17b9ff37392cc5d08a79a"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -5021,7 +5027,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "6a517701af05697572fffa39c43a4b2a"
+      "044978def889fa01ba25f0492b65b186"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -5044,7 +5050,7 @@
         "typing_tok_Hacspec_ml_kem.Sampling.BadRejectionSamplingRandomnessError@tok"
       ],
       0,
-      "01fa49698d57c35103578c0e9726cbe1"
+      "9b2c129977b6620c44054e3dd080decb"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -5096,7 +5102,7 @@
         "refinement_interpretation_Tm_refine_cb6c210bf919f58f28317d56967bc3e3"
       ],
       0,
-      "0e4d8c416b5935c0a1090a4690e88dd4"
+      "71ad356a456612d94807339cf459c9fe"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -5116,7 +5122,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "405285676d5e763cfe2bb79ea7f37aa2"
+      "04c180058773340a7e60526d7563a3f4"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -5140,7 +5146,7 @@
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca"
       ],
       0,
-      "ce21c40ad45b7d4307942c7d6df1209e"
+      "8500586a27ead443807ef63e696365e4"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -5160,7 +5166,7 @@
         "refinement_interpretation_Tm_refine_c3e0f5afbbd71c0708c63594b3916904"
       ],
       0,
-      "ab7e749e04b65dcbaa4bb1e765164f9f"
+      "5ece810767286abf241ebe534f88951f"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -5180,7 +5186,7 @@
         "refinement_interpretation_Tm_refine_cb6c210bf919f58f28317d56967bc3e3"
       ],
       0,
-      "f5441da3cc40afe160642502aa77f475"
+      "de7c6db41c67570a42e9422445819096"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -5209,7 +5215,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "7d637e85b8074c336701593969d9e3c4"
+      "77649ffe896fff1010b0bcfc52635697"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -5221,7 +5227,7 @@
         "refinement_interpretation_Tm_refine_1f669ba85572eea8ad6604d7b15c21c1"
       ],
       0,
-      "641c9ac069aa5f881c6b4da39e6a7e9d"
+      "8fdc0f1c00d8d7c6e1d5a7a90629f9b4"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -5253,7 +5259,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "b029b240c937092bd2dbbf17a673fc70"
+      "d4f55797eb508df987a66672781f499a"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -5285,7 +5291,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "7acc44929c7070d9382073b1fbe32d4a"
+      "ef6ddd2ab4d90eb302c8479a8e1821d2"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -5309,7 +5315,7 @@
         "typing_tok_Hacspec_ml_kem.Sampling.BadRejectionSamplingRandomnessError@tok"
       ],
       0,
-      "446003e9c56c0c31d5ad423dc4c8bac8"
+      "0f222efdaf2c6981fe1d3327545c1c35"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -5341,7 +5347,7 @@
         "refinement_interpretation_Tm_refine_ad2f08c7f3d5ed530b1c4446fbdbee61"
       ],
       0,
-      "da3dc9076a9618ae891038473cb1281a"
+      "5b26fd71cfc4db3740d20e7122550b4e"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -5363,7 +5369,7 @@
         "refinement_interpretation_Tm_refine_86d52a2f98f3a59e4b66f8caf0529841"
       ],
       0,
-      "f5931dc54ca2a471bc553deaade95002"
+      "665d37b1cca7d7b19e6b2555143e076d"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -5393,7 +5399,7 @@
         "refinement_interpretation_Tm_refine_c46ad5a45564de2bb2fa48e18a21b650"
       ],
       0,
-      "4c3ac0bd0296053217cf63d409eaed76"
+      "a1ee6ce8f9b444425bb59f3bc6a8aab1"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -5430,7 +5436,7 @@
         "typing_tok_Hacspec_ml_kem.Sampling.BadRejectionSamplingRandomnessError@tok"
       ],
       0,
-      "3ccce270cb56f740124232bfd15801f9"
+      "a423ed4432fa2d750d123231287629a4"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -5471,7 +5477,7 @@
         "typing_tok_Hacspec_ml_kem.Sampling.BadRejectionSamplingRandomnessError@tok"
       ],
       0,
-      "4b594b2419c3a677f6eaba7cf7f1dc86"
+      "488ab15fafa166fed8c395a312036e8f"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -5495,7 +5501,7 @@
         "typing_tok_Hacspec_ml_kem.Sampling.BadRejectionSamplingRandomnessError@tok"
       ],
       0,
-      "7364f9f3df90b9dbc8f02ae7bf835ed9"
+      "82a9f6edfd4d00a4595f1368e16fc93f"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -5511,7 +5517,7 @@
         "refinement_interpretation_Tm_refine_17e066656c3ac72ab0100d4c14d9a225"
       ],
       0,
-      "b7b09fca557741433d755efc0cabb38f"
+      "43e6f0c0942f709d085b951a86a278b1"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -5537,7 +5543,7 @@
         "typing_Hacspec_ml_kem.Commute.Keygen_bridge.sma_outer_step"
       ],
       0,
-      "4f1e1bdb3c496a22f1949339e4da213f"
+      "f6e12ce38d1701a4d27ce13561671e84"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_entry",
@@ -5589,7 +5595,7 @@
         "unit_inversion"
       ],
       0,
-      "ab537319c23aa023d9e7dc4b0949a0b7"
+      "276a223ffa5cfcf1ce6be76cee21442a"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.sma_done_ij",
@@ -5653,7 +5659,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "4255c257a2ce5d5338af3cd8257dfad5"
+      "a4d073d438721a555059aa8ceaf0c982"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_base",
@@ -5691,7 +5697,7 @@
         "typing_tok_Hacspec_ml_kem.Sampling.BadRejectionSamplingRandomnessError@tok"
       ],
       0,
-      "48bbb02fd565abc0d9ee17b54ba1ad43"
+      "59968a5c2509f7b4b8eaa01d5f3ac319"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_inner_step",
@@ -5702,7 +5708,7 @@
         "@MaxFuel_assumption", "@MaxIFuel_assumption",
         "@fuel_correspondence_Prims.pow2.fuel_instrumented",
         "@fuel_irrelevance_Prims.pow2.fuel_instrumented", "@query",
-        "Core_models.Ops.Function_interpretation_Tm_arrow_05fe4ff7055e98bccfe80fa62bb6aeaf",
+        "Core_models.Ops.Index_interpretation_Tm_arrow_05fe4ff7055e98bccfe80fa62bb6aeaf",
         "Hacspec_ml_kem.Sampling_pretyping_aa331e96c5e9752763ebb95afa7fd921",
         "Prims_pretyping_ae567c2fb75be05905677af440075565", "b2t_def",
         "bool_inversion", "bool_typing",
@@ -5715,21 +5721,23 @@
         "disc_equation_Core_models.Bundle.Result_Ok", "eq2-interp",
         "equality_tok_Hacspec_ml_kem.Sampling.BadRejectionSamplingRandomnessError@tok",
         "equality_tok_Rust_primitives.Integers.U16@tok",
+        "equality_tok_Rust_primitives.Integers.U8@tok",
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Core_models.Bundle.impl_11__MAX",
         "equation_Core_models.Ops.Index.f_index",
         "equation_Core_models.Ops.Index.f_index_pre",
         "equation_Core_models.Slice.impl__len",
         "equation_Hacspec_ml_kem.Commute.Sample_matrix_bridge.sma_sample",
         "equation_Hacspec_ml_kem.Serialize.v_MAX_BYTES",
-        "equation_Prims.nat", "equation_Rust_primitives.Arrays.length",
+        "equation_Prims.nat",
+        "equation_Rust_primitives.Arithmetic.v_USIZE_MAX",
+        "equation_Rust_primitives.Arrays.length",
         "equation_Rust_primitives.Arrays.t_Array",
         "equation_Rust_primitives.Arrays.t_Slice",
         "equation_Rust_primitives.Hax.Monomorphized_update_at.update_at_usize",
         "equation_Rust_primitives.Hax.impl__index",
-        "equation_Rust_primitives.Integers.add",
         "equation_Rust_primitives.Integers.bits",
         "equation_Rust_primitives.Integers.div",
-        "equation_Rust_primitives.Integers.lt",
         "equation_Rust_primitives.Integers.lte",
         "equation_Rust_primitives.Integers.max_usize",
         "equation_Rust_primitives.Integers.maxint",
@@ -5745,8 +5753,8 @@
         "equation_Rust_primitives.Integers.unsigned",
         "equation_Rust_primitives.Integers.usize",
         "equation_Rust_primitives.Integers.v",
-        "equation_Rust_primitives.Mem.replace",
         "equation_Rust_primitives.Notations.op_String_Access",
+        "equation_Rust_primitives.Slice.slice_clone_from_slice",
         "equation_Rust_primitives.Slice.slice_length",
         "fuel_guarded_inversion_Core_models.Bundle.t_Result",
         "fuel_guarded_inversion_Libcrux_ml_kem.Vector.Traits.t_Operations",
@@ -5759,12 +5767,12 @@
         "interpretation_Tm_abs_5868e62885022fbd12d9059af52f4674",
         "interpretation_Tm_abs_9e51361188a25d28bb48d6a215e0ee9b",
         "interpretation_Tm_abs_cae63eba7e18c3a3d84075d3995a179a",
-        "kinding_Hacspec_ml_kem.Sampling.t_BadRejectionSamplingRandomnessError@tok",
         "kinding_Libcrux_ml_kem.Vector.t_PolynomialRingElement@tok",
         "l_and-interp", "l_imp-interp",
         "l_quant_interp_a1da445394a8b21368971751f79b2008",
         "l_quant_interp_e2ca3352458bf7213fc1a9b03cadcc1e",
         "lemma_FStar.Seq.Base.lemma_index_upd1",
+        "lemma_FStar.Seq.Base.lemma_index_upd2",
         "lemma_FStar.Seq.Base.lemma_len_upd",
         "lemma_Rust_primitives.Integers.pow2_values",
         "lemma_Rust_primitives.Integers.v_mk_int_lemma",
@@ -5782,42 +5790,38 @@
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_Output",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index",
         "projection_inverse_Core_models.Ops.Index.Mkt_Index_@f_index_pre",
-        "projection_inverse_FStar.Pervasives.Native.Mktuple2_@_1",
         "projection_inverse_Rust_primitives.Integers.MkInt_@_0",
         "refinement_interpretation_Tm_refine_0817137556c8403efcddf9d82e1767c5",
         "refinement_interpretation_Tm_refine_160fe7faad9a466b3cae8455bac5be60",
         "refinement_interpretation_Tm_refine_182ee924981b5be685902e22a98de4e7",
         "refinement_interpretation_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
-        "refinement_interpretation_Tm_refine_34888fdf814d7bedb244a2787c8380f5",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_546aee03add9345c5f38055f822f29f2",
         "refinement_interpretation_Tm_refine_69fa5644c7998c1f45fe56cd94266665",
+        "refinement_interpretation_Tm_refine_6cba8b694d7fbf759331b42d86bb8cbd",
         "refinement_interpretation_Tm_refine_93f6c203d9fe816a13fdcc20465525c3",
         "refinement_interpretation_Tm_refine_a6d4eccfb2603ce5e66d6162c32df2b0",
         "refinement_interpretation_Tm_refine_b045b04f0bb15cd7c94a2ec78d3283ce",
         "refinement_interpretation_Tm_refine_e16a4ff0a31703789cc1c1125fc4da02",
-        "refinement_interpretation_Tm_refine_e477cd5567f25e8e57e00f0185fa1ab0",
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca",
         "refinement_kinding_Tm_refine_21e0277b21b9413896fa7f0b23f8625e",
         "token_correspondence_Core_models.Ops.Index.f_index",
         "token_correspondence_Core_models.Ops.Index.f_index_pre",
-        "typing_Core_models.Bundle.uu___is_Result_Err",
         "typing_FStar.Seq.Base.index", "typing_FStar.Seq.Base.length",
         "typing_Hacspec_ml_kem.Serialize.v_MAX_BYTES",
         "typing_Rust_primitives.Arrays.t_Array",
         "typing_Rust_primitives.Hax.impl__index",
         "typing_Rust_primitives.Integers.bits",
-        "typing_Rust_primitives.Integers.lt",
-        "typing_Rust_primitives.Integers.mk_usize",
-        "typing_Rust_primitives.Integers.mul",
         "typing_Rust_primitives.Integers.range",
         "typing_Rust_primitives.Integers.size_bits",
         "typing_Rust_primitives.Integers.v",
         "typing_Rust_primitives.Notations.op_String_Access",
         "typing_tok_Hacspec_ml_kem.Sampling.BadRejectionSamplingRandomnessError@tok",
+        "typing_tok_Rust_primitives.Integers.U8@tok",
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "7db46d6cda5cbc621cff0286e9f878cd"
+      "7f4a6e3399594565dbae1ca469c18dbc"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_inner_step",
@@ -5847,7 +5851,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "b1c42eab51c0c130b6bdda5613870cdf"
+      "35376b80ffc35aa80d27ee03a68f8033"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_outer_row",
@@ -5885,7 +5889,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "209998d44dd0b3c46b7393eabbd1c5ff"
+      "2a107e581aa5d0c80ab4bb03b552af4c"
     ],
     [
       "Hacspec_ml_kem.Commute.Sample_matrix_bridge.lemma_sma_finalize",
@@ -5962,7 +5966,7 @@
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "64d8acfce0395bbba4ca3048108b7638"
+      "02c2d0842edb3e1b9cf9136cc031715f"
     ]
   ]
 ]

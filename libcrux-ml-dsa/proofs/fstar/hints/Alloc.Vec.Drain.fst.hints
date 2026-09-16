@@ -1,5 +1,5 @@
 [
-  "cb8e5e01883f3abe4d1321a72a49eb12",
+  "8eed12438c983164c3df47c19a9bb57c",
   [
     [
       "Alloc.Vec.Drain.t_Drain",
@@ -16,7 +16,7 @@
         "lemma_FStar.Seq.Base.hasEq_lemma"
       ],
       0,
-      "67688e05ff01fdbd6f417824d22628b3"
+      "bd90260546f3c577a2a88d14d8c0114b"
     ],
     [
       "Alloc.Vec.Drain.impl",
@@ -25,16 +25,15 @@
       1,
       [
         "@MaxIFuel_assumption", "@query",
+        "FStar.Seq.Base_pretyping_aec2ec0359b5151fd30ba679a2daadcd",
         "assumption_Rust_primitives.Integers.int_t__uu___haseq",
-        "bool_inversion", "bool_typing",
         "constructor_distinct_Rust_primitives.Integers.USIZE",
         "data_elim_Alloc.Vec.Drain.Drain",
         "equality_tok_Rust_primitives.Integers.USIZE@tok",
         "equation_Prims.nat", "equation_Rust_primitives.Arrays.t_Slice",
-        "equation_Rust_primitives.Integers.gt",
-        "equation_Rust_primitives.Integers.gte",
-        "equation_Rust_primitives.Integers.lte",
+        "equation_Rust_primitives.Integers.lt",
         "equation_Rust_primitives.Integers.max_usize",
+        "equation_Rust_primitives.Integers.maxint",
         "equation_Rust_primitives.Integers.minint",
         "equation_Rust_primitives.Integers.mk_int",
         "equation_Rust_primitives.Integers.mk_usize",
@@ -45,9 +44,9 @@
         "equation_Rust_primitives.Sequence.t_Seq",
         "fuel_guarded_inversion_Alloc.Vec.Drain.t_Drain", "int_inversion",
         "primitive_Prims.op_AmpAmp", "primitive_Prims.op_Equality",
-        "primitive_Prims.op_GreaterThan",
         "primitive_Prims.op_GreaterThanOrEqual",
-        "primitive_Prims.op_LessThanOrEqual",
+        "primitive_Prims.op_LessThan", "primitive_Prims.op_LessThanOrEqual",
+        "primitive_Prims.op_Subtraction",
         "proj_equation_Alloc.Vec.Drain.Drain_@_0",
         "proj_equation_Rust_primitives.Integers.MkInt_@_0",
         "projection_inverse_BoxBool_proj_0",
@@ -56,11 +55,10 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
         "refinement_interpretation_Tm_refine_fd980a4a94cc34052e6e36a3c682afca",
         "typing_FStar.Seq.Base.length",
-        "typing_Rust_primitives.Integers.range",
         "typing_tok_Rust_primitives.Integers.USIZE@tok"
       ],
       0,
-      "21d176bdba2fd63e89c45714907fd9dc"
+      "a9d8580b93cbd9ee062f502b956ebb15"
     ]
   ]
 ]

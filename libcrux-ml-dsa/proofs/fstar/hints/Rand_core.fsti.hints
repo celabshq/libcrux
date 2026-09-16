@@ -1,0 +1,61 @@
+[
+  "597d451c44f97854dd6c49ecb48147ce",
+  [
+    [
+      "Rand_core.t_RngCore",
+      1,
+      0,
+      1,
+      [
+        "@query", "assumption_Rust_primitives.Integers.int_t__uu___haseq",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Rust_primitives.Integers.usize",
+        "typing_tok_Rust_primitives.Integers.USIZE@tok"
+      ],
+      0,
+      "cd7e41508d39e901eb57b3b6f275c0a3"
+    ],
+    [
+      "Rand_core.__proj__Mkt_RngCore__item__f_fill_bytes_post",
+      1,
+      0,
+      1,
+      [
+        "@query", "assumption_Rust_primitives.Integers.int_t__uu___haseq",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Rust_primitives.Integers.usize",
+        "typing_tok_Rust_primitives.Integers.USIZE@tok"
+      ],
+      0,
+      "7bec9a01cb71d43b28d771c399d33bca"
+    ],
+    [
+      "Rand_core.__proj__Mkt_RngCore__item__f_fill_bytes_post",
+      2,
+      0,
+      1,
+      [
+        "@query", "assumption_Rust_primitives.Integers.int_t__uu___haseq",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Rust_primitives.Integers.usize",
+        "typing_tok_Rust_primitives.Integers.USIZE@tok"
+      ],
+      0,
+      "7e8f8849fa5be2d4e37ffee3daeb1701"
+    ],
+    [
+      "Rand_core.f_fill_bytes_post",
+      1,
+      0,
+      1,
+      [
+        "@query", "assumption_Rust_primitives.Integers.int_t__uu___haseq",
+        "equality_tok_Rust_primitives.Integers.USIZE@tok",
+        "equation_Rust_primitives.Integers.usize",
+        "typing_tok_Rust_primitives.Integers.USIZE@tok"
+      ],
+      0,
+      "7e8f8849fa5be2d4e37ffee3daeb1701"
+    ]
+  ]
+]
