@@ -5,9 +5,9 @@
 //! `n` is indexed `S[0] … S[n-1]`, and `S = S[0] || S[1] || … || S[n-1]`.
 //!
 //! The helpers here are written with `push` in explicit loops rather than with
-//! `Vec::extend`/`to_vec`, which the Lean core model does not cover, and the
-//! "Input:" conditions of the Algorithms are `#[hax_lib::requires]` contracts
-//! rather than `assert!`s, which need a `core::fmt` model to extract.
+//! `Vec::extend`/`to_vec`, which the Lean core model does not cover. The
+//! "Input:" conditions of the Algorithms are plain `assert!`s, which extract to
+//! `massert` in the generated Lean.
 
 /// A single bit. FIPS 202 writes bits as `0`/`1` and combines them with
 /// `⊕` (XOR) and `·` (AND, "integer multiplication" in Sec. 3.2.4).
@@ -17,8 +17,8 @@ pub type Bit = bool;
 pub type BitString = Vec<Bit>;
 
 /// `Trunc_s(X)` — Sec. 2.3: the string of the first `s` bits of `X`.
-#[cfg_attr(hax, hax_lib::requires(s <= x.len()))]
 pub fn trunc(x: &[Bit], s: usize) -> BitString {
+    assert!(s <= x.len(), "Trunc_s needs s <= len(X)");
     let mut out: BitString = Vec::new();
     for i in 0..s {
         out.push(x[i]);
@@ -49,8 +49,11 @@ pub fn concat(x: &[Bit], y: &[Bit]) -> BitString {
 
 /// `X ⊕ Y` for two strings of the same length — the bitwise XOR that Step 6 of
 /// Algorithm 8 applies to the state and a padded block.
-#[cfg_attr(hax, hax_lib::requires(x.len() == y.len()))]
 pub fn xor(x: &[Bit], y: &[Bit]) -> BitString {
+    assert!(
+        x.len() == y.len(),
+        "XOR is pointwise, so the lengths must agree"
+    );
     let mut out: BitString = Vec::new();
     for i in 0..x.len() {
         out.push(x[i] ^ y[i]);
@@ -66,8 +69,8 @@ pub fn xor(x: &[Bit], y: &[Bit]) -> BitString {
 ///
 /// This takes the bytes directly (`H` parsed as in Step 2a) rather than a
 /// string of hexadecimal digits.
-#[cfg_attr(hax, hax_lib::requires(n <= 8 * h.len()))]
 pub fn h2b(h: &[u8], n: usize) -> BitString {
+    assert!(n <= 8 * h.len(), "Algorithm 10 requires n <= 8m");
     let mut t: BitString = Vec::new();
     for i in 0..h.len() {
         let byte = h[i];

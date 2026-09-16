@@ -27,7 +27,7 @@ noncomputable section
 namespace hacspec_sha3_pedantic
 
 /-- [hacspec_sha3_pedantic::bits::trunc]: loop body 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 23:4-25:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 24:4-26:5
     Visibility: public -/
 @[rust_loop_body]
 def bits.trunc_loop.body
@@ -47,7 +47,7 @@ def bits.trunc_loop.body
     ok (cont (iter1, out1))
 
 /-- [hacspec_sha3_pedantic::bits::trunc]: loop 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 23:4-25:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 24:4-26:5
     Visibility: public -/
 @[rust_loop]
 def bits.trunc_loop
@@ -60,15 +60,17 @@ def bits.trunc_loop
     (iter, out)
 
 /-- [hacspec_sha3_pedantic::bits::trunc]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 21:0-27:1
+    Source: 'sha3-pedantic/src/bits.rs', lines 21:0-28:1
     Visibility: public -/
 def bits.trunc
   (x : Slice Bool) (s : Std.Usize) : RustM (alloc.vec.Vec Bool) := do
+  let i ← core.slice.Slice.len x
+  massert (s <= i)
   let out ← alloc.vec.Vec.new Bool
   bits.trunc_loop { start := 0#usize, «end» := s } x out
 
 /-- [hacspec_sha3_pedantic::bits::zeros]: loop body 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 32:4-34:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 33:4-35:5
     Visibility: public -/
 @[rust_loop_body]
 def bits.zeros_loop.body
@@ -86,7 +88,7 @@ def bits.zeros_loop.body
     ok (cont (iter1, out1))
 
 /-- [hacspec_sha3_pedantic::bits::zeros]: loop 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 32:4-34:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 33:4-35:5
     Visibility: public -/
 @[rust_loop]
 def bits.zeros_loop
@@ -98,14 +100,14 @@ def bits.zeros_loop
     (iter, out)
 
 /-- [hacspec_sha3_pedantic::bits::zeros]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 30:0-36:1
+    Source: 'sha3-pedantic/src/bits.rs', lines 31:0-37:1
     Visibility: public -/
 def bits.zeros (n : Std.Usize) : RustM (alloc.vec.Vec Bool) := do
   let out ← alloc.vec.Vec.new Bool
   bits.zeros_loop { start := 0#usize, «end» := n } out
 
 /-- [hacspec_sha3_pedantic::bits::concat]: loop body 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 41:4-43:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 42:4-44:5
     Visibility: public -/
 @[rust_loop_body]
 def bits.concat_loop0.body
@@ -125,7 +127,7 @@ def bits.concat_loop0.body
     ok (cont (iter1, out1))
 
 /-- [hacspec_sha3_pedantic::bits::concat]: loop 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 41:4-43:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 42:4-44:5
     Visibility: public -/
 @[rust_loop]
 def bits.concat_loop0
@@ -138,7 +140,7 @@ def bits.concat_loop0
     (iter, out)
 
 /-- [hacspec_sha3_pedantic::bits::concat]: loop body 1:
-    Source: 'sha3-pedantic/src/bits.rs', lines 44:4-46:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 45:4-47:5
     Visibility: public -/
 @[rust_loop_body]
 def bits.concat_loop1.body
@@ -158,7 +160,7 @@ def bits.concat_loop1.body
     ok (cont (iter1, out1))
 
 /-- [hacspec_sha3_pedantic::bits::concat]: loop 1:
-    Source: 'sha3-pedantic/src/bits.rs', lines 44:4-46:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 45:4-47:5
     Visibility: public -/
 @[rust_loop]
 def bits.concat_loop1
@@ -171,7 +173,7 @@ def bits.concat_loop1
     (iter, out)
 
 /-- [hacspec_sha3_pedantic::bits::concat]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 39:0-48:1
+    Source: 'sha3-pedantic/src/bits.rs', lines 40:0-49:1
     Visibility: public -/
 def bits.concat
   (x : Slice Bool) (y : Slice Bool) : RustM (alloc.vec.Vec Bool) := do
@@ -182,7 +184,7 @@ def bits.concat
   bits.concat_loop1 { start := 0#usize, «end» := i1 } y out1
 
 /-- [hacspec_sha3_pedantic::bits::xor]: loop body 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 55:4-57:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 59:4-61:5
     Visibility: public -/
 @[rust_loop_body]
 def bits.xor_loop.body
@@ -203,7 +205,7 @@ def bits.xor_loop.body
     ok (cont (iter1, out1))
 
 /-- [hacspec_sha3_pedantic::bits::xor]: loop 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 55:4-57:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 59:4-61:5
     Visibility: public -/
 @[rust_loop]
 def bits.xor_loop
@@ -216,16 +218,18 @@ def bits.xor_loop
     (iter, out)
 
 /-- [hacspec_sha3_pedantic::bits::xor]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 53:0-59:1
+    Source: 'sha3-pedantic/src/bits.rs', lines 53:0-63:1
     Visibility: public -/
 def bits.xor
   (x : Slice Bool) (y : Slice Bool) : RustM (alloc.vec.Vec Bool) := do
-  let out ← alloc.vec.Vec.new Bool
   let i ← core.slice.Slice.len x
+  let i1 ← core.slice.Slice.len y
+  massert (i = i1)
+  let out ← alloc.vec.Vec.new Bool
   bits.xor_loop { start := 0#usize, «end» := i } x y out
 
 /-- [hacspec_sha3_pedantic::bits::h2b]: loop body 1:
-    Source: 'sha3-pedantic/src/bits.rs', lines 74:8-76:9
+    Source: 'sha3-pedantic/src/bits.rs', lines 78:8-80:9
     Visibility: public -/
 @[rust_loop_body]
 def bits.h2b_loop0_loop0.body
@@ -246,7 +250,7 @@ def bits.h2b_loop0_loop0.body
     ok (cont (iter1, t1))
 
 /-- [hacspec_sha3_pedantic::bits::h2b]: loop 1:
-    Source: 'sha3-pedantic/src/bits.rs', lines 74:8-76:9
+    Source: 'sha3-pedantic/src/bits.rs', lines 78:8-80:9
     Visibility: public -/
 @[rust_loop]
 def bits.h2b_loop0_loop0
@@ -259,7 +263,7 @@ def bits.h2b_loop0_loop0
     (iter, t)
 
 /-- [hacspec_sha3_pedantic::bits::h2b]: loop body 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 72:4-77:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 76:4-81:5
     Visibility: public -/
 @[rust_loop_body]
 def bits.h2b_loop0.body
@@ -279,7 +283,7 @@ def bits.h2b_loop0.body
     ok (cont (iter1, t1))
 
 /-- [hacspec_sha3_pedantic::bits::h2b]: loop 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 72:4-77:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 76:4-81:5
     Visibility: public -/
 @[rust_loop]
 def bits.h2b_loop0
@@ -292,18 +296,20 @@ def bits.h2b_loop0
     (iter, t)
 
 /-- [hacspec_sha3_pedantic::bits::h2b]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 70:0-79:1
+    Source: 'sha3-pedantic/src/bits.rs', lines 73:0-83:1
     Visibility: public -/
 def bits.h2b
   (h : Slice Std.U8) (n : Std.Usize) : RustM (alloc.vec.Vec Bool) := do
-  let t ← alloc.vec.Vec.new Bool
   let i ← core.slice.Slice.len h
+  let i1 ← 8#usize * i
+  massert (n <= i1)
+  let t ← alloc.vec.Vec.new Bool
   let t1 ← bits.h2b_loop0 { start := 0#usize, «end» := i } h t
   let s ← alloc.vec.Vec.Insts.CoreOpsDerefDerefSlice.deref t1
   bits.trunc s n
 
 /-- [hacspec_sha3_pedantic::bits::h2b_full]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 82:0-84:1
+    Source: 'sha3-pedantic/src/bits.rs', lines 86:0-88:1
     Visibility: public -/
 def bits.h2b_full (h : Slice Std.U8) : RustM (alloc.vec.Vec Bool) := do
   let i ← core.slice.Slice.len h
@@ -311,7 +317,7 @@ def bits.h2b_full (h : Slice Std.U8) : RustM (alloc.vec.Vec Bool) := do
   bits.h2b h i1
 
 /-- [hacspec_sha3_pedantic::bits::b2h]: loop body 1:
-    Source: 'sha3-pedantic/src/bits.rs', lines 97:8-101:9
+    Source: 'sha3-pedantic/src/bits.rs', lines 101:8-105:9
     Visibility: public -/
 @[rust_loop_body]
 def bits.b2h_loop0_loop0.body
@@ -338,7 +344,7 @@ def bits.b2h_loop0_loop0.body
     else ok (cont (iter1, byte))
 
 /-- [hacspec_sha3_pedantic::bits::b2h]: loop 1:
-    Source: 'sha3-pedantic/src/bits.rs', lines 97:8-101:9
+    Source: 'sha3-pedantic/src/bits.rs', lines 101:8-105:9
     Visibility: public -/
 @[rust_loop]
 def bits.b2h_loop0_loop0
@@ -351,7 +357,7 @@ def bits.b2h_loop0_loop0
     (iter, byte)
 
 /-- [hacspec_sha3_pedantic::bits::b2h]: loop body 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 95:4-103:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 99:4-107:5
     Visibility: public -/
 @[rust_loop_body]
 def bits.b2h_loop0.body
@@ -372,7 +378,7 @@ def bits.b2h_loop0.body
     ok (cont (iter1, h1))
 
 /-- [hacspec_sha3_pedantic::bits::b2h]: loop 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 95:4-103:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 99:4-107:5
     Visibility: public -/
 @[rust_loop]
 def bits.b2h_loop0
@@ -385,7 +391,7 @@ def bits.b2h_loop0
     (iter, h)
 
 /-- [hacspec_sha3_pedantic::bits::b2h]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 90:0-105:1
+    Source: 'sha3-pedantic/src/bits.rs', lines 94:0-109:1
     Visibility: public -/
 def bits.b2h (s : Slice Bool) : RustM (alloc.vec.Vec Std.U8) := do
   let n ← core.slice.Slice.len s
@@ -457,13 +463,13 @@ def sponge.Keccak1600.Insts.Hacspec_sha3_pedanticSpongeComponents.pad
   sponge.pad10_star_1 x m
 
 /-- [hacspec_sha3_pedantic::state_array::{hacspec_sha3_pedantic::state_array::StateArray<W>}::B]
-    Source: 'sha3-pedantic/src/state_array.rs', lines 28:4-28:32
+    Source: 'sha3-pedantic/src/state_array.rs', lines 27:4-27:32
     Visibility: public -/
 @[global_simps, irreducible]
 def state_array.StateArray.B (W : Std.Usize) : RustM Std.Usize := 25#usize * W
 
 /-- [hacspec_sha3_pedantic::state_array::{hacspec_sha3_pedantic::state_array::StateArray<W>}::to_bits]: loop body 2:
-    Source: 'sha3-pedantic/src/state_array.rs', lines 78:16-80:17
+    Source: 'sha3-pedantic/src/state_array.rs', lines 77:16-79:17
     Visibility: public -/
 @[rust_loop_body]
 def state_array.StateArray.to_bits_loop0_loop0_loop0.body
@@ -487,7 +493,7 @@ def state_array.StateArray.to_bits_loop0_loop0_loop0.body
     ok (cont (iter1, s1))
 
 /-- [hacspec_sha3_pedantic::state_array::{hacspec_sha3_pedantic::state_array::StateArray<W>}::to_bits]: loop 2:
-    Source: 'sha3-pedantic/src/state_array.rs', lines 78:16-80:17
+    Source: 'sha3-pedantic/src/state_array.rs', lines 77:16-79:17
     Visibility: public -/
 @[rust_loop]
 def state_array.StateArray.to_bits_loop0_loop0_loop0
@@ -502,7 +508,7 @@ def state_array.StateArray.to_bits_loop0_loop0_loop0
     (iter, s)
 
 /-- [hacspec_sha3_pedantic::state_array::{hacspec_sha3_pedantic::state_array::StateArray<W>}::to_bits]: loop body 1:
-    Source: 'sha3-pedantic/src/state_array.rs', lines 77:12-81:13
+    Source: 'sha3-pedantic/src/state_array.rs', lines 76:12-80:13
     Visibility: public -/
 @[rust_loop_body]
 def state_array.StateArray.to_bits_loop0_loop0.body
@@ -524,7 +530,7 @@ def state_array.StateArray.to_bits_loop0_loop0.body
     ok (cont (iter1, self1, s1))
 
 /-- [hacspec_sha3_pedantic::state_array::{hacspec_sha3_pedantic::state_array::StateArray<W>}::to_bits]: loop 1:
-    Source: 'sha3-pedantic/src/state_array.rs', lines 77:12-81:13
+    Source: 'sha3-pedantic/src/state_array.rs', lines 76:12-80:13
     Visibility: public -/
 @[rust_loop]
 def state_array.StateArray.to_bits_loop0_loop0
@@ -538,7 +544,7 @@ def state_array.StateArray.to_bits_loop0_loop0
     (iter, self, s)
 
 /-- [hacspec_sha3_pedantic::state_array::{hacspec_sha3_pedantic::state_array::StateArray<W>}::to_bits]: loop body 0:
-    Source: 'sha3-pedantic/src/state_array.rs', lines 76:8-82:9
+    Source: 'sha3-pedantic/src/state_array.rs', lines 75:8-81:9
     Visibility: public -/
 @[rust_loop_body]
 def state_array.StateArray.to_bits_loop0.body
@@ -559,7 +565,7 @@ def state_array.StateArray.to_bits_loop0.body
     ok (cont (iter1, self1, s1))
 
 /-- [hacspec_sha3_pedantic::state_array::{hacspec_sha3_pedantic::state_array::StateArray<W>}::to_bits]: loop 0:
-    Source: 'sha3-pedantic/src/state_array.rs', lines 76:8-82:9
+    Source: 'sha3-pedantic/src/state_array.rs', lines 75:8-81:9
     Visibility: public -/
 @[rust_loop]
 def state_array.StateArray.to_bits_loop0
@@ -573,7 +579,7 @@ def state_array.StateArray.to_bits_loop0
     (iter, self, s)
 
 /-- [hacspec_sha3_pedantic::state_array::{hacspec_sha3_pedantic::state_array::StateArray<W>}::to_bits]:
-    Source: 'sha3-pedantic/src/state_array.rs', lines 74:4-84:5
+    Source: 'sha3-pedantic/src/state_array.rs', lines 73:4-83:5
     Visibility: public -/
 def state_array.StateArray.to_bits
   {W : Std.Usize} (self : state_array.StateArray W) :
@@ -585,7 +591,7 @@ def state_array.StateArray.to_bits
     self s
 
 /-- [hacspec_sha3_pedantic::state_array::{hacspec_sha3_pedantic::state_array::StateArray<W>}::zero]:
-    Source: 'sha3-pedantic/src/state_array.rs', lines 48:4-52:5
+    Source: 'sha3-pedantic/src/state_array.rs', lines 47:4-51:5
     Visibility: public -/
 def state_array.StateArray.zero
   (W : Std.Usize) : RustM (state_array.StateArray W) := do
@@ -595,7 +601,7 @@ def state_array.StateArray.zero
   ok { a := a2 }
 
 /-- [hacspec_sha3_pedantic::state_array::{hacspec_sha3_pedantic::state_array::StateArray<W>}::from_bits]: loop body 2:
-    Source: 'sha3-pedantic/src/state_array.rs', lines 61:16-63:17
+    Source: 'sha3-pedantic/src/state_array.rs', lines 60:16-62:17
     Visibility: public -/
 @[rust_loop_body]
 def state_array.StateArray.from_bits_loop0_loop0_loop0.body
@@ -625,7 +631,7 @@ def state_array.StateArray.from_bits_loop0_loop0_loop0.body
     ok (cont (iter1, { a := a5 }))
 
 /-- [hacspec_sha3_pedantic::state_array::{hacspec_sha3_pedantic::state_array::StateArray<W>}::from_bits]: loop 2:
-    Source: 'sha3-pedantic/src/state_array.rs', lines 61:16-63:17
+    Source: 'sha3-pedantic/src/state_array.rs', lines 60:16-62:17
     Visibility: public -/
 @[rust_loop]
 def state_array.StateArray.from_bits_loop0_loop0_loop0
@@ -639,7 +645,7 @@ def state_array.StateArray.from_bits_loop0_loop0_loop0
     (iter, out)
 
 /-- [hacspec_sha3_pedantic::state_array::{hacspec_sha3_pedantic::state_array::StateArray<W>}::from_bits]: loop body 1:
-    Source: 'sha3-pedantic/src/state_array.rs', lines 60:12-64:13
+    Source: 'sha3-pedantic/src/state_array.rs', lines 59:12-63:13
     Visibility: public -/
 @[rust_loop_body]
 def state_array.StateArray.from_bits_loop0_loop0.body
@@ -660,7 +666,7 @@ def state_array.StateArray.from_bits_loop0_loop0.body
     ok (cont (iter1, out1))
 
 /-- [hacspec_sha3_pedantic::state_array::{hacspec_sha3_pedantic::state_array::StateArray<W>}::from_bits]: loop 1:
-    Source: 'sha3-pedantic/src/state_array.rs', lines 60:12-64:13
+    Source: 'sha3-pedantic/src/state_array.rs', lines 59:12-63:13
     Visibility: public -/
 @[rust_loop]
 def state_array.StateArray.from_bits_loop0_loop0
@@ -674,7 +680,7 @@ def state_array.StateArray.from_bits_loop0_loop0
     (iter, out)
 
 /-- [hacspec_sha3_pedantic::state_array::{hacspec_sha3_pedantic::state_array::StateArray<W>}::from_bits]: loop body 0:
-    Source: 'sha3-pedantic/src/state_array.rs', lines 59:8-65:9
+    Source: 'sha3-pedantic/src/state_array.rs', lines 58:8-64:9
     Visibility: public -/
 @[rust_loop_body]
 def state_array.StateArray.from_bits_loop0.body
@@ -695,7 +701,7 @@ def state_array.StateArray.from_bits_loop0.body
     ok (cont (iter1, out1))
 
 /-- [hacspec_sha3_pedantic::state_array::{hacspec_sha3_pedantic::state_array::StateArray<W>}::from_bits]: loop 0:
-    Source: 'sha3-pedantic/src/state_array.rs', lines 59:8-65:9
+    Source: 'sha3-pedantic/src/state_array.rs', lines 58:8-64:9
     Visibility: public -/
 @[rust_loop]
 def state_array.StateArray.from_bits_loop0
@@ -709,16 +715,19 @@ def state_array.StateArray.from_bits_loop0
     (iter, out)
 
 /-- [hacspec_sha3_pedantic::state_array::{hacspec_sha3_pedantic::state_array::StateArray<W>}::from_bits]:
-    Source: 'sha3-pedantic/src/state_array.rs', lines 57:4-67:5
+    Source: 'sha3-pedantic/src/state_array.rs', lines 55:4-66:5
     Visibility: public -/
 def state_array.StateArray.from_bits
   (W : Std.Usize) (s : Slice Bool) : RustM (state_array.StateArray W) := do
+  let i ← core.slice.Slice.len s
+  let i1 ← 25#usize * W
+  massert (i = i1)
   let out ← state_array.StateArray.zero W
   state_array.StateArray.from_bits_loop0
     { start := 0#usize, «end» := 5#usize } s out
 
 /-- [hacspec_sha3_pedantic::state_array::{hacspec_sha3_pedantic::state_array::StateArray<W>}::L]
-    Source: 'sha3-pedantic/src/state_array.rs', lines 36:4-45:6
+    Source: 'sha3-pedantic/src/state_array.rs', lines 35:4-44:6
     Visibility: public -/
 @[global_simps, irreducible]
 def state_array.StateArray.L (W : Std.Usize) : RustM Std.Usize :=
@@ -2085,7 +2094,7 @@ def state_array.StateArray.Insts.CoreCmpEq (W : Std.Usize) : core.cmp.Eq
 }
 
 /-- [hacspec_sha3_pedantic::state_array::{hacspec_sha3_pedantic::state_array::StateArray<W>}::W#1]
-    Source: 'sha3-pedantic/src/state_array.rs', lines 25:4-25:27
+    Source: 'sha3-pedantic/src/state_array.rs', lines 24:4-24:27
     Visibility: public -/
 @[global_simps, irreducible]
 def state_array.StateArray.W_1 (W : Std.Usize) : Std.Usize := W

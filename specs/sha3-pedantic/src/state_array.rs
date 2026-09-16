@@ -19,7 +19,6 @@ pub struct StateArray<const W: usize> {
     pub a: [[[Bit; W]; 5]; 5],
 }
 
-#[cfg_attr(hax, hax_lib::attributes)]
 impl<const W: usize> StateArray<W> {
     /// `w` — the lane size, `b/25`.
     pub const W: usize = W;
@@ -53,8 +52,8 @@ impl<const W: usize> StateArray<W> {
 
     /// Sec. 3.1.2: converting strings to state arrays,
     /// `A[x, y, z] = S[w(5y + x) + z]`.
-    #[cfg_attr(hax, hax_lib::requires(s.len() == 25 * W))]
     pub fn from_bits(s: &[Bit]) -> StateArray<W> {
+        assert!(s.len() == 25 * W, "Sec. 3.1.2 expects a string of b bits");
         let mut out = Self::zero();
         for x in 0..5 {
             for y in 0..5 {
