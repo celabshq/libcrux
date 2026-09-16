@@ -153,14 +153,19 @@ let rec lemma_mul_succ_le (k n d: usize)
     /// (and friends) to bridge per-lane shift+xor SMTPats to the
     /// `Core_models.Num.impl_u64__rotate_left` form used in the spec.
     ///
-    /// As of cryspen/hax integer-lemmas branch,
-    /// `Core_models.Num.impl_u64__rotate_left` is concretely defined
-    /// as a delegation to `Rust_primitives.Integers.rotate_left_u`
-    /// — `(x <<! n) ^. (x >>! (64 - n))` — making this lemma a real
-    /// proof via per-bit reasoning + bit-extensionality.
+    /// `Core_models.Num.impl_u64__rotate_left` is a shifts+xor model
+    /// (`if (n%64)=0 then x else (x<<!m)^.(x>>!(64-m))`) marked
+    /// `[@@ "opaque_to_smt"]` (see hax#2235) — an ATOM for consumers, so that
+    /// e.g. Keccak `rho`, whose two sides are the SAME rotate application,
+    /// keeps reflexivity instead of re-proving 25 nonlinear shift+xor
+    /// equalities. Here we DO need the body, so we `reveal_opaque` it; the
+    /// bit-wise `get_bit_shl`/`get_bit_shr`/xor SMTPats then discharge the
+    /// per-bit equality on both sides (m = LEFT, 64-m = RIGHT), and
+    /// `lemma_int_t_eq_via_bits` lifts it to value equality — no scaffold axiom.
     #[libcrux_macros::trusted(replace, "hax-limitation: F*-native proof lemma (opaque-range reveal/induction, no Rust equivalent)")]
     #[hax_lib::fstar::replace(
         r#"
+#push-options "--fuel 1"
 let lemma_shl_xor_shr_is_rotate_left (x: u64) (v_LEFT v_RIGHT: i32)
   : Lemma
       (requires
@@ -170,17 +175,20 @@ let lemma_shl_xor_shr_is_rotate_left (x: u64) (v_LEFT v_RIGHT: i32)
       (ensures
         ((x <<! v_LEFT) ^. (x >>! v_RIGHT)) ==
         Core_models.Num.impl_u64__rotate_left x (cast (v_LEFT <: i32) <: u32))
-  = let lhs = (x <<! v_LEFT) ^. (x >>! v_RIGHT) in
+  = reveal_opaque (`%Core_models.Num.impl_u64__rotate_left)
+                  Core_models.Num.impl_u64__rotate_left;
+    let lhs = (x <<! v_LEFT) ^. (x >>! v_RIGHT) in
     let n: u32 = cast (v_LEFT <: i32) in
     let rhs = Core_models.Num.impl_u64__rotate_left x n in
     let aux (i: usize {Rust_primitives.Integers.v i < 64})
       : Lemma (Rust_primitives.Integers.get_bit lhs i ==
                Rust_primitives.Integers.get_bit rhs i) =
-      Rust_primitives.Integers.lemma_rotate_left_u_get_bit
-        #Rust_primitives.Integers.u64_inttype x n i
+      reveal_opaque (`%Core_models.Num.impl_u64__rotate_left)
+                    Core_models.Num.impl_u64__rotate_left
     in
     FStar.Classical.forall_intro aux;
     Rust_primitives.Integers.lemma_int_t_eq_via_bits lhs rhs
+#pop-options
 "#
     )]
     pub(crate) fn lemma_shl_xor_shr_is_rotate_left(_x: u64, _left: i32, _right: i32) {}
