@@ -135,10 +135,10 @@ FSTAR_INCLUDE_DIRS_EXTRA += ../spec \
 # `.fst` bodies (Libcrux_sha3.Portable + Generic_keccak), reached via the
 # auto-discovered sha3 `extraction` dir, plus the hand-written equivalence
 # helpers (EquivImplSpec) under sha3's `equivalence` dir which is not
-# auto-discovered.  The sha3 `stubs` dir is deliberately NOT included: it holds
-# only a stub `Spec.Utils` (a sha3-standalone shim lacking the ml-kem hash
-# oracles) that would shadow ml-kem's real `../spec/Spec.Utils` and break the
-# `Spec.Utils.v_*` references.
+# auto-discovered.  (sha3 formerly carried a stub `Spec.Utils` in a `stubs` dir
+# that had to be kept off this include path, since it would shadow ml-kem's real
+# `../spec/Spec.Utils` and break the `Spec.Utils.v_*` references.  That stub fell
+# out of sha3's dependency closure and has been deleted, so the hazard is gone.)
 
 ENABLE_HINTS = --use_hints --record_hints
 

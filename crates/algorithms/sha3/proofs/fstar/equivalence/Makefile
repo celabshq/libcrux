@@ -11,7 +11,6 @@ FSTAR_INCLUDE_DIRS_EXTRA += \
 	      $(shell git rev-parse --show-toplevel)/fstar-helpers/fstar-bitvec \
 	      $(shell pwd)/../intrinsics \
 	      $(shell pwd)/../spec \
-	      $(shell pwd)/../stubs \
 	      $(shell pwd)/../extraction
 
 ROOTS = \
