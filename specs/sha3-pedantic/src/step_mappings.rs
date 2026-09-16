@@ -102,6 +102,18 @@ pub fn chi<const W: usize>(a: &StateArray<W>) -> StateArray<W> {
     out
 }
 
+/// Step 3a of Algorithm 5: `R = 0 || R` on the nine-bit register.
+///
+/// Its own function because the Lean extraction does not take a loop nested
+/// inside the `rc` loop.
+fn prepend_zero(r: [bool; 9]) -> [bool; 9] {
+    let mut shifted = [false; 9];
+    for i in 0..8 {
+        shifted[i + 1] = r[i];
+    }
+    shifted
+}
+
 /// Algorithm 5: `rc(t)`.
 ///
 /// `t` may be negative: Algorithm 7 indexes rounds from `12 + 2l - n_r`, which
@@ -116,16 +128,18 @@ pub fn rc(t: i64) -> bool {
     // 2. Let R = 10000000.
     let mut r = [false; 9];
     r[0] = true;
-    // 3. For i from 1 to t mod 255:
-    for _ in 1..=t {
+    // 3. For i from 1 to t mod 255 (inclusive; half-open for the extraction):
+    for _ in 1..t + 1 {
         // a. R = 0 || R;
-        let mut shifted = [false; 9];
-        shifted[1..9].copy_from_slice(&r[0..8]);
-        r = shifted;
-        // b-e. R[j] = R[j] ⊕ R[8] for j in {0, 4, 5, 6};
-        for j in [0usize, 4, 5, 6] {
-            r[j] ^= r[8];
-        }
+        r = prepend_zero(r);
+        // b. R[0] = R[0] ⊕ R[8];
+        r[0] ^= r[8];
+        // c. R[4] = R[4] ⊕ R[8];
+        r[4] ^= r[8];
+        // d. R[5] = R[5] ⊕ R[8];
+        r[5] ^= r[8];
+        // e. R[6] = R[6] ⊕ R[8];
+        r[6] ^= r[8];
         // f. R = Trunc_8[R].
         r[8] = false;
     }
@@ -142,13 +156,20 @@ pub fn iota<const W: usize>(a: &StateArray<W>, i_r: i64) -> StateArray<W> {
     let mut round_constant = [false; W];
 
     // 3. For j from 0 to l, RC[2^j - 1] = rc(j + 7·i_r).
-    for j in 0..=StateArray::<W>::L {
+    //    ("from 0 to l" is inclusive; written half-open because the Lean
+    //    extraction has no model for `RangeInclusive`.)
+    for j in 0..StateArray::<W>::L + 1 {
         round_constant[(1usize << j) - 1] = rc(j as i64 + 7 * i_r);
     }
 
     // 4. For all z, A′[0, 0, z] = A′[0, 0, z] ⊕ RC[z].
+    //    Lane (0, 0) is read out, updated and written back in one piece: a
+    //    compound assignment through the nested projection `out.a[0][0][z]`
+    //    is what the Lean extraction cannot follow.
+    let mut lane = out.a[0][0];
     for z in 0..W {
-        out.a[0][0][z] ^= round_constant[z];
+        lane[z] ^= round_constant[z];
     }
+    out.a[0][0] = lane;
     out
 }

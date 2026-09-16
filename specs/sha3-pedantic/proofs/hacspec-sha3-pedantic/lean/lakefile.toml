@@ -1,0 +1,17 @@
+name = "HacspecSha3Pedantic"
+version = "0.1.0"
+defaultTargets = ["HacspecSha3Pedantic"]
+
+[[lean_lib]]
+name = "HacspecSha3Pedantic"
+
+[[require]]
+name = "aeneas"
+git = "https://github.com/cryspen/aeneas"
+rev = "nightly-2026.09.03-6852e64"
+subDir = "backends/lean"
+
+[[require]]
+name = "hax"
+git = "https://github.com/cryspen/hax-lean"
+rev = "v0.3.17"

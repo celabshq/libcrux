@@ -55,9 +55,31 @@ cargo test -p hacspec_sha3_pedantic --release
   `KECCAK-p[b, n_r]` is the tail of `KECCAK-f[b]` (Sec. 3.4);
 * `ρ`'s computed offsets are the ones printed in Table 2.
 
-## Not extracted
+## Lean extraction
 
-There are no `hax` annotations here and nothing in `proofs/`. This crate is for
-reading; `hacspec_sha3` remains the spec that F* and Lean see.
+```
+cd specs && cargo bin cargo-hax extract hacspec-sha3-pedantic
+cd sha3-pedantic/proofs/hacspec-sha3-pedantic/lean && lake build
+```
+
+All of it extracts and type-checks (1743 jobs): the six SHA-3 functions, the
+five step mappings with `rc`, `KECCAK-p`/`KECCAK-f`, the sponge, `pad10*1` and
+the bit-string helpers, plus the four `.pre`/`.spec` pairs that the
+`#[hax_lib::requires]` contracts generate. There are no proofs here yet —
+`hacspec_sha3` is still the spec the libcrux proofs are written against.
+
+Getting there needed these accommodations, all of them in the extraction's
+direction rather than the Standard's, and each marked in the source:
+
+| what the Standard does | what the toolchain needs |
+|---|---|
+| `SPONGE[f, pad, r]`, parameterised by `f` and `pad` | the components are passed as a *value* (`components: &C`), not only as a type parameter. A trait whose type parameter is fixed by the turbofish alone loses its instance argument at every call site the extraction lifts out of the function -- every loop included -- and aeneas then rejects its own output (`ill-formed builtin: invalid number of filtering arguments`). One value argument makes all of it go away |
+| "For `j` from 0 to `l`", "For `i` from 1 to `t mod 255`", "For `i_r` from 12+2l−n_r to 12+2l−1" | half-open ranges: there is no `RangeInclusive` model |
+| `l = log2(w)` | the Table 1 lookup, since `usize::trailing_zeros` has no model (and the table is what the document prints anyway) |
+| the "Input:" conditions | `#[hax_lib::requires]`, not `assert!`: a panic message needs a `core::fmt` model. Messages must also be ASCII — a `⊕` in one came out as an invalid escape in the generated Lean |
+| — | `Vec::extend`, `to_vec` and `copy_from_slice` have no model, so the helpers `push` in explicit loops; Step 3a of Algorithm 5 (`R = 0 \|\| R`) became its own function for the same reason |
+| — | `X ⊕ Y` is `bits::xor` rather than an inner loop of Algorithm 8. This one was a symptom of the row above and would work inline now; it stays because a named `⊕` on bit strings reads better next to Sec. 2.3 |
+| — | `A′[0,0,z] ⊕= RC[z]` reads the lane out, updates it and writes it back: a compound assignment through the nested projection is not followed |
+| — | the derived `Debug` is `cfg`-gated out; its generated instance does not match the core model |
 
 [FIPS 202]: https://doi.org/10.6028/NIST.FIPS.202

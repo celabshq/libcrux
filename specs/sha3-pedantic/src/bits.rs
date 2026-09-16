@@ -3,6 +3,11 @@
 //!
 //! The Standard works on *bit strings* throughout. A bit string of length
 //! `n` is indexed `S[0] … S[n-1]`, and `S = S[0] || S[1] || … || S[n-1]`.
+//!
+//! The helpers here are written with `push` in explicit loops rather than with
+//! `Vec::extend`/`to_vec`, which the Lean core model does not cover, and the
+//! "Input:" conditions of the Algorithms are `#[hax_lib::requires]` contracts
+//! rather than `assert!`s, which need a `core::fmt` model to extract.
 
 /// A single bit. FIPS 202 writes bits as `0`/`1` and combines them with
 /// `⊕` (XOR) and `·` (AND, "integer multiplication" in Sec. 3.2.4).
@@ -12,19 +17,44 @@ pub type Bit = bool;
 pub type BitString = Vec<Bit>;
 
 /// `Trunc_s(X)` — Sec. 2.3: the string of the first `s` bits of `X`.
+#[cfg_attr(hax, hax_lib::requires(s <= x.len()))]
 pub fn trunc(x: &[Bit], s: usize) -> BitString {
-    x[..s].to_vec()
+    let mut out: BitString = Vec::new();
+    for i in 0..s {
+        out.push(x[i]);
+    }
+    out
 }
 
 /// `0^n` — Sec. 2.3: the string of `n` zero bits.
 pub fn zeros(n: usize) -> BitString {
-    vec![false; n]
+    let mut out: BitString = Vec::new();
+    for _ in 0..n {
+        out.push(false);
+    }
+    out
 }
 
 /// `X || Y` — Sec. 2.3: concatenation.
 pub fn concat(x: &[Bit], y: &[Bit]) -> BitString {
-    let mut out = x.to_vec();
-    out.extend_from_slice(y);
+    let mut out: BitString = Vec::new();
+    for i in 0..x.len() {
+        out.push(x[i]);
+    }
+    for i in 0..y.len() {
+        out.push(y[i]);
+    }
+    out
+}
+
+/// `X ⊕ Y` for two strings of the same length — the bitwise XOR that Step 6 of
+/// Algorithm 8 applies to the state and a padded block.
+#[cfg_attr(hax, hax_lib::requires(x.len() == y.len()))]
+pub fn xor(x: &[Bit], y: &[Bit]) -> BitString {
+    let mut out: BitString = Vec::new();
+    for i in 0..x.len() {
+        out.push(x[i] ^ y[i]);
+    }
     out
 }
 
@@ -36,12 +66,13 @@ pub fn concat(x: &[Bit], y: &[Bit]) -> BitString {
 ///
 /// This takes the bytes directly (`H` parsed as in Step 2a) rather than a
 /// string of hexadecimal digits.
+#[cfg_attr(hax, hax_lib::requires(n <= 8 * h.len()))]
 pub fn h2b(h: &[u8], n: usize) -> BitString {
-    assert!(n <= 8 * h.len(), "Algorithm 10 requires n <= 8m");
-    let mut t = Vec::with_capacity(8 * h.len());
-    for byte in h {
+    let mut t: BitString = Vec::new();
+    for i in 0..h.len() {
+        let byte = h[i];
         for j in 0..8 {
-            t.push((byte >> j) & 1 == 1);
+            t.push((byte >> j) & 1u8 == 1u8);
         }
     }
     trunc(&t, n)
@@ -58,15 +89,14 @@ pub fn h2b_full(h: &[u8]) -> BitString {
 /// Returned as the bytes `h_0 … h_(m-1)`.
 pub fn b2h(s: &[Bit]) -> Vec<u8> {
     let n = s.len();
-    let mut t = s.to_vec();
-    t.extend(zeros((8 - n % 8) % 8));
+    let t = concat(s, &zeros((8 - n % 8) % 8));
     let m = t.len() / 8;
-    let mut h = Vec::with_capacity(m);
+    let mut h: Vec<u8> = Vec::new();
     for i in 0..m {
         let mut byte = 0u8;
         for j in 0..8 {
             if t[8 * i + j] {
-                byte |= 1 << j;
+                byte |= 1u8 << j;
             }
         }
         h.push(byte);

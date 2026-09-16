@@ -4,6 +4,15 @@ version = "0.1.0"
 edition = "2021"
 description = "SHA-3 written the way FIPS 202 writes it: bit strings, 5x5xw state arrays, one function per numbered Algorithm"
 
+[dependencies]
+hax-lib.workspace = true
+
 [dev-dependencies]
 hacspec_sha3 = { path = "../sha3" }
 hex = "0.4.3"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = [
+    'cfg(hax)',
+    'cfg(hax_backend_lean)',
+] }

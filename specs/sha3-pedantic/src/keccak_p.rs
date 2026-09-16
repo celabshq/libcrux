@@ -17,9 +17,11 @@ pub fn keccak_p<const W: usize>(s: &[Bit], n_r: usize) -> BitString {
     let mut a = StateArray::<W>::from_bits(s);
 
     // 2. For i_r from 12 + 2l - n_r to 12 + 2l - 1, let A = Rnd(A, i_r).
+    // "For i_r from 12 + 2l - n_r to 12 + 2l - 1" is inclusive at both ends;
+    // written half-open because the Lean extraction has no `RangeInclusive`.
     let last = 12 + 2 * StateArray::<W>::L as i64 - 1;
     let first = last - n_r as i64 + 1;
-    for i_r in first..=last {
+    for i_r in first..last + 1 {
         a = rnd(&a, i_r);
     }
 

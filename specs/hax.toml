@@ -9,3 +9,7 @@ backend = "lean"
 [scenario.hacspec-ml-dsa]
 package = "hacspec_ml_dsa"
 backend = "lean"
+
+[scenario.hacspec-sha3-pedantic]
+package = "hacspec_sha3_pedantic"
+backend = "lean"

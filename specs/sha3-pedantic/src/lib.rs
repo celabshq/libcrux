@@ -31,7 +31,10 @@
 //! | Sec. 6.1-6.2 the six SHA-3 functions | [`sha3`] |
 //! | — (byte-aligned convenience) | [`bytes`] |
 //!
-//! The document is `specs/sha3/NIST.FIPS.202.pdf`.
+//! The document is `specs/sha3/NIST.FIPS.202.pdf`. The crate extracts to Lean
+//! (`cargo bin cargo-hax extract hacspec-sha3-pedantic`); `Readme.md` lists the
+//! handful of places where the extraction needed something other than the
+//! Standard's own phrasing.
 
 // The loops below are the Standard's "For all triples (x, y, z) such that …"
 // quantifiers written out; the index variables are exactly the point, so the
