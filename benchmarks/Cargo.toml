@@ -45,7 +45,7 @@ rsa = { version = "0.9.7", features = ["sha2"] }
 untrusted = "0.9.0"
 
 # Benchmarking "Dalek X25519"
-x25519-dalek = "2.0.1"
+x25519-dalek = "3.0.0"
 
 # Benchmarking "Dalek Ristretto"
 curve25519-dalek = "5.0.0"
