@@ -236,7 +236,15 @@ run/%: | .depend $(HINT_DIR) $(CACHE_DIR)
 check/%: | .depend $(HINT_DIR) $(CACHE_DIR) $(HACL_HOME)
 	$(Q)$(MAKE) "${CACHE_DIR}/$(@:check/%=%).checked"
 
-VERIFIED_CHECKED = $(addsuffix .checked, $(addprefix $(CACHE_DIR)/,$(ROOTS)))
+# $(notdir ...) is load-bearing for ROOTS entries outside this directory (e.g.
+# `../spec/X.fst`, `../commute/X.fst`). The cache is FLAT, and F*'s `--dep full`
+# accordingly emits `$(CACHE_DIR)/X.fst.checked` — basename only. Without notdir
+# we would ask make for `$(CACHE_DIR)/../spec/X.fst.checked`, a target .depend
+# never declares; make then falls through to the `$(CACHE_DIR)/%.checked` pattern
+# rule, whose only prerequisites are order-only, so `$<` expands to nothing and
+# F* dies with "Error 5: No file provided". Symptom is a ~20ms FAILED per
+# out-of-dir root, which reads like a proof failure but is purely a path bug.
+VERIFIED_CHECKED = $(addsuffix .checked, $(addprefix $(CACHE_DIR)/,$(notdir $(ROOTS))))
 ADMIT_CHECKED = $(addsuffix .checked, $(addprefix $(CACHE_DIR)/,$(ADMIT_MODULES)))
 
 $(ADMIT_CHECKED):
