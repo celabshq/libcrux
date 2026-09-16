@@ -174,10 +174,31 @@ let lemma_keccak4_avx2
    Currently AVX2 X4 only exposes [shake256] at the top level.
    ================================================================ *)
 
+(* `slices_same_len` quantifies over an unbounded usize, so at a symbolic index
+   the projection cannot reduce. Dispatch the four in-range indices. *)
+let lemma_slices_same_len4 (arr: t_Array (t_Slice u8) (mk_usize 4))
+  : Lemma
+      (requires
+        Seq.length #u8 (arr.[ mk_usize 0 ]) == Seq.length #u8 (arr.[ mk_usize 1 ]) /\
+        Seq.length #u8 (arr.[ mk_usize 0 ]) == Seq.length #u8 (arr.[ mk_usize 2 ]) /\
+        Seq.length #u8 (arr.[ mk_usize 0 ]) == Seq.length #u8 (arr.[ mk_usize 3 ]))
+      (ensures Libcrux_sha3.Proof_utils.slices_same_len (mk_usize 4) arr)
+  = introduce forall (i: usize).
+        b2t (i <. mk_usize 4 <: bool) ==>
+        b2t ((Core_models.Slice.impl__len #u8 (arr.[ mk_usize 0 ] <: t_Slice u8) <: usize) =.
+             (Core_models.Slice.impl__len #u8 (arr.[ i ] <: t_Slice u8) <: usize) <: bool)
+    with introduce _ ==> _
+    with _. (if v i = 0 then assert (i == mk_usize 0)
+             else if v i = 1 then assert (i == mk_usize 1)
+             else if v i = 2 then assert (i == mk_usize 2)
+             else assert (i == mk_usize 3))
+
 (* Options mirror the Correctness.Portable sibling; the four ensures conjuncts
    are independent, so each gets its own sub-query. *)
 #restart-solver
-#push-options "--fuel 1 --ifuel 1 --z3rlimit 400 --split_queries always --using_facts_from '* -Hacspec_sha3.Sponge.squeeze -EquivImplSpec.Keccakf.Generic.extract_lane -Libcrux_sha3.Generic_keccak.Simd256.squeeze4_blocks'"
+(* --z3refresh: --split_queries always without it trips the Z3 4.13.3 LP-solver
+   assertion in lar_solver.cpp:1066 (Error 276). *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 400 --split_queries always --z3refresh"
 let lemma_shake256_x4_avx2
       (input0 input1 input2 input3 out0 out1 out2 out3: t_Slice u8)
   : Lemma
@@ -202,5 +223,12 @@ let lemma_shake256_x4_avx2
       let l : list (t_Slice u8) = [ input0; input1; input2; input3 ] in
       FStar.Pervasives.assert_norm (List.Tot.length l == 4);
       Rust_primitives.Hax.array_of_list 4 l in
+    (* Pin the four array_of_list projections so the callee's precondition is
+       stated over terms the `requires` already relates. *)
+    FStar.Pervasives.assert_norm (inputs.[ mk_usize 0 ] == input0);
+    FStar.Pervasives.assert_norm (inputs.[ mk_usize 1 ] == input1);
+    FStar.Pervasives.assert_norm (inputs.[ mk_usize 2 ] == input2);
+    FStar.Pervasives.assert_norm (inputs.[ mk_usize 3 ] == input3);
+    lemma_slices_same_len4 inputs;
     lemma_keccak4_avx2 (mk_usize 136) (mk_u8 31) inputs out0 out1 out2 out3
 #pop-options
