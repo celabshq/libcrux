@@ -9,112 +9,18 @@ SLOW_MODULES += Libcrux_ml_kem.Vector.Portable.Serialize.fst
 # trusted-module: Libcrux_ml_kem.Vector.Portable.Serialize.fst : slow-proof: portable serialize bit-manipulation VCs, verified on cadence
 
 ADMIT_MODULES =
-# ===================================================================
-# TEMPORARY — commute-layer lane-bridge cliffs (regression, 2026-08-21)
-# ===================================================================
-# These commute modules carry the per-lane SIMD `lemma_*_lane_bridge`
-# proofs (symbolic i/4, i%4 + SIMD-helper opaque-reveal chains).  They
-# were VERIFIED before; the intrinsics/core-models migration (PR #1568,
-# d98cbff57) cascaded new .checked digests that invalidated their
-# recorded hints, and cold they hit a non-terminating Z3 path (hang
-# 67+ min without hitting rlimit).  This is a hint-context REGRESSION,
-# not a proof defect — no new trust axiom, the obligations were
-# discharged previously.  Admitting these bodies lets the ENTIRE rest
-# of the crate verify while the lane bridges are made cold-fast
-# separately (per-lane `match i` restructure — multi-session).
+# ml-kem verifies with an EMPTY ADMIT_MODULES: every commute, trait-boundary
+# and incremental module that was once admitted is now verified. Two modules
+# remain SLOW (verified on cadence, declared at the top of this file).
 #
-# REMOVE each entry as its lane bridges are restructured to be robustly
-# cold-provable.  The firewall plan adds a hand-written `.fsti` to each
-# so consumers depend on the cheap, stable X.fsti.checked instead of the
-# hanging X.fst.checked (Bridges.fsti landed 2026-08-21; Bridges.fst is
-# therefore no longer a dep of the extraction graph, but stays listed
-# for the commute-dir build).
-# DROPPED 2026-08-25 — Chunk.fsti firewall landed (3bc8d94f3): consumers (Ntt/Invert_ntt/Polynomial/
-#   Vector.*) depend on the stable Chunk.fsti, so dropping Chunk from ADMIT re-proves ONLY Chunk.fst
-#   itself (cold-green as-is: --split_queries always on the 6 saturating helper blocks, commit
-#   00d3743af; 202KB, heavy but non-saturating).  Ntt's layer_7 cold gap is closed by #restart-solver
-#   (d664a1110).  Supersedes the 2026-08-24 CONFIRM-TEST that re-admitted Chunk to confirm this.
-# ADMIT_MODULES += Hacspec_ml_kem.Commute.Chunk.fst
-# DROPPED 2026-08-24 — cold-verifies fast-stable as-is (helpers already carry split); NOT in the extraction graph (consumers use Bridges.fsti).
-# ADMIT_MODULES += Hacspec_ml_kem.Commute.Bridges.fst
-# DROPPED 2026-08-22 — cold-hardened (family-i per-coeff two-knob, commit b8bdb4f7e); cold-verifies e2e.
-# ADMIT_MODULES += Hacspec_ml_kem.Commute.Ntt_bridge.fst
-# DROPPED 2026-08-22 — cold-hardened (family-i per-coeff two-knob, commit cb05479f2); cold-verifies e2e.
-# ADMIT_MODULES += Hacspec_ml_kem.Commute.Invert_ntt_bridge.fst
-# DROPPED 2026-08-24 — cold-verifies green as-is (no lane bridges; batch-admitted defensively @85c712f3e).
-# ADMIT_MODULES += Hacspec_ml_kem.Commute.Invert_scale.fst
-# DROPPED 2026-08-24 — cold-verifies as-is, non-saturating (SLOW normalizer-heavy shuffle-table; rides committed hint).
-# ADMIT_MODULES += Hacspec_ml_kem.Commute.Rej_table.fst
-# DROPPED 2026-08-22 — cold-hardened (family-iii, commits 53b7abddf/b69e4e8c8); cold-verify e2e.
-# ADMIT_MODULES += Hacspec_ml_kem.Commute.Serialize_bits.fst
-# ADMIT_MODULES += Hacspec_ml_kem.Commute.Serialize_compress.fst
-# DROPPED 2026-08-24 — cold-verify green as-is (no lane bridges; batch-admitted defensively @85c712f3e).
-# ADMIT_MODULES += Hacspec_ml_kem.Commute.Compute_dot_bridge.fst
-# ADMIT_MODULES += Hacspec_ml_kem.Commute.Compute_u_bridge.fst
-# ADMIT_MODULES += Hacspec_ml_kem.Commute.Matrix_bilin.fst
-# ADMIT_MODULES += Hacspec_ml_kem.Commute.Matrix_bridge.fst
-# NOTE: ALL incremental modules are now VERIFIED (removed from ADMIT_MODULES):
-# Ind_cca.Incremental{,.Types,.Avx2,.Portable,.Multiplexing} and
-# Mlkem{512,768,1024}.Incremental.  The Types/Incremental closure (2026-06-03)
-# hangs off plain-Rust requires/ensures on the byte-layout helpers
-# (write/vec_len_bytes/vec_to_bytes len-preservation), KeyPair/EncapsState
-# methods, and an is_rank/ETA/size-relation requires-cascade through
-# {generic, platform, multiplexing, mlkem.rs concrete} layers.
-# Function-scoped PROOF GAPS remain (admit() in the Rust source, see
-# proofs/ml_kem_verification_status.md "Findings"): the 2 From-instance
-# bodies + to_bytes_compressed (hax core-trait pres are forced trivial /
-# serialize_vector exact-length contract).  encapsulate2_serialized +
-# decapsulate_incremental_key are now FULLY VERIFIED via validate-on-decode
-# (coefficient bounds checked in EncapsState::try_from_bytes /
-# KeyPair::from_bytes, Error::InvalidInput on failure).
-#
-# The .Alloc and .Incremental.Rand submodules are deleted post-extraction by
-# hax.py (they use `Box<dyn Keys>` and `try_fill_bytes` which lack F* models).
-#
-# Neon sprint 1 (2026-06-04): Vector_type.{fst,fsti} + Arithmetic.fst
-# removed from ADMIT_MODULES.  The historical "Error 162"
-# (decidable-equality, Phase 6d) no longer reproduces under hax 0.3.7 —
-# the un-admitted Vector_type.fsti verifies clean; no masking needed.
-# Remaining Neon entries: Serialize (Sprint 2 — vec128 BitVec bridges),
-# Ntt + Compress + Vector.Neon.{fst,fsti} (Sprint 3 — branch-post opacity,
-# vqdmulh models, impl-Operations contract pass).
-
-# =====================================================================
-# Trait-boundary admits — TEMPORARY, scope = trait_post-strengthening work
-# =====================================================================
-# These three modules sit ABOVE `vector/traits.rs` in the dep graph.  Their
-# proof failures all share the same shape: subtyping checks on a loop
-# accumulator's forall-in-refinement get re-proven from scratch each
-# iteration, exhausting Z3's rlimit.  This is downstream fallout from the
-# trait post strengthening — call sites here haven't been retuned yet.
-# Confirmed failing on macOS reference run too, so admitting hides no
-# regression.
-#
-# **REMOVE ALL THREE as soon as the trait-boundary work is done.**  They are
-# tracked in `MLKEM_STATUS.md` "Trait-boundary admits" section.  Drop the
-# admit in the same commit as the fix so reviewers can re-verify the bound.
-
-# `compress_then_serialize_message` Q2 cancels at rlimit 80 (full 80 in
-#   ~18 s on Mac, ~26 s here).  Assert at line 57 about Vector.Traits.fst:587.
-# Phase 5: dual-trigger SMTPat `lemma_bounded_i16_array_lookup` in traits::spec
-# auto-unfolds the predicate per-index (consume direction).  Intro direction
-# (proving `bounded_i16_array` from per-lane bounds) handled by explicit
-# `reveal_opaque` at the few call sites that need it.
-# ADMIT_MODULES += Libcrux_ml_kem.Serialize.fst
-
-# `Polynomial.ntt_multiply` Q54 cancels at rlimit 300 (full 300 in ~90 s on
-#   Mac).  Subtyping on the loop accumulator refinement at line 845.
-# REMOVED 2026-04-27: with Phase 2 opacity (per-branch opaque
-# ntt_multiply_branch_post), the loop-accumulator forall-in-refinement
-# no longer floods the SMT context with FE equations.
-# ADMIT_MODULES += Libcrux_ml_kem.Polynomial.fst
-
-# `invert_ntt_at_layer_2_` Q2 "unknown" at rlimit 400 (full 400 in ~86 s).
-#   Subtyping on the loop accumulator refinement at line 149 — same forall-
-#   in-refinement pattern as Polynomial above.
-# REMOVED 2026-04-27: Phase 2 opacity (per-branch opaque
-# inv_ntt_layer_2_step_branch_post) eliminates the SMT context flooding.
-# ADMIT_MODULES += Libcrux_ml_kem.Invert_ntt.fst
+# Two build facts outlive that history:
+#  - hax.py deletes the .Alloc and .Incremental.Rand submodules post-extraction;
+#    they use `Box<dyn Keys>` and `try_fill_bytes`, which have no F* models.
+#  - Function-scoped proof gaps remain as `admit()` in the RUST source (not as
+#    admitted modules): the 2 From-instance bodies and to_bytes_compressed,
+#    where hax forces core-trait preconditions trivial and serialize_vector
+#    lacks an exact-length contract. See proofs/ml_kem_verification_status.md
+#    "Findings".
 
 # NOTE: the shared crates/utils/intrinsics extraction dir is intentionally NOT
 # on the include path — ml-kem carries its own Libcrux_intrinsics.* copy in the

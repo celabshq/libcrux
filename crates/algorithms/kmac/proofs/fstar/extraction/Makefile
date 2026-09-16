@@ -1,6 +1,3 @@
-# SLOW_MODULES +=
-# ADMIT_MODULES =
-
 # kmac's F* proofs build the sha3 dependency modules (portable::incremental is
 # extracted transparently — see kmac/hax.py). Those sha3 modules reference the
 # hand-written proof-helper modules that live in sha3's `equivalence` dir
