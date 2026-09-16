@@ -14,7 +14,7 @@ hpke-rs-crypto.workspace = true
 # Rust crypto
 hkdf = { version = "0.13" }
 sha2 = { version = "0.11", default-features = false }
-p256 = { version = "0.13", features = [
+p256 = { version = "0.14", features = [
     "arithmetic",
     "ecdh",
 ], default-features = false }

@@ -32,7 +32,7 @@ rand_core_old = { version = "0.6", package = "rand_core" }
 # Benchmarking "RustCrypto"
 chacha20poly1305 = "0.10"
 ed25519-dalek = { version = "3.0.0", features = ["rand_core"] }
-p256 = { version = "0.13", features = ["ecdh"] }
+p256 = { version = "0.14", features = ["ecdh"] }
 sha2 = "0.11"
 sha3 = "0.12"
 x25519-dalek-ng = "1.1"
