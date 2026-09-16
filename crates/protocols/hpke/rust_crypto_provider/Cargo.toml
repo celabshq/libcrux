@@ -18,7 +18,7 @@ p256 = { version = "0.13", features = [
     "arithmetic",
     "ecdh",
 ], default-features = false }
-k256 = { version = "0.13", features = [
+k256 = { version = "0.14", features = [
     "arithmetic",
     "ecdh",
 ], default-features = false }
