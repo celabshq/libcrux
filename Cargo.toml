@@ -108,14 +108,25 @@ allow-branch = ["main"]
 # from #2235 on (at the tag it is an `assume val`, so `reveal_opaque` fails); and
 # `Core_models.Num.{Abs,Count_ones,To_le_bytes}_spec` + `Rand_core.Fill_bytes_spec`,
 # which the ml-kem/ml-dsa primitive proofs cite and which exist only on that
-# branch. A branch rather than a revision because the branch is rebased during
-# review and a branch ref keeps resolving across that. Move to the merge commit
-# when #2261 lands, and to a tag once one containing it is cut. The branch also
-# carries the macro_rules! antiquote span-hygiene fix (PR #2212 / b78d945) the
-# crate-wide `proof!` markers require; build the `hax-0.4.0` opam switch from the
-# same commit before ml-kem/ml-dsa will extract (sha3 + deps extract on either).
+# branch. That branch also carries the macro_rules! antiquote span-hygiene fix
+# (PR #2212 / b78d945) the crate-wide `proof!` markers require; build the
+# `hax-0.4.0` opam switch from the same commit before ml-kem/ml-dsa will extract
+# (sha3 + deps extract on either).
 # Extract with `OPAMSWITCH=hax-0.4.0 opam exec -- <crate>/hax.py extract`.
-hax-lib = { git = "https://github.com/cryspen/hax", branch = "feat/core-prim-specs" }
+#
+# A REVISION, not the branch ref, even though the branch is rebased during
+# review. `Cargo.lock` is gitignored here, so a branch ref lets two checkouts —
+# or the same checkout a week apart — resolve different foundations with no
+# diff to show for it. The committed `.hints` are recorded against a specific
+# foundation: hax-lib 85d6c4e98 dropped one unused `open` from
+# `Rust_primitives.Hax.Folds.fsti`, semantically a no-op, and that alone changed
+# the module digest and invalidated the recorded unsat core of every proof
+# containing a `for` loop (hax extracts those as `fold_range` through that
+# module) — 379 hint files had to be re-recorded. Under a floating ref such a
+# move is silent, and any re-record is stale on arrival. Bump this rev
+# deliberately, re-extract, and re-record hints in the same commit. Move to the
+# merge commit when #2261 lands, and to a tag once one containing it is cut.
+hax-lib = { git = "https://github.com/cryspen/hax", rev = "85d6c4e981b5f6126ddd4f455db055c3e287ce6b" }
 libcrux-aead = { version = "=0.0.9", path = "crates/primitives/aead" }
 libcrux-aes = { version = "=0.0.9", path = "crates/algorithms/aes" }
 libcrux-blake2 = { version = "=0.0.8", path = "crates/algorithms/blake2" }
