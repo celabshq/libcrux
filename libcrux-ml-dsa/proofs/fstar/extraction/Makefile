@@ -55,6 +55,23 @@ ENABLE_HINTS = --use_hints --record_hints
 CACHE_DIR := ../cache
 HINT_DIR  := ../hints
 
+# Verify the hand-written companions as first-class roots, not merely as
+# incidental dependencies of the extracted modules: `../spec` holds the proof
+# companions and integer specs, `../commute` the impl<->spec commute theory.
+# Under Makefile.generic's default (extraction dir only) a companion that no
+# extracted module happens to cite is never verified at all, and one carrying a
+# .fsti has only its interface checked while the .fst proof body goes unchecked
+# — which is exactly what the hand-maintained `verify:` force-gate below was
+# working around. That list is now a subset of ROOTS; it is kept as a
+# belt-and-braces guard. Set before the include — Makefile.generic uses
+# `ROOTS ?=`, so this assignment wins.
+# NOTE: after changing this list, `rm .depend` before building; make will not
+# re-derive the dependency graph on its own when roots are ADDED, because the
+# existing .depend is already newer than the newly-rooted files.
+ROOTS = $(wildcard *.fst *.fsti) \
+        $(wildcard ../spec/*.fst ../spec/*.fsti) \
+        $(wildcard ../commute/*.fst ../commute/*.fsti)
+
 include $(shell git rev-parse --show-toplevel)/fstar-helpers/Makefile.base
 
 # =====================================================================
