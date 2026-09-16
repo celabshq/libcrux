@@ -45,6 +45,23 @@ The document is [`../sha3/NIST.FIPS.202.pdf`](../sha3/NIST.FIPS.202.pdf).
 cargo test -p hacspec_sha3_pedantic --release
 ```
 
+64 tests in seven files. Six of them are the byte-level spec's own suite,
+ported so the same vectors run against this spec too: `cavp.rs` (14, the CAVP
+short/long/variable-output files via `libcrux-kats`), `nist_vectors.rs` (23),
+`portable.rs` (12), `compare_ref.rs` (3, against the `libcrux-sha3`
+implementation), `test_vectors.rs` (the shared data) and
+`sponge_decomposition.rs` (1). The XOFs take a runtime output length here
+rather than a const generic, which is the only edit the ports needed --
+except `sponge_decomposition.rs`, which pins something else: the neighbour
+splits `keccak` into `squeeze ∘ absorb` and this spec has no such split
+(Algorithm 8 is one function), so the same rate/delimiter/output matrix is
+pinned against the neighbour's `sponge::keccak` instead. That is the seam
+where the two padding conventions meet -- one delimiter byte there, a Sec. 6
+suffix plus `pad10*1` here -- and agreeing on every rate is what says they
+describe the same thing.
+
+The seventh file, `fips202.rs`, is this crate's own:
+
 * the Standard's own worked examples: `h2b(0xA32E, 14)` from Table 5, and the
   byte-aligned padding forms of Table 6 (`M || 0x86`, `M || 0x0680`, …);
 * `pad10*1` produces `1 0^j 1` of the length Algorithm 9 promises;

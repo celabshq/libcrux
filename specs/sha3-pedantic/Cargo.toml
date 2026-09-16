@@ -7,6 +7,9 @@ description = "SHA-3 written the way FIPS 202 writes it: bit strings, 5x5xw stat
 [dev-dependencies]
 hacspec_sha3 = { path = "../sha3" }
 hex = "0.4.3"
+proptest = "1.2.0"
+libcrux-sha3 = { path = "../../crates/algorithms/sha3" }
+libcrux-kats = { path = "../../crates/testing/kats", features = ["sha3"] }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = [
