@@ -370,22 +370,13 @@ pub(crate) fn squeeze<const RATE: usize>(mut s: KeccakState<1, u64>, output: &mu
 
     if output_blocks == 0 {
         s.squeeze::<RATE>(output, 0, output_len);
+        // The whole-sequence assembly lives in a clean-context lemma rather
+        // than here: elaborated inside this function's WP it cost ~1358
+        // rlimit, over the project cap, so it only ever closed while its
+        // recorded unsat core replayed.
         hax_lib::fstar!(
-            r#"let spec_out : t_Slice u8 =
-                   Hacspec_sha3.Sponge.squeeze $output_len $s_init_st $RATE in
-               assert (v $output_len < v $RATE);
-               assert (v $RATE <= 200);
-               let aux (k: nat{k < v $output_len })
-                 : Lemma (Seq.index ($output <: Seq.seq u8) k ==
-                          Seq.index (spec_out <: Seq.seq u8) k)
-                 = let i : usize = mk_usize k in
-                   assert (v i == k);
-                   assert (v i / 8 < 25);
-                   FStar.Math.Lemmas.small_div k (v $RATE);
-                   assert (v i / v $RATE = 0)
-               in
-               FStar.Classical.forall_intro aux;
-               Seq.lemma_eq_intro ($output <: Seq.seq u8) (spec_out <: Seq.seq u8)"#
+            r#"EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_short_portable
+                 $RATE $s_init_st $output"#
         );
     } else {
         // Capture output state after squeeze_blocks for the prefix-preservation
@@ -399,8 +390,6 @@ pub(crate) fn squeeze<const RATE: usize>(mut s: KeccakState<1, u64>, output: &mu
         hax_lib::fstar!(
             r#"
             Math.Lemmas.lemma_div_mod (v $output_len) (v $RATE);
-            let spec_out : t_Slice u8 =
-                Hacspec_sha3.Sponge.squeeze $output_len $s_init_st $RATE in
             assert (v $output_blocks >= 1);
             (* iterate_keccak_f output_blocks s_init unfolds to keccak_f-of-prev. *)
             assert (Hacspec_sha3.Sponge.iterate_keccak_f $output_blocks $s_init_st ==
@@ -409,24 +398,13 @@ pub(crate) fn squeeze<const RATE: usize>(mut s: KeccakState<1, u64>, output: &mu
                          ($output_blocks -! mk_usize 1) $s_init_st));
             let output_after_blocks_slice : t_Slice u8 =
                 Alloc.Vec.impl_1__as_slice $output_after_blocks in
-            let aux (k: nat{k < v $output_len })
-                : Lemma (Seq.index ($output <: Seq.seq u8) k ==
-                         Seq.index (spec_out <: Seq.seq u8) k) =
-              if k < v $output_len - v $output_rem
-              then
-                EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_prefix_preserved_portable
-                  $RATE $s_init_st output_after_blocks_slice $output
-                  $output_blocks $output_rem k
-              else begin
-                assert (v $output_rem > 0);
-                assert ($s.st ==
-                        Hacspec_sha3.Sponge.iterate_keccak_f $output_blocks $s_init_st);
-                EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_trailing_byteform_portable
-                  $RATE $s_init_st $s.st $output $output_blocks $output_rem k
-              end
-            in
-            FStar.Classical.forall_intro aux;
-            Seq.lemma_eq_intro ($output <: Seq.seq u8) (spec_out <: Seq.seq u8)
+            (* The per-byte dispatch and the Classical.forall_intro /
+               Seq.lemma_eq_intro assembly are discharged in clean context by
+               lemma_squeeze_assemble_portable; only the state-chaining fact,
+               which is position-bound to this call sequence, is asserted here. *)
+            EquivImplSpec.Sponge.Portable.Steps.lemma_squeeze_assemble_portable
+              $RATE $s_init_st $s.st output_after_blocks_slice $output
+              $output_blocks $output_rem
         "#
         );
     }

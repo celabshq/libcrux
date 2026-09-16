@@ -443,3 +443,115 @@ let lemma_squeeze_prefix_preserved_portable
         Seq.index
           (Hacspec_sha3.Sponge.squeeze outlen s_init rate <: Seq.seq u8) i))
   = ()
+
+
+(* ------------------------------------------------------------------ *)
+(* Whole-sequence assembly for `Generic_keccak.Portable.squeeze`.       *)
+(*                                                                      *)
+(* The per-byte steps above were already factored out of the function,  *)
+(* but the `Classical.forall_intro` + `Seq.lemma_eq_intro` assembly     *)
+(* that consumes them stayed inside squeeze's `fstar!` blocks, where it *)
+(* is elaborated in that function's own weakest-precondition.  That is  *)
+(* what put squeeze's cold cost at ~1358 against a declared 400 -- over *)
+(* the project rlimit cap, so it was provable only while its recorded   *)
+(* unsat core replayed.  Hoisting the assembly here leaves the function *)
+(* body with one call per branch.                                       *)
+(*                                                                      *)
+(* Appended at EOF deliberately: it keeps every existing declaration's  *)
+(* recorded hint line-stable, so only the new lemmas prove cold.        *)
+(* ------------------------------------------------------------------ *)
+
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 400"
+
+let lemma_squeeze_short_portable
+      (rate: usize{Libcrux_sha3.Proof_utils.valid_rate rate})
+      (s_init: t_Array u64 (mk_usize 25))
+      (output_final: t_Slice u8)
+  : Lemma
+      (requires (
+        let outlen = Core_models.Slice.impl__len #u8 output_final in
+        v outlen < v rate /\
+        v outlen < v Core_models.Num.impl_usize__MAX - 200 /\
+        (forall (k: nat). k < v outlen ==>
+          Seq.index (output_final <: Seq.seq u8) k ==
+          ((Core_models.Num.impl_u64__to_le_bytes
+              (s_init.[ (mk_usize k /! mk_usize 8) <: usize ] <: u64)
+            <: t_Array u8 (mk_usize 8)).[ (mk_usize k %! mk_usize 8) <: usize ] <: u8))))
+      (ensures (
+        let outlen = Core_models.Slice.impl__len #u8 output_final in
+        (output_final <: t_Slice u8) ==
+        (Hacspec_sha3.Sponge.squeeze outlen s_init rate <: t_Slice u8)))
+  = let outlen = Core_models.Slice.impl__len #u8 output_final in
+    let spec_out : t_Slice u8 = Hacspec_sha3.Sponge.squeeze outlen s_init rate in
+    assert (v rate <= 200);
+    let aux (k: nat{k < v outlen})
+      : Lemma (Seq.index (output_final <: Seq.seq u8) k ==
+               Seq.index (spec_out <: Seq.seq u8) k)
+      = let i : usize = mk_usize k in
+        assert (v i == k);
+        assert (v i / 8 < 25);
+        FStar.Math.Lemmas.small_div k (v rate);
+        assert (v i / v rate = 0)
+    in
+    FStar.Classical.forall_intro aux;
+    Seq.lemma_eq_intro (output_final <: Seq.seq u8) (spec_out <: Seq.seq u8)
+
+let lemma_squeeze_assemble_portable
+      (rate: usize{Libcrux_sha3.Proof_utils.valid_rate rate})
+      (s_init: t_Array u64 (mk_usize 25))
+      (s_final: t_Array u64 (mk_usize 25))
+      (output_after_blocks: t_Slice u8)
+      (output_final: t_Slice u8)
+      (output_blocks: usize)
+      (output_rem: usize)
+  : Lemma
+      (requires (
+        let outlen = Core_models.Slice.impl__len #u8 output_final in
+        (* int, not nat: the conjunct that bounds output_rem by outlen is stated
+           below, so it is not yet available at this binding. *)
+        let prefix_len : int = v outlen - v output_rem in
+        v output_blocks >= 1 /\
+        v output_rem < v rate /\
+        v output_rem <= v outlen /\
+        v outlen == v output_blocks * v rate + v output_rem /\
+        v outlen < v Core_models.Num.impl_usize__MAX - 200 /\
+        Core_models.Slice.impl__len #u8 output_after_blocks == outlen /\
+        (v output_rem > 0 ==>
+          s_final == Hacspec_sha3.Sponge.iterate_keccak_f output_blocks s_init) /\
+        (forall (k: nat). k < v output_blocks * v rate ==>
+          Seq.index (output_after_blocks <: Seq.seq u8) k ==
+          Seq.index (Hacspec_sha3.Sponge.squeeze outlen s_init rate <: Seq.seq u8) k) /\
+        (forall (k: nat). k < prefix_len ==>
+          Seq.index (output_final <: Seq.seq u8) k ==
+          Seq.index (output_after_blocks <: Seq.seq u8) k) /\
+        (forall (k: nat). prefix_len <= k /\ k < v outlen ==>
+          Seq.index (output_final <: Seq.seq u8) k ==
+          ((Core_models.Num.impl_u64__to_le_bytes
+              (s_final.[ (mk_usize (k - prefix_len) /! mk_usize 8) <: usize ] <: u64)
+            <: t_Array u8 (mk_usize 8)).[ (mk_usize (k - prefix_len) %! mk_usize 8) <: usize ]
+           <: u8))))
+      (ensures (
+        let outlen = Core_models.Slice.impl__len #u8 output_final in
+        (output_final <: t_Slice u8) ==
+        (Hacspec_sha3.Sponge.squeeze outlen s_init rate <: t_Slice u8)))
+  = let outlen = Core_models.Slice.impl__len #u8 output_final in
+    let spec_out : t_Slice u8 = Hacspec_sha3.Sponge.squeeze outlen s_init rate in
+    let prefix_len : nat = v outlen - v output_rem in
+    assert (prefix_len == v output_blocks * v rate);
+    let aux (k: nat{k < v outlen})
+      : Lemma (Seq.index (output_final <: Seq.seq u8) k ==
+               Seq.index (spec_out <: Seq.seq u8) k)
+      = if k < prefix_len
+        then
+          lemma_squeeze_prefix_preserved_portable
+            rate s_init output_after_blocks output_final output_blocks output_rem k
+        else begin
+          assert (v output_rem > 0);
+          lemma_squeeze_trailing_byteform_portable
+            rate s_init s_final output_final output_blocks output_rem k
+        end
+    in
+    FStar.Classical.forall_intro aux;
+    Seq.lemma_eq_intro (output_final <: Seq.seq u8) (spec_out <: Seq.seq u8)
+
+#pop-options
