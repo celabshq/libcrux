@@ -27,7 +27,7 @@ x25519-dalek = { version = "2", features = ["static_secrets"] }
 chacha20poly1305 = { version = "0.10", default-features = false, features = [
     "alloc",
 ] }
-aes-gcm = { version = "0.10", default-features = false, features = ["aes"] }
+aes-gcm = { version = "0.11", default-features = false, features = ["aes"] }
 # Post-quantum KEMs
 # XXX: These are broken and pre-releases. Dropping them until they are stable.
 x-wing = { version = "0.1.0-rc.0", default-features = false, optional = true }
