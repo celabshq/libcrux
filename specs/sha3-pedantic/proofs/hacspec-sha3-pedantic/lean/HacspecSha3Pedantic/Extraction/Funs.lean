@@ -732,47 +732,6 @@ def state_array.StateArray.L (W : Std.Usize) : RustM Std.Usize :=
   | 64 => ok 6#usize
   | _ => fail panic
 
-/-- [hacspec_sha3_pedantic::step_mappings::prepend_zero]: loop body 0:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 111:4-113:5 -/
-@[rust_loop_body]
-def step_mappings.prepend_zero_loop.body
-  (r : Array Bool 9#usize) (iter : core.ops.range.Range Std.Usize)
-  (shifted : Array Bool 9#usize) :
-  RustM (ControlFlow ((core.ops.range.Range Std.Usize) × (Array Bool 9#usize))
-    (Array Bool 9#usize))
-  := do
-  let (o, iter1) ←
-    core.ops.range.Range.Insts.CoreIterTraitsIteratorIterator.next
-      core.Usize.Insts.CoreIterRangeStep iter
-  match o with
-  | core.option.Option.None => ok (done shifted)
-  | core.option.Option.Some i =>
-    let b ← Array.index_usize r i
-    let i1 ← i + 1#usize
-    let a ← Array.update shifted i1 b
-    ok (cont (iter1, a))
-
-/-- [hacspec_sha3_pedantic::step_mappings::prepend_zero]: loop 0:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 111:4-113:5 -/
-@[rust_loop]
-def step_mappings.prepend_zero_loop
-  (iter : core.ops.range.Range Std.Usize) (r : Array Bool 9#usize)
-  (shifted : Array Bool 9#usize) :
-  RustM (Array Bool 9#usize)
-  := do
-  loop
-    (fun (iter1, shifted1) => step_mappings.prepend_zero_loop.body r iter1
-      shifted1)
-    (iter, shifted)
-
-/-- [hacspec_sha3_pedantic::step_mappings::prepend_zero]:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 109:0-115:1 -/
-def step_mappings.prepend_zero
-  (r : Array Bool 9#usize) : RustM (Array Bool 9#usize) := do
-  let shifted := Array.repeat 9#usize false
-  step_mappings.prepend_zero_loop { start := 0#usize, «end» := 8#usize } r
-    shifted
-
 /-- [hacspec_sha3_pedantic::step_mappings::imod]:
     Source: 'sha3-pedantic/src/step_mappings.rs', lines 13:0-15:1 -/
 def step_mappings.imod (a : Std.I64) (b : Std.I64) : RustM Std.Usize := do
@@ -782,42 +741,55 @@ def step_mappings.imod (a : Std.I64) (b : Std.I64) : RustM Std.Usize := do
   ok (IScalar.hcast .Usize i2)
 
 /-- [hacspec_sha3_pedantic::step_mappings::rc]: loop body 0:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 132:4-145:5
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 120:4-135:5
     Visibility: public -/
 @[rust_loop_body]
 def step_mappings.rc_loop.body
-  (iter : core.ops.range.Range Std.Usize) (r : Array Bool 9#usize) :
-  RustM (ControlFlow ((core.ops.range.Range Std.Usize) × (Array Bool 9#usize))
-    (Array Bool 9#usize))
+  (iter : core.ops.range.RangeInclusive Std.Usize) (r : Array Bool 9#usize) :
+  RustM (ControlFlow ((core.ops.range.RangeInclusive Std.Usize) × (Array Bool
+    9#usize)) (Array Bool 9#usize))
   := do
   let (o, iter1) ←
-    core.ops.range.Range.Insts.CoreIterTraitsIteratorIterator.next
+    core.ops.range.RangeInclusive.Insts.CoreIterTraitsIteratorIterator.next
       core.Usize.Insts.CoreIterRangeStep iter
   match o with
   | core.option.Option.None => ok (done r)
   | core.option.Option.Some _ =>
-    let r1 ← step_mappings.prepend_zero r
-    let b ← Array.index_usize r1 8#usize
-    let b1 ← Array.index_usize r1 0#usize
-    let r2 ← Array.update r1 0#usize (b1 ^^ b)
-    let b2 ← Array.index_usize r2 8#usize
-    let b3 ← Array.index_usize r2 4#usize
-    let r3 ← Array.update r2 4#usize (b3 ^^ b2)
-    let b4 ← Array.index_usize r3 8#usize
-    let b5 ← Array.index_usize r3 5#usize
-    let r4 ← Array.update r3 5#usize (b5 ^^ b4)
-    let b6 ← Array.index_usize r4 8#usize
-    let b7 ← Array.index_usize r4 6#usize
-    let r5 ← Array.update r4 6#usize (b7 ^^ b6)
-    let a ← Array.update r5 8#usize false
+    let shifted := Array.repeat 9#usize false
+    let (s, index_mut_back) ←
+      core.Array.Insts.CoreOpsIndexIndexMut.index_mut
+        (core.Slice.Insts.CoreOpsIndexIndexMut
+        (core.ops.range.RangeUsize.Insts.CoreSliceIndexSliceIndexSliceSlice
+        Bool)) shifted { start := 1#usize, «end» := 9#usize }
+    let s1 ←
+      core.Array.Insts.CoreOpsIndexIndex.index
+        (core.Slice.Insts.CoreOpsIndexIndex
+        (core.ops.range.RangeUsize.Insts.CoreSliceIndexSliceIndexSliceSlice
+        Bool)) r { start := 0#usize, «end» := 8#usize }
+    let s2 ←
+      core.slice.Slice.copy_from_slice core.Bool.Insts.CoreMarkerCopy s s1
+    let shifted1 := index_mut_back s2
+    let b ← Array.index_usize shifted1 8#usize
+    let b1 ← Array.index_usize shifted1 0#usize
+    let shifted2 ← Array.update shifted1 0#usize (b1 ^^ b)
+    let b2 ← Array.index_usize shifted2 8#usize
+    let b3 ← Array.index_usize shifted2 4#usize
+    let shifted3 ← Array.update shifted2 4#usize (b3 ^^ b2)
+    let b4 ← Array.index_usize shifted3 8#usize
+    let b5 ← Array.index_usize shifted3 5#usize
+    let shifted4 ← Array.update shifted3 5#usize (b5 ^^ b4)
+    let b6 ← Array.index_usize shifted4 8#usize
+    let b7 ← Array.index_usize shifted4 6#usize
+    let shifted5 ← Array.update shifted4 6#usize (b7 ^^ b6)
+    let a ← Array.update shifted5 8#usize false
     ok (cont (iter1, a))
 
 /-- [hacspec_sha3_pedantic::step_mappings::rc]: loop 0:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 132:4-145:5
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 120:4-135:5
     Visibility: public -/
 @[rust_loop]
 def step_mappings.rc_loop
-  (iter : core.ops.range.Range Std.Usize) (r : Array Bool 9#usize) :
+  (iter : core.ops.range.RangeInclusive Std.Usize) (r : Array Bool 9#usize) :
   RustM (Array Bool 9#usize)
   := do
   loop
@@ -825,7 +797,7 @@ def step_mappings.rc_loop
     (iter, r)
 
 /-- [hacspec_sha3_pedantic::step_mappings::rc]:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 122:0-148:1
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 110:0-138:1
     Visibility: public -/
 def step_mappings.rc (t : Std.I64) : RustM Bool := do
   let t1 ← step_mappings.imod t 255#i64
@@ -834,22 +806,23 @@ def step_mappings.rc (t : Std.I64) : RustM Bool := do
   else
     let r := Array.repeat 9#usize false
     let a ← Array.update r 0#usize true
-    let i ← t1 + 1#usize
-    let r1 ← step_mappings.rc_loop { start := 1#usize, «end» := i } a
+    let iter ← core.ops.range.RangeInclusive.new 1#usize t1
+    let r1 ← step_mappings.rc_loop iter a
     Array.index_usize r1 0#usize
 
 /-- [hacspec_sha3_pedantic::step_mappings::iota]: loop body 0:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 161:4-163:5
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 149:4-151:5
     Visibility: public -/
 @[rust_loop_body]
 def step_mappings.iota_loop0.body
-  {W : Std.Usize} (i_r : Std.I64) (iter : core.ops.range.Range Std.Usize)
+  {W : Std.Usize} (i_r : Std.I64)
+  (iter : core.ops.range.RangeInclusive Std.Usize)
   (round_constant : Array Bool W) :
-  RustM (ControlFlow ((core.ops.range.Range Std.Usize) × (Array Bool W))
-    (Array Bool W))
+  RustM (ControlFlow ((core.ops.range.RangeInclusive Std.Usize) × (Array Bool
+    W)) (Array Bool W))
   := do
   let (o, iter1) ←
-    core.ops.range.Range.Insts.CoreIterTraitsIteratorIterator.next
+    core.ops.range.RangeInclusive.Insts.CoreIterTraitsIteratorIterator.next
       core.Usize.Insts.CoreIterRangeStep iter
   match o with
   | core.option.Option.None => ok (done round_constant)
@@ -864,12 +837,12 @@ def step_mappings.iota_loop0.body
     ok (cont (iter1, a))
 
 /-- [hacspec_sha3_pedantic::step_mappings::iota]: loop 0:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 161:4-163:5
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 149:4-151:5
     Visibility: public -/
 @[rust_loop]
 def step_mappings.iota_loop0
-  {W : Std.Usize} (iter : core.ops.range.Range Std.Usize) (i_r : Std.I64)
-  (round_constant : Array Bool W) :
+  {W : Std.Usize} (iter : core.ops.range.RangeInclusive Std.Usize)
+  (i_r : Std.I64) (round_constant : Array Bool W) :
   RustM (Array Bool W)
   := do
   loop
@@ -878,7 +851,7 @@ def step_mappings.iota_loop0
     (iter, round_constant)
 
 /-- [hacspec_sha3_pedantic::step_mappings::iota]: loop body 1:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 170:4-172:5
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 158:4-160:5
     Visibility: public -/
 @[rust_loop_body]
 def step_mappings.iota_loop1.body
@@ -899,7 +872,7 @@ def step_mappings.iota_loop1.body
     ok (cont (iter1, a))
 
 /-- [hacspec_sha3_pedantic::step_mappings::iota]: loop 1:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 170:4-172:5
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 158:4-160:5
     Visibility: public -/
 @[rust_loop]
 def step_mappings.iota_loop1
@@ -913,7 +886,7 @@ def step_mappings.iota_loop1
     (iter, lane)
 
 /-- [hacspec_sha3_pedantic::step_mappings::iota]:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 151:0-175:1
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 141:0-163:1
     Visibility: public -/
 def step_mappings.iota
   {W : Std.Usize} (a : state_array.StateArray W) (i_r : Std.I64) :
@@ -921,10 +894,8 @@ def step_mappings.iota
   := do
   let round_constant := Array.repeat W false
   let i ← state_array.StateArray.L W
-  let i1 ← i + 1#usize
-  let round_constant1 ←
-    step_mappings.iota_loop0 { start := 0#usize, «end» := i1 } i_r
-      round_constant
+  let iter ← core.ops.range.RangeInclusive.new 0#usize i
+  let round_constant1 ← step_mappings.iota_loop0 iter i_r round_constant
   let a1 ← Array.index_usize a.a 0#usize
   let lane ← Array.index_usize a1 0#usize
   let lane1 ←
@@ -1682,17 +1653,17 @@ def keccak_p.rnd
   step_mappings.iota sa3 i_r
 
 /-- [hacspec_sha3_pedantic::keccak_p::keccak_p]: loop body 0:
-    Source: 'sha3-pedantic/src/keccak_p.rs', lines 24:4-26:5
+    Source: 'sha3-pedantic/src/keccak_p.rs', lines 22:4-24:5
     Visibility: public -/
 @[rust_loop_body]
 def keccak_p.keccak_p_loop.body
-  {W : Std.Usize} (iter : core.ops.range.Range Std.I64)
+  {W : Std.Usize} (iter : core.ops.range.RangeInclusive Std.I64)
   (a : state_array.StateArray W) :
-  RustM (ControlFlow ((core.ops.range.Range Std.I64) × (state_array.StateArray
-    W)) (state_array.StateArray W))
+  RustM (ControlFlow ((core.ops.range.RangeInclusive Std.I64) ×
+    (state_array.StateArray W)) (state_array.StateArray W))
   := do
   let (o, iter1) ←
-    core.ops.range.Range.Insts.CoreIterTraitsIteratorIterator.next
+    core.ops.range.RangeInclusive.Insts.CoreIterTraitsIteratorIterator.next
       core.I64.Insts.CoreIterRangeStep iter
   match o with
   | core.option.Option.None => ok (done a)
@@ -1701,11 +1672,11 @@ def keccak_p.keccak_p_loop.body
     ok (cont (iter1, a1))
 
 /-- [hacspec_sha3_pedantic::keccak_p::keccak_p]: loop 0:
-    Source: 'sha3-pedantic/src/keccak_p.rs', lines 24:4-26:5
+    Source: 'sha3-pedantic/src/keccak_p.rs', lines 22:4-24:5
     Visibility: public -/
 @[rust_loop]
 def keccak_p.keccak_p_loop
-  {W : Std.Usize} (iter : core.ops.range.Range Std.I64)
+  {W : Std.Usize} (iter : core.ops.range.RangeInclusive Std.I64)
   (a : state_array.StateArray W) :
   RustM (state_array.StateArray W)
   := do
@@ -1714,7 +1685,7 @@ def keccak_p.keccak_p_loop
     (iter, a)
 
 /-- [hacspec_sha3_pedantic::keccak_p::keccak_p]:
-    Source: 'sha3-pedantic/src/keccak_p.rs', lines 15:0-31:1
+    Source: 'sha3-pedantic/src/keccak_p.rs', lines 15:0-29:1
     Visibility: public -/
 def keccak_p.keccak_p
   (W : Std.Usize) (s : Slice Bool) (n_r : Std.Usize) :
@@ -1729,8 +1700,8 @@ def keccak_p.keccak_p
   let i4 ← lift (UScalar.hcast .I64 n_r)
   let i5 ← last - i4
   let first ← i5 + 1#i64
-  let i6 ← last + 1#i64
-  let a1 ← keccak_p.keccak_p_loop { start := first, «end» := i6 } a
+  let iter ← core.ops.range.RangeInclusive.new first last
+  let a1 ← keccak_p.keccak_p_loop iter a
   state_array.StateArray.to_bits a1
 
 /-- [hacspec_sha3_pedantic::sponge::{impl hacspec_sha3_pedantic::sponge::Components for hacspec_sha3_pedantic::sponge::Keccak1600}::f]:
@@ -2038,7 +2009,7 @@ def bytes.shake256
   bits.b2h s1
 
 /-- [hacspec_sha3_pedantic::keccak_p::keccak_f]:
-    Source: 'sha3-pedantic/src/keccak_p.rs', lines 34:0-36:1
+    Source: 'sha3-pedantic/src/keccak_p.rs', lines 32:0-34:1
     Visibility: public -/
 def keccak_p.keccak_f
   (W : Std.Usize) (s : Slice Bool) : RustM (alloc.vec.Vec Bool) := do

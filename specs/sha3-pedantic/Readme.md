@@ -68,18 +68,38 @@ the bit-string helpers, plus the four `.pre`/`.spec` pairs that the
 `#[hax_lib::requires]` contracts generate. There are no proofs here yet —
 `hacspec_sha3` is still the spec the libcrux proofs are written against.
 
-Getting there needed these accommodations, all of them in the extraction's
-direction rather than the Standard's, and each marked in the source:
+Two gaps in hax's core models are filled by this package itself, in
+`Assumptions/FunsExternal.lean` (the file hax seeds and never touches again):
+
+* `RangeInclusive`. CoreModels declares the type but ships no `new` and no
+  `Iterator` instance, so `for j in a..=b` did not extract. The model here is
+  CoreModels' own `IteratorRange.next` for the half-open `Range` with `<`
+  weakened to `≤` -- about twenty lines. It buys back all three of the
+  Standard's inclusive loops: "For `j` from 0 to `l`" (Algorithm 6), "For `i`
+  from 1 to `t mod 255`" (Algorithm 5), and "For `i_r` from `12+2l-n_r` to
+  `12+2l-1`" (Algorithm 7).
+  **Caveat:** Rust's `RangeInclusive` carries an `exhausted` flag that the
+  modelled type lacks, so the model panics where Rust would yield `A::MAX` and
+  stop. Every inclusive range here is small and fixed, so the difference is
+  unreachable -- but a proof against this model is a proof about
+  non-saturating ranges only.
+* `Copy` for `bool`. CoreModels has `marker.Copy` for every integer and
+  `clone.Clone` for `Bool`, but not the instance those two determine, so
+  `copy_from_slice` on a `[bool]` did not resolve. One line, nothing assumed.
+  It buys back Step 3a of Algorithm 5 (`R = 0 || R` as a slice copy) and with
+  it the helper that step had been hoisted into.
+
+What remains is not model gaps but limits of the translation itself, so a model
+cannot help; each is marked where it happens:
 
 | what the Standard does | what the toolchain needs |
 |---|---|
-| `SPONGE[f, pad, r]`, parameterised by `f` and `pad` | the components are passed as a *value* (`components: &C`), not only as a type parameter. A trait whose type parameter is fixed by the turbofish alone loses its instance argument at every call site the extraction lifts out of the function -- every loop included -- and aeneas then rejects its own output (`ill-formed builtin: invalid number of filtering arguments`). One value argument makes all of it go away |
-| "For `j` from 0 to `l`", "For `i` from 1 to `t mod 255`", "For `i_r` from 12+2l−n_r to 12+2l−1" | half-open ranges: there is no `RangeInclusive` model |
-| `l = log2(w)` | the Table 1 lookup, since `usize::trailing_zeros` has no model (and the table is what the document prints anyway) |
-| the "Input:" conditions | `#[hax_lib::requires]`, not `assert!`: a panic message needs a `core::fmt` model. Messages must also be ASCII — a `⊕` in one came out as an invalid escape in the generated Lean |
-| — | `Vec::extend`, `to_vec` and `copy_from_slice` have no model, so the helpers `push` in explicit loops; Step 3a of Algorithm 5 (`R = 0 \|\| R`) became its own function for the same reason |
-| — | `X ⊕ Y` is `bits::xor` rather than an inner loop of Algorithm 8. This one was a symptom of the row above and would work inline now; it stays because a named `⊕` on bit strings reads better next to Sec. 2.3 |
-| — | `A′[0,0,z] ⊕= RC[z]` reads the lane out, updates it and writes it back: a compound assignment through the nested projection is not followed |
-| — | the derived `Debug` is `cfg`-gated out; its generated instance does not match the core model |
+| `SPONGE[f, pad, r]`, parameterised by `f` and `pad` | the components are passed as a *value* (`components: &C`), not only as a type parameter. A trait type parameter determined by nothing but the turbofish loses its instance argument wherever the extraction lifts code out of the function -- every loop included -- and aeneas then either rejects its own output (`ill-formed builtin: invalid number of filtering arguments`) or emits a call of the wrong arity. One value argument avoids all of it |
+| `A′[0,0,z] = A′[0,0,z] ⊕ RC[z]` | lane (0,0) is read out, updated and written back: a compound assignment through the nested projection `out.a[0][0][z]` makes aeneas fail with `Unreachable` |
+| the "Input:" conditions | `#[hax_lib::requires]`, not `assert!`. A `core::fmt::Arguments` model would make `assert!` extract, but a `requires` is the better home for an Input condition anyway -- it becomes a proof obligation rather than a run-time check. Messages must in any case be ASCII: a `⊕` in one came out as an invalid escape in the generated Lean, and being a parse error it then cascaded into twenty phantom "unknown constant" reports |
+| `l = log2(w)` | the Table 1 lookup. A `trailing_zeros` model would work, but Table 1 is what the document prints, so this one stays on merit |
+| — | `Vec::extend` and `to_vec` have no model -- and unlike `Copy for bool`, `Extend` is not declared in CoreModels at all -- so `concat`, `trunc`, `zeros` and `b2h` `push` in explicit loops |
+| — | `X ⊕ Y` is `bits::xor` rather than an inner loop of Algorithm 8. This was forced by the first row and would work inline now; it stays because a named `⊕` on bit strings reads better next to Sec. 2.3 |
+| — | the derived `Debug` is `cfg`-gated out; its generated instance does not match the core model. The only `cfg` left in the crate |
 
 [FIPS 202]: https://doi.org/10.6028/NIST.FIPS.202
