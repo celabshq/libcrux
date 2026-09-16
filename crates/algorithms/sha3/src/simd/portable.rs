@@ -142,6 +142,44 @@ pub(crate) fn load_last<const RATE: usize, const DELIMITER: u8>(
     load_block::<RATE>(state, &buffer, 0);
 }
 
+/// Per-iteration store wrapper for the `store_block` loop body: writes the
+/// 8-byte window `out[start+8*i .. start+8*i+8)` from `word`.
+///
+/// Factored out of `store_block` so its strong per-byte ensures isolates the
+/// `update_at_range` reasoning from the outer loop's invariant. Mirrors
+/// `store_u64x2x2` on Arm64 and `store_u64x4x4` on AVX2; portable was the only
+/// backend still storing inline, which left re-establishing the loop invariant
+/// inside the fold's own weakest-precondition, and that query does not fit
+/// under the rlimit ceiling.
+#[inline(always)]
+#[hax_lib::fstar::options("--z3rlimit 400 --split_queries always")]
+#[hax_lib::requires(
+    start.to_int() + (8.to_int() * (i.to_int() + 1.to_int())) <= out.len().to_int()
+)]
+#[hax_lib::ensures(|_| (future(out).len() == out.len()).to_prop()
+    & hax_lib::forall(|j: usize| if j < out.len() {
+        if j < start + 8 * i {
+            out[j] == future(out)[j]
+        } else if j < start + 8 * (i + 1) {
+            future(out)[j] == word.to_le_bytes()[(j - start) % 8]
+        } else {
+            out[j] == future(out)[j]
+        }
+    } else {
+        true
+    })
+)]
+fn store_u64x1(out: &mut [u8], word: u64, start: usize, i: usize) {
+    let bytes = word.to_le_bytes();
+    let out_pos = start + 8 * i;
+    hax_lib::fstar!(
+        r#"
+        Proof_Utils.Lemmas.lemma_index_update_at_range out (${out_pos..out_pos+8}) bytes
+    "#
+    );
+    out[out_pos..out_pos + 8].copy_from_slice(&bytes);
+}
+
 #[inline(always)]
 // Cold cost of this per-byte store proof is ~441 rlimit. A tighter budget only
 // passes while the recorded hint replays, and that hint goes stale whenever the
@@ -194,18 +232,11 @@ pub(crate) fn store_block<const RATE: usize>(
                 true
             }));
 
-        let bytes = get_ij(s, i / 5, i % 5).to_le_bytes();
-        let out_pos = start + 8 * i;
-        hax_lib::fstar!(
-            r#"
-            // get_ij linearises 5*(i/5)+(i%5) == i, so the byte written here is
-            // the one s.[(j-start)/8] names in the invariant. Without the bridge
-            // the fold rediscovers the Euclidean identity per byte per window.
-            FStar.Math.Lemmas.lemma_div_mod (v $i) 5;
-            Proof_Utils.Lemmas.lemma_index_update_at_range out (${out_pos..out_pos+8}) bytes
-        "#
-        );
-        out[out_pos..out_pos + 8].copy_from_slice(&bytes);
+        // get_ij linearises 5*(i/5)+(i%5) == i, so the word stored here is the
+        // one s.[(j-start)/8] names in the invariant. Without the bridge the
+        // fold rediscovers the Euclidean identity per byte per window.
+        hax_lib::fstar!(r#"FStar.Math.Lemmas.lemma_div_mod (v $i) 5"#);
+        store_u64x1(out, *get_ij(s, i / 5, i % 5), start, i);
     }
 
     let remaining = len % 8;
