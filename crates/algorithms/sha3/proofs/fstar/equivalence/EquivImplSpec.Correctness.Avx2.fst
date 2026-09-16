@@ -174,6 +174,10 @@ let lemma_keccak4_avx2
    Currently AVX2 X4 only exposes [shake256] at the top level.
    ================================================================ *)
 
+(* Options mirror the Correctness.Portable sibling; the four ensures conjuncts
+   are independent, so each gets its own sub-query. *)
+#restart-solver
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 400 --split_queries always --using_facts_from '* -Hacspec_sha3.Sponge.squeeze -EquivImplSpec.Keccakf.Generic.extract_lane -Libcrux_sha3.Generic_keccak.Simd256.squeeze4_blocks'"
 let lemma_shake256_x4_avx2
       (input0 input1 input2 input3 out0 out1 out2 out3: t_Slice u8)
   : Lemma
@@ -199,3 +203,4 @@ let lemma_shake256_x4_avx2
       FStar.Pervasives.assert_norm (List.Tot.length l == 4);
       Rust_primitives.Hax.array_of_list 4 l in
     lemma_keccak4_avx2 (mk_usize 136) (mk_u8 31) inputs out0 out1 out2 out3
+#pop-options
