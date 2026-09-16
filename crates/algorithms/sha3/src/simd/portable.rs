@@ -198,6 +198,10 @@ pub(crate) fn store_block<const RATE: usize>(
         let out_pos = start + 8 * i;
         hax_lib::fstar!(
             r#"
+            // get_ij linearises 5*(i/5)+(i%5) == i, so the byte written here is
+            // the one s.[(j-start)/8] names in the invariant. Without the bridge
+            // the fold rediscovers the Euclidean identity per byte per window.
+            FStar.Math.Lemmas.lemma_div_mod (v $i) 5;
             Proof_Utils.Lemmas.lemma_index_update_at_range out (${out_pos..out_pos+8}) bytes
         "#
         );
@@ -211,6 +215,7 @@ pub(crate) fn store_block<const RATE: usize>(
         let out_pos = start + len - remaining;
         hax_lib::fstar!(
             r#"
+            FStar.Math.Lemmas.lemma_div_mod (v $octets) 5;
             Proof_Utils.Lemmas.lemma_index_update_at_range out (${out_pos..out_pos+remaining}) (Seq.slice bytes 0 (v remaining))
         "#
         );
