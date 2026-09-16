@@ -143,7 +143,14 @@ pub(crate) fn load_last<const RATE: usize, const DELIMITER: u8>(
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 300")]
+// Cold cost of this per-byte store proof is ~441 rlimit. A tighter budget only
+// passes while the recorded hint replays, and that hint goes stale whenever the
+// hax-lib foundation moves (the proof is a `fold_range`, so it is invalidated by
+// any change to `Rust_primitives.Hax.Folds`). The cold query then exhausts the
+// ceiling and reports `used rlimit <cap>.000`, which reads as saturation but is
+// only a budget shortfall. Budgeting above the measured cold cost keeps this
+// module provable without a hint. Within the project cap of 800.
+#[hax_lib::fstar::options("--z3rlimit 800")]
 #[hax_lib::requires(
     valid_rate(RATE) &&
     len <= RATE &&
