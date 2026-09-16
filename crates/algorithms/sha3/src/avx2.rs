@@ -2,10 +2,16 @@
 pub mod x4 {
     #[cfg(hax)]
     use hax_lib::int::ToInt;
+    #[cfg(hax)]
+    use hax_lib::prop::*;
 
     use crate::generic_keccak::simd256::keccak4;
 
     /// Perform 4 SHAKE256 operations in parallel
+    ///
+    /// The ensures below are F*-verified: each lane equals the scalar
+    /// `keccak` of its respective input (via the four-lane AVX2 driver
+    /// `lemma_keccak4_avx2`).  Mirrors the Neon (x2) parallel API analogue.
     #[allow(clippy::too_many_arguments)]
     #[inline(always)]
     #[hax_lib::requires(
@@ -17,12 +23,30 @@ pub mod x4 {
         input0.len() == input2.len() &&
         input0.len() == input3.len()
     )]
-    #[hax_lib::ensures(|_|
-        future(out0).len() == out0.len() &&
-        future(out1).len() == out1.len() &&
-        future(out2).len() == out2.len() &&
-        future(out3).len() == out3.len()
-    )]
+    #[hax_lib::ensures(|_| (future(out0).len() == out0.len()
+        && future(out1).len() == out1.len()
+        && future(out2).len() == out2.len()
+        && future(out3).len() == out3.len()).to_prop() & {
+        fstar!(r#"
+            (out0_future <: t_Slice u8) ==
+              (Hacspec_sha3.Sponge.keccak
+                 (Core_models.Slice.impl__len #u8 $out0)
+                 (mk_usize 136) (mk_u8 31) $input0 <: t_Slice u8) /\
+            (out1_future <: t_Slice u8) ==
+              (Hacspec_sha3.Sponge.keccak
+                 (Core_models.Slice.impl__len #u8 $out1)
+                 (mk_usize 136) (mk_u8 31) $input1 <: t_Slice u8) /\
+            (out2_future <: t_Slice u8) ==
+              (Hacspec_sha3.Sponge.keccak
+                 (Core_models.Slice.impl__len #u8 $out2)
+                 (mk_usize 136) (mk_u8 31) $input2 <: t_Slice u8) /\
+            (out3_future <: t_Slice u8) ==
+              (Hacspec_sha3.Sponge.keccak
+                 (Core_models.Slice.impl__len #u8 $out3)
+                 (mk_usize 136) (mk_u8 31) $input3 <: t_Slice u8)
+        "#)
+    })]
+    #[hax_lib::fstar::options("--fuel 0 --ifuel 1 --z3rlimit 200 --split_queries always")]
     pub fn shake256(
         input0: &[u8],
         input1: &[u8],
@@ -33,6 +57,21 @@ pub mod x4 {
         out2: &mut [u8],
         out3: &mut [u8],
     ) {
+        hax_lib::fstar!(
+            r#"let inputs : t_Array (t_Slice u8) (mk_usize 4) =
+                   let l : list (t_Slice u8) = [ $input0; $input1; $input2; $input3 ] in
+                   FStar.Pervasives.assert_norm (List.Tot.length l == 4);
+                   Rust_primitives.Hax.array_of_list 4 l in
+               FStar.Pervasives.assert_norm (inputs.[ mk_usize 0 ] == $input0);
+               FStar.Pervasives.assert_norm (inputs.[ mk_usize 1 ] == $input1);
+               FStar.Pervasives.assert_norm (inputs.[ mk_usize 2 ] == $input2);
+               FStar.Pervasives.assert_norm (inputs.[ mk_usize 3 ] == $input3);
+               EquivImplSpec.Sponge.Avx2.Driver.lemma_slices_same_len4 inputs;
+               EquivImplSpec.Sponge.Avx2.Driver.lemma_keccak4_avx2
+                   (mk_usize 136) (mk_u8 31) inputs
+                   ($out0 <: t_Slice u8) ($out1 <: t_Slice u8)
+                   ($out2 <: t_Slice u8) ($out3 <: t_Slice u8)"#
+        );
         keccak4::<136, 0x1fu8>(&[input0, input1, input2, input3], out0, out1, out2, out3);
     }
 
