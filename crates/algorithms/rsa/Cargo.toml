@@ -22,4 +22,4 @@ libcrux-sha2 = { workspace = true, features = [
 ] }
 
 [dev-dependencies]
-wycheproof = "0.6.0"
+wycheproof = "0.7.0"
