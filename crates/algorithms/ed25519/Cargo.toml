@@ -22,7 +22,7 @@ tls_codec = { workspace = true, optional = true }
 [dev-dependencies]
 hex = "0.4.3"
 rand = { version = "0.10" }
-wycheproof = "0.6.0"
+wycheproof = "0.7.0"
 
 [features]
 rand = ["dep:rand_core"]
