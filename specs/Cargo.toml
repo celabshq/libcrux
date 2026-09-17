@@ -3,4 +3,4 @@ members = ["hacspec-lib", "kyber", "sha3"]
 resolver = "2"
 
 [workspace.dependencies]
-hax-lib = "=0.3.7"
+hax-lib = "=0.4.0"
