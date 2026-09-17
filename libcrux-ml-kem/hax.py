@@ -159,6 +159,10 @@ class extractAction(argparse.Action):
 
         # Extract ml-kem reference spec (hacspec_ml_kem)
         include_str = "+**"
+        # `--z3rlimit 80` matches the sha3 and ml-dsa spec passes.  This sweep
+        # also re-emits the shared `hacspec_sha3` spec; without the flag it
+        # wrote the module header at hax's default (15) while sha3 wrote 80, so
+        # the file flip-flopped on every cross-crate extraction.
         cargo_hax_into = [
             "cargo",
             "hax",
@@ -166,6 +170,8 @@ class extractAction(argparse.Action):
             "-i",
             include_str,
             "fstar",
+            "--z3rlimit",
+            "80",
         ]
         hax_env = {}
         shell(
@@ -177,6 +183,13 @@ class extractAction(argparse.Action):
         # Extract ml-kem
         includes = [
             "+**",
+            # Canonically owned by their own hax.py (run above).  A `+**` sweep
+            # would re-emit them under THIS crate's backend flags (ml-kem uses
+            # `--interfaces "+**"`, sha3 uses `-**`), so the shared tree would
+            # depend on which algorithm extracted last.
+            "-libcrux_platform::**",
+            "-libcrux_core_models::**",
+            "-libcrux_secrets::**",
             "-libcrux_ml_kem::kem::**",
             # Incremental-API alloc submodules use `Box<dyn Keys>` / `&dyn Any`
             # which hax extracts as F* `dyn`, an unknown identifier.  These are

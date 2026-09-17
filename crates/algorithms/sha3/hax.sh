@@ -106,9 +106,14 @@ function extract_all() {
     # state is never read field-wise by any sha3-internal module, so abstracting
     # it is transparent to sha3 (whose own build verifies the concrete `.fst`
     # implements the abstract `.fsti`).
+    # Exclude the canonically-owned shared deps: they are written by their own
+    # hax.py above, and a `+**` sweep would re-emit them under THIS crate's
+    # backend flags (different `--interfaces`/`--z3rlimit` => different module
+    # header and interface split), making the shared tree depend on which
+    # algorithm extracted last.
     extract crates/algorithms/sha3 \
         -C --features simd128,simd256 ";" \
-        into -i "+**" \
+        into -i "+** -libcrux_platform::** -libcrux_core_models::** -libcrux_secrets::**" \
         fstar --z3rlimit 80 --interfaces "-** +libcrux_sha3::portable +libcrux_sha3::portable::** +libcrux_sha3::avx2::x4 +libcrux_sha3::avx2::x4::** -libcrux_sha3::avx2::x4::incremental -libcrux_sha3::avx2::x4::incremental::** +libcrux_sha3::neon +libcrux_sha3::neon::** -libcrux_sha3::neon::x2::incremental -libcrux_sha3::neon::x2::incremental::**"
 
     patch_fstar_extractions

@@ -61,7 +61,10 @@ function extract_all() {
     # NOTE: if cargo reports the crate is fresh and skips it (writes no
     # THIR export -> hax panics with a NotFound in run_command), force a
     # rebuild with `cargo clean -p hacspec_ml_dsa` before re-running.
-    extract specs/ml-dsa into -i "+**" fstar
+    # `--z3rlimit 80` matches the sha3 and ml-kem spec passes: this sweep also
+    # re-emits shared spec crates, and an unset flag writes the module header at
+    # hax's default (15), so the file flip-flopped on cross-crate extraction.
+    extract specs/ml-dsa into -i "+**" fstar --z3rlimit 80
 
     # G3 module-trust mirror (annotation_lint V6 / trust_ledger --check): every
     # `-libcrux_ml_dsa::…` module dropped from F* extraction below carries a
@@ -72,9 +75,14 @@ function extract_all() {
     # trusted-module: -libcrux_ml_dsa::hash_functions::portable::* : trusted-extern: SHA3 hash backend verified in the sha3 crate (only the trait signature is re-extracted)
     # trusted-module: -libcrux_ml_dsa::hash_functions::simd256::* : trusted-extern: SHA3 hash backend verified in the sha3 crate (only the trait signature is re-extracted)
     # trusted-module: -libcrux_ml_dsa::hash_functions::neon::* : trusted-extern: SHA3 hash backend verified in the sha3 crate (only the trait signature is re-extracted)
+    # `-libcrux_{platform,core_models,secrets}::**`: canonically owned by their
+    # own hax.py (run above).  A `+**` sweep would re-emit them under THIS
+    # crate's backend flags (different `--interfaces`/`--z3rlimit` => different
+    # module header and interface split), making the shared tree depend on which
+    # algorithm extracted last.
     extract libcrux-ml-dsa \
         -C --features simd128,simd256 ";" \
-        into -i "+**" \
+        into -i "+** -libcrux_platform::** -libcrux_core_models::** -libcrux_secrets::**" \
              -i "-libcrux_ml_dsa::hash_functions::portable::*" \
              -i "-libcrux_ml_dsa::hash_functions::simd256::*" \
              -i "-libcrux_ml_dsa::hash_functions::neon::*" \
