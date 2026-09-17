@@ -68,7 +68,7 @@ jobs:
             targets: ${{ matrix.target }}
 
       - name: Install cross
-        uses: taiki-e/install-action@b6b84cf49ebfe0176417bdce007c624f0db37f20 # v2.86.2
+        uses: taiki-e/install-action@3f74d7c16a4242f1c95561e98edc25d36adb4375 # v2.87.12
         with:
           tool: cross@0.2.5
 
