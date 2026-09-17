@@ -1133,7 +1133,7 @@ let lemma_half_of_cast (a: AVX.t_Vec128) (potential: AVX.t_Vec256) (half: nat{ha
 
 #push-options "--fuel 1 --ifuel 0"
 let rec lemma_popcount8_agrees (n: nat)
-  : Lemma (ensures popcount8 n == Core_models.Num.Count_ones_spec.popcount n)
+  : Lemma (ensures popcount8 n == Core_models.Specs.Num.Count_ones.popcount n)
           (decreases n)
   = if n = 0 then () else lemma_popcount8_agrees (n / 2)
 #pop-options

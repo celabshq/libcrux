@@ -7,7 +7,7 @@ open Core_models
 ///
 /// These used to be trusted axioms over `Rust_primitives.Arithmetic` primitives
 /// that hax-lib left uninterpreted. hax now models `i16::abs` directly, so this
-/// is a proof rather than an assumption; `Core_models.Num.Abs_spec` states the
+/// is a proof rather than an assumption; `Core_models.Specs.Num.Abs` states the
 /// same contract against `Rust_primitives.Integers.abs_int`.
 
 /// Spec of `i16::abs`, guarded against `i16::MIN` (where `.abs()` overflows / is

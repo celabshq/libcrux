@@ -331,16 +331,16 @@ let update_at_range_lemma #n
 
 
 /// The `RngCore` contract, recovered from the refinements hax puts on the class
-/// fields rather than assumed; `Rand_core.Fill_bytes_spec` in hax-lib proves it.
+/// fields rather than assumed; `Rand_core.Specs.Fill_bytes` in hax-lib proves it.
 let fill_bytes_pre_true #v_Self #i0 self bytes =
-  Rand_core.Fill_bytes_spec.fill_bytes_pre #v_Self #i0 self bytes
+  Rand_core.Specs.Fill_bytes.fill_bytes_pre #v_Self #i0 self bytes
 
 let fill_bytes_post_true #v_Self #i0 self bytes result =
-  Rand_core.Fill_bytes_spec.fill_bytes_post_len #v_Self #i0 self bytes result
+  Rand_core.Specs.Fill_bytes.fill_bytes_post_len #v_Self #i0 self bytes result
 
 /// `i16::abs` is a transparent model in hax now, so this is a proof;
-/// `Core_models.Num.Abs_spec` states the same contract over `abs_int`.
-let impl_i16__abs_value (x: i16) = Core_models.Num.Abs_spec.abs_i16_v x
+/// `Core_models.Specs.Num.Abs` states the same contract over `abs_int`.
+let impl_i16__abs_value (x: i16) = Core_models.Specs.Num.Abs.abs_i16_v x
 
 #push-options "--fuel 1 --ifuel 1 --z3rlimit 150"
 let slice_to_array_id (array: t_Slice 'a) =

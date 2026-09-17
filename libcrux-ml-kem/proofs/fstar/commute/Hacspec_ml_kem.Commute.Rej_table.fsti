@@ -115,9 +115,9 @@ val lemma_half_of_cast (a: AVX.t_Vec128) (potential: AVX.t_Vec256) (half: nat{ha
       (ensures half_of a potential half)
 
 (* `popcount8` is abstract through this interface, so the bridge to hax-lib's
-   `Core_models.Num.Count_ones_spec.popcount` — the same bit recursion, declared
+   `Core_models.Specs.Num.Count_ones.popcount` — the same bit recursion, declared
    independently there — has to be proved here, where the body is visible.
    `Sampling_theory` uses it to discharge `count_ones_u8_popcount8`, which was a
    trusted axiom before hax modelled `u8::count_ones`. *)
 val lemma_popcount8_agrees (n: nat)
-  : Lemma (popcount8 n == Core_models.Num.Count_ones_spec.popcount n)
+  : Lemma (popcount8 n == Core_models.Specs.Num.Count_ones.popcount n)

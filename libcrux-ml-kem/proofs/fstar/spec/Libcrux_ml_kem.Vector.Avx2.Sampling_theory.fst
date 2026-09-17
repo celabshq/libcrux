@@ -14,14 +14,14 @@ module I = Libcrux_intrinsics.Avx2
    `Rust_primitives.Arithmetic.count_ones_u8` was an uninterpreted `val` in
    hax-lib (only `v r <= 8` was known).  hax now models `count_ones` as a sum
    over the bits and discharges the popcount contract in
-   `Core_models.Num.Count_ones_spec`, so this is a proof.
+   `Core_models.Specs.Num.Count_ones`, so this is a proof.
 
    `Count_ones_spec.popcount` and `Rej_table.popcount8` are the same bit
    recursion declared independently on each side; the bridge relates them. *)
 let count_ones_u8_popcount8 (x: u8)
   : Lemma (v (Core_models.Num.impl_u8__count_ones x) ==
            Hacspec_ml_kem.Commute.Rej_table.popcount8 (v x))
-  = Core_models.Num.Count_ones_spec.count_ones_u8_popcount x;
+  = Core_models.Specs.Num.Count_ones.count_ones_u8_popcount x;
     Hacspec_ml_kem.Commute.Rej_table.lemma_popcount8_agrees (v x)
 
 (* Seal the PROVEN shuffle semantics into the

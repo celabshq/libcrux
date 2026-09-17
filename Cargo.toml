@@ -102,31 +102,31 @@ readme = "Readme.md"
 allow-branch = ["main"]
 
 [workspace.dependencies]
-# hax `feat/core-prim-specs` (PR #2261). Two things need it, both past the
+# hax at the #2261 merge commit on `main`. Two things need it, both past the
 # `cargo-hax-v0.4.0` tag (f8fe6933): the sha3 `Proof_utils.Lemmas` reveal
 # `Core_models.Num.impl_u64__rotate_left`, a transparent `opaque_to_smt` let only
 # from #2235 on (at the tag it is an `assume val`, so `reveal_opaque` fails); and
-# `Core_models.Num.{Abs,Count_ones,To_le_bytes}_spec` + `Rand_core.Fill_bytes_spec`,
-# which the ml-kem/ml-dsa primitive proofs cite and which exist only on that
-# branch. That branch also carries the macro_rules! antiquote span-hygiene fix
-# (PR #2212 / b78d945) the crate-wide `proof!` markers require; build the
-# `hax-0.4.0` opam switch from the same commit before ml-kem/ml-dsa will extract
-# (sha3 + deps extract on either).
+# `Core_models.Specs.Num.{Abs,Count_ones,To_le_bytes}` + `Rand_core.Specs.Fill_bytes`,
+# which the ml-kem/ml-dsa primitive proofs cite. #2261 renamed those out of the
+# `Core_models.Num.*_spec` namespace they carried on the review branch, so the
+# citations moved with it. Also carries the macro_rules! antiquote span-hygiene
+# fix (PR #2212 / b78d945) the crate-wide `proof!` markers require.
 # Extract with `OPAMSWITCH=hax-0.4.0 opam exec -- <crate>/hax.py extract`.
 #
-# A REVISION, not the branch ref, even though the branch is rebased during
-# review. `Cargo.lock` is gitignored here, so a branch ref lets two checkouts —
-# or the same checkout a week apart — resolve different foundations with no
-# diff to show for it. The committed `.hints` are recorded against a specific
-# foundation: hax-lib 85d6c4e98 dropped one unused `open` from
+# A REVISION, not a branch ref. `Cargo.lock` is gitignored here, so a branch ref
+# lets two checkouts — or the same checkout a week apart — resolve different
+# foundations with no diff to show for it. The committed `.hints` are recorded
+# against a specific foundation: hax-lib 85d6c4e98 dropped one unused `open` from
 # `Rust_primitives.Hax.Folds.fsti`, semantically a no-op, and that alone changed
 # the module digest and invalidated the recorded unsat core of every proof
 # containing a `for` loop (hax extracts those as `fold_range` through that
 # module) — 379 hint files had to be re-recorded. Under a floating ref such a
 # move is silent, and any re-record is stale on arrival. Bump this rev
-# deliberately, re-extract, and re-record hints in the same commit. Move to the
-# merge commit when #2261 lands, and to a tag once one containing it is cut.
-hax-lib = { git = "https://github.com/cryspen/hax", rev = "85d6c4e981b5f6126ddd4f455db055c3e287ce6b" }
+# deliberately, re-extract, and re-record hints in the same commit. The previous
+# pin (85d6c4e98) sat on `feat/core-prim-specs`, which was deleted after the
+# merge; a rev on a review branch stops being fetchable once that happens, which
+# is why this tracks `main`. Move to a tag once one containing #2261 is cut.
+hax-lib = { git = "https://github.com/cryspen/hax", rev = "7ea953eb4131fb3f4751acff57251da66247f104" }
 libcrux-aead = { version = "=0.0.9", path = "crates/primitives/aead" }
 libcrux-aes = { version = "=0.0.9", path = "crates/algorithms/aes" }
 libcrux-blake2 = { version = "=0.0.8", path = "crates/algorithms/blake2" }

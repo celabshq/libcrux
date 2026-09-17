@@ -399,14 +399,14 @@ let lemma_ser1_shift_amounts (shift: Libcrux_intrinsics.Arm64_ml_kem_views.t_e_i
    trusted axiom while `Core_models.Num.impl_u64__to_le_bytes` was a bare
    `assume val` in hax-lib with no functional ensures; hax now models
    `to_le_bytes` as the shifted bytes and proves the contract in
-   `Core_models.Num.To_le_bytes_spec`. *)
+   `Core_models.Specs.Num.To_le_bytes`. *)
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 50"
 let lemma_u64_to_le_bytes_index (x: u64) (b: nat{b < 8})
     : Lemma
       (ensures
         v (Seq.index (Core_models.Num.impl_u64__to_le_bytes x) b)
         == (v x / pow2 (8 * b)) % pow2 8)
-  = Core_models.Num.To_le_bytes_spec.to_le_bytes_u64_index x b
+  = Core_models.Specs.Num.To_le_bytes.to_le_bytes_u64_index x b
 #pop-options
 
 (* Bit p of byte b of to_le_bytes(x) is bit (8b+p) of x. *)

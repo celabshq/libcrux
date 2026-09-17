@@ -1152,13 +1152,13 @@ let mm256_xor_si256_lemma a b i =
 (* core-models `e_mm256_abs_epi32` delegates to `Core_models.Num.impl_i32__abs`,
    which used to be `Rust_primitives.Arithmetic.abs_i32` — an uninterpreted `val`
    with no ensures anywhere in the hax proof-libs — so this was admitted (hax#2107).
-   hax now models `i32::abs` directly and `Core_models.Num.Abs_spec` bridges it to
+   hax now models `i32::abs` directly and `Core_models.Specs.Num.Abs` bridges it to
    `abs_int`; the `requires` rules out the `i32::MIN` lane the model special-cases. *)
 #push-options "--fuel 2 --ifuel 1 --z3rlimit 200"
 let mm256_abs_epi32_lemma a i =
   reveal_opaque (`%I.mm256_abs_epi32) I.mm256_abs_epi32;
   Canon.lemma_mm256_abs_epi32 a;
-  Core_models.Num.Abs_spec.abs_i32 (to_i32x8 a i)
+  Core_models.Specs.Num.Abs.abs_i32 (to_i32x8 a i)
 #pop-options
 #push-options "--fuel 2 --ifuel 1 --z3rlimit 200"
 let mm256_cmpgt_epi32_lemma a b i =

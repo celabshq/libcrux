@@ -388,7 +388,7 @@ val update_at_range_lemma #n
     ))
     [SMTPat (Rust_primitives.Hax.Monomorphized_update_at.update_at_range s i x)]
 
-/// Forwarders to `Rand_core.Fill_bytes_spec` in hax-lib, which proves the
+/// Forwarders to `Rand_core.Specs.Fill_bytes` in hax-lib, which proves the
 /// `RngCore` contract from the refinements hax puts on the class fields.
 val fill_bytes_pre_true
       (#v_Self: Type0)
@@ -413,7 +413,7 @@ val fill_bytes_post_true
             (ensures Seq.length (snd result) == Seq.length bytes)
       [SMTPat (i0.f_fill_bytes_post self bytes result)]
 
-/// Proved from the transparent `i16::abs` model; see `Core_models.Num.Abs_spec`.
+/// Proved from the transparent `i16::abs` model; see `Core_models.Specs.Num.Abs`.
 val impl_i16__abs_value (x: i16)
     : Lemma (requires v x > -32768)
             (ensures v (Core_models.Num.impl_i16__abs x) == Prims.abs (v x))
