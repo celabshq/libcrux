@@ -6,7 +6,7 @@ defaultTargets = ["HacspecMlDsa"]
 name = "HacspecMlDsa"
 
 [[require]]
-name = "Hax"
+name = "hax"
 git = "https://github.com/cryspen/hax-lean"
 rev = "v0.3.17"
 
