@@ -3,8 +3,9 @@
 //! Each takes a state array `A` and returns the updated array `A′`; only `ι`
 //! takes a second input, the round index `i_r`. The bodies below follow the
 //! numbered Steps of Algorithms 1-6 literally, including `ρ`'s offsets (which
-//! the Standard computes by a walk rather than tabulating) and `ι`'s round
-//! constants (which come out of the `rc` LFSR of Algorithm 5, not a table).
+//! come out of the `(x, y)` walk of Step 3, not out of Table 2, where the
+//! Standard also prints them) and `ι`'s round constants (which come out of the
+//! `rc` LFSR of Algorithm 5, not a table).
 
 use crate::state_array::StateArray;
 
@@ -105,8 +106,9 @@ pub fn chi<const W: usize>(a: &StateArray<W>) -> StateArray<W> {
 /// Algorithm 5: `rc(t)`.
 ///
 /// `t` may be negative: Algorithm 7 indexes rounds from `12 + 2l - n_r`, which
-/// is negative when `n_r > 12 + 2l` (Sec. 3.4 gives `KECCAK-p[b, 30]` as an
-/// example), and Algorithm 6 evaluates `rc(j + 7·i_r)`.
+/// is negative when `n_r > 12 + 2l` (Sec. 3.4 gives `KECCAK-p[1600, 30]`, whose
+/// first six rounds are indexed `-6` to `-1`), and Algorithm 6 evaluates
+/// `rc(j + 7·i_r)`.
 pub fn rc(t: i64) -> bool {
     // 1. If t mod 255 = 0, return 1.
     let t = imod(t, 255);

@@ -79,11 +79,15 @@ cd specs && cargo bin cargo-hax extract hacspec-sha3-pedantic
 cd sha3-pedantic/proofs/hacspec-sha3-pedantic/lean && lake build
 ```
 
-All of it extracts and type-checks (1743 jobs): the six SHA-3 functions, the
+All of it extracts and type-checks (1736 jobs): the six SHA-3 functions, the
 five step mappings with `rc`, `KECCAK-p`/`KECCAK-f`, the sponge, `pad10*1` and
-the bit-string helpers, plus the four `.pre`/`.spec` pairs that the
-`#[hax_lib::requires]` contracts generate. There are no proofs here yet —
-`hacspec_sha3` is still the spec the libcrux proofs are written against.
+the bit-string helpers. The crate states no `hax_lib` contracts, so nothing
+generates a `.pre`/`.spec` pair. What it does state are seven `assert!`s, and
+they account for eight of the ten `massert`s in the extraction — the sponge's
+`0 < r < b` splits in two — while the remaining two are bounds checks the
+extraction inserts for the array indexing in `θ` and `ρ`. There are no proofs
+here yet — `hacspec_sha3` is still the spec the libcrux proofs are written
+against.
 
 Two gaps in hax's core models are filled by this package itself, in
 `Assumptions/FunsExternal.lean` (the file hax seeds and never touches again):
@@ -111,9 +115,9 @@ cannot help; each is marked where it happens:
 
 | what the Standard does | what the toolchain needs |
 |---|---|
-| `SPONGE[f, pad, r]`, parameterised by `f` and `pad` | the components are passed as a *value* (`components: &C`), not only as a type parameter. A trait type parameter determined by nothing but the turbofish loses its instance argument wherever the extraction lifts code out of the function -- every loop included -- and aeneas then either rejects its own output (`ill-formed builtin: invalid number of filtering arguments`) or emits a call of the wrong arity. One value argument avoids all of it |
+| `SPONGE[f, pad, r]`, parameterised by `f` and `pad`, with `b` "determined by the choice of `f`" | the components are passed as a *value* (the `components: C` field of `Sponge`, held by value: a `&C` field read inside a loop is an internal error in aeneas), not only as a type parameter. A trait type parameter determined by nothing but the turbofish loses its instance argument wherever the extraction lifts code out of the function -- every loop included -- and aeneas then either rejects its own output (`ill-formed builtin: invalid number of filtering arguments`) or emits a call of the wrong arity. One value argument avoids all of it. `b` needs no argument of its own: it is an associated `const B` on the trait, and extracts as a field of the record aeneas makes of it |
 | `A′[0,0,z] = A′[0,0,z] ⊕ RC[z]` | lane (0,0) is read out, updated and written back: a compound assignment through the nested projection `out.a[0][0][z]` makes aeneas fail with `Unreachable` |
-| — | assert messages must be ASCII: a `⊕` in one came out as an invalid escape in the generated Lean, and being a parse error it then cascaded into twenty phantom "unknown constant" reports. `assert_eq!` is also out, since formatting the two operands needs a `core::fmt::Arguments::from_str` CoreModels does not have; plain `assert!(cond, "…")` extracts to a `massert` and is what the "Input:" conditions use |
+| — | assert messages must be ASCII: a `⊕` in one came out as an invalid escape in the generated Lean, and being a parse error it then cascaded into twenty phantom "unknown constant" reports. `assert_eq!` is also out, since formatting the two operands needs a `core::fmt::Arguments::from_str` CoreModels does not have; plain `assert!(cond, "…")` extracts to a `massert` and is what the stated conditions use |
 | `l = log2(w)` | the Table 1 lookup. A `trailing_zeros` model would work, but Table 1 is what the document prints, so this one stays on merit |
 | — | `Vec::extend` and `to_vec` have no model -- and unlike `Copy for bool`, `Extend` is not declared in CoreModels at all -- so `concat`, `trunc`, `zeros` and `b2h` `push` in explicit loops |
 | — | `X ⊕ Y` is `bits::xor` rather than an inner loop of Algorithm 8. This was forced by the first row and would work inline now; it stays because a named `⊕` on bit strings reads better next to Sec. 2.3 |

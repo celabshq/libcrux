@@ -23,7 +23,7 @@ set_option maxRecDepth 2048
 namespace hacspec_sha3_pedantic
 
 /-- [hacspec_sha3_pedantic::sponge::Keccak1600]
-    Source: 'sha3-pedantic/src/sponge.rs', lines 78:0-78:22
+    Source: 'sha3-pedantic/src/sponge.rs', lines 113:0-113:22
     Visibility: public -/
 @[reducible]
 def sponge.Keccak1600 := Unit
@@ -35,10 +35,18 @@ structure state_array.StateArray (W : Std.Usize) where
   a : Array (Array (Array Bool W) 5#usize) 5#usize
 
 /-- Trait declaration: [hacspec_sha3_pedantic::sponge::Components]
-    Source: 'sha3-pedantic/src/sponge.rs', lines 29:0-35:1
+    Source: 'sha3-pedantic/src/sponge.rs', lines 32:0-42:1
     Visibility: public -/
 structure sponge.Components (Self : Type) where
+  B : RustM Std.Usize
   f : Self → Slice Bool → RustM (alloc.vec.Vec Bool)
   pad : Self → Std.Usize → Std.Usize → RustM (alloc.vec.Vec Bool)
+
+/-- [hacspec_sha3_pedantic::sponge::Sponge]
+    Source: 'sha3-pedantic/src/sponge.rs', lines 54:0-59:1
+    Visibility: public -/
+structure sponge.Sponge (C : Type) where
+  components : C
+  r : Std.Usize
 
 end hacspec_sha3_pedantic

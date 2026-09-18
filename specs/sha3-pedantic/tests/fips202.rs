@@ -54,7 +54,7 @@ fn padding_bytes_table_6() {
         b2h(&bits)
     }
 
-    let r = 1088; // SHA3-256 / SHAKE128 rate is irrelevant here beyond r/8 = 136
+    let r = 1088; // SHA3-256 / SHAKE256 rate; irrelevant here beyond r/8 = 136
     let q_of = |bytes: usize| (r / 8) - (bytes % (r / 8));
 
     for (suffix, one, two, first) in [
@@ -200,8 +200,8 @@ fn agrees_with_hacspec_sha3() {
     }
 }
 
-/// A XOF is squeezed across several blocks: 200 bytes needs three SHAKE128
-/// squeezes (rate 168) and two SHAKE256 squeezes (rate 136).
+/// A XOF is squeezed across several blocks: 200 bytes needs two SHAKE128
+/// squeezes (rate 168 bytes) and two SHAKE256 squeezes (rate 136 bytes).
 #[test]
 fn xof_output_longer_than_the_rate() {
     let m = message(50);

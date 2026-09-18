@@ -27,7 +27,7 @@ noncomputable section
 namespace hacspec_sha3_pedantic
 
 /-- [hacspec_sha3_pedantic::bits::trunc]: loop body 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 24:4-26:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 33:4-35:5
     Visibility: public -/
 @[rust_loop_body]
 def bits.trunc_loop.body
@@ -47,7 +47,7 @@ def bits.trunc_loop.body
     ok (cont (iter1, out1))
 
 /-- [hacspec_sha3_pedantic::bits::trunc]: loop 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 24:4-26:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 33:4-35:5
     Visibility: public -/
 @[rust_loop]
 def bits.trunc_loop
@@ -60,7 +60,7 @@ def bits.trunc_loop
     (iter, out)
 
 /-- [hacspec_sha3_pedantic::bits::trunc]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 21:0-28:1
+    Source: 'sha3-pedantic/src/bits.rs', lines 30:0-37:1
     Visibility: public -/
 def bits.trunc
   (x : Slice Bool) (s : Std.Usize) : RustM (alloc.vec.Vec Bool) := do
@@ -70,7 +70,7 @@ def bits.trunc
   bits.trunc_loop { start := 0#usize, «end» := s } x out
 
 /-- [hacspec_sha3_pedantic::bits::zeros]: loop body 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 33:4-35:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 42:4-44:5
     Visibility: public -/
 @[rust_loop_body]
 def bits.zeros_loop.body
@@ -88,7 +88,7 @@ def bits.zeros_loop.body
     ok (cont (iter1, out1))
 
 /-- [hacspec_sha3_pedantic::bits::zeros]: loop 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 33:4-35:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 42:4-44:5
     Visibility: public -/
 @[rust_loop]
 def bits.zeros_loop
@@ -100,14 +100,14 @@ def bits.zeros_loop
     (iter, out)
 
 /-- [hacspec_sha3_pedantic::bits::zeros]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 31:0-37:1
+    Source: 'sha3-pedantic/src/bits.rs', lines 40:0-46:1
     Visibility: public -/
 def bits.zeros (n : Std.Usize) : RustM (alloc.vec.Vec Bool) := do
   let out ← alloc.vec.Vec.new Bool
   bits.zeros_loop { start := 0#usize, «end» := n } out
 
 /-- [hacspec_sha3_pedantic::bits::concat]: loop body 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 42:4-44:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 51:4-53:5
     Visibility: public -/
 @[rust_loop_body]
 def bits.concat_loop0.body
@@ -127,7 +127,7 @@ def bits.concat_loop0.body
     ok (cont (iter1, out1))
 
 /-- [hacspec_sha3_pedantic::bits::concat]: loop 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 42:4-44:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 51:4-53:5
     Visibility: public -/
 @[rust_loop]
 def bits.concat_loop0
@@ -140,7 +140,7 @@ def bits.concat_loop0
     (iter, out)
 
 /-- [hacspec_sha3_pedantic::bits::concat]: loop body 1:
-    Source: 'sha3-pedantic/src/bits.rs', lines 45:4-47:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 54:4-56:5
     Visibility: public -/
 @[rust_loop_body]
 def bits.concat_loop1.body
@@ -160,7 +160,7 @@ def bits.concat_loop1.body
     ok (cont (iter1, out1))
 
 /-- [hacspec_sha3_pedantic::bits::concat]: loop 1:
-    Source: 'sha3-pedantic/src/bits.rs', lines 45:4-47:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 54:4-56:5
     Visibility: public -/
 @[rust_loop]
 def bits.concat_loop1
@@ -173,7 +173,7 @@ def bits.concat_loop1
     (iter, out)
 
 /-- [hacspec_sha3_pedantic::bits::concat]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 40:0-49:1
+    Source: 'sha3-pedantic/src/bits.rs', lines 49:0-58:1
     Visibility: public -/
 def bits.concat
   (x : Slice Bool) (y : Slice Bool) : RustM (alloc.vec.Vec Bool) := do
@@ -184,7 +184,7 @@ def bits.concat
   bits.concat_loop1 { start := 0#usize, «end» := i1 } y out1
 
 /-- [hacspec_sha3_pedantic::bits::xor]: loop body 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 59:4-61:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 68:4-70:5
     Visibility: public -/
 @[rust_loop_body]
 def bits.xor_loop.body
@@ -205,7 +205,7 @@ def bits.xor_loop.body
     ok (cont (iter1, out1))
 
 /-- [hacspec_sha3_pedantic::bits::xor]: loop 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 59:4-61:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 68:4-70:5
     Visibility: public -/
 @[rust_loop]
 def bits.xor_loop
@@ -218,7 +218,7 @@ def bits.xor_loop
     (iter, out)
 
 /-- [hacspec_sha3_pedantic::bits::xor]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 53:0-63:1
+    Source: 'sha3-pedantic/src/bits.rs', lines 62:0-72:1
     Visibility: public -/
 def bits.xor
   (x : Slice Bool) (y : Slice Bool) : RustM (alloc.vec.Vec Bool) := do
@@ -229,7 +229,7 @@ def bits.xor
   bits.xor_loop { start := 0#usize, «end» := i } x y out
 
 /-- [hacspec_sha3_pedantic::bits::h2b]: loop body 1:
-    Source: 'sha3-pedantic/src/bits.rs', lines 78:8-80:9
+    Source: 'sha3-pedantic/src/bits.rs', lines 87:8-89:9
     Visibility: public -/
 @[rust_loop_body]
 def bits.h2b_loop0_loop0.body
@@ -250,7 +250,7 @@ def bits.h2b_loop0_loop0.body
     ok (cont (iter1, t1))
 
 /-- [hacspec_sha3_pedantic::bits::h2b]: loop 1:
-    Source: 'sha3-pedantic/src/bits.rs', lines 78:8-80:9
+    Source: 'sha3-pedantic/src/bits.rs', lines 87:8-89:9
     Visibility: public -/
 @[rust_loop]
 def bits.h2b_loop0_loop0
@@ -263,7 +263,7 @@ def bits.h2b_loop0_loop0
     (iter, t)
 
 /-- [hacspec_sha3_pedantic::bits::h2b]: loop body 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 76:4-81:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 85:4-90:5
     Visibility: public -/
 @[rust_loop_body]
 def bits.h2b_loop0.body
@@ -283,7 +283,7 @@ def bits.h2b_loop0.body
     ok (cont (iter1, t1))
 
 /-- [hacspec_sha3_pedantic::bits::h2b]: loop 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 76:4-81:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 85:4-90:5
     Visibility: public -/
 @[rust_loop]
 def bits.h2b_loop0
@@ -296,7 +296,7 @@ def bits.h2b_loop0
     (iter, t)
 
 /-- [hacspec_sha3_pedantic::bits::h2b]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 73:0-83:1
+    Source: 'sha3-pedantic/src/bits.rs', lines 82:0-92:1
     Visibility: public -/
 def bits.h2b
   (h : Slice Std.U8) (n : Std.Usize) : RustM (alloc.vec.Vec Bool) := do
@@ -309,7 +309,7 @@ def bits.h2b
   bits.trunc s n
 
 /-- [hacspec_sha3_pedantic::bits::h2b_full]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 86:0-88:1
+    Source: 'sha3-pedantic/src/bits.rs', lines 95:0-97:1
     Visibility: public -/
 def bits.h2b_full (h : Slice Std.U8) : RustM (alloc.vec.Vec Bool) := do
   let i ← core.slice.Slice.len h
@@ -317,7 +317,7 @@ def bits.h2b_full (h : Slice Std.U8) : RustM (alloc.vec.Vec Bool) := do
   bits.h2b h i1
 
 /-- [hacspec_sha3_pedantic::bits::b2h]: loop body 1:
-    Source: 'sha3-pedantic/src/bits.rs', lines 101:8-105:9
+    Source: 'sha3-pedantic/src/bits.rs', lines 110:8-114:9
     Visibility: public -/
 @[rust_loop_body]
 def bits.b2h_loop0_loop0.body
@@ -344,7 +344,7 @@ def bits.b2h_loop0_loop0.body
     else ok (cont (iter1, byte))
 
 /-- [hacspec_sha3_pedantic::bits::b2h]: loop 1:
-    Source: 'sha3-pedantic/src/bits.rs', lines 101:8-105:9
+    Source: 'sha3-pedantic/src/bits.rs', lines 110:8-114:9
     Visibility: public -/
 @[rust_loop]
 def bits.b2h_loop0_loop0
@@ -357,7 +357,7 @@ def bits.b2h_loop0_loop0
     (iter, byte)
 
 /-- [hacspec_sha3_pedantic::bits::b2h]: loop body 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 99:4-107:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 108:4-116:5
     Visibility: public -/
 @[rust_loop_body]
 def bits.b2h_loop0.body
@@ -378,7 +378,7 @@ def bits.b2h_loop0.body
     ok (cont (iter1, h1))
 
 /-- [hacspec_sha3_pedantic::bits::b2h]: loop 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 99:4-107:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 108:4-116:5
     Visibility: public -/
 @[rust_loop]
 def bits.b2h_loop0
@@ -391,7 +391,7 @@ def bits.b2h_loop0
     (iter, h)
 
 /-- [hacspec_sha3_pedantic::bits::b2h]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 94:0-109:1
+    Source: 'sha3-pedantic/src/bits.rs', lines 103:0-118:1
     Visibility: public -/
 def bits.b2h (s : Slice Bool) : RustM (alloc.vec.Vec Std.U8) := do
   let n ← core.slice.Slice.len s
@@ -407,7 +407,7 @@ def bits.b2h (s : Slice Bool) : RustM (alloc.vec.Vec Std.U8) := do
   bits.b2h_loop0 { start := 0#usize, «end» := m } t h
 
 /-- [hacspec_sha3_pedantic::sponge::pad10_star_1]: loop body 0:
-    Source: 'sha3-pedantic/src/sponge.rs', lines 16:4-18:5
+    Source: 'sha3-pedantic/src/sponge.rs', lines 17:4-19:5
     Visibility: public -/
 @[rust_loop_body]
 def sponge.pad10_star_1_loop.body
@@ -425,7 +425,7 @@ def sponge.pad10_star_1_loop.body
     ok (cont (iter1, p1))
 
 /-- [hacspec_sha3_pedantic::sponge::pad10_star_1]: loop 0:
-    Source: 'sha3-pedantic/src/sponge.rs', lines 16:4-18:5
+    Source: 'sha3-pedantic/src/sponge.rs', lines 17:4-19:5
     Visibility: public -/
 @[rust_loop]
 def sponge.pad10_star_1_loop
@@ -437,10 +437,11 @@ def sponge.pad10_star_1_loop
     (iter, p)
 
 /-- [hacspec_sha3_pedantic::sponge::pad10_star_1]:
-    Source: 'sha3-pedantic/src/sponge.rs', lines 11:0-21:1
+    Source: 'sha3-pedantic/src/sponge.rs', lines 11:0-22:1
     Visibility: public -/
 def sponge.pad10_star_1
   (x : Std.Usize) (m : Std.Usize) : RustM (alloc.vec.Vec Bool) := do
+  massert (x > 0#usize)
   let x_i ← lift (UScalar.hcast .I64 x)
   let i ← lift (UScalar.hcast .I64 m)
   let i1 ← -. i
@@ -454,7 +455,7 @@ def sponge.pad10_star_1
   alloc.vec.Vec.push p2 true
 
 /-- [hacspec_sha3_pedantic::sponge::{impl hacspec_sha3_pedantic::sponge::Components for hacspec_sha3_pedantic::sponge::Keccak1600}::pad]:
-    Source: 'sha3-pedantic/src/sponge.rs', lines 85:4-87:5
+    Source: 'sha3-pedantic/src/sponge.rs', lines 122:4-124:5
     Visibility: public -/
 def sponge.Keccak1600.Insts.Hacspec_sha3_pedanticSpongeComponents.pad
   (self : sponge.Keccak1600) (x : Std.Usize) (m : Std.Usize) :
@@ -742,7 +743,7 @@ def state_array.StateArray.L (W : Std.Usize) : RustM Std.Usize :=
   | _ => fail panic
 
 /-- [hacspec_sha3_pedantic::step_mappings::imod]:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 13:0-15:1 -/
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 14:0-16:1 -/
 def step_mappings.imod (a : Std.I64) (b : Std.I64) : RustM Std.Usize := do
   let i ← a % b
   let i1 ← i + b
@@ -750,7 +751,7 @@ def step_mappings.imod (a : Std.I64) (b : Std.I64) : RustM Std.Usize := do
   ok (IScalar.hcast .Usize i2)
 
 /-- [hacspec_sha3_pedantic::step_mappings::rc]: loop body 0:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 120:4-135:5
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 122:4-137:5
     Visibility: public -/
 @[rust_loop_body]
 def step_mappings.rc_loop.body
@@ -794,7 +795,7 @@ def step_mappings.rc_loop.body
     ok (cont (iter1, a))
 
 /-- [hacspec_sha3_pedantic::step_mappings::rc]: loop 0:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 120:4-135:5
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 122:4-137:5
     Visibility: public -/
 @[rust_loop]
 def step_mappings.rc_loop
@@ -806,7 +807,7 @@ def step_mappings.rc_loop
     (iter, r)
 
 /-- [hacspec_sha3_pedantic::step_mappings::rc]:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 110:0-138:1
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 112:0-140:1
     Visibility: public -/
 def step_mappings.rc (t : Std.I64) : RustM Bool := do
   let t1 ← step_mappings.imod t 255#i64
@@ -820,7 +821,7 @@ def step_mappings.rc (t : Std.I64) : RustM Bool := do
     Array.index_usize r1 0#usize
 
 /-- [hacspec_sha3_pedantic::step_mappings::iota]: loop body 0:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 149:4-151:5
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 151:4-153:5
     Visibility: public -/
 @[rust_loop_body]
 def step_mappings.iota_loop0.body
@@ -846,7 +847,7 @@ def step_mappings.iota_loop0.body
     ok (cont (iter1, a))
 
 /-- [hacspec_sha3_pedantic::step_mappings::iota]: loop 0:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 149:4-151:5
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 151:4-153:5
     Visibility: public -/
 @[rust_loop]
 def step_mappings.iota_loop0
@@ -860,7 +861,7 @@ def step_mappings.iota_loop0
     (iter, round_constant)
 
 /-- [hacspec_sha3_pedantic::step_mappings::iota]: loop body 1:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 158:4-160:5
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 160:4-162:5
     Visibility: public -/
 @[rust_loop_body]
 def step_mappings.iota_loop1.body
@@ -881,7 +882,7 @@ def step_mappings.iota_loop1.body
     ok (cont (iter1, a))
 
 /-- [hacspec_sha3_pedantic::step_mappings::iota]: loop 1:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 158:4-160:5
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 160:4-162:5
     Visibility: public -/
 @[rust_loop]
 def step_mappings.iota_loop1
@@ -895,7 +896,7 @@ def step_mappings.iota_loop1
     (iter, lane)
 
 /-- [hacspec_sha3_pedantic::step_mappings::iota]:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 141:0-163:1
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 143:0-165:1
     Visibility: public -/
 def step_mappings.iota
   {W : Std.Usize} (a : state_array.StateArray W) (i_r : Std.I64) :
@@ -916,7 +917,7 @@ def step_mappings.iota
   ok { a := a4 }
 
 /-- [hacspec_sha3_pedantic::step_mappings::chi]: loop body 2:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 97:12-99:13
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 98:12-100:13
     Visibility: public -/
 @[rust_loop_body]
 def step_mappings.chi_loop0_loop0_loop0.body
@@ -959,7 +960,7 @@ def step_mappings.chi_loop0_loop0_loop0.body
     ok (cont (iter1, { a := a12 }))
 
 /-- [hacspec_sha3_pedantic::step_mappings::chi]: loop 2:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 97:12-99:13
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 98:12-100:13
     Visibility: public -/
 @[rust_loop]
 def step_mappings.chi_loop0_loop0_loop0
@@ -974,7 +975,7 @@ def step_mappings.chi_loop0_loop0_loop0
     (iter, out)
 
 /-- [hacspec_sha3_pedantic::step_mappings::chi]: loop body 1:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 96:8-100:9
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 97:8-101:9
     Visibility: public -/
 @[rust_loop_body]
 def step_mappings.chi_loop0_loop0.body
@@ -996,7 +997,7 @@ def step_mappings.chi_loop0_loop0.body
     ok (cont (iter1, a1, out1))
 
 /-- [hacspec_sha3_pedantic::step_mappings::chi]: loop 1:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 96:8-100:9
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 97:8-101:9
     Visibility: public -/
 @[rust_loop]
 def step_mappings.chi_loop0_loop0
@@ -1011,7 +1012,7 @@ def step_mappings.chi_loop0_loop0
     (iter, a, out)
 
 /-- [hacspec_sha3_pedantic::step_mappings::chi]: loop body 0:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 95:4-101:5
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 96:4-102:5
     Visibility: public -/
 @[rust_loop_body]
 def step_mappings.chi_loop0.body
@@ -1033,7 +1034,7 @@ def step_mappings.chi_loop0.body
     ok (cont (iter1, a1, out1))
 
 /-- [hacspec_sha3_pedantic::step_mappings::chi]: loop 0:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 95:4-101:5
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 96:4-102:5
     Visibility: public -/
 @[rust_loop]
 def step_mappings.chi_loop0
@@ -1046,7 +1047,7 @@ def step_mappings.chi_loop0
     (iter, a, out)
 
 /-- [hacspec_sha3_pedantic::step_mappings::chi]:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 92:0-103:1
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 93:0-104:1
     Visibility: public -/
 def step_mappings.chi
   {W : Std.Usize} (a : state_array.StateArray W) :
@@ -1056,7 +1057,7 @@ def step_mappings.chi
   step_mappings.chi_loop0 { start := 0#usize, «end» := 5#usize } a out
 
 /-- [hacspec_sha3_pedantic::step_mappings::pi]: loop body 2:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 83:12-85:13
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 84:12-86:13
     Visibility: public -/
 @[rust_loop_body]
 def step_mappings.pi_loop0_loop0_loop0.body
@@ -1090,7 +1091,7 @@ def step_mappings.pi_loop0_loop0_loop0.body
     ok (cont (iter1, { a := a8 }))
 
 /-- [hacspec_sha3_pedantic::step_mappings::pi]: loop 2:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 83:12-85:13
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 84:12-86:13
     Visibility: public -/
 @[rust_loop]
 def step_mappings.pi_loop0_loop0_loop0
@@ -1105,7 +1106,7 @@ def step_mappings.pi_loop0_loop0_loop0
     (iter, out)
 
 /-- [hacspec_sha3_pedantic::step_mappings::pi]: loop body 1:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 82:8-86:9
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 83:8-87:9
     Visibility: public -/
 @[rust_loop_body]
 def step_mappings.pi_loop0_loop0.body
@@ -1127,7 +1128,7 @@ def step_mappings.pi_loop0_loop0.body
     ok (cont (iter1, a1, out1))
 
 /-- [hacspec_sha3_pedantic::step_mappings::pi]: loop 1:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 82:8-86:9
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 83:8-87:9
     Visibility: public -/
 @[rust_loop]
 def step_mappings.pi_loop0_loop0
@@ -1142,7 +1143,7 @@ def step_mappings.pi_loop0_loop0
     (iter, a, out)
 
 /-- [hacspec_sha3_pedantic::step_mappings::pi]: loop body 0:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 81:4-87:5
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 82:4-88:5
     Visibility: public -/
 @[rust_loop_body]
 def step_mappings.pi_loop0.body
@@ -1164,7 +1165,7 @@ def step_mappings.pi_loop0.body
     ok (cont (iter1, a1, out1))
 
 /-- [hacspec_sha3_pedantic::step_mappings::pi]: loop 0:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 81:4-87:5
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 82:4-88:5
     Visibility: public -/
 @[rust_loop]
 def step_mappings.pi_loop0
@@ -1177,7 +1178,7 @@ def step_mappings.pi_loop0
     (iter, a, out)
 
 /-- [hacspec_sha3_pedantic::step_mappings::pi]:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 78:0-89:1
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 79:0-90:1
     Visibility: public -/
 def step_mappings.pi
   {W : Std.Usize} (a : state_array.StateArray W) :
@@ -1187,7 +1188,7 @@ def step_mappings.pi
   step_mappings.pi_loop0 { start := 0#usize, «end» := 5#usize } a out
 
 /-- [hacspec_sha3_pedantic::step_mappings::rho]: loop body 0:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 55:4-57:5
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 56:4-58:5
     Visibility: public -/
 @[rust_loop_body]
 def step_mappings.rho_loop0.body
@@ -1217,7 +1218,7 @@ def step_mappings.rho_loop0.body
     ok (cont (iter1, { a := a8 }))
 
 /-- [hacspec_sha3_pedantic::step_mappings::rho]: loop 0:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 55:4-57:5
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 56:4-58:5
     Visibility: public -/
 @[rust_loop]
 def step_mappings.rho_loop0
@@ -1230,7 +1231,7 @@ def step_mappings.rho_loop0
     (iter, out)
 
 /-- [hacspec_sha3_pedantic::step_mappings::rho]: loop body 2:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 66:8-68:9
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 67:8-69:9
     Visibility: public -/
 @[rust_loop_body]
 def step_mappings.rho_loop1_loop0.body
@@ -1265,7 +1266,7 @@ def step_mappings.rho_loop1_loop0.body
     ok (cont (iter1, { a := a8 }))
 
 /-- [hacspec_sha3_pedantic::step_mappings::rho]: loop 2:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 66:8-68:9
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 67:8-69:9
     Visibility: public -/
 @[rust_loop]
 def step_mappings.rho_loop1_loop0
@@ -1280,7 +1281,7 @@ def step_mappings.rho_loop1_loop0
     (iter, out)
 
 /-- [hacspec_sha3_pedantic::step_mappings::rho]: loop body 1:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 63:4-73:5
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 64:4-74:5
     Visibility: public -/
 @[rust_loop_body]
 def step_mappings.rho_loop1.body
@@ -1311,7 +1312,7 @@ def step_mappings.rho_loop1.body
     ok (cont (iter1, a1, out1, y, ny))
 
 /-- [hacspec_sha3_pedantic::step_mappings::rho]: loop 1:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 63:4-73:5
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 64:4-74:5
     Visibility: public -/
 @[rust_loop]
 def step_mappings.rho_loop1
@@ -1326,7 +1327,7 @@ def step_mappings.rho_loop1
     (iter, a, out, x, y)
 
 /-- [hacspec_sha3_pedantic::step_mappings::rho]:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 50:0-75:1
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 51:0-76:1
     Visibility: public -/
 def step_mappings.rho
   {W : Std.Usize} (a : state_array.StateArray W) :
@@ -1340,7 +1341,7 @@ def step_mappings.rho
     1#usize 0#usize
 
 /-- [hacspec_sha3_pedantic::step_mappings::theta]: loop body 1:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 24:8-26:9
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 25:8-27:9
     Visibility: public -/
 @[rust_loop_body]
 def step_mappings.theta_loop0_loop0.body
@@ -1377,7 +1378,7 @@ def step_mappings.theta_loop0_loop0.body
     ok (cont (iter1, a9))
 
 /-- [hacspec_sha3_pedantic::step_mappings::theta]: loop 1:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 24:8-26:9
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 25:8-27:9
     Visibility: public -/
 @[rust_loop]
 def step_mappings.theta_loop0_loop0
@@ -1391,7 +1392,7 @@ def step_mappings.theta_loop0_loop0
     (iter, c)
 
 /-- [hacspec_sha3_pedantic::step_mappings::theta]: loop body 0:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 23:4-27:5
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 24:4-28:5
     Visibility: public -/
 @[rust_loop_body]
 def step_mappings.theta_loop0.body
@@ -1412,7 +1413,7 @@ def step_mappings.theta_loop0.body
     ok (cont (iter1, a1, c1))
 
 /-- [hacspec_sha3_pedantic::step_mappings::theta]: loop 0:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 23:4-27:5
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 24:4-28:5
     Visibility: public -/
 @[rust_loop]
 def step_mappings.theta_loop0
@@ -1425,7 +1426,7 @@ def step_mappings.theta_loop0
     (iter, a, c)
 
 /-- [hacspec_sha3_pedantic::step_mappings::theta]: loop body 3:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 32:8-34:9
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 33:8-35:9
     Visibility: public -/
 @[rust_loop_body]
 def step_mappings.theta_loop1_loop0.body
@@ -1460,7 +1461,7 @@ def step_mappings.theta_loop1_loop0.body
     ok (cont (iter1, a4))
 
 /-- [hacspec_sha3_pedantic::step_mappings::theta]: loop 3:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 32:8-34:9
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 33:8-35:9
     Visibility: public -/
 @[rust_loop]
 def step_mappings.theta_loop1_loop0
@@ -1474,7 +1475,7 @@ def step_mappings.theta_loop1_loop0
     (iter, d)
 
 /-- [hacspec_sha3_pedantic::step_mappings::theta]: loop body 2:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 31:4-35:5
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 32:4-36:5
     Visibility: public -/
 @[rust_loop_body]
 def step_mappings.theta_loop1.body
@@ -1495,7 +1496,7 @@ def step_mappings.theta_loop1.body
     ok (cont (iter1, d1))
 
 /-- [hacspec_sha3_pedantic::step_mappings::theta]: loop 2:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 31:4-35:5
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 32:4-36:5
     Visibility: public -/
 @[rust_loop]
 def step_mappings.theta_loop1
@@ -1508,7 +1509,7 @@ def step_mappings.theta_loop1
     (iter, d)
 
 /-- [hacspec_sha3_pedantic::step_mappings::theta]: loop body 6:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 41:12-43:13
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 42:12-44:13
     Visibility: public -/
 @[rust_loop_body]
 def step_mappings.theta_loop2_loop0_loop0.body
@@ -1541,7 +1542,7 @@ def step_mappings.theta_loop2_loop0_loop0.body
     ok (cont (iter1, { a := a9 }))
 
 /-- [hacspec_sha3_pedantic::step_mappings::theta]: loop 6:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 41:12-43:13
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 42:12-44:13
     Visibility: public -/
 @[rust_loop]
 def step_mappings.theta_loop2_loop0_loop0
@@ -1556,7 +1557,7 @@ def step_mappings.theta_loop2_loop0_loop0
     (iter, out)
 
 /-- [hacspec_sha3_pedantic::step_mappings::theta]: loop body 5:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 40:8-44:9
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 41:8-45:9
     Visibility: public -/
 @[rust_loop_body]
 def step_mappings.theta_loop2_loop0.body
@@ -1579,7 +1580,7 @@ def step_mappings.theta_loop2_loop0.body
     ok (cont (iter1, a1, out1))
 
 /-- [hacspec_sha3_pedantic::step_mappings::theta]: loop 5:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 40:8-44:9
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 41:8-45:9
     Visibility: public -/
 @[rust_loop]
 def step_mappings.theta_loop2_loop0
@@ -1594,7 +1595,7 @@ def step_mappings.theta_loop2_loop0
     (iter, a, out)
 
 /-- [hacspec_sha3_pedantic::step_mappings::theta]: loop body 4:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 39:4-45:5
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 40:4-46:5
     Visibility: public -/
 @[rust_loop_body]
 def step_mappings.theta_loop2.body
@@ -1617,7 +1618,7 @@ def step_mappings.theta_loop2.body
     ok (cont (iter1, a1, out1))
 
 /-- [hacspec_sha3_pedantic::step_mappings::theta]: loop 4:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 39:4-45:5
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 40:4-46:5
     Visibility: public -/
 @[rust_loop]
 def step_mappings.theta_loop2
@@ -1631,7 +1632,7 @@ def step_mappings.theta_loop2
     (iter, a, out)
 
 /-- [hacspec_sha3_pedantic::step_mappings::theta]:
-    Source: 'sha3-pedantic/src/step_mappings.rs', lines 18:0-47:1
+    Source: 'sha3-pedantic/src/step_mappings.rs', lines 19:0-48:1
     Visibility: public -/
 def step_mappings.theta
   {W : Std.Usize} (a : state_array.StateArray W) :
@@ -1662,7 +1663,7 @@ def keccak_p.rnd
   step_mappings.iota sa3 i_r
 
 /-- [hacspec_sha3_pedantic::keccak_p::keccak_p]: loop body 0:
-    Source: 'sha3-pedantic/src/keccak_p.rs', lines 22:4-24:5
+    Source: 'sha3-pedantic/src/keccak_p.rs', lines 26:4-28:5
     Visibility: public -/
 @[rust_loop_body]
 def keccak_p.keccak_p_loop.body
@@ -1681,7 +1682,7 @@ def keccak_p.keccak_p_loop.body
     ok (cont (iter1, a1))
 
 /-- [hacspec_sha3_pedantic::keccak_p::keccak_p]: loop 0:
-    Source: 'sha3-pedantic/src/keccak_p.rs', lines 22:4-24:5
+    Source: 'sha3-pedantic/src/keccak_p.rs', lines 26:4-28:5
     Visibility: public -/
 @[rust_loop]
 def keccak_p.keccak_p_loop
@@ -1694,12 +1695,13 @@ def keccak_p.keccak_p_loop
     (iter, a)
 
 /-- [hacspec_sha3_pedantic::keccak_p::keccak_p]:
-    Source: 'sha3-pedantic/src/keccak_p.rs', lines 15:0-29:1
+    Source: 'sha3-pedantic/src/keccak_p.rs', lines 15:0-33:1
     Visibility: public -/
 def keccak_p.keccak_p
   (W : Std.Usize) (s : Slice Bool) (n_r : Std.Usize) :
   RustM (alloc.vec.Vec Bool)
   := do
+  massert (n_r > 0#usize)
   let a ← state_array.StateArray.from_bits W s
   let i ← state_array.StateArray.L W
   let i1 ← lift (UScalar.hcast .I64 i)
@@ -1714,7 +1716,7 @@ def keccak_p.keccak_p
   state_array.StateArray.to_bits a1
 
 /-- [hacspec_sha3_pedantic::sponge::{impl hacspec_sha3_pedantic::sponge::Components for hacspec_sha3_pedantic::sponge::Keccak1600}::f]:
-    Source: 'sha3-pedantic/src/sponge.rs', lines 81:4-83:5
+    Source: 'sha3-pedantic/src/sponge.rs', lines 118:4-120:5
     Visibility: public -/
 def sponge.Keccak1600.Insts.Hacspec_sha3_pedanticSpongeComponents.f
   (self : sponge.Keccak1600) (s : Slice Bool) :
@@ -1722,27 +1724,36 @@ def sponge.Keccak1600.Insts.Hacspec_sha3_pedanticSpongeComponents.f
   := do
   keccak_p.keccak_p 64#usize s 24#usize
 
+/-- [hacspec_sha3_pedantic::sponge::B]
+    Source: 'sha3-pedantic/src/sponge.rs', lines 109:0-109:26
+    Visibility: public -/
+@[global_simps, irreducible] def sponge.B : Std.Usize := 1600#usize
+
+/-- [hacspec_sha3_pedantic::sponge::{impl hacspec_sha3_pedantic::sponge::Components for hacspec_sha3_pedantic::sponge::Keccak1600}::B]
+    Source: 'sha3-pedantic/src/sponge.rs', lines 116:4-116:23
+    Visibility: public -/
+@[global_simps, irreducible]
+def sponge.Keccak1600.Insts.Hacspec_sha3_pedanticSpongeComponents.B
+  : Std.Usize :=
+  sponge.B
+
 /-- Trait implementation: [hacspec_sha3_pedantic::sponge::{impl hacspec_sha3_pedantic::sponge::Components for hacspec_sha3_pedantic::sponge::Keccak1600}]
-    Source: 'sha3-pedantic/src/sponge.rs', lines 80:0-88:1 -/
+    Source: 'sha3-pedantic/src/sponge.rs', lines 115:0-125:1 -/
 @[reducible]
 def sponge.Keccak1600.Insts.Hacspec_sha3_pedanticSpongeComponents :
   sponge.Components sponge.Keccak1600 := {
+  B := ok sponge.Keccak1600.Insts.Hacspec_sha3_pedanticSpongeComponents.B
   f := sponge.Keccak1600.Insts.Hacspec_sha3_pedanticSpongeComponents.f
   pad := sponge.Keccak1600.Insts.Hacspec_sha3_pedanticSpongeComponents.pad
 }
 
-/-- [hacspec_sha3_pedantic::sponge::B]
-    Source: 'sha3-pedantic/src/sponge.rs', lines 74:0-74:26
-    Visibility: public -/
-@[global_simps, irreducible] def sponge.B : Std.Usize := 1600#usize
-
-/-- [hacspec_sha3_pedantic::sponge::sponge]: loop body 0:
-    Source: 'sha3-pedantic/src/sponge.rs', lines 54:4-57:5
+/-- [hacspec_sha3_pedantic::sponge::{hacspec_sha3_pedantic::sponge::Sponge<C>}::apply]: loop body 0:
+    Source: 'sha3-pedantic/src/sponge.rs', lines 84:8-87:9
     Visibility: public -/
 @[rust_loop_body]
-def sponge.sponge_loop0.body
-  {C : Type} (ComponentsInst : sponge.Components C) (components : C)
-  (r : Std.Usize) (p : alloc.vec.Vec Bool) (c : Std.Usize)
+def sponge.Sponge.apply_loop0.body
+  {C : Type} (ComponentsInst : sponge.Components C) (self : sponge.Sponge C)
+  (components : C) (p : alloc.vec.Vec Bool) (c : Std.Usize)
   (iter : core.ops.range.Range Std.Usize) (s : alloc.vec.Vec Bool) :
   RustM (ControlFlow ((core.ops.range.Range Std.Usize) × (alloc.vec.Vec Bool))
     (alloc.vec.Vec Bool))
@@ -1753,9 +1764,9 @@ def sponge.sponge_loop0.body
   match o with
   | core.option.Option.None => ok (done s)
   | core.option.Option.Some i =>
-    let i1 ← i * r
+    let i1 ← i * self.r
     let i2 ← i + 1#usize
-    let i3 ← i2 * r
+    let i3 ← i2 * self.r
     let s1 ←
       alloc.vec.Vec.Insts.CoreOpsIndexIndex.index
         (core.ops.range.RangeUsize.Insts.CoreSliceIndexSliceIndexSliceSlice
@@ -1770,34 +1781,34 @@ def sponge.sponge_loop0.body
     let s6 ← ComponentsInst.f components s5
     ok (cont (iter1, s6))
 
-/-- [hacspec_sha3_pedantic::sponge::sponge]: loop 0:
-    Source: 'sha3-pedantic/src/sponge.rs', lines 54:4-57:5
+/-- [hacspec_sha3_pedantic::sponge::{hacspec_sha3_pedantic::sponge::Sponge<C>}::apply]: loop 0:
+    Source: 'sha3-pedantic/src/sponge.rs', lines 84:8-87:9
     Visibility: public -/
 @[rust_loop]
-def sponge.sponge_loop0
-  {C : Type} (ComponentsInst : sponge.Components C)
-  (iter : core.ops.range.Range Std.Usize) (components : C) (r : Std.Usize)
+def sponge.Sponge.apply_loop0
+  {C : Type} (ComponentsInst : sponge.Components C) (self : sponge.Sponge C)
+  (iter : core.ops.range.Range Std.Usize) (components : C)
   (p : alloc.vec.Vec Bool) (c : Std.Usize) (s : alloc.vec.Vec Bool) :
   RustM (alloc.vec.Vec Bool)
   := do
   loop
-    (fun (iter1, s1) => sponge.sponge_loop0.body ComponentsInst components r p
-      c iter1 s1)
+    (fun (iter1, s1) => sponge.Sponge.apply_loop0.body ComponentsInst self
+      components p c iter1 s1)
     (iter, s)
 
-/-- [hacspec_sha3_pedantic::sponge::sponge]: loop body 1:
-    Source: 'sha3-pedantic/src/sponge.rs', lines 60:4-70:5
+/-- [hacspec_sha3_pedantic::sponge::{hacspec_sha3_pedantic::sponge::Sponge<C>}::apply]: loop body 1:
+    Source: 'sha3-pedantic/src/sponge.rs', lines 90:8-100:9
     Visibility: public -/
 @[rust_loop_body]
-def sponge.sponge_loop1.body
-  {C : Type} (ComponentsInst : sponge.Components C) (components : C)
-  (r : Std.Usize) (d : Std.Usize) (s : alloc.vec.Vec Bool)
+def sponge.Sponge.apply_loop1.body
+  {C : Type} (ComponentsInst : sponge.Components C) (self : sponge.Sponge C)
+  (d : Std.Usize) (components : C) (s : alloc.vec.Vec Bool)
   (z : alloc.vec.Vec Bool) :
   RustM (ControlFlow ((alloc.vec.Vec Bool) × (alloc.vec.Vec Bool))
     (alloc.vec.Vec Bool))
   := do
   let s1 ← alloc.vec.Vec.Insts.CoreOpsDerefDerefSlice.deref s
-  let head ← bits.trunc s1 r
+  let head ← bits.trunc s1 self.r
   let s2 ← alloc.vec.Vec.Insts.CoreOpsDerefDerefSlice.deref z
   let s3 ← alloc.vec.Vec.Insts.CoreOpsDerefDerefSlice.deref head
   let z1 ← bits.concat s2 s3
@@ -1807,64 +1818,82 @@ def sponge.sponge_loop1.body
   else let s4 ← ComponentsInst.f components s1
        ok (cont (s4, z1))
 
-/-- [hacspec_sha3_pedantic::sponge::sponge]: loop 1:
-    Source: 'sha3-pedantic/src/sponge.rs', lines 60:4-70:5
+/-- [hacspec_sha3_pedantic::sponge::{hacspec_sha3_pedantic::sponge::Sponge<C>}::apply]: loop 1:
+    Source: 'sha3-pedantic/src/sponge.rs', lines 90:8-100:9
     Visibility: public -/
 @[rust_loop]
-def sponge.sponge_loop1
-  {C : Type} (ComponentsInst : sponge.Components C) (components : C)
-  (r : Std.Usize) (d : Std.Usize) (s : alloc.vec.Vec Bool)
+def sponge.Sponge.apply_loop1
+  {C : Type} (ComponentsInst : sponge.Components C) (self : sponge.Sponge C)
+  (d : Std.Usize) (components : C) (s : alloc.vec.Vec Bool)
   (z : alloc.vec.Vec Bool) :
   RustM (alloc.vec.Vec Bool)
   := do
   loop
-    (fun (s1, z1) => sponge.sponge_loop1.body ComponentsInst components r d s1
-      z1)
+    (fun (s1, z1) => sponge.Sponge.apply_loop1.body ComponentsInst self d
+      components s1 z1)
     (s, z)
 
-/-- [hacspec_sha3_pedantic::sponge::sponge]:
-    Source: 'sha3-pedantic/src/sponge.rs', lines 43:0-71:1
+/-- [hacspec_sha3_pedantic::sponge::{hacspec_sha3_pedantic::sponge::Sponge<C>}::apply]:
+    Source: 'sha3-pedantic/src/sponge.rs', lines 71:4-101:5
     Visibility: public -/
-def sponge.sponge
-  {C : Type} (ComponentsInst : sponge.Components C) (components : C)
-  (b : Std.Usize) (r : Std.Usize) (n : Slice Bool) (d : Std.Usize) :
+def sponge.Sponge.apply
+  {C : Type} (ComponentsInst : sponge.Components C) (self : sponge.Sponge C)
+  (n : Slice Bool) (d : Std.Usize) :
   RustM (alloc.vec.Vec Bool)
   := do
   let i ← core.slice.Slice.len n
-  let v ← ComponentsInst.pad components r i
+  let v ← ComponentsInst.pad self.components self.r i
   let s ← alloc.vec.Vec.Insts.CoreOpsDerefDerefSlice.deref v
   let p ← bits.concat n s
   let i1 ← alloc.vec.Vec.len p
-  let blocks ← i1 / r
-  let c ← b - r
-  let s1 ← bits.zeros b
+  let blocks ← i1 / self.r
+  let i2 ← ComponentsInst.B
+  let c ← i2 - self.r
+  let s1 ← bits.zeros i2
   let s2 ←
-    sponge.sponge_loop0 ComponentsInst { start := 0#usize, «end» := blocks }
-      components r p c s1
+    sponge.Sponge.apply_loop0 ComponentsInst self
+      { start := 0#usize, «end» := blocks } self.components p c s1
   let z ← alloc.vec.Vec.new Bool
-  let z1 ← sponge.sponge_loop1 ComponentsInst components r d s2 z
+  let z1 ←
+    sponge.Sponge.apply_loop1 ComponentsInst self d self.components s2 z
   let s3 ← alloc.vec.Vec.Insts.CoreOpsDerefDerefSlice.deref z1
   bits.trunc s3 d
 
+/-- [hacspec_sha3_pedantic::sponge::{hacspec_sha3_pedantic::sponge::Sponge<C>}::new]:
+    Source: 'sha3-pedantic/src/sponge.rs', lines 63:4-68:5
+    Visibility: public -/
+def sponge.Sponge.new
+  {C : Type} (ComponentsInst : sponge.Components C) (components : C)
+  (r : Std.Usize) :
+  RustM (sponge.Sponge C)
+  := do
+  massert (r > 0#usize)
+  let i ← ComponentsInst.B
+  massert (r < i)
+  ok { components, r }
+
 /-- [hacspec_sha3_pedantic::sponge::keccak_c]:
-    Source: 'sha3-pedantic/src/sponge.rs', lines 91:0-93:1
+    Source: 'sha3-pedantic/src/sponge.rs', lines 128:0-130:1
     Visibility: public -/
 def sponge.keccak_c
   (c : Std.Usize) (n : Slice Bool) (d : Std.Usize) :
   RustM (alloc.vec.Vec Bool)
   := do
   let i ← sponge.B - c
-  sponge.sponge sponge.Keccak1600.Insts.Hacspec_sha3_pedanticSpongeComponents
-    () sponge.B i n d
+  let s ←
+    sponge.Sponge.new
+      sponge.Keccak1600.Insts.Hacspec_sha3_pedanticSpongeComponents () i
+  sponge.Sponge.apply
+    sponge.Keccak1600.Insts.Hacspec_sha3_pedanticSpongeComponents s n d
 
 /-- [hacspec_sha3_pedantic::sha3::HASH_SUFFIX]
-    Source: 'sha3-pedantic/src/sha3.rs', lines 10:0-10:48
+    Source: 'sha3-pedantic/src/sha3.rs', lines 15:0-15:48
     Visibility: public -/
 @[global_simps, irreducible]
 def sha3.HASH_SUFFIX : Array Bool 2#usize := Array.make 2#usize [ false, true ]
 
 /-- [hacspec_sha3_pedantic::sha3::sha3_224]:
-    Source: 'sha3-pedantic/src/sha3.rs', lines 16:0-18:1
+    Source: 'sha3-pedantic/src/sha3.rs', lines 21:0-23:1
     Visibility: public -/
 def sha3.sha3_224 (m : Slice Bool) : RustM (alloc.vec.Vec Bool) := do
   let s ← lift (Array.to_slice sha3.HASH_SUFFIX)
@@ -1873,7 +1902,7 @@ def sha3.sha3_224 (m : Slice Bool) : RustM (alloc.vec.Vec Bool) := do
   sponge.keccak_c 448#usize s1 224#usize
 
 /-- [hacspec_sha3_pedantic::bytes::sha3_224]:
-    Source: 'sha3-pedantic/src/bytes.rs', lines 14:8-19:9
+    Source: 'sha3-pedantic/src/bytes.rs', lines 16:8-21:9
     Visibility: public -/
 def bytes.sha3_224 (m : Slice Std.U8) : RustM (Array Std.U8 28#usize) := do
   let v ← bits.h2b_full m
@@ -1889,7 +1918,7 @@ def bytes.sha3_224 (m : Slice Std.U8) : RustM (Array Std.U8 28#usize) := do
   ok (to_slice_mut_back s4)
 
 /-- [hacspec_sha3_pedantic::sha3::sha3_256]:
-    Source: 'sha3-pedantic/src/sha3.rs', lines 21:0-23:1
+    Source: 'sha3-pedantic/src/sha3.rs', lines 26:0-28:1
     Visibility: public -/
 def sha3.sha3_256 (m : Slice Bool) : RustM (alloc.vec.Vec Bool) := do
   let s ← lift (Array.to_slice sha3.HASH_SUFFIX)
@@ -1898,7 +1927,7 @@ def sha3.sha3_256 (m : Slice Bool) : RustM (alloc.vec.Vec Bool) := do
   sponge.keccak_c 512#usize s1 256#usize
 
 /-- [hacspec_sha3_pedantic::bytes::sha3_256]:
-    Source: 'sha3-pedantic/src/bytes.rs', lines 14:8-19:9
+    Source: 'sha3-pedantic/src/bytes.rs', lines 16:8-21:9
     Visibility: public -/
 def bytes.sha3_256 (m : Slice Std.U8) : RustM (Array Std.U8 32#usize) := do
   let v ← bits.h2b_full m
@@ -1914,7 +1943,7 @@ def bytes.sha3_256 (m : Slice Std.U8) : RustM (Array Std.U8 32#usize) := do
   ok (to_slice_mut_back s4)
 
 /-- [hacspec_sha3_pedantic::sha3::sha3_384]:
-    Source: 'sha3-pedantic/src/sha3.rs', lines 26:0-28:1
+    Source: 'sha3-pedantic/src/sha3.rs', lines 31:0-33:1
     Visibility: public -/
 def sha3.sha3_384 (m : Slice Bool) : RustM (alloc.vec.Vec Bool) := do
   let s ← lift (Array.to_slice sha3.HASH_SUFFIX)
@@ -1923,7 +1952,7 @@ def sha3.sha3_384 (m : Slice Bool) : RustM (alloc.vec.Vec Bool) := do
   sponge.keccak_c 768#usize s1 384#usize
 
 /-- [hacspec_sha3_pedantic::bytes::sha3_384]:
-    Source: 'sha3-pedantic/src/bytes.rs', lines 14:8-19:9
+    Source: 'sha3-pedantic/src/bytes.rs', lines 16:8-21:9
     Visibility: public -/
 def bytes.sha3_384 (m : Slice Std.U8) : RustM (Array Std.U8 48#usize) := do
   let v ← bits.h2b_full m
@@ -1939,7 +1968,7 @@ def bytes.sha3_384 (m : Slice Std.U8) : RustM (Array Std.U8 48#usize) := do
   ok (to_slice_mut_back s4)
 
 /-- [hacspec_sha3_pedantic::sha3::sha3_512]:
-    Source: 'sha3-pedantic/src/sha3.rs', lines 31:0-33:1
+    Source: 'sha3-pedantic/src/sha3.rs', lines 36:0-38:1
     Visibility: public -/
 def sha3.sha3_512 (m : Slice Bool) : RustM (alloc.vec.Vec Bool) := do
   let s ← lift (Array.to_slice sha3.HASH_SUFFIX)
@@ -1948,7 +1977,7 @@ def sha3.sha3_512 (m : Slice Bool) : RustM (alloc.vec.Vec Bool) := do
   sponge.keccak_c 1024#usize s1 512#usize
 
 /-- [hacspec_sha3_pedantic::bytes::sha3_512]:
-    Source: 'sha3-pedantic/src/bytes.rs', lines 14:8-19:9
+    Source: 'sha3-pedantic/src/bytes.rs', lines 16:8-21:9
     Visibility: public -/
 def bytes.sha3_512 (m : Slice Std.U8) : RustM (Array Std.U8 64#usize) := do
   let v ← bits.h2b_full m
@@ -1964,13 +1993,13 @@ def bytes.sha3_512 (m : Slice Std.U8) : RustM (Array Std.U8 64#usize) := do
   ok (to_slice_mut_back s4)
 
 /-- [hacspec_sha3_pedantic::sha3::XOF_SUFFIX]
-    Source: 'sha3-pedantic/src/sha3.rs', lines 13:0-13:58
+    Source: 'sha3-pedantic/src/sha3.rs', lines 18:0-18:58
     Visibility: public -/
 @[global_simps, irreducible]
 def sha3.XOF_SUFFIX : Array Bool 4#usize := Array.repeat 4#usize true
 
 /-- [hacspec_sha3_pedantic::sha3::shake128]:
-    Source: 'sha3-pedantic/src/sha3.rs', lines 36:0-38:1
+    Source: 'sha3-pedantic/src/sha3.rs', lines 41:0-43:1
     Visibility: public -/
 def sha3.shake128
   (m : Slice Bool) (d : Std.Usize) : RustM (alloc.vec.Vec Bool) := do
@@ -1980,7 +2009,7 @@ def sha3.shake128
   sponge.keccak_c 256#usize s1 d
 
 /-- [hacspec_sha3_pedantic::bytes::shake128]:
-    Source: 'sha3-pedantic/src/bytes.rs', lines 37:0-39:1
+    Source: 'sha3-pedantic/src/bytes.rs', lines 39:0-41:1
     Visibility: public -/
 def bytes.shake128
   (m : Slice Std.U8) (out_bytes : Std.Usize) :
@@ -1994,7 +2023,7 @@ def bytes.shake128
   bits.b2h s1
 
 /-- [hacspec_sha3_pedantic::sha3::shake256]:
-    Source: 'sha3-pedantic/src/sha3.rs', lines 41:0-43:1
+    Source: 'sha3-pedantic/src/sha3.rs', lines 46:0-48:1
     Visibility: public -/
 def sha3.shake256
   (m : Slice Bool) (d : Std.Usize) : RustM (alloc.vec.Vec Bool) := do
@@ -2004,7 +2033,7 @@ def sha3.shake256
   sponge.keccak_c 512#usize s1 d
 
 /-- [hacspec_sha3_pedantic::bytes::shake256]:
-    Source: 'sha3-pedantic/src/bytes.rs', lines 42:0-44:1
+    Source: 'sha3-pedantic/src/bytes.rs', lines 44:0-46:1
     Visibility: public -/
 def bytes.shake256
   (m : Slice Std.U8) (out_bytes : Std.Usize) :
@@ -2018,7 +2047,7 @@ def bytes.shake256
   bits.b2h s1
 
 /-- [hacspec_sha3_pedantic::keccak_p::keccak_f]:
-    Source: 'sha3-pedantic/src/keccak_p.rs', lines 32:0-34:1
+    Source: 'sha3-pedantic/src/keccak_p.rs', lines 36:0-38:1
     Visibility: public -/
 def keccak_p.keccak_f
   (W : Std.Usize) (s : Slice Bool) : RustM (alloc.vec.Vec Bool) := do

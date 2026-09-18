@@ -2,8 +2,10 @@
 //!
 //! The Standard's functions take and return bit strings; everything outside
 //! takes and returns bytes. Appendix B.1 fixes the correspondence, so this
-//! module is nothing but `h2b` in front and `b2h` behind. It is the only
-//! place where a byte appears.
+//! module is nothing but `h2b` in front and `b2h` behind. It is the only place
+//! where the Standard's own functions are wrapped up to take and return bytes;
+//! the two conversions themselves are in [`crate::bits`], where Appendix B.1
+//! puts them.
 
 use crate::bits::{b2h, h2b_full};
 use crate::sha3;

@@ -5,9 +5,19 @@
 //! `n` is indexed `S[0] … S[n-1]`, and `S = S[0] || S[1] || … || S[n-1]`.
 //!
 //! The helpers here are written with `push` in explicit loops rather than with
-//! `Vec::extend`/`to_vec`, which the Lean core model does not cover. The
-//! "Input:" conditions of the Algorithms are plain `assert!`s, which extract to
-//! `massert` in the generated Lean.
+//! `Vec::extend`/`to_vec`, which the Lean core model does not cover.
+//!
+//! Where a condition the Standard states is checked, it is a plain `assert!`,
+//! which extracts to a `massert` in the generated Lean: `Trunc_s` needs
+//! `s ≤ len(X)`, `⊕` needs two strings of equal length, and Algorithm 10 needs
+//! `n ≤ 8m`. The positivity conditions are deliberately not checked. Sec. 2.3
+//! introduces `Trunc_s` for a positive `s`, and Algorithms 10 and 11 ask for a
+//! positive number of bytes and of bits, but the Standard reaches those
+//! boundaries itself: Algorithm 8 takes a non-negative `d` and returns
+//! `Trunc_d(Z)`, and the empty message gives `m = n = 0` in Algorithm 10,
+//! though Sec. 7 says the SHA-3 functions are defined on it like any other.
+//! Sec. 2.3 spells the `s = 0` case out for `0^s` and leaves it implicit
+//! elsewhere, so zero is taken to be meant throughout.
 
 /// A single bit. FIPS 202 writes bits as `0`/`1` and combines them with
 /// `⊕` (XOR) and `·` (AND, "integer multiplication" in Sec. 3.2.4).

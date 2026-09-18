@@ -40,9 +40,10 @@
 // quantifiers written out; the index variables are exactly the point, so the
 // lint that would have us iterate the arrays instead does not apply here.
 #![allow(clippy::needless_range_loop)]
-// `0^n` and the zeros of `pad10*1` are written as a `push` per bit, which is
-// what the Standard says and what extracts; `vec![false; n]` and `Vec::extend`
-// do neither.
+// `0^n` and the zeros of `pad10*1` are written as a `push` per bit. The
+// Standard says only that the string is `n` zeros and leaves the construction
+// open; a `push` loop is what extracts, and `vec![false; n]` and `Vec::extend`
+// do not.
 #![allow(clippy::same_item_push)]
 
 pub mod bits;

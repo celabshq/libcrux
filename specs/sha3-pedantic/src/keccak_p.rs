@@ -13,6 +13,10 @@ pub fn rnd<const W: usize>(a: &StateArray<W>, i_r: i64) -> StateArray<W> {
 ///
 /// `b` is fixed by `W` (`b = 25W`); `n_r` is the number of rounds.
 pub fn keccak_p<const W: usize>(s: &[Bit], n_r: usize) -> BitString {
+    // Sec. 3: the permutation "is defined for any b in {25, 50, 100, 200, 400,
+    // 800, 1600} and any positive integer n_r"; b is fixed by W, and Table 1 is
+    // checked by `StateArray::<W>::L`.
+    assert!(n_r > 0, "Algorithm 7 takes a positive number of rounds");
     // 1. Convert S into a state array, A (Sec. 3.1.2).
     let mut a = StateArray::<W>::from_bits(s);
 

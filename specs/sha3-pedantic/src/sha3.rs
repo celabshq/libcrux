@@ -1,7 +1,12 @@
 //! The six SHA-3 functions — FIPS 202, Sec. 6.1 and 6.2.
 //!
-//! Each is `KECCAK[c]` on the message with a domain-separation suffix
-//! appended: `01` for the hash functions, `1111` for the XOFs.
+//! Each is `KECCAK[c]` on the message with a suffix appended: `01` for the
+//! four hash functions, `1111` for the XOFs. Only part of the XOF suffix is
+//! domain separation. Sec. 6.3 splits it as `M || 11 || 11`: the trailing pair
+//! is what `RawSHAKE` appends, and is the domain separation that tells these
+//! inputs from those of the hash functions; the leading pair, next to `M`, is
+//! what `SHAKE` adds before calling `RawSHAKE`, for compatibility with the
+//! Sakura coding scheme.
 
 use crate::bits::{concat, Bit, BitString};
 use crate::sponge::keccak_c;
