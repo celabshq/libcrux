@@ -1,0 +1,27 @@
+name: Get hax rev
+
+on:
+  workflow_call:
+    outputs:
+      hax_ref:
+        description: "The hax revision matching the workspace's hax-lib dependency"
+        value: ${{ jobs.get-hax-ref.outputs.hax_ref }}
+
+jobs:
+  get-hax-ref:
+    runs-on: ubuntu-latest
+    outputs:
+      hax_ref: ${{ steps.resolve.outputs.hax_ref }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - id: resolve
+        run: |
+          # The hax-lib the workspace members depend on directly: a git
+          # dependency resolves to its commit, a registry one to its release tag.
+          HAX_REF="$(cargo metadata --format-version=1 | jq -r '
+            . as $m
+            | [$m.workspace_members[] as $w | $m.resolve.nodes[] | select(.id == $w) | .deps[] | .pkg] as $direct
+            | first(.packages[] | select(.name == "hax-lib" and (.id as $i | $direct | index($i))))
+            | if (.source | startswith("git+")) then (.source | split("#")[1]) else "hax-lib-v\(.version)" end')"
+          echo "hax_ref=$HAX_REF" >> "$GITHUB_OUTPUT"
+          echo "Using hax $HAX_REF"
