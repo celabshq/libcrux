@@ -16,9 +16,10 @@ Cargo.lock
 # F*
 .fstar-cache
 .depend
-/proofs/fstar/*/#*#
-/proofs/fstar/*/.#*
 hax.fst.config.json
+
+# Per-crate F* checked-caches are generated; the sibling hints/ dirs are tracked.
+**/proofs/fstar/cache/
 /combined_extraction/generated/build/
 /combined_extraction/c/build/
 /combined_extraction/c-header-only/build/
