@@ -107,16 +107,15 @@ def bits.bitsOfByte (b : Std.U8) : List Bool :=
 def bits.bitsOfBytes (bs : List Std.U8) : List Bool :=
   bs.flatMap bits.bitsOfByte
 
-/-- One byte from eight bits, least significant first; short groups are padded
-    with zeros, which is the `S || 0^(-n mod 8)` of Algorithm 11. -/
-def bits.byteOfBits (l : List Bool) : Std.U8 :=
-  ⟨BitVec.ofNat 8 ((List.range 8).foldl
-    (fun acc j => if l.getD j false then acc + 2 ^ j else acc) 0)⟩
+/-- One byte from the bits `f 0 … f 7`, least significant first. -/
+def bits.byteOf (f : Nat → Bool) : Std.U8 :=
+  ⟨(List.range 8).foldl (fun acc j => if f j then acc ||| BitVec.twoPow 8 j else acc) 0#8⟩
 
-/-- `b2h(S)` — Algorithm 11. -/
-def bits.bytesOfBits (l : List Bool) : List Std.U8 :=
-  (List.range ((l.length + 7) / 8)).map
-    (fun i => bits.byteOfBits ((l.drop (8 * i)).take 8))
+/-- `b2h(S)` — Algorithm 11, in the Standard's own order: pad `S` with
+    `0^(-n mod 8)`, then read the result eight bits at a time. -/
+def bits.bytesOfBits (s : List Bool) : List Std.U8 :=
+  let t := s ++ List.replicate ((8 - s.length % 8) % 8) false
+  (List.range (t.length / 8)).map (fun i => bits.byteOf (fun j => t[8 * i + j]!))
 
 def bits.BitStr.Insts.CoreCloneClone.clone (s : bits.BitStr) : RustM bits.BitStr :=
   ok s
