@@ -37,10 +37,10 @@ hash_over_bytes!(
 
 /// `SHAKE128` on byte-aligned input, with the output length given in bytes.
 pub fn shake128(m: &[u8], out_bytes: usize) -> Vec<u8> {
-    b2h(&sha3::shake128(&h2b_full(m), 8 * out_bytes))
+    b2h(&sha3::shake128(&h2b_full(m), 8 * (out_bytes as u64)))
 }
 
 /// `SHAKE256` on byte-aligned input, with the output length given in bytes.
 pub fn shake256(m: &[u8], out_bytes: usize) -> Vec<u8> {
-    b2h(&sha3::shake256(&h2b_full(m), 8 * out_bytes))
+    b2h(&sha3::shake256(&h2b_full(m), 8 * (out_bytes as u64)))
 }

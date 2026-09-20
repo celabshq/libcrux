@@ -1,24 +1,22 @@
 //! The sponge construction, multi-rate padding and `KECCAK[c]` —
 //! FIPS 202, Sec. 4, 5.1 and 5.2.
 
-use crate::bits::{concat, trunc, xor, zeros, Bit, BitString};
+use crate::bits::{concat, trunc, xor, zeros, Bit, BitStr, BitString};
 use crate::keccak_p::keccak_p;
 
 /// Algorithm 9: `pad10*1(x, m)`.
 ///
 /// Returns `P = 1 || 0^j || 1` where `j = (-m - 2) mod x`, so that `m + len(P)`
 /// is a positive multiple of `x`.
-pub fn pad10_star_1(x: usize, m: usize) -> BitString {
+pub fn pad10_star_1(x: u64, m: u64) -> BitStr {
     assert!(x > 0, "Algorithm 9 takes a positive x");
-    let x_i = x as i64;
-    let j = (((-(m as i64) - 2) % x_i) + x_i) % x_i;
-    let mut p: BitString = Vec::new();
-    p.push(true);
-    for _ in 0..j {
-        p.push(false);
-    }
-    p.push(true);
-    p
+    // `j = (-m - 2) mod x`. Written so that it never leaves the unsigned
+    // range: `-m - 2 ≡ x - ((m + 2) mod x) (mod x)`, and reducing `m` first
+    // keeps the sum small. The Standard's form would need a signed type wide
+    // enough for `-m`, which for an arbitrary-length message there is not.
+    let j = (x - ((m % x + 2) % x)) % x;
+    let one = BitStr::from_bits(&[true]);
+    one.concat(&BitStr::zeros(j)).concat(&one)
 }
 
 /// The function and the padding rule of `SPONGE[f, pad, r]` — Sec. 4.
@@ -38,7 +36,7 @@ pub trait Components {
     fn f(&self, s: &[Bit]) -> BitString;
 
     /// `pad(x, m)`, the padding rule.
-    fn pad(&self, x: usize, m: usize) -> BitString;
+    fn pad(&self, x: u64, m: u64) -> BitStr;
 }
 
 /// `SPONGE[f, pad, r]` — the sponge function that Sec. 4 builds from its three
@@ -55,45 +53,50 @@ pub struct Sponge<C: Components> {
     /// `f` and `pad`, and with them `b`.
     components: C,
     /// `r`, the rate.
-    r: usize,
+    r: u64,
 }
 
 impl<C: Components> Sponge<C> {
     /// `SPONGE[f, pad, r]`: fix the three components.
-    pub fn new(components: C, r: usize) -> Self {
+    pub fn new(components: C, r: u64) -> Self {
         // Sec. 4: "The rate r is a positive integer that is strictly less than
         // the width b."
-        assert!(r > 0 && r < C::B, "Sec. 4 takes 0 < r < b");
+        assert!(r > 0 && r < C::B as u64, "Sec. 4 takes 0 < r < b");
         Sponge { components, r }
     }
 
     /// Algorithm 8: `SPONGE[f, pad, r](N, d)`.
-    pub fn apply(&self, n: &[Bit], d: usize) -> BitString {
+    pub fn apply(&self, n: &BitStr, d: u64) -> BitStr {
         let components = &self.components;
         let r = self.r;
         // 1. Let P = N || pad(r, len(N)).
-        let p = concat(n, &components.pad(r, n.len()));
+        let p = n.concat(&components.pad(r, n.len()));
         // 2. Let n = len(P)/r.
         let blocks = p.len() / r;
         // 3. Let c = b - r.
-        let c = C::B - r;
+        //    `r < b ≤ 1600`, so the rate is a `usize` here without question;
+        //    it is a `u64` on the bit-string side because the lengths it is
+        //    compared against are.
+        let c = C::B - (r as usize);
         // 4. Let P_0, … , P_{n-1} be the r-bit blocks of P.
         // 5. Let S = 0^b.
         let mut s = zeros(C::B);
         // 6. For i from 0 to n-1, let S = f(S ⊕ (P_i || 0^c)).
-        for i in 0..blocks {
-            let block = concat(&p[i * r..(i + 1) * r], &zeros(c));
+        let mut i: u64 = 0;
+        while i < blocks {
+            let block = concat(&p.slice(i * r, r).to_bits(), &zeros(c));
             s = components.f(&xor(&s, &block));
+            i += 1;
         }
         // 7. Let Z be the empty string.
-        let mut z: BitString = Vec::new();
+        let mut z = BitStr::empty();
         loop {
             // 8. Let Z = Z || Trunc_r(S).
-            let head = trunc(&s, r);
-            z = concat(&z, &head);
+            let head = trunc(&s, r as usize);
+            z = z.concat(&BitStr::from_bits(&head));
             // 9. If d ≤ |Z|, then return Trunc_d(Z); else continue.
             if d <= z.len() {
-                return trunc(&z, d);
+                return z.trunc(d);
             }
             // 10. Let S = f(S), and continue with Step 8.
             s = components.f(&s);
@@ -119,12 +122,12 @@ impl Components for Keccak1600 {
         keccak_p::<64>(s, 24)
     }
 
-    fn pad(&self, x: usize, m: usize) -> BitString {
+    fn pad(&self, x: u64, m: u64) -> BitStr {
         pad10_star_1(x, m)
     }
 }
 
 /// Sec. 5.2: `KECCAK[c](N, d) = SPONGE[KECCAK-p[1600, 24], pad10*1, 1600-c](N, d)`.
-pub fn keccak_c(c: usize, n: &[Bit], d: usize) -> BitString {
-    Sponge::new(Keccak1600, B - c).apply(n, d)
+pub fn keccak_c(c: usize, n: &BitStr, d: u64) -> BitStr {
+    Sponge::new(Keccak1600, (B - c) as u64).apply(n, d)
 }

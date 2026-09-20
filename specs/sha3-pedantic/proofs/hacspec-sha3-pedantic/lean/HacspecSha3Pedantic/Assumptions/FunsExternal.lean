@@ -83,3 +83,99 @@ def Bool.Insts.CoreMarkerCopy : marker.Copy Bool := {
 }
 
 end CoreModels.core
+
+/-! ## The operations of `bits::BitStr`
+
+    Models for the opaque methods of the arbitrary-length bit string; see
+    `Assumptions/TypesExternal.lean` for what is and is not assumed by them.
+    Each is the list operation the Standard's notation stands for, so a reader
+    checking `bits.rs` against Sec. 2.3 can check these against the same text.
+
+    Only `len` and `to_bits` can fail, and only where a machine would: `len`
+    when the length does not fit a `u64`, `to_bits` when it does not fit a
+    `usize`. Neither is reachable from the specification's own call sites --
+    `to_bits` is applied to `r`-bit blocks with `r < 1600`. -/
+
+namespace hacspec_sha3_pedantic
+
+/-- The bits of a byte, least significant first — App. B.1 reads a byte this
+    way, and `BitStr::from_bytes` packs it this way. -/
+def bits.bitsOfByte (b : Std.U8) : List Bool :=
+  (List.range 8).map (fun j => b.bv.getLsbD j)
+
+/-- `h2b(H)` at its maximum `n`: the `8m` bits of the bytes `H`. -/
+def bits.bitsOfBytes (bs : List Std.U8) : List Bool :=
+  bs.flatMap bits.bitsOfByte
+
+/-- One byte from eight bits, least significant first; short groups are padded
+    with zeros, which is the `S || 0^(-n mod 8)` of Algorithm 11. -/
+def bits.byteOfBits (l : List Bool) : Std.U8 :=
+  ⟨BitVec.ofNat 8 ((List.range 8).foldl
+    (fun acc j => if l.getD j false then acc + 2 ^ j else acc) 0)⟩
+
+/-- `b2h(S)` — Algorithm 11. -/
+def bits.bytesOfBits (l : List Bool) : List Std.U8 :=
+  (List.range ((l.length + 7) / 8)).map
+    (fun i => bits.byteOfBits ((l.drop (8 * i)).take 8))
+
+def bits.BitStr.Insts.CoreCloneClone.clone (s : bits.BitStr) : RustM bits.BitStr :=
+  ok s
+
+def bits.BitStr.empty : RustM bits.BitStr := ok ([] : List Bool)
+
+/-- `len(S)` — Sec. 2.3. Fails where the length outruns a `u64`, which is what
+    the Rust `len` field can hold; the model itself has no bound. -/
+def bits.BitStr.len (s : bits.BitStr) : RustM Std.U64 :=
+  if (s : List Bool).length < 2 ^ 64 then
+    ok ⟨BitVec.ofNat 64 (s : List Bool).length⟩
+  else fail .panic
+
+def bits.BitStr.is_empty (s : bits.BitStr) : RustM Bool :=
+  ok ((s : List Bool).isEmpty)
+
+/-- `S[i]` — Sec. 2.3. -/
+def bits.BitStr.bit (s : bits.BitStr) (i : Std.U64) : RustM Bool :=
+  if i.val < (s : List Bool).length then ok ((s : List Bool)[i.val]!) else fail .panic
+
+/-- Private in Rust, and unused by the specification: the pure operations are
+    the ones the Standard names. Modelled for completeness. -/
+def bits.BitStr.push_mut (s : bits.BitStr) (b : Bool) : RustM bits.BitStr :=
+  ok ((s : List Bool) ++ [b])
+
+/-- `0^n` — Sec. 2.3. -/
+def bits.BitStr.zeros (n : Std.U64) : RustM bits.BitStr :=
+  ok (List.replicate n.val false)
+
+def bits.BitStr.from_bits (b : Slice Bool) : RustM bits.BitStr := ok b.val
+
+/-- Fails where the length outruns a `usize`; applied only to `r`-bit blocks. -/
+def bits.BitStr.to_bits (s : bits.BitStr) : RustM (alloc.vec.Vec Bool) :=
+  if h : (s : List Bool).length ≤ Std.Usize.max then ok ⟨(s : List Bool), h⟩
+  else fail .panic
+
+/-- `X || Y` — Sec. 2.3. -/
+def bits.BitStr.concat (x : bits.BitStr) (y : bits.BitStr) : RustM bits.BitStr :=
+  ok ((x : List Bool) ++ (y : List Bool))
+
+/-- `Trunc_s(X)` — Sec. 2.3. -/
+def bits.BitStr.trunc (x : bits.BitStr) (s : Std.U64) : RustM bits.BitStr :=
+  if s.val ≤ (x : List Bool).length then ok ((x : List Bool).take s.val)
+  else fail .panic
+
+/-- The `n` bits of `X` from `from` — the blocks `P_i` of Algorithm 8. -/
+def bits.BitStr.slice (x : bits.BitStr) (from_ : Std.U64) (n : Std.U64) :
+    RustM bits.BitStr :=
+  if from_.val + n.val ≤ (x : List Bool).length then
+    ok (((x : List Bool).drop from_.val).take n.val)
+  else fail .panic
+
+/-- Algorithm 10 at its maximum `n`. -/
+def bits.BitStr.from_bytes (h : Slice Std.U8) : RustM bits.BitStr :=
+  ok (bits.bitsOfBytes h.val)
+
+/-- Algorithm 11. -/
+def bits.BitStr.to_bytes (s : bits.BitStr) : RustM (alloc.vec.Vec Std.U8) :=
+  let bs := bits.bytesOfBits (s : List Bool)
+  if h : bs.length ≤ Std.Usize.max then ok ⟨bs, h⟩ else fail .panic
+
+end hacspec_sha3_pedantic

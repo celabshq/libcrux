@@ -10,7 +10,7 @@
 //! padding comes from `pad10*1`. Agreeing on every rate is what says the two
 //! conventions describe the same padding.
 
-use hacspec_sha3_pedantic::bits::{b2h, concat, h2b_full};
+use hacspec_sha3_pedantic::bits::{b2h, h2b_full, BitStr};
 use hacspec_sha3_pedantic::sha3::{HASH_SUFFIX, XOF_SUFFIX};
 use hacspec_sha3_pedantic::sponge::keccak_c;
 
@@ -21,8 +21,8 @@ const B: usize = 1600;
 /// The neighbour's `rate` is in bytes (144 for SHA3-224); `KECCAK[c]` is
 /// parameterised by the capacity in bits, `c = 1600 - 8·rate`.
 fn via_bits(rate_bytes: usize, suffix: &[bool], msg: &[u8], out_bytes: usize) -> Vec<u8> {
-    let n = concat(&h2b_full(msg), suffix);
-    b2h(&keccak_c(B - 8 * rate_bytes, &n, 8 * out_bytes))
+    let n = h2b_full(msg).concat(&BitStr::from_bits(suffix));
+    b2h(&keccak_c(B - 8 * rate_bytes, &n, 8 * (out_bytes as u64)))
 }
 
 fn check<const OUT: usize>(rate: usize, delim: u8, msg: &[u8]) {

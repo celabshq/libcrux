@@ -2,7 +2,7 @@
 //! against the byte-level spec it sits next to.
 
 use hacspec_sha3_pedantic as pedantic;
-use pedantic::bits::{b2h, h2b, h2b_full};
+use pedantic::bits::{b2h, h2b, h2b_full, BitStr};
 use pedantic::sponge::pad10_star_1;
 use pedantic::state_array::StateArray;
 
@@ -15,7 +15,7 @@ use pedantic::state_array::StateArray;
 fn h2b_table_5() {
     let bits = h2b(&[0xA3, 0x2E], 14);
     let expected: Vec<bool> = "11000101011101".chars().map(|c| c == '1').collect();
-    assert_eq!(bits, expected);
+    assert_eq!(bits.to_bits(), expected);
 }
 
 /// `b2h` inverts `h2b` on byte-aligned strings (Appendix B.1).
@@ -29,11 +29,12 @@ fn b2h_inverts_h2b() {
 /// padding starts and ends with a `1`, and everything between is `0`.
 #[test]
 fn pad10_star_1_is_well_formed() {
-    for x in [8usize, 136, 168, 1088, 1152] {
+    for x in [8u64, 136, 168, 1088, 1152] {
         for m in 0..(3 * x) {
-            let p = pad10_star_1(x, m);
-            assert!((m + p.len()).is_multiple_of(x) && m + p.len() > 0);
-            assert!(p.len() >= 2);
+            let p = pad10_star_1(x, m).to_bits();
+            let len = p.len() as u64;
+            assert!((m + len).is_multiple_of(x) && m + len > 0);
+            assert!(len >= 2);
             assert!(p[0] && p[p.len() - 1]);
             assert!(p[1..p.len() - 1].iter().all(|b| !b));
         }
@@ -47,15 +48,15 @@ fn pad10_star_1_is_well_formed() {
 fn padding_bytes_table_6() {
     // The bits appended to M are the domain suffix followed by pad10*1 over
     // the suffixed message.
-    fn appended(suffix: &[bool], rate_bits: usize, message_bytes: usize) -> Vec<u8> {
-        let m = 8 * message_bytes;
+    fn appended(suffix: &[bool], rate_bits: u64, message_bytes: usize) -> Vec<u8> {
+        let m = 8 * (message_bytes as u64);
         let mut bits = suffix.to_vec();
-        bits.extend(pad10_star_1(rate_bits, m + suffix.len()));
-        b2h(&bits)
+        bits.extend(pad10_star_1(rate_bits, m + suffix.len() as u64).to_bits());
+        b2h(&BitStr::from_bits(&bits))
     }
 
-    let r = 1088; // SHA3-256 / SHAKE256 rate; irrelevant here beyond r/8 = 136
-    let q_of = |bytes: usize| (r / 8) - (bytes % (r / 8));
+    let r = 1088u64; // SHA3-256 / SHAKE256 rate; irrelevant here beyond r/8 = 136
+    let q_of = |bytes: usize| ((r / 8) as usize) - (bytes % ((r / 8) as usize));
 
     for (suffix, one, two, first) in [
         (
@@ -72,12 +73,12 @@ fn padding_bytes_table_6() {
         ),
     ] {
         // q = 1
-        let bytes = (r / 8) - 1;
+        let bytes = ((r / 8) as usize) - 1;
         assert_eq!(q_of(bytes), 1);
         assert_eq!(appended(suffix, r, bytes), vec![one]);
 
         // q = 2
-        let bytes = (r / 8) - 2;
+        let bytes = ((r / 8) as usize) - 2;
         assert_eq!(q_of(bytes), 2);
         assert_eq!(appended(suffix, r, bytes), two.to_vec());
 

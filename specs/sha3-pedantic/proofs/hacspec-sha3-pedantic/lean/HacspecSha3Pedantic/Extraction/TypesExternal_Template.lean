@@ -23,3 +23,8 @@ set_option maxHeartbeats 1000000
 /- You can set the `maxRecDepth` value with the `-max-recdepth` CLI option -/
 set_option maxRecDepth 2048
 
+/-- [hacspec_sha3_pedantic::bits::BitStr]
+    Source: 'sha3-pedantic/src/bits.rs', lines 53:0-60:1
+    Visibility: public -/
+axiom bits.BitStr : Type
+

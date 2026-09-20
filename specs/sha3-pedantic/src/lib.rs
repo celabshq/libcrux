@@ -9,7 +9,10 @@
 //! the document:
 //!
 //! * the state is the 5-by-5-by-`w` array of bits `A[x, y, z]` of Sec. 3.1,
-//!   and messages are bit strings;
+//!   and messages are bit strings -- of arbitrary length, as the Standard's
+//!   are: [`bits::BitStr`] is opaque to the extraction precisely so that the
+//!   proofs read it as a list of bits with no length bound, rather than as a
+//!   `Vec` whose model stops at `usize::MAX` on whatever the target is;
 //! * every function is one numbered Algorithm, with the Steps in the
 //!   Standard's order and the Standard's names;
 //! * nothing is precomputed that the Standard computes: `ρ`'s offsets come

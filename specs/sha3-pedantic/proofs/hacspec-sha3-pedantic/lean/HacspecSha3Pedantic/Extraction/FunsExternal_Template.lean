@@ -25,3 +25,74 @@ set_option maxHeartbeats 1000000
 set_option maxRecDepth 2048
 open hacspec_sha3_pedantic
 
+/-- [hacspec_sha3_pedantic::bits::{impl core::clone::Clone for hacspec_sha3_pedantic::bits::BitStr}::clone]:
+    Source: 'sha3-pedantic/src/bits.rs', lines 64:4-69:5
+    Visibility: public -/
+axiom bits.BitStr.Insts.CoreCloneClone.clone
+  : bits.BitStr → RustM bits.BitStr
+
+/-- [hacspec_sha3_pedantic::bits::{hacspec_sha3_pedantic::bits::BitStr}::empty]:
+    Source: 'sha3-pedantic/src/bits.rs', lines 75:4-80:5
+    Visibility: public -/
+axiom bits.BitStr.empty : RustM bits.BitStr
+
+/-- [hacspec_sha3_pedantic::bits::{hacspec_sha3_pedantic::bits::BitStr}::len]:
+    Source: 'sha3-pedantic/src/bits.rs', lines 84:4-86:5
+    Visibility: public -/
+axiom bits.BitStr.len : bits.BitStr → RustM Std.U64
+
+/-- [hacspec_sha3_pedantic::bits::{hacspec_sha3_pedantic::bits::BitStr}::is_empty]:
+    Source: 'sha3-pedantic/src/bits.rs', lines 90:4-92:5
+    Visibility: public -/
+axiom bits.BitStr.is_empty : bits.BitStr → RustM Bool
+
+/-- [hacspec_sha3_pedantic::bits::{hacspec_sha3_pedantic::bits::BitStr}::bit]:
+    Source: 'sha3-pedantic/src/bits.rs', lines 96:4-100:5
+    Visibility: public -/
+axiom bits.BitStr.bit : bits.BitStr → Std.U64 → RustM Bool
+
+/-- [hacspec_sha3_pedantic::bits::{hacspec_sha3_pedantic::bits::BitStr}::push_mut]:
+    Source: 'sha3-pedantic/src/bits.rs', lines 106:4-115:5 -/
+axiom bits.BitStr.push_mut : bits.BitStr → Bool → RustM bits.BitStr
+
+/-- [hacspec_sha3_pedantic::bits::{hacspec_sha3_pedantic::bits::BitStr}::zeros]:
+    Source: 'sha3-pedantic/src/bits.rs', lines 119:4-126:5
+    Visibility: public -/
+axiom bits.BitStr.zeros : Std.U64 → RustM bits.BitStr
+
+/-- [hacspec_sha3_pedantic::bits::{hacspec_sha3_pedantic::bits::BitStr}::from_bits]:
+    Source: 'sha3-pedantic/src/bits.rs', lines 133:4-139:5
+    Visibility: public -/
+axiom bits.BitStr.from_bits : Slice Bool → RustM bits.BitStr
+
+/-- [hacspec_sha3_pedantic::bits::{hacspec_sha3_pedantic::bits::BitStr}::to_bits]:
+    Source: 'sha3-pedantic/src/bits.rs', lines 147:4-157:5
+    Visibility: public -/
+axiom bits.BitStr.to_bits : bits.BitStr → RustM (alloc.vec.Vec Bool)
+
+/-- [hacspec_sha3_pedantic::bits::{hacspec_sha3_pedantic::bits::BitStr}::concat]:
+    Source: 'sha3-pedantic/src/bits.rs', lines 161:4-167:5
+    Visibility: public -/
+axiom bits.BitStr.concat : bits.BitStr → bits.BitStr → RustM bits.BitStr
+
+/-- [hacspec_sha3_pedantic::bits::{hacspec_sha3_pedantic::bits::BitStr}::trunc]:
+    Source: 'sha3-pedantic/src/bits.rs', lines 171:4-178:5
+    Visibility: public -/
+axiom bits.BitStr.trunc : bits.BitStr → Std.U64 → RustM bits.BitStr
+
+/-- [hacspec_sha3_pedantic::bits::{hacspec_sha3_pedantic::bits::BitStr}::slice]:
+    Source: 'sha3-pedantic/src/bits.rs', lines 184:4-191:5
+    Visibility: public -/
+axiom bits.BitStr.slice
+  : bits.BitStr → Std.U64 → Std.U64 → RustM bits.BitStr
+
+/-- [hacspec_sha3_pedantic::bits::{hacspec_sha3_pedantic::bits::BitStr}::from_bytes]:
+    Source: 'sha3-pedantic/src/bits.rs', lines 199:4-204:5
+    Visibility: public -/
+axiom bits.BitStr.from_bytes : Slice Std.U8 → RustM bits.BitStr
+
+/-- [hacspec_sha3_pedantic::bits::{hacspec_sha3_pedantic::bits::BitStr}::to_bytes]:
+    Source: 'sha3-pedantic/src/bits.rs', lines 211:4-213:5
+    Visibility: public -/
+axiom bits.BitStr.to_bytes : bits.BitStr → RustM (alloc.vec.Vec Std.U8)
+
