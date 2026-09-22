@@ -19,10 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `HandshakeError::InsufficientRandomness` variant, now used instead of the generic
   `HandshakeError::CryptoError` when a `TryCryptoRng` fails to provide randomness
 - [#1579](https://github.com/celabshq/libcrux/pull/1579): (Breaking) Align `nonce-control` handshake nonces with default nonces. Breaking, because it changes the wire format of `nonce-control` handshake messages, aligning it with the default one
+- [#1594](https://github.com/celabshq/libcrux/pull/1594): Introduce `SessionError::ReachedMaxMessages` error variant for transport channel exhaustion
 
 ### Fixed
 
-- [#XXXX](https://github.com/celabshq/libcrux/pull/XXXX): Clamp `recent_keys_upper_bound(0)` to `1` so it can no longer silently disable the responder's replay/rate-limit cache
+- [#1594](https://github.com/celabshq/libcrux/pull/1594): Clamp `recent_keys_upper_bound(0)` to `1` so it can no longer silently disable the responder's replay/rate-limit cache
 
 ## [0.0.10] (2026-07-15)
 
