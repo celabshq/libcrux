@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - (libcrux-platform) [#1592](https://github.com/celabshq/libcrux/pull/1592): Check xgetbv output for AVX2 availability
 - (libcrux-psq) [#1594](https://github.com/celabshq/libcrux/pull/1594): Introduce `SessionError::ReachedMaxMessages` error variant for transport channel exhaustion; clamp `recent_keys_upper_bound(0)` to `1` so it can no longer silently disable the responder's rate-limit cache
 - (libcrux-kem) [#1595](https://github.com/celabshq/libcrux/pull/1595): Reject invalid/short seed lengths in `PublicKey::encapsulate_derand` without panicking; Return `Ss::MlKem512` variant instead of `Ss::MlKem768` variant when decapsulating `Ct::MlKem512` ciphertext
+- (libcrux-sha3) [#XXXX](https://github.com/celabshq/libcrux/pull/XXXX): `hash::<LEN>` now enforces its length preconditions with a release-mode `assert!` instead of a `debug_assert!`, preventing a silently truncated/wrong-algorithm digest
 
 ### Changed
 
