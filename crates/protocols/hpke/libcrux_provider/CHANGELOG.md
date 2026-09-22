@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- [#xxxx](https://github.com/celabshq/libcrux/pull/xxxx): Return `KemInvalidCiphertext` error instead of `AeadInvalidCiphertext` on KEM decapsulation failure
+- [#1600](https://github.com/celabshq/libcrux/pull/1600): Return `KemInvalidCiphertext` error instead of `AeadInvalidCiphertext` on KEM decapsulation failure
 
 ## [0.7.0] (2026-07-15)
 
