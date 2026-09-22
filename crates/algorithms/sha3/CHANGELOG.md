@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- [#XXXX](https://github.com/celabshq/libcrux/pull/XXXX): `hash::<LEN>` now enforces `LEN == digest_size(algorithm)` and the payload-length precondition with a release-mode `assert!` instead of a `debug_assert!`, so a mismatch panics instead of silently returning a truncated/wrong-algorithm digest
+- [#1597](https://github.com/celabshq/libcrux/pull/1597): `hash::<LEN>` now enforces `LEN == digest_size(algorithm)` and the payload-length precondition with a release-mode `assert!` instead of a `debug_assert!`, so a mismatch panics instead of silently returning a truncated/wrong-algorithm digest
 
 ## [0.0.10] (2026-07-15)
 
