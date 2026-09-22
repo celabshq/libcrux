@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     via X-Wing draft-06), per
     [draft-irtf-cfrg-concrete-hybrid-kems-03](https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-concrete-hybrid-kems-03).
 
+### Fixed
+
+- [#xxxx](https://github.com/celabshq/libcrux/pull/xxxx): Return `KemInvalidCiphertext` error instead of `AeadInvalidCiphertext` on KEM decapsulation failure
+
 ## [0.7.0] (2026-07-15)
 
 ### Added
