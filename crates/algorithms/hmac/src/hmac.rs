@@ -71,7 +71,7 @@ pub const fn tag_size(alg: Algorithm) -> usize {
 
 /// Compute the HMAC value with the given `alg` and `key` on `data` with an
 /// output tag length of `tag_length`.
-/// Returns a vector of length `tag_length`.
+/// Returns a vector of length `min(tag_length, native_tag_length)`.
 /// Panics if either `key` or `data` are longer than `u32::MAX`.
 pub fn hmac(alg: Algorithm, key: &[u8], data: &[u8], tag_length: Option<usize>) -> Vec<u8> {
     let native_tag_length = tag_size(alg);
