@@ -110,6 +110,10 @@ pub struct Session {
 }
 
 // pkBinder = KDF(skCS, g^c | g^s | [pkS])
+/// It is safe to do a non-constant time comparison to a deserialized
+/// value since the serialized session already includes the respective
+/// session key that is needed to derive the binder and all the other
+/// inputs are public values.
 fn derive_pk_binder(
     key: &SessionKey,
     initiator_authenticator: &Authenticator,
