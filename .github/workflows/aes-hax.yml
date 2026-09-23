@@ -1,0 +1,77 @@
+name: AES - hax
+
+permissions: {}
+
+on:
+  merge_group:
+  pull_request:
+    branches: ["dev", "main"]
+    paths:
+      - "crates/algorithms/aes/**"
+
+  schedule:
+    - cron: "0 0 * * *"
+
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  HAX_LIB_VERSION: 0.3.7
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Generate the Lean model of the portable AES implementation and check the
+  # proofs against it.
+  #
+  # The hax engine and the hax Lean prelude have to come from the same hax
+  # revision, because the engine decides which prelude names the generated
+  # model refers to. The engine is pinned here via hax-actions and the
+  # prelude in crates/algorithms/aes/proofs/lean/lake-manifest.json; both
+  # resolve to hax-lib-v${HAX_LIB_VERSION}.
+  lean-portable:
+    if: ${{ github.event_name != 'merge_group' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - uses: hacspec/hax-actions@main
+        with:
+          hax_reference: hax-lib-v${{ env.HAX_LIB_VERSION }}
+
+      - name: Use precise version of hax-lib
+        run: cargo update hax-lib --precise $HAX_LIB_VERSION
+
+      - name: 🏃 Extract the Lean model of the AES crate
+        working-directory: crates/algorithms/aes
+        run: ./hax.py extract --target lean
+
+      # Installs the toolchain named in lean-toolchain, restores the Lake
+      # cache, and runs `lake build`. The build fails if a proof does not go
+      # through, and LibcruxAes.lean additionally fails it if any theorem
+      # starts depending on `sorry`, `native_decide`, or any other axiom
+      # outside Lean's standard three.
+      - name: 🏃 Check the Lean proofs
+        uses: leanprover/lean-action@v1
+        with:
+          lake-package-directory: crates/algorithms/aes/proofs/lean
+          build: true
+          test: false
+          lint: false
+
+  aes-lean-hax-status:
+    if: ${{ always() }}
+    needs: [lean-portable]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Successful
+        if: ${{ !(contains(needs.*.result, 'failure')) }}
+        run: exit 0
+      - name: Failing
+        if: ${{ (contains(needs.*.result, 'failure')) }}
+        run: exit 1
