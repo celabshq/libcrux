@@ -27,9 +27,58 @@ def shell(command, expect=0, cwd=None, env={}):
         raise Exception("Error {}. Expected {}.".format(ret, expect))
 
 
+# Items of `libcrux-aes` that the Lean backend can model today, in the order
+# the Lean proofs need them. The list is explicit rather than a wildcard over
+# `platform::portable::aes_core` because three items in that module cannot be
+# extracted yet: `transpose_u16x8`, and the `AESState` implementation's
+# `store_block` and `xor_block`. All three write through a `&mut [u8]` slice,
+# for which hax emits an array update that the Lean prelude does not define.
+# See proofs/lean/README.md.
+LEAN_AES_CORE = "libcrux_aes::platform::portable::aes_core"
+LEAN_ITEMS = [
+    "new_state",
+    "interleave_u8_1",
+    "deinterleave_u8_1",
+    "interleave_u16_2",
+    "interleave_u16_4",
+    "interleave_u16_8",
+    "transpose_u8x16",
+    "xnor",
+    "sub_bytes_state",
+    "shift_row_u16",
+    "shift_rows_state",
+    "mix_columns_state",
+    "xor_key1_state",
+    "aes_enc",
+    "aes_enc_last",
+    "aes_keygen_assisti",
+    "aes_keygen_assist",
+    "aes_keygen_assist0",
+    "aes_keygen_assist1",
+    "key_expand1",
+    "key_expansion_step",
+]
+
+
+def lean_include():
+    parts = ["-**", "+libcrux_aes::aes::**"]
+    parts += ["+{}::{}".format(LEAN_AES_CORE, item) for item in LEAN_ITEMS]
+    return " ".join(parts)
+
+
 class extractAction(argparse.Action):
 
     def __call__(self, parser, args, values, option_string=None) -> None:
+        if args.target == "lean":
+            # The portable AES implementation uses no intrinsics, so the
+            # dependency crates that the F* flow extracts are not needed.
+            shell(
+                ["cargo", "hax", "into", "-i", lean_include(), "lean"],
+                cwd=".",
+                env={},
+            )
+            return None
+
         # Extract platform interfaces
         include_str = "+:** -**::x86::init::cpuid -**::x86::init::cpuid_count"
         interface_include = "+**"
@@ -136,6 +185,9 @@ class proveAction(argparse.Action):
         admit_env = {}
         if args.admit:
             admit_env = {"OTHERFLAGS": "--admit_smt_queries true"}
+        if args.target == "lean":
+            shell(["lake", "build"], cwd="proofs/lean", env={})
+            return None
         shell(["make", "-j4", "-C", "proofs/fstar/extraction/"], env=admit_env)
         return None
 
@@ -162,6 +214,7 @@ def parse_arguments():
         To lax-typecheck use --admit.
         """,
     )
+    prover_parser.add_argument("--target", help="The target language to check.")
     prover_parser.add_argument(
         "--admit",
         help="Admit all smt queries to lax typecheck.",

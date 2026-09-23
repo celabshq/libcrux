@@ -1,0 +1,54 @@
+name = "libcrux-aes-proofs"
+version = "0.1.0"
+defaultTargets = ["LibcruxAes"]
+
+# The hax-generated model of `libcrux-aes`. Regenerate with
+#   ./hax.py extract --target lean
+# from `crates/algorithms/aes`. Not checked in: see extraction/.gitignore.
+[[lean_lib]]
+name = "libcrux_aes"
+srcDir = "extraction"
+globs = ["libcrux_aes"]
+# `sub_bytes_state` is a 150-line straight-line function; elaborating it needs
+# more than the default recursion budget. hax does not emit this itself.
+leanOptions = [{ name = "maxRecDepth", value = "10000" }]
+
+# `#assert_axioms`, used by LibcruxAes.lean to pin down the trust base.
+[[lean_lib]]
+name = "AxiomGuard"
+srcDir = "."
+globs = ["AxiomGuard"]
+
+# Tactics and the bit-sliced state helpers shared by all proofs.
+[[lean_lib]]
+name = "Utilities"
+srcDir = "."
+globs = ["Utilities"]
+needs = ["libcrux_aes"]
+
+# Specifications and correctness proofs for the AES round functions.
+[[lean_lib]]
+name = "Cipher"
+srcDir = "cipher"
+globs = ["gf8", "transpose_u8x16", "sub_bytes", "shift_rows",
+         "mix_columns", "xor_key1", "cipher_theorems"]
+needs = ["libcrux_aes", "Utilities"]
+
+# Specifications and correctness proofs for the AES key schedule.
+[[lean_lib]]
+name = "KeyExpansion"
+srcDir = "key_expansion"
+globs = ["key_expansion_step", "aes_keygen_assist"]
+needs = ["libcrux_aes", "Utilities", "Cipher"]
+
+[[lean_lib]]
+name = "LibcruxAes"
+srcDir = "."
+globs = ["LibcruxAes"]
+needs = ["AxiomGuard", "Cipher", "KeyExpansion"]
+
+[[require]]
+name = "Hax"
+git.url = "https://github.com/cryspen/hax"
+git.subDir = "hax-lib/proof-libs/lean"
+rev = "hax-lib-v0.3.7"
