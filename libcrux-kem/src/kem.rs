@@ -943,6 +943,10 @@ mod xwing {
             RAND_ENCAPS_LEN,
         > for XWing
     {
+        type KeyGenError = libcrux_traits::kem::owned::KeyGenError;
+        type EncapsError = libcrux_traits::kem::owned::EncapsError;
+        type DecapsError = libcrux_traits::kem::owned::DecapsError;
+
         fn keygen(
             ek: &mut [u8; EK_LEN],
             dk: &mut [u8; DK_LEN],
@@ -963,7 +967,7 @@ mod xwing {
             let dk_m: &mut [u8; MLKEM768_DK_LEN] = dk_m.try_into().unwrap();
             let dk_x: &mut [u8; X25519_DK_LEN] = dk_x.try_into().unwrap();
 
-            MlKem768::keygen(ek_m, dk_m, rand_m)?;
+            MlKem768::keygen(ek_m, dk_m, rand_m).unwrap();
             X25519::keygen(ek_x, dk_x, rand_x)?;
 
             Ok(())
@@ -992,7 +996,7 @@ mod xwing {
             hash_buffer[128..134].copy_from_slice(&[0x5c, 0x2e, 0x2f, 0x2f, 0x5e, 0x5c]);
 
             let ss_m: &mut [u8; 32] = (&mut hash_buffer[0..32]).try_into().unwrap();
-            MlKem768::encaps(ct_m, ss_m, ek_m, rand_m)?;
+            MlKem768::encaps(ct_m, ss_m, ek_m, rand_m).unwrap();
 
             let ss_x: &mut [u8; 32] = (&mut hash_buffer[32..64]).try_into().unwrap();
             X25519::encaps(ct_x, ss_x, ek_x, rand_x)?;
@@ -1024,7 +1028,7 @@ mod xwing {
             hash_buffer[128..134].copy_from_slice(&[0x5c, 0x2e, 0x2f, 0x2f, 0x5e, 0x5c]);
 
             let ss_m: &mut [u8; 32] = (&mut hash_buffer[0..32]).try_into().unwrap();
-            MlKem768::decaps(ss_m, ct_m, dk_m)?;
+            MlKem768::decaps(ss_m, ct_m, dk_m).unwrap();
 
             let ss_x: &mut [u8; 32] = (&mut hash_buffer[32..64]).try_into().unwrap();
             X25519::decaps(ss_x, ct_x, dk_x)?;
