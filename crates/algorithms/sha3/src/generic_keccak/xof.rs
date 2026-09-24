@@ -87,6 +87,17 @@ fn buf_to_slices<const PARALLEL_LANES: usize, const RATE: usize>(
 impl<const PARALLEL_LANES: usize, const RATE: usize, STATE: KeccakItem<PARALLEL_LANES>>
     KeccakXofState<PARALLEL_LANES, RATE, STATE>
 {
+    // XXX If https://github.com/cryspen/hax/issues/899 is fixed, we should be able
+    // to remove this predicate which we thread through a lot of the methods and
+    // replace it with a refinement macro on the struct.
+    // Update: Above issue is now resolved, but we can't use
+    // refinement yet because it doesn't work with `cfg_attr`.
+    // https://github.com/cryspen/hax/issues/1496
+    #[cfg(hax)]
+    pub(crate) fn state_inv(&self) -> bool {
+        crate::proof_utils::valid_rate(RATE) && self.buf_len <= RATE && self.squeeze_pos <= RATE
+    }
+
     /// An all zero block
     pub(crate) const fn zero_block() -> [u8; RATE] {
         [0u8; RATE]
@@ -436,23 +447,6 @@ impl<const RATE: usize, STATE: KeccakItem<1>> KeccakXofState<1, RATE, STATE> {
                 out[last_full..out_len].copy_from_slice(&self.squeeze_buf[..trailing]);
                 self.squeeze_pos = trailing;
             }
-        }
-    }
-}
-
-#[cfg(hax)]
-mod proof_utils {
-    impl<
-            const PARALLEL_LANES: usize,
-            const RATE: usize,
-            State: super::KeccakItem<PARALLEL_LANES>,
-        > super::KeccakXofState<PARALLEL_LANES, RATE, State>
-    {
-        // XXX If https://github.com/cryspen/hax/issues/899 is fixed, we should be able
-        // to remove this predicate which we thread through a lot of the methods and
-        // replace it with a refinement macro on the struct.
-        pub(crate) fn state_inv(&self) -> bool {
-            crate::proof_utils::valid_rate(RATE) && self.buf_len <= RATE && self.squeeze_pos <= RATE
         }
     }
 }

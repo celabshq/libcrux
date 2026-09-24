@@ -14,13 +14,6 @@ pub use cshake::{left_encode, left_encode_byte, right_encode};
 mod private {
     pub trait Sealed {}
 
-    impl Sealed for super::Shake128Xof {}
-    impl Sealed for super::Shake256Xof {}
-    #[cfg(not(eurydice))]
-    impl Sealed for super::CShake128 {}
-    #[cfg(not(eurydice))]
-    impl Sealed for super::CShake256 {}
-
     /// Proof-only supertrait of [`super::CShake`] carrying the internal Keccak
     /// XOF state invariant as a ghost predicate. It is implemented generically
     /// for every `RATE`, so the generic `CShake` impl can unfold it, while
@@ -33,16 +26,22 @@ mod private {
         #[cfg_attr(hax, hax_lib::ensures(|_| true))]
         fn cshake_inv(&self) -> bool;
     }
+}
+impl private::Sealed for Shake128Xof {}
+impl private::Sealed for Shake256Xof {}
+#[cfg(not(eurydice))]
+impl private::Sealed for CShake128 {}
+#[cfg(not(eurydice))]
+impl private::Sealed for CShake256 {}
 
-    #[cfg_attr(hax, hax_lib::attributes)]
-    #[cfg(not(eurydice))]
-    impl<const RATE: usize> CShakeInv for super::CShakeIncremental<RATE> {
-        #[cfg(hax)]
-        #[cfg_attr(hax, hax_lib::requires(true))]
-        #[cfg_attr(hax, hax_lib::ensures(|_| true))]
-        fn cshake_inv(&self) -> bool {
-            self.state.state_inv()
-        }
+#[cfg_attr(hax, hax_lib::attributes)]
+#[cfg(not(eurydice))]
+impl<const RATE: usize> private::CShakeInv for CShakeIncremental<RATE> {
+    #[cfg(hax)]
+    #[cfg_attr(hax, hax_lib::requires(true))]
+    #[cfg_attr(hax, hax_lib::ensures(|_| true))]
+    fn cshake_inv(&self) -> bool {
+        self.state.state_inv()
     }
 }
 
