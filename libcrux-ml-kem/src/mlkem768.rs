@@ -274,9 +274,9 @@ macro_rules! instantiate {
                 }
 
                 /// Get the serialized public key.
-                #[hax_lib::requires(fstar!(r#"forall (i:nat). i < 3 ==>
+                #[cfg_attr(hax, hax_lib::requires(fstar!(r#"forall (i:nat). i < 3 ==>
                     Libcrux_ml_kem.Polynomial.is_bounded_poly 3328 (Seq.index 
-                        ${public_key.ind_cpa_public_key.t_as_ntt} i)"#))]
+                        ${public_key.ind_cpa_public_key.t_as_ntt} i)"#)))]
                 pub fn serialized_public_key(public_key: &MlKem768PublicKeyUnpacked, serialized : &mut MlKem768PublicKey) {
                     public_key.serialized_mut::<CPA_PKE_PUBLIC_KEY_SIZE>(serialized);
                 }
@@ -292,17 +292,17 @@ macro_rules! instantiate {
                 }
 
                 /// Get the serialized public key.
-                #[hax_lib::requires(fstar!(r#"(forall (i:nat). i < 3 ==>
+                #[cfg_attr(hax, hax_lib::requires(fstar!(r#"(forall (i:nat). i < 3 ==>
                         Libcrux_ml_kem.Polynomial.is_bounded_poly 3328 (Seq.index 
-                            ${key_pair.public_key.ind_cpa_public_key.t_as_ntt} i))"#))]
+                            ${key_pair.public_key.ind_cpa_public_key.t_as_ntt} i))"#)))]
                 pub fn key_pair_serialized_public_key_mut(key_pair: &MlKem768KeyPairUnpacked, serialized: &mut MlKem768PublicKey) {
                     key_pair.serialized_public_key_mut::<CPA_PKE_PUBLIC_KEY_SIZE>(serialized);
                 }
 
                 /// Get the serialized public key.
-                #[hax_lib::requires(fstar!(r#"forall (i:nat). i < 3 ==>
+                #[cfg_attr(hax, hax_lib::requires(fstar!(r#"forall (i:nat). i < 3 ==>
                     Libcrux_ml_kem.Polynomial.is_bounded_poly 3328 (Seq.index 
-                        ${key_pair.public_key.ind_cpa_public_key.t_as_ntt} i)"#))]
+                        ${key_pair.public_key.ind_cpa_public_key.t_as_ntt} i)"#)))]
                 pub fn key_pair_serialized_public_key(key_pair: &MlKem768KeyPairUnpacked) ->MlKem768PublicKey {
                     key_pair.serialized_public_key::<CPA_PKE_PUBLIC_KEY_SIZE>()
                 }
@@ -538,13 +538,13 @@ pub fn decapsulate(
 /// Decapsulation is not provided in this module as it does not require randomness.
 #[cfg(all(not(eurydice), feature = "rand"))]
 pub mod rand {
-    use crate::RandomnessError;
     use ::rand::TryCryptoRng;
 
     use super::{
         MlKem768Ciphertext, MlKem768KeyPair, MlKem768PublicKey, MlKemSharedSecret,
         KEY_GENERATION_SEED_SIZE, SHARED_SECRET_SIZE,
     };
+    use crate::RandomnessError;
 
     /// Generate ML-KEM 768 Key Pair
     ///
@@ -552,8 +552,7 @@ pub mod rand {
     /// to sample the required randomness internally.
     ///
     /// This function returns an [`MlKem768KeyPair`].
-    // XXX: https://github.com/cryspen/hax/issues/2243
-    #[hax_lib::exclude]
+    #[cfg_attr(hax, hax_lib::fstar::verification_status(lax))]
     pub fn generate_key_pair(
         rng: &mut impl TryCryptoRng,
     ) -> Result<MlKem768KeyPair, RandomnessError> {
@@ -570,8 +569,7 @@ pub mod rand {
     /// The input is a reference to an [`MlKem768PublicKey`].
     /// The random number generator `rng` needs to implement `TryCryptoRng`
     /// to sample the required randomness internally.
-    // XXX: https://github.com/cryspen/hax/issues/2243
-    #[hax_lib::exclude]
+    #[cfg_attr(hax, hax_lib::fstar::verification_status(lax))]
     pub fn encapsulate(
         public_key: &MlKem768PublicKey,
         rng: &mut impl TryCryptoRng,

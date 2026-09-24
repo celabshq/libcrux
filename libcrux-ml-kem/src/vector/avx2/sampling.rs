@@ -5,10 +5,10 @@ use super::{
 };
 
 #[inline(always)]
-#[hax_lib::requires(input.len() == 24 && output.len() == 16)]
-#[hax_lib::ensures(|res|
+#[cfg_attr(hax, hax_lib::requires(input.len() == 24 && output.len() == 16))]
+#[cfg_attr(hax, hax_lib::ensures(|res|
         fstar!(r#"Seq.length $output_future == Seq.length $output /\ v $res <= 16"#)
-    )]
+))]
 pub(crate) fn rejection_sample(input: &[u8], output: &mut [i16]) -> usize {
     let field_modulus = mm256_set1_epi16(FIELD_MODULUS);
 
@@ -30,6 +30,7 @@ pub(crate) fn rejection_sample(input: &[u8], output: &mut [i16]) -> usize {
     // each lane in the register to tell us what coefficients to keep and what
     // to throw-away. Combine all the bits (there are 16) into two bytes.
     let good = serialize_1(compare_with_field_modulus);
+    #[cfg(hax)]
     hax_lib::fstar!(
         r#"assert (v (cast (${good}.[ sz 0 ] <: u8) <: usize) < 256);
         assert (v (cast (${good}.[ sz 1 ] <: u8) <: usize) < 256);

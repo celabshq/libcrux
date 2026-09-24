@@ -12,8 +12,9 @@
 // we separate out the code that does the computation (in _int functions)
 // and code that updates arrays (in the outer functions).
 
-use super::vector_type::*;
 use libcrux_secrets::*;
+
+use super::vector_type::*;
 
 #[cfg_attr(
     hax,
@@ -141,9 +142,9 @@ let deserialize_1_lemma inputs =
 "
     )
 )]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
      ${v.len() == 2}
-"#))]
+"#)))]
 #[inline(always)]
 pub(crate) fn deserialize_1(v: &[U8]) -> PortableVector {
     let result0 = (v[0] & 0x1).as_i16();
@@ -171,9 +172,9 @@ pub(crate) fn deserialize_1(v: &[U8]) -> PortableVector {
 }
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
      ${v.len() == 8}
-"#))]
+"#)))]
 pub(crate) fn serialize_4_int(v: &[I16]) -> (U8, U8, U8, U8) {
     let result0 = ((v[1].as_u8()) << 4) | (v[0].as_u8());
     let result1 = ((v[3].as_u8()) << 4) | (v[2].as_u8());
@@ -238,9 +239,9 @@ pub(crate) fn serialize_4(v: PortableVector) -> [U8; 8] {
 }
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
      ${bytes.len() == 4}
-"#))]
+"#)))]
 pub(crate) fn deserialize_4_int(bytes: &[U8]) -> (I16, I16, I16, I16, I16, I16, I16, I16) {
     let v0 = (bytes[0] & 0x0F).as_i16();
     let v1 = ((bytes[0] >> 4) & 0x0F).as_i16();
@@ -308,9 +309,9 @@ let deserialize_4_lemma inputs =
 "
     )
 )]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
      ${bytes.len() == 8}
-"#))]
+"#)))]
 #[inline(always)]
 pub(crate) fn deserialize_4(bytes: &[U8]) -> PortableVector {
     let v0_7 = deserialize_4_int(&bytes[0..4]);
@@ -324,9 +325,9 @@ pub(crate) fn deserialize_4(bytes: &[U8]) -> PortableVector {
 }
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
      ${v.len() == 8}
-"#))]
+"#)))]
 pub(crate) fn serialize_5_int(v: &[I16]) -> (U8, U8, U8, U8, U8) {
     let r0 = (v[0] | v[1] << 5).as_u8();
     let r1 = (v[1] >> 3 | v[2] << 2 | v[3] << 7).as_u8();
@@ -346,9 +347,9 @@ pub(crate) fn serialize_5(v: PortableVector) -> [U8; 10] {
 }
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
      ${bytes.len() == 5}
-"#))]
+"#)))]
 pub(crate) fn deserialize_5_int(bytes: &[U8]) -> (I16, I16, I16, I16, I16, I16, I16, I16) {
     let v0 = (bytes[0] & 0x1F).as_i16();
     let v1 = ((bytes[1] & 0x3) << 3 | (bytes[0] >> 5)).as_i16();
@@ -361,9 +362,9 @@ pub(crate) fn deserialize_5_int(bytes: &[U8]) -> (I16, I16, I16, I16, I16, I16, 
     (v0, v1, v2, v3, v4, v5, v6, v7)
 }
 
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
      ${bytes.len() == 10}
-"#))]
+"#)))]
 #[inline(always)]
 pub(crate) fn deserialize_5(bytes: &[U8]) -> PortableVector {
     let v0_7 = deserialize_5_int(&bytes[0..5]);
@@ -377,9 +378,9 @@ pub(crate) fn deserialize_5(bytes: &[U8]) -> PortableVector {
 }
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
      ${v.len() == 4}
-"#))]
+"#)))]
 pub(crate) fn serialize_10_int(v: &[I16]) -> (U8, U8, U8, U8, U8) {
     let r0 = (v[0] & 0xFF).as_u8();
     let r1 = ((v[1] & 0x3F).as_u8()) << 2 | ((v[0] >> 8) & 0x03).as_u8();
@@ -441,9 +442,9 @@ pub(crate) fn serialize_10(v: PortableVector) -> [U8; 20] {
 }
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
      ${bytes.len() == 10}
-"#))]
+"#)))]
 pub(crate) fn deserialize_10_int(bytes: &[U8]) -> (I16, I16, I16, I16, I16, I16, I16, I16) {
     let r0 = ((bytes[1].as_i16() & 0x03) << 8 | (bytes[0].as_i16() & 0xFF)).as_i16();
     let r1 = ((bytes[2].as_i16() & 0x0F) << 6 | (bytes[1].as_i16() >> 2)).as_i16();
@@ -512,9 +513,9 @@ let deserialize_10_lemma inputs =
 "#
     )
 )]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
      ${bytes.len() == 20}
-"#))]
+"#)))]
 #[inline(always)]
 pub(crate) fn deserialize_10(bytes: &[U8]) -> PortableVector {
     let v0_7 = deserialize_10_int(&bytes[0..10]);
@@ -528,9 +529,9 @@ pub(crate) fn deserialize_10(bytes: &[U8]) -> PortableVector {
 }
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
      ${v.len() == 8}
-"#))]
+"#)))]
 pub(crate) fn serialize_11_int(v: &[I16]) -> (U8, U8, U8, U8, U8, U8, U8, U8, U8, U8, U8) {
     let r0 = v[0].as_u8();
     let r1 = ((v[1] & 0x1F).as_u8()) << 3 | ((v[0] >> 8).as_u8());
@@ -558,9 +559,9 @@ pub(crate) fn serialize_11(v: PortableVector) -> [U8; 22] {
 }
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
      ${bytes.len() == 11}
-"#))]
+"#)))]
 pub(crate) fn deserialize_11_int(bytes: &[U8]) -> (I16, I16, I16, I16, I16, I16, I16, I16) {
     let r0 = (bytes[1].as_i16() & 0x7) << 8 | bytes[0].as_i16();
     let r1 = (bytes[2].as_i16() & 0x3F) << 5 | (bytes[1].as_i16() >> 3);
@@ -575,9 +576,9 @@ pub(crate) fn deserialize_11_int(bytes: &[U8]) -> (I16, I16, I16, I16, I16, I16,
     (r0, r1, r2, r3, r4, r5, r6, r7)
 }
 
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
      ${bytes.len() == 22}
-"#))]
+"#)))]
 #[inline(always)]
 pub(crate) fn deserialize_11(bytes: &[U8]) -> PortableVector {
     let v0_7 = deserialize_11_int(&bytes[0..11]);
@@ -591,9 +592,9 @@ pub(crate) fn deserialize_11(bytes: &[U8]) -> PortableVector {
 }
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
      ${v.len() == 2}
-"#))]
+"#)))]
 pub(crate) fn serialize_12_int(v: &[I16]) -> (U8, U8, U8) {
     let r0 = (v[0] & 0xFF).as_u8();
     let r1 = ((v[0] >> 8) | ((v[1] & 0x0F) << 4)).as_u8();
@@ -658,9 +659,9 @@ pub(crate) fn serialize_12(v: PortableVector) -> [U8; 24] {
 }
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
      ${bytes.len() == 3}
-"#))]
+"#)))]
 pub(crate) fn deserialize_12_int(bytes: &[U8]) -> (I16, I16) {
     let byte0 = bytes[0].as_i16();
     let byte1 = bytes[1].as_i16();
@@ -726,9 +727,9 @@ let deserialize_12_lemma inputs =
 "
     )
 )]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
      ${bytes.len() == 24}
-"#))]
+"#)))]
 #[inline(always)]
 pub(crate) fn deserialize_12(bytes: &[U8]) -> PortableVector {
     let v0_1 = deserialize_12_int(&bytes[0..3]);
