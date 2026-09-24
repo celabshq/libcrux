@@ -39,7 +39,7 @@ criterion = "0.8.0"
 hex = "0.4.3"
 pretty_env_logger = "0.5.0"
 rand = "0.10"
-wycheproof = "0.6.0"
+wycheproof = "0.7.0"
 
 
 [lints.rust]
