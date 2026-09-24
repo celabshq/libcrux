@@ -219,6 +219,10 @@ fn validate_scalar_(scalar: &[u8; 32]) -> Result<(), Error> {
 }
 
 /// Validate a P256 secret key or nonce (scalar).
+///
+/// For inputs longer than 32 bytes, considers only the trailing 32
+/// bytes. For inputs shorter than 32 bytes, the input is zero-padded
+/// to 32 bytes. Returns an error on an empty slice input.
 fn validate_scalar_slice(scalar: &[u8]) -> Result<[u8; 32], Error> {
     if scalar.is_empty() {
         return Err(Error::InvalidScalar);

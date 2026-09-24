@@ -307,7 +307,7 @@ impl HpkeCrypto for HpkeLibcrux {
                 let alg = kem_key_type_to_libcrux_alg(alg)?;
 
                 let ct =
-                    libcrux_kem::Ct::decode(alg, ct).map_err(|_| Error::AeadInvalidCiphertext)?;
+                    libcrux_kem::Ct::decode(alg, ct).map_err(|_| Error::KemInvalidCiphertext)?;
                 let sk = libcrux_kem::PrivateKey::decode(alg, sk_r)
                     .map_err(|_| Error::KemInvalidSecretKey)?;
                 ct.decapsulate(&sk)
