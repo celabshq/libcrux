@@ -39,6 +39,8 @@ pub enum SessionError {
     Storage,
     /// The maxmium number of derivable channels has been reached
     ReachedMaxChannels,
+    /// The maximum number of messages has been encrypted for a given channel
+    ReachedMaxMessages,
     /// A channel message contains an inappropriate channel identifier
     IdentifierMismatch,
     /// The given payload exceeds the available output buffer
@@ -50,7 +52,8 @@ pub enum SessionError {
 impl From<AEADError> for SessionError {
     fn from(value: AEADError) -> Self {
         match value {
-            AEADError::CryptoError | AEADError::KeyExpired => SessionError::CryptoError,
+            AEADError::KeyExpired => SessionError::ReachedMaxMessages,
+            AEADError::CryptoError => SessionError::CryptoError,
             AEADError::Serialize(error) => SessionError::Serialize(error),
             AEADError::Deserialize(error) => SessionError::Deserialize(error),
         }
@@ -107,6 +110,10 @@ pub struct Session {
 }
 
 // pkBinder = KDF(skCS, g^c | g^s | [pkS])
+/// It is safe to do a non-constant time comparison to a deserialized
+/// value since the serialized session already includes the respective
+/// session key that is needed to derive the binder and all the other
+/// inputs are public values.
 fn derive_pk_binder(
     key: &SessionKey,
     initiator_authenticator: &Authenticator,
