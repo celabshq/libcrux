@@ -11,7 +11,7 @@ pub fn left_encode_byte(num: u8) -> [u8; 2] {
     [1u8, num]
 }
 
-#[hax_lib::ensures(|result| result.len() <= 9)]
+#[cfg_attr(hax, hax_lib::ensures(|result| result.len() <= 9))]
 #[inline(always)]
 pub(crate) fn encode(num: usize, buffer: &mut [u8; 9], left_encode: bool) -> &[u8] {
     let zero_size = zero_bytes(num);
@@ -33,14 +33,14 @@ pub(crate) fn encode(num: usize, buffer: &mut [u8; 9], left_encode: bool) -> &[u
     &buffer[..output_length]
 }
 
-#[hax_lib::ensures(|result| result.len() <= 9)]
+#[cfg_attr(hax, hax_lib::ensures(|result| result.len() <= 9))]
 #[inline(always)]
 /// Left-encode any `num < u64::MAX`.
 pub fn left_encode(num: usize, buffer: &mut [u8; 9]) -> &[u8] {
     encode(num, buffer, true)
 }
 
-#[hax_lib::ensures(|result| result.len() <= 9)]
+#[cfg_attr(hax, hax_lib::ensures(|result| result.len() <= 9))]
 #[inline(always)]
 /// Right-encode any `num < u64::MAX`.
 pub fn right_encode(num: usize, buffer: &mut [u8; 9]) -> &[u8] {

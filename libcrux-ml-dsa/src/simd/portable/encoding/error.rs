@@ -1,7 +1,7 @@
 use crate::{constants::Eta, helper::cloop, simd::portable::vector_type::Coefficients};
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"(forall i. bounded (Seq.index ${simd_unit.values} i) 2) /\ Seq.length $serialized == 3"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"(forall i. bounded (Seq.index ${simd_unit.values} i) 2) /\ Seq.length $serialized == 3"#)))]
 fn serialize_when_eta_is_2(simd_unit: &Coefficients, serialized: &mut [u8]) {
     #[cfg(not(eurydice))]
     debug_assert!(serialized.len() == 3);
@@ -24,12 +24,13 @@ fn serialize_when_eta_is_2(simd_unit: &Coefficients, serialized: &mut [u8]) {
 }
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"(forall i. bounded (Seq.index ${simd_unit.values} i) 4) /\ Seq.length $serialized == 4"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"(forall i. bounded (Seq.index ${simd_unit.values} i) 4) /\ Seq.length $serialized == 4"#)))]
 fn serialize_when_eta_is_4(simd_unit: &Coefficients, serialized: &mut [u8]) {
     const ETA: i32 = 4;
 
     cloop! {
         for (i, coefficients) in simd_unit.values.chunks_exact(2).enumerate() {
+            #[cfg(hax)]
             hax_lib::loop_invariant!(|_i: usize| serialized.len() == 4);
             let coefficient0 = (ETA - coefficients[0]) as u8;
             let coefficient1 = (ETA - coefficients[1]) as u8;
@@ -40,10 +41,10 @@ fn serialize_when_eta_is_4(simd_unit: &Coefficients, serialized: &mut [u8]) {
 }
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
     Seq.length serialized == (match eta with | Libcrux_ml_dsa.Constants.Eta_Two -> 3 | Libcrux_ml_dsa.Constants.Eta_Four -> 4)
  /\ (forall i. bounded (Seq.index simd_unit.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i) (match eta with | Libcrux_ml_dsa.Constants.Eta_Two -> 2 | Libcrux_ml_dsa.Constants.Eta_Four -> 4))
-"#))]
+"#)))]
 pub(crate) fn serialize(eta: Eta, simd_unit: &Coefficients, serialized: &mut [u8]) {
     // [eurydice] injects an unused variable here in the C code for some reason.
     match eta {
@@ -53,7 +54,7 @@ pub(crate) fn serialize(eta: Eta, simd_unit: &Coefficients, serialized: &mut [u8
 }
 
 #[inline(always)]
-#[hax_lib::requires(serialized.len() == 3)]
+#[cfg_attr(hax, hax_lib::requires(serialized.len() == 3))]
 fn deserialize_when_eta_is_2(serialized: &[u8], simd_unit: &mut Coefficients) {
     #[cfg(not(eurydice))]
     debug_assert!(serialized.len() == 3);
@@ -64,6 +65,7 @@ fn deserialize_when_eta_is_2(serialized: &[u8], simd_unit: &mut Coefficients) {
     let byte1 = serialized[1] as i32;
     let byte2 = serialized[2] as i32;
 
+    #[cfg(hax)]
     hax_lib::fstar!("let (): squash (forall (x: int_t I32). get_bit x (mk_int 31) == 0 ==> v x >= 0) = reveal_opaque (`%get_bit) (get_bit #I32) in ()");
 
     simd_unit.values[0] = ETA - (byte0 & 7);
@@ -77,7 +79,7 @@ fn deserialize_when_eta_is_2(serialized: &[u8], simd_unit: &mut Coefficients) {
 }
 
 #[inline(always)]
-#[hax_lib::requires(serialized.len() == 4)]
+#[cfg_attr(hax, hax_lib::requires(serialized.len() == 4))]
 fn deserialize_when_eta_is_4(serialized: &[u8], simd_units: &mut Coefficients) {
     #[cfg(not(eurydice))]
     debug_assert!(serialized.len() == 4);
@@ -86,6 +88,7 @@ fn deserialize_when_eta_is_4(serialized: &[u8], simd_units: &mut Coefficients) {
 
     cloop! {
         for (i, byte) in serialized.iter().enumerate() {
+            #[cfg(hax)]
             hax_lib::fstar!("let (): squash (forall (x: int_t I32). get_bit x (mk_int 31) == 0 ==> v x >= 0) = reveal_opaque (`%get_bit) (get_bit #I32) in ()");
 
             simd_units.values[2 * i] = ETA - ((byte & 0xF) as i32);
@@ -94,7 +97,7 @@ fn deserialize_when_eta_is_4(serialized: &[u8], simd_units: &mut Coefficients) {
     }
 }
 #[inline(always)]
-#[hax_lib::requires(serialized.len() == (match eta { Eta::Two => 3, Eta::Four => 4 }))]
+#[cfg_attr(hax, hax_lib::requires(serialized.len() == (match eta { Eta::Two => 3, Eta::Four => 4 })))]
 pub(crate) fn deserialize(eta: Eta, serialized: &[u8], out: &mut Coefficients) {
     // [eurydice] injects an unused variable here in the C code for some reason.
     //            That's why we don't match here.

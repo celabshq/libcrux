@@ -6,33 +6,35 @@ use crate::{
 };
 
 #[inline]
-#[hax_lib::fstar::before(r#"open Spec.Intrinsics"#)]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(true)]
-#[hax_lib::ensures(|result| fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::before(r#"open Spec.Intrinsics"#))]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(true))]
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"
     forall i. if v (to_i32x8 $t i) < 0 
               then to_i32x8 $result i = to_i32x8 $t i +! $FIELD_MODULUS
               else to_i32x8 $result i = to_i32x8 $t i)) =
-"#))]
+"#)))]
 fn to_unsigned_representatives_ret(t: &Vec256) -> Vec256 {
+    #[cfg(hax)]
     hax_lib::fstar!("reveal_opaque_arithmetic_ops #i32_inttype)");
 
     let signs = mm256_srai_epi32::<31>(*t);
     let conditional_add_field_modulus = mm256_and_si256(signs, mm256_set1_epi32(FIELD_MODULUS));
 
+    #[cfg(hax)]
     hax_lib::fstar!(r"logand_lemma $FIELD_MODULUS (mk_i32 0)");
 
     mm256_add_epi32(*t, conditional_add_field_modulus)
 }
 
 #[inline]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(true)]
-#[hax_lib::ensures(|_| fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(true))]
+#[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"
     forall i. if v (to_i32x8 $t i) < 0 
               then to_i32x8 tt_future i = to_i32x8 $t i +! $FIELD_MODULUS
               else to_i32x8 tt_future i = to_i32x8 $t i)) =
-"#))]
+"#)))]
 fn to_unsigned_representatives(t: &mut Vec256) {
     *t = to_unsigned_representatives_ret(t);
 }
@@ -49,12 +51,13 @@ pub(super) fn subtract(lhs: &mut Vec256, rhs: &Vec256) {
 
 // Not using inline always here regresses performance significantly.
 #[inline(always)]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::ensures(|result| fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"
     forall i. to_i32x8 ${result} i == 
               Spec.MLDSA.Math.mont_mul (to_i32x8 ${lhs} i) $constant
-"#))]
+"#)))]
 pub(super) fn montgomery_multiply_by_constant(lhs: Vec256, constant: i32) -> Vec256 {
+    #[cfg(hax)]
     hax_lib::fstar!("reveal_opaque (`%Spec.MLDSA.Math.mont_mul) (Spec.MLDSA.Math.mont_mul)");
 
     let rhs = mm256_set1_epi32(constant);
@@ -82,24 +85,25 @@ pub(super) fn montgomery_multiply_by_constant(lhs: Vec256, constant: i32) -> Vec
 
 // Not using inline always here regresses performance significantly.
 #[inline(always)]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(
     hax_lib::eq(field_modulus, mm256_set1_epi32(FIELD_MODULUS)).and(hax_lib::eq(
         inverse_of_modulus_mod_montgomery_r,
         mm256_set1_epi32(INVERSE_OF_MODULUS_MOD_MONTGOMERY_R as i32),
     ))
-)]
-#[hax_lib::ensures(|_| fstar!(r#"
+))]
+#[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"
     forall i. to_i32x8 ${lhs}_future i ==
               Spec.MLDSA.Math.mont_mul (to_i32x8 ${lhs} i) (to_i32x8 ${rhs} i)
-"#))]
-#[hax_lib::fstar::verification_status(panic_free)]
+"#)))]
+#[cfg_attr(hax, hax_lib::fstar::verification_status(panic_free))]
 pub(super) fn montgomery_multiply_aux(
     field_modulus: Vec256,
     inverse_of_modulus_mod_montgomery_r: Vec256,
     lhs: &mut Vec256,
     rhs: &Vec256,
 ) {
+    #[cfg(hax)]
     hax_lib::fstar!("reveal_opaque (`%Spec.MLDSA.Math.mont_mul) (Spec.MLDSA.Math.mont_mul)");
 
     let prod02 = mm256_mul_epi32(*lhs, *rhs);
@@ -121,11 +125,11 @@ pub(super) fn montgomery_multiply_aux(
 
 // Not using inline always here regresses performance significantly.
 #[inline(always)]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::ensures(|_| fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"
     forall i. to_i32x8 ${lhs}_future i == 
               Spec.MLDSA.Math.mont_mul (to_i32x8 ${lhs} i) (to_i32x8 ${rhs} i)
-"#))]
+"#)))]
 pub(super) fn montgomery_multiply(lhs: &mut Vec256, rhs: &Vec256) {
     let field_modulus = mm256_set1_epi32(FIELD_MODULUS);
     let inverse_of_modulus_mod_montgomery_r =
@@ -135,12 +139,13 @@ pub(super) fn montgomery_multiply(lhs: &mut Vec256, rhs: &Vec256) {
 }
 
 #[inline]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"v $SHIFT_BY == 13"#))]
-#[hax_lib::ensures(|_| fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"v $SHIFT_BY == 13"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"
     (forall i. to_i32x8 ${simd_unit}_future i ==
-        Spec.MLDSA.Math.barrett_red (shift_left_opaque (to_i32x8 ${simd_unit} i) v_SHIFT_BY))"#))]
+        Spec.MLDSA.Math.barrett_red (shift_left_opaque (to_i32x8 ${simd_unit} i) v_SHIFT_BY))"#)))]
 pub(super) fn shift_left_then_reduce<const SHIFT_BY: i32>(simd_unit: &mut Vec256) {
+    #[cfg(hax)]
     hax_lib::fstar!("reveal_opaque (`%Spec.MLDSA.Math.barrett_red) (Spec.MLDSA.Math.barrett_red)");
 
     let mut shifted = mm256_slli_epi32::<SHIFT_BY>(*simd_unit);
@@ -150,11 +155,11 @@ pub(super) fn shift_left_then_reduce<const SHIFT_BY: i32>(simd_unit: &mut Vec256
 }
 
 #[inline]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::ensures(|_| fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"
     (forall i. to_i32x8 ${simd_unit}_future i ==
-        Spec.MLDSA.Math.barrett_red (to_i32x8 ${simd_unit} i))"#))]
-#[hax_lib::fstar::verification_status(panic_free)]
+        Spec.MLDSA.Math.barrett_red (to_i32x8 ${simd_unit} i))"#)))]
+#[cfg_attr(hax, hax_lib::fstar::verification_status(panic_free))]
 pub(super) fn barrett_reduce_simd_unit(simd_unit: &mut Vec256) {
     let quotient = mm256_add_epi32(*simd_unit, mm256_set1_epi32(1 << 22));
     let quotient = mm256_srai_epi32::<23>(quotient);
@@ -166,13 +171,13 @@ pub(super) fn barrett_reduce_simd_unit(simd_unit: &mut Vec256) {
 }
 
 #[inline]
-#[hax_lib::fstar::options("--fuel 0 --ifuel 0 --z3rlimit 300")]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"v $bound > 0 /\ 
-    (forall i. Spec.Utils.is_i32b (v $FIELD_MODULUS - 1) (to_i32x8 ${simd_unit} i))"#))]
-#[hax_lib::ensures(|result| fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::options("--fuel 0 --ifuel 0 --z3rlimit 300"))]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"v $bound > 0 /\ 
+    (forall i. Spec.Utils.is_i32b (v $FIELD_MODULUS - 1) (to_i32x8 ${simd_unit} i))"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"
     $result == false <==> 
-        (forall i. Spec.Utils.is_i32b (v $bound - 1) (to_i32x8 ${simd_unit} i))"#))]
+        (forall i. Spec.Utils.is_i32b (v $bound - 1) (to_i32x8 ${simd_unit} i))"#)))]
 pub(super) fn infinity_norm_exceeds(simd_unit: &Vec256, bound: i32) -> bool {
     let absolute_values = mm256_abs_epi32(*simd_unit);
 
@@ -185,22 +190,24 @@ pub(super) fn infinity_norm_exceeds(simd_unit: &Vec256, bound: i32) -> bool {
     // If every lane of |result| is 0, all coefficients are <= bound - 1
     let result = mm256_testz_si256(compare_with_bound, compare_with_bound);
 
+    #[cfg(hax)]
     hax_lib::fstar!(r"logand_lemma_forall #i32_inttype");
 
     result != 1
 }
 
 #[inline]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"
-    forall i. Spec.Utils.is_i32b (v $FIELD_MODULUS - 1) (to_i32x8 $r0 i)"#))]
-#[hax_lib::ensures(|_| fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
+    forall i. Spec.Utils.is_i32b (v $FIELD_MODULUS - 1) (to_i32x8 $r0 i)"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|_| fstar!(r#"
     forall i. 
         let (t0, t1) = Spec.MLDSA.Math.power2round (v (to_i32x8 $r0 i)) in
         (to_i32x8 ${r0}_future i == mk_i32 t0 /\
          to_i32x8 ${r1}_future i == mk_i32 t1 /\
-         Spec.Utils.is_i32b (pow2 (v $BITS_IN_LOWER_PART_OF_T - 1)) (to_i32x8 ${r0}_future i))"#))]
+         Spec.Utils.is_i32b (pow2 (v $BITS_IN_LOWER_PART_OF_T - 1)) (to_i32x8 ${r0}_future i))"#)))]
 pub(super) fn power2round(r0: &mut Vec256, r1: &mut Vec256) {
+    #[cfg(hax)]
     hax_lib::fstar!("reveal_opaque_arithmetic_ops #i32_inttype");
 
     to_unsigned_representatives(r0);
@@ -217,14 +224,14 @@ pub(super) fn power2round(r0: &mut Vec256, r1: &mut Vec256) {
 
 // Not using inline always here regresses performance significantly.
 #[inline(always)]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(fstar!(r#"(v $gamma2 == v $GAMMA2_V261_888 \/ v $gamma2 == v $GAMMA2_V95_232) /\
-    (forall i. Spec.Utils.is_i32b (v $FIELD_MODULUS - 1) (to_i32x8 $r i))"#))]
-#[hax_lib::ensures(|(r0,r1)| fstar!(r#"
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"(v $gamma2 == v $GAMMA2_V261_888 \/ v $gamma2 == v $GAMMA2_V95_232) /\
+    (forall i. Spec.Utils.is_i32b (v $FIELD_MODULUS - 1) (to_i32x8 $r i))"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|(r0,r1)| fstar!(r#"
     forall i.
     let (r0_s, r1_s) = Spec.MLDSA.Math.decompose_spec $gamma2 (to_i32x8 $r i) in
     to_i32x8 ${r0}_future i = r0_s /\ 
-    to_i32x8 ${r1}_future i = r1_s"#))]
+    to_i32x8 ${r1}_future i = r1_s"#)))]
 pub(super) fn decompose(gamma2: Gamma2, r: &Vec256, r0: &mut Vec256, r1: &mut Vec256) {
     let r = to_unsigned_representatives_ret(r);
 
@@ -281,8 +288,8 @@ pub(super) fn decompose(gamma2: Gamma2, r: &Vec256, r0: &mut Vec256, r1: &mut Ve
 
 // Not using inline always here regresses performance significantly.
 #[inline(always)]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::fstar::verification_status(lax)]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::fstar::verification_status(lax))]
 pub(super) fn compute_hint(low: &Vec256, high: &Vec256, gamma2: i32, hint: &mut Vec256) -> usize {
     let minus_gamma2 = mm256_set1_epi32(-gamma2);
     let gamma2 = mm256_set1_epi32(gamma2);
@@ -308,8 +315,8 @@ pub(super) fn compute_hint(low: &Vec256, high: &Vec256, gamma2: i32, hint: &mut 
 
 // Not using inline always here regresses performance significantly.
 #[inline(always)]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::fstar::verification_status(lax)]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::fstar::verification_status(lax))]
 pub(super) fn use_hint(gamma2: Gamma2, r: &Vec256, hint: &mut Vec256) {
     let (mut r0, mut r1) = (mm256_setzero_si256(), mm256_setzero_si256());
     decompose(gamma2, r, &mut r0, &mut r1);

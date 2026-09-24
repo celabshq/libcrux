@@ -1,8 +1,8 @@
 use crate::simd::portable::vector_type::Coefficients;
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r"Seq.length ${serialized} == 4 /\ (forall i. bounded (Seq.index ${simd_unit.values} i) 4)"))]
-#[hax_lib::ensures(|out| {
+#[cfg_attr(hax, hax_lib::requires(fstar!(r"Seq.length ${serialized} == 4 /\ (forall i. bounded (Seq.index ${simd_unit.values} i) 4)")))]
+#[cfg_attr(hax, hax_lib::ensures(|out| {
     let serialized_future = future(serialized);
     fstar!(r"
 Seq.length ${serialized_future} == Seq.length ${serialized} /\
@@ -10,7 +10,7 @@ Seq.length ${serialized_future} == Seq.length ${serialized} /\
  let out = bit_vec_of_int_t_array #U8  #(mk_usize 4) ${serialized_future} 8 in
  forall (i: nat {i < 8 * 4}). inp i == out i)
 ")
-})]
+}))]
 fn serialize_4(simd_unit: &Coefficients, serialized: &mut [u8]) {
     let coefficient0 = simd_unit.values[0] as u8;
     let coefficient1 = simd_unit.values[1] as u8;
@@ -33,9 +33,9 @@ fn serialize_4(simd_unit: &Coefficients, serialized: &mut [u8]) {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 300")]
-#[hax_lib::requires(fstar!(r"Seq.length ${serialized} == 6 /\ (forall i. bounded (Seq.index ${simd_unit.values} i) 6)"))]
-#[hax_lib::ensures(|out| {
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 300"))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r"Seq.length ${serialized} == 6 /\ (forall i. bounded (Seq.index ${simd_unit.values} i) 6)")))]
+#[cfg_attr(hax, hax_lib::ensures(|out| {
     let serialized_future = future(serialized);
     fstar!(r"
 Seq.length ${serialized_future} == Seq.length ${serialized} /\
@@ -43,7 +43,7 @@ Seq.length ${serialized_future} == Seq.length ${serialized} /\
  let out = bit_vec_of_int_t_array #U8  #(mk_usize 6) ${serialized_future} 8 in
  forall (i: nat {i < 8 * 6}). inp i == out i)
 ")
-})]
+}))]
 pub fn serialize_6(simd_unit: &Coefficients, serialized: &mut [u8]) {
     // The commitment has coefficients in [0,43] => each coefficient occupies
     // 6 bits.
@@ -73,14 +73,14 @@ pub fn serialize_6(simd_unit: &Coefficients, serialized: &mut [u8]) {
 }
 
 #[inline(always)]
-#[hax_lib::requires(
+#[cfg_attr(hax, hax_lib::requires(
     fstar!(r"
         let d = Seq.length $serialized in
            (d == 4 \/ d == 6)
         /\ (forall i. bounded (Seq.index ${simd_unit.values} i) d)
     ")
-)]
-#[hax_lib::ensures(|out| {
+))]
+#[cfg_attr(hax, hax_lib::ensures(|out| {
     let serialized_future = future(serialized);
     fstar!(r"
 let d = Seq.length ${serialized} in
@@ -89,7 +89,7 @@ let d = Seq.length ${serialized} in
    let out = bit_vec_of_int_t_array #U8  #(mk_usize d) ${serialized_future} 8 in
    forall (i: nat {i < 8 * d}). inp i == out i))
 ")
-})]
+}))]
 pub(in crate::simd::portable) fn serialize(simd_unit: &Coefficients, serialized: &mut [u8]) {
     match serialized.len() as u8 {
         4 => serialize_4(simd_unit, serialized),

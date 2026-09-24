@@ -1,16 +1,16 @@
 use libcrux_intrinsics::avx2::*;
 
 #[inline(always)]
-#[hax_lib::fstar::options("--z3rlimit 800")]
-#[hax_lib::fstar::before("open Spec.Intrinsics")]
-#[hax_lib::requires(out.len() == 10)]
-#[hax_lib::ensures(|_result| fstar!(r"
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 800"))]
+#[cfg_attr(hax, hax_lib::fstar::before("open Spec.Intrinsics"))]
+#[cfg_attr(hax, hax_lib::requires(out.len() == 10))]
+#[cfg_attr(hax, hax_lib::ensures(|_result| fstar!(r"
    Seq.length ${out}_future == 10 /\
    (forall (i:nat).
      i < 80 ==>
        ${simd_unit}.(mk_int (32*(i/10) + (i%10))) == (u8_to_bv (Seq.index ${out}_future (i/8)))(mk_int (i % 8)))
-"))]
-#[hax_lib::fstar::verification_status(panic_free)]
+")))]
+#[cfg_attr(hax, hax_lib::fstar::verification_status(panic_free))]
 pub(crate) fn serialize(simd_unit: &Vec256, out: &mut [u8]) {
     #[cfg(not(eurydice))]
     debug_assert!(out.len() == 10);
@@ -41,10 +41,10 @@ pub(crate) fn serialize(simd_unit: &Vec256, out: &mut [u8]) {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options("--fuel 0 --ifuel 1 --z3rlimit 300")]
-#[hax_lib::fstar::before("open Spec.Intrinsics")]
-#[hax_lib::requires(bytes.len() == 10)]
-#[hax_lib::ensures(|_result| fstar!(r"
+#[cfg_attr(hax, hax_lib::fstar::options("--fuel 0 --ifuel 1 --z3rlimit 300"))]
+#[cfg_attr(hax, hax_lib::fstar::before("open Spec.Intrinsics"))]
+#[cfg_attr(hax, hax_lib::requires(bytes.len() == 10))]
+#[cfg_attr(hax, hax_lib::ensures(|_result| fstar!(r"
   (forall (i:nat).
     i < 80 ==>
       (u8_to_bv (Seq.index $bytes (i/8)))(mk_int (i%8)) == ${out}_future.(mk_int (32*(i/10) + (i%10)))
@@ -53,7 +53,7 @@ pub(crate) fn serialize(simd_unit: &Vec256, out: &mut [u8]) {
     j < 256 ==>
     j % 32 > 10 ==>
        ${out}_future.(mk_int j) == Libcrux_core_models.Abstractions.Bit.Bit_Zero
-  )"))]
+  )")))]
 pub(crate) fn deserialize(bytes: &[u8], out: &mut Vec256) {
     #[cfg(not(eurydice))]
     debug_assert_eq!(bytes.len(), 10);

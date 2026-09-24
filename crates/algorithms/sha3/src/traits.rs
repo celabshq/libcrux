@@ -6,13 +6,13 @@ use crate::proof_utils::{slices_same_len, valid_rate};
 
 // XXX: These should be default functions on `KeccakItem`, but hax doesn't
 //      support that yet. cryspen/hax#888
-#[hax_lib::requires(i < 5 && j < 5)]
+#[cfg_attr(hax, hax_lib::requires(i < 5 && j < 5))]
 #[inline(always)]
 pub(crate) fn get_ij<const N: usize, T: KeccakItem<N>>(arr: &[T; 25], i: usize, j: usize) -> &T {
     &arr[5 * i + j]
 }
 
-#[hax_lib::requires(i < 5 && j < 5)]
+#[cfg_attr(hax, hax_lib::requires(i < 5 && j < 5))]
 #[inline(always)]
 pub(crate) fn set_ij<const N: usize, T: KeccakItem<N>>(
     arr: &mut [T; 25],
@@ -24,46 +24,46 @@ pub(crate) fn set_ij<const N: usize, T: KeccakItem<N>>(
 }
 
 /// A Keccak Item for multiplexing arithmetic implementations.
-#[hax_lib::attributes]
+#[cfg_attr(hax, hax_lib::attributes)]
 pub(crate) trait KeccakItem<const N: usize>: Clone + Copy {
     /// Zero
-    #[hax_lib::requires(true)]
+    #[cfg_attr(hax, hax_lib::requires(true))]
     fn zero() -> Self;
 
     /// `a ^ b ^ c ^ d ^ e`
-    #[hax_lib::requires(true)]
+    #[cfg_attr(hax, hax_lib::requires(true))]
     fn xor5(a: Self, b: Self, c: Self, d: Self, e: Self) -> Self;
 
     /// `a ^ (b <<< 1)``
-    #[hax_lib::requires(true)]
+    #[cfg_attr(hax, hax_lib::requires(true))]
     fn rotate_left1_and_xor(a: Self, b: Self) -> Self;
 
     /// `(a ^ b) <<< LEFT`
-    #[hax_lib::requires(
+    #[cfg_attr(hax, hax_lib::requires(
         LEFT.to_int() + RIGHT.to_int() == 64.to_int() &&
         RIGHT > 0 &&
         RIGHT < 64
-    )]
+    ))]
     fn xor_and_rotate<const LEFT: i32, const RIGHT: i32>(a: Self, b: Self) -> Self;
 
     /// `a ^ (b & !c)`
-    #[hax_lib::requires(true)]
+    #[cfg_attr(hax, hax_lib::requires(true))]
     fn and_not_xor(a: Self, b: Self, c: Self) -> Self;
 
     /// `a ^ c`
-    #[hax_lib::requires(true)]
+    #[cfg_attr(hax, hax_lib::requires(true))]
     fn xor_constant(a: Self, c: u64) -> Self;
 
     /// `a ^ b`
-    #[hax_lib::requires(true)]
+    #[cfg_attr(hax, hax_lib::requires(true))]
     fn xor(a: Self, b: Self) -> Self;
 }
 
 /// Trait to load new bytes into the state.
-#[hax_lib::attributes]
+#[cfg_attr(hax, hax_lib::attributes)]
 pub(crate) trait Absorb<const N: usize> {
     /// Absorb a block
-    #[hax_lib::requires(
+    #[cfg_attr(hax, hax_lib::requires(
       from_bool(
         N != 0 &&
         valid_rate(RATE) &&
@@ -71,11 +71,11 @@ pub(crate) trait Absorb<const N: usize> {
       ).and(
         slices_same_len(input)
       )
-    )]
+    ))]
     fn load_block<const RATE: usize>(&mut self, input: &[&[u8]; N], start: usize);
 
     /// Absorb the last block (may be partial)
-    #[hax_lib::requires(
+    #[cfg_attr(hax, hax_lib::requires(
       from_bool(
         N != 0 &&
         valid_rate(RATE) &&
@@ -84,7 +84,7 @@ pub(crate) trait Absorb<const N: usize> {
       ).and(
         slices_same_len(input)
       )
-    )]
+    ))]
     fn load_last<const RATE: usize, const DELIMITER: u8>(
         &mut self,
         input: &[&[u8]; N],
@@ -104,7 +104,7 @@ pub(crate) trait Absorb<const N: usize> {
 /// handle the mutability required for a generic implementation.
 ///
 /// Store blocks `N = 1`
-#[hax_lib::fstar::replace(
+#[cfg_attr(hax, hax_lib::fstar::replace(
     interface, "
 class t_Squeeze (v_Self: Type0) (v_T: Type0) = {
   // TODO: This super variable is problematic and makes typecheck fail
@@ -144,15 +144,15 @@ class t_Squeeze (v_Self: Type0) (v_T: Type0) = {
 // [@@ FStar.Tactics.Typeclasses.tcinstance]
 // let _ = fun (v_Self:Type0) (v_T:Type0) {|i: t_Squeeze v_Self v_T|} -> i._super_18390613159176269294
 "
-)]
-#[hax_lib::attributes]
+))]
+#[cfg_attr(hax, hax_lib::attributes)]
 pub(crate) trait Squeeze<T: KeccakItem<1>> {
-    #[hax_lib::requires(
+    #[cfg_attr(hax, hax_lib::requires(
         valid_rate(RATE) &&
         len <= RATE &&
         start.to_int() + len.to_int() <= out.len().to_int()
-    )]
-    #[hax_lib::ensures(|_| future(out).len() == out.len())]
+    ))]
+    #[cfg_attr(hax, hax_lib::ensures(|_| future(out).len() == out.len()))]
     fn squeeze<const RATE: usize>(&self, out: &mut [u8], start: usize, len: usize);
 }
 

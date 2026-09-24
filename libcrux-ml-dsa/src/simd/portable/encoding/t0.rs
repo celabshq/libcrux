@@ -3,16 +3,16 @@ use crate::{constants::BITS_IN_LOWER_PART_OF_T, simd::portable::vector_type::Coe
 // If t0 is a signed representative, change it to an unsigned one and
 // vice versa.
 #[inline(always)]
-#[hax_lib::requires(t0 > i32::MIN + 4096)]
+#[cfg_attr(hax, hax_lib::requires(t0 > i32::MIN + 4096))]
 fn change_t0_interval(t0: i32) -> i32 {
     (1 << (BITS_IN_LOWER_PART_OF_T - 1)) - t0
 }
 
 #[inline(always)]
-#[hax_lib::requires(fstar!(r#"
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"
     (forall i. bounded (Seq.index simd_unit.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values i) 13)
  /\ (Seq.length $serialized == 13)
-"#))]
+"#)))]
 pub fn serialize(simd_unit: &Coefficients, serialized: &mut [u8]) {
     #[cfg(not(eurydice))]
     debug_assert!(serialized.len() == 13);
@@ -42,7 +42,7 @@ pub fn serialize(simd_unit: &Coefficients, serialized: &mut [u8]) {
 }
 
 #[inline(always)]
-#[hax_lib::requires(serialized.len() == 13)]
+#[cfg_attr(hax, hax_lib::requires(serialized.len() == 13))]
 pub fn deserialize(serialized: &[u8], simd_unit: &mut Coefficients) {
     #[cfg(not(eurydice))]
     debug_assert!(serialized.len() == 13);
@@ -99,6 +99,7 @@ pub fn deserialize(serialized: &[u8], simd_unit: &mut Coefficients) {
     coefficient7 |= byte12 << 5;
     coefficient7 &= BITS_IN_LOWER_PART_OF_T_MASK;
 
+    #[cfg(hax)]
     hax_lib::fstar!("let (): squash (forall (x: int_t I32). get_bit x (mk_int 31) == 0 ==> v x >= 0) = reveal_opaque (`%get_bit) (get_bit #I32) in ()");
 
     simd_unit.values[0] = change_t0_interval(coefficient0);

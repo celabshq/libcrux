@@ -28,8 +28,10 @@ libcrux-sha3.workspace = true
 libcrux-intrinsics.workspace = true
 libcrux-secrets.workspace = true
 libcrux-traits.workspace = true
-hax-lib.workspace = true
 tls_codec = { workspace = true, optional = true }
+
+[target.'cfg(hax)'.dependencies]
+hax-lib.workspace = true
 
 [features]
 # By default all variants and std are enabled.

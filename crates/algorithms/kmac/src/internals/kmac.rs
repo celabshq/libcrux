@@ -2,7 +2,7 @@ use libcrux_sha3::portable::incremental::{left_encode, left_encode_byte, right_e
 
 const KMAC_LABEL: &[u8; 4] = b"KMAC";
 
-#[hax_lib::requires(RATE == 136 || RATE == 168)]
+#[cfg_attr(hax, hax_lib::requires(RATE == 136 || RATE == 168))]
 pub fn compute_kmac<'a, const RATE: usize, CShakeState: CShake<RATE>>(
     tag: &'a mut [u8],
     tag_length: usize,

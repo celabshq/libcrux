@@ -12,8 +12,8 @@ fn change_interval(simd_unit: &Vec256) -> Vec256 {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::before("open Spec.Intrinsics")]
-#[hax_lib::fstar::before(r#"
+#[cfg_attr(hax, hax_lib::fstar::before("open Spec.Intrinsics"))]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"
 let mm256_add_epi64_lemma_smtpat lhs rhs (i: u64 {v i < 256})
   : Lemma
     (requires
@@ -26,12 +26,12 @@ let mm256_add_epi64_lemma_smtpat lhs rhs (i: u64 {v i < 256})
     )
     [SMTPat (Libcrux_intrinsics.Avx2.mm256_add_epi64 lhs rhs).(i)]
     = mm256_add_epi64_lemma lhs rhs i
-"#)]
-#[hax_lib::fstar::options("--fuel 0 --ifuel 0 --z3rlimit 500")]
-#[hax_lib::requires(fstar!(r#"forall i. v i % 32 >= 13 ==> ${simd_unit}.(i) == Libcrux_core_models.Abstractions.Bit.Bit_Zero"#))]
-#[hax_lib::ensures(|out|fstar!(r#"
-forall (i: nat {i < 8}) (j: nat {j < 13}). ${out}.(mk_int (i * 13 + j)) == ${simd_unit}.(mk_int (i * 32 + j))
 "#))]
+#[cfg_attr(hax, hax_lib::fstar::options("--fuel 0 --ifuel 0 --z3rlimit 500"))]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"forall i. v i % 32 >= 13 ==> ${simd_unit}.(i) == Libcrux_core_models.Abstractions.Bit.Bit_Zero"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|out|fstar!(r#"
+forall (i: nat {i < 8}) (j: nat {j < 13}). ${out}.(mk_int (i * 13 + j)) == ${simd_unit}.(mk_int (i * 32 + j))
+"#)))]
 // `serialize_aux` contains the AVX2-only pure operations.
 // This split is required for the F* proof to go through.
 pub(crate) fn serialize_aux(simd_unit: Vec256) -> Vec128 {
@@ -55,22 +55,27 @@ pub(crate) fn serialize_aux(simd_unit: Vec256) -> Vec128 {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::options(r#"--ifuel 0 --z3rlimit 340 --split_queries always"#)]
-#[hax_lib::requires(fstar!(r#"forall i. let x = (v $POW_2_BITS_IN_LOWER_PART_OF_T_MINUS_ONE - v (to_i32x8 $simd_unit i)) in x >= 0 && x < pow2 13"#))]
-#[hax_lib::ensures(|_result| fstar!(r#"
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::options(r#"--ifuel 0 --z3rlimit 340 --split_queries always"#)
+)]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"forall i. let x = (v $POW_2_BITS_IN_LOWER_PART_OF_T_MINUS_ONE - v (to_i32x8 $simd_unit i)) in x >= 0 && x < pow2 13"#)))]
+#[cfg_attr(hax, hax_lib::ensures(|_result| fstar!(r#"
       Seq.length ${out}_future == 13
     /\ (forall (i:nat{i < 8 * 13}).
       u8_to_bv (Seq.index ${out}_future (i / 8)) (mk_int (i % 8))
    == i32_to_bv (         $POW_2_BITS_IN_LOWER_PART_OF_T_MINUS_ONE
                 `sub_mod` to_i32x8 $simd_unit (mk_int (i / 13))) (mk_int (i % 13)))
-"#))]
-#[hax_lib::fstar::verification_status(lax)]
+"#)))]
+#[cfg_attr(hax, hax_lib::fstar::verification_status(lax))]
 pub(crate) fn serialize(simd_unit: &Vec256, out: &mut [u8]) {
     let mut serialized = [0u8; 16];
 
     let simd_unit_changed = change_interval(simd_unit);
 
+    #[cfg(hax)]
     hax_lib::fstar!("i32_lt_pow2_n_to_bit_zero_lemma 13 $simd_unit_changed");
+    #[cfg(hax)]
     hax_lib::fstar!("reveal_opaque_arithmetic_ops #I32");
     let bits_sequential = serialize_aux(simd_unit_changed);
     mm_storeu_bytes_si128(&mut serialized, bits_sequential);
@@ -79,8 +84,10 @@ pub(crate) fn serialize(simd_unit: &Vec256, out: &mut [u8]) {
 }
 
 #[inline(always)]
-#[hax_lib::fstar::before(
-    r#"
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::before(
+        r#"
 let deserialize_unsigned_post
   (serialized: t_Slice u8{Seq.length serialized == 13})
   (result: bv256)
@@ -91,10 +98,11 @@ let deserialize_unsigned_post
     (forall (i: nat{i < 256}).
        i % 32 >= bytes ==> Libcrux_core_models.Abstractions.Bit.Bit_Zero? result.(mk_int i))
 "#
+    )
 )]
-#[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
-#[hax_lib::requires(serialized.len() == 13)]
-#[hax_lib::ensures(|_result| fstar!("deserialize_unsigned_post $serialized ${out}_future"))]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
+#[cfg_attr(hax, hax_lib::requires(serialized.len() == 13))]
+#[cfg_attr(hax, hax_lib::ensures(|_result| fstar!("deserialize_unsigned_post $serialized ${out}_future")))]
 fn deserialize_unsigned(serialized: &[u8], out: &mut Vec256) {
     const COEFFICIENT_MASK: i32 = (1 << 13) - 1;
 
@@ -115,12 +123,13 @@ fn deserialize_unsigned(serialized: &[u8], out: &mut Vec256) {
 
     let coefficients = mm256_srlv_epi32(coefficients, mm256_set_epi32(3, 6, 1, 4, 7, 2, 5, 0));
     let coefficients = mm256_and_si256(coefficients, mm256_set1_epi32(COEFFICIENT_MASK));
+    #[cfg(hax)]
     hax_lib::fstar!("i32_to_bv_pow2_min_one_lemma_fa 13");
     *out = coefficients
 }
 
 #[inline(always)]
-#[hax_lib::fstar::before(
+#[cfg_attr(hax, hax_lib::fstar::before(
     r#"
 let deserialize_post
          (serialized: t_Slice u8 {Seq.length serialized == 13})
@@ -129,9 +138,9 @@ let deserialize_post
     /\ ( let out_reverted = mk_i32x8 (fun i -> neg (to_i32x8 result i) `add_mod` $POW_2_BITS_IN_LOWER_PART_OF_T_MINUS_ONE) in
         deserialize_unsigned_post serialized out_reverted)
 "#
-)]
-#[hax_lib::requires(serialized.len() == 13)]
-#[hax_lib::ensures(|result| fstar!("deserialize_post $serialized ${out}_future"))]
+))]
+#[cfg_attr(hax, hax_lib::requires(serialized.len() == 13))]
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!("deserialize_post $serialized ${out}_future")))]
 pub(crate) fn deserialize(serialized: &[u8], out: &mut Vec256) {
     #[cfg(not(eurydice))]
     debug_assert_eq!(serialized.len(), 13);
@@ -139,6 +148,7 @@ pub(crate) fn deserialize(serialized: &[u8], out: &mut Vec256) {
     #[cfg(hax)]
     let unsigned = out.clone();
     *out = change_interval(out);
+    #[cfg(hax)]
     hax_lib::fstar!(
         r"
     i32_bit_zero_lemma_to_lt_pow2_n_weak 13 $unsigned;
