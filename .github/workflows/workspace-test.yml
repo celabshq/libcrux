@@ -24,7 +24,7 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: taiki-e/install-action@b6b84cf49ebfe0176417bdce007c624f0db37f20 # 2.86.2
+      - uses: taiki-e/install-action@94c31af3204a9f15ab40b35ad084410b905bbc73 # 2.87.17
         with:
           tool: nextest
           
