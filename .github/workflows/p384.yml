@@ -1,0 +1,66 @@
+name: P384
+
+on:
+  merge_group:
+  pull_request:
+    paths:
+      - "crates/algorithms/p384/**"
+      - "crates/testing/kats/**"
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: crates/algorithms/p384
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Update dependencies
+        run: cargo update
+
+      - name: Check Formatting
+        run: cargo fmt --check
+
+      - name: Clippy
+        run: cargo clippy --all-features -- -D warnings
+
+      - name: 🔨 Build
+        run: cargo build --lib --examples --benches --verbose --all-features
+
+      - name: 🏃🏻‍♀️ Test
+        run: cargo test --verbose --all-features
+
+      - name: 🏃🏻‍♀️ Run benchmarks as tests
+        run: cargo bench --all-features -- --test
+
+  fuzz:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: crates/algorithms/p384
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: 🛠️ Setup Rust Nightly
+        run: |
+          rustup toolchain install nightly
+          cargo install cargo-fuzz
+
+      - name: 🛠️ Update dependencies
+        run: cargo update
+
+      - name: 🔨 Build fuzz targets
+        run: CARGO_PROFILE_RELEASE_LTO=false cargo +nightly fuzz build

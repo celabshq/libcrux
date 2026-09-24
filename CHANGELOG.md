@@ -10,12 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - (libcrux-hmac-drbg) [#1558](https://github.com/celabshq/libcrux/pull/1558): fix panic in reseeding wrappers fill_bytes method
+- (libcrux-platform) [#1591](https://github.com/celabshq/libcrux/pull/1591): Avoid data races in x86 feature detection
+- (libcrux-platform) [#1591](https://github.com/celabshq/libcrux/pull/1591): Handle feature detection on Intel SGX and CPUs without cpuid
+- (libcrux-platform) [#1592](https://github.com/celabshq/libcrux/pull/1592): Check xgetbv output for AVX2 availability
 
 ### Changed
 
 - (libcrux-macros) [#1550](https://github.com/celabshq/libcrux/pull/1550): Update syn dependency to 3.0
 - (libcrux-secrets) [#1551](https://github.com/celabshq/libcrux/pull/1551) Update crabgrind to 0.3.1
 - (libcrux-hmac-drbg) [#1558](https://github.com/celabshq/libcrux/pull/1558): rename `GenerateError::RequestInvalid` to `GenerateError::OutputTooLarge
+- (hpke-rs-rust-crypto) [#1602](https://github.com/celabshq/libcrux/pull/1602) Update the RustCrypto dependencies: `p256`, `k256` and `p384` to `0.14`, `x25519-dalek` to `3`, `chacha20poly1305` to `0.11`, `aes-gcm` to `0.11`, and the (experimental) `x-wing` and `ml-kem` to their `0.1`/`0.3` releases.
 
 ### Added
 

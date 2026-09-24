@@ -25,7 +25,7 @@ The key can be any length and will be hashed if it is longer and padded if it is
 #[inline(always)]
 pub fn compute_sha2_256(dst: &mut [u8], key: &[u8], key_len: u32, data: &[u8], data_len: u32) {
     let l: u32 = 64u32;
-    let mut key_block: Box<[u8]> = vec![0x00u8; l as usize].into_boxed_slice();
+    let mut key_block: [u8; 64] = [0x00u8; 64];
     let nkey: (&mut [u8], &mut [u8]) = key_block.split_at_mut(0usize);
     let ite: u32 = if key_len <= 64u32 { key_len } else { 32u32 };
     let zeroes: (&mut [u8], &mut [u8]) = nkey.1.split_at_mut(ite as usize);
@@ -35,13 +35,13 @@ pub fn compute_sha2_256(dst: &mut [u8], key: &[u8], key_len: u32, data: &[u8], d
     } else {
         hash_sha2::hash_256(zeroes.0, key, key_len)
     };
-    let mut ipad: Box<[u8]> = vec![0x36u8; l as usize].into_boxed_slice();
+    let mut ipad: [u8; 64] = [0x36u8; 64];
     for i in 0u32..l {
         let xi: u8 = (&ipad)[i as usize];
         let yi: u8 = (&key_block)[i as usize];
         (&mut ipad)[i as usize] = xi ^ yi
     }
-    let mut opad: Box<[u8]> = vec![0x5cu8; l as usize].into_boxed_slice();
+    let mut opad: [u8; 64] = [0x5cu8; 64];
     for i in 0u32..l {
         let xi: u8 = (&opad)[i as usize];
         let yi: u8 = (&key_block)[i as usize];
@@ -134,7 +134,7 @@ The key can be any length and will be hashed if it is longer and padded if it is
 #[inline(always)]
 pub fn compute_sha2_384(dst: &mut [u8], key: &[u8], key_len: u32, data: &[u8], data_len: u32) {
     let l: u32 = 128u32;
-    let mut key_block: Box<[u8]> = vec![0x00u8; l as usize].into_boxed_slice();
+    let mut key_block: [u8; 128] = [0x00u8; 128];
     let nkey: (&mut [u8], &mut [u8]) = key_block.split_at_mut(0usize);
     let ite: u32 = if key_len <= 128u32 { key_len } else { 48u32 };
     let zeroes: (&mut [u8], &mut [u8]) = nkey.1.split_at_mut(ite as usize);
@@ -144,13 +144,13 @@ pub fn compute_sha2_384(dst: &mut [u8], key: &[u8], key_len: u32, data: &[u8], d
     } else {
         hash_sha2::hash_384(zeroes.0, key, key_len)
     };
-    let mut ipad: Box<[u8]> = vec![0x36u8; l as usize].into_boxed_slice();
+    let mut ipad: [u8; 128] = [0x36u8; 128];
     for i in 0u32..l {
         let xi: u8 = (&ipad)[i as usize];
         let yi: u8 = (&key_block)[i as usize];
         (&mut ipad)[i as usize] = xi ^ yi
     }
-    let mut opad: Box<[u8]> = vec![0x5cu8; l as usize].into_boxed_slice();
+    let mut opad: [u8; 128] = [0x5cu8; 128];
     for i in 0u32..l {
         let xi: u8 = (&opad)[i as usize];
         let yi: u8 = (&key_block)[i as usize];
@@ -259,7 +259,7 @@ The key can be any length and will be hashed if it is longer and padded if it is
 #[inline(always)]
 pub fn compute_sha2_512(dst: &mut [u8], key: &[u8], key_len: u32, data: &[u8], data_len: u32) {
     let l: u32 = 128u32;
-    let mut key_block: Box<[u8]> = vec![0x00u8; l as usize].into_boxed_slice();
+    let mut key_block: [u8; 128] = [0x00u8; 128];
     let nkey: (&mut [u8], &mut [u8]) = key_block.split_at_mut(0usize);
     let ite: u32 = if key_len <= 128u32 { key_len } else { 64u32 };
     let zeroes: (&mut [u8], &mut [u8]) = nkey.1.split_at_mut(ite as usize);
@@ -269,13 +269,13 @@ pub fn compute_sha2_512(dst: &mut [u8], key: &[u8], key_len: u32, data: &[u8], d
     } else {
         hash_sha2::hash_512(zeroes.0, key, key_len)
     };
-    let mut ipad: Box<[u8]> = vec![0x36u8; l as usize].into_boxed_slice();
+    let mut ipad: [u8; 128] = [0x36u8; 128];
     for i in 0u32..l {
         let xi: u8 = (&ipad)[i as usize];
         let yi: u8 = (&key_block)[i as usize];
         (&mut ipad)[i as usize] = xi ^ yi
     }
-    let mut opad: Box<[u8]> = vec![0x5cu8; l as usize].into_boxed_slice();
+    let mut opad: [u8; 128] = [0x5cu8; 128];
     for i in 0u32..l {
         let xi: u8 = (&opad)[i as usize];
         let yi: u8 = (&key_block)[i as usize];

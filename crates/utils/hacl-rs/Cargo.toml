@@ -16,3 +16,6 @@ readme.workspace = true
 libcrux-macros.workspace = true
 
 [lib]
+
+[features]
+alloc = []

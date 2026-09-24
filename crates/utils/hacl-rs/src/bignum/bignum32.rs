@@ -6,6 +6,7 @@
 
 use crate::prelude::*;
 
+#[cfg(feature = "alloc")]
 pub type pbn_mont_ctx_u32<'a> = &'a [super::base::bn_mont_ctx_u32];
 
 /**
@@ -68,7 +69,8 @@ Write `(a + b) mod n` in `res`.
     preconditions are observed:
     - `a < n`
     - `b < n`
-*/
+ */
+#[cfg(feature = "alloc")]
 pub fn add_mod(len: u32, n: &[u32], a: &[u32], b: &[u32], res: &mut [u32]) {
     let mut a_copy: Box<[u32]> = vec![0u32; len as usize].into_boxed_slice();
     let mut b_copy: Box<[u32]> = vec![0u32; len as usize].into_boxed_slice();
@@ -98,6 +100,7 @@ Write `(a - b) mod n` in `res`.
     - `a < n`
     - `b < n`
 */
+#[cfg(feature = "alloc")]
 pub fn sub_mod(len: u32, n: &[u32], a: &[u32], b: &[u32], res: &mut [u32]) {
     super::base::bn_sub_mod_n_u32(len, n, a, b, res)
 }
@@ -112,7 +115,8 @@ Write `a * b` in `res`.
     disjoint from the memory location of `a` and `res`.
   - output `res`: Points to `2*len` number of limbs where the result is written, i.e. ``uint32_t\[2*len\]``.
     Must be disjoint from the memory locations of `a` and `b`.
-*/
+ */
+#[cfg(feature = "alloc")]
 pub fn mul(len: u32, a: &[u32], b: &[u32], res: &mut [u32]) {
     let mut tmp: Box<[u32]> = vec![0u32; 4u32.wrapping_mul(len) as usize].into_boxed_slice();
     super::base::bn_karatsuba_mul_uint32(len, a, b, &mut tmp, res)
@@ -126,12 +130,14 @@ Write `a * a` in `res`.
   - output `res`: Points to `2*len` number of limbs where the result is written, i.e. ``uint32_t\[2*len\]``.
     Must be disjoint from the memory location of `a`.
 */
+#[cfg(feature = "alloc")]
 pub fn sqr(len: u32, a: &[u32], res: &mut [u32]) {
     let mut tmp: Box<[u32]> = vec![0u32; 4u32.wrapping_mul(len) as usize].into_boxed_slice();
     super::base::bn_karatsuba_sqr_uint32(len, a, &mut tmp, res)
 }
 
 #[inline]
+#[cfg(feature = "alloc")]
 fn bn_slow_precomp(len: u32, n: &[u32], mu: u32, r2: &[u32], a: &[u32], res: &mut [u32]) {
     let mut a_mod: Box<[u32]> = vec![0u32; len as usize].into_boxed_slice();
     let mut a1: Box<[u32]> = vec![0u32; len.wrapping_add(len) as usize].into_boxed_slice();
@@ -158,6 +164,7 @@ Write `a mod n` in `res`.
     - `1 < n`
     - `n % 2 = 1`
 */
+#[cfg(feature = "alloc")]
 pub fn r#mod(len: u32, n: &[u32], a: &[u32], res: &mut [u32]) -> bool {
     let mut one: Box<[u32]> = vec![0u32; len as usize].into_boxed_slice();
     ((&mut one)[0usize..len as usize])
@@ -213,6 +220,7 @@ Write `a ^ b mod n` in `res`.
     - `b < pow2 bBits`
     - `a < n`
 */
+#[cfg(feature = "alloc")]
 pub fn mod_exp_vartime(
     len: u32,
     n: &[u32],
@@ -259,6 +267,7 @@ Write `a ^ b mod n` in `res`.
     - `b < pow2 bBits`
     - `a < n`
 */
+#[cfg(feature = "alloc")]
 pub fn mod_exp_consttime(
     len: u32,
     n: &[u32],
@@ -298,6 +307,7 @@ Write `a ^ (-1) mod n` in `res`.
     - `0 < a`
     - `a < n`
 */
+#[cfg(feature = "alloc")]
 pub fn mod_inv_prime_vartime(len: u32, n: &[u32], a: &[u32], res: &mut [u32]) -> bool {
     let mut one: Box<[u32]> = vec![0u32; len as usize].into_boxed_slice();
     ((&mut one)[0usize..len as usize])
@@ -397,6 +407,7 @@ Heap-allocate and initialize a montgomery context.
     - `n % 2 = 1`
     - `1 < n`
 */
+#[cfg(feature = "alloc")]
 pub fn mont_ctx_init(len: u32, n: &[u32]) -> Box<[super::base::bn_mont_ctx_u32]> {
     let mut r2: Box<[u32]> = vec![0u32; len as usize].into_boxed_slice();
     let mut n1: Box<[u32]> = vec![0u32; len as usize].into_boxed_slice();
@@ -425,6 +436,7 @@ Write `a mod n` in `res`.
   - output `res`: Points to `len` number of limbs, i.e. ``uint32_t\[len\]``. Must be
     disjoint from the memory location of `a`.
 */
+#[cfg(feature = "alloc")]
 pub fn mod_precomp(k: &[super::base::bn_mont_ctx_u32], a: &[u32], res: &mut [u32]) {
     let len1: u32 = (k[0usize]).len;
     let n: &[u32] = &(k[0usize]).n;
@@ -456,6 +468,7 @@ Write `a ^ b mod n` in `res`.
     - `b < pow2 bBits`
     - `a < n`
 */
+#[cfg(feature = "alloc")]
 pub fn mod_exp_vartime_precomp(
     k: &[super::base::bn_mont_ctx_u32],
     a: &[u32],
@@ -493,6 +506,7 @@ Write `a ^ b mod n` in `res`.
     - `b < pow2 bBits`
     - `a < n`
 */
+#[cfg(feature = "alloc")]
 pub fn mod_exp_consttime_precomp(
     k: &[super::base::bn_mont_ctx_u32],
     a: &[u32],
@@ -522,6 +536,7 @@ Write `a ^ (-1) mod n` in `res`.
     - `0 < a`
     - `a < n`
 */
+#[cfg(feature = "alloc")]
 pub fn mod_inv_prime_vartime_precomp(
     k: &[super::base::bn_mont_ctx_u32],
     a: &[u32],
@@ -596,6 +611,7 @@ Load a bid-endian bignum from memory.
     of required memory would exceed 4GB. Clients must `free(3)` any non-null return
     value to avoid memory leaks.
 */
+#[cfg(feature = "alloc")]
 pub fn new_bn_from_bytes_be(len: u32, b: &[u8]) -> Box<[u32]> {
     if len == 0u32 || len.wrapping_sub(1u32).wrapping_div(4u32).wrapping_add(1u32) > 1073741823u32 {
         [].into()
@@ -638,6 +654,7 @@ Load a little-endian bignum from memory.
     of required memory would exceed 4GB. Clients must `free(3)` any non-null return
     value to avoid memory leaks.
 */
+#[cfg(feature = "alloc")]
 pub fn new_bn_from_bytes_le(len: u32, b: &[u8]) -> Box<[u32]> {
     if len == 0u32 || len.wrapping_sub(1u32).wrapping_div(4u32).wrapping_add(1u32) > 1073741823u32 {
         [].into()
@@ -676,6 +693,7 @@ Serialize a bignum into big-endian memory.
   - output `res`: Points to `len` number of bytes, i.e. ``uint8_t\[len\]``. Must be
     disjoint from the memory location of `b`.
 */
+#[cfg(feature = "alloc")]
 pub fn bn_to_bytes_be(len: u32, b: &[u32], res: &mut [u8]) {
     let bnLen: u32 = len.wrapping_sub(1u32).wrapping_div(4u32).wrapping_add(1u32);
     let tmpLen: u32 = 4u32.wrapping_mul(bnLen);
@@ -699,6 +717,7 @@ Serialize a bignum into little-endian memory.
   - output `res`: Points to `len` number of bytes, i.e. ``uint8_t\[len\]``. Must be
     disjoint from the memory location of `b`.
 */
+#[cfg(feature = "alloc")]
 pub fn bn_to_bytes_le(len: u32, b: &[u32], res: &mut [u8]) {
     let bnLen: u32 = len.wrapping_sub(1u32).wrapping_div(4u32).wrapping_add(1u32);
     let tmpLen: u32 = 4u32.wrapping_mul(bnLen);

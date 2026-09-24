@@ -9,6 +9,7 @@ use rand::{rngs::SysRng, Rng};
 use rand_core::{SeedableRng, UnwrapErr};
 use zeroize::Zeroize;
 
+use elliptic_curve::{sec1::ToSec1Point, Generate};
 use hpke_rs_crypto::{
     error::Error,
     types::{
@@ -22,8 +23,8 @@ use p256::{
 };
 
 use k256::{
-    elliptic_curve::{ecdh::diffie_hellman as k256diffie_hellman, sec1::ToEncodedPoint},
-    PublicKey as k256PublicKey, SecretKey as k256SecretKey,
+    elliptic_curve::ecdh::diffie_hellman as k256diffie_hellman, PublicKey as k256PublicKey,
+    SecretKey as k256SecretKey,
 };
 
 use p384::{
@@ -35,12 +36,12 @@ use x25519_dalek::{PublicKey as X25519PublicKey, StaticSecret as X25519StaticSec
 
 mod aead;
 mod hkdf;
-// XXX: These are broken and pre-releases. Disabling them until they are stable.
+// Gated behind the `experimental` feature: the PQ ciphersuites are still
+// draft-stage and subject to change.
 #[cfg(feature = "experimental")]
 mod pq_kem;
+use crate::aead::*;
 use crate::hkdf::*;
-use crate::{aead::*, rand_shim::RandShim};
-mod rand_shim;
 
 /// The Rust Crypto HPKE Provider
 #[derive(Debug)]
@@ -148,7 +149,6 @@ impl HpkeCrypto for HpkeRustCrypto {
     }
 
     fn kem_key_gen_derand(_alg: KemAlgorithm, _seed: &[u8]) -> Result<(Vec<u8>, Vec<u8>), Error> {
-        // XXX: These are broken and pre-releases. Disabling them until they are stable.
         #[cfg(feature = "experimental")]
         return pq_kem::kem_key_gen_derand(_alg, _seed);
 
@@ -161,7 +161,6 @@ impl HpkeCrypto for HpkeRustCrypto {
         _pk_r: &[u8],
         _prng: &mut Self::HpkePrng,
     ) -> Result<(Vec<u8>, Vec<u8>), Error> {
-        // XXX: These are broken and pre-releases. Disabling them until they are stable.
         #[cfg(feature = "experimental")]
         return pq_kem::kem_encaps(_alg, _pk_r, _prng);
 
@@ -170,7 +169,6 @@ impl HpkeCrypto for HpkeRustCrypto {
     }
 
     fn kem_decaps(_alg: KemAlgorithm, _ct: &[u8], _sk_r: &[u8]) -> Result<Vec<u8>, Error> {
-        // XXX: These are broken and pre-releases. Disabling them until they are stable.
         #[cfg(feature = "experimental")]
         return pq_kem::kem_decaps(_alg, _ct, _sk_r);
 
@@ -191,15 +189,15 @@ impl HpkeCrypto for HpkeRustCrypto {
             }
             KemAlgorithm::DhKemP256 => {
                 let sk = p256SecretKey::from_slice(sk).map_err(|_| Error::KemInvalidSecretKey)?;
-                Ok(sk.public_key().to_encoded_point(false).as_bytes().into())
+                Ok(sk.public_key().to_sec1_point(false).as_bytes().into())
             }
             KemAlgorithm::DhKemP384 => {
                 let sk = p384SecretKey::from_slice(sk).map_err(|_| Error::KemInvalidSecretKey)?;
-                Ok(sk.public_key().to_encoded_point(false).as_bytes().into())
+                Ok(sk.public_key().to_sec1_point(false).as_bytes().into())
             }
             KemAlgorithm::DhKemK256 => {
                 let sk = k256SecretKey::from_slice(sk).map_err(|_| Error::KemInvalidSecretKey)?;
-                Ok(sk.public_key().to_encoded_point(false).as_bytes().into())
+                Ok(sk.public_key().to_sec1_point(false).as_bytes().into())
             }
             _ => Err(Error::UnsupportedKemOperation),
         }
@@ -212,34 +210,32 @@ impl HpkeCrypto for HpkeRustCrypto {
         match alg {
             KemAlgorithm::DhKem25519 => {
                 let rng = &mut prng.rng;
-                let sk = X25519StaticSecret::random_from_rng(RandShim(rng));
+                let sk = X25519StaticSecret::random_from_rng(rng);
                 let pk = X25519PublicKey::from(&sk).as_bytes().to_vec();
                 let sk = sk.to_bytes().to_vec();
                 Ok((pk, sk))
             }
             KemAlgorithm::DhKemP256 => {
                 let rng = &mut prng.rng;
-                let sk = p256SecretKey::random(&mut RandShim(rng));
-                let pk = sk.public_key().to_encoded_point(false).as_bytes().into();
+                let sk = p256SecretKey::generate_from_rng(rng);
+                let pk = sk.public_key().to_sec1_point(false).as_bytes().into();
                 let sk = sk.to_bytes().as_slice().into();
                 Ok((pk, sk))
             }
             KemAlgorithm::DhKemP384 => {
                 let rng = &mut prng.rng;
-                let sk = p384SecretKey::random(&mut RandShim(rng));
-                let pk = sk.public_key().to_encoded_point(false).as_bytes().into();
+                let sk = p384SecretKey::generate_from_rng(rng);
+                let pk = sk.public_key().to_sec1_point(false).as_bytes().into();
                 let sk = sk.to_bytes().as_slice().into();
                 Ok((pk, sk))
             }
             KemAlgorithm::DhKemK256 => {
                 let rng = &mut prng.rng;
-                let sk = k256SecretKey::random(&mut RandShim(rng));
-                let pk = sk.public_key().to_encoded_point(false).as_bytes().into();
+                let sk = k256SecretKey::generate_from_rng(rng);
+                let pk = sk.public_key().to_sec1_point(false).as_bytes().into();
                 let sk = sk.to_bytes().as_slice().into();
                 Ok((pk, sk))
             }
-            // XXX: These are broken and pre-releases. Disabling them until they
-            //      are stable.
             #[allow(deprecated)]
             #[cfg(feature = "experimental")]
             KemAlgorithm::XWingDraft06
@@ -335,7 +331,6 @@ impl HpkeCrypto for HpkeRustCrypto {
             | KemAlgorithm::DhKemP256
             | KemAlgorithm::DhKemK256
             | KemAlgorithm::DhKemP384 => Ok(()),
-            // XXX: These are broken and pre-releases. Disabling them until they are stable.
             #[cfg(feature = "experimental")]
             KemAlgorithm::XWingDraft06 | KemAlgorithm::MlKem768 | KemAlgorithm::MlKem1024 => Ok(()),
             _ => Err(Error::UnknownKemAlgorithm),

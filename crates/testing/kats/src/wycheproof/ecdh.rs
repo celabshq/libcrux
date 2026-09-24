@@ -33,4 +33,9 @@ impl TestSet {
         let data = include_str!("../../wycheproof/ecdh_secp256r1_ecpoint_test.json");
         serde_json::from_str(data).expect("could not deserialize ecdh_secp256r1_ecpoint KAT file")
     }
+
+    pub fn load_secp384r1_ecpoint() -> Self {
+        let data = include_str!("../../wycheproof/ecdh_secp384r1_ecpoint_test.json");
+        serde_json::from_str(data).expect("could not deserialize ecdh_secp384r1_ecpoint KAT file")
+    }
 }

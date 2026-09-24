@@ -4,9 +4,9 @@
 #![allow(unused_assignments)]
 #![allow(unreachable_patterns)]
 
-use crate::prelude::*;
-
 use libcrux_macros as krml;
+
+use crate::prelude::*;
 
 /**
 Write `a + b mod 2^256` in `res`.
@@ -510,6 +510,7 @@ pub fn r#mod(n: &[u64], a: &[u64], res: &mut [u64]) -> bool {
     is_valid_m == 0xFFFFFFFFFFFFFFFFu64
 }
 
+#[cfg(feature = "alloc")]
 fn exp_check(n: &[u64], a: &[u64], bBits: u32, b: &[u64]) -> u64 {
     let mut one: [u64; 4] = [0u64; 4usize];
     ((&mut one)[0usize..4usize]).copy_from_slice(&[0u64; 4usize]);
@@ -687,6 +688,7 @@ fn exp_vartime_precomp(
 }
 
 #[inline]
+#[cfg(feature = "alloc")]
 fn exp_consttime_precomp(
     n: &[u64],
     mu: u64,
@@ -853,6 +855,7 @@ fn exp_vartime(nBits: u32, n: &[u64], a: &[u64], bBits: u32, b: &[u64], res: &mu
 }
 
 #[inline]
+#[cfg(feature = "alloc")]
 fn exp_consttime(nBits: u32, n: &[u64], a: &[u64], bBits: u32, b: &[u64], res: &mut [u64]) {
     let mut r2: [u64; 4] = [0u64; 4usize];
     super::bignum256::precompr2(nBits, n, &mut r2);
@@ -880,6 +883,7 @@ Write `a ^ b mod n` in `res`.
    • b < pow2 bBits
    • a < n
 */
+#[cfg(feature = "alloc")]
 pub fn mod_exp_vartime(n: &[u64], a: &[u64], bBits: u32, b: &[u64], res: &mut [u64]) -> bool {
     let is_valid_m: u64 = super::bignum256::exp_check(n, a, bBits, b);
     let nBits: u32 = 64u32.wrapping_mul(super::bignum_base::bn_get_top_index_u64(4u32, n) as u32);
@@ -911,6 +915,7 @@ Write `a ^ b mod n` in `res`.
    • b < pow2 bBits
    • a < n
 */
+#[cfg(feature = "alloc")]
 pub fn mod_exp_consttime(n: &[u64], a: &[u64], bBits: u32, b: &[u64], res: &mut [u64]) -> bool {
     let is_valid_m: u64 = super::bignum256::exp_check(n, a, bBits, b);
     let nBits: u32 = 64u32.wrapping_mul(super::bignum_base::bn_get_top_index_u64(4u32, n) as u32);
@@ -1008,7 +1013,8 @@ Heap-allocate and initialize a montgomery context.
 
   The caller will need to call Hacl_Bignum256_mont_ctx_free on the return value
   to avoid memory leaks.
-*/
+ */
+#[cfg(feature = "alloc")]
 pub fn mont_ctx_init(n: &[u64]) -> Box<[super::base::bn_mont_ctx_u64]> {
     let mut r2: Box<[u64]> = vec![0u64; 4usize].into_boxed_slice();
     let mut n1: Box<[u64]> = vec![0u64; 4usize].into_boxed_slice();
@@ -1035,6 +1041,7 @@ Write `a mod n` in `res`.
   The outparam res is meant to be a 256-bit bignum, i.e. `uint64_t\[4\]`.
   The argument k is a montgomery context obtained through Hacl_Bignum256_mont_ctx_init.
 */
+#[cfg(feature = "alloc")]
 pub fn mod_precomp(k: &[super::base::bn_mont_ctx_u64], a: &[u64], res: &mut [u64]) {
     let n: &[u64] = &(k[0usize]).n;
     let mu: u64 = (k[0usize]).mu;
@@ -1061,6 +1068,7 @@ Write `a ^ b mod n` in `res`.
   • b < pow2 bBits
   • a < n
 */
+#[cfg(feature = "alloc")]
 pub fn mod_exp_vartime_precomp(
     k: &[super::base::bn_mont_ctx_u64],
     a: &[u64],
@@ -1093,6 +1101,7 @@ Write `a ^ b mod n` in `res`.
   • b < pow2 bBits
   • a < n
 */
+#[cfg(feature = "alloc")]
 pub fn mod_exp_consttime_precomp(
     k: &[super::base::bn_mont_ctx_u64],
     a: &[u64],
@@ -1118,6 +1127,7 @@ Write `a ^ (-1) mod n` in `res`.
   • 0 < a
   • a < n
 */
+#[cfg(feature = "alloc")]
 pub fn mod_inv_prime_vartime_precomp(
     k: &[super::base::bn_mont_ctx_u64],
     a: &[u64],
@@ -1153,7 +1163,8 @@ Load a bid-endian bignum from memory.
 
   If the return value is non-null, clients must eventually call free(3) on it to
   avoid memory leaks.
-*/
+ */
+#[cfg(feature = "alloc")]
 pub fn new_bn_from_bytes_be(len: u32, b: &[u8]) -> Box<[u64]> {
     if len == 0u32 || len.wrapping_sub(1u32).wrapping_div(8u32).wrapping_add(1u32) > 536870911u32 {
         [].into()
@@ -1195,7 +1206,8 @@ Load a little-endian bignum from memory.
 
   If the return value is non-null, clients must eventually call free(3) on it to
   avoid memory leaks.
-*/
+ */
+#[cfg(feature = "alloc")]
 pub fn new_bn_from_bytes_le(len: u32, b: &[u8]) -> Box<[u64]> {
     if len == 0u32 || len.wrapping_sub(1u32).wrapping_div(8u32).wrapping_add(1u32) > 536870911u32 {
         [].into()

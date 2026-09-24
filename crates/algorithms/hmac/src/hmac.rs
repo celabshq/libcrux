@@ -1,11 +1,7 @@
 //! HMAC
 //!
-//! This crate implements HMAC on SHA 1 and SHA 2 (except for SHA 224).
+//! This crate implements HMAC on SHA 2 (except for SHA 224) and SHA 3.
 #![no_std]
-
-extern crate alloc;
-
-use alloc::vec::Vec;
 
 #[cfg(not(feature = "expose-hacl"))]
 mod hacl {
@@ -51,6 +47,9 @@ pub enum Error {
 }
 
 /// The HMAC algorithm defining the used hash function.
+///
+/// * `Sha256`, `Sha384`, and `Sha512` are SHA-2.
+/// * SHA-3 variants are prefixed with `Sha3_`.
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Algorithm {
     // Not implemented
@@ -58,39 +57,79 @@ pub enum Algorithm {
     Sha256,
     Sha384,
     Sha512,
+    Sha3_224,
+    Sha3_256,
+    Sha3_384,
+    Sha3_512,
 }
+
+const SHA256_TAG_SIZE: usize = 32;
+const SHA384_TAG_SIZE: usize = 48;
+const SHA512_TAG_SIZE: usize = 64;
+const SHA3_224_TAG_SIZE: usize = 28;
+const SHA3_256_TAG_SIZE: usize = 32;
+const SHA3_384_TAG_SIZE: usize = 48;
+const SHA3_512_TAG_SIZE: usize = 64;
 
 /// Get the tag size for a given algorithm.
 pub const fn tag_size(alg: Algorithm) -> usize {
     match alg {
-        Algorithm::Sha256 => 32,
-        Algorithm::Sha384 => 48,
-        Algorithm::Sha512 => 64,
+        Algorithm::Sha256 => SHA256_TAG_SIZE,
+        Algorithm::Sha384 => SHA384_TAG_SIZE,
+        Algorithm::Sha512 => SHA512_TAG_SIZE,
+        Algorithm::Sha3_224 => SHA3_224_TAG_SIZE,
+        Algorithm::Sha3_256 => SHA3_256_TAG_SIZE,
+        Algorithm::Sha3_384 => SHA3_384_TAG_SIZE,
+        Algorithm::Sha3_512 => SHA3_512_TAG_SIZE,
     }
 }
 
-/// Compute the HMAC value with the given `alg` and `key` on `data` with an
-/// output tag length of `tag_length`.
-/// Returns a vector of length `tag_length`.
-/// Panics if either `key` or `data` are longer than `u32::MAX`.
-pub fn hmac(alg: Algorithm, key: &[u8], data: &[u8], tag_length: Option<usize>) -> Vec<u8> {
-    let native_tag_length = tag_size(alg);
-    let tag_length = match tag_length {
-        Some(v) => v,
-        None => native_tag_length,
+/// Compute the HMAC value with the given `alg` and `key` on `data`.
+/// Writes the tag into the provided output buffer `tag`.
+///
+/// If the output buffer is shorter than the native output length of
+/// `alg` the tag will be truncated to the output buffer's length. If
+/// the output buffer is longer than the native output length of
+/// `alg`, the tag will be written to the beginning of the output
+/// buffer, leaving the rest unchanged.  Panics if either `key` or
+/// `data` are longer than `u32::MAX`.
+pub fn hmac(alg: Algorithm, key: &[u8], data: &[u8], tag: &mut [u8]) {
+    let tag_len = core::cmp::min(tag.len(), tag_size(alg));
+    match alg {
+        Algorithm::Sha256 => {
+            let mut buf = [0u8; SHA256_TAG_SIZE];
+            hmac_sha2_256(&mut buf, key, data);
+            tag[..tag_len].copy_from_slice(&buf[..tag_len]);
+        }
+        Algorithm::Sha384 => {
+            let mut buf = [0u8; SHA384_TAG_SIZE];
+            hmac_sha2_384(&mut buf, key, data);
+            tag[..tag_len].copy_from_slice(&buf[..tag_len]);
+        }
+        Algorithm::Sha512 => {
+            let mut buf = [0u8; SHA512_TAG_SIZE];
+            hmac_sha2_512(&mut buf, key, data);
+            tag[..tag_len].copy_from_slice(&buf[..tag_len]);
+        }
+        Algorithm::Sha3_224 => {
+            let mut buf = [0u8; SHA3_224_TAG_SIZE];
+            hmac_sha3_224(&mut buf, key, data).expect("HMAC-SHA3 input too long");
+            tag[..tag_len].copy_from_slice(&buf[..tag_len]);
+        }
+        Algorithm::Sha3_256 => {
+            let mut buf = [0u8; SHA3_256_TAG_SIZE];
+            hmac_sha3_256(&mut buf, key, data).expect("HMAC-SHA3 input too long");
+            tag[..tag_len].copy_from_slice(&buf[..tag_len]);
+        }
+        Algorithm::Sha3_384 => {
+            let mut buf = [0u8; SHA3_384_TAG_SIZE];
+            hmac_sha3_384(&mut buf, key, data).expect("HMAC-SHA3 input too long");
+            tag[..tag_len].copy_from_slice(&buf[..tag_len]);
+        }
+        Algorithm::Sha3_512 => {
+            let mut buf = [0u8; SHA3_512_TAG_SIZE];
+            hmac_sha3_512(&mut buf, key, data).expect("HMAC-SHA3 input too long");
+            tag[..tag_len].copy_from_slice(&buf[..tag_len]);
+        }
     };
-    let mut dst: Vec<_> = match alg {
-        Algorithm::Sha256 => wrap_bufalloc(|buf| hmac_sha2_256(buf, key, data)),
-        Algorithm::Sha384 => wrap_bufalloc(|buf| hmac_sha2_384(buf, key, data)),
-        Algorithm::Sha512 => wrap_bufalloc(|buf| hmac_sha2_512(buf, key, data)),
-    };
-    dst.truncate(tag_length);
-    dst
-}
-
-#[inline(always)]
-fn wrap_bufalloc<const N: usize, F: Fn(&mut [u8; N])>(f: F) -> Vec<u8> {
-    let mut buf = [0u8; N];
-    f(&mut buf);
-    buf.to_vec()
 }

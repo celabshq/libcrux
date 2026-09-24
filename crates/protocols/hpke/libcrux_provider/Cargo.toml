@@ -20,11 +20,11 @@ libcrux-traits.workspace = true
 # RustCrypto curves not available in libcrux
 # TODO: These should be replaced with libcrux implementations as soon as they
 # are available.
-p384 = { version = "0.14.0-rc.8", features = [
+p384 = { version = "0.14.0", features = [
     "arithmetic",
     "ecdh",
 ], default-features = false, optional = true }
-p521 = { version = "0.14.0-rc.8", features = [
+p521 = { version = "0.14.0", features = [
     "arithmetic",
     "ecdh",
 ], default-features = false, optional = true }

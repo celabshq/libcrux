@@ -1,0 +1,43 @@
+name: HMAC
+
+on:
+  merge_group:
+  pull_request:
+    paths:
+      - "crates/algorithms/hmac/**"
+      - "crates/testing/kats/**"
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: crates/algorithms/hmac
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Update dependencies
+        run: cargo update
+
+      # Build ...
+
+      - name: 🔨 Build
+        run: |
+          rustc --print=cfg
+          cargo build --lib --verbose
+
+      # Test ...
+
+      - name: 🏃🏻‍♀️ Test
+        run: |
+          cargo test --verbose

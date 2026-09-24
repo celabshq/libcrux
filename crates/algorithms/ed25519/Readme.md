@@ -2,7 +2,7 @@
 
 ## `no_std` support
 
-This crate supports `no_std` targets, but requires the presence of a global allocator.
+This crate supports `no_std` targets, without any heap allocations by default, and under feature `rand`. The `codec` feature requires `std`.
 
 ## Verification
 ![verified-hacl]

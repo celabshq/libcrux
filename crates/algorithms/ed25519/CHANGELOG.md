@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [#1584](https://github.com/celabshq/libcrux/pull/1584): Widened the RNG bound on `generate_key_pair` from `CryptoRng` to
   `TryCryptoRng` to support fallible RNGs
+- [#1603](https://github.com/celabshq/libcrux/pull/1603): Use `no_std` compatible feature configuration on `rand`-feature dependency `rand_core`
 
 ## [0.0.9] (2026-07-15)
 

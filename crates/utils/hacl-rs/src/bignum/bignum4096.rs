@@ -4,9 +4,9 @@
 #![allow(unused_assignments)]
 #![allow(unreachable_patterns)]
 
-use crate::prelude::*;
-
 use libcrux_macros as krml;
+
+use crate::prelude::*;
 
 /**
 Write `a + b mod 2^4096` in `res`.
@@ -212,6 +212,7 @@ Write `a * b` in `res`.
   The arguments a and b are meant to be 4096-bit bignums, i.e. `uint64_t\[64\]`.
   The outparam res is meant to be a 8192-bit bignum, i.e. `uint64_t\[128\]`.
 */
+#[cfg(feature = "alloc")]
 pub fn mul(a: &[u64], b: &[u64], res: &mut [u64]) {
     let mut tmp: [u64; 256] = [0u64; 256usize];
     super::base::bn_karatsuba_mul_uint64(64u32, a, b, &mut tmp, res)
@@ -223,12 +224,14 @@ Write `a * a` in `res`.
   The argument a is meant to be a 4096-bit bignum, i.e. `uint64_t\[64\]`.
   The outparam res is meant to be a 8192-bit bignum, i.e. `uint64_t\[128\]`.
 */
+#[cfg(feature = "alloc")]
 pub fn sqr(a: &[u64], res: &mut [u64]) {
     let mut tmp: [u64; 256] = [0u64; 256usize];
     super::base::bn_karatsuba_sqr_uint64(64u32, a, &mut tmp, res)
 }
 
 #[inline]
+#[cfg(feature = "alloc")]
 fn precompr2(nBits: u32, n: &[u64], res: &mut [u64]) {
     (res[0usize..64usize]).copy_from_slice(&[0u64; 64usize]);
     let i: u32 = nBits.wrapping_div(64u32);
@@ -244,6 +247,7 @@ fn precompr2(nBits: u32, n: &[u64], res: &mut [u64]) {
 }
 
 #[inline]
+#[cfg(feature = "alloc")]
 fn reduction(n: &[u64], nInv: u64, c: &mut [u64], res: &mut [u64]) {
     let mut c0: [u64; 1] = [0u64; 1usize];
     for i in 0u32..64u32 {
@@ -312,6 +316,7 @@ fn reduction(n: &[u64], nInv: u64, c: &mut [u64], res: &mut [u64]) {
 }
 
 #[inline]
+#[cfg(feature = "alloc")]
 fn to(n: &[u64], nInv: u64, r2: &[u64], a: &[u64], aM: &mut [u64]) {
     let mut c: [u64; 128] = [0u64; 128usize];
     super::bignum4096::mul(a, r2, &mut c);
@@ -319,6 +324,7 @@ fn to(n: &[u64], nInv: u64, r2: &[u64], a: &[u64], aM: &mut [u64]) {
 }
 
 #[inline]
+#[cfg(feature = "alloc")]
 fn from(n: &[u64], nInv_u64: u64, aM: &[u64], a: &mut [u64]) {
     let mut tmp: [u64; 128] = [0u64; 128usize];
     ((&mut tmp)[0usize..64usize]).copy_from_slice(&aM[0usize..64usize]);
@@ -326,6 +332,7 @@ fn from(n: &[u64], nInv_u64: u64, aM: &[u64], a: &mut [u64]) {
 }
 
 #[inline]
+#[cfg(feature = "alloc")]
 fn areduction(n: &[u64], nInv: u64, c: &mut [u64], res: &mut [u64]) {
     let mut c0: [u64; 1] = [0u64; 1usize];
     for i in 0u32..64u32 {
@@ -372,6 +379,7 @@ fn areduction(n: &[u64], nInv: u64, c: &mut [u64], res: &mut [u64]) {
 }
 
 #[inline]
+#[cfg(feature = "alloc")]
 fn amont_mul(n: &[u64], nInv_u64: u64, aM: &[u64], bM: &[u64], resM: &mut [u64]) {
     let mut c: [u64; 128] = [0u64; 128usize];
     super::bignum4096::mul(aM, bM, &mut c);
@@ -379,6 +387,7 @@ fn amont_mul(n: &[u64], nInv_u64: u64, aM: &[u64], bM: &[u64], resM: &mut [u64])
 }
 
 #[inline]
+#[cfg(feature = "alloc")]
 fn amont_sqr(n: &[u64], nInv_u64: u64, aM: &[u64], resM: &mut [u64]) {
     let mut c: [u64; 128] = [0u64; 128usize];
     super::bignum4096::sqr(aM, &mut c);
@@ -386,6 +395,7 @@ fn amont_sqr(n: &[u64], nInv_u64: u64, aM: &[u64], resM: &mut [u64]) {
 }
 
 #[inline]
+#[cfg(feature = "alloc")]
 fn bn_slow_precomp(n: &[u64], mu: u64, r2: &[u64], a: &[u64], res: &mut [u64]) {
     let mut a_mod: [u64; 64] = [0u64; 64usize];
     let mut a1: [u64; 128] = [0u64; 128usize];
@@ -405,6 +415,7 @@ Write `a mod n` in `res`.
    • 1 < n
    • n % 2 = 1
 */
+#[cfg(feature = "alloc")]
 pub fn r#mod(n: &[u64], a: &[u64], res: &mut [u64]) -> bool {
     let mut one: [u64; 64] = [0u64; 64usize];
     ((&mut one)[0usize..64usize]).copy_from_slice(&[0u64; 64usize]);
@@ -431,6 +442,7 @@ pub fn r#mod(n: &[u64], a: &[u64], res: &mut [u64]) -> bool {
     is_valid_m == 0xFFFFFFFFFFFFFFFFu64
 }
 
+#[cfg(feature = "alloc")]
 fn exp_check(n: &[u64], a: &[u64], bBits: u32, b: &[u64]) -> u64 {
     let mut one: [u64; 64] = [0u64; 64usize];
     ((&mut one)[0usize..64usize]).copy_from_slice(&[0u64; 64usize]);
@@ -481,6 +493,7 @@ fn exp_check(n: &[u64], a: &[u64], bBits: u32, b: &[u64]) -> u64 {
 }
 
 #[inline]
+#[cfg(feature = "alloc")]
 fn exp_vartime_precomp(
     n: &[u64],
     mu: u64,
@@ -608,6 +621,7 @@ fn exp_vartime_precomp(
 }
 
 #[inline]
+#[cfg(feature = "alloc")]
 fn exp_consttime_precomp(
     n: &[u64],
     mu: u64,
@@ -766,6 +780,7 @@ fn exp_consttime_precomp(
 }
 
 #[inline]
+#[cfg(feature = "alloc")]
 fn exp_vartime(nBits: u32, n: &[u64], a: &[u64], bBits: u32, b: &[u64], res: &mut [u64]) {
     let mut r2: [u64; 64] = [0u64; 64usize];
     super::bignum4096::precompr2(nBits, n, &mut r2);
@@ -774,6 +789,7 @@ fn exp_vartime(nBits: u32, n: &[u64], a: &[u64], bBits: u32, b: &[u64], res: &mu
 }
 
 #[inline]
+#[cfg(feature = "alloc")]
 fn exp_consttime(nBits: u32, n: &[u64], a: &[u64], bBits: u32, b: &[u64], res: &mut [u64]) {
     let mut r2: [u64; 64] = [0u64; 64usize];
     super::bignum4096::precompr2(nBits, n, &mut r2);
@@ -801,6 +817,7 @@ Write `a ^ b mod n` in `res`.
    • b < pow2 bBits
    • a < n
 */
+#[cfg(feature = "alloc")]
 pub fn mod_exp_vartime(n: &[u64], a: &[u64], bBits: u32, b: &[u64], res: &mut [u64]) -> bool {
     let is_valid_m: u64 = super::bignum4096::exp_check(n, a, bBits, b);
     let nBits: u32 = 64u32.wrapping_mul(super::bignum_base::bn_get_top_index_u64(64u32, n) as u32);
@@ -832,6 +849,7 @@ Write `a ^ b mod n` in `res`.
    • b < pow2 bBits
    • a < n
 */
+#[cfg(feature = "alloc")]
 pub fn mod_exp_consttime(n: &[u64], a: &[u64], bBits: u32, b: &[u64], res: &mut [u64]) -> bool {
     let is_valid_m: u64 = super::bignum4096::exp_check(n, a, bBits, b);
     let nBits: u32 = 64u32.wrapping_mul(super::bignum_base::bn_get_top_index_u64(64u32, n) as u32);
@@ -858,6 +876,7 @@ Write `a ^ (-1) mod n` in `res`.
   • 0 < a
   • a < n
 */
+#[cfg(feature = "alloc")]
 pub fn mod_inv_prime_vartime(n: &[u64], a: &[u64], res: &mut [u64]) -> bool {
     let mut one: [u64; 64] = [0u64; 64usize];
     ((&mut one)[0usize..64usize]).copy_from_slice(&[0u64; 64usize]);
@@ -949,6 +968,7 @@ Heap-allocate and initialize a montgomery context.
   The caller will need to call Hacl_Bignum4096_mont_ctx_free on the return value
   to avoid memory leaks.
 */
+#[cfg(feature = "alloc")]
 pub fn mont_ctx_init(n: &[u64]) -> Box<[super::base::bn_mont_ctx_u64]> {
     let mut r2: Box<[u64]> = vec![0u64; 64usize].into_boxed_slice();
     let mut n1: Box<[u64]> = vec![0u64; 64usize].into_boxed_slice();
@@ -975,6 +995,7 @@ Write `a mod n` in `res`.
   The outparam res is meant to be a 4096-bit bignum, i.e. `uint64_t\[64\]`.
   The argument k is a montgomery context obtained through Hacl_Bignum4096_mont_ctx_init.
 */
+#[cfg(feature = "alloc")]
 pub fn mod_precomp(k: &[super::base::bn_mont_ctx_u64], a: &[u64], res: &mut [u64]) {
     let n: &[u64] = &(k[0usize]).n;
     let mu: u64 = (k[0usize]).mu;
@@ -1001,6 +1022,7 @@ Write `a ^ b mod n` in `res`.
   • b < pow2 bBits
   • a < n
 */
+#[cfg(feature = "alloc")]
 pub fn mod_exp_vartime_precomp(
     k: &[super::base::bn_mont_ctx_u64],
     a: &[u64],
@@ -1033,6 +1055,7 @@ Write `a ^ b mod n` in `res`.
   • b < pow2 bBits
   • a < n
 */
+#[cfg(feature = "alloc")]
 pub fn mod_exp_consttime_precomp(
     k: &[super::base::bn_mont_ctx_u64],
     a: &[u64],
@@ -1058,6 +1081,7 @@ Write `a ^ (-1) mod n` in `res`.
   • 0 < a
   • a < n
 */
+#[cfg(feature = "alloc")]
 pub fn mod_inv_prime_vartime_precomp(
     k: &[super::base::bn_mont_ctx_u64],
     a: &[u64],
@@ -1112,6 +1136,7 @@ Load a bid-endian bignum from memory.
   If the return value is non-null, clients must eventually call free(3) on it to
   avoid memory leaks.
 */
+#[cfg(feature = "alloc")]
 pub fn new_bn_from_bytes_be(len: u32, b: &[u8]) -> Box<[u64]> {
     if len == 0u32 || len.wrapping_sub(1u32).wrapping_div(8u32).wrapping_add(1u32) > 536870911u32 {
         [].into()
@@ -1154,6 +1179,7 @@ Load a little-endian bignum from memory.
   If the return value is non-null, clients must eventually call free(3) on it to
   avoid memory leaks.
 */
+#[cfg(feature = "alloc")]
 pub fn new_bn_from_bytes_le(len: u32, b: &[u8]) -> Box<[u64]> {
     if len == 0u32 || len.wrapping_sub(1u32).wrapping_div(8u32).wrapping_add(1u32) > 536870911u32 {
         [].into()

@@ -645,24 +645,27 @@ pub struct block_state_t {
     pub fst: u8,
     pub snd: u8,
     pub thd: bool,
-    pub f3: Box<[u64]>,
-    pub f4: Box<[u64]>,
+    pub f3: [u64; 16],
+    pub f4: [u64; 16],
 }
 
 #[derive(PartialEq, Clone)]
 pub struct state_t {
     pub block_state: crate::hacl::hash_blake2b::block_state_t,
-    pub buf: Box<[u8]>,
+    pub buf: [u8; 128],
     pub total_len: u64,
 }
 
+// NOTE: This function does not allocate on the heap, as the name
+// might suggest. We keep the name that was provided by HACL* to make
+// it easier to relate our code to the original F*.
 pub(crate) fn malloc_raw<'a>(
     kk: crate::hacl::hash_blake2b::index,
     key: crate::hacl::hash_blake2b::params_and_key<'a>,
-) -> Box<[crate::hacl::hash_blake2b::state_t]> {
-    let mut buf: Box<[u8]> = vec![0u8; 128usize].into_boxed_slice();
-    let wv: Box<[u64]> = vec![0u64; 16usize].into_boxed_slice();
-    let b: Box<[u64]> = vec![0u64; 16usize].into_boxed_slice();
+) -> [crate::hacl::hash_blake2b::state_t; 1] {
+    let mut buf: [u8; 128] = [0u8; 128usize];
+    let wv: [u64; 16] = [0u64; 16usize];
+    let b: [u64; 16] = [0u64; 16usize];
     let mut block_state: crate::hacl::hash_blake2b::block_state_t =
         crate::hacl::hash_blake2b::block_state_t {
             fst: kk.key_length,
@@ -686,9 +689,7 @@ pub(crate) fn malloc_raw<'a>(
             let k·: &[u8] = key.snd;
             if kk2 != 0u32 {
                 let sub_b: (&mut [u8], &mut [u8]) = buf.split_at_mut(kk2 as usize);
-                (sub_b.1[0usize..128u32.wrapping_sub(kk2) as usize]).copy_from_slice(
-                    &vec![0u8; 128u32.wrapping_sub(kk2) as usize].into_boxed_slice(),
-                );
+                (sub_b.1[0usize..128u32.wrapping_sub(kk2) as usize]).fill(0);
                 ((&mut buf)[0usize..kk2 as usize]).copy_from_slice(&k·[0usize..kk2 as usize])
             };
             let pv: crate::hacl::hash_blake2b::blake2_params = p[0usize];
@@ -774,7 +775,7 @@ pub(crate) fn malloc_raw<'a>(
         buf,
         total_len: ite as u64,
     };
-    let p0: Box<[crate::hacl::hash_blake2b::state_t]> = vec![s].into_boxed_slice();
+    let p0: [crate::hacl::hash_blake2b::state_t; 1] = [s];
     p0
 }
 
@@ -828,9 +829,7 @@ fn reset_raw<'a>(
             let k·1: &[u8] = key.snd;
             if kk2 != 0u32 {
                 let sub_b: (&mut [u8], &mut [u8]) = buf.split_at_mut(kk2 as usize);
-                (sub_b.1[0usize..128u32.wrapping_sub(kk2) as usize]).copy_from_slice(
-                    &vec![0u8; 128u32.wrapping_sub(kk2) as usize].into_boxed_slice(),
-                );
+                (sub_b.1[0usize..128u32.wrapping_sub(kk2) as usize]).fill(0);
                 (buf[0usize..kk2 as usize]).copy_from_slice(&k·1[0usize..kk2 as usize])
             };
             let pv: crate::hacl::hash_blake2b::blake2_params = p[0usize];
@@ -1197,8 +1196,8 @@ pub fn digest(s: &[crate::hacl::hash_blake2b::state_t], dst: &mut [u8]) -> u8 {
             fst: i1.key_length,
             snd: i1.digest_length,
             thd: i1.last_node,
-            f3: Box::new(wv),
-            f4: Box::new(b),
+            f3: wv,
+            f4: b,
         };
     match *block_state0 {
         crate::hacl::hash_blake2b::block_state_t { f4: ref src_b, .. } => match tmp_block_state {
@@ -1291,7 +1290,7 @@ Copying. This preserves all parameters.
 */
 pub fn copy(
     state: &[crate::hacl::hash_blake2b::state_t],
-) -> Box<[crate::hacl::hash_blake2b::state_t]> {
+) -> [crate::hacl::hash_blake2b::state_t; 1] {
     let block_state0: &crate::hacl::hash_blake2b::block_state_t = &(state[0usize]).block_state;
     let buf0: &[u8] = &(state[0usize]).buf;
     let total_len0: u64 = (state[0usize]).total_len;
@@ -1307,10 +1306,10 @@ pub fn copy(
             last_node,
         },
     };
-    let mut buf: Box<[u8]> = vec![0u8; 128usize].into_boxed_slice();
+    let mut buf: [u8; 128] = [0u8; 128usize];
     ((&mut buf)[0usize..128usize]).copy_from_slice(&buf0[0usize..128usize]);
-    let wv: Box<[u64]> = vec![0u64; 16usize].into_boxed_slice();
-    let b: Box<[u64]> = vec![0u64; 16usize].into_boxed_slice();
+    let wv: [u64; 16] = [0u64; 16usize];
+    let b: [u64; 16] = [0u64; 16usize];
     let mut block_state: crate::hacl::hash_blake2b::block_state_t =
         crate::hacl::hash_blake2b::block_state_t {
             fst: i.key_length,
@@ -1331,7 +1330,7 @@ pub fn copy(
         buf,
         total_len: total_len0,
     };
-    let p: Box<[crate::hacl::hash_blake2b::state_t]> = vec![s].into_boxed_slice();
+    let p: [crate::hacl::hash_blake2b::state_t; 1] = [s];
     p
 }
 

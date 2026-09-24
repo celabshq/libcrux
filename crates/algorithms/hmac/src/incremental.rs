@@ -91,6 +91,18 @@ pub type HmacSha384 = HmacStream<48, 128, libcrux_sha2::Sha384Hash>;
 /// Streaming HMAC-SHA-512 state.  Initialize with [`HmacSha512::new`].
 pub type HmacSha512 = HmacStream<64, 128, libcrux_sha2::Sha512Hash>;
 
+/// Streaming HMAC-SHA3-224 state.  Initialize with [`HmacSha3_224::new`].
+pub type HmacSha3_224 = HmacStream<28, 144, libcrux_sha3::Sha3_224>;
+
+/// Streaming HMAC-SHA3-256 state.  Initialize with [`HmacSha3_256::new`].
+pub type HmacSha3_256 = HmacStream<32, 136, libcrux_sha3::Sha3_256>;
+
+/// Streaming HMAC-SHA3-384 state.  Initialize with [`HmacSha3_384::new`].
+pub type HmacSha3_384 = HmacStream<48, 104, libcrux_sha3::Sha3_384>;
+
+/// Streaming HMAC-SHA3-512 state.  Initialize with [`HmacSha3_512::new`].
+pub type HmacSha3_512 = HmacStream<64, 72, libcrux_sha3::Sha3_512>;
+
 pub fn hmac_slices<const OUTLEN: usize, Hmac: HmacState<OUTLEN>>(
     dst: &mut [u8; OUTLEN],
     key: &[u8],
@@ -122,4 +134,52 @@ pub fn hmac_sha2_384_slices(dst: &mut [u8; 48], key: &[u8], slices: &[&[u8]]) ->
 #[inline]
 pub fn hmac_sha2_512_slices(dst: &mut [u8; 64], key: &[u8], slices: &[&[u8]]) -> Result<(), Error> {
     hmac_slices::<64, HmacSha512>(dst, key, slices)
+}
+
+/// Compute HMAC-SHA3-224 over logically concatenated, non-contiguous data slices.
+#[inline]
+pub fn hmac_sha3_224_slices(dst: &mut [u8; 28], key: &[u8], slices: &[&[u8]]) -> Result<(), Error> {
+    hmac_slices::<28, HmacSha3_224>(dst, key, slices)
+}
+
+/// Compute HMAC-SHA3-256 over logically concatenated, non-contiguous data slices.
+#[inline]
+pub fn hmac_sha3_256_slices(dst: &mut [u8; 32], key: &[u8], slices: &[&[u8]]) -> Result<(), Error> {
+    hmac_slices::<32, HmacSha3_256>(dst, key, slices)
+}
+
+/// Compute HMAC-SHA3-384 over logically concatenated, non-contiguous data slices.
+#[inline]
+pub fn hmac_sha3_384_slices(dst: &mut [u8; 48], key: &[u8], slices: &[&[u8]]) -> Result<(), Error> {
+    hmac_slices::<48, HmacSha3_384>(dst, key, slices)
+}
+
+/// Compute HMAC-SHA3-512 over logically concatenated, non-contiguous data slices.
+#[inline]
+pub fn hmac_sha3_512_slices(dst: &mut [u8; 64], key: &[u8], slices: &[&[u8]]) -> Result<(), Error> {
+    hmac_slices::<64, HmacSha3_512>(dst, key, slices)
+}
+
+/// Compute HMAC-SHA3-224.
+#[inline]
+pub fn hmac_sha3_224(dst: &mut [u8; 28], key: &[u8], data: &[u8]) -> Result<(), Error> {
+    hmac_sha3_224_slices(dst, key, &[data])
+}
+
+/// Compute HMAC-SHA3-256.
+#[inline]
+pub fn hmac_sha3_256(dst: &mut [u8; 32], key: &[u8], data: &[u8]) -> Result<(), Error> {
+    hmac_sha3_256_slices(dst, key, &[data])
+}
+
+/// Compute HMAC-SHA3-384.
+#[inline]
+pub fn hmac_sha3_384(dst: &mut [u8; 48], key: &[u8], data: &[u8]) -> Result<(), Error> {
+    hmac_sha3_384_slices(dst, key, &[data])
+}
+
+/// Compute HMAC-SHA3-512.
+#[inline]
+pub fn hmac_sha3_512(dst: &mut [u8; 64], key: &[u8], data: &[u8]) -> Result<(), Error> {
+    hmac_sha3_512_slices(dst, key, &[data])
 }

@@ -17,14 +17,11 @@ macro_rules! implement_aead {
             aad: &[u8],
             msg: &[u8],
         ) -> Result<Vec<u8>, Error> {
-            if nonce.len() != 12 {
-                return Err(Error::AeadInvalidNonce);
-            }
-
+            let nonce = nonce.try_into().map_err(|_| Error::AeadInvalidNonce)?;
             let cipher = $algorithm::new_from_slice(key)
                 .map_err(|e| Error::CryptoLibraryError(format!("AEAD error: {:?}", e)))?;
             cipher
-                .encrypt(nonce.into(), Payload { msg, aad })
+                .encrypt(nonce, Payload { msg, aad })
                 .map_err(|e| Error::CryptoLibraryError(format!("AEAD error: {:?}", e)))
         }
         pub(crate) fn $name_open(
@@ -34,10 +31,7 @@ macro_rules! implement_aead {
             aad: &[u8],
             msg: &[u8],
         ) -> Result<Vec<u8>, Error> {
-            let nonce_length = HpkeRustCrypto::aead_nonce_length(alg);
-            if nonce.len() != nonce_length {
-                return Err(Error::AeadInvalidNonce);
-            }
+            let nonce = nonce.try_into().map_err(|_| Error::AeadInvalidNonce)?;
             let tag_length = HpkeRustCrypto::aead_tag_length(alg);
             if msg.len() < tag_length {
                 return Err(Error::AeadInvalidCiphertext);
@@ -47,7 +41,7 @@ macro_rules! implement_aead {
                 .map_err(|e| Error::CryptoLibraryError(format!("AEAD error: {:?}", e)))?;
 
             cipher
-                .decrypt(nonce.into(), Payload { msg, aad })
+                .decrypt(nonce, Payload { msg, aad })
                 .map_err(|_| Error::AeadOpenError)
         }
     };

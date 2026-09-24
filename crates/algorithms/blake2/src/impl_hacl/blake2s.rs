@@ -1,16 +1,14 @@
-extern crate alloc;
-
-use alloc::boxed::Box;
 use core::marker::PhantomData;
 
 use libcrux_hacl_rs::streaming_types::error_code;
 
-use crate::hacl::hash_blake2b::{blake2_params, index, params_and_key};
-use crate::hacl::hash_blake2s::{digest, malloc_raw, reset, reset_with_key, state_t, update0};
-
 use super::{
     ConstDigestLen, ConstKeyLen, ConstKeyLenConstDigestLen, Dynamic, Error, LengthBounds,
     SupportsKeyLen, SupportsOutLen,
+};
+use crate::hacl::{
+    hash_blake2b::{blake2_params, index, params_and_key},
+    hash_blake2s::{digest, malloc_raw, reset, reset_with_key, state_t, update0},
 };
 
 const PARAM_LEN: usize = 8;
@@ -319,7 +317,7 @@ impl<'a, T> Blake2sBuilder<'a, T> {
 
 /// A hasher struct for the Blake2s (optionally keyed) hash function.
 pub struct Blake2s<T> {
-    state: Box<[state_t]>,
+    state: [state_t; 1],
     _phantom: PhantomData<T>,
 }
 

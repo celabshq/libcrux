@@ -1,0 +1,36 @@
+[package]
+edition = "2021"
+name = "libcrux-p384-fuzz"
+publish = false
+version = "0.0.0"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+
+[dependencies.libcrux-p384]
+path = ".."
+features = ["rand"]
+
+[[bin]]
+bench = false
+doc = false
+name = "public_key_parse"
+path = "fuzz_targets/public_key_parse.rs"
+test = false
+
+[[bin]]
+bench = false
+doc = false
+name = "private_key_parse"
+path = "fuzz_targets/private_key_parse.rs"
+test = false
+
+[[bin]]
+bench = false
+doc = false
+name = "derive_ecdh"
+path = "fuzz_targets/derive_ecdh.rs"
+test = false

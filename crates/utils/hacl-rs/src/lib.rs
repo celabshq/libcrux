@@ -17,10 +17,11 @@ pub mod curve25519_51;
 pub mod streaming_types;
 
 pub mod prelude {
+    #[cfg(feature = "alloc")]
     extern crate alloc;
 
-    pub use alloc::boxed::Box;
-    pub use alloc::{vec, vec::Vec};
+    #[cfg(feature = "alloc")]
+    pub use alloc::{boxed::Box, vec, vec::Vec};
 
     pub use crate::{bignum, fstar, lowstar, streaming_types, util as lib};
 }

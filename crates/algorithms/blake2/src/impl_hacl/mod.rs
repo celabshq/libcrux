@@ -1,5 +1,3 @@
-extern crate alloc;
-
 mod blake2b;
 mod blake2s;
 mod error;
@@ -40,8 +38,7 @@ pub struct Dynamic;
 /// where
 ///     Blake2b<LengthBounds>: SupportsKeyLen<KEY_LEN>,
 /// {
-///     let mut hasher = Blake2bBuilder::new_keyed_const(key)
-///         .build_const_digest_len::<32>();
+///     let mut hasher = Blake2bBuilder::new_keyed_const(key).build_const_digest_len::<32>();
 ///     hasher.update(msg);
 ///     let mut output = [0u8; 32];
 ///     hasher.finalize(&mut output);
@@ -52,6 +49,5 @@ pub struct Dynamic;
 /// let key = [0; 32]; // this should actually be random
 /// let msg = b"a test message";
 /// let result = keyed_hash(&key, msg);
-///
 /// ```
 pub struct LengthBounds;

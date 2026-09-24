@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Changed
+
+- [#1602](https://github.com/celabshq/libcrux/pull/1602): Update the RustCrypto dependencies: `p256`, `k256` and `p384` to `0.14`, `x25519-dalek` to `3`, `chacha20poly1305` to `0.11`, `aes-gcm` to `0.11`, and the (experimental) `x-wing` and `ml-kem` to their `0.1`/`0.3` releases.
+
 ## [0.7.0] (2026-07-15)
 
 ### Changed

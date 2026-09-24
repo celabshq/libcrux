@@ -37,6 +37,7 @@ pub fn mul_wide_add2_u64(a: u64, b: u64, c_in: u64, out: &mut [u64]) -> u64 {
 /**
 ATTENTION: this function is public, but is intended for internal use within this workspace; callers should not rely on the availability of this function, or its behavior!
 */
+#[cfg(feature = "alloc")]
 pub fn bn_from_bytes_be_uint64(len: u32, b: &[u8], res: &mut [u64]) {
     let bnLen: u32 = len.wrapping_sub(1u32).wrapping_div(8u32).wrapping_add(1u32);
     let tmpLen: u32 = 8u32.wrapping_mul(bnLen);
@@ -57,6 +58,7 @@ pub fn bn_from_bytes_be_uint64(len: u32, b: &[u8], res: &mut [u64]) {
 /**
 ATTENTION: this function is public, but is intended for internal use within this workspace; callers should not rely on the availability of this function, or its behavior!
 */
+#[cfg(feature = "alloc")]
 pub fn bn_to_bytes_be_uint64(len: u32, b: &[u64], res: &mut [u8]) {
     let bnLen: u32 = len.wrapping_sub(1u32).wrapping_div(8u32).wrapping_add(1u32);
     let tmpLen: u32 = 8u32.wrapping_mul(bnLen);
@@ -257,6 +259,7 @@ pub fn bn_add_eq_len_u64(aLen: u32, a: &[u64], b: &[u64], res: &mut [u64]) -> u6
 }
 
 #[inline]
+#[cfg(feature = "alloc")]
 pub(crate) fn bn_mul_u32(aLen: u32, a: &[u32], bLen: u32, b: &[u32], res: &mut [u32]) {
     (res[0usize..aLen.wrapping_add(bLen) as usize])
         .copy_from_slice(&vec![0u32; aLen.wrapping_add(bLen) as usize].into_boxed_slice());
@@ -294,6 +297,7 @@ pub(crate) fn bn_mul_u32(aLen: u32, a: &[u32], bLen: u32, b: &[u32], res: &mut [
 }
 
 #[inline]
+#[cfg(feature = "alloc")]
 pub(crate) fn bn_mul_u64(aLen: u32, a: &[u64], bLen: u32, b: &[u64], res: &mut [u64]) {
     (res[0usize..aLen.wrapping_add(bLen) as usize])
         .copy_from_slice(&vec![0u64; aLen.wrapping_add(bLen) as usize].into_boxed_slice());
@@ -331,6 +335,7 @@ pub(crate) fn bn_mul_u64(aLen: u32, a: &[u64], bLen: u32, b: &[u64], res: &mut [
 }
 
 #[inline]
+#[cfg(feature = "alloc")]
 pub(crate) fn bn_sqr_u32(aLen: u32, a: &[u32], res: &mut [u32]) {
     (res[0usize..aLen.wrapping_add(aLen) as usize])
         .copy_from_slice(&vec![0u32; aLen.wrapping_add(aLen) as usize].into_boxed_slice());
@@ -398,6 +403,7 @@ pub(crate) fn bn_sqr_u32(aLen: u32, a: &[u32], res: &mut [u32]) {
 }
 
 #[inline]
+#[cfg(feature = "alloc")]
 pub(crate) fn bn_sqr_u64(aLen: u32, a: &[u64], res: &mut [u64]) {
     (res[0usize..aLen.wrapping_add(aLen) as usize])
         .copy_from_slice(&vec![0u64; aLen.wrapping_add(aLen) as usize].into_boxed_slice());

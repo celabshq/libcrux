@@ -18,6 +18,9 @@ pub mod mlkem;
 #[cfg(feature = "hmac")]
 pub mod hmac;
 
+#[cfg(feature = "hkdf")]
+pub mod hkdf;
+
 #[cfg(feature = "kmac")]
 pub mod kmac;
 

@@ -10,10 +10,6 @@ homepage.workspace = true
 edition.workspace = true
 repository.workspace = true
 
-[features]
-std = []
-default = ["std"]
-
 [dependencies]
 libcrux-hacl-rs.workspace = true
 libcrux-macros.workspace = true

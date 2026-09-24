@@ -25,6 +25,10 @@ pub enum HashAlgorithm {
     Sha256,
     Sha384,
     Sha512,
+    Sha3_224,
+    Sha3_256,
+    Sha3_384,
+    Sha3_512,
 }
 
 macro_rules! impl_load {
@@ -42,6 +46,10 @@ macro_rules! impl_load {
 impl_load!(load_sha256, "sha256");
 impl_load!(load_sha384, "sha384");
 impl_load!(load_sha512, "sha512");
+impl_load!(load_sha3_224, "sha3_224");
+impl_load!(load_sha3_256, "sha3_256");
+impl_load!(load_sha3_384, "sha3_384");
+impl_load!(load_sha3_512, "sha3_512");
 
 impl HmacTests {
     /// Load the [`HmacTests`] for the given [`HashAlgorithm`].
@@ -50,6 +58,10 @@ impl HmacTests {
             HashAlgorithm::Sha256 => Self::load_sha256(),
             HashAlgorithm::Sha384 => Self::load_sha384(),
             HashAlgorithm::Sha512 => Self::load_sha512(),
+            HashAlgorithm::Sha3_224 => Self::load_sha3_224(),
+            HashAlgorithm::Sha3_256 => Self::load_sha3_256(),
+            HashAlgorithm::Sha3_384 => Self::load_sha3_384(),
+            HashAlgorithm::Sha3_512 => Self::load_sha3_512(),
         }
     }
 }
@@ -63,5 +75,9 @@ mod test {
         HmacTests::load(HashAlgorithm::Sha256);
         HmacTests::load(HashAlgorithm::Sha384);
         HmacTests::load(HashAlgorithm::Sha512);
+        HmacTests::load(HashAlgorithm::Sha3_224);
+        HmacTests::load(HashAlgorithm::Sha3_256);
+        HmacTests::load(HashAlgorithm::Sha3_384);
+        HmacTests::load(HashAlgorithm::Sha3_512);
     }
 }

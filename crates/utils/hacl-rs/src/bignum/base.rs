@@ -5,10 +5,12 @@
 #![allow(unused_assignments)]
 #![allow(unreachable_patterns)]
 
-use crate::prelude::*;
-
 use libcrux_macros as krml;
 
+#[cfg(feature = "alloc")]
+use crate::prelude::*;
+
+#[cfg(feature = "alloc")]
 pub(crate) fn bn_karatsuba_mul_uint32(
     aLen: u32,
     a: &[u32],
@@ -159,6 +161,7 @@ pub(crate) fn bn_karatsuba_mul_uint32(
     }
 }
 
+#[cfg(feature = "alloc")]
 pub(crate) fn bn_karatsuba_mul_uint64(
     aLen: u32,
     a: &[u64],
@@ -309,6 +312,7 @@ pub(crate) fn bn_karatsuba_mul_uint64(
     }
 }
 
+#[cfg(feature = "alloc")]
 pub(crate) fn bn_karatsuba_sqr_uint32(aLen: u32, a: &[u32], tmp: &mut [u32], res: &mut [u32]) {
     if aLen < 32u32 || aLen.wrapping_rem(2u32) == 1u32 {
         super::bignum_base::bn_sqr_u32(aLen, a, res)
@@ -428,6 +432,7 @@ pub(crate) fn bn_karatsuba_sqr_uint32(aLen: u32, a: &[u32], tmp: &mut [u32], res
     }
 }
 
+#[cfg(feature = "alloc")]
 pub(crate) fn bn_karatsuba_sqr_uint64(aLen: u32, a: &[u64], tmp: &mut [u64], res: &mut [u64]) {
     if aLen < 32u32 || aLen.wrapping_rem(2u32) == 1u32 {
         super::bignum_base::bn_sqr_u64(aLen, a, res)
@@ -550,6 +555,7 @@ pub(crate) fn bn_karatsuba_sqr_uint64(aLen: u32, a: &[u64], tmp: &mut [u64], res
 /**
 ATTENTION: this function is public, but is intended for internal use within this workspace; callers should not rely on the availability of this function, or its behavior!
 */
+#[cfg(feature = "alloc")]
 pub fn bn_add_mod_n_u32(len1: u32, n: &[u32], a: &[u32], b: &[u32], res: &mut [u32]) {
     let mut c: [u32; 1] = [0u32; 1usize];
     for i in 0u32..len1.wrapping_div(4u32) {
@@ -621,6 +627,7 @@ pub fn bn_add_mod_n_u32(len1: u32, n: &[u32], a: &[u32], b: &[u32], res: &mut [u
 /**
 ATTENTION: this function is public, but is intended for internal use within this workspace; callers should not rely on the availability of this function, or its behavior!
 */
+#[cfg(feature = "alloc")]
 pub fn bn_add_mod_n_u64(len1: u32, n: &[u64], a: &[u64], b: &[u64], res: &mut [u64]) {
     let mut c: [u64; 1] = [0u64; 1usize];
     for i in 0u32..len1.wrapping_div(4u32) {
@@ -692,6 +699,7 @@ pub fn bn_add_mod_n_u64(len1: u32, n: &[u64], a: &[u64], b: &[u64], res: &mut [u
 /**
 ATTENTION: this function is public, but is intended for internal use within this workspace; callers should not rely on the availability of this function, or its behavior!
 */
+#[cfg(feature = "alloc")]
 pub fn bn_sub_mod_n_u32(len1: u32, n: &[u32], a: &[u32], b: &[u32], res: &mut [u32]) {
     let mut c: [u32; 1] = [0u32; 1usize];
     for i in 0u32..len1.wrapping_div(4u32) {
@@ -764,6 +772,7 @@ pub fn bn_sub_mod_n_u32(len1: u32, n: &[u32], a: &[u32], b: &[u32], res: &mut [u
 /**
 ATTENTION: this function is public, but is intended for internal use within this workspace; callers should not rely on the availability of this function, or its behavior!
 */
+#[cfg(feature = "alloc")]
 pub fn bn_sub_mod_n_u64(len1: u32, n: &[u64], a: &[u64], b: &[u64], res: &mut [u64]) {
     let mut c: [u64; 1] = [0u64; 1usize];
     for i in 0u32..len1.wrapping_div(4u32) {
@@ -884,6 +893,7 @@ pub fn mod_inv_uint64(n0: u64) -> u64 {
 /**
 ATTENTION: this function is public, but is intended for internal use within this workspace; callers should not rely on the availability of this function, or its behavior!
 */
+#[cfg(feature = "alloc")]
 pub fn bn_check_modulus_u32(len: u32, n: &[u32]) -> u32 {
     let mut one: Box<[u32]> = vec![0u32; len as usize].into_boxed_slice();
     ((&mut one)[0usize..len as usize])
@@ -904,6 +914,7 @@ pub fn bn_check_modulus_u32(len: u32, n: &[u32]) -> u32 {
 /**
 ATTENTION: this function is public, but is intended for internal use within this workspace; callers should not rely on the availability of this function, or its behavior!
 */
+#[cfg(feature = "alloc")]
 pub fn bn_precomp_r2_mod_n_u32(len: u32, nBits: u32, n: &[u32], res: &mut [u32]) {
     (res[0usize..len as usize]).copy_from_slice(&vec![0u32; len as usize].into_boxed_slice());
     let i: u32 = nBits.wrapping_div(32u32);
@@ -918,6 +929,7 @@ pub fn bn_precomp_r2_mod_n_u32(len: u32, nBits: u32, n: &[u32], res: &mut [u32])
     }
 }
 
+#[cfg(feature = "alloc")]
 fn bn_mont_reduction_u32(len: u32, n: &[u32], nInv: u32, c: &mut [u32], res: &mut [u32]) {
     let mut c0: [u32; 1] = [0u32; 1usize];
     for i in 0u32..len {
@@ -1002,6 +1014,7 @@ fn bn_mont_reduction_u32(len: u32, n: &[u32], nInv: u32, c: &mut [u32], res: &mu
 /**
 ATTENTION: this function is public, but is intended for internal use within this workspace; callers should not rely on the availability of this function, or its behavior!
 */
+#[cfg(feature = "alloc")]
 pub fn bn_to_mont_u32(len: u32, n: &[u32], nInv: u32, r2: &[u32], a: &[u32], aM: &mut [u32]) {
     let mut c: Box<[u32]> = vec![0u32; len.wrapping_add(len) as usize].into_boxed_slice();
     let mut tmp: Box<[u32]> = vec![0u32; 4u32.wrapping_mul(len) as usize].into_boxed_slice();
@@ -1012,6 +1025,7 @@ pub fn bn_to_mont_u32(len: u32, n: &[u32], nInv: u32, r2: &[u32], a: &[u32], aM:
 /**
 ATTENTION: this function is public, but is intended for internal use within this workspace; callers should not rely on the availability of this function, or its behavior!
 */
+#[cfg(feature = "alloc")]
 pub fn bn_from_mont_u32(len: u32, n: &[u32], nInv_u64: u32, aM: &[u32], a: &mut [u32]) {
     let mut tmp: Box<[u32]> = vec![0u32; len.wrapping_add(len) as usize].into_boxed_slice();
     ((&mut tmp)[0usize..len as usize]).copy_from_slice(&aM[0usize..len as usize]);
@@ -1021,6 +1035,7 @@ pub fn bn_from_mont_u32(len: u32, n: &[u32], nInv_u64: u32, aM: &[u32], a: &mut 
 /**
 ATTENTION: this function is public, but is intended for internal use within this workspace; callers should not rely on the availability of this function, or its behavior!
 */
+#[cfg(feature = "alloc")]
 pub fn bn_mont_mul_u32(
     len: u32,
     n: &[u32],
@@ -1038,6 +1053,7 @@ pub fn bn_mont_mul_u32(
 /**
 ATTENTION: this function is public, but is intended for internal use within this workspace; callers should not rely on the availability of this function, or its behavior!
 */
+#[cfg(feature = "alloc")]
 pub fn bn_mont_sqr_u32(len: u32, n: &[u32], nInv_u64: u32, aM: &[u32], resM: &mut [u32]) {
     let mut c: Box<[u32]> = vec![0u32; len.wrapping_add(len) as usize].into_boxed_slice();
     let mut tmp: Box<[u32]> = vec![0u32; 4u32.wrapping_mul(len) as usize].into_boxed_slice();
@@ -1048,6 +1064,7 @@ pub fn bn_mont_sqr_u32(len: u32, n: &[u32], nInv_u64: u32, aM: &[u32], resM: &mu
 /**
 ATTENTION: this function is public, but is intended for internal use within this workspace; callers should not rely on the availability of this function, or its behavior!
 */
+#[cfg(feature = "alloc")]
 pub fn bn_check_modulus_u64(len: u32, n: &[u64]) -> u64 {
     let mut one: Box<[u64]> = vec![0u64; len as usize].into_boxed_slice();
     ((&mut one)[0usize..len as usize])
@@ -1068,6 +1085,7 @@ pub fn bn_check_modulus_u64(len: u32, n: &[u64]) -> u64 {
 /**
 ATTENTION: this function is public, but is intended for internal use within this workspace; callers should not rely on the availability of this function, or its behavior!
 */
+#[cfg(feature = "alloc")]
 pub fn bn_precomp_r2_mod_n_u64(len: u32, nBits: u32, n: &[u64], res: &mut [u64]) {
     (res[0usize..len as usize]).copy_from_slice(&vec![0u64; len as usize].into_boxed_slice());
     let i: u32 = nBits.wrapping_div(64u32);
@@ -1082,6 +1100,7 @@ pub fn bn_precomp_r2_mod_n_u64(len: u32, nBits: u32, n: &[u64], res: &mut [u64])
     }
 }
 
+#[cfg(feature = "alloc")]
 fn bn_mont_reduction_u64(len: u32, n: &[u64], nInv: u64, c: &mut [u64], res: &mut [u64]) {
     let mut c0: [u64; 1] = [0u64; 1usize];
     for i in 0u32..len {
@@ -1166,6 +1185,7 @@ fn bn_mont_reduction_u64(len: u32, n: &[u64], nInv: u64, c: &mut [u64], res: &mu
 /**
 ATTENTION: this function is public, but is intended for internal use within this workspace; callers should not rely on the availability of this function, or its behavior!
 */
+#[cfg(feature = "alloc")]
 pub fn bn_to_mont_u64(len: u32, n: &[u64], nInv: u64, r2: &[u64], a: &[u64], aM: &mut [u64]) {
     let mut c: Box<[u64]> = vec![0u64; len.wrapping_add(len) as usize].into_boxed_slice();
     let mut tmp: Box<[u64]> = vec![0u64; 4u32.wrapping_mul(len) as usize].into_boxed_slice();
@@ -1176,6 +1196,7 @@ pub fn bn_to_mont_u64(len: u32, n: &[u64], nInv: u64, r2: &[u64], a: &[u64], aM:
 /**
 ATTENTION: this function is public, but is intended for internal use within this workspace; callers should not rely on the availability of this function, or its behavior!
 */
+#[cfg(feature = "alloc")]
 pub fn bn_from_mont_u64(len: u32, n: &[u64], nInv_u64: u64, aM: &[u64], a: &mut [u64]) {
     let mut tmp: Box<[u64]> = vec![0u64; len.wrapping_add(len) as usize].into_boxed_slice();
     ((&mut tmp)[0usize..len as usize]).copy_from_slice(&aM[0usize..len as usize]);
@@ -1185,6 +1206,7 @@ pub fn bn_from_mont_u64(len: u32, n: &[u64], nInv_u64: u64, aM: &[u64], a: &mut 
 /**
 ATTENTION: this function is public, but is intended for internal use within this workspace; callers should not rely on the availability of this function, or its behavior!
 */
+#[cfg(feature = "alloc")]
 pub fn bn_mont_mul_u64(
     len: u32,
     n: &[u64],
@@ -1202,6 +1224,7 @@ pub fn bn_mont_mul_u64(
 /**
 ATTENTION: this function is public, but is intended for internal use within this workspace; callers should not rely on the availability of this function, or its behavior!
 */
+#[cfg(feature = "alloc")]
 pub fn bn_mont_sqr_u64(len: u32, n: &[u64], nInv_u64: u64, aM: &[u64], resM: &mut [u64]) {
     let mut c: Box<[u64]> = vec![0u64; len.wrapping_add(len) as usize].into_boxed_slice();
     let mut tmp: Box<[u64]> = vec![0u64; 4u32.wrapping_mul(len) as usize].into_boxed_slice();
@@ -1209,6 +1232,7 @@ pub fn bn_mont_sqr_u64(len: u32, n: &[u64], nInv_u64: u64, aM: &[u64], resM: &mu
     super::base::bn_mont_reduction_u64(len, n, nInv_u64, &mut c, resM)
 }
 
+#[cfg(feature = "alloc")]
 pub(crate) fn bn_almost_mont_reduction_u32(
     len: u32,
     n: &[u32],
@@ -1268,6 +1292,7 @@ pub(crate) fn bn_almost_mont_reduction_u32(
     }
 }
 
+#[cfg(feature = "alloc")]
 fn bn_almost_mont_mul_u32(
     len: u32,
     n: &[u32],
@@ -1282,6 +1307,7 @@ fn bn_almost_mont_mul_u32(
     super::base::bn_almost_mont_reduction_u32(len, n, nInv_u64, &mut c, resM)
 }
 
+#[cfg(feature = "alloc")]
 fn bn_almost_mont_sqr_u32(len: u32, n: &[u32], nInv_u64: u32, aM: &[u32], resM: &mut [u32]) {
     let mut c: Box<[u32]> = vec![0u32; len.wrapping_add(len) as usize].into_boxed_slice();
     let mut tmp: Box<[u32]> = vec![0u32; 4u32.wrapping_mul(len) as usize].into_boxed_slice();
@@ -1289,6 +1315,7 @@ fn bn_almost_mont_sqr_u32(len: u32, n: &[u32], nInv_u64: u32, aM: &[u32], resM: 
     super::base::bn_almost_mont_reduction_u32(len, n, nInv_u64, &mut c, resM)
 }
 
+#[cfg(feature = "alloc")]
 pub(crate) fn bn_almost_mont_reduction_u64(
     len: u32,
     n: &[u64],
@@ -1348,6 +1375,7 @@ pub(crate) fn bn_almost_mont_reduction_u64(
     }
 }
 
+#[cfg(feature = "alloc")]
 fn bn_almost_mont_mul_u64(
     len: u32,
     n: &[u64],
@@ -1362,6 +1390,7 @@ fn bn_almost_mont_mul_u64(
     super::base::bn_almost_mont_reduction_u64(len, n, nInv_u64, &mut c, resM)
 }
 
+#[cfg(feature = "alloc")]
 fn bn_almost_mont_sqr_u64(len: u32, n: &[u64], nInv_u64: u64, aM: &[u64], resM: &mut [u64]) {
     let mut c: Box<[u64]> = vec![0u64; len.wrapping_add(len) as usize].into_boxed_slice();
     let mut tmp: Box<[u64]> = vec![0u64; 4u32.wrapping_mul(len) as usize].into_boxed_slice();
@@ -1369,6 +1398,7 @@ fn bn_almost_mont_sqr_u64(len: u32, n: &[u64], nInv_u64: u64, aM: &[u64], resM: 
     super::base::bn_almost_mont_reduction_u64(len, n, nInv_u64, &mut c, resM)
 }
 
+#[cfg(feature = "alloc")]
 pub(crate) fn bn_check_mod_exp_u32(len: u32, n: &[u32], a: &[u32], bBits: u32, b: &[u32]) -> u32 {
     let mut one: Box<[u32]> = vec![0u32; len as usize].into_boxed_slice();
     ((&mut one)[0usize..len as usize])
@@ -1419,6 +1449,7 @@ pub(crate) fn bn_check_mod_exp_u32(len: u32, n: &[u32], a: &[u32], bBits: u32, b
     m00 & m
 }
 
+#[cfg(feature = "alloc")]
 pub(crate) fn bn_mod_exp_vartime_precomp_u32(
     len: u32,
     n: &[u32],
@@ -1552,6 +1583,7 @@ pub(crate) fn bn_mod_exp_vartime_precomp_u32(
     }
 }
 
+#[cfg(feature = "alloc")]
 pub(crate) fn bn_mod_exp_consttime_precomp_u32(
     len: u32,
     n: &[u32],
@@ -1717,6 +1749,7 @@ pub(crate) fn bn_mod_exp_consttime_precomp_u32(
     }
 }
 
+#[cfg(feature = "alloc")]
 pub(crate) fn bn_mod_exp_vartime_u32(
     len: u32,
     nBits: u32,
@@ -1732,6 +1765,7 @@ pub(crate) fn bn_mod_exp_vartime_u32(
     super::base::bn_mod_exp_vartime_precomp_u32(len, n, mu, &r2, a, bBits, b, res)
 }
 
+#[cfg(feature = "alloc")]
 pub(crate) fn bn_mod_exp_consttime_u32(
     len: u32,
     nBits: u32,
@@ -1747,6 +1781,7 @@ pub(crate) fn bn_mod_exp_consttime_u32(
     super::base::bn_mod_exp_consttime_precomp_u32(len, n, mu, &r2, a, bBits, b, res)
 }
 
+#[cfg(feature = "alloc")]
 pub(crate) fn bn_check_mod_exp_u64(len: u32, n: &[u64], a: &[u64], bBits: u32, b: &[u64]) -> u64 {
     let mut one: Box<[u64]> = vec![0u64; len as usize].into_boxed_slice();
     ((&mut one)[0usize..len as usize])
@@ -1800,6 +1835,7 @@ pub(crate) fn bn_check_mod_exp_u64(len: u32, n: &[u64], a: &[u64], bBits: u32, b
 /**
 ATTENTION: this function is public, but is intended for internal use within this workspace; callers should not rely on the availability of this function, or its behavior!
 */
+#[cfg(feature = "alloc")]
 pub fn bn_mod_exp_vartime_precomp_u64(
     len: u32,
     n: &[u64],
@@ -1936,6 +1972,7 @@ pub fn bn_mod_exp_vartime_precomp_u64(
 /**
 ATTENTION: this function is public, but is intended for internal use within this workspace; callers should not rely on the availability of this function, or its behavior!
 */
+#[cfg(feature = "alloc")]
 pub fn bn_mod_exp_consttime_precomp_u64(
     len: u32,
     n: &[u64],
@@ -2101,6 +2138,7 @@ pub fn bn_mod_exp_consttime_precomp_u64(
     }
 }
 
+#[cfg(feature = "alloc")]
 pub(crate) fn bn_mod_exp_vartime_u64(
     len: u32,
     nBits: u32,
@@ -2116,6 +2154,7 @@ pub(crate) fn bn_mod_exp_vartime_u64(
     super::base::bn_mod_exp_vartime_precomp_u64(len, n, mu, &r2, a, bBits, b, res)
 }
 
+#[cfg(feature = "alloc")]
 pub(crate) fn bn_mod_exp_consttime_u64(
     len: u32,
     nBits: u32,
@@ -2132,6 +2171,7 @@ pub(crate) fn bn_mod_exp_consttime_u64(
 }
 
 #[derive(PartialEq, Clone)]
+#[cfg(feature = "alloc")]
 pub struct bn_mont_ctx_u32 {
     pub len: u32,
     pub n: Box<[u32]>,
@@ -2140,6 +2180,7 @@ pub struct bn_mont_ctx_u32 {
 }
 
 #[derive(PartialEq, Clone)]
+#[cfg(feature = "alloc")]
 pub struct bn_mont_ctx_u64 {
     pub len: u32,
     pub n: Box<[u64]>,

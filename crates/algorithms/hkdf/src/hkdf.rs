@@ -1,7 +1,8 @@
 //! # HKDF
 //!
-//! This crate implements HKDF ([RFC 5869](https://tools.ietf.org/html/rfc5869)) on SHA2-256, SHA2-384, and SHA2-512.
-//! The implementation is based on code extracted from verified crypto code from the [HACL* project](https://hacl-star.github.io).
+//! This crate implements HKDF ([RFC 5869](https://tools.ietf.org/html/rfc5869)) on SHA2-256, SHA2-384, SHA2-512,
+//! and SHA3-224, SHA3-256, SHA3-384, SHA3-512 (see [RFC 9688](https://www.rfc-editor.org/rfc/rfc9688.txt)).
+//! The SHA2 implementation is based on code extracted from verified crypto code from the [HACL* project](https://hacl-star.github.io).
 //!
 //! ## Examples
 //!
@@ -25,6 +26,28 @@
 //!
 //! Hkdf::<Sha2_256>::expand(&mut encrypt_key, &prk, b"encrypt").unwrap();
 //! Hkdf::<Sha2_256>::expand(&mut mac_key, &prk, b"mac").unwrap();
+//! ```
+//!
+//! ### Using the typed SHA3-256 API
+//!
+//! ```
+//! use libcrux_hkdf::{Hkdf, Sha3_256};
+//! use libcrux_secrets::{U8, Classify, ClassifyRef, DeclassifyRef};
+//!
+//! // Input key material and salt
+//! let ikm = &[0x0b; 22].classify(); // 22 bytes of 0x0b
+//! let salt = b"salt".classify_ref();
+//!
+//! // Extract phase: derive pseudorandom key
+//! let mut prk = [0u8; 32].classify(); // SHA3-256 output length
+//! Hkdf::<Sha3_256>::extract(&mut prk, salt, ikm).unwrap();
+//!
+//! // Expand phase: derive keys for different purposes
+//! let mut encrypt_key = [0u8; 16].classify();
+//! let mut mac_key = [0u8; 16].classify();
+//!
+//! Hkdf::<Sha3_256>::expand(&mut encrypt_key, &prk, b"encrypt").unwrap();
+//! Hkdf::<Sha3_256>::expand(&mut mac_key, &prk, b"mac").unwrap();
 //! ```
 //!
 //! ### Using the dynamic API
@@ -55,6 +78,7 @@ use core::marker::PhantomData;
 use libcrux_secrets::{Classify, DeclassifyRef, DeclassifyRefMut, U8};
 
 pub mod hacl;
+mod sha3;
 
 /// The HKDF algorithm defining the used hash function. Only needed for the functions with dynamic
 /// algorithm selection.
@@ -63,6 +87,10 @@ pub enum Algorithm {
     Sha256,
     Sha384,
     Sha512,
+    Sha3_224,
+    Sha3_256,
+    Sha3_384,
+    Sha3_512,
 }
 
 /// HKDF extract using the `salt` and the input key material `ikm`.
@@ -83,6 +111,10 @@ pub fn extract(
         Algorithm::Sha256 => sha2_256::extract(prk, salt, ikm),
         Algorithm::Sha384 => sha2_384::extract(prk, salt, ikm),
         Algorithm::Sha512 => sha2_512::extract(prk, salt, ikm),
+        Algorithm::Sha3_224 => sha3_224::extract(prk, salt, ikm),
+        Algorithm::Sha3_256 => sha3_256::extract(prk, salt, ikm),
+        Algorithm::Sha3_384 => sha3_384::extract(prk, salt, ikm),
+        Algorithm::Sha3_512 => sha3_512::extract(prk, salt, ikm),
     }
 }
 
@@ -101,6 +133,10 @@ pub fn expand(algo: Algorithm, okm: &mut [U8], prk: &[U8], info: &[u8]) -> Resul
         Algorithm::Sha256 => sha2_256::expand(okm, prk, info),
         Algorithm::Sha384 => sha2_384::expand(okm, prk, info),
         Algorithm::Sha512 => sha2_512::expand(okm, prk, info),
+        Algorithm::Sha3_224 => sha3_224::expand(okm, prk, info),
+        Algorithm::Sha3_256 => sha3_256::expand(okm, prk, info),
+        Algorithm::Sha3_384 => sha3_384::expand(okm, prk, info),
+        Algorithm::Sha3_512 => sha3_512::expand(okm, prk, info),
     }
 }
 
@@ -125,6 +161,10 @@ pub fn hkdf(
         Algorithm::Sha256 => sha2_256::hkdf(okm, salt, ikm, info),
         Algorithm::Sha384 => sha2_384::hkdf(okm, salt, ikm, info),
         Algorithm::Sha512 => sha2_512::hkdf(okm, salt, ikm, info),
+        Algorithm::Sha3_224 => sha3_224::hkdf(okm, salt, ikm, info),
+        Algorithm::Sha3_256 => sha3_256::hkdf(okm, salt, ikm, info),
+        Algorithm::Sha3_384 => sha3_384::hkdf(okm, salt, ikm, info),
+        Algorithm::Sha3_512 => sha3_512::hkdf(okm, salt, ikm, info),
     }
 }
 
@@ -148,6 +188,34 @@ pub struct Sha2_384;
 /// compile-time selection of the SHA2-512 algorithm for HKDF operations.
 /// SHA2-512 produces 64-byte (512-bit) hash outputs.
 pub struct Sha2_512;
+
+/// Type marker for SHA3-224 hash algorithm.
+///
+/// This struct is used as a type parameter for [`Hkdf<Sha3_224>`] to provide
+/// compile-time selection of the SHA3-224 algorithm for HKDF operations.
+/// SHA3-224 produces 28-byte (224-bit) hash outputs.
+pub struct Sha3_224;
+
+/// Type marker for SHA3-256 hash algorithm.
+///
+/// This struct is used as a type parameter for [`Hkdf<Sha3_256>`] to provide
+/// compile-time selection of the SHA3-256 algorithm for HKDF operations.
+/// SHA3-256 produces 32-byte (256-bit) hash outputs.
+pub struct Sha3_256;
+
+/// Type marker for SHA3-384 hash algorithm.
+///
+/// This struct is used as a type parameter for [`Hkdf<Sha3_384>`] to provide
+/// compile-time selection of the SHA3-384 algorithm for HKDF operations.
+/// SHA3-384 produces 48-byte (384-bit) hash outputs.
+pub struct Sha3_384;
+
+/// Type marker for SHA3-512 hash algorithm.
+///
+/// This struct is used as a type parameter for [`Hkdf<Sha3_512>`] to provide
+/// compile-time selection of the SHA3-512 algorithm for HKDF operations.
+/// SHA3-512 produces 64-byte (512-bit) hash outputs.
+pub struct Sha3_512;
 
 /// HKDF implementation with compile-time algorithm selection.
 ///
@@ -183,6 +251,10 @@ impl Algorithm {
             Algorithm::Sha256 => 32,
             Algorithm::Sha384 => 48,
             Algorithm::Sha512 => 64,
+            Algorithm::Sha3_224 => 28,
+            Algorithm::Sha3_256 => 32,
+            Algorithm::Sha3_384 => 48,
+            Algorithm::Sha3_512 => 64,
         }
     }
 }
@@ -207,7 +279,7 @@ impl Algorithm {
 ///
 /// This generates the `sha2_256` module and implements all HKDF methods for `Hkdf<Sha2_256>`.
 macro_rules! impl_hkdf {
-    ($struct_name:path, $name:ident, $string_name:literal, $mode:path, $extract:ident, $expand:ident,$hash_len:literal) => {
+    ($struct_name:path, $name:ident, $string_name:literal, $mode:path, $extract:path, $expand:path,$hash_len:literal) => {
         #[doc = concat!("HKDF implementation for ", $string_name, ".")]
         ///
         /// This module provides HKDF (HMAC-based Key Derivation Function) operations
@@ -322,7 +394,7 @@ macro_rules! impl_hkdf {
                 salt: &[U8],
                 ikm: &[U8],
             ) -> Result<(), ArrayReferenceExtractError> {
-                Ok(crate::hacl::$extract(
+                Ok($extract(
                     prk.declassify_ref_mut(),
                     salt.declassify_ref(),
                     checked_u32(salt.len())?,
@@ -369,7 +441,7 @@ macro_rules! impl_hkdf {
                     return Err(ArrayReferenceExpandError::OutputTooLong);
                 }
 
-                Ok(crate::hacl::$expand(
+                Ok($expand(
                     okm.declassify_ref_mut(),
                     prk.declassify_ref(),
                     checked_u32(prk.len())?,
@@ -428,8 +500,8 @@ impl_hkdf!(
     sha2_256,
     "SHA2-256",
     Algorithm::Sha256,
-    extract_sha2_256,
-    expand_sha2_256,
+    crate::hacl::extract_sha2_256,
+    crate::hacl::expand_sha2_256,
     32
 );
 
@@ -438,8 +510,8 @@ impl_hkdf!(
     sha2_384,
     "SHA2-384",
     Algorithm::Sha384,
-    extract_sha2_384,
-    expand_sha2_384,
+    crate::hacl::extract_sha2_384,
+    crate::hacl::expand_sha2_384,
     48
 );
 
@@ -448,8 +520,48 @@ impl_hkdf!(
     sha2_512,
     "SHA2-512",
     Algorithm::Sha512,
-    extract_sha2_512,
-    expand_sha2_512,
+    crate::hacl::extract_sha2_512,
+    crate::hacl::expand_sha2_512,
+    64
+);
+
+impl_hkdf!(
+    crate::Sha3_224,
+    sha3_224,
+    "SHA3-224",
+    Algorithm::Sha3_224,
+    crate::sha3::extract_sha3_224,
+    crate::sha3::expand_sha3_224,
+    28
+);
+
+impl_hkdf!(
+    crate::Sha3_256,
+    sha3_256,
+    "SHA3-256",
+    Algorithm::Sha3_256,
+    crate::sha3::extract_sha3_256,
+    crate::sha3::expand_sha3_256,
+    32
+);
+
+impl_hkdf!(
+    crate::Sha3_384,
+    sha3_384,
+    "SHA3-384",
+    Algorithm::Sha3_384,
+    crate::sha3::extract_sha3_384,
+    crate::sha3::expand_sha3_384,
+    48
+);
+
+impl_hkdf!(
+    crate::Sha3_512,
+    sha3_512,
+    "SHA3-512",
+    Algorithm::Sha3_512,
+    crate::sha3::extract_sha3_512,
+    crate::sha3::expand_sha3_512,
     64
 );
 

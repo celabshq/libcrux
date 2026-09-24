@@ -5,7 +5,7 @@ crates and SHOULD NOT be used directly.
 
 ## `no_std` support
 
-This crate supports `no_std` targets, but requires the presence of a global allocator.
+This crate supports `no_std` targets, and does not perform heap allocations.
 
 ## Verification
 ![verified-hacl]
