@@ -76,14 +76,20 @@ define FINDLIBS
     } ; \
     : "Asks Cargo all the dependencies for the current crate or workspace,"; \
     : "and extract all "root" directories for each. Takes zero argument."; \
-    : "We skip crates.io-registry packages: hax F* proof libraries only ship"; \
-    : "in our local path crates (intrinsics, sha3, ...) and the git-pinned"; \
-    : "hax-lib. Enabling hpke transitively pulls stale published copies (a"; \
-    : "0.3.6 hax-lib, old libcrux/core-models extractions) that must not shadow"; \
-    : "the workspace ones."; \
+    : "Our own F* proof libraries ship in the workspace path crates (intrinsics,"; \
+    : "sha3, ...); published copies of those same crates must not shadow them, so"; \
+    : "crates.io-registry packages are skipped. hax-lib is the one exception: it"; \
+    : "carries proof-libs/, and the workspace depends on it directly. Selecting it"; \
+    : "through the resolve graph admits exactly that one and keeps any second,"; \
+    : "transitively-pulled hax-lib out."; \
     function dependencies() { \
         cargo metadata --format-version 1 | \
-            jq -r ".packages | .[] | select((.source // \"\") | startswith(\"registry+\") | not) | .manifest_path | split(\"/\") | .[:-1] | join(\"/\")"; \
+            jq -r ". as \$$m \
+                   | [\$$m.workspace_members[] as \$$w | \$$m.resolve.nodes[] | select(.id == \$$w) | .deps[] | .pkg] as \$$direct \
+                   | .packages[] \
+                   | select(((.source // \"\") | startswith(\"registry+\") | not) \
+                            or (.name == \"hax-lib\" and (.id as \$$i | \$$direct | index(\$$i)))) \
+                   | .manifest_path | split(\"/\") | .[:-1] | join(\"/\")"; \
     } ; \
     : "Find hax libraries *around* a given path. Takes one argument: the"; \
     : "path."; \

@@ -3,7 +3,7 @@ members = ["hacspec-lib", "sha3", "ml-dsa", "ml-kem"]
 resolver = "2"
 
 [workspace.dependencies]
-hax-lib = { git = "https://github.com/cryspen/hax", branch = "feat/core-prim-specs" }  # see the root Cargo.toml note
+hax-lib = "=0.4.1"
 
 [workspace.metadata.bin]
-cargo-hax = { version = "0.4.0", bins = ["cargo-hax"], locked = true }
+cargo-hax = { version = "0.4.1", bins = ["cargo-hax"], locked = true }

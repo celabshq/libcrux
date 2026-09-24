@@ -18,10 +18,10 @@ jobs:
       - uses: actions/checkout@v6
       - id: step1
         run: |
-          # use hax from the commit at which hax-lib is pinned in the Cargo.toml of libcrux.
-          # Pick the workspace's git/path-pinned hax-lib, not the crates.io-published
-          # 0.3.6 that the `hpke` dependency transitively pulls in (two hax-lib versions
-          # in the graph would otherwise make this a multi-line, invalid output).
-          HAX_VERSION="$(cargo metadata --format-version=1 | jq -r 'first(.packages[] | select(.name=="hax-lib" and ((.source // "") | startswith("registry+") | not))) | .version')"
+          # Use hax at the version the Cargo.toml of libcrux pins hax-lib to.
+          # Pick the hax-lib the workspace depends on directly, not one a transitive
+          # dependency drags in (two hax-lib versions in the graph would otherwise
+          # make this a multi-line, invalid output).
+          HAX_VERSION="$(cargo metadata --format-version=1 | jq -r '. as $m | [$m.workspace_members[] as $w | $m.resolve.nodes[] | select(.id == $w) | .deps[] | .pkg] as $direct | first(.packages[] | select(.name=="hax-lib" and (.id as $i | $direct | index($i)))) | .version')"
           echo "hax_ref=hax-lib-v$HAX_VERSION" >> $GITHUB_OUTPUT
           echo "Using hax $HAX_VERSION"
