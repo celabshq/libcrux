@@ -223,3 +223,13 @@ impl<Algo: Aead> AsMut<Algo::Nonce> for Nonce<Algo> {
         &mut self.0
     }
 }
+
+#[cfg(feature = "zeroize")]
+impl<Algo: Aead> zeroize::Zeroize for Key<Algo>
+where
+    Algo::Key: zeroize::Zeroize,
+{
+    fn zeroize(&mut self) {
+        self.0.zeroize();
+    }
+}

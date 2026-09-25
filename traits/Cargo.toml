@@ -19,7 +19,10 @@ check-secret-independence = ["libcrux-secrets/check-secret-independence"]
 generic-tests = []
 # whether or not the alloc crate is used
 alloc = []
+# Implement zeroize::Zeroize for typed key wrappers
+zeroize = ["dep:zeroize", "libcrux-secrets/zeroize"]
 
 [dependencies]
 rand = { version = "0.10", default-features = false }
 libcrux-secrets.workspace = true
+zeroize = { version = "1.8", default-features = false, optional = true }

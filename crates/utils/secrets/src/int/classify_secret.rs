@@ -22,6 +22,13 @@ impl<T: Clone> Clone for Secret<T> {
     }
 }
 
+#[cfg(feature = "zeroize")]
+impl<T: zeroize::Zeroize> zeroize::Zeroize for Secret<T> {
+    fn zeroize(&mut self) {
+        self.0.zeroize();
+    }
+}
+
 // Any scalar type can be classified
 impl<T: Scalar> From<T> for Secret<T> {
     fn from(x: T) -> Secret<T> {

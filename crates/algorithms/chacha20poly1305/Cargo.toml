@@ -22,8 +22,11 @@ libcrux-secrets.workspace = true
 [dev-dependencies]
 rand_core = { version = "0.10" }
 rand = { version = "0.10", features = ["sys_rng"] }
+zeroize = { version = "1.8", default-features = false }
 libcrux-kats = { workspace = true, features = ["chacha20poly1305"] }
 hex = "0.4.3"
 
 [features]
 check-secret-independence = ["libcrux-secrets/check-secret-independence"]
+# Implement zeroize::Zeroize for the Key type
+zeroize = ["libcrux-traits/zeroize", "libcrux-secrets/zeroize"]
