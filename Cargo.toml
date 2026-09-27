@@ -107,7 +107,7 @@ allow-branch = ["main"]
 # checkouts resolve different foundations with no diff to show for it, silently
 # invalidating recorded unsat cores. Bump deliberately, re-extract, and re-record
 # hints in the same commit.
-hax-lib = { version = "=0.4.1" }
+hax-lib = { git = "https://github.com/cryspen/hax", rev = "e02c95b02c3f8175a39088523d7864644fc91bff" }
 libcrux-aead = { version = "=0.0.9", path = "crates/primitives/aead" }
 libcrux-aes = { version = "=0.0.9", path = "crates/algorithms/aes" }
 libcrux-blake2 = { version = "=0.0.8", path = "crates/algorithms/blake2" }
