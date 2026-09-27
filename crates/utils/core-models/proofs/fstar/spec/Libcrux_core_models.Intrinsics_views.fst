@@ -1291,6 +1291,7 @@ let lemma_iv_shuffle_epi32 (c: i32) (x: Funarr.t_FunArray (mk_u64 8) i32) (j: na
   assert (Funarr.impl_5__get (mk_u64 8) #i32 (IV.e_mm256_shuffle_epi32 c x) (mk_u64 j) ==
           Funarr.impl_5__get (mk_u64 8) #i32 x (mk_u64 (4 * (j / 4) + ctl2 c (j % 4))))
     by (FStar.Tactics.norm [delta_only [`%Libcrux_core_models.Core_arch.X86.Interpretations.Int_vec.e_mm256_shuffle_epi32;
+                                        `%Core_models.Num.impl_i32__rem_euclid;
                                         `%ctl2];
                             iota; zeta; primops];
         FStar.Tactics.smt ())
@@ -1306,6 +1307,7 @@ let lemma_iv_permute4x64_epi64 (c: i32) (a: Funarr.t_FunArray (mk_u64 4) i64) (j
   assert (Funarr.impl_5__get (mk_u64 4) #i64 (IV.e_mm256_permute4x64_epi64 c a) (mk_u64 j) ==
           Funarr.impl_5__get (mk_u64 4) #i64 a (mk_u64 (ctl2 c j)))
     by (FStar.Tactics.norm [delta_only [`%Libcrux_core_models.Core_arch.X86.Interpretations.Int_vec.e_mm256_permute4x64_epi64;
+                                        `%Core_models.Num.impl_i32__rem_euclid;
                                         `%ctl2];
                             iota; zeta; primops];
         FStar.Tactics.smt ())
@@ -2440,23 +2442,27 @@ let lemma_iv_permute2x128 (c: i32) (a b: Funarr.t_FunArray (mk_u64 2) i128) (j: 
     if j = 0 then
       assert (Funarr.impl_5__get (mk_u64 2) #i128 (IV.e_mm256_permute2x128_si256 (mk_i32 32) a b) (mk_u64 0) ==
               Funarr.impl_5__get (mk_u64 2) #i128 a (mk_u64 0))
-        by (FStar.Tactics.norm [delta_only [`%Libcrux_core_models.Core_arch.X86.Interpretations.Int_vec.e_mm256_permute2x128_si256];
+        by (FStar.Tactics.norm [delta_only [`%Libcrux_core_models.Core_arch.X86.Interpretations.Int_vec.e_mm256_permute2x128_si256;
+                                            `%Core_models.Num.impl_i32__rem_euclid];
                                 iota; zeta; primops]; FStar.Tactics.smt ())
     else
       assert (Funarr.impl_5__get (mk_u64 2) #i128 (IV.e_mm256_permute2x128_si256 (mk_i32 32) a b) (mk_u64 1) ==
               Funarr.impl_5__get (mk_u64 2) #i128 b (mk_u64 0))
-        by (FStar.Tactics.norm [delta_only [`%Libcrux_core_models.Core_arch.X86.Interpretations.Int_vec.e_mm256_permute2x128_si256];
+        by (FStar.Tactics.norm [delta_only [`%Libcrux_core_models.Core_arch.X86.Interpretations.Int_vec.e_mm256_permute2x128_si256;
+                                            `%Core_models.Num.impl_i32__rem_euclid];
                                 iota; zeta; primops]; FStar.Tactics.smt ())
   end else begin
     if j = 0 then
       assert (Funarr.impl_5__get (mk_u64 2) #i128 (IV.e_mm256_permute2x128_si256 (mk_i32 49) a b) (mk_u64 0) ==
               Funarr.impl_5__get (mk_u64 2) #i128 a (mk_u64 1))
-        by (FStar.Tactics.norm [delta_only [`%Libcrux_core_models.Core_arch.X86.Interpretations.Int_vec.e_mm256_permute2x128_si256];
+        by (FStar.Tactics.norm [delta_only [`%Libcrux_core_models.Core_arch.X86.Interpretations.Int_vec.e_mm256_permute2x128_si256;
+                                            `%Core_models.Num.impl_i32__rem_euclid];
                                 iota; zeta; primops]; FStar.Tactics.smt ())
     else
       assert (Funarr.impl_5__get (mk_u64 2) #i128 (IV.e_mm256_permute2x128_si256 (mk_i32 49) a b) (mk_u64 1) ==
               Funarr.impl_5__get (mk_u64 2) #i128 b (mk_u64 1))
-        by (FStar.Tactics.norm [delta_only [`%Libcrux_core_models.Core_arch.X86.Interpretations.Int_vec.e_mm256_permute2x128_si256];
+        by (FStar.Tactics.norm [delta_only [`%Libcrux_core_models.Core_arch.X86.Interpretations.Int_vec.e_mm256_permute2x128_si256;
+                                            `%Core_models.Num.impl_i32__rem_euclid];
                                 iota; zeta; primops]; FStar.Tactics.smt ())
   end
 #pop-options

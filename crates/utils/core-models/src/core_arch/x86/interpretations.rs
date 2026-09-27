@@ -80,8 +80,13 @@ let e_mm256_movemask_ps (a: Libcrux_core_models.Abstractions.Funarr.t_FunArray (
         i32x8::from_fn(|i| x[i].wrapping_sub(y[i]))
     }
 
+    // The control is read as four 2-bit fields. `rem_euclid` reads one field as
+    // 0..3 for any `CONTROL`, signed or not, which keeps the lane index in range
+    // by construction and auto-provable in F* (a literal `&` mask matches no
+    // bit-and lemma there).
     pub fn _mm256_shuffle_epi32<const CONTROL: i32>(x: i32x8) -> i32x8 {
-        let indexes: FunArray<4, u64> = FunArray::from_fn(|i| ((CONTROL >> i * 2) % 4) as u64);
+        let indexes: FunArray<4, u64> =
+            FunArray::from_fn(|i| (CONTROL >> i * 2).rem_euclid(4) as u64);
         i32x8::from_fn(|i| {
             if i < 4 {
                 x[indexes[i]]
@@ -351,7 +356,8 @@ let e_mm256_movemask_ps (a: Libcrux_core_models.Abstractions.Funarr.t_FunArray (
     }
 
     pub fn _mm256_permute4x64_epi64<const IMM8: i32>(a: i64x4) -> i64x4 {
-        let indexes: FunArray<4, u64> = FunArray::from_fn(|i| ((IMM8 >> i * 2) % 4) as u64);
+        let indexes: FunArray<4, u64> =
+            FunArray::from_fn(|i| (IMM8 >> i * 2).rem_euclid(4) as u64);
         i64x4::from_fn(|i| a[indexes[i]])
     }
 
@@ -609,10 +615,10 @@ let e_mm256_movemask_ps (a: Libcrux_core_models.Abstractions.Funarr.t_FunArray (
     pub fn _mm256_permute2x128_si256<const IMM8: i32>(a: i128x2, b: i128x2) -> i128x2 {
         i128x2::from_fn(|i| {
             let control = IMM8 >> (i * 4);
-            if (control >> 3) % 2 == 1 {
+            if (control >> 3).rem_euclid(2) == 1 {
                 0
             } else {
-                match control % 4 {
+                match control.rem_euclid(4) {
                     0 => a[0],
                     1 => a[1],
                     2 => b[0],
@@ -877,11 +883,11 @@ let e_mm256_movemask_ps (a: Libcrux_core_models.Abstractions.Funarr.t_FunArray (
         })
     }
 
-    // _mm_shuffle_epi32<IMM8>: 32-bit lane shuffle controlled by 2-bit fields.
-    // Use `% 4` rather than `& 0b11` so F* can auto-prove the index is < 4
-    // (mirrors the working `_mm256_shuffle_epi32` body above).
+    // _mm_shuffle_epi32<IMM8>: 32-bit lane shuffle controlled by 2-bit fields
+    // (mirrors the `_mm256_shuffle_epi32` body above).
     pub fn _mm_shuffle_epi32<const IMM8: i32>(a: i32x4) -> i32x4 {
-        let indexes: FunArray<4, u64> = FunArray::from_fn(|i| ((IMM8 >> (i * 2)) % 4) as u64);
+        let indexes: FunArray<4, u64> =
+            FunArray::from_fn(|i| (IMM8 >> (i * 2)).rem_euclid(4) as u64);
         i32x4::from_fn(|i| a[indexes[i]])
     }
 
