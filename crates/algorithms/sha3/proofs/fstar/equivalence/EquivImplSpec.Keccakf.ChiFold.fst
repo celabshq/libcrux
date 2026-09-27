@@ -46,6 +46,31 @@ let chi_inner_val
        (old.[ i, ((j +! mk_usize 1) %! mk_usize 5) <: (usize & usize) ] <: v_T))
 
 (* ================================================================
+   Point-update frame for [impl_2__set]: the written cell holds the
+   new value and every other cell of the 5x5 grid is unchanged.
+
+   Stated over a free [value] so that the flat-index injectivity
+   ([5 * ii + jj] determines [(ii, jj)] on the grid) is discharged in
+   a context that holds nothing else.
+   ================================================================ *)
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 100"
+let lemma_set_frame
+      (#v_N: usize) (#v_T: Type0)
+      {| inst: Libcrux_sha3.Traits.t_KeccakItem v_T v_N |}
+      (s: t_KeccakState v_N v_T)
+      (i: usize{v i < 5}) (j: usize{v j < 5})
+      (value: v_T)
+  : Lemma
+    (ensures
+      (let s' = impl_2__set v_N #v_T s i j value in
+       s'.[ i, j <: (usize & usize) ] == value /\
+       (forall (ii: usize) (jj: usize).
+         (v ii < 5 /\ v jj < 5 /\ ~(v ii == v i /\ v jj == v j)) ==>
+           s'.[ ii, jj ] == s.[ ii, jj ]))) = ()
+#pop-options
+
+(* ================================================================
    Inner-loop invariant + step lemma.
    ================================================================ *)
 
@@ -63,7 +88,30 @@ let chi_inner_inv
        (v ii > v i \/ (v ii == v i /\ v jj >= v j))) ==>
        s.[ ii,jj ] == old.[ ii,jj ])
 
-#push-options "--z3rlimit 200 --split_queries always"
+(* Loop-invariant maintenance, over a free [value] constrained only by its
+   spec equation.  The 5x5 case split (written cell, already-computed cells,
+   not-yet-computed cells) is discharged here, where the context holds neither
+   [value]'s definition nor the enclosing function's weakest precondition.
+
+   [chi_inner_val] is filtered out of the context: the argument is congruence
+   over a point update and never inspects the value written, so unfolding it
+   at each of the 25 instantiations is pure cost.  It stays transparent for
+   [lemma_chi_val_i]'s consumer, which does need the body. *)
+
+#push-options "--z3rlimit 100 --using_facts_from '* -EquivImplSpec.Keccakf.ChiFold.chi_inner_val'"
+let lemma_chi_inner_step
+      (#v_N: usize) (#v_T: Type0)
+      {| inst: Libcrux_sha3.Traits.t_KeccakItem v_T v_N |}
+      (old s: t_KeccakState v_N v_T)
+      (i: usize{v i < 5}) (j: usize{v j < 5})
+      (value: v_T)
+  : Lemma
+    (requires chi_inner_inv old s i j /\ value == chi_inner_val old i j)
+    (ensures chi_inner_inv old (impl_2__set v_N #v_T s i j value) i (j +! sz 1)) =
+  lemma_set_frame s i j value
+#pop-options
+
+#push-options "--z3rlimit 100"
 let chi_inner_body
       (#v_N: usize) (#v_T: Type0)
       {| inst: Libcrux_sha3.Traits.t_KeccakItem v_T v_N |}
@@ -72,24 +120,16 @@ let chi_inner_body
   : Pure (t_KeccakState v_N v_T)
     (requires (chi_inner_inv old s i j))
     (ensures fun r -> (chi_inner_inv old r i (j +! sz 1))) =
-  let s' =
-  impl_2__set v_N #v_T s i j
-    (Libcrux_sha3.Traits.f_and_not_xor #v_T #v_N
-       (s.[ i, j <: (usize & usize) ] <: v_T)
-       (old.[ i, ((j +! mk_usize 2) %! mk_usize 5) <: (usize & usize) ] <: v_T)
-       (old.[ i, ((j +! mk_usize 1) %! mk_usize 5) <: (usize & usize) ] <: v_T))
+  let value =
+    Libcrux_sha3.Traits.f_and_not_xor #v_T #v_N
+      (s.[ i, j <: (usize & usize) ] <: v_T)
+      (old.[ i, ((j +! mk_usize 2) %! mk_usize 5) <: (usize & usize) ] <: v_T)
+      (old.[ i, ((j +! mk_usize 1) %! mk_usize 5) <: (usize & usize) ] <: v_T)
   in
-  assert (s'.[ i, j <: usize & usize ] == chi_inner_val old i j);
-  assert (forall (ii:usize) (jj:usize).
-      (v ii < 5 /\ v jj < 5 /\
-       (v ii < v i \/ (v ii == v i /\ v jj < v j + 1))) ==>
-       s'.[ ii, jj ] == chi_inner_val old ii jj);
-  assert (forall (ii:usize) (jj:usize).
-      (v ii < 5 /\ v jj < 5 /\
-       (v ii > v i \/ (v ii == v i /\ v jj >= v j + 1))) ==>
-       s.[ ii,jj ] == old.[ ii,jj ]);
-  assert(chi_inner_inv old s' i (j +! sz 1));
-  s'
+  assert (s.[ i, j <: usize & usize ] == old.[ i, j <: usize & usize ]);
+  assert (value == chi_inner_val old i j);
+  lemma_chi_inner_step old s i j value;
+  impl_2__set v_N #v_T s i j value
 #pop-options
 
 (* ================================================================

@@ -46,7 +46,7 @@ pub mod x4 {
                  (mk_usize 136) (mk_u8 31) $input3 <: t_Slice u8)
         "#)
     })]
-    #[hax_lib::fstar::options("--fuel 0 --ifuel 1 --z3rlimit 200 --split_queries always")]
+    #[hax_lib::fstar::options("--fuel 0 --ifuel 1 --z3rlimit 300 --split_queries always --z3refresh")]
     pub fn shake256(
         input0: &[u8],
         input1: &[u8],
