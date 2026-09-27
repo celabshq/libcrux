@@ -27,127 +27,51 @@ def shell(command, expect=0, cwd=None, env={}):
         raise Exception("Error {}. Expected {}.".format(ret, expect))
 
 KMAC = os.path.dirname(os.path.abspath(__file__))
-PLATFORM = os.path.normpath(os.path.join(KMAC, "../../sys/platform"))
-CORE_MODELS = os.path.normpath(os.path.join(KMAC, "../../utils/core-models"))
-INTRINSICS = os.path.normpath(os.path.join(KMAC, "../../utils/intrinsics"))
-SECRETS = os.path.normpath(os.path.join(KMAC, "../../utils/secrets"))
+REPO_ROOT = os.path.normpath(os.path.join(KMAC, "../../.."))
 SHA3 = os.path.normpath(os.path.join(KMAC, "../sha3"))
 
 
-def replace_in_extraction(crate_dir, replacements):
-    """Apply `(old, new)` string replacements to every .fst/.fsti file in
-    `crate_dir`'s extraction directory (the Python equivalent of the `sed`
-    calls in crates/algorithms/sha3/hax.sh)."""
-    extraction_dir = os.path.join(crate_dir, "proofs", "fstar", "extraction")
-    files = glob(os.path.join(extraction_dir, "*.fst")) + glob(
-        os.path.join(extraction_dir, "*.fsti")
-    )
-    for path in files:
-        with open(path) as f:
-            content = f.read()
-        updated = content
-        for old, new in replacements:
-            updated = updated.replace(old, new)
-        if updated != content:
-            with open(path, "w") as f:
-                f.write(updated)
+def run_dep_extract(rel_script):
+    """Invoke a canonical per-dependency `hax.py extract` (single source of
+    truth for that uniform shared dep; idempotent — skips if already
+    extracted).  Keeps the shared platform/core-models/secrets trees from
+    flip-flopping between per-algorithm configs."""
+    script = os.path.join(REPO_ROOT, rel_script)
+    print(f"[kmac/hax.py] -> {rel_script} extract")
+    subprocess.run([sys.executable, script, "extract"], check=True)
 
 
-def rename_core_models_uses(crate_dir):
-    """Mirror sha3/hax.sh: any extracted crate may refer to core-models under
-    the `Core_models.*` module path; rewrite those references to the
-    `Libcrux_core_models.*` modules produced by rename_core_models_files."""
-    replace_in_extraction(
-        crate_dir,
-        [
-            ("Core_models.Abstractions", "Libcrux_core_models.Abstractions"),
-            ("Core_models.Core_arch", "Libcrux_core_models.Core_arch"),
-        ],
-    )
-
-
-def rename_core_models_files(crate_dir):
-    """Mirror sha3/hax.sh: rename the core-models crate's own modules from
-    `Core_models*` to `Libcrux_core_models*` (both file names and the
-    `module ...` headers inside them)."""
-    extraction_dir = os.path.join(crate_dir, "proofs", "fstar", "extraction")
-    for path in glob(os.path.join(extraction_dir, "Core_models*")):
-        dir_path = os.path.dirname(path)
-        filename = os.path.basename(path)
-        new_filename = "Libcrux_core_models" + filename[len("Core_models"):]
-        os.rename(path, os.path.join(dir_path, new_filename))
-    replace_in_extraction(
-        crate_dir, [("module Core_models", "module Libcrux_core_models")]
-    )
+def run_sha3_extract():
+    """Invoke sha3's own driver.  kmac verifies against
+    `Libcrux_sha3.Portable.Incremental.*`, and that tree's single writer is
+    `crates/algorithms/sha3/hax.sh` — re-emitting sha3 here under kmac's
+    backend flags would make its content depend on which crate extracted
+    last."""
+    print("[kmac/hax.py] -> crates/algorithms/sha3/hax.sh extract")
+    subprocess.run([os.path.join(SHA3, "hax.sh"), "extract"], cwd=SHA3, check=True)
 
 
 def hax_extract(cwd, hax_args):
-    """Run `cargo hax <hax_args>` in `cwd` and rewrite core-models uses in the
-    resulting extraction, exactly like the `extract` helper in sha3/hax.sh."""
+    """Run `cargo hax <hax_args>` in `cwd`."""
     shell(["cargo", "hax"] + hax_args, cwd=cwd, env={})
-    rename_core_models_uses(cwd)
 
 
 class extractAction(argparse.Action):
 
     def __call__(self, parser, args, values, option_string=None) -> None:
-        # XXX The order of these extractions is relevant. Ideally, hax would be able
-        # to just extract a crate and its dependents, but that doesn't seem to always
-        # work (only sometimes...). You must also take care to not extract a crate which
-        # has dependents before the dependents, as they will otherwise not be extracted
-        # properly due to seemingly a caching bug in hax.
+        # Every dependency tree kmac verifies against has a canonical owner, and
+        # that owner is its only writer.  Re-emitting them here under kmac's
+        # backend flags would give each a different `--interfaces`/`--z3rlimit`
+        # module header, so the shared trees would depend on which crate
+        # extracted last and every cross-crate extraction would invalidate the
+        # others' `.checked` for nothing.
+        run_dep_extract("crates/sys/platform/hax.py")
+        run_dep_extract("crates/utils/core-models/hax.py")
+        run_dep_extract("crates/utils/secrets/hax.py")
+        run_sha3_extract()
 
-        # --- platform --------------------------------------------------------
-        hax_extract(
-            PLATFORM,
-            [
-                "into",
-                "-i", "+:** -**::x86::init::cpuid -**::x86::init::cpuid_count",
-                "fstar", "--z3rlimit", "80", "--interfaces", "+**",
-            ],
-        )
-
-        # --- core-models -----------------------------------------------------
-        hax_extract(CORE_MODELS, ["into", "fstar"])
-        rename_core_models_files(CORE_MODELS)
-
-        # --- intrinsics ------------------------------------------------------
-        hax_extract(
-            INTRINSICS,
-            [
-                "into",
-                "-i", "-libcrux_core_models::**",
-                "fstar", "--z3rlimit", "80", "--interfaces", "+**",
-            ],
-        )
-
-        # --- secrets ---------------------------------------------------------
-        hax_extract(
-            SECRETS,
-            ["into", "-i", "+**", "fstar", "--z3rlimit", "80"],
-        )
-
-        # --- sha3 ------------------------------------------------------------
-        # libcrux_sha3::portable must stay transparent (no F* interface) — see
-        # the comment in crates/algorithms/sha3/hax.sh for why.
-        hax_extract(
-            SHA3,
-            [
-                "into",
-                "-i", "+**",
-                "-i", "-**::avx2::**",
-                "-i", "-**::arm64::**",
-                "-i", "-**::neon::**",
-                "-i", "-**::simd128::**",
-                "-i", "-**::simd256::**",
-                "fstar", "--z3rlimit", "80",
-                # XXX Extraction with interfaces currently doesn't work due to state_inv refactoring
-                # "--interfaces",
-                # "+** -**::generic_keccak::constants::** "
-                # "-libcrux_sha3::proof_utils::** -libcrux_sha3::portable::**",
-            ],
-        )
-
+        # kmac's own sweep names only `libcrux_kmac::**`, so it pulls in no
+        # dependency module and needs no exclusions.
         hax_extract(
             KMAC,
             [
@@ -176,13 +100,14 @@ class proveAction(argparse.Action):
 class cleanAction(argparse.Action):
 
     def __call__(self, parser, args, values, option_string=None) -> None:
-        for crate_dir in [KMAC, PLATFORM, CORE_MODELS, INTRINSICS, SECRETS, SHA3]:
-            extraction_dir = os.path.join(crate_dir, "proofs/fstar/extraction")
-            files = glob(os.path.join(extraction_dir, "*.fst")) + glob(
-                os.path.join(extraction_dir, "*.fsti")
-            )
-            if files:
-                shell(["rm"] + files)
+        # Only kmac's own tree: the dependency trees belong to their canonical
+        # owners, and clearing them here would delete another driver's output.
+        extraction_dir = os.path.join(KMAC, "proofs/fstar/extraction")
+        files = glob(os.path.join(extraction_dir, "*.fst")) + glob(
+            os.path.join(extraction_dir, "*.fsti")
+        )
+        if files:
+            shell(["rm"] + files)
         return None
 
 def parse_arguments():
