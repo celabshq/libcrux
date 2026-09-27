@@ -47,10 +47,24 @@ pub fn decompress(re: Polynomial, bits_per_compressed_coefficient: usize) -> Pol
 ///
 /// The NIST FIPS 203 standard can be found at
 /// <https://csrc.nist.gov/pubs/fips/203/ipd>.
-#[hax_lib::fstar::options("--z3rlimit 1500")]
+/// `int_pow` is a recursion, so `u32::pow`'s no-overflow precondition does not
+/// reduce at a symbolic exponent.  Relating it to `pow2` once, by induction,
+/// lets the bound follow from `pow2` monotonicity.
+#[hax_lib::fstar::before(
+    r#"#push-options "--fuel 1 --ifuel 1 --z3rlimit 50"
+let rec lemma_int_pow_2 (n: nat)
+  : Lemma (ensures Rust_primitives.Arithmetic.int_pow 2 n == Prims.pow2 n) (decreases n) =
+  if n = 0 then () else lemma_int_pow_2 (n - 1)
+#pop-options"#
+)]
+#[hax_lib::fstar::options("--z3rlimit 150")]
 #[hax_lib::requires(to_bit_size < 12)]
 fn compress_d(fe: FieldElement, to_bit_size: usize) -> FieldElement {
     hax_lib::debug_assert!(to_bit_size < 12);
+    hax_lib::fstar!(
+        r#"lemma_int_pow_2 (v $to_bit_size);
+           FStar.Math.Lemmas.pow2_le_compat 11 (v $to_bit_size)"#
+    );
     let two_pow_bit_size = 2u32.pow(to_bit_size as u32);
 
     let compressed =
@@ -83,6 +97,10 @@ fn compress_d(fe: FieldElement, to_bit_size: usize) -> FieldElement {
 #[hax_lib::requires(to_bit_size < 12 && fe.val < (1u16 << to_bit_size))]
 fn decompress_d(fe: FieldElement, to_bit_size: usize) -> FieldElement {
     hax_lib::debug_assert!(to_bit_size < 12 && fe.val < (1u16 << to_bit_size));
+    hax_lib::fstar!(
+        r#"lemma_int_pow_2 (v $to_bit_size);
+           FStar.Math.Lemmas.pow2_le_compat 11 (v $to_bit_size)"#
+    );
     let two_pow_bit_size = 2u32.pow(to_bit_size as u32);
     let numerator = 2 * fe.val as u32 * FIELD_MODULUS as u32 + two_pow_bit_size;
     let decompressed = numerator / (two_pow_bit_size * 2);

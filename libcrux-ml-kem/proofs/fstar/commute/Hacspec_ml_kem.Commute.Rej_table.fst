@@ -855,14 +855,14 @@ let lemma_vec128_lane_eq_bits
 (* Per-lane bound for a vec256 whose per-lane top bits are clear
    (copy of the local recipe in Vector.Avx2 / Vector.Avx2.Serialize —
    neither exports it). *)
-let lemma_vec256_lane_bounded (vec: AVX.t_Vec256) (n: nat{n > 0 /\ n <= 16}) (i: nat{i < 16})
+let lemma_vec256_lane_bounded (vec: AVX.t_Vec256) (n: nat{n > 0 /\ n < 16}) (i: nat{i < 16})
   : Lemma
       (requires forall (b: nat{b < 16}). b >= n ==> AVX.bv_bit vec (i * 16 + b) == 0)
       (ensures bounded (Seq.index (AVX.vec256_as_i16x16 vec) i) n)
   = let arr = AVX.vec256_as_i16x16 vec in
     let lane = Seq.index arr i in
-    let aux (b: usize{v b < 16}) : Lemma (v b > n ==> get_bit lane b == 0)
-      = if v b > n then begin
+    let aux (b: usize{v b < 16}) : Lemma (v b >= n ==> get_bit lane b == 0)
+      = if v b >= n then begin
           AVX.bit_vec_of_int_t_array_vec256_as_i16x16_lemma vec 16 (i * 16 + v b);
           ML.lemma_mod_plus (v b) i 16;
           ML.lemma_div_plus (v b) i 16

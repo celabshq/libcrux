@@ -79,15 +79,15 @@ let aux (i: nat{i < 16}) : Lemma
   let pre_lane : i16 = if i < 8 then pre0 else pre1 in
   let shk = Seq.index ${shifter} k in
   (match k with
-   | 0 -> assert (v (shk %! mk_i16 256) == 0)
-   | 1 -> assert (v (shk %! mk_i16 256) == 255)
-   | 2 -> assert (v (shk %! mk_i16 256) == 254)
-   | 3 -> assert (v (shk %! mk_i16 256) == 253)
-   | 4 -> assert (v (shk %! mk_i16 256) == 252)
-   | 5 -> assert (v (shk %! mk_i16 256) == 251)
-   | 6 -> assert (v (shk %! mk_i16 256) == 250)
-   | _ -> assert (v (shk %! mk_i16 256) == 249));
-  assert (v (shk %! mk_i16 256) == (if k = 0 then 0 else 256 - k));
+   | 0 -> assert (v shk % 256 == 0)
+   | 1 -> assert (v shk % 256 == 255)
+   | 2 -> assert (v shk % 256 == 254)
+   | 3 -> assert (v shk % 256 == 253)
+   | 4 -> assert (v shk % 256 == 252)
+   | 5 -> assert (v shk % 256 == 251)
+   | 6 -> assert (v shk % 256 == 250)
+   | _ -> assert (v shk % 256 == 249));
+  assert (v shk % 256 == (if k = 0 then 0 else 256 - k));
   (if i < 8
    then lemma_deser1_half_lane pre0 ${shift} ${one} ${shifter} k
    else lemma_deser1_half_lane pre1 ${shift} ${one} ${shifter} k);

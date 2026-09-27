@@ -791,7 +791,7 @@ let chunk_decompressed_d (d: usize{v d > 0 /\ v d < 12})
 
 (* intro from the byte-bridge (grp <-> bytes) + the decompress value form (g <-> grp). *)
 #restart-solver
-#push-options "--fuel 0 --ifuel 1 --z3rlimit 200 --split_queries always"
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 400 --split_queries always --z3refresh"
 let lemma_chunk_decompressed_intro_d
     (d: usize{v d > 0 /\ v d < 12})
     (serialized: t_Array u8 (mk_usize (32 * v d)))

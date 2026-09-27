@@ -34,7 +34,7 @@ let le_byte_bit (b_lo b_hi: u8) (j: nat{j < 16})
     (Libcrux_secrets.Int.f_as_i16 #u8 #FStar.Tactics.Typeclasses.solve b_hi) (mk_i32 8) (mk_usize j)
 
 #restart-solver
-#push-options "--z3rlimit 300 --split_queries always"
+#push-options "--z3rlimit 300 --split_queries always --z3refresh"
 let from_bytes_bit_bridge (array: t_Slice u8) (elements: t_Array i16 (mk_usize 16))
     : Lemma
       (requires
@@ -72,7 +72,7 @@ let byte_le_bit (e: i16) (j: nat{j < 16})
   if j >= 8 then Rust_primitives.Integers.get_bit_shr e (mk_i32 8) (mk_usize (j - 8))
 
 #restart-solver
-#push-options "--z3rlimit 300 --split_queries always"
+#push-options "--z3rlimit 300 --split_queries always --z3refresh"
 let to_bytes_bit_bridge (x: t_PortableVector) (bytes: t_Slice u8)
     : Lemma
       (requires

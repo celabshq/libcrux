@@ -461,14 +461,14 @@ let lemma_e_vshrq_n_u16 (v_SHIFT_BY: i32) (v: t_e_uint16x8_t)
 (* ── ARM variable-shift helper lets (referenced by the vshlq_s16/u16 op-facts
       and by consumer proofs). ─────────────────────────────────────────────── *)
 let arm_sshl_i16 (a b: i16) : i16 =
-  let s = v (b %! mk_i16 256) in
+  let s = v b % 256 in
   if s < 128 then (if s < 16 then a <<! mk_i32 s else mk_i16 0)
   else (let r = 256 - s in
         if r < 16 then a >>! mk_i32 r
         else (if a <. mk_i16 0 then mk_i16 (-1) else mk_i16 0))
 
 let arm_ushl_u16 (a: u16) (b: i16) : u16 =
-  let s = v (b %! mk_i16 256) in
+  let s = v b % 256 in
   if s < 128 then (if s < 16 then a <<! mk_i32 s else mk_u16 0)
   else (let r = 256 - s in
         if r < 16 then a >>! mk_i32 r else mk_u16 0)
@@ -2072,8 +2072,8 @@ let arm_shl_count_i16 (b: i16) : i32 = cast (cast (cast (cast (b <: i16) <: u16)
 #push-options "--fuel 1 --ifuel 1 --z3rlimit 400"
 let lemma_arm_shl_count_i16 (b: i16) : Lemma
   (ensures v (arm_shl_count_i16 b)
-           == (let su = v (b %! mk_i16 256) in if su < 128 then su else su - 256)) =
-  let su = v (b %! mk_i16 256) in
+           == (let su = v b % 256 in if su < 128 then su else su - 256)) =
+  let su = v b % 256 in
   let byte : u8 = cast (cast (b <: i16) <: u16) <: u8 in
   assert (v byte == su);
   ()
@@ -2106,7 +2106,7 @@ let lemma_arm_sshl_eq (a b: i16) : Lemma
                       else a >>! (cast (Rust_primitives.Arithmetic.neg s <: i32) <: u32))) =
   lemma_arm_shl_count_i16 b;
   let s = arm_shl_count_i16 b in
-  let su = v (b %! mk_i16 256) in
+  let su = v b % 256 in
   if su < 16 then lemma_arm_sshl_left a s
   else if su < 128 then ()
   else ()

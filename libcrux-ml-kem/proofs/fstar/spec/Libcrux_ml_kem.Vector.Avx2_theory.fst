@@ -14,7 +14,7 @@ open Rust_primitives.BitVectors
    to fit in `n` bits.  Used by every `op_deserialize_N_post_bridge` to
    discharge the per-lane `bounded` conjunct of `deserialize_post_N`. *)
 let lemma_vec256_lane_bounded
-      (vec: Libcrux_intrinsics.Avx2_ml_kem_views.t_Vec256) (n: nat{n > 0 /\ n <= 16}) (i: nat{i < 16})
+      (vec: Libcrux_intrinsics.Avx2_ml_kem_views.t_Vec256) (n: nat{n > 0 /\ n < 16}) (i: nat{i < 16})
     : Lemma
       (requires forall (b: nat{b < 16}). b >= n ==>
                   Libcrux_intrinsics.Avx2_ml_kem_views.bv_bit vec (i * 16 + b) == 0)
@@ -23,8 +23,8 @@ let lemma_vec256_lane_bounded
           (Seq.index (Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 vec) i) n)
   = let arr = Libcrux_intrinsics.Avx2_ml_kem_views.vec256_as_i16x16 vec in
     let lane = Seq.index arr i in
-    let aux (b: usize{v b < 16}) : Lemma (v b > n ==> Rust_primitives.Integers.get_bit lane b == 0)
-      = if v b > n then begin
+    let aux (b: usize{v b < 16}) : Lemma (v b >= n ==> Rust_primitives.Integers.get_bit lane b == 0)
+      = if v b >= n then begin
           Libcrux_intrinsics.Avx2_ml_kem_views.bit_vec_of_int_t_array_vec256_as_i16x16_lemma
             vec 16 (i * 16 + v b);
           FStar.Math.Lemmas.lemma_mod_plus (v b) i 16;
@@ -33,9 +33,8 @@ let lemma_vec256_lane_bounded
         else ()
     in
     Classical.forall_intro aux;
-    // The lemma_get_bit_bounded' precondition has `forall i. v i > d ==> get_bit lane i == 0`
-    // implicitly under `v i < 16` (subtype on `i: usize`).  The Classical.forall_intro
-    // gives us the constrained version; the SMTPat-fired lemma will use it.
+    // `lemma_get_bit_bounded'` requires `forall i. v i >= n ==> get_bit lane i == 0`,
+    // quantified over the `v i < 16` subtype on `i: usize`, which is what `aux` supplies.
     Rust_primitives.BitVectors.lemma_get_bit_bounded' lane n
 
 let op_deserialize_1_post_bridge (input: t_Slice u8) (v: Libcrux_intrinsics.Avx2_ml_kem_views.t_Vec256) : Lemma
