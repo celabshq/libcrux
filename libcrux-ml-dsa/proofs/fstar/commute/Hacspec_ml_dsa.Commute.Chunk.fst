@@ -388,6 +388,42 @@ let lemma_decompose_bridge (input gamma2: i32)
     ()
 #pop-options
 
+(* `%!` on signed machine ints is truncating: for a positive divisor the
+   result lies in (-b, b), carries the dividend's sign, and is congruent to
+   the dividend modulo b. *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 50"
+let lemma_trunc_mod_int (x: int) (d: pos)
+    : Lemma (let q = Rust_primitives.Integers.trunc_div x d in
+             let r = Rust_primitives.Integers.trunc_mod x d in
+             (x >= 0 ==> 0 <= q /\ q <= x) /\ (x < 0 ==> x <= q /\ q <= 0) /\
+             -d < r /\ r < d /\ r % d == x % d /\
+             (x >= 0 ==> r == x % d) /\ (x < 0 ==> r <= 0))
+  = let n = if x >= 0 then x else - x in
+    L.lemma_div_mod n d;
+    L.lemma_mod_lt n d;
+    L.nat_over_pos_is_nat n d;
+    L.lemma_mult_le_right (n / d) 1 d;
+    if x < 0 then L.lemma_mod_plus (- (n % d)) (- (n / d)) d
+
+let lemma_trunc_mod_i32 (a b: i32)
+    : Lemma
+        (requires v b > 0)
+        (ensures Rust_primitives.Integers.range (Rust_primitives.Integers.trunc_div (v a) (v b)) I32 /\
+                 (let r = v (a %! b) in
+                  -(v b) < r /\ r < v b /\ r % v b == v a % v b /\
+                  (v a >= 0 ==> r == v a % v b) /\ (v a < 0 ==> r <= 0)))
+  = lemma_trunc_mod_int (v a) (v b)
+
+let lemma_trunc_mod_i64 (a b: i64)
+    : Lemma
+        (requires v b > 0)
+        (ensures Rust_primitives.Integers.range (Rust_primitives.Integers.trunc_div (v a) (v b)) I64 /\
+                 (let r = v (a %! b) in
+                  -(v b) < r /\ r < v b /\ r % v b == v a % v b /\
+                  (v a >= 0 ==> r == v a % v b) /\ (v a < 0 ==> r <= 0)))
+  = lemma_trunc_mod_int (v a) (v b)
+#pop-options
+
 (* Conditional equation: under `v input ∈ [0, q)`, the Spec.MLDSA.Math
    and Hacspec computations of use_one_hint agree.  The lane post's
    `==>` shape is discharged via `introduce ... with hyp`.  Outside
@@ -413,27 +449,28 @@ let lemma_use_hint_lane_commute_conditional
       // Hacspec uses `m_h = (Q-1) /! (2 *! gamma2)` which equals m_int.
       let m_h : i32 = (Hacspec_ml_dsa.Parameters.v_Q -! mk_i32 1) /! (mk_i32 2 *! gamma2) in
       assert (v m_h == m_int);
-      // Note: in F*'s hax-lib, `%!` on machine ints is Euclidean (returns
-      // non-negative values strictly less than the modulus), the same as
-      // F*'s int `%`.  So the i32 expressions match the int expressions
-      // directly under v-image, modulo i32-range checks.
+      // `%!` on machine ints is truncating; it agrees with F*'s int `%` on
+      // non-negative dividends (`lemma_trunc_mod_i32`).
       if v hint = 0 then ()
       else if r0_s > 0 then begin
         // Spec: (r1_s + 1) % m_int.  Hacspec: (r1_h +! 1) %! m_h.
         let one_plus = r1_h +! mk_i32 1 in
-        assert (v one_plus == r1_s + 1)
+        assert (v one_plus == r1_s + 1);
+        lemma_trunc_mod_i32 one_plus m_h
       end
       else begin
         // Spec: (r1_s - 1) % m_int.  Hacspec: (((r1_h -! 1) %! m_h) +! m_h) %! m_h.
+        // `r1_s = 0` gives `v m1 = -1`, where the inner `%!` is negative;
+        // adding `m_h` makes the outer dividend non-negative.
         let m1 = r1_h -! mk_i32 1 in
         assert (v m1 == r1_s - 1);
         let s1 = m1 %! m_h in
-        L.lemma_mod_lt (v m1) m_int;
-        assert (v s1 == (r1_s - 1) % m_int /\ 0 <= v s1 /\ v s1 < m_int);
+        lemma_trunc_mod_i32 m1 m_h;
+        assert (v s1 % m_int == (r1_s - 1) % m_int /\ - m_int < v s1 /\ v s1 < m_int);
         let s2 = s1 +! m_h in
-        assert (v s2 == (r1_s - 1) % m_int + m_int);
-        L.lemma_mod_plus ((r1_s - 1) % m_int) 1 m_int;
-        L.small_mod ((r1_s - 1) % m_int) m_int;
+        assert (v s2 == v s1 + m_int /\ v s2 >= 0);
+        lemma_trunc_mod_i32 s2 m_h;
+        L.lemma_mod_plus (v s1) 1 m_int;
         assert (v (s2 %! m_h) == (r1_s - 1) % m_int)
       end
 #pop-options
@@ -764,20 +801,24 @@ let lemma_ntt_layer_0_lane (p: t_Array i32 (mk_usize 256)) (i: usize{i <. mk_usi
 #pop-options
 
 (* v-image of `Hacspec_ml_dsa.Arithmetic.mod_q`.  `mod_q a = cast (a %! q)`
-   with the (dead) negative fixup; F* machine `%!` is Euclidean so
-   `v (a %! q) = (v a) % q ∈ [0, q-1]`, the fixup branch never fires, and
-   the cast i64→i32 is exact.  Hence `v (mod_q a) == (v a) % q`. *)
+   plus `q` when that is negative.  Truncating `%!` gives `v (a %! q)` in
+   `(-q, q)` and congruent to `v a` mod q, so the cast i64→i32 is exact and
+   the fixup lands the result on `(v a) % q`. *)
 #push-options "--fuel 0 --ifuel 1 --z3rlimit 80"
 let lemma_mod_q_v (a: i64)
     = let q : i32 = Hacspec_ml_dsa.Parameters.v_Q in
     let cq : i64 = cast q <: i64 in
     assert (v cq == 8380417);
     let r0 : i64 = a %! cq in
-    assert (v r0 == (v a) % 8380417);
+    lemma_trunc_mod_i64 a cq;
     L.lemma_mod_lt (v a) 8380417;
-    assert (0 <= v r0 /\ v r0 <= 8380416);
     let r : i32 = cast r0 <: i32 in
-    assert (v r == (v a) % 8380417)
+    assert (v r == v r0);
+    if v r0 < 0 then begin
+      L.lemma_mod_plus (v r0) 1 8380417;
+      L.small_mod (v r0 + 8380417) 8380417
+    end
+    else L.small_mod (v r0) 8380417
 #pop-options
 
 (* Per-pair butterfly -> spec-lane bridge.  Combines `lemma_butterfly_step_fe`
@@ -1776,7 +1817,8 @@ let lemma_ntt_layer_7_lane (p: t_Array i32 (mk_usize 256)) (i: usize{i <. mk_usi
     : Lemma (Seq.index (Hacspec_ml_dsa.Ntt.ntt_layer p (mk_usize 7)) (v i) == layer_7_lane p i) = ()
 #pop-options
 
-#push-options "--fuel 0 --ifuel 1 --z3rlimit 300 --split_queries always"
+#restart-solver
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 300 --split_queries always"
 let lemma_layer_7_cross_pair
     (input transformed: t_Array (t_Array i32 (mk_usize 8)) (mk_usize 32))
     (ulo: nat{ulo < 32 /\ ulo % 32 < 16}) (l: nat{l < 8}) (tp zmp: i32)
@@ -2220,19 +2262,21 @@ let lemma_inv_layer_pair_spec
     let even_spec : i32 = Hacspec_ml_dsa.Arithmetic.mod_q even_sum in
     lemma_mod_q_v even_sum;
     assert (v even_spec == (v lo_old + v hi_old) % q);
-    // odd lane: zspec = (q - z) %! q ; v zspec == (q - v z) % q  (Euclidean %!)
+    // odd lane: zspec = (q - z) %! q lies in (-q, q) and is congruent to q - v z
     let zspec : i64 = (qi -! zi) %! qi in
     assert (v (qi -! zi) == q - v z);
-    assert (v zspec == (q - v z) % q);
+    lemma_trunc_mod_i64 (qi -! zi) qi;
+    assert ((v zspec) % q == (q - v z) % q /\ - q < v zspec /\ v zspec < q);
     // (q - v z) % q ≡ - v z  (mod q)
     L.lemma_mod_sub_distr q (v z) q;
     assert ((q - v z) % q == (- (v z)) % q);
     let diff : i64 = lo_i -! hi_i in
     assert (v diff == v lo_old - v hi_old);
     let odd_prod : i64 = zspec *! diff in
-    assert (v odd_prod == ((q - v z) % q) * (v lo_old - v hi_old));
+    assert (v odd_prod == v zspec * (v lo_old - v hi_old));
     let odd_spec : i32 = Hacspec_ml_dsa.Arithmetic.mod_q odd_prod in
     lemma_mod_q_v odd_prod;
+    L.lemma_mod_mul_distr_l (v zspec) (v lo_old - v hi_old) q;
     assert (v odd_spec == (((q - v z) % q) * (v lo_old - v hi_old)) % q);
     // push the inner %q out: ((q - v z) % q) * d ≡ (q - v z) * d ≡ (- v z) * d (mod q)
     L.lemma_mod_mul_distr_l (q - v z) (v lo_old - v hi_old) q;

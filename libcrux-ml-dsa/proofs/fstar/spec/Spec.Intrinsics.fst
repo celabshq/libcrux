@@ -1299,9 +1299,9 @@ let mm256_permute2x128_si256_lemma_i32x4 imm8 a b j =
   let offset : nat = v j % 4 in
   FStar.Math.Lemmas.lemma_div_mod (v j) 4;
   let control : i32 = imm8 >>! (i *! mk_u64 4 <: u64) in
-  if ((control >>! mk_i32 3 <: i32) %! mk_i32 2 <: i32) =. mk_i32 1
+  if Core_models.Num.impl_i32__rem_euclid (control >>! mk_i32 3 <: i32) (mk_i32 2) =. mk_i32 1
   then lemma_i32_of_i128_zero r i offset
-  else (match v (control %! mk_i32 4 <: i32) with
+  else (match v (Core_models.Num.impl_i32__rem_euclid control (mk_i32 4) <: i32) with
         | 0 -> lemma_i32_from_i128_transfer r a i (mk_u64 0) offset
         | 1 -> lemma_i32_from_i128_transfer r a i (mk_u64 1) offset
         | 2 -> lemma_i32_from_i128_transfer r b i (mk_u64 0) offset

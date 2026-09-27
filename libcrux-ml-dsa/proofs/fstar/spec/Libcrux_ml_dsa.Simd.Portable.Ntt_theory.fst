@@ -805,7 +805,7 @@ let lemma_ntt_layer_0_cong (a b : t_Array i32 (mk_usize 256)) : Lemma
     Seq.lemma_eq_intro (Hacspec_ml_dsa.Ntt.ntt_layer a (mk_usize 0)) (Hacspec_ml_dsa.Ntt.ntt_layer b (mk_usize 0))
 #pop-options
 
-#push-options "--fuel 0 --ifuel 2 --z3rlimit 200"
+#push-options "--fuel 1 --ifuel 2 --z3rlimit 200"
 let lemma_layer_1_lane_cong (a b : t_Array i32 (mk_usize 256)) (ii : usize{v ii < 256})
     : Lemma
         (requires (forall (j: nat). j < 256 ==> (v (Seq.index a j)) % 8380417 == (v (Seq.index b j)) % 8380417))

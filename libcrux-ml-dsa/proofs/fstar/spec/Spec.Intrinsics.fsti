@@ -539,8 +539,17 @@ val mm256_mullo_epi16_bv_lemma a b i: Lemma (
   )
   [SMTPat (I.mm256_mullo_epi16 a b).(i)]
 
-let mm256_shuffle_epi32_index (a:i32) (i:u64{v i<4}) : u64 =
-  cast ((a >>! (i *! mk_u64 2 <: u64) <: i32) %! mk_i32 4 <: i32) <: u64
+(* The control is read as four 2-bit fields, so the lane index is 0..3 for any
+   `a`.  `rem_euclid` delivers that for a negative `a` too, and carrying it in
+   the result type spares every caller from re-deriving it. *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 50"
+let mm256_shuffle_epi32_index (a:i32) (i:u64{v i<4}) : (r:u64{v r < 4}) =
+  cast (Core_models.Num.impl_i32__rem_euclid (a >>! (i *! mk_u64 2 <: u64) <: i32) (mk_i32 4)
+      <:
+      i32)
+    <:
+    u64
+#pop-options
 
 val mm256_shuffle_epi32_lemma (a:i32) (b:bv256) (i:u64{v i < 8}):
   Lemma (to_i32x8 (Libcrux_intrinsics.Avx2.mm256_shuffle_epi32 a b) i ==
@@ -716,10 +725,11 @@ val mm256_permute2x128_si256_lemma_i32x4 (imm8: i32) (a b: bv256) (j:u64{v j < 8
           let i:u64 = j /! mk_int 4 in
           let offset = v j % 4 in
           let control:i32 = imm8 >>! (i *! mk_u64 4 <: u64) in
-          if ((control >>! mk_i32 3 <: i32) %! mk_i32 2 <: i32) =. mk_i32 1
+          if
+            Core_models.Num.impl_i32__rem_euclid (control >>! mk_i32 3 <: i32) (mk_i32 2) =. mk_i32 1
           then mk_i32 0
           else
-            match control %! mk_i32 4 <: i32 with
+            match Core_models.Num.impl_i32__rem_euclid control (mk_i32 4) <: i32 with
             | Rust_primitives.Integers.MkInt 0 -> to_i32x8 a (mk_u64 (0 + offset))
             | Rust_primitives.Integers.MkInt 1 -> to_i32x8 a (mk_u64 (4 + offset))
             | Rust_primitives.Integers.MkInt 2 -> to_i32x8 b (mk_u64 (0 + offset))

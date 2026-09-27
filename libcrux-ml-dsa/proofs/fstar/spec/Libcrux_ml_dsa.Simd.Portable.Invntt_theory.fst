@@ -576,6 +576,35 @@ let lemma_inv_bf_odd_cong (z: i64) (x y x' y': i32) : Lemma
     lemma_modq_eq (z *! ((cast x <: i64) -! (cast y <: i64))) (z *! ((cast x' <: i64) -! (cast y' <: i64)))
 #pop-options
 
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 50"
+let lemma_q_minus_mod_range (zeta: i32)
+    : Lemma
+        (requires 0 <= v zeta /\ v zeta < 8380417)
+        (ensures
+          (let x:i64 =
+             (cast (Hacspec_ml_dsa.Parameters.v_Q <: i32) <: i64) -! (cast (zeta <: i32) <: i64) in
+           let q:i64 = cast (Hacspec_ml_dsa.Parameters.v_Q <: i32) <: i64 in
+           Rust_primitives.Integers.range (Rust_primitives.Integers.trunc_div (v x) (v q)) I64 /\
+           (let z:i64 = x %! q in v z >= 0 /\ v z < 8380417)))
+  = let x : int = 8380417 - v zeta in
+    assert (Rust_primitives.Integers.trunc_mod x 8380417 == x % 8380417);
+    FStar.Math.Lemmas.lemma_mod_lt x 8380417
+#pop-options
+
+#push-options "--fuel 0 --ifuel 1 --z3rlimit 50"
+let lemma_inv_zeta_neg_mod_range (k: usize{1 <= v k /\ v k < 256})
+    : Lemma
+        (let x:i64 =
+           (cast (Hacspec_ml_dsa.Parameters.v_Q <: i32) <: i64) -!
+           (cast (Hacspec_ml_dsa.Ntt.v_ZETAS.[ k ] <: i32) <: i64) in
+         let q:i64 = cast (Hacspec_ml_dsa.Parameters.v_Q <: i32) <: i64 in
+         Rust_primitives.Integers.range (Rust_primitives.Integers.trunc_div (v x) (v q)) I64 /\
+         (let z:i64 = x %! q in v z >= 0 /\ v z < 8380417))
+  = Hacspec_ml_dsa.Commute.Chunk.lemma_v_zetas_eq_zeta (v k);
+    lemma_q_minus_mod_range (Hacspec_ml_dsa.Ntt.v_ZETAS.[ k ])
+#pop-options
+
+#restart-solver
 #push-options "--fuel 0 --ifuel 2 --z3rlimit 200"
 let lemma_inv_layer_0_lane_cong (a b : t_Array i32 (mk_usize 256)) (ii : usize{v ii < 256})
     : Lemma
@@ -583,6 +612,8 @@ let lemma_inv_layer_0_lane_cong (a b : t_Array i32 (mk_usize 256)) (ii : usize{v
         (ensures Hacspec_ml_dsa.Commute.Chunk.intt_layer_0_lane a ii == Hacspec_ml_dsa.Commute.Chunk.intt_layer_0_lane b ii)
   = let i : nat = v ii in
     let round:usize = ii /! mk_usize 2 in
+    FStar.Math.Lemmas.lemma_div_mod i 2;
+    lemma_inv_zeta_neg_mod_range (mk_usize 255 -! round);
     let z:i64 =
       ((cast (Hacspec_ml_dsa.Parameters.v_Q <: i32) <: i64) -!
         (cast (Hacspec_ml_dsa.Ntt.v_ZETAS.[ mk_usize 255 -! round <: usize ] <: i32) <: i64)
@@ -607,6 +638,7 @@ let lemma_inv_layer_0_lane_cong (a b : t_Array i32 (mk_usize 256)) (ii : usize{v
     end
 #pop-options
 
+#restart-solver
 #push-options "--fuel 0 --ifuel 2 --z3rlimit 200"
 let lemma_inv_layer_1_lane_cong (a b : t_Array i32 (mk_usize 256)) (ii : usize{v ii < 256})
     : Lemma
@@ -614,6 +646,8 @@ let lemma_inv_layer_1_lane_cong (a b : t_Array i32 (mk_usize 256)) (ii : usize{v
         (ensures Hacspec_ml_dsa.Commute.Chunk.intt_layer_1_lane a ii == Hacspec_ml_dsa.Commute.Chunk.intt_layer_1_lane b ii)
   = let i : nat = v ii in
     let round:usize = ii /! mk_usize 4 in
+    FStar.Math.Lemmas.lemma_div_mod i 4;
+    lemma_inv_zeta_neg_mod_range (mk_usize 127 -! round);
     let z:i64 =
       ((cast (Hacspec_ml_dsa.Parameters.v_Q <: i32) <: i64) -!
         (cast (Hacspec_ml_dsa.Ntt.v_ZETAS.[ mk_usize 127 -! round <: usize ] <: i32) <: i64)
@@ -638,6 +672,7 @@ let lemma_inv_layer_1_lane_cong (a b : t_Array i32 (mk_usize 256)) (ii : usize{v
     end
 #pop-options
 
+#restart-solver
 #push-options "--fuel 0 --ifuel 2 --z3rlimit 200"
 let lemma_inv_layer_2_lane_cong (a b : t_Array i32 (mk_usize 256)) (ii : usize{v ii < 256})
     : Lemma
@@ -645,6 +680,8 @@ let lemma_inv_layer_2_lane_cong (a b : t_Array i32 (mk_usize 256)) (ii : usize{v
         (ensures Hacspec_ml_dsa.Commute.Chunk.intt_layer_2_lane a ii == Hacspec_ml_dsa.Commute.Chunk.intt_layer_2_lane b ii)
   = let i : nat = v ii in
     let round:usize = ii /! mk_usize 8 in
+    FStar.Math.Lemmas.lemma_div_mod i 8;
+    lemma_inv_zeta_neg_mod_range (mk_usize 63 -! round);
     let z:i64 =
       ((cast (Hacspec_ml_dsa.Parameters.v_Q <: i32) <: i64) -!
         (cast (Hacspec_ml_dsa.Ntt.v_ZETAS.[ mk_usize 63 -! round <: usize ] <: i32) <: i64)
@@ -669,6 +706,7 @@ let lemma_inv_layer_2_lane_cong (a b : t_Array i32 (mk_usize 256)) (ii : usize{v
     end
 #pop-options
 
+#restart-solver
 #push-options "--fuel 0 --ifuel 2 --z3rlimit 200"
 let lemma_inv_layer_3_lane_cong (a b : t_Array i32 (mk_usize 256)) (ii : usize{v ii < 256})
     : Lemma
@@ -676,6 +714,8 @@ let lemma_inv_layer_3_lane_cong (a b : t_Array i32 (mk_usize 256)) (ii : usize{v
         (ensures Hacspec_ml_dsa.Commute.Chunk.intt_layer_3_lane a ii == Hacspec_ml_dsa.Commute.Chunk.intt_layer_3_lane b ii)
   = let i : nat = v ii in
     let round:usize = ii /! mk_usize 16 in
+    FStar.Math.Lemmas.lemma_div_mod i 16;
+    lemma_inv_zeta_neg_mod_range (mk_usize 31 -! round);
     let z:i64 =
       ((cast (Hacspec_ml_dsa.Parameters.v_Q <: i32) <: i64) -!
         (cast (Hacspec_ml_dsa.Ntt.v_ZETAS.[ mk_usize 31 -! round <: usize ] <: i32) <: i64)
@@ -700,6 +740,7 @@ let lemma_inv_layer_3_lane_cong (a b : t_Array i32 (mk_usize 256)) (ii : usize{v
     end
 #pop-options
 
+#restart-solver
 #push-options "--fuel 0 --ifuel 2 --z3rlimit 200"
 let lemma_inv_layer_4_lane_cong (a b : t_Array i32 (mk_usize 256)) (ii : usize{v ii < 256})
     : Lemma
@@ -707,6 +748,8 @@ let lemma_inv_layer_4_lane_cong (a b : t_Array i32 (mk_usize 256)) (ii : usize{v
         (ensures Hacspec_ml_dsa.Commute.Chunk.intt_layer_4_lane a ii == Hacspec_ml_dsa.Commute.Chunk.intt_layer_4_lane b ii)
   = let i : nat = v ii in
     let round:usize = ii /! mk_usize 32 in
+    FStar.Math.Lemmas.lemma_div_mod i 32;
+    lemma_inv_zeta_neg_mod_range (mk_usize 15 -! round);
     let z:i64 =
       ((cast (Hacspec_ml_dsa.Parameters.v_Q <: i32) <: i64) -!
         (cast (Hacspec_ml_dsa.Ntt.v_ZETAS.[ mk_usize 15 -! round <: usize ] <: i32) <: i64)
@@ -731,6 +774,7 @@ let lemma_inv_layer_4_lane_cong (a b : t_Array i32 (mk_usize 256)) (ii : usize{v
     end
 #pop-options
 
+#restart-solver
 #push-options "--fuel 0 --ifuel 2 --z3rlimit 200"
 let lemma_inv_layer_5_lane_cong (a b : t_Array i32 (mk_usize 256)) (ii : usize{v ii < 256})
     : Lemma
@@ -738,6 +782,8 @@ let lemma_inv_layer_5_lane_cong (a b : t_Array i32 (mk_usize 256)) (ii : usize{v
         (ensures Hacspec_ml_dsa.Commute.Chunk.intt_layer_5_lane a ii == Hacspec_ml_dsa.Commute.Chunk.intt_layer_5_lane b ii)
   = let i : nat = v ii in
     let round:usize = ii /! mk_usize 64 in
+    FStar.Math.Lemmas.lemma_div_mod i 64;
+    lemma_inv_zeta_neg_mod_range (mk_usize 7 -! round);
     let z:i64 =
       ((cast (Hacspec_ml_dsa.Parameters.v_Q <: i32) <: i64) -!
         (cast (Hacspec_ml_dsa.Ntt.v_ZETAS.[ mk_usize 7 -! round <: usize ] <: i32) <: i64)
@@ -762,6 +808,7 @@ let lemma_inv_layer_5_lane_cong (a b : t_Array i32 (mk_usize 256)) (ii : usize{v
     end
 #pop-options
 
+#restart-solver
 #push-options "--fuel 0 --ifuel 2 --z3rlimit 200"
 let lemma_inv_layer_6_lane_cong (a b : t_Array i32 (mk_usize 256)) (ii : usize{v ii < 256})
     : Lemma
@@ -770,6 +817,7 @@ let lemma_inv_layer_6_lane_cong (a b : t_Array i32 (mk_usize 256)) (ii : usize{v
   = let i : nat = v ii in
     let round:usize = ii /! mk_usize 128 in
     FStar.Math.Lemmas.lemma_div_mod i 128;  (* cold-stable: v round = i/128 <= 1, for the (mk_usize 3 -! round) subtyping *)
+    lemma_inv_zeta_neg_mod_range (mk_usize 3 -! round);
     let z:i64 =
       ((cast (Hacspec_ml_dsa.Parameters.v_Q <: i32) <: i64) -!
         (cast (Hacspec_ml_dsa.Ntt.v_ZETAS.[ mk_usize 3 -! round <: usize ] <: i32) <: i64)
@@ -794,6 +842,7 @@ let lemma_inv_layer_6_lane_cong (a b : t_Array i32 (mk_usize 256)) (ii : usize{v
     end
 #pop-options
 
+#restart-solver
 #push-options "--fuel 0 --ifuel 2 --z3rlimit 200"
 let lemma_inv_layer_7_lane_cong (a b : t_Array i32 (mk_usize 256)) (ii : usize{v ii < 256})
     : Lemma
@@ -801,6 +850,8 @@ let lemma_inv_layer_7_lane_cong (a b : t_Array i32 (mk_usize 256)) (ii : usize{v
         (ensures Hacspec_ml_dsa.Commute.Chunk.intt_layer_7_lane a ii == Hacspec_ml_dsa.Commute.Chunk.intt_layer_7_lane b ii)
   = let i : nat = v ii in
     let round:usize = ii /! mk_usize 256 in
+    FStar.Math.Lemmas.lemma_div_mod i 256;
+    lemma_inv_zeta_neg_mod_range (mk_usize 1 -! round);
     let z:i64 =
       ((cast (Hacspec_ml_dsa.Parameters.v_Q <: i32) <: i64) -!
         (cast (Hacspec_ml_dsa.Ntt.v_ZETAS.[ mk_usize 1 -! round <: usize ] <: i32) <: i64)

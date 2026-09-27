@@ -22,6 +22,7 @@ module C = Hacspec_ml_dsa.Commute.Chunk
 open Libcrux_ml_dsa.Simd.Avx2.Ntt_theory
 "#
 )]
+#[hax_lib::fstar::options(r#"--fuel 0 --ifuel 1 --z3rlimit 200"#)]
 #[hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#)]
 #[hax_lib::requires(index < 31)]
 #[hax_lib::ensures(|_result| fstar!(r"
