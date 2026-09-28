@@ -41,14 +41,36 @@ namespace hacspec_sha3_pedantic
     reason. See also the `RangeInclusive` caveat in `FunsExternal.lean`: this
     is the same kind of gap, and the same kind of mitigation.
 
-    The Rust implementation is the partial one. Its length is a `u64`, so it
-    stops at `2^64` bits where this model does not stop at all; the `len`
-    model below fails there rather than wrapping, which is what a machine that
-    cannot count its own string would do. Two exabytes is not a limit anyone
-    will meet, and -- unlike the `usize` it replaced -- it does not move with
-    the target. -/
+    `len` is total: it hands back a `nat.Nat`, which is this same unbounded
+    reading one level down, so counting the bits of a string is an operation
+    that cannot fail and no proof against this specification carries a bound
+    on the length of its input. -/
 -- `abbrev`, not `def`: the model has to be reducible for `List`'s own
 -- instances (`++`, `getElem!`, `Inhabited`) to apply to it.
 abbrev bits.BitStr : Type := List Bool
+
+/-! ## `Nat`, the nonnegative integers
+
+    `nat::Nat` is opaque for the same reason `BitStr` is, one level down: the
+    Standard's `len(M)`, its `d` and the `j` of Algorithm 9 are nonnegative
+    integers with no upper bound, and a machine word in their place puts a
+    bound on the input into the specification, where the Standard has none.
+    The model is therefore Lean's `Nat`, and the operations in
+    `FunsExternal.lean` are total except where the mathematics itself is
+    partial (`a - b` for `b > a`, division by zero) or where a value is handed
+    back down to the fixed-width layer (`to_usize`).
+
+    The Rust implementation is the partial one, as it is for `BitStr`: a
+    `u128`, which stops at `2^128` where this model does not stop at all.
+    That difference is unreachable rather than merely unlikely, and the
+    argument is the allocator's: the bits counted here live in a `Vec<u8>` of
+    at most `isize::MAX` bytes, so no `BitStr` that can be built has as many
+    as `2^67` bits, `pad10*1` adds under `2^11` more, and the sponge's cursor
+    stays below the length of the padded string. `nat.rs` carries the same
+    argument in full, and writes every operation that could overflow as a
+    `checked_*` that panics rather than wraps. -/
+-- `abbrev`, not `def`, for the same reason as `BitStr` above: `Nat`'s own
+-- instances (`+`, `<`, numerals) have to apply to it.
+abbrev nat.Nat : Type := _root_.Nat
 
 end hacspec_sha3_pedantic

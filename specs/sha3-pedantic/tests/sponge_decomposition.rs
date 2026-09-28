@@ -12,6 +12,7 @@
 
 use hacspec_sha3_pedantic::bits::{b2h, h2b_full, BitStr};
 use hacspec_sha3_pedantic::sha3::{HASH_SUFFIX, XOF_SUFFIX};
+use hacspec_sha3_pedantic::nat::Nat;
 use hacspec_sha3_pedantic::sponge::keccak_c;
 
 const B: usize = 1600;
@@ -22,7 +23,11 @@ const B: usize = 1600;
 /// parameterised by the capacity in bits, `c = 1600 - 8·rate`.
 fn via_bits(rate_bytes: usize, suffix: &[bool], msg: &[u8], out_bytes: usize) -> Vec<u8> {
     let n = h2b_full(msg).concat(&BitStr::from_bits(suffix));
-    b2h(&keccak_c(B - 8 * rate_bytes, &n, 8 * (out_bytes as u64)))
+    b2h(&keccak_c(
+        B - 8 * rate_bytes,
+        &n,
+        Nat::from_usize(out_bytes) * Nat::new(8),
+    ))
 }
 
 fn check<const OUT: usize>(rate: usize, delim: u8, msg: &[u8]) {

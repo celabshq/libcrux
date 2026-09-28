@@ -27,7 +27,7 @@ noncomputable section
 namespace hacspec_sha3_pedantic
 
 /-- Trait implementation: [hacspec_sha3_pedantic::bits::{impl core::clone::Clone for hacspec_sha3_pedantic::bits::BitStr}]
-    Source: 'sha3-pedantic/src/bits.rs', lines 62:0-70:1 -/
+    Source: 'sha3-pedantic/src/bits.rs', lines 65:0-73:1 -/
 @[reducible]
 impl_def bits.BitStr.Insts.CoreCloneClone : core.clone.Clone bits.BitStr := {
   clone := bits.BitStr.Insts.CoreCloneClone.clone
@@ -36,7 +36,7 @@ impl_def bits.BitStr.Insts.CoreCloneClone : core.clone.Clone bits.BitStr := {
 }
 
 /-- [hacspec_sha3_pedantic::bits::trunc]: loop body 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 220:4-222:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 227:4-229:5
     Visibility: public -/
 @[rust_loop_body]
 def bits.trunc_loop.body
@@ -56,7 +56,7 @@ def bits.trunc_loop.body
     ok (cont (iter1, out1))
 
 /-- [hacspec_sha3_pedantic::bits::trunc]: loop 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 220:4-222:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 227:4-229:5
     Visibility: public -/
 @[rust_loop]
 def bits.trunc_loop
@@ -69,7 +69,7 @@ def bits.trunc_loop
     (iter, out)
 
 /-- [hacspec_sha3_pedantic::bits::trunc]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 217:0-224:1
+    Source: 'sha3-pedantic/src/bits.rs', lines 224:0-231:1
     Visibility: public -/
 def bits.trunc
   (x : Slice Bool) (s : Std.Usize) : RustM (alloc.vec.Vec Bool) := do
@@ -79,7 +79,7 @@ def bits.trunc
   bits.trunc_loop { start := 0#usize, «end» := s } x out
 
 /-- [hacspec_sha3_pedantic::bits::zeros]: loop body 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 229:4-231:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 236:4-238:5
     Visibility: public -/
 @[rust_loop_body]
 def bits.zeros_loop.body
@@ -97,7 +97,7 @@ def bits.zeros_loop.body
     ok (cont (iter1, out1))
 
 /-- [hacspec_sha3_pedantic::bits::zeros]: loop 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 229:4-231:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 236:4-238:5
     Visibility: public -/
 @[rust_loop]
 def bits.zeros_loop
@@ -109,14 +109,14 @@ def bits.zeros_loop
     (iter, out)
 
 /-- [hacspec_sha3_pedantic::bits::zeros]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 227:0-233:1
+    Source: 'sha3-pedantic/src/bits.rs', lines 234:0-240:1
     Visibility: public -/
 def bits.zeros (n : Std.Usize) : RustM (alloc.vec.Vec Bool) := do
   let out ← alloc.vec.Vec.new Bool
   bits.zeros_loop { start := 0#usize, «end» := n } out
 
 /-- [hacspec_sha3_pedantic::bits::concat]: loop body 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 238:4-240:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 245:4-247:5
     Visibility: public -/
 @[rust_loop_body]
 def bits.concat_loop0.body
@@ -136,7 +136,7 @@ def bits.concat_loop0.body
     ok (cont (iter1, out1))
 
 /-- [hacspec_sha3_pedantic::bits::concat]: loop 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 238:4-240:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 245:4-247:5
     Visibility: public -/
 @[rust_loop]
 def bits.concat_loop0
@@ -149,7 +149,7 @@ def bits.concat_loop0
     (iter, out)
 
 /-- [hacspec_sha3_pedantic::bits::concat]: loop body 1:
-    Source: 'sha3-pedantic/src/bits.rs', lines 241:4-243:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 248:4-250:5
     Visibility: public -/
 @[rust_loop_body]
 def bits.concat_loop1.body
@@ -169,7 +169,7 @@ def bits.concat_loop1.body
     ok (cont (iter1, out1))
 
 /-- [hacspec_sha3_pedantic::bits::concat]: loop 1:
-    Source: 'sha3-pedantic/src/bits.rs', lines 241:4-243:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 248:4-250:5
     Visibility: public -/
 @[rust_loop]
 def bits.concat_loop1
@@ -182,7 +182,7 @@ def bits.concat_loop1
     (iter, out)
 
 /-- [hacspec_sha3_pedantic::bits::concat]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 236:0-245:1
+    Source: 'sha3-pedantic/src/bits.rs', lines 243:0-252:1
     Visibility: public -/
 def bits.concat
   (x : Slice Bool) (y : Slice Bool) : RustM (alloc.vec.Vec Bool) := do
@@ -193,7 +193,7 @@ def bits.concat
   bits.concat_loop1 { start := 0#usize, «end» := i1 } y out1
 
 /-- [hacspec_sha3_pedantic::bits::xor]: loop body 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 255:4-257:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 262:4-264:5
     Visibility: public -/
 @[rust_loop_body]
 def bits.xor_loop.body
@@ -214,7 +214,7 @@ def bits.xor_loop.body
     ok (cont (iter1, out1))
 
 /-- [hacspec_sha3_pedantic::bits::xor]: loop 0:
-    Source: 'sha3-pedantic/src/bits.rs', lines 255:4-257:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 262:4-264:5
     Visibility: public -/
 @[rust_loop]
 def bits.xor_loop
@@ -227,7 +227,7 @@ def bits.xor_loop
     (iter, out)
 
 /-- [hacspec_sha3_pedantic::bits::xor]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 249:0-259:1
+    Source: 'sha3-pedantic/src/bits.rs', lines 256:0-266:1
     Visibility: public -/
 def bits.xor
   (x : Slice Bool) (y : Slice Bool) : RustM (alloc.vec.Vec Bool) := do
@@ -238,38 +238,43 @@ def bits.xor
   bits.xor_loop { start := 0#usize, «end» := i } x y out
 
 /-- [hacspec_sha3_pedantic::bits::h2b]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 265:0-268:1
+    Source: 'sha3-pedantic/src/bits.rs', lines 272:0-278:1
     Visibility: public -/
-def bits.h2b (h : Slice Std.U8) (n : Std.U64) : RustM bits.BitStr := do
+def bits.h2b (h : Slice Std.U8) (n : nat.Nat) : RustM bits.BitStr := do
   let i ← core.slice.Slice.len h
-  let i1 ← lift (UScalar.cast .U64 i)
-  let i2 ← 8#u64 * i1
-  massert (n <= i2)
+  let n1 ← nat.Nat.from_usize i
+  let n2 ← nat.Nat.new 8#u64
+  let n3 ← nat.Nat.Insts.CoreOpsArithMulNatNat.mul n1 n2
+  let b ← nat.Nat.Insts.CoreCmpPartialOrdNat.le n n3
+  massert b
   let bs ← bits.BitStr.from_bytes h
   bits.BitStr.trunc bs n
 
 /-- [hacspec_sha3_pedantic::bits::h2b_full]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 271:0-273:1
+    Source: 'sha3-pedantic/src/bits.rs', lines 281:0-283:1
     Visibility: public -/
 def bits.h2b_full (h : Slice Std.U8) : RustM bits.BitStr := do
   bits.BitStr.from_bytes h
 
 /-- [hacspec_sha3_pedantic::bits::b2h]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 279:0-281:1
+    Source: 'sha3-pedantic/src/bits.rs', lines 289:0-291:1
     Visibility: public -/
 def bits.b2h (s : bits.BitStr) : RustM (alloc.vec.Vec Std.U8) := do
   bits.BitStr.to_bytes s
 
 /-- [hacspec_sha3_pedantic::sponge::pad10_star_1]:
-    Source: 'sha3-pedantic/src/sponge.rs', lines 11:0-20:1
+    Source: 'sha3-pedantic/src/sponge.rs', lines 12:0-23:1
     Visibility: public -/
-def sponge.pad10_star_1 (x : Std.U64) (m : Std.U64) : RustM bits.BitStr := do
-  massert (x > 0#u64)
-  let i ← m % x
-  let i1 ← i + 2#u64
-  let i2 ← i1 % x
-  let i3 ← x - i2
-  let j ← i3 % x
+def sponge.pad10_star_1 (x : nat.Nat) (m : nat.Nat) : RustM bits.BitStr := do
+  let n ← nat.Nat.new 0#u64
+  let b ← nat.Nat.Insts.CoreCmpPartialOrdNat.gt x n
+  massert b
+  let n1 ← nat.Nat.Insts.CoreOpsArithRemNatNat.rem m x
+  let n2 ← nat.Nat.new 2#u64
+  let n3 ← nat.Nat.Insts.CoreOpsArithAddNatNat.add n1 n2
+  let n4 ← nat.Nat.Insts.CoreOpsArithRemNatNat.rem n3 x
+  let n5 ← nat.Nat.Insts.CoreOpsArithSubNatNat.sub x n4
+  let j ← nat.Nat.Insts.CoreOpsArithRemNatNat.rem n5 x
   let s ← lift (Array.to_slice (Array.make 1#usize [ true ]))
   let one ← bits.BitStr.from_bits s
   let bs ← bits.BitStr.zeros j
@@ -277,10 +282,10 @@ def sponge.pad10_star_1 (x : Std.U64) (m : Std.U64) : RustM bits.BitStr := do
   bits.BitStr.concat bs1 one
 
 /-- [hacspec_sha3_pedantic::sponge::{impl hacspec_sha3_pedantic::sponge::Components for hacspec_sha3_pedantic::sponge::Keccak1600}::pad]:
-    Source: 'sha3-pedantic/src/sponge.rs', lines 125:4-127:5
+    Source: 'sha3-pedantic/src/sponge.rs', lines 131:4-133:5
     Visibility: public -/
 def sponge.Keccak1600.Insts.Hacspec_sha3_pedanticSpongeComponents.pad
-  (self : sponge.Keccak1600) (x : Std.U64) (m : Std.U64) :
+  (self : sponge.Keccak1600) (x : nat.Nat) (m : nat.Nat) :
   RustM bits.BitStr
   := do
   sponge.pad10_star_1 x m
@@ -1538,7 +1543,7 @@ def keccak_p.keccak_p
   state_array.StateArray.to_bits a1
 
 /-- [hacspec_sha3_pedantic::sponge::{impl hacspec_sha3_pedantic::sponge::Components for hacspec_sha3_pedantic::sponge::Keccak1600}::f]:
-    Source: 'sha3-pedantic/src/sponge.rs', lines 121:4-123:5
+    Source: 'sha3-pedantic/src/sponge.rs', lines 127:4-129:5
     Visibility: public -/
 def sponge.Keccak1600.Insts.Hacspec_sha3_pedanticSpongeComponents.f
   (self : sponge.Keccak1600) (s : Slice Bool) :
@@ -1547,12 +1552,12 @@ def sponge.Keccak1600.Insts.Hacspec_sha3_pedanticSpongeComponents.f
   keccak_p.keccak_p 64#usize s 24#usize
 
 /-- [hacspec_sha3_pedantic::sponge::B]
-    Source: 'sha3-pedantic/src/sponge.rs', lines 112:0-112:26
+    Source: 'sha3-pedantic/src/sponge.rs', lines 118:0-118:26
     Visibility: public -/
 @[global_simps, irreducible] def sponge.B : Std.Usize := 1600#usize
 
 /-- [hacspec_sha3_pedantic::sponge::{impl hacspec_sha3_pedantic::sponge::Components for hacspec_sha3_pedantic::sponge::Keccak1600}::B]
-    Source: 'sha3-pedantic/src/sponge.rs', lines 119:4-119:23
+    Source: 'sha3-pedantic/src/sponge.rs', lines 125:4-125:23
     Visibility: public -/
 @[global_simps, irreducible]
 def sponge.Keccak1600.Insts.Hacspec_sha3_pedanticSpongeComponents.B
@@ -1560,7 +1565,7 @@ def sponge.Keccak1600.Insts.Hacspec_sha3_pedanticSpongeComponents.B
   sponge.B
 
 /-- Trait implementation: [hacspec_sha3_pedantic::sponge::{impl hacspec_sha3_pedantic::sponge::Components for hacspec_sha3_pedantic::sponge::Keccak1600}]
-    Source: 'sha3-pedantic/src/sponge.rs', lines 118:0-128:1 -/
+    Source: 'sha3-pedantic/src/sponge.rs', lines 124:0-134:1 -/
 @[reducible]
 def sponge.Keccak1600.Insts.Hacspec_sha3_pedanticSpongeComponents :
   sponge.Components sponge.Keccak1600 := {
@@ -1570,19 +1575,20 @@ def sponge.Keccak1600.Insts.Hacspec_sha3_pedanticSpongeComponents :
 }
 
 /-- [hacspec_sha3_pedantic::sponge::{hacspec_sha3_pedantic::sponge::Sponge<C>}::apply]: loop body 0:
-    Source: 'sha3-pedantic/src/sponge.rs', lines 86:8-90:9
+    Source: 'sha3-pedantic/src/sponge.rs', lines 92:8-96:9
     Visibility: public -/
 @[rust_loop_body]
 def sponge.Sponge.apply_loop0.body
   {C : Type} (ComponentsInst : sponge.Components C) (self : sponge.Sponge C)
-  (components : C) (p : bits.BitStr) (blocks : Std.U64) (c : Std.Usize)
-  (s : alloc.vec.Vec Bool) (i : Std.U64) :
-  RustM (ControlFlow ((alloc.vec.Vec Bool) × Std.U64) (alloc.vec.Vec Bool))
+  (components : C) (p : bits.BitStr) (blocks : nat.Nat) (c : Std.Usize)
+  (s : alloc.vec.Vec Bool) (i : nat.Nat) :
+  RustM (ControlFlow ((alloc.vec.Vec Bool) × nat.Nat) (alloc.vec.Vec Bool))
   := do
-  if i < blocks
+  let b ← nat.Nat.Insts.CoreCmpPartialOrdNat.lt i blocks
+  if b
   then
-    let i1 ← i * self.r
-    let bs ← bits.BitStr.slice p i1 self.r
+    let n ← nat.Nat.Insts.CoreOpsArithMulNatNat.mul i self.r
+    let bs ← bits.BitStr.slice p n self.r
     let v ← bits.BitStr.to_bits bs
     let s1 ← alloc.vec.Vec.Insts.CoreOpsDerefDerefSlice.deref v
     let v1 ← bits.zeros c
@@ -1593,18 +1599,19 @@ def sponge.Sponge.apply_loop0.body
     let v2 ← bits.xor s3 s4
     let s5 ← alloc.vec.Vec.Insts.CoreOpsDerefDerefSlice.deref v2
     let s6 ← ComponentsInst.f components s5
-    let i2 ← i + 1#u64
-    ok (cont (s6, i2))
+    let n1 ← nat.Nat.new 1#u64
+    let i1 ← nat.Nat.Insts.CoreOpsArithAddNatNat.add i n1
+    ok (cont (s6, i1))
   else ok (done s)
 
 /-- [hacspec_sha3_pedantic::sponge::{hacspec_sha3_pedantic::sponge::Sponge<C>}::apply]: loop 0:
-    Source: 'sha3-pedantic/src/sponge.rs', lines 86:8-90:9
+    Source: 'sha3-pedantic/src/sponge.rs', lines 92:8-96:9
     Visibility: public -/
 @[rust_loop]
 def sponge.Sponge.apply_loop0
   {C : Type} (ComponentsInst : sponge.Components C) (self : sponge.Sponge C)
-  (components : C) (p : bits.BitStr) (blocks : Std.U64) (c : Std.Usize)
-  (s : alloc.vec.Vec Bool) (i : Std.U64) :
+  (components : C) (p : bits.BitStr) (blocks : nat.Nat) (c : Std.Usize)
+  (s : alloc.vec.Vec Bool) (i : nat.Nat) :
   RustM (alloc.vec.Vec Bool)
   := do
   loop
@@ -1613,109 +1620,113 @@ def sponge.Sponge.apply_loop0
     (s, i)
 
 /-- [hacspec_sha3_pedantic::sponge::{hacspec_sha3_pedantic::sponge::Sponge<C>}::apply]: loop body 1:
-    Source: 'sha3-pedantic/src/sponge.rs', lines 93:8-103:9
+    Source: 'sha3-pedantic/src/sponge.rs', lines 99:8-109:9
     Visibility: public -/
 @[rust_loop_body]
 def sponge.Sponge.apply_loop1.body
-  {C : Type} (ComponentsInst : sponge.Components C) (self : sponge.Sponge C)
-  (d : Std.U64) (components : C) (s : alloc.vec.Vec Bool) (z : bits.BitStr) :
+  {C : Type} (ComponentsInst : sponge.Components C) (i : Std.Usize)
+  (d : nat.Nat) (components : C) (s : alloc.vec.Vec Bool) (z : bits.BitStr) :
   RustM (ControlFlow ((alloc.vec.Vec Bool) × bits.BitStr) bits.BitStr)
   := do
   let s1 ← alloc.vec.Vec.Insts.CoreOpsDerefDerefSlice.deref s
-  let i ← lift (UScalar.cast .Usize self.r)
   let head ← bits.trunc s1 i
   let s2 ← alloc.vec.Vec.Insts.CoreOpsDerefDerefSlice.deref head
   let bs ← bits.BitStr.from_bits s2
   let z1 ← bits.BitStr.concat z bs
-  let i1 ← bits.BitStr.len z1
-  if d <= i1
+  let n ← bits.BitStr.len z1
+  let b ← nat.Nat.Insts.CoreCmpPartialOrdNat.le d n
+  if b
   then ok (done z1)
   else let s3 ← ComponentsInst.f components s1
        ok (cont (s3, z1))
 
 /-- [hacspec_sha3_pedantic::sponge::{hacspec_sha3_pedantic::sponge::Sponge<C>}::apply]: loop 1:
-    Source: 'sha3-pedantic/src/sponge.rs', lines 93:8-103:9
+    Source: 'sha3-pedantic/src/sponge.rs', lines 99:8-109:9
     Visibility: public -/
 @[rust_loop]
 def sponge.Sponge.apply_loop1
-  {C : Type} (ComponentsInst : sponge.Components C) (self : sponge.Sponge C)
-  (d : Std.U64) (components : C) (s : alloc.vec.Vec Bool) (z : bits.BitStr) :
+  {C : Type} (ComponentsInst : sponge.Components C) (i : Std.Usize)
+  (d : nat.Nat) (components : C) (s : alloc.vec.Vec Bool) (z : bits.BitStr) :
   RustM bits.BitStr
   := do
   loop
-    (fun (s1, z1) => sponge.Sponge.apply_loop1.body ComponentsInst self d
+    (fun (s1, z1) => sponge.Sponge.apply_loop1.body ComponentsInst i d
       components s1 z1)
     (s, z)
 
 /-- [hacspec_sha3_pedantic::sponge::{hacspec_sha3_pedantic::sponge::Sponge<C>}::apply]:
-    Source: 'sha3-pedantic/src/sponge.rs', lines 69:4-104:5
+    Source: 'sha3-pedantic/src/sponge.rs', lines 75:4-110:5
     Visibility: public -/
 def sponge.Sponge.apply
   {C : Type} (ComponentsInst : sponge.Components C) (self : sponge.Sponge C)
-  (n : bits.BitStr) (d : Std.U64) :
+  (n : bits.BitStr) (d : nat.Nat) :
   RustM bits.BitStr
   := do
-  let i ← bits.BitStr.len n
-  let bs ← ComponentsInst.pad self.components self.r i
+  let n1 ← bits.BitStr.len n
+  let bs ← ComponentsInst.pad self.components self.r n1
   let p ← bits.BitStr.concat n bs
-  let i1 ← bits.BitStr.len p
-  let blocks ← i1 / self.r
-  let i2 ← lift (UScalar.cast .Usize self.r)
-  let i3 ← ComponentsInst.B
-  let c ← i3 - i2
-  let s ← bits.zeros i3
+  let n2 ← bits.BitStr.len p
+  let blocks ← nat.Nat.Insts.CoreOpsArithDivNatNat.div n2 self.r
+  let i ← nat.Nat.to_usize self.r
+  let i1 ← ComponentsInst.B
+  let c ← i1 - i
+  let s ← bits.zeros i1
+  let i2 ← nat.Nat.new 0#u64
   let s1 ←
     sponge.Sponge.apply_loop0 ComponentsInst self self.components p blocks c s
-      0#u64
+      i2
   let z ← bits.BitStr.empty
-  let z1 ←
-    sponge.Sponge.apply_loop1 ComponentsInst self d self.components s1 z
+  let z1 ← sponge.Sponge.apply_loop1 ComponentsInst i d self.components s1 z
   bits.BitStr.trunc z1 d
 
 /-- [hacspec_sha3_pedantic::sponge::{hacspec_sha3_pedantic::sponge::Sponge<C>}::new]:
-    Source: 'sha3-pedantic/src/sponge.rs', lines 61:4-66:5
+    Source: 'sha3-pedantic/src/sponge.rs', lines 64:4-72:5
     Visibility: public -/
 def sponge.Sponge.new
   {C : Type} (ComponentsInst : sponge.Components C) (components : C)
-  (r : Std.U64) :
+  (r : nat.Nat) :
   RustM (sponge.Sponge C)
   := do
-  massert (r > 0#u64)
+  let n ← nat.Nat.new 0#u64
+  let b ← nat.Nat.Insts.CoreCmpPartialOrdNat.gt r n
+  massert b
   let i ← ComponentsInst.B
-  let i1 ← lift (UScalar.cast .U64 i)
-  massert (r < i1)
+  let n1 ← nat.Nat.from_usize i
+  let b1 ← nat.Nat.Insts.CoreCmpPartialOrdNat.lt r n1
+  massert b1
   ok { components, r }
 
 /-- [hacspec_sha3_pedantic::sponge::keccak_c]:
-    Source: 'sha3-pedantic/src/sponge.rs', lines 131:0-133:1
+    Source: 'sha3-pedantic/src/sponge.rs', lines 137:0-139:1
     Visibility: public -/
 def sponge.keccak_c
-  (c : Std.Usize) (n : bits.BitStr) (d : Std.U64) : RustM bits.BitStr := do
+  (c : Std.Usize) (n : bits.BitStr) (d : nat.Nat) : RustM bits.BitStr := do
   let i ← sponge.B - c
-  let i1 ← lift (UScalar.cast .U64 i)
+  let n1 ← nat.Nat.from_usize i
   let s ←
     sponge.Sponge.new
-      sponge.Keccak1600.Insts.Hacspec_sha3_pedanticSpongeComponents () i1
+      sponge.Keccak1600.Insts.Hacspec_sha3_pedanticSpongeComponents () n1
   sponge.Sponge.apply
     sponge.Keccak1600.Insts.Hacspec_sha3_pedanticSpongeComponents s n d
 
 /-- [hacspec_sha3_pedantic::sha3::HASH_SUFFIX]
-    Source: 'sha3-pedantic/src/sha3.rs', lines 15:0-15:48
+    Source: 'sha3-pedantic/src/sha3.rs', lines 16:0-16:48
     Visibility: public -/
 @[global_simps, irreducible]
 def sha3.HASH_SUFFIX : Array Bool 2#usize := Array.make 2#usize [ false, true ]
 
 /-- [hacspec_sha3_pedantic::sha3::sha3_224]:
-    Source: 'sha3-pedantic/src/sha3.rs', lines 21:0-23:1
+    Source: 'sha3-pedantic/src/sha3.rs', lines 22:0-28:1
     Visibility: public -/
 def sha3.sha3_224 (m : bits.BitStr) : RustM bits.BitStr := do
   let s ← lift (Array.to_slice sha3.HASH_SUFFIX)
   let bs ← bits.BitStr.from_bits s
   let bs1 ← bits.BitStr.concat m bs
-  sponge.keccak_c 448#usize bs1 224#u64
+  let n ← nat.Nat.new 224#u64
+  sponge.keccak_c 448#usize bs1 n
 
 /-- [hacspec_sha3_pedantic::bytes::sha3_224]:
-    Source: 'sha3-pedantic/src/bytes.rs', lines 16:8-21:9
+    Source: 'sha3-pedantic/src/bytes.rs', lines 17:8-22:9
     Visibility: public -/
 def bytes.sha3_224 (m : Slice Std.U8) : RustM (Array Std.U8 28#usize) := do
   let bs ← bits.h2b_full m
@@ -1728,16 +1739,17 @@ def bytes.sha3_224 (m : Slice Std.U8) : RustM (Array Std.U8 28#usize) := do
   ok (to_slice_mut_back s2)
 
 /-- [hacspec_sha3_pedantic::sha3::sha3_256]:
-    Source: 'sha3-pedantic/src/sha3.rs', lines 26:0-28:1
+    Source: 'sha3-pedantic/src/sha3.rs', lines 31:0-37:1
     Visibility: public -/
 def sha3.sha3_256 (m : bits.BitStr) : RustM bits.BitStr := do
   let s ← lift (Array.to_slice sha3.HASH_SUFFIX)
   let bs ← bits.BitStr.from_bits s
   let bs1 ← bits.BitStr.concat m bs
-  sponge.keccak_c 512#usize bs1 256#u64
+  let n ← nat.Nat.new 256#u64
+  sponge.keccak_c 512#usize bs1 n
 
 /-- [hacspec_sha3_pedantic::bytes::sha3_256]:
-    Source: 'sha3-pedantic/src/bytes.rs', lines 16:8-21:9
+    Source: 'sha3-pedantic/src/bytes.rs', lines 17:8-22:9
     Visibility: public -/
 def bytes.sha3_256 (m : Slice Std.U8) : RustM (Array Std.U8 32#usize) := do
   let bs ← bits.h2b_full m
@@ -1750,16 +1762,17 @@ def bytes.sha3_256 (m : Slice Std.U8) : RustM (Array Std.U8 32#usize) := do
   ok (to_slice_mut_back s2)
 
 /-- [hacspec_sha3_pedantic::sha3::sha3_384]:
-    Source: 'sha3-pedantic/src/sha3.rs', lines 31:0-33:1
+    Source: 'sha3-pedantic/src/sha3.rs', lines 40:0-46:1
     Visibility: public -/
 def sha3.sha3_384 (m : bits.BitStr) : RustM bits.BitStr := do
   let s ← lift (Array.to_slice sha3.HASH_SUFFIX)
   let bs ← bits.BitStr.from_bits s
   let bs1 ← bits.BitStr.concat m bs
-  sponge.keccak_c 768#usize bs1 384#u64
+  let n ← nat.Nat.new 384#u64
+  sponge.keccak_c 768#usize bs1 n
 
 /-- [hacspec_sha3_pedantic::bytes::sha3_384]:
-    Source: 'sha3-pedantic/src/bytes.rs', lines 16:8-21:9
+    Source: 'sha3-pedantic/src/bytes.rs', lines 17:8-22:9
     Visibility: public -/
 def bytes.sha3_384 (m : Slice Std.U8) : RustM (Array Std.U8 48#usize) := do
   let bs ← bits.h2b_full m
@@ -1772,16 +1785,17 @@ def bytes.sha3_384 (m : Slice Std.U8) : RustM (Array Std.U8 48#usize) := do
   ok (to_slice_mut_back s2)
 
 /-- [hacspec_sha3_pedantic::sha3::sha3_512]:
-    Source: 'sha3-pedantic/src/sha3.rs', lines 36:0-38:1
+    Source: 'sha3-pedantic/src/sha3.rs', lines 49:0-55:1
     Visibility: public -/
 def sha3.sha3_512 (m : bits.BitStr) : RustM bits.BitStr := do
   let s ← lift (Array.to_slice sha3.HASH_SUFFIX)
   let bs ← bits.BitStr.from_bits s
   let bs1 ← bits.BitStr.concat m bs
-  sponge.keccak_c 1024#usize bs1 512#u64
+  let n ← nat.Nat.new 512#u64
+  sponge.keccak_c 1024#usize bs1 n
 
 /-- [hacspec_sha3_pedantic::bytes::sha3_512]:
-    Source: 'sha3-pedantic/src/bytes.rs', lines 16:8-21:9
+    Source: 'sha3-pedantic/src/bytes.rs', lines 17:8-22:9
     Visibility: public -/
 def bytes.sha3_512 (m : Slice Std.U8) : RustM (Array Std.U8 64#usize) := do
   let bs ← bits.h2b_full m
@@ -1794,53 +1808,55 @@ def bytes.sha3_512 (m : Slice Std.U8) : RustM (Array Std.U8 64#usize) := do
   ok (to_slice_mut_back s2)
 
 /-- [hacspec_sha3_pedantic::sha3::XOF_SUFFIX]
-    Source: 'sha3-pedantic/src/sha3.rs', lines 18:0-18:58
+    Source: 'sha3-pedantic/src/sha3.rs', lines 19:0-19:58
     Visibility: public -/
 @[global_simps, irreducible]
 def sha3.XOF_SUFFIX : Array Bool 4#usize := Array.repeat 4#usize true
 
 /-- [hacspec_sha3_pedantic::sha3::shake128]:
-    Source: 'sha3-pedantic/src/sha3.rs', lines 41:0-43:1
+    Source: 'sha3-pedantic/src/sha3.rs', lines 58:0-60:1
     Visibility: public -/
-def sha3.shake128 (m : bits.BitStr) (d : Std.U64) : RustM bits.BitStr := do
+def sha3.shake128 (m : bits.BitStr) (d : nat.Nat) : RustM bits.BitStr := do
   let s ← lift (Array.to_slice sha3.XOF_SUFFIX)
   let bs ← bits.BitStr.from_bits s
   let bs1 ← bits.BitStr.concat m bs
   sponge.keccak_c 256#usize bs1 d
 
 /-- [hacspec_sha3_pedantic::bytes::shake128]:
-    Source: 'sha3-pedantic/src/bytes.rs', lines 39:0-41:1
+    Source: 'sha3-pedantic/src/bytes.rs', lines 40:0-45:1
     Visibility: public -/
 def bytes.shake128
   (m : Slice Std.U8) (out_bytes : Std.Usize) :
   RustM (alloc.vec.Vec Std.U8)
   := do
   let bs ← bits.h2b_full m
-  let i ← lift (UScalar.cast .U64 out_bytes)
-  let i1 ← 8#u64 * i
-  let bs1 ← sha3.shake128 bs i1
+  let n ← nat.Nat.from_usize out_bytes
+  let n1 ← nat.Nat.new 8#u64
+  let n2 ← nat.Nat.Insts.CoreOpsArithMulNatNat.mul n n1
+  let bs1 ← sha3.shake128 bs n2
   bits.b2h bs1
 
 /-- [hacspec_sha3_pedantic::sha3::shake256]:
-    Source: 'sha3-pedantic/src/sha3.rs', lines 46:0-48:1
+    Source: 'sha3-pedantic/src/sha3.rs', lines 63:0-65:1
     Visibility: public -/
-def sha3.shake256 (m : bits.BitStr) (d : Std.U64) : RustM bits.BitStr := do
+def sha3.shake256 (m : bits.BitStr) (d : nat.Nat) : RustM bits.BitStr := do
   let s ← lift (Array.to_slice sha3.XOF_SUFFIX)
   let bs ← bits.BitStr.from_bits s
   let bs1 ← bits.BitStr.concat m bs
   sponge.keccak_c 512#usize bs1 d
 
 /-- [hacspec_sha3_pedantic::bytes::shake256]:
-    Source: 'sha3-pedantic/src/bytes.rs', lines 44:0-46:1
+    Source: 'sha3-pedantic/src/bytes.rs', lines 48:0-53:1
     Visibility: public -/
 def bytes.shake256
   (m : Slice Std.U8) (out_bytes : Std.Usize) :
   RustM (alloc.vec.Vec Std.U8)
   := do
   let bs ← bits.h2b_full m
-  let i ← lift (UScalar.cast .U64 out_bytes)
-  let i1 ← 8#u64 * i
-  let bs1 ← sha3.shake256 bs i1
+  let n ← nat.Nat.from_usize out_bytes
+  let n1 ← nat.Nat.new 8#u64
+  let n2 ← nat.Nat.Insts.CoreOpsArithMulNatNat.mul n n1
+  let bs1 ← sha3.shake256 bs n2
   bits.b2h bs1
 
 /-- [hacspec_sha3_pedantic::keccak_p::keccak_f]:
@@ -1852,6 +1868,90 @@ def keccak_p.keccak_f
   let i1 ← 2#usize * i
   let i2 ← 12#usize + i1
   keccak_p.keccak_p W s i2
+
+/-- Trait implementation: [hacspec_sha3_pedantic::nat::{impl core::clone::Clone for hacspec_sha3_pedantic::nat::Nat}]
+    Source: 'sha3-pedantic/src/nat.rs', lines 57:0-62:1 -/
+@[reducible]
+impl_def nat.Nat.Insts.CoreCloneClone : core.clone.Clone nat.Nat := {
+  clone := nat.Nat.Insts.CoreCloneClone.clone
+  clone_from := core.clone.Clone.clone_from.default
+    nat.Nat.Insts.CoreCloneClone
+}
+
+/-- Trait implementation: [hacspec_sha3_pedantic::nat::{impl core::marker::Copy for hacspec_sha3_pedantic::nat::Nat}]
+    Source: 'sha3-pedantic/src/nat.rs', lines 64:0-64:20 -/
+@[reducible]
+def nat.Nat.Insts.CoreMarkerCopy : core.marker.Copy nat.Nat := {
+  cloneCloneInst := nat.Nat.Insts.CoreCloneClone
+}
+
+/-- Trait implementation: [hacspec_sha3_pedantic::nat::{impl core::ops::arith::Add<hacspec_sha3_pedantic::nat::Nat, hacspec_sha3_pedantic::nat::Nat> for hacspec_sha3_pedantic::nat::Nat}]
+    Source: 'sha3-pedantic/src/nat.rs', lines 100:0-109:1 -/
+@[reducible]
+def nat.Nat.Insts.CoreOpsArithAddNatNat : core.ops.arith.Add nat.Nat nat.Nat
+  nat.Nat := {
+  add := nat.Nat.Insts.CoreOpsArithAddNatNat.add
+}
+
+/-- Trait implementation: [hacspec_sha3_pedantic::nat::{impl core::ops::arith::Sub<hacspec_sha3_pedantic::nat::Nat, hacspec_sha3_pedantic::nat::Nat> for hacspec_sha3_pedantic::nat::Nat}]
+    Source: 'sha3-pedantic/src/nat.rs', lines 111:0-123:1 -/
+@[reducible]
+def nat.Nat.Insts.CoreOpsArithSubNatNat : core.ops.arith.Sub nat.Nat nat.Nat
+  nat.Nat := {
+  sub := nat.Nat.Insts.CoreOpsArithSubNatNat.sub
+}
+
+/-- Trait implementation: [hacspec_sha3_pedantic::nat::{impl core::ops::arith::Mul<hacspec_sha3_pedantic::nat::Nat, hacspec_sha3_pedantic::nat::Nat> for hacspec_sha3_pedantic::nat::Nat}]
+    Source: 'sha3-pedantic/src/nat.rs', lines 125:0-134:1 -/
+@[reducible]
+def nat.Nat.Insts.CoreOpsArithMulNatNat : core.ops.arith.Mul nat.Nat nat.Nat
+  nat.Nat := {
+  mul := nat.Nat.Insts.CoreOpsArithMulNatNat.mul
+}
+
+/-- Trait implementation: [hacspec_sha3_pedantic::nat::{impl core::ops::arith::Div<hacspec_sha3_pedantic::nat::Nat, hacspec_sha3_pedantic::nat::Nat> for hacspec_sha3_pedantic::nat::Nat}]
+    Source: 'sha3-pedantic/src/nat.rs', lines 136:0-145:1 -/
+@[reducible]
+def nat.Nat.Insts.CoreOpsArithDivNatNat : core.ops.arith.Div nat.Nat nat.Nat
+  nat.Nat := {
+  div := nat.Nat.Insts.CoreOpsArithDivNatNat.div
+}
+
+/-- Trait implementation: [hacspec_sha3_pedantic::nat::{impl core::ops::arith::Rem<hacspec_sha3_pedantic::nat::Nat, hacspec_sha3_pedantic::nat::Nat> for hacspec_sha3_pedantic::nat::Nat}]
+    Source: 'sha3-pedantic/src/nat.rs', lines 147:0-156:1 -/
+@[reducible]
+def nat.Nat.Insts.CoreOpsArithRemNatNat : core.ops.arith.Rem nat.Nat nat.Nat
+  nat.Nat := {
+  rem := nat.Nat.Insts.CoreOpsArithRemNatNat.rem
+}
+
+/-- Trait implementation: [hacspec_sha3_pedantic::nat::{impl core::cmp::PartialEq<hacspec_sha3_pedantic::nat::Nat> for hacspec_sha3_pedantic::nat::Nat}]
+    Source: 'sha3-pedantic/src/nat.rs', lines 163:0-173:1 -/
+@[reducible]
+def nat.Nat.Insts.CoreCmpPartialEqNat : core.cmp.PartialEq nat.Nat nat.Nat := {
+  eq := nat.Nat.Insts.CoreCmpPartialEqNat.eq
+  ne := nat.Nat.Insts.CoreCmpPartialEqNat.ne
+}
+
+/-- Trait implementation: [hacspec_sha3_pedantic::nat::{impl core::cmp::Eq for hacspec_sha3_pedantic::nat::Nat}]
+    Source: 'sha3-pedantic/src/nat.rs', lines 175:0-175:18 -/
+@[reducible]
+impl_def nat.Nat.Insts.CoreCmpEq : core.cmp.Eq nat.Nat := {
+  PartialEqInst := nat.Nat.Insts.CoreCmpPartialEqNat
+}
+
+/-- Trait implementation: [hacspec_sha3_pedantic::nat::{impl core::cmp::PartialOrd<hacspec_sha3_pedantic::nat::Nat> for hacspec_sha3_pedantic::nat::Nat}]
+    Source: 'sha3-pedantic/src/nat.rs', lines 177:0-208:1 -/
+@[reducible]
+def nat.Nat.Insts.CoreCmpPartialOrdNat : core.cmp.PartialOrd nat.Nat nat.Nat
+  := {
+  PartialEqInst := nat.Nat.Insts.CoreCmpPartialEqNat
+  partial_cmp := nat.Nat.Insts.CoreCmpPartialOrdNat.partial_cmp
+  lt := nat.Nat.Insts.CoreCmpPartialOrdNat.lt
+  le := nat.Nat.Insts.CoreCmpPartialOrdNat.le
+  gt := nat.Nat.Insts.CoreCmpPartialOrdNat.gt
+  ge := nat.Nat.Insts.CoreCmpPartialOrdNat.ge
+}
 
 /-- [hacspec_sha3_pedantic::state_array::{impl core::clone::Clone for hacspec_sha3_pedantic::state_array::StateArray<W>}::clone]:
     Source: 'sha3-pedantic/src/state_array.rs', lines 16:9-16:14

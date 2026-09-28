@@ -26,73 +26,163 @@ set_option maxRecDepth 2048
 open hacspec_sha3_pedantic
 
 /-- [hacspec_sha3_pedantic::bits::{impl core::clone::Clone for hacspec_sha3_pedantic::bits::BitStr}::clone]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 64:4-69:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 67:4-72:5
     Visibility: public -/
 axiom bits.BitStr.Insts.CoreCloneClone.clone
   : bits.BitStr → RustM bits.BitStr
 
 /-- [hacspec_sha3_pedantic::bits::{hacspec_sha3_pedantic::bits::BitStr}::empty]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 75:4-80:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 78:4-83:5
     Visibility: public -/
 axiom bits.BitStr.empty : RustM bits.BitStr
 
 /-- [hacspec_sha3_pedantic::bits::{hacspec_sha3_pedantic::bits::BitStr}::len]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 84:4-86:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 87:4-89:5
     Visibility: public -/
-axiom bits.BitStr.len : bits.BitStr → RustM Std.U64
+axiom bits.BitStr.len : bits.BitStr → RustM nat.Nat
 
 /-- [hacspec_sha3_pedantic::bits::{hacspec_sha3_pedantic::bits::BitStr}::is_empty]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 90:4-92:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 93:4-95:5
     Visibility: public -/
 axiom bits.BitStr.is_empty : bits.BitStr → RustM Bool
 
 /-- [hacspec_sha3_pedantic::bits::{hacspec_sha3_pedantic::bits::BitStr}::bit]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 96:4-100:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 99:4-104:5
     Visibility: public -/
-axiom bits.BitStr.bit : bits.BitStr → Std.U64 → RustM Bool
+axiom bits.BitStr.bit : bits.BitStr → nat.Nat → RustM Bool
 
 /-- [hacspec_sha3_pedantic::bits::{hacspec_sha3_pedantic::bits::BitStr}::push_mut]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 106:4-115:5 -/
+    Source: 'sha3-pedantic/src/bits.rs', lines 110:4-119:5 -/
 axiom bits.BitStr.push_mut : bits.BitStr → Bool → RustM bits.BitStr
 
 /-- [hacspec_sha3_pedantic::bits::{hacspec_sha3_pedantic::bits::BitStr}::zeros]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 119:4-126:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 123:4-131:5
     Visibility: public -/
-axiom bits.BitStr.zeros : Std.U64 → RustM bits.BitStr
+axiom bits.BitStr.zeros : nat.Nat → RustM bits.BitStr
 
 /-- [hacspec_sha3_pedantic::bits::{hacspec_sha3_pedantic::bits::BitStr}::from_bits]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 133:4-139:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 138:4-144:5
     Visibility: public -/
 axiom bits.BitStr.from_bits : Slice Bool → RustM bits.BitStr
 
 /-- [hacspec_sha3_pedantic::bits::{hacspec_sha3_pedantic::bits::BitStr}::to_bits]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 147:4-157:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 152:4-162:5
     Visibility: public -/
 axiom bits.BitStr.to_bits : bits.BitStr → RustM (alloc.vec.Vec Bool)
 
 /-- [hacspec_sha3_pedantic::bits::{hacspec_sha3_pedantic::bits::BitStr}::concat]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 161:4-167:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 166:4-172:5
     Visibility: public -/
 axiom bits.BitStr.concat : bits.BitStr → bits.BitStr → RustM bits.BitStr
 
 /-- [hacspec_sha3_pedantic::bits::{hacspec_sha3_pedantic::bits::BitStr}::trunc]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 171:4-178:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 176:4-184:5
     Visibility: public -/
-axiom bits.BitStr.trunc : bits.BitStr → Std.U64 → RustM bits.BitStr
+axiom bits.BitStr.trunc : bits.BitStr → nat.Nat → RustM bits.BitStr
 
 /-- [hacspec_sha3_pedantic::bits::{hacspec_sha3_pedantic::bits::BitStr}::slice]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 184:4-191:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 190:4-198:5
     Visibility: public -/
 axiom bits.BitStr.slice
-  : bits.BitStr → Std.U64 → Std.U64 → RustM bits.BitStr
+  : bits.BitStr → nat.Nat → nat.Nat → RustM bits.BitStr
 
 /-- [hacspec_sha3_pedantic::bits::{hacspec_sha3_pedantic::bits::BitStr}::from_bytes]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 199:4-204:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 206:4-211:5
     Visibility: public -/
 axiom bits.BitStr.from_bytes : Slice Std.U8 → RustM bits.BitStr
 
 /-- [hacspec_sha3_pedantic::bits::{hacspec_sha3_pedantic::bits::BitStr}::to_bytes]:
-    Source: 'sha3-pedantic/src/bits.rs', lines 211:4-213:5
+    Source: 'sha3-pedantic/src/bits.rs', lines 218:4-220:5
     Visibility: public -/
 axiom bits.BitStr.to_bytes : bits.BitStr → RustM (alloc.vec.Vec Std.U8)
+
+/-- [hacspec_sha3_pedantic::nat::{impl core::cmp::PartialOrd<hacspec_sha3_pedantic::nat::Nat> for hacspec_sha3_pedantic::nat::Nat}::le]:
+    Source: 'sha3-pedantic/src/nat.rs', lines 195:4-197:5
+    Visibility: public -/
+axiom nat.Nat.Insts.CoreCmpPartialOrdNat.le
+  : nat.Nat → nat.Nat → RustM Bool
+
+/-- [hacspec_sha3_pedantic::nat::{impl core::ops::arith::Mul<hacspec_sha3_pedantic::nat::Nat, hacspec_sha3_pedantic::nat::Nat> for hacspec_sha3_pedantic::nat::Nat}::mul]:
+    Source: 'sha3-pedantic/src/nat.rs', lines 131:4-133:5
+    Visibility: public -/
+axiom nat.Nat.Insts.CoreOpsArithMulNatNat.mul
+  : nat.Nat → nat.Nat → RustM nat.Nat
+
+/-- [hacspec_sha3_pedantic::nat::{hacspec_sha3_pedantic::nat::Nat}::from_usize]:
+    Source: 'sha3-pedantic/src/nat.rs', lines 80:4-82:5
+    Visibility: public -/
+axiom nat.Nat.from_usize : Std.Usize → RustM nat.Nat
+
+/-- [hacspec_sha3_pedantic::nat::{hacspec_sha3_pedantic::nat::Nat}::new]:
+    Source: 'sha3-pedantic/src/nat.rs', lines 73:4-75:5
+    Visibility: public -/
+axiom nat.Nat.new : Std.U64 → RustM nat.Nat
+
+/-- [hacspec_sha3_pedantic::nat::{impl core::cmp::PartialOrd<hacspec_sha3_pedantic::nat::Nat> for hacspec_sha3_pedantic::nat::Nat}::gt]:
+    Source: 'sha3-pedantic/src/nat.rs', lines 200:4-202:5
+    Visibility: public -/
+axiom nat.Nat.Insts.CoreCmpPartialOrdNat.gt
+  : nat.Nat → nat.Nat → RustM Bool
+
+/-- [hacspec_sha3_pedantic::nat::{impl core::ops::arith::Rem<hacspec_sha3_pedantic::nat::Nat, hacspec_sha3_pedantic::nat::Nat> for hacspec_sha3_pedantic::nat::Nat}::rem]:
+    Source: 'sha3-pedantic/src/nat.rs', lines 152:4-155:5
+    Visibility: public -/
+axiom nat.Nat.Insts.CoreOpsArithRemNatNat.rem
+  : nat.Nat → nat.Nat → RustM nat.Nat
+
+/-- [hacspec_sha3_pedantic::nat::{impl core::ops::arith::Sub<hacspec_sha3_pedantic::nat::Nat, hacspec_sha3_pedantic::nat::Nat> for hacspec_sha3_pedantic::nat::Nat}::sub]:
+    Source: 'sha3-pedantic/src/nat.rs', lines 117:4-122:5
+    Visibility: public -/
+axiom nat.Nat.Insts.CoreOpsArithSubNatNat.sub
+  : nat.Nat → nat.Nat → RustM nat.Nat
+
+/-- [hacspec_sha3_pedantic::nat::{impl core::ops::arith::Add<hacspec_sha3_pedantic::nat::Nat, hacspec_sha3_pedantic::nat::Nat> for hacspec_sha3_pedantic::nat::Nat}::add]:
+    Source: 'sha3-pedantic/src/nat.rs', lines 106:4-108:5
+    Visibility: public -/
+axiom nat.Nat.Insts.CoreOpsArithAddNatNat.add
+  : nat.Nat → nat.Nat → RustM nat.Nat
+
+/-- [hacspec_sha3_pedantic::nat::{impl core::cmp::PartialOrd<hacspec_sha3_pedantic::nat::Nat> for hacspec_sha3_pedantic::nat::Nat}::lt]:
+    Source: 'sha3-pedantic/src/nat.rs', lines 190:4-192:5
+    Visibility: public -/
+axiom nat.Nat.Insts.CoreCmpPartialOrdNat.lt
+  : nat.Nat → nat.Nat → RustM Bool
+
+/-- [hacspec_sha3_pedantic::nat::{impl core::ops::arith::Div<hacspec_sha3_pedantic::nat::Nat, hacspec_sha3_pedantic::nat::Nat> for hacspec_sha3_pedantic::nat::Nat}::div]:
+    Source: 'sha3-pedantic/src/nat.rs', lines 141:4-144:5
+    Visibility: public -/
+axiom nat.Nat.Insts.CoreOpsArithDivNatNat.div
+  : nat.Nat → nat.Nat → RustM nat.Nat
+
+/-- [hacspec_sha3_pedantic::nat::{hacspec_sha3_pedantic::nat::Nat}::to_usize]:
+    Source: 'sha3-pedantic/src/nat.rs', lines 91:4-97:5
+    Visibility: public -/
+axiom nat.Nat.to_usize : nat.Nat → RustM Std.Usize
+
+/-- [hacspec_sha3_pedantic::nat::{impl core::clone::Clone for hacspec_sha3_pedantic::nat::Nat}::clone]:
+    Source: 'sha3-pedantic/src/nat.rs', lines 59:4-61:5
+    Visibility: public -/
+axiom nat.Nat.Insts.CoreCloneClone.clone : nat.Nat → RustM nat.Nat
+
+/-- [hacspec_sha3_pedantic::nat::{impl core::cmp::PartialEq<hacspec_sha3_pedantic::nat::Nat> for hacspec_sha3_pedantic::nat::Nat}::ne]:
+    Source: 'sha3-pedantic/src/nat.rs', lines 170:4-172:5
+    Visibility: public -/
+axiom nat.Nat.Insts.CoreCmpPartialEqNat.ne : nat.Nat → nat.Nat → RustM Bool
+
+/-- [hacspec_sha3_pedantic::nat::{impl core::cmp::PartialEq<hacspec_sha3_pedantic::nat::Nat> for hacspec_sha3_pedantic::nat::Nat}::eq]:
+    Source: 'sha3-pedantic/src/nat.rs', lines 165:4-167:5
+    Visibility: public -/
+axiom nat.Nat.Insts.CoreCmpPartialEqNat.eq : nat.Nat → nat.Nat → RustM Bool
+
+/-- [hacspec_sha3_pedantic::nat::{impl core::cmp::PartialOrd<hacspec_sha3_pedantic::nat::Nat> for hacspec_sha3_pedantic::nat::Nat}::ge]:
+    Source: 'sha3-pedantic/src/nat.rs', lines 205:4-207:5
+    Visibility: public -/
+axiom nat.Nat.Insts.CoreCmpPartialOrdNat.ge
+  : nat.Nat → nat.Nat → RustM Bool
+
+/-- [hacspec_sha3_pedantic::nat::{impl core::cmp::PartialOrd<hacspec_sha3_pedantic::nat::Nat> for hacspec_sha3_pedantic::nat::Nat}::partial_cmp]:
+    Source: 'sha3-pedantic/src/nat.rs', lines 179:4-187:5
+    Visibility: public -/
+axiom nat.Nat.Insts.CoreCmpPartialOrdNat.partial_cmp
+  : nat.Nat → nat.Nat → RustM (core.option.Option core.cmp.Ordering)
 

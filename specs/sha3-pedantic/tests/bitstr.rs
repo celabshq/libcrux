@@ -9,6 +9,7 @@
 //! the packing has and the model does not.
 
 use hacspec_sha3_pedantic::bits::{b2h, h2b, h2b_full, BitStr};
+use hacspec_sha3_pedantic::nat::Nat;
 use proptest::prelude::*;
 
 /// The reference: one bit per `bool`, exactly as the model reads it.
@@ -33,7 +34,7 @@ fn from_bytes_matches_reference() {
         let bytes: Vec<u8> = (0..len).map(|i| (i * 37 + 11) as u8).collect();
         let s = BitStr::from_bytes(&bytes);
         let r = reference_bits(&bytes);
-        assert_eq!(s.len(), r.len() as u64, "len at {len}");
+        assert_eq!(s.len(), Nat::from_usize(r.len()), "len at {len}");
         assert_eq!(s.to_bits(), r, "bits at {len}");
     }
 }
@@ -61,8 +62,8 @@ fn from_bits_to_bits_roundtrip() {
 fn trunc_zeroes_the_tail() {
     let all_ones = BitStr::from_bytes(&[0xFF; 4]);
     for s in 0..=32u64 {
-        let t = all_ones.trunc(s);
-        assert_eq!(t.len(), s);
+        let t = all_ones.trunc(Nat::new(s));
+        assert_eq!(t.len(), Nat::new(s));
         let expected_bytes = (s as usize).div_ceil(8);
         assert_eq!(t.to_bytes().len(), expected_bytes, "byte count at {s}");
         if s % 8 != 0 {
@@ -85,9 +86,9 @@ proptest! {
         let (x, y) = (BitStr::from_bytes(&xs), BitStr::from_bytes(&ys));
         let (rx, ry) = (reference_bits(&xs), reference_bits(&ys));
 
-        prop_assert_eq!(x.len(), rx.len() as u64);
+        prop_assert_eq!(x.len(), Nat::from_usize(rx.len()));
         for i in 0..rx.len() {
-            prop_assert_eq!(x.bit(i as u64), rx[i], "bit {}", i);
+            prop_assert_eq!(x.bit(Nat::from_usize(i)), rx[i], "bit {}", i);
         }
 
         let mut rcat = rx.clone();
@@ -95,13 +96,13 @@ proptest! {
         prop_assert_eq!(x.concat(&y).to_bits(), rcat.clone());
 
         let s = k % (rcat.len() + 1);
-        prop_assert_eq!(x.concat(&y).trunc(s as u64).to_bits(), rcat[..s].to_vec());
+        prop_assert_eq!(x.concat(&y).trunc(Nat::from_usize(s)).to_bits(), rcat[..s].to_vec());
 
         if !rx.is_empty() {
             let from = k % rx.len();
             let n = (k * 7) % (rx.len() - from + 1);
             prop_assert_eq!(
-                x.slice(from as u64, n as u64).to_bits(),
+                x.slice(Nat::from_usize(from), Nat::from_usize(n)).to_bits(),
                 rx[from..from + n].to_vec()
             );
         }
@@ -113,12 +114,12 @@ proptest! {
         n in 0u64..300,
         bytes in prop::collection::vec(any::<u8>(), 0..40),
     ) {
-        prop_assert_eq!(BitStr::zeros(n).to_bits(), vec![false; n as usize]);
+        prop_assert_eq!(BitStr::zeros(Nat::new(n)).to_bits(), vec![false; n as usize]);
 
         let avail = 8 * bytes.len() as u64;
         let take = if avail == 0 { 0 } else { n % (avail + 1) };
         prop_assert_eq!(
-            h2b(&bytes, take).to_bits(),
+            h2b(&bytes, Nat::new(take)).to_bits(),
             reference_bits(&bytes)[..take as usize].to_vec()
         );
     }

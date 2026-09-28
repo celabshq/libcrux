@@ -24,7 +24,12 @@ set_option maxHeartbeats 1000000
 set_option maxRecDepth 2048
 
 /-- [hacspec_sha3_pedantic::bits::BitStr]
-    Source: 'sha3-pedantic/src/bits.rs', lines 53:0-60:1
+    Source: 'sha3-pedantic/src/bits.rs', lines 54:0-63:1
     Visibility: public -/
 axiom bits.BitStr : Type
+
+/-- [hacspec_sha3_pedantic::nat::Nat]
+    Source: 'sha3-pedantic/src/nat.rs', lines 51:0-51:32
+    Visibility: public -/
+axiom nat.Nat : Type
 

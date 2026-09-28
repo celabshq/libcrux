@@ -12,7 +12,10 @@
 //!   and messages are bit strings -- of arbitrary length, as the Standard's
 //!   are: [`bits::BitStr`] is opaque to the extraction precisely so that the
 //!   proofs read it as a list of bits with no length bound, rather than as a
-//!   `Vec` whose model stops at `usize::MAX` on whatever the target is;
+//!   `Vec` whose model stops at `usize::MAX` on whatever the target is, and
+//!   [`nat::Nat`] is opaque for the same reason one level up: `len(M)` is a
+//!   nonnegative integer, so counting bits cannot fail and no bound on the
+//!   input reaches a proof;
 //! * every function is one numbered Algorithm, with the Steps in the
 //!   Standard's order and the Standard's names;
 //! * nothing is precomputed that the Standard computes: `ρ`'s offsets come
@@ -33,6 +36,7 @@
 //! | Sec. 4, 5.1, 5.2 Algorithms 8-9, `SPONGE`, `pad10*1`, `KECCAK[c]` | [`sponge`] |
 //! | Sec. 6.1-6.2 the six SHA-3 functions | [`sha3`] |
 //! | — (byte-aligned convenience) | [`bytes`] |
+//! | — (the nonnegative integers the Standard counts with) | [`nat`] |
 //!
 //! The document is `specs/sha3/NIST.FIPS.202.pdf`. The crate extracts to Lean
 //! (`cargo bin cargo-hax extract hacspec-sha3-pedantic`); `Readme.md` lists the
@@ -52,6 +56,7 @@
 pub mod bits;
 pub mod bytes;
 pub mod keccak_p;
+pub mod nat;
 pub mod sha3;
 pub mod sponge;
 pub mod state_array;

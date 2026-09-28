@@ -3,6 +3,7 @@
 
 use hacspec_sha3_pedantic as pedantic;
 use pedantic::bits::{b2h, h2b, h2b_full, BitStr};
+use pedantic::nat::Nat;
 use pedantic::sponge::pad10_star_1;
 use pedantic::state_array::StateArray;
 
@@ -13,7 +14,7 @@ use pedantic::state_array::StateArray;
 /// Appendix B.1, Table 5: `h2b(0xA32E, 14) = 1100 0101 0111 01`.
 #[test]
 fn h2b_table_5() {
-    let bits = h2b(&[0xA3, 0x2E], 14);
+    let bits = h2b(&[0xA3, 0x2E], Nat::new(14));
     let expected: Vec<bool> = "11000101011101".chars().map(|c| c == '1').collect();
     assert_eq!(bits.to_bits(), expected);
 }
@@ -31,7 +32,7 @@ fn b2h_inverts_h2b() {
 fn pad10_star_1_is_well_formed() {
     for x in [8u64, 136, 168, 1088, 1152] {
         for m in 0..(3 * x) {
-            let p = pad10_star_1(x, m).to_bits();
+            let p = pad10_star_1(Nat::new(x), Nat::new(m)).to_bits();
             let len = p.len() as u64;
             assert!((m + len).is_multiple_of(x) && m + len > 0);
             assert!(len >= 2);
@@ -51,7 +52,7 @@ fn padding_bytes_table_6() {
     fn appended(suffix: &[bool], rate_bits: u64, message_bytes: usize) -> Vec<u8> {
         let m = 8 * (message_bytes as u64);
         let mut bits = suffix.to_vec();
-        bits.extend(pad10_star_1(rate_bits, m + suffix.len() as u64).to_bits());
+        bits.extend(pad10_star_1(Nat::new(rate_bits), Nat::new(m + suffix.len() as u64)).to_bits());
         b2h(&BitStr::from_bits(&bits))
     }
 

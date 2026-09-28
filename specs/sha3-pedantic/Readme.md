@@ -25,6 +25,15 @@ document open:
 It is slow, and that is the point: it is meant to be checked line by line
 against the PDF, not run.
 
+Two of the types are opaque to the extraction, and for one reason: the
+Standard's objects are unbounded and a Rust type is not. `bits::BitStr` is
+modelled as a list of bits of any length, and `nat::Nat` — every length, bit
+position and output size — as Lean's `Nat`. Between them, counting the bits
+of a message is an operation that cannot fail, so nothing proved against this
+specification carries a bound on how long its input may be. `nat.rs` carries
+the argument for why the `u128` underneath cannot overflow on a string that
+was actually allocated.
+
 ## Where each section lives
 
 | FIPS 202 | module |
@@ -36,6 +45,7 @@ against the PDF, not run.
 | Sec. 4 Algorithm 8 `SPONGE`; Sec. 5.1 Algorithm 9 `pad10*1`; Sec. 5.2 `KECCAK[c]` | `sponge` |
 | Sec. 6.1-6.2 the four hash functions and the two XOFs | `sha3` |
 | — byte-aligned wrappers, `h2b` in front and `b2h` behind | `bytes` |
+| — the nonnegative integers the Standard counts with | `nat` |
 
 The document is [`../sha3/NIST.FIPS.202.pdf`](../sha3/NIST.FIPS.202.pdf).
 

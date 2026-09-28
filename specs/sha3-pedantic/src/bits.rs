@@ -11,16 +11,15 @@
 //! bound on `len(M)`, and neither should the specification.
 //!
 //! The representation here is bit-packed, one bit per bit rather than the byte
-//! per bit a `Vec<bool>` would spend, and the length is a `u64` rather than a
-//! `usize`. Both choices are about reach:
-//!
-//! * `isize::MAX` bytes of packed storage is `8 * isize::MAX` bits, which
-//!   exceeds `u64::MAX` on 32- and 64-bit targets alike, so the `len` field is
-//!   the only limit left and no chunked representation would buy anything;
-//! * a `u64` length keeps the ceiling off the target's word size. With a
-//!   `usize` length, `8 * m.len()` — the bit count of a byte-aligned message —
-//!   overflows a 32-bit target at 512 MB, which is exactly the bound the
-//!   proofs used to carry.
+//! per bit a `Vec<bool>` would spend. Lengths and bit positions are a
+//! [`Nat`](crate::nat::Nat), whose model is Lean's `Nat`: unbounded, so that
+//! `len(S)` is an operation that cannot fail and no bound on the length of a
+//! message reaches anything proved against this specification. `Nat`'s own
+//! docs give the argument for why its `u128` cannot overflow on a string that
+//! was allocated; a `u64` length could not make that argument, since
+//! `8 * isize::MAX` overflows one on a 64-bit target, and a `usize` length
+//! could not either — `8 * m.len()` overflows a 32-bit target at 512 MB, which
+//! is exactly the bound the proofs used to carry.
 //!
 //! The fixed-width layer is the free functions below, on `&[Bit]`. The state
 //! of the permutation is `b` bits for a `b` in Table 1, at most 1600, so
@@ -29,6 +28,8 @@
 //! Where a condition the Standard states is checked, it is a plain `assert!`,
 //! which extracts to a `massert` in the generated Lean: `Trunc_s` needs
 //! `s <= len(X)`, `h2b` needs `n <= 8m`.
+
+use crate::nat::Nat;
 
 /// A single bit.
 pub type Bit = bool;
@@ -55,8 +56,10 @@ pub struct BitStr {
     /// same order App. B.1 reads a byte in.
     bytes: Vec<u8>,
     /// `len(S)`, in bits. Not `8 * bytes.len()`: the last byte is partial
-    /// whenever `len % 8 != 0`.
-    len: u64,
+    /// whenever `len % 8 != 0`. A `u128` here rather than a `Nat`: this is the
+    /// representation, and the bodies below are opaque, so the counting they
+    /// do is the machine's. `len()` is where it becomes a `Nat` again.
+    len: u128,
 }
 
 impl Clone for BitStr {
@@ -81,8 +84,8 @@ impl BitStr {
 
     /// `len(S)` — Sec. 2.3.
     #[cfg_attr(hax, hax_lib::opaque)]
-    pub fn len(&self) -> u64 {
-        self.len
+    pub fn len(&self) -> Nat {
+        Nat(self.len)
     }
 
     /// Whether `len(S) = 0`.
@@ -93,7 +96,8 @@ impl BitStr {
 
     /// `S[i]` — Sec. 2.3, the bits of a string indexed from zero.
     #[cfg_attr(hax, hax_lib::opaque)]
-    pub fn bit(&self, i: u64) -> Bit {
+    pub fn bit(&self, i: Nat) -> Bit {
+        let i = i.0;
         assert!(i < self.len, "index past the end of the string");
         let byte = self.bytes[(i / 8) as usize];
         (byte >> (i % 8)) & 1u8 == 1u8
@@ -116,7 +120,8 @@ impl BitStr {
 
     /// `0^n` — Sec. 2.3: the string of `n` zero bits.
     #[cfg_attr(hax, hax_lib::opaque)]
-    pub fn zeros(n: u64) -> BitStr {
+    pub fn zeros(n: Nat) -> BitStr {
+        let n = n.0;
         let full = n / 8 + if n % 8 == 0 { 0 } else { 1 };
         let mut bytes: Vec<u8> = Vec::new();
         for _ in 0..full {
@@ -146,12 +151,12 @@ impl BitStr {
     #[cfg_attr(hax, hax_lib::opaque)]
     pub fn to_bits(&self) -> BitString {
         assert!(
-            self.len <= usize::MAX as u64,
+            self.len <= usize::MAX as u128,
             "string too long to hand to the fixed-width layer"
         );
         let mut out: BitString = Vec::new();
         for i in 0..self.len {
-            out.push(self.bit(i));
+            out.push(self.bit(Nat(i)));
         }
         out
     }
@@ -160,19 +165,20 @@ impl BitStr {
     #[cfg_attr(hax, hax_lib::opaque)]
     pub fn concat(&self, y: &BitStr) -> BitStr {
         let mut out = self.clone();
-        for i in 0..y.len() {
-            out.push_mut(y.bit(i));
+        for i in 0..y.len {
+            out.push_mut(y.bit(Nat(i)));
         }
         out
     }
 
     /// `Trunc_s(X)` — Sec. 2.3: the string of the first `s` bits of `X`.
     #[cfg_attr(hax, hax_lib::opaque)]
-    pub fn trunc(&self, s: u64) -> BitStr {
+    pub fn trunc(&self, s: Nat) -> BitStr {
+        let s = s.0;
         assert!(s <= self.len, "Trunc_s needs s <= len(X)");
         let mut out = BitStr::empty();
         for i in 0..s {
-            out.push_mut(self.bit(i));
+            out.push_mut(self.bit(Nat(i)));
         }
         out
     }
@@ -181,11 +187,12 @@ impl BitStr {
     /// 8, which the Standard names by slicing rather than by an operation of
     /// its own.
     #[cfg_attr(hax, hax_lib::opaque)]
-    pub fn slice(&self, from: u64, n: u64) -> BitStr {
+    pub fn slice(&self, from: Nat, n: Nat) -> BitStr {
+        let (from, n) = (from.0, n.0);
         assert!(from + n <= self.len, "slice past the end of the string");
         let mut out = BitStr::empty();
         for i in 0..n {
-            out.push_mut(self.bit(from + i));
+            out.push_mut(self.bit(Nat(from + i)));
         }
         out
     }
@@ -199,7 +206,7 @@ impl BitStr {
     pub fn from_bytes(h: &[u8]) -> BitStr {
         BitStr {
             bytes: h.to_vec(),
-            len: 8 * (h.len() as u64),
+            len: 8 * (h.len() as u128),
         }
     }
 
@@ -262,8 +269,11 @@ pub fn xor(x: &[Bit], y: &[Bit]) -> BitString {
 ///
 /// This takes the bytes directly (`H` parsed as in Step 2a) rather than a
 /// string of hexadecimal digits.
-pub fn h2b(h: &[u8], n: u64) -> BitStr {
-    assert!(n <= 8 * (h.len() as u64), "Algorithm 10 requires n <= 8m");
+pub fn h2b(h: &[u8], n: Nat) -> BitStr {
+    assert!(
+        n <= Nat::from_usize(h.len()) * Nat::new(8),
+        "Algorithm 10 requires n <= 8m"
+    );
     BitStr::from_bytes(h).trunc(n)
 }
 
