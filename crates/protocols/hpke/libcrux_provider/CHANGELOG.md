@@ -23,6 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     via X-Wing draft-06), per
     [draft-irtf-cfrg-concrete-hybrid-kems-03](https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-concrete-hybrid-kems-03).
 
+### Changed
+
+- P-384 (`DhKemP384`, and with it `MlKem1024P384`) now uses `libcrux-p384` and
+  is always available; the `rustcrypto-p-curves` feature only gates P-521.
+
 ### Fixed
 
 - [#1600](https://github.com/celabshq/libcrux/pull/1600): Return `KemInvalidCiphertext` error instead of `AeadInvalidCiphertext` on KEM decapsulation failure

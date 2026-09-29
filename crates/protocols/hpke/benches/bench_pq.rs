@@ -23,7 +23,6 @@ const PQ_KEM_IDS: &[KemAlgorithm] = &[
     KemAlgorithm::MlKem768,
     KemAlgorithm::MlKem1024,
     KemAlgorithm::MlKem768P256,
-    #[cfg(feature = "libcrux-rustcrypto-p-curves")]
     KemAlgorithm::MlKem1024P384,
     KemAlgorithm::XWingDraft06,
 ];
