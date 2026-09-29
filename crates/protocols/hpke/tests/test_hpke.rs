@@ -5,7 +5,7 @@ extern crate hpke_rs as hpke;
 use hpke::prelude::*;
 use hpke_rs_crypto::{
     types::{AeadAlgorithm, KdfAlgorithm, KemAlgorithm},
-    HpkeCrypto, Rng,
+    HpkeDefaultPrng, TryRng,
 };
 use hpke_rs_libcrux::HpkeLibcrux;
 use hpke_rs_rust_crypto::HpkeRustCrypto;
@@ -55,9 +55,15 @@ macro_rules! generate_test_case {
             let plain_txt = b"HPKE self test plain text";
             let exporter_context = b"HPKE self test exporter context";
             let mut psk = [0u8; 32];
-            $provider::prng().fill_bytes(&mut psk);
+            $provider::try_prng()
+                .unwrap()
+                .try_fill_bytes(&mut psk)
+                .expect("Error filling psk with randomness");
             let mut psk_id = [0u8; 32];
-            $provider::prng().fill_bytes(&mut psk_id);
+            $provider::try_prng()
+                .unwrap()
+                .try_fill_bytes(&mut psk_id)
+                .expect("Error filling psk_id with randomness");
             let (psk, psk_id): (Option<&[u8]>, Option<&[u8]>) = match $hpke_mode {
                 Mode::Base | Mode::Auth => (None, None),
                 Mode::Psk | Mode::AuthPsk => (Some(&psk), Some(&psk_id)),
@@ -525,6 +531,30 @@ generate_test_case!(
     AeadAlgorithm::Aes256Gcm,
     HpkeLibcrux
 );
+
+#[test]
+fn new_with_rng_roundtrip() {
+    let mut hpke = Hpke::<HpkeLibcrux>::new_with_rng(
+        Mode::Base,
+        KemAlgorithm::DhKem25519,
+        KdfAlgorithm::HkdfSha256,
+        AeadAlgorithm::ChaCha20Poly1305,
+        HpkeLibcrux::try_prng().unwrap(),
+    );
+
+    let (sk_r, pk_r) = hpke.generate_key_pair().unwrap().into_keys();
+    let info = b"HPKE new_with_prng test info";
+    let aad = b"HPKE new_with_prng test aad";
+    let plain_txt = b"HPKE new_with_prng test plain text";
+
+    let (enc, ctxt) = hpke
+        .seal(&pk_r, info, aad, plain_txt, None, None, None)
+        .unwrap();
+    let ptxt = hpke
+        .open(&enc, &sk_r, info, aad, &ctxt, None, None, None)
+        .unwrap();
+    assert_eq!(ptxt, plain_txt);
+}
 
 // P384/P521 via RustCrypto in the libcrux provider
 #[cfg(feature = "libcrux-rustcrypto-p-curves")]

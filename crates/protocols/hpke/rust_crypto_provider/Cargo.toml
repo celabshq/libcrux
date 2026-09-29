@@ -42,7 +42,6 @@ ml-kem = { version = "0.3", default-features = false, optional = true }
 rand_core = { version = "0.10", default-features = false }
 rand = { version = "0.10", default-features = false, features = ["sys_rng"] }
 rand_chacha = { version = "0.10", default-features = false }
-zeroize = "1.8.2"
 subtle = { version = "2.6.1", default-features = false }
 
 [dev-dependencies]
@@ -51,7 +50,6 @@ rand = { version = "0.10" }
 
 [features]
 std = ["rand/std", "rand_chacha/std"]
-deterministic-prng = ["hpke-rs-crypto/std", "rand/std"] # ⚠️ FOR TESTING ONLY.
 experimental = ["dep:x-wing", "dep:ml-kem"]
 
 [[bench]]

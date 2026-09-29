@@ -22,8 +22,9 @@ fn test_aes_gcm_128_self() {
     assert_eq!(&ptxt, msg);
 
     // test libcrux crypto provider
-    let ctxt = HpkeLibcrux::aead_seal(AeadAlgorithm::Aes128Gcm, &key, &nonce, &aad, msg).unwrap();
-    let ptxt = HpkeLibcrux::aead_open(AeadAlgorithm::Aes128Gcm, &key, &nonce, &aad, &ctxt).unwrap();
+    let ctxt = <HpkeLibcrux>::aead_seal(AeadAlgorithm::Aes128Gcm, &key, &nonce, &aad, msg).unwrap();
+    let ptxt =
+        <HpkeLibcrux>::aead_open(AeadAlgorithm::Aes128Gcm, &key, &nonce, &aad, &ctxt).unwrap();
     assert_eq!(&ptxt, msg);
 }
 
@@ -48,8 +49,9 @@ fn test_aes_gcm_256_self() {
     assert_eq!(&ptxt, msg);
 
     // test libcrux crypto provider
-    let ctxt = HpkeLibcrux::aead_seal(AeadAlgorithm::Aes256Gcm, &key, &nonce, &aad, msg).unwrap();
-    let ptxt = HpkeLibcrux::aead_open(AeadAlgorithm::Aes256Gcm, &key, &nonce, &aad, &ctxt).unwrap();
+    let ctxt = <HpkeLibcrux>::aead_seal(AeadAlgorithm::Aes256Gcm, &key, &nonce, &aad, msg).unwrap();
+    let ptxt =
+        <HpkeLibcrux>::aead_open(AeadAlgorithm::Aes256Gcm, &key, &nonce, &aad, &ctxt).unwrap();
     assert_eq!(&ptxt, msg);
 }
 
@@ -76,9 +78,9 @@ fn test_chacha20poly1305_self() {
 
     // test libcrux provider
     let ctxt =
-        HpkeLibcrux::aead_seal(AeadAlgorithm::ChaCha20Poly1305, &key, &nonce, &aad, msg).unwrap();
-    let ptxt =
-        HpkeLibcrux::aead_open(AeadAlgorithm::ChaCha20Poly1305, &key, &nonce, &aad, &ctxt).unwrap();
+        <HpkeLibcrux>::aead_seal(AeadAlgorithm::ChaCha20Poly1305, &key, &nonce, &aad, msg).unwrap();
+    let ptxt = <HpkeLibcrux>::aead_open(AeadAlgorithm::ChaCha20Poly1305, &key, &nonce, &aad, &ctxt)
+        .unwrap();
     assert_eq!(&ptxt, msg);
 }
 

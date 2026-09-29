@@ -3,7 +3,7 @@ use std::time::{Duration, Instant};
 use hpke_rs::{prelude::*, test_util::hex_to_bytes};
 use hpke_rs_crypto::{
     types::{AeadAlgorithm, KdfAlgorithm, KemAlgorithm},
-    HpkeCrypto,
+    HpkeDefaultPrng,
 };
 use hpke_rs_libcrux::HpkeLibcrux;
 use hpke_rs_rust_crypto::*;
@@ -43,7 +43,7 @@ const AEAD_AAD: usize = 48;
 
 const ITERATIONS: usize = 1;
 
-fn benchmark<Crypto: HpkeCrypto + 'static>() {
+fn benchmark<Crypto: HpkeDefaultPrng + 'static>() {
     for hpke_mode in MODES {
         for aead_mode in AEAD_IDS {
             if Crypto::supports_aead(aead_mode).is_err() {

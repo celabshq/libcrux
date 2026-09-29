@@ -25,7 +25,14 @@ hpke-rs-libcrux = { workspace = true, optional = true }
 # `draft-ietf-hpke-pq` are mutually exclusive. Pin a working set for docs.rs.
 [package.metadata.docs.rs]
 no-default-features = true
-features = ["std", "serialization", "hazmat", "rustcrypto", "libcrux", "draft-ietf-hpke-pq"]
+features = [
+    "draft-ietf-hpke-pq",
+    "hazmat",
+    "libcrux",
+    "rustcrypto",
+    "serialization",
+    "std",
+]
 
 [features]
 default = []
@@ -37,20 +44,23 @@ std = [
 serialization = ["serde", "tls_codec", "tls_codec/serde", "std"]
 hazmat = []
 rustcrypto = ["dep:hpke-rs-rust-crypto"]
-libcrux = ["dep:hpke-rs-libcrux"]
+# The libcrux provider, with its default system-RNG-backed PRNG, so that
+# `Hpke::<HpkeLibcrux>::new` works out of the box.
+libcrux = ["libcrux-no-sys-rng", "hpke-rs-libcrux?/sys-rng"]
+# The libcrux provider without the system RNG, for builds with no configured entropy
+# backend (a bare embedded target, or a wasm build that doesn't enable a `getrandom`
+# backend). Construct the PRNG explicitly (`HpkeLibcruxPrng::from_seed`, or any
+# `TryCryptoRng`) and pass it to `Hpke::new_with_rng`.
+libcrux-no-sys-rng = ["dep:hpke-rs-libcrux"]
 libcrux-rustcrypto-p-curves = ["hpke-rs-libcrux?/rustcrypto-p-curves"]
 experimental = ["hpke-rs-rust-crypto?/experimental"]
 draft-connolly-cfrg-hpke-mlkem = ["hpke-rs-libcrux?/draft-connolly-cfrg-hpke-mlkem"]
 draft-ietf-hpke-pq = [
-    "libcrux",
+    "libcrux-no-sys-rng",
     "hpke-rs-libcrux/draft-ietf-hpke-pq"
 ]
 
 hpke-test = ["std"]
-hpke-test-prng = [
-    "hpke-rs-rust-crypto?/deterministic-prng",
-    "hpke-rs-libcrux?/deterministic-prng",
-] # ⚠️ Enable testing PRNG - DO NOT USE
 
 [dev-dependencies]
 hpke-rs-crypto = { workspace = true, features = ["std"] }
@@ -58,10 +68,11 @@ serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 lazy_static = "1.4"
 rayon = "1.5"
-hpke-rs = { path = ".", features = ["hpke-test", "hazmat"] }
+hpke-rs = { path = ".", features = ["hpke-test", "hazmat", "libcrux"] }
 hpke-rs-rust-crypto.workspace = true
 hpke-rs-libcrux.workspace = true
-rand = { version = "0.10" }
+rand = { version = "0.10", features = ["sys_rng"] }
+rand_chacha = "0.10"
 pretty_env_logger = "0.5"
 criterion = { version = "0.8", features = ["html_reports"] }
 

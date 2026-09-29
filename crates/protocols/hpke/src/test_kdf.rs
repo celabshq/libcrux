@@ -16,9 +16,9 @@ fn test_hkdf_sha256() {
         "3cb25f25faacd57a90434f64d0362f2a2d2d0a90cf1a5a4c5db02d56ecc4c5bf34007208d5b887185865",
     );
 
-    let prk = HpkeLibcrux::kdf_extract(TwoStageKdfAlgorithm::HkdfSha256, &salt, &ikm)
+    let prk = <HpkeLibcrux>::kdf_extract(TwoStageKdfAlgorithm::HkdfSha256, &salt, &ikm)
         .expect("Error extracting with HKDF");
-    let okm = HpkeLibcrux::kdf_expand(TwoStageKdfAlgorithm::HkdfSha256, &prk, &info, len)
+    let okm = <HpkeLibcrux>::kdf_expand(TwoStageKdfAlgorithm::HkdfSha256, &prk, &info, len)
         .expect("Error expanding with HKDF");
 
     assert_eq!(&expected_prk, &prk);

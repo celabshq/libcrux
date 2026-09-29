@@ -3,6 +3,8 @@ use hpke_rs_crypto::{types::*, HpkeCrypto};
 use hpke_rs_libcrux::*;
 use rand::TryRng;
 
+type DefaultLibcrux = HpkeLibcrux<HpkeLibcruxPrng>;
+
 fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function(&format!("HKDF SHA256 Extract"), |b| {
         b.iter_batched(
@@ -14,7 +16,7 @@ fn criterion_benchmark(c: &mut Criterion) {
                 (salt.clone(), ikm.clone())
             },
             |(salt, ikm)| {
-                let _ = HpkeLibcrux::kdf_extract(TwoStageKdfAlgorithm::HkdfSha256, &salt, &ikm);
+                let _ = DefaultLibcrux::kdf_extract(TwoStageKdfAlgorithm::HkdfSha256, &salt, &ikm);
             },
             BatchSize::SmallInput,
         )
@@ -29,7 +31,8 @@ fn criterion_benchmark(c: &mut Criterion) {
                 (prk.clone(), info.clone())
             },
             |(prk, info)| {
-                let _ = HpkeLibcrux::kdf_expand(TwoStageKdfAlgorithm::HkdfSha256, &prk, &info, 32);
+                let _ =
+                    DefaultLibcrux::kdf_expand(TwoStageKdfAlgorithm::HkdfSha256, &prk, &info, 32);
             },
             BatchSize::SmallInput,
         )

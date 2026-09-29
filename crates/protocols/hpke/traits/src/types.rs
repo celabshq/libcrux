@@ -140,6 +140,29 @@ impl KemAlgorithm {
         }
     }
 
+    /// The length of the explicit randomness a derandomized encapsulation
+    /// (`HpkeCrypto::kem_encaps_derand`) needs for this KEM, or `None` if
+    /// `self` doesn't use that path. DH-based KEMs derive their ephemeral
+    /// randomness length from [`Self::private_key_len`] instead and don't go
+    /// through `kem_encaps_derand`.
+    pub const fn encaps_randomness_len(&self) -> Option<usize> {
+        match self {
+            KemAlgorithm::DhKemP256
+            | KemAlgorithm::DhKemP384
+            | KemAlgorithm::DhKemP521
+            | KemAlgorithm::DhKemK256
+            | KemAlgorithm::DhKem25519
+            | KemAlgorithm::DhKem448 => None,
+            #[allow(deprecated)]
+            KemAlgorithm::XWingDraft06 | KemAlgorithm::XWingDraft06Obsolete => Some(64),
+            KemAlgorithm::MlKem512 | KemAlgorithm::MlKem768 | KemAlgorithm::MlKem1024 => Some(32),
+            // ML-KEM randomness (32) + the nominal group's seed
+            // (`T::SEED_SIZE`, per `draft-irtf-cfrg-concrete-hybrid-kems`).
+            KemAlgorithm::MlKem768P256 => Some(32 + 128),
+            KemAlgorithm::MlKem1024P384 => Some(32 + 48),
+        }
+    }
+
     /// Get the length of the shared secret for the KEM in bytes.
     pub const fn shared_secret_len(&self) -> usize {
         match self {

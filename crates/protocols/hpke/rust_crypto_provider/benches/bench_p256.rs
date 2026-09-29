@@ -1,5 +1,5 @@
 use criterion::{criterion_group, criterion_main, BatchSize, Criterion};
-use hpke_rs_crypto::{types::KemAlgorithm, HpkeCrypto};
+use hpke_rs_crypto::{types::KemAlgorithm, HpkeCrypto, HpkeDefaultPrng};
 use hpke_rs_rust_crypto::*;
 
 fn criterion_benchmark(c: &mut Criterion) {
@@ -8,7 +8,7 @@ fn criterion_benchmark(c: &mut Criterion) {
             || {
                 let (pk, sk) = HpkeRustCrypto::kem_key_gen(
                     KemAlgorithm::DhKemP256,
-                    &mut HpkeRustCrypto::prng(),
+                    &mut HpkeRustCrypto::try_prng().unwrap(),
                 )
                 .unwrap();
                 (sk.clone(), pk.clone())
@@ -24,7 +24,7 @@ fn criterion_benchmark(c: &mut Criterion) {
             || {
                 let (_pk, sk) = HpkeRustCrypto::kem_key_gen(
                     KemAlgorithm::DhKemP256,
-                    &mut HpkeRustCrypto::prng(),
+                    &mut HpkeRustCrypto::try_prng().unwrap(),
                 )
                 .unwrap();
                 sk.clone()

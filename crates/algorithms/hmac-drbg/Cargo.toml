@@ -18,6 +18,11 @@ default = []
 #   - Implements traits from `rand` (and the extensions) using the DRBG algorithms.
 rand = ["dep:rand"]
 
+# Enables `HmacDrbg::new_from_sys_rng`, which seeds from `rand::rngs::SysRng`.
+# Kept separate from `rand` so that platforms without a system RNG (e.g. wasm)
+# can use the rest of the `rand` integration without pulling in `sys_rng`.
+sys_rng = ["rand", "rand/sys_rng"]
+
 # Exposes APIs that should only be used for testing this library.
 _testing-apis = []
 
@@ -31,9 +36,7 @@ health-tests = []
 
 [dependencies]
 libcrux-hmac.workspace = true
-rand = { version = "0.10", optional = true, default-features = false, features = [
-    "sys_rng",
-] }
+rand = { version = "0.10", optional = true, default-features = false }
 
 [dev-dependencies]
 libcrux-kats = { workspace = true, features = ["drbg"] }

@@ -18,7 +18,7 @@ wasm-opt = ['--enable-bulk-memory', '-O']
 wasm-opt = ['--enable-bulk-memory']
 
 [dependencies]
-hpke-rs = { workspace = true, features = ["draft-ietf-hpke-pq", "hazmat"] }
+hpke-rs = { workspace = true, features = ["draft-ietf-hpke-pq", "hazmat", "libcrux-no-sys-rng"] }
 wasm-bindgen = "0.2.126"
 
 # Randomness. On wasm the `wasm_js` backend is used, which also requires
