@@ -129,7 +129,8 @@ otherwise forall x: bitstring;
    pair into the verification key sent on the wire (`vk: &sig_auth.into()`).
    The extraction renders that `.into()` as the identity, which would seal the
    initiator's signing key in the outer payload; this applies the conversion
-   of `impl From<SigningKeyPair> for SignatureVerificationKey`. *)
+   of `impl From<SigningKeyPair> for SignatureVerificationKey`. Private: the
+   attacker already has the projections it performs. *)
 fun libcrux_psq__handshake__ciphersuite__initiator__SigningKeyPair__Ed25519(bitstring, bitstring): bitstring [data].
 fun libcrux_psq__handshake__ciphersuite__initiator__SigningKeyPair__MlDsa65(bitstring, bitstring): bitstring [data].
 fun libcrux_psq__handshake__ciphersuite__types__SignatureVerificationKey__Ed25519(bitstring): bitstring [data].
@@ -158,7 +159,7 @@ otherwise forall sk: bitstring, vk: bitstring, sig: bitstring, c1: bitstring, c2
                   libcrux_psq__handshake__ciphersuite__types__SignatureVerificationKey__MlDsa65(vk), sig),
                 c1, c2, c3, c4))
 otherwise forall x: bitstring;
-        pv_serialize(x) = x.
+        pv_serialize(x) = x [private].
 
 (* ---- Post-quantum KEM (ML-KEM-768) ------------------------------------- *)
 (* A decapsulation key sk has public key kem_pk(sk); an encapsulation to pk
