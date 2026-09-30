@@ -442,3 +442,8 @@ nounif a: bitstring, b: bitstring, e: bitstring;
        attacker(libcrux_psq__handshake__K2IkmRegistrationDh__K2IkmRegistrationDh(a, b, e)) / 30000.
 nounif a: bitstring, b: bitstring;
        attacker(libcrux_psq__handshake__K2IkmRegistrationSig__K2IkmRegistrationSig(a, b)) / 30000.
+(* Transcript inputs, hashed by `tx0` / `tx1`. *)
+nounif a: bitstring, b: bitstring, c: bitstring;
+       attacker(libcrux_psq__handshake__transcript__tx0__Transcript0Inputs__Transcript0Inputs(a, b, c)) / 30000.
+nounif a: bitstring, b: bitstring, c: bitstring;
+       attacker(libcrux_psq__handshake__transcript__tx1__Transcript1InputsDh__Transcript1InputsDh(a, b, c)) / 30000.
