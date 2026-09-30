@@ -196,9 +196,6 @@ letfun libcrux_ml_dsa__types__Impl_4__as_ref(x: bitstring) = x.
    `(new place, old value)`, i.e. `(default, place)`. *)
 letfun core__mem__take(place: bitstring) =
       rust_primitives__hax__Tuple2__Tuple2(bitstring_default(), place).
-(* `Option::<Result<T, E>>::transpose`. A `Result` is its `Ok` payload in the
-   default Result model, so this is the identity. *)
-letfun core__option__Impl_4__transpose(o: bitstring) = o.
 (* `rng.fill_bytes(&mut buf)` returns `(rng, buf')` with `buf'` fresh. *)
 letfun rand_core__Rng__fill_bytes(rng: bitstring, buf: bitstring) =
       new filled: bitstring;
