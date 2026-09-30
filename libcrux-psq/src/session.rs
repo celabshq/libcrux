@@ -114,6 +114,10 @@ pub struct Session {
 /// value since the serialized session already includes the respective
 /// session key that is needed to derive the binder and all the other
 /// inputs are public values.
+#[cfg_attr(
+    feature = "hax-pv",
+    hax_lib::proverif::replace_body("extern__kdf(key, initiator_authenticator)")
+)]
 fn derive_pk_binder(
     key: &SessionKey,
     initiator_authenticator: &Authenticator,

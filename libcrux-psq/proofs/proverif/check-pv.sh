@@ -1,121 +1,53 @@
 #!/usr/bin/env bash
-# Re-extract the libcrux-psq PSQ handshake to ProVerif via the hax
-# proverif-rust backend, compose it with the symbolic crypto model
-# (psq_crypto.pvl) and the de-duplicated `missingdecl`, and run ProVerif.
+# Re-extract the libcrux-psq PSQ handshake to ProVerif with the hax ProVerif
+# backend, compose it with the symbolic crypto model (psq_crypto.pvl), and
+# run the analyses.
 #
-#   HAX_PROVERIF_DIR : a hax checkout @ proverif-rust-backend with target/release
-#                      built (or the hax-proverif opam switch installed).
+#   HAX_HOME : a hax checkout, for the ProVerif libraries in
+#              hax-lib/proof-libs/proverif (HAX_PROVERIF_DIR is also accepted).
+#              cargo-hax and proverif are taken from PATH.
 set -uo pipefail
 # script lives at libcrux-psq/proofs/proverif/check-pv.sh; run from workspace root
 cd "$(dirname "$0")/../../.."
-ENG="${HAX_PROVERIF_DIR:?set HAX_PROVERIF_DIR to a hax checkout}"
-PRIM="$ENG/hax-lib/proof-libs/proverif/primitives.pvl"
+HAX="${HAX_HOME:-${HAX_PROVERIF_DIR:?set HAX_HOME to a hax checkout}}"
+PVLIB="$HAX/hax-lib/proof-libs/proverif"
+PRIM="$PVLIB/primitives.pvl"
+RESULT="$PVLIB/result.pvl"
 PVD=libcrux-psq/proofs/proverif
 EX="$PVD/extraction"
-eval "$(opam env --switch=hax-proverif 2>/dev/null)" 2>/dev/null || true
-if ! command -v cargo-hax >/dev/null 2>&1; then export PATH="$ENG/target/release:$PATH"; fi
-export HAX_RUST_ENGINE_BINARY="${HAX_RUST_ENGINE_BINARY:-$ENG/target/release/hax-rust-engine}"
 
-# Query-mode entry points: the query initiator + the (unified) responder,
-# transitively. The crypto boundary is annotated in src/** with
-# `#[hax_lib::proverif::replace_body(...)]` (DH / KDF / AEAD) and modeled in
-# psq_crypto.pvl; serialization is bypassed there.
-INC='-** +~libcrux_psq::handshake::initiator::** +~libcrux_psq::handshake::responder::**'
-# cargo hax exits non-zero on HAX diagnostics (e.g. a tls_codec serialization
-# method in a call-graph cycle is opacified to an uninterpreted fun) but still
-# writes lib.pvl; tolerate the exit and let the load-check below catch a
-# genuinely broken model.
-cargo hax -C -p libcrux-psq --features hax-pv ';' into -i "$INC" proverif || true
+# Entry points: the initiators and the responder, with everything they call.
+# The crypto boundary is annotated in src/** with
+# `#[hax_lib::proverif::replace_body(...)]` and modeled in psq_crypto.pvl;
+# serialization is bypassed there.
+INC='-** +libcrux_psq::handshake::initiator::** +libcrux_psq::handshake::responder::**'
+cargo hax -C -p libcrux-psq --features hax-pv ';' into -i "$INC" proverif || exit 1
 
-# (a) Neutralize + hoist self-recursive serialization stubs. hax renders
-#     unresolvable tls_codec trait methods as `f(..) = f(..)`; the engine
-#     converts the bare form to an opaque `fun`, this pass catches the
-#     let-wrapped form too and hoists all opaque stub funs to the top (they are
-#     dependency-free; this fixes the mutual-recursion forward references).
-python3 - "$EX/lib.pvl" > "$EX/lib.clean.pvl" <<'PY'
+# psq_crypto.pvl defines `pv_serialize`, `pv_deserialize` and
+# `CiphersuiteBase::name`, which lib.pvl calls and which match constructors of
+# lib.pvl, so it declares those constructors itself: drop their declarations
+# from lib.pvl.
+python3 - "$PVD/psq_crypto.pvl" "$EX/lib.pvl" > "$EX/lib.clean.pvl" <<'PY'
 import re,sys
-# Constructors re-declared in psq_crypto.pvl (so the pv_deserialize bridge and
-# the signature model can reference them before lib.pvl loads); strip their
-# `fun … [data].` decls here to avoid a duplicate definition. Their projector
-# reducs + use sites stay and resolve against the psq_crypto declaration (loaded
-# earlier).
-STRIP={'libcrux_psq__handshake__initiator__InitiatorOuterPayloadOut__Query',
-       'libcrux_psq__handshake__responder__InitiatorOuterPayload__Query',
-       'libcrux_psq__handshake__initiator__InitiatorOuterPayloadOut__Registration',
-       'libcrux_psq__handshake__responder__InitiatorOuterPayload__Registration',
-       'libcrux_psq__handshake__InnerMessageOut__InnerMessageOut',
-       'libcrux_psq__handshake__InnerMessage__InnerMessage',
-       'libcrux_psq__handshake__AuthMessageOut__Dh',
-       'libcrux_psq__handshake__AuthMessageOut__Sig',
-       'libcrux_psq__handshake__AuthMessage__Dh',
-       'libcrux_psq__handshake__AuthMessage__Sig',
-       'libcrux_psq__handshake__initiator__InitiatorInnerPayloadOut__InitiatorInnerPayloadOut',
-       'libcrux_psq__handshake__initiator__InitiatorInnerPayload__InitiatorInnerPayload',
-       'libcrux_psq__handshake__responder__ResponderRegistrationPayloadOut__ResponderRegistrationPayloadOut',
-       'libcrux_psq__handshake__responder__ResponderRegistrationPayload__ResponderRegistrationPayload',
-       'tls_codec__quic_vec__VLByteSlice__VLByteSlice',
-       'libcrux_psq__handshake__ciphersuite__initiator__SigningKeyPair__Ed25519',
-       'libcrux_psq__handshake__ciphersuite__initiator__SigningKeyPair__MlDsa65',
-       'libcrux_psq__handshake__ciphersuite__types__Signature__Ed25519',
-       'libcrux_psq__handshake__ciphersuite__types__Signature__MlDsa65',
-       'libcrux_psq__handshake__ciphersuite__types__SignatureVerificationKey__Ed25519',
-       'libcrux_psq__handshake__ciphersuite__types__SignatureVerificationKey__MlDsa65',
-       'libcrux_psq__handshake__ciphersuite__initiator__Auth__DH',
-       'libcrux_psq__handshake__ciphersuite__initiator__Auth__Sig',
-       'libcrux_psq__handshake__dhkem__DHKeyPair__DHKeyPair',
-       'libcrux_psq__handshake__ciphersuite__types__Authenticator__Dh',
-       'libcrux_psq__handshake__ciphersuite__types__Authenticator__Sig',
-       'libcrux_psq__handshake__ciphersuite__initiator__PqKemPublicKey__MlKem',
-       'libcrux_psq__handshake__ciphersuite__types__PQEncapsulationKey__MlKem',
-       'libcrux_psq__handshake__ciphersuite__initiator__InitiatorCiphersuite__InitiatorCiphersuite',
-       'libcrux_psq__handshake__ciphersuite__responder__ResponderCiphersuite__ResponderCiphersuite'}
-# Letfuns re-defined in psq_crypto.pvl (overriding a mis-resolved extraction);
-# strip the extracted definition here so the psq_crypto one is the sole def.
-STRIP_LETFUN={'libcrux_psq__handshake__ciphersuite__types__Impl_2__from',
-              'libcrux_psq__aead__Impl_1__handshake_encrypt'}
-stmts=re.split(r'(?<=\.)\n', open(sys.argv[1]).read())
-hoist=[]; body=[]
-for s in stmts:
-    # The engine prepends Rust doc comments `(* ... *)` before items. Strip
-    # any leading comment block when CLASSIFYING the statement (fun/letfun/const)
-    # so the statement-start regexes still match; keep `s` intact for output.
-    sc=re.sub(r'^\s*(?:\(\*.*?\*\)\s*)+', '', s, flags=re.S)
-    ms=re.match(r'\s*fun\s+([A-Za-z0-9_]+)\s*\(.*?\)\s*:\s*bitstring\s*\[data\]\.\s*$', sc, re.S)
-    if ms and ms.group(1) in STRIP: continue
-    ml=re.match(r'\s*letfun\s+([A-Za-z0-9_]+)\s*\(', sc)
-    if ml and ml.group(1) in STRIP_LETFUN: continue
-    m=re.match(r'\s*letfun\s+([A-Za-z0-9_]+)\s*\((.*?)\)\s*=', sc, re.S)
-    if m and re.search(r'\b'+re.escape(m.group(1))+r'\b', sc[m.end():]):
-        ar=m.group(2).count(':') if m.group(2).strip() else 0
-        hoist.append(f'fun {m.group(1)}({", ".join(["bitstring"]*ar)}): bitstring.'); continue
-    m2=re.search(r'(?m)^fun\s+([A-Za-z0-9_]+)\s*\(([^)]*)\)\s*:\s*bitstring\.\s*$', sc)
-    if m2 and '[data]' not in sc and sc.strip().startswith('fun'):
-        hoist.append(f'fun {m2.group(1)}({m2.group(2)}): bitstring.'); continue
-    body.append(s)
-seen=set(); H=[]
-for h in hoist:
-    n=re.match(r'fun\s+([A-Za-z0-9_]+)',h).group(1)
-    if n not in seen: seen.add(n); H.append(h)
-sys.stdout.write('(* hoisted opaque serialization stubs *)\n'+'\n'.join(H)+'\n\n'+'\n'.join(body))
+decl=re.compile(r'^fun\s+([A-Za-z0-9_]+)\s*\([^)]*\)\s*:\s*bitstring\s*\[data\]\.\s*$', re.M)
+strip={m.group(1) for m in decl.finditer(open(sys.argv[1]).read())}
+out=[]
+for s in re.split(r'(?<=\.)\n', open(sys.argv[2]).read()):
+    # Items may be preceded by `(* ... *)` comments.
+    body=re.sub(r'^\s*(?:\(\*.*?\*\)\s*)+', '', s, flags=re.S)
+    m=decl.match(body)
+    if m and m.group(1) in strip: continue
+    out.append(s)
+sys.stdout.write('\n'.join(out))
 PY
 
-# (b) De-dup the auto-declared `missingdecl` against the real defs
-#     (primitives + psq_crypto + the cleaned lib) and mark survivors `[data]`.
-python3 - "$PRIM" "$PVD/psq_crypto.pvl" "$EX/lib.clean.pvl" "$EX/missingdecl.pvl" > "$EX/missingdecl.dedup.pvl" <<'PY'
+# Drop the abstract declarations of missingdecl.pvl that psq_crypto.pvl defines.
+python3 - "$PVD/psq_crypto.pvl" "$EX/missingdecl.pvl" > "$EX/missingdecl.dedup.pvl" <<'PY'
 import re,sys
-defs=set()
-for f in sys.argv[1:4]:
-    try: t=open(f).read()
-    except: continue
-    for m in re.finditer(r'^(?:fun|letfun|const)\s+([A-Za-z0-9_]+)', t, re.M): defs.add(m.group(1))
-    for m in re.finditer(r';\s*([A-Za-z0-9_]+)\s*\(', t.replace('\n',' ')): defs.add(m.group(1))
-out=[]
-for l in open(sys.argv[4]):
-    m=re.match(r'^(fun|const)\s+([A-Za-z0-9_]+)', l)
-    if m and m.group(2) in defs: continue
-    if l.startswith('fun ') and l.rstrip().endswith(': bitstring.'): l=l.rstrip()[:-1]+' [data].\n'
-    out.append(l)
-sys.stdout.write(''.join(out))
+defs=set(re.findall(r'^(?:fun|letfun|const)\s+([A-Za-z0-9_]+)', open(sys.argv[1]).read(), re.M))
+for l in open(sys.argv[2]):
+    m=re.match(r'^(?:fun|const)\s+([A-Za-z0-9_]+)', l)
+    if not (m and m.group(1) in defs): sys.stdout.write(l)
 PY
 
 # ---------------------------------------------------------------------------
@@ -128,7 +60,7 @@ PY
 # does not terminate through the full read_message_contents bookkeeping (rate
 # limiter / ciphersuite coercion / state machine), so they run against the
 # security-equivalent auth core.
-LIBS=(-lib "$PRIM" -lib "$PVD/psq_crypto.pvl" -lib "$EX/missingdecl.dedup.pvl"
+LIBS=(-lib "$PRIM" -lib "$RESULT" -lib "$PVD/psq_crypto.pvl" -lib "$EX/missingdecl.dedup.pvl"
       -lib "$EX/lib.clean.pvl" -lib "$EX/psq_query_lib.pvl")
 # Primary verdict per query. Skip ProVerif's secondary `RESULT (but event(...)
 # is true.)` annotation that follows a false injective-correspondence query
@@ -179,7 +111,7 @@ QUERY_OK=0
 #                                              -> false true false true true false false
 # R9-false reconstructs reg_secret under endpoint compromise (no ephemeral break),
 # doubling as the leak / non-vacuity control for the secrecy queries R4/R6.
-LIBS_REG=(-lib "$PRIM" -lib "$PVD/psq_crypto.pvl" -lib "$EX/missingdecl.dedup.pvl"
+LIBS_REG=(-lib "$PRIM" -lib "$RESULT" -lib "$PVD/psq_crypto.pvl" -lib "$EX/missingdecl.dedup.pvl"
           -lib "$EX/lib.clean.pvl" -lib "$EX/psq_reg_lib.pvl")
 REG_OK=1
 if [ -f "$EX/analysis_reg_dh_msg1.pv" ]; then
