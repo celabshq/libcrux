@@ -42,11 +42,8 @@ tls_codec = { version = "0.4.2", features = ["derive"] }
 libcrux-ml-dsa = { workspace = true, features = ["codec"] }
 libcrux-aes.workspace = true
 
-# ProVerif extraction via the hax proverif-rust-backend. The pv_extern /
-# replace_body / opaque macros used for the symbolic-crypto boundary are not in
-# the workspace-pinned crates.io hax-lib 0.3.6, so pin the git rev directly.
-# Optional + gated behind `hax-pv` so normal builds are unaffected.
-hax-lib = { git = "https://github.com/cryspen/hax.git", rev = "5cdb74443a1eeebd34f7bae057ead44bc8a25107", optional = true }
+# ProVerif extraction annotations, gated behind `hax-pv`.
+hax-lib = { version = "0.4.1", optional = true }
 
 [dev-dependencies]
 rand_core = { version = "0.10" }
