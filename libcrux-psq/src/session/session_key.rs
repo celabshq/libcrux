@@ -43,6 +43,10 @@ fn session_key_id(key: &AEADKeyNonce) -> Result<[u8; SESSION_ID_LENGTH], Error> 
 }
 
 // K_S = KDF(K2, "session secret" | tx2)
+#[cfg_attr(
+    feature = "hax-pv",
+    hax_lib::proverif::replace_body("extern__kdf(k2, tx2)")
+)]
 pub(super) fn derive_session_key(
     k2: AEADKeyNonce,
     tx2: &Transcript,

@@ -107,6 +107,10 @@ pub struct Session {
 }
 
 // pkBinder = KDF(skCS, g^c | g^s | [pkS])
+#[cfg_attr(
+    feature = "hax-pv",
+    hax_lib::proverif::replace_body("extern__kdf(key, initiator_authenticator)")
+)]
 fn derive_pk_binder(
     key: &SessionKey,
     initiator_authenticator: &Authenticator,

@@ -223,14 +223,16 @@ impl AEADKeyNonce {
 
     // ProVerif: AEAD seal. Ciphertext and tag are produced from the key, the
     // (structured) payload and the aad; both are needed to decrypt (see the
-    // reduc in psq_crypto.pvl). Bypasses tls serialization and the nonce
-    // bookkeeping — the single-use key already fixes the nonce.
+    // reduc in psq_crypto.pvl). `pv_serialize` stands for the tls
+    // serialization; the nonce bookkeeping is bypassed, the single-use key
+    // already fixes the nonce.
     #[cfg_attr(
         feature = "hax-pv",
         hax_lib::proverif::replace_body(
-            "rust_primitives__hax__Tuple2__Tuple2(\
-               extern__aead_ct(self, payload, aad), \
-               extern__aead_tag(self, payload, aad))"
+            "let pt = pv_serialize(payload) in \
+             rust_primitives__hax__Tuple2__Tuple2(\
+               extern__aead_ct(self, pt, aad), \
+               extern__aead_tag(self, pt, aad))"
         )
     )]
     pub(crate) fn handshake_encrypt<T: Serialize>(

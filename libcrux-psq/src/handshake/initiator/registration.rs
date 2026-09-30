@@ -165,7 +165,7 @@ impl<'a, Rng: CryptoRng> RegistrationInitiator<'a, Rng> {
         let (signature, tx1) = sign_tx1(
             &state.tx0,
             self.ciphersuite.auth,
-            self.ciphersuite.pq.into(),
+            self.ciphersuite.peer_pq_encapsulation_key(),
             &pq_encapsulation_serialized,
             &mut self.rng,
         )?;
