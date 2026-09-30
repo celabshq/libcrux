@@ -567,7 +567,7 @@ pub fn decapsulate(
 /// Decapsulation is not provided in this module as it does not require randomness.
 #[cfg(all(not(eurydice), feature = "rand"))]
 pub mod rand {
-    use ::rand::{CryptoRng, TryCryptoRng};
+    use ::rand::TryCryptoRng;
 
     use super::{
         MlKem1024Ciphertext, MlKem1024KeyPair, MlKem1024PublicKey, MlKemSharedSecret,
