@@ -73,5 +73,7 @@ jobs:
 
       - name: Re-extract + run the full ProVerif analysis
         env:
-          HAX_PROVERIF_DIR: ${{ github.workspace }}/hax-engine
-        run: bash libcrux-psq/proofs/proverif/check-pv.sh
+          HAX_HOME: ${{ github.workspace }}/hax-engine
+        run: |
+          eval "$(opam env --switch=hax-proverif)"
+          bash libcrux-psq/proofs/proverif/check-pv.sh
