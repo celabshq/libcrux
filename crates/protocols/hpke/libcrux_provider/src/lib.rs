@@ -282,10 +282,9 @@ impl<R: TryCryptoRng + 'static> HpkeCrypto for HpkeLibcrux<R> {
             other_alg => {
                 // ECDH only (libcrux curves)
                 let ecdh_alg = kem_key_type_to_ecdh_alg(other_alg)?;
-                let sk =
-                    libcrux_ecdh::generate_secret(ecdh_alg, prng).map_err(|e| {
-                        Error::CryptoLibraryError(format!("KEM key gen error: {:?}", e))
-                    })?;
+                let sk = libcrux_ecdh::generate_secret(ecdh_alg, prng).map_err(|e| {
+                    Error::CryptoLibraryError(format!("KEM key gen error: {:?}", e))
+                })?;
 
                 let pk = kem_ecdh_secret_to_public(ecdh_alg, &sk)?;
 

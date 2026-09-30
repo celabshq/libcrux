@@ -40,3 +40,5 @@ rand = { version = "0.10", optional = true, default-features = false }
 
 [dev-dependencies]
 libcrux-kats = { workspace = true, features = ["drbg"] }
+# Tests seed from the OS entropy source.
+rand = { version = "0.10", default-features = false, features = ["sys_rng"] }
