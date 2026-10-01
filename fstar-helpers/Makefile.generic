@@ -76,9 +76,16 @@ define FINDLIBS
     } ; \
     : "Asks Cargo all the dependencies for the current crate or workspace,"; \
     : "and extract all "root" directories for each. Takes zero argument."; \
+    : "Registry packages are skipped, except the hax-lib the workspace depends"; \
+    : "on directly."; \
     function dependencies() { \
         cargo metadata --format-version 1 | \
-            jq -r ".packages | .[] | .manifest_path | split(\"/\") | .[:-1] | join(\"/\")"; \
+            jq -r ". as \$$m \
+                   | [\$$m.workspace_members[] as \$$w | \$$m.resolve.nodes[] | select(.id == \$$w) | .deps[] | .pkg] as \$$direct \
+                   | .packages[] \
+                   | select(((.source // \"\") | startswith(\"registry+\") | not) \
+                            or (.name == \"hax-lib\" and (.id as \$$i | \$$direct | index(\$$i)))) \
+                   | .manifest_path | split(\"/\") | .[:-1] | join(\"/\")"; \
     } ; \
     : "Find hax libraries *around* a given path. Takes one argument: the"; \
     : "path."; \
@@ -222,7 +229,8 @@ run/%: | .depend $(HINT_DIR) $(CACHE_DIR)
 check/%: | .depend $(HINT_DIR) $(CACHE_DIR) $(HACL_HOME)
 	$(Q)$(MAKE) "${CACHE_DIR}/$(@:check/%=%).checked"
 
-VERIFIED_CHECKED = $(addsuffix .checked, $(addprefix $(CACHE_DIR)/,$(ROOTS)))
+# The cache is flat, so roots outside this directory map to their basename.
+VERIFIED_CHECKED = $(addsuffix .checked, $(addprefix $(CACHE_DIR)/,$(notdir $(ROOTS))))
 ADMIT_CHECKED = $(addsuffix .checked, $(addprefix $(CACHE_DIR)/,$(ADMIT_MODULES)))
 
 $(ADMIT_CHECKED):
