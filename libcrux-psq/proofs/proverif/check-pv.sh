@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Re-extract the libcrux-psq PSQ handshake to ProVerif with the hax ProVerif
 # backend, compose it with the symbolic crypto model (psq_crypto.pvl), and
-# run the analyses.
+# run the analyses. With `--load-only`, only check that every analysis loads,
+# which takes seconds instead of hours.
 #
 #   HAX_HOME : a hax checkout, for the ProVerif libraries in
 #              hax-lib/proof-libs/proverif (HAX_PROVERIF_DIR is also accepted).
@@ -69,6 +70,28 @@ LIBS=(-lib "$PRIM" -lib "$RESULT" -lib "$PVD/psq_crypto.pvl" -lib "$EX/missingde
 # (e.g. R2c replay): it is not a separate query verdict.
 verdicts () { grep '^RESULT' "$1" | grep -v '(but' | grep -oE 'is (true|false)' | awk '{print $2}' | tr '\n' ' '; }
 
+# The registration analyses run against psq_reg_lib.pvl instead.
+LIBS_REG=(-lib "$PRIM" -lib "$RESULT" -lib "$PVD/psq_crypto.pvl" -lib "$EX/missingdecl.dedup.pvl"
+          -lib "$EX/lib.clean.pvl" -lib "$EX/psq_reg_lib.pvl")
+
+# `--load-only` checks that every analysis loads, without running its queries.
+if [ "${1:-}" = --load-only ]; then
+  rc=0
+  for f in "$EX"/*.pv; do
+    case "$(basename "$f")" in
+      loadcheck.pv) continue ;;
+      analysis.pv | analysis_auth.pv) L=("${LIBS[@]}") ;;
+      *) L=("${LIBS_REG[@]}") ;;
+    esac
+    if out=$(proverif -parse-only "${L[@]}" "$f" 2>&1); then
+      echo "loads: $(basename "$f")"
+    else
+      echo "LOAD FAILED: $(basename "$f")"; printf '%s\n' "$out" | grep -m3 Error; rc=1
+    fi
+  done
+  exit $rc
+fi
+
 # If the queries aren't present yet, fall back to a bare load-check.
 if [ ! -f "$EX/analysis.pv" ]; then
   printf 'process\n  0\n' > "$EX/loadcheck.pv"
@@ -113,8 +136,6 @@ QUERY_OK=0
 #                                              -> false true false true true false false
 # R9-false reconstructs reg_secret under endpoint compromise (no ephemeral break),
 # doubling as the leak / non-vacuity control for the secrecy queries R4/R6.
-LIBS_REG=(-lib "$PRIM" -lib "$RESULT" -lib "$PVD/psq_crypto.pvl" -lib "$EX/missingdecl.dedup.pvl"
-          -lib "$EX/lib.clean.pvl" -lib "$EX/psq_reg_lib.pvl")
 REG_OK=1
 if [ -f "$EX/analysis_reg_dh_msg1.pv" ]; then
   # The session analyses drive the full handshake + into_session and are the
