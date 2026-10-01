@@ -65,14 +65,49 @@ PY
 # security-equivalent auth core.
 LIBS=(-lib "$PRIM" -lib "$RESULT" -lib "$PVD/psq_crypto.pvl" -lib "$EX/missingdecl.dedup.pvl"
       -lib "$EX/lib.clean.pvl" -lib "$EX/psq_query_lib.pvl")
-# Primary verdict per query. Skip ProVerif's secondary `RESULT (but event(...)
-# is true.)` annotation that follows a false injective-correspondence query
-# (e.g. R2c replay): it is not a separate query verdict.
-verdicts () { grep '^RESULT' "$1" | grep -v '(but' | grep -oE 'is (true|false)' | awk '{print $2}' | tr '\n' ' '; }
+# Primary verdict per query: true, false, or cannot (for "cannot be proved").
+# Skip ProVerif's secondary `RESULT (but event(...) is true.)` annotation that
+# follows a false injective-correspondence query (e.g. R2c replay): it is not a
+# separate query verdict.
+verdicts () { grep '^RESULT' "$1" | grep -v '(but' | grep -oE 'is (true|false)|cannot be proved' | awk '{print ($1 == "is") ? $2 : $1}' | tr '\n' ' '; }
 
 # The registration analyses run against psq_reg_lib.pvl instead.
 LIBS_REG=(-lib "$PRIM" -lib "$RESULT" -lib "$PVD/psq_crypto.pvl" -lib "$EX/missingdecl.dedup.pvl"
           -lib "$EX/lib.clean.pvl" -lib "$EX/psq_reg_lib.pvl")
+
+# Run each query of the analysis $1 in its own ProVerif process, one at a
+# time, and append their logs to $2 in query order. ProVerif keeps the memory of
+# earlier queries in a run: each session query fits in about 40 GB alone, the
+# whole file does not fit in 60 GB.
+per_query () {
+  local dir q
+  dir=$(mktemp -d)
+  python3 - "$1" "$dir" <<'SPLIT'
+import re,sys
+src,out=sys.argv[1:]
+t=open(src).read()
+spans=[];depth=0;i=0;start=0
+while i<len(t):
+    if t.startswith('(*',i):
+        if depth==0: start=i
+        depth+=1;i+=2;continue
+    if depth and t.startswith('*)',i):
+        depth-=1;i+=2
+        if depth==0: spans.append((start,i))
+        continue
+    i+=1
+qs=[m for m in re.finditer(r'(?ms)^query\b.*?\.\s*$',t)
+    if not any(a<=m.start()<b for a,b in spans)]
+for n,keep in enumerate(qs):
+    s=t
+    for m in reversed(qs):
+        if m is not keep: s=s[:m.start()]+s[m.end():]
+    open(f'{out}/q{n:02d}.pv','w').write(s)
+SPLIT
+  : > "$2"
+  for q in "$dir"/q*.pv; do proverif "${LIBS_REG[@]}" "$q" >> "$2" 2>&1; done
+  rm -r "$dir"
+}
 
 # `--load-only` checks that every analysis loads, without running its queries.
 if [ "${1:-}" = --load-only ]; then
@@ -138,20 +173,6 @@ QUERY_OK=0
 # doubling as the leak / non-vacuity control for the secrecy queries R4/R6.
 REG_OK=1
 if [ -f "$EX/analysis_reg_dh_msg1.pv" ]; then
-  # The session analyses drive the full handshake + into_session and are the
-  # heaviest runs (DH commutativity; the DH session ~58 min, the sig session ~40
-  # min — its responder-auth correspondences R3/R3i are the long poles). Launch
-  # both in the background now so they overlap each other and the (faster) msg1
-  # analyses below; collected at the end.
-  LOG_DHSESS=$(mktemp); LOG_SIGSESS=$(mktemp)
-  if [ -f "$EX/analysis_reg_dh_session.pv" ]; then
-    proverif "${LIBS_REG[@]}" "$EX/analysis_reg_dh_session.pv" > "$LOG_DHSESS" 2>&1 &
-    DHSESS_PID=$!
-  fi
-  if [ -f "$EX/analysis_reg_sig_session.pv" ]; then
-    proverif "${LIBS_REG[@]}" "$EX/analysis_reg_sig_session.pv" > "$LOG_SIGSESS" 2>&1 &
-    SIGSESS_PID=$!
-  fi
   LOG_SAN=$(mktemp); LOG_RDH=$(mktemp); LOG_RSIG=$(mktemp)
   LOG_SSAN=$(mktemp); LOG_SSSAN=$(mktemp)
   # Passive-first sanity: the honest registration round-trip must complete on its
@@ -207,36 +228,41 @@ if [ -f "$EX/analysis_reg_dh_msg1.pv" ]; then
     echo "                                       exp: $EXP_PQ"
     [ "$GOT_PQ" = "$EXP_PQ" ] || REG_OK=0
   fi
-  # Collect the backgrounded DH session secrecy (R5 InitSessDH, R5 RespSessDH, R7, R8).
-  if [ -n "${DHSESS_PID:-}" ]; then
-    echo "  (waiting on DH session secrecy R5/R7/R8 ...)"
-    wait "$DHSESS_PID"
+  # The session analyses drive the full handshake + into_session and are the
+  # heaviest runs, at about 28 GB (DH) and 40 GB (sig) per query: they run last,
+  # one query at a time. Each ends with a non-vacuity control NV.
+  # DH session secrecy (R5 InitSessDH, R5 RespSessDH, R7, R8, NV).
+  if [ -f "$EX/analysis_reg_dh_session.pv" ]; then
+    echo "  (running DH session secrecy R5/R7/R8 ...)"
+    LOG_DHSESS=$(mktemp)
+    per_query "$EX/analysis_reg_dh_session.pv" "$LOG_DHSESS"
     if [ "$(grep -c '^Error:' "$LOG_DHSESS")" -ne 0 ]; then
       echo "  DH SESSION LOAD FAILED:"; grep '^Error:' "$LOG_DHSESS" | head; REG_OK=0
     fi
-    EXP_DHSESS="true true true true "   # R5(Init), R5(Resp), R7, R8
+    EXP_DHSESS="true true true true cannot "   # R5(Init), R5(Resp), R7, R8, NV
     GOT_DHSESS=$(verdicts "$LOG_DHSESS")
-    echo "  dh session R5/R7/R8 got: $GOT_DHSESS"
-    echo "                      exp: $EXP_DHSESS"
+    echo "  dh session R5/R7/R8/NV got: $GOT_DHSESS"
+    echo "                         exp: $EXP_DHSESS"
     [ "$GOT_DHSESS" = "$EXP_DHSESS" ] || REG_OK=0
   fi
-  # Collect the backgrounded sig session (R3 + R3i responder auth, R5x2, R7, R8).
-  if [ -n "${SIGSESS_PID:-}" ]; then
-    echo "  (waiting on sig session R3/R3i/R5/R7/R8 ...)"
-    wait "$SIGSESS_PID"
+  # Sig session (R3 + R3i responder auth, R5x2, R7, R8, NV).
+  if [ -f "$EX/analysis_reg_sig_session.pv" ]; then
+    echo "  (running sig session R3/R3i/R5/R7/R8 ...)"
+    LOG_SIGSESS=$(mktemp)
+    per_query "$EX/analysis_reg_sig_session.pv" "$LOG_SIGSESS"
     if [ "$(grep -c '^Error:' "$LOG_SIGSESS")" -ne 0 ]; then
       echo "  SIG SESSION LOAD FAILED:"; grep '^Error:' "$LOG_SIGSESS" | head; REG_OK=0
     fi
-    EXP_SIGSESS="true true true true true true "   # R3, R3i, R5(Init), R5(Resp), R7, R8
+    EXP_SIGSESS="true true true true true true cannot "   # R3, R3i, R5(Init), R5(Resp), R7, R8, NV
     GOT_SIGSESS=$(verdicts "$LOG_SIGSESS")
-    echo "  sig session R3/R3i/R5/R7/R8 got: $GOT_SIGSESS"
-    echo "                              exp: $EXP_SIGSESS"
+    echo "  sig session R3/R3i/R5/R7/R8/NV got: $GOT_SIGSESS"
+    echo "                                 exp: $EXP_SIGSESS"
     [ "$GOT_SIGSESS" = "$EXP_SIGSESS" ] || REG_OK=0
   fi
 fi
 
 if [ "$QUERY_OK" = 1 ] && [ "$REG_OK" = 1 ]; then
-  echo "CHECK PASSED (query 14/14 + reg msg1 R1/R2a/R2b/R2c/R4/R6/R9 + PQ fwd-sec/auth + DH session R1/R5/R7/R8 + sig session R1/R3/R3i/R5/R7/R8: DH R2a false / sig R2a true; sig responder-auth + post-quantum fwd-secret/authentic)"
+  echo "CHECK PASSED (query 14/14 + reg msg1 R1/R2a/R2b/R2c/R4/R6/R9 + PQ fwd-sec/auth + DH session R1/R5/R7/R8/NV + sig session R1/R3/R3i/R5/R7/R8/NV: DH R2a false / sig R2a true; sig responder-auth + post-quantum fwd-secret/authentic)"
 else
   echo "CHECK FAILED"; exit 1
 fi
