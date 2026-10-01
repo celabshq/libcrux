@@ -7,6 +7,7 @@
 /// This type is integrated with F* through various `#[hax_lib::fstar::replace]` attributes to support
 /// formal verification workflows.
 
+#[libcrux_macros::trusted(replace, "trusted-extern: FunArray F* model (functional-array primitive)")]
 #[hax_lib::fstar::replace(
     r#"
 open FStar.FunctionalExtensionality

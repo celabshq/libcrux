@@ -1,0 +1,5 @@
+# Generated per-algorithm copy of the shared intrinsics modules
+# (Libcrux_intrinsics.*), extracted via --output-dir under this algorithm's own
+# hax config. Never committed; this .gitignore marks the dir and ignores the rest.
+*
+!.gitignore

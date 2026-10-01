@@ -2,7 +2,7 @@
 /// See section "What is a circuit?" in the documentation of the tactic `flatten_circuit`.
 
 module Tactics.Circuits
-open FStar.Tactics
+open FStar.Tactics.V1
 
 /// A record that holds debugging methods.
 /// This is useful for doing conditional debugging with context.

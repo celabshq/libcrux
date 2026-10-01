@@ -1,1 +1,9 @@
-proofs/
+# Everything under proofs/ is hax-generated except the extraction Makefile and
+# the hand-written F* companions in proofs/fstar/spec.
+proofs/*
+!proofs/fstar
+proofs/fstar/*
+!proofs/fstar/spec
+!proofs/fstar/extraction
+proofs/fstar/extraction/*
+!proofs/fstar/extraction/Makefile

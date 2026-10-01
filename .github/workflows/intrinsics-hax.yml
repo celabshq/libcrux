@@ -1,0 +1,86 @@
+name: Intrinsics - hax
+
+# Proves the ARM64 SHA-3 extension fallbacks in `crates/utils/intrinsics`
+# against their specs.
+
+on:
+  merge_group:
+    paths:
+      - "crates/utils/intrinsics/**"
+      - "crates/utils/core-models/**"
+      - "fstar-helpers/fstar-bitvec/Bitvec.U64Rotate.fst"
+      - "fstar-helpers/fstar-bitvec/Bitvec.Arm64Views.fst"
+      - "fstar-helpers/fstar-bitvec/Bitvec.VxarqProof.fst"
+      - "fstar-helpers/fstar-bitvec/Bitvec.Sha3FallbackProof.fst"
+      - ".github/workflows/intrinsics-hax.yml"
+  pull_request:
+    branches: ["dev", "main"]
+    paths:
+      - "crates/utils/intrinsics/**"
+      - "crates/utils/core-models/**"
+      - "fstar-helpers/fstar-bitvec/Bitvec.U64Rotate.fst"
+      - "fstar-helpers/fstar-bitvec/Bitvec.Arm64Views.fst"
+      - "fstar-helpers/fstar-bitvec/Bitvec.VxarqProof.fst"
+      - "fstar-helpers/fstar-bitvec/Bitvec.Sha3FallbackProof.fst"
+      - ".github/workflows/intrinsics-hax.yml"
+
+  schedule:
+    - cron: "0 0 * * *"
+
+  workflow_dispatch:
+    inputs:
+      hax_ref:
+        description: "The hax revision you want this job to use"
+        required: false
+        type: string
+
+env:
+  CARGO_TERM_COLOR: always
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  get-hax-ref:
+    uses: ./.github/workflows/get-hax-ref.yml
+
+  verify-fallbacks:
+    runs-on: ubuntu-latest
+    needs:
+      - get-hax-ref
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: hacspec/hax-actions@main
+        with:
+          hax_reference: ${{ github.event.inputs.hax_ref || needs.get-hax-ref.outputs.hax_ref }}
+          fstar: v2026.03.24
+
+      - name: 🏃 Extract shared deps (platform, core-models)
+        run: |
+          python3 crates/sys/platform/hax.py extract
+          python3 crates/utils/core-models/hax.py extract
+
+      - name: 🏃 Extract intrinsics crate
+        working-directory: crates/utils/intrinsics
+        run: |
+          cargo hax \
+            -C --features simd128,simd256 ";" \
+            into -i "-libcrux_core_models::**" \
+            fstar --z3rlimit 80 --interfaces "-**"
+
+      - name: 🏃 Verify NEON SHA3 fallback proofs (F*)
+        working-directory: crates/utils/intrinsics/proofs/fstar
+        run: make verify -j "$(nproc)"
+
+  intrinsics-hax-status:
+    if: ${{ always() }}
+    needs: [get-hax-ref, verify-fallbacks]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Successful
+        if: ${{ !(contains(needs.*.result, 'failure')) }}
+        run: exit 0
+      - name: Failing
+        if: ${{ (contains(needs.*.result, 'failure')) }}
+        run: exit 1

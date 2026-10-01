@@ -4,11 +4,27 @@ import os
 import argparse
 import subprocess
 import sys
+import glob
+
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+# crates/algorithms/aes -> crates/algorithms -> crates -> repo root
+REPO_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, "..", "..", ".."))
+AES_EXTRACTION_DIR = os.path.join(SCRIPT_DIR, "proofs", "fstar", "extraction")
+# aes carries its OWN copy of the shared intrinsics modules
+# (Libcrux_intrinsics.{Avx2,Arm64}), extracted below via `--output-dir` into
+# this DEDICATED subdir (not the main `extraction` tree).  FINDLIBS
+# (Makefile.generic) auto-includes EVERY workspace crate's
+# `proofs/fstar/extraction` on EVERY other crate's path, so putting the local
+# intrinsics copy in `extraction/` would make aes's / ml-kem's / ml-dsa's /
+# sha3's copies collide on each other's include path.  A
+# `proofs/fstar/intrinsics` sibling dir is NOT auto-discovered by FINDLIBS, so
+# it is added to ONLY aes's own include path via the extraction Makefile's
+# FSTAR_INCLUDE_DIRS_EXTRA (`../intrinsics`).
+AES_INTRINSICS_DIR = os.path.join(SCRIPT_DIR, "proofs", "fstar", "intrinsics")
 
 
 def shell(command, expect=0, cwd=None, env={}):
-    subprocess_stdout = subprocess.DEVNULL
-
     print("Env:", env)
     print("Command: ", end="")
     for i, word in enumerate(command):
@@ -19,7 +35,9 @@ def shell(command, expect=0, cwd=None, env={}):
 
     print("\nDirectory: {}".format(cwd))
 
-    os_env = os.environ
+    # Copy the environment rather than aliasing os.environ so a per-crate flag
+    # never leaks into a subsequent extraction in this same process.
+    os_env = dict(os.environ)
     os_env.update(env)
 
     ret = subprocess.run(command, cwd=cwd, env=os_env)
@@ -27,40 +45,54 @@ def shell(command, expect=0, cwd=None, env={}):
         raise Exception("Error {}. Expected {}.".format(ret, expect))
 
 
+def run_dep_extract(rel_script):
+    """Invoke a canonical per-dependency `hax.py extract` (single source of
+    truth for that uniform shared dep; idempotent).  Keeps the shared
+    platform/core-models/secrets trees from flip-flopping between per-algorithm
+    configs."""
+    script = os.path.join(REPO_ROOT, rel_script)
+    print(f"[aes/hax.py] -> {rel_script} extract")
+    subprocess.run([sys.executable, script, "extract"], check=True)
+
+
+def clean_generated_fstar(directory):
+    """Remove generated `.fst`/`.fsti` from an extraction dir BEFORE
+    re-extracting.  hax extracts incrementally and NEVER deletes a `.fsti` when
+    a module stops emitting one — a leftover `.fsti` then silently SHADOWS the
+    fresh `.fst`.  These dirs hold only generated files (a tracked `.gitignore`
+    / `Makefile` aside), so removing all `.fst`/`.fsti` is safe."""
+    if not os.path.isdir(directory):
+        return
+    for f in glob.glob(os.path.join(directory, "*.fst")) + glob.glob(
+        os.path.join(directory, "*.fsti")
+    ):
+        os.remove(f)
+
+
 class extractAction(argparse.Action):
 
     def __call__(self, parser, args, values, option_string=None) -> None:
-        # Extract platform interfaces
-        include_str = "+:** -**::x86::init::cpuid -**::x86::init::cpuid_count"
-        interface_include = "+**"
         target = "fstar"
         if args.target is not None:
             target = args.target
 
-        def fstar_interfaces(args):
+        def fstar_interfaces(interfaces):
             if target == "fstar":
-                return ["--interfaces", args]
+                return ["--interfaces", interfaces]
             return []
 
-        cargo_hax_into = [
-            "cargo",
-            "hax",
-            "into",
-            "-i",
-            include_str,
-            target,
-        ]
-        cargo_hax_into.extend(fstar_interfaces(interface_include))
-        hax_env = {}
-        shell(
-            cargo_hax_into,
-            cwd="../../sys/platform",
-            env=hax_env,
-        )
+        # Shared platform dep via its canonical script (single source of truth;
+        # idempotent).  platform stays in its own crate dir and is auto-included
+        # by Makefile.generic's dependencies().
+        run_dep_extract("crates/sys/platform/hax.py")
 
-        # Extract intrinsics interfaces
-        include_str = "+:**"
-        interface_include = "+**"
+        # The intrinsics models used by aes live in core-models.
+        run_dep_extract("crates/utils/core-models/hax.py")
+
+        # Extract intrinsics into aes's own `../intrinsics` directory, without
+        # re-emitting the core-models modules and without interfaces.
+        intr_include = "-libcrux_core_models::**"
+        intr_interfaces = "-**"
         cargo_hax_into = [
             "cargo",
             "hax",
@@ -70,34 +102,27 @@ class extractAction(argparse.Action):
             ";",
             "into",
             "-i",
-            include_str,
+            intr_include,
+            "--output-dir",
+            AES_INTRINSICS_DIR,
             target,
         ]
-        cargo_hax_into.extend(fstar_interfaces(interface_include))
-        hax_env = {"RUSTFLAGS": "--cfg pre_core_models"}
+        if target == "fstar":
+            cargo_hax_into.extend(["--z3rlimit", "80"])
+        cargo_hax_into.extend(fstar_interfaces(intr_interfaces))
+        # Touch the intrinsics sources so cargo re-runs hax on the crate
+        # rather than reusing a build made under a different configuration.
+        for _src in glob.glob(os.path.join(REPO_ROOT, "crates/utils/intrinsics/src/*.rs")):
+            os.utime(_src, None)
+        clean_generated_fstar(AES_INTRINSICS_DIR)
         shell(
             cargo_hax_into,
-            cwd="../../utils/intrinsics",
-            env=hax_env,
+            cwd=os.path.join(REPO_ROOT, "crates/utils/intrinsics"),
+            env={},
         )
 
-        # Extract libcrux-secrets
-        include_str = "+**"
-        interface_include = ""
-        cargo_hax_into = [
-            "cargo",
-            "hax",
-            "into",
-            "-i",
-            include_str,
-            target,
-        ]
-        hax_env = {}
-        shell(
-            cargo_hax_into,
-            cwd="../../utils/secrets",
-            env=hax_env,
-        )
+        # Shared secrets dep via its canonical script (idempotent).
+        run_dep_extract("crates/utils/secrets/hax.py")
 
         # Extract libcrux-aes
         includes = [
@@ -121,11 +146,11 @@ class extractAction(argparse.Action):
         if target == "fstar":
             cargo_hax_into.extend(["--z3rlimit", "80"])
         cargo_hax_into.extend(fstar_interfaces(interface_include))
-        hax_env = {}
+        clean_generated_fstar(AES_EXTRACTION_DIR)
         shell(
             cargo_hax_into,
-            cwd=".",
-            env=hax_env,
+            cwd=SCRIPT_DIR,
+            env={},
         )
         return None
 
