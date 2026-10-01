@@ -8,8 +8,10 @@
    responder-authentication correspondences R3/R3i are machine-verifiable here.
    Run is sound (sanity_session_sig_passive.pv reaches both events, passive).
 
-   Threat model: active attacker; phase-1 compromise of the PQ-KEM key + quantum
-   recovery of a recorded session ephemeral.
+   Threat model: active attacker who has the responder's long-term DH key during
+   the run (phase 0), so that R3/R3i can only fail through the PQ-KEM key; in
+   phase 1, compromise of the PQ-KEM key and recovery of a recorded session
+   ephemeral.
 
    R1   Reachability of InitSessSig / RespSessSig.            Expected: reachable (false)
    R3   Responder authentication, PQ-secure: an initiator's session view implies
@@ -17,7 +19,9 @@
    R3i  Injective responder agreement.                        Expected: true
    R5   Key secrecy of K_S — requires the PQ-KEM secret.       Expected: true
    R7   HNDL of the response/session payload.                  Expected: true
-   R8   Forward secrecy of the session.                        Expected: true *)
+   R8   Forward secrecy of the session.                        Expected: true
+   NV   Non-vacuity: resp_secret is derivable once every key leaks.
+                                                               Expected: cannot be proved *)
 
 set reconstructTrace = false.
 
@@ -49,10 +53,16 @@ query attacker(resp_secret) ==> event(CompromiseEndpointPQ(Bob)).
 (* --- R8. Forward secrecy of the session.                    Expected: true *)
 query attacker(resp_secret) ==> event(LeakEphemeral(Bob)).
 
+(* --- NV. resp_secret is derivable: R5–R8 can fail. A derivation exists, but
+   without trace reconstruction ProVerif reports it as "cannot be proved".
+                                                    Expected: cannot be proved *)
+query attacker(resp_secret).
+
 process
     ( setup_responder(Bob)
     | create_sig_client(Alice)
     | ( !sess_sig_initiator(Alice, Bob) )
     | ( !sess_sig_responder(Bob) )
+    | ( !compromise_endpoint_classical(Bob) )
     | ( phase 1;
         ( !compromise_endpoint_pq(Bob) | !leak_ephemeral(Bob) ) ) )

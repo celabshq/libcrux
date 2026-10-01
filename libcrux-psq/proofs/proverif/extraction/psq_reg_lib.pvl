@@ -6,13 +6,14 @@
    driven against the extracted libcrux-psq registration letfuns. See those files
    for the R1–R9 queries and the per-process compromise model.
 
-   The responder is driven against an auth core (decrypt_outer_message +
+   The message-1 responders are driven against an auth core (decrypt_outer_message +
    decrypt_inner_message directly), skipping read_message_contents' rate-limiter,
    ciphersuite coercion and state-machine bookkeeping (none security-relevant to
    registration authentication, and coerce_compatible has no ML-KEM branch).
    This mirrors the query-mode analysis_auth core and keeps the DH-heavy
    correspondences tractable. The auth core reads `working_ciphersuite`, so the
-   Responder is built with it pre-set to the run's ML-KEM ciphersuite name. *)
+   Responder is built with it pre-set to the run's ML-KEM ciphersuite name.
+   The session responders use the full read_message_contents path instead. *)
 
 type Principal.
 const Alice: Principal.   (* initiator / client   *)
