@@ -106,6 +106,78 @@ pub fn ml_dsa_parameter_sets(args: TokenStream, item: TokenStream) -> TokenStrea
     expanded.into()
 }
 
+/// Item-level trust marker.
+///
+/// `#[libcrux_macros::trusted(<kind>[, "<category>: <reason>"])]` records, in one
+/// uniform and greppable place, that an item's verification is (partly) trusted
+/// rather than proven. `scripts/annotation_lint.py` and `scripts/trust_ledger.py`
+/// read these markers, so a trusted site that carries no marker fails CI.
+///
+/// Marker-only kinds — `inline-admit`, `inline-assume` and `replace` — expand to
+/// the annotated item verbatim. The obligation they record lives elsewhere: at the
+/// `trusted_admit!` / `trusted_assume!` call in the function body, or in the sibling
+/// `#[hax_lib::fstar::replace(...)]` attribute whose argument is the hand-written F*.
+/// The marker declares such a site; it cannot generate the mechanism.
+/// (`inline-admit` tokenises as `inline - admit`, so whitespace is stripped when
+/// normalising the kind.)
+///
+/// The remaining kinds additionally emit the `hax_lib` attribute that implements
+/// them, so a site states its trust label and its mechanism in one place:
+///
+/// | kind         | emits (under `cfg(hax)`)                          |
+/// |--------------|---------------------------------------------------|
+/// | `lax`        | `hax_lib::fstar::verification_status(lax)`         |
+/// | `panic_free` | `hax_lib::fstar::verification_status(panic_free)`  |
+/// | `opaque`     | `hax_lib::opaque`                                  |
+/// | `exclude`    | `hax_lib::exclude`                                 |
+///
+/// The emitted attribute is gated behind `cfg_attr(hax, …)`, leaving a normal build
+/// unaffected. Extraction is unchanged in either case: proc-macro attributes are
+/// expanded before hax reaches THIR, so hax never observes the marker itself.
+///
+/// The `"<category>: <reason>"` argument is Rust-only metadata and is dropped from
+/// extraction; its format is checked by `scripts/annotation_lint.py`.
+///
+/// An unknown kind panics rather than silently becoming a no-op.
+#[proc_macro_attribute]
+pub fn trusted(args: TokenStream, item: TokenStream) -> TokenStream {
+    let args = args.to_string();
+    let kind: String = args
+        .split(',')
+        .next()
+        .unwrap_or("")
+        .chars()
+        .filter(|c| !c.is_whitespace())
+        .collect();
+    // The `hax_lib` mechanism each mechanism-emitting kind maps to.
+    let mechanism: Option<&str> = match kind.as_str() {
+        "lax" => Some("hax_lib::fstar::verification_status(lax)"),
+        "panic_free" => Some("hax_lib::fstar::verification_status(panic_free)"),
+        "opaque" => Some("hax_lib::opaque"),
+        "exclude" => Some("hax_lib::exclude"),
+        _ => None,
+    };
+    match kind.as_str() {
+        // Marker-only: the obligation lives at the body macro or on the sibling
+        // `#[hax_lib::fstar::replace(...)]` attribute, so return the item verbatim.
+        "inline-admit" | "inline-assume" | "replace" => item,
+        // Prepend the cfg(hax)-gated mechanism, then the item unchanged.
+        "lax" | "panic_free" | "opaque" | "exclude" => {
+            let mech = mechanism.expect("mechanism table covers these kinds");
+            let attr: TokenStream = format!("#[cfg_attr(hax, {mech})]")
+                .parse()
+                .expect("#[libcrux_macros::trusted]: internal attribute parse failed");
+            let mut out = attr;
+            out.extend(item);
+            out
+        }
+        other => panic!(
+            "#[libcrux_macros::trusted]: unsupported kind `{other}` \
+             (supported: inline-admit, inline-assume, replace, lax, panic_free, opaque, exclude)"
+        ),
+    }
+}
+
 /// Emits span events (of types `EventType::SpanOpen` and `EventType::SpanClose`) with the
 /// provided label into the provided trace. Requires that the caller depends on the
 /// libcrux-test-utils crate.

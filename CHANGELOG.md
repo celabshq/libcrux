@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- (libcrux-macros) [#1622](https://github.com/celabshq/libcrux/pull/1622): Add the `trusted` attribute macro for marking items whose verification is trusted
 - (hpke-rs) [#1539](https://github.com/celabshq/libcrux/pull/1539): Support for the
   post-quantum and PQ/T-hybrid algorithms of
   [draft-ietf-hpke-pq](https://datatracker.ietf.org/doc/html/draft-ietf-hpke-pq-04),

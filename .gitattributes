@@ -1,0 +1,4 @@
+# F* hint files are large machine-generated Z3 replay artifacts keyed by source
+# position, so a textual diff of them is noise. Treat them as binary and collapse
+# them in GitHub's diff view.
+*.hints diff=binary linguist-generated=true
