@@ -5,6 +5,8 @@ set -x
 
 # Check no_std compatibility for crates that support it by default
 cargo build \
+  -p libcrux-digest \
+  -p libcrux-blake2 \
   -p libcrux-chacha20poly1305 \
   -p libcrux-curve25519 \
   -p libcrux-ed25519 \
@@ -26,7 +28,6 @@ cargo build \
   cargo build \
   -p libcrux-ecdh \
   -p libcrux-kem \
-  -p libcrux-blake2 \
   -p libcrux-ecdsa -F rand \
   -p libcrux-ml-dsa -F mldsa44,mldsa65,mldsa87 \
   -p libcrux-ml-kem -F default-no-std \

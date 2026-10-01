@@ -43,6 +43,8 @@
 //!
 //! ```
 
+#![no_std]
+
 #[cfg(any(feature = "sha2", feature = "sha3", feature = "blake2"))]
 pub use libcrux_traits::digest::{arrayref::Hash, owned::Hash as HashOwned, Hasher};
 
