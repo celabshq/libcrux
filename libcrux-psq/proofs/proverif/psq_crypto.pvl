@@ -86,10 +86,7 @@ fun tls_codec__quic_vec__VLByteSlice__VLByteSlice(bitstring): bitstring [data].
 (* The owned `InnerMessage` holds the raw inner ciphertext / aad /
    pq-encapsulation where the sender wrote `VLByteSlice`s; the responder's
    `as_slice` and `deserialize_encapsulation` below are then the identity.
-   The extracted `InnerMessageOut` literals keep their source order, with
-   `auth` first, while the projectors of both structs follow declaration
-   order, so the left-hand side matches the construction order and the
-   right-hand side rebuilds `InnerMessage` in declaration order. *)
+   Both structs list their fields in declaration order, `auth` last. *)
 fun pv_deserialize(bitstring): bitstring
 reduc forall p: bitstring;
         pv_deserialize(libcrux_psq__handshake__initiator__InitiatorOuterPayloadOut__Query(p))
@@ -97,20 +94,20 @@ reduc forall p: bitstring;
 otherwise forall ic: bitstring, it: bitstring, ia: bitstring, pqe: bitstring, pk: bitstring;
         pv_deserialize(libcrux_psq__handshake__initiator__InitiatorOuterPayloadOut__Registration(
             libcrux_psq__handshake__InnerMessageOut__InnerMessageOut(
-              libcrux_psq__handshake__AuthMessageOut__Dh(pk),
               tls_codec__quic_vec__VLByteSlice__VLByteSlice(ic), it,
               tls_codec__quic_vec__VLByteSlice__VLByteSlice(ia),
-              tls_codec__quic_vec__VLByteSlice__VLByteSlice(pqe))))
+              tls_codec__quic_vec__VLByteSlice__VLByteSlice(pqe),
+              libcrux_psq__handshake__AuthMessageOut__Dh(pk))))
           = libcrux_psq__handshake__responder__InitiatorOuterPayload__Registration(
               libcrux_psq__handshake__InnerMessage__InnerMessage(ic, it, ia, pqe,
                 libcrux_psq__handshake__AuthMessage__Dh(pk)))
 otherwise forall ic: bitstring, it: bitstring, ia: bitstring, pqe: bitstring, vk: bitstring, sig: bitstring;
         pv_deserialize(libcrux_psq__handshake__initiator__InitiatorOuterPayloadOut__Registration(
             libcrux_psq__handshake__InnerMessageOut__InnerMessageOut(
-              libcrux_psq__handshake__AuthMessageOut__Sig(vk, sig),
               tls_codec__quic_vec__VLByteSlice__VLByteSlice(ic), it,
               tls_codec__quic_vec__VLByteSlice__VLByteSlice(ia),
-              tls_codec__quic_vec__VLByteSlice__VLByteSlice(pqe))))
+              tls_codec__quic_vec__VLByteSlice__VLByteSlice(pqe),
+              libcrux_psq__handshake__AuthMessageOut__Sig(vk, sig))))
           = libcrux_psq__handshake__responder__InitiatorOuterPayload__Registration(
               libcrux_psq__handshake__InnerMessage__InnerMessage(ic, it, ia, pqe,
                 libcrux_psq__handshake__AuthMessage__Sig(vk, sig)))
@@ -124,41 +121,10 @@ otherwise forall x: bitstring;
         pv_deserialize(x) = x.
 
 (* `pv_serialize` stands for the tls serialization that `handshake_encrypt`
-   applies before sealing: the identity, except for the conversion of
-   `RegistrationInitiator::prepare_message_contents` that turns the signing key
-   pair into the verification key sent on the wire (`vk: &sig_auth.into()`).
-   The extraction renders that `.into()` as the identity, which would seal the
-   initiator's signing key in the outer payload; this applies the conversion
-   of `impl From<SigningKeyPair> for SignatureVerificationKey`. Private: the
-   attacker already has the projections it performs. *)
-fun libcrux_psq__handshake__ciphersuite__initiator__SigningKeyPair__Ed25519(bitstring, bitstring): bitstring [data].
-fun libcrux_psq__handshake__ciphersuite__initiator__SigningKeyPair__MlDsa65(bitstring, bitstring): bitstring [data].
-fun libcrux_psq__handshake__ciphersuite__types__SignatureVerificationKey__Ed25519(bitstring): bitstring [data].
-fun libcrux_psq__handshake__ciphersuite__types__SignatureVerificationKey__MlDsa65(bitstring): bitstring [data].
+   applies before sealing: the identity. Private: the attacker has nothing to
+   learn from it. *)
 fun pv_serialize(bitstring): bitstring
-reduc forall sk: bitstring, vk: bitstring, sig: bitstring, c1: bitstring, c2: bitstring, c3: bitstring, c4: bitstring;
-        pv_serialize(libcrux_psq__handshake__initiator__InitiatorOuterPayloadOut__Registration(
-            libcrux_psq__handshake__InnerMessageOut__InnerMessageOut(
-              libcrux_psq__handshake__AuthMessageOut__Sig(
-                libcrux_psq__handshake__ciphersuite__initiator__SigningKeyPair__Ed25519(sk, vk), sig),
-              c1, c2, c3, c4)))
-          = libcrux_psq__handshake__initiator__InitiatorOuterPayloadOut__Registration(
-              libcrux_psq__handshake__InnerMessageOut__InnerMessageOut(
-                libcrux_psq__handshake__AuthMessageOut__Sig(
-                  libcrux_psq__handshake__ciphersuite__types__SignatureVerificationKey__Ed25519(vk), sig),
-                c1, c2, c3, c4))
-otherwise forall sk: bitstring, vk: bitstring, sig: bitstring, c1: bitstring, c2: bitstring, c3: bitstring, c4: bitstring;
-        pv_serialize(libcrux_psq__handshake__initiator__InitiatorOuterPayloadOut__Registration(
-            libcrux_psq__handshake__InnerMessageOut__InnerMessageOut(
-              libcrux_psq__handshake__AuthMessageOut__Sig(
-                libcrux_psq__handshake__ciphersuite__initiator__SigningKeyPair__MlDsa65(sk, vk), sig),
-              c1, c2, c3, c4)))
-          = libcrux_psq__handshake__initiator__InitiatorOuterPayloadOut__Registration(
-              libcrux_psq__handshake__InnerMessageOut__InnerMessageOut(
-                libcrux_psq__handshake__AuthMessageOut__Sig(
-                  libcrux_psq__handshake__ciphersuite__types__SignatureVerificationKey__MlDsa65(vk), sig),
-                c1, c2, c3, c4))
-otherwise forall x: bitstring;
+reduc forall x: bitstring;
         pv_serialize(x) = x [private].
 
 (* ---- Post-quantum KEM (ML-KEM-768) ------------------------------------- *)
@@ -196,6 +162,10 @@ letfun libcrux_ml_dsa__types__Impl_4__as_ref(x: bitstring) = x.
    `(new place, old value)`, i.e. `(default, place)`. *)
 letfun core__mem__take(place: bitstring) =
       rust_primitives__hax__Tuple2__Tuple2(bitstring_default(), place).
+(* The `Into` and `Deref` impls the extraction leaves out are conversions
+   the model ignores. *)
+letfun core__convert__Into__into__unextracted_impl(x: bitstring) = x.
+letfun core__ops__deref__Deref__deref__unextracted_impl(x: bitstring) = x.
 (* `rng.fill_bytes(&mut buf)` returns `(rng, buf')` with `buf'` fresh. *)
 letfun rand_core__Rng__fill_bytes(rng: bitstring, buf: bitstring) =
       new filled: bitstring;

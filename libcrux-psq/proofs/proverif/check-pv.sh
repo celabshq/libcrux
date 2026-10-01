@@ -21,7 +21,9 @@ EX="$PVD/extraction"
 # `#[hax_lib::proverif::replace_body(...)]` and modeled in psq_crypto.pvl;
 # serialization is bypassed there.
 INC='-** +libcrux_psq::handshake::initiator::** +libcrux_psq::handshake::responder::**'
-cargo hax -C -p libcrux-psq --features hax-pv ';' into -i "$INC" proverif || exit 1
+# psq_crypto.pvl models these trait items once for every impl.
+KEEP='tls_codec::** libcrux_psq::**::CiphersuiteBase::**'
+cargo hax -C -p libcrux-psq --features hax-pv ';' into -i "$INC" proverif --keep-trait-calls "$KEEP" || exit 1
 
 # psq_crypto.pvl defines `pv_serialize`, `pv_deserialize` and
 # `CiphersuiteBase::name`, which lib.pvl calls and which match constructors of
