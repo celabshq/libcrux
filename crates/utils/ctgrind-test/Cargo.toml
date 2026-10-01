@@ -13,7 +13,7 @@ publish = false
 crabgrind.workspace = true
 libcrux-sha3 = { workspace = true }
 libcrux-ml-kem = { workspace = true, features = ["mlkem512"] }
-libcrux-ml-dsa = { workspace = true }
+libcrux-ml-dsa = { workspace = true, default-features = true }
 
 [[bin]]
 name = "sha3"

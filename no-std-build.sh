@@ -22,6 +22,7 @@ cargo build \
   -p libcrux-secrets \
   -p libcrux-sha2 \
   -p libcrux-traits \
+  -p libcrux-nist-kdf \
   $RUST_TARGET_FLAG
 
 # Check no_std compatibility for default features except std
@@ -32,4 +33,16 @@ cargo build \
   -p libcrux-ml-dsa -F mldsa44,mldsa65,mldsa87 \
   -p libcrux-ml-kem -F default-no-std \
   --no-default-features \
+  $RUST_TARGET_FLAG
+
+# Check no_std compatibility of the top-level crate.
+# Only build the rlib, since the `staticlib` and `cdylib` crate types require
+# a panic handler and global allocator without `std`.
+# HPKE (`all-protocols-no-std`) is not included, because `getrandom` needs a
+# custom backend on bare-metal targets.
+cargo rustc \
+  -p libcrux \
+  --lib --crate-type rlib \
+  --no-default-features \
+  -F all-algorithms-no-std,all-primitives-no-std \
   $RUST_TARGET_FLAG
