@@ -1533,4 +1533,5 @@ pub use aes_gcm_256::Nonce as AesGcm256Nonce;
 #[doc(inline)]
 pub use aes_gcm_256::Tag as AesGcm256Tag;
 pub use implementations::{AesCcm128, AesCcm256, AesGcm128, AesGcm256};
+pub use libcrux_traits::aead;
 pub use libcrux_traits::aead::{consts::AeadConsts, typed_refs::Aead};
