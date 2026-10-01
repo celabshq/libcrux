@@ -1,7 +1,7 @@
 use core::marker::PhantomData;
 
 use ::rand::SeedableRng;
-pub(crate) use ::rand::{rngs, TryCryptoRng};
+pub(crate) use ::rand::TryCryptoRng;
 
 #[cfg(not(feature = "health-tests"))]
 pub use ::rand::CryptoRng;

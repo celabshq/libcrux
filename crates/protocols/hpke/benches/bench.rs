@@ -6,7 +6,7 @@ use criterion::{criterion_group, criterion_main, Criterion};
 use hpke_rs::prelude::*;
 use hpke_rs_crypto::{
     types::{KdfAlgorithm, KemAlgorithm},
-    HpkeCrypto,
+    HpkeDefaultPrng,
 };
 use hpke_rs_libcrux::HpkeLibcrux;
 use hpke_rs_rust_crypto::*;
@@ -34,7 +34,7 @@ const KEM_IDS: [KemAlgorithm; 6] = [
     KemAlgorithm::DhKem448,
 ];
 
-fn benchmark_classic<Crypto: HpkeCrypto + 'static>(c: &mut Criterion) {
+fn benchmark_classic<Crypto: HpkeDefaultPrng + 'static>(c: &mut Criterion) {
     for hpke_mode in MODES {
         for aead_mode in AEAD_IDS {
             if Crypto::supports_aead(aead_mode).is_err() {

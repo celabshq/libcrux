@@ -17,6 +17,7 @@ libcrux-kem.workspace = true
 libcrux-aead.workspace = true
 libcrux-sha3.workspace = true
 libcrux-traits.workspace = true
+libcrux-hmac-drbg = { workspace = true, features = ["rand"] }
 # RustCrypto curves not available in libcrux
 # TODO: These should be replaced with libcrux implementations as soon as they
 # are available.
@@ -29,10 +30,7 @@ p521 = { version = "0.14.0", features = [
     "ecdh",
 ], default-features = false, optional = true }
 # Randomness
-rand = { version = "0.10", default-features = false, features = ["sys_rng"] }
-rand_core = { version = "0.10" }
-rand_chacha = { version = "0.10", default-features = false }
-zeroize = "1.8.2"
+rand = { version = "0.10", default-features = false }
 
 [dev-dependencies]
 criterion = { version = "0.8", features = ["html_reports"] }
@@ -44,7 +42,16 @@ no-default-features = true
 features = ["std", "draft-ietf-hpke-pq"]
 
 [features]
-deterministic-prng = [] # ⚠️ FOR TESTING ONLY.
+default = ["sys-rng"]
+# Enables the system-RNG-backed default PRNG (`HpkeLibcruxPrng::try_new`, and with it
+# `HpkeDefaultPrng` for `HpkeLibcrux`, i.e. `Hpke::<HpkeLibcrux>::new`), using `rand`'s
+# `sys_rng` (backed by `getrandom`). Disable this for a build with no configured entropy
+# backend (a bare embedded target, or a wasm build without a `getrandom` backend), and
+# construct the PRNG via `HpkeLibcruxPrng::from_seed` or bring your own `TryCryptoRng`.
+#
+# Incompatible with `libcrux-hmac-drbg/health-tests`: the auto-reseeding DRBG this uses
+# (`HmacSha256DrbgRng`) is not available when that feature is enabled anywhere in the build.
+sys-rng = ["libcrux-hmac-drbg/sys_rng", "rand/sys_rng"]
 rustcrypto-p-curves = ["dep:p384", "dep:p521"]
 # DEPRECATED: superseded by `draft-ietf-hpke-pq`. Cannot be enabled together
 # with it. Emits a build warning when used.
@@ -56,7 +63,6 @@ draft-connolly-cfrg-hpke-mlkem = []
 draft-ietf-hpke-pq = []
 std = [
     "rand/std",
-    "rand_chacha/std",
     "libcrux-ecdh/std",
     "libcrux-kem/std",
     "hpke-rs-crypto/std",
@@ -65,11 +71,14 @@ std = [
 [[bench]]
 name = "bench_hkdf"
 harness = false
+required-features = ["sys-rng"]
 
 [[bench]]
 name = "bench_p256"
 harness = false
+required-features = ["sys-rng"]
 
 [[bench]]
 name = "bench_x25519"
 harness = false
+required-features = ["sys-rng"]

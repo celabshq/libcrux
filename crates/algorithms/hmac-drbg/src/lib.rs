@@ -409,16 +409,6 @@ impl<const OUTLEN: usize, Alg: HmacAlgorithm<OUTLEN>> HmacDrbg<OUTLEN, Alg> {
         })
     }
 
-    /// Instantiate from the system RNG ([`rand::rngs::SysRng`]).
-    //
-    // #hax: requires personalization_string.len() <= MAX_SEED_BYTES - 2 * OUTLEN
-    // #hax: ensures result.is_ok() ==> result.unwrap().reseed_counter == 1
-    pub fn new_from_sys_rng(
-        personalization_string: &[u8],
-    ) -> Result<Self, InstantiateFromRngError> {
-        Self::new_from_rng(&mut rand::rngs::SysRng, personalization_string)
-    }
-
     /// Reseed from a [`CryptoRng`] (generates entropy internally).
     ///
     /// [`CryptoRng`]: ::rand::CryptoRng
@@ -447,5 +437,21 @@ impl<const OUTLEN: usize, Alg: HmacAlgorithm<OUTLEN>> HmacDrbg<OUTLEN, Alg> {
                 #[cfg(not(feature = "health-tests"))]
                 ReseedError::InsufficientEntropy => unreachable!(),
             })
+    }
+}
+
+#[cfg(feature = "sys_rng")]
+#[allow(private_bounds)]
+impl<const OUTLEN: usize, Alg: HmacAlgorithm<OUTLEN>> HmacDrbg<OUTLEN, Alg> {
+    /// Instantiate from the system RNG ([`rand::rngs::SysRng`]).
+    //
+    // #hax: requires personalization_string.len() <= MAX_SEED_BYTES - 2 * OUTLEN
+    // #hax: ensures result.is_ok() ==> result.unwrap().reseed_counter == 1
+    pub fn new_from_sys_rng(
+        personalization_string: &[u8],
+    ) -> Result<Self, InstantiateFromRngError> {
+        // Leading `::` needed: the local `mod rand;` (this crate's `rand`
+        // integration module) shadows the external `rand` crate here.
+        Self::new_from_rng(&mut ::rand::rngs::SysRng, personalization_string)
     }
 }
