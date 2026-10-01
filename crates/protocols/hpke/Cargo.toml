@@ -46,7 +46,7 @@ hazmat = []
 rustcrypto = ["dep:hpke-rs-rust-crypto"]
 # The libcrux provider, with its default system-RNG-backed PRNG, so that
 # `Hpke::<HpkeLibcrux>::new` works out of the box.
-libcrux = ["libcrux-no-sys-rng", "hpke-rs-libcrux?/sys-rng"]
+libcrux = ["libcrux-no-sys-rng", "hpke-rs-libcrux/sys-rng"]
 # The libcrux provider without the system RNG, for builds with no configured entropy
 # backend (a bare embedded target, or a wasm build that doesn't enable a `getrandom`
 # backend). Construct the PRNG explicitly (`HpkeLibcruxPrng::from_seed`, or any

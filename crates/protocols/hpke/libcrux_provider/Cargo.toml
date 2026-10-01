@@ -31,7 +31,6 @@ p521 = { version = "0.14.0", features = [
 ], default-features = false, optional = true }
 # Randomness
 rand = { version = "0.10", default-features = false }
-rand_core = { version = "0.10" }
 
 [dev-dependencies]
 criterion = { version = "0.8", features = ["html_reports"] }
