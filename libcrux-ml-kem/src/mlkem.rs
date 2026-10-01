@@ -343,6 +343,9 @@ macro_rules! impl_incr_key_size {
         ///
         /// Returns an [`Error`] if the provided input or output don't have
         /// the appropriate sizes.
+        ///
+        /// `state` must be at least `encaps_state_len()` bytes and
+        /// `shared_secret` at least `shared_secret_size()` bytes long.
         pub fn encapsulate1(
             pk1: &[u8],
             randomness: [u8; SHARED_SECRET_SIZE],
@@ -376,6 +379,9 @@ macro_rules! impl_incr_key_size {
             ///
             /// Returns an [`Error`] if the provided input or output don't have
             /// the appropriate sizes.
+            ///
+            /// `state` must be at least `encaps_state_len()` bytes and
+            /// `shared_secret` at least `shared_secret_size()` bytes long.
             pub fn encapsulate1(
                 pk1: &[u8],
                 rng: &mut impl ::rand::TryCryptoRng,
@@ -403,13 +409,17 @@ macro_rules! impl_incr_key_size {
         /// Encapsulate the second part of the ciphertext.
         ///
         /// The second part of the public key is passed in as byte slice.
-        /// [`Error::InvalidInputLength`] is returned if `public_key_part` is too
-        /// short.
-        pub fn encapsulate2(state: &[u8; encaps_state_len()], public_key_part: &[u8; pk2_len()]) -> Ciphertext2 {
+        /// [`Error::InvalidInput`] is returned if the state bytes fail
+        /// validation (a decoded coefficient is out of field range).
+        pub fn encapsulate2(state: &[u8; encaps_state_len()], public_key_part: &[u8; pk2_len()]) -> Result<Ciphertext2, Error> {
             multiplexing::encapsulate2::<RANK, RANKED_BYTES_PER_RING_ELEMENT, C2_SIZE, VECTOR_V_COMPRESSION_FACTOR, {encaps_state_len()}>(state, public_key_part)
         }
 
         /// Decapsulate incremental ciphertexts.
+        ///
+        /// `private_key` must be at least `key_pair_len()` bytes long.
+        /// [`Error::InvalidInput`] is returned if the key bytes fail
+        /// validation (a decoded coefficient is out of field range).
         pub fn decapsulate_incremental_key(
             private_key: &[u8],
             ciphertext1: &Ciphertext1,
@@ -678,7 +688,7 @@ macro_rules! impl_incr_platform {
         >(
             state: &[u8; STATE_LEN],
             public_key_part: &PublicKey2<PK2_LEN>,
-        ) -> Ciphertext2<C2_SIZE> {
+        ) -> Result<Ciphertext2<C2_SIZE>, Error> {
             super::encapsulate2_serialized::<
                 K,
                 PK2_LEN,

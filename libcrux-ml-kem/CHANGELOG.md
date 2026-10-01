@@ -25,6 +25,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `mlkem1024::rand::generate_key_pair`, and `mlkem1024::rand::encapsulate` from `CryptoRng` to
   `TryCryptoRng`; they now return `Result<_, libcrux_traits::kem::KEMError>` instead of the bare
   value
+- [#1619](https://github.com/celabshq/libcrux/pull/1619): (Breaking) `incremental::encapsulate2` on a serialized
+  state now returns `Result<Ciphertext2, Error>` instead of `Ciphertext2`; it returns the new
+  `Error::InvalidInput` if a coefficient decoded from the state is out of field range
+- [#1619](https://github.com/celabshq/libcrux/pull/1619): `incremental::decapsulate_incremental_key` returns
+  `Error::InvalidInput` if a coefficient decoded from the key pair bytes is out of field range
 
 ### Fixed
 

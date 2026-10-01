@@ -6,7 +6,10 @@ use super::*;
 use crate::{
     ind_cca::unpacked::MlKemKeyPairUnpacked,
     ind_cpa::{deserialize_vector, serialize_vector},
-    polynomial::{vec_from_bytes, vec_to_bytes},
+    polynomial::{
+        matrix_within_field_bound, poly_within_field_bound, polyvec_within_field_bound,
+        vec_from_bytes, vec_to_bytes,
+    },
 };
 
 /// Errors
@@ -23,6 +26,9 @@ pub enum Error {
 
     /// Insufficient randomness.
     InsufficientRandomness,
+
+    /// Input bytes failed validation (coefficient out of range).
+    InvalidInput,
 }
 
 /// Incremental trait for unpacked key pairs.
@@ -208,7 +214,10 @@ impl<const K: usize, Vector: Operations> EncapsState<K, Vector> {
         Ok(())
     }
 
-    /// Build a state from bytes
+    /// Build a state from bytes.
+    ///
+    /// Returns [`Error::InvalidInput`] if any decoded coefficient is out of
+    /// field range.
     pub fn try_from_bytes(bytes: &[u8]) -> Result<Self, Error> {
         debug_assert!(bytes.len() >= Self::num_bytes());
         if bytes.len() < Self::num_bytes() {
@@ -226,17 +235,18 @@ impl<const K: usize, Vector: Operations> EncapsState<K, Vector> {
         let mut randomness = [0u8; 32];
         randomness.copy_from_slice(&bytes[offset..offset + 32]);
 
+        // Validate the raw-decoded coefficients: arbitrary bytes decode to
+        // arbitrary i16 values, but the encapsulation arithmetic is only
+        // overflow-safe for coefficients in [-3328, 3328].
+        if !polyvec_within_field_bound(&r_as_ntt) || !poly_within_field_bound(&error2) {
+            return Err(Error::InvalidInput);
+        }
+
         Ok(Self {
             r_as_ntt,
             error2,
             randomness,
         })
-    }
-
-    /// Build a state from bytes
-    pub fn from_bytes<const STATE_LEN: usize>(bytes: &[u8; STATE_LEN]) -> Self {
-        // Unwrapping here is safe because we know it's the correct size.
-        Self::try_from_bytes(bytes).unwrap()
     }
 }
 
@@ -434,7 +444,10 @@ impl<const K: usize, const PK2_LEN: usize, Vector: Operations> KeyPair<K, PK2_LE
 
     /// Read a key pair from the `key` bytes.
     ///
-    /// `key` must be at least of length `num_bytes()`
+    /// `key` must be at least of length `num_bytes()`.
+    ///
+    /// Returns [`Error::InvalidInput`] if any decoded coefficient is out of
+    /// field range.
     pub fn from_bytes(key: &[u8]) -> Result<Self, Error> {
         debug_assert!(key.len() >= Self::num_bytes());
         if key.len() < Self::num_bytes() {
@@ -466,6 +479,16 @@ impl<const K: usize, const PK2_LEN: usize, Vector: Operations> KeyPair<K, PK2_LE
         for i in 0..matrix.len() {
             vec_from_bytes(&key[offset..], &mut matrix[i]);
             offset += vec_len_bytes::<K, Vector>();
+        }
+
+        // Validate the raw-decoded coefficients: arbitrary bytes decode to
+        // arbitrary i16 values, but the decapsulation arithmetic is only
+        // overflow-safe for coefficients in [-3328, 3328].  (pk2 stays
+        // byte-encoded here; its 12-bit decode is bounded by construction.)
+        if !polyvec_within_field_bound(&sk.ind_cpa_private_key.secret_as_ntt)
+            || !matrix_within_field_bound(&matrix)
+        {
+            return Err(Error::InvalidInput);
         }
 
         Ok(Self {
