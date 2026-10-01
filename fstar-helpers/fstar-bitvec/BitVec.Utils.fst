@@ -59,7 +59,7 @@ let forall256: forall_sig 256 = fun pred -> forall128 pred && forall128 (fun i -
 let forall_n (n:nat{n <= 256}): forall_sig n = fun pred -> forall256 (fun i -> if i < n then pred i else true)
 
 let bit_vec_to_int_t_lemma
-    #t (d: num_bits t) (bv: bit_vec d)
+    #t (d: lane_bits t) (bv: bit_vec d)
     i
   : Lemma (get_bit (bit_vec_to_int_t d bv) (sz i) == bv i)
           [SMTPat (get_bit (bit_vec_to_int_t d bv) (sz i))]
