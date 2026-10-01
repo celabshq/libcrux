@@ -1,4 +1,10 @@
 //! Arm64 SIMD math wrappers + `KeccakItem<2>` trait impl.
+//!
+//! Lives in its own submodule (extracts to
+//! `Libcrux_sha3.Simd.Arm64.Wrappers`) so that the parent
+//! `Libcrux_sha3.Simd.Arm64` does NOT carry top-level body
+//! definitions — that suppresses hax's `.Bundle.fst` collation,
+//! keeping each load/store/wrapper module's F* SMT context minimal.
 
 use libcrux_intrinsics::arm64::*;
 
@@ -24,6 +30,7 @@ pub(crate) fn _vrax1q_u64(a: uint64x2_t, b: uint64x2_t) -> uint64x2_t {
 }
 
 #[inline(always)]
+#[cfg_attr(hax, hax_lib::requires(0 < LEFT && LEFT < 64 && 0 < RIGHT && RIGHT < 64 && LEFT + RIGHT == 64))]
 pub(crate) fn _vxarq_u64<const LEFT: i32, const RIGHT: i32>(
     a: uint64x2_t,
     b: uint64x2_t,
@@ -42,6 +49,7 @@ pub(crate) fn _veorq_n_u64(a: uint64x2_t, c: u64) -> uint64x2_t {
     _veorq_u64(a, c)
 }
 
+#[cfg_attr(hax, hax_lib::attributes)]
 impl KeccakItem<2> for uint64x2_t {
     #[inline(always)]
     fn zero() -> Self {
@@ -56,6 +64,7 @@ impl KeccakItem<2> for uint64x2_t {
         _vrax1q_u64(a, b)
     }
     #[inline(always)]
+    #[cfg_attr(hax, hax_lib::requires(0 < LEFT && LEFT < 64 && 0 < RIGHT && RIGHT < 64 && LEFT + RIGHT == 64))]
     fn xor_and_rotate<const LEFT: i32, const RIGHT: i32>(a: Self, b: Self) -> Self {
         _vxarq_u64::<LEFT, RIGHT>(a, b)
     }

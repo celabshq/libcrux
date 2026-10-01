@@ -1,0 +1,60 @@
+// AUTO-GENERATED observed-side trust ledger baseline (scripts/trust_ledger.py). Do not edit by hand.
+{
+  "crate": "sha3",
+  "planes": {
+    "extraction": {
+      "modules": [
+        "Libcrux_sha3",
+        "Libcrux_sha3.Avx2.X4",
+        "Libcrux_sha3.Avx2.X4.Incremental",
+        "Libcrux_sha3.Generic_keccak",
+        "Libcrux_sha3.Generic_keccak.Constants",
+        "Libcrux_sha3.Generic_keccak.Portable",
+        "Libcrux_sha3.Generic_keccak.Simd128",
+        "Libcrux_sha3.Generic_keccak.Simd256",
+        "Libcrux_sha3.Generic_keccak.Xof",
+        "Libcrux_sha3.Generic_keccak.Xof.Bundle",
+        "Libcrux_sha3.Generic_keccak.Xof.Proof_utils",
+        "Libcrux_sha3.Neon",
+        "Libcrux_sha3.Neon.X2",
+        "Libcrux_sha3.Neon.X2.Incremental",
+        "Libcrux_sha3.Portable",
+        "Libcrux_sha3.Portable.Incremental",
+        "Libcrux_sha3.Portable.Incremental.Bundle",
+        "Libcrux_sha3.Portable.Incremental.Cshake",
+        "Libcrux_sha3.Portable.Incremental.Private",
+        "Libcrux_sha3.Proof_utils",
+        "Libcrux_sha3.Proof_utils.Lemmas",
+        "Libcrux_sha3.Simd.Arm64",
+        "Libcrux_sha3.Simd.Arm64.Load",
+        "Libcrux_sha3.Simd.Arm64.Store",
+        "Libcrux_sha3.Simd.Arm64.StoreBlockHelpers",
+        "Libcrux_sha3.Simd.Arm64.Wrappers",
+        "Libcrux_sha3.Simd.Avx2",
+        "Libcrux_sha3.Simd.Avx2.Load",
+        "Libcrux_sha3.Simd.Avx2.Store",
+        "Libcrux_sha3.Simd.Avx2.StoreBlockHelpers",
+        "Libcrux_sha3.Simd.Avx2.Wrappers",
+        "Libcrux_sha3.Simd.Portable",
+        "Libcrux_sha3.Traits"
+      ]
+    },
+    "fstar": {
+      "by_kind": {
+        "assume_val": 6
+      },
+      "by_module": {
+        "Libcrux_sha3": 4,
+        "Libcrux_sha3.Generic_keccak": 1,
+        "Libcrux_sha3.Portable": 1
+      },
+      "scanned_files": 75,
+      "total": 6
+    },
+    "makefile": {
+      "admit_modules": [],
+      "slow_modules": []
+    },
+    "patches": []
+  }
+}

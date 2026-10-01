@@ -1,10 +1,20 @@
 //! AVX2 SIMD math wrappers + `KeccakItem<4>` trait impl.
+//!
+//! Lives in its own submodule (extracts to
+//! `Libcrux_sha3.Simd.Avx2.Wrappers`) so that the parent
+//! `Libcrux_sha3.Simd.Avx2` does NOT carry top-level body
+//! definitions — that suppresses hax's `.Bundle.fst` collation,
+//! keeping each load/store/wrapper module's F* SMT context minimal.
+
+#[cfg(hax)]
+use hax_lib::int::ToInt;
 
 use libcrux_intrinsics::avx2::*;
 
 use crate::traits::*;
 
 #[inline(always)]
+#[cfg_attr(hax, hax_lib::requires(0 <= LEFT && LEFT <= 64 && 0 < RIGHT && RIGHT < 64))]
 fn rotate_left<const LEFT: i32, const RIGHT: i32>(x: Vec256) -> Vec256 {
     #[cfg(not(any(eurydice, hax)))]
     debug_assert!(LEFT + RIGHT == 64);
@@ -15,6 +25,9 @@ fn rotate_left<const LEFT: i32, const RIGHT: i32>(x: Vec256) -> Vec256 {
 
 #[inline(always)]
 fn _veor5q_u64(a: Vec256, b: Vec256, c: Vec256, d: Vec256, e: Vec256) -> Vec256 {
+    // Left-associated to match the spec shape `(((a^b)^c)^d)^e` so
+    // [avx2_lc_xor5] can compose lane-wise SMTPats without needing
+    // assoc/comm of `^.` on u64.
     let ab = mm256_xor_si256(a, b);
     let abc = mm256_xor_si256(ab, c);
     let abcd = mm256_xor_si256(abc, d);
@@ -27,6 +40,7 @@ fn _vrax1q_u64(a: Vec256, b: Vec256) -> Vec256 {
 }
 
 #[inline(always)]
+#[cfg_attr(hax, hax_lib::requires(0 <= LEFT && LEFT <= 64 && 0 < RIGHT && RIGHT < 64))]
 fn _vxarq_u64<const LEFT: i32, const RIGHT: i32>(a: Vec256, b: Vec256) -> Vec256 {
     let ab = mm256_xor_si256(a, b);
     rotate_left::<LEFT, RIGHT>(ab)
@@ -44,6 +58,7 @@ fn _veorq_n_u64(a: Vec256, c: u64) -> Vec256 {
     mm256_xor_si256(a, c)
 }
 
+#[cfg_attr(hax, hax_lib::attributes)]
 impl KeccakItem<4> for Vec256 {
     #[inline(always)]
     fn zero() -> Self {
@@ -58,6 +73,11 @@ impl KeccakItem<4> for Vec256 {
         _vrax1q_u64(a, b)
     }
     #[inline(always)]
+    #[cfg_attr(hax, hax_lib::requires(
+        LEFT.to_int() + RIGHT.to_int() == 64.to_int() &&
+        RIGHT > 0 &&
+        RIGHT < 64
+    ))]
     fn xor_and_rotate<const LEFT: i32, const RIGHT: i32>(a: Self, b: Self) -> Self {
         _vxarq_u64::<LEFT, RIGHT>(a, b)
     }

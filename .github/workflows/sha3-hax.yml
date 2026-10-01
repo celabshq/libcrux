@@ -46,6 +46,10 @@ jobs:
         working-directory: crates/algorithms/sha3
         run: ./hax.sh extract
 
+      # Trust-surface regression gate (scripts/README-trust-ledger.md).
+      - name: 🔒 Trust-ledger regression gate (warn-only)
+        run: python3 scripts/trust_ledger.py --crate sha3 --check --warn-only
+
       - name: ↑ Upload F* extraction (standard)
         uses: actions/upload-artifact@v7
         with:
