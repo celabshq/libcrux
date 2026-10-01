@@ -104,6 +104,15 @@ pub(crate) fn load_last<const RATE: usize, const DELIMITER: u8>(
     load_block::<RATE>(state, &buffer, 0);
 }
 
+/// Per-iteration store wrapper for the `store_block` loop body: writes the
+/// 8-byte window `out[start+8*i .. start+8*i+8)` from `word`.
+#[inline(always)]
+fn store_u64x1(out: &mut [u8], word: u64, start: usize, i: usize) {
+    let bytes = word.to_le_bytes();
+    let out_pos = start + 8 * i;
+    out[out_pos..out_pos + 8].copy_from_slice(&bytes);
+}
+
 #[inline(always)]
 #[cfg_attr(hax, hax_lib::requires(
     valid_rate(RATE) &&
@@ -126,9 +135,7 @@ pub(crate) fn store_block<const RATE: usize>(
         #[cfg(hax)]
         hax_lib::loop_invariant!(|i: usize| out.len() == out_len);
 
-        let bytes = get_ij(s, i / 5, i % 5).to_le_bytes();
-        let out_pos = start + 8 * i;
-        out[out_pos..out_pos + 8].copy_from_slice(&bytes);
+        store_u64x1(out, *get_ij(s, i / 5, i % 5), start, i);
     }
 
     let remaining = len % 8;
