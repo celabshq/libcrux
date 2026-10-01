@@ -25,6 +25,5 @@ simd256 = []
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = [
     'cfg(hax)',
-    'cfg(pre_core_models)',
     'cfg(eurydice)',
 ] }

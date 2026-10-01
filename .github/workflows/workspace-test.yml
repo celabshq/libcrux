@@ -29,9 +29,8 @@ jobs:
           tool: nextest
           
       # This does not include doctest, because nextest doesn't support doctests.
-      # XXX: We skip one outdated core-models tests here, fixed by https://github.com/celabshq/libcrux/pull/1481
       - name: Run workspace tests
-        run: cargo nextest run --workspace --no-fail-fast -- --skip _mm256_bsrli_epi128
+        run: cargo nextest run --workspace --no-fail-fast
         
       - name: Run workspace doctests
         run: cargo test --doc --workspace --no-fail-fast

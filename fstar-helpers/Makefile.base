@@ -35,5 +35,9 @@ FSTAR_INCLUDE_DIRS_EXTRA += \
 	      $(HAX_PROOF_LIBS)/proofs/fstar/extraction
 endif
 
+# core-models' hand-written companions (the intrinsics views and trusted
+# axioms) live in its `proofs/fstar/spec`, which FINDLIBS does not discover.
+FSTAR_INCLUDE_DIRS_EXTRA += \
+	      $(shell git rev-parse --show-toplevel)/crates/utils/core-models/proofs/fstar/spec
 
 include $(shell git rev-parse --show-toplevel)/fstar-helpers/Makefile.generic

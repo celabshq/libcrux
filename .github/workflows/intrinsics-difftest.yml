@@ -1,0 +1,62 @@
+name: Intrinsics - differential tests
+
+# Runs the core-models differential tests (model == hardware) on x86_64 and
+# aarch64, with the target features that gate the AES/CLMUL tests enabled.
+
+on:
+  merge_group:
+    paths:
+      - "crates/utils/core-models/**"
+      - ".github/workflows/intrinsics-difftest.yml"
+  pull_request:
+    branches: ["dev", "main"]
+    paths:
+      - "crates/utils/core-models/**"
+      - ".github/workflows/intrinsics-difftest.yml"
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  difftest-x86:
+    name: x86 model==hardware (AVX2 + AES/CLMUL)
+    runs-on: ubuntu-latest
+    env:
+      RUSTFLAGS: "-C target-feature=+aes,+pclmulqdq,+avx2,+ssse3,+sse2"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Show enabled target features
+        run: rustc --print=cfg -C target-feature=+aes,+pclmulqdq,+avx2 | grep target_feature || true
+      - name: Run core-models differential tests (x86, AES/CLMUL enabled)
+        run: cargo test -p libcrux-core-models --no-fail-fast
+
+  difftest-aarch64:
+    name: aarch64 model==hardware (NEON + ARM-AES)
+    runs-on: macos-14
+    env:
+      RUSTFLAGS: "-C target-feature=+aes"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Show enabled target features
+        run: rustc --print=cfg -C target-feature=+aes | grep target_feature || true
+      - name: Run core-models differential tests (aarch64, ARM-AES enabled)
+        run: cargo test -p libcrux-core-models --no-fail-fast
+
+  intrinsics-difftest-status:
+    if: ${{ always() }}
+    needs: [difftest-x86, difftest-aarch64]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Successful
+        if: ${{ !(contains(needs.*.result, 'failure')) }}
+        run: exit 0
+      - name: Failing
+        if: ${{ (contains(needs.*.result, 'failure')) }}
+        run: exit 1
