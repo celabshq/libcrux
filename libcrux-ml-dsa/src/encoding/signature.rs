@@ -32,6 +32,16 @@ pub(crate) fn serialize<SIMDUnit: Operations>(
 
     let mut true_hints_seen = 0;
 
+    // FIPS 204 §7.2 Algorithm 20 (HintBitPack) requires that bytes in
+    // y[Index..ω] (between the last written hint index and the start of
+    // the per-row offsets) are zero, and HintBitUnpack rejects nonzero
+    // padding (§7.2 Algorithm 21).  Explicitly zero the range we'll
+    // write into so we don't depend on the caller having pre-zeroed the
+    // signature buffer.
+    for k in 0..(max_ones_in_hint + rows_in_a) {
+        signature[offset + k] = 0;
+    }
+
     // Unfortunately the following does not go through hax:
     //
     //     let hint_serialized = &mut signature[offset..];
