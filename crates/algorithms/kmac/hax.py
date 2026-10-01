@@ -27,11 +27,23 @@ def shell(command, expect=0, cwd=None, env={}):
         raise Exception("Error {}. Expected {}.".format(ret, expect))
 
 KMAC = os.path.dirname(os.path.abspath(__file__))
-PLATFORM = os.path.normpath(os.path.join(KMAC, "../../sys/platform"))
-CORE_MODELS = os.path.normpath(os.path.join(KMAC, "../../utils/core-models"))
-INTRINSICS = os.path.normpath(os.path.join(KMAC, "../../utils/intrinsics"))
-SECRETS = os.path.normpath(os.path.join(KMAC, "../../utils/secrets"))
+REPO_ROOT = os.path.normpath(os.path.join(KMAC, "../../.."))
 SHA3 = os.path.normpath(os.path.join(KMAC, "../sha3"))
+
+
+def run_dep_extract(rel_script):
+    """Run a shared dependency's own `hax.py extract`, the single writer of
+    that dependency's tree."""
+    script = os.path.join(REPO_ROOT, rel_script)
+    print(f"[kmac/hax.py] -> {rel_script} extract")
+    subprocess.run([sys.executable, script, "extract"], check=True)
+
+
+def run_sha3_extract():
+    """Run sha3's own driver, the single writer of the
+    `Libcrux_sha3.Portable.Incremental.*` tree kmac verifies against."""
+    print("[kmac/hax.py] -> crates/algorithms/sha3/hax.sh extract")
+    subprocess.run([os.path.join(SHA3, "hax.sh"), "extract"], cwd=SHA3, check=True)
 
 
 def hax_extract(cwd, hax_args):
@@ -42,62 +54,15 @@ def hax_extract(cwd, hax_args):
 class extractAction(argparse.Action):
 
     def __call__(self, parser, args, values, option_string=None) -> None:
-        # XXX The order of these extractions is relevant. Ideally, hax would be able
-        # to just extract a crate and its dependents, but that doesn't seem to always
-        # work (only sometimes...). You must also take care to not extract a crate which
-        # has dependents before the dependents, as they will otherwise not be extracted
-        # properly due to seemingly a caching bug in hax.
+        # Each dependency tree is written only by its own driver, so its
+        # module headers do not depend on which crate extracted last.
+        run_dep_extract("crates/sys/platform/hax.py")
+        run_dep_extract("crates/utils/core-models/hax.py")
+        run_dep_extract("crates/utils/secrets/hax.py")
+        run_sha3_extract()
 
-        # --- platform --------------------------------------------------------
-        hax_extract(
-            PLATFORM,
-            [
-                "into",
-                "-i", "+:** -**::x86::init::cpuid -**::x86::init::cpuid_count",
-                "fstar", "--z3rlimit", "80", "--interfaces", "+**",
-            ],
-        )
-
-        # --- core-models -----------------------------------------------------
-        hax_extract(CORE_MODELS, ["into", "fstar"])
-
-        # --- intrinsics ------------------------------------------------------
-        hax_extract(
-            INTRINSICS,
-            [
-                "into",
-                "-i", "-libcrux_core_models::**",
-                "fstar", "--z3rlimit", "80", "--interfaces", "+**",
-            ],
-        )
-
-        # --- secrets ---------------------------------------------------------
-        hax_extract(
-            SECRETS,
-            ["into", "-i", "+**", "fstar", "--z3rlimit", "80"],
-        )
-
-        # --- sha3 ------------------------------------------------------------
-        # libcrux_sha3::portable must stay transparent (no F* interface) — see
-        # the comment in crates/algorithms/sha3/hax.sh for why.
-        hax_extract(
-            SHA3,
-            [
-                "into",
-                "-i", "+**",
-                "-i", "-**::avx2::**",
-                "-i", "-**::arm64::**",
-                "-i", "-**::neon::**",
-                "-i", "-**::simd128::**",
-                "-i", "-**::simd256::**",
-                "fstar", "--z3rlimit", "80",
-                # XXX Extraction with interfaces currently doesn't work due to state_inv refactoring
-                # "--interfaces",
-                # "+** -**::generic_keccak::constants::** "
-                # "-libcrux_sha3::proof_utils::** -libcrux_sha3::portable::**",
-            ],
-        )
-
+        # kmac's own sweep names only `libcrux_kmac::**`, so it pulls in no
+        # dependency module and needs no exclusions.
         hax_extract(
             KMAC,
             [
@@ -126,13 +91,14 @@ class proveAction(argparse.Action):
 class cleanAction(argparse.Action):
 
     def __call__(self, parser, args, values, option_string=None) -> None:
-        for crate_dir in [KMAC, PLATFORM, CORE_MODELS, INTRINSICS, SECRETS, SHA3]:
-            extraction_dir = os.path.join(crate_dir, "proofs/fstar/extraction")
-            files = glob(os.path.join(extraction_dir, "*.fst")) + glob(
-                os.path.join(extraction_dir, "*.fsti")
-            )
-            if files:
-                shell(["rm"] + files)
+        # Only kmac's own tree: the dependency trees belong to their canonical
+        # owners, and clearing them here would delete another driver's output.
+        extraction_dir = os.path.join(KMAC, "proofs/fstar/extraction")
+        files = glob(os.path.join(extraction_dir, "*.fst")) + glob(
+            os.path.join(extraction_dir, "*.fsti")
+        )
+        if files:
+            shell(["rm"] + files)
         return None
 
 def parse_arguments():
