@@ -47,7 +47,7 @@ libcrux-kats = { workspace = true, features = ["mldsa"] }
 pqcrypto-mldsa = { version = "0.1.0" } #, default-features = false
 
 [target.'cfg(hax)'.dependencies]
-core-models = { path = "../crates/utils/core-models", version = "0.0.7" }
+libcrux-core-models = { path = "../crates/utils/core-models", version = "0.0.7" }
 hax-lib.workspace = true
 
 [features]

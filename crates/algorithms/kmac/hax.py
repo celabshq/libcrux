@@ -34,58 +34,9 @@ SECRETS = os.path.normpath(os.path.join(KMAC, "../../utils/secrets"))
 SHA3 = os.path.normpath(os.path.join(KMAC, "../sha3"))
 
 
-def replace_in_extraction(crate_dir, replacements):
-    """Apply `(old, new)` string replacements to every .fst/.fsti file in
-    `crate_dir`'s extraction directory (the Python equivalent of the `sed`
-    calls in crates/algorithms/sha3/hax.sh)."""
-    extraction_dir = os.path.join(crate_dir, "proofs", "fstar", "extraction")
-    files = glob(os.path.join(extraction_dir, "*.fst")) + glob(
-        os.path.join(extraction_dir, "*.fsti")
-    )
-    for path in files:
-        with open(path) as f:
-            content = f.read()
-        updated = content
-        for old, new in replacements:
-            updated = updated.replace(old, new)
-        if updated != content:
-            with open(path, "w") as f:
-                f.write(updated)
-
-
-def rename_core_models_uses(crate_dir):
-    """Mirror sha3/hax.sh: any extracted crate may refer to core-models under
-    the `Core_models.*` module path; rewrite those references to the
-    `Libcrux_core_models.*` modules produced by rename_core_models_files."""
-    replace_in_extraction(
-        crate_dir,
-        [
-            ("Core_models.Abstractions", "Libcrux_core_models.Abstractions"),
-            ("Core_models.Core_arch", "Libcrux_core_models.Core_arch"),
-        ],
-    )
-
-
-def rename_core_models_files(crate_dir):
-    """Mirror sha3/hax.sh: rename the core-models crate's own modules from
-    `Core_models*` to `Libcrux_core_models*` (both file names and the
-    `module ...` headers inside them)."""
-    extraction_dir = os.path.join(crate_dir, "proofs", "fstar", "extraction")
-    for path in glob(os.path.join(extraction_dir, "Core_models*")):
-        dir_path = os.path.dirname(path)
-        filename = os.path.basename(path)
-        new_filename = "Libcrux_core_models" + filename[len("Core_models"):]
-        os.rename(path, os.path.join(dir_path, new_filename))
-    replace_in_extraction(
-        crate_dir, [("module Core_models", "module Libcrux_core_models")]
-    )
-
-
 def hax_extract(cwd, hax_args):
-    """Run `cargo hax <hax_args>` in `cwd` and rewrite core-models uses in the
-    resulting extraction, exactly like the `extract` helper in sha3/hax.sh."""
+    """Run `cargo hax <hax_args>` in `cwd`."""
     shell(["cargo", "hax"] + hax_args, cwd=cwd, env={})
-    rename_core_models_uses(cwd)
 
 
 class extractAction(argparse.Action):
@@ -109,14 +60,13 @@ class extractAction(argparse.Action):
 
         # --- core-models -----------------------------------------------------
         hax_extract(CORE_MODELS, ["into", "fstar"])
-        rename_core_models_files(CORE_MODELS)
 
         # --- intrinsics ------------------------------------------------------
         hax_extract(
             INTRINSICS,
             [
                 "into",
-                "-i", "-core_models::**",
+                "-i", "-libcrux_core_models::**",
                 "fstar", "--z3rlimit", "80", "--interfaces", "+**",
             ],
         )

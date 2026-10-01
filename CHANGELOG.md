@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - (workspace) [#1620](https://github.com/celabshq/libcrux/pull/1620): Pin `hax-lib` to a revision of hax `main`
+- (libcrux-core-models) [#1621](https://github.com/celabshq/libcrux/pull/1621): Rename the `core-models` crate to `libcrux-core-models`
 - (libcrux-macros) [#1550](https://github.com/celabshq/libcrux/pull/1550): Update syn dependency to 3.0
 - (libcrux-secrets) [#1551](https://github.com/celabshq/libcrux/pull/1551) Update crabgrind to 0.3.1
 - (libcrux-hmac-drbg) [#1558](https://github.com/celabshq/libcrux/pull/1558): rename `GenerateError::RequestInvalid` to `GenerateError::OutputTooLarge

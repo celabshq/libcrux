@@ -13,7 +13,7 @@ exclude = ["/proofs"]
 [dependencies]
 
 [target.'cfg(hax)'.dependencies]
-core-models = { path = "../core-models", version = "0.0.7" }
+libcrux-core-models = { path = "../core-models", version = "0.0.7" }
 hax-lib.workspace = true
 
 [features]

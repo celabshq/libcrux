@@ -7,7 +7,7 @@
 //! Converting an integer to a bit vector and back:
 //!
 //! ```rust
-//! use core_models::abstractions::{bit::{Bit, MachineInteger}, bitvec::BitVec};
+//! use libcrux_core_models::abstractions::{bit::{Bit, MachineInteger}, bitvec::BitVec};
 //!
 //! // Create a BitVec from a machine integer (using the integer's bit-width)
 //! let bv = BitVec::<16>::from_int(42u16);
