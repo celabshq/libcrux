@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- [#1618](https://github.com/celabshq/libcrux/pull/1618): Zero the hint section when serializing a signature, so `sign_mut` produces a valid signature into a non-zeroed output buffer
+
 ## [0.0.10] (2026-07-15)
 
 ### Added
