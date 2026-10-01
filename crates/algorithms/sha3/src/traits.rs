@@ -104,6 +104,7 @@ pub(crate) trait Absorb<const N: usize> {
 /// handle the mutability required for a generic implementation.
 ///
 /// Store blocks `N = 1`
+#[libcrux_macros::trusted(replace, "hax-limitation: F* typeclass model of the Squeeze trait")]
 #[cfg_attr(hax, hax_lib::fstar::replace(
     interface, "
 class t_Squeeze (v_Self: Type0) (v_T: Type0) = {
@@ -167,7 +168,15 @@ pub(crate) trait Squeeze<T: KeccakItem<1>> {
 ///
 /// Store blocks `N = 2`
 #[cfg(feature = "simd128")]
+#[cfg_attr(hax, hax_lib::attributes)]
 pub(crate) trait Squeeze2<T: KeccakItem<2>> {
+    #[cfg_attr(hax, hax_lib::requires(
+        valid_rate(RATE) &&
+        len <= RATE &&
+        start.to_int() + len.to_int() <= out0.len().to_int() &&
+        out0.len() == out1.len()
+    ))]
+    #[cfg_attr(hax, hax_lib::ensures(|_| future(out0).len() == out0.len() && future(out1).len() == out1.len()))]
     fn squeeze2<const RATE: usize>(
         &self,
         out0: &mut [u8],
@@ -184,7 +193,22 @@ pub(crate) trait Squeeze2<T: KeccakItem<2>> {
 ///
 /// Store blocks `N = 4`
 #[cfg(feature = "simd256")]
+#[cfg_attr(hax, hax_lib::attributes)]
 pub(crate) trait Squeeze4<T: KeccakItem<4>> {
+    #[cfg_attr(hax, hax_lib::requires(
+        valid_rate(RATE) &&
+        len <= RATE &&
+        start.to_int() + len.to_int() <= out0.len().to_int() &&
+        out0.len() == out1.len() &&
+        out0.len() == out2.len() &&
+        out0.len() == out3.len()
+    ))]
+    #[cfg_attr(hax, hax_lib::ensures(|_|
+        future(out0).len() == out0.len() &&
+        future(out1).len() == out1.len() &&
+        future(out2).len() == out2.len() &&
+        future(out3).len() == out3.len()
+    ))]
     fn squeeze4<const RATE: usize>(
         &self,
         out0: &mut [u8],

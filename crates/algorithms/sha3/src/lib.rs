@@ -14,6 +14,8 @@ mod generic_keccak;
 mod impl_digest_trait;
 #[cfg(hax)]
 use hax_lib::int::*;
+#[cfg(hax)]
+use hax_lib::prop::*;
 #[cfg(not(any(hax, eurydice)))]
 pub use impl_digest_trait::*;
 
@@ -212,6 +214,11 @@ pub fn sha512_ema(digest: &mut [u8], payload: &[u8]) {
 /// Note that the output length `BYTES` must fit into 32 bit. If it is longer,
 /// the output will only return `u32::MAX` bytes.
 #[cfg_attr(not(eurydice), inline(always))]
+#[cfg_attr(hax, hax_lib::requires(BYTES < usize::MAX - 200))]
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"
+    (result <: t_Array u8 $BYTES) ==
+    Hacspec_sha3.Sponge.keccak $BYTES (mk_usize 168) (mk_u8 31) $data
+"#)))]
 pub fn shake128<const BYTES: usize>(data: &[u8]) -> [u8; BYTES] {
     let mut out = [0u8; BYTES];
     portable::shake128(&mut out, data);
@@ -222,6 +229,13 @@ pub fn shake128<const BYTES: usize>(data: &[u8]) -> [u8; BYTES] {
 ///
 /// Writes `out.len()` bytes.
 #[cfg_attr(not(eurydice), inline(always))]
+#[cfg_attr(hax, hax_lib::requires(out.len() < usize::MAX - 200))]
+#[cfg_attr(hax, hax_lib::ensures(|_| (future(out).len() == out.len()).to_prop() & {
+    fstar!(r#"(out_future <: t_Slice u8) ==
+              (Hacspec_sha3.Sponge.keccak
+                 (Core_models.Slice.impl__len #u8 $out)
+                 (mk_usize 168) (mk_u8 31) $data <: t_Slice u8)"#)
+}))]
 pub fn shake128_ema(out: &mut [u8], data: &[u8]) {
     portable::shake128(out, data);
 }
@@ -231,6 +245,11 @@ pub fn shake128_ema(out: &mut [u8], data: &[u8]) {
 /// Note that the output length `BYTES` must fit into 32 bit. If it is longer,
 /// the output will only return `u32::MAX` bytes.
 #[cfg_attr(not(eurydice), inline(always))]
+#[cfg_attr(hax, hax_lib::requires(BYTES < usize::MAX - 200))]
+#[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"
+    (result <: t_Array u8 $BYTES) ==
+    Hacspec_sha3.Sponge.keccak $BYTES (mk_usize 136) (mk_u8 31) $data
+"#)))]
 pub fn shake256<const BYTES: usize>(data: &[u8]) -> [u8; BYTES] {
     let mut out = [0u8; BYTES];
     portable::shake256(&mut out, data);
@@ -241,6 +260,13 @@ pub fn shake256<const BYTES: usize>(data: &[u8]) -> [u8; BYTES] {
 ///
 /// Writes `out.len()` bytes.
 #[cfg_attr(not(eurydice), inline(always))]
+#[cfg_attr(hax, hax_lib::requires(out.len() < usize::MAX - 200))]
+#[cfg_attr(hax, hax_lib::ensures(|_| (future(out).len() == out.len()).to_prop() & {
+    fstar!(r#"(out_future <: t_Slice u8) ==
+              (Hacspec_sha3.Sponge.keccak
+                 (Core_models.Slice.impl__len #u8 $out)
+                 (mk_usize 136) (mk_u8 31) $data <: t_Slice u8)"#)
+}))]
 pub fn shake256_ema(out: &mut [u8], data: &[u8]) {
     portable::shake256(out, data);
 }

@@ -4,6 +4,9 @@
 use hax_lib::int::*;
 
 #[cfg(hax)]
+use hax_lib::prop::*;
+
+#[cfg(hax)]
 use crate::proof_utils::valid_rate;
 use crate::{generic_keccak::KeccakState, traits::*};
 
@@ -48,10 +51,20 @@ fn _veorq_n_u64(a: u64, c: u64) -> u64 {
 }
 
 #[inline(always)]
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 300"))]
 #[cfg_attr(hax, hax_lib::requires(
     valid_rate(RATE) &&
     start.to_int() + RATE.to_int() <= blocks.len().to_int()
 ))]
+#[cfg_attr(hax, hax_lib::ensures(|_| hax_lib::forall(|i: usize|
+      if i < 25 {
+          if i < RATE/8 {
+              future(state)[i] == state[i] ^ u64::from_le_bytes(blocks[start + 8 * i..start + 8 * i + 8].try_into().unwrap())
+          } else {
+              future(state)[i] == state[i]
+          }
+      } else { true }
+  )))]
 pub(crate) fn load_block<const RATE: usize>(state: &mut [u64; 25], blocks: &[u8], start: usize) {
     #[cfg(not(eurydice))]
     {
@@ -66,12 +79,38 @@ pub(crate) fn load_block<const RATE: usize>(state: &mut [u64; 25], blocks: &[u8]
 
     #[allow(clippy::needless_range_loop)]
     for i in 0..RATE / 8 {
+        #[cfg(hax)]
+        hax_lib::loop_invariant!(|i: usize| hax_lib::forall(|j: usize| if j < RATE / 8 {
+            if j < i {
+                state_flat[j]
+                    == u64::from_le_bytes(
+                        blocks[start + 8 * j..start + 8 * j + 8].try_into().unwrap(),
+                    )
+            } else {
+                state_flat[j] == 0
+            }
+        } else {
+            true
+        }));
         let offset = start + 8 * i;
         state_flat[i] = u64::from_le_bytes(blocks[offset..offset + 8].try_into().unwrap());
     }
 
+    #[cfg(hax)]
+    let _old_state = *state; // ghost variable
+
     #[allow(clippy::needless_range_loop)]
     for i in 0..RATE / 8 {
+        #[cfg(hax)]
+        hax_lib::loop_invariant!(|i: usize| hax_lib::forall(|j: usize| if j < 25 {
+            if j < i {
+                state[j] == _old_state[j] ^ state_flat[j]
+            } else {
+                state[j] == _old_state[j]
+            }
+        } else {
+            true
+        }));
         set_ij(
             state,
             i / 5,
@@ -104,13 +143,63 @@ pub(crate) fn load_last<const RATE: usize, const DELIMITER: u8>(
     load_block::<RATE>(state, &buffer, 0);
 }
 
+/// Per-iteration store wrapper for the `store_block` loop body: writes the
+/// 8-byte window `out[start+8*i .. start+8*i+8)` from `word`.
+///
+/// Factored out of `store_block` so its strong per-byte ensures keeps the
+/// `update_at_range` reasoning out of the outer loop's invariant. Mirrors
+/// `store_u64x2x2` on Arm64 and `store_u64x4x4` on AVX2.
 #[inline(always)]
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 400 --split_queries always"))]
+#[cfg_attr(hax, hax_lib::requires(
+    start.to_int() + (8.to_int() * (i.to_int() + 1.to_int())) <= out.len().to_int()
+))]
+#[cfg_attr(hax, hax_lib::ensures(|_| (future(out).len() == out.len()).to_prop()
+    & hax_lib::forall(|j: usize| if j < out.len() {
+        if j < start + 8 * i {
+            out[j] == future(out)[j]
+        } else if j < start + 8 * (i + 1) {
+            future(out)[j] == word.to_le_bytes()[(j - start) % 8]
+        } else {
+            out[j] == future(out)[j]
+        }
+    } else {
+        true
+    })
+))]
+fn store_u64x1(out: &mut [u8], word: u64, start: usize, i: usize) {
+    let bytes = word.to_le_bytes();
+    let out_pos = start + 8 * i;
+    #[cfg(hax)]
+    hax_lib::fstar!(
+        r#"
+        Proof_Utils.Lemmas.lemma_index_update_at_range out (${out_pos..out_pos+8}) bytes
+    "#
+    );
+    out[out_pos..out_pos + 8].copy_from_slice(&bytes);
+}
+
+#[inline(always)]
+// Budgeted above the cold (hint-free) cost.
+#[cfg_attr(hax, hax_lib::fstar::options("--z3rlimit 800"))]
 #[cfg_attr(hax, hax_lib::requires(
     valid_rate(RATE) &&
     len <= RATE &&
     start.to_int() + len.to_int() <= out.len().to_int()
 ))]
-#[cfg_attr(hax, hax_lib::ensures(|_| future(out).len() == out.len()))]
+#[cfg_attr(hax, hax_lib::ensures(|_| (future(out).len() == out.len()).to_prop() &
+    hax_lib::forall(|i: usize| if i < out.len() {
+        if i < start {
+            out[i] == future(out)[i]
+        } else if i < start + len {
+            future(out)[i] == s[(i-start)/8].to_le_bytes()[(i-start)%8]
+        } else {
+            out[i] == future(out)[i]
+        }
+    } else {
+        true
+    })
+))]
 pub(crate) fn store_block<const RATE: usize>(
     s: &[u64; 25],
     out: &mut [u8],
@@ -120,21 +209,42 @@ pub(crate) fn store_block<const RATE: usize>(
     let octets = len / 8;
 
     #[cfg(hax)]
-    let out_len = out.len(); // ghost variable
+    let old_out = out.to_vec().as_slice(); // ghost variable
 
     for i in 0..octets {
         #[cfg(hax)]
-        hax_lib::loop_invariant!(|i: usize| out.len() == out_len);
+        hax_lib::loop_invariant!(|i: usize| (out.len() == old_out.len()).to_prop()
+            & hax_lib::forall(|j: usize| if j < out.len() {
+                if j < start {
+                    out[j] == old_out[j]
+                } else if j < start + i * 8 {
+                    out[j] == s[(j - start) / 8].to_le_bytes()[(j - start) % 8]
+                } else {
+                    out[j] == old_out[j]
+                }
+            } else {
+                true
+            }));
 
-        let bytes = get_ij(s, i / 5, i % 5).to_le_bytes();
-        let out_pos = start + 8 * i;
-        out[out_pos..out_pos + 8].copy_from_slice(&bytes);
+        // get_ij linearises 5*(i/5)+(i%5) == i, so the word stored here is the
+        // one s.[(j-start)/8] names in the invariant.
+        #[cfg(hax)]
+        hax_lib::fstar!(r#"FStar.Math.Lemmas.lemma_div_mod (v $i) 5"#);
+        store_u64x1(out, *get_ij(s, i / 5, i % 5), start, i);
     }
 
     let remaining = len % 8;
+
     if remaining > 0 {
         let bytes = get_ij(s, octets / 5, octets % 5).to_le_bytes();
         let out_pos = start + len - remaining;
+        #[cfg(hax)]
+        hax_lib::fstar!(
+            r#"
+            FStar.Math.Lemmas.lemma_div_mod (v $octets) 5;
+            Proof_Utils.Lemmas.lemma_index_update_at_range out (${out_pos..out_pos+remaining}) (Seq.slice bytes 0 (v remaining))
+        "#
+        );
         out[out_pos..out_pos + remaining].copy_from_slice(&bytes[..remaining]);
     }
 }
@@ -200,6 +310,16 @@ impl Absorb<1> for KeccakState<1, u64> {
     }
 }
 
+// FIXME(hax#1698): `fstar::before`/`after` on impl blocks is dropped, so the
+// push-options go on a hax-only dummy function.  The Squeeze impl is the last
+// item in the module, so no `#pop-options` is needed.
+#[cfg(hax)]
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::before(r#"#push-options "--split_queries always --z3rlimit 300""#)
+)]
+fn _squeeze_impl_opts() {}
+
 #[cfg_attr(hax, hax_lib::attributes)]
 impl Squeeze<u64> for KeccakState<1, u64> {
     #[cfg_attr(hax, hax_lib::requires(
@@ -207,7 +327,32 @@ impl Squeeze<u64> for KeccakState<1, u64> {
         len <= RATE &&
         start.to_int() + len.to_int() <= out.len().to_int()
     ))]
-    #[cfg_attr(hax, hax_lib::ensures(|_| future(out).len() == out.len()))]
+    // Postcondition well-formedness notes:
+    //   - `start + len` is compared at `.to_int()` level to avoid a usize-overflow
+    //     subtyping obligation (the trait-field elaboration has no access to
+    //     `f_squeeze_pre`, so the overflow bound can't be discharged).
+    //   - The indexed `self.st[(i - start)/8]` access is wrapped in a bounds guard
+    //     `(i - start)/8 < 25` for the same reason.  When the preconditions hold
+    //     (`valid_rate(RATE)` && `len <= RATE`) we have `len <= 168 < 200 = 8*25`,
+    //     so the guard is always true at actual use sites — the wrapping only
+    //     affects the type-elaboration obligation, not the proof.
+    #[cfg_attr(hax, hax_lib::ensures(|_| (future(out).len() == out.len()).to_prop() &
+        hax_lib::forall(|i: usize| if i < out.len() {
+            if i < start {
+                out[i] == future(out)[i]
+            } else if i.to_int() < start.to_int() + len.to_int() {
+                if (i - start)/8 < 25 {
+                    future(out)[i] == self.st[(i - start)/8].to_le_bytes()[(i - start)%8]
+                } else {
+                    true
+                }
+            } else {
+                out[i] == future(out)[i]
+            }
+        } else {
+            true
+        })
+    ))]
     fn squeeze<const RATE: usize>(&self, out: &mut [u8], start: usize, len: usize) {
         store_block::<RATE>(&self.st, out, start, len);
     }
