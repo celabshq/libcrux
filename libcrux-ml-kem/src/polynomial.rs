@@ -1,4 +1,4 @@
-use crate::vector::{Operations, MONTGOMERY_R_SQUARED_MOD_FIELD_MODULUS};
+use crate::vector::{Operations, FIELD_MODULUS, MONTGOMERY_R_SQUARED_MOD_FIELD_MODULUS};
 
 pub(crate) const ZETAS_TIMES_MONTGOMERY_R: [i16; 128] = {
     #[cfg(hax)]
@@ -166,6 +166,92 @@ pub(crate) fn vec_from_bytes<Vector: Operations>(
 #[allow(dead_code)]
 pub(crate) const fn vec_len_bytes<const K: usize, Vector: Operations>() -> usize {
     K * PolynomialRingElement::<Vector>::num_bytes()
+}
+
+/// Runtime check that every lane of `vec` lies in
+/// `[-(FIELD_MODULUS - 1), FIELD_MODULUS - 1]` = `[-3328, 3328]`.
+///
+/// Used to validate raw-decoded (16-bit) serialization inputs before they
+/// flow into field arithmetic.
+#[inline(always)]
+#[allow(dead_code)]
+fn vector_within_field_bound<Vector: Operations>(vec: &Vector) -> bool {
+    let arr = Vector::to_i16_array(*vec);
+    let ok = arr[0] > -FIELD_MODULUS
+        && arr[0] < FIELD_MODULUS
+        && arr[1] > -FIELD_MODULUS
+        && arr[1] < FIELD_MODULUS
+        && arr[2] > -FIELD_MODULUS
+        && arr[2] < FIELD_MODULUS
+        && arr[3] > -FIELD_MODULUS
+        && arr[3] < FIELD_MODULUS
+        && arr[4] > -FIELD_MODULUS
+        && arr[4] < FIELD_MODULUS
+        && arr[5] > -FIELD_MODULUS
+        && arr[5] < FIELD_MODULUS
+        && arr[6] > -FIELD_MODULUS
+        && arr[6] < FIELD_MODULUS
+        && arr[7] > -FIELD_MODULUS
+        && arr[7] < FIELD_MODULUS
+        && arr[8] > -FIELD_MODULUS
+        && arr[8] < FIELD_MODULUS
+        && arr[9] > -FIELD_MODULUS
+        && arr[9] < FIELD_MODULUS
+        && arr[10] > -FIELD_MODULUS
+        && arr[10] < FIELD_MODULUS
+        && arr[11] > -FIELD_MODULUS
+        && arr[11] < FIELD_MODULUS
+        && arr[12] > -FIELD_MODULUS
+        && arr[12] < FIELD_MODULUS
+        && arr[13] > -FIELD_MODULUS
+        && arr[13] < FIELD_MODULUS
+        && arr[14] > -FIELD_MODULUS
+        && arr[14] < FIELD_MODULUS
+        && arr[15] > -FIELD_MODULUS
+        && arr[15] < FIELD_MODULUS;
+    ok
+}
+
+/// Runtime check that every coefficient of `re` lies in
+/// `[-(FIELD_MODULUS - 1), FIELD_MODULUS - 1]`.
+#[inline(always)]
+#[allow(dead_code)]
+pub(crate) fn poly_within_field_bound<Vector: Operations>(
+    re: &PolynomialRingElement<Vector>,
+) -> bool {
+    let mut ok = true;
+    for i in 0..VECTORS_IN_RING_ELEMENT {
+        ok = ok && vector_within_field_bound(&re.coefficients[i]);
+    }
+    ok
+}
+
+/// Runtime check that every coefficient of every ring element in `v` lies
+/// in `[-(FIELD_MODULUS - 1), FIELD_MODULUS - 1]`.
+#[inline(always)]
+#[allow(dead_code)]
+pub(crate) fn polyvec_within_field_bound<const N: usize, Vector: Operations>(
+    v: &[PolynomialRingElement<Vector>; N],
+) -> bool {
+    let mut ok = true;
+    for i in 0..N {
+        ok = ok && poly_within_field_bound(&v[i]);
+    }
+    ok
+}
+
+/// Runtime check that every coefficient of every ring element in `m` lies
+/// in `[-(FIELD_MODULUS - 1), FIELD_MODULUS - 1]`.
+#[inline(always)]
+#[allow(dead_code)]
+pub(crate) fn matrix_within_field_bound<const N: usize, Vector: Operations>(
+    m: &[[PolynomialRingElement<Vector>; N]; N],
+) -> bool {
+    let mut ok = true;
+    for i in 0..N {
+        ok = ok && polyvec_within_field_bound(&m[i]);
+    }
+    ok
 }
 
 /// Given two polynomial ring elements `lhs` and `rhs`, compute the pointwise

@@ -701,7 +701,7 @@ pub(crate) mod kyber {
 ///     )
 ///     .unwrap();
 ///
-///     let ct2 = encapsulate2(&encaps_state, &pk2);
+///     let ct2 = encapsulate2(&encaps_state, &pk2).unwrap();
 ///
 ///     // Decapsulate the shared secret after receiving ct1 and ct2.
 ///     let shared_secret = decapsulate_incremental_key(key_pair.as_ref(), &ct1, &ct2).unwrap();
@@ -720,7 +720,7 @@ pub(crate) mod kyber {
 ///     // THIS ONE IS NOT!
 ///     let mut rng = ::rand::rng();
 ///
-///     let key_pair = KeyPairCompressedBytes::generate(&mut rng);
+///     let key_pair = KeyPairCompressedBytes::generate(&mut rng).unwrap();
 ///
 ///     // Get pk1 and pk2 to send to the other party.
 ///     let pk1 = key_pair.pk1();
@@ -735,7 +735,7 @@ pub(crate) mod kyber {
 ///     let ct1 = rand::encapsulate1(pk1, &mut rng, &mut encaps_state, &mut encaps_shared_secret)
 ///         .unwrap();
 ///
-///     let ct2 = encapsulate2(&encaps_state, pk2);
+///     let ct2 = encapsulate2(&encaps_state, pk2).unwrap();
 ///
 ///     // Decapsulate the shared secret after receiving ct1 and ct2.
 ///     let shared_secret = decapsulate_compressed_key(key_pair.sk(), &ct1, &ct2);

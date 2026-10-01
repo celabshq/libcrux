@@ -533,7 +533,7 @@ pub(crate) fn encapsulate2<
 >(
     state: &[u8; STATE_LEN],
     public_key_part: &[u8; PK2_LEN],
-) -> Ciphertext2<C2_SIZE> {
+) -> Result<Ciphertext2<C2_SIZE>, Error> {
     if libcrux_platform::simd256_support() {
         let pk2 = PublicKey2::from(public_key_part);
 

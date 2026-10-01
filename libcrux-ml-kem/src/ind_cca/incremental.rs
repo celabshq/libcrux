@@ -363,6 +363,10 @@ pub(crate) fn encapsulate2<
     Ciphertext2 { value: ciphertext }
 }
 
+/// Encapsulate the second part of the ciphertext from a serialized state.
+///
+/// The state bytes are validated on decode: [`Error::InvalidInput`] is
+/// returned if any decoded coefficient is out of field range.
 #[inline(always)]
 pub(crate) fn encapsulate2_serialized<
     const K: usize,
@@ -374,13 +378,16 @@ pub(crate) fn encapsulate2_serialized<
 >(
     state: &[u8; STATE_LEN],
     public_key_part: &PublicKey2<PK2_LEN>,
-) -> Ciphertext2<C2_SIZE> {
-    let state = EncapsState::from_bytes(state);
+) -> Result<Ciphertext2<C2_SIZE>, Error> {
+    let state = EncapsState::try_from_bytes(state)?;
 
-    encapsulate2::<K, PK2_LEN, C2_SIZE, VECTOR_V_COMPRESSION_FACTOR, Vector>(
-        &state,
-        public_key_part,
-    )
+    Ok(encapsulate2::<
+        K,
+        PK2_LEN,
+        C2_SIZE,
+        VECTOR_V_COMPRESSION_FACTOR,
+        Vector,
+    >(&state, public_key_part))
 }
 
 #[inline(always)]
@@ -433,6 +440,10 @@ pub(crate) fn decapsulate<
     >(private_key, &ciphertext.into())
 }
 
+/// Decapsulate with a serialized incremental key pair.
+///
+/// The key bytes are validated on decode: [`Error::InvalidInput`] is
+/// returned if any decoded coefficient is out of field range.
 #[inline(always)]
 pub(crate) fn decapsulate_incremental_key<
     const K: usize,
