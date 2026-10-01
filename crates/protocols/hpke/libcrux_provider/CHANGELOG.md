@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- P-384 (`DhKemP384`, and with it `MlKem1024P384`) now uses `libcrux-p384` and
+- [#1613](https://github.com/celabshq/libcrux/pull/1613) P-384 (`DhKemP384`, and with it `MlKem1024P384`) now uses `libcrux-p384` and
   is always available; the `rustcrypto-p-curves` feature only gates P-521.
 
 ### Fixed
