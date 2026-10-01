@@ -27,14 +27,9 @@ use hpke_rs_crypto::{
 };
 
 #[cfg(feature = "rustcrypto-p-curves")]
-use p384::{
-    elliptic_curve::{ecdh::diffie_hellman as p384diffie_hellman, sec1::ToSec1Point, Generate},
-    PublicKey as P384PublicKey, SecretKey as P384SecretKey,
-};
-#[cfg(feature = "rustcrypto-p-curves")]
 use p521::{
-    elliptic_curve::ecdh::diffie_hellman as p521diffie_hellman, PublicKey as P521PublicKey,
-    SecretKey as P521SecretKey,
+    elliptic_curve::{ecdh::diffie_hellman as p521diffie_hellman, sec1::ToSec1Point, Generate},
+    PublicKey as P521PublicKey, SecretKey as P521SecretKey,
 };
 
 #[cfg(feature = "sys-rng")]
@@ -187,16 +182,9 @@ impl<R: TryCryptoRng + 'static> HpkeCrypto for HpkeLibcrux<R> {
 
     fn dh(alg: KemAlgorithm, pk: &[u8], sk: &[u8]) -> Result<Vec<u8>, Error> {
         match alg {
-            #[cfg(feature = "rustcrypto-p-curves")]
-            KemAlgorithm::DhKemP384 => {
-                let sk = P384SecretKey::from_slice(sk).map_err(|_| Error::KemInvalidSecretKey)?;
-                let pk =
-                    P384PublicKey::from_sec1_bytes(pk).map_err(|_| Error::KemInvalidPublicKey)?;
-                Ok(p384diffie_hellman(sk.to_nonzero_scalar(), pk.as_affine())
-                    .raw_secret_bytes()
-                    .as_slice()
-                    .into())
-            }
+            KemAlgorithm::DhKemP384 => libcrux_p384::derive_ecdh(sk, pk)
+                .map(|ss| ss.as_ref().to_vec())
+                .map_err(p384_error),
             #[cfg(feature = "rustcrypto-p-curves")]
             KemAlgorithm::DhKemP521 => {
                 let sk = P521SecretKey::from_slice(sk).map_err(|_| Error::KemInvalidSecretKey)?;
@@ -226,10 +214,9 @@ impl<R: TryCryptoRng + 'static> HpkeCrypto for HpkeLibcrux<R> {
 
     fn secret_to_public(alg: KemAlgorithm, sk: &[u8]) -> Result<Vec<u8>, Error> {
         match alg {
-            #[cfg(feature = "rustcrypto-p-curves")]
             KemAlgorithm::DhKemP384 => {
-                let sk = P384SecretKey::from_slice(sk).map_err(|_| Error::KemInvalidSecretKey)?;
-                Ok(sk.public_key().to_sec1_point(false).as_bytes().into())
+                let sk = libcrux_p384::PrivateKey::try_from(sk).map_err(p384_error)?;
+                Ok(p384_public_key(&sk))
             }
             #[cfg(feature = "rustcrypto-p-curves")]
             KemAlgorithm::DhKemP521 => {
@@ -266,13 +253,10 @@ impl<R: TryCryptoRng + 'static> HpkeCrypto for HpkeLibcrux<R> {
                     .map(|(sk, pk)| (pk.encode(), sk.encode()))
                     .map_err(|e| Error::CryptoLibraryError(format!("KEM key gen error: {:?}", e)))
             }
-            #[cfg(feature = "rustcrypto-p-curves")]
             KemAlgorithm::DhKemP384 => {
-                let sk = P384SecretKey::try_generate_from_rng(prng)
+                let sk = libcrux_p384::PrivateKey::generate(prng)
                     .map_err(|_| Error::InsufficientRandomness)?;
-                let pk = sk.public_key().to_sec1_point(false).as_bytes().into();
-                let sk = sk.to_bytes().as_slice().into();
-                Ok((pk, sk))
+                Ok((p384_public_key(&sk), sk.as_ref().to_vec()))
             }
             #[cfg(feature = "rustcrypto-p-curves")]
             KemAlgorithm::DhKemP521 => {
@@ -313,10 +297,13 @@ impl<R: TryCryptoRng + 'static> HpkeCrypto for HpkeLibcrux<R> {
                 })?;
                 Ok((pk.encode(), seed.to_vec()))
             }
+            KemAlgorithm::DhKemP384 => Err(Error::CryptoLibraryError(format!(
+                "This API should not be called with this algorithm."
+            ))),
             #[cfg(feature = "rustcrypto-p-curves")]
-            KemAlgorithm::DhKemP384 | KemAlgorithm::DhKemP521 => Err(Error::CryptoLibraryError(
-                format!("This API should not be called with this algorithm."),
-            )),
+            KemAlgorithm::DhKemP521 => Err(Error::CryptoLibraryError(format!(
+                "This API should not be called with this algorithm."
+            ))),
 
             _ => {
                 let alg = kem_key_type_to_libcrux_alg(alg)?;
@@ -337,10 +324,13 @@ impl<R: TryCryptoRng + 'static> HpkeCrypto for HpkeLibcrux<R> {
             KemAlgorithm::MlKem768P256 | KemAlgorithm::MlKem1024P384 => {
                 hybrid::encaps(alg, pk_r, prng)
             }
+            KemAlgorithm::DhKemP384 => Err(Error::CryptoLibraryError(format!(
+                "This API should not be called with this algorithm."
+            ))),
             #[cfg(feature = "rustcrypto-p-curves")]
-            KemAlgorithm::DhKemP384 | KemAlgorithm::DhKemP521 => Err(Error::CryptoLibraryError(
-                format!("This API should not be called with this algorithm."),
-            )),
+            KemAlgorithm::DhKemP521 => Err(Error::CryptoLibraryError(format!(
+                "This API should not be called with this algorithm."
+            ))),
             _ => {
                 let alg = kem_key_type_to_libcrux_alg(alg)?;
 
@@ -394,10 +384,13 @@ impl<R: TryCryptoRng + 'static> HpkeCrypto for HpkeLibcrux<R> {
                     .map_err(|e| Error::CryptoLibraryError(format!("Decaps error {:?}", e)))
                     .map(|ss| ss.encode())
             }
+            KemAlgorithm::DhKemP384 => Err(Error::CryptoLibraryError(format!(
+                "This API should not be called with this algorithm."
+            ))),
             #[cfg(feature = "rustcrypto-p-curves")]
-            KemAlgorithm::DhKemP384 | KemAlgorithm::DhKemP521 => Err(Error::CryptoLibraryError(
-                format!("This API should not be called with this algorithm."),
-            )),
+            KemAlgorithm::DhKemP521 => Err(Error::CryptoLibraryError(format!(
+                "This API should not be called with this algorithm."
+            ))),
             _ => {
                 let alg = kem_key_type_to_libcrux_alg(alg)?;
 
@@ -417,10 +410,9 @@ impl<R: TryCryptoRng + 'static> HpkeCrypto for HpkeLibcrux<R> {
             KemAlgorithm::DhKemP256 => libcrux_ecdh::p256::validate_scalar_slice(sk)
                 .map_err(|e| Error::CryptoLibraryError(format!("ECDH invalid sk error: {:?}", e)))
                 .map(|sk| sk.0.to_vec()),
-            #[cfg(feature = "rustcrypto-p-curves")]
-            KemAlgorithm::DhKemP384 => P384SecretKey::from_slice(sk)
-                .map_err(|_| Error::KemInvalidSecretKey)
-                .map(|_| sk.into()),
+            KemAlgorithm::DhKemP384 => libcrux_p384::PrivateKey::try_from(sk)
+                .map_err(p384_error)
+                .map(|sk| sk.as_ref().to_vec()),
             #[cfg(feature = "rustcrypto-p-curves")]
             KemAlgorithm::DhKemP521 => P521SecretKey::from_slice(sk)
                 .map_err(|_| Error::KemInvalidSecretKey)
@@ -530,12 +522,13 @@ impl<R: TryCryptoRng + 'static> HpkeCrypto for HpkeLibcrux<R> {
     /// Returns an error if the KEM algorithm is not supported by this crypto provider.
     fn supports_kem(alg: KemAlgorithm) -> Result<(), Error> {
         match alg {
-            KemAlgorithm::DhKem25519 | KemAlgorithm::DhKemP256 | KemAlgorithm::XWingDraft06 => {
-                Ok(())
-            }
+            KemAlgorithm::DhKem25519
+            | KemAlgorithm::DhKemP256
+            | KemAlgorithm::DhKemP384
+            | KemAlgorithm::XWingDraft06 => Ok(()),
 
             #[cfg(feature = "rustcrypto-p-curves")]
-            KemAlgorithm::DhKemP384 | KemAlgorithm::DhKemP521 => Ok(()),
+            KemAlgorithm::DhKemP521 => Ok(()),
 
             #[cfg(any(
                 feature = "draft-connolly-cfrg-hpke-mlkem",
@@ -544,10 +537,7 @@ impl<R: TryCryptoRng + 'static> HpkeCrypto for HpkeLibcrux<R> {
             KemAlgorithm::MlKem512 | KemAlgorithm::MlKem768 | KemAlgorithm::MlKem1024 => Ok(()),
 
             #[cfg(feature = "draft-ietf-hpke-pq")]
-            KemAlgorithm::MlKem768P256 => Ok(()),
-
-            #[cfg(all(feature = "draft-ietf-hpke-pq", feature = "rustcrypto-p-curves"))]
-            KemAlgorithm::MlKem1024P384 => Ok(()),
+            KemAlgorithm::MlKem768P256 | KemAlgorithm::MlKem1024P384 => Ok(()),
             _ => Err(Error::UnknownKemAlgorithm),
         }
     }
@@ -587,6 +577,22 @@ fn nist_format_uncompressed(mut pk: Vec<u8>) -> Vec<u8> {
     tmp.push(0x04);
     tmp.append(&mut pk);
     tmp
+}
+
+#[inline(always)]
+fn p384_error(e: libcrux_p384::EcdhError) -> Error {
+    match e {
+        libcrux_p384::EcdhError::InvalidPrivateKey => Error::KemInvalidSecretKey,
+        libcrux_p384::EcdhError::InvalidPublicKey => Error::KemInvalidPublicKey,
+    }
+}
+
+/// The uncompressed SEC1 encoding of `sk`'s public key.
+#[inline(always)]
+fn p384_public_key(sk: &libcrux_p384::PrivateKey) -> Vec<u8> {
+    let mut pk = [0u8; 97];
+    libcrux_p384::PublicKey::from(sk).to_uncompressed(&mut pk);
+    pk.to_vec()
 }
 
 #[inline(always)]
