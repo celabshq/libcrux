@@ -1,0 +1,229 @@
+{
+  "vsId": 0,
+  "algorithm": "KDA",
+  "mode": "TwoStep",
+  "revision": "Sp800-56Cr2",
+  "isSample": true,
+  "l": 1000,
+  "z": [
+    {
+      "min": 224,
+      "max": 2048,
+      "increment": 8
+    }
+  ],
+  "usesHybridSharedSecret": false,
+  "performMultiExpansionTests": true,
+  "capabilities": [
+    {
+      "macSaltMethods": [
+        "default",
+        "random"
+      ],
+      "fixedInfoPattern": "uPartyInfo||vPartyInfo||l",
+      "encoding": [
+        "concatenation"
+      ],
+      "kdfMode": "feedback",
+      "macMode": [
+        "HMAC-SHA2-256"
+      ],
+      "customKeyInLength": 0,
+      "supportedLengths": [
+        {
+          "min": 8,
+          "max": 4096,
+          "increment": 8
+        }
+      ],
+      "fixedDataOrder": [
+        "before fixed data"
+      ],
+      "counterLength": [
+        32
+      ],
+      "requiresEmptyIv": false,
+      "supportsEmptyIv": true
+    },
+    {
+      "macSaltMethods": [
+        "default",
+        "random"
+      ],
+      "fixedInfoPattern": "uPartyInfo||vPartyInfo||l",
+      "encoding": [
+        "concatenation"
+      ],
+      "kdfMode": "feedback",
+      "macMode": [
+        "HMAC-SHA2-384"
+      ],
+      "customKeyInLength": 0,
+      "supportedLengths": [
+        {
+          "min": 8,
+          "max": 4096,
+          "increment": 8
+        }
+      ],
+      "fixedDataOrder": [
+        "before fixed data"
+      ],
+      "counterLength": [
+        32
+      ],
+      "requiresEmptyIv": false,
+      "supportsEmptyIv": true
+    },
+    {
+      "macSaltMethods": [
+        "default",
+        "random"
+      ],
+      "fixedInfoPattern": "uPartyInfo||vPartyInfo||l",
+      "encoding": [
+        "concatenation"
+      ],
+      "kdfMode": "feedback",
+      "macMode": [
+        "HMAC-SHA2-512"
+      ],
+      "customKeyInLength": 0,
+      "supportedLengths": [
+        {
+          "min": 8,
+          "max": 4096,
+          "increment": 8
+        }
+      ],
+      "fixedDataOrder": [
+        "before fixed data"
+      ],
+      "counterLength": [
+        32
+      ],
+      "requiresEmptyIv": false,
+      "supportsEmptyIv": true
+    },
+    {
+      "macSaltMethods": [
+        "default",
+        "random"
+      ],
+      "fixedInfoPattern": "uPartyInfo||vPartyInfo||l",
+      "encoding": [
+        "concatenation"
+      ],
+      "kdfMode": "feedback",
+      "macMode": [
+        "HMAC-SHA3-224"
+      ],
+      "customKeyInLength": 0,
+      "supportedLengths": [
+        {
+          "min": 8,
+          "max": 4096,
+          "increment": 8
+        }
+      ],
+      "fixedDataOrder": [
+        "before fixed data"
+      ],
+      "counterLength": [
+        32
+      ],
+      "requiresEmptyIv": false,
+      "supportsEmptyIv": true
+    },
+    {
+      "macSaltMethods": [
+        "default",
+        "random"
+      ],
+      "fixedInfoPattern": "uPartyInfo||vPartyInfo||l",
+      "encoding": [
+        "concatenation"
+      ],
+      "kdfMode": "feedback",
+      "macMode": [
+        "HMAC-SHA3-256"
+      ],
+      "customKeyInLength": 0,
+      "supportedLengths": [
+        {
+          "min": 8,
+          "max": 4096,
+          "increment": 8
+        }
+      ],
+      "fixedDataOrder": [
+        "before fixed data"
+      ],
+      "counterLength": [
+        32
+      ],
+      "requiresEmptyIv": false,
+      "supportsEmptyIv": true
+    },
+    {
+      "macSaltMethods": [
+        "default",
+        "random"
+      ],
+      "fixedInfoPattern": "uPartyInfo||vPartyInfo||l",
+      "encoding": [
+        "concatenation"
+      ],
+      "kdfMode": "feedback",
+      "macMode": [
+        "HMAC-SHA3-384"
+      ],
+      "customKeyInLength": 0,
+      "supportedLengths": [
+        {
+          "min": 8,
+          "max": 4096,
+          "increment": 8
+        }
+      ],
+      "fixedDataOrder": [
+        "before fixed data"
+      ],
+      "counterLength": [
+        32
+      ],
+      "requiresEmptyIv": false,
+      "supportsEmptyIv": true
+    },
+    {
+      "macSaltMethods": [
+        "default",
+        "random"
+      ],
+      "fixedInfoPattern": "uPartyInfo||vPartyInfo||l",
+      "encoding": [
+        "concatenation"
+      ],
+      "kdfMode": "feedback",
+      "macMode": [
+        "HMAC-SHA3-512"
+      ],
+      "customKeyInLength": 0,
+      "supportedLengths": [
+        {
+          "min": 8,
+          "max": 4096,
+          "increment": 8
+        }
+      ],
+      "fixedDataOrder": [
+        "before fixed data"
+      ],
+      "counterLength": [
+        32
+      ],
+      "requiresEmptyIv": false,
+      "supportsEmptyIv": true
+    }
+  ]
+}

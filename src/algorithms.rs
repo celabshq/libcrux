@@ -50,3 +50,6 @@ pub mod poly1305;
 
 #[cfg(feature = "hmac_drbg")]
 pub mod hmac_drbg;
+
+#[cfg(feature = "nist_kdf")]
+pub mod nist_kdf;

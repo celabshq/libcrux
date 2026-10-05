@@ -1,0 +1,54 @@
+name: NIST KDF
+
+permissions: {}
+
+on:
+  merge_group:
+  pull_request:
+    branches: ["main", "dev", "*"]
+    paths:
+      - "crates/algorithms/nist-kdf/**"
+      - "crates/algorithms/hmac/**"
+      - "crates/testing/kats/**"
+      - .github/workflows/nist-kdf.yml
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+          - windows-latest
+
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: crates/algorithms/nist-kdf
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: 🔨 Build
+        run: cargo build --all-targets --verbose
+
+      - name: 📎 Clippy
+        run: cargo clippy --all-targets --no-deps -- -D warnings
+
+      - name: 🏃🏻‍♀️ Test
+        run: cargo test --verbose
+
+      - name: 🏃🏻‍♀️ Test Release
+        run: cargo test --verbose --release

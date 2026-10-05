@@ -80,6 +80,7 @@ members = [
     "traits",
     "crates/algorithms/p384",
     "crates/algorithms/p384/fuzz",
+    "crates/algorithms/nist-kdf",
 ]
 
 # These crates are not part of the main libcrux library.
@@ -112,19 +113,18 @@ libcrux-aes = { version = "=0.0.9", path = "crates/algorithms/aes" }
 libcrux-blake2 = { version = "=0.0.8", path = "crates/algorithms/blake2" }
 libcrux-chacha20poly1305 = { version = "=0.0.9", path = "crates/algorithms/chacha20poly1305" }
 libcrux-poly1305 = { version = "=0.0.6", path = "crates/algorithms/poly1305" }
-libcrux-ecdsa = { version = "=0.0.8", path = "crates/algorithms/ecdsa" }
 libcrux-ed25519 = { version = "=0.0.9", path = "crates/algorithms/ed25519" }
 libcrux-hacl-rs = { version = "=0.0.5", path = "crates/utils/hacl-rs" }
 libcrux-hkdf = { version = "=0.0.8", path = "crates/algorithms/hkdf" }
 libcrux-hmac = { version = "=0.0.8", path = "crates/algorithms/hmac" }
 libcrux-hmac-drbg = { version = "=0.0.1", path = "crates/algorithms/hmac-drbg" }
 libcrux-kmac = { version = "=0.0.1", path = "crates/algorithms/kmac" }
+libcrux-nist-kdf = { version = "=0.0.1", path = "crates/algorithms/nist-kdf" }
 libcrux-intrinsics = { version = "=0.0.8", path = "crates/utils/intrinsics" }
 libcrux-digest = { version = "=0.0.9", path = "crates/primitives/digest" }
 libcrux-rsa = { version = "=0.0.8", path = "crates/algorithms/rsa" }
 libcrux-sha2 = { version = "=0.0.8", path = "crates/algorithms/sha2" }
 libcrux-sha3 = { version = "=0.0.10", path = "crates/algorithms/sha3" }
-libcrux-ml-dsa = { version = "=0.0.10", path = "libcrux-ml-dsa" }
 libcrux-platform = { version = "=0.0.3", path = "crates/sys/platform" }
 libcrux-psq = { version = "=0.0.10", path = "libcrux-psq" }
 
@@ -143,6 +143,8 @@ libcrux-curve25519 = { version = "=0.0.8", path = "crates/algorithms/curve25519"
 libcrux-ml-kem = { version = "=0.0.10", path = "libcrux-ml-kem", default-features = false }
 libcrux-p256 = { version = "=0.0.8", path = "crates/algorithms/p256", default-features = false }
 libcrux-p384 = { version = "=0.0.1", path = "crates/algorithms/p384", default-features = false }
+libcrux-ecdsa = { version = "=0.0.8", path = "crates/algorithms/ecdsa", default-features = false }
+libcrux-ml-dsa = { version = "=0.0.10", path = "libcrux-ml-dsa", default-features = false }
 
 # Test utilities
 libcrux-kats = { path = "crates/testing/kats" }
@@ -166,15 +168,30 @@ bench = false                               # so libtest doesn't eat the argumen
 
 [features]
 default = ["std", "all"]
-std = []
+# Enables `std` support in the dependencies that have it.
+std = [
+    "libcrux-ecdsa?/std",
+    "libcrux-kem?/std",
+    "libcrux-ml-kem?/std",
+    "libcrux-ml-dsa?/std",
+    "hpke-rs?/std",
+]
 rand = []
 wasm = ["wasm-bindgen", "getrandom"]
-tests = []                                                  # Expose functions for testing.
-experimental = []                                           # Expose experimental APIs.
-all = ["all_algorithms", "all_primitives", "all_protocols"]
+tests = [] # Expose functions for testing.
+experimental = [] # Expose experimental APIs.
+
+# All features. The `*-no-std` variants only enable features that build
+# without `std`; the others additionally enable `std` and `std`-only features.
+all-no-std = [
+    "all-algorithms-no-std",
+    "all-primitives-no-std",
+    "all-protocols-no-std",
+]
+all = ["all-no-std", "all_algorithms", "all_primitives", "all_protocols"]
 
 # Algorithms
-all_algorithms = [
+all-algorithms-no-std = [
     "aes_aead",
     "blake2",
     "chacha20_poly1305",
@@ -192,72 +209,90 @@ all_algorithms = [
     "rsapss",
     "poly1305",
     "hmac_drbg",
+    "nist_kdf",
 ]
-aes_aead = []
-blake2 = []
-chacha20_poly1305 = []
-curve25519 = []
-ed25519 = []
-p256_ecdh = []
-p256_ecdsa = []
-sha2 = []
-sha3 = []
-hkdf = []
-hmac = []
-kmac = []
-mlkem = []
-mldsa = []
-rsapss = []
-poly1305 = []
-hmac_drbg = []
+all_algorithms = ["std", "all-algorithms-no-std"]
+aes_aead = ["dep:libcrux-aes"]
+blake2 = ["dep:libcrux-blake2"]
+chacha20_poly1305 = ["dep:libcrux-chacha20poly1305"]
+curve25519 = ["dep:libcrux-curve25519"]
+ed25519 = ["dep:libcrux-ed25519"]
+p256_ecdh = ["dep:libcrux-p256", "libcrux-p256/expose-hacl"]
+p256_ecdsa = ["dep:libcrux-ecdsa", "libcrux-ecdsa/rand"]
+sha2 = ["dep:libcrux-sha2"]
+sha3 = ["dep:libcrux-sha3"]
+hkdf = ["dep:libcrux-hkdf"]
+hmac = ["dep:libcrux-hmac"]
+kmac = ["dep:libcrux-kmac"]
+mlkem = ["dep:libcrux-ml-kem", "libcrux-ml-kem/default-no-std"]
+mldsa = [
+    "dep:libcrux-ml-dsa",
+    "libcrux-ml-dsa/mldsa44",
+    "libcrux-ml-dsa/mldsa65",
+    "libcrux-ml-dsa/mldsa87",
+]
+rsapss = ["dep:libcrux-rsa"]
+poly1305 = ["dep:libcrux-poly1305"]
+hmac_drbg = ["dep:libcrux-hmac-drbg"]
+nist_kdf = ["dep:libcrux-nist-kdf"]
 
 # Primitives
-all_primitives = ["aead", "digest", "kem"]
-aead = []
-digest = []
-kem = []
+all-primitives-no-std = ["aead", "digest", "kem"]
+all_primitives = ["std", "all-primitives-no-std"]
+aead = ["dep:libcrux-aead"]
+digest = ["dep:libcrux-digest"]
+kem = ["dep:libcrux-kem"]
 
 # Protocols
-all_protocols = ["hpke", "psq"]
-hpke = []
-psq = []
+all-protocols-no-std = ["hpke"]
+all_protocols = ["std", "all-protocols-no-std", "psq"]
+hpke = ["dep:hpke-rs"]
+psq = ["std", "dep:libcrux-psq"]                       # Requires `std`.
 
 [dependencies]
 getrandom = { version = "0.4", optional = true }
-
-# External Cryspen code.
-hpke-rs = { workspace = true, features = ["libcrux"] }
-
-# Primitives
-libcrux-aead.workspace = true
-libcrux-digest.workspace = true
-libcrux-kem = { workspace = true, default-features = true }
-
-# Algorithms
-libcrux-aes.workspace = true
-libcrux-blake2.workspace = true
-libcrux-chacha20poly1305.workspace = true
-libcrux-poly1305.workspace = true
-libcrux-curve25519.workspace = true
-libcrux-ecdh.workspace = true
-libcrux-ecdsa.workspace = true
-libcrux-ed25519.workspace = true
-libcrux-hkdf.workspace = true
-libcrux-hmac.workspace = true
-libcrux-hmac-drbg.workspace = true
-libcrux-kmac.workspace = true
-libcrux-ml-kem.workspace = true
-libcrux-ml-dsa.workspace = true
-libcrux-p256.workspace = true
-libcrux-rsa.workspace = true
-libcrux-sha2.workspace = true
-libcrux-sha3.workspace = true
-
-# Protocols
-libcrux-psq.workspace = true
-
 # WASM API
 wasm-bindgen = { version = "0.2.87", optional = true }
+
+# Workspace Dependencies
+#
+# NOTE: When a workspace dependency has set `default-features = true`,
+# it can't be disabled in a crate that uses the workspace dependency,
+# but if the workspace dependency has set `default-features = false`
+# it *can* be enabled in the dependent crate. This means you need to
+# check the workspace dependency to know whether default features are
+# enabled or not and enable desired features in the dependent crate,
+# if necessary.
+hpke-rs = { workspace = true, features = ["libcrux"], optional = true }
+
+# Primitives
+libcrux-aead = { workspace = true, optional = true }
+libcrux-digest = { workspace = true, optional = true }
+libcrux-kem = { workspace = true, optional = true }
+
+# Algorithms
+libcrux-aes = { workspace = true, optional = true }
+libcrux-blake2 = { workspace = true, optional = true }
+libcrux-chacha20poly1305 = { workspace = true, optional = true }
+libcrux-poly1305 = { workspace = true, optional = true }
+libcrux-curve25519 = { workspace = true, optional = true }
+libcrux-ecdsa = { workspace = true, optional = true }
+libcrux-ed25519 = { workspace = true, optional = true }
+libcrux-hkdf = { workspace = true, optional = true }
+libcrux-hmac = { workspace = true, optional = true }
+libcrux-hmac-drbg = { workspace = true, optional = true }
+libcrux-kmac = { workspace = true, optional = true }
+libcrux-ml-kem = { workspace = true, optional = true }
+libcrux-ml-dsa = { workspace = true, optional = true }
+libcrux-p256 = { workspace = true, optional = true }
+libcrux-rsa = { workspace = true, optional = true }
+libcrux-sha2 = { workspace = true, optional = true }
+libcrux-sha3 = { workspace = true, optional = true }
+libcrux-nist-kdf = { workspace = true, optional = true }
+
+# Protocols
+libcrux-psq = { workspace = true, optional = true }
+
 
 [target.'cfg(hax)'.dependencies]
 hax-lib.workspace = true
