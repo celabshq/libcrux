@@ -9,7 +9,7 @@ use hpke::hpke_types::*;
 use hpke::prelude::*;
 use hpke_rs_crypto::TryCryptoRng;
 use hpke_rs_libcrux::{HpkeLibcrux, HpkeLibcruxPrng};
-use rand::{rngs::SysRng, SeedableRng};
+use rand::{rngs::SysRng, Rng, SeedableRng};
 use rand_chacha::ChaCha20Rng;
 
 fn seal_open_round_trip<R: TryCryptoRng + 'static>(rng: R) {
@@ -46,13 +46,20 @@ fn custom_rng_sys_rng() {
     seal_open_round_trip(SysRng);
 }
 
-fn seeded_sender_enc(seed: [u8; 32], pk_r: &HpkePublicKey) -> Vec<u8> {
+/// A non-constant seed, so it passes the DRBG's startup health tests when enabled.
+fn test_seed(i: u8) -> [u8; 32] {
+    let mut seed = [0u8; 32];
+    ChaCha20Rng::from_seed([i; 32]).fill_bytes(&mut seed);
+    seed
+}
+
+fn seeded_sender_enc(seed: u8, pk_r: &HpkePublicKey) -> Vec<u8> {
     let mut hpke = Hpke::<HpkeLibcrux>::new_with_rng(
         HpkeMode::Base,
         KemAlgorithm::DhKem25519,
         KdfAlgorithm::HkdfSha256,
         AeadAlgorithm::ChaCha20Poly1305,
-        HpkeLibcruxPrng::from_seed(seed),
+        HpkeLibcruxPrng::try_from_seed(test_seed(seed)).unwrap(),
     );
     let (enc, _) = hpke.setup_sender(pk_r, b"info", None, None, None).unwrap();
     enc
@@ -69,14 +76,8 @@ fn from_seed_is_deterministic() {
     );
     let (_sk_r, pk_r) = hpke.generate_key_pair().unwrap().into_keys();
 
-    assert_eq!(
-        seeded_sender_enc([1u8; 32], &pk_r),
-        seeded_sender_enc([1u8; 32], &pk_r)
-    );
-    assert_ne!(
-        seeded_sender_enc([1u8; 32], &pk_r),
-        seeded_sender_enc([2u8; 32], &pk_r)
-    );
+    assert_eq!(seeded_sender_enc(1, &pk_r), seeded_sender_enc(1, &pk_r));
+    assert_ne!(seeded_sender_enc(1, &pk_r), seeded_sender_enc(2, &pk_r));
 }
 
 /// A clone gets a freshly seeded PRNG rather than a copy of the original's state.
@@ -87,7 +88,7 @@ fn clone_uses_fresh_prng() {
         KemAlgorithm::DhKem25519,
         KdfAlgorithm::HkdfSha256,
         AeadAlgorithm::ChaCha20Poly1305,
-        HpkeLibcruxPrng::from_seed([3u8; 32]),
+        HpkeLibcruxPrng::try_from_seed(test_seed(3)).unwrap(),
     );
     let mut clone = hpke.clone();
     let (_sk_r, pk_r) = hpke.generate_key_pair().unwrap().into_keys();
