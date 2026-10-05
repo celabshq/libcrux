@@ -8,7 +8,7 @@ repository.workspace = true
 readme.workspace = true
 description = "Platform detection crate for libcrux."
 
-version = "0.0.3"
+version = "0.0.4-pre.1"
 
 [dependencies]
 libc = "0.2.153"

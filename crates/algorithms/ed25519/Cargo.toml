@@ -1,7 +1,7 @@
 [package]
 name = "libcrux-ed25519"
 description = "Formally verified ed25519 signature library"
-version = "0.0.9"
+version = "0.0.10-pre.1"
 readme = "Readme.md"
 
 authors.workspace = true
@@ -12,10 +12,8 @@ repository.workspace = true
 
 [dependencies]
 libcrux-hacl-rs.workspace = true
-libcrux-sha2 = { workspace = true, features = [
-    "expose-hacl",
-] }
-libcrux-macros = { version = "=0.0.3", path = "../../utils/macros" }
+libcrux-sha2 = { workspace = true, features = ["expose-hacl"] }
+libcrux-macros.workspace = true
 rand_core = { version = "0.10", optional = true, default-features = false }
 tls_codec = { workspace = true, optional = true }
 

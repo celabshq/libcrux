@@ -1,6 +1,6 @@
 [package]
 name = "libcrux-p384"
-version = "0.0.1"
+version = "0.0.1-pre.1"
 authors.workspace = true
 license.workspace = true
 homepage.workspace = true
@@ -19,7 +19,7 @@ rand = { workspace = true, default-features = false, optional = true }
 libcrux-kats = { workspace = true, features = ["ecdh"] }
 criterion = "0.8.0"
 hex = "0.4.3"
-rand = {workspace = true, features = ["thread_rng"] }
+rand = { workspace = true, features = ["thread_rng"] }
 
 [features]
 # Provides private key generation API

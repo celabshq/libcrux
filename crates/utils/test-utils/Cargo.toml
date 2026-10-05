@@ -11,4 +11,4 @@ repository.workspace = true
 readme.workspace = true
 
 [dependencies]
-libcrux-macros = { version = "0.0.3", path = "../macros" }
+libcrux-macros.workspace = true
