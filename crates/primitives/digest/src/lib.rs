@@ -11,22 +11,18 @@
 //! For example, to hash a payload using Blake2b (with [`Hash`]):
 //! ```
 //! fn main() {
-//!     use libcrux_digest::blake2::*;
-//!     use libcrux_digest::Hash as _;
+//!     use libcrux_digest::{blake2::*, Hash as _};
 //!     let mut digest = [0; 32];
 //!     Blake2b::hash(&mut digest, b"test data").unwrap();
 //! }
-//!
 //! ```
 
 //! Or to hash a payload using Blake2b (with [`HashOwned`]):
 //! ```
 //! fn main() {
-//!     use libcrux_digest::blake2::*;
-//!     use libcrux_digest::HashOwned as _;
+//!     use libcrux_digest::{blake2::*, HashOwned as _};
 //!     let digest: [u8; 32] = Blake2b::hash(b"test data").unwrap();
 //! }
-//!
 //! ```
 //!
 //! ## Incremental digest API
@@ -40,8 +36,9 @@
 //!     hasher.update(b"test data").unwrap();
 //!     hasher.finish(&mut digest);
 //! }
-//!
 //! ```
+
+#![no_std]
 
 #[cfg(any(feature = "sha2", feature = "sha3", feature = "blake2"))]
 pub use libcrux_traits::digest::{arrayref::Hash, owned::Hash as HashOwned, Hasher};
@@ -52,8 +49,7 @@ pub mod blake2 {
     //!
     //! Usage example for [`Blake2b`] with [`Hash`](crate::Hash):
     //! ```rust
-    //! use libcrux_digest::blake2::*;
-    //! use libcrux_digest::Hash as _;
+    //! use libcrux_digest::{blake2::*, Hash as _};
     //! let mut digest = [0; 32];
     //! Blake2b::hash(&mut digest, b"test data").unwrap();
     //! ```
@@ -79,8 +75,7 @@ pub mod sha2 {
     //!
     //! Usage example for [`Sha2_224`] with [`Hash`](crate::Hash):
     //! ```rust
-    //! use libcrux_digest::sha2::*;
-    //! use libcrux_digest::Hash as _;
+    //! use libcrux_digest::{sha2::*, Hash as _};
     //! let mut digest = [0; 28];
     //! Sha2_224::hash(&mut digest, b"test data").unwrap();
     //! ```
@@ -108,8 +103,7 @@ pub mod sha3 {
     //!
     //! Usage example for [`Sha3_224`] with [`Hash`](crate::Hash):
     //! ```rust
-    //! use libcrux_digest::sha3::*;
-    //! use libcrux_digest::Hash as _;
+    //! use libcrux_digest::{sha3::*, Hash as _};
     //! let mut digest = [0; 28];
     //! Sha3_224::hash(&mut digest, b"test data").unwrap();
     //! ```

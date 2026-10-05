@@ -38,7 +38,7 @@ libcrux-ed25519 = { workspace = true, features = [
     "codec",
 ] }
 tls_codec = { workspace = true }
-libcrux-ml-dsa = { workspace = true, features = ["codec"] }
+libcrux-ml-dsa = { workspace = true, default-features = true, features = ["codec"] }
 libcrux-aes.workspace = true
 
 [dev-dependencies]
