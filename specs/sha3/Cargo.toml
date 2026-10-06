@@ -2,7 +2,7 @@
 name = "hacspec_sha3"
 version = "0.1.0"
 edition = "2021"
-
+publish = false
 [dependencies]
 hax-lib.workspace = true
 

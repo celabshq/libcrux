@@ -3,6 +3,7 @@ name = "core-models"
 description = "Models of the Rust core library"
 version = "0.0.7"
 readme = "readme.md"
+publish = false
 
 authors.workspace = true
 license.workspace = true
