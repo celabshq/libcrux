@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- [#1612](https://github.com/celabshq/libcrux/pull/1612): `HmacDrbg::new_from_sys_rng` is now behind the new `sys_rng` feature; enabling `rand` alone no longer pulls in `rand/sys_rng`, so platforms without a system RNG (e.g. wasm) can use the `rand` integration.
 - [#1558](https://github.com/celabshq/libcrux/pull/1558): rename `GenerateError::RequestInvalid` to `GenerateError::OutputTooLarge`
 
 

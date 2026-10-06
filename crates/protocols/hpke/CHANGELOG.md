@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `KemAlgorithm::MlKem1024P384 = 0x0051`, and `MLKEM768-X25519` (`0x647a`,
     via X-Wing draft-06), per
     [draft-irtf-cfrg-concrete-hybrid-kems-03](https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-concrete-hybrid-kems-03).
+    
+### Changed
+
+- (hpke-rs, hpke-rs-libcrux, hpke-rs-crypto) [#1612](https://github.com/celabshq/libcrux/pull/1612): Caller-provided randomness. `HpkeLibcrux<R>` accepts any `TryCryptoRng` via `Hpke::new_with_rng`, and all HPKE randomness is drawn from it. `HpkeLibcruxPrng` is now opaque (`try_new`, `try_from_seed`, and a panicking `from_seed`). The system RNG sits behind the provider's `sys-rng` feature, which the `hpke-rs` `libcrux` feature enables; `libcrux-no-sys-rng` gives the provider without it. `HpkeCrypto::prng` and `HpkeTestRng` are replaced by `HpkeDefaultPrng::try_prng`, and the `deterministic-prng`/`hpke-test-prng` features are removed.
 
 ### Deprecated
 
