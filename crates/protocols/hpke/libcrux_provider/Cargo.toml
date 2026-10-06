@@ -18,13 +18,10 @@ libcrux-aead.workspace = true
 libcrux-sha3.workspace = true
 libcrux-traits.workspace = true
 libcrux-hmac-drbg = { workspace = true, features = ["rand"] }
+libcrux-p384 = { workspace = true, features = ["rand"] }
 # RustCrypto curves not available in libcrux
-# TODO: These should be replaced with libcrux implementations as soon as they
-# are available.
-p384 = { version = "0.14.0", features = [
-    "arithmetic",
-    "ecdh",
-], default-features = false, optional = true }
+# TODO: This should be replaced with a libcrux implementation as soon as it is
+# available.
 p521 = { version = "0.14.0", features = [
     "arithmetic",
     "ecdh",
@@ -52,13 +49,12 @@ default = ["sys-rng"]
 # Incompatible with `libcrux-hmac-drbg/health-tests`: the auto-reseeding DRBG this uses
 # (`HmacSha256DrbgRng`) is not available when that feature is enabled anywhere in the build.
 sys-rng = ["libcrux-hmac-drbg/sys_rng", "rand/sys_rng"]
-rustcrypto-p-curves = ["dep:p384", "dep:p521"]
+rustcrypto-p-curves = ["dep:p521"]
 # DEPRECATED: superseded by `draft-ietf-hpke-pq`. Cannot be enabled together
 # with it. Emits a build warning when used.
 draft-connolly-cfrg-hpke-mlkem = []
 # Post-quantum HPKE ciphersuites (SHAKE256 KDF, pure ML-KEM and the
 # ML-KEM/ECDH hybrid KEMs) as used by the MLS PQ ciphersuites.
-# For MLKEM1024-P384, "rustcrypto-p-curves" must be enabled as well for now.
 # <https://datatracker.ietf.org/doc/html/draft-ietf-hpke-pq>
 draft-ietf-hpke-pq = []
 std = [

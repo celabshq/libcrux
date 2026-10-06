@@ -438,9 +438,13 @@ fn kats_libcrux() {
     // `draft-connolly-cfrg-hpke-mlkem` adds no entries: no ML-KEM vectors ship
     // outside the `draft-ietf-hpke-pq` file, so that feature has no KAT coverage.
     #[allow(unused_mut)]
-    let mut expected_kems = vec![KemAlgorithm::DhKem25519, KemAlgorithm::DhKemP256];
+    let mut expected_kems = vec![
+        KemAlgorithm::DhKem25519,
+        KemAlgorithm::DhKemP256,
+        KemAlgorithm::DhKemP384,
+    ];
     #[cfg(feature = "libcrux-rustcrypto-p-curves")]
-    expected_kems.extend([KemAlgorithm::DhKemP384, KemAlgorithm::DhKemP521]);
+    expected_kems.push(KemAlgorithm::DhKemP521);
     #[cfg(feature = "draft-ietf-hpke-pq")]
     expected_kems.extend([
         KemAlgorithm::XWingDraft06,
@@ -448,13 +452,8 @@ fn kats_libcrux() {
         KemAlgorithm::MlKem768,
         KemAlgorithm::MlKem1024,
         KemAlgorithm::MlKem768P256,
+        KemAlgorithm::MlKem1024P384,
     ]);
-    // The ML-KEM-1024 / P-384 hybrid needs the P-384 curve, gated behind p-curves.
-    #[cfg(all(
-        feature = "draft-ietf-hpke-pq",
-        feature = "libcrux-rustcrypto-p-curves"
-    ))]
-    expected_kems.push(KemAlgorithm::MlKem1024P384);
 
     run::<HpkeLibcrux>(&files, &expected_kems, Some(libcrux_seeded_sender_enc));
 }

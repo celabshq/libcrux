@@ -25,7 +25,6 @@ const SUITES: &[(KemAlgorithm, AeadAlgorithm)] = &[
     (KemAlgorithm::XWingDraft06, AeadAlgorithm::Aes256Gcm),
     (KemAlgorithm::MlKem768P256, AeadAlgorithm::Aes128Gcm),
     (KemAlgorithm::MlKem768P256, AeadAlgorithm::Aes256Gcm),
-    #[cfg(feature = "libcrux-rustcrypto-p-curves")]
     (KemAlgorithm::MlKem1024P384, AeadAlgorithm::Aes256Gcm),
 ];
 
@@ -157,8 +156,7 @@ const NON_DEFAULT_KDF_SUITES: &[(KemAlgorithm, KdfAlgorithm, AeadAlgorithm)] = &
         KdfAlgorithm::Shake256,
         AeadAlgorithm::ChaCha20Poly1305,
     ),
-    // Hybrid KEM (default Shake256) with an HKDF KDF; needs the P-curve backend for now.
-    #[cfg(feature = "libcrux-rustcrypto-p-curves")]
+    // Hybrid KEM (default Shake256) with an HKDF KDF.
     (
         KemAlgorithm::MlKem1024P384,
         KdfAlgorithm::HkdfSha512,
