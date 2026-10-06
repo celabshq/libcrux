@@ -1,0 +1,18 @@
+[package]
+name = "libcrux-nist-kdf"
+description = "Libcrux NIST KDF implementations."
+version = "0.0.1"
+
+authors.workspace = true
+license.workspace = true
+homepage.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+
+[dependencies]
+libcrux-hmac.workspace = true
+
+[dev-dependencies]
+hex = "0.4.3"
+libcrux-kats = { workspace = true, features = ["kbkdf", "kda"] }

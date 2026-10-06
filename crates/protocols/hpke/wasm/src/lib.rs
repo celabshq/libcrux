@@ -103,11 +103,11 @@ impl Ciphertext {
 ///
 /// This keeps all wasm-/RNG-specific concerns in this crate: the seed is
 /// gathered via `getrandom` (with its wasm backend on `wasm32`) and used to
-/// seed the ChaCha20-based provider PRNG.
+/// seed the HMAC-DRBG provider PRNG.
 fn new_prng() -> HpkeLibcruxPrng {
     let mut seed = [0u8; 32];
     getrandom::fill(&mut seed).unwrap();
-    HpkeLibcruxPrng::from_seed(seed)
+    HpkeLibcruxPrng::try_from_seed(seed).unwrap()
 }
 
 /// Generate an HPKE key pair for the given ciphersuite.

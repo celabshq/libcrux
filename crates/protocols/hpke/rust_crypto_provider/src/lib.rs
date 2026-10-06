@@ -6,7 +6,7 @@ extern crate alloc;
 use alloc::{string::String, vec::Vec};
 use core::fmt::Display;
 use rand::{rngs::SysRng, Rng};
-use rand_core::{SeedableRng, UnwrapErr};
+use rand_core::SeedableRng;
 
 use elliptic_curve::{sec1::ToSec1Point, Generate};
 use hpke_rs_crypto::{
@@ -53,7 +53,8 @@ pub struct HpkeRustCryptoPrng {
 
 impl HpkeDefaultPrng for HpkeRustCrypto {
     fn try_prng() -> Result<Self::HpkePrng, Error> {
-        let rng = rand_chacha::ChaCha20Rng::from_rng(&mut UnwrapErr(SysRng));
+        let rng = rand_chacha::ChaCha20Rng::try_from_rng(&mut SysRng)
+            .map_err(|_| Error::InsufficientRandomness)?;
         Ok(HpkeRustCryptoPrng { rng })
     }
 }

@@ -18,9 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- (hpke-rs-libcrux) Use DRBG as the PRNG in the HPKE provider
-- (hpke-rs, hpke-rs-libcrux, hpke-rs-crypto) Caller-provided randomness. `HpkeLibcrux<R>` accepts any `TryCryptoRng` via `Hpke::new_with_rng`, and all HPKE randomness is drawn from it. `HpkeLibcruxPrng` is now opaque (`try_new`, `from_seed`). The system RNG sits behind the provider's `sys-rng` feature, which the `hpke-rs` `libcrux` feature enables; `libcrux-no-sys-rng` gives the provider without it. `HpkeCrypto::prng` and `HpkeTestRng` are replaced by `HpkeDefaultPrng::try_prng`, and the `deterministic-prng`/`hpke-test-prng` features are removed.
-- (libcrux-hmac-drbg) `HmacDrbg::new_from_sys_rng` is now behind the new `sys_rng` feature; enabling `rand` alone no longer pulls in `rand/sys_rng`, so platforms without a system RNG (e.g. wasm) can use the `rand` integration.
+- (hpke-rs-libcrux) [#1612](https://github.com/celabshq/libcrux/pull/1612): Use DRBG as the PRNG in the HPKE provider
+- (hpke-rs, hpke-rs-libcrux, hpke-rs-crypto) [#1612](https://github.com/celabshq/libcrux/pull/1612): Caller-provided randomness. `HpkeLibcrux<R>` accepts any `TryCryptoRng` via `Hpke::new_with_rng`, and all HPKE randomness is drawn from it. `HpkeLibcruxPrng` is now opaque (`try_new`, `try_from_seed`, and a panicking `from_seed`). The system RNG sits behind the provider's `sys-rng` feature, which the `hpke-rs` `libcrux` feature enables; `libcrux-no-sys-rng` gives the provider without it. `HpkeCrypto::prng` and `HpkeTestRng` are replaced by `HpkeDefaultPrng::try_prng`, and the `deterministic-prng`/`hpke-test-prng` features are removed.
+- (libcrux-hmac-drbg) [#1612](https://github.com/celabshq/libcrux/pull/1612): `HmacDrbg::new_from_sys_rng` is now behind the new `sys_rng` feature; enabling `rand` alone no longer pulls in `rand/sys_rng`, so platforms without a system RNG (e.g. wasm) can use the `rand` integration.
+- (libcrux) [#1628](https://github.com/celabshq/libcrux/pull/1628): Make it possible to use `no_std` sub-crates when default features are turned off. Breaking for users with `default-features = false`.
 - (libcrux-macros) [#1550](https://github.com/celabshq/libcrux/pull/1550): Update syn dependency to 3.0
 - (libcrux-secrets) [#1551](https://github.com/celabshq/libcrux/pull/1551) Update crabgrind to 0.3.1
 - (libcrux-hmac-drbg) [#1558](https://github.com/celabshq/libcrux/pull/1558): rename `GenerateError::RequestInvalid` to `GenerateError::OutputTooLarge
@@ -33,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [draft-ietf-hpke-pq](https://datatracker.ietf.org/doc/html/draft-ietf-hpke-pq-04),
   in the **libcrux provider only**, behind the new `draft-ietf-hpke-pq` feature.
 - (libcrux-p256) [#1586](https://github.com/celabshq/libcrux/pull/1586): Expose constants used in `Ecdh*` trait implementations
+- (libcrux-nist-kdf) [#1608](https://github.com/celabshq/libcrux/pull/1608): SP 800-108 feedback mode KDF and SP 800-56Cr2 two-step KDF
 
 
 ## [0.0.5] (2026-07-15)

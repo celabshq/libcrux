@@ -5,6 +5,8 @@ use serde::Deserialize;
 pub struct Prompts<TG> {
     pub vsId: usize,
     pub algorithm: String,
+    /// Not present in all ACVP files, e.g. `KDF-1.0`.
+    #[serde(default)]
     pub mode: String,
     pub revision: String,
     pub isSample: bool,
@@ -16,6 +18,8 @@ pub struct Prompts<TG> {
 pub struct Results<TG> {
     pub vsId: usize,
     pub algorithm: String,
+    /// Not present in all ACVP files, e.g. `KDF-1.0`.
+    #[serde(default)]
     pub mode: String,
     pub revision: String,
     pub isSample: bool,

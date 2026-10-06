@@ -34,11 +34,7 @@ use p521::{
 
 #[cfg(feature = "sys-rng")]
 use rand::rngs::SysRng;
-#[cfg(feature = "sys-rng")]
-use rand::Rng;
-use rand::{SeedableRng, TryCryptoRng, TryRng};
-#[cfg(feature = "sys-rng")]
-use rand_core::UnwrapErr;
+use rand::{TryCryptoRng, TryRng};
 
 /// The Libcrux HPKE Provider, generic over its PRNG. The bare `HpkeLibcrux` (no `<R>`) is
 /// the default, ordinary way to use HPKE with the libcrux crypto backend, using the built-in
@@ -60,22 +56,19 @@ impl<R> core::fmt::Debug for HpkeLibcrux<R> {
     }
 }
 
-/// Personalization string mixed into the default DRBG (SP 800-90A §8.7.1), zero-padded to 32 bytes.
-#[cfg(feature = "sys-rng")]
+/// Personalization string mixed into the DRBG (SP 800-90A §8.7.1), zero-padded to 32 bytes.
 const DRBG_PERSONALIZATION: [u8; 32] = *b"hpke-rs-libcrux HMAC-DRBG v1\0\0\0\0";
 
 /// The default PRNG for the Libcrux Provider: an HMAC-DRBG (HMAC-SHA-256).
 ///
 /// Construct it with [`HpkeLibcruxPrng::try_new`] (seeded from, and auto-reseeding from, the
-/// system RNG; requires the `sys-rng` feature) or [`HpkeLibcruxPrng::from_seed`] (seeded by the
+/// system RNG; requires the `sys-rng` feature) or [`HpkeLibcruxPrng::try_from_seed`] (seeded by the
 /// caller, never reseeds).
-pub struct HpkeLibcruxPrng(DrbgSource);
-
-/// Where the DRBG gets its entropy from.
-enum DrbgSource {
+pub struct HpkeLibcruxPrng {
+    drbg: libcrux_hmac_drbg::HmacDrbgSha256,
+    /// Whether to reseed from the system RNG once the reseed interval is exhausted.
     #[cfg(feature = "sys-rng")]
-    SystemReseeding(libcrux_hmac_drbg::HmacSha256DrbgRng<UnwrapErr<SysRng>>),
-    CallerSeeded(libcrux_hmac_drbg::HmacDrbgSha256),
+    reseed_from_sys_rng: bool,
 }
 
 impl HpkeLibcruxPrng {
@@ -83,22 +76,24 @@ impl HpkeLibcruxPrng {
     /// automatically when needed.
     ///
     /// Returns [`Error::InsufficientRandomness`] if the system RNG fails.
+    /// A failed reseed later on is reported the same way, by the generating call.
     #[cfg(feature = "sys-rng")]
     pub fn try_new() -> Result<Self, Error> {
         let mut entropy = [0u8; libcrux_hmac_drbg::MIN_ENTROPY_BYTES];
         let mut nonce = [0u8; 32];
+
         SysRng
             .try_fill_bytes(&mut entropy)
             .and_then(|()| SysRng.try_fill_bytes(&mut nonce))
             .map_err(|_| Error::InsufficientRandomness)?;
-        Ok(Self(DrbgSource::SystemReseeding(
-            libcrux_hmac_drbg::HmacSha256DrbgRng::new_from_seed(
-                UnwrapErr(SysRng),
-                &entropy,
-                &nonce,
-                &DRBG_PERSONALIZATION,
-            ),
-        )))
+
+        let drbg = libcrux_hmac_drbg::HmacDrbgSha256::new(&entropy, &nonce, &DRBG_PERSONALIZATION)
+            .map_err(|_| Error::InsufficientRandomness)?;
+
+        Ok(Self {
+            drbg,
+            reseed_from_sys_rng: true,
+        })
     }
 
     /// Construct a PRNG from a 32-byte seed.
@@ -107,10 +102,33 @@ impl HpkeLibcruxPrng {
     /// gathered by the caller and passed in explicitly. The resulting PRNG never
     /// reseeds; once the DRBG's reseed interval is exhausted, it returns
     /// [`Error::InsufficientRandomness`].
+    ///
+    /// The seed must be full-entropy. Returns [`Error::InsufficientRandomness`]
+    /// if the DRBG rejects it, which only happens when the `libcrux-hmac-drbg/health-tests`
+    /// feature is enabled and the seed fails the startup health tests.
+    pub fn try_from_seed(seed: [u8; 32]) -> Result<Self, Error> {
+        let drbg = libcrux_hmac_drbg::HmacDrbgSha256::new(&seed, &[], &DRBG_PERSONALIZATION)
+            .map_err(|_| Error::InsufficientRandomness)?;
+
+        Ok(Self {
+            drbg,
+            #[cfg(feature = "sys-rng")]
+            reseed_from_sys_rng: false,
+        })
+    }
+
+    /// Construct a PRNG from a 32-byte seed, panicking if the seed is rejected.
+    ///
+    /// Prefer [`HpkeLibcruxPrng::try_from_seed`], which reports a rejected seed
+    /// as an error instead.
+    ///
+    /// # Panics
+    ///
+    /// Panics if [`HpkeLibcruxPrng::try_from_seed`] fails, i.e. when
+    /// `libcrux-hmac-drbg/health-tests` is enabled and the seed fails the startup
+    /// health tests.
     pub fn from_seed(seed: [u8; 32]) -> Self {
-        Self(DrbgSource::CallerSeeded(
-            libcrux_hmac_drbg::HmacDrbgSha256::from_seed(libcrux_hmac_drbg::HmacDrbgSeed(seed)),
-        ))
+        Self::try_from_seed(seed).expect("DRBG seed rejected by the startup health tests")
     }
 }
 
@@ -130,16 +148,19 @@ impl TryRng for HpkeLibcruxPrng {
     }
 
     fn try_fill_bytes(&mut self, dst: &mut [u8]) -> Result<(), Self::Error> {
-        match &mut self.0 {
+        for chunk in dst.chunks_mut(libcrux_hmac_drbg::MAX_GENERATE_BYTES) {
             #[cfg(feature = "sys-rng")]
-            DrbgSource::SystemReseeding(rng) => {
-                rng.fill_bytes(dst);
-                Ok(())
+            if self.reseed_from_sys_rng && self.drbg.needs_reseed() {
+                self.drbg
+                    .reseed_from_rng(&mut SysRng, &[])
+                    .map_err(|_| Error::InsufficientRandomness)?;
             }
-            DrbgSource::CallerSeeded(rng) => rng
-                .try_fill_bytes(dst)
-                .map_err(|_| Error::InsufficientRandomness),
+
+            self.drbg
+                .try_fill_bytes(chunk)
+                .map_err(|_| Error::InsufficientRandomness)?;
         }
+        Ok(())
     }
 }
 
@@ -546,7 +567,7 @@ impl<R: TryCryptoRng + 'static> HpkeCrypto for HpkeLibcrux<R> {
 }
 
 /// Only available with the `sys-rng` feature. Without it, construct the PRNG explicitly
-/// (e.g. [`HpkeLibcruxPrng::from_seed`]) and pass it to `Hpke::new_with_rng`.
+/// (e.g. [`HpkeLibcruxPrng::try_from_seed`]) and pass it to `Hpke::new_with_rng`.
 #[cfg(feature = "sys-rng")]
 impl HpkeDefaultPrng for HpkeLibcrux {
     fn try_prng() -> Result<Self::HpkePrng, Error> {
