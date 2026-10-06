@@ -1,6 +1,6 @@
 [package]
 name = "hpke-rs-crypto"
-version = "0.8.0-pre.1"
+version = "0.8.0"
 authors = ["Franziskus Kiefer <franziskuskiefer@gmail.com>"]
 edition = "2021"
 license = "MPL-2.0"

@@ -1,6 +1,6 @@
 [package]
 name = "libcrux-p384"
-version = "0.0.1-pre.1"
+version = "0.0.1"
 description = "Libcrux P-384 implementation"
 authors.workspace = true
 license.workspace = true

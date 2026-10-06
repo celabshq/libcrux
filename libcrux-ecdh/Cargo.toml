@@ -1,6 +1,6 @@
 [package]
 name = "libcrux-ecdh"
-version = "0.0.9-pre.1"
+version = "0.0.9"
 description = "Libcrux ECDH implementation"
 readme = "Readme.md"
 exclude = ["tests/wycheproof"]
