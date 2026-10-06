@@ -108,8 +108,8 @@ allow-branch = ["main"]
 
 [workspace.dependencies]
 hax-lib = { version = "0.4.1" }
-libcrux-aead = { version = "=0.0.9", path = "crates/primitives/aead" }
-libcrux-aes = { version = "=0.0.9", path = "crates/algorithms/aes" }
+libcrux-aead = { version = "=0.0.10-pre.1", path = "crates/primitives/aead" }
+libcrux-aes = { version = "=0.0.10-pre.1", path = "crates/algorithms/aes" }
 libcrux-blake2 = { version = "=0.0.9-pre.1", path = "crates/algorithms/blake2" }
 libcrux-chacha20poly1305 = { version = "=0.0.10-pre.1", path = "crates/algorithms/chacha20poly1305" }
 libcrux-poly1305 = { version = "=0.0.7-pre.1", path = "crates/algorithms/poly1305" }
@@ -118,13 +118,13 @@ libcrux-hacl-rs = { version = "=0.0.6-pre.1", path = "crates/utils/hacl-rs" }
 libcrux-hkdf = { version = "=0.0.9-pre.1", path = "crates/algorithms/hkdf" }
 libcrux-hmac = { version = "=0.0.9-pre.1", path = "crates/algorithms/hmac" }
 libcrux-hmac-drbg = { version = "=0.0.2-pre.1", path = "crates/algorithms/hmac-drbg" }
-libcrux-kmac = { version = "=0.0.1", path = "crates/algorithms/kmac" }
+libcrux-kmac = { version = "=0.0.2-pre.1", path = "crates/algorithms/kmac" }
 libcrux-nist-kdf = { version = "=0.0.1-pre.1", path = "crates/algorithms/nist-kdf" }
 libcrux-intrinsics = { version = "=0.0.8", path = "crates/utils/intrinsics" }
-libcrux-digest = { version = "=0.0.9", path = "crates/primitives/digest" }
-libcrux-rsa = { version = "=0.0.8", path = "crates/algorithms/rsa" }
-libcrux-sha2 = { version = "=0.0.8", path = "crates/algorithms/sha2" }
-libcrux-sha3 = { version = "=0.0.10", path = "crates/algorithms/sha3" }
+libcrux-digest = { version = "=0.0.10-pre.1", path = "crates/primitives/digest" }
+libcrux-rsa = { version = "=0.0.9-pre.1", path = "crates/algorithms/rsa" }
+libcrux-sha2 = { version = "=0.0.9-pre.1", path = "crates/algorithms/sha2" }
+libcrux-sha3 = { version = "=0.0.11-pre.1", path = "crates/algorithms/sha3" }
 libcrux-platform = { version = "=0.0.4-pre.1", path = "crates/sys/platform" }
 libcrux-psq = { version = "=0.0.11-pre.1", path = "libcrux-psq" }
 
@@ -139,12 +139,12 @@ hpke-rs-libcrux = { version = "=0.8.0-pre.1", path = "crates/protocols/hpke/libc
 libcrux-kem = { version = "=0.0.10-pre.1", path = "libcrux-kem", default-features = false }
 libcrux-traits = { version = "=0.0.9-pre.1", path = "traits" }
 libcrux-ecdh = { version = "=0.0.9-pre.1", path = "libcrux-ecdh", default-features = false }
-libcrux-curve25519 = { version = "=0.0.8", path = "crates/algorithms/curve25519", default-features = false }
+libcrux-curve25519 = { version = "=0.0.9-pre.1", path = "crates/algorithms/curve25519", default-features = false }
 libcrux-ml-kem = { version = "=0.0.11-pre.1", path = "libcrux-ml-kem", default-features = false }
 libcrux-p256 = { version = "=0.0.9-pre.1", path = "crates/algorithms/p256", default-features = false }
 libcrux-p384 = { version = "=0.0.1-pre.1", path = "crates/algorithms/p384", default-features = false }
 libcrux-ecdsa = { version = "=0.0.9-pre.1", path = "crates/algorithms/ecdsa", default-features = false }
-libcrux-ml-dsa = { version = "=0.0.10", path = "libcrux-ml-dsa", default-features = false }
+libcrux-ml-dsa = { version = "=0.0.11-pre.1", path = "libcrux-ml-dsa", default-features = false }
 
 # Test utilities
 libcrux-kats = { path = "crates/testing/kats" }
