@@ -14,7 +14,7 @@ version = "0.0.4"
 
 [build-dependencies]
 cc = { version = "1.1", features = ["parallel"] }
-libcrux-platform = { version = "=0.0.3", path = "../platform" }
+libcrux-platform = { version = "=0.0.4-pre.1", path = "../platform" }
 
 [target.'cfg(not(windows))'.build-dependencies]
 bindgen = { version = "0.72", optional = true }

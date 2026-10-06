@@ -2,6 +2,7 @@
 name = "libcrux-test-utils"
 description = "Utils for testing and benchmarking"
 version = "0.0.3"
+publish = false
 
 authors.workspace = true
 license.workspace = true
@@ -11,4 +12,4 @@ repository.workspace = true
 readme.workspace = true
 
 [dependencies]
-libcrux-macros = { version = "0.0.3", path = "../macros" }
+libcrux-macros.workspace = true

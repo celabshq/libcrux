@@ -1,6 +1,6 @@
 [package]
 name = "libcrux-sha3"
-version = "0.0.10"
+version = "0.0.11-pre.1"
 authors.workspace = true
 license.workspace = true
 homepage.workspace = true
@@ -14,7 +14,7 @@ exclude = ["/proofs", "/c.sh", "/c.yaml", "tests/cavp.rs", "hax.py"]
 bench = false # so libtest doesn't eat the arguments to criterion
 
 [dependencies]
-libcrux-platform = { version = "0.0.3", path = "../../sys/platform" }
+libcrux-platform.workspace = true
 libcrux-intrinsics.workspace = true
 libcrux-traits.workspace = true
 

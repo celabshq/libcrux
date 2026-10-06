@@ -5,11 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.7.0] (2026-07-15)
+## [0.8.0-pre.1] (2026-10-06)
 
-### Changed
+### Added
 
-- [#154](https://github.com/celabshq/hpke-rs/pull/154): `HpkeCrypto::HpkePrng` now has `rand` v0.10 bound `CryptoRng`, instead of `rand` v0.9 bound `RngCore + CryptoRng`
 - [#1539](https://github.com/celabshq/libcrux/pull/1539): Add the `draft-ietf-hpke-pq`
   algorithm identifiers. New KEMs `KemAlgorithm::MlKem512 = 0x0040`,
   `MlKem768P256 = 0x0050`, and `MlKem1024P384 = 0x0051`; new single-stage KDFs
@@ -19,7 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Split KDF handling into single-stage (`SingleStageKdfAlgorithm`) and two-stage
   (`TwoStageKdfAlgorithm`) families: `HpkeCrypto::kdf_extract`/`kdf_expand` now take a
   `TwoStageKdfAlgorithm`, and a new `kdf_derive` method covers the single-stage KDFs.
-- [#146](https://github.com/celabshq/hpke-rs/pull/146): Add support for ML-KEM768 and ML-KEM1024 gated behind the `draft-connolly-cfrg-hpke-mlkem` feature flag.
+
+## [0.7.0] (2026-07-15)
+
+### Changed
+
+- [#154](https://github.com/celabshq/hpke-rs/pull/154): `HpkeCrypto::HpkePrng` now has `rand` v0.10 bound `CryptoRng`, instead of `rand` v0.9 bound `RngCore + CryptoRng`
+
 
 ## [0.6.1] - 2026-03-20
 

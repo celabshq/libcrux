@@ -2,7 +2,7 @@
 description = "Digest library"
 name = "libcrux-digest"
 readme = "Readme.md"
-version = "0.0.9"
+version = "0.0.10-pre.1"
 
 authors.workspace = true
 edition.workspace = true

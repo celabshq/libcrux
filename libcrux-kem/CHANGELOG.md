@@ -5,15 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.0.10-pre.1] (2026-10-06)
 
 ### Fixed
 
 - [#1560](https://github.com/celabshq/libcrux/pull/1560): Reject malformed hybrid key encodings without panicking
 - [#1595](https://github.com/celabshq/libcrux/pull/1595): Reject invalid/short seed lengths in `PublicKey::encapsulate_derand` without panicking
-- [#1595](https://github.com/celabshq/libcrux/pull/1595): Return `Ss::MlKem512` variant instead of `Ss::MlKem768` variant when decapsulating `Ct::MlKem512` ciphertext
-
-## [Unreleased]
+- [#1595](https://github.com/celabshq/libcrux/pull/1595): (Breaking) Return `Ss::MlKem512` variant instead of `Ss::MlKem768` variant when decapsulating `Ct::MlKem512` ciphertext
 
 ### Changed
 
