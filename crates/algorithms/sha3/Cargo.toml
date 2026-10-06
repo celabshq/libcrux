@@ -14,7 +14,7 @@ exclude = ["/proofs", "/c.sh", "/c.yaml", "tests/cavp.rs", "hax.py"]
 bench = false # so libtest doesn't eat the arguments to criterion
 
 [dependencies]
-libcrux-platform = { workspace = true, path = "../../sys/platform" }
+libcrux-platform.workspace = true
 libcrux-intrinsics.workspace = true
 libcrux-traits.workspace = true
 
