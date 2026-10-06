@@ -16,13 +16,12 @@ pub mod types;
 
 // re-export trait
 pub use rand::{CryptoRng, Rng, TryCryptoRng, TryRng};
-use zeroize::Zeroize;
 
 /// The [`HpkeCrypto`] trait defines the necessary cryptographic functions used
 /// in the HPKE implementation.
 pub trait HpkeCrypto: core::fmt::Debug + Send + Sync {
-    /// The PRNG implementation returned in [`HpkeCrypto::prng()`].
-    type HpkePrng: CryptoRng + HpkeTestRng + Zeroize;
+    /// The PRNG implementation used by this provider's operations.
+    type HpkePrng: TryCryptoRng;
 
     /// The name of the implementation.
     fn name() -> String;
@@ -35,10 +34,6 @@ pub trait HpkeCrypto: core::fmt::Debug + Send + Sync {
 
     /// Returns an error if the AEAD algorithm is not supported by this crypto provider.
     fn supports_aead(alg: types::AeadAlgorithm) -> Result<(), Error>;
-
-    /// Get a stateful PRNG.
-    /// Note that this will create a new PRNG state.
-    fn prng() -> Self::HpkePrng;
 
     /// Get the length of the output digest.
     #[inline(always)]
@@ -94,10 +89,24 @@ pub trait HpkeCrypto: core::fmt::Debug + Send + Sync {
     fn kem_key_gen_derand(alg: KemAlgorithm, seed: &[u8]) -> Result<(Vec<u8>, Vec<u8>), Error>;
 
     /// KEM encapsulation to `pk_r` (shared secret, ciphertext).
+    ///
+    /// `hpke-rs` prefers [`HpkeCrypto::kem_encaps_derand`] and only calls this when that
+    /// returns [`Error::UnsupportedKemOperation`].
     fn kem_encaps(
         alg: KemAlgorithm,
         pk_r: &[u8],
         prng: &mut Self::HpkePrng,
+    ) -> Result<(Vec<u8>, Vec<u8>), Error>;
+
+    /// Derandomized KEM encapsulation to `pk_r`, using the given
+    /// `randomness` (see [`KemAlgorithm::encaps_randomness_len`]) instead of
+    /// drawing from a PRNG. Only called for KEMs where
+    /// `KemAlgorithm::encaps_randomness_len` returns `Some` (DH-based KEMs
+    /// derive their own randomness generically and never reach this).
+    fn kem_encaps_derand(
+        alg: KemAlgorithm,
+        pk_r: &[u8],
+        randomness: &[u8],
     ) -> Result<(Vec<u8>, Vec<u8>), Error>;
 
     /// KEM decapsulation with `sk_r`.
@@ -162,13 +171,13 @@ pub trait HpkeCrypto: core::fmt::Debug + Send + Sync {
     }
 }
 
-/// PRNG extension for testing that is supposed to return pre-configured bytes.
-pub trait HpkeTestRng {
-    // Error type to replace rand::Error (which is no longer available as of version 0.9)
-    type Error: core::fmt::Debug + core::fmt::Display;
-    /// Like [`TryRngCore::try_fill_bytes`] but the result is expected to be known.
-    fn try_fill_test_bytes(&mut self, dest: &mut [u8]) -> Result<(), Self::Error>;
-
-    /// Set the randomness state of this test PRNG.
-    fn seed(&mut self, seed: &[u8]);
+/// Implemented by the default HPKE providers — the ones that know how to construct their own
+/// PRNG with no input from the caller (typically by drawing on system entropy). Used by
+/// `Hpke::new`/`Hpke::try_new`. A provider parameterized over a caller-supplied Rng (e.g.
+/// `HpkeLibcrux<R>` for some `R` other than the default) has no default and doesn't implement
+/// this; use `Hpke::new_with_rng` for those instead.
+pub trait HpkeDefaultPrng: HpkeCrypto {
+    /// Construct the default PRNG, or `Err` if none is available in this build (e.g. no system
+    /// RNG configured).
+    fn try_prng() -> Result<Self::HpkePrng, Error>;
 }

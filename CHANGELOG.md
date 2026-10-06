@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- (hpke-rs-libcrux) [#1612](https://github.com/celabshq/libcrux/pull/1612): Use DRBG as the PRNG in the HPKE provider
+- (hpke-rs, hpke-rs-libcrux, hpke-rs-crypto) [#1612](https://github.com/celabshq/libcrux/pull/1612): Caller-provided randomness. `HpkeLibcrux<R>` accepts any `TryCryptoRng` via `Hpke::new_with_rng`, and all HPKE randomness is drawn from it. `HpkeLibcruxPrng` is now opaque (`try_new`, `try_from_seed`, and a panicking `from_seed`). The system RNG sits behind the provider's `sys-rng` feature, which the `hpke-rs` `libcrux` feature enables; `libcrux-no-sys-rng` gives the provider without it. `HpkeCrypto::prng` and `HpkeTestRng` are replaced by `HpkeDefaultPrng::try_prng`, and the `deterministic-prng`/`hpke-test-prng` features are removed.
+- (libcrux-hmac-drbg) [#1612](https://github.com/celabshq/libcrux/pull/1612): `HmacDrbg::new_from_sys_rng` is now behind the new `sys_rng` feature; enabling `rand` alone no longer pulls in `rand/sys_rng`, so platforms without a system RNG (e.g. wasm) can use the `rand` integration.
 - (libcrux) [#1628](https://github.com/celabshq/libcrux/pull/1628): Make it possible to use `no_std` sub-crates when default features are turned off. Breaking for users with `default-features = false`.
 - (libcrux-macros) [#1550](https://github.com/celabshq/libcrux/pull/1550): Update syn dependency to 3.0
 - (libcrux-secrets) [#1551](https://github.com/celabshq/libcrux/pull/1551) Update crabgrind to 0.3.1

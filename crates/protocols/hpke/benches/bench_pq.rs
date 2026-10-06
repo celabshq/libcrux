@@ -6,7 +6,7 @@ use criterion::{criterion_group, criterion_main, Criterion};
 use hpke_rs::prelude::*;
 use hpke_rs_crypto::{
     types::{KdfAlgorithm, KemAlgorithm},
-    HpkeCrypto,
+    HpkeDefaultPrng,
 };
 use hpke_rs_libcrux::HpkeLibcrux;
 
@@ -33,7 +33,7 @@ const PQ_KEM_IDS: &[KemAlgorithm] = &[
 /// Restricted to `Base` mode: the PQ KEMs return `UnsupportedKemOperation` for the
 /// `Auth`/`AuthPsk` modes, and PSK is out of scope here. Key generation is timed in
 /// addition to the usual operations.
-fn benchmark_post_quantum<Crypto: HpkeCrypto + 'static>(c: &mut Criterion) {
+fn benchmark_post_quantum<Crypto: HpkeDefaultPrng + 'static>(c: &mut Criterion) {
     for aead_mode in AEAD_IDS {
         if Crypto::supports_aead(aead_mode).is_err() {
             continue;

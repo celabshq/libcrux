@@ -6,8 +6,7 @@ extern crate alloc;
 use alloc::{string::String, vec::Vec};
 use core::fmt::Display;
 use rand::{rngs::SysRng, Rng};
-use rand_core::{SeedableRng, UnwrapErr};
-use zeroize::Zeroize;
+use rand_core::SeedableRng;
 
 use elliptic_curve::{sec1::ToSec1Point, Generate};
 use hpke_rs_crypto::{
@@ -15,7 +14,7 @@ use hpke_rs_crypto::{
     types::{
         AeadAlgorithm, KdfAlgorithm, KemAlgorithm, SingleStageKdfAlgorithm, TwoStageKdfAlgorithm,
     },
-    HpkeCrypto, HpkeTestRng,
+    HpkeCrypto, HpkeDefaultPrng,
 };
 use p256::{
     elliptic_curve::ecdh::diffie_hellman as p256diffie_hellman, PublicKey as p256PublicKey,
@@ -50,13 +49,13 @@ pub struct HpkeRustCrypto {}
 /// The PRNG for the Rust Crypto Provider.
 pub struct HpkeRustCryptoPrng {
     rng: rand_chacha::ChaCha20Rng,
-    #[cfg(feature = "deterministic-prng")]
-    fake_rng: Vec<u8>,
 }
 
-impl Zeroize for HpkeRustCryptoPrng {
-    fn zeroize(&mut self) {
-        // ChaCha20Rng doesn't implement zeroize and fake_rng is just for testing.
+impl HpkeDefaultPrng for HpkeRustCrypto {
+    fn try_prng() -> Result<Self::HpkePrng, Error> {
+        let rng = rand_chacha::ChaCha20Rng::try_from_rng(&mut SysRng)
+            .map_err(|_| Error::InsufficientRandomness)?;
+        Ok(HpkeRustCryptoPrng { rng })
     }
 }
 
@@ -165,6 +164,15 @@ impl HpkeCrypto for HpkeRustCrypto {
         return pq_kem::kem_encaps(_alg, _pk_r, _prng);
 
         #[cfg(not(feature = "experimental"))]
+        Err(Error::UnsupportedKemOperation)
+    }
+
+    fn kem_encaps_derand(
+        _alg: KemAlgorithm,
+        _pk_r: &[u8],
+        _randomness: &[u8],
+    ) -> Result<(Vec<u8>, Vec<u8>), Error> {
+        // Not implemented; `hpke-rs` falls back to `kem_encaps`.
         Err(Error::UnsupportedKemOperation)
     }
 
@@ -293,23 +301,6 @@ impl HpkeCrypto for HpkeRustCrypto {
 
     type HpkePrng = HpkeRustCryptoPrng;
 
-    fn prng() -> Self::HpkePrng {
-        let rng = rand_chacha::ChaCha20Rng::from_rng(&mut UnwrapErr(SysRng));
-
-        #[cfg(feature = "deterministic-prng")]
-        {
-            use rand::Rng;
-
-            let mut fake_rng = alloc::vec![0u8; 256];
-            let mut rng = rng;
-            rng.fill_bytes(&mut fake_rng);
-
-            HpkeRustCryptoPrng { fake_rng, rng }
-        }
-        #[cfg(not(feature = "deterministic-prng"))]
-        HpkeRustCryptoPrng { rng }
-    }
-
     /// Returns an error if the KDF algorithm is not supported by this crypto provider.
     fn supports_kdf(alg: KdfAlgorithm) -> Result<(), Error> {
         match alg {
@@ -367,50 +358,8 @@ impl rand_core::TryRng for HpkeRustCryptoPrng {
 
 impl rand_core::TryCryptoRng for HpkeRustCryptoPrng {}
 
-impl HpkeTestRng for HpkeRustCryptoPrng {
-    #[cfg(feature = "deterministic-prng")]
-    fn try_fill_test_bytes(&mut self, dest: &mut [u8]) -> Result<(), HpkeTestRngError> {
-        // Here we fake our randomness for testing.
-        if dest.len() > self.fake_rng.len() {
-            return Err(HpkeTestRngError::InsufficientRandomness);
-        }
-        dest.clone_from_slice(&self.fake_rng.split_off(self.fake_rng.len() - dest.len()));
-        Ok(())
-    }
-
-    #[cfg(feature = "deterministic-prng")]
-    fn seed(&mut self, seed: &[u8]) {
-        self.fake_rng = seed.to_vec();
-    }
-
-    #[cfg(not(feature = "deterministic-prng"))]
-    fn try_fill_test_bytes(&mut self, dest: &mut [u8]) -> Result<(), HpkeTestRngError> {
-        use rand::Rng;
-        self.rng.fill_bytes(dest);
-        Ok(())
-    }
-
-    #[cfg(not(feature = "deterministic-prng"))]
-    fn seed(&mut self, _: &[u8]) {}
-
-    type Error = HpkeTestRngError;
-}
-
 impl Display for HpkeRustCrypto {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "{}", Self::name())
-    }
-}
-
-#[derive(Debug)]
-pub enum HpkeTestRngError {
-    InsufficientRandomness,
-}
-
-impl Display for HpkeTestRngError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        match self {
-            HpkeTestRngError::InsufficientRandomness => write!(f, "Insufficient randomness"),
-        }
     }
 }

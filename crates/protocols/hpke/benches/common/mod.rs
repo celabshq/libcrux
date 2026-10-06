@@ -9,7 +9,7 @@ use criterion::{BatchSize, Criterion};
 use hpke_rs::{prelude::*, Hpke};
 use hpke_rs_crypto::{
     types::{AeadAlgorithm, KdfAlgorithm, KemAlgorithm},
-    HpkeCrypto,
+    HpkeDefaultPrng,
 };
 use rand::Rng;
 
@@ -51,7 +51,7 @@ fn get_psk_params(mode: Mode) -> (Option<Vec<u8>>, Option<Vec<u8>>) {
     }
 }
 
-fn get_sender_keypair<Crypto: HpkeCrypto + 'static>(
+fn get_sender_keypair<Crypto: HpkeDefaultPrng + 'static>(
     mode: Mode,
     hpke: &mut Hpke<Crypto>,
 ) -> (Option<HpkePublicKey>, Option<HpkePrivateKey>) {
@@ -71,7 +71,7 @@ fn get_sender_keypair<Crypto: HpkeCrypto + 'static>(
 /// When `bench_keygen` is set, a `Generate Key Pair` benchmark is added in front
 /// of the others. This is used for the post-quantum suites, where key generation
 /// is a non-trivial cost worth measuring on its own.
-pub fn bench_suite<Crypto: HpkeCrypto + 'static>(
+pub fn bench_suite<Crypto: HpkeDefaultPrng + 'static>(
     c: &mut Criterion,
     hpke_mode: Mode,
     kem_mode: KemAlgorithm,

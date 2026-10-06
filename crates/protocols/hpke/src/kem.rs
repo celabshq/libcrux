@@ -1,6 +1,6 @@
 use alloc::{vec, vec::Vec};
 
-use hpke_rs_crypto::{error::Error, types::KemAlgorithm, HpkeCrypto, Rng};
+use hpke_rs_crypto::{error::Error, types::KemAlgorithm, HpkeCrypto, TryRng};
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
 use crate::{dh_kem, util, Hpke};
@@ -39,7 +39,23 @@ pub(crate) fn encaps<Crypto: HpkeCrypto>(
         | KemAlgorithm::MlKem768
         | KemAlgorithm::MlKem1024
         | KemAlgorithm::MlKem768P256
-        | KemAlgorithm::MlKem1024P384 => Crypto::kem_encaps(alg, pk_r, hpke.rng()),
+        | KemAlgorithm::MlKem1024P384 => {
+            // Derandomized, same as the DH-KEM arm above: `Hpke::random`
+            // supplies the encapsulation randomness (drawn from the prng in
+            // `Hpke`, whatever it's backed by; see `HpkeCrypto::HpkePrng`),
+            // and `kem_encaps_derand` is a pure function of it.
+            let n = alg
+                .encaps_randomness_len()
+                .ok_or(Error::UnknownKemAlgorithm)?;
+            let randomness = hpke.random(n).map_err(|_| Error::InsufficientRandomness)?;
+            match Crypto::kem_encaps_derand(alg, pk_r, &randomness) {
+                // Providers without derandomized encapsulation.
+                Err(Error::UnsupportedKemOperation) => {
+                    Crypto::kem_encaps(alg, pk_r, &mut hpke.prng)
+                }
+                r => r,
+            }
+        }
     }
 }
 
@@ -142,8 +158,9 @@ pub(crate) fn key_gen<Crypto: HpkeCrypto>(
         | KemAlgorithm::MlKem1024
         | KemAlgorithm::MlKem768P256
         | KemAlgorithm::MlKem1024P384 => {
-            let mut seed = vec![0u8; alg.private_key_len()];
-            prng.fill_bytes(&mut seed);
+            let mut seed = zeroize::Zeroizing::new(vec![0u8; alg.private_key_len()]);
+            prng.try_fill_bytes(&mut seed)
+                .map_err(|_| Error::InsufficientRandomness)?;
             let (pk, sk) = derive_key_pair::<Crypto>(alg, &seed)?;
             Ok((sk, pk))
         }

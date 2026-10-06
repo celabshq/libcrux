@@ -48,8 +48,8 @@ pub enum Error {
     CryptoLibraryError(String),
 }
 
-#[cfg(feature = "std")]
-impl std::error::Error for Error {}
+// `rand_core::TryRng::Error` which requires this.
+impl core::error::Error for Error {}
 
 impl Display for Error {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {

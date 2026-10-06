@@ -10,7 +10,9 @@ use std::time::Instant;
 
 use hpke::prelude::*;
 use hpke::test_util::{hex_to_bytes, hex_to_bytes_option, vec_to_option_slice};
-use hpke_rs_crypto::{types::*, HpkeCrypto};
+use hpke_rs_crypto::{
+    error::Error as HpkeCryptoError, types::*, HpkeDefaultPrng, TryCryptoRng, TryRng,
+};
 use hpke_rs_libcrux::HpkeLibcrux;
 
 /// A single HPKE known-answer test vector.
@@ -69,11 +71,101 @@ struct ExportsKAT {
     exported_value: String,
 }
 
+/// Replays caller-supplied bytes verbatim (LIFO — from the end), with no DRBG
+/// computation. A minimal test-only Rng used to inject known-answer-test
+/// randomness (`ikmE`) via `Hpke::<HpkeLibcrux<VerbatimRng>>::new_with_rng`,
+/// instead of a library-side test-injection hook.
+#[derive(Default)]
+struct VerbatimRng(Vec<u8>);
+
+impl VerbatimRng {
+    fn new(seed: &[u8]) -> Self {
+        Self(seed.to_vec())
+    }
+}
+
+impl TryRng for VerbatimRng {
+    type Error = HpkeCryptoError;
+
+    fn try_next_u32(&mut self) -> Result<u32, Self::Error> {
+        let mut buf = [0u8; 4];
+        self.try_fill_bytes(&mut buf)?;
+        Ok(u32::from_le_bytes(buf))
+    }
+
+    fn try_next_u64(&mut self) -> Result<u64, Self::Error> {
+        let mut buf = [0u8; 8];
+        self.try_fill_bytes(&mut buf)?;
+        Ok(u64::from_le_bytes(buf))
+    }
+
+    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Self::Error> {
+        if dest.len() > self.0.len() {
+            return Err(HpkeCryptoError::InsufficientRandomness);
+        }
+        dest.clone_from_slice(&self.0.split_off(self.0.len() - dest.len()));
+        Ok(())
+    }
+}
+
+impl TryCryptoRng for VerbatimRng {}
+
+/// Builds the seeded sender for the `ikmE`-injection cross-check (see `kat`),
+/// using the libcrux provider with the test-only [`VerbatimRng`] set via
+/// `Hpke::new_with_rng`, and returns the resulting `enc`. Only the libcrux
+/// backend supports this check; `kats_rust_crypto` passes `None` for
+/// `seeded_sender_enc` instead.
+#[allow(clippy::too_many_arguments)]
+fn libcrux_seeded_sender_enc(
+    mode: HpkeMode,
+    kem_id: KemAlgorithm,
+    kdf_id: KdfAlgorithm,
+    aead_id: AeadAlgorithm,
+    pk_r: &HpkePublicKey,
+    info: &[u8],
+    psk: Option<&[u8]>,
+    psk_id: Option<&[u8]>,
+    sk_s: Option<&HpkePrivateKey>,
+    ikm_e: &[u8],
+) -> Vec<u8> {
+    let mut hpke = Hpke::<HpkeLibcrux<VerbatimRng>>::new_with_rng(
+        mode,
+        kem_id,
+        kdf_id,
+        aead_id,
+        VerbatimRng::new(ikm_e),
+    );
+    let (enc, _sender_context) = hpke
+        .setup_sender(pk_r, info, psk, psk_id, sk_s)
+        .expect("Error setting up seeded sender");
+    enc
+}
+
+/// Signature of [`libcrux_seeded_sender_enc`] — the "bring your own Rng" hook
+/// `kat` uses for the `ikmE`-injection cross-check, `None` for backends that
+/// don't support it.
+#[allow(clippy::too_many_arguments)]
+type SeededSenderEnc = fn(
+    HpkeMode,
+    KemAlgorithm,
+    KdfAlgorithm,
+    AeadAlgorithm,
+    &HpkePublicKey,
+    &[u8],
+    Option<&[u8]>,
+    Option<&[u8]>,
+    Option<&HpkePrivateKey>,
+    &[u8],
+) -> Vec<u8>;
+
 /// Run the known-answer tests for all `tests` supported by the `Crypto` backend,
 /// and return the `KemAlgorithm` of every vector that was actually executed
 /// (vectors skipped because the backend doesn't support the ciphersuite yield
 /// `None`). The caller uses this to assert exactly which suites ran.
-fn kat<Crypto: HpkeCrypto + 'static>(tests: Vec<HpkeTestVector>) -> Vec<KemAlgorithm> {
+fn kat<Crypto: HpkeDefaultPrng + 'static>(
+    tests: Vec<HpkeTestVector>,
+    seeded_sender_enc: Option<SeededSenderEnc>,
+) -> Vec<KemAlgorithm> {
     // Replace into_par_iter() with into_iter() to run tests sequentially.
     tests
         .into_par_iter()
@@ -206,15 +298,11 @@ fn kat<Crypto: HpkeCrypto + 'static>(tests: Vec<HpkeTestVector>) -> Vec<KemAlgor
             // Inject `ikmE` to check the sender-side `enc`. DH-based KEMs derive the
             // ephemeral from `Hpke::random`; the PQ KEMs run derandomized
             // from the injected seed. Either way `enc` must match the vector.
-            #[cfg(feature = "hpke-test-prng")]
-            {
+            if let Some(seeded_sender_enc) = seeded_sender_enc {
                 log::trace!("Testing with known ikmE ...");
-                let mut hpke_sender = Hpke::<Crypto>::new(mode, kem_id, kdf_id, aead_id);
-                // This only works when seeding the PRNG with ikmE.
-                hpke_sender.seed(&ikm_e).expect("Error injecting ikm_e");
-                let (enc, _sender_context_kat) = hpke_sender
-                    .setup_sender(&pk_rm, &info, psk, psk_id, sk_sm)
-                    .unwrap();
+                let enc = seeded_sender_enc(
+                    mode, kem_id, kdf_id, aead_id, &pk_rm, &info, psk, psk_id, sk_sm, &ikm_e,
+                );
                 let receiver_context = hpke
                     .setup_receiver(&enc, &sk_rm, &info, psk, psk_id, pk_sm)
                     .unwrap();
@@ -329,7 +417,7 @@ fn kats_rust_crypto() {
         KemAlgorithm::DhKemK256,
     ];
 
-    run::<HpkeRustCrypto>(files, expected_kems);
+    run::<HpkeRustCrypto>(files, expected_kems, None);
 }
 
 #[test]
@@ -368,7 +456,7 @@ fn kats_libcrux() {
     ))]
     expected_kems.push(KemAlgorithm::MlKem1024P384);
 
-    run::<HpkeLibcrux>(&files, &expected_kems);
+    run::<HpkeLibcrux>(&files, &expected_kems, Some(libcrux_seeded_sender_enc));
 }
 
 /// Run the KAT for every file and assert that the set of KEMs actually exercised
@@ -380,7 +468,11 @@ fn kats_libcrux() {
 /// gains) support for a KEM trips the assertion instead of passing quietly. Every
 /// file handed to a backend must also run at least one vector, so a backend is
 /// never given a file whose suites it can't run.
-fn run<Crypto: HpkeCrypto + 'static>(files: &[&str], expected_kems: &[KemAlgorithm]) {
+fn run<Crypto: HpkeDefaultPrng + 'static>(
+    files: &[&str],
+    expected_kems: &[KemAlgorithm],
+    seeded_sender_enc: Option<SeededSenderEnc>,
+) {
     let _ = pretty_env_logger::try_init();
 
     let mut ran_kems: Vec<KemAlgorithm> = Vec::new();
@@ -397,7 +489,7 @@ fn run<Crypto: HpkeCrypto + 'static>(files: &[&str], expected_kems: &[KemAlgorit
 
         // Run the actual KAT; `kat` returns the KEM of every vector it exercised.
         let now = Instant::now();
-        let executed = kat::<Crypto>(tests.clone());
+        let executed = kat::<Crypto>(tests.clone(), seeded_sender_enc);
         let time = now.elapsed();
 
         // Every file must contribute something, so a backend is never handed a
