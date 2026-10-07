@@ -2,7 +2,7 @@
 name = "libcrux-ecdsa"
 description = "Formally verified ECDSA signature library"
 readme = "Readme.md"
-version = "0.0.9-pre.1"
+version = "0.0.9"
 
 authors.workspace = true
 license.workspace = true
