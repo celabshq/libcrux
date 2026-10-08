@@ -160,7 +160,7 @@ tls_codec = { version = "0.5.0", features = [
 
 # 3rd Party
 rand = { version = "0.10", default-features = false }
-crabgrind = "0.3.1"
+crabgrind = "0.4.0"
 
 [lib]
 crate-type = ["staticlib", "cdylib", "lib"]
