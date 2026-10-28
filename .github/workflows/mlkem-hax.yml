@@ -16,7 +16,6 @@ on:
 env:
   CARGO_TERM_COLOR: always
   FSTAR_REV: v2026.03.24
-  HAX_LIB_VERSION: 0.4.1
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -30,11 +29,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: hacspec/hax-actions@main
         with:
-          hax_reference: hax-lib-v${{ env.HAX_LIB_VERSION }}
+          hax_reference: main
+          hax_repository: github:pereq-dev/hax
           fstar: ${{ env.FSTAR_REV }}
-          
-      - name: Use precise version of hax-lib
-        run: cargo update hax-lib --precise $HAX_LIB_VERSION
 
       - name: 🏃 Extract ML-KEM crate
         working-directory: libcrux-ml-kem
@@ -58,11 +55,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: hacspec/hax-actions@main
         with:
-          hax_reference: hax-lib-v${{ env.HAX_LIB_VERSION }}
+          hax_reference: main
+          hax_repository: github:pereq-dev/hax
           fstar: ${{ env.FSTAR_REV }}
-          
-      - name: Use precise version of hax-lib
-        run: cargo update hax-lib --precise $HAX_LIB_VERSION
 
       - uses: actions/download-artifact@v8
         with:
@@ -82,11 +77,10 @@ jobs:
   #     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
   #     - uses: hacspec/hax-actions@main
   #       with:
-  #         hax_reference: hax-lib-v${{ env.HAX_LIB_VERSION }}
+  #         hax_reference: main
+  #         hax_repository: github:pereq-dev/hax
   #         fstar: ${{ env.FSTAR_REV }}
           
-  #     - name: Use precise version of hax-lib
-  #       run: cargo update hax-lib --precise $HAX_LIB_VERSION
       
   #     - uses: actions/download-artifact@v8
   #       with:
