@@ -61,6 +61,7 @@ members = [
     "crates/protocols/hpke/traits",
     "crates/protocols/hpke/wasm",
     "crates/sys/platform",
+    "crates/testing/acvp-harness",
     "crates/testing/kats",
     "crates/utils/core-models",
     "crates/utils/ctgrind-test",

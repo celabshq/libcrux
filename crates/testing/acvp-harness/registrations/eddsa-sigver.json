@@ -1,0 +1,14 @@
+{
+  "vsId": 0,
+  "isSample": false,
+  "conformances": [],
+  "algorithm": "EDDSA",
+  "mode": "sigVer",
+  "revision": "1.0",
+  "curve": [
+    "ED-25519",
+    "ED-448"
+  ],
+  "pure": true,
+  "preHash": true
+}

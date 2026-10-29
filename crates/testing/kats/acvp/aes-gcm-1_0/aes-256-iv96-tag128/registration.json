@@ -1,0 +1,36 @@
+{
+  "vsId": 0,
+  "isSample": false,
+  "conformances": [],
+  "algorithm": "ACVP-AES-GCM",
+  "revision": "1.0",
+  "direction": [
+    "encrypt",
+    "decrypt"
+  ],
+  "keyLen": [
+    256
+  ],
+  "payloadLen": [
+    {
+      "min": 0,
+      "max": 65536,
+      "increment": 8
+    }
+  ],
+  "ivLen": [
+    96
+  ],
+  "ivGen": "external",
+  "ivGenMode": "8.2.2",
+  "aadLen": [
+    {
+      "min": 0,
+      "max": 65536,
+      "increment": 8
+    }
+  ],
+  "tagLen": [
+    128
+  ]
+}

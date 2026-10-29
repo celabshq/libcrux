@@ -1,0 +1,168 @@
+{
+  "vsId": 0,
+  "isSample": false,
+  "algorithm": "KDA",
+  "revision": "Sp800-56Cr2",
+  "mode": "OneStepNoCounter",
+  "auxFunctions": [
+    {
+      "auxFunctionName": "SHA-1",
+      "l": 160
+    },
+    {
+      "auxFunctionName": "SHA2-224",
+      "l": 224
+    },
+    {
+      "auxFunctionName": "SHA2-256",
+      "l": 256
+    },
+    {
+      "auxFunctionName": "SHA2-384",
+      "l": 384
+    },
+    {
+      "auxFunctionName": "SHA2-512",
+      "l": 512
+    },
+    {
+      "auxFunctionName": "SHA2-512/224",
+      "l": 224
+    },
+    {
+      "auxFunctionName": "SHA2-512/256",
+      "l": 256
+    },
+    {
+      "auxFunctionName": "SHA3-224",
+      "l": 224
+    },
+    {
+      "auxFunctionName": "SHA3-256",
+      "l": 256
+    },
+    {
+      "auxFunctionName": "SHA3-384",
+      "l": 384
+    },
+    {
+      "auxFunctionName": "SHA3-512",
+      "l": 512
+    },
+    {
+      "auxFunctionName": "HMAC-SHA-1",
+      "macSaltMethods": [
+        "default",
+        "random"
+      ],
+      "l": 160
+    },
+    {
+      "auxFunctionName": "HMAC-SHA2-224",
+      "macSaltMethods": [
+        "default",
+        "random"
+      ],
+      "l": 224
+    },
+    {
+      "auxFunctionName": "HMAC-SHA2-256",
+      "macSaltMethods": [
+        "default",
+        "random"
+      ],
+      "l": 256
+    },
+    {
+      "auxFunctionName": "HMAC-SHA2-384",
+      "macSaltMethods": [
+        "default",
+        "random"
+      ],
+      "l": 384
+    },
+    {
+      "auxFunctionName": "HMAC-SHA2-512",
+      "macSaltMethods": [
+        "default",
+        "random"
+      ],
+      "l": 512
+    },
+    {
+      "auxFunctionName": "HMAC-SHA2-512/224",
+      "macSaltMethods": [
+        "default",
+        "random"
+      ],
+      "l": 224
+    },
+    {
+      "auxFunctionName": "HMAC-SHA2-512/256",
+      "macSaltMethods": [
+        "default",
+        "random"
+      ],
+      "l": 256
+    },
+    {
+      "auxFunctionName": "HMAC-SHA3-224",
+      "macSaltMethods": [
+        "default",
+        "random"
+      ],
+      "l": 224
+    },
+    {
+      "auxFunctionName": "HMAC-SHA3-256",
+      "macSaltMethods": [
+        "default",
+        "random"
+      ],
+      "l": 256
+    },
+    {
+      "auxFunctionName": "HMAC-SHA3-384",
+      "macSaltMethods": [
+        "default",
+        "random"
+      ],
+      "l": 384
+    },
+    {
+      "auxFunctionName": "HMAC-SHA3-512",
+      "macSaltMethods": [
+        "default",
+        "random"
+      ],
+      "l": 512
+    },
+    {
+      "auxFunctionName": "KMAC-128",
+      "macSaltMethods": [
+        "default",
+        "random"
+      ],
+      "l": 256
+    },
+    {
+      "auxFunctionName": "KMAC-256",
+      "macSaltMethods": [
+        "default",
+        "random"
+      ],
+      "l": 256
+    }
+  ],
+  "fixedInfoPattern": "uPartyInfo||vPartyInfo||l",
+  "encoding": [
+    "concatenation"
+  ],
+  "z": [
+    {
+      "min": 224,
+      "max": 65536,
+      "increment": 8
+    }
+  ]
+}

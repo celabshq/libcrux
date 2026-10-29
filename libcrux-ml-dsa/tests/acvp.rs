@@ -10,25 +10,21 @@ fn keygen() {
     use libcrux_kats::acvp::mldsa::KeyGenTests;
 
     let KeyGenTests { prompts, results } = KeyGenTests::load();
-    // checks
-    assert!(prompts.algorithm == "ML-DSA");
-    assert!(prompts.revision == "FIPS204");
-    assert!(results.algorithm == "ML-DSA");
-    assert!(results.revision == "FIPS204");
+    assert_eq!(prompts.algorithm, "ML-DSA");
+    assert_eq!(prompts.revision, "FIPS204");
+    assert_covers(&prompts, &results);
 
+    let mut tally = Tally::new();
     for kat in prompts.testGroups {
         let parameter_set = kat.parameterSet;
-        assert!(
-            parameter_set == "ML-DSA-44"
-                || parameter_set == "ML-DSA-65"
-                || parameter_set == "ML-DSA-87"
-        );
         eprintln!("{parameter_set}");
 
         for test in kat.tests {
             keygen_inner(test, &results, kat.tgId, &parameter_set);
+            tally.add(&parameter_set);
         }
     }
+    tally.assert_counts([("ML-DSA-44", 25), ("ML-DSA-65", 25), ("ML-DSA-87", 25)]);
 }
 
 #[inline(never)]
@@ -58,7 +54,7 @@ fn keygen_inner(
         "ML-DSA-65" => check(ml_dsa_65::generate_key_pair(test.seed), expected_result),
 
         "ML-DSA-87" => check(ml_dsa_87::generate_key_pair(test.seed), expected_result),
-        _ => unimplemented!(),
+        p => panic!("unexpected parameterSet {p}"),
     }
 }
 
@@ -67,47 +63,72 @@ fn siggen() {
     use libcrux_kats::acvp::mldsa::SigGenTests;
 
     let SigGenTests { prompts, results } = SigGenTests::load();
-    // checks
-    assert!(prompts.algorithm == "ML-DSA");
-    assert!(prompts.revision == "FIPS204");
-    assert!(results.algorithm == "ML-DSA");
-    assert!(results.revision == "FIPS204");
+    assert_eq!(prompts.algorithm, "ML-DSA");
+    assert_eq!(prompts.revision, "FIPS204");
+    assert_covers(&prompts, &results);
 
+    run_siggen(prompts, &results).assert_counts([
+        ("internal", 90),
+        ("external pure", 90),
+        ("external preHash SHAKE-128", 9),
+        ("skipped: externalMu", 90),
+        ("skipped: preHash other than SHAKE-128", 81),
+    ]);
+}
+
+/// Run the sigGen tests, returning the test cases run and skipped per category. Categories of
+/// groups with a `keyFormat` are prefixed with it.
+fn run_siggen(
+    prompts: Prompts<SigGenPromptTestGroup>,
+    results: &Results<ResultSigGenTestGroup>,
+) -> Tally {
+    let mut tally = Tally::new();
     for kat in prompts.testGroups {
         let parameter_set = kat.parameterSet;
-        assert!(
-            parameter_set == "ML-DSA-44"
-                || parameter_set == "ML-DSA-65"
-                || parameter_set == "ML-DSA-87"
-        );
+        let key_format = kat
+            .keyFormat
+            .as_deref()
+            .map_or(String::new(), |f| format!("{f} "));
         eprintln!("{parameter_set}");
 
-        for test in kat.tests {
-            if kat.signatureInterface == "internal" {
+        for mut test in kat.tests {
+            let category = if kat.signatureInterface == "internal" {
                 if kat.externalMu {
                     // NOTE: this API is currently not supported
-                    eprintln!(
-                        "Skipping test tgId {tgId}, tcId {tcId}: externalMu = true",
-                        tgId = kat.tgId,
-                        tcId = test.tcId,
-                    );
-                    continue;
-                }
-                siggen_inner_internal(test, &results, kat.tgId, &parameter_set)
-            } else {
-                let pre_hash = kat.preHash == Some("preHash".to_string());
-                if pre_hash {
-                    if test.hashAlg.as_ref().map(String::as_str) != Some("SHAKE-128") {
-                        eprintln!("Skipping pre-hash {:?}: unsupported", test.hashAlg);
-                        continue;
-                    }
-                    siggen_inner_external_prehash(test, &results, kat.tgId, &parameter_set);
+                    "skipped: externalMu"
                 } else {
-                    siggen_inner_external(test, &results, kat.tgId, &parameter_set);
+                    "internal"
                 }
+            } else if kat.preHash.as_deref() == Some("preHash") {
+                if test.hashAlg.as_deref() == Some("SHAKE-128") {
+                    "external preHash SHAKE-128"
+                } else {
+                    "skipped: preHash other than SHAKE-128"
+                }
+            } else {
+                assert_eq!(kat.preHash.as_deref(), Some("pure"));
+                "external pure"
+            };
+            tally.add(format!("{key_format}{category}"));
+            if category.starts_with("skipped") {
+                continue;
+            }
+
+            match kat.keyFormat.as_deref() {
+                Some("seed") => test.sk = signing_key_from_seed(&parameter_set, &test.seed),
+                Some("expanded") | None => assert!(!test.sk.is_empty()),
+                f => panic!("unexpected keyFormat {f:?}"),
+            }
+            match category {
+                "internal" => siggen_inner_internal(test, results, kat.tgId, &parameter_set),
+                "external preHash SHAKE-128" => {
+                    siggen_inner_external_prehash(test, results, kat.tgId, &parameter_set)
+                }
+                _ => siggen_inner_external(test, results, kat.tgId, &parameter_set),
             }
         }
     }
+    tally
 }
 
 #[inline(never)]
@@ -155,7 +176,7 @@ fn siggen_inner_internal(
             .unwrap();
             assert_eq!(signature.as_slice(), expected_result.signature);
         }
-        _ => unimplemented!(),
+        p => panic!("unexpected parameterSet {p}"),
     }
 }
 
@@ -210,7 +231,7 @@ macro_rules! siggen_test {
                     .unwrap();
                     assert_eq!(signature.as_slice(), expected_result.signature);
                 }
-                _ => unimplemented!(),
+                p => panic!("unexpected parameterSet {p}"),
             }
         }
     };
@@ -223,44 +244,50 @@ fn sigver() {
     use libcrux_kats::acvp::mldsa::SigVerTests;
 
     let SigVerTests { prompts, results } = SigVerTests::load();
-    // checks
-    assert!(prompts.algorithm == "ML-DSA");
-    assert!(prompts.revision == "FIPS204");
-    assert!(results.algorithm == "ML-DSA");
-    assert!(results.revision == "FIPS204");
+    assert_eq!(prompts.algorithm, "ML-DSA");
+    assert_eq!(prompts.revision, "FIPS204");
+    assert_covers(&prompts, &results);
 
+    let mut tally = Tally::new();
     for kat in prompts.testGroups {
         let parameter_set = kat.parameterSet;
-        assert!(
-            parameter_set == "ML-DSA-44"
-                || parameter_set == "ML-DSA-65"
-                || parameter_set == "ML-DSA-87"
-        );
         eprintln!("{parameter_set}");
 
         for test in kat.tests {
             if kat.signatureInterface == "internal" {
                 if kat.externalMu {
                     // NOTE: this API is currently not supported
-                    eprintln!(
-                        "Skipping test tgId {tgId}, tcId {tcId}: externalMu = true",
-                        tgId = kat.tgId,
-                        tcId = test.tcId,
-                    );
+                    tally.add("skipped: externalMu");
                     continue;
                 }
                 sigver_inner_internal(test, &results, kat.tgId, &parameter_set);
+                tally.add("internal");
             } else {
-                let pre_hash = kat.preHash == Some("preHash".to_string());
-                if pre_hash && test.hashAlg.as_ref().map(String::as_str) != Some("SHAKE-128") {
-                    eprintln!("Skipping pre-hash {:?}: unsupported", test.hashAlg);
+                let pre_hash = kat.preHash.as_deref() == Some("preHash");
+                if !pre_hash {
+                    assert_eq!(kat.preHash.as_deref(), Some("pure"));
+                } else if test.hashAlg.as_deref() != Some("SHAKE-128") {
+                    tally.add("skipped: preHash other than SHAKE-128");
                     continue;
                 }
                 sigver_inner_external(test, &results, kat.tgId, &parameter_set, pre_hash);
+                tally.add(if pre_hash {
+                    "external preHash SHAKE-128"
+                } else {
+                    "external pure"
+                });
             }
         }
     }
+    tally.assert_counts([
+        ("internal", 45),
+        ("external pure", 45),
+        ("external preHash SHAKE-128", 3),
+        ("skipped: externalMu", 45),
+        ("skipped: preHash other than SHAKE-128", 42),
+    ]);
 }
+
 #[inline(never)]
 #[allow(non_snake_case)]
 fn sigver_inner_external(
@@ -318,7 +345,7 @@ fn sigver_inner_external(
             );
             assert_eq!(valid.is_ok(), expected_result.testPassed);
         }
-        _ => unimplemented!(),
+        p => panic!("unexpected parameterSet {p}"),
     }
 }
 
@@ -363,6 +390,52 @@ fn sigver_inner_internal(
             );
             assert_eq!(valid.is_ok(), expected_result.testPassed);
         }
-        _ => unimplemented!(),
+        p => panic!("unexpected parameterSet {p}"),
     }
+}
+
+/// The expanded signing key for the key generation seed.
+fn signing_key_from_seed(parameter_set: &str, seed: &[u8]) -> Vec<u8> {
+    use libcrux_ml_dsa::*;
+
+    let seed: [u8; 32] = seed.try_into().unwrap();
+    match parameter_set {
+        "ML-DSA-44" => ml_dsa_44::generate_key_pair(seed)
+            .signing_key
+            .as_slice()
+            .to_vec(),
+        "ML-DSA-65" => ml_dsa_65::generate_key_pair(seed)
+            .signing_key
+            .as_slice()
+            .to_vec(),
+        "ML-DSA-87" => ml_dsa_87::generate_key_pair(seed)
+            .signing_key
+            .as_slice()
+            .to_vec(),
+        p => panic!("unexpected parameterSet {p}"),
+    }
+}
+
+/// `ML-DSA-sigGen-FIPS204-tr1`, which also gives signing keys as the key generation seed.
+#[test]
+fn siggen_tr1() {
+    use libcrux_kats::acvp::mldsa::SigGenTests;
+
+    let SigGenTests { prompts, results } = SigGenTests::load_tr1();
+    assert_eq!(prompts.algorithm, "ML-DSA");
+    assert_eq!(prompts.revision, "FIPS204-tr1");
+    assert_covers(&prompts, &results);
+
+    run_siggen(prompts, &results).assert_counts([
+        ("expanded internal", 90),
+        ("seed internal", 90),
+        ("expanded external pure", 90),
+        ("seed external pure", 90),
+        ("expanded external preHash SHAKE-128", 8),
+        ("seed external preHash SHAKE-128", 6),
+        ("expanded skipped: externalMu", 90),
+        ("seed skipped: externalMu", 90),
+        ("expanded skipped: preHash other than SHAKE-128", 82),
+        ("seed skipped: preHash other than SHAKE-128", 84),
+    ]);
 }

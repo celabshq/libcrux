@@ -1,0 +1,34 @@
+{
+  "vsId": 0,
+  "algorithm": "KDA",
+  "mode": "HKDF",
+  "revision": "Sp800-56Cr2",
+  "isSample": true,
+  "fixedInfoPattern": "uPartyInfo||vPartyInfo||l",
+  "encoding": [
+    "concatenation"
+  ],
+  "hmacAlg": [
+    "SHA2-256",
+    "SHA2-384",
+    "SHA2-512",
+    "SHA3-224",
+    "SHA3-256",
+    "SHA3-384",
+    "SHA3-512"
+  ],
+  "macSaltMethods": [
+    "default",
+    "random"
+  ],
+  "l": 1024,
+  "z": [
+    {
+      "min": 224,
+      "max": 4096,
+      "increment": 8
+    }
+  ],
+  "usesHybridSharedSecret": false,
+  "performMultiExpansionTests": false
+}

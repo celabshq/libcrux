@@ -1,5 +1,5 @@
 use super::super::schema_common::*;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize)]
 #[allow(non_snake_case)]
@@ -15,6 +15,7 @@ pub struct SigVerPromptTestGroup {
 }
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 #[allow(non_snake_case)]
 pub struct SigVerTest {
     pub tcId: usize,
@@ -32,7 +33,8 @@ pub struct SigVerTest {
     pub hashAlg: Option<String>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[allow(non_snake_case)]
 pub struct SigVerResult {
     pub tcId: usize,
@@ -40,8 +42,5 @@ pub struct SigVerResult {
 }
 
 pub type ResultSigVerTestGroup = TestGroupResults<SigVerResult>;
-impl TestResult for SigVerResult {
-    fn tc_id(&self) -> usize {
-        self.tcId
-    }
-}
+impl_test_case!(SigVerTest, SigVerResult);
+impl_test_group!(SigVerPromptTestGroup => SigVerTest);

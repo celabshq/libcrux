@@ -1,5 +1,5 @@
 use super::super::schema_common::*;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize)]
 pub struct Randomness(#[serde(with = "hex::serde")] pub [u8; 32]);
@@ -15,14 +15,21 @@ pub struct SigGenPromptTestGroup {
     pub preHash: Option<String>,
     #[serde(default)]
     pub externalMu: bool,
+    /// `"expanded"` or `"seed"` since `FIPS204-tr1`.
+    pub keyFormat: Option<String>,
     pub tests: Vec<SigGenTest>,
 }
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 #[allow(non_snake_case)]
 pub struct SigGenTest {
     pub tcId: usize,
-    #[serde(with = "hex::serde")]
+    /// The expanded signing key; empty if the key is given as `seed`.
+    #[serde(default, with = "hex::serde")]
     pub sk: Vec<u8>,
+    /// The key generation seed, for `keyFormat` `"seed"`.
+    #[serde(default, with = "hex::serde")]
+    pub seed: Vec<u8>,
     #[serde(default)]
     pub rnd: Option<Randomness>,
     #[serde(default, with = "hex::serde")]
@@ -35,18 +42,16 @@ pub struct SigGenTest {
     pub hashAlg: Option<String>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[allow(non_snake_case)]
 pub struct SigGenResult {
     pub tcId: usize,
-    #[serde(with = "hex::serde")]
+    #[serde(with = "upper_hex")]
     pub signature: Vec<u8>,
 }
 
 pub type ResultSigGenTestGroup = TestGroupResults<SigGenResult>;
 
-impl TestResult for SigGenResult {
-    fn tc_id(&self) -> usize {
-        self.tcId
-    }
-}
+impl_test_case!(SigGenTest, SigGenResult);
+impl_test_group!(SigGenPromptTestGroup => SigGenTest);

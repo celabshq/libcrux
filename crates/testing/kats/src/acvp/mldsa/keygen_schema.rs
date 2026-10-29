@@ -1,8 +1,9 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use super::super::schema_common::*;
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 #[allow(non_snake_case)]
 pub struct KeyGenPrompt {
     pub tcId: usize,
@@ -20,22 +21,20 @@ pub struct KeyGenPromptTestGroup {
     pub tests: Vec<KeyGenPrompt>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[allow(non_snake_case)]
 pub struct KeyGenResult {
     pub tcId: usize,
 
-    #[serde(with = "hex::serde")]
+    #[serde(with = "upper_hex")]
     pub pk: Vec<u8>,
 
-    #[serde(with = "hex::serde")]
+    #[serde(with = "upper_hex")]
     pub sk: Vec<u8>,
 }
 
 pub type ResultKeyGenTestGroup = TestGroupResults<KeyGenResult>;
 
-impl TestResult for KeyGenResult {
-    fn tc_id(&self) -> usize {
-        self.tcId
-    }
-}
+impl_test_case!(KeyGenPrompt, KeyGenResult);
+impl_test_group!(KeyGenPromptTestGroup => KeyGenPrompt);

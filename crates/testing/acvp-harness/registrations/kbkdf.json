@@ -1,0 +1,136 @@
+{
+  "vsId": 0,
+  "isSample": false,
+  "conformances": [],
+  "algorithm": "KDF",
+  "revision": "1.0",
+  "capabilities": [
+    {
+      "kdfMode": "counter",
+      "macMode": [
+        "CMAC-AES128",
+        "CMAC-AES192",
+        "CMAC-AES256",
+        "CMAC-TDES",
+        "HMAC-SHA-1",
+        "HMAC-SHA2-224",
+        "HMAC-SHA2-256",
+        "HMAC-SHA2-384",
+        "HMAC-SHA2-512",
+        "HMAC-SHA2-512/224",
+        "HMAC-SHA2-512/256",
+        "HMAC-SHA3-224",
+        "HMAC-SHA3-256",
+        "HMAC-SHA3-384",
+        "HMAC-SHA3-512"
+      ],
+      "customKeyInLength": 0,
+      "supportedLengths": [
+        {
+          "min": 1,
+          "max": 4096,
+          "increment": 1
+        }
+      ],
+      "fixedDataOrder": [
+        "after fixed data",
+        "before fixed data",
+        "middle fixed data"
+      ],
+      "counterLength": [
+        8,
+        16,
+        24,
+        32
+      ],
+      "requiresEmptyIv": false,
+      "supportsEmptyIv": false
+    },
+    {
+      "kdfMode": "feedback",
+      "macMode": [
+        "CMAC-AES128",
+        "CMAC-AES192",
+        "CMAC-AES256",
+        "CMAC-TDES",
+        "HMAC-SHA-1",
+        "HMAC-SHA2-224",
+        "HMAC-SHA2-256",
+        "HMAC-SHA2-384",
+        "HMAC-SHA2-512",
+        "HMAC-SHA2-512/224",
+        "HMAC-SHA2-512/256",
+        "HMAC-SHA3-224",
+        "HMAC-SHA3-256",
+        "HMAC-SHA3-384",
+        "HMAC-SHA3-512"
+      ],
+      "customKeyInLength": 0,
+      "supportedLengths": [
+        {
+          "min": 1,
+          "max": 4096,
+          "increment": 1
+        }
+      ],
+      "fixedDataOrder": [
+        "none",
+        "after fixed data",
+        "before fixed data",
+        "before iterator"
+      ],
+      "counterLength": [
+        0,
+        8,
+        16,
+        24,
+        32
+      ],
+      "requiresEmptyIv": false,
+      "supportsEmptyIv": true
+    },
+    {
+      "kdfMode": "double pipeline iteration",
+      "macMode": [
+        "CMAC-AES128",
+        "CMAC-AES192",
+        "CMAC-AES256",
+        "CMAC-TDES",
+        "HMAC-SHA-1",
+        "HMAC-SHA2-224",
+        "HMAC-SHA2-256",
+        "HMAC-SHA2-384",
+        "HMAC-SHA2-512",
+        "HMAC-SHA2-512/224",
+        "HMAC-SHA2-512/256",
+        "HMAC-SHA3-224",
+        "HMAC-SHA3-256",
+        "HMAC-SHA3-384",
+        "HMAC-SHA3-512"
+      ],
+      "customKeyInLength": 0,
+      "supportedLengths": [
+        {
+          "min": 1,
+          "max": 4096,
+          "increment": 1
+        }
+      ],
+      "fixedDataOrder": [
+        "none",
+        "after fixed data",
+        "before fixed data",
+        "before iterator"
+      ],
+      "counterLength": [
+        0,
+        8,
+        16,
+        24,
+        32
+      ],
+      "requiresEmptyIv": false,
+      "supportsEmptyIv": false
+    }
+  ]
+}

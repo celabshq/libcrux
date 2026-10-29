@@ -1,0 +1,22 @@
+{
+  "algorithm": "ML-KEM",
+  "mode": "encapDecap",
+  "revision": "FIPS203-tr1",
+  "parameterSets": [
+    "ML-KEM-512",
+    "ML-KEM-768",
+    "ML-KEM-1024"
+  ],
+  "functions": [
+    "encapsulation",
+    "decapsulation",
+    "encapsulationKeyCheck",
+    "decapsulationKeyCheck"
+  ],
+  "keyFormats": [
+    "seed",
+    "expanded"
+  ],
+  "vsId": 0,
+  "isSample": false
+}
