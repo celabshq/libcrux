@@ -6,6 +6,7 @@ on:
     branches: ["main", "dev", "*"]
     paths:
       - "crates/algorithms/aes/**"
+      - "crates/testing/kats/**"
   workflow_dispatch:
 
 env:
@@ -91,22 +92,22 @@ jobs:
       - name: 🏃🏻‍♀️ Test
         run: |
           cargo clean
-          cargo test --verbose $RUST_TARGET_FLAG
+          cargo test --verbose --features acvp $RUST_TARGET_FLAG
 
       - name: 🏃🏻‍♀️ Test Release
         run: |
           cargo clean
-          cargo test --verbose --release $RUST_TARGET_FLAG
+          cargo test --verbose --features acvp --release $RUST_TARGET_FLAG
 
       - name: 🏃🏻‍♀️ Test Portable
         run: |
           cargo clean
-          LIBCRUX_DISABLE_SIMD128=1 LIBCRUX_DISABLE_SIMD256=1 cargo test --verbose $RUST_TARGET_FLAG
+          LIBCRUX_DISABLE_SIMD128=1 LIBCRUX_DISABLE_SIMD256=1 cargo test --verbose --features acvp $RUST_TARGET_FLAG
 
       - name: 🏃🏻‍♀️ Test Portable Release
         run: |
           cargo clean
-          LIBCRUX_DISABLE_SIMD128=1 LIBCRUX_DISABLE_SIMD256=1 cargo test --verbose --release $RUST_TARGET_FLAG
+          LIBCRUX_DISABLE_SIMD128=1 LIBCRUX_DISABLE_SIMD256=1 cargo test --verbose --features acvp --release $RUST_TARGET_FLAG
 
       - name: 🏃🏻‍♀️ Test Kyber
         run: |

@@ -1,0 +1,83 @@
+name: ACVP
+
+# Generates vector sets with the ACVP-Server gen/val tools, answers them with
+# libcrux (crates/testing/acvp-harness), and validates the answers.
+# See crates/testing/Readme.md.
+
+on:
+  merge_group:
+  pull_request:
+    paths:
+      - ".docker/acvp-server/**"
+      - "crates/testing/acvp-harness/**"
+      - "crates/testing/kats/**"
+      - "crates/algorithms/aes/**"
+      - "crates/algorithms/curve25519/**"
+      - "crates/algorithms/ecdsa/**"
+      - "crates/algorithms/ed25519/**"
+      - "crates/algorithms/hmac/**"
+      - "crates/algorithms/hkdf/**"
+      - "crates/algorithms/hmac-drbg/**"
+      - "crates/algorithms/kmac/**"
+      - "crates/algorithms/nist-kdf/**"
+      - "crates/algorithms/p256/**"
+      - "crates/algorithms/p384/**"
+      - "crates/algorithms/sha2/**"
+      - "crates/algorithms/sha3/**"
+      - "libcrux-ecdh/**"
+      - "libcrux-ml-dsa/**"
+      - "libcrux-ml-kem/**"
+      - "crates/sys/platform/**"
+      - "crates/utils/hacl-rs/**"
+      - "crates/utils/intrinsics/**"
+      - "crates/utils/secrets/**"
+      - "crates/utils/xtask/**"
+      - "traits/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/acvp.yml"
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  acvp:
+    # `cargo xtask acvp run` tests the portable implementation, the platform-multiplexed API, and the
+    # hardware-specific implementation of the runner (AVX2 on x86_64, NEON on aarch64).
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      packages: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm]
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: Swatinem/rust-cache@v2
+
+      # Pulls the image published by docker-acvp-server.yml for .docker/acvp-server, or builds
+      # it if it has not been published yet, e.g. when it is changed in this PR.
+      - name: 🏃🏻‍♀️ Run
+        run: cargo xtask acvp run
+
+      - name: 📦 Upload vector sets and validations
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: acvp-${{ matrix.os }}
+          path: target/acvp
