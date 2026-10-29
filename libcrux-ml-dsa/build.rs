@@ -1,6 +1,11 @@
 use std::env;
 
 fn main() {
+    println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo:rerun-if-env-changed=LIBCRUX_DISABLE_SIMD128");
+    println!("cargo:rerun-if-env-changed=LIBCRUX_DISABLE_SIMD256");
+    println!("cargo:rerun-if-env-changed=LIBCRUX_ENABLE_SIMD128");
+    println!("cargo:rerun-if-env-changed=LIBCRUX_ENABLE_SIMD256");
     let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
     let disable_simd128 = read_env("LIBCRUX_DISABLE_SIMD128");
     let disable_simd256 = read_env("LIBCRUX_DISABLE_SIMD256");

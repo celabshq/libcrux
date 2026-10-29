@@ -1,0 +1,39 @@
+{
+  "vsId": 0,
+  "isSample": false,
+  "algorithm": "KDF",
+  "mode": "KMAC",
+  "revision": "Sp800-108r1",
+  "macMode": [
+    "KMAC-128",
+    "KMAC-256"
+  ],
+  "keyDerivationKeyLength": [
+    {
+      "min": 112,
+      "max": 4096,
+      "increment": 8
+    }
+  ],
+  "contextLength": [
+    {
+      "min": 8,
+      "max": 4096,
+      "increment": 8
+    }
+  ],
+  "labelLength": [
+    {
+      "min": 8,
+      "max": 4096,
+      "increment": 8
+    }
+  ],
+  "derivedKeyLength": [
+    {
+      "min": 112,
+      "max": 4096,
+      "increment": 8
+    }
+  ]
+}

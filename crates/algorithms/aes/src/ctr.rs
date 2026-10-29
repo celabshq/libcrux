@@ -10,8 +10,8 @@ use crate::{aes::*, platform::AESState};
 #[cfg(test)]
 mod test128;
 
-mod aes128_ctr;
-mod aes256_ctr;
+pub(crate) mod aes128_ctr;
+pub(crate) mod aes256_ctr;
 
 /// The ctr nonce length. This is different from the AES nonce length
 /// [`crate::NONCE_LEN`].

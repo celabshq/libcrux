@@ -1,0 +1,18 @@
+{
+  "vsId": 0,
+  "isSample": false,
+  "conformances": [],
+  "algorithm": "SHAKE-256",
+  "revision": "1.0",
+  "inBit": true,
+  "outBit": true,
+  "inEmpty": true,
+  "outputLen": [
+    {
+      "min": 16,
+      "max": 65536,
+      "increment": 1
+    }
+  ],
+  "performLargeDataTest": []
+}

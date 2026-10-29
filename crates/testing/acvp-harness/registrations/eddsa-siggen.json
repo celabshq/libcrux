@@ -1,0 +1,21 @@
+{
+  "vsId": 0,
+  "isSample": false,
+  "conformances": [],
+  "algorithm": "EDDSA",
+  "mode": "sigGen",
+  "revision": "1.0",
+  "curve": [
+    "ED-25519",
+    "ED-448"
+  ],
+  "pure": true,
+  "preHash": true,
+  "contextLength": [
+    {
+      "min": 0,
+      "max": 255,
+      "increment": 1
+    }
+  ]
+}

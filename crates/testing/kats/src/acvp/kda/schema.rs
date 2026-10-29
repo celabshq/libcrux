@@ -1,25 +1,5 @@
 use super::super::schema_common::*;
-use serde::{Deserialize, Deserializer};
-
-/// Deserialize an optional hex string.
-fn opt_hex<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Option<Vec<u8>>, D::Error> {
-    Option::<String>::deserialize(deserializer)?
-        .map(|s| hex::decode(s).map_err(serde::de::Error::custom))
-        .transpose()
-}
-
-/// Deserialize an optional list of hex strings.
-fn opt_hex_vec<'de, D: Deserializer<'de>>(
-    deserializer: D,
-) -> Result<Option<Vec<Vec<u8>>>, D::Error> {
-    Option::<Vec<String>>::deserialize(deserializer)?
-        .map(|v| {
-            v.into_iter()
-                .map(|s| hex::decode(s).map_err(serde::de::Error::custom))
-                .collect()
-        })
-        .transpose()
-}
+use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize)]
 #[allow(non_snake_case)]
@@ -70,12 +50,20 @@ pub struct KdfParameter {
     #[serde(with = "hex::serde")]
     pub z: Vec<u8>,
 
+    /// The auxiliary shared secret, appended to `z`; only with a hybrid shared secret.
+    #[serde(default, with = "hex::serde")]
+    pub t: Vec<u8>,
+
     /// Length of the derived keying material in bits.
     pub l: usize,
 
     /// Omitted in the JSON when empty.
     #[serde(default, with = "hex::serde")]
     pub iv: Vec<u8>,
+
+    /// Only present if the `fixedInfoPattern` contains `label`.
+    #[serde(default, with = "hex::serde")]
+    pub label: Vec<u8>,
 }
 
 #[derive(Deserialize)]
@@ -84,7 +72,7 @@ pub struct PartyInfo {
     #[serde(with = "hex::serde")]
     pub partyId: Vec<u8>,
 
-    #[serde(default, deserialize_with = "opt_hex")]
+    #[serde(default, with = "upper_hex::option")]
     pub ephemeralData: Option<Vec<u8>>,
 }
 
@@ -126,10 +114,15 @@ pub struct KdfMultiExpansionParameter {
     #[serde(with = "hex::serde")]
     pub z: Vec<u8>,
 
+    /// The auxiliary shared secret, appended to `z`; only with a hybrid shared secret.
+    #[serde(default, with = "hex::serde")]
+    pub t: Vec<u8>,
+
     pub iterationParameters: Vec<IterationParameter>,
 }
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 #[allow(non_snake_case)]
 pub struct SingleExpansionPrompt {
     pub tcId: usize,
@@ -138,19 +131,44 @@ pub struct SingleExpansionPrompt {
     pub fixedInfoPartyV: PartyInfo,
 
     /// Only present for `VAL` tests.
-    #[serde(default, deserialize_with = "opt_hex")]
+    #[serde(default, with = "upper_hex::option")]
     pub dkm: Option<Vec<u8>>,
 }
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 #[allow(non_snake_case)]
 pub struct MultiExpansionPrompt {
     pub tcId: usize,
     pub kdfMultiExpansionParameter: KdfMultiExpansionParameter,
 
     /// Only present for `VAL` tests.
-    #[serde(default, deserialize_with = "opt_hex_vec")]
+    #[serde(default, with = "upper_hex::option_vec")]
     pub dkms: Option<Vec<Vec<u8>>>,
+}
+
+impl SingleExpansionPrompt {
+    /// The fixed info according to the registered `fixedInfoPattern`, with `l` as a 32-bit
+    /// big-endian integer.
+    pub fn fixed_info(&self, pattern: &str) -> Vec<u8> {
+        let mut out = Vec::new();
+        for piece in pattern.split("||") {
+            match piece {
+                "uPartyInfo" => out.extend(self.fixedInfoPartyU.encode()),
+                "vPartyInfo" => out.extend(self.fixedInfoPartyV.encode()),
+                "label" => out.extend(&self.kdfParameter.label),
+                "l" => out.extend(u32::try_from(self.kdfParameter.l).unwrap().to_be_bytes()),
+                literal => {
+                    let hex = literal
+                        .strip_prefix("literal[")
+                        .and_then(|l| l.strip_suffix(']'))
+                        .unwrap_or_else(|| panic!("unexpected fixedInfoPattern piece {literal}"));
+                    out.extend(hex::decode(hex).unwrap());
+                }
+            }
+        }
+        out
+    }
 }
 
 #[derive(Deserialize)]
@@ -176,27 +194,43 @@ pub struct TwoStepPromptTestGroup {
     pub tests: Vec<TwoStepPrompt>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[allow(non_snake_case)]
 pub struct TwoStepResult {
     pub tcId: usize,
 
     /// Expected result of single expansion `AFT` tests.
-    #[serde(default, deserialize_with = "opt_hex")]
+    #[serde(
+        default,
+        with = "upper_hex::option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub dkm: Option<Vec<u8>>,
 
     /// Expected result of multi-expansion `AFT` tests.
-    #[serde(default, deserialize_with = "opt_hex_vec")]
+    #[serde(
+        default,
+        with = "upper_hex::option_vec",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub dkms: Option<Vec<Vec<u8>>>,
 
     /// Expected result of `VAL` tests.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub testPassed: Option<bool>,
 }
 
 pub type ResultTwoStepTestGroup = TestGroupResults<TwoStepResult>;
 
-impl TestResult for TwoStepResult {
+impl TestCase for TwoStepPrompt {
     fn tc_id(&self) -> usize {
-        self.tcId
+        match self {
+            Self::Single(test) => test.tcId,
+            Self::MultiExpansion(test) => test.tcId,
+        }
     }
 }
+
+impl_test_case!(SingleExpansionPrompt, MultiExpansionPrompt, TwoStepResult);
+impl_test_group!(TwoStepPromptTestGroup => TwoStepPrompt);

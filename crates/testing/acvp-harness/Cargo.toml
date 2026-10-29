@@ -1,0 +1,66 @@
+[package]
+name = "libcrux-acvp-harness"
+description = "ACVP test harness for libcrux"
+
+publish = false
+version = "0.0.1"
+
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "acvp-harness"
+path = "src/main.rs"
+
+[dependencies]
+hex = "0.4.3"
+serde = "1.0"
+serde_json = "1.0"
+rand = { workspace = true, features = ["thread_rng"] }
+
+libcrux-kats = { workspace = true, features = [
+    "aes",
+    "drbg",
+    "ecdsa",
+    "hmac",
+    "kas-ecc",
+    "kbkdf",
+    "kda",
+    "kmac",
+    "mldsa",
+    "mlkem",
+    "sha2",
+    "sha3",
+    "eddsa",
+    "xecdh",
+] }
+libcrux-aes = { workspace = true, features = ["acvp"] }
+libcrux-ecdh = { workspace = true, features = ["std"] }
+libcrux-ecdsa = { workspace = true, features = ["rand", "std"] }
+libcrux-hmac.workspace = true
+libcrux-hmac-drbg.workspace = true
+libcrux-hkdf.workspace = true
+libcrux-kmac.workspace = true
+libcrux-ml-dsa = { workspace = true, features = [
+    "acvp",
+    "std",
+    "mldsa44",
+    "mldsa65",
+    "mldsa87",
+] }
+libcrux-secrets.workspace = true
+libcrux-ml-kem = { workspace = true, features = ["mlkem512", "mlkem768", "mlkem1024"] }
+libcrux-nist-kdf.workspace = true
+libcrux-p384 = { workspace = true, features = ["rand"] }
+libcrux-sha2.workspace = true
+libcrux-sha3.workspace = true
+libcrux-ed25519 = { workspace = true, features = ["rand"] }
+libcrux-curve25519.workspace = true
+
+[features]
+# Set by the build script, like in the algorithm crates.
+simd128 = []
+simd256 = []

@@ -3,6 +3,9 @@
 use std::env;
 
 fn main() {
+    println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo:rerun-if-env-changed=LIBCRUX_DISABLE_SIMD128");
+    println!("cargo:rerun-if-env-changed=LIBCRUX_DISABLE_SIMD256");
     let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
     let target = env::var("TARGET").unwrap();
     let host = env::var("HOST").unwrap();

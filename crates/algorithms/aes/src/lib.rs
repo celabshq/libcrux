@@ -93,6 +93,9 @@ mod traits_api;
 mod aes_ccm;
 mod aes_gcm;
 
+#[cfg(feature = "acvp")]
+pub mod acvp;
+
 /// Implementations of AES-GCM 128
 ///
 /// This module contains implementations of AES-GCM 128:
