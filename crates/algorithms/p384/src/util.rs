@@ -37,6 +37,18 @@ pub(crate) fn be_bytes_nonzero(x: &[u8; FP_NUM_BYTES]) -> bool {
     check != 0
 }
 
+#[cfg(feature = "rand")]
+#[inline(never)]
+/// Big-endian byte-array increment `x = x + 1`, wrapping on overflow.
+pub(crate) fn be_bytes_add_one(x: &mut [u8; FP_NUM_BYTES]) {
+    let mut carry = 1u8;
+    for byte in x.iter_mut().rev() {
+        let (sum, overflow) = byte.overflowing_add(carry);
+        *byte = sum;
+        carry = overflow as u8;
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

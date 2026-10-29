@@ -23,6 +23,9 @@ libcrux-secrets.workspace = true
 default = []
 std = []
 
+# Expose internal APIs for ACVP testing.
+acvp = []
+
 # Hardware features can be force enabled.
 # It is not recommended to use these. This crate performs CPU feature detection
 # and enables the features when they are available.
