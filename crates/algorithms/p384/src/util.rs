@@ -45,7 +45,7 @@ pub(crate) fn be_bytes_add_one(x: &mut [u8; FP_NUM_BYTES]) {
     for byte in x.iter_mut().rev() {
         let (sum, overflow) = byte.overflowing_add(carry);
         *byte = sum;
-        carry = overflow as u8;
+        carry = core::hint::black_box(overflow as u8);
     }
 }
 

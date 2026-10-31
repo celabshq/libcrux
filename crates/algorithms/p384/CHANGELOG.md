@@ -9,8 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- `PrivateKey::generate` follows FIPS 186-5, Appendix A.2.2: candidates `c > n - 2` are
-  rejected and the private key is `c + 1`. The same random input now yields a different key.
+- `PrivateKey::generate` follows SP 800-56A r3, Section 5.6.1.2.2 (Key Pair Generation by
+  Testing Candidates): candidates `c > n - 2` are rejected and the private key is `c + 1`.
+  The same random input now yields a different key.
 
 ## [0.0.1]
 

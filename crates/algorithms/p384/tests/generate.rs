@@ -72,9 +72,9 @@ fn generate_from(candidates: Vec<[u8; 48]>) -> Option<[u8; 48]> {
         .map(|sk| *sk.as_ref())
 }
 
-/// FIPS 186-5, A.2.2: reject `c > n - 2`, otherwise `d = c + 1`.
+/// SP 800-56A r3, 5.6.1.2.2: reject `c > n - 2`, otherwise `d = c + 1`.
 #[test]
-fn generate_is_fips_186_5_rejection_sampling() {
+fn generate_is_sp800_56a_testing_candidates() {
     let mut one = [0u8; 48];
     one[47] = 1;
     assert_eq!(generate_from(vec![[0u8; 48]]), Some(one));

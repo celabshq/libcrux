@@ -80,7 +80,7 @@ mod p384 {
         (q[1..1 + LEN].to_vec(), q[1 + LEN..].to_vec())
     }
 
-    /// [`PrivateKey::generate`] implements FIPS 186-5 A.2.2.
+    /// [`PrivateKey::generate`] implements SP 800-56A r3, 5.6.1.2.2.
     pub(super) fn generate() -> KeyPair {
         let sk = PrivateKey::generate(&mut rand::rng()).unwrap();
         let (x, y) = coordinates(PublicKey::from(&sk));

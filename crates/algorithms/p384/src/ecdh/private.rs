@@ -35,13 +35,17 @@ impl PrivateKey {
     #[cfg(feature = "rand")]
     /// Generate a fresh private key.
     ///
-    /// Uses the rejection sampling method of FIPS 186-5, Appendix A.2.2: a
-    /// candidate `c` of 384 random bits is rejected if `c > n - 2`, and the
-    /// private key is `d = c + 1`.
+    /// Implements "Key Pair Generation by Testing Candidates" of
+    /// [SP 800-56A r3](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-56Ar3.pdf),
+    /// Section 5.6.1.2.2: a candidate `c` of 384 random bits is rejected if
+    /// `c > n - 2`, and the private key is `d = c + 1`.
     ///
-    /// Returns an error if rejection sampling does not succeed in a
-    /// particular number of attempts, indicating a major failure of
-    /// randomness generation.
+    /// For conformance with SP 800-56A, `rng` must be an approved DRBG with a
+    /// security strength of at least 192 bits.
+    ///
+    /// Unlike SP 800-56A, which retries until a candidate is accepted, this
+    /// returns an error if no candidate is accepted in a particular number of
+    /// attempts, indicating a major failure of randomness generation.
     pub fn generate(rng: &mut impl TryCryptoRng) -> Result<Self, RandomnessError> {
         let mut c = [0u8; FP_NUM_BYTES];
         let mut attempts = 0;
