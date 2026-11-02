@@ -187,7 +187,8 @@ fn bn_sub_mod4(res: &mut [u64], n: &[u64], x: &[u64], y: &[u64]) {
     };
     let c10: u64 = (&c1)[0usize];
     lowstar::ignore::ignore::<u64>(c10);
-    let c2: u64 = 0u64.wrapping_sub(c0);
+    // The barrier keeps LLVM from turning the masked select into a branch.
+    let c2: u64 = core::hint::black_box(0u64.wrapping_sub(c0));
     krml::unroll_for!(4, "i", 0u32, 1u32, {
         let x1: u64 = c2 & (&tmp)[i as usize] | !c2 & res[i as usize];
         let os: (&mut [u64], &mut [u64]) = res.split_at_mut(0usize);
@@ -400,7 +401,8 @@ fn bn_is_lt_prime_mask4(f: &[u64]) -> u64 {
     ((&mut y_copy)[0usize..4usize]).copy_from_slice(&(&tmp)[0usize..4usize]);
     let c: u64 = crate::p256::bn_sub4(&mut tmp, f, &y_copy);
     let c0: u64 = c;
-    0u64.wrapping_sub(c0)
+    // The barrier keeps LLVM from turning the masked select into a branch.
+    core::hint::black_box(0u64.wrapping_sub(c0))
 }
 
 #[inline]
@@ -1399,7 +1401,8 @@ fn bn_is_lt_order_mask4(f: &[u64]) -> u64 {
     ((&mut y_copy)[0usize..4usize]).copy_from_slice(&(&tmp)[0usize..4usize]);
     let c: u64 = crate::p256::bn_sub4(&mut tmp, f, &y_copy);
     let c0: u64 = c;
-    0u64.wrapping_sub(c0)
+    // The barrier keeps LLVM from turning the masked select into a branch.
+    core::hint::black_box(0u64.wrapping_sub(c0))
 }
 
 #[inline]

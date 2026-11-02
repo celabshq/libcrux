@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Mark `fstar::uint{8,64}::{eq_mask, gte_mask}` as `#[inline(never)]`
+- Add optimisation barriers to the carry-based masked selects in `bignum::base` and `bignum25519_51::cswap2`. LLVM compiled some of these into secret-dependent branches.
+- **breaking** Remove unused code: the `bignum::{bignum32, bignum64, bignum256, bignum256_32, bignum4096, bignum4096_32}` modules, the unused 32-bit and 64-bit functions in `bignum::{base, bignum_base}`, the `fstar::{uint16, uint32}` modules, `fstar::uint8::gte_mask`, and the unused `fstar::uint128` functions
+
 ## [0.0.6] (2026-10-07)
 
 ### Changed

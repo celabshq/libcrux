@@ -448,7 +448,8 @@ pub(super) fn infinity_norm_exceeds(simd_unit: &Coefficients, bound: i32) -> boo
 
         // FIXME: return
         // [hax] https://github.com/hacspec/hax/issues/1204
-        result = result || normalized >= bound;
+        // Not short-circuiting: `||` may branch on the secret comparison.
+        result = result | (normalized >= bound);
     }
 
     result

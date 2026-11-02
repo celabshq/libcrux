@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Add an optimisation barrier to the modulus parity mask in `check_modulus_u64`
+- Declassify the private key validity before branching on it when compiled with `--cfg valgrind_ct_test`
+
 ## [0.0.9] (2026-10-07)
 
 ### Changed
