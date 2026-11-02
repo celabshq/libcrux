@@ -307,7 +307,7 @@ fn load_pkey(modBits: u32, eBits: u32, nb: &[u8], eb: &[u8], pkey: &mut [u64]) -
 }
 
 #[inline]
-fn load_skey(
+pub(crate) fn load_skey(
     modBits: u32,
     eBits: u32,
     dBits: u32,
@@ -867,6 +867,8 @@ pub fn rsapss_skey_sign(
     ]
     .into_boxed_slice();
     let b: bool = crate::hacl::rsapss::load_skey(modBits, eBits, dBits, nb, eb, db, &mut skey);
+    // Whether the key is valid is public. Declassify it for the valgrind CT test.
+    libcrux_secrets::mem_requests::ct_declassify(&b);
     if b {
         crate::hacl::rsapss::rsapss_sign(
             a, modBits, eBits, dBits, &skey, saltLen, salt, msgLen, msg, sgnt,

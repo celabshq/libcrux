@@ -43,4 +43,4 @@ wycheproof = "0.7.0"
 
 
 [lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = ['cfg(hax)', 'cfg(eurydice)'] }
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(hax)', 'cfg(eurydice)', 'cfg(valgrind_ct_test)'] }

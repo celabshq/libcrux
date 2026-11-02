@@ -20,6 +20,25 @@ pub mod hacl {
     use libcrux_sha2::hacl as hash_sha2;
 }
 
+/// Entry points for the valgrind constant-time tests in `ctgrind-test`.
+#[cfg(valgrind_ct_test)]
+#[doc(hidden)]
+pub mod ct_test {
+    /// The private key validation of [`crate::sign`], without the branch on its result.
+    #[inline(never)]
+    pub fn load_skey(
+        mod_bits: u32,
+        e_bits: u32,
+        d_bits: u32,
+        n: &[u8],
+        e: &[u8],
+        d: &[u8],
+        skey: &mut [u64],
+    ) -> bool {
+        crate::hacl::rsapss::load_skey(mod_bits, e_bits, d_bits, n, e, d, skey)
+    }
+}
+
 /// The hash algorithm used for signing or verifying.
 #[derive(Clone, Copy, Debug)]
 pub enum DigestAlgorithm {

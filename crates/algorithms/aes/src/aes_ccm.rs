@@ -91,7 +91,10 @@ where
 
         // Check that recomputed tag in accumulator agrees
         // with provided tag.
-        if !ct_compare(&tag_block[..TAG_LEN], &tag) {
+        let correct_tag = ct_compare(&tag_block[..TAG_LEN], &tag);
+        // Whether the tag is valid is public. Declassify it for the valgrind CT test.
+        libcrux_secrets::mem_requests::ct_declassify(&correct_tag);
+        if !correct_tag {
             return Err(DecryptError::InvalidTag);
         }
 
