@@ -206,10 +206,6 @@ pub fn validate_scalar(scalar: &impl AsRef<[u8; 32]>) -> Result<(), Error> {
 ///
 /// Returns [`Error::InvalidScalar`] if the `scalar` is not valid.
 fn validate_scalar_(scalar: &[u8; 32]) -> Result<(), Error> {
-    if scalar.as_ref().iter().all(|b| *b == 0) {
-        return Err(Error::InvalidScalar);
-    }
-
     // Ensure that the key is in range  [1, p-1]
     if validate_private_key(scalar.as_ref()) {
         Ok(())
