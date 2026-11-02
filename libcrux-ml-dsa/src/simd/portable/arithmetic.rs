@@ -448,7 +448,20 @@ pub(super) fn infinity_norm_exceeds(simd_unit: &Coefficients, bound: i32) -> boo
 
         // FIXME: return
         // [hax] https://github.com/hacspec/hax/issues/1204
-        result = result || normalized >= bound;
+        //
+        // Using a short-circuiting `||` to accumulate the result may
+        // branch on the comparison, which can lead to a
+        // secret-independence flagging during valgrind testing. As
+        // stated above this is a false-positive, since it is
+        // permissible to leak which coefficient has violated the
+        // bound. Nonetheless, we use the non-short-circuiting `|`
+        // here to avoid the false-positive flagging.
+        //
+        // See section 5.5 of the Dilithium Specification for
+        // Round 3 of the NIST Post-Quantum Cryptography
+        // Standardization.
+        // (https://pq-crystals.org/dilithium/data/dilithium-specification-round3-20210208.pdf)
+        result = result | (normalized >= bound);
     }
 
     result
