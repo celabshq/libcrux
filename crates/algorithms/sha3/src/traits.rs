@@ -118,7 +118,7 @@ class t_Squeeze (v_Self: Type0) (v_T: Type0) = {
             (Rust_primitives.Hax.Int.from_machine len <: Hax_lib.Int.t_Int)
             <:
             Hax_lib.Int.t_Int) <=
-          (Rust_primitives.Hax.Int.from_machine (Core.Slice.impl__len #u8 out <: usize)
+          (Rust_primitives.Hax.Int.from_machine (${<[u8]>::len} out <: usize)
             <:
             Hax_lib.Int.t_Int) ==>
           pred };
@@ -132,7 +132,7 @@ class t_Squeeze (v_Self: Type0) (v_T: Type0) = {
     -> pred:
       Type0
         { pred ==>
-          (Core.Slice.impl__len #u8 out_future <: usize) =. (Core.Slice.impl__len #u8 out <: usize)
+          (${<[u8]>::len} out_future <: usize) =. (${<[u8]>::len} out <: usize)
         };
   f_squeeze:v_RATE: usize -> x0: v_Self -> x1: t_Slice u8 -> x2: usize -> x3: usize
     -> Prims.Pure (t_Slice u8)
