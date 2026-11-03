@@ -129,20 +129,25 @@ Use `--backend` (repeatable) to select backends, and pass registrations to run o
 cargo xtask acvp run --backend portable aes-gcm
 ```
 
-Algorithms without an implementation for a backend are reported as skipped, e.g. SHAKE-128 on
-NEON. A skipped vector set on the `portable` or `default` backend is a failure, as those implement
+Algorithms without an implementation for a backend are reported as skipped, e.g. SHA3-256 on
+AVX2. A skipped vector set on the `portable` or `default` backend is a failure, as those implement
 every algorithm. Algorithms with a single implementation are answered the same way for every
 backend.
 
-The registrations ask for every option ACVP offers within each algorithm family libcrux
-implements (key, IV, tag and output lengths, bit-oriented lengths, curves, hash functions,
-directions, schemes and roles, large data tests, ...), and also register sibling algorithms that
-libcrux does not implement, e.g. SHA-1, SHA2-512/256, HMAC-SHA2-224, deterministic ECDSA, EdDSA
-`keyVer` or KDA OneStep. The harness leaves the test cases libcrux cannot answer out of its
-response and lists them, with the reason, in `notImplemented.json`; a vector set of an algorithm
-the harness has no module for is answered this way as a whole. They are removed from the
-projection before validation, and listed as not implemented at the end of the run. A vector set
-without any implemented test case is reported as not implemented without validation.
+The registrations ask for exactly the options libcrux implements (key, IV, tag and output
+lengths, curves, hash functions, directions, schemes and roles, large data tests, ...). The
+server picks the parameters of a vector set at random from a registration, so a registration that
+asks for more may produce a vector set without a single test case that libcrux can answer.
+
+The harness leaves the test cases libcrux cannot answer out of its response and lists them, with
+the reason, in `notImplemented.json`. `cargo xtask acvp run` removes them from the projection
+before validation and lists them at the end of the run. On the `portable` and `default` backends
+this fails the run, as it means that a registration asks for something libcrux does not
+implement.
+In some cases the optimized backends may implement only what is needed internally.
+For example for ML-KEM and ML-DSA we use SHAKE-128 on NEON and AVX2 with the
+incremental API, which absorbs messages of less than one block (168 bytes), so
+longer messages are not implemented there.
 
 The harness can also be run on its own, e.g. on a vector set from a lab:
 
@@ -167,16 +172,9 @@ Algorithms in libcrux that ACVP can test, but that have no ACVP tests:
 | --------------------------------------------- | ----------------------- | ------------------------------------ | ------------------ |
 | RSA-PSS sign and verify with SHA2-256/384/512 | `crates/algorithms/rsa` | `RSA` `sigGen`, `sigVer` (FIPS186-5) | Rsa is legacy only |
 
-Parts of algorithms with ACVP tests that are not tested:
+Parts of algorithms with ACVP tests that are not registered, as libcrux does not implement them:
 
-| What                                                           | Why                                                          |
-| -------------------------------------------------------------- | ------------------------------------------------------------ |
-| Options and algorithm variants that libcrux does not implement | listed by `cargo xtask acvp run` under "Not implemented"     |
-
-`cargo xtask acvp run` lists every test case the server generated that libcrux cannot answer,
-with the reason:
-
-| Vector set | Not implemented |
+| Vector set | Not registered |
 | --- | --- |
 | SHA-1, SHA2-512/224, SHA2-512/256 | the whole algorithm |
 | SHA2-224/256/384/512, SHA3-224/256/384/512 | bit-oriented messages; LDT of 2, 4 and 8 GiB |
@@ -201,7 +199,7 @@ with the reason:
 | KMAC-128, KMAC-256 | KMAC as an XOF |
 | ML-DSA `sigGen`, `sigVer` | external mu; HashML-DSA with hash functions other than SHAKE-128 |
 
-Options that are not registered, so the run does not list them:
+Options of implemented algorithms that are not registered for other reasons:
 
 | What | Why |
 | --- | --- |

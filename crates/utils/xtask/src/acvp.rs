@@ -529,8 +529,7 @@ fn run_vector_sets(
     };
     let work = work_dir.unwrap_or_else(|| root.join("target/acvp"));
     // Docker takes a relative mount source for the name of a volume.
-    fs::create_dir_all(&work)
-        .map_err(|e| format!("failed to create {}: {e}", work.display()))?;
+    fs::create_dir_all(&work).map_err(|e| format!("failed to create {}: {e}", work.display()))?;
     let work = fs::canonicalize(&work)
         .map_err(|e| format!("failed to resolve {}: {e}", work.display()))?;
 
@@ -574,7 +573,9 @@ fn run_vector_sets(
     let mut failed = false;
     let mut summaries = Vec::new();
     // The test cases per reason that are not implemented, per vector set.
-    let mut not_implemented = BTreeMap::new();
+    let mut not_implemented: BTreeMap<String, BTreeMap<String, usize>> = BTreeMap::new();
+    // Whether a backend that implements every algorithm left test cases unanswered.
+    let mut registration_mismatch = false;
     for backend in &backends {
         println!("{}", format!("Running libcrux ({backend})").bold());
         let mut summary = Summary::default();
@@ -606,7 +607,11 @@ fn run_vector_sets(
                     summary.not_implemented_tests += count;
                     not_implemented_tests.insert(name, count);
                     if !reasons.is_empty() {
-                        not_implemented.entry(name.clone()).or_insert(reasons);
+                        registration_mismatch |= complete;
+                        not_implemented
+                            .entry(name.clone())
+                            .or_default()
+                            .extend(reasons);
                     }
                     if remaining == 0 {
                         unimplemented.push(name);
@@ -659,17 +664,26 @@ fn run_vector_sets(
                 );
             }
         }
+        // Hardware backends may implement only what ML-KEM and ML-DSA use, e.g. SHAKE-128 on
+        // short messages.
+        let not_implemented_color = |s: String| if complete { s.red() } else { s.yellow() };
         for name in unimplemented {
             summary.not_implemented_sets += 1;
             println!(
                 "{backend:<10} {name:<40} {}",
-                format!("not implemented ({} tests)", not_implemented_tests[name]).yellow()
+                not_implemented_color(format!(
+                    "not implemented ({} tests)",
+                    not_implemented_tests[name]
+                ))
             );
         }
         for name in answered {
             let not_implemented = match not_implemented_tests[name] {
                 0 => String::new(),
-                n => format!(", {}", format!("{n} not implemented").yellow()),
+                n => format!(
+                    ", {}",
+                    not_implemented_color(format!("{n} not implemented"))
+                ),
             };
             match disposition(&work.join(backend).join(name).join("validation.json")) {
                 Ok((disposition, total, failures)) => {
@@ -700,8 +714,16 @@ fn run_vector_sets(
         summaries.push((backend, summary));
     }
 
+    // The registrations ask only for what libcrux implements, so a test case that the portable
+    // or default backend cannot answer means that a registration and the harness disagree.
     if !not_implemented.is_empty() {
-        println!("{}", "Not implemented (not validated)".bold());
+        let header = if registration_mismatch {
+            failed = true;
+            "Not implemented (narrow the registration or implement it)".red()
+        } else {
+            "Not implemented on hardware backends (not validated)".yellow()
+        };
+        println!("{}", header.bold());
         for (name, reasons) in &not_implemented {
             for (reason, count) in reasons {
                 println!("{name:<40} {reason:<40} {count:>5} tests");
