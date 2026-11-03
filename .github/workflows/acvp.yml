@@ -3,6 +3,9 @@ name: ACVP
 # Generates vector sets with the ACVP-Server gen/val tools, answers them with
 # libcrux (crates/testing/acvp-harness), and validates the answers.
 # See crates/testing/Readme.md.
+#
+# The validation takes more than 30 minutes, so pull requests and the merge queue
+# only build the harness, and the validation runs nightly and on demand.
 
 on:
   merge_group:
@@ -36,6 +39,8 @@ on:
       - "Cargo.toml"
       - "Cargo.lock"
       - ".github/workflows/acvp.yml"
+  schedule:
+    - cron: "0 2 * * *"
   workflow_dispatch:
 
 env:
@@ -46,7 +51,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  build:
+    if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm]
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: 🔨 Build
+        run: cargo build --release -p libcrux-acvp-harness -p xtask
+
   acvp:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     # `cargo xtask acvp run` tests the portable implementation, the platform-multiplexed API, and the
     # hardware-specific implementation of the runner (AVX2 on x86_64, NEON on aarch64).
     runs-on: ${{ matrix.os }}
@@ -75,8 +99,9 @@ jobs:
       - name: 🏃🏻‍♀️ Run
         run: cargo xtask acvp run
 
+      # Only on failure, to reproduce it, as the vector sets are about 1.3 GB.
       - name: 📦 Upload vector sets and validations
-        if: always()
+        if: failure()
         uses: actions/upload-artifact@v7
         with:
           name: acvp-${{ matrix.os }}
