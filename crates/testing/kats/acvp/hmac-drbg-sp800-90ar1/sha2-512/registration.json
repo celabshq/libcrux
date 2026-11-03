@@ -1,0 +1,34 @@
+{
+  "vsId": 0,
+  "isSample": false,
+  "conformances": [],
+  "algorithm": "hmacDRBG",
+  "revision": "SP800-90Ar1",
+  "predResistanceEnabled": [
+    false
+  ],
+  "reseedImplemented": true,
+  "capabilities": [
+    {
+      "mode": "SHA2-512",
+      "derFuncEnabled": false,
+      "entropyInputLen": [
+        256
+      ],
+      "nonceLen": [
+        128
+      ],
+      "persoStringLen": [
+        0,
+        256
+      ],
+      "additionalInputLen": [
+        0,
+        256
+      ],
+      "returnedBitsLen": [
+        2048
+      ]
+    }
+  ]
+}

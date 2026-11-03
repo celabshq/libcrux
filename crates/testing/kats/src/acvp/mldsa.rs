@@ -1,7 +1,8 @@
 //! ACVP ML-DSA Known Answer Tests
 //!
 //! The JSON files for ML-DSA were taken from <https://github.com/usnistgov/ACVP-Server>, as of
-//! commit [112690e8484dba7077709a05b1f3af58ddefdd5d](https://github.com/usnistgov/ACVP-Server/commit/112690e8484dba7077709a05b1f3af58ddefdd5d).
+//! commit [975de31eb83d87039ec88934fdc47d8c312b892d](https://github.com/usnistgov/ACVP-Server/commit/975de31eb83d87039ec88934fdc47d8c312b892d)
+//! (release v1.1.0.43). `siggen-tr1` is `ML-DSA-sigGen-FIPS204-tr1`.
 //!
 //! ### Example usage
 //! ```rust
@@ -58,6 +59,26 @@ pub struct SigVerTests {
     pub results: super::schema_common::Results<verify_schema::ResultSigVerTestGroup>,
 }
 
-super::impl_tests!(KeyGenTests, "mldsa-1_1_0_40", "keygen");
-super::impl_tests!(SigGenTests, "mldsa-1_1_0_40", "siggen");
-super::impl_tests!(SigVerTests, "mldsa-1_1_0_40", "sigver");
+impl KeyGenTests {
+    pub fn load() -> Self {
+        load!("mldsa-1_1_0_43", "keygen")
+    }
+}
+
+impl SigGenTests {
+    pub fn load() -> Self {
+        load!("mldsa-1_1_0_43", "siggen")
+    }
+
+    /// The `ML-DSA-sigGen-FIPS204-tr1` vector set, which also contains signing keys given as
+    /// the key generation seed (`keyFormat` `"seed"`).
+    pub fn load_tr1() -> Self {
+        load!("mldsa-1_1_0_43", "siggen-tr1")
+    }
+}
+
+impl SigVerTests {
+    pub fn load() -> Self {
+        load!("mldsa-1_1_0_43", "sigver")
+    }
+}

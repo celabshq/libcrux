@@ -32,7 +32,24 @@
 //! }
 //! ```
 
+pub mod hkdf_schema;
 pub mod schema;
+
+/// HKDF (`KDA` `HKDF` `Sp800-56Cr2`) with SHA2-256/384/512 and SHA3-224/256/384/512, default
+/// and random salts, and the fixed info `uPartyInfo||vPartyInfo||l`, without multi-expansion
+/// tests and hybrid shared secrets.
+///
+/// Generated with the `GenValAppRunner` from the `registration.json` next to the `prompt.json`.
+pub struct HkdfTests {
+    pub prompts: super::schema_common::Prompts<hkdf_schema::HkdfPromptTestGroup>,
+    pub results: super::schema_common::Results<hkdf_schema::ResultHkdfTestGroup>,
+}
+
+impl HkdfTests {
+    pub fn sha2_sha3() -> Self {
+        load!("kda-hkdf-sp800-56cr2", "sha2-sha3")
+    }
+}
 
 /// Two-step KDF using HMAC, with a feedback mode expansion and a 32-bit counter placed
 /// between the iteration variable `K(i-1)` and the fixed info.
@@ -41,36 +58,41 @@ pub struct TwoStepFeedbackHmacTests {
     pub results: super::schema_common::Results<schema::ResultTwoStepTestGroup>,
 }
 
-macro_rules! variant {
-    ($variant:literal) => {
-        (
-            include_str!(concat!(
-                "../../acvp/kda-twostep-sp800-56cr2/",
-                $variant,
-                "/prompt.json"
-            )),
-            include_str!(concat!(
-                "../../acvp/kda-twostep-sp800-56cr2/",
-                $variant,
-                "/expectedResults.json"
-            )),
-        )
-    };
-}
-
 impl TwoStepFeedbackHmacTests {
     /// Load the test vectors for all output lengths `l`.
     pub fn load_all() -> Vec<Self> {
-        [
-            variant!("feedback-hmac-ctr32-before-fixed-l136"),
-            variant!("feedback-hmac-ctr32-before-fixed-l512"),
-            variant!("feedback-hmac-ctr32-before-fixed-l1000"),
+        vec![
+            load!(
+                "kda-twostep-sp800-56cr2",
+                "feedback-hmac-ctr32-before-fixed-l136"
+            ),
+            load!(
+                "kda-twostep-sp800-56cr2",
+                "feedback-hmac-ctr32-before-fixed-l512"
+            ),
+            load!(
+                "kda-twostep-sp800-56cr2",
+                "feedback-hmac-ctr32-before-fixed-l1000"
+            ),
         ]
-        .into_iter()
-        .map(|(prompts, results)| Self {
-            prompts: serde_json::from_str(prompts).expect("Could not deserialize KAT file."),
-            results: serde_json::from_str(results).expect("Could not deserialize KAT file."),
-        })
-        .collect()
+    }
+
+    /// Load the test vectors matching the use of the two-step KDF in 3KEM.
+    ///
+    /// The fixed info is `label || 0x00 || uPartyInfo || vPartyInfo || [L]32`, matching 3KEM's
+    /// `label || 0x00 || context || [L]32`, with an empty IV and no multi-expansion:
+    /// - `3kem-combine-sha3-256`: HMAC-SHA3-256, random salt, `z` of 640 bits, `l` = 256
+    ///   (`KEM.combine` of the default suite).
+    /// - `3kem-dhkdf-combine-sha3-384`: HMAC-SHA3-384, default and random salt, `z` of 384 and
+    ///   640 bits, `l` = 384 (`DH_KDF`, and `KEM.combine` of the level 5 suite).
+    /// - `3kem-nho-sha3-256` and `3kem-nho-sha3-384`: HMAC-SHA3-256/384, random salt, `z` of
+    ///   256/384 bits, `l` = 1536 (`NHO.finalize`; `l` is a managed parameter in 3KEM).
+    pub fn load_3kem() -> Vec<Self> {
+        vec![
+            load!("kda-twostep-sp800-56cr2", "3kem-combine-sha3-256"),
+            load!("kda-twostep-sp800-56cr2", "3kem-dhkdf-combine-sha3-384"),
+            load!("kda-twostep-sp800-56cr2", "3kem-nho-sha3-256"),
+            load!("kda-twostep-sp800-56cr2", "3kem-nho-sha3-384"),
+        ]
     }
 }

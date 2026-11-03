@@ -54,7 +54,7 @@ impl<T: AESState> super::GcmInit
 
 /// 256 - Key expansion
 #[inline]
-fn key_expansion<T: AESState>(key: &[u8]) -> ExtendedKey<T, NUM_KEYS> {
+pub(crate) fn key_expansion<T: AESState>(key: &[u8]) -> ExtendedKey<T, NUM_KEYS> {
     debug_assert!(key.len() == KEY_LEN);
 
     let mut keyex = from_fn(|_| T::new());

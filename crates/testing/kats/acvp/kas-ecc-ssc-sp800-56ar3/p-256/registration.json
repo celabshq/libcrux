@@ -1,0 +1,30 @@
+{
+  "vsId": 0,
+  "algorithm": "KAS-ECC-SSC",
+  "revision": "Sp800-56Ar3",
+  "isSample": true,
+  "scheme": {
+    "ephemeralUnified": {
+      "scheme": "ephemeralUnified",
+      "underlyingAlgorithm": "ECC",
+      "algoMode": "KAS-ECC-SSC-SP800-56Ar3",
+      "kasRole": [
+        "initiator",
+        "responder"
+      ]
+    },
+    "onePassDh": {
+      "scheme": "onePassDh",
+      "underlyingAlgorithm": "ECC",
+      "algoMode": "KAS-ECC-SSC-SP800-56Ar3",
+      "kasRole": [
+        "initiator",
+        "responder"
+      ]
+    }
+  },
+  "domainParameterGenerationMethods": [
+    "P-256"
+  ],
+  "hashFunctionZ": "none"
+}

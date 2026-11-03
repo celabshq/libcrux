@@ -1,0 +1,11 @@
+{
+  "vsId": 0,
+  "isSample": false,
+  "conformances": [],
+  "algorithm": "ECDSA",
+  "mode": "keyVer",
+  "revision": "FIPS186-5",
+  "curve": [
+    "P-256"
+  ]
+}

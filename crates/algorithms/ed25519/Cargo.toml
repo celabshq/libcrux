@@ -19,6 +19,7 @@ tls_codec = { workspace = true, optional = true }
 
 [dev-dependencies]
 hex = "0.4.3"
+libcrux-kats = { workspace = true, features = ["eddsa"] }
 rand = { version = "0.10" }
 wycheproof = "0.7.0"
 

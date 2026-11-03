@@ -1,7 +1,8 @@
 //! ACVP ML-KEM Known Answer Tests
 //!
 //! The JSON files for ML-KEM were taken from <https://github.com/usnistgov/ACVP-Server>, as of
-//! commit [112690e8484dba7077709a05b1f3af58ddefdd5d](https://github.com/usnistgov/ACVP-Server/commit/112690e8484dba7077709a05b1f3af58ddefdd5d).
+//! commit [975de31eb83d87039ec88934fdc47d8c312b892d](https://github.com/usnistgov/ACVP-Server/commit/975de31eb83d87039ec88934fdc47d8c312b892d)
+//! (release v1.1.0.43). The encap-decap files are from `ML-KEM-encapDecap-FIPS203-tr1`.
 //!
 //! ### Example usage
 //! ```rust
@@ -59,5 +60,14 @@ pub struct EncapDecapTests {
     pub results: super::schema_common::Results<encap_decap_schema::ResultEncapDecapTestGroup>,
 }
 
-super::impl_tests!(KeyGenTests, "mlkem-1_1_0_40", "keygen");
-super::impl_tests!(EncapDecapTests, "mlkem-1_1_0_40", "encap-decap");
+impl KeyGenTests {
+    pub fn load() -> Self {
+        load!("mlkem-1_1_0_43", "keygen")
+    }
+}
+
+impl EncapDecapTests {
+    pub fn load() -> Self {
+        load!("mlkem-1_1_0_43", "encap-decap")
+    }
+}

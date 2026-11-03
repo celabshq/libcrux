@@ -1,0 +1,11 @@
+{
+  "vsId": 0,
+  "conformances": [],
+  "algorithm": "EDDSA",
+  "revision": "1.0",
+  "curve": [
+    "ED-25519"
+  ],
+  "mode": "keyGen",
+  "isSample": true
+}

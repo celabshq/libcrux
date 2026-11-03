@@ -8,6 +8,8 @@ on:
     branches: ["main", "dev", "*"]
     paths:
       - "crates/algorithms/hmac-drbg/**"
+      - "crates/algorithms/hmac/**"
+      - "crates/testing/kats/**"
       - .github/workflows/hmac-drbg.yml
   workflow_dispatch:
 

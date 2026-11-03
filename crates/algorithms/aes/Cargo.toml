@@ -23,6 +23,9 @@ libcrux-secrets.workspace = true
 default = []
 std = []
 
+# Expose internal APIs for ACVP testing.
+acvp = []
+
 # Hardware features can be force enabled.
 # It is not recommended to use these. This crate performs CPU feature detection
 # and enables the features when they are available.
@@ -37,6 +40,7 @@ name = "aesgcm"
 aes-gcm = "0.10.3"
 criterion = "0.8.0"
 hex = "0.4.3"
+libcrux-kats = { workspace = true, features = ["aes"] }
 pretty_env_logger = "0.5.0"
 rand = "0.10"
 wycheproof = "0.7.0"

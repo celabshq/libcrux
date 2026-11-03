@@ -1,0 +1,1 @@
+{"vsId":0,"algorithm":"ECDSA","mode":"keyGen","revision":"FIPS186-5","isSample":true,"testGroups":[{"tgId":1,"testType":"AFT","tests":[{"tcId":1},{"tcId":2},{"tcId":3}],"curve":"P-256","secretGenerationMode":"testing candidates"}]}

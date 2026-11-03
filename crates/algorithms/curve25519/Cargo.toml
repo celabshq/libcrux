@@ -25,3 +25,4 @@ check-secret-independence = [
 
 [dev-dependencies]
 libcrux-traits = { workspace = true, features = ["generic-tests"] }
+libcrux-kats = { workspace = true, features = ["xecdh"] }

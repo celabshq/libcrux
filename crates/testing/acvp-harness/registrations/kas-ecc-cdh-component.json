@@ -1,0 +1,12 @@
+{
+  "vsId": 0,
+  "isSample": false,
+  "conformances": [],
+  "algorithm": "KAS-ECC",
+  "mode": "CDH-Component",
+  "revision": "Sp800-56Ar3",
+  "curve": [
+    "P-256",
+    "P-384"
+  ]
+}

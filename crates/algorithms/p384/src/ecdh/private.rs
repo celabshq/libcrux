@@ -7,7 +7,9 @@
 use rand::TryCryptoRng;
 
 #[cfg(feature = "rand")]
-use crate::RandomnessError;
+use crate::{
+    constants::NIST_P384_CURVE_ORDER_MINUS_ONE_BE_BYTES, util::be_bytes_add_one, RandomnessError,
+};
 use crate::{
     constants::{FP_NUM_BYTES, NIST_P384_CURVE_ORDER_BE_BYTES},
     util::{be_bytes_lt, be_bytes_nonzero},
@@ -33,18 +35,34 @@ impl PrivateKey {
     #[cfg(feature = "rand")]
     /// Generate a fresh private key.
     ///
-    /// Performs rejection sampling internally, and may return an error if
-    /// rejection sampling does not succeed in a particular number of
+    /// Implements "Key Pair Generation by Testing Candidates" of
+    /// [SP 800-56A r3](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-56Ar3.pdf),
+    /// Section 5.6.1.2.2: a candidate `c` of 384 random bits is rejected if
+    /// `c > n - 2`, and the private key is `d = c + 1`.
+    ///
+    /// For conformance with SP 800-56A, `rng` must be an approved DRBG with a
+    /// security strength of at least 192 bits.
+    ///
+    /// Unlike SP 800-56A, which retries until a candidate is accepted, this
+    /// returns an error if no candidate is accepted in a particular number of
     /// attempts, indicating a major failure of randomness generation.
     pub fn generate(rng: &mut impl TryCryptoRng) -> Result<Self, RandomnessError> {
-        let mut bytes = [0u8; FP_NUM_BYTES];
+        let mut c = [0u8; FP_NUM_BYTES];
         let mut attempts = 0;
 
         while attempts < SCALAR_REJ_SAMPLING_BOUND {
-            rng.try_fill_bytes(&mut bytes)
-                .map_err(|_| RandomnessError)?;
-            if let Ok(key) = Self::try_from(bytes.as_slice()) {
-                return Ok(key);
+            rng.try_fill_bytes(&mut c).map_err(|_| RandomnessError)?;
+            // Accept if c <= n - 2. The comparison is constant time (see
+            // `be_bytes_lt`) and reveals only its result. Whether a candidate
+            // is accepted, and so the number of attempts, is public: each
+            // candidate is an independent draw from the CSPRNG, so the
+            // rejected ones say nothing about the accepted one, which is
+            // uniform on [0, n - 2] whatever the number of attempts.
+            // `be_bytes_add_one` is branch-free, so the value of the accepted
+            // key does not leak.
+            if be_bytes_lt(&c, &NIST_P384_CURVE_ORDER_MINUS_ONE_BE_BYTES) {
+                be_bytes_add_one(&mut c);
+                return Ok(Self(c));
             }
             attempts += 1;
         }
