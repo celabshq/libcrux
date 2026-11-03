@@ -218,3 +218,42 @@ pub type ResultKasTestGroup = TestGroupResults<KasResult>;
 
 impl_test_case!(KasPrompt, KasResult);
 impl_test_group!(KasPromptTestGroup => KasPrompt);
+
+/// A KAS-ECC CDH-Component test case: the public key of the server, as affine coordinates.
+#[derive(Deserialize)]
+#[allow(non_snake_case)]
+pub struct CdhPrompt {
+    pub tcId: usize,
+    #[serde(with = "hex::serde")]
+    pub publicServerX: Vec<u8>,
+    #[serde(with = "hex::serde")]
+    pub publicServerY: Vec<u8>,
+}
+
+#[derive(Deserialize)]
+#[allow(non_snake_case)]
+pub struct CdhPromptTestGroup {
+    pub tgId: usize,
+    /// `"AFT"`.
+    pub testType: String,
+    /// The curve, e.g. `"P-384"`.
+    pub curve: String,
+    pub tests: Vec<CdhPrompt>,
+}
+
+/// The public key of the IUT, which generates its own key pair, and the shared secret `z`.
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+#[allow(non_snake_case)]
+pub struct CdhResult {
+    pub tcId: usize,
+    #[serde(with = "upper_hex")]
+    pub publicIutX: Vec<u8>,
+    #[serde(with = "upper_hex")]
+    pub publicIutY: Vec<u8>,
+    #[serde(with = "upper_hex")]
+    pub z: Vec<u8>,
+}
+
+impl_test_case!(CdhPrompt, CdhResult);
+impl_test_group!(CdhPromptTestGroup => CdhPrompt);

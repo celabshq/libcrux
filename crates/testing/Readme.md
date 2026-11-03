@@ -192,6 +192,7 @@ Parts of algorithms with ACVP tests that are not registered, as libcrux does not
 | XECDH `keyGen`, `keyVer`, `SSC` | Curve448 |
 | hmacDRBG | SHA-1, SHA2-224, SHA2-512/224, SHA2-512/256 and SHA3 modes |
 | KAS-ECC-SSC | curves other than P-256 and P-384; `fullMqv`, `onePassMqv` |
+| KAS-ECC CDH-Component | curves other than P-256 and P-384 |
 | KDA HKDF | SHA-1, SHA2-224, SHA2-512/224, SHA2-512/256 |
 | KDA OneStep, OneStepNoCounter | the whole mode |
 | KBKDF | counter and double pipeline modes; feedback without a counter or with another counter length or location; CMAC and HMAC-SHA-1/SHA2-224/SHA2-512/224/SHA2-512/256; output lengths that are not whole bytes |
@@ -204,9 +205,7 @@ Options of implemented algorithms that are not registered for other reasons:
 | What | Why |
 | --- | --- |
 | KDA TwoStep beyond the four 3KEM registrations | the ACVP server runs out of memory generating a full TwoStep vector set |
-| ECDSA `sigVer` on the B-* and K-* curves, and with SP800-106 | generating these vector sets did not finish within 19 minutes |
 | KAS-ECC-SSC with `hashFunctionZ` | not registered yet; the harness rejects it |
-| KAS-ECC CDH-Component | not registered yet |
 
 ChaCha20-Poly1305, Poly1305, BLAKE2, and the protocols built from the algorithms
 (e.g. PSQ) have no ACVP tests, as ACVP does not cover them; they are tested with the other

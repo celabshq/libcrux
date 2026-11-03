@@ -3,10 +3,13 @@
 //! The shared secret is `Z = Ze || Zs`. `Ze` is the ECDH of the ephemeral key of each party, or
 //! its static key if it has no ephemeral one, if any party has an ephemeral key. `Zs` is the ECDH
 //! of the static keys, if both parties have one.
+//!
+//! KAS-ECC CDH-Component (SP 800-56Ar3) on P-256 and P-384: the ECC CDH primitive, with a fresh
+//! key pair of the IUT.
 
 use libcrux_kats::acvp::{
     ec::pad,
-    kas_ecc::schema::{KasPrompt, KasPromptTestGroup, KasResult},
+    kas_ecc::schema::{CdhPromptTestGroup, CdhResult, KasPrompt, KasPromptTestGroup, KasResult},
     schema_common::Prompts,
 };
 use serde_json::Value;
@@ -194,6 +197,26 @@ pub(crate) fn respond(prompt: Value) -> Value {
                 }
             }
             tt => panic!("unexpected testType {tt}"),
+        })
+    })
+}
+
+pub(crate) fn cdh_component(prompt: Value) -> Value {
+    let prompts: Prompts<CdhPromptTestGroup> = parse(prompt);
+
+    crate::respond_implemented(&prompts, |g, t| {
+        assert_eq!(g.testType, "AFT");
+        let Some(curve) = curve(&g.curve) else {
+            return not_implemented(format!("curve {}", g.curve));
+        };
+        let (d, x, y) = (curve.generate)();
+        let z = (curve.ecdh)(&d, &t.publicServerX, &t.publicServerY)
+            .expect("invalid server public key");
+        Some(CdhResult {
+            tcId: t.tcId,
+            publicIutX: x,
+            publicIutY: y,
+            z,
         })
     })
 }

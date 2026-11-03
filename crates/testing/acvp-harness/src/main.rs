@@ -263,6 +263,7 @@ fn main() {
         ("ACVP-AES-GCM", _) => aes::gcm(prompt, backend),
         ("KDA", "TwoStep") => kda::respond(prompt),
         ("KAS-ECC-SSC", _) => kas::respond(prompt),
+        ("KAS-ECC", "CDH-Component") => kas::cdh_component(prompt),
         ("ECDSA", "keyGen") => ecdsa::keygen(prompt),
         ("ECDSA", "keyVer") => ecdsa::keyver(prompt),
         ("ECDSA", "sigGen") => ecdsa_sig::siggen(prompt),
