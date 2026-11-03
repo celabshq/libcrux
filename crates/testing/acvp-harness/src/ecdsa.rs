@@ -8,7 +8,10 @@ use serde_json::Value;
 
 use crate::{curves::curve, not_implemented, parse, respond_implemented};
 
-/// The key generation of libcrux uses rejection sampling ("testing candidates").
+/// The key generation of libcrux uses rejection sampling ("testing candidates"). P-384 follows
+/// SP 800-56A r3, Section 5.6.1.2.2 (`d = c + 1` for a candidate `c <= n - 2`). P-256 samples
+/// `d` in `[1, n - 1]` directly, which gives the same distribution, but is not literally that
+/// procedure.
 pub(crate) fn keygen(prompt: Value) -> Value {
     let prompts: Prompts<KeyGenPromptTestGroup> = parse(prompt);
 

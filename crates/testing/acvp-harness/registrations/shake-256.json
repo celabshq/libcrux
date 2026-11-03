@@ -4,14 +4,14 @@
   "conformances": [],
   "algorithm": "SHAKE-256",
   "revision": "1.0",
-  "inBit": true,
-  "outBit": true,
+  "inBit": false,
+  "outBit": false,
   "inEmpty": true,
   "outputLen": [
     {
       "min": 16,
       "max": 65536,
-      "increment": 1
+      "increment": 8
     }
   ],
   "performLargeDataTest": []

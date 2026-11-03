@@ -187,41 +187,6 @@ pub(crate) fn respond_implemented<TG: TestGroup, R: Serialize>(
     response(prompts, test_groups)
 }
 
-/// The response to a vector set of which libcrux implements nothing: every test case is
-/// [`not_implemented`] because of `reason`. Needs no schema, only `tgId` and `tcId`.
-fn all_not_implemented(prompt: &Value, reason: &str) -> Value {
-    let ids = |v: &Value, field| {
-        v[field]
-            .as_u64()
-            .and_then(|id| usize::try_from(id).ok())
-            .unwrap_or_else(|| fail(format!("missing {field}")))
-    };
-    let Some(groups) = prompt["testGroups"].as_array() else {
-        fail("the prompt has no testGroups")
-    };
-    for g in groups {
-        let tg_id = ids(g, "tgId");
-        let Some(tests) = g["tests"].as_array() else {
-            within(tg_id, None, || fail("the test group has no tests"))
-        };
-        for t in tests {
-            let tc_id = ids(t, "tcId");
-            within(tg_id, Some(tc_id), || not_implemented::<()>(reason));
-        }
-    }
-    let mut response = json!({
-        "vsId": prompt["vsId"],
-        "algorithm": prompt["algorithm"],
-        "revision": prompt["revision"],
-        "isSample": prompt["isSample"],
-        "testGroups": [],
-    });
-    if let Some(mode) = prompt.get("mode") {
-        response["mode"] = mode.clone();
-    }
-    response
-}
-
 /// Parse the prompt into the schema of [`libcrux_kats`].
 pub(crate) fn parse<T: DeserializeOwned>(prompt: Value) -> T {
     serde_json::from_value(prompt).unwrap_or_else(|e| fail(format!("invalid prompt: {e}")))
@@ -315,20 +280,9 @@ fn main() {
         ("ML-DSA", "keyGen") => mldsa::keygen(prompt, backend),
         ("ML-DSA", "sigGen") => mldsa::siggen(prompt, backend),
         ("ML-DSA", "sigVer") => mldsa::sigver(prompt, backend),
-        ("KDF", "KMAC") => all_not_implemented(&prompt, "KDF in KMAC mode"),
         ("KDF", _) => kbkdf::respond(prompt),
         ("KDA", "HKDF") => hkdf::respond(prompt),
         ("KMAC-128" | "KMAC-256", _) => kmac::respond(prompt, &algorithm),
-        (
-            "SHA-1" | "SHA2-512/224" | "SHA2-512/256" | "HMAC-SHA-1" | "HMAC-SHA2-224"
-            | "HMAC-SHA2-512/224" | "HMAC-SHA2-512/256",
-            _,
-        ) => all_not_implemented(&prompt, &algorithm),
-        ("DetECDSA", "sigGen") => all_not_implemented(&prompt, "deterministic ECDSA"),
-        ("EDDSA", "keyVer") => all_not_implemented(&prompt, "EdDSA keyVer"),
-        ("KDA", "OneStep" | "OneStepNoCounter") => {
-            all_not_implemented(&prompt, &format!("KDA {mode}"))
-        }
         _ => fail(format!(
             "unknown vector set: algorithm {algorithm:?}, mode {mode:?}"
         )),

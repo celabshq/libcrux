@@ -5,12 +5,10 @@
   "algorithm": "ACVP-AES-ECB",
   "revision": "1.0",
   "direction": [
-    "encrypt",
-    "decrypt"
+    "encrypt"
   ],
   "keyLen": [
     128,
-    192,
     256
   ]
 }

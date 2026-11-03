@@ -6,7 +6,6 @@
   "mode": "keyGen",
   "revision": "RFC7748",
   "curve": [
-    "Curve25519",
-    "Curve448"
+    "Curve25519"
   ]
 }

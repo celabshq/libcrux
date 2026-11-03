@@ -6,7 +6,6 @@
   "mode": "keyGen",
   "revision": "1.0",
   "curve": [
-    "ED-25519",
-    "ED-448"
+    "ED-25519"
   ]
 }

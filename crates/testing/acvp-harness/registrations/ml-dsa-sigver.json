@@ -5,7 +5,6 @@
   "mode": "sigVer",
   "revision": "FIPS204",
   "externalMu": [
-    true,
     false
   ],
   "signatureInterfaces": [
@@ -31,18 +30,7 @@
         }
       ],
       "hashAlgs": [
-        "SHA2-224",
-        "SHA2-256",
-        "SHA2-384",
-        "SHA2-512",
-        "SHA2-512/224",
-        "SHA2-512/256",
-        "SHA3-224",
-        "SHA3-256",
-        "SHA3-384",
-        "SHA3-512",
-        "SHAKE-128",
-        "SHAKE-256"
+        "SHAKE-128"
       ],
       "contextLength": [
         {

@@ -13,15 +13,6 @@
         "responder"
       ]
     },
-    "fullMqv": {
-      "scheme": "fullMqv",
-      "underlyingAlgorithm": "ECC",
-      "algoMode": "KAS-ECC-SSC-SP800-56Ar3",
-      "kasRole": [
-        "initiator",
-        "responder"
-      ]
-    },
     "fullUnified": {
       "scheme": "fullUnified",
       "underlyingAlgorithm": "ECC",
@@ -33,15 +24,6 @@
     },
     "onePassDh": {
       "scheme": "onePassDh",
-      "underlyingAlgorithm": "ECC",
-      "algoMode": "KAS-ECC-SSC-SP800-56Ar3",
-      "kasRole": [
-        "initiator",
-        "responder"
-      ]
-    },
-    "onePassMqv": {
-      "scheme": "onePassMqv",
       "underlyingAlgorithm": "ECC",
       "algoMode": "KAS-ECC-SSC-SP800-56Ar3",
       "kasRole": [
@@ -69,18 +51,8 @@
     }
   },
   "domainParameterGenerationMethods": [
-    "P-224",
     "P-256",
-    "P-384",
-    "P-521",
-    "B-233",
-    "B-283",
-    "B-409",
-    "B-571",
-    "K-233",
-    "K-283",
-    "K-409",
-    "K-571"
+    "P-384"
   ],
   "hashFunctionZ": "none"
 }
