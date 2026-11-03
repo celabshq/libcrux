@@ -23,6 +23,9 @@ const HARNESS_UNSUPPORTED: i32 = 2;
 /// Backends that implement every algorithm, so that no vector set may be skipped.
 const COMPLETE_BACKENDS: [&str; 2] = ["portable", "default"];
 
+/// Every backend of `acvp-harness`. Each one gets a directory in the work directory.
+const BACKENDS: [&str; 4] = ["default", "portable", "neon", "avx2"];
+
 #[derive(Subcommand)]
 pub(crate) enum AcvpTask {
     /// Generate vector sets with the ACVP server, answer them with libcrux, and validate the
@@ -510,6 +513,12 @@ fn run_vector_sets(
     } else {
         backends
     };
+    if let Some(b) = backends.iter().find(|b| !BACKENDS.contains(&b.as_str())) {
+        return Err(format!(
+            "unknown backend {b}, expected one of {}",
+            BACKENDS.join(", ")
+        ));
+    }
     let registrations = if registrations.is_empty() {
         harness_registrations()
             .iter()
@@ -519,14 +528,24 @@ fn run_vector_sets(
         registrations
     };
     let work = work_dir.unwrap_or_else(|| root.join("target/acvp"));
+    // Docker takes a relative mount source for the name of a volume.
+    fs::create_dir_all(&work)
+        .map_err(|e| format!("failed to create {}: {e}", work.display()))?;
+    let work = fs::canonicalize(&work)
+        .map_err(|e| format!("failed to resolve {}: {e}", work.display()))?;
 
     let harness = build_harness(global, &root)?;
 
-    // One directory per vector set, as the server writes its files next to the registration.
-    if work.exists() {
-        fs::remove_dir_all(&work)
-            .map_err(|e| format!("failed to remove {}: {e}", work.display()))?;
+    // Only remove what a previous run wrote, as the work directory is given by the user.
+    for dir in std::iter::once("vectors").chain(BACKENDS) {
+        let dir = work.join(dir);
+        if dir.exists() {
+            fs::remove_dir_all(&dir)
+                .map_err(|e| format!("failed to remove {}: {e}", dir.display()))?;
+        }
     }
+
+    // One directory per vector set, as the server writes its files next to the registration.
     let vectors = work.join("vectors");
     let mut names = Vec::new();
     for reg in &registrations {
