@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - [#XXX](https://github.com/celabshq/libcrux/pull/XXX): Mark `fstar::uint{8,64}::{eq_mask, gte_mask}` as `#[inline(never)]`
+- [#XXX](https://github.com/celabshq/libcrux/pull/XXX): Add optimisation barriers to the carry-based masked selects in `bignum::base` and `bignum25519_51::cswap2`. LLVM compiled some of these into secret-dependent branches.
+
 ## [0.0.6] (2026-10-07)
 
 ### Changed

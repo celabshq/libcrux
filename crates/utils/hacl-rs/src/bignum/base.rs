@@ -32,9 +32,10 @@ pub(crate) fn bn_karatsuba_mul_uint64(
         let tmp·: (&mut [u64], &mut [u64]) = t1.1.split_at_mut(aLen as usize - len2 as usize);
         let c0: u64 = super::bignum_base::bn_sub_eq_len_u64(len2, a1.0, a1.1, tmp·.1);
         let c1: u64 = super::bignum_base::bn_sub_eq_len_u64(len2, a1.1, a1.0, t1.0);
+        // The barrier keeps LLVM from turning the masked select into a branch.
+        let mask: u64 = core::hint::black_box(0u64.wrapping_sub(c0));
         for i in 0u32..len2 {
-            let x: u64 = 0u64.wrapping_sub(c0) & t1.0[i as usize]
-                | !0u64.wrapping_sub(c0) & tmp·.1[i as usize];
+            let x: u64 = mask & t1.0[i as usize] | !mask & tmp·.1[i as usize];
             let os: (&mut [u64], &mut [u64]) = t1.0.split_at_mut(0usize);
             os.1[i as usize] = x
         }
@@ -42,9 +43,10 @@ pub(crate) fn bn_karatsuba_mul_uint64(
         let c00: u64 = c0;
         let c01: u64 = super::bignum_base::bn_sub_eq_len_u64(len2, b1.0, b1.1, tmp·.1);
         let c10: u64 = super::bignum_base::bn_sub_eq_len_u64(len2, b1.1, b1.0, tmp·.0);
+        // The barrier keeps LLVM from turning the masked select into a branch.
+        let mask: u64 = core::hint::black_box(0u64.wrapping_sub(c01));
         for i in 0u32..len2 {
-            let x: u64 = 0u64.wrapping_sub(c01) & tmp·.0[i as usize]
-                | !0u64.wrapping_sub(c01) & tmp·.1[i as usize];
+            let x: u64 = mask & tmp·.0[i as usize] | !mask & tmp·.1[i as usize];
             let os: (&mut [u64], &mut [u64]) = tmp·.0.split_at_mut(0usize);
             os.1[i as usize] = x
         }
@@ -77,7 +79,8 @@ pub(crate) fn bn_karatsuba_mul_uint64(
         let c31: u64 = c2.wrapping_sub(c3);
         let c4: u64 = super::bignum_base::bn_add_eq_len_u64(aLen, t231.0, t45.0, t67.0);
         let c41: u64 = c2.wrapping_add(c4);
-        let mask: u64 = 0u64.wrapping_sub(c_sign);
+        // The barrier keeps LLVM from turning the masked select into a branch.
+        let mask: u64 = core::hint::black_box(0u64.wrapping_sub(c_sign));
         for i in 0u32..aLen {
             let x: u64 = mask & t67.0[i as usize] | !mask & t67.1[i as usize];
             let os: (&mut [u64], &mut [u64]) = t67.0.split_at_mut(0usize);
@@ -174,9 +177,10 @@ pub(crate) fn bn_karatsuba_sqr_uint64(aLen: u32, a: &[u64], tmp: &mut [u64], res
         let tmp·: (&mut [u64], &mut [u64]) = t0.1.split_at_mut(aLen as usize);
         let c0: u64 = super::bignum_base::bn_sub_eq_len_u64(len2, a1.0, a1.1, tmp·.1);
         let c1: u64 = super::bignum_base::bn_sub_eq_len_u64(len2, a1.1, a1.0, tmp·.0);
+        // The barrier keeps LLVM from turning the masked select into a branch.
+        let mask: u64 = core::hint::black_box(0u64.wrapping_sub(c0));
         for i in 0u32..len2 {
-            let x: u64 = 0u64.wrapping_sub(c0) & tmp·.0[i as usize]
-                | !0u64.wrapping_sub(c0) & tmp·.1[i as usize];
+            let x: u64 = mask & tmp·.0[i as usize] | !mask & tmp·.1[i as usize];
             let os: (&mut [u64], &mut [u64]) = tmp·.0.split_at_mut(0usize);
             os.1[i as usize] = x
         }
@@ -367,7 +371,8 @@ pub fn mod_inv_uint64(n0: u64) -> u64 {
     for _i in 0u32..64u32 {
         let us: u64 = (&ub)[0usize];
         let vs: u64 = (&vb)[0usize];
-        let u_is_odd: u64 = 0u64.wrapping_sub(us & 1u64);
+        // The barrier keeps LLVM from turning the masked select into a branch.
+        let u_is_odd: u64 = core::hint::black_box(0u64.wrapping_sub(us & 1u64));
         let beta_if_u_is_odd: u64 = beta & u_is_odd;
         (&mut ub)[0usize] = (us ^ beta_if_u_is_odd)
             .wrapping_shr(1u32)
@@ -551,7 +556,8 @@ pub(crate) fn bn_almost_mont_reduction_u64(
     let mut tmp: Box<[u64]> = vec![0u64; len as usize].into_boxed_slice();
     let c1: u64 = super::bignum_base::bn_sub_eq_len_u64(len, res, n, &mut tmp);
     lowstar::ignore::ignore::<u64>(c1);
-    let m: u64 = 0u64.wrapping_sub(c00);
+    // The barrier keeps LLVM from turning the masked select into a branch.
+    let m: u64 = core::hint::black_box(0u64.wrapping_sub(c00));
     for i in 0u32..len {
         let x: u64 = m & (&tmp)[i as usize] | !m & res[i as usize];
         let os: (&mut [u64], &mut [u64]) = res.split_at_mut(0usize);
@@ -752,9 +758,10 @@ pub fn bn_mod_exp_consttime_precomp_u64(
             let tmp: u64 = b[i1 as usize];
             let bit: u64 = tmp.wrapping_shr(j) & 1u64;
             let sw1: u64 = bit ^ (&sw)[0usize];
+            // The barrier keeps LLVM from turning the masked select into a branch.
+            let mask: u64 = core::hint::black_box(0u64.wrapping_sub(sw1));
             for i0 in 0u32..len {
-                let dummy: u64 =
-                    0u64.wrapping_sub(sw1) & ((&resM)[i0 as usize] ^ (&aM)[i0 as usize]);
+                let dummy: u64 = mask & ((&resM)[i0 as usize] ^ (&aM)[i0 as usize]);
                 (&mut resM)[i0 as usize] = (&resM)[i0 as usize] ^ dummy;
                 (&mut aM)[i0 as usize] = (&aM)[i0 as usize] ^ dummy
             }
@@ -771,8 +778,10 @@ pub fn bn_mod_exp_consttime_precomp_u64(
             (&mut sw)[0usize] = bit
         }
         let sw0: u64 = (&sw)[0usize];
+        // The barrier keeps LLVM from turning the masked select into a branch.
+        let mask: u64 = core::hint::black_box(0u64.wrapping_sub(sw0));
         for i in 0u32..len {
-            let dummy: u64 = 0u64.wrapping_sub(sw0) & ((&resM)[i as usize] ^ (&aM)[i as usize]);
+            let dummy: u64 = mask & ((&resM)[i as usize] ^ (&aM)[i as usize]);
             (&mut resM)[i as usize] = (&resM)[i as usize] ^ dummy;
             (&mut aM)[i as usize] = (&aM)[i as usize] ^ dummy
         }
