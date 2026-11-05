@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [#XXX](https://github.com/celabshq/libcrux/pull/XXX): **breaking** Remove unused code: the `bignum::{bignum32, bignum64, bignum256, bignum256_32, bignum4096, bignum4096_32}` modules, the unused 32-bit and 64-bit functions in `bignum::{base, bignum_base}`, the `fstar::{uint16, uint32}` modules, `fstar::uint8::gte_mask`, and the unused `fstar::uint128` functions
 
+### Fixed
+
+- [#XXX](https://github.com/celabshq/libcrux/pull/XXX): Mark `fstar::uint{8,64}::{eq_mask, gte_mask}` as `#[inline(never)]`
 ## [0.0.6] (2026-10-07)
 
 ### Changed
