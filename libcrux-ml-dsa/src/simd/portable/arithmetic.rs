@@ -402,8 +402,23 @@ pub(super) fn power2round(t0: &mut Coefficients, t1: &mut Coefficients) {
 // TODO: Revisit this function when doing the range analysis and testing
 // additional KATs.
 #[inline(always)]
-#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
-#[cfg_attr(hax, hax_lib::requires(fstar!(r#"v $bound > 0 /\ 
+// The hax F* core library has no `BitOr` instance for `bool`, which
+// the non-short-circuiting `|` below needs.
+#[cfg_attr(
+    hax,
+    hax_lib::fstar::before(
+        r#"
+instance bitor_bool: Core_models.Ops.Bit.t_BitOr bool bool = {
+  f_Output = bool;
+  f_bitor_pre = (fun _ _ -> True);
+  f_bitor_post = (fun a b r -> r == (a || b));
+  f_bitor = (fun a b -> a || b);
+}
+
+[@@ "opaque_to_smt"]"#
+    )
+)]
+#[cfg_attr(hax, hax_lib::requires(fstar!(r#"v $bound > 0 /\
         Spec.Utils.is_i32b_array_opaque (v $FIELD_MODULUS - 1) ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values"#)))]
 #[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"
     $result == false ==> 
