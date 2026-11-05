@@ -102,7 +102,8 @@ fn check_modulus_u64(modBits: u32, n: &[u64]) -> u64 {
         .wrapping_div(64u32)
         .wrapping_add(1u32);
     let bits0: u64 = n[0usize] & 1u64;
-    let m0: u64 = 0u64.wrapping_sub(bits0);
+    // The barrier keeps LLVM from turning the masked select into a branch.
+    let m0: u64 = core::hint::black_box(0u64.wrapping_sub(bits0));
     let mut b2: Box<[u64]> = vec![0u64; nLen as usize].into_boxed_slice();
     let i: u32 = modBits.wrapping_sub(1u32).wrapping_div(64u32);
     let j: u32 = modBits.wrapping_sub(1u32).wrapping_rem(64u32);
