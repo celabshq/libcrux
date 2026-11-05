@@ -18,6 +18,22 @@ with the `valgrind_ct_test` cfg enabled.
 | `sha3`         | SHA-256, SHA-512, SHAKE-256 over a secret message       | Clean                             |
 | `mlkem`        | ML-KEM-512 `decapsulate` with an undefined private key  | Clean                             |
 | `mldsa`        | ML-DSA-{44, 65, 87} `sign` with an undefined signing key| Clean                             |
+| `hacl_masks`   | `fstar::uint{8,64}` `eq_mask`/`gte_mask` from libcrux-hacl-rs, as select and accumulate + compare | Clean |
+| `chacha20poly1305` | Poly1305 `mac`, ChaCha20-Poly1305 `decrypt` (valid and invalid tag) with an undefined key; the tag comparison | Clean |
+| `curve25519`   | X25519 `secret_to_public` and hacl `ecdh` with an undefined secret key | Clean |
+| `ed25519`      | Ed25519 `secret_to_public` and `sign` with an undefined private key | Clean |
+| `p256`         | P-256 `validate_private_key`, `dh_initiator`, `dh_responder`, `ecdsa_sign_p256_sha2` with an undefined private key and nonce | Clean |
+| `rsa`          | RSA-PSS 2048 hacl `rsapss_skey_sign` and the private key validation with an undefined `d` | Clean |
+| `sha2`         | SHA-224, SHA-256, SHA-384, SHA-512 over a secret message | Clean |
+| `blake2`       | Keyed BLAKE2b and BLAKE2s with an undefined key and message | Clean |
+| `hmac`         | HMAC with SHA-2 and SHA-3 with an undefined key and message | Clean |
+| `hkdf`         | HKDF extract and expand with SHA-2 and SHA-3 with undefined input keying material | Clean |
+| `kmac`         | KMAC128 and KMAC256 with an undefined key and message | Clean |
+| `nist_kdf`     | NIST SP 800-56C two-step KDF and SP 800-108 feedback KDF with an undefined input key | Clean |
+| `hmac_drbg`    | HMAC-DRBG with SHA-256, SHA-384, SHA-512: instantiate, generate and reseed with undefined entropy | Clean |
+| `aes`          | AES-GCM-128/256 and AES-CCM-128/256 encrypt and decrypt with an undefined key, multiplexed and portable | Clean |
+| `p384`         | P-384 private key validation, public key derivation and ECDH with an undefined private key | Clean |
+| `ecdsa`        | ECDSA P-256 signing and public key derivation with an undefined private key and nonce | Clean |
 
 ## Running with Docker
 
@@ -45,14 +61,15 @@ docker run --rm -v "$PWD":/app -w /app valgrind bash -c \
   "RUSTFLAGS='--cfg valgrind_ct_test' cargo build -p ctgrind-test --profile release-debug --bin mldsa && valgrind --error-exitcode=1 --track-origins=yes ./target/release-debug/mldsa"
 ```
 
-Run all three in one go:
+Run all of them in one go:
 
 ```sh
 docker run --rm -v "$PWD":/app -w /app valgrind bash -c "
   RUSTFLAGS='--cfg valgrind_ct_test' cargo build -p ctgrind-test --profile release-debug &&
-  echo '--- SHA3 ---'  && valgrind --error-exitcode=1 --track-origins=yes ./target/release-debug/sha3 &&
-  echo '--- ML-KEM ---' && valgrind --error-exitcode=1 --track-origins=yes ./target/release-debug/mlkem &&
-  echo '--- ML-DSA ---' && valgrind --error-exitcode=1 --track-origins=yes ./target/release-debug/mldsa
+  for b in sha3 mlkem mldsa hacl_masks chacha20poly1305 curve25519 ed25519 p256 rsa \\
+           sha2 blake2 hmac hkdf kmac nist_kdf hmac_drbg aes p384 ecdsa; do
+    echo \"--- \$b ---\" && valgrind --error-exitcode=1 --track-origins=yes ./target/release-debug/\$b || exit 1
+  done
 "
 ```
 
@@ -83,3 +100,34 @@ assumptions of the Dilithium security proof [1][dilithium-round3]. In these case
 explicitly mark the memory as `MemState::Defined` for valgrind, in
 order to avoid false positives. The reasoning for each declassify operation 
 is given in the ML-DSA implementation.
+
+## HACL mask functions
+
+The HACL-based crates (ChaCha20-Poly1305, Poly1305, X25519, Ed25519, P-256, RSA) use the
+`fstar::uintX::{eq_mask, gte_mask}` functions from libcrux-hacl-rs for constant-time comparisons.
+These are plain bit operations without an optimisation barrier, so the compiler could turn them
+back into branches after inlining. The binaries above check that it does not.
+
+Some of these comparisons end in a legitimate branch on a public result, such as whether a tag or
+a key is valid. Valgrind cannot distinguish that branch from a comparison that was compiled into a
+branch. Declassifying the result right before the branch would not help: the valgrind client
+request is an optimisation barrier and could hide exactly the optimisation we are looking for. So:
+
+- Where the HACL function returns the validity as a `bool` without branching on it (X25519 `ecdh`,
+  the P-256 functions, RSA `rsapss_skey_sign`), the test calls that function directly and
+  declassifies the returned `bool`.
+- Where HACL branches internally (the tag check in ChaCha20-Poly1305 `decrypt`, the private key
+  check in RSA `rsapss_skey_sign`), the comparison is an `#[inline]` helper whose result is
+  declassified with `libcrux_secrets::mem_requests::ct_declassify` before the branch. The crate also
+  exposes a `ct_test` module (only with `--cfg valgrind_ct_test`) that calls the same helper and
+  returns its result, which the test checks without the branch.
+
+## Declassified public decisions
+
+Outside the HACL code, the following results are public by design and are declassified with
+`libcrux_secrets::mem_requests::ct_declassify` right before the branch on them:
+
+- AES-GCM and AES-CCM `decrypt`: whether the tag is valid.
+- ECDSA P-256: whether a private key or nonce is valid (an invalid nonce is resampled), whether
+  signing succeeded, and whether the public key could be derived.
+- P-384: the point-at-infinity assertions in public key derivation and ECDH, which never fail.

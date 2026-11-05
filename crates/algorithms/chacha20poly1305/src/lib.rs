@@ -76,6 +76,17 @@ mod hacl {
     pub(crate) mod chacha20;
 }
 
+/// Entry points for the valgrind constant-time tests in `ctgrind-test`.
+#[cfg(valgrind_ct_test)]
+#[doc(hidden)]
+pub mod ct_test {
+    /// The tag comparison of [`crate::decrypt`], without the branch on its result.
+    #[inline(never)]
+    pub fn tag_eq(computed_tag: &[u8; crate::TAG_LEN], tag: &[u8; crate::TAG_LEN]) -> bool {
+        crate::hacl::aead_chacha20poly1305::tag_eq(computed_tag, tag)
+    }
+}
+
 mod impl_aead_trait;
 mod impl_hacl;
 

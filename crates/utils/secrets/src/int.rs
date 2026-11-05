@@ -47,6 +47,7 @@ impl_new!(I64, i64, I64);
 impl_new!(I128, i128, I128);
 
 /// A trait defining cast operations for secret/public integers
+#[allow(clippy::wrong_self_convention)]
 pub trait CastOps {
     fn as_u8(self) -> U8;
     fn as_i8(self) -> I8;
