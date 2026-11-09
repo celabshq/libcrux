@@ -7,9 +7,8 @@ name: PSQ - ProVerif
 # proofs/proverif/.gitignore), so there is NO committed .pvl to diff against and
 # therefore no cheap per-push "verify the committed snapshot" job is possible.
 # The only thing we can do is RE-EXTRACT the handshake via the hax ProVerif
-# backend and then run the full analysis, which requires building the OCaml
-# hax-engine + Rust cargo-hax. That is heavy (~60 min wall clock), so it runs on
-# a nightly schedule (and on manual dispatch) rather than per push/PR.
+# backend and then run the full analysis. That is heavy, so it runs on a
+# nightly schedule (and on manual dispatch) rather than per push/PR.
 #
 # check-pv.sh re-extracts via `cargo hax ... into proverif`, composes lib.pvl
 # with the symbolic crypto model (psq_crypto.pvl), and runs the full ProVerif
@@ -22,6 +21,10 @@ on:
   schedule:
     - cron: "0 5 * * *"
   workflow_dispatch:
+
+env:
+  HAX_REPOSITORY: pereq-dev/hax
+  HAX_REFERENCE: cargo-hax-v0.5.0
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -37,43 +40,33 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Checkout hax ProVerif backend
+      - name: ⤵ Install hax
+        uses: hacspec/hax-actions@1f01b89579f425ad7c1e66aebbd5df7e688cb576
+        with:
+          hax_repository: github:${{ env.HAX_REPOSITORY }}
+          hax_reference: ${{ env.HAX_REFERENCE }}
+
+      - name: Fetch hax proof libs (sparse)
         uses: actions/checkout@v4
         with:
-          repository: cryspen/hax
-          ref: proverif-rust-backend
+          repository: ${{ env.HAX_REPOSITORY }}
+          ref: ${{ env.HAX_REFERENCE }}
           path: hax-engine
+          sparse-checkout: |
+            hax-lib/proof-libs/proverif
+          sparse-checkout-cone-mode: false
 
-      - name: System deps (opam, jq, node, proverif)
+      - name: Install ProVerif
         run: |
           sudo apt-get update
-          sudo apt-get install -y opam jq nodejs libgtk2.0-dev
-          opam init -y --disable-sandboxing --bare
+          sudo apt-get install -y opam ocaml libgtk2.0-dev
+          opam init -y --disable-sandboxing
+          eval "$(opam env)"
           opam install -y proverif
-
-      - name: Rust toolchain (pinned by hax)
-        run: |
-          rustup toolchain install "$(grep -oE 'nightly-[0-9-]+' hax-engine/rust-toolchain.toml | head -1)" \
-            --component rustc-dev --component rust-src --component llvm-tools-preview
-
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: hax-engine
-
-      - name: Cache opam
-        uses: actions/cache@v4
-        with:
-          path: ~/.opam
-          key: opam-hax-proverif-${{ runner.os }}-${{ hashFiles('hax-engine/engine/**/dune-project') }}
-
-      - name: Build + install the hax engine into a switch
-        run: |
-          opam switch list --short | grep -qx hax-proverif || opam switch create hax-proverif 5.3.0
-          HAX_OPAM_SWITCH=hax-proverif ./hax-engine/setup-local.sh
 
       - name: Re-extract + run the full ProVerif analysis
         env:
           HAX_HOME: ${{ github.workspace }}/hax-engine
         run: |
-          eval "$(opam env --switch=hax-proverif)"
+          eval "$(opam env)"
           bash libcrux-psq/proofs/proverif/check-pv.sh
