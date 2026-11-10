@@ -70,6 +70,15 @@ pub mod x2 {
             state: GenericState<2, crate::simd::arm64::uint64x2_t>,
         }
 
+        #[cfg(not(eurydice))]
+        #[cfg_attr(hax, hax_lib::exclude)]
+        impl Drop for KeccakState {
+            fn drop(&mut self) {
+                use libcrux_secrets::Zeroize;
+                self.state.zeroize();
+            }
+        }
+
         type KeccakState2Internal = GenericState<2, crate::simd::arm64::uint64x2_t>;
 
         /// Initialise the `KeccakState2`.

@@ -23,9 +23,18 @@ pub(crate) fn set_ij<const N: usize, T: KeccakItem<N>>(
     arr[5 * i + j] = value;
 }
 
+/// [`libcrux_secrets::Zeroize`] outside of hax. Under hax, zeroization is a
+/// no-op, and not all hax models of the SIMD types implement `Zeroize`.
+#[cfg(not(hax))]
+pub(crate) use libcrux_secrets::Zeroize as ZeroizeItem;
+#[cfg(hax)]
+pub(crate) trait ZeroizeItem {}
+#[cfg(hax)]
+impl<T> ZeroizeItem for T {}
+
 /// A Keccak Item for multiplexing arithmetic implementations.
 #[cfg_attr(hax, hax_lib::attributes)]
-pub(crate) trait KeccakItem<const N: usize>: Clone + Copy {
+pub(crate) trait KeccakItem<const N: usize>: Clone + Copy + ZeroizeItem {
     /// Zero
     #[cfg_attr(hax, hax_lib::requires(true))]
     fn zero() -> Self;

@@ -1,6 +1,7 @@
 use libcrux_intrinsics::arm64::*;
 
 use crate::{generic_keccak::KeccakState, traits::*};
+use libcrux_secrets::Zeroize;
 
 #[allow(non_camel_case_types)]
 pub type uint64x2_t = _uint64x2_t;
@@ -74,6 +75,8 @@ pub(crate) fn load_block<const RATE: usize>(
         u[1] = u64::from_le_bytes(blocks[1][start..start + 8].try_into().unwrap());
         let uvec = _vld1q_u64(&u);
         set_ij(s, i / 5, i % 5, _veorq_u64(*get_ij(s, i / 5, i % 5), uvec));
+        // Not wiped: a copy of the input, which the caller still holds. Wiping
+        // it here, once per block, costs up to 20% (see the README).
     }
 }
 
@@ -98,6 +101,8 @@ pub(crate) fn load_last<const RATE: usize, const DELIMITER: u8>(
     buffer1[RATE - 1] |= 0x80;
 
     load_block::<RATE>(state, &[&buffer0, &buffer1], 0);
+    buffer0.zeroize();
+    buffer1.zeroize();
 }
 
 #[inline(always)]
@@ -135,12 +140,15 @@ pub(crate) fn store_block<const RATE: usize>(
         _vst1q_bytes_u64(&mut out1_tmp, v1);
         out0[start + len - remaining..start + len].copy_from_slice(&out0_tmp[0..remaining]);
         out1[start + len - remaining..start + len].copy_from_slice(&out1_tmp[0..remaining]);
+        out0_tmp.zeroize();
+        out1_tmp.zeroize();
     } else if remaining > 0 {
         let mut out01 = [0u8; 16];
         let i = 2 * (len / 16);
         _vst1q_bytes_u64(&mut out01, *get_ij(s, i / 5, i % 5));
         out0[start + len - remaining..start + len].copy_from_slice(&out01[0..remaining]);
         out1[start + len - remaining..start + len].copy_from_slice(&out01[8..8 + remaining]);
+        out01.zeroize();
     }
 }
 

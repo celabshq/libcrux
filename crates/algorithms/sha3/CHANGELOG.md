@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Zeroize the Keccak state and the padded last block after one-shot hashing, and the incremental/XOF states on drop.
+
+### Changed
+
+- The incremental, XOF and digest-trait state types now implement `Drop`, so their fields can no longer be moved out.
+
 ## [0.0.11] (2026-10-07)
 
 ### Changed

@@ -17,6 +17,7 @@ bench = false # so libtest doesn't eat the arguments to criterion
 libcrux-platform.workspace = true
 libcrux-intrinsics.workspace = true
 libcrux-traits.workspace = true
+libcrux-secrets.workspace = true
 
 [target.'cfg(hax)'.dependencies]
 hax-lib.workspace = true

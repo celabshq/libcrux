@@ -7,6 +7,7 @@ use crate::{
     generic_keccak::KeccakState,
     traits::{Absorb, KeccakItem, Squeeze},
 };
+use libcrux_secrets::Zeroize;
 
 // TODO: Should not be needed. Use hax_lib::fstar::options("") below.
 // Known bug: https://github.com/cryspen/hax/issues/1698
@@ -50,6 +51,27 @@ pub(crate) struct KeccakXofState<
     // - `squeeze_pos < RATE` means `squeeze_buf[squeeze_pos..RATE]`
     //   still needs to be returned to the caller on the next squeeze.
     squeeze_pos: usize,
+}
+
+impl<const PARALLEL_LANES: usize, const RATE: usize, STATE: KeccakItem<PARALLEL_LANES>>
+    Zeroize for KeccakXofState<PARALLEL_LANES, RATE, STATE>
+{
+    fn zeroize(&mut self) {
+        self.inner.zeroize();
+        self.buf.zeroize();
+        self.squeeze_buf.zeroize();
+    }
+}
+
+// C has no destructors, so the extracted C code does not wipe on drop.
+#[cfg(not(eurydice))]
+#[cfg_attr(hax, hax_lib::exclude)]
+impl<const PARALLEL_LANES: usize, const RATE: usize, STATE: KeccakItem<PARALLEL_LANES>> Drop
+    for KeccakXofState<PARALLEL_LANES, RATE, STATE>
+{
+    fn drop(&mut self) {
+        self.zeroize();
+    }
 }
 
 /// Note: This function exists to work around a hax bug where `core::array::from_fn`
@@ -448,5 +470,32 @@ impl<const RATE: usize, STATE: KeccakItem<1>> KeccakXofState<1, RATE, STATE> {
                 self.squeeze_pos = trailing;
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod zeroize_tests {
+    use super::*;
+
+    #[test]
+    fn xof_state_zeroize() {
+        let mut st = KeccakXofState::<1, 136, u64>::new();
+        st.absorb(&[&[0xa5u8; 200]]);
+        st.absorb_final::<0x1f>(&[&[0xa5u8; 7]]);
+        let mut out = [0u8; 10];
+        st.squeeze(&mut out);
+
+        assert!(st.buf[0].iter().any(|b| *b != 0));
+        assert!(st.squeeze_buf.iter().any(|b| *b != 0));
+        assert!(st.inner.st.iter().any(|l| *l != 0));
+
+        st.zeroize();
+        if !libcrux_secrets::ZEROIZATION_ENABLED {
+            return;
+        }
+
+        assert_eq!(st.buf, [[0u8; 136]]);
+        assert_eq!(st.squeeze_buf, [0u8; 136]);
+        assert_eq!(st.inner.st, [0u64; 25]);
     }
 }

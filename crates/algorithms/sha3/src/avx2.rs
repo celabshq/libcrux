@@ -28,6 +28,15 @@ pub mod x4 {
             state: GenericState<4, Vec256>,
         }
 
+        #[cfg(not(eurydice))]
+        #[cfg_attr(hax, hax_lib::exclude)]
+        impl Drop for KeccakState {
+            fn drop(&mut self) {
+                use libcrux_secrets::Zeroize;
+                self.state.zeroize();
+            }
+        }
+
         /// Initialise the [`KeccakState`].
         #[inline(always)]
         pub fn init() -> KeccakState {
