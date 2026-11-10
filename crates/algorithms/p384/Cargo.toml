@@ -15,6 +15,7 @@ bench = false # so libtest doesn't eat the arguments to criterion
 
 [dependencies]
 rand = { workspace = true, default-features = false, optional = true }
+libcrux-secrets.workspace = true
 
 [dev-dependencies]
 libcrux-kats = { workspace = true, features = ["ecdh", "ecdsa", "kas-ecc"] }

@@ -25,6 +25,22 @@ pub(crate) use p384_64::{
 mod safegcd;
 mod safegcd_p384;
 
+use libcrux_secrets::Zeroize;
+
+impl Zeroize for Fp {
+    #[inline]
+    fn zeroize(&mut self) {
+        self.0.zeroize();
+    }
+}
+
+impl Zeroize for FpRaw {
+    #[inline]
+    fn zeroize(&mut self) {
+        self.0.zeroize();
+    }
+}
+
 #[inline]
 /// The function fp_add adds two field elements in the Montgomery domain.
 ///
@@ -96,6 +112,8 @@ pub(crate) fn fp_inv(out: &mut Fp, x: &Fp) {
     let mut raw_inv = [0u64; 6];
     safegcd_p384::p384_invert_divstep_sat(&mut raw_inv, &raw_in.0);
     fp_to_montgomery(out, &FpRaw(raw_inv));
+    raw_in.zeroize();
+    raw_inv.zeroize();
 }
 
 #[cfg(test)]

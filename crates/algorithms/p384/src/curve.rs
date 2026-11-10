@@ -26,6 +26,7 @@ use crate::{
 pub(crate) mod affine;
 
 use affine::AffinePoint;
+use libcrux_secrets::Zeroize;
 
 /// A point on P-384 in projective coordinates.
 #[derive(Clone, Copy)]
@@ -34,6 +35,15 @@ pub(crate) struct ProjectivePoint {
     x: Fp,
     y: Fp,
     z: Fp,
+}
+
+impl Zeroize for ProjectivePoint {
+    #[inline]
+    fn zeroize(&mut self) {
+        self.x.zeroize();
+        self.y.zeroize();
+        self.z.zeroize();
+    }
 }
 
 impl ProjectivePoint {
@@ -54,7 +64,7 @@ impl ProjectivePoint {
         let ProjectivePoint { x, y, z } = &self;
 
         let mut t0 = x.square(); // 1.
-        let t1 = y.square(); // 2.
+        let mut t1 = y.square(); // 2.
         let mut t2 = z.square(); // 3.
 
         let mut t3 = x * y; // 4.
@@ -98,6 +108,11 @@ impl ProjectivePoint {
         z3 = z3 + z3; // 33.
 
         z3 = z3 + z3; // 34.
+
+        t0.zeroize();
+        t1.zeroize();
+        t2.zeroize();
+        t3.zeroize();
 
         ProjectivePoint {
             x: x3,
@@ -190,6 +205,12 @@ impl ProjectivePoint {
 
         z3 += t1; // 43.
 
+        t0.zeroize();
+        t1.zeroize();
+        t2.zeroize();
+        t3.zeroize();
+        t4.zeroize();
+
         ProjectivePoint {
             x: x3,
             y: y3,
@@ -242,6 +263,7 @@ impl ProjectivePoint {
         }
 
         cswap(swap, &mut r0, &mut r1);
+        r1.zeroize();
         r0
     }
 
@@ -265,11 +287,14 @@ impl ProjectivePoint {
     /// input to this function is not the point at infinity. If the
     /// input encodes the point at infinity, the output of this
     /// function is undefined.
-    pub(crate) fn to_affine_non_inf(self) -> AffinePoint {
-        let z_inv = self.z.inv();
+    pub(crate) fn to_affine_non_inf(mut self) -> AffinePoint {
+        let mut z_inv = self.z.inv();
 
         let x = self.x * z_inv;
         let y = self.y * z_inv;
+
+        z_inv.zeroize();
+        self.zeroize();
 
         AffinePoint { x, y }
     }

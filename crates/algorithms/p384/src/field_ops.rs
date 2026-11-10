@@ -3,6 +3,8 @@
 //! We assume the underlying operations from `field` are constant-time.
 use core::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
+use libcrux_secrets::Zeroize;
+
 use crate::{
     constants::{
         fp_from_be_bytes, FP_NUM_BYTES, FP_NUM_LIMBS, FP_ONE, FP_ZERO, NIST_P384_A, NIST_P384_B,
@@ -161,12 +163,14 @@ impl Fp {
     /// Converts a Montgomery-domain field element to big-endian
     /// bytes.
     #[inline]
-    pub(crate) fn to_be_bytes(self) -> [u8; FP_NUM_BYTES] {
+    pub(crate) fn to_be_bytes(mut self) -> [u8; FP_NUM_BYTES] {
         let mut raw = FpRaw::new();
         fp_from_montgomery(&mut raw, &self);
         let mut le = [0u8; FP_NUM_BYTES];
         fiat_p384_to_bytes(&mut le, &raw.0);
         le.reverse();
+        raw.zeroize();
+        self.zeroize();
         le
     }
 

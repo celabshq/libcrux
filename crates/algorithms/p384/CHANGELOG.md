@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Zeroize `PrivateKey` and `SharedSecret` on drop, and the intermediate values of
+  scalar multiplication and field inversion.
+
+### Changed
+
+- `PrivateKey` and `SharedSecret` now implement `Drop`, so their fields can no
+  longer be moved out.
+
 ### Changed
 
 - `PrivateKey::generate` follows SP 800-56A r3, Section 5.6.1.2.2 (Key Pair Generation by

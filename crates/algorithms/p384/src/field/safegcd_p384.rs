@@ -8,6 +8,7 @@
 //! KAT via `x · x^{-1} ≡ 1 (mod p)` using schoolbook mul-mod.
 
 use crate::field::safegcd::{self as sg, ModInfo, Signed62};
+use libcrux_secrets::Zeroize;
 
 /// P-384 prime in 6×u64 little-endian.
 pub(super) const P384_P_6X64: [u64; 6] = [
@@ -24,9 +25,11 @@ pub(super) const P384: ModInfo<7> = sg::modinfo_from_6u64(P384_P_6X64, 15);
 /// `x^{-1} mod p384` on 6×u64 saturated input.
 #[inline(never)]
 pub(super) fn p384_invert_divstep_sat(out: &mut [u64; 6], x: &[u64; 6]) {
-    let x_lim: Signed62<7> = sg::from_saturated_6(x);
-    let inv = sg::invert(x_lim, &P384);
+    let mut x_lim: Signed62<7> = sg::from_saturated_6(x);
+    let mut inv = sg::invert(x_lim, &P384);
     *out = sg::to_saturated_6(&inv);
+    x_lim.zeroize();
+    inv.zeroize();
 }
 
 #[cfg(test)]

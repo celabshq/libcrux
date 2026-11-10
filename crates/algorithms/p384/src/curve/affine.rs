@@ -6,6 +6,8 @@
 
 use core::ops::Neg;
 
+use libcrux_secrets::Zeroize;
+
 use crate::{
     constants::{
         COMPRESSED_POINT_ID, COMPRESSED_POINT_ID_ODD, COMPRESSED_POINT_LEN, UNCOMPRESSED_POINT_ID,
@@ -21,6 +23,14 @@ use crate::{
 pub(crate) struct AffinePoint {
     pub(crate) x: Fp,
     pub(crate) y: Fp,
+}
+
+impl Zeroize for AffinePoint {
+    #[inline]
+    fn zeroize(&mut self) {
+        self.x.zeroize();
+        self.y.zeroize();
+    }
 }
 
 impl AffinePoint {

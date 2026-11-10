@@ -16,6 +16,8 @@
 //! Inverter 2X structure (Bernstein–Chen–Harrison–Huang–Maxwell–Wang–
 //! Wuille–Yang).
 
+use libcrux_secrets::Zeroize;
+
 /// 2^62 − 1.
 pub const M62: u64 = u64::MAX >> 2;
 pub const M62_I: i64 = M62 as i64;
@@ -24,6 +26,13 @@ pub const M62_I: i64 = M62 as i64;
 #[derive(Copy, Clone, Debug)]
 pub struct Signed62<const N: usize> {
     pub v: [i64; N],
+}
+
+impl<const N: usize> Zeroize for Signed62<N> {
+    #[inline]
+    fn zeroize(&mut self) {
+        self.v.zeroize();
+    }
 }
 
 /// 2×2 transition matrix.  `[[u, v], [q, r]]`, scaled by 2^62 in the chunked
@@ -294,6 +303,9 @@ pub fn invert<const N: usize>(x: Signed62<N>, info: &ModInfo<N>) -> Signed62<N> 
     }
 
     normalize_62(&mut d, f.v[N - 1], info);
+    e.zeroize();
+    f.zeroize();
+    g.zeroize();
     d
 }
 
