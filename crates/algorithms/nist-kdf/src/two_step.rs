@@ -1,5 +1,6 @@
 //! NIST two-step KDF.
 use libcrux_hmac::HmacState;
+use libcrux_secrets::Zeroizing;
 
 use crate::{feedback, KdfError};
 
@@ -29,7 +30,9 @@ use crate::{feedback, KdfError};
 ///
 /// # Zeroization
 ///
-/// Zeroization, i.e. destruction of intermediate data, is currently not performed.
+/// The key derivation key (the output of the extraction step) and all
+/// intermediate PRF outputs are zeroized before returning. The output `k_out`
+/// is the caller's responsibility.
 ///
 /// # Errors
 ///
@@ -76,9 +79,9 @@ pub fn kdf<const OUTLEN: usize, H: HmacState<OUTLEN>>(
     if k_out.is_empty() {
         return Err(KdfError);
     }
-    let mut kdk = [0; OUTLEN];
+    let mut kdk = Zeroizing::new([0; OUTLEN]);
     libcrux_hmac::hmac_slices::<OUTLEN, H>(&mut kdk, salt, &[shared_secret])
         .map_err(|_| KdfError)?;
 
-    feedback::kdf::<OUTLEN, H>(k_out, &kdk, iv, fixed_info)
+    feedback::kdf::<OUTLEN, H>(k_out, kdk.as_slice(), iv, fixed_info)
 }
