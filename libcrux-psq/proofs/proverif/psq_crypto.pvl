@@ -166,10 +166,11 @@ letfun core__mem__take(place: bitstring) =
    the model ignores. *)
 letfun core__convert__Into__into__unextracted_impl(x: bitstring) = x.
 letfun core__ops__deref__Deref__deref__unextracted_impl(x: bitstring) = x.
-(* `rng.fill_bytes(&mut buf)` returns `(rng, buf')` with `buf'` fresh. *)
-letfun rand_core__Rng__fill_bytes(rng: bitstring, buf: bitstring) =
+(* `rng.try_fill_bytes(&mut buf)` returns `(rng, buf', Ok(()))` with `buf'`
+   fresh. *)
+letfun rand_core__TryRng__try_fill_bytes(rng: bitstring, buf: bitstring) =
       new filled: bitstring;
-      rust_primitives__hax__Tuple2__Tuple2(rng, filled).
+      rust_primitives__hax__Tuple3__Tuple3(rng, filled, rust_primitives__hax__Tuple0__Tuple0).
 (* `CiphersuiteBase::name`, the trait call `self.ciphersuite.name()` of
    `RegistrationInitiator::write_message_external_encoding`, which the
    extraction leaves unresolved. Both impls return the `name` field, the first
@@ -192,7 +193,7 @@ letfun libcrux_psq__handshake__ciphersuite__traits__CiphersuiteBase__name(cs: bi
 (* The term structure is the wire form, so the tls (de)serialization used
    around the AEAD and KEM boundaries is the identity: distinct terms give
    distinct encodings. *)
-letfun tls_codec__quic_vec__Impl_25__as_slice(x: bitstring) = x.
+letfun tls_codec__quic_vec__Impl_38__as_slice(x: bitstring) = x.
 letfun std__io__cursor__Impl__new_kw(x: bitstring) = x.
 letfun tls_codec__Serialize__tls_serialize_detached(x: bitstring) = x.
 letfun tls_codec__Deserialize__tls_deserialize(x: bitstring) =
