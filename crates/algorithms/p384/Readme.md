@@ -14,6 +14,14 @@ This crate supports `no_std` targets, and is free of heap allocations.
 ## Secret Independence
 The code in this crate aims to be secret-independent on the source code level.
 
+## Zeroization
+`PrivateKey` and `SharedSecret` are wiped when they are dropped. Key
+generation, ECDH and public key derivation wipe the intermediate points,
+field elements and inversion state they compute before returning.
+Bytes copied out of a key or shared secret through `AsRef` are the
+caller's to wipe. Copies made by the compiler are not covered (see
+`libcrux-secrets`).
+
 ## Verification
 Please refer to the documentation provided in the
 [fiat-crypto][fiat-crypto] and [AU-Curves][aucurves] repositories for

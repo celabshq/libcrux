@@ -14,12 +14,21 @@ use crate::{
     constants::{FP_NUM_BYTES, NIST_P384_CURVE_ORDER_BE_BYTES},
     util::{be_bytes_lt, be_bytes_nonzero},
 };
+use libcrux_secrets::Zeroize;
 
 /// A P-384 private key.
+///
+/// The private key is wiped when it is dropped.
 pub struct PrivateKey(
     /// This is a big-endian encoding of an integer x with 0 < x < NIST_P384_CURVE_ORDER.
     pub(crate) [u8; FP_NUM_BYTES],
 );
+
+impl Drop for PrivateKey {
+    fn drop(&mut self) {
+        self.0.zeroize();
+    }
+}
 
 impl AsRef<[u8; FP_NUM_BYTES]> for PrivateKey {
     fn as_ref(&self) -> &[u8; FP_NUM_BYTES] {
@@ -47,11 +56,14 @@ impl PrivateKey {
     /// returns an error if no candidate is accepted in a particular number of
     /// attempts, indicating a major failure of randomness generation.
     pub fn generate(rng: &mut impl TryCryptoRng) -> Result<Self, RandomnessError> {
-        let mut c = [0u8; FP_NUM_BYTES];
+        // Sample directly into the key, so that every exit path (including the
+        // errors) wipes the candidate when `key` is dropped.
+        let mut key = Self([0u8; FP_NUM_BYTES]);
+        let c = &mut key.0;
         let mut attempts = 0;
 
         while attempts < SCALAR_REJ_SAMPLING_BOUND {
-            rng.try_fill_bytes(&mut c).map_err(|_| RandomnessError)?;
+            rng.try_fill_bytes(c).map_err(|_| RandomnessError)?;
             // Accept if c <= n - 2. The comparison is constant time (see
             // `be_bytes_lt`) and reveals only its result. Whether a candidate
             // is accepted, and so the number of attempts, is public: each
@@ -60,9 +72,9 @@ impl PrivateKey {
             // uniform on [0, n - 2] whatever the number of attempts.
             // `be_bytes_add_one` is branch-free, so the value of the accepted
             // key does not leak.
-            if be_bytes_lt(&c, &NIST_P384_CURVE_ORDER_MINUS_ONE_BE_BYTES) {
-                be_bytes_add_one(&mut c);
-                return Ok(Self(c));
+            if be_bytes_lt(c, &NIST_P384_CURVE_ORDER_MINUS_ONE_BE_BYTES) {
+                be_bytes_add_one(c);
+                return Ok(key);
             }
             attempts += 1;
         }
@@ -76,13 +88,17 @@ impl TryFrom<&[u8]> for PrivateKey {
     /// A valid SEC1 encoding of a P-384 private key is a 48 byte
     /// big-endian integer that is less than the P-384 curve order.
     fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
-        let value: [u8; FP_NUM_BYTES] = value
-            .try_into()
-            .map_err(|_| Self::Error::InvalidPrivateKey)?;
-        if core::hint::black_box(be_bytes_nonzero(&value))
-            & core::hint::black_box(be_bytes_lt(&value, &NIST_P384_CURVE_ORDER_BE_BYTES))
+        if value.len() != FP_NUM_BYTES {
+            return Err(Self::Error::InvalidPrivateKey);
+        }
+        // Copy directly into the key, so that an invalid key is wiped when
+        // `key` is dropped.
+        let mut key = Self([0u8; FP_NUM_BYTES]);
+        key.0.copy_from_slice(value);
+        if core::hint::black_box(be_bytes_nonzero(&key.0))
+            & core::hint::black_box(be_bytes_lt(&key.0, &NIST_P384_CURVE_ORDER_BE_BYTES))
         {
-            Ok(Self(value))
+            Ok(key)
         } else {
             Err(Self::Error::InvalidPrivateKey)
         }
