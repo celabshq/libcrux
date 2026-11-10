@@ -9,6 +9,7 @@
 
 use libcrux_hacl_rs::prelude::*;
 use libcrux_macros as krml;
+use libcrux_secrets::Zeroize;
 
 pub const h224: [u32; 8] = [
     0xc1059ed8u32,
@@ -313,7 +314,9 @@ fn sha256_update(b: &[u8], hash: &mut [u32]) {
         let x: u32 = (hash[i as usize]).wrapping_add((&hash_old)[i as usize]);
         let os: (&mut [u32], &mut [u32]) = hash.split_at_mut(0usize);
         os.1[i as usize] = x
-    })
+    });
+    hash_old.zeroize();
+    ws.zeroize();
 }
 
 pub fn sha256_update_nblocks(len: u32, b: &[u8], st: &mut [u32]) {
@@ -353,6 +356,7 @@ pub fn sha256_update_last(totlen: u64, len: u32, b: &[u8], hash: &mut [u32]) {
     if blocks > 1u32 {
         crate::hacl::sha256_update(last10, hash)
     }
+    last.zeroize();
 }
 
 pub fn sha256_finish(st: &[u32], h: &mut [u8]) {
@@ -367,7 +371,8 @@ pub fn sha256_finish(st: &[u32], h: &mut [u8]) {
             st[i as usize]
         )
     );
-    (h[0usize..32usize]).copy_from_slice(&(&(&hbuf)[0usize..])[0usize..32usize])
+    (h[0usize..32usize]).copy_from_slice(&(&(&hbuf)[0usize..])[0usize..32usize]);
+    hbuf.zeroize();
 }
 
 #[inline]
@@ -401,7 +406,8 @@ fn sha224_finish(st: &[u32], h: &mut [u8]) {
             st[i as usize]
         )
     );
-    (h[0usize..28usize]).copy_from_slice(&(&(&hbuf)[0usize..])[0usize..28usize])
+    (h[0usize..28usize]).copy_from_slice(&(&(&hbuf)[0usize..])[0usize..28usize]);
+    hbuf.zeroize();
 }
 
 pub fn sha512_init(hash: &mut [u64]) {
@@ -512,7 +518,9 @@ fn sha512_update(b: &[u8], hash: &mut [u64]) {
         let x: u64 = (hash[i as usize]).wrapping_add((&hash_old)[i as usize]);
         let os: (&mut [u64], &mut [u64]) = hash.split_at_mut(0usize);
         os.1[i as usize] = x
-    })
+    });
+    hash_old.zeroize();
+    ws.zeroize();
 }
 
 pub fn sha512_update_nblocks(len: u32, b: &[u8], st: &mut [u64]) {
@@ -552,6 +560,7 @@ pub fn sha512_update_last(totlen: fstar::uint128::uint128, len: u32, b: &[u8], h
     if blocks > 1u32 {
         crate::hacl::sha512_update(last10, hash)
     }
+    last.zeroize();
 }
 
 pub fn sha512_finish(st: &[u64], h: &mut [u8]) {
@@ -566,7 +575,8 @@ pub fn sha512_finish(st: &[u64], h: &mut [u8]) {
             st[i as usize]
         )
     );
-    (h[0usize..64usize]).copy_from_slice(&(&(&hbuf)[0usize..])[0usize..64usize])
+    (h[0usize..64usize]).copy_from_slice(&(&(&hbuf)[0usize..])[0usize..64usize]);
+    hbuf.zeroize();
 }
 
 pub fn sha384_init(hash: &mut [u64]) {
@@ -597,7 +607,8 @@ pub fn sha384_finish(st: &[u64], h: &mut [u8]) {
             st[i as usize]
         )
     );
-    (h[0usize..48usize]).copy_from_slice(&(&(&hbuf)[0usize..])[0usize..48usize])
+    (h[0usize..48usize]).copy_from_slice(&(&(&hbuf)[0usize..])[0usize..48usize]);
+    hbuf.zeroize();
 }
 
 pub type state_t_224 = streaming_types::state_32;
@@ -821,7 +832,8 @@ pub fn digest_256(state: &streaming_types::state_32, output: &mut [u8]) {
         buf_last.1,
         &mut tmp_block_state,
     );
-    crate::hacl::sha256_finish(&tmp_block_state, output)
+    crate::hacl::sha256_finish(&tmp_block_state, output);
+    tmp_block_state.zeroize();
 }
 
 /**
@@ -839,7 +851,8 @@ pub fn hash_256(output: &mut [u8], input: &[u8], input_len: u32) {
     let b0: &[u8] = ib;
     let lb: (&[u8], &[u8]) = b0.split_at(input_len.wrapping_sub(rem1) as usize);
     crate::hacl::sha256_update_last(len·, rem, lb.1, &mut st);
-    crate::hacl::sha256_finish(&st, rb)
+    crate::hacl::sha256_finish(&st, rb);
+    st.zeroize();
 }
 
 pub fn malloc_224() -> streaming_types::state_32 {
@@ -901,7 +914,8 @@ pub fn digest_224(state: &streaming_types::state_32, output: &mut [u8]) {
         buf_last.1,
         &mut tmp_block_state,
     );
-    crate::hacl::sha224_finish(&tmp_block_state, output)
+    crate::hacl::sha224_finish(&tmp_block_state, output);
+    tmp_block_state.zeroize();
 }
 
 /**
@@ -919,7 +933,8 @@ pub fn hash_224(output: &mut [u8], input: &[u8], input_len: u32) {
     let b0: &[u8] = ib;
     let lb: (&[u8], &[u8]) = b0.split_at(input_len.wrapping_sub(rem1) as usize);
     crate::hacl::sha224_update_last(len·, rem, lb.1, &mut st);
-    crate::hacl::sha224_finish(&st, rb)
+    crate::hacl::sha224_finish(&st, rb);
+    st.zeroize();
 }
 
 pub fn malloc_512() -> streaming_types::state_64 {
@@ -1131,7 +1146,8 @@ pub fn digest_512(state: &streaming_types::state_64, output: &mut [u8]) {
         buf_last.1,
         &mut tmp_block_state,
     );
-    crate::hacl::sha512_finish(&tmp_block_state, output)
+    crate::hacl::sha512_finish(&tmp_block_state, output);
+    tmp_block_state.zeroize();
 }
 
 /**
@@ -1149,7 +1165,8 @@ pub fn hash_512(output: &mut [u8], input: &[u8], input_len: u32) {
     let b0: &[u8] = ib;
     let lb: (&[u8], &[u8]) = b0.split_at(input_len.wrapping_sub(rem1) as usize);
     crate::hacl::sha512_update_last(len·, rem, lb.1, &mut st);
-    crate::hacl::sha512_finish(&st, rb)
+    crate::hacl::sha512_finish(&st, rb);
+    st.zeroize();
 }
 
 pub fn malloc_384() -> streaming_types::state_64 {
@@ -1214,7 +1231,8 @@ pub fn digest_384(state: &streaming_types::state_64, output: &mut [u8]) {
         buf_last.1,
         &mut tmp_block_state,
     );
-    crate::hacl::sha384_finish(&tmp_block_state, output)
+    crate::hacl::sha384_finish(&tmp_block_state, output);
+    tmp_block_state.zeroize();
 }
 
 /**
@@ -1232,5 +1250,6 @@ pub fn hash_384(output: &mut [u8], input: &[u8], input_len: u32) {
     let b0: &[u8] = ib;
     let lb: (&[u8], &[u8]) = b0.split_at(input_len.wrapping_sub(rem1) as usize);
     crate::hacl::sha384_update_last(len·, rem, lb.1, &mut st);
-    crate::hacl::sha384_finish(&st, rb)
+    crate::hacl::sha384_finish(&st, rb);
+    st.zeroize();
 }

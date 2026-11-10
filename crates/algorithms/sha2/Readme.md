@@ -4,6 +4,13 @@
 
 This crate supports `no_std` targets and is free of heap allocations.
 
+## Zeroization
+
+The hash state, message schedule and padding buffers are wiped at the end of
+every one-shot hash, and streaming states are wiped on drop. The zeroization
+calls in the HACL\*-derived code were added by hand and are not covered by the
+HACL\* proofs.
+
 ## Verification
 ![verified-hacl]
 
