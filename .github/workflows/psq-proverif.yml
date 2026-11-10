@@ -1,25 +1,24 @@
 name: PSQ - ProVerif
 
-# Nightly ProVerif analysis of the libcrux-psq PSQ handshake.
+# ProVerif analysis of the libcrux-psq PSQ handshake.
 #
-# This is EXTRACTION-ONLY: unlike the other flagship ProVerif models, PSQ
-# gitignores its extraction snapshot (proofs/proverif/extraction/lib.pvl — see
-# proofs/proverif/.gitignore), so there is NO committed .pvl to diff against and
-# therefore no cheap per-push "verify the committed snapshot" job is possible.
-# The only thing we can do is RE-EXTRACT the handshake via the hax ProVerif
-# backend and then run the full analysis. That is heavy, so it runs on a
-# nightly schedule (and on manual dispatch) rather than per push/PR.
-#
-# check-pv.sh re-extracts via `cargo hax ... into proverif`, composes lib.pvl
-# with the symbolic crypto model (psq_crypto.pvl), and runs the full ProVerif
-# suite: query mode (14/14), registration msg1 (DH/sig), post-quantum
-# forward-secrecy + authenticity, the DH session (~58 min, backgrounded) and the
-# sig session (~40 min, backgrounded). It prints `CHECK PASSED` (exit 0) on
-# success or `CHECK FAILED` (exit 1).
+# check-pv.sh re-extracts the handshake via `cargo hax ... into proverif`,
+# composes it with the symbolic crypto model (psq_crypto.pvl) and checks the
+# verdicts of the analyses. CI runs it with `--light`, which skips the DH
+# session analysis and the sig session R3/R3i queries: they need 28 to 51 GB,
+# more than a GitHub runner has. The other analyses take about 25 minutes and
+# less than 11 GB. Run the skipped ones locally with `check-pv.sh` (about 1h10,
+# 55 GB).
 
 on:
-  schedule:
-    - cron: "0 5 * * *"
+  push:
+    paths:
+      - "libcrux-psq/**"
+      - ".github/workflows/psq-proverif.yml"
+  pull_request:
+    paths:
+      - "libcrux-psq/**"
+      - ".github/workflows/psq-proverif.yml"
   workflow_dispatch:
 
 env:
@@ -33,7 +32,7 @@ concurrency:
 jobs:
   proverif-psq:
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 90
     defaults:
       run:
         shell: bash
@@ -64,9 +63,9 @@ jobs:
           eval "$(opam env)"
           opam install -y proverif
 
-      - name: Re-extract + run the full ProVerif analysis
+      - name: Re-extract + run the light ProVerif analysis
         env:
           HAX_HOME: ${{ github.workspace }}/hax-engine
         run: |
           eval "$(opam env)"
-          bash libcrux-psq/proofs/proverif/check-pv.sh
+          bash libcrux-psq/proofs/proverif/check-pv.sh --light

@@ -2,12 +2,16 @@
 # Re-extract the libcrux-psq PSQ handshake to ProVerif with the hax ProVerif
 # backend, compose it with the symbolic crypto model (psq_crypto.pvl), and
 # run the analyses. With `--load-only`, only check that every analysis loads,
-# which takes seconds instead of hours.
+# which takes seconds instead of hours. With `--light`, skip the DH session
+# analysis and the sig session R3/R3i queries, which need 28 to 51 GB: the
+# others need less than 11 GB.
 #
 #   HAX_HOME : a hax checkout, for the ProVerif libraries in
 #              hax-lib/proof-libs/proverif (HAX_PROVERIF_DIR is also accepted).
 #              cargo-hax and proverif are taken from PATH.
 set -uo pipefail
+LIGHT=0
+[ "${1:-}" = --light ] && LIGHT=1
 # script lives at libcrux-psq/proofs/proverif/check-pv.sh; run from workspace root
 cd "$(dirname "$0")/../../.."
 HAX="${HAX_HOME:-${HAX_PROVERIF_DIR:?set HAX_HOME to a hax checkout}}"
@@ -76,9 +80,10 @@ LIBS_REG=(-lib "$PRIM" -lib "$RESULT" -lib "$PVD/psq_crypto.pvl" -lib "$EX/missi
           -lib "$EX/lib.clean.pvl" -lib "$EX/psq_reg_lib.pvl")
 
 # Run each query of the analysis $1 in its own ProVerif process, one at a
-# time, and append their logs to $2 in query order. ProVerif keeps the memory of
-# earlier queries in a run: each session query fits in about 40 GB alone, the
-# whole file does not fit in 60 GB.
+# time, and append their logs to $2 in query order, skipping the queries whose
+# 0-based indices are listed in $3. ProVerif keeps the memory of earlier
+# queries in a run: each session query fits in about 51 GB alone, the whole
+# file does not fit in 60 GB.
 per_query () {
   local dir q
   dir=$(mktemp -d)
@@ -105,7 +110,11 @@ for n,keep in enumerate(qs):
     open(f'{out}/q{n:02d}.pv','w').write(s)
 SPLIT
   : > "$2"
-  for q in "$dir"/q*.pv; do proverif "${LIBS_REG[@]}" "$q" >> "$2" 2>&1; done
+  for q in "$dir"/q*.pv; do
+    n=$((10#$(basename "$q" .pv | tr -d q)))
+    [[ " ${3:-} " == *" $n "* ]] && continue
+    proverif "${LIBS_REG[@]}" "$q" >> "$2" 2>&1
+  done
   rm -r "$dir"
 }
 
@@ -229,10 +238,11 @@ if [ -f "$EX/analysis_reg_dh_msg1.pv" ]; then
     [ "$GOT_PQ" = "$EXP_PQ" ] || REG_OK=0
   fi
   # The session analyses drive the full handshake + into_session and are the
-  # heaviest runs, at about 28 GB (DH) and 40 GB (sig) per query: they run last,
-  # one query at a time. Each ends with a non-vacuity control NV.
+  # heaviest runs: they run last, one query at a time. Each ends with a
+  # non-vacuity control NV. The DH queries need 28 to 51 GB, the sig R3 and R3i
+  # queries 43 and 49 GB, the other sig queries less than 11 GB.
   # DH session secrecy (R5 InitSessDH, R5 RespSessDH, R7, R8, NV).
-  if [ -f "$EX/analysis_reg_dh_session.pv" ]; then
+  if [ "$LIGHT" = 0 ] && [ -f "$EX/analysis_reg_dh_session.pv" ]; then
     echo "  (running DH session secrecy R5/R7/R8 ...)"
     LOG_DHSESS=$(mktemp)
     per_query "$EX/analysis_reg_dh_session.pv" "$LOG_DHSESS"
@@ -247,21 +257,28 @@ if [ -f "$EX/analysis_reg_dh_msg1.pv" ]; then
   fi
   # Sig session (R3 + R3i responder auth, R5x2, R7, R8, NV).
   if [ -f "$EX/analysis_reg_sig_session.pv" ]; then
-    echo "  (running sig session R3/R3i/R5/R7/R8 ...)"
+    EXP_SIGSESS="true true true true true true cannot "   # R3, R3i, R5(Init), R5(Resp), R7, R8, NV
+    SKIP_SIG=""
+    if [ "$LIGHT" = 1 ]; then
+      EXP_SIGSESS="true true true true cannot "           # R5(Init), R5(Resp), R7, R8, NV
+      SKIP_SIG="0 1"
+    fi
+    echo "  (running sig session queries ...)"
     LOG_SIGSESS=$(mktemp)
-    per_query "$EX/analysis_reg_sig_session.pv" "$LOG_SIGSESS"
+    per_query "$EX/analysis_reg_sig_session.pv" "$LOG_SIGSESS" "$SKIP_SIG"
     if [ "$(grep -c '^Error:' "$LOG_SIGSESS")" -ne 0 ]; then
       echo "  SIG SESSION LOAD FAILED:"; grep '^Error:' "$LOG_SIGSESS" | head; REG_OK=0
     fi
-    EXP_SIGSESS="true true true true true true cannot "   # R3, R3i, R5(Init), R5(Resp), R7, R8, NV
     GOT_SIGSESS=$(verdicts "$LOG_SIGSESS")
-    echo "  sig session R3/R3i/R5/R7/R8/NV got: $GOT_SIGSESS"
-    echo "                                 exp: $EXP_SIGSESS"
+    echo "  sig session got: $GOT_SIGSESS"
+    echo "              exp: $EXP_SIGSESS"
     [ "$GOT_SIGSESS" = "$EXP_SIGSESS" ] || REG_OK=0
   fi
 fi
 
-if [ "$QUERY_OK" = 1 ] && [ "$REG_OK" = 1 ]; then
+if [ "$QUERY_OK" = 1 ] && [ "$REG_OK" = 1 ] && [ "$LIGHT" = 1 ]; then
+  echo "CHECK PASSED (light: query 14/14 + reg msg1 + PQ fwd-sec/auth + session passive sanity + sig session R5/R7/R8/NV; DH session and sig R3/R3i skipped)"
+elif [ "$QUERY_OK" = 1 ] && [ "$REG_OK" = 1 ]; then
   echo "CHECK PASSED (query 14/14 + reg msg1 R1/R2a/R2b/R2c/R4/R6/R9 + PQ fwd-sec/auth + DH session R1/R5/R7/R8/NV + sig session R1/R3/R3i/R5/R7/R8/NV: DH R2a false / sig R2a true; sig responder-auth + post-quantum fwd-secret/authentic)"
 else
   echo "CHECK FAILED"; exit 1
