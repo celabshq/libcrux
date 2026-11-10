@@ -12,6 +12,12 @@ The implemented subset is:
 [108]: https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-108r1-upd1.pdf
 [56]: https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-56Cr2.pdf
 
+# Zeroization
+
+The key derivation key of the two-step KDF, every intermediate `K(i)` and the
+keyed HMAC states are wiped before returning. The derived key written to
+`k_out` is the caller's to wipe.
+
 # `no_std`
 
 This crate can be used in `no_std` context.
