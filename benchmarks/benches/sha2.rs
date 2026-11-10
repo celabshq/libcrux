@@ -20,9 +20,7 @@ macro_rules! impl_comp {
                     |b, payload_size| {
                         b.iter_batched(
                             || randombytes(*payload_size),
-                            |payload| {
-                                let _d = $libcrux(&payload);
-                            },
+                            |payload| $libcrux(&payload),
                             BatchSize::SmallInput,
                         )
                     },
@@ -35,9 +33,7 @@ macro_rules! impl_comp {
                         |b, payload_size| {
                             b.iter_batched(
                                 || randombytes(*payload_size),
-                                |payload| {
-                                    let _d = ring::digest::digest(ring, &payload);
-                                },
+                                |payload| ring::digest::digest(ring, &payload),
                                 BatchSize::SmallInput,
                             )
                         },
@@ -55,7 +51,7 @@ macro_rules! impl_comp {
                             |payload| {
                                 let mut hasher = <$rust_crypto>::new();
                                 hasher.update(&payload);
-                                let _result = hasher.finalize();
+                                hasher.finalize()
                             },
                             BatchSize::SmallInput,
                         )
@@ -71,9 +67,7 @@ macro_rules! impl_comp {
 
                         b.iter_batched(
                             || randombytes(*payload_size),
-                            |payload| {
-                                let _result = hash($openssl, &payload);
-                            },
+                            |payload| hash($openssl, &payload),
                             BatchSize::SmallInput,
                         )
                     },
