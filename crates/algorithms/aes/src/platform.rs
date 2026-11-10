@@ -9,7 +9,7 @@ pub(crate) mod neon;
 pub(crate) mod x64;
 
 /// The AES state.
-pub(crate) trait AESState: Clone + core::fmt::Debug {
+pub(crate) trait AESState: Clone + core::fmt::Debug + libcrux_secrets::Zeroize {
     fn new() -> Self;
     fn load_block(&mut self, b: &[u8]);
     fn store_block(&self, out: &mut [u8]);
@@ -24,7 +24,7 @@ pub(crate) trait AESState: Clone + core::fmt::Debug {
 }
 
 /// A gf128 field element.
-pub(crate) trait GF128FieldElement {
+pub(crate) trait GF128FieldElement: libcrux_secrets::Zeroize {
     fn zero() -> Self;
     fn load_element(bytes: &[u8]) -> Self;
     fn store_element(&self, bytes: &mut [u8]);

@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `acvp` feature exposing single-block AES-128 and AES-256 encryption (`libcrux_aes::acvp`) for ACVP
   testing of the block cipher.
+- Zeroize the expanded key, GHASH state, tag mask and intermediate key
+  expansion values.
 
 ## [0.0.10] (2026-10-07)
 

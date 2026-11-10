@@ -4,6 +4,13 @@ use libcrux_intrinsics::arm64::*;
 #[derive(Clone, Copy)]
 pub(crate) struct FieldElement(pub(crate) u128);
 
+impl libcrux_secrets::Zeroize for FieldElement {
+    #[inline]
+    fn zeroize(&mut self) {
+        self.0.zeroize();
+    }
+}
+
 #[inline]
 fn zero() -> FieldElement {
     FieldElement(0)

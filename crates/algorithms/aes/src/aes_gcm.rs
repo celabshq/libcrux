@@ -1,5 +1,7 @@
 //! Implementation of AES-GCM
 
+use libcrux_secrets::Zeroize;
+
 use crate::{
     aes::AES_BLOCK_LEN,
     ct_ops::ct_compare,
@@ -18,6 +20,12 @@ pub(crate) struct State<T: AESState, U: GF128FieldElement, const NUM_KEYS: usize
     pub(crate) tag_mix: [u8; TAG_LEN],
 }
 
+impl<T: AESState, U: GF128FieldElement, const NUM_KEYS: usize> Drop for State<T, U, NUM_KEYS> {
+    fn drop(&mut self) {
+        self.tag_mix.zeroize();
+    }
+}
+
 impl<T: AESState, U: GF128FieldElement, const NUM_KEYS: usize> super::State
     for State<T, U, NUM_KEYS>
 where
@@ -30,6 +38,7 @@ where
         let aes_state = AesCtrContext::gcm_init(key);
         aes_state.aes_ctr_key_block(0, &mut gcm_key);
         let gcm_state = GF128State::init(&gcm_key);
+        gcm_key.zeroize();
 
         Self {
             aes_state,
@@ -95,6 +104,7 @@ where
         }
 
         let correct_tag = ct_compare(&computed_tag, tag);
+        computed_tag.zeroize();
 
         if correct_tag {
             self.aes_state.aes_ctr_update(2, ciphertext, plaintext);
@@ -127,3 +137,33 @@ macro_rules! type_aliases {
 }
 
 pub(crate) use type_aliases;
+
+#[cfg(test)]
+#[allow(unsafe_code)]
+mod zeroize_tests {
+    use super::*;
+    use crate::{platform::portable, State as _};
+    use core::mem::{size_of, ManuallyDrop};
+
+    type PortableState = State<portable::State, portable::FieldElement, 11>;
+
+    #[test]
+    fn state_is_wiped_on_drop() {
+        if !libcrux_secrets::ZEROIZATION_ENABLED {
+            return;
+        }
+        let mut st = ManuallyDrop::new(PortableState::init(&[0x42u8; 16]));
+        st.set_nonce(&[7u8; NONCE_LEN]);
+        let ptr: *mut PortableState = &mut *st;
+
+        // SAFETY: `ManuallyDrop` never drops `st` itself, so its memory stays
+        // valid after `drop_in_place`. All fields are integers without padding.
+        unsafe {
+            let bytes = ptr.cast::<u8>();
+            let all_zero = || (0..size_of::<PortableState>()).all(|i| bytes.add(i).read_volatile() == 0);
+            assert!(!all_zero());
+            core::ptr::drop_in_place(ptr);
+            assert!(all_zero());
+        }
+    }
+}
