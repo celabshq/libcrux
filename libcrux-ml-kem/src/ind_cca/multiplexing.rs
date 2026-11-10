@@ -80,10 +80,10 @@ pub(crate) fn kyber_generate_keypair<
     const ETA1: usize,
     const ETA1_RANDOMNESS_SIZE: usize,
 >(
-    randomness: [u8; KEY_GENERATION_SEED_SIZE],
+    mut randomness: [u8; KEY_GENERATION_SEED_SIZE],
 ) -> MlKemKeyPair<PRIVATE_KEY_SIZE, PUBLIC_KEY_SIZE> {
     // Runtime feature detection.
-    if libcrux_platform::simd256_support() {
+    let result = if libcrux_platform::simd256_support() {
         kyber_generate_keypair_avx2::<
             K,
             CPA_PRIVATE_KEY_SIZE,
@@ -110,7 +110,9 @@ pub(crate) fn kyber_generate_keypair<
             ETA1,
             ETA1_RANDOMNESS_SIZE,
         >(&randomness)
-    }
+    };
+    randomness.zeroize();
+    result
 }
 
 #[cfg_attr(hax, hax_lib::requires(fstar!(r#"Spec.MLKEM.is_rank $K /\
@@ -177,9 +179,9 @@ pub(crate) fn kyber_encapsulate<
     const ETA2_RANDOMNESS_SIZE: usize,
 >(
     public_key: &MlKemPublicKey<PUBLIC_KEY_SIZE>,
-    randomness: [u8; SHARED_SECRET_SIZE],
+    mut randomness: [u8; SHARED_SECRET_SIZE],
 ) -> (MlKemCiphertext<CIPHERTEXT_SIZE>, MlKemSharedSecret) {
-    if libcrux_platform::simd256_support() {
+    let result = if libcrux_platform::simd256_support() {
         kyber_encapsulate_avx2::<
             K,
             CIPHERTEXT_SIZE,
@@ -227,7 +229,9 @@ pub(crate) fn kyber_encapsulate<
             ETA2,
             ETA2_RANDOMNESS_SIZE,
         >(public_key, &randomness)
-    }
+    };
+    randomness.zeroize();
+    result
 }
 
 #[cfg_attr(hax, hax_lib::requires(fstar!(r#"Spec.MLKEM.is_rank $K /\

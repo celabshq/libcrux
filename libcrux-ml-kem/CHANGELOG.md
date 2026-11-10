@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Zeroize private keys on drop and intermediate values in key generation,
+  encapsulation and decapsulation.
+
+### Changed
+
+- `MlKemPrivateKey`, the unpacked private key and key pair types, and the
+  incremental `KeyPairBytes`, `KeyPairCompressedBytes` and `EncapsState` now
+  implement `Drop`, so their fields can no longer be moved out.
+
 ## [0.0.11] (2026-10-07)
 
 ### Changed

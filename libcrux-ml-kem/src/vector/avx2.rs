@@ -15,6 +15,13 @@ pub struct SIMD256Vector {
     elements: Vec256,
 }
 
+impl libcrux_secrets::Zeroize for SIMD256Vector {
+    #[inline(always)]
+    fn zeroize(&mut self) {
+        self.elements.zeroize();
+    }
+}
+
 #[inline(always)]
 #[cfg_attr(hax, hax_lib::fstar::verification_status(panic_free))]
 #[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"repr ${result} == Seq.create 16 (mk_i16 0)"#)))]

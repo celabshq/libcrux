@@ -7,6 +7,13 @@ The C code is generated from Rust using [Charon], [Eurydice] and
 Calculus (LLBC). From LLBC, Eurydice translates to KaRaMeL's internal
 AST, which is then lowered to C.
 
+## Zeroization
+
+The C code does not zeroize secrets yet. The Rust code wipes private keys on
+drop and wipes intermediate values; in the extracted C code these wipes are
+no-ops, and C has no destructors. C callers have to wipe private keys, seeds
+and shared secrets themselves.
+
 ## Prerequisites
 We assume you have [`rustup`](https://rustup.rs/) and [`opam`](https://ocaml.org/docs/installing-ocaml#1-install-opam) installed.
 

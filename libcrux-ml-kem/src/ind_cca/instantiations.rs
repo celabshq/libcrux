@@ -5,6 +5,7 @@ macro_rules! instantiate {
                 MlKemCiphertext, MlKemKeyPair, MlKemPrivateKey, MlKemPublicKey, MlKemSharedSecret,
                 KEY_GENERATION_SEED_SIZE, SHARED_SECRET_SIZE,
             };
+            use libcrux_secrets::Zeroize;
 
             /// Portable generate key pair.
             #[cfg_attr(hax, hax_lib::requires(fstar!(r#"Spec.MLKEM.is_rank $K /\
@@ -384,7 +385,7 @@ macro_rules! instantiate {
                     const ETA1: usize,
                     const ETA1_RANDOMNESS_SIZE: usize,
                 >(
-                    randomness: [u8; KEY_GENERATION_SEED_SIZE],
+                    mut randomness: [u8; KEY_GENERATION_SEED_SIZE],
                     out: &mut MlKemKeyPairUnpacked<K>,
                 ) {
                     crate::ind_cca::unpacked::generate_keypair::<
@@ -397,7 +398,8 @@ macro_rules! instantiate {
                         $vector,
                         $hash,
                         crate::variant::MlKem,
-                    >(randomness, out)
+                    >(randomness, out);
+                    randomness.zeroize();
                 }
 
                 /// Unpacked encapsulate

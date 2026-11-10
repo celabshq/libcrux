@@ -1,5 +1,7 @@
 use core::array::from_fn;
 
+use libcrux_secrets::Zeroize;
+
 use ind_cpa::unpacked::IndCpaPublicKeyUnpacked;
 
 use super::*;
@@ -183,6 +185,16 @@ pub struct EncapsState<const K: usize, Vector: Operations> {
     pub(super) randomness: [u8; 32],
 }
 
+#[cfg(not(eurydice))]
+#[cfg_attr(hax, hax_lib::exclude)]
+impl<const K: usize, Vector: Operations> Drop for EncapsState<K, Vector> {
+    fn drop(&mut self) {
+        self.r_as_ntt.zeroize();
+        self.error2.zeroize();
+        self.randomness.zeroize();
+    }
+}
+
 impl<const K: usize, Vector: Operations> EncapsState<K, Vector> {
     /// Get the number of bytes, required for the state.
     pub const fn num_bytes() -> usize {
@@ -215,22 +227,23 @@ impl<const K: usize, Vector: Operations> EncapsState<K, Vector> {
             return Err(Error::InvalidInputLength);
         }
 
+        // Deserialize in place, so that no copies of the secrets are left behind.
+        let mut state = Self {
+            r_as_ntt: from_fn(|_| PolynomialRingElement::<Vector>::ZERO()),
+            error2: PolynomialRingElement::<Vector>::ZERO(),
+            randomness: [0u8; 32],
+        };
+
         let mut offset = 0;
-        let mut r_as_ntt = from_fn(|_| PolynomialRingElement::<Vector>::ZERO());
-        vec_from_bytes(&bytes[offset..], &mut r_as_ntt);
+        vec_from_bytes(&bytes[offset..], &mut state.r_as_ntt);
         offset += vec_len_bytes::<K, Vector>();
 
-        let error2 = PolynomialRingElement::<Vector>::from_bytes(&bytes[offset..]);
+        state.error2 = PolynomialRingElement::<Vector>::from_bytes(&bytes[offset..]);
         offset += PolynomialRingElement::<Vector>::num_bytes();
 
-        let mut randomness = [0u8; 32];
-        randomness.copy_from_slice(&bytes[offset..offset + 32]);
+        state.randomness.copy_from_slice(&bytes[offset..offset + 32]);
 
-        Ok(Self {
-            r_as_ntt,
-            error2,
-            randomness,
-        })
+        Ok(state)
     }
 
     /// Build a state from bytes

@@ -163,6 +163,22 @@ compiler, we follow established constant-time patterns and validate
 constant-time code via inspection of the generated assembly
 instructions.
 
+## Zeroization
+Private keys (`MlKemPrivateKey`, the unpacked private keys, the
+incremental key pair and encapsulation state types) are wiped when they
+are dropped. Key generation, encapsulation and decapsulation wipe the
+intermediate values they compute (seeds, sampled secret and error
+vectors, the message, hash inputs and outputs, the implicit rejection
+value and the re-encrypted ciphertext) before returning. Randomness
+sampled by the `rand` and PQCP APIs is wiped as well.
+
+Seeds passed in by value are wiped by the function that receives them, but
+the caller's own copy is the caller's to wipe. Shared secrets are returned as
+plain arrays (`MlKemSharedSecret`), which the caller must wipe as well. Copies
+made by the compiler are not covered (see `libcrux-secrets`).
+
+The C code extracted from this crate does not zeroize yet.
+
 ## Verification
 ![verified]
 

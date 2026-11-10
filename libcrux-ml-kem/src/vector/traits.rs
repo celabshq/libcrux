@@ -39,7 +39,7 @@ mod spec {
 }
 
 #[cfg_attr(hax, hax_lib::attributes)]
-pub trait Operations: Copy + Clone + Repr {
+pub trait Operations: Copy + Clone + Repr + libcrux_secrets::Zeroize {
     #[allow(non_snake_case)]
     #[cfg_attr(hax, hax_lib::requires(true))]
     #[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"f_repr $result == Seq.create 16 (mk_i16 0)"#)))]

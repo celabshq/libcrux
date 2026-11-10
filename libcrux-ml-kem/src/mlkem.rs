@@ -83,8 +83,8 @@ macro_rules! impl_incr_key_size {
             use ::alloc::boxed::Box;
 
             /// Generate a new key pair for incremental encapsulation.
-            pub fn generate_key_pair(randomness: [u8; KEY_GENERATION_SEED_SIZE]) -> Box<dyn Keys> {
-                multiplexing::alloc::generate_keypair::<
+            pub fn generate_key_pair(mut randomness: [u8; KEY_GENERATION_SEED_SIZE]) -> Box<dyn Keys> {
+                let result = multiplexing::alloc::generate_keypair::<
                     RANK,
                     CPA_PKE_SECRET_KEY_SIZE,
                     SECRET_KEY_SIZE,
@@ -92,15 +92,17 @@ macro_rules! impl_incr_key_size {
                     RANKED_BYTES_PER_RING_ELEMENT,
                     ETA1,
                     ETA1_RANDOMNESS_SIZE,
-                >(randomness)
+                >(randomness);
+                randomness.zeroize();
+                result
             }
 
             /// Encapsulate the first part of the ciphertext.
             pub fn encapsulate1(
                 public_key_part: &PublicKey1,
-                randomness: [u8; SHARED_SECRET_SIZE],
+                mut randomness: [u8; SHARED_SECRET_SIZE],
             ) -> (Ciphertext1, Box<dyn State>, [u8; SHARED_SECRET_SIZE]) {
-                multiplexing::alloc::encapsulate1::<
+                let result = multiplexing::alloc::encapsulate1::<
                     RANK,
                     CPA_PKE_CIPHERTEXT_SIZE,
                     C1_SIZE,
@@ -110,7 +112,9 @@ macro_rules! impl_incr_key_size {
                     ETA1_RANDOMNESS_SIZE,
                     ETA2,
                     ETA2_RANDOMNESS_SIZE,
-                >(public_key_part, randomness)
+                >(public_key_part, randomness);
+                randomness.zeroize();
+                result
             }
 
             /// Encapsulate the second part of the ciphertext.
@@ -157,17 +161,27 @@ macro_rules! impl_incr_key_size {
             value: [u8; key_pair_len()]
         }
 
+        #[cfg(not(eurydice))]
+        #[cfg_attr(hax, hax_lib::exclude)]
+        impl Drop for KeyPairBytes {
+            fn drop(&mut self) {
+                use libcrux_secrets::Zeroize;
+                self.value.zeroize();
+            }
+        }
+
         #[cfg(all(not(eurydice), feature = "rand"))]
         use ::rand::TryCryptoRng;
 
         impl KeyPairBytes {
             /// Generate a new key pair.
             /// This uses unpacked keys and does not compress the keys.
-            pub fn from_seed(randomness: [u8; KEY_GENERATION_SEED_SIZE]) -> Self {
+            pub fn from_seed(mut randomness: [u8; KEY_GENERATION_SEED_SIZE]) -> Self {
                 let mut out = Self {
                     value: [0u8; key_pair_len()]
                 };
                 generate_key_pair(randomness, &mut out.value).unwrap();
+                randomness.zeroize();
                 out
             }
 
@@ -175,13 +189,13 @@ macro_rules! impl_incr_key_size {
             /// This uses unpacked keys and does not compress the keys.
             #[cfg(all(not(eurydice), feature = "rand"))]
             pub fn generate(rng: &mut impl TryCryptoRng) -> Result<Self, Error> {
-                let mut randomness = [0u8; KEY_GENERATION_SEED_SIZE];
-                rng.try_fill_bytes(&mut randomness)
+                let mut randomness = libcrux_secrets::Zeroizing::new([0u8; KEY_GENERATION_SEED_SIZE]);
+                rng.try_fill_bytes(&mut *randomness)
                     .map_err(|_| Error::InsufficientRandomness)?;
                 let mut out = Self {
                     value: [0u8; key_pair_len()]
                 };
-                generate_key_pair(randomness, &mut out.value).unwrap();
+                generate_key_pair(*randomness, &mut out.value).unwrap();
                 Ok(out)
             }
 
@@ -216,8 +230,8 @@ macro_rules! impl_incr_key_size {
         ///
         /// `key_pair.len()` must be of size `key_pair_len()`.
         /// The function returns an error if this is not the case.
-        pub fn generate_key_pair(randomness: [u8; KEY_GENERATION_SEED_SIZE], key_pair: &mut [u8]) -> Result<(), Error> {
-            multiplexing::generate_keypair::<
+        pub fn generate_key_pair(mut randomness: [u8; KEY_GENERATION_SEED_SIZE], key_pair: &mut [u8]) -> Result<(), Error> {
+            let result = multiplexing::generate_keypair::<
                 RANK,
                 RANKED_BYTES_PER_RING_ELEMENT,
                 CPA_PKE_SECRET_KEY_SIZE,
@@ -226,7 +240,9 @@ macro_rules! impl_incr_key_size {
                 RANKED_BYTES_PER_RING_ELEMENT,
                 ETA1,
                 ETA1_RANDOMNESS_SIZE,
-            >(randomness, key_pair)
+            >(randomness, key_pair);
+            randomness.zeroize();
+            result
         }
         /// An encoded, compressed, incremental key pair.
         ///
@@ -235,14 +251,24 @@ macro_rules! impl_incr_key_size {
             value: [u8; key_pair_compressed_len()]
         }
 
+        #[cfg(not(eurydice))]
+        #[cfg_attr(hax, hax_lib::exclude)]
+        impl Drop for KeyPairCompressedBytes {
+            fn drop(&mut self) {
+                use libcrux_secrets::Zeroize;
+                self.value.zeroize();
+            }
+        }
+
         impl KeyPairCompressedBytes {
             /// Generate a new key pair.
             /// This uses unpacked keys and does not compress the keys.
-            pub fn from_seed(randomness: [u8; KEY_GENERATION_SEED_SIZE]) -> Self {
+            pub fn from_seed(mut randomness: [u8; KEY_GENERATION_SEED_SIZE]) -> Self {
                 let mut out = Self {
                     value: [0u8; key_pair_compressed_len()]
                 };
                 generate_key_pair_compressed(randomness, &mut out.value);
+                randomness.zeroize();
                 out
             }
 
@@ -250,13 +276,13 @@ macro_rules! impl_incr_key_size {
             /// This uses unpacked keys and does not compress the keys.
             #[cfg(all(not(eurydice), feature = "rand"))]
             pub fn generate(rng: &mut impl TryCryptoRng) -> Result<Self, Error> {
-                let mut randomness = [0u8; KEY_GENERATION_SEED_SIZE];
-                rng.try_fill_bytes(&mut randomness)
+                let mut randomness = libcrux_secrets::Zeroizing::new([0u8; KEY_GENERATION_SEED_SIZE]);
+                rng.try_fill_bytes(&mut *randomness)
                     .map_err(|_| Error::InsufficientRandomness)?;
                 let mut out = Self {
                     value: [0u8; key_pair_compressed_len()]
                 };
-                generate_key_pair_compressed(randomness, &mut out.value);
+                generate_key_pair_compressed(*randomness, &mut out.value);
                 Ok(out)
             }
 
@@ -295,7 +321,7 @@ macro_rules! impl_incr_key_size {
 
         /// Generate a key pair and write it into `key_pair`.
         /// This compresses the keys.
-        pub fn generate_key_pair_compressed(randomness: [u8; KEY_GENERATION_SEED_SIZE], key_pair: &mut [u8; COMPRESSED_KEYPAIR_LEN]) {
+        pub fn generate_key_pair_compressed(mut randomness: [u8; KEY_GENERATION_SEED_SIZE], key_pair: &mut [u8; COMPRESSED_KEYPAIR_LEN]) {
             multiplexing::generate_keypair_compressed::<
                 RANK,
                 RANKED_BYTES_PER_RING_ELEMENT,
@@ -306,7 +332,8 @@ macro_rules! impl_incr_key_size {
                 ETA1,
                 ETA1_RANDOMNESS_SIZE,
                 COMPRESSED_KEYPAIR_LEN,
-            >(randomness, key_pair)
+            >(randomness, key_pair);
+            randomness.zeroize();
         }
 
         /// Get the PK1 bytes from the serialized key pair bytes
@@ -345,13 +372,13 @@ macro_rules! impl_incr_key_size {
         /// the appropriate sizes.
         pub fn encapsulate1(
             pk1: &[u8],
-            randomness: [u8; SHARED_SECRET_SIZE],
+            mut randomness: [u8; SHARED_SECRET_SIZE],
             state: &mut [u8],
             shared_secret: &mut [u8],
         ) -> Result<Ciphertext1, Error> {
-            let public_key_part = PublicKey1::try_from(&pk1 as &[u8])?;
-
-            multiplexing::encapsulate1::<
+            let result = match PublicKey1::try_from(&pk1 as &[u8]) {
+                Err(e) => Err(e),
+                Ok(public_key_part) => multiplexing::encapsulate1::<
                 RANK,
                 CPA_PKE_CIPHERTEXT_SIZE,
                 C1_SIZE,
@@ -361,7 +388,10 @@ macro_rules! impl_incr_key_size {
                 ETA1_RANDOMNESS_SIZE,
                 ETA2,
                 ETA2_RANDOMNESS_SIZE,
-            >(&public_key_part, randomness, state, shared_secret)
+            >(&public_key_part, randomness, state, shared_secret),
+            };
+            randomness.zeroize();
+            result
         }
 
         /// Encapsulate the first part of the ciphertext.
@@ -383,8 +413,8 @@ macro_rules! impl_incr_key_size {
                 shared_secret: &mut [u8],
             ) -> Result<Ciphertext1, Error> {
                 let public_key_part = PublicKey1::try_from(&pk1 as &[u8])?;
-                let mut randomness = [0u8; SHARED_SECRET_SIZE];
-                rng.try_fill_bytes(&mut randomness).map_err(|_| Error::InsufficientRandomness)?;
+                let mut randomness = libcrux_secrets::Zeroizing::new([0u8; SHARED_SECRET_SIZE]);
+                rng.try_fill_bytes(&mut *randomness).map_err(|_| Error::InsufficientRandomness)?;
 
                 multiplexing::encapsulate1::<
                     RANK,
@@ -396,7 +426,7 @@ macro_rules! impl_incr_key_size {
                     ETA1_RANDOMNESS_SIZE,
                     ETA2,
                     ETA2_RANDOMNESS_SIZE,
-                >(&public_key_part, randomness, state, shared_secret)
+                >(&public_key_part, *randomness, state, shared_secret)
             }
         }
 
@@ -496,9 +526,9 @@ macro_rules! impl_incr_platform {
             const ETA1: usize,
             const ETA1_RANDOMNESS_SIZE: usize,
         >(
-            randomness: [u8; KEY_GENERATION_SEED_SIZE],
+            mut randomness: [u8; KEY_GENERATION_SEED_SIZE],
         ) -> MlKemKeyPairUnpacked<K, $vector> {
-            super::generate_keypair::<
+            let result = super::generate_keypair::<
                 K,
                 CPA_PRIVATE_KEY_SIZE,
                 PRIVATE_KEY_SIZE,
@@ -507,7 +537,9 @@ macro_rules! impl_incr_platform {
                 ETA1_RANDOMNESS_SIZE,
                 $vector,
                 $hash,
-            >(randomness)
+            >(randomness);
+            randomness.zeroize();
+            result
         }
 
         $(#[$meta])*
@@ -521,14 +553,13 @@ macro_rules! impl_incr_platform {
             const ETA1: usize,
             const ETA1_RANDOMNESS_SIZE: usize,
         >(
-            randomness: [u8; KEY_GENERATION_SEED_SIZE],
+            mut randomness: [u8; KEY_GENERATION_SEED_SIZE],
             key_pair: &mut [u8],
         ) -> Result<(), Error> {
-            if key_pair.len() < KeyPair::<K, PK2_LEN, $vector>::num_bytes() {
-                return Err(Error::InvalidOutputLength);
-            }
-
-            super::generate_keypair_serialized::<
+            let result = if key_pair.len() < KeyPair::<K, PK2_LEN, $vector>::num_bytes() {
+                Err(Error::InvalidOutputLength)
+            } else {
+                super::generate_keypair_serialized::<
                 K,
                 PK2_LEN,
                 CPA_PRIVATE_KEY_SIZE,
@@ -539,6 +570,9 @@ macro_rules! impl_incr_platform {
                 $vector,
                 $hash,
             >(randomness, key_pair)
+            };
+            randomness.zeroize();
+            result
         }
 
         $(#[$meta])*
@@ -553,7 +587,7 @@ macro_rules! impl_incr_platform {
             const ETA1_RANDOMNESS_SIZE: usize,
             const COMPRESSED_KEYPAIR_LEN: usize,
         >(
-            randomness: [u8; KEY_GENERATION_SEED_SIZE],
+            mut randomness: [u8; KEY_GENERATION_SEED_SIZE],
             key_pair: &mut [u8; COMPRESSED_KEYPAIR_LEN],
         ) {
             super::generate_keypair_compressed::<
@@ -567,7 +601,8 @@ macro_rules! impl_incr_platform {
                 COMPRESSED_KEYPAIR_LEN,
                 $vector,
                 $hash,
-            >(randomness, key_pair)
+            >(randomness, key_pair);
+            randomness.zeroize();
         }
 
         $(#[$meta])*
@@ -599,13 +634,13 @@ macro_rules! impl_incr_platform {
             const ETA2_RANDOMNESS_SIZE: usize,
         >(
             public_key_part: &PublicKey1,
-            randomness: [u8; SHARED_SECRET_SIZE],
+            mut randomness: [u8; SHARED_SECRET_SIZE],
         ) -> (
             Ciphertext1<C1_SIZE>,
             EncapsState<K, $vector>,
             [u8; SHARED_SECRET_SIZE],
         ) {
-            super::encapsulate1::<
+            let result = super::encapsulate1::<
                 K,
                 CIPHERTEXT_SIZE,
                 C1_SIZE,
@@ -617,7 +652,9 @@ macro_rules! impl_incr_platform {
                 ETA2_RANDOMNESS_SIZE,
                 $vector,
                 $hash,
-            >(public_key_part, randomness)
+            >(public_key_part, randomness);
+            randomness.zeroize();
+            result
         }
 
         $(#[$meta])*
@@ -633,11 +670,11 @@ macro_rules! impl_incr_platform {
             const ETA2_RANDOMNESS_SIZE: usize,
         >(
             public_key_part: &PublicKey1,
-            randomness: [u8; SHARED_SECRET_SIZE],
+            mut randomness: [u8; SHARED_SECRET_SIZE],
             state: &mut [u8],
             shared_secret: &mut [u8],
         ) -> Result<Ciphertext1<C1_SIZE>, Error> {
-            super::encapsulate1_serialized::<
+            let result = super::encapsulate1_serialized::<
                 K,
                 CIPHERTEXT_SIZE,
                 C1_SIZE,
@@ -649,7 +686,9 @@ macro_rules! impl_incr_platform {
                 ETA2_RANDOMNESS_SIZE,
                 $vector,
                 $hash,
-            >(public_key_part, randomness, state, shared_secret)
+            >(public_key_part, randomness, state, shared_secret);
+            randomness.zeroize();
+            result
         }
 
         $(#[$meta])*

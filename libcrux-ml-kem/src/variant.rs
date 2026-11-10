@@ -2,6 +2,8 @@
 //! differences between the NIST standard FIPS 203 (ML-KEM) and the
 //! Round 3 CRYSTALS-Kyber submissions in the NIST PQ competition.
 
+use libcrux_secrets::Zeroize;
+
 use crate::{constants::CPA_PKE_KEY_GENERATION_SEED_SIZE, hash_functions::Hash};
 
 /// This trait collects differences in specification between ML-KEM
@@ -47,7 +49,9 @@ impl Variant for Kyber {
 
         let mut kdf_input: [u8; 2 * H_DIGEST_SIZE] = into_padded_array(&shared_secret);
         kdf_input[H_DIGEST_SIZE..].copy_from_slice(&Hasher::H(ciphertext));
-        Hasher::PRF::<32>(&kdf_input)
+        let shared_secret = Hasher::PRF::<32>(&kdf_input);
+        kdf_input.zeroize();
+        shared_secret
     }
 
     #[inline(always)]
@@ -106,6 +110,8 @@ impl Variant for MlKem {
             "eq_intro $seed
             (Seq.append $key_generation_seed (Seq.create 1 (cast $K <: u8)))"
         );
-        Hasher::G(&seed)
+        let hashed = Hasher::G(&seed);
+        seed.zeroize();
+        hashed
     }
 }

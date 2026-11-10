@@ -1,3 +1,5 @@
+use libcrux_secrets::Zeroize;
+
 use crate::{
     constant_time_ops::compare_ciphertexts_select_shared_secret_in_constant_time,
     constants::{
@@ -226,7 +228,7 @@ pub(crate) fn generate_keypair<
     let ind_cpa_keypair_randomness = &randomness[0..CPA_PKE_KEY_GENERATION_SEED_SIZE];
     let implicit_rejection_value = &randomness[CPA_PKE_KEY_GENERATION_SEED_SIZE..];
 
-    let (ind_cpa_private_key, public_key) = crate::ind_cpa::generate_keypair::<
+    let (mut ind_cpa_private_key, public_key) = crate::ind_cpa::generate_keypair::<
         K,
         CPA_PRIVATE_KEY_SIZE,
         PUBLIC_KEY_SIZE,
@@ -237,13 +239,16 @@ pub(crate) fn generate_keypair<
         Scheme,
     >(ind_cpa_keypair_randomness);
 
-    let secret_key_serialized = serialize_kem_secret_key::<K, PRIVATE_KEY_SIZE, Hasher>(
+    let mut secret_key_serialized = serialize_kem_secret_key::<K, PRIVATE_KEY_SIZE, Hasher>(
         &ind_cpa_private_key,
         &public_key,
         implicit_rejection_value,
     );
     let private_key: MlKemPrivateKey<PRIVATE_KEY_SIZE> =
         MlKemPrivateKey::from(secret_key_serialized);
+
+    ind_cpa_private_key.zeroize();
+    secret_key_serialized.zeroize();
 
     MlKemKeyPair::from(private_key, MlKemPublicKey::from(public_key))
 }
@@ -286,7 +291,7 @@ pub(crate) fn encapsulate<
     public_key: &MlKemPublicKey<PUBLIC_KEY_SIZE>,
     randomness: &[u8; SHARED_SECRET_SIZE],
 ) -> (MlKemCiphertext<CIPHERTEXT_SIZE>, MlKemSharedSecret) {
-    let randomness = Scheme::entropy_preprocess::<K, Hasher>(randomness);
+    let mut randomness = Scheme::entropy_preprocess::<K, Hasher>(randomness);
     let mut to_hash: [u8; 2 * H_DIGEST_SIZE] = into_padded_array(&randomness);
 
     #[cfg(hax)]
@@ -299,7 +304,7 @@ pub(crate) fn encapsulate<
         lemma_slice_append $to_hash $randomness (Spec.Utils.v_H ${public_key}.f_value);
         assert ($to_hash == concat $randomness (Spec.Utils.v_H ${public_key}.f_value))"
     );
-    let hashed = Hasher::G(&to_hash);
+    let mut hashed = Hasher::G(&to_hash);
     let (shared_secret, pseudorandomness) = hashed.split_at(SHARED_SECRET_SIZE);
 
     let ciphertext = crate::ind_cpa::encrypt::<
@@ -319,10 +324,13 @@ pub(crate) fn encapsulate<
         Hasher,
     >(public_key.as_slice(), &randomness, pseudorandomness);
 
-    (
-        MlKemCiphertext::from(ciphertext),
-        Scheme::kdf::<K, CIPHERTEXT_SIZE, Hasher>(shared_secret, &ciphertext),
-    )
+    let shared_secret = Scheme::kdf::<K, CIPHERTEXT_SIZE, Hasher>(shared_secret, &ciphertext);
+
+    randomness.zeroize();
+    to_hash.zeroize();
+    hashed.zeroize();
+
+    (MlKemCiphertext::from(ciphertext), shared_secret)
 }
 
 /// This code verifies on some machines, runs out of memory on others
@@ -387,7 +395,7 @@ pub(crate) fn decapsulate<
         assert ($implicit_rejection_value == slice ${private_key}.f_value ($CPA_SECRET_KEY_SIZE +! $PUBLIC_KEY_SIZE +! Spec.MLKEM.v_H_DIGEST_SIZE)
             (length ${private_key}.f_value))"#
     );
-    let decrypted = crate::ind_cpa::decrypt::<
+    let mut decrypted = crate::ind_cpa::decrypt::<
         K,
         CIPHERTEXT_SIZE,
         C1_SIZE,
@@ -407,7 +415,8 @@ pub(crate) fn decapsulate<
         assert ($decrypted == Spec.MLKEM.ind_cpa_decrypt $K $ind_cpa_secret_key ${ciphertext}.f_value);
         assert ($to_hash == concat $decrypted $ind_cpa_public_key_hash)"#
     );
-    let hashed = Hasher::G(&to_hash);
+    let mut hashed = Hasher::G(&to_hash);
+    to_hash.zeroize();
     let (shared_secret, pseudorandomness) = hashed.split_at(SHARED_SECRET_SIZE);
 
     #[cfg(hax)]
@@ -429,14 +438,14 @@ pub(crate) fn decapsulate<
         assert (i1.f_PRF_pre (sz 32) $to_hash);
         lemma_slice_append $to_hash $implicit_rejection_value ${ciphertext}.f_value"
     );
-    let implicit_rejection_shared_secret: [u8; SHARED_SECRET_SIZE] = Hasher::PRF(&to_hash);
+    let mut implicit_rejection_shared_secret: [u8; SHARED_SECRET_SIZE] = Hasher::PRF(&to_hash);
 
     #[cfg(hax)]
     hax_lib::fstar!(
         "assert ($implicit_rejection_shared_secret == Spec.Utils.v_PRF (sz 32) $to_hash);
         assert (Seq.length $ind_cpa_public_key == v $PUBLIC_KEY_SIZE)"
     );
-    let expected_ciphertext = crate::ind_cpa::encrypt::<
+    let mut expected_ciphertext = crate::ind_cpa::encrypt::<
         K,
         CIPHERTEXT_SIZE,
         T_AS_NTT_ENCODED_SIZE,
@@ -453,19 +462,29 @@ pub(crate) fn decapsulate<
         Hasher,
     >(ind_cpa_public_key, &decrypted, pseudorandomness);
 
-    let implicit_rejection_shared_secret = Scheme::kdf::<K, CIPHERTEXT_SIZE, Hasher>(
+    let mut implicit_rejection_kdf_output = Scheme::kdf::<K, CIPHERTEXT_SIZE, Hasher>(
         &implicit_rejection_shared_secret,
         ciphertext.as_slice(),
     );
-    let shared_secret =
+    let mut shared_secret =
         Scheme::kdf::<K, CIPHERTEXT_SIZE, Hasher>(shared_secret, ciphertext.as_slice());
 
-    compare_ciphertexts_select_shared_secret_in_constant_time(
+    let selected_shared_secret = compare_ciphertexts_select_shared_secret_in_constant_time(
         ciphertext.as_ref(),
         &expected_ciphertext,
         &shared_secret,
-        &implicit_rejection_shared_secret,
-    )
+        &implicit_rejection_kdf_output,
+    );
+
+    decrypted.zeroize();
+    hashed.zeroize();
+    to_hash.zeroize();
+    implicit_rejection_shared_secret.zeroize();
+    expected_ciphertext.zeroize();
+    implicit_rejection_kdf_output.zeroize();
+    shared_secret.zeroize();
+
+    selected_shared_secret
 }
 
 /// Types for the unpacked API.
@@ -487,8 +506,17 @@ pub(crate) mod unpacked {
 
     /// An unpacked ML-KEM IND-CCA Private Key
     pub struct MlKemPrivateKeyUnpacked<const K: usize, Vector: Operations> {
+        /// Wiped on drop by its own `Drop` implementation.
         pub(crate) ind_cpa_private_key: IndCpaPrivateKeyUnpacked<K, Vector>,
         pub(crate) implicit_rejection_value: [u8; 32],
+    }
+
+    #[cfg(not(eurydice))]
+    #[cfg_attr(hax, hax_lib::exclude)]
+    impl<const K: usize, Vector: Operations> Drop for MlKemPrivateKeyUnpacked<K, Vector> {
+        fn drop(&mut self) {
+            self.implicit_rejection_value.zeroize();
+        }
     }
 
     /// An unpacked ML-KEM IND-CCA Private Key
@@ -766,15 +794,16 @@ pub(crate) mod unpacked {
             &self,
             serialized: &mut MlKemPrivateKey<PRIVATE_KEY_SIZE>,
         ) {
-            let (ind_cpa_private_key, ind_cpa_public_key) = ind_cpa::serialize_unpacked_secret_key::<
-                K,
-                CPA_PRIVATE_KEY_SIZE,
-                PUBLIC_KEY_SIZE,
-                Vector,
-            >(
-                &self.public_key.ind_cpa_public_key,
-                &self.private_key.ind_cpa_private_key,
-            );
+            let (mut ind_cpa_private_key, ind_cpa_public_key) =
+                ind_cpa::serialize_unpacked_secret_key::<
+                    K,
+                    CPA_PRIVATE_KEY_SIZE,
+                    PUBLIC_KEY_SIZE,
+                    Vector,
+                >(
+                    &self.public_key.ind_cpa_public_key,
+                    &self.private_key.ind_cpa_private_key,
+                );
 
             serialize_kem_secret_key_mut::<K, PRIVATE_KEY_SIZE, PortableHash<K>>(
                 &ind_cpa_private_key,
@@ -782,6 +811,8 @@ pub(crate) mod unpacked {
                 &self.private_key.implicit_rejection_value,
                 &mut serialized.value,
             );
+
+            ind_cpa_private_key.zeroize();
         }
 
         /// Get the serialized private key.
@@ -895,7 +926,7 @@ pub(crate) mod unpacked {
         Hasher: Hash<K>,
         Scheme: Variant,
     >(
-        randomness: [u8; KEY_GENERATION_SEED_SIZE],
+        mut randomness: [u8; KEY_GENERATION_SEED_SIZE],
         out: &mut MlKemKeyPairUnpacked<K, Vector>,
     ) {
         let ind_cpa_keypair_randomness = &randomness[0..CPA_PKE_KEY_GENERATION_SEED_SIZE];
@@ -938,6 +969,7 @@ pub(crate) mod unpacked {
         );
         out.public_key.public_key_hash = Hasher::H(&pk_serialized);
         out.private_key.implicit_rejection_value = implicit_rejection_value.try_into().unwrap();
+        randomness.zeroize();
     }
 
     // Encapsulate with Unpacked Public Key
@@ -982,7 +1014,7 @@ pub(crate) mod unpacked {
         public_key: &MlKemPublicKeyUnpacked<K, Vector>,
         randomness: &[u8; SHARED_SECRET_SIZE],
     ) -> (MlKemCiphertext<CIPHERTEXT_SIZE>, MlKemSharedSecret) {
-        let hashed = encaps_prepare::<K, Hasher>(randomness, &public_key.public_key_hash);
+        let mut hashed = encaps_prepare::<K, Hasher>(randomness, &public_key.public_key_hash);
         let (shared_secret, pseudorandomness) = hashed.split_at(SHARED_SECRET_SIZE);
 
         let ciphertext = ind_cpa::encrypt_unpacked::<
@@ -1007,6 +1039,7 @@ pub(crate) mod unpacked {
         );
         let mut shared_secret_array = [0u8; SHARED_SECRET_SIZE];
         shared_secret_array.copy_from_slice(shared_secret);
+        hashed.zeroize();
         (MlKemCiphertext::from(ciphertext), shared_secret_array)
     }
 
@@ -1029,7 +1062,9 @@ pub(crate) mod unpacked {
             concat $randomness $pk_hash)"
         );
 
-        Hasher::G(&to_hash)
+        let hashed = Hasher::G(&to_hash);
+        to_hash.zeroize();
+        hashed
     }
 
     // Decapsulate with Unpacked Private Key
@@ -1087,7 +1122,7 @@ pub(crate) mod unpacked {
         assert (v (Spec.MLKEM.v_C1_BLOCK_SIZE $K)  == 32 * v (Spec.MLKEM.v_VECTOR_U_COMPRESSION_FACTOR $K));
         assert (v (Spec.MLKEM.v_C2_SIZE $K) == 32 * v (Spec.MLKEM.v_VECTOR_V_COMPRESSION_FACTOR $K))"#
         );
-        let decrypted = ind_cpa::decrypt_unpacked::<
+        let mut decrypted = ind_cpa::decrypt_unpacked::<
             K,
             CIPHERTEXT_SIZE,
             C1_SIZE,
@@ -1105,7 +1140,8 @@ pub(crate) mod unpacked {
             r#"lemma_slice_append $to_hash $decrypted ${key_pair}.f_public_key.f_public_key_hash"#
         );
 
-        let hashed = Hasher::G(&to_hash);
+        let mut hashed = Hasher::G(&to_hash);
+        to_hash.zeroize();
         let (shared_secret, pseudorandomness) = hashed.split_at(SHARED_SECRET_SIZE);
 
         let mut to_hash: [u8; IMPLICIT_REJECTION_HASH_INPUT_SIZE] =
@@ -1120,9 +1156,9 @@ pub(crate) mod unpacked {
         hax_lib::fstar!(
             "lemma_slice_append $to_hash ${key_pair}.f_private_key.f_implicit_rejection_value ${ciphertext}.f_value"
         );
-        let implicit_rejection_shared_secret: [u8; SHARED_SECRET_SIZE] = Hasher::PRF(&to_hash);
+        let mut implicit_rejection_shared_secret: [u8; SHARED_SECRET_SIZE] = Hasher::PRF(&to_hash);
 
-        let expected_ciphertext = ind_cpa::encrypt_unpacked::<
+        let mut expected_ciphertext = ind_cpa::encrypt_unpacked::<
             K,
             CIPHERTEXT_SIZE,
             T_AS_NTT_ENCODED_SIZE,
@@ -1146,10 +1182,63 @@ pub(crate) mod unpacked {
         let selector =
             compare_ciphertexts_in_constant_time(ciphertext.as_ref(), &expected_ciphertext);
 
-        select_shared_secret_in_constant_time(
+        let selected_shared_secret = select_shared_secret_in_constant_time(
             shared_secret,
             &implicit_rejection_shared_secret,
             selector,
-        )
+        );
+
+        decrypted.zeroize();
+        hashed.zeroize();
+        to_hash.zeroize();
+        implicit_rejection_shared_secret.zeroize();
+        expected_ciphertext.zeroize();
+
+        selected_shared_secret
+    }
+}
+
+#[cfg(all(test, feature = "mlkem768"))]
+#[allow(unsafe_code)]
+mod zeroize_tests {
+    use core::mem::{size_of, ManuallyDrop};
+
+    /// Read all bytes of `*ptr`, which must be valid for reads.
+    unsafe fn all_zero<T>(ptr: *const T) -> bool {
+        let bytes = ptr.cast::<u8>();
+        (0..size_of::<T>()).all(|i| unsafe { bytes.add(i).read_volatile() } == 0)
+    }
+
+    #[test]
+    fn private_key_is_wiped_on_drop() {
+        if !libcrux_secrets::ZEROIZATION_ENABLED {
+            return;
+        }
+        let mut key_pair = ManuallyDrop::new(crate::mlkem768::generate_key_pair([7u8; 64]));
+        let sk = &raw mut key_pair.sk;
+        // SAFETY: `key_pair` is never dropped by `ManuallyDrop`, so the memory
+        // of `sk` stays valid after dropping it in place.
+        unsafe {
+            assert!(!all_zero(sk));
+            core::ptr::drop_in_place(sk);
+            assert!(all_zero(sk));
+        }
+    }
+
+    #[test]
+    fn unpacked_private_key_is_wiped_on_drop() {
+        if !libcrux_secrets::ZEROIZATION_ENABLED {
+            return;
+        }
+        let mut key_pair = ManuallyDrop::new(
+            crate::mlkem768::portable::unpacked::generate_key_pair([7u8; 64]),
+        );
+        let sk = &raw mut key_pair.private_key;
+        // SAFETY: as above.
+        unsafe {
+            assert!(!all_zero(sk));
+            core::ptr::drop_in_place(sk);
+            assert!(all_zero(sk));
+        }
     }
 }
