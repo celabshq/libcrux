@@ -1,3 +1,4 @@
+use libcrux_secrets::Zeroizing;
 use libcrux_traits::digest::{arrayref, InitializeDigestState};
 
 use crate::{Error, HmacState};
@@ -13,8 +14,10 @@ where
     D::IncrementalState: InitializeDigestState,
 {
     /// Inner hash state already primed with K xor ipad.
+    /// Wiped on drop by the digest state itself.
     pub(crate) inner: D::IncrementalState,
-    pub(crate) opad: [u8; BLOCK],
+    /// K xor opad.
+    pub(crate) opad: Zeroizing<[u8; BLOCK]>,
 }
 
 impl<const OUTLEN: usize, const BLOCK: usize, Digest> HmacState<OUTLEN>
@@ -32,7 +35,7 @@ where
             return Err(Error::InvalidInputLength);
         }
 
-        let mut key_block = [0u8; BLOCK];
+        let mut key_block = Zeroizing::new([0u8; BLOCK]);
         if key.len() <= BLOCK {
             key_block[..key.len()].copy_from_slice(key);
         } else {
@@ -40,13 +43,11 @@ where
             let mut tmp = Digest::IncrementalState::new();
             Digest::update(&mut tmp, key)
                 .expect("This can't fail because we checked that key.len() <= u32::MAX");
-            let mut hashed = [0u8; OUTLEN];
-            Digest::finish(tmp, &mut hashed);
-            key_block[..OUTLEN].copy_from_slice(&hashed);
+            Digest::finish(tmp, (&mut key_block[..OUTLEN]).try_into().unwrap());
         }
 
-        let mut k_xor_ipad = [0u8; BLOCK];
-        let mut k_xor_opad = [0u8; BLOCK];
+        let mut k_xor_ipad = Zeroizing::new([0u8; BLOCK]);
+        let mut k_xor_opad = Zeroizing::new([0u8; BLOCK]);
 
         for i in 0..BLOCK {
             k_xor_ipad[i] = key_block[i] ^ 0x36;
@@ -57,7 +58,7 @@ where
         // The update should only fail if we submit too much data, and `k_xor_ipad` is just a single
         // block long, so short enough.
         let mut inner = Digest::IncrementalState::new();
-        Digest::update(&mut inner, &k_xor_ipad).expect("HMAC: ipad update failed");
+        Digest::update(&mut inner, k_xor_ipad.as_slice()).expect("HMAC: ipad update failed");
 
         Ok(Self {
             inner,
@@ -71,13 +72,15 @@ where
 
     fn finalize(self, dst: &mut [u8; OUTLEN]) {
         // Inner hash: finalize H((K xor ipad) || data).
-        let mut inner_hash = [0u8; OUTLEN];
+        let mut inner_hash = Zeroizing::new([0u8; OUTLEN]);
         Digest::finish(self.inner, &mut inner_hash);
 
         // Outer hash: H((K xor opad) || inner_hash).
         let mut outer = Digest::IncrementalState::new();
-        Digest::update(&mut outer, &self.opad).expect("self.opad.len() is always <= u32::MAX");
-        Digest::update(&mut outer, &inner_hash).expect("inner_hash.len() is always <= u32::MAX");
+        Digest::update(&mut outer, self.opad.as_slice())
+            .expect("self.opad.len() is always <= u32::MAX");
+        Digest::update(&mut outer, inner_hash.as_slice())
+            .expect("inner_hash.len() is always <= u32::MAX");
         Digest::finish(outer, dst);
     }
 }

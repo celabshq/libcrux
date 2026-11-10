@@ -8,6 +8,7 @@
 
 use libcrux_hacl_rs::prelude::*;
 use libcrux_macros as krml;
+use libcrux_secrets::Zeroize;
 use libcrux_sha2::hacl as hash_sha2;
 
 #[derive(PartialEq, Clone, Copy)]
@@ -122,7 +123,11 @@ pub fn compute_sha2_256(dst: &mut [u8], key: &[u8], key_len: u32, data: &[u8], d
         rem0.1,
         s,
     );
-    hash_sha2::sha256_finish(s, dst)
+    hash_sha2::sha256_finish(s, dst);
+    key_block.zeroize();
+    ipad.zeroize();
+    opad.zeroize();
+    st.zeroize();
 }
 
 /**
@@ -247,7 +252,11 @@ pub fn compute_sha2_384(dst: &mut [u8], key: &[u8], key_len: u32, data: &[u8], d
         rem0.1,
         s,
     );
-    hash_sha2::sha384_finish(s, dst)
+    hash_sha2::sha384_finish(s, dst);
+    key_block.zeroize();
+    ipad.zeroize();
+    opad.zeroize();
+    st.zeroize();
 }
 
 /**
@@ -372,5 +381,9 @@ pub fn compute_sha2_512(dst: &mut [u8], key: &[u8], key_len: u32, data: &[u8], d
         rem0.1,
         s,
     );
-    hash_sha2::sha512_finish(s, dst)
+    hash_sha2::sha512_finish(s, dst);
+    key_block.zeroize();
+    ipad.zeroize();
+    opad.zeroize();
+    st.zeroize();
 }
