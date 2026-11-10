@@ -128,7 +128,7 @@ mod conversions {
         type Error = Error;
 
         fn try_from(value: &[u8; 64]) -> Result<Self, Self::Error> {
-            validate_pk(value)
+            validate_raw_pk(*value)
         }
     }
 
@@ -153,11 +153,11 @@ mod conversions {
     }
 }
 
-/// Parse an uncompressed P256 point and return the 64 byte array with the
-/// concatenation of X||Y
+/// Parse an uncompressed P256 point (`0x04 || X || Y`, 65 bytes) and return the
+/// 64 byte array with the concatenation of X||Y
 pub fn uncompressed_to_coordinates(point: &[u8]) -> Result<[u8; 64], Error> {
     let mut concat_point = [0u8; 64];
-    if point.len() >= 65 {
+    if point.len() == 65 {
         if uncompressed_to_raw(point, &mut concat_point) {
             Ok(concat_point)
         } else {
@@ -168,11 +168,11 @@ pub fn uncompressed_to_coordinates(point: &[u8]) -> Result<[u8; 64], Error> {
     }
 }
 
-/// Parse an compressed P256 point and return the 64 byte array with the
-/// concatenation of `X` and `Y`.
+/// Parse a compressed P256 point (`0x02 || X` or `0x03 || X`, 33 bytes) and
+/// return the 64 byte array with the concatenation of `X` and `Y`.
 pub fn compressed_to_coordinates(point: &[u8]) -> Result<[u8; 64], Error> {
     let mut concat_point = [0u8; 64];
-    if point.len() >= 33 {
+    if point.len() == 33 {
         if compressed_to_raw(point, &mut concat_point) {
             Ok(concat_point)
         } else {
@@ -370,18 +370,19 @@ fn validate_pk(public_key: &[u8]) -> Result<PublicKey, Error> {
     }
 
     // Parse the public key.
-    let pk = if let Ok(pk) = uncompressed_to_coordinates(public_key) {
-        pk
-    } else {
-        // Might be uncompressed
-        if let Ok(pk) = compressed_to_coordinates(public_key) {
-            pk
-        } else {
-            // Might be a simple concatenation
-            public_key.try_into().map_err(|_| Error::InvalidSignature)?
-        }
-    };
+    let pk = match public_key.len() {
+        65 => uncompressed_to_coordinates(public_key),
+        33 => compressed_to_coordinates(public_key),
+        64 => public_key.try_into().map_err(|_| Error::InvalidInput),
+        _ => Err(Error::InvalidInput),
+    }
+    .map_err(|_| Error::InvalidSignature)?;
 
+    validate_raw_pk(pk)
+}
+
+/// Validate a public key given as the concatenation `X || Y`.
+fn validate_raw_pk(pk: [u8; 64]) -> Result<PublicKey, Error> {
     let pk = PublicKey(pk);
     validate_point(&pk.0).map(|_| pk)
 }
