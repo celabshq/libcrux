@@ -5,6 +5,8 @@
 //!
 //! This get's instantiated in [`aes128_ctr`] and [`aes256_ctr`].
 
+use libcrux_secrets::Zeroize;
+
 use crate::{aes::*, platform::AESState};
 
 #[cfg(test)]
@@ -37,6 +39,15 @@ pub(crate) struct AesCtrContext<
     pub(crate) ctr_nonce: [u8; CTR_NONCE_LEN],
 }
 
+impl<T: AESState, const NUM_KEYS: usize, const CTR_LEN: usize, const NONCE_START: usize> Drop
+    for AesCtrContext<T, NUM_KEYS, CTR_LEN, NONCE_START>
+{
+    fn drop(&mut self) {
+        self.extended_key.zeroize();
+        self.ctr_nonce.zeroize();
+    }
+}
+
 impl<T: AESState, const NUM_KEYS: usize, const CTR_LEN: usize, const NONCE_START: usize>
     AesCtrContext<T, NUM_KEYS, CTR_LEN, NONCE_START>
 {
@@ -60,6 +71,10 @@ impl<T: AESState, const NUM_KEYS: usize, const CTR_LEN: usize, const NONCE_START
         block_cipher(&mut st, &self.extended_key);
 
         st.store_block(out);
+        // Only used to derive the GHASH key and the tag mask, so it is worth
+        // wiping. The per-block keystream in `aes_ctr_xor_block` is not wiped,
+        // because it lives in registers.
+        st.zeroize();
     }
 
     #[inline]

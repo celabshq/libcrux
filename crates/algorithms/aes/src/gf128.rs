@@ -13,6 +13,13 @@ pub(crate) struct GF128State<T: GF128FieldElement> {
     r: T,
 }
 
+impl<T: GF128FieldElement> Drop for GF128State<T> {
+    fn drop(&mut self) {
+        self.accumulator.zeroize();
+        self.r.zeroize();
+    }
+}
+
 const KEY_LEN: usize = AES_BLOCK_LEN;
 
 impl<T: GF128FieldElement> GF128State<T> {

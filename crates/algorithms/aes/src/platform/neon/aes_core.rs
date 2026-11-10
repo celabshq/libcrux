@@ -3,6 +3,7 @@ use libcrux_intrinsics::arm64::{
     _veorq_u8, _vextq_u32, _vld1q_u32, _vld1q_u8, _vreinterpretq_u32_u8, _vreinterpretq_u8_u32,
     _vst1q_u8,
 };
+use libcrux_secrets::Zeroize;
 
 /// The Neon state
 pub(crate) type State = _uint8x16_t;
@@ -32,7 +33,7 @@ fn aes_keygen_assist(next: &mut State, prev: &State, rcon: u8) {
     let st = _vaeseq_u8(*prev, _vdupq_n_u8(0));
     let mut tmp = [0u8; 16];
     _vst1q_u8(&mut tmp, st);
-    let tmp_new = [
+    let mut tmp_new = [
         tmp[4], tmp[1], tmp[14], tmp[11], tmp[1], tmp[14], tmp[11], tmp[4], tmp[12], tmp[9],
         tmp[6], tmp[3], tmp[9], tmp[6], tmp[3], tmp[12],
     ];
@@ -40,6 +41,8 @@ fn aes_keygen_assist(next: &mut State, prev: &State, rcon: u8) {
     let rcon_array = [0, rcon as u32, 0, rcon as u32];
     let rcon_vec = _vreinterpretq_u8_u32(_vld1q_u32(&rcon_array));
     *next = _veorq_u8(st_new, rcon_vec);
+    tmp.zeroize();
+    tmp_new.zeroize();
 }
 
 #[inline]

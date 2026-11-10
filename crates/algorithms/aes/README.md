@@ -9,6 +9,14 @@ It provides
 - an x64 optimised implementation using AES-NI
 - an Aarch64 optimised implementation using the AES instructions
 
+## Zeroization
+
+The expanded key, the GHASH key and accumulator, the tag mask and the
+computed tag are wiped at the end of every encryption and decryption, as
+are the copies made during key expansion. The per-block keystream is not
+wiped explicitly, because it lives in registers. Keys passed in by the
+caller are the caller's to wipe.
+
 ## Testing on RISC-V & ARMv7
 
 If you want to run tests on the `riscv64gc-unknown-linux-gnu` or `armv7-unknown-linux-gnueabihf` targets you can either follow the instructions provided in the rustc book (for [RISC-V](https://doc.rust-lang.org/rustc/platform-support/riscv64gc-unknown-linux-gnu.html) and for [ARMv7](https://doc.rust-lang.org/rustc/platform-support/armv7-unknown-linux-gnueabi.html)), or use the pre-configured `nix` shell in this directory.

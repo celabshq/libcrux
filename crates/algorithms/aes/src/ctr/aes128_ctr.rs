@@ -63,6 +63,8 @@ pub(crate) fn key_expansion<T: AESState>(key: &[u8]) -> ExtendedKey<T, NUM_KEYS>
     macro_rules! expansion_step128 {
         ($i:expr,$rcon:expr) => {
             // For hax need to clone here.
+            // `prev` is not zeroized: it is a copy of a round key that is
+            // kept in the returned key schedule.
             let prev = keyex[$i - 1].clone();
             // let (prev, current) = keyex.split_at_mut($i);
             keyex[$i].aes_keygen_assist0::<$rcon>(&prev);

@@ -80,6 +80,8 @@ pub(crate) fn key_expansion<T: AESState>(key: &[u8]) -> ExtendedKey<T, NUM_KEYS>
 
             // The following is what goes through hax right now. But it
             // requires copies that are really not necessary.
+            // The copies are not zeroized: they are round keys that are
+            // kept in the returned key schedule.
             let prev0 = keyex[$i - 2].clone();
             let prev1 = keyex[$i - 1].clone();
 
