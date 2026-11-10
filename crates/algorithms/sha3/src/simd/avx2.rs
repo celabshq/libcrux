@@ -1,6 +1,7 @@
 use libcrux_intrinsics::avx2::*;
 
 use crate::{generic_keccak::KeccakState, traits::*};
+use libcrux_secrets::Zeroize;
 
 #[inline(always)]
 fn rotate_left<const LEFT: i32, const RIGHT: i32>(x: Vec256) -> Vec256 {
@@ -104,6 +105,8 @@ pub(crate) fn load_block<const RATE: usize>(
         let j = (4 * (RATE / 32) + 1) % 5;
         set_ij(state, i, j, mm256_xor_si256(*get_ij(state, i, j), u));
     }
+    // Not wiped: a copy of the input, which the caller still holds. Wiping
+    // it here, once per block, costs up to 20% (see the README).
 }
 
 #[inline(always)]
@@ -130,6 +133,7 @@ pub(crate) fn load_last<const RATE: usize, const DELIMITER: u8>(
         ],
         0,
     );
+    buffers.zeroize();
 }
 
 #[inline(always)]
@@ -195,6 +199,7 @@ pub(crate) fn store_block<const RATE: usize>(
             out2[offset_rem8..offset_rem8 + rem8].copy_from_slice(&u8s[16..16 + rem8]);
             out3[offset_rem8..offset_rem8 + rem8].copy_from_slice(&u8s[24..24 + rem8]);
         }
+        u8s.zeroize();
     }
 }
 

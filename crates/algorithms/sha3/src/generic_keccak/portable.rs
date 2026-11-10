@@ -106,4 +106,5 @@ pub(crate) fn keccak1<const RATE: usize, const DELIM: u8>(input: &[u8], output: 
             s.squeeze::<RATE>(output, output_len - output_rem, output_rem);
         }
     }
+    s.zeroize();
 }

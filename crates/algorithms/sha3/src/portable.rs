@@ -1,4 +1,5 @@
 use generic_keccak::KeccakState as GenericState;
+use libcrux_secrets::Zeroize;
 #[cfg(hax)]
 use hax_lib::int::*;
 
@@ -8,6 +9,15 @@ use crate::generic_keccak::{self, portable::keccak1};
 #[derive(Clone, Copy)]
 pub struct KeccakState {
     state: GenericState<1, u64>,
+}
+
+/// This type is `Copy` and therefore cannot wipe itself on drop. Callers that
+/// absorb secret data must call [`Zeroize::zeroize`] on every copy when done.
+impl Zeroize for KeccakState {
+    #[inline]
+    fn zeroize(&mut self) {
+        self.state.zeroize();
+    }
 }
 
 /// A portable SHA3 224 implementation.

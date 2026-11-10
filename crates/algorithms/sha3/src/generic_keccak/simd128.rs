@@ -38,6 +38,8 @@ pub(crate) fn keccak2<const RATE: usize, const DELIM: u8>(
             s.squeeze2::<RATE>(out0, out1, last, outlen - last);
         }
     }
+    // Not wiped: taking the address of `s` keeps LLVM from holding the state
+    // in NEON registers, which made hashing up to ~20% slower (see the README).
 }
 
 impl KeccakState<2, _uint64x2_t> {

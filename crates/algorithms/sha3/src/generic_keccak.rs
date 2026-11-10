@@ -2,6 +2,7 @@
 //! sub-routines.
 
 use core::ops::Index;
+use libcrux_secrets::Zeroize;
 
 #[cfg(hax)]
 use hax_lib::{constructors::from_bool, int::ToInt};
@@ -34,6 +35,14 @@ pub(crate) mod portable;
 #[derive(Copy, Clone)]
 pub(crate) struct KeccakState<const N: usize, T: KeccakItem<N>> {
     pub(crate) st: [T; 25],
+}
+
+impl<const N: usize, T: KeccakItem<N>> Zeroize for KeccakState<N, T> {
+    #[inline]
+    fn zeroize(&mut self) {
+        #[cfg(not(hax))]
+        self.st.zeroize();
+    }
 }
 
 #[cfg_attr(hax, hax_lib::attributes)]
