@@ -18,6 +18,7 @@ mod incremental;
 
 pub use impl_hacl::*;
 pub use incremental::*;
+use libcrux_secrets::Zeroize;
 
 /// Streaming HMAC state.
 ///
@@ -100,36 +101,43 @@ pub fn hmac(alg: Algorithm, key: &[u8], data: &[u8], tag: &mut [u8]) {
             let mut buf = [0u8; SHA256_TAG_SIZE];
             hmac_sha2_256(&mut buf, key, data);
             tag[..tag_len].copy_from_slice(&buf[..tag_len]);
+            buf.zeroize();
         }
         Algorithm::Sha384 => {
             let mut buf = [0u8; SHA384_TAG_SIZE];
             hmac_sha2_384(&mut buf, key, data);
             tag[..tag_len].copy_from_slice(&buf[..tag_len]);
+            buf.zeroize();
         }
         Algorithm::Sha512 => {
             let mut buf = [0u8; SHA512_TAG_SIZE];
             hmac_sha2_512(&mut buf, key, data);
             tag[..tag_len].copy_from_slice(&buf[..tag_len]);
+            buf.zeroize();
         }
         Algorithm::Sha3_224 => {
             let mut buf = [0u8; SHA3_224_TAG_SIZE];
             hmac_sha3_224(&mut buf, key, data).expect("HMAC-SHA3 input too long");
             tag[..tag_len].copy_from_slice(&buf[..tag_len]);
+            buf.zeroize();
         }
         Algorithm::Sha3_256 => {
             let mut buf = [0u8; SHA3_256_TAG_SIZE];
             hmac_sha3_256(&mut buf, key, data).expect("HMAC-SHA3 input too long");
             tag[..tag_len].copy_from_slice(&buf[..tag_len]);
+            buf.zeroize();
         }
         Algorithm::Sha3_384 => {
             let mut buf = [0u8; SHA3_384_TAG_SIZE];
             hmac_sha3_384(&mut buf, key, data).expect("HMAC-SHA3 input too long");
             tag[..tag_len].copy_from_slice(&buf[..tag_len]);
+            buf.zeroize();
         }
         Algorithm::Sha3_512 => {
             let mut buf = [0u8; SHA3_512_TAG_SIZE];
             hmac_sha3_512(&mut buf, key, data).expect("HMAC-SHA3 input too long");
             tag[..tag_len].copy_from_slice(&buf[..tag_len]);
+            buf.zeroize();
         }
     };
 }
