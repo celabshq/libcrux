@@ -1,4 +1,5 @@
 use crate::constants::SHARED_SECRET_SIZE;
+use libcrux_secrets::Zeroize;
 
 // These are crude attempts to prevent LLVM from optimizing away the code in this
 // module. This is not guaranteed to work but at the time of writing, achieved
@@ -109,7 +110,10 @@ fn compare(lhs: &[u8], rhs: &[u8]) -> u8 {
         r = nr;
     }
 
-    is_non_zero(r)
+    let result = is_non_zero(r);
+    // `r` is the implicit-rejection flag before normalization (FIPS 203, Sec. 6.3).
+    r.zeroize();
+    result
 }
 
 #[inline(never)] // Don't inline this to avoid that the compiler optimizes this out.
@@ -133,7 +137,7 @@ pub(crate) fn compare_ciphertexts_in_constant_time(lhs: &[u8], rhs: &[u8]) -> u8
 ))]
 #[cfg_attr(hax, hax_lib::ensures(|result| if selector == 0 {result == lhs} else {result == rhs}))]
 fn select_ct(lhs: &[u8], rhs: &[u8], selector: u8) -> [u8; SHARED_SECRET_SIZE] {
-    let mask = is_non_zero(selector).wrapping_sub(1);
+    let mut mask = is_non_zero(selector).wrapping_sub(1);
     #[cfg(hax)]
     hax_lib::fstar!(
         "assert (if $selector = (mk_u8 0) then $mask = ones else $mask = zero);
@@ -182,6 +186,8 @@ fn select_ct(lhs: &[u8], rhs: &[u8], selector: u8) -> [u8; SHARED_SECRET_SIZE] {
         );
         out[i] = outi;
     }
+    // The mask is derived from the implicit-rejection flag (FIPS 203, Sec. 6.3).
+    mask.zeroize();
 
     #[cfg(hax)]
     hax_lib::fstar!(
@@ -226,7 +232,10 @@ pub(crate) fn compare_ciphertexts_select_shared_secret_in_constant_time(
     lhs_s: &[u8],
     rhs_s: &[u8],
 ) -> [u8; SHARED_SECRET_SIZE] {
-    let selector = compare_ciphertexts_in_constant_time(lhs_c, rhs_c);
+    let mut selector = compare_ciphertexts_in_constant_time(lhs_c, rhs_c);
 
-    select_shared_secret_in_constant_time(lhs_s, rhs_s, selector)
+    let result = select_shared_secret_in_constant_time(lhs_s, rhs_s, selector);
+    // The implicit-rejection flag must be destroyed (FIPS 203, Sec. 6.3).
+    selector.zeroize();
+    result
 }

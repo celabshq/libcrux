@@ -9,6 +9,8 @@
 // Related Issue: https://github.com/hacspec/hax/issues/616
 
 use crate::constants::{G_DIGEST_SIZE, H_DIGEST_SIZE};
+#[cfg(any(feature = "simd128", feature = "simd256"))]
+use libcrux_secrets::Zeroize;
 
 /// The SHA3 block size.
 pub(crate) const BLOCK_SIZE: usize = 168;
@@ -321,6 +323,10 @@ pub(crate) mod avx2 {
             }
             _ => unreachable!("This function must only be called with N = 2, 3, 4"),
         }
+        out0.zeroize();
+        out1.zeroize();
+        out2.zeroize();
+        out3.zeroize();
         out
     }
 
@@ -539,6 +545,7 @@ pub(crate) mod neon {
         let mut digest = [0u8; LEN];
         let mut dummy = [0u8; LEN];
         x2::shake256(input, input, &mut digest, &mut dummy);
+        dummy.zeroize();
         digest
     }
 
@@ -577,6 +584,10 @@ pub(crate) mod neon {
             }
             _ => unreachable!("Only 2, 3, or 4 are supported for N"),
         }
+        out0.zeroize();
+        out1.zeroize();
+        out2.zeroize();
+        out3.zeroize();
         out
     }
 

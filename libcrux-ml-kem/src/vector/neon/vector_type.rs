@@ -10,6 +10,14 @@ pub struct SIMD128Vector {
     pub high: _int16x8_t,
 }
 
+impl libcrux_secrets::Zeroize for SIMD128Vector {
+    #[inline(always)]
+    fn zeroize(&mut self) {
+        self.low.zeroize();
+        self.high.zeroize();
+    }
+}
+
 #[inline(always)]
 #[cfg_attr(hax, hax_lib::ensures(|result| fstar!("${result} == repr ${v}")))]
 pub(crate) fn to_i16_array(v: SIMD128Vector) -> [i16; 16] {

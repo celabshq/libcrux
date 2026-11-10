@@ -89,9 +89,12 @@ macro_rules! pqcp_api {
             pub fn crypto_kem_keypair_derand(
                 pk: &mut [u8; PK_LEN],
                 sk: &mut [u8; SK_LEN],
-                coins: [u8; KEYGEN_SEED_LEN],
+                mut coins: [u8; KEYGEN_SEED_LEN],
             ) -> Result<(), PQCPError> {
-                <$trait_implementer>::keygen(pk, sk, &coins).map_err(|_| PQCPError::KeyGeneration)
+                let result = <$trait_implementer>::keygen(pk, sk, &coins)
+                    .map_err(|_| PQCPError::KeyGeneration);
+                coins.zeroize();
+                result
             }
 
             #[doc = "Generate ML-KEM "]
@@ -103,8 +106,8 @@ macro_rules! pqcp_api {
                 sk: &mut [u8; SK_LEN],
                 rng: &mut impl TryCryptoRng,
             ) -> Result<(), PQCPError> {
-                let mut rand = [0u8; KEYGEN_SEED_LEN];
-                rng.try_fill_bytes(&mut rand)
+                let mut rand = libcrux_secrets::Zeroizing::new([0u8; KEYGEN_SEED_LEN]);
+                rng.try_fill_bytes(&mut *rand)
                     .map_err(|_| PQCPError::KeyGeneration)?;
                 <$trait_implementer>::keygen(pk, sk, &rand).map_err(|_| PQCPError::KeyGeneration)
             }
@@ -118,10 +121,12 @@ macro_rules! pqcp_api {
                 ct: &mut [u8; CT_LEN],
                 ss: &mut [u8; SS_LEN],
                 pk: &[u8; PK_LEN],
-                coins: [u8; ENCAPS_SEED_LEN],
+                mut coins: [u8; ENCAPS_SEED_LEN],
             ) -> Result<(), PQCPError> {
-                <$trait_implementer>::encaps(ct, ss, pk, &coins)
-                    .map_err(|_| PQCPError::Encapsulation)
+                let result = <$trait_implementer>::encaps(ct, ss, pk, &coins)
+                    .map_err(|_| PQCPError::Encapsulation);
+                coins.zeroize();
+                result
             }
 
             #[cfg(feature = "rand")]
@@ -136,8 +141,8 @@ macro_rules! pqcp_api {
                 pk: &[u8; PK_LEN],
                 rng: &mut impl TryCryptoRng,
             ) -> Result<(), PQCPError> {
-                let mut rand = [0u8; ENCAPS_SEED_LEN];
-                rng.try_fill_bytes(&mut rand)
+                let mut rand = libcrux_secrets::Zeroizing::new([0u8; ENCAPS_SEED_LEN]);
+                rng.try_fill_bytes(&mut *rand)
                     .map_err(|_| PQCPError::Encapsulation)?;
                 <$trait_implementer>::encaps(ct, ss, pk, &rand)
                     .map_err(|_| PQCPError::Encapsulation)
@@ -188,15 +193,17 @@ macro_rules! pqcp_unpacked_api {
             };
             use super::*;
             use crate::pqcp::PQCPError;
+            use libcrux_secrets::Zeroize;
 
             /// Generate ML-KEM
             #[doc = $variant]
             /// Key Pair in \"unpacked\" form (randomness generated externally)
             pub fn crypto_kem_keypair_derand_struct(
                 key_pair: &mut $sk_type_unpacked,
-                coins: [u8; KEYGEN_SEED_LEN],
+                mut coins: [u8; KEYGEN_SEED_LEN],
             ) {
-                generate_key_pair_mut(coins, key_pair)
+                generate_key_pair_mut(coins, key_pair);
+                coins.zeroize();
             }
 
             #[cfg(feature = "rand")]
@@ -207,10 +214,10 @@ macro_rules! pqcp_unpacked_api {
                 key_pair: &mut $sk_type_unpacked,
                 rng: &mut impl ::rand::TryCryptoRng,
             ) -> Result<(), PQCPError> {
-                let mut randomness = [0u8; KEYGEN_SEED_LEN];
-                rng.try_fill_bytes(&mut randomness)
+                let mut randomness = libcrux_secrets::Zeroizing::new([0u8; KEYGEN_SEED_LEN]);
+                rng.try_fill_bytes(&mut *randomness)
                     .map_err(|_| PQCPError::KeyGeneration)?;
-                generate_key_pair_mut(randomness, key_pair);
+                generate_key_pair_mut(*randomness, key_pair);
                 Ok(())
             }
 
@@ -279,11 +286,13 @@ macro_rules! pqcp_unpacked_api {
                 ct: &mut [u8; CT_LEN],
                 ss: &mut [u8; SS_LEN],
                 pk: &$pk_type_unpacked,
-                coins: [u8; ENCAPS_SEED_LEN],
+                mut coins: [u8; ENCAPS_SEED_LEN],
             ) -> Result<(), PQCPError> {
-                let (ciphertext, shared_secret) = super::encapsulate(pk, coins);
+                let (ciphertext, mut shared_secret) = super::encapsulate(pk, coins);
                 ct.copy_from_slice(ciphertext.as_slice());
                 ss.copy_from_slice(shared_secret.as_slice());
+                shared_secret.zeroize();
+                coins.zeroize();
                 Ok(())
             }
 
@@ -299,12 +308,13 @@ macro_rules! pqcp_unpacked_api {
                 pk: &$pk_type_unpacked,
                 rng: &mut impl ::rand::TryCryptoRng,
             ) -> Result<(), PQCPError> {
-                let mut randomness = [0u8; ENCAPS_SEED_LEN];
-                rng.try_fill_bytes(&mut randomness)
+                let mut randomness = libcrux_secrets::Zeroizing::new([0u8; ENCAPS_SEED_LEN]);
+                rng.try_fill_bytes(&mut *randomness)
                     .map_err(|_| PQCPError::Encapsulation)?;
-                let (ciphertext, shared_secret) = super::encapsulate(pk, randomness);
+                let (ciphertext, mut shared_secret) = super::encapsulate(pk, *randomness);
                 ct.copy_from_slice(ciphertext.as_slice());
                 ss.copy_from_slice(shared_secret.as_slice());
+                shared_secret.zeroize();
                 Ok(())
             }
 
@@ -320,8 +330,9 @@ macro_rules! pqcp_unpacked_api {
             ) -> Result<(), PQCPError> {
                 let ciphertext = <$ct_type>::from(ct);
 
-                let shared_secret = super::decapsulate(sk, &ciphertext);
+                let mut shared_secret = super::decapsulate(sk, &ciphertext);
                 ss.copy_from_slice(shared_secret.as_slice());
+                shared_secret.zeroize();
 
                 Ok(())
             }
@@ -329,9 +340,10 @@ macro_rules! pqcp_unpacked_api {
             /// Alias for `crypto_kem_keypair_derand_struct`
             pub fn crypto_kem_sk_from_seed(
                 key_pair: &mut $sk_type_unpacked,
-                randomness: [u8; KEYGEN_SEED_LEN],
+                mut randomness: [u8; KEYGEN_SEED_LEN],
             ) {
-                crypto_kem_keypair_derand_struct(key_pair, randomness)
+                crypto_kem_keypair_derand_struct(key_pair, randomness);
+                randomness.zeroize();
             }
 
             /// Generate an unpacked ML-KEM

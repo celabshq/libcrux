@@ -1,5 +1,6 @@
 //! ML-KEM 512
 use super::{constants::*, ind_cca::*, types::*, *};
+use libcrux_secrets::Zeroize;
 
 const RANK: usize = 2;
 #[cfg(any(feature = "incremental", eurydice))]
@@ -98,33 +99,36 @@ macro_rules! instantiate {
 
             /// Generate ML-KEM 512 Key Pair
             pub fn generate_key_pair(
-                randomness: [u8; KEY_GENERATION_SEED_SIZE],
+                mut randomness: [u8; KEY_GENERATION_SEED_SIZE],
             ) -> MlKem512KeyPair {
-                    p::generate_keypair::<
+                    let result = p::generate_keypair::<
                         RANK,
                         CPA_PKE_SECRET_KEY_SIZE,
                         SECRET_KEY_SIZE,
                         CPA_PKE_PUBLIC_KEY_SIZE,
                         ETA1,
                         ETA1_RANDOMNESS_SIZE,
-                    >(&randomness)
-
+                    >(&randomness);
+                    randomness.zeroize();
+                    result
             }
 
             /// Generate Kyber 512 Key Pair
             #[cfg(feature = "kyber")]
             #[cfg_attr(docsrs, doc(cfg(feature = "kyber")))]
             pub fn kyber_generate_key_pair(
-                randomness: [u8; KEY_GENERATION_SEED_SIZE],
+                mut randomness: [u8; KEY_GENERATION_SEED_SIZE],
             ) -> MlKem512KeyPair {
-                    p::kyber_generate_keypair::<
+                    let result = p::kyber_generate_keypair::<
                         RANK,
                         CPA_PKE_SECRET_KEY_SIZE,
                         SECRET_KEY_SIZE,
                         CPA_PKE_PUBLIC_KEY_SIZE,
                         ETA1,
                         ETA1_RANDOMNESS_SIZE,
-                    >(&randomness)
+                    >(&randomness);
+                    randomness.zeroize();
+                    result
             }
 
             /// Encapsulate ML-KEM 512
@@ -134,11 +138,9 @@ macro_rules! instantiate {
             /// bytes of `randomness`.
             pub fn encapsulate(
                 public_key: &MlKem512PublicKey,
-                randomness: [u8; SHARED_SECRET_SIZE],
+                mut randomness: [u8; SHARED_SECRET_SIZE],
             ) -> (MlKem512Ciphertext, MlKemSharedSecret) {
-
-
-                    p::encapsulate::<
+                    let result = p::encapsulate::<
                         RANK,
                         CPA_PKE_CIPHERTEXT_SIZE,
                         CPA_PKE_PUBLIC_KEY_SIZE,
@@ -152,8 +154,9 @@ macro_rules! instantiate {
                         ETA1_RANDOMNESS_SIZE,
                         ETA2,
                         ETA2_RANDOMNESS_SIZE,
-                    >(public_key, &randomness)
-
+                    >(public_key, &randomness);
+                    randomness.zeroize();
+                    result
             }
 
             /// Encapsulate Kyber 512
@@ -165,9 +168,9 @@ macro_rules! instantiate {
             #[cfg_attr(docsrs, doc(cfg(feature = "kyber")))]
             pub fn kyber_encapsulate(
                 public_key: &MlKem512PublicKey,
-                randomness: [u8; SHARED_SECRET_SIZE],
+                mut randomness: [u8; SHARED_SECRET_SIZE],
             ) -> (MlKem512Ciphertext, MlKemSharedSecret) {
-                    p::kyber_encapsulate::<
+                    let result = p::kyber_encapsulate::<
                         RANK,
                         CPA_PKE_CIPHERTEXT_SIZE,
                         CPA_PKE_PUBLIC_KEY_SIZE,
@@ -181,7 +184,9 @@ macro_rules! instantiate {
                         ETA1_RANDOMNESS_SIZE,
                         ETA2,
                         ETA2_RANDOMNESS_SIZE,
-                    >(public_key, &randomness)
+                    >(public_key, &randomness);
+                    randomness.zeroize();
+                    result
             }
 
             /// Decapsulate ML-KEM 512
@@ -330,16 +335,17 @@ macro_rules! instantiate {
 
                 /// Generate ML-KEM 512 Key Pair in "unpacked" form.
                 pub fn generate_key_pair(
-                    randomness: [u8; KEY_GENERATION_SEED_SIZE]
+                    mut randomness: [u8; KEY_GENERATION_SEED_SIZE]
                 ) ->  MlKem512KeyPairUnpacked {
                     let mut key_pair = MlKem512KeyPairUnpacked::default();
                     generate_key_pair_mut(randomness, &mut key_pair);
+                    randomness.zeroize();
                     key_pair
                 }
 
                 /// Generate ML-KEM 512 Key Pair in "unpacked" form
                 pub fn generate_key_pair_mut(
-                    randomness: [u8; KEY_GENERATION_SEED_SIZE],
+                    mut randomness: [u8; KEY_GENERATION_SEED_SIZE],
                     key_pair: &mut MlKem512KeyPairUnpacked,
                 ) {
                         p::unpacked::generate_keypair::<
@@ -350,7 +356,7 @@ macro_rules! instantiate {
                             ETA1,
                             ETA1_RANDOMNESS_SIZE,
                         >(randomness, key_pair);
-
+                        randomness.zeroize();
                 }
 
                 /// Encapsulate ML-KEM 512 (unpacked)
@@ -373,9 +379,9 @@ macro_rules! instantiate {
                 )]
                 pub fn encapsulate(
                     public_key: &MlKem512PublicKeyUnpacked,
-                    randomness: [u8; SHARED_SECRET_SIZE],
+                    mut randomness: [u8; SHARED_SECRET_SIZE],
                 ) -> (MlKem512Ciphertext, MlKemSharedSecret) {
-                        p::unpacked::encapsulate::<
+                        let result = p::unpacked::encapsulate::<
                             RANK,
                             CPA_PKE_CIPHERTEXT_SIZE,
                             CPA_PKE_PUBLIC_KEY_SIZE,
@@ -389,8 +395,9 @@ macro_rules! instantiate {
                             ETA1_RANDOMNESS_SIZE,
                             ETA2,
                             ETA2_RANDOMNESS_SIZE,
-                        >(public_key, &randomness)
-
+                        >(public_key, &randomness);
+                        randomness.zeroize();
+                        result
                 }
 
                 /// Decapsulate ML-KEM 512 (unpacked)
@@ -469,15 +476,17 @@ pub fn validate_private_key(
     fstar!(r#"let ((secret_key, public_key), valid) = Spec.MLKEM.Instances.mlkem512_generate_keypair $randomness in
         valid ==> (${res}.f_sk.f_value == secret_key /\ ${res}.f_pk.f_value == public_key)"#)
 ))]
-pub fn generate_key_pair(randomness: [u8; KEY_GENERATION_SEED_SIZE]) -> MlKem512KeyPair {
-    multiplexing::generate_keypair::<
+pub fn generate_key_pair(mut randomness: [u8; KEY_GENERATION_SEED_SIZE]) -> MlKem512KeyPair {
+    let result = multiplexing::generate_keypair::<
         RANK,
         CPA_PKE_SECRET_KEY_SIZE,
         SECRET_KEY_SIZE,
         CPA_PKE_PUBLIC_KEY_SIZE,
         ETA1,
         ETA1_RANDOMNESS_SIZE,
-    >(&randomness)
+    >(&randomness);
+    randomness.zeroize();
+    result
 }
 
 /// Encapsulate ML-KEM 512
@@ -494,9 +503,9 @@ pub fn generate_key_pair(randomness: [u8; KEY_GENERATION_SEED_SIZE]) -> MlKem512
 ))]
 pub fn encapsulate(
     public_key: &MlKem512PublicKey,
-    randomness: [u8; SHARED_SECRET_SIZE],
+    mut randomness: [u8; SHARED_SECRET_SIZE],
 ) -> (MlKem512Ciphertext, MlKemSharedSecret) {
-    multiplexing::encapsulate::<
+    let result = multiplexing::encapsulate::<
         RANK,
         CPA_PKE_CIPHERTEXT_SIZE,
         CPA_PKE_PUBLIC_KEY_SIZE,
@@ -510,7 +519,9 @@ pub fn encapsulate(
         ETA1_RANDOMNESS_SIZE,
         ETA2,
         ETA2_RANDOMNESS_SIZE,
-    >(public_key, &randomness)
+    >(public_key, &randomness);
+    randomness.zeroize();
+    result
 }
 
 /// Decapsulate ML-KEM 512
@@ -574,11 +585,11 @@ pub mod rand {
     pub fn generate_key_pair(
         rng: &mut impl TryCryptoRng,
     ) -> Result<MlKem512KeyPair, RandomnessError> {
-        let mut randomness = [0u8; KEY_GENERATION_SEED_SIZE];
-        rng.try_fill_bytes(&mut randomness)
+        let mut randomness = libcrux_secrets::Zeroizing::new([0u8; KEY_GENERATION_SEED_SIZE]);
+        rng.try_fill_bytes(&mut *randomness)
             .map_err(|_| RandomnessError)?;
 
-        Ok(super::generate_key_pair(randomness))
+        Ok(super::generate_key_pair(*randomness))
     }
 
     /// Encapsulate ML-KEM 512
@@ -592,11 +603,11 @@ pub mod rand {
         public_key: &MlKem512PublicKey,
         rng: &mut impl TryCryptoRng,
     ) -> Result<(MlKem512Ciphertext, MlKemSharedSecret), RandomnessError> {
-        let mut randomness = [0u8; SHARED_SECRET_SIZE];
-        rng.try_fill_bytes(&mut randomness)
+        let mut randomness = libcrux_secrets::Zeroizing::new([0u8; SHARED_SECRET_SIZE]);
+        rng.try_fill_bytes(&mut *randomness)
             .map_err(|_| RandomnessError)?;
 
-        Ok(super::encapsulate(public_key, randomness))
+        Ok(super::encapsulate(public_key, *randomness))
     }
 }
 
@@ -620,15 +631,17 @@ pub(crate) mod kyber {
     /// [`KEY_GENERATION_SEED_SIZE`].
     ///
     /// This function returns an [`MlKem512KeyPair`].
-    pub fn generate_key_pair(randomness: [u8; KEY_GENERATION_SEED_SIZE]) -> MlKem512KeyPair {
-        multiplexing::kyber_generate_keypair::<
+    pub fn generate_key_pair(mut randomness: [u8; KEY_GENERATION_SEED_SIZE]) -> MlKem512KeyPair {
+        let result = multiplexing::kyber_generate_keypair::<
             RANK,
             CPA_PKE_SECRET_KEY_SIZE,
             SECRET_KEY_SIZE,
             CPA_PKE_PUBLIC_KEY_SIZE,
             ETA1,
             ETA1_RANDOMNESS_SIZE,
-        >(randomness)
+        >(randomness);
+        randomness.zeroize();
+        result
     }
 
     /// Encapsulate Kyber 512
@@ -638,9 +651,9 @@ pub(crate) mod kyber {
     /// bytes of `randomness`.
     pub fn encapsulate(
         public_key: &MlKem512PublicKey,
-        randomness: [u8; SHARED_SECRET_SIZE],
+        mut randomness: [u8; SHARED_SECRET_SIZE],
     ) -> (MlKem512Ciphertext, MlKemSharedSecret) {
-        multiplexing::kyber_encapsulate::<
+        let result = multiplexing::kyber_encapsulate::<
             RANK,
             CPA_PKE_CIPHERTEXT_SIZE,
             CPA_PKE_PUBLIC_KEY_SIZE,
@@ -654,7 +667,9 @@ pub(crate) mod kyber {
             ETA1_RANDOMNESS_SIZE,
             ETA2,
             ETA2_RANDOMNESS_SIZE,
-        >(public_key, randomness)
+        >(public_key, randomness);
+        randomness.zeroize();
+        result
     }
 
     /// Decapsulate Kyber 512

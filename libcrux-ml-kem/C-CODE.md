@@ -6,6 +6,13 @@ The subdirectories of [`extracts/`](extracts/) contain C code extracted from
 This page is a quick reference for ML-KEM. For more information on C extraction in libcrux in general, please see
 [`C-CODE.md`](../C-CODE.md) at the repository root.
 
+## Zeroization
+
+The C code does not zeroize secrets yet. The Rust code wipes private keys on
+drop and wipes intermediate values; in the extracted C code these wipes are
+no-ops, and C has no destructors. C callers have to wipe private keys, seeds
+and shared secrets themselves.
+
 ## Extractions
 
 | Directory                                                                  | Parameter sets | SIMD            | Layout                    |

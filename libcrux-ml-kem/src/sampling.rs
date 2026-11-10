@@ -1,3 +1,5 @@
+use libcrux_secrets::Zeroize;
+
 use crate::{
     constants::COEFFICIENTS_IN_RING_ELEMENT, hash_functions::*, helper::cloop,
     polynomial::PolynomialRingElement, vector::Operations,
@@ -203,7 +205,9 @@ fn sample_from_binomial_distribution_2<Vector: Operations>(
             }
         }
     }
-    PolynomialRingElement::from_i16_array(&sampled_i16s)
+    let sampled = PolynomialRingElement::from_i16_array(&sampled_i16s);
+    sampled_i16s.zeroize();
+    sampled
 }
 
 #[cfg_attr(hax, hax_lib::requires(randomness.len() == 3 * 64))]
@@ -258,7 +262,9 @@ fn sample_from_binomial_distribution_3<Vector: Operations>(
             }
         }
     }
-    PolynomialRingElement::from_i16_array(&sampled_i16s)
+    let sampled = PolynomialRingElement::from_i16_array(&sampled_i16s);
+    sampled_i16s.zeroize();
+    sampled
 }
 
 #[inline(always)]
