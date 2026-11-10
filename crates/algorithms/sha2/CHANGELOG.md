@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Zeroize the hash state, message schedule and padding buffers after one-shot hashing, and streaming states on drop.
+
+### Changed
+
+- The streaming hash types (`Sha224`, `Sha256`, `Sha384`, `Sha512`) now implement `Drop`, so their fields can no longer be moved out.
+
 ## [0.0.9] (2026-10-07)
 
 ### Changed

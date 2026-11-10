@@ -135,6 +135,14 @@ macro_rules! impl_hash {
             }
         }
 
+        impl Drop for $name {
+            fn drop(&mut self) {
+                use libcrux_secrets::Zeroize;
+                self.state.block_state.zeroize();
+                self.state.buf.zeroize();
+            }
+        }
+
         impl Clone for $name {
             #[inline(always)]
             fn clone(&self) -> Self {
@@ -191,3 +199,34 @@ impl_hash!(
     crate::hacl::copy_512,
     crate::hacl::hash_384
 );
+
+#[cfg(test)]
+mod zeroize_tests {
+    use super::*;
+    use core::mem::ManuallyDrop;
+    use libcrux_traits::Digest;
+
+    #[test]
+    fn streaming_state_is_wiped_on_drop() {
+        if !libcrux_secrets::ZEROIZATION_ENABLED {
+            return;
+        }
+        let mut st = ManuallyDrop::new(Sha512::new());
+        st.update(&[0xa5u8; 200]);
+
+        let ptr: *mut Sha512 = &mut *st;
+        // SAFETY: `ManuallyDrop` never drops `st` itself, so its memory stays
+        // valid after `drop_in_place`, and the fields read are plain integers.
+        unsafe {
+            assert!((*ptr).state.buf.iter().any(|b| *b != 0));
+            assert!((*ptr).state.block_state.iter().any(|w| *w != 0));
+
+            core::ptr::drop_in_place(ptr);
+
+            let buf = core::ptr::read_volatile(&raw const (*ptr).state.buf);
+            let block_state = core::ptr::read_volatile(&raw const (*ptr).state.block_state);
+            assert_eq!(buf, [0u8; 128]);
+            assert_eq!(block_state, [0u64; 8]);
+        }
+    }
+}
