@@ -84,7 +84,10 @@ impl PublicKey {
         // key is not the point at infinity and the private key is a
         // non-zero scalar less than the group order.
         let ecdh_projective = pk_projective.scalar_mul(&private_key.0);
-        assert!(!ecdh_projective.is_point_at_infinity());
+        let at_infinity = ecdh_projective.is_point_at_infinity();
+        // The assertion never fails, so its outcome is public. Declassify it for the valgrind CT test.
+        libcrux_secrets::mem_requests::ct_declassify(&at_infinity);
+        assert!(!at_infinity);
 
         SharedSecret(ecdh_projective.to_affine_non_inf().x.to_be_bytes())
     }
@@ -152,7 +155,10 @@ impl From<&PrivateKey> for PublicKey {
         // key is a non-zero scalar less than the group order.
         let pk_projective = ProjectivePoint::generator().scalar_mul(&value.0);
 
-        assert!(!pk_projective.is_point_at_infinity());
+        let at_infinity = pk_projective.is_point_at_infinity();
+        // The assertion never fails, so its outcome is public. Declassify it for the valgrind CT test.
+        libcrux_secrets::mem_requests::ct_declassify(&at_infinity);
+        assert!(!at_infinity);
         Self(pk_projective.to_affine_non_inf())
     }
 }

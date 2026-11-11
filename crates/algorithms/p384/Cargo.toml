@@ -14,6 +14,7 @@ readme = "Readme.md"
 bench = false # so libtest doesn't eat the arguments to criterion
 
 [dependencies]
+libcrux-secrets.workspace = true
 rand = { workspace = true, default-features = false, optional = true }
 
 [dev-dependencies]
@@ -33,3 +34,6 @@ required-features = ["rand"]
 
 [package.metadata.docs.rs]
 all-features = true
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(valgrind_ct_test)'] }

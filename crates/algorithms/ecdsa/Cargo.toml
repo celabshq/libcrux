@@ -15,6 +15,7 @@ libcrux-p256 = { workspace = true, default-features = true, features = [
     "expose-hacl",
 ] }
 libcrux-sha2.workspace = true
+libcrux-secrets.workspace = true
 rand = { version = "0.10", optional = true, default-features = false }
 
 [features]
@@ -26,3 +27,6 @@ std = ["rand?/std"]
 rand_core = { version = "0.10" }
 rand = { version = "0.10", features = ["sys_rng"] }
 libcrux-kats = { workspace = true, features = ["ecdsa"] }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(valgrind_ct_test)'] }
