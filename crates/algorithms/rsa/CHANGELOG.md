@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- [#XXX](https://github.com/celabshq/libcrux/pull/XXX): Add an optimisation barrier to the modulus parity mask in `check_modulus_u64`
+- [#1653](https://github.com/celabshq/libcrux/pull/1653): Add an optimisation barrier to the modulus parity mask in `check_modulus_u64`. Reported by Marco Bertoni (@timmykill) and Aymeric Fromherz (@R1kM).
 
 ## [0.0.9] (2026-10-07)
 

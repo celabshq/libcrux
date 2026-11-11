@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- [#XXX](https://github.com/celabshq/libcrux/pull/XXX): Make the portable `infinity_norm_exceeds` branch-free
+- [#1653](https://github.com/celabshq/libcrux/pull/1653): Make the portable `infinity_norm_exceeds` branch-free
 
 ## [0.0.11] (2026-10-07)
 

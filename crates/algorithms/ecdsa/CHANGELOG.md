@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- [#XXX](https://github.com/celabshq/libcrux/pull/XXX): Remove the redundant, short-circuiting zero check in scalar validation, which leaked the position of the first non-zero byte of private keys and nonces
+- [#1653](https://github.com/celabshq/libcrux/pull/1653): Remove the redundant, short-circuiting zero check in scalar validation, which leaked the position of the first non-zero byte of private keys and nonces
 
 ## [0.0.9] (2026-10-07)
 
