@@ -1,0 +1,42 @@
+{
+  "vsId": 0,
+  "algorithm": "KDA",
+  "mode": "TwoStep",
+  "revision": "Sp800-56Cr2",
+  "isSample": true,
+  "l": 384,
+  "z": [
+    384,
+    640
+  ],
+  "usesHybridSharedSecret": false,
+  "performMultiExpansionTests": false,
+  "capabilities": [
+    {
+      "macSaltMethods": [
+        "default",
+        "random"
+      ],
+      "fixedInfoPattern": "label||literal[00]||uPartyInfo||vPartyInfo||l",
+      "encoding": [
+        "concatenation"
+      ],
+      "kdfMode": "feedback",
+      "macMode": [
+        "HMAC-SHA3-384"
+      ],
+      "customKeyInLength": 0,
+      "supportedLengths": [
+        384
+      ],
+      "fixedDataOrder": [
+        "before fixed data"
+      ],
+      "counterLength": [
+        32
+      ],
+      "requiresEmptyIv": true,
+      "supportsEmptyIv": true
+    }
+  ]
+}

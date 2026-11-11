@@ -1,7 +1,8 @@
 use super::super::schema_common::*;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 #[allow(non_snake_case)]
 pub struct EncapPrompt {
     pub tcId: usize,
@@ -21,12 +22,30 @@ pub struct DecapPrompt {
     #[serde(with = "hex::serde")]
     pub c: Vec<u8>,
 
-    #[serde(with = "hex::serde")]
-    pub dk: Vec<u8>,
+    #[serde(flatten)]
+    pub key: DecapKey,
+}
+
+/// The decapsulation key, either in expanded form or as the key generation seed,
+/// depending on the `keyFormat` of the test group, see [`DecapKey::key_format`].
+#[derive(Deserialize)]
+#[serde(untagged)]
+pub enum DecapKey {
+    Expanded {
+        #[serde(with = "hex::serde")]
+        dk: Vec<u8>,
+    },
+    Seed {
+        #[serde(with = "hex::serde")]
+        d: [u8; 32],
+        #[serde(with = "hex::serde")]
+        z: [u8; 32],
+    },
 }
 
 #[allow(non_snake_case)]
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct EncapKeyCheckPrompt {
     pub tcId: usize,
     #[serde(with = "hex::serde")]
@@ -35,6 +54,7 @@ pub struct EncapKeyCheckPrompt {
 
 #[allow(non_snake_case)]
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct DecapKeyCheckPrompt {
     pub tcId: usize,
     #[serde(with = "hex::serde")]
@@ -47,6 +67,8 @@ pub struct EncapDecapPromptTestGroup {
     pub tgId: usize,
     pub testType: String,
     pub parameterSet: String,
+    /// `"expanded"` or `"seed"` for decapsulation groups since `FIPS203-tr1`.
+    pub keyFormat: Option<String>,
     #[serde(flatten)]
     pub tests: EncapDecapTestPrompts,
 }
@@ -65,20 +87,20 @@ pub enum EncapDecapTestPrompts {
     DecapKeyCheck { tests: Vec<DecapKeyCheckPrompt> },
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(untagged)]
 #[allow(non_snake_case)]
 pub enum EncapDecapResult {
     EncapResult {
         tcId: usize,
-        #[serde(with = "hex::serde")]
+        #[serde(with = "upper_hex")]
         c: Vec<u8>,
-        #[serde(with = "hex::serde")]
+        #[serde(with = "upper_hex")]
         k: Vec<u8>,
     },
     DecapResult {
         tcId: usize,
-        #[serde(with = "hex::serde")]
+        #[serde(with = "upper_hex")]
         k: Vec<u8>,
     },
     KeyCheckResult {
@@ -98,3 +120,48 @@ impl TestResult for EncapDecapResult {
 }
 
 pub type ResultEncapDecapTestGroup = TestGroupResults<EncapDecapResult>;
+
+impl DecapKey {
+    /// The `keyFormat` of this key, `"expanded"` or `"seed"`.
+    pub fn key_format(&self) -> &'static str {
+        match self {
+            Self::Expanded { .. } => "expanded",
+            Self::Seed { .. } => "seed",
+        }
+    }
+}
+
+impl EncapDecapTestPrompts {
+    /// The `function` of the test group.
+    pub fn function(&self) -> &'static str {
+        match self {
+            Self::EncapTests { .. } => "encapsulation",
+            Self::DecapTests { .. } => "decapsulation",
+            Self::EncapKeyCheck { .. } => "encapsulationKeyCheck",
+            Self::DecapKeyCheck { .. } => "decapsulationKeyCheck",
+        }
+    }
+}
+
+impl_test_case!(
+    EncapPrompt,
+    DecapPrompt,
+    EncapKeyCheckPrompt,
+    DecapKeyCheckPrompt
+);
+
+impl TestIds for EncapDecapPromptTestGroup {
+    fn test_ids(&self) -> Vec<(usize, usize)> {
+        let tc_ids: Vec<usize> = match &self.tests {
+            EncapDecapTestPrompts::EncapTests { tests } => tests.iter().map(|t| t.tcId).collect(),
+            EncapDecapTestPrompts::DecapTests { tests } => tests.iter().map(|t| t.tcId).collect(),
+            EncapDecapTestPrompts::EncapKeyCheck { tests } => {
+                tests.iter().map(|t| t.tcId).collect()
+            }
+            EncapDecapTestPrompts::DecapKeyCheck { tests } => {
+                tests.iter().map(|t| t.tcId).collect()
+            }
+        };
+        tc_ids.into_iter().map(|tc_id| (self.tgId, tc_id)).collect()
+    }
+}

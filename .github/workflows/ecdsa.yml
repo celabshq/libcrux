@@ -8,6 +8,7 @@ on:
     branches: ["main", "dev", "*"]
     paths:
       - "crates/algorithms/ecdsa/**"
+      - "crates/testing/kats/**"
       - .github/workflows/ecdsa.yml
   workflow_dispatch:
 

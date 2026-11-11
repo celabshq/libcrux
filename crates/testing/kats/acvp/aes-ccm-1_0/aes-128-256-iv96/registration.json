@@ -1,0 +1,33 @@
+{
+  "vsId": 0,
+  "algorithm": "ACVP-AES-CCM",
+  "revision": "1.0",
+  "isSample": false,
+  "conformances": [],
+  "keyLen": [
+    128,
+    256
+  ],
+  "payloadLen": [
+    {
+      "min": 0,
+      "max": 256,
+      "increment": 8
+    }
+  ],
+  "ivLen": [
+    96
+  ],
+  "aadLen": [
+    {
+      "min": 0,
+      "max": 524288,
+      "increment": 8
+    }
+  ],
+  "tagLen": [
+    64,
+    128
+  ],
+  "supportsAad2Pow16": true
+}

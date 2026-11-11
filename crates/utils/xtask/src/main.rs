@@ -7,6 +7,8 @@ use std::{
 use clap::{Parser, Subcommand};
 use colored::*;
 
+mod acvp;
+
 #[derive(Parser)]
 #[command(name = "xtask", about = "Build and development tasks for libcrux")]
 struct Cli {
@@ -46,6 +48,11 @@ enum Task {
         #[arg(long)]
         workspace: bool,
     },
+    /// ACVP test vector generation and validation with the ACVP-Server gen/val tools.
+    Acvp {
+        #[command(subcommand)]
+        task: acvp::AcvpTask,
+    },
 }
 
 fn main() {
@@ -66,6 +73,7 @@ fn main() {
             };
             run_dir.and_then(|d| cleanup_profraw(&d, cli.global.verbose))
         }
+        Task::Acvp { task } => acvp::acvp(cli.global, task),
     };
 
     if let Err(e) = result {

@@ -39,8 +39,8 @@ pub struct FeedbackHmacTests {
     pub results: super::schema_common::Results<schema::ResultKbkdfTestGroup>,
 }
 
-super::impl_tests!(
-    FeedbackHmacTests,
-    "kdf-1_0",
-    "feedback-hmac-ctr32-before-fixed"
-);
+impl FeedbackHmacTests {
+    pub fn load() -> Self {
+        load!("kdf-1_0", "feedback-hmac-ctr32-before-fixed")
+    }
+}

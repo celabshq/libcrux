@@ -28,6 +28,7 @@ std = ["rand/std", "tls_codec?/std"]
 codec = ["dep:tls_codec"]
 
 [dev-dependencies]
+libcrux-kats = { workspace = true, features = ["kas-ecc"] }
 rand = { version = "0.10", features = ["sys_rng"] }
 rand_core = { version = "0.10" }
 hex = { version = "0.4.3", features = ["serde"] }

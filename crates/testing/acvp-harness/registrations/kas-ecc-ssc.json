@@ -1,0 +1,58 @@
+{
+  "vsId": 0,
+  "algorithm": "KAS-ECC-SSC",
+  "revision": "Sp800-56Ar3",
+  "isSample": false,
+  "scheme": {
+    "ephemeralUnified": {
+      "scheme": "ephemeralUnified",
+      "underlyingAlgorithm": "ECC",
+      "algoMode": "KAS-ECC-SSC-SP800-56Ar3",
+      "kasRole": [
+        "initiator",
+        "responder"
+      ]
+    },
+    "fullUnified": {
+      "scheme": "fullUnified",
+      "underlyingAlgorithm": "ECC",
+      "algoMode": "KAS-ECC-SSC-SP800-56Ar3",
+      "kasRole": [
+        "initiator",
+        "responder"
+      ]
+    },
+    "onePassDh": {
+      "scheme": "onePassDh",
+      "underlyingAlgorithm": "ECC",
+      "algoMode": "KAS-ECC-SSC-SP800-56Ar3",
+      "kasRole": [
+        "initiator",
+        "responder"
+      ]
+    },
+    "onePassUnified": {
+      "scheme": "onePassUnified",
+      "underlyingAlgorithm": "ECC",
+      "algoMode": "KAS-ECC-SSC-SP800-56Ar3",
+      "kasRole": [
+        "initiator",
+        "responder"
+      ]
+    },
+    "staticUnified": {
+      "scheme": "staticUnified",
+      "underlyingAlgorithm": "ECC",
+      "algoMode": "KAS-ECC-SSC-SP800-56Ar3",
+      "kasRole": [
+        "initiator",
+        "responder"
+      ]
+    }
+  },
+  "domainParameterGenerationMethods": [
+    "P-256",
+    "P-384"
+  ],
+  "hashFunctionZ": "none"
+}

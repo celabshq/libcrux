@@ -11,6 +11,7 @@ use libcrux_kats::acvp::{
         schema::{TwoStepPrompt, TwoStepResult},
         TwoStepFeedbackHmacTests,
     },
+    schema_common::{assert_covers, Tally},
 };
 use libcrux_nist_kdf::{feedback, two_step};
 
@@ -24,9 +25,9 @@ fn check<const OUTLEN: usize, H: HmacState<OUTLEN>>(test: &KbkdfPrompt, expected
 fn feedback_hmac() {
     let FeedbackHmacTests { prompts, results } = FeedbackHmacTests::load();
     assert_eq!(prompts.algorithm, "KDF");
-    assert_eq!(results.algorithm, "KDF");
+    assert_covers(&prompts, &results);
 
-    let mut tested = 0;
+    let mut tally = Tally::new();
     for group in prompts.testGroups {
         assert_eq!(group.testType, "AFT");
         assert_eq!(group.kdfMode, "feedback");
@@ -35,6 +36,7 @@ fn feedback_hmac() {
 
         // The KDF only outputs whole bytes.
         if group.keyOutLength % 8 != 0 {
+            tally.add_n("skipped: keyOutLength not whole bytes", group.tests.len());
             continue;
         }
 
@@ -47,7 +49,10 @@ fn feedback_hmac() {
             "HMAC-SHA3-384" => check::<48, HmacSha3_384>,
             "HMAC-SHA3-512" => check::<64, HmacSha3_512>,
             // Not supported by libcrux-hmac.
-            "HMAC-SHA-1" | "HMAC-SHA2-224" | "HMAC-SHA2-512/224" | "HMAC-SHA2-512/256" => continue,
+            "HMAC-SHA-1" | "HMAC-SHA2-224" | "HMAC-SHA2-512/224" | "HMAC-SHA2-512/256" => {
+                tally.add_n("skipped: unsupported macMode", group.tests.len());
+                continue;
+            }
             mac => panic!("unexpected macMode {mac}"),
         };
 
@@ -56,11 +61,14 @@ fn feedback_hmac() {
             assert_eq!(expected.keyOut.len() * 8, group.keyOutLength);
             assert_eq!(test.iv.is_empty(), group.zeroLengthIv);
             check(test, expected);
-            tested += 1;
+            tally.add("AFT");
         }
     }
-    // Guard against silently skipping all tests.
-    assert_eq!(tested, 100);
+    tally.assert_counts([
+        ("AFT", 100),
+        ("skipped: keyOutLength not whole bytes", 108 + 56),
+        ("skipped: unsupported macMode", 68),
+    ]);
 }
 
 /// `two_step::kdf` with the HMAC fixed by the caller.
@@ -114,11 +122,28 @@ fn check_two_step(
 
 #[test]
 fn two_step_hmac() {
-    let mut tested = 0;
-    for TwoStepFeedbackHmacTests { prompts, results } in TwoStepFeedbackHmacTests::load_all() {
+    two_step(TwoStepFeedbackHmacTests::load_all()).assert_counts([
+        ("AFT single", 3 * 700),
+        ("AFT multi-expansion", 3 * 700),
+        ("VAL single", 3 * 700),
+        ("VAL multi-expansion", 3 * 700),
+    ]);
+}
+
+#[test]
+fn two_step_hmac_3kem() {
+    two_step(TwoStepFeedbackHmacTests::load_3kem())
+        .assert_counts([("AFT single", 65), ("VAL single", 65)]);
+}
+
+/// Run the two-step KDF tests, returning the test cases per test type.
+fn two_step(tests: Vec<TwoStepFeedbackHmacTests>) -> Tally {
+    let mut tally = Tally::new();
+    for TwoStepFeedbackHmacTests { prompts, results } in tests {
         assert_eq!(prompts.algorithm, "KDA");
         assert_eq!(prompts.mode, "TwoStep");
         assert_eq!(prompts.revision, "Sp800-56Cr2");
+        assert_covers(&prompts, &results);
 
         for group in prompts.testGroups {
             assert!(!group.usesHybridSharedSecret);
@@ -131,7 +156,6 @@ fn two_step_hmac() {
                         assert_eq!(config.kdfMode, "feedback");
                         assert_eq!(config.counterLen, 32);
                         assert_eq!(config.counterLocation, "before fixed data");
-                        assert_eq!(config.fixedInfoPattern, "uPartyInfo||vPartyInfo||l");
                         assert_eq!(config.fixedInfoEncoding, "concatenation");
 
                         let param = &test.kdfParameter;
@@ -140,18 +164,13 @@ fn two_step_hmac() {
                         assert_eq!(param.salt.len() * 8, config.saltLen);
                         assert_eq!(param.z.len() * 8, group.zLength);
 
-                        // uPartyInfo || vPartyInfo || l, with l as a 32-bit big endian integer.
-                        let u = test.fixedInfoPartyU.encode();
-                        let v = test.fixedInfoPartyV.encode();
-                        let l = u32::try_from(param.l).unwrap().to_be_bytes();
-
                         let mut dkm = vec![0; param.l / 8];
                         two_step_kdf_for(&config.macMode)(
                             &mut dkm,
                             &param.z,
                             &param.salt,
                             &param.iv,
-                            &[&u, &v, &l],
+                            &[&test.fixed_info(&config.fixedInfoPattern)],
                         );
 
                         let expected = results.find_expected_result(group.tgId, test.tcId);
@@ -163,6 +182,7 @@ fn two_step_hmac() {
                             expected.dkm.as_ref().map(core::slice::from_ref),
                             expected,
                         );
+                        tally.add(format!("{} single", group.testType));
                     }
                     TwoStepPrompt::MultiExpansion(test) => {
                         let config = group.kdfMultiExpansionConfiguration.as_ref().unwrap();
@@ -203,12 +223,11 @@ fn two_step_hmac() {
                             expected.dkms.as_deref(),
                             expected,
                         );
+                        tally.add(format!("{} multi-expansion", group.testType));
                     }
                 }
-                tested += 1;
             }
         }
     }
-    // Guard against silently skipping tests.
-    assert_eq!(tested, 3 * 2800);
+    tally
 }

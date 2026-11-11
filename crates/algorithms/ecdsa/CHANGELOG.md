@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - [#1653](https://github.com/celabshq/libcrux/pull/1653): Remove the redundant, short-circuiting zero check in scalar validation, which leaked the position of the first non-zero byte of private keys and nonces
+- [#1655](https://github.com/celabshq/libcrux/pull/1655): `p256::PublicKey::try_from` picks the encoding by the length of the input. A 64-byte
+  `X || Y` key whose `X` starts with `0x02` or `0x03` was read as a compressed point. (@mtrossbach)
+
+### Changed
+
+- [#1655](https://github.com/celabshq/libcrux/pull/1655): `p256::PublicKey::try_from`, `p256::uncompressed_to_coordinates` and
+  `p256::compressed_to_coordinates` accept only the exact length of an encoding (65 bytes uncompressed,
+  33 compressed, 64 for `X || Y`). Trailing bytes after the key were ignored before and are now rejected. (@mtrossbach)
 
 ## [0.0.9] (2026-10-07)
 
