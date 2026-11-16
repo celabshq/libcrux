@@ -28,11 +28,11 @@
 //!
 //! # Disabling zeroization
 //!
-//! The `disable-zeroization` feature turns all zeroization in libcrux into a
-//! no-op, for builds that need the last few percent of performance on short
-//! inputs and do not need to destroy secrets. Do not enable it in builds that
-//! need FIPS 140-3 compliance. Cargo unifies features, so if any crate in the
-//! dependency graph enables it, zeroization is disabled for the whole build.
+//! Building with `--cfg libcrux_disable_zeroization` (e.g. via `RUSTFLAGS`)
+//! turns all zeroization in libcrux into a no-op, for builds that need the
+//! last few percent of performance on short inputs and do not need to destroy
+//! secrets. This is a `cfg` rather than a Cargo feature so that only the final
+//! build can set it, not any crate in the dependency graph.
 
 use core::ops::{Deref, DerefMut};
 
@@ -85,13 +85,13 @@ pub trait Zeroize {
 
 /// Whether this build wipes secrets.
 ///
-/// `false` if the `disable-zeroization` feature is enabled, and in code
+/// `false` if built with `--cfg libcrux_disable_zeroization`, and in code
 /// extracted with hax or Eurydice.
-pub const ZEROIZATION_ENABLED: bool = !cfg!(any(feature = "disable-zeroization", hax, eurydice));
+pub const ZEROIZATION_ENABLED: bool = !cfg!(any(libcrux_disable_zeroization, hax, eurydice));
 
 /// Overwrite all elements of `slice` with `zero`, in a way that the compiler
 /// does not remove.
-#[cfg(not(any(feature = "disable-zeroization", hax, eurydice)))]
+#[cfg(not(any(libcrux_disable_zeroization, hax, eurydice)))]
 #[inline(always)]
 fn wipe<T: Copy>(slice: &mut [T], zero: T) {
     cfg_select! {
@@ -134,7 +134,7 @@ fn wipe<T: Copy>(slice: &mut [T], zero: T) {
 /// i.e. `aarch64`, `arm`, `arm64ec`, `loongarch64`, `riscv32`, `riscv64`, `s390x`, `x86`, and
 /// `x86_64`.
 #[cfg(all(
-    not(miri),
+    not(any(miri, libcrux_disable_zeroization, hax, eurydice)),
     any(
         target_arch = "aarch64",
         target_arch = "arm",
@@ -187,16 +187,16 @@ macro_rules! impl_zeroize_scalar {
         impl Zeroize for $t {
             #[inline]
             fn zeroize(&mut self) {
-                #[cfg(not(any(feature = "disable-zeroization", hax, eurydice)))]
+                #[cfg(not(any(libcrux_disable_zeroization, hax, eurydice)))]
                 wipe(core::slice::from_mut(self), $zero);
             }
 
             #[cfg(not(hax))]
             #[inline]
             fn zeroize_slice(slice: &mut [Self]) {
-                #[cfg(not(any(feature = "disable-zeroization", hax, eurydice)))]
+                #[cfg(not(any(libcrux_disable_zeroization, hax, eurydice)))]
                 wipe(slice, $zero);
-                #[cfg(any(feature = "disable-zeroization", hax, eurydice))]
+                #[cfg(any(libcrux_disable_zeroization, hax, eurydice))]
                 let _ = slice;
             }
         }
@@ -328,7 +328,7 @@ impl<T: Zeroize> Drop for Zeroizing<T> {
     }
 }
 
-#[cfg(all(test, not(feature = "disable-zeroization")))]
+#[cfg(all(test, not(libcrux_disable_zeroization)))]
 mod tests {
     // Note that these tests don't test zeroization where it really matters.
     // These are functional tests to make sure that the code works. Not that the

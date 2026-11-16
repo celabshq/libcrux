@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `Zeroize` trait and `Zeroizing` wrapper for wiping secrets, backed by the
   `zeroize` crate for now.
-- `disable-zeroization` feature that turns all zeroization into a no-op.
+- `libcrux_disable_zeroization` cfg that turns all zeroization into a no-op.
 - `ZEROIZATION_ENABLED` constant, `false` when zeroization is disabled.
 
 ## [0.0.8] (2026-11-19)

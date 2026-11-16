@@ -31,10 +31,10 @@ there, and there are no destructors that wipe on drop.
 `Zeroize` is libcrux's own trait, not the `zeroize` crate's `Zeroize`. Code
 that imports both needs qualified paths.
 
-The `disable-zeroization` feature turns all zeroization into a no-op. Do not
-enable it in builds that need FIPS 140-3 compliance. Because Cargo unifies
-features, any crate in the dependency graph that enables it disables
-zeroization for the whole build.
+Building with `--cfg libcrux_disable_zeroization` (e.g.
+`RUSTFLAGS="--cfg libcrux_disable_zeroization"`) turns all zeroization into a
+no-op. It is a `cfg` rather than a Cargo feature so that only the final build
+can set it, not any crate in the dependency graph.
 
 ## Valgrind Integration
 
