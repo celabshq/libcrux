@@ -10,7 +10,7 @@ on:
       - 'crates/algorithms/hkdf/**/*.rs'
       - 'crates/primitives/aead/**/*.rs'
       - 'crates/primitives/kem/**/*.rs'
-      - 'traits/**/*.rs'
+      - 'crates/utils/traits/**/*.rs'
 
 env:
   CARGO_TERM_COLOR: always

@@ -35,7 +35,7 @@ on:
       - "crates/utils/intrinsics/**"
       - "crates/utils/secrets/**"
       - "crates/utils/xtask/**"
-      - "traits/**"
+      - "crates/utils/traits/**"
       - "Cargo.toml"
       - "Cargo.lock"
       - ".github/workflows/acvp.yml"

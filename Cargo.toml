@@ -78,7 +78,7 @@ members = [
     "crates/algorithms/ml-kem/fuzz",
     "crates/protocols/psq",
     "crates/protocols/psq/fuzz",
-    "traits",
+    "crates/utils/traits",
     "crates/algorithms/p384",
     "crates/algorithms/p384/fuzz",
     "crates/algorithms/nist-kdf",
@@ -138,7 +138,7 @@ hpke-rs-libcrux = { version = "=0.8.0", path = "crates/protocols/hpke/libcrux_pr
 # For the crates below it is necessary to set `default-features = true`
 # in workspace crates that depend on the default feature set.
 libcrux-kem = { version = "=0.0.10", path = "crates/primitives/kem", default-features = false }
-libcrux-traits = { version = "=0.0.9", path = "traits" }
+libcrux-traits = { version = "=0.0.9", path = "crates/utils/traits" }
 libcrux-ecdh = { version = "=0.0.9", path = "crates/primitives/ecdh", default-features = false }
 libcrux-curve25519 = { version = "=0.0.9", path = "crates/algorithms/curve25519", default-features = false }
 libcrux-ml-kem = { version = "=0.0.11", path = "crates/algorithms/ml-kem", default-features = false }
