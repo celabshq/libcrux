@@ -40,175 +40,45 @@ jobs:
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION_TAG }}
     outputs:
       image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION_TAG }}
-  extract-ml-kem-c-header-only:
+
+  # Check every C extraction with the new image, the same way the regular
+  # C workflows do (see c-extraction.yml).
+  ml-kem-c:
     needs: [build-and-push-image]
-    runs-on: ubuntu-latest
-    container:
+    uses: ./.github/workflows/c-extraction.yml
+    with:
+      extraction: ml-kem-c
       image: ${{ needs.build-and-push-image.outputs.image }}
-    defaults:
-      run:
-        working-directory: libcrux-ml-kem/extracts/c_header_only
-        shell: bash
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      force-extract: true
 
-      - name: Extract C (header only)
-        run: |
-          export HOME=/home/user
-          ./extract.sh
-      - name: Upload header only C extraction
-        uses: actions/upload-artifact@v7
-        with:
-          name: extraction-ml-kem-c-header-only
-          path: libcrux-ml-kem/extracts/c_header_only/generated
-          include-hidden-files: true
-          if-no-files-found: error
-  extract-ml-kem-cpp-header-only:
+  ml-kem-c-header-only:
     needs: [build-and-push-image]
-    runs-on: ubuntu-latest
-    container:
+    uses: ./.github/workflows/c-extraction.yml
+    with:
+      extraction: ml-kem-c-header-only
       image: ${{ needs.build-and-push-image.outputs.image }}
-    defaults:
-      run:
-        working-directory: libcrux-ml-kem/extracts/cpp_header_only
-        shell: bash
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      force-extract: true
 
-      - name: Extract C++ (header only)
-        run: |
-          export HOME=/home/user
-          ./extract.sh --no-clean
-
-      - name: Upload header only C++ extraction
-        uses: actions/upload-artifact@v7
-        with:
-          name: extraction-ml-kem-cpp-header-only
-          path: libcrux-ml-kem/extracts/cpp_header_only/generated
-          include-hidden-files: true
-          if-no-files-found: error
-  extract-ml-dsa-header-only:
+  ml-kem-cpp-header-only:
     needs: [build-and-push-image]
-    runs-on: ubuntu-latest
-    container:
+    uses: ./.github/workflows/c-extraction.yml
+    with:
+      extraction: ml-kem-cpp-header-only
       image: ${{ needs.build-and-push-image.outputs.image }}
-    defaults:
-      run:
-        working-directory: libcrux-ml-dsa
-        shell: bash
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      force-extract: true
 
-      - name: Extract C (header only)
-        run: |
-          export HOME=/home/user
-          ./boring.sh --no-clean
+  ml-dsa-header-only:
+    needs: [build-and-push-image]
+    uses: ./.github/workflows/c-extraction.yml
+    with:
+      extraction: ml-dsa-header-only
+      image: ${{ needs.build-and-push-image.outputs.image }}
+      force-extract: true
 
-      - name: Upload header only C extraction
-        uses: actions/upload-artifact@v7
-        with:
-          name: extraction-ml-dsa-header-only
-          path: libcrux-ml-dsa/cg/
-          include-hidden-files: true
-          if-no-files-found: error
-  test-build-ml-kem-c-header-only:
-    needs: [extract-ml-kem-c-header-only]
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - macos-latest
-          - ubuntu-latest
-          - windows-latest
-
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - uses: actions/download-artifact@v8
-        with:
-          name: extraction-ml-kem-c-header-only
-          
-      - name: 🔨 Build
-        run: |
-          LIBCRUX_BENCHMARKS=1 cmake -B build
-          cmake --build build
-
-      - name: 🏃🏻‍♀️ Test
-        run: ./build/Debug/ml_kem_test768
-        if: ${{ matrix.os == 'windows-latest' }}
-
-      - name: 🏃🏻‍♀️ Test
-        run: ./build/ml_kem_test768
-        if: ${{ matrix.os != 'windows-latest' }}
-
-      - name: 🔨 Build Release
-        run: |
-          rm -rf build
-          LIBCRUX_BENCHMARKS=1 cmake -B build -DCMAKE_BUILD_TYPE=Release
-          cmake --build build --config Release
-        if: ${{ matrix.os != 'windows-latest' }}
-  test-build-ml-kem-cpp-header-only:
-    needs: [extract-ml-kem-cpp-header-only]
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - macos-latest
-          - ubuntu-latest
-          - windows-latest
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - uses: actions/download-artifact@v8
-        with:
-          name: extraction-ml-kem-cpp-header-only
-
-      - name: 🔨 Build
-        run: |
-          cmake -B build
-          cmake --build build
-      # FIXME: Benchmark build for cg on Windows CI is not working right now.
-
-      - name: 🏃🏻‍♀️ Test
-        run: ./build/ml_kem_test768
-        if: ${{ matrix.os != 'windows-latest' }}
-
-      - name: 🏃🏻‍♀️ Test
-        run: ./build/Debug/ml_kem_test768
-        if: ${{ matrix.os == 'windows-latest' }}
-
-  test-build-ml-dsa-header-only:
-    needs: [extract-ml-dsa-header-only]
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - macos-latest
-          - ubuntu-latest
-          - windows-latest
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - uses: actions/download-artifact@v8
-        with:
-          name: extraction-ml-dsa-header-only
-
-      - name: 🔨 Build
-        run: |
-          cmake -B build
-          cmake --build build
-
-      - name: 🏃🏻‍♀️ Test
-        run: ./build/ml_dsa_test
-        if: ${{ matrix.os != 'windows-latest' }}
-
-      - name: 🏃🏻‍♀️ Test
-        run: ./build/Debug/ml_dsa_test
-        if: ${{ matrix.os == 'windows-latest' }}
-
+  combined:
+    needs: [build-and-push-image]
+    uses: ./.github/workflows/c-extraction.yml
+    with:
+      extraction: combined
+      image: ${{ needs.build-and-push-image.outputs.image }}
+      force-extract: true
