@@ -41,7 +41,8 @@ on:
         type: boolean
         default: false
 
-# None of the jobs need to write to the repository.
+# None of the jobs need to write to the repository. The extract job also
+# gets `packages: read` to pull the CI image.
 permissions:
   contents: read
 
@@ -132,6 +133,11 @@ jobs:
     needs: [setup]
     if: ${{ needs.setup.outputs.extract == 'true' }}
     runs-on: ubuntu-latest
+    # The runner pulls the (private) CI image from ghcr.io with the
+    # GITHUB_TOKEN, which needs `packages: read`.
+    permissions:
+      contents: read
+      packages: read
     container:
       image: ${{ needs.setup.outputs.image }}
     defaults:
