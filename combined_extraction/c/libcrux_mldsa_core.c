@@ -8,7 +8,7 @@
  * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
  * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
  * F*: 7b347386330d0e5a331a220535b6f15288903234
- * Libcrux: dirty
+ * Libcrux: 7ca2c8bafea14567006c0dc1e4bca860b42242f7
  */
 
 
@@ -409,7 +409,7 @@ libcrux_ml_dsa_simd_portable_arithmetic_infinity_norm_exceeds(
   int32_t bound
 )
 {
-  bool result = false;
+  uint8_t result = 0U;
   KRML_MAYBE_FOR8(i,
     (size_t)0U,
     (size_t)8U,
@@ -418,8 +418,9 @@ libcrux_ml_dsa_simd_portable_arithmetic_infinity_norm_exceeds(
     int32_t coefficient = simd_unit->data[i0];
     int32_t sign = coefficient >> 31U;
     int32_t normalized = coefficient - (sign & 2 * coefficient);
-    result = result || normalized >= bound;);
-  return result;
+    uint8_t exceeds = (uint8_t)(normalized >= bound);
+    result = (uint32_t)result | (uint32_t)exceeds;);
+  return result != 0U;
 }
 
 /**
