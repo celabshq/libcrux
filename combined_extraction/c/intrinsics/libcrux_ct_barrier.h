@@ -14,10 +14,10 @@
  * Eurydice from extracting `constant_time_ops::barrier` and includes this
  * header instead.
  *
- * The value makes a round-trip through a `volatile` local in a function that
- * is not inlined, so the compiler cannot reason about the result (for
- * example, that it is either 0 or 1) and turn the masking code that uses it
- * into a branch.
+ * The value makes a round-trip through a `volatile` local, so the
+ * compiler cannot reason about the result (for example, that it is
+ * either 0 or 1) and turn the masking code that uses it into a
+ * branch.
  *
  * Keep the copies of this file in all C extractions identical.
  */
