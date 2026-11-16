@@ -8,123 +8,27 @@ on:
     branches: ["main", "dev"]
   workflow_dispatch:
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}-c
-  VERSION_TAG: latest
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# All C extractions are checked by the same reusable workflow, see
+# c-extraction.yml.
 jobs:
-  setup:
-    if: ${{ github.event_name != 'pull_request' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: dorny/paths-filter@v4
-        id: changes
-        with:
-          filters: |
-            docker-c:
-              - ".docker/c/**"
-        # If one of the above files is changed,
-        # `steps.changes.outputs.docker-c` = 'true'.
-    outputs:
-      # only run if files in `.docker/c/` unchanged
-      should-run: ${{ steps.changes.outputs.docker-c == 'false' }}
-      image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION_TAG }}
+  header-only:
+    uses: ./.github/workflows/c-extraction.yml
+    with:
+      extraction: ml-dsa-header-only
 
   mldsa-c-tests-status:
     if: ${{ always() }}
     needs:
-      - setup
-      - extract-header-only
-      - diff-header-only
-      - build-header-only
+      - header-only
     runs-on: ubuntu-latest
     steps:
       - name: Successful
-        if: ${{ !(contains(needs.*.result, 'failure')) }} 
-        run: exit 0 
+        if: ${{ !(contains(needs.*.result, 'failure')) }}
+        run: exit 0
       - name: Failing
-        if: ${{ (contains(needs.*.result, 'failure')) }} 
-        run: exit 1 
-
-  extract-header-only:
-    needs: [setup]
-    if: ${{ needs.setup.outputs.should-run == 'true' }}
-    runs-on: ubuntu-latest
-    container:
-      image: ${{ needs.setup.outputs.image }}
-    defaults:
-      run:
-        working-directory: libcrux-ml-dsa
-        shell: bash
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-
-      - name: Extract C (header only)
-        run: |
-          export HOME=/home/user
-          ./boring.sh --no-clean
-
-      - name: Upload header only C extraction
-        uses: actions/upload-artifact@v7
-        with:
-          name: header-only-c-extraction-ml-dsa
-          path: libcrux-ml-dsa/cg/
-          include-hidden-files: true
-          if-no-files-found: error
-
-  diff-header-only:
-    needs: [extract-header-only]
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - uses: actions/download-artifact@v8
-        with:
-          name: header-only-c-extraction-ml-dsa
-          path: ~/mldsa-c-extraction
-
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-
-      - name: Diff Extraction
-        run: |
-          libcrux-ml-kem/extracts/common/headers_kill_revs.sh libcrux-ml-dsa/cg
-          libcrux-ml-kem/extracts/common/headers_kill_revs.sh ~/mldsa-c-extraction
-          diff -r libcrux-ml-dsa/cg ~/mldsa-c-extraction
-
-  build-header-only:
-    needs: [extract-header-only]
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - macos-latest
-          - ubuntu-latest
-          - windows-latest
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - uses: actions/download-artifact@v8
-        with:
-          name: header-only-c-extraction-ml-dsa
-
-      - name: 🔨 Build
-        run: |
-          CC=clang CXX=clang++ cmake -B build
-          cmake --build build
-
-      - name: 🏃🏻‍♀️ Test
-        run: ./build/ml_dsa_test
-        if: ${{ matrix.os != 'windows-latest' }}
-
-      - name: 🏃🏻‍♀️ Test
-        run: ./build/Debug/ml_dsa_test
-        if: ${{ matrix.os == 'windows-latest' }}
+        if: ${{ (contains(needs.*.result, 'failure')) }}
+        run: exit 1

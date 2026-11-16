@@ -13,6 +13,11 @@ files:
     api:
       - [libcrux_intrinsics, avx2]
 
+  # Constant time ops
+  - name: libcrux_ct_ops
+    api:
+      - [libcrux_ml_kem, constant_time_ops]
+
   # SHA3 (no mention of libcrux_mlkem in this section, please)
 
   # Keep the per-target seperation idea: each SHA3 variant in its own file

@@ -1,58 +1,37 @@
 name: Combined Extraction - Build & Test C
 
 on:
+  merge_group:
   push:
-    branches: ["main"]
-    paths:
-      - "combined_extraction/**"
+    branches: ["main", "dev"]
   pull_request:
-    branches: ["main"]
-    paths:
-      - "combined_extraction/**"
+    branches: ["main", "dev"]
   workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# All C extractions are checked by the same reusable workflow, see
+# c-extraction.yml. One extraction run produces both output directories.
 jobs:
-  # just build and run the checked-in C and C-header-only variants.
-  build-test:
-    strategy:
-      fail-fast: false
-      matrix:
-        variant:
-          - c
-          - c-header-only
-        os:
-          - macos-latest
-          - ubuntu-latest
-          - windows-latest
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        working-directory: combined_extraction/${{ matrix.variant }}
-        shell: bash
+  combined:
+    uses: ./.github/workflows/c-extraction.yml
+    with:
+      extraction: combined
+
+  combined-c-tests-status:
+    if: ${{ always() }}
+    needs:
+      - combined
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-
-      - name: Set CC and CXX to Clang on Ubuntu
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          echo "CC=clang" >> $GITHUB_ENV
-          echo "CXX=clang++" >> $GITHUB_ENV
-
-      # CMAKE_BUILD_TYPE covers single-config generators (Makefiles/Ninja),
-      # --config/-C covers multi-config ones (Visual Studio on Windows). Each
-      # is ignored by the generator it doesn't apply to, so the same commands
-      # work on all three runners.
-      - name: 🔨 Build
-        run: |
-          cmake -B build -DCMAKE_BUILD_TYPE=Debug
-          cmake --build build --config Debug
-
-      - name: 🏃🏻‍♀️ Test
-        run: ctest --test-dir build -C Debug --output-on-failure
+      - name: Successful
+        if: ${{ !(contains(needs.*.result, 'failure')) }}
+        run: exit 0
+      - name: Failing
+        if: ${{ (contains(needs.*.result, 'failure')) }}
+        run: exit 1
 
   # # ASan/UBSan leg, Linux + clang only. Note: gcc 14 + sanitizers on the
   # # c-header-only variant has been observed to exhaust RAM during linking in
