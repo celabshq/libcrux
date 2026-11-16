@@ -69,9 +69,9 @@ and `KRML_HOME` are set. Formatting needs `clang-format-18` on the `PATH`.
 
 | Output directory                                    | Algorithms                            | Layout                        | Script                     | Config                  |
 |-----------------------------------------------------|---------------------------------------|-------------------------------|----------------------------|-------------------------|
-| `libcrux-ml-kem/extracts/c/generated`               | ML-KEM 768, 1024 (portable only)      | `.c` + `.h`                   | `extract.sh`               | `extract.yaml`          |
-| `libcrux-ml-kem/extracts/c_header_only/generated`   | ML-KEM 768 (portable + AVX2)          | header-only, C / C++20        | `extract.sh`               | `extract.yaml`          |
-| `libcrux-ml-kem/extracts/cpp_header_only/generated` | ML-KEM 768 (portable + AVX2)          | header-only, C++17-compatible | `extract.sh`               | `extract.yaml`          |
+| `crates/algorithms/ml-kem/extracts/c/generated`               | ML-KEM 768, 1024 (portable only)      | `.c` + `.h`                   | `extract.sh`               | `extract.yaml`          |
+| `crates/algorithms/ml-kem/extracts/c_header_only/generated`   | ML-KEM 768 (portable + AVX2)          | header-only, C / C++20        | `extract.sh`               | `extract.yaml`          |
+| `crates/algorithms/ml-kem/extracts/cpp_header_only/generated` | ML-KEM 768 (portable + AVX2)          | header-only, C++17-compatible | `extract.sh`               | `extract.yaml`          |
 | `crates/algorithms/ml-dsa/cg`                                 | ML-DSA 65 (portable + AVX2)           | header-only, C++17-compatible | `boring.sh`                | `cg.yaml`               |
 | `combined_extraction/c`                             | ML-KEM 512/768/1024 + ML-DSA 44/65/87 | `.c` + `.h`                   | `extract.sh`               | `extract-c.yaml`        |
 | `combined_extraction/c-header-only`                 | ML-KEM 512/768/1024 + ML-DSA 44/65/87 | header-only, C++17-compatible | `extract.sh --header-only` | `extract-c-header.yaml` |
@@ -102,7 +102,7 @@ cd combined_extraction
 ```
 
 Unlike the per-crate scripts, `extract.sh` runs Charon separately in
-`crates/utils/secrets`, `crates/algorithms/sha3`, `libcrux-ml-kem` and
+`crates/utils/secrets`, `crates/algorithms/sha3`, `crates/algorithms/ml-kem` and
 `crates/algorithms/ml-dsa`, then passes all four `.llbc` files to Eurydice at once. It
 does not run clang-format, and does not copy the glue or KaRaMeL headers.
 `c-header-only/` shares `tests/`, `intrinsics/` and `karamel/` with `c/` via
@@ -121,11 +121,11 @@ ASan/UBSan, and `LIBCRUX_KYBER=1` for the Kyber 768 test.
 
 ## Convenience scripts
 
-- [`c.sh`](c.sh) at the repository root runs `libcrux-ml-kem/extracts/extract-all.sh`
+- [`c.sh`](c.sh) at the repository root runs `crates/algorithms/ml-kem/extracts/extract-all.sh`
   and `crates/algorithms/ml-dsa/boring.sh`. Use `--docker` to run in the CI image,
   `--no-extract` to skip extraction, and `--build` / `--test` to build and
   test the three ML-KEM extractions.
-- `libcrux-ml-kem/extracts/extract-all.sh` runs all three ML-KEM extractions
+- `crates/algorithms/ml-kem/extracts/extract-all.sh` runs all three ML-KEM extractions
   and forwards its arguments to each `extract.sh`.
 
 ## CI
@@ -138,7 +138,7 @@ treated the same:
 - **Merge queue, pushes to `main`/`dev`, manual runs:** the code is
   re-extracted in the CI Docker image. The job fails if the result differs
   from the committed code, ignoring the tool revisions in the file headers
-  (see `libcrux-ml-kem/extracts/common/headers_kill_revs.sh`). The freshly
+  (see `crates/algorithms/ml-kem/extracts/common/headers_kill_revs.sh`). The freshly
   extracted code is then built and tested.
 - **Changes to `.docker/c/`:** the `latest` image doesn't contain them yet, so
   the regular workflows only build the committed code, and

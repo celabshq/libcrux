@@ -74,8 +74,8 @@ members = [
     "crates/primitives/ecdh",
     "crates/primitives/kem",
     "crates/algorithms/ml-dsa",
-    "libcrux-ml-kem",
-    "libcrux-ml-kem/fuzz",
+    "crates/algorithms/ml-kem",
+    "crates/algorithms/ml-kem/fuzz",
     "libcrux-psq",
     "libcrux-psq/fuzz",
     "traits",
@@ -141,7 +141,7 @@ libcrux-kem = { version = "=0.0.10", path = "crates/primitives/kem", default-fea
 libcrux-traits = { version = "=0.0.9", path = "traits" }
 libcrux-ecdh = { version = "=0.0.9", path = "crates/primitives/ecdh", default-features = false }
 libcrux-curve25519 = { version = "=0.0.9", path = "crates/algorithms/curve25519", default-features = false }
-libcrux-ml-kem = { version = "=0.0.11", path = "libcrux-ml-kem", default-features = false }
+libcrux-ml-kem = { version = "=0.0.11", path = "crates/algorithms/ml-kem", default-features = false }
 libcrux-p256 = { version = "=0.0.9", path = "crates/algorithms/p256", default-features = false }
 libcrux-p384 = { version = "=0.0.1", path = "crates/algorithms/p384", default-features = false }
 libcrux-ecdsa = { version = "=0.0.9", path = "crates/algorithms/ecdsa", default-features = false }

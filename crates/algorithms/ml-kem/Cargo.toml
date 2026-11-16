@@ -84,7 +84,7 @@ criterion = "0.8"
 libcrux-traits = { workspace = true, features = [
     "generic-tests",
 ] }
-libcrux-kats = { path = "../crates/testing/kats", features = ["mlkem"] }
+libcrux-kats = { path = "../../testing/kats", features = ["mlkem"] }
 
 [[bench]]
 name = "ml-kem"

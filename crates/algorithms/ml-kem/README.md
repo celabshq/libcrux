@@ -171,5 +171,5 @@ is formally verified using [hax](https://cryspen.com/hax) and  [F*](https://fsta
 
 Please refer to [this file](proofs/verification_status.md) for detail on the verification of this crate.
 
-[verified]: ../.assets/verified-brightgreen.svg
+[verified]: ../../../.assets/verified-brightgreen.svg
 

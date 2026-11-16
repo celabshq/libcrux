@@ -40,7 +40,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: libcrux-ml-kem
+        working-directory: crates/algorithms/ml-kem
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -85,14 +85,14 @@ jobs:
           name: ML-KEM Benchmark
           tool: 'cargo'
           os: ${{ matrix.os }}_${{ matrix.bits }}
-          output-file-path: libcrux-ml-kem/bench.txt
-          data-out-path: libcrux-ml-kem/bench-processed.json
+          output-file-path: crates/algorithms/ml-kem/bench.txt
+          data-out-path: crates/algorithms/ml-kem/bench-processed.json
 
       - name: Upload benchmarks
         uses: cryspen/benchmark-upload-and-plot-action@v3
         with:
           name: ML-KEM Benchmark
-          input-data-path: libcrux-ml-kem/bench-processed.json
+          input-data-path: crates/algorithms/ml-kem/bench-processed.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
           gh-repository: github.com/${{ github.repository }}
           group-by: os,keySize

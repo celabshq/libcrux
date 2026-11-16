@@ -37,7 +37,7 @@ jobs:
         run: cargo update hax-lib --precise $HAX_LIB_VERSION
 
       - name: 🏃 Extract ML-KEM crate
-        working-directory: libcrux-ml-kem
+        working-directory: crates/algorithms/ml-kem
         run: ./hax.py extract
 
       - name: ↑ Upload F* extraction
@@ -69,7 +69,7 @@ jobs:
           name: fstar-extractions
           path: .
       - name: 🏃 Lax ML-KEM crate
-        working-directory: libcrux-ml-kem
+        working-directory: crates/algorithms/ml-kem
         run: ./hax.py prove --admit
         
   # XXX: Is the caching performed by hacspec/hax-actions enough to get CI minutes down for paid runners?
@@ -94,7 +94,7 @@ jobs:
   #         path: .
 
   #     - name: 🏃 Prove ML-KEM crate
-  #       working-directory: libcrux-ml-kem
+  #       working-directory: crates/algorithms/ml-kem
   #       run: FSTAR_HOME=~/.nix-profile ./hax.py prove
   
   mlkem-extract-hax-status:

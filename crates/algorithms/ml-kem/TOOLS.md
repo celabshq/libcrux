@@ -125,7 +125,7 @@ doing any verification or C compilation:
 
 ```bash
 git clone https://github.com/cryspen/libcrux.git
-cd libcrux/libcrux-ml-kem
+cd libcrux/crates/algorithms/ml-kem
 cargo test
 cargo bench
 ```
@@ -136,7 +136,7 @@ We provide a script `boring.sh` to compile the Rust code for ML-KEM 768 to C.
 You can use this script to regenerate the C code and test and benchmark it.
 
 ```bash
-cd libcrux/libcrux-ml-kem/extracts/cpp_header_only
+cd libcrux/crates/algorithms/ml-kem/extracts/cpp_header_only
 ./extract.sh --no-clean
 cd generated
 export LIBCRUX_BENCHMARKS=1
@@ -165,7 +165,7 @@ We provide a python script called `hax.py` that compiles the Rust code to F* and
 formally verifies it.
 
 ```bash
-cd libcrux/libcrux-ml-kem
+cd libcrux/crates/algorithms/ml-kem
 ./hax.py extract
 ./hax.py prove
 ```
@@ -189,10 +189,10 @@ Here is a diff that adds a simple mutable wrapper around the current
 ML-KEM encapsulate function:
 
 ```diff
-diff --git a/libcrux-ml-kem/src/mlkem768.rs b/libcrux-ml-kem/src/mlkem768.rs
+diff --git a/crates/algorithms/ml-kem/src/mlkem768.rs b/crates/algorithms/ml-kem/src/mlkem768.rs
 index d3bd4b1c..e9a6663d 100644
---- a/libcrux-ml-kem/src/mlkem768.rs
-+++ b/libcrux-ml-kem/src/mlkem768.rs
+--- a/crates/algorithms/ml-kem/src/mlkem768.rs
++++ b/crates/algorithms/ml-kem/src/mlkem768.rs
 @@ -142,6 +142,32 @@ macro_rules! instantiate {
                  >(public_key, &randomness)
              }

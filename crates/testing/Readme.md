@@ -83,7 +83,7 @@ key generation answers can only be validated by the server.
 | SHA2-224/256/384/512, SHA3-224/256/384/512, SHAKE-128/256                                     | `sha2/tests/acvp.rs`, `sha3/tests/acvp.rs` (the large data tests are `#[ignore]`d) |
 | HMAC-SHA2-256/384/512, HMAC-SHA3-224/256/384/512                                              | `hmac/tests/acvp.rs`                                                               |
 | AES-128/256 ECB, GCM and CCM                                                                  | `aes/tests/acvp.rs` (ECB needs `--features acvp`)                                  |
-| ML-KEM keyGen, encapDecap                                                                     | `libcrux-ml-kem/tests/acvp.rs`                                                     |
+| ML-KEM keyGen, encapDecap                                                                     | `crates/algorithms/ml-kem/tests/acvp.rs`                                                     |
 | ML-DSA keyGen, sigGen (including `FIPS204-tr1` seed keys), sigVer                             | `crates/algorithms/ml-dsa/tests/acvp.rs` (needs `--features acvp`)                           |
 | SP 800-108 KBKDF, SP 800-56C two-step KDA                                                     | `nist-kdf/tests/acvp.rs`                                                           |
 | HKDF (`KDA` `HKDF`) with SHA2-256/384/512 and SHA3-224/256/384/512                            | `hkdf/tests/acvp.rs`                                                               |
