@@ -7,8 +7,8 @@
  * Charon: e656e17bff6ca5efac8ab6919b9b74cb9a8dd8ad
  * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
  * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
- * F*: 7b347386330d0e5a331a220535b6f15288903234
- * Libcrux: dirty
+ * F*: 70671ffb81fa30aba09b9d6e2af275dfbccaa8f8
+ * Libcrux: c864b0922b72c1854d17b81bdd842a26e14b3211
  */
 
 
@@ -18,6 +18,8 @@
 #include "eurydice_glue.h"
 
 
+
+#include "intrinsics/libcrux_ct_barrier.h"
 
 #include "libcrux_mlkem_core.h"
 #include "combined_core.h"
@@ -34,7 +36,8 @@ static KRML_NOINLINE uint8_t libcrux_ml_kem_constant_time_ops_inz(uint8_t value)
 
 static KRML_NOINLINE uint8_t libcrux_ml_kem_constant_time_ops_is_non_zero(uint8_t value)
 {
-  return libcrux_ml_kem_constant_time_ops_inz(value);
+  return
+    libcrux_ml_kem_constant_time_ops_barrier_ct_barrier_u8(libcrux_ml_kem_constant_time_ops_inz(value));
 }
 
 /**

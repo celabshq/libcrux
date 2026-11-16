@@ -10,6 +10,23 @@ use crate::constants::SHARED_SECRET_SIZE;
 //
 // XXX: We have to disable this for C extraction for now. See eurydice/issues#37
 
+/// Optimization barriers.
+///
+/// Eurydice translates `core::hint::black_box` to a no-op, so the
+/// functions in this module are not extracted to C. Instead, the C
+/// extractions provide a hand-written implementation in
+/// `intrinsics/libcrux_ct_barrier.h`, which hides the value from the
+/// C compiler with a `volatile` round-trip.
+pub(crate) mod barrier {
+    /// Return `value` unchanged, but prevent the compiler from reasoning about
+    /// the result, e.g. from inferring that it is either 0 or 1.
+    #[inline(never)]
+    #[cfg_attr(hax, hax_lib::ensures(|result| result == value))]
+    pub(crate) fn ct_barrier_u8(value: u8) -> u8 {
+        core::hint::black_box(value)
+    }
+}
+
 /// Return 1 if `value` is not zero and 0 otherwise.
 #[inline(never)] // Don't inline this to avoid that the compiler optimizes this out.
 #[cfg_attr(hax, hax_lib::ensures(|result| if value == 0 {result == 0} else {result == 1}))]
@@ -32,11 +49,9 @@ fn inz(value: u8) -> u8 {
 #[inline(never)] // Don't inline this to avoid that the compiler optimizes this out.
 #[cfg_attr(hax, hax_lib::ensures(|result| if value == 0 {result == 0} else {result == 1}))]
 fn is_non_zero(value: u8) -> u8 {
-    #[cfg(eurydice)]
-    return inz(value);
-
-    #[cfg(not(eurydice))]
-    core::hint::black_box(inz(value))
+    // The barrier keeps the compiler from learning that the result is 0 or 1,
+    // which would let it replace the masking in `select_ct` with a branch.
+    barrier::ct_barrier_u8(inz(value))
 }
 
 /// Return 1 if the bytes of `lhs` and `rhs` do not exactly
