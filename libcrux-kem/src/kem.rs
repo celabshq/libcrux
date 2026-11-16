@@ -465,8 +465,31 @@ impl PrivateKey {
 }
 
 impl PublicKey {
+    /// Check the ML-KEM part of the key (FIPS 203, Section 7.2, modulus check).
+    ///
+    /// [`PublicKey::decode`] checks this too, but keys can also be built
+    /// directly or through `tls_codec`, so encapsulation must not rely on it.
+    fn validate_mlkem(&self) -> Result<(), Error> {
+        let valid = match self {
+            PublicKey::X25519(_) | PublicKey::P256(_) => true,
+            PublicKey::MlKem512(pk) => mlkem512::validate_public_key(pk),
+            PublicKey::MlKem768(pk) => mlkem768::validate_public_key(pk),
+            PublicKey::MlKem1024(pk) => mlkem1024::validate_public_key(pk),
+            PublicKey::X25519MlKem768Draft00(pk) => mlkem768::validate_public_key(&pk.mlkem),
+            PublicKey::XWingKemDraft06(pk) => mlkem768::validate_public_key(&pk.pk_m),
+        };
+        if valid {
+            Ok(())
+        } else {
+            Err(Error::InvalidPublicKey)
+        }
+    }
+
     /// Encapsulate a shared secret to the provided `pk` and return the `(Key, Enc)` tuple.
+    ///
+    /// Returns [`Error::InvalidPublicKey`] if the ML-KEM part of the key is invalid.
     pub fn encapsulate(&self, rng: &mut impl TryCryptoRng) -> Result<(Ss, Ct), Error> {
+        self.validate_mlkem()?;
         match self {
             PublicKey::X25519(pk) => {
                 let (new_sk, new_pk) = libcrux_ecdh::x25519_key_gen(rng)?;
@@ -533,6 +556,7 @@ impl PublicKey {
 
     /// Encapsulate a shared secret to the provided `pk` and return the `(Key, Enc)` tuple.
     pub fn encapsulate_derand(&self, seed: &[u8]) -> Result<(Ss, Ct), Error> {
+        self.validate_mlkem()?;
         match self {
             PublicKey::X25519(pk) => {
                 let new_sk = X25519PrivateKey::try_from(seed)?; // clamps
