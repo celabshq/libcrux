@@ -8,7 +8,7 @@
  * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
  * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
  * F*: 7b347386330d0e5a331a220535b6f15288903234
- * Libcrux: 517c2c298693bf42e480b5fbb8105033a7130efc
+ * Libcrux: dirty
  */
 
 #ifndef internal_libcrux_core_H
@@ -37,11 +37,15 @@ typedef struct core_option_Option_87_s {
   size_t f0;
 } core_option_Option_87;
 
+static inline uint16_t core_num__u16__wrapping_add(uint16_t x0, uint16_t x1);
+
 static inline uint64_t core_num__u64__from_le_bytes(Eurydice_array_u8x8 x0);
 
 static inline uint64_t core_num__u64__rotate_left(uint64_t x0, uint32_t x1);
 
 static inline Eurydice_array_u8x8 core_num__u64__to_le_bytes(uint64_t x0);
+
+static inline uint8_t core_num__u8__wrapping_sub(uint8_t x0, uint8_t x1);
 
 /**
 A monomorphic instance of core.ops.range.Range
@@ -52,19 +56,6 @@ typedef struct core_ops_range_Range_87_s {
   size_t start;
   size_t end;
 } core_ops_range_Range_87;
-
-uint8_t libcrux_ml_kem_constant_time_ops_compare_ciphertexts_in_constant_time(
-    Eurydice_borrow_slice_u8 lhs, Eurydice_borrow_slice_u8 rhs);
-
-Eurydice_arr_ec
-libcrux_ml_kem_constant_time_ops_select_shared_secret_in_constant_time(
-    Eurydice_borrow_slice_u8 lhs, Eurydice_borrow_slice_u8 rhs,
-    uint8_t selector);
-
-Eurydice_arr_ec
-libcrux_ml_kem_constant_time_ops_compare_ciphertexts_select_shared_secret_in_constant_time(
-    Eurydice_borrow_slice_u8 lhs_c, Eurydice_borrow_slice_u8 rhs_c,
-    Eurydice_borrow_slice_u8 lhs_s, Eurydice_borrow_slice_u8 rhs_s);
 
 #define LIBCRUX_ML_KEM_CONSTANTS_BYTES_PER_RING_ELEMENT \
   (LIBCRUX_ML_KEM_CONSTANTS_BITS_PER_RING_ELEMENT / (size_t)8U)

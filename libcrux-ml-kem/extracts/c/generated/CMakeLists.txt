@@ -40,6 +40,7 @@ include_directories(
 )
 file(GLOB SOURCES
     ${PROJECT_SOURCE_DIR}/libcrux_core.c
+    ${PROJECT_SOURCE_DIR}/libcrux_ct_ops.c
     ${PROJECT_SOURCE_DIR}/libcrux_platform.c
     ${PROJECT_SOURCE_DIR}/libcrux_sha3_portable.c
     ${PROJECT_SOURCE_DIR}/libcrux_mlkem512.c
