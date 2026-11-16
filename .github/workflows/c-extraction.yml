@@ -1,0 +1,255 @@
+name: C extraction
+
+# Reusable workflow that checks one C extraction. Every extraction in the
+# repository goes through this workflow, so they are all treated the same:
+#
+# - On pull requests, the committed C code is built and tested.
+# - In the merge queue, on pushes and on manual runs, the code is re-extracted
+#   in the CI Docker image. The job fails if the result differs from the
+#   committed code (ignoring the tool revisions in the file headers), and the
+#   freshly extracted code is built and tested.
+#
+# Extraction is skipped when `.docker/c/` changes, because the `latest` image
+# does not contain those changes yet. `docker-c-build-test.yml` covers that
+# case by calling this workflow with the freshly built image and
+# `force-extract: true`.
+#
+# Building and testing runs on Linux (clang), macOS and Windows, using
+# `ctest` in each output directory.
+#
+# To add an extraction, add a case there.
+# Checkouts in jobs that run repository code don't keep the GITHUB_TOKEN in
+# `.git/config` (`persist-credentials: false`).
+
+on:
+  workflow_call:
+    inputs:
+      extraction:
+        description: >-
+          Which extraction to check: ml-kem-c, ml-kem-c-header-only,
+          ml-kem-cpp-header-only, ml-dsa-header-only or combined. The
+          directory, command and output directories for each are defined in
+          the `setup` job below.
+        type: string
+        required: true
+      image:
+        description: "Docker image to extract with (default: ghcr.io/<repository>-c:latest)"
+        type: string
+        default: ""
+      force-extract:
+        description: "Extract even on pull requests and when .docker/c/ changed"
+        type: boolean
+        default: false
+
+# None of the jobs need to write to the repository.
+permissions:
+  contents: read
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      extract: ${{ steps.decide.outputs.extract }}
+      image: ${{ inputs.image || format('ghcr.io/{0}-c:latest', github.repository) }}
+      working-directory: ${{ steps.resolve.outputs.working-directory }}
+      command: ${{ steps.resolve.outputs.command }}
+      outputs: ${{ steps.resolve.outputs.outputs }}
+    steps:
+      # The only place that defines what each extraction runs. `command` is a
+      # JSON array of arguments that is executed without going through a
+      # shell, and `outputs` lists the output directories relative to the
+      # repository root.
+      - name: Resolve extraction
+        id: resolve
+        env:
+          EXTRACTION: ${{ inputs.extraction }}
+        run: |
+          case "$EXTRACTION" in
+            ml-kem-c)
+              dir=libcrux-ml-kem/extracts/c
+              command='["./extract.sh"]'
+              outputs='["libcrux-ml-kem/extracts/c/generated"]' ;;
+            ml-kem-c-header-only)
+              dir=libcrux-ml-kem/extracts/c_header_only
+              command='["./extract.sh"]'
+              outputs='["libcrux-ml-kem/extracts/c_header_only/generated"]' ;;
+            ml-kem-cpp-header-only)
+              dir=libcrux-ml-kem/extracts/cpp_header_only
+              command='["./extract.sh", "--no-clean"]'
+              outputs='["libcrux-ml-kem/extracts/cpp_header_only/generated"]' ;;
+            ml-dsa-header-only)
+              dir=libcrux-ml-dsa
+              command='["./boring.sh", "--no-clean"]'
+              outputs='["libcrux-ml-dsa/cg"]' ;;
+            combined)
+              dir=combined_extraction
+              command='["./extract.sh"]'
+              outputs='["combined_extraction/c", "combined_extraction/c-header-only"]' ;;
+            *)
+              echo "::error::Unknown extraction '$EXTRACTION'"
+              exit 1 ;;
+          esac
+          {
+            echo "working-directory=$dir"
+            echo "command=$command"
+            echo "outputs=$outputs"
+          } >> "$GITHUB_OUTPUT"
+
+      # This job runs no repository code. paths-filter fetches the base commit
+      # with git on pushes, so the credentials stay in place here.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        if: ${{ !inputs.force-extract && github.event_name != 'pull_request' }}
+
+      - uses: dorny/paths-filter@v4
+        id: changes
+        if: ${{ !inputs.force-extract && github.event_name != 'pull_request' }}
+        with:
+          filters: |
+            docker-c:
+              - ".docker/c/**"
+
+      - name: Decide whether to extract
+        id: decide
+        env:
+          FORCE: ${{ inputs.force-extract }}
+          EVENT: ${{ github.event_name }}
+          DOCKER_CHANGED: ${{ steps.changes.outputs.docker-c }}
+        run: |
+          if [[ "$FORCE" == "true" ]]; then
+            extract=true
+          elif [[ "$EVENT" == "pull_request" ]]; then
+            echo "Pull request: building the committed code only."
+            extract=false
+          elif [[ "$DOCKER_CHANGED" == "true" ]]; then
+            echo ".docker/c/ changed: building the committed code only (see docker-c-build-test.yml)."
+            extract=false
+          else
+            extract=true
+          fi
+          echo "extract=$extract" >> "$GITHUB_OUTPUT"
+
+  extract:
+    needs: [setup]
+    if: ${{ needs.setup.outputs.extract == 'true' }}
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ needs.setup.outputs.image }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Extract
+        working-directory: ${{ needs.setup.outputs.working-directory }}
+        env:
+          COMMAND: ${{ needs.setup.outputs.command }}
+        run: |
+          export HOME=/home/user
+          mapfile -t argv < <(jq -r '.[]' <<<"$COMMAND")
+          "${argv[@]}"
+
+      # Pack all output directories into one archive. Symlinks are
+      # dereferenced so that the archive unpacks the same way everywhere,
+      # including on Windows.
+      - name: Pack extraction
+        env:
+          OUTPUTS: ${{ needs.setup.outputs.outputs }}
+        run: |
+          jq -r '.[]' <<<"$OUTPUTS" | xargs -d '\n' tar -chf extraction.tar
+
+      - name: Upload extraction
+        uses: actions/upload-artifact@v7
+        with:
+          name: c-extraction-${{ inputs.extraction }}
+          path: extraction.tar
+          if-no-files-found: error
+
+  diff:
+    needs: [setup, extract]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: c-extraction-${{ inputs.extraction }}
+          path: .extraction
+
+      - name: Compare with the committed code
+        env:
+          OUTPUTS: ${{ needs.setup.outputs.outputs }}
+        run: |
+          mkdir -p .extraction/fresh
+          tar -xf .extraction/extraction.tar -C .extraction/fresh
+          status=0
+          while IFS= read -r out; do
+            libcrux-ml-kem/extracts/common/headers_kill_revs.sh "$out"
+            libcrux-ml-kem/extracts/common/headers_kill_revs.sh ".extraction/fresh/$out"
+            if ! diff -r "$out" ".extraction/fresh/$out"; then
+              echo "::error::$out differs from a fresh extraction. Re-extract and commit the result."
+              status=1
+            fi
+          done < <(jq -r '.[]' <<<"$OUTPUTS")
+          exit $status
+
+  build:
+    needs: [setup, extract]
+    # Run when extraction succeeded or was skipped (then the committed code is
+    # built).
+    if: ${{ !cancelled() && needs.setup.result == 'success' && (needs.extract.result == 'success' || needs.extract.result == 'skipped') }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+          - windows-latest
+        output: ${{ fromJSON(needs.setup.outputs.outputs) }}
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/download-artifact@v8
+        if: ${{ needs.setup.outputs.extract == 'true' }}
+        with:
+          name: c-extraction-${{ inputs.extraction }}
+          path: .extraction
+
+      - name: Use the fresh extraction
+        if: ${{ needs.setup.outputs.extract == 'true' }}
+        env:
+          OUT: ${{ matrix.output }}
+        run: |
+          rm -rf "$OUT"
+          tar -xf .extraction/extraction.tar "$OUT"
+
+      - name: Set CC and CXX to Clang on Ubuntu
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          echo "CC=clang" >> $GITHUB_ENV
+          echo "CXX=clang++" >> $GITHUB_ENV
+
+      # CMAKE_BUILD_TYPE covers single-config generators (Makefiles/Ninja),
+      # --config/-C covers multi-config ones (Visual Studio on Windows).
+      - name: 🔨 Build
+        working-directory: ${{ matrix.output }}
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Debug
+          cmake --build build --config Debug
+
+      - name: 🏃🏻‍♀️ Test
+        working-directory: ${{ matrix.output }}
+        run: ctest --test-dir build -C Debug --output-on-failure

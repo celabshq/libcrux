@@ -51,7 +51,8 @@ cmake --build build
 ./build/Debug/sha3_test
 ```
 
-The `c` extraction also has `ml_kem_test1024`.
+The `c` extraction also has `ml_kem_test1024`. To run all tests at once (this
+is what CI does), use `ctest --test-dir build -C Debug --output-on-failure`.
 
 Environment variables read at configure time:
 

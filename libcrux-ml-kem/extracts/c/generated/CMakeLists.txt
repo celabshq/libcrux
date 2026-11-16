@@ -148,6 +148,16 @@ target_link_libraries(sha3_test PRIVATE
     nlohmann_json::nlohmann_json
 )
 
+# Register the tests with ctest. The tests read their KAT files relative to
+# the source directory (e.g. tests/mlkem768_nistkats.json), so they have to
+# run from there.
+enable_testing()
+foreach(test ml_kem_test768 ml_kem_test1024 sha3_test)
+    add_test(NAME ${test} COMMAND ${test}
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    )
+endforeach()
+
 # --- Benchmarks
 if(DEFINED ENV{LIBCRUX_BENCHMARKS})
     FetchContent_Declare(benchmark
