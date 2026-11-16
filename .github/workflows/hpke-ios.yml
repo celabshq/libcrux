@@ -9,7 +9,7 @@ on:
       - 'crates/primitives/ecdh/**/*.rs'
       - 'crates/algorithms/hkdf/**/*.rs'
       - 'crates/primitives/aead/**/*.rs'
-      - 'libcrux-kem/**/*.rs'
+      - 'crates/primitives/kem/**/*.rs'
       - 'traits/**/*.rs'
 
 

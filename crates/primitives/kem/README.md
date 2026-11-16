@@ -31,5 +31,5 @@ assert_eq!(ss_b.encode(), ss_a.encode());
 ```
 
 [FIPS 203]: https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.203.ipd.pdf
-[verified]: ../.assets/verified-brightgreen.svg
-[pre-verification]: ../.assets/pre_verification-orange.svg
+[verified]: ../../../.assets/verified-brightgreen.svg
+[pre-verification]: ../../../.assets/pre_verification-orange.svg

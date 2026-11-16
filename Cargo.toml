@@ -72,7 +72,7 @@ members = [
     "crates/utils/secrets",
     "crates/utils/test-utils",
     "crates/primitives/ecdh",
-    "libcrux-kem",
+    "crates/primitives/kem",
     "libcrux-ml-dsa",
     "libcrux-ml-kem",
     "libcrux-ml-kem/fuzz",
@@ -137,7 +137,7 @@ hpke-rs-libcrux = { version = "=0.8.0", path = "crates/protocols/hpke/libcrux_pr
 
 # For the crates below it is necessary to set `default-features = true`
 # in workspace crates that depend on the default feature set.
-libcrux-kem = { version = "=0.0.10", path = "libcrux-kem", default-features = false }
+libcrux-kem = { version = "=0.0.10", path = "crates/primitives/kem", default-features = false }
 libcrux-traits = { version = "=0.0.9", path = "traits" }
 libcrux-ecdh = { version = "=0.0.9", path = "crates/primitives/ecdh", default-features = false }
 libcrux-curve25519 = { version = "=0.0.9", path = "crates/algorithms/curve25519", default-features = false }
