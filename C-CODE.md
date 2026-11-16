@@ -161,6 +161,16 @@ them from the source directory so the KAT files are found.
 When you change Rust code that is extracted, re-extract and commit the result.
 Otherwise the diff jobs fail in the merge queue.
 
+## Side-Channel Resistance and Zeroization
+
+To quote the workspace `Readme.md` with respect to the Rust code:
+> Executables compiled from the code in this repository are *not* verified to be side-channel resistant, although we try to enforce that the source code is secret-independent (also sometimes called “constant-time”).
+
+>At this moment, we do also not give guarantees on the zeroization of secret values on the stack or heap. We are working on best-effort implementations of zeroization.
+
+The same holds for the C extractions provided here. In the case of ML-KEM we configure the extraction such that operations which should happen in constant time are extracted to separate files `libcrux_ct_ops.{c,h}`. This makes it easier for consumers to provide their own implementations of these operations, independently from us.
+
+
 ## Troubleshooting
 
 - **Charon does not produce an `.llbc` file.** This is a known Charon issue
