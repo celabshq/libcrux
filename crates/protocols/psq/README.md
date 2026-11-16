@@ -408,6 +408,6 @@ X25519_MLKEM768_MLDSA65_AESGCM128_HKDFSHA256
 X25519_CLASSICMCELIECE_MLDSA65_AESGCM128_HKDFSHA256
 ```
 
-[verified]: ../.assets/verified-brightgreen.svg
-[pre-verification]: ../.assets/pre_verification-orange.svg
+[verified]: ../../../.assets/verified-brightgreen.svg
+[pre-verification]: ../../../.assets/pre_verification-orange.svg
 

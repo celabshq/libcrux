@@ -76,8 +76,8 @@ members = [
     "crates/algorithms/ml-dsa",
     "crates/algorithms/ml-kem",
     "crates/algorithms/ml-kem/fuzz",
-    "libcrux-psq",
-    "libcrux-psq/fuzz",
+    "crates/protocols/psq",
+    "crates/protocols/psq/fuzz",
     "traits",
     "crates/algorithms/p384",
     "crates/algorithms/p384/fuzz",
@@ -127,7 +127,7 @@ libcrux-rsa = { version = "=0.0.9", path = "crates/algorithms/rsa" }
 libcrux-sha2 = { version = "=0.0.9", path = "crates/algorithms/sha2" }
 libcrux-sha3 = { version = "=0.0.11", path = "crates/algorithms/sha3" }
 libcrux-platform = { version = "=0.0.4", path = "crates/sys/platform" }
-libcrux-psq = { version = "=0.0.11", path = "libcrux-psq" }
+libcrux-psq = { version = "=0.0.11", path = "crates/protocols/psq" }
 
 # HPKE
 hpke-rs = { version = "=0.8.0", path = "crates/protocols/hpke" }
