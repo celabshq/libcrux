@@ -8,7 +8,7 @@
  * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
  * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
  * F*: 7b347386330d0e5a331a220535b6f15288903234
- * Libcrux: 348c2c1d7e7daad7a7ed49681719a0e206941c1b
+ * Libcrux: a4930d66a62d7b68cda511cadba6b067403d09a2
  */
 
 #ifndef libcrux_mldsa_core_H
@@ -660,13 +660,7 @@ libcrux_ml_dsa_simd_portable_arithmetic_infinity_norm_exceeds(
     int32_t coefficient = simd_unit->data[i0];
     int32_t sign = coefficient >> 31U;
     int32_t normalized = coefficient - (sign & 2 * coefficient);
-    bool uu____0;
-    if (result) {
-      uu____0 = true;
-    } else {
-      uu____0 = normalized >= bound;
-    }
-    result = uu____0;
+    result = result || normalized >= bound;
   }
   return result;
 }

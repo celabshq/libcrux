@@ -418,16 +418,7 @@ libcrux_ml_dsa_simd_portable_arithmetic_infinity_norm_exceeds(
     int32_t coefficient = simd_unit->data[i0];
     int32_t sign = coefficient >> 31U;
     int32_t normalized = coefficient - (sign & 2 * coefficient);
-    bool uu____0;
-    if (result)
-    {
-      uu____0 = true;
-    }
-    else
-    {
-      uu____0 = normalized >= bound;
-    }
-    result = uu____0;);
+    result = result || normalized >= bound;);
   return result;
 }
 
