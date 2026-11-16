@@ -4,7 +4,7 @@ The subdirectories of [`extracts/`](extracts/) contain C code extracted from
 `libcrux-ml-kem` with [Charon], [Eurydice] and [KaRaMeL].
 
 This page is a quick reference for ML-KEM. For more information on C extraction in libcrux in general, please see
-[`C-CODE.md`](../C-CODE.md) at the repository root.
+[`C-CODE.md`](../../../C-CODE.md) at the repository root.
 
 ## Extractions
 
@@ -21,7 +21,7 @@ All three also contain the SHA-3 code ML-KEM needs, and the
 
 Set `CHARON_HOME`, `EURYDICE_HOME` and `KRML_HOME` to tool checkouts at the
 revisions pinned by `EURYDICE_REV` in
-[`.docker/c/Dockerfile`](../.docker/c/Dockerfile). Alternatively, use the
+[`.docker/c/Dockerfile`](../../../.docker/c/Dockerfile). Alternatively, use the
 Docker image or `nix run --impure .#ml-kem-extract` (see the root
 `C-CODE.md`). Then:
 

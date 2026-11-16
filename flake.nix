@@ -209,7 +209,7 @@
                     hax
                   ];
                   buildPhase = ''
-                    cd libcrux-ml-kem
+                    cd crates/algorithms/ml-kem
                     patchShebangs ./.
                     ${lib.optionalString checkHax ''
                       python hax.py extract
@@ -300,7 +300,7 @@
                     hax
                   ];
                   buildPhase = ''
-                    cd libcrux-ml-dsa
+                    cd crates/algorithms/ml-dsa
                     patchShebangs ./.
                     ${lib.optionalString checkHax ''
                       ./hax.sh extract
@@ -365,7 +365,7 @@
           # Use --no-karamel_include for now to work around that
           text = ''
             root=$(git rev-parse --show-toplevel)
-            cd "$root/libcrux-ml-kem/extracts"
+            cd "$root/crates/algorithms/ml-kem/extracts"
             ./extract-all.sh --no-karamel_include
           '';
         };
@@ -384,7 +384,7 @@
           runtimeEnv = tools-environment-strings;
           text = ''
             root=$(git rev-parse --show-toplevel)
-            cd "$root/libcrux-ml-dsa"
+            cd "$root/crates/algorithms/ml-dsa"
             ./boring.sh --no-clean
           '';
         };

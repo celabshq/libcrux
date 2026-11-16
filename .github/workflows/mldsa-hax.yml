@@ -38,7 +38,7 @@ jobs:
         run: cargo update hax-lib --precise $HAX_LIB_VERSION
 
       - name: 🏃 Extract ML-DSA crate
-        working-directory: libcrux-ml-dsa
+        working-directory: crates/algorithms/ml-dsa
         run: ./hax.sh extract
 
       - name: ↑ Upload F* extraction
@@ -70,7 +70,7 @@ jobs:
           path: .
 
       - name: 🏃 Lax ML-DSA crate
-        working-directory: libcrux-ml-dsa
+        working-directory: crates/algorithms/ml-dsa
         run: ./hax.sh prove --admit
 
   # XXX: Is the caching performed by hacspec/hax-actions enough to get CI minutes down for paid runners?
@@ -95,7 +95,7 @@ jobs:
   #         path: .
 
   #     - name: 🏃 Prove ML-DSA crate
-  #       working-directory: libcrux-ml-dsa
+  #       working-directory: crates/algorithms/ml-dsa
   #       run: ./hax.sh prove
         
   mldsa-extract-hax-status:

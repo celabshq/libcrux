@@ -8,4 +8,4 @@ This crate provides a set of `libcrux`-internal traits for cryptographic primiti
 
 This crate supports `no_std` targets and is free of heap allocations.
 
-[pre-verification]: ../.assets/pre_verification-orange.svg
+[pre-verification]: ../../../.assets/pre_verification-orange.svg

@@ -44,4 +44,4 @@ The portable and AVX2 code for field arithmetic, NTT polynomial arithmetic, and 
  assert!(ml_dsa_65::verify(key_pair.verification_key, &message, signature).is_ok());
 ```
 
-[verified]: ../.assets/verified-brightgreen.svg
+[verified]: ../../../.assets/verified-brightgreen.svg

@@ -7,6 +7,6 @@
 #
 # Run this from the repository root.
 
-grep -rl -e "This code was generated with the following revisions:" "$1" | xargs -d '\n' sed -i -f libcrux-ml-kem/extracts/common/header_kill_revs.sed
+grep -rl -e "This code was generated with the following revisions:" "$1" | xargs -d '\n' sed -i -f crates/algorithms/ml-kem/extracts/common/header_kill_revs.sed
 rm -f "$1/code_gen.txt"
 rm -f "$1/header.txt"

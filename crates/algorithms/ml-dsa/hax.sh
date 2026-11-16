@@ -19,7 +19,7 @@ function extract_all() {
         into -i "+:**" \
         fstar
     
-    extract libcrux-ml-dsa \
+    extract crates/algorithms/ml-dsa \
         -C --features simd128,simd256 ";" \
         into -i "+**" \
              -i "-libcrux_ml_dsa::hash_functions::portable::*" \
@@ -37,7 +37,7 @@ function prove() {
             export OTHERFLAGS="--admit_smt_queries true";;
         *);;
     esac
-    go_to "libcrux-ml-dsa"
+    go_to "crates/algorithms/ml-dsa"
     JOBS="${JOBS:-$(nproc --all)}"
     JOBS="${JOBS:-4}"
     # `-k`: keep going past failures so a single run reports every failing
@@ -75,7 +75,7 @@ function init_vars() {
 }
 
 function go_to() {
-    ROOT="$SCRIPT_DIR/.."
+    ROOT="$SCRIPT_DIR/../../.."
     cd "$ROOT"
     cd "$1"
 }

@@ -18,7 +18,7 @@ fi
 
 extract_root=$(pwd)
 mlkem_root=$(realpath ../../)
-repo_root=$(realpath ../../../)
+repo_root=$(realpath ../../../../../)
 
 portable_only=0
 no_hacl=0

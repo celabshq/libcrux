@@ -46,7 +46,7 @@ class extractAction(argparse.Action):
         hax_env = {}
         shell(
             cargo_hax_into,
-            cwd="../crates/sys/platform",
+            cwd="../../../crates/sys/platform",
             env=hax_env,
         )
 
@@ -72,7 +72,7 @@ class extractAction(argparse.Action):
         }
         shell(
             cargo_hax_into,
-            cwd="../crates/utils/intrinsics",
+            cwd="../../../crates/utils/intrinsics",
             env=hax_env,
         )
 
@@ -90,7 +90,7 @@ class extractAction(argparse.Action):
         hax_env = {}
         shell(
             cargo_hax_into,
-            cwd="../crates/utils/secrets",
+            cwd="../../../crates/utils/secrets",
             env=hax_env,
         )
 

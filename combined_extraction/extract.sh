@@ -146,14 +146,14 @@ if [[ "$no_charon" = 0 ]]; then
              --remove-associated-types '*' \
              --include 'core::num::*::BITS' --include 'core::num::*::MAX' $flags
 
-    cd $repo_root/libcrux-ml-kem
+    cd $repo_root/crates/algorithms/ml-kem
     echo "Running charon (ML-KEM) ..."
     RUSTFLAGS="--cfg eurydice" $CHARON_HOME/bin/charon cargo \
              --rustc-arg="-Cdebug-assertions=no" \
              --preset eurydice \
              --include 'core::num::*::BITS' --include 'core::num::*::MAX' $flags $features_mlkem
 
-    cd $repo_root/libcrux-ml-dsa
+    cd $repo_root/crates/algorithms/ml-dsa
     echo "Running charon (ML-DSA) ..."
     RUSTFLAGS="--cfg eurydice" $CHARON_HOME/bin/charon cargo \
              --rustc-arg="-Cdebug-assertions=no" \

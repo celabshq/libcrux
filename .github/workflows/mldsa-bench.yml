@@ -41,7 +41,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: libcrux-ml-dsa
+        working-directory: crates/algorithms/ml-dsa
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -83,14 +83,14 @@ jobs:
           name: ML-DSA Benchmark
           tool: 'cargo'
           os: ${{ matrix.os }}_${{ matrix.bits }}
-          output-file-path: libcrux-ml-dsa/bench.txt
-          data-out-path: libcrux-ml-dsa/bench-processed.json
+          output-file-path: crates/algorithms/ml-dsa/bench.txt
+          data-out-path: crates/algorithms/ml-dsa/bench-processed.json
 
       - name: Upload benchmarks
         uses: cryspen/benchmark-upload-and-plot-action@v3
         with:
           name: ML-DSA Benchmark
-          input-data-path: libcrux-ml-dsa/bench-processed.json
+          input-data-path: crates/algorithms/ml-dsa/bench-processed.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
           gh-repository: github.com/${{ github.repository }}
           group-by: label,keySize,os

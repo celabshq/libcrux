@@ -47,7 +47,7 @@ jobs:
           run: |
             apt-get -y update
             apt-get install -y curl gcc g++ make cmake ninja-build git
-            cd libcrux-ml-kem/extracts/cpp_header_only/generated
+            cd crates/algorithms/ml-kem/extracts/cpp_header_only/generated
             cmake -B build -G"Ninja Multi-Config"
             cmake --build build
             ./build/Debug/ml_kem_test768

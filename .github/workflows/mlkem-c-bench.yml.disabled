@@ -25,30 +25,30 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
 
-      - name: 🔨 Build libcrux-ml-kem/c
-        working-directory: libcrux-ml-kem/c
+      - name: 🔨 Build crates/algorithms/ml-kem/c
+        working-directory: crates/algorithms/ml-kem/c
         run: |
           cmake -B build -DCMAKE_BUILD_TYPE=Release
           cmake --build build --config Release
 
       # FIXME: Benchmarks on Windows CI are not working right now.
       # - name: 🏃🏻‍♀️ Benchmark
-      #   working-directory: libcrux-ml-kem/c
+      #   working-directory: crates/algorithms/ml-kem/c
       #   run: ./build/Release/ml_kem_bench
       #   if: ${{ matrix.os == 'windows-latest' }}
 
       - name: 🏃🏻‍♀️ Benchmark (libcrux-ml-kem/c)
-        working-directory: libcrux-ml-kem/c
+        working-directory: crates/algorithms/ml-kem/c
         run: ./build/ml_kem_bench
         if: ${{ matrix.os != 'windows-latest' && (github.event_name == 'merge_group' || github.event_name == 'workflow_dispatch') }}
 
-      - name: 🔨 Build libcrux-ml-kem/cg
-        working-directory: libcrux-ml-kem/cg
+      - name: 🔨 Build crates/algorithms/ml-kem/cg
+        working-directory: crates/algorithms/ml-kem/cg
         run: |
           cmake -B build -DCMAKE_BUILD_TYPE=Release
           cmake --build build --config Release
 
-      - name: 🏃🏻‍♀️ Benchmark libcrux-ml-kem/cg
-        working-directory: libcrux-ml-kem/cg
+      - name: 🏃🏻‍♀️ Benchmark crates/algorithms/ml-kem/cg
+        working-directory: crates/algorithms/ml-kem/cg
         run: ./build/ml_kem_bench
         if: ${{ matrix.os != 'windows-latest' && (github.event_name == 'merge_group' || github.event_name == 'workflow_dispatch') }}
