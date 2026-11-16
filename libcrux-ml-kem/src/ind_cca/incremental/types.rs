@@ -243,7 +243,9 @@ impl<const K: usize, Vector: Operations> EncapsState<K, Vector> {
         state.error2 = PolynomialRingElement::<Vector>::from_bytes(&bytes[offset..]);
         offset += PolynomialRingElement::<Vector>::num_bytes();
 
-        state.randomness.copy_from_slice(&bytes[offset..offset + 32]);
+        state
+            .randomness
+            .copy_from_slice(&bytes[offset..offset + 32]);
 
         Ok(state)
     }

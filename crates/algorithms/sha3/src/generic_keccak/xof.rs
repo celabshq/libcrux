@@ -53,8 +53,8 @@ pub(crate) struct KeccakXofState<
     squeeze_pos: usize,
 }
 
-impl<const PARALLEL_LANES: usize, const RATE: usize, STATE: KeccakItem<PARALLEL_LANES>>
-    Zeroize for KeccakXofState<PARALLEL_LANES, RATE, STATE>
+impl<const PARALLEL_LANES: usize, const RATE: usize, STATE: KeccakItem<PARALLEL_LANES>> Zeroize
+    for KeccakXofState<PARALLEL_LANES, RATE, STATE>
 {
     fn zeroize(&mut self) {
         self.inner.zeroize();

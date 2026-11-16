@@ -1,7 +1,7 @@
 use generic_keccak::KeccakState as GenericState;
-use libcrux_secrets::Zeroize;
 #[cfg(hax)]
 use hax_lib::int::*;
+use libcrux_secrets::Zeroize;
 
 use crate::generic_keccak::{self, portable::keccak1};
 

@@ -4,12 +4,9 @@
 //! secrets and intermediate values derived from them) goes through the
 //! [`Zeroize`] trait and the [`Zeroizing`] wrapper defined here.
 //!
-//! # Backend
-//!
-//! Values are overwritten with plain writes, followed by the optimisation
-//! barrier of the [`zeroize`](https://docs.rs/zeroize) crate, which keeps the
-//! compiler from removing the writes (see "How scalars are wiped" below).
-//! This will change in future.
+//! On platforms with stable inline `asm`, values are overwritten with plain writes,
+//! followed by an empty inline `asm` block, which keeps the compiler from removing
+//! the writes. On platforms without stable `asm`, volatile writes are used.
 //!
 //! # Scope and known gaps
 //!
@@ -19,12 +16,9 @@
 //! This does _not_ cover
 //! - copies the compiler makes on its own (moves, by-value returns, register
 //!   spills), and
-//! - scalar temporaries that live only in registers. Wiping those would force
-//!   them onto the stack.
-//!
-//! In future we may scrub the stack after each top-level secret operation
-//! (e.g. with `zeroize::zeroize_stack`), which should cover both of the cases
-//! above.
+//! - scalar temporaries that live only in registers. Zeroizing them would
+//!   not clear the register but only add an extra stack copy of the value
+//!   that is zeroed.
 //!
 //! Code extracted with hax (proofs) or Eurydice (C) does not zeroize: wiping
 //! is a no-op there, and C has no destructors to run on drop.
@@ -82,14 +76,9 @@ pub trait Zeroize {
 //
 // Instead, we overwrite the memory with plain (non-volatile) writes, which
 // the compiler turns into an efficient memset, and then call
-// `zeroize::optimization_barrier`. The barrier is an `asm!` block that may
-// read the memory, so the compiler cannot remove the writes before it. This
-// is the purpose the barrier is documented for, but note that it is a weaker
-// argument than volatile writes followed by a barrier.
-//
-// On targets where `zeroize` has no `asm!` barrier (e.g. wasm32), the barrier
-// is only `black_box` plus a volatile read of the first byte, which does not
-// reliably keep plain writes alive. There we use volatile writes instead.
+// `optimization_barrier`. The barrier is an `asm!` block that may
+// read the memory, so the compiler cannot remove the writes before it.
+// It is based on the [`zeroize::optimization_barrier`](https://docs.rs/zeroize/1.9.1/zeroize/fn.optimization_barrier.html).
 //
 // Under hax and Eurydice, wiping is a no-op: the proofs do not reason about
 // it, and the extracted C code does not zeroize yet.
@@ -98,50 +87,97 @@ pub trait Zeroize {
 ///
 /// `false` if the `disable-zeroization` feature is enabled, and in code
 /// extracted with hax or Eurydice.
-pub const ZEROIZATION_ENABLED: bool =
-    !cfg!(any(feature = "disable-zeroization", hax, eurydice));
+pub const ZEROIZATION_ENABLED: bool = !cfg!(any(feature = "disable-zeroization", hax, eurydice));
 
 /// Overwrite all elements of `slice` with `zero`, in a way that the compiler
 /// does not remove.
 #[cfg(not(any(feature = "disable-zeroization", hax, eurydice)))]
 #[inline(always)]
 fn wipe<T: Copy>(slice: &mut [T], zero: T) {
-    #[cfg(all(
-        not(miri),
-        any(
-            target_arch = "aarch64",
-            target_arch = "arm",
-            target_arch = "arm64ec",
-            target_arch = "loongarch64",
-            target_arch = "riscv32",
-            target_arch = "riscv64",
-            target_arch = "s390x",
-            target_arch = "x86",
-            target_arch = "x86_64",
-        )
-    ))]
-    slice.fill(zero);
-
-    #[cfg(not(all(
-        not(miri),
-        any(
-            target_arch = "aarch64",
-            target_arch = "arm",
-            target_arch = "arm64ec",
-            target_arch = "loongarch64",
-            target_arch = "riscv32",
-            target_arch = "riscv64",
-            target_arch = "s390x",
-            target_arch = "x86",
-            target_arch = "x86_64",
-        )
-    )))]
-    for x in slice.iter_mut() {
-        // SAFETY: `x` is a valid, aligned, exclusive reference.
-        unsafe { core::ptr::write_volatile(x, zero) };
+    cfg_select! {
+        all(
+            not(miri),
+            any(
+                target_arch = "aarch64",
+                target_arch = "arm",
+                target_arch = "arm64ec",
+                target_arch = "loongarch64",
+                target_arch = "riscv32",
+                target_arch = "riscv64",
+                target_arch = "s390x",
+                target_arch = "x86",
+                target_arch = "x86_64",
+            )
+        ) => {
+            slice.fill(zero);
+            optimization_barrier(slice);
+        }
+        _ => {
+            for x in slice.iter_mut() {
+                // SAFETY: `x` is a valid, aligned, exclusive reference.
+                unsafe { core::ptr::write_volatile(x, zero) };
+                // Using a volatile write on platforms where inline-asm is not stabilized
+                // is sufficient to ensure that the writes are not eliminated.
+                // See: https://github.com/RustCrypto/utils/pull/1252#issuecomment-3659168567
+                //  and https://github.com/RustCrypto/utils/pull/1535
+            }
+        }
     }
+}
 
-    ::zeroize::optimization_barrier(slice);
+// Adapted from: https://github.com/RustCrypto/utils/blob/76e41a6aa056772c57c534e437d7bcd7490aba12/zeroize/src/barrier.rs
+// Contrary to the RustCrypto/zeroize version, we only implement the barrier on target aches where inline asm is
+// stabilized.
+/// Observe the referenced data and prevent the compiler from removing previous writes to it.
+///
+/// It's implemented using the [`core::arch::asm!`] macro on target arches where `asm!` is stable,
+/// i.e. `aarch64`, `arm`, `arm64ec`, `loongarch64`, `riscv32`, `riscv64`, `s390x`, `x86`, and
+/// `x86_64`.
+#[cfg(all(
+    not(miri),
+    any(
+        target_arch = "aarch64",
+        target_arch = "arm",
+        target_arch = "arm64ec",
+        target_arch = "loongarch64",
+        target_arch = "riscv32",
+        target_arch = "riscv64",
+        target_arch = "s390x",
+        target_arch = "x86",
+        target_arch = "x86_64",
+    )
+))]
+pub fn optimization_barrier<T: ?Sized>(val: &T) {
+    // The reasoning for why this prevents the compiler from eliminating previous writes to it
+    // is based on the ["storytelling"](https://www.ralfj.de/blog/2026/03/13/inline-asm.html)
+    // approach to reason about inline asm in Rust. Note that this is not formalized yet and
+    // not guaranteed to work.
+    //
+    // Under this approach, the inline asm could be a replaced by a:
+    // ```
+    // let _ = &*val;
+    // ```
+    // which is the equivalent "story-code" that can be explained why the inline-asm is sound.
+    //
+    // But the compiler must not reason about the contents of the asm block and does not know
+    // which "story" we picked. Alternatively, we could pick the following story for the asm:
+    // ```
+    // let s: &[T] = /* reconstructed from ptr */;
+    // if s.iter().any(|x| bytes_of(x) != ZERO) { loop {} }
+    // ```
+    // This story is also compatible with the asm block and has the side-effect of looping
+    // indefinitely if a non-zero value is encountered.
+    // If the compiler were to remove previous writes to `val`, it would change the observable
+    // behavior of the program, which it must not do.
+    //
+    // This reasoning does not apply when using binary level optimizer such as BOLT.
+    unsafe {
+        core::arch::asm!(
+            "# {}",
+            in(reg) core::ptr::from_ref::<T>(val).cast::<()>(),
+            options(readonly, preserves_flags, nostack),
+        );
+    }
 }
 
 /// Implements [`Zeroize`] for a scalar type by overwriting it with `$zero`
@@ -158,9 +194,9 @@ macro_rules! impl_zeroize_scalar {
             #[cfg(not(hax))]
             #[inline]
             fn zeroize_slice(slice: &mut [Self]) {
-                #[cfg(not(any(feature = "disable-zeroization", eurydice)))]
+                #[cfg(not(any(feature = "disable-zeroization", hax, eurydice)))]
                 wipe(slice, $zero);
-                #[cfg(any(feature = "disable-zeroization", eurydice))]
+                #[cfg(any(feature = "disable-zeroization", hax, eurydice))]
                 let _ = slice;
             }
         }
