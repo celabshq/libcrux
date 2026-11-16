@@ -318,6 +318,10 @@ impl Ct {
                 } else {
                     return Err(Error::InvalidPrivateKey);
                 };
+                if !libcrux_ml_kem::mlkem512::validate_private_key(sk, ct) {
+                    return Err(Error::InvalidPrivateKey);
+                }
+
                 let ss = libcrux_ml_kem::mlkem512::decapsulate(sk, ct);
 
                 Ok(Ss::MlKem512(ss))
@@ -328,6 +332,10 @@ impl Ct {
                 } else {
                     return Err(Error::InvalidPrivateKey);
                 };
+                if !mlkem768::validate_private_key(sk, ct) {
+                    return Err(Error::InvalidPrivateKey);
+                }
+
                 let ss = mlkem768::decapsulate(sk, ct);
 
                 Ok(Ss::MlKem768(ss))
@@ -343,6 +351,10 @@ impl Ct {
                     } else {
                         return Err(Error::InvalidPrivateKey);
                     };
+                if !mlkem768::validate_private_key(ksk, kct) {
+                    return Err(Error::InvalidPrivateKey);
+                }
+
                 let kss = mlkem768::decapsulate(ksk, kct);
                 let xss = x25519_derive(xct, xsk)?;
 
@@ -376,6 +388,10 @@ impl Ct {
                 } else {
                     return Err(Error::InvalidPrivateKey);
                 };
+                if !libcrux_ml_kem::mlkem1024::validate_private_key(sk, ct) {
+                    return Err(Error::InvalidPrivateKey);
+                }
+
                 let ss = libcrux_ml_kem::mlkem1024::decapsulate(sk, ct);
 
                 Ok(Ss::MlKem1024(ss))
