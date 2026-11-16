@@ -17,7 +17,7 @@ if [[ -z "$KRML_HOME" ]]; then
 fi
 
 mldsa_root=$(pwd)
-repo_root=$(realpath ../)
+repo_root=$(realpath ../../../)
 
 portable_only=0
 no_hacl=0
@@ -78,7 +78,7 @@ if [[ "$no_charon" = 0 ]]; then
                                     --rustc-arg=-Cdebug-assertions=no $flags $features
     if ! [[ -f $repo_root/libcrux_ml_dsa.llbc ]]; then
         echo "😱😱😱 You are the victim of a bug."
-        echo "Suggestion: rm -rf ../target or cargo clean"
+        echo "Suggestion: rm -rf $repo_root/target or cargo clean"
         exit 1
     fi
 else
@@ -129,10 +129,10 @@ echo " */" >> header.txt
 # Run eurydice to extract the C code
 echo "Running eurydice ..."
 echo $EURYDICE_HOME/eurydice --config ../$config -funroll-loops $unrolling \
---header header.txt $cpp17 ../../libcrux_ml_dsa.llbc --keep-going
+--header header.txt $cpp17 "$repo_root/libcrux_ml_dsa.llbc" --keep-going
 
 $EURYDICE_HOME/eurydice --config ../$config -funroll-loops $unrolling \
---header header.txt $cpp17 ../../libcrux_ml_dsa.llbc --keep-going
+--header header.txt $cpp17 "$repo_root/libcrux_ml_dsa.llbc" --keep-going
 
 if [[ "$eurydice_glue" = 1 ]]; then
     cp $EURYDICE_HOME/include/eurydice_glue.h .

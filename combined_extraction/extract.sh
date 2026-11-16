@@ -153,7 +153,7 @@ if [[ "$no_charon" = 0 ]]; then
              --preset eurydice \
              --include 'core::num::*::BITS' --include 'core::num::*::MAX' $flags $features_mlkem
 
-    cd $repo_root/libcrux-ml-dsa
+    cd $repo_root/crates/algorithms/ml-dsa
     echo "Running charon (ML-DSA) ..."
     RUSTFLAGS="--cfg eurydice" $CHARON_HOME/bin/charon cargo \
              --rustc-arg="-Cdebug-assertions=no" \

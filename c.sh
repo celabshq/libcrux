@@ -27,13 +27,13 @@ if (( docker == 1 && extract == 1 )); then
     sudo docker run -v "$PWD":/home/user/libcrux \
         --rm ghcr.io/cryspen/libcrux-c:latest bash \
         -c "$cwd/libcrux-ml-kem/extracts/extract-all.sh && \
-            cd $cwd/libcrux-ml-dsa && ./boring.sh"
+            cd $cwd/crates/algorithms/ml-dsa && ./boring.sh"
 elif (( extract == 1 )); then
     echo "Extracting locally ..."
     echo "  ML-KEM ..."
     "$cwd"/libcrux-ml-kem/extracts/extract-all.sh
     echo "  ML-DSA ..."
-    (cd "$cwd"/libcrux-ml-dsa && ./boring.sh)
+    (cd "$cwd"/crates/algorithms/ml-dsa && ./boring.sh)
 fi
 
 if (( build == 0 && test == 0 )); then
@@ -82,7 +82,7 @@ fi
 if (( build == 1 )); then
     echo "--------------------------------"
     echo "Building: ML-DSA"
-    cd "$cwd"/libcrux-ml-dsa/cg
+    cd "$cwd"/crates/algorithms/ml-dsa/cg
     CC=clang-18 CXX=clang++-18 cmake -B build -G "Ninja Multi-Config"
     cmake --build build
     cd "$cwd"
@@ -91,7 +91,7 @@ fi
 if (( test == 1 )); then
     echo "--------------------------------"
     echo "Testing: ML-DSA"
-    cd $cwd/libcrux-ml-dsa/cg
+    cd $cwd/crates/algorithms/ml-dsa/cg
     ./build/Debug/ml_dsa_test
     cd "$cwd"
 fi

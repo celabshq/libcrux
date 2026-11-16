@@ -73,7 +73,7 @@ members = [
     "crates/utils/test-utils",
     "crates/primitives/ecdh",
     "crates/primitives/kem",
-    "libcrux-ml-dsa",
+    "crates/algorithms/ml-dsa",
     "libcrux-ml-kem",
     "libcrux-ml-kem/fuzz",
     "libcrux-psq",
@@ -145,7 +145,7 @@ libcrux-ml-kem = { version = "=0.0.11", path = "libcrux-ml-kem", default-feature
 libcrux-p256 = { version = "=0.0.9", path = "crates/algorithms/p256", default-features = false }
 libcrux-p384 = { version = "=0.0.1", path = "crates/algorithms/p384", default-features = false }
 libcrux-ecdsa = { version = "=0.0.9", path = "crates/algorithms/ecdsa", default-features = false }
-libcrux-ml-dsa = { version = "=0.0.11", path = "libcrux-ml-dsa", default-features = false }
+libcrux-ml-dsa = { version = "=0.0.11", path = "crates/algorithms/ml-dsa", default-features = false }
 
 # Test utilities
 libcrux-kats = { path = "crates/testing/kats" }

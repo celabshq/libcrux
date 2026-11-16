@@ -300,7 +300,7 @@
                     hax
                   ];
                   buildPhase = ''
-                    cd libcrux-ml-dsa
+                    cd crates/algorithms/ml-dsa
                     patchShebangs ./.
                     ${lib.optionalString checkHax ''
                       ./hax.sh extract
@@ -384,7 +384,7 @@
           runtimeEnv = tools-environment-strings;
           text = ''
             root=$(git rev-parse --show-toplevel)
-            cd "$root/libcrux-ml-dsa"
+            cd "$root/crates/algorithms/ml-dsa"
             ./boring.sh --no-clean
           '';
         };

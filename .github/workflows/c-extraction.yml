@@ -79,9 +79,9 @@ jobs:
               command='["./extract.sh", "--no-clean"]'
               outputs='["libcrux-ml-kem/extracts/cpp_header_only/generated"]' ;;
             ml-dsa-header-only)
-              dir=libcrux-ml-dsa
+              dir=crates/algorithms/ml-dsa
               command='["./boring.sh", "--no-clean"]'
-              outputs='["libcrux-ml-dsa/cg"]' ;;
+              outputs='["crates/algorithms/ml-dsa/cg"]' ;;
             combined)
               dir=combined_extraction
               command='["./extract.sh"]'

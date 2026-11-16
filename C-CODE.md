@@ -72,7 +72,7 @@ and `KRML_HOME` are set. Formatting needs `clang-format-18` on the `PATH`.
 | `libcrux-ml-kem/extracts/c/generated`               | ML-KEM 768, 1024 (portable only)      | `.c` + `.h`                   | `extract.sh`               | `extract.yaml`          |
 | `libcrux-ml-kem/extracts/c_header_only/generated`   | ML-KEM 768 (portable + AVX2)          | header-only, C / C++20        | `extract.sh`               | `extract.yaml`          |
 | `libcrux-ml-kem/extracts/cpp_header_only/generated` | ML-KEM 768 (portable + AVX2)          | header-only, C++17-compatible | `extract.sh`               | `extract.yaml`          |
-| `libcrux-ml-dsa/cg`                                 | ML-DSA 65 (portable + AVX2)           | header-only, C++17-compatible | `boring.sh`                | `cg.yaml`               |
+| `crates/algorithms/ml-dsa/cg`                                 | ML-DSA 65 (portable + AVX2)           | header-only, C++17-compatible | `boring.sh`                | `cg.yaml`               |
 | `combined_extraction/c`                             | ML-KEM 512/768/1024 + ML-DSA 44/65/87 | `.c` + `.h`                   | `extract.sh`               | `extract-c.yaml`        |
 | `combined_extraction/c-header-only`                 | ML-KEM 512/768/1024 + ML-DSA 44/65/87 | header-only, C++17-compatible | `extract.sh --header-only` | `extract-c-header.yaml` |
 
@@ -103,7 +103,7 @@ cd combined_extraction
 
 Unlike the per-crate scripts, `extract.sh` runs Charon separately in
 `crates/utils/secrets`, `crates/algorithms/sha3`, `libcrux-ml-kem` and
-`libcrux-ml-dsa`, then passes all four `.llbc` files to Eurydice at once. It
+`crates/algorithms/ml-dsa`, then passes all four `.llbc` files to Eurydice at once. It
 does not run clang-format, and does not copy the glue or KaRaMeL headers.
 `c-header-only/` shares `tests/`, `intrinsics/` and `karamel/` with `c/` via
 symlinks.
@@ -122,7 +122,7 @@ ASan/UBSan, and `LIBCRUX_KYBER=1` for the Kyber 768 test.
 ## Convenience scripts
 
 - [`c.sh`](c.sh) at the repository root runs `libcrux-ml-kem/extracts/extract-all.sh`
-  and `libcrux-ml-dsa/boring.sh`. Use `--docker` to run in the CI image,
+  and `crates/algorithms/ml-dsa/boring.sh`. Use `--docker` to run in the CI image,
   `--no-extract` to skip extraction, and `--build` / `--test` to build and
   test the three ML-KEM extractions.
 - `libcrux-ml-kem/extracts/extract-all.sh` runs all three ML-KEM extractions
