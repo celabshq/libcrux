@@ -402,22 +402,7 @@ pub(super) fn power2round(t0: &mut Coefficients, t1: &mut Coefficients) {
 // TODO: Revisit this function when doing the range analysis and testing
 // additional KATs.
 #[inline(always)]
-// The hax F* core library has no `BitOr` instance for `bool`, which
-// the non-short-circuiting `|` below needs.
-#[cfg_attr(
-    hax,
-    hax_lib::fstar::before(
-        r#"
-instance bitor_bool: Core_models.Ops.Bit.t_BitOr bool bool = {
-  f_Output = bool;
-  f_bitor_pre = (fun _ _ -> True);
-  f_bitor_post = (fun a b r -> r == (a || b));
-  f_bitor = (fun a b -> a || b);
-}
-
-[@@ "opaque_to_smt"]"#
-    )
-)]
+#[cfg_attr(hax, hax_lib::fstar::before(r#"[@@ "opaque_to_smt"]"#))]
 #[cfg_attr(hax, hax_lib::requires(fstar!(r#"v $bound > 0 /\
         Spec.Utils.is_i32b_array_opaque (v $FIELD_MODULUS - 1) ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values"#)))]
 #[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"
@@ -429,7 +414,10 @@ pub(super) fn infinity_norm_exceeds(simd_unit: &Coefficients, bound: i32) -> boo
         "reveal_opaque (`%Spec.Utils.is_i32b_array_opaque) (Spec.Utils.is_i32b_array_opaque)"
     );
 
-    let mut result = false;
+    // The result is accumulated in an integer rather than a `bool`,
+    // since C extraction turns a `bool` `|` into a short-circuiting
+    // `||`, which may branch on the comparison.
+    let mut result: u8 = 0;
     // It is ok to leak which coefficient violates the bound since
     // the probability for each coefficient is independent of secret
     // data but we must not leak the sign of the centralized representative.
@@ -438,7 +426,7 @@ pub(super) fn infinity_norm_exceeds(simd_unit: &Coefficients, bound: i32) -> boo
         hax_lib::loop_invariant!(|i: usize| {
             fstar!(
                 r#"
-                $result == false ==> (forall j. j < v $i ==>
+                v $result == 0 ==> (forall j. j < v $i ==>
                     abs (v (Seq.index ${simd_unit}.Libcrux_ml_dsa.Simd.Portable.Vector_type.f_values j)) < v $bound)"#
             )
         });
@@ -469,17 +457,23 @@ pub(super) fn infinity_norm_exceeds(simd_unit: &Coefficients, bound: i32) -> boo
         // secret-independence flagging during valgrind testing. As
         // stated above this is a false-positive, since it is
         // permissible to leak which coefficient has violated the
-        // bound. Nonetheless, we use the non-short-circuiting `|`
-        // here to avoid the false-positive flagging.
+        // bound. Nonetheless, we accumulate the result with a
+        // non-short-circuiting integer `|` here to avoid the
+        // false-positive flagging.
         //
         // See section 5.5 of the Dilithium Specification for
         // Round 3 of the NIST Post-Quantum Cryptography
         // Standardization.
         // (https://pq-crystals.org/dilithium/data/dilithium-specification-round3-20210208.pdf)
-        result = result | (normalized >= bound);
+        let exceeds = (normalized >= bound) as u8;
+
+        #[cfg(hax)]
+        hax_lib::fstar!("logor_lemma $result $exceeds");
+
+        result |= exceeds;
     }
 
-    result
+    result != 0
 }
 
 #[inline(always)]
