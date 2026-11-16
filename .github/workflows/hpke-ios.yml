@@ -6,7 +6,7 @@ on:
     paths:
       - 'crates/protocols/hpke/**'
       - 'crates/algorithms/sha3/**/*.rs'
-      - 'libcrux-ecdh/**/*.rs'
+      - 'crates/primitives/ecdh/**/*.rs'
       - 'crates/algorithms/hkdf/**/*.rs'
       - 'crates/primitives/aead/**/*.rs'
       - 'libcrux-kem/**/*.rs'

@@ -88,7 +88,7 @@ key generation answers can only be validated by the server.
 | SP 800-108 KBKDF, SP 800-56C two-step KDA                                                     | `nist-kdf/tests/acvp.rs`                                                           |
 | HKDF (`KDA` `HKDF`) with SHA2-256/384/512 and SHA3-224/256/384/512                            | `hkdf/tests/acvp.rs`                                                               |
 | KMAC-128/256 (without XOF)                                                                    | `kmac/tests/acvp.rs`                                                               |
-| KAS-ECC-SSC P-256, ECDSA keyGen/keyVer/sigGen/sigVer P-256                                    | `libcrux-ecdh/tests/acvp.rs`, `ecdsa/tests/acvp.rs`                                |
+| KAS-ECC-SSC P-256, ECDSA keyGen/keyVer/sigGen/sigVer P-256                                    | `crates/primitives/ecdh/tests/acvp.rs`, `ecdsa/tests/acvp.rs`                      |
 | KAS-ECC-SSC P-384, ECDSA keyGen/keyVer P-384                                                  | `p384/tests/acvp.rs`                                                               |
 | HMAC_DRBG SHA2-256/384/512                                                                    | `hmac-drbg/tests/acvp.rs`                                                          |
 | EdDSA Ed25519 keyGen, sigGen, sigVer (no keyVer, as libcrux has no public key validation API) | `ed25519/tests/acvp.rs`                                                            |

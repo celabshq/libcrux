@@ -25,4 +25,4 @@ For more details on the compilation from C to Rust, please refer to
 Formalized"](https://arxiv.org/abs/2412.15042) by Aymeric Fromherz and
 Jonathan Protzenko.
 
-[verified-hacl]: ../.assets/verified-hacl-rs-brightgreen.svg
+[verified-hacl]: ../../../.assets/verified-hacl-rs-brightgreen.svg

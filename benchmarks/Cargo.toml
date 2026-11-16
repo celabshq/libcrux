@@ -18,10 +18,12 @@ rand = { version = "0.10" }
 [dev-dependencies]
 libcrux = { path = "../", features = ["rand", "tests"] }
 libcrux-chacha20poly1305 = { path = "../crates/algorithms/chacha20poly1305" }
-libcrux-ecdh = { path = "../libcrux-ecdh" }
+libcrux-ecdh = { path = "../crates/primitives/ecdh" }
 libcrux-ecdsa = { path = "../crates/algorithms/ecdsa" }
 libcrux-ed25519 = { path = "../crates/algorithms/ed25519" }
-libcrux-kem = { path = "../libcrux-kem", features = ["tests"], default-features = true }
+libcrux-kem = { path = "../libcrux-kem", features = [
+    "tests",
+], default-features = true }
 libcrux-ml-kem = { path = "../libcrux-ml-kem" }
 libcrux-rsa = { path = "../crates/algorithms/rsa" }
 libcrux-sha2 = { path = "../crates/algorithms/sha2" }

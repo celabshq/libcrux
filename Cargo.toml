@@ -71,7 +71,7 @@ members = [
     "crates/utils/macros",
     "crates/utils/secrets",
     "crates/utils/test-utils",
-    "libcrux-ecdh",
+    "crates/primitives/ecdh",
     "libcrux-kem",
     "libcrux-ml-dsa",
     "libcrux-ml-kem",
@@ -139,7 +139,7 @@ hpke-rs-libcrux = { version = "=0.8.0", path = "crates/protocols/hpke/libcrux_pr
 # in workspace crates that depend on the default feature set.
 libcrux-kem = { version = "=0.0.10", path = "libcrux-kem", default-features = false }
 libcrux-traits = { version = "=0.0.9", path = "traits" }
-libcrux-ecdh = { version = "=0.0.9", path = "libcrux-ecdh", default-features = false }
+libcrux-ecdh = { version = "=0.0.9", path = "crates/primitives/ecdh", default-features = false }
 libcrux-curve25519 = { version = "=0.0.9", path = "crates/algorithms/curve25519", default-features = false }
 libcrux-ml-kem = { version = "=0.0.11", path = "libcrux-ml-kem", default-features = false }
 libcrux-p256 = { version = "=0.0.9", path = "crates/algorithms/p256", default-features = false }
