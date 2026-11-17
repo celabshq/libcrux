@@ -40,6 +40,21 @@ libcrux_ml_dsa_ml_dsa_44_portable_generate_key_pair(Eurydice_arr_ec randomness)
 }
 
 /**
+ Generate an ML-DSA-44 Key Pair
+*/
+void
+libcrux_ml_dsa_ml_dsa_44_portable_generate_key_pair_mut(
+  Eurydice_arr_ec randomness,
+  Eurydice_arr_10 *signing_key,
+  Eurydice_arr_02 *verification_key
+)
+{
+  libcrux_ml_dsa_ml_dsa_generic_instantiations_portable_ml_dsa_44_generate_key_pair(randomness,
+    signing_key,
+    verification_key);
+}
+
+/**
  Generate an ML-DSA-44 Signature
 
  The parameter `context` is used for domain separation

@@ -41,6 +41,22 @@ libcrux_ml_dsa_ml_dsa_87_avx2_generate_key_pair(Eurydice_arr_ec randomness)
 }
 
 /**
+ Generate an ML-DSA-87 Key Pair
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+void
+libcrux_ml_dsa_ml_dsa_87_avx2_generate_key_pair_mut(
+  Eurydice_arr_ec randomness,
+  Eurydice_arr_e2 *signing_key,
+  Eurydice_arr_43 *verification_key
+)
+{
+  libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_87_generate_key_pair(randomness,
+    Eurydice_array_to_slice_mut_f7(signing_key),
+    Eurydice_array_to_slice_mut_fc(verification_key));
+}
+
+/**
  Generate an ML-DSA-87 Signature
 
  The parameter `context` is used for domain separation
