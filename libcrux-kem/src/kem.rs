@@ -80,12 +80,6 @@ pub mod deterministic {
 
 pub use libcrux_curve25519::X25519;
 use libcrux_ml_kem::MlKemSharedSecret;
-#[cfg(feature = "tests")]
-pub use libcrux_ml_kem::{
-    mlkem1024::validate_public_key as ml_kem1024_validate_public_key,
-    mlkem512::validate_public_key as ml_kem512_validate_public_key,
-    mlkem768::validate_public_key as ml_kem768_validate_public_key,
-};
 pub use libcrux_ml_kem::{
     mlkem1024::{MlKem1024, MlKem1024Ciphertext, MlKem1024PrivateKey, MlKem1024PublicKey},
     mlkem512::{MlKem512, MlKem512Ciphertext, MlKem512PrivateKey, MlKem512PublicKey},
@@ -95,6 +89,12 @@ pub use libcrux_ml_kem::{
 pub use libcrux_p256::P256;
 pub use xwing::XWing;
 use xwing::XWingSharedSecret;
+#[cfg(feature = "tests")]
+pub use {
+    mlkem1024::validate_public_key as ml_kem1024_validate_public_key,
+    mlkem512::validate_public_key as ml_kem512_validate_public_key,
+    mlkem768::validate_public_key as ml_kem768_validate_public_key,
+};
 
 /// KEM Algorithms
 ///
@@ -318,11 +318,11 @@ impl Ct {
                 } else {
                     return Err(Error::InvalidPrivateKey);
                 };
-                if !libcrux_ml_kem::mlkem512::validate_private_key(sk, ct) {
+                if !mlkem512::validate_private_key(sk, ct) {
                     return Err(Error::InvalidPrivateKey);
                 }
 
-                let ss = libcrux_ml_kem::mlkem512::decapsulate(sk, ct);
+                let ss = mlkem512::decapsulate(sk, ct);
 
                 Ok(Ss::MlKem512(ss))
             }
@@ -388,11 +388,11 @@ impl Ct {
                 } else {
                     return Err(Error::InvalidPrivateKey);
                 };
-                if !libcrux_ml_kem::mlkem1024::validate_private_key(sk, ct) {
+                if !mlkem1024::validate_private_key(sk, ct) {
                     return Err(Error::InvalidPrivateKey);
                 }
 
-                let ss = libcrux_ml_kem::mlkem1024::decapsulate(sk, ct);
+                let ss = mlkem1024::decapsulate(sk, ct);
 
                 Ok(Ss::MlKem1024(ss))
             }
@@ -504,7 +504,7 @@ impl PublicKey {
 
             PublicKey::MlKem512(pk) => {
                 let seed = mlkem_rand(rng)?;
-                let (ct, ss) = libcrux_ml_kem::mlkem512::encapsulate(pk, seed);
+                let (ct, ss) = mlkem512::encapsulate(pk, seed);
                 Ok((Ss::MlKem512(ss), Ct::MlKem512(ct)))
             }
 
@@ -574,10 +574,8 @@ impl PublicKey {
             }
 
             PublicKey::MlKem512(pk) => {
-                let (ct, ss) = libcrux_ml_kem::mlkem512::encapsulate(
-                    pk,
-                    seed.try_into().map_err(|_| Error::KeyGen)?,
-                );
+                let (ct, ss) =
+                    mlkem512::encapsulate(pk, seed.try_into().map_err(|_| Error::KeyGen)?);
                 Ok((Ss::MlKem512(ss), Ct::MlKem512(ct)))
             }
 
@@ -952,9 +950,9 @@ mod xwing {
 
     use super::*;
 
-    const MLKEM768_EK_LEN: usize = libcrux_ml_kem::mlkem768::MlKem768PublicKey::len();
-    const MLKEM768_DK_LEN: usize = libcrux_ml_kem::mlkem768::MlKem768PrivateKey::len();
-    const MLKEM768_CT_LEN: usize = libcrux_ml_kem::mlkem768::MlKem768Ciphertext::len();
+    const MLKEM768_EK_LEN: usize = mlkem768::MlKem768PublicKey::len();
+    const MLKEM768_DK_LEN: usize = mlkem768::MlKem768PrivateKey::len();
+    const MLKEM768_CT_LEN: usize = mlkem768::MlKem768Ciphertext::len();
     const MLKEM768_SS_LEN: usize = libcrux_ml_kem::SHARED_SECRET_SIZE;
     const MLKEM768_RAND_KEYGEN_LEN: usize = libcrux_ml_kem::KEY_GENERATION_SEED_SIZE;
     const MLKEM768_RAND_ENCAPS_LEN: usize = MLKEM768_SS_LEN;
@@ -973,7 +971,7 @@ mod xwing {
     const RAND_ENCAPS_LEN: usize = MLKEM768_RAND_ENCAPS_LEN + X25519_RAND_ENCAPS_LEN;
 
     use libcrux_curve25519::X25519;
-    use libcrux_ml_kem::mlkem768::MlKem768;
+    use mlkem768::MlKem768;
 
     pub struct XWing;
 
