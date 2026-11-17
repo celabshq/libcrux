@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.0.12] (Unreleased)
 
+### Added
+
+- [#1663](https://github.com/celabshq/libcrux/pull/1663): Add `generate_key_pair_mut` functions to `ml_dsa_{44,87}` modules (@parthod0x)
+
 ### Changed
 
 - [#1653](https://github.com/celabshq/libcrux/pull/1653): Make the portable `infinity_norm_exceeds` branch-free

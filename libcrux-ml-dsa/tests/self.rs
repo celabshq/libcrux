@@ -616,3 +616,80 @@ fn bad_hint_out_of_bounds() {
         Err(libcrux_ml_dsa::VerificationError::MalformedHintError),
     ));
 }
+
+// `generate_key_pair_mut` must write exactly the key pair that
+// `generate_key_pair` returns for the same seed.
+macro_rules! impl_key_gen_mut_test {
+    ($name:ident, $key_gen:expr, $key_gen_mut:expr, $signing_key:ty, $verification_key:ty) => {
+        #[test]
+        fn $name() {
+            let key_generation_seed = random_array();
+
+            let key_pair = $key_gen(key_generation_seed);
+
+            let mut signing_key = [0u8; <$signing_key>::len()];
+            let mut verification_key = [0u8; <$verification_key>::len()];
+            $key_gen_mut(key_generation_seed, &mut signing_key, &mut verification_key);
+
+            assert_eq!(key_pair.signing_key.as_ref(), &signing_key);
+            assert_eq!(key_pair.verification_key.as_ref(), &verification_key);
+        }
+    };
+}
+
+macro_rules! impl_key_gen_mut_tests {
+    ($module:ident, $signing_key:ty, $verification_key:ty, $portable:ident, $simd128:ident, $simd256:ident) => {
+        impl_key_gen_mut_test!(
+            $portable,
+            $module::portable::generate_key_pair,
+            $module::portable::generate_key_pair_mut,
+            $signing_key,
+            $verification_key
+        );
+
+        #[cfg(feature = "simd128")]
+        impl_key_gen_mut_test!(
+            $simd128,
+            $module::neon::generate_key_pair,
+            $module::neon::generate_key_pair_mut,
+            $signing_key,
+            $verification_key
+        );
+
+        #[cfg(feature = "simd256")]
+        impl_key_gen_mut_test!(
+            $simd256,
+            $module::avx2::generate_key_pair,
+            $module::avx2::generate_key_pair_mut,
+            $signing_key,
+            $verification_key
+        );
+    };
+}
+
+impl_key_gen_mut_tests!(
+    ml_dsa_44,
+    ml_dsa_44::MLDSA44SigningKey,
+    ml_dsa_44::MLDSA44VerificationKey,
+    key_gen_mut_44_portable,
+    key_gen_mut_44_simd128,
+    key_gen_mut_44_simd256
+);
+
+impl_key_gen_mut_tests!(
+    ml_dsa_65,
+    ml_dsa_65::MLDSA65SigningKey,
+    ml_dsa_65::MLDSA65VerificationKey,
+    key_gen_mut_65_portable,
+    key_gen_mut_65_simd128,
+    key_gen_mut_65_simd256
+);
+
+impl_key_gen_mut_tests!(
+    ml_dsa_87,
+    ml_dsa_87::MLDSA87SigningKey,
+    ml_dsa_87::MLDSA87VerificationKey,
+    key_gen_mut_87_portable,
+    key_gen_mut_87_simd128,
+    key_gen_mut_87_simd256
+);

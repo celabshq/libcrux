@@ -7,8 +7,8 @@
  * Charon: e656e17bff6ca5efac8ab6919b9b74cb9a8dd8ad
  * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
  * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
- * F*: 70671ffb81fa30aba09b9d6e2af275dfbccaa8f8
- * Libcrux: c864b0922b72c1854d17b81bdd842a26e14b3211
+ * F*: 7b347386330d0e5a331a220535b6f15288903234
+ * Libcrux: dirty
  */
 
 
@@ -44,6 +44,22 @@ libcrux_ml_dsa_ml_dsa_87_avx2_generate_key_pair(Eurydice_arr_ec randomness)
         libcrux_ml_dsa_types_new_7f_c6(verification_key)
       }
     );
+}
+
+/**
+ Generate an ML-DSA-87 Key Pair
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline void
+libcrux_ml_dsa_ml_dsa_87_avx2_generate_key_pair_mut(
+  Eurydice_arr_ec randomness,
+  Eurydice_arr_e2 *signing_key,
+  Eurydice_arr_43 *verification_key
+)
+{
+  libcrux_ml_dsa_ml_dsa_generic_instantiations_avx2_ml_dsa_87_generate_key_pair(randomness,
+    Eurydice_array_to_slice_mut_f7(signing_key),
+    Eurydice_array_to_slice_mut_fc(verification_key));
 }
 
 /**
