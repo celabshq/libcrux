@@ -32,7 +32,7 @@ jobs:
 
       - name: Compile ctgrind-test crate
         env:
-          # needed for the ML-DSA CT tests
+          # needed for the ML-DSA, ChaCha20-Poly1305, RSA, AES, ECDSA and P-384 CT tests
           RUSTFLAGS: '--cfg valgrind_ct_test'
         run: cargo build --package ctgrind-test --profile release-debug --bins
 
@@ -45,3 +45,50 @@ jobs:
       - name: Run valgrind SHA-3
         run: valgrind --tool=memcheck --error-exitcode=1 --track-origins=yes target/release-debug/sha3
 
+      - name: Run valgrind HACL masks
+        run: valgrind --tool=memcheck --error-exitcode=1 --track-origins=yes target/release-debug/hacl_masks
+
+      - name: Run valgrind ChaCha20-Poly1305
+        run: valgrind --tool=memcheck --error-exitcode=1 --track-origins=yes target/release-debug/chacha20poly1305
+
+      - name: Run valgrind X25519
+        run: valgrind --tool=memcheck --error-exitcode=1 --track-origins=yes target/release-debug/curve25519
+
+      - name: Run valgrind Ed25519
+        run: valgrind --tool=memcheck --error-exitcode=1 --track-origins=yes target/release-debug/ed25519
+
+      - name: Run valgrind P-256
+        run: valgrind --tool=memcheck --error-exitcode=1 --track-origins=yes target/release-debug/p256
+
+      - name: Run valgrind RSA-PSS
+        run: valgrind --tool=memcheck --error-exitcode=1 --track-origins=yes target/release-debug/rsa
+
+      - name: Run valgrind SHA-2
+        run: valgrind --tool=memcheck --error-exitcode=1 --track-origins=yes target/release-debug/sha2
+
+      - name: Run valgrind BLAKE2
+        run: valgrind --tool=memcheck --error-exitcode=1 --track-origins=yes target/release-debug/blake2
+
+      - name: Run valgrind HMAC
+        run: valgrind --tool=memcheck --error-exitcode=1 --track-origins=yes target/release-debug/hmac
+
+      - name: Run valgrind HKDF
+        run: valgrind --tool=memcheck --error-exitcode=1 --track-origins=yes target/release-debug/hkdf
+
+      - name: Run valgrind KMAC
+        run: valgrind --tool=memcheck --error-exitcode=1 --track-origins=yes target/release-debug/kmac
+
+      - name: Run valgrind NIST KDF
+        run: valgrind --tool=memcheck --error-exitcode=1 --track-origins=yes target/release-debug/nist_kdf
+
+      - name: Run valgrind HMAC-DRBG
+        run: valgrind --tool=memcheck --error-exitcode=1 --track-origins=yes target/release-debug/hmac_drbg
+
+      - name: Run valgrind AES-GCM/CCM
+        run: valgrind --tool=memcheck --error-exitcode=1 --track-origins=yes target/release-debug/aes
+
+      - name: Run valgrind P-384
+        run: valgrind --tool=memcheck --error-exitcode=1 --track-origins=yes target/release-debug/p384
+
+      - name: Run valgrind ECDSA
+        run: valgrind --tool=memcheck --error-exitcode=1 --track-origins=yes target/release-debug/ecdsa

@@ -18,6 +18,10 @@ libcrux-hacl-rs = { workspace = true, features = ["alloc"] }
 libcrux-traits.workspace = true
 libcrux-macros.workspace = true
 libcrux-sha2 = { workspace = true, features = ["expose-hacl"] }
+libcrux-secrets.workspace = true
 
 [dev-dependencies]
 wycheproof = "0.7.0"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(valgrind_ct_test)'] }

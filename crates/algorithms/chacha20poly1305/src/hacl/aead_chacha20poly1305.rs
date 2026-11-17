@@ -553,6 +553,17 @@ pub fn encrypt(
     )
 }
 
+#[inline]
+pub(crate) fn tag_eq(computed_tag: &[u8], tag: &[u8]) -> bool {
+    let mut res: [u8; 1] = [255u8; 1usize];
+    krml::unroll_for!(16, "i", 0u32, 1u32, {
+        let uu____0: u8 = fstar::uint8::eq_mask(computed_tag[i as usize], tag[i as usize]);
+        (&mut res)[0usize] = uu____0 & (&res)[0usize]
+    });
+    let z: u8 = (&res)[0usize];
+    z == 255u8
+}
+
 /**
 Decrypt a ciphertext `input` with key `key`.
 
@@ -597,13 +608,10 @@ pub fn decrypt(
         input,
         &mut computed_tag,
     );
-    let mut res: [u8; 1] = [255u8; 1usize];
-    krml::unroll_for!(16, "i", 0u32, 1u32, {
-        let uu____0: u8 = fstar::uint8::eq_mask((&computed_tag)[i as usize], tag[i as usize]);
-        (&mut res)[0usize] = uu____0 & (&res)[0usize]
-    });
-    let z: u8 = (&res)[0usize];
-    if z == 255u8 {
+    let tag_ok: bool = crate::hacl::aead_chacha20poly1305::tag_eq(&computed_tag, tag);
+    // Whether the tag is valid is public. Declassify it for the valgrind CT test.
+    libcrux_secrets::mem_requests::ct_declassify(&tag_ok);
+    if tag_ok {
         crate::hacl::chacha20::chacha20_encrypt(input_len, output, input, key, nonce, 1u32);
         0u32
     } else {

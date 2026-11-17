@@ -14,6 +14,24 @@ crabgrind.workspace = true
 libcrux-sha3 = { workspace = true }
 libcrux-ml-kem = { workspace = true, features = ["mlkem512"] }
 libcrux-ml-dsa = { workspace = true, default-features = true }
+libcrux-hacl-rs.workspace = true
+libcrux-poly1305.workspace = true
+libcrux-chacha20poly1305.workspace = true
+libcrux-curve25519.workspace = true
+libcrux-ed25519.workspace = true
+libcrux-p256 = { workspace = true, features = ["expose-hacl"] }
+libcrux-rsa = { workspace = true, features = ["expose-hacl"] }
+libcrux-sha2.workspace = true
+libcrux-blake2.workspace = true
+libcrux-hmac.workspace = true
+libcrux-hkdf.workspace = true
+libcrux-kmac.workspace = true
+libcrux-nist-kdf.workspace = true
+libcrux-hmac-drbg.workspace = true
+libcrux-aes.workspace = true
+libcrux-p384.workspace = true
+libcrux-ecdsa = { workspace = true, features = ["rand"] }
+rand_core = "0.10"
 
 [[bin]]
 name = "sha3"
@@ -26,6 +44,70 @@ path = "src/bin/mlkem.rs"
 [[bin]]
 name = "mldsa"
 path = "src/bin/mldsa.rs"
+
+[[bin]]
+name = "hacl_masks"
+path = "src/bin/hacl_masks.rs"
+
+[[bin]]
+name = "chacha20poly1305"
+path = "src/bin/chacha20poly1305.rs"
+
+[[bin]]
+name = "curve25519"
+path = "src/bin/curve25519.rs"
+
+[[bin]]
+name = "ed25519"
+path = "src/bin/ed25519.rs"
+
+[[bin]]
+name = "p256"
+path = "src/bin/p256.rs"
+
+[[bin]]
+name = "rsa"
+path = "src/bin/rsa.rs"
+
+[[bin]]
+name = "sha2"
+path = "src/bin/sha2.rs"
+
+[[bin]]
+name = "blake2"
+path = "src/bin/blake2.rs"
+
+[[bin]]
+name = "hmac"
+path = "src/bin/hmac.rs"
+
+[[bin]]
+name = "hkdf"
+path = "src/bin/hkdf.rs"
+
+[[bin]]
+name = "kmac"
+path = "src/bin/kmac.rs"
+
+[[bin]]
+name = "nist_kdf"
+path = "src/bin/nist_kdf.rs"
+
+[[bin]]
+name = "hmac_drbg"
+path = "src/bin/hmac_drbg.rs"
+
+[[bin]]
+name = "aes"
+path = "src/bin/aes.rs"
+
+[[bin]]
+name = "p384"
+path = "src/bin/p384.rs"
+
+[[bin]]
+name = "ecdsa"
+path = "src/bin/ecdsa.rs"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(hax)', 'cfg(valgrind_ct_test)'] }

@@ -1,3 +1,5 @@
+// Not inlined, so that LLVM cannot turn the mask back into a comparison and a branch.
+#[inline(never)]
 pub fn eq_mask(a: u64, b: u64) -> u64 {
     let x = a ^ b;
     let minus_x = (!x).wrapping_add(1u64);
@@ -6,6 +8,8 @@ pub fn eq_mask(a: u64, b: u64) -> u64 {
     xnx.wrapping_sub(1u64)
 }
 
+// Not inlined, so that LLVM cannot turn the mask back into a comparison and a branch.
+#[inline(never)]
 pub fn gte_mask(a: u64, b: u64) -> u64 {
     let x = a;
     let y = b;
