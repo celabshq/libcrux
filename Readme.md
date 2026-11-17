@@ -62,9 +62,12 @@ As a quick indicator of overall verification status, subcrates in this workspace
 
 - ![verified] to indicate that most (or all) of the Rust code that is contained in the default feature set is verified using the [hax toolchain](https://github.com/cryspen/hax). Where indicated, the code is verified to be panic free and functionally correct against a mathematical spec (for an overview of hax, see [this paper](https://eprint.iacr.org/2025/142))
 
-Importantly, executables compiled from the code in this repository are *not* verified to be side-channel resistant, although we try to enforce that the source code is secret-independent (also sometimes called “constant-time”).
-
 In every case, please refer to the more detailed notes on verification in each sub-crate to learn more about what has (or has not) been verified in the particular case, and [reach out to us](mailto:info@celabs.eu) if you have any questions.
+
+## Side-Channel Resistance and Zeroization
+Executables compiled from the code in this repository are *not* verified to be side-channel resistant, although we try to enforce that the source code is secret-independent (also sometimes called “constant-time”).
+
+At this moment, we do also not give guarantees on the zeroization of secret values on the stack or heap. We are working on best-effort implementations of zeroization.
 
 ## Publications
 

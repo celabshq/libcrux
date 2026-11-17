@@ -81,6 +81,14 @@ target_link_libraries(ml_dsa_test PRIVATE
     nlohmann_json::nlohmann_json
 )
 
+# Register the tests with ctest. The tests read their KAT files relative to
+# the source directory (e.g. tests/nistkats-65.json), so they have to run
+# from there.
+enable_testing()
+add_test(NAME ml_dsa_test COMMAND ml_dsa_test
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+)
+
 # add_executable(kyber_test
 #     ${PROJECT_SOURCE_DIR}/tests/kyber768.cc
 # )

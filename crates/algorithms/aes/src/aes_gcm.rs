@@ -95,6 +95,8 @@ where
         }
 
         let correct_tag = ct_compare(&computed_tag, tag);
+        // Whether the tag is valid is public. Declassify it for the valgrind CT test.
+        libcrux_secrets::mem_requests::ct_declassify(&correct_tag);
 
         if correct_tag {
             self.aes_state.aes_ctr_update(2, ciphertext, plaintext);

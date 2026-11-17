@@ -593,7 +593,7 @@ libcrux_ml_dsa_simd_portable_arithmetic_infinity_norm_exceeds(
   int32_t bound
 )
 {
-  bool result = false;
+  uint8_t result = 0U;
   KRML_MAYBE_FOR8(i,
     (size_t)0U,
     (size_t)8U,
@@ -602,17 +602,9 @@ libcrux_ml_dsa_simd_portable_arithmetic_infinity_norm_exceeds(
     int32_t coefficient = simd_unit->data[i0];
     int32_t sign = coefficient >> 31U;
     int32_t normalized = coefficient - (sign & 2 * coefficient);
-    bool uu____0;
-    if (result)
-    {
-      uu____0 = true;
-    }
-    else
-    {
-      uu____0 = normalized >= bound;
-    }
-    result = uu____0;);
-  return result;
+    uint8_t exceeds = (uint8_t)(normalized >= bound);
+    result = (uint32_t)result | (uint32_t)exceeds;);
+  return result != 0U;
 }
 
 /**

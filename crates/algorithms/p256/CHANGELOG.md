@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.10] (Unreleased)
+
+### Fixed
+
+- [#1653](https://github.com/celabshq/libcrux/pull/1653): Add optimisation barriers to the carry-based masks in `bn_is_lt_order_mask4`, `bn_is_lt_prime_mask4` and the modular subtraction select. Reported by Marco Bertoni (@timmykill) and Aymeric Fromherz (@R1kM).
+
 ## [0.0.9] (2026-10-07)
 
 ### Added

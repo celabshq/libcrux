@@ -1,91 +1,81 @@
-# Extraction into C code
+# ML-KEM C code
 
-The subfolders of `./extracts/` contain C code extracted from `libcrux-ml-kem`.
+The subdirectories of [`extracts/`](extracts/) contain C code extracted from
+`libcrux-ml-kem` with [Charon], [Eurydice] and [KaRaMeL].
 
-The C code is generated from Rust using [Charon], [Eurydice] and
-[KaRaMeL]. Charon translates the Rust crate to Low-Level Borrow
-Calculus (LLBC). From LLBC, Eurydice translates to KaRaMeL's internal
-AST, which is then lowered to C.
+This page is a quick reference for ML-KEM. For more information on C extraction in libcrux in general, please see
+[`C-CODE.md`](../C-CODE.md) at the repository root.
 
-## Prerequisites
-We assume you have [`rustup`](https://rustup.rs/) and [`opam`](https://ocaml.org/docs/installing-ocaml#1-install-opam) installed.
+## Extractions
 
-First, install the tools' dependencies via `opam`:
+| Directory                                                                  | Parameter sets | SIMD            | Layout                    |
+|----------------------------------------------------------------------------|----------------|-----------------|---------------------------|
+| [`extracts/c/generated`](extracts/c/generated)                             | 768, 1024      | none (portable) | `.c` + `.h`               |
+| [`extracts/c_header_only/generated`](extracts/c_header_only/generated)     | 768            | AVX2            | header-only, C11 or C++20 |
+| [`extracts/cpp_header_only/generated`](extracts/cpp_header_only/generated) | 768            | AVX2            | header-only, C11 or C++17 |
+
+All three also contain the SHA-3 code ML-KEM needs, and the
+`intrinsics/` headers.
+
+## Extracting
+
+Set `CHARON_HOME`, `EURYDICE_HOME` and `KRML_HOME` to tool checkouts at the
+revisions pinned by `EURYDICE_REV` in
+[`.docker/c/Dockerfile`](../.docker/c/Dockerfile). Alternatively, use the
+Docker image or `nix run --impure .#ml-kem-extract` (see the root
+`C-CODE.md`). Then:
+
 ```bash
-opam switch creat 4.13.1+options
-opam install --yes ocamlfind visitors menhir ppx_deriving_yojson core_unix sedlex wasm fix process pprint zarith yaml easy_logging terminal
+cd extracts/c_header_only    # or c, cpp_header_only
+./extract.sh
+
+# or all three at once
+extracts/extract-all.sh
 ```
 
-Now you're ready to install the tools.
+Each `extract.sh` calls
+ [`extracts/common/c.sh`](extracts/common/c.sh), using the
+ `extract.yaml` in the same directory.  `cpp_header_only/extract.sh`
+ runs `cargo clean` first unless you pass `--no-clean`, and copies the
+ result into BoringSSL if `BORINGSSL_HOME` is set.
 
-### Set tool directories
+## Building and testing
 
-Set the directories where tool repositories should be cloned and tools should be built in. Setting these environment variables is important for the extraction script `c.sh`.
-
-```bash
-export CHARON_HOME=$HOME/charon
-export KRML_HOME=$HOME/karamel
-export EURYDICE_HOME=$HOME/eurydice
-```
-
-### Charon
+The CMake project for each extraction is in subdirectory `generated/`:
 
 ```bash
-git clone https://github.com/AeneasVerif/charon.git $CHARON_HOME
-cd $CHARON_HOME
-make
-```
-
-### KaRaMeL
-
-```bash
-git clone https://github.com/FStarLang/karamel.git $KRML_HOME
-cd $KRML_HOME
-make
-```
-
-### Eurydice
-```bash
-git clone https://github.com/AeneasVerif/eurydice.git $EURYDICE_HOME
-cd $EURYDICE_HOME
-make
-```
-
-## Generating C code
-
-Each extraction has a script `extract.sh` for extracting the code. They all make
-use of the `extracts/common/c.sh` script, but use it with different arguments.
-Each extraction also comes with an `extract.yaml` configuration file, which
-configures the Eurydice translation.
-
-While running the commands separately is possible, it is not
-recommended because the script sets all necessary configuration flags.
-
-We maintain the following extraction configurations:
-
-- `c_header_only`: header-only C code
-- `cpp_header_only`: header-only C++ code
-
-For the `c_header_only` and `cpp_header_only` extractions we also keep the
-extracted code in the repository so users don't need to extract it themselves.
-
-## Build
-
-Make sure to use `CC=clang CXX=clang++` when benchmarking on Linux to get full
-performance.
-
-```bash
-cd extracts/c_header_only # or extracts/cpp_header_only if you want to build C++
-cmake -B build
+cd extracts/c_header_only/generated    # or c/generated, cpp_header_only/generated
+CC=clang CXX=clang++ cmake -B build -G "Ninja Multi-Config"
 cmake --build build
+./build/Debug/ml_kem_test768
+./build/Debug/sha3_test
 ```
 
-To enable neon builds, set `LIBCRUX_NEON=1`.
+The `c` extraction also has `ml_kem_test1024`. To run all tests at once (this
+is what CI does), use `ctest --test-dir build -C Debug --output-on-failure`.
 
-### Symcrypt benchmarks
+Environment variables read at configure time:
 
-First get and build symcrypt and set `SYMCRYPT_PATH` for the build.
-Ensure you have `elftools` installed (`pip install pyelftools`).
+| Variable               | Effect                                                                  |
+|------------------------|-------------------------------------------------------------------------|
+| `LIBCRUX_BENCHMARKS=1` | Build `ml_kem_bench`, `ml_kem_keygen`, `ml_kem_encaps` and `sha3_bench` |
+| `LIBCRUX_NEON=1`       | Enable the arm64 code paths                                             |
+| `LIBCRUX_KYBER=1`      | Build `kyber_test` (header-only extractions)                            |
+| `LIBCRUX_UNPACKED=1`   | Also test the unpacked API (`c` extraction)                             |
+| `SYMCRYPT_PATH=<path>` | Benchmark against SymCrypt as well                                      |
+
+## Benchmarks
+
+```bash
+cd extracts/c_header_only/generated
+LIBCRUX_BENCHMARKS=1 CC=clang CXX=clang++ cmake -B build -G "Ninja Multi-Config"
+cmake --build build --config Release
+./build/Release/ml_kem_bench
+```
+
+### Comparing against SymCrypt
+
+Build SymCrypt (needs `pip install pyelftools`):
 
 ```bash
 git clone https://github.com/microsoft/symcrypt
@@ -94,57 +84,26 @@ git checkout b070a5d236a4d40aa90524cb5b492463c5452b40
 scripts/build.py cmake build --config Release
 ```
 
+Then configure the benchmarks with `SYMCRYPT_PATH` set:
+
 ```bash
-SYMCRYPT_PATH=<your-path> CC=clang CXX=clang++ cmake -B build -G Ninja Multi-Config"
+SYMCRYPT_PATH=<path-to-symcrypt> LIBCRUX_BENCHMARKS=1 CC=clang CXX=clang++ \
+  cmake -B build -G "Ninja Multi-Config"
 cmake --build build --config Release
 ./build/Release/ml_kem_bench
 ```
 
-#### MSVC
+On Windows with MSVC:
 
-To build with MSVC, manual fixes are required.
+1. Build SymCrypt with `cmake -S . -B bin -DCMAKE_BUILD_TYPE=Release` and
+   `cmake --build bin --config Release`.
+2. Apply `extracts/c/generated/fix-symcrypt-includes.patch` in the SymCrypt
+   checkout (`git apply <path>/fix-symcrypt-includes.patch`).
+3. Configure and build the benchmarks as above.
+4. Copy `symcrypt.dll` (from `bin/exe/` in the SymCrypt checkout) into
+   `build/Release/`.
+5. Run `build/Release/ml_kem_bench`.
 
-1. Build symcrypt
-
-```bash
-cmake -S . -B bin -DCMAKE_BUILD_TYPE=Release
-cmake --build bin --config Release
-```
-
-2. Patch symcrypt
-
-```bash
-git apply fix-symcrypt-includes.patch
-```
-
-3. Build benchmarks as described above.
-4. Copy the dll into the binary directory.
-
-```bash
-cp ..\..\..\symcrypt\bin\exe\symcrypt.dll .\build\Release\
-```
-
-5. Run benchmarks
-
-### Test
-If you're on windows, run
-```bash
-cd ./c               # or ./cg, if you want to test header-only
-./build/Debug/ml_kem_test
-```
-otherwise
-```bash
-cd ./c               # or ./cg, if you want to test header-only
-./c/build/ml_kem_test
-```
-
-### Benchmark
-```
-cd ./c               # or ./cg, if you want to benchmark header-only
-rm -rf build
-cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build --config Release
-```
 [Charon]: https://github.com/AeneasVerif/charon/
 [Eurydice]: https://github.com/AeneasVerif/eurydice
 [KaRaMeL]: https://github.com/FStarLang/karamel

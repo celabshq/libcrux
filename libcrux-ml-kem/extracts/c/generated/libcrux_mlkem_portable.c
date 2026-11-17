@@ -7,14 +7,15 @@
  * Charon: e656e17bff6ca5efac8ab6919b9b74cb9a8dd8ad
  * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
  * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
- * F*: 7b347386330d0e5a331a220535b6f15288903234
- * Libcrux: 517c2c298693bf42e480b5fbb8105033a7130efc
+ * F*: 70671ffb81fa30aba09b9d6e2af275dfbccaa8f8
+ * Libcrux: c864b0922b72c1854d17b81bdd842a26e14b3211
  */
 
 #include "internal/libcrux_mlkem_portable.h"
 
 #include "internal/libcrux_core.h"
 #include "libcrux_core.h"
+#include "libcrux_ct_ops.h"
 #include "libcrux_sha3_portable.h"
 
 inline Eurydice_arr_c7 libcrux_ml_kem_hash_functions_portable_G(

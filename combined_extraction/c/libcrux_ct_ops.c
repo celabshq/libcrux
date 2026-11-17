@@ -12,6 +12,8 @@
  */
 
 
+#include "intrinsics/libcrux_ct_barrier.h"
+
 #include "libcrux_ct_ops.h"
 
 #include "libcrux_mlkem_core.h"
@@ -30,7 +32,8 @@ KRML_NOINLINE uint8_t libcrux_ml_kem_constant_time_ops_inz(uint8_t value)
 
 KRML_NOINLINE uint8_t libcrux_ml_kem_constant_time_ops_is_non_zero(uint8_t value)
 {
-  return libcrux_ml_kem_constant_time_ops_inz(value);
+  return
+    libcrux_ml_kem_constant_time_ops_barrier_ct_barrier_u8(libcrux_ml_kem_constant_time_ops_inz(value));
 }
 
 /**

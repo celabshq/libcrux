@@ -25,3 +25,6 @@ hex = "0.4.3"
 
 [features]
 check-secret-independence = ["libcrux-secrets/check-secret-independence"]
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(valgrind_ct_test)'] }

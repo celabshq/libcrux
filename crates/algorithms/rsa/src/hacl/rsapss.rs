@@ -102,7 +102,8 @@ fn check_modulus_u64(modBits: u32, n: &[u64]) -> u64 {
         .wrapping_div(64u32)
         .wrapping_add(1u32);
     let bits0: u64 = n[0usize] & 1u64;
-    let m0: u64 = 0u64.wrapping_sub(bits0);
+    // The barrier keeps LLVM from turning the masked select into a branch.
+    let m0: u64 = core::hint::black_box(0u64.wrapping_sub(bits0));
     let mut b2: Box<[u64]> = vec![0u64; nLen as usize].into_boxed_slice();
     let i: u32 = modBits.wrapping_sub(1u32).wrapping_div(64u32);
     let j: u32 = modBits.wrapping_sub(1u32).wrapping_rem(64u32);
@@ -306,7 +307,7 @@ fn load_pkey(modBits: u32, eBits: u32, nb: &[u8], eb: &[u8], pkey: &mut [u64]) -
 }
 
 #[inline]
-fn load_skey(
+pub(crate) fn load_skey(
     modBits: u32,
     eBits: u32,
     dBits: u32,
@@ -866,6 +867,8 @@ pub fn rsapss_skey_sign(
     ]
     .into_boxed_slice();
     let b: bool = crate::hacl::rsapss::load_skey(modBits, eBits, dBits, nb, eb, db, &mut skey);
+    // Whether the key is valid is public. Declassify it for the valgrind CT test.
+    libcrux_secrets::mem_requests::ct_declassify(&b);
     if b {
         crate::hacl::rsapss::rsapss_sign(
             a, modBits, eBits, dBits, &skey, saltLen, salt, msgLen, msg, sgnt,

@@ -116,7 +116,10 @@ mod conversions {
         /// Compute the [`PublicKey`] corresponding to this [`PrivateKey`].
         pub fn public_key(&self) -> Result<PublicKey, Error> {
             let mut public_key = [0u8; 64];
-            if dh_initiator(&mut public_key, &self.0) {
+            let valid = dh_initiator(&mut public_key, &self.0);
+            // Whether the private key is valid is public. Declassify it for the valgrind CT test.
+            libcrux_secrets::mem_requests::ct_declassify(&valid);
+            if valid {
                 Ok(PublicKey(public_key))
             } else {
                 Err(Error::InvalidScalar)
@@ -206,12 +209,12 @@ pub fn validate_scalar(scalar: &impl AsRef<[u8; 32]>) -> Result<(), Error> {
 ///
 /// Returns [`Error::InvalidScalar`] if the `scalar` is not valid.
 fn validate_scalar_(scalar: &[u8; 32]) -> Result<(), Error> {
-    if scalar.as_ref().iter().all(|b| *b == 0) {
-        return Err(Error::InvalidScalar);
-    }
-
     // Ensure that the key is in range  [1, p-1]
-    if validate_private_key(scalar.as_ref()) {
+    let valid = validate_private_key(scalar.as_ref());
+    // Whether the scalar is valid is public: an invalid private key is rejected, and an invalid
+    // nonce is resampled. Declassify it for the valgrind CT test.
+    libcrux_secrets::mem_requests::ct_declassify(&valid);
+    if valid {
         Ok(())
     } else {
         Err(Error::InvalidScalar)
@@ -341,6 +344,8 @@ fn _sign(
         libcrux_sha2::Algorithm::Sha224 => return Err(Error::UnsupportedHash),
     };
 
+    // Whether signing succeeded is public. Declassify it for the valgrind CT test.
+    libcrux_secrets::mem_requests::ct_declassify(&success);
     if !success {
         return Err(Error::SigningError);
     }

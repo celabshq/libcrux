@@ -13,6 +13,23 @@ files:
     api:
       - [libcrux_intrinsics, avx2]
 
+  # Optimization barrier for the constant time ops. Implemented by hand in
+  # intrinsics/libcrux_ct_barrier.h, because Eurydice turns
+  # core::hint::black_box into a no-op. Must come before libcrux_ct_ops and
+  # libcrux_core, which would otherwise claim it.
+  - name: libcrux_ct_barrier
+    library: true
+    inline_static: true
+    api:
+      - [libcrux_ml_kem, constant_time_ops, barrier]
+
+  # Constant time ops
+  - name: libcrux_ct_ops
+    api:
+      - [libcrux_ml_kem, constant_time_ops]
+    include_in_c:
+      - '"intrinsics/libcrux_ct_barrier.h"'
+
   # SHA3 (no mention of libcrux_mlkem in this section, please)
 
   # Keep the per-target seperation idea: each SHA3 variant in its own file
