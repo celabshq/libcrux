@@ -1,7 +1,7 @@
 use alloc::{vec, vec::Vec};
 
 use hpke_rs_crypto::{error::Error, types::KemAlgorithm, HpkeCrypto, TryRng};
-use zeroize::{Zeroize, ZeroizeOnDrop, Zeroizing};
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
 use crate::{dh_kem, util, util::SecretBytes, Hpke};
 
@@ -226,10 +226,10 @@ fn pq_derive_keypair_seed(alg: KemAlgorithm, ikm: &[u8], len: usize) -> Result<S
         &(len as u16).to_be_bytes(),
     ]));
 
-    let seed = match len {
-        32 => Zeroizing::new(libcrux_sha3::shake256::<32>(ikm)).to_vec(),
-        64 => Zeroizing::new(libcrux_sha3::shake256::<64>(ikm)).to_vec(),
-        _ => return Err(Error::InsufficientRandomness),
-    };
-    Ok(SecretBytes::from(seed))
+    if len != 32 && len != 64 {
+        return Err(Error::InsufficientRandomness);
+    }
+    let mut seed = SecretBytes::from(vec![0u8; len]);
+    libcrux_sha3::shake256_ema(&mut seed, ikm);
+    Ok(seed)
 }
