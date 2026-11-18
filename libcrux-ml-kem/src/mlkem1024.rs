@@ -580,6 +580,7 @@ pub fn decapsulate(
 #[cfg(all(not(eurydice), feature = "rand"))]
 pub mod rand {
     use ::rand::TryCryptoRng;
+    use libcrux_secrets::Zeroize;
 
     use super::{
         MlKem1024Ciphertext, MlKem1024KeyPair, MlKem1024PublicKey, MlKemSharedSecret,
@@ -596,11 +597,12 @@ pub mod rand {
     pub fn generate_key_pair(
         rng: &mut impl TryCryptoRng,
     ) -> Result<MlKem1024KeyPair, RandomnessError> {
-        let mut randomness = libcrux_secrets::Zeroizing::new([0u8; KEY_GENERATION_SEED_SIZE]);
-        rng.try_fill_bytes(&mut *randomness)
+        let mut randomness = [0u8; KEY_GENERATION_SEED_SIZE];
+        rng.try_fill_bytes(&mut randomness)
             .map_err(|_| RandomnessError)?;
-
-        Ok(super::generate_key_pair(*randomness))
+        let key_pair = super::generate_key_pair(randomness);
+        randomness.zeroize();
+        Ok(key_pair)
     }
 
     /// Encapsulate ML-KEM 1024
@@ -614,11 +616,12 @@ pub mod rand {
         public_key: &MlKem1024PublicKey,
         rng: &mut impl TryCryptoRng,
     ) -> Result<(MlKem1024Ciphertext, MlKemSharedSecret), RandomnessError> {
-        let mut randomness = libcrux_secrets::Zeroizing::new([0u8; SHARED_SECRET_SIZE]);
-        rng.try_fill_bytes(&mut *randomness)
+        let mut randomness = [0u8; SHARED_SECRET_SIZE];
+        rng.try_fill_bytes(&mut randomness)
             .map_err(|_| RandomnessError)?;
-
-        Ok(super::encapsulate(public_key, *randomness))
+        let result = super::encapsulate(public_key, randomness);
+        randomness.zeroize();
+        Ok(result)
     }
 }
 

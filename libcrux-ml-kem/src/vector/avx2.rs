@@ -15,13 +15,6 @@ pub struct SIMD256Vector {
     elements: Vec256,
 }
 
-impl libcrux_secrets::Zeroize for SIMD256Vector {
-    #[inline(always)]
-    fn zeroize(&mut self) {
-        self.elements.zeroize();
-    }
-}
-
 #[inline(always)]
 #[cfg_attr(hax, hax_lib::fstar::verification_status(panic_free))]
 #[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"repr ${result} == Seq.create 16 (mk_i16 0)"#)))]
@@ -604,5 +597,14 @@ impl Operations for SIMD256Vector {
     #[inline(always)]
     fn rej_sample(input: &[u8], output: &mut [i16]) -> usize {
         sampling::rejection_sample(input, output)
+    }
+}
+
+// Keep this impl last: hax numbers impls in source order and the F*
+// annotations above refer to the `Repr` impl as `impl`.
+impl libcrux_secrets::Zeroize for SIMD256Vector {
+    #[inline(always)]
+    fn zeroize(&mut self) {
+        self.elements.zeroize();
     }
 }
