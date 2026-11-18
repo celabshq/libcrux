@@ -294,6 +294,14 @@ pub enum Ct {
 
 impl Ct {
     /// Decapsulate the shared secret in `ct` using the private key `sk`.
+    ///
+    /// **NOTE**: This function does not perform ML-KEM private key or
+    /// ciphertext validation prior to decapsulation. For compliance
+    /// with FIPS 203, private key and ciphertext validation have to
+    /// be performed separately, e.g. with
+    /// `libcrux_ml_kem::mlkem{512,768,1024}::validate_private_key`,
+    /// before calling `Ct::decapsulate`.
+    // XXX: cf. https://github.com/celabshq/libcrux/issues/1670
     pub fn decapsulate(&self, sk: &PrivateKey) -> Result<Ss, Error> {
         match self {
             Ct::X25519(ct) => {
@@ -450,6 +458,15 @@ impl PrivateKey {
 
 impl PublicKey {
     /// Encapsulate a shared secret to the provided `pk` and return the `(Key, Enc)` tuple.
+    ///
+    /// **NOTE**: This function does not perform ML-KEM public key
+    /// validation prior to encapsulation. Public keys obtained via
+    /// `PublicKey::decode` are validated on decoding, but for keys
+    /// obtained otherwise, compliance with FIPS 203 requires separate
+    /// public key validation, e.g. with
+    /// `libcrux_ml_kem::mlkem{512,768,1024}::validate_public_key`,
+    /// before calling `PublicKey::enccapsulate`.
+    // XXX: cf. https://github.com/celabshq/libcrux/issues/1670
     pub fn encapsulate(&self, rng: &mut impl TryCryptoRng) -> Result<(Ss, Ct), Error> {
         match self {
             PublicKey::X25519(pk) => {
