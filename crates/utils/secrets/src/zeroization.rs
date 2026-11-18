@@ -300,7 +300,6 @@ impl<T: Zeroize> From<T> for Zeroizing<T> {
     }
 }
 
-#[cfg_attr(hax, hax_lib::exclude)]
 impl<T: Zeroize> Deref for Zeroizing<T> {
     type Target = T;
 
@@ -315,6 +314,21 @@ impl<T: Zeroize> DerefMut for Zeroizing<T> {
     #[inline]
     fn deref_mut(&mut self) -> &mut T {
         &mut self.0
+    }
+}
+
+impl<T: Zeroize + AsRef<U>, U: ?Sized> AsRef<U> for Zeroizing<T> {
+    #[inline]
+    fn as_ref(&self) -> &U {
+        self.0.as_ref()
+    }
+}
+
+#[cfg_attr(hax, hax_lib::exclude)]
+impl<T: Zeroize + AsMut<U>, U: ?Sized> AsMut<U> for Zeroizing<T> {
+    #[inline]
+    fn as_mut(&mut self) -> &mut U {
+        self.0.as_mut()
     }
 }
 
