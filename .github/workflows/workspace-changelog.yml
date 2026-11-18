@@ -3,17 +3,21 @@ name: Check Changelog Update
 on:
   pull_request:
     types: [opened, synchronize, reopened, edited]
-    if: github.actor != 'github-merge-queue[bot]'
+
+permissions:
+  contents: read
 
 jobs:
   check-changelog:
     if: github.actor != 'github-merge-queue[bot]'
     runs-on: ubuntu-latest
+    env:
+      BASE_REF: ${{ github.base_ref }}
 
     steps:
       - name: Check for [skip changelog] tag in PR body
         id: skip_check
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           script: |
             const body = context.payload.pull_request.body || "";
@@ -30,39 +34,43 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Fetch base branch
         if: steps.skip_check.outputs.skip == 'false'
-        run: git fetch origin ${{ github.base_ref }}
+        run: git fetch origin "$BASE_REF"
 
-      - name: Check if CHANGELOG.md was updated
+      # Any changelog counts: the one at the repo root or the one of a crate.
+      - name: Check if a CHANGELOG.md was updated
         if: steps.skip_check.outputs.skip == 'false'
         id: updated
         run: |
-          git diff --name-only origin/${{ github.base_ref }} HEAD > changed_files.txt
+          git diff --name-only "origin/$BASE_REF" HEAD > changed_files.txt
           echo "::group::Changed files"
           cat changed_files.txt
           echo "::endgroup::"
 
-          if ! grep -q 'CHANGELOG.md' changed_files.txt; then
+          # The backticks below are Markdown, not command substitutions.
+          # shellcheck disable=SC2016
+          if ! grep -qE '(^|/)CHANGELOG\.md$' changed_files.txt; then
             {
               echo '**Missing `CHANGELOG.md` entry**'
               echo ''
               echo 'Please do one of the following:'
-              echo '- Add relevant changes to `CHANGELOG.md`'
+              echo '- Add relevant changes to the `CHANGELOG.md` of the changed crates, or the one at the repo root'
               echo '- Or add `[skip changelog]` to the pull request body'
               echo ''
               echo 'Once done, re-run this workflow by clicking **"Re-run jobs"**.'
               echo ''
-              cat CONTRIBUTING.md | awk '/^### Changelog$/{f=1;next} /^##?#? /&&f{exit} f' | sed 's/^###\s*//'
+              awk '/^### Changelog$/{f=1;next} /^##?#? /&&f{exit} f' CONTRIBUTING.md | sed 's/^###\s*//'
             } > error-message
-            cat error-message >> $GITHUB_STEP_SUMMARY
+            cat error-message >> "$GITHUB_STEP_SUMMARY"
             exit 1
           fi
 
       - name: Fail with markdown error
         if: failure()
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           script: |
             const msg = require('fs').readFileSync('error-message', 'utf8');
