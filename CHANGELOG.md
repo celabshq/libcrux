@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - (libcrux-secrets) [#1551](https://github.com/celabshq/libcrux/pull/1551) Update crabgrind to 0.3.1
 - (libcrux-hmac-drbg) [#1558](https://github.com/celabshq/libcrux/pull/1558): rename `GenerateError::RequestInvalid` to `GenerateError::OutputTooLarge
 - (hpke-rs-rust-crypto) [#1602](https://github.com/celabshq/libcrux/pull/1602) Update the RustCrypto dependencies: `p256`, `k256` and `p384` to `0.14`, `x25519-dalek` to `3`, `chacha20poly1305` to `0.11`, `aes-gcm` to `0.11`, and the (experimental) `x-wing` and `ml-kem` to their `0.1`/`0.3` releases.
+- [#1667](https://github.com/celabshq/libcrux/pull/1667): Increase MSRV to 1.95.
 
 ### Added
 
@@ -41,6 +42,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   in the **libcrux provider only**, behind the new `draft-ietf-hpke-pq` feature.
 - (libcrux-p256) [#1586](https://github.com/celabshq/libcrux/pull/1586): Expose constants used in `Ecdh*` trait implementations
 - (libcrux-nist-kdf) [#1608](https://github.com/celabshq/libcrux/pull/1608): SP 800-108 feedback mode KDF and SP 800-56Cr2 two-step KDF
+- (libcrux-secrets) [#1667](https://github.com/celabshq/libcrux/pull/1667): `Zeroize` trait and `Zeroizing` wrapper for wiping secrets
+- (libcrux-secrets) [#1667](https://github.com/celabshq/libcrux/pull/1667): `libcrux_disable_zeroization` cfg that turns all zeroization into a no-op.
+- (libcrux-secrets) [#1667](https://github.com/celabshq/libcrux/pull/1667): `ZEROIZATION_ENABLED` constant, `false` when zeroization is disabled.
 
 
 ## [0.0.5] (2026-07-15)

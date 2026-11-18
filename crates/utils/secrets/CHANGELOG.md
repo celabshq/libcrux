@@ -9,10 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `Zeroize` trait and `Zeroizing` wrapper for wiping secrets, backed by the
-  `zeroize` crate for now.
-- `libcrux_disable_zeroization` cfg that turns all zeroization into a no-op.
-- `ZEROIZATION_ENABLED` constant, `false` when zeroization is disabled.
+- [#1667](https://github.com/celabshq/libcrux/pull/1667): `Zeroize` trait and `Zeroizing` wrapper for wiping secrets
+- [#1667](https://github.com/celabshq/libcrux/pull/1667): `libcrux_disable_zeroization` cfg that turns all zeroization into a no-op.
+- [#1667](https://github.com/celabshq/libcrux/pull/1667): `ZEROIZATION_ENABLED` constant, `false` when zeroization is disabled.
 
 ## [0.0.8] (2026-11-19)
 
