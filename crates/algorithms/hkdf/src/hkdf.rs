@@ -123,9 +123,9 @@ pub fn extract(
 /// The `algo` argument is used for dynamic algorithm selection.
 ///
 /// Returns nothing on success.
-/// Returns [`ExpandError::ArgumentTooLong`] if one of `prk` or `info` is longer than
-/// [`u32::MAX`] bytes.
-/// Returns [`ExpandError::PrkTooShort`] if `okm` is shorter than hash length.
+/// Returns [`ExpandError::ArgumentTooLong`] if `info` is longer than
+/// `u32::MAX - hash_len - 1` bytes, where `hash_len` is the output length of `algo`.
+/// Returns [`ExpandError::PrkTooShort`] if `prk` is shorter than hash length.
 /// Returns [`ExpandError::OutputTooLong`] if `okm` is longer than 255 times the respective hash
 /// length.
 pub fn expand(algo: Algorithm, okm: &mut [U8], prk: &[U8], info: &[u8]) -> Result<(), ExpandError> {
@@ -145,9 +145,9 @@ pub fn expand(algo: Algorithm, okm: &mut [U8], prk: &[U8], info: &[u8]) -> Resul
 /// The `algo` argument is used for dynamic algorithm selection.
 ///
 /// Returns nothing on success.
-/// Returns [`ExpandError::ArgumentTooLong`] if one of `prk` or `info` is longer than
-/// [`u32::MAX`] bytes.
-/// Returns [`ExpandError::PrkTooShort`] if `okm` is shorter than hash length.
+/// Returns [`ExpandError::ArgumentTooLong`] if one of `salt` or `ikm` is longer than
+/// [`u32::MAX`] bytes, or if `info` is longer than `u32::MAX - hash_len - 1` bytes,
+/// where `hash_len` is the output length of `algo`.
 /// Returns [`ExpandError::OutputTooLong`] if `okm` is longer than 255 times the respective hash
 /// length.
 pub fn hkdf(
@@ -329,10 +329,10 @@ macro_rules! impl_hkdf {
                 /// The output is written to `okm`.
                 ///
                 /// Returns nothing on success.
-                /// Returns [`ExpandError::OutputTooLong`] if `okm` is too long (longer than
+                /// Returns [`ArrayReferenceExpandError::OutputTooLong`] if `okm` is too long (longer than
                 /// `255 * hash_length`)
-                /// Returns [`ExpandError::ArgumentTooLong`] if one of `prk` or `info` is longer than
-                /// [`u32::MAX`] bytes.
+                /// Returns [`ArrayReferenceExpandError::ArgumentTooLong`] if `info` is longer than
+                #[doc = concat!("`u32::MAX - ", $hash_len, " - 1` bytes.")]
                 #[inline(always)]
                 pub fn expand_arrayref(
                     okm: &mut [U8],
@@ -353,8 +353,8 @@ macro_rules! impl_hkdf {
                 /// Returns nothing on success.
                 /// Returns [`ExpandError::OutputTooLong`] if `okm` is too long (longer than
                 /// `255 * hash_length`)
-                /// Returns [`ExpandError::ArgumentTooLong`] if one of `prk` or `info` is longer than
-                /// [`u32::MAX`] bytes.
+                /// Returns [`ExpandError::ArgumentTooLong`] if `info` is longer than
+                #[doc = concat!("`u32::MAX - ", $hash_len, " - 1` bytes.")]
                 /// Returns [`ExpandError::PrkTooShort`] if `prk` is shorter than hash length.
                 #[inline(always)]
                 pub fn expand(okm: &mut [U8], prk: &[U8], info: &[u8]) -> Result<(), ExpandError> {
@@ -369,8 +369,9 @@ macro_rules! impl_hkdf {
                 /// Returns nothing on success.
                 /// Returns [`ExpandError::OutputTooLong`] if `okm` is too long (longer than
                 /// `255 * hash_length`)
-                /// Returns [`ExpandError::ArgumentTooLong`] if one of `prk` or `info` is longer than
-                /// [`u32::MAX`] bytes.
+                /// Returns [`ExpandError::ArgumentTooLong`] if one of `salt` or `ikm` is longer than
+                /// [`u32::MAX`] bytes, or if `info` is longer than
+                #[doc = concat!("`u32::MAX - ", $hash_len, " - 1` bytes.")]
                 #[inline(always)]
                 pub fn hkdf(
                     okm: &mut [U8],
@@ -425,10 +426,10 @@ macro_rules! impl_hkdf {
             /// The output is written to `okm`.
             ///
             /// Returns nothing on success.
-            /// Returns [`ExpandError::OutputTooLong`] if `okm` is too long (longer than
+            /// Returns [`ArrayReferenceExpandError::OutputTooLong`] if `okm` is too long (longer than
             /// `255 * hash_length`)
-            /// Returns [`ExpandError::ArgumentTooLong`] if one of `prk` or `info` is longer than
-            /// [`u32::MAX`] bytes.
+            /// Returns [`ArrayReferenceExpandError::ArgumentTooLong`] if `info` is longer than
+            #[doc = concat!("`u32::MAX - ", $hash_len, " - 1` bytes.")]
             #[inline(always)]
             pub fn expand_arrayref(
                 okm: &mut [U8],
@@ -441,12 +442,19 @@ macro_rules! impl_hkdf {
                     return Err(ArrayReferenceExpandError::OutputTooLong);
                 }
 
+                let info_len = checked_u32(info.len())?;
+                if info_len > u32::MAX - ($hash_len + 1) {
+                    // The HACL SHA-2 expand computes the buffer length `hash_len + info_len + 1`
+                    // as a wrapping u32, which would overflow and then panic on slicing.
+                    return Err(ArrayReferenceExpandError::ArgumentTooLong);
+                }
+
                 Ok($expand(
                     okm.declassify_ref_mut(),
                     prk.declassify_ref(),
                     checked_u32(prk.len())?,
                     info,
-                    checked_u32(info.len())?,
+                    info_len,
                     checked_u32(okm_len)?,
                 ))
             }
@@ -457,8 +465,8 @@ macro_rules! impl_hkdf {
             /// Returns nothing on success.
             /// Returns [`ExpandError::OutputTooLong`] if `okm` is too long (longer than
             /// `255 * hash_length`)
-            /// Returns [`ExpandError::ArgumentTooLong`] if one of `prk` or `info` is longer than
-            /// [`u32::MAX`] bytes.
+            /// Returns [`ExpandError::ArgumentTooLong`] if `info` is longer than
+            #[doc = concat!("`u32::MAX - ", $hash_len, " - 1` bytes.")]
             /// Returns [`ExpandError::PrkTooShort`] if `prk` is shorter than hash length.
             #[inline(always)]
             pub fn expand(okm: &mut [U8], prk: &[U8], info: &[u8]) -> Result<(), ExpandError> {
@@ -478,8 +486,9 @@ macro_rules! impl_hkdf {
             /// Returns nothing on success.
             /// Returns [`ExpandError::OutputTooLong`] if `okm` is too long (longer than
             /// `255 * hash_length`)
-            /// Returns [`ExpandError::ArgumentTooLong`] if one of `prk` or `info` is longer than
-            /// [`u32::MAX`] bytes.
+            /// Returns [`ExpandError::ArgumentTooLong`] if one of `salt` or `ikm` is longer than
+            /// [`u32::MAX`] bytes, or if `info` is longer than
+            #[doc = concat!("`u32::MAX - ", $hash_len, " - 1` bytes.")]
             #[inline(always)]
             pub fn hkdf(
                 okm: &mut [U8],
