@@ -12,10 +12,14 @@ It provides
 ## Zeroization
 
 The expanded key, the GHASH key and accumulator, the tag mask and the
-computed tag are wiped at the end of every encryption and decryption, as
-are the copies made during key expansion. The per-block keystream is not
-wiped explicitly, because it lives in registers. Keys passed in by the
-caller are the caller's to wipe.
+computed tag are wiped at the end of every encryption and decryption.
+The per-block keystream is not wiped. With AES-NI and the Aarch64 AES
+instructions it mostly lives in registers, but the portable implementation
+keeps it on the stack. Keys passed in by the caller are the caller's to wipe.
+
+AES-CCM is not covered yet. Its CBC-MAC state, tag block and per-block
+keystream are not wiped. During decryption, this includes the last decrypted
+plaintext block, even when the tag check fails.
 
 ## Testing on RISC-V & ARMv7
 

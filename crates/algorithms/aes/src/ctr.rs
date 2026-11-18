@@ -71,9 +71,13 @@ impl<T: AESState, const NUM_KEYS: usize, const CTR_LEN: usize, const NONCE_START
         block_cipher(&mut st, &self.extended_key);
 
         st.store_block(out);
-        // Only used to derive the GHASH key and the tag mask, so it is worth
-        // wiping. The per-block keystream in `aes_ctr_xor_block` is not wiped,
-        // because it lives in registers.
+        // Used to derive the GHASH key and the tag mask in AES-GCM, and for
+        // every keystream block in AES-CCM. Wiping costs no measurable time,
+        // even in AES-CCM. The caller's `out` is not wiped here.
+        //
+        // The per-block keystream in `aes_ctr_xor_block` is not wiped. With
+        // AES-NI and NEON it mostly lives in registers, but the portable
+        // implementation keeps it in memory.
         st.zeroize();
     }
 

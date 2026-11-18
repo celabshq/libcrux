@@ -178,6 +178,9 @@ the caller's own copy is the caller's to wipe. Shared secrets are returned as
 plain arrays (`MlKemSharedSecret`), which the caller must wipe as well. Copies
 made by the compiler are not covered (see `libcrux-secrets`).
 
+On Aarch64 with NEON, the Keccak state of the PRF that samples the secret and
+error vectors is not wiped (see the `libcrux-sha3` README).
+
 The C code extracted from this crate does not zeroize yet.
 
 ## Verification
