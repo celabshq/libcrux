@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.7-pre.1] (2026-11-18)
+
+### Changed
+
+- Update dependencies: `hpke-rs`, `libcrux-aead`, `libcrux-aes`, `libcrux-blake2`, `libcrux-chacha20poly1305`, `libcrux-curve25519`, `libcrux-digest`, `libcrux-ecdsa`, `libcrux-ed25519`, `libcrux-hkdf`, `libcrux-hmac`, `libcrux-hmac-drbg`, `libcrux-kem`, `libcrux-kmac`, `libcrux-ml-dsa`, `libcrux-ml-kem`, `libcrux-nist-kdf`, `libcrux-p256`, `libcrux-poly1305`, `libcrux-psq`, `libcrux-rsa`, `libcrux-sha2`, `libcrux-sha3`
+
 ## [0.0.6] (2026-10-07)
 
 ### Fixed
