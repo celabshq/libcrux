@@ -131,6 +131,7 @@ pub use hpke_rs_libcrux as libcrux;
 
 #[cfg(feature = "serialization")]
 pub(crate) use serde::{Deserialize, Serialize};
+use util::SecretBytes;
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
 mod dh_kem;
@@ -891,6 +892,16 @@ impl<Crypto: HpkeCrypto> Hpke<Crypto> {
     ) -> Result<Context<Crypto>, HpkeError> {
         self.verify_psk_inputs(psk, psk_id)?;
         let suite_id = self.ciphersuite();
+        let mut hpke_context = Context {
+            key: Vec::new(),
+            nonce: Vec::new(),
+            exporter_secret: Vec::new(),
+            sequence_number: 0,
+            kem_id: self.kem_id,
+            kdf_id: self.kdf_id,
+            aead_id: self.aead_id,
+            _crypto: core::marker::PhantomData,
+        };
 
         // Single-stage (SHAKE) KDFs use a different key-schedule shape: a single
         // `LabeledDerive` producing key ‖ base_nonce ‖ exporter_secret, with the
@@ -908,32 +919,33 @@ impl<Crypto: HpkeCrypto> Hpke<Crypto> {
                 }
             }
 
-            let secrets = util::concat(&[&length_prefixed(psk), &length_prefixed(shared_secret)]);
+            let secrets = SecretBytes::from(util::concat(&[
+                &(psk.len() as u16).to_be_bytes(),
+                psk,
+                &(shared_secret.len() as u16).to_be_bytes(),
+                shared_secret,
+            ]));
             let context = util::concat(&[
                 &[self.mode as u8],
                 &length_prefixed(psk_id),
                 &length_prefixed(info),
             ]);
-            let secret = labeled_derive::<Crypto>(
-                kdf,
-                &suite_id,
-                &secrets,
-                "secret",
-                &context,
-                nk + nn + nh,
-            )
-            .map_err(|e| HpkeError::CryptoError(format!("Crypto error: {}", e)))?;
+            let secret = SecretBytes::from(
+                labeled_derive::<Crypto>(
+                    kdf,
+                    &suite_id,
+                    &secrets,
+                    "secret",
+                    &context,
+                    nk + nn + nh,
+                )
+                .map_err(|e| HpkeError::CryptoError(format!("Crypto error: {}", e)))?,
+            );
 
-            return Ok(Context {
-                key: secret[..nk].to_vec(),
-                nonce: secret[nk..nk + nn].to_vec(),
-                exporter_secret: secret[nk + nn..].to_vec(),
-                sequence_number: 0,
-                kem_id: self.kem_id,
-                kdf_id: self.kdf_id,
-                aead_id: self.aead_id,
-                _crypto: core::marker::PhantomData,
-            });
+            hpke_context.key = secret[..nk].to_vec();
+            hpke_context.nonce = secret[nk..nk + nn].to_vec();
+            hpke_context.exporter_secret = secret[nk + nn..].to_vec();
+            return Ok(hpke_context);
         }
 
         let kdf = self.two_stage_kdf()?;
@@ -941,7 +953,7 @@ impl<Crypto: HpkeCrypto> Hpke<Crypto> {
         let secret = labeled_extract::<Crypto>(kdf, shared_secret, &suite_id, "secret", psk)
             .map_err(|e| HpkeError::CryptoError(format!("Crypto error: {}", e)))?;
 
-        let key = labeled_expand::<Crypto>(
+        hpke_context.key = labeled_expand::<Crypto>(
             kdf,
             &secret,
             &suite_id,
@@ -950,7 +962,7 @@ impl<Crypto: HpkeCrypto> Hpke<Crypto> {
             Crypto::aead_key_length(self.aead_id),
         )
         .map_err(|e| HpkeError::CryptoError(format!("Crypto error: {}", e)))?;
-        let base_nonce = labeled_expand::<Crypto>(
+        hpke_context.nonce = labeled_expand::<Crypto>(
             kdf,
             &secret,
             &suite_id,
@@ -959,7 +971,7 @@ impl<Crypto: HpkeCrypto> Hpke<Crypto> {
             Crypto::aead_nonce_length(self.aead_id),
         )
         .map_err(|e| HpkeError::CryptoError(format!("Crypto error: {}", e)))?;
-        let exporter_secret = labeled_expand::<Crypto>(
+        hpke_context.exporter_secret = labeled_expand::<Crypto>(
             kdf,
             &secret,
             &suite_id,
@@ -969,16 +981,7 @@ impl<Crypto: HpkeCrypto> Hpke<Crypto> {
         )
         .map_err(|e| HpkeError::CryptoError(format!("Crypto error: {}", e)))?;
 
-        Ok(Context {
-            key,
-            nonce: base_nonce,
-            exporter_secret,
-            sequence_number: 0,
-            kem_id: self.kem_id,
-            kdf_id: self.kdf_id,
-            aead_id: self.aead_id,
-            _crypto: core::marker::PhantomData,
-        })
+        Ok(hpke_context)
     }
 
     /// 4. Cryptographic Dependencies
@@ -1002,9 +1005,9 @@ impl<Crypto: HpkeCrypto> Hpke<Crypto> {
     }
 
     #[inline]
-    pub(crate) fn random(&mut self, len: usize) -> Result<zeroize::Zeroizing<Vec<u8>>, HpkeError> {
+    pub(crate) fn random(&mut self, len: usize) -> Result<SecretBytes, HpkeError> {
         let prng = &mut self.prng;
-        let mut out = zeroize::Zeroizing::new(vec![0u8; len]);
+        let mut out = SecretBytes::from(vec![0u8; len]);
 
         prng.try_fill_bytes(&mut out)
             .map_err(|_| HpkeError::InsufficientRandomness)?;

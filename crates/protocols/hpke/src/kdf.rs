@@ -6,7 +6,7 @@ use hpke_rs_crypto::{
     HpkeCrypto,
 };
 
-use crate::util::concat;
+use crate::util::{concat, SecretBytes};
 
 pub(crate) const HPKE_VERSION: &[u8] = b"HPKE-v1";
 
@@ -35,14 +35,14 @@ pub(crate) fn labeled_derive<Crypto: HpkeCrypto>(
     }
 
     // `ikm ‖ "HPKE-v1" ‖ suite_id ‖ I2OSP(len(label),2) ‖ label ‖ I2OSP(L,2) ‖ context`.
-    let labeled_ikm = concat(&[
+    let labeled_ikm = SecretBytes::from(concat(&[
         ikm,
         HPKE_VERSION,
         suite_id,
         &length_prefixed(label.as_bytes()),
         &(len as u16).to_be_bytes(),
         context,
-    ]);
+    ]));
     Crypto::kdf_derive(alg, &labeled_ikm, len)
 }
 
@@ -53,9 +53,9 @@ pub(crate) fn labeled_extract<Crypto: HpkeCrypto>(
     suite_id: &[u8],
     label: &str,
     ikm: &[u8],
-) -> Result<Vec<u8>, Error> {
-    let labeled_ikm = concat(&[HPKE_VERSION, suite_id, label.as_bytes(), ikm]);
-    Crypto::kdf_extract(alg, salt, &labeled_ikm)
+) -> Result<SecretBytes, Error> {
+    let labeled_ikm = SecretBytes::from(concat(&[HPKE_VERSION, suite_id, label.as_bytes(), ikm]));
+    Crypto::kdf_extract(alg, salt, &labeled_ikm).map(SecretBytes::from)
 }
 
 #[inline]
