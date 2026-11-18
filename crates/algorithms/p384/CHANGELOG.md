@@ -9,13 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Zeroize `PrivateKey` and `SharedSecret` on drop, and the intermediate values of
-  scalar multiplication and field inversion.
-
-### Changed
-
-- `PrivateKey` and `SharedSecret` now implement `Drop`, so their fields can no
-  longer be moved out.
+- [#1667](https://github.com/celabshq/libcrux/pull/1667): Zeroize `PrivateKey` and `SharedSecret` on drop, and the intermediate values of scalar multiplication and field inversion.
 
 ### Changed
 

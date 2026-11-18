@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Zeroize the key derivation key and intermediate PRF outputs.
+- [#1667](https://github.com/celabshq/libcrux/pull/1667): Zeroize the key derivation key and intermediate PRF outputs.
 
 ## [0.0.2] (2026-11-19)
 

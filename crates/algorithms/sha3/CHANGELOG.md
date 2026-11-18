@@ -9,11 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Zeroize the Keccak state and the padded last block after one-shot hashing, and the incremental/XOF states on drop.
-
-### Changed
-
-- The incremental, XOF and digest-trait state types now implement `Drop`, so their fields can no longer be moved out.
+- [#1667](https://github.com/celabshq/libcrux/pull/1667): Zeroize the Keccak state and the padded last block after one-shot hashing, and the incremental/XOF states on drop.
 
 ## [0.0.12] (2026-11-19)
 

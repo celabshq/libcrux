@@ -72,38 +72,48 @@ pub fn kdf<const OUTLEN: usize, H: HmacState<OUTLEN>>(
     let mut k_i_minus_one = iv;
 
     // K(i), finalized in place so that no copies of it are left behind.
-    let mut k_i_block = Zeroizing::new([0u8; OUTLEN]);
+    let mut k_i_block_out = Zeroizing::new([0u8; OUTLEN]);
+    // Copy of K(i) from which k_i_minus_one can borrow. Without this copy, we'd have
+    // conflicting borrows in the prf call.
+    let mut k_i_block_copy = Zeroizing::new([0u8; OUTLEN]);
 
     for i in 1_u32..=n {
         let i_encoded = &i.to_be_bytes();
-        let hmac =
-            prf::<OUTLEN, H>(k_in, k_i_minus_one, i_encoded, fixed_info).map_err(|_| KdfError)?;
-        hmac.finalize(&mut k_i_block);
+        prf::<OUTLEN, H>(
+            &mut k_i_block_out,
+            k_in,
+            k_i_minus_one,
+            i_encoded,
+            fixed_info,
+        )
+        .map_err(|_| KdfError)?;
+        k_i_block_copy.copy_from_slice(&k_i_block_out[..]);
         let end = cmp::min(k_out.len(), OUTLEN);
         // Panic-safety:
         // end = min(k_out.len(), OUTLEN) <= k_out.len()
         // end = min(k_out.len(), OUTLEN) <= OUTLEN == k_i_block.len()
         // Therefore the indexes are always safe.
-        k_out[..end].copy_from_slice(&k_i_block[..end]);
+        k_out[..end].copy_from_slice(&k_i_block_copy[..end]);
         k_out = &mut k_out[end..];
-        k_i_minus_one = &k_i_block[..];
+        k_i_minus_one = &k_i_block_copy[..];
     }
     Ok(())
 }
 
-/// Returns the PRF state with all inputs absorbed. The caller finalizes it
-/// into its own buffer.
+/// Absorb the inputs into the PRF state and derive the output to `k_out`.
 fn prf<const OUTLEN: usize, H: HmacState<OUTLEN>>(
+    k_out: &mut [u8; OUTLEN],
     k_in: &[u8],
     k_i_minus_one: &[u8],
     i_encoded: &[u8],
     fixed_info: &[&[u8]],
-) -> Result<H, libcrux_hmac::Error> {
+) -> Result<(), libcrux_hmac::Error> {
     let mut hmac = H::new(k_in)?;
     hmac.update(k_i_minus_one)?;
     hmac.update(i_encoded)?;
     for info in fixed_info {
         hmac.update(info)?;
     }
-    Ok(hmac)
+    hmac.finalize(k_out);
+    Ok(())
 }

@@ -9,14 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- [#1667](https://github.com/celabshq/libcrux/pull/1667): Zeroize private keys on drop and intermediate values in key generation,
-  encapsulation and decapsulation.
-
-### Changed
-
-- [#1667](https://github.com/celabshq/libcrux/pull/1667): `MlKemPrivateKey`, the unpacked private key and key pair types, and the
-  incremental `KeyPairBytes`, `KeyPairCompressedBytes` and `EncapsState` now
-  implement `Drop`, so their fields can no longer be moved out.
+- [#1667](https://github.com/celabshq/libcrux/pull/1667): Zeroize private keys on drop and intermediate values in key generation, encapsulation and decapsulation.
 
 ## [0.0.12] (2026-11-19)
 
