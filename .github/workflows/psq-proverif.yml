@@ -1,0 +1,71 @@
+name: PSQ - ProVerif
+
+# ProVerif sanity checks for the libcrux-psq PSQ handshake.
+#
+# Re-extracts the handshake with the hax 0.5.0 ProVerif backend, composes it
+# with the symbolic crypto model (proofs/proverif/psq_crypto.pvl), and runs the
+# reachability analyses only: the honest registration run, and the full DH and
+# signature handshakes + into_session, must complete under a passive attacker.
+# If extraction or the crypto model drifts from the code, these events become
+# unreachable and the check fails. They take a few minutes; the full security
+# analyses (check-pv.sh without ONLY) take hours and are run by hand.
+
+permissions: {}
+
+on:
+  merge_group:
+  pull_request:
+    branches: ["dev", "main"]
+    paths:
+      - "libcrux-psq/**"
+      - ".github/workflows/psq-proverif.yml"
+
+  schedule:
+    - cron: "0 5 * * *"
+
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  HAX_REF: cargo-hax-v0.5.0
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  reachability:
+    if: ${{ github.event_name != 'merge_group' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - uses: hacspec/hax-actions@1f01b89579f425ad7c1e66aebbd5df7e688cb576 # main
+        with:
+          hax_reference: ${{ env.HAX_REF }}
+
+      - name: Install ProVerif (as pinned by hax)
+        run: nix profile install "github:hacspec/hax/$HAX_REF#proverif"
+
+      # check-pv.sh loads the ProVerif proof-libs (primitives.pvl, result.pvl)
+      # from a hax checkout.
+      - name: Fetch the hax ProVerif proof-libs
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: cryspen/hax
+          ref: ${{ env.HAX_REF }}
+          path: hax
+          sparse-checkout: hax-lib/proof-libs/proverif
+          persist-credentials: false
+
+      - name: Extract + run the reachability analyses
+        env:
+          HAX_PROVERIF_DIR: ${{ github.workspace }}/hax
+          ONLY: reg-passive-sanity,session-*-passive
+        run: bash libcrux-psq/proofs/proverif/check-pv.sh

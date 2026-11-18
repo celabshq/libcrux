@@ -1,0 +1,467 @@
+(* ===========================================================================
+   PSQ — symbolic cryptographic model (handwritten)
+   ===========================================================================
+   This file gives the symbolic (Dolev-Yao) model of the crypto primitives that
+   the extracted `lib.pvl` calls into via `#[hax_lib::proverif::replace_body]`
+   annotations on the libcrux-psq crypto wrappers. It is the direct analogue of
+   `psq-design/models/psq_handshake_lib.pvl` (the verified handwritten model),
+   transcribed to the `extern__`-prefixed names the extraction references and to
+   the uniform-bitstring backend (every value is a `bitstring`).
+
+   Loaded by the check script via `-lib`; the auto-declared copies in
+   `missingdecl.pvl` are de-duplicated against the definitions here.
+
+   Boundaries (Rust wrapper  ->  symbolic term):
+     dhkem::DHPrivateKey::new            ->  fresh DH scalar
+     dhkem::DHPrivateKey::to_public      ->  extern__dh_pub(sk)
+     dhkem::DHSharedSecret::derive       ->  extern__dh_shared(sk, pk)
+     transcript::Transcript::add_hash    ->  extern__hash(domsep, old, input)
+     aead::AEADKeyNonce::new             ->  extern__kdf(ikm, info)
+     aead::AEADKeyNonce::handshake_encrypt -> (extern__aead_ct(k,pt,ad),
+                                               extern__aead_tag(k,pt,ad))
+     aead::AEADKeyNonce::handshake_decrypt -> extern__aead_dec(k, ct, tag, ad)
+   =========================================================================== *)
+
+(* ---- Diffie-Hellman (X25519) ------------------------------------------- *)
+(* A public key is dh_pub(sk); a shared secret dh_shared(sk, pk). Keys
+   commute via the equation below (the standard symbolic DH abstraction). *)
+fun extern__dh_pub(bitstring): bitstring.
+fun extern__dh_shared(bitstring, bitstring): bitstring.
+equation forall x: bitstring, y: bitstring;
+      extern__dh_shared(x, extern__dh_pub(y)) = extern__dh_shared(y, extern__dh_pub(x)).
+
+(* ---- Transcript hash (SHA-256, running) -------------------------------- *)
+(* One-way, injective in the term algebra (a `fun` with no reduc): the
+   attacker cannot invert it and distinct argument tuples give distinct
+   digests. Arguments mirror `add_hash(old_transcript, input)`; the previous
+   transcript is chained in (None for tx0) and the step inputs are distinctly
+   typed, so the steps stay separated without an explicit domain-separator
+   byte. *)
+fun extern__hash(bitstring, bitstring): bitstring.
+
+(* ---- Key derivation (HKDF-SHA256) -------------------------------------- *)
+(* AEADKeyNonce::new(ikm, info) derives an AEAD key+nonce; one-way in ikm. *)
+fun extern__kdf(bitstring, bitstring): bitstring.
+
+(* ---- AEAD (ChaCha20Poly1305 / AES-128-GCM) ----------------------------- *)
+(* Ciphertext and tag are separate on the wire. Decryption requires both the
+   genuine ciphertext and the genuine tag for the same key/aad: an attacker
+   without the key can produce neither, modelling AEAD confidentiality and
+   integrity. The key already bundles the (single-use) nonce. *)
+fun extern__aead_ct(bitstring, bitstring, bitstring): bitstring.
+fun extern__aead_tag(bitstring, bitstring, bitstring): bitstring.
+reduc forall k: bitstring, pt: bitstring, ad: bitstring;
+      extern__aead_dec(k, extern__aead_ct(k, pt, ad), extern__aead_tag(k, pt, ad), ad) = pt.
+
+(* ---- Serialization round-trip across the AEAD boundary ----------------- *)
+(* `handshake_encrypt`/`handshake_decrypt` seal/open the *structured* payload
+   directly (the tls (de)serialization is dropped — see aead.rs). But the
+   initiator serializes the borrowed `InitiatorOuterPayloadOut::Query` while the
+   responder's `read_message_contents` deserializes into the owned
+   `InitiatorOuterPayload::Query`: two distinct hax-generated constructors that
+   share one wire encoding, so an AEAD round-trip turns one into the other.
+   `handshake_decrypt` applies `pv_deserialize` to model exactly that wire
+   round-trip, so the responder recovers the owned form it destructures. Every
+   other payload (e.g. the responder's `ResponderQueryPayloadOut` response, which
+   the initiator reads raw without destructuring) passes through unchanged.
+
+   These two constructors are declared here (and stripped from the extracted
+   `lib.pvl` by check-pv.sh, to avoid a duplicate definition) so `pv_deserialize`
+   can reference them without a forward reference — ProVerif requires every name
+   to be declared before use, and `handshake_decrypt` (in lib.pvl) calls
+   `pv_deserialize`, whose body in turn needs these constructors. *)
+(* All of these constructors are declared here (and stripped from the extracted
+   lib.clean.pvl by check-pv.sh, to avoid duplicate definitions) so that
+   `pv_deserialize` below — and the signature model further down — can reference
+   them without a forward reference. Their projector reducs + use sites stay in
+   lib.clean and resolve against these declarations. *)
+fun libcrux_psq__handshake__initiator__InitiatorOuterPayloadOut__Query(bitstring): bitstring [data].
+fun libcrux_psq__handshake__responder__InitiatorOuterPayload__Query(bitstring): bitstring [data].
+fun libcrux_psq__handshake__initiator__InitiatorOuterPayloadOut__Registration(bitstring): bitstring [data].
+fun libcrux_psq__handshake__responder__InitiatorOuterPayload__Registration(bitstring): bitstring [data].
+fun libcrux_psq__handshake__InnerMessageOut__InnerMessageOut(bitstring, bitstring, bitstring, bitstring, bitstring): bitstring [data].
+fun libcrux_psq__handshake__InnerMessage__InnerMessage(bitstring, bitstring, bitstring, bitstring, bitstring): bitstring [data].
+fun libcrux_psq__handshake__AuthMessageOut__Dh(bitstring): bitstring [data].
+fun libcrux_psq__handshake__AuthMessageOut__Sig(bitstring, bitstring): bitstring [data].
+fun libcrux_psq__handshake__AuthMessage__Dh(bitstring): bitstring [data].
+fun libcrux_psq__handshake__AuthMessage__Sig(bitstring, bitstring): bitstring [data].
+fun libcrux_psq__handshake__initiator__InitiatorInnerPayloadOut__InitiatorInnerPayloadOut(bitstring): bitstring [data].
+fun libcrux_psq__handshake__initiator__InitiatorInnerPayload__InitiatorInnerPayload(bitstring): bitstring [data].
+fun libcrux_psq__handshake__responder__ResponderRegistrationPayloadOut__ResponderRegistrationPayloadOut(bitstring): bitstring [data].
+fun libcrux_psq__handshake__responder__ResponderRegistrationPayload__ResponderRegistrationPayload(bitstring): bitstring [data].
+fun tls_codec__quic_vec__VLByteSlice__VLByteSlice(bitstring): bitstring [data].
+
+(* The wire round-trip bridge. The initiator AEAD-seals a *borrowed* `…Out`
+   payload; the responder AEAD-opens into the *owned* payload it destructures —
+   distinct hax-generated constructors that share one wire encoding, so an
+   AEAD round-trip maps one to the other. `handshake_decrypt` applies
+   `pv_deserialize` to model exactly that. The registration outer payload nests
+   an `InnerMessageOut` whose `VLByteSlice` fields become the owned `InnerMessage`
+   (we strip the `VLByteSlice` wrapper, so the responder's `as_slice` /
+   `deserialize_encapsulation` — modelled as identity — recover the raw inner
+   ciphertext / aad / pq-encapsulation) and whose `AuthMessageOut` becomes the
+   owned `AuthMessage`. The inner registration payload and the responder's
+   registration response each have their own `…Out → owned` clause. Everything
+   else (e.g. a payload read raw without destructuring) passes through unchanged. *)
+fun pv_deserialize(bitstring): bitstring
+reduc forall p: bitstring;
+        pv_deserialize(libcrux_psq__handshake__initiator__InitiatorOuterPayloadOut__Query(p))
+          = libcrux_psq__handshake__responder__InitiatorOuterPayload__Query(p)
+(* `InnerMessageOut` and the owned `InnerMessage` both follow declaration order
+   (ciphertext, tag, aad, pq_encapsulation, auth). hax before 0.5.0 built
+   `InnerMessageOut` in source-literal order (auth first) instead. *)
+otherwise forall ic: bitstring, it: bitstring, ia: bitstring, pqe: bitstring, pk: bitstring;
+        pv_deserialize(libcrux_psq__handshake__initiator__InitiatorOuterPayloadOut__Registration(
+            libcrux_psq__handshake__InnerMessageOut__InnerMessageOut(
+              tls_codec__quic_vec__VLByteSlice__VLByteSlice(ic), it,
+              tls_codec__quic_vec__VLByteSlice__VLByteSlice(ia),
+              tls_codec__quic_vec__VLByteSlice__VLByteSlice(pqe),
+              libcrux_psq__handshake__AuthMessageOut__Dh(pk))))
+          = libcrux_psq__handshake__responder__InitiatorOuterPayload__Registration(
+              libcrux_psq__handshake__InnerMessage__InnerMessage(ic, it, ia, pqe,
+                libcrux_psq__handshake__AuthMessage__Dh(pk)))
+otherwise forall ic: bitstring, it: bitstring, ia: bitstring, pqe: bitstring, vk: bitstring, sig: bitstring;
+        pv_deserialize(libcrux_psq__handshake__initiator__InitiatorOuterPayloadOut__Registration(
+            libcrux_psq__handshake__InnerMessageOut__InnerMessageOut(
+              tls_codec__quic_vec__VLByteSlice__VLByteSlice(ic), it,
+              tls_codec__quic_vec__VLByteSlice__VLByteSlice(ia),
+              tls_codec__quic_vec__VLByteSlice__VLByteSlice(pqe),
+              libcrux_psq__handshake__AuthMessageOut__Sig(vk, sig))))
+          = libcrux_psq__handshake__responder__InitiatorOuterPayload__Registration(
+              libcrux_psq__handshake__InnerMessage__InnerMessage(ic, it, ia, pqe,
+                libcrux_psq__handshake__AuthMessage__Sig(vk, sig)))
+otherwise forall p: bitstring;
+        pv_deserialize(libcrux_psq__handshake__initiator__InitiatorInnerPayloadOut__InitiatorInnerPayloadOut(p))
+          = libcrux_psq__handshake__initiator__InitiatorInnerPayload__InitiatorInnerPayload(p)
+otherwise forall p: bitstring;
+        pv_deserialize(libcrux_psq__handshake__responder__ResponderRegistrationPayloadOut__ResponderRegistrationPayloadOut(p))
+          = libcrux_psq__handshake__responder__ResponderRegistrationPayload__ResponderRegistrationPayload(p)
+otherwise forall x: bitstring;
+        pv_deserialize(x) = x.
+
+(* ---- core::mem::take(&mut place) --------------------------------------- *)
+(* Returns the old value and resets the place to its `Default`. The hax `&mut`
+   lowering yields `Tuple2(new_place, returned_old)`, i.e. `(default, old)`; the
+   auto-declared opaque unary stub in `missingdecl.pvl` (which would be
+   destructured as a `Tuple2` and fail) is superseded by this definition (the
+   check-pv.sh de-dup drops the stub once this name is defined). The responder's
+   `prepare_message_contents` uses it on `self.state`. *)
+letfun core__mem__take(place: bitstring) =
+      rust_primitives__hax__Tuple2__Tuple2(bitstring_default(), place).
+
+(* ===========================================================================
+   Wrapper definitions for crypto functions the engine does not currently emit
+   via `replace_body` (the body replacement applies at the Rust level but no
+   letfun is produced — happens for `&mut rng` key-gen, the stateful SHA-256
+   hasher, and the nested-struct transcript inputs). We give sound definitions
+   for the auto-declared names directly here, so they connect to the term
+   algebra above instead of being marked opaque `[data]` by the missingdecl
+   de-dup. Without this, DH public keys / private keys would be invertible.
+   =========================================================================== *)
+
+(* dhkem::DHPrivateKey::to_public  ->  g^sk (one-way). *)
+letfun libcrux_psq__handshake__dhkem__Impl_6__to_public(sk: bitstring) =
+      extern__dh_pub(sk).
+
+(* dhkem::DHPrivateKey::new(rng)  ->  fresh DH scalar (threads rng unchanged,
+   matching the &mut-rng calling convention: returns (rng, sk)). *)
+letfun libcrux_psq__handshake__dhkem__Impl_6__new_kw(rng: bitstring) =
+      new dh_scalar: bitstring;
+      rust_primitives__hax__Tuple2__Tuple2(rng, dh_scalar).
+
+(* transcript::Transcript::add_hash(old, input)  ->  running hash (one-way). *)
+letfun libcrux_psq__handshake__transcript__Impl__add_hash(old: bitstring, input: bitstring) =
+      extern__hash(old, input).
+
+(* transcript::tx0(context, responder_pk, initiator_pk) = hash(0 | ctx | pkR | pkI). *)
+letfun libcrux_psq__handshake__transcript__tx0(
+        context: bitstring, responder_pk: bitstring, initiator_pk: bitstring) =
+      extern__hash(None, (context, responder_pk, initiator_pk)).
+
+(* transcript::tx1(tx0, authenticator, responder_pq_pk, pq_encaps)
+     = hash(1 | tx0 | auth | [pqek] | [enc_pq]).
+   The responder-PQ-key argument arrives in two shapes: the initiator passes the
+   raw `PqKemPublicKey::MlKem(pqek)` because hax dropped the `self.ciphersuite.pq
+   .into()` conversion in prepare_message_contents (same From/Into resolution bug
+   as Impl_2__from / the sig vk), while the responder passes the proper
+   `Some(PQEncapsulationKey::MlKem(pqek))` from `encapsulation_key()`. Both wrap
+   the same `pqek`, so we canonicalize to `pqek` before hashing — otherwise the
+   two tx1 (hence K_1) disagree and the inner decrypt fails. *)
+fun libcrux_psq__handshake__ciphersuite__initiator__PqKemPublicKey__MlKem(bitstring): bitstring [data].
+fun libcrux_psq__handshake__ciphersuite__types__PQEncapsulationKey__MlKem(bitstring): bitstring [data].
+letfun pv_canon_pqpk(p: bitstring) =
+      let libcrux_psq__handshake__ciphersuite__initiator__PqKemPublicKey__MlKem(pqek) = p in pqek
+      else let Some(libcrux_psq__handshake__ciphersuite__types__PQEncapsulationKey__MlKem(pqek)) = p in pqek
+      else p.
+letfun libcrux_psq__handshake__transcript__tx1(
+        tx0v: bitstring, authenticator: bitstring,
+        responder_pq_pk: bitstring, pq_encaps: bitstring) =
+      extern__hash(Some(tx0v), (authenticator, pv_canon_pqpk(responder_pq_pk), pq_encaps)).
+
+(* ===========================================================================
+   Registration mode crypto
+   ===========================================================================
+   Everything below is exercised only by registration mode (query mode never
+   reaches it). It mirrors psq-design/models/psq_handshake_lib.pvl. *)
+
+(* ---- Post-quantum KEM (ML-KEM-768) ------------------------------------- *)
+(* Standard symbolic KEM: a decapsulation key sk has public key kem_pk(sk); an
+   encapsulation to pk yields a ciphertext kem_encaps(pk, ss) carrying a fresh
+   shared secret ss; only the holder of sk can recover ss. This is the trust
+   anchor for HNDL confidentiality (K1Secrecy, RegPayloadHNDLSecrecy,
+   ResponseHNDLSecrecy) — a classical-DH break does not
+   help, only `pqdk_R` (CompromiseEndpointPQ) does. The libcrux wrappers
+   `mlkem768::{encapsulate,decapsulate}` are external (no body extracted), so we
+   define them directly; the `(ct, ss)` pair / `PQCiphertext` wrapping is done by
+   the extracted `pq_encapsulate` / `pq_decapsulate` around these. *)
+fun extern__kem_pk(bitstring): bitstring.
+fun extern__kem_encaps(bitstring, bitstring): bitstring.
+reduc forall sk: bitstring, ss: bitstring;
+      extern__kem_decaps(sk, extern__kem_encaps(extern__kem_pk(sk), ss)) = ss.
+
+letfun libcrux_ml_kem__mlkem768__encapsulate(pk: bitstring, rand: bitstring) =
+      new ss: bitstring;
+      rust_primitives__hax__Tuple2__Tuple2(extern__kem_encaps(pk, ss), ss).
+letfun libcrux_ml_kem__mlkem768__decapsulate(sk: bitstring, ct: bitstring) =
+      extern__kem_decaps(sk, ct).
+
+(* ---- Digital signatures (Ed25519 / ML-DSA-65) -------------------------- *)
+(* EUF-CMA, modelled as a partial destructor: `extern__sig_verify(vk, m, sig)`
+   has a reducing clause only for a genuine signature `sign(sk, m)` under the
+   matching `vk_of(sk)`; on a forgery it has no value and fails. The single
+   caller (`verify_tx1`) lowers `vk.verify(..)?` to
+   `let wildcard = verify(..) in <continue> else bitstring_err()`, so a failure
+   correctly aborts the responder read (there is no `assert!`/`not_kw` to swallow
+   it). The `vk_of(sk)` binding is what makes signature-based initiator
+   authentication PQ-secure (InitiatorAuthPQ true): a quantum adversary that breaks classical
+   DH still cannot produce `sign(sk_I, .)` without `sk_I`. *)
+(* Key/signature enum constructors (declared here, stripped from lib.clean). *)
+fun libcrux_psq__handshake__ciphersuite__initiator__SigningKeyPair__Ed25519(bitstring, bitstring): bitstring [data].
+fun libcrux_psq__handshake__ciphersuite__initiator__SigningKeyPair__MlDsa65(bitstring, bitstring): bitstring [data].
+fun libcrux_psq__handshake__ciphersuite__types__Signature__Ed25519(bitstring): bitstring [data].
+fun libcrux_psq__handshake__ciphersuite__types__Signature__MlDsa65(bitstring): bitstring [data].
+fun libcrux_psq__handshake__ciphersuite__types__SignatureVerificationKey__Ed25519(bitstring): bitstring [data].
+fun libcrux_psq__handshake__ciphersuite__types__SignatureVerificationKey__MlDsa65(bitstring): bitstring [data].
+fun extern__vk_of(bitstring): bitstring.
+fun extern__sign(bitstring, bitstring): bitstring.
+fun extern__sig_verify(bitstring, bitstring, bitstring): bitstring
+reduc forall sk: bitstring, m: bitstring;
+      extern__sig_verify(extern__vk_of(sk), m, extern__sign(sk, m)) = rust_primitives__hax__Tuple0__Tuple0.
+
+(* ciphersuite::initiator::SigningKeyPair::sign(self, rng, tx). `&mut rng` makes
+   it return (rng, signature); we project the inner signing scalar from the
+   key pair and wrap the EUF-CMA term in the right Signature variant (the peer
+   recovers `vk = vk_of(sk)` from the SignatureVerificationKey, so the two bind). *)
+letfun libcrux_psq__handshake__ciphersuite__initiator__Impl_3__sign(
+        self: bitstring, rng: bitstring, tx: bitstring) =
+      rust_primitives__hax__Tuple2__Tuple2(rng,
+        let libcrux_psq__handshake__ciphersuite__initiator__SigningKeyPair__Ed25519(sk, vk) = self in
+          libcrux_psq__handshake__ciphersuite__types__Signature__Ed25519(extern__sign(sk, tx))
+        else let libcrux_psq__handshake__ciphersuite__initiator__SigningKeyPair__MlDsa65(sk, vk) = self in
+          libcrux_psq__handshake__ciphersuite__types__Signature__MlDsa65(extern__sign(sk, tx))
+        else bitstring_err()).
+
+(* ciphersuite::types::SignatureVerificationKey::verify(self, tx1, sig). Unwrap
+   the key/sig enums and run the partial destructor; mismatched variants fail
+   (== reject). *)
+(* NB: the wire `vk` reaching `verify` is the raw SigningKeyPair, not a
+   SignatureVerificationKey: hax dropped the `sig_auth.into()` conversion in the
+   initiator's AuthMessageOut::Sig construction (same From/Into resolution gap as
+   Impl_2__from). We therefore also accept the SigningKeyPair form and project its
+   inner verification key (field 1 = vk_of(sk)). Sound for authentication: only
+   the vk is used; the spurious sk in the wrapper is ignored, and a forgery still
+   cannot produce sign(sk, tx1) without sk. *)
+letfun libcrux_psq__handshake__ciphersuite__types__Impl_4__verify(
+        self: bitstring, tx1: bitstring, sig: bitstring) =
+      let libcrux_psq__handshake__ciphersuite__types__SignatureVerificationKey__Ed25519(vk) = self in
+        (let libcrux_psq__handshake__ciphersuite__types__Signature__Ed25519(s) = sig in
+           extern__sig_verify(vk, tx1, s) else bitstring_err())
+      else let libcrux_psq__handshake__ciphersuite__types__SignatureVerificationKey__MlDsa65(vk) = self in
+        (let libcrux_psq__handshake__ciphersuite__types__Signature__MlDsa65(s) = sig in
+           extern__sig_verify(vk, tx1, s) else bitstring_err())
+      else let libcrux_psq__handshake__ciphersuite__initiator__SigningKeyPair__Ed25519(sk, vk) = self in
+        (let libcrux_psq__handshake__ciphersuite__types__Signature__Ed25519(s) = sig in
+           extern__sig_verify(vk, tx1, s) else bitstring_err())
+      else let libcrux_psq__handshake__ciphersuite__initiator__SigningKeyPair__MlDsa65(sk, vk) = self in
+        (let libcrux_psq__handshake__ciphersuite__types__Signature__MlDsa65(s) = sig in
+           extern__sig_verify(vk, tx1, s) else bitstring_err())
+      else bitstring_err().
+
+(* ml-dsa signature `as_ref` (used to bytes-ify the signature in derive_k1_sig);
+   identity in the term algebra. *)
+letfun libcrux_ml_dsa__types__Impl_4__as_ref(x: bitstring) = x.
+
+(* ---- handshake_encrypt — strip the sk_I that hax left on the sig wire ---- *)
+(* The initiator builds `AuthMessageOut::Sig { vk: &sig_auth.into(), .. }` but hax
+   dropped the `.into()` (SigningKeyPair -> SignatureVerificationKey; same From/Into
+   gap as Impl_2__from / Impl_4__verify), so the *sealed* outer payload carries the
+   raw `SigningKeyPair(sk_I, vk_I)` — the client's private signing key sk_I is on the
+   wire. An attacker who breaks the responder's classical key (InitiatorAuthPQ's threat model)
+   decrypts the outer and reads sk_I straight out — via the raw `aead_dec` destructor,
+   bypassing the `pv_deserialize` bridge and Impl_2__from/Impl_4__verify (which only
+   guard the responder's *consumption*, not what is sealed) — then forges, making InitiatorAuthPQ
+   spuriously false for signature auth. Model the dropped `.into()` at the seal
+   boundary: canonicalize the payload before AEAD-sealing, replacing
+   `SigningKeyPair(sk,vk)` with `SignatureVerificationKey(vk)` inside any
+   `AuthMessageOut::Sig`. Sound: only the public vk is ever meant to be on the wire;
+   Impl_2__from's catch-all maps `AuthMessage::Sig(SignatureVerificationKey(vk),_)` to
+   the same `Authenticator::Sig(SignatureVerificationKey(vk))` as the SigningKeyPair
+   form, so tx1 / K_1 / verify are unchanged and the run is preserved. Query /
+   DH / inner-payload / response payloads don't match the Sig pattern -> pass through.
+   (`handshake_encrypt` is stripped from lib.clean by check-pv.sh's STRIP_LETFUN.) *)
+(* hax 0.5.0 extracts the `.into()` (initiator `Impl_4__from`), so this is a
+   no-op on its output; it stays as a safety net. *)
+letfun pv_canon_wire(p: bitstring) =
+      let libcrux_psq__handshake__initiator__InitiatorOuterPayloadOut__Registration(
+            libcrux_psq__handshake__InnerMessageOut__InnerMessageOut(
+              c1, c2, c3, c4,
+              libcrux_psq__handshake__AuthMessageOut__Sig(
+                libcrux_psq__handshake__ciphersuite__initiator__SigningKeyPair__Ed25519(sk, vk), sig))) = p in
+        libcrux_psq__handshake__initiator__InitiatorOuterPayloadOut__Registration(
+          libcrux_psq__handshake__InnerMessageOut__InnerMessageOut(
+            c1, c2, c3, c4,
+            libcrux_psq__handshake__AuthMessageOut__Sig(
+              libcrux_psq__handshake__ciphersuite__types__SignatureVerificationKey__Ed25519(vk), sig)))
+      else let libcrux_psq__handshake__initiator__InitiatorOuterPayloadOut__Registration(
+            libcrux_psq__handshake__InnerMessageOut__InnerMessageOut(
+              c1, c2, c3, c4,
+              libcrux_psq__handshake__AuthMessageOut__Sig(
+                libcrux_psq__handshake__ciphersuite__initiator__SigningKeyPair__MlDsa65(sk, vk), sig))) = p in
+        libcrux_psq__handshake__initiator__InitiatorOuterPayloadOut__Registration(
+          libcrux_psq__handshake__InnerMessageOut__InnerMessageOut(
+            c1, c2, c3, c4,
+            libcrux_psq__handshake__AuthMessageOut__Sig(
+              libcrux_psq__handshake__ciphersuite__types__SignatureVerificationKey__MlDsa65(vk), sig)))
+      else p.
+letfun libcrux_psq__aead__Impl_1__handshake_encrypt(
+        self: bitstring, payload: bitstring, aad: bitstring) =
+      let p2 = pv_canon_wire(payload) in
+      rust_primitives__hax__Tuple2__Tuple2(self,
+        rust_primitives__hax__Tuple2__Tuple2(
+          extern__aead_ct(self, p2, aad), extern__aead_tag(self, p2, aad))).
+
+(* rng.fill_bytes(&mut buf): &mut self (rng) + &mut buf, so hax threads it as
+   (rng', buf'); buf' is filled with fresh randomness. Without this the auto-
+   declared opaque stub is not a Tuple2, so `let (rng',rand') = fill_bytes(..)`
+   in pq_encapsulate (and ml-dsa sign) fails — killing the
+   registration initiator's message construction. (Query mode never reaches it.)
+   The freshness is otherwise abstracted into encapsulate's `new ss` / sign, so
+   the filled value only needs to exist. *)
+letfun rand_core__Rng__fill_bytes(rng: bitstring, buf: bitstring) =
+      new filled: bitstring;
+      rust_primitives__hax__Tuple2__Tuple2(rng, filled).
+
+(* rand_core 0.10's fallible rng.try_fill_bytes(&mut buf) -> Result<(), _>:
+   threaded as (rng', buf', result), with the same failure mode as above if left
+   opaque. The Result layer is collapsed, so the Ok(()) result is the unit. *)
+letfun rand_core__TryRng__try_fill_bytes(rng: bitstring, buf: bitstring) =
+      new filled: bitstring;
+      rust_primitives__hax__Tuple3__Tuple3(rng, filled, rust_primitives__hax__Tuple0__Tuple0).
+
+(* Option::transpose (Option<Result<T>> -> Result<Option<T>>) is the identity,
+   because the Result layer is collapsed. hax's result.pvl defines it. *)
+
+(* The two ciphersuite structs, declared here (and stripped from lib.clean by
+   check-pv.sh) so the `name` projector below can pattern-match them before
+   lib.pvl loads. Their field projectors stay in lib.clean and resolve against
+   these declarations. *)
+fun libcrux_psq__handshake__ciphersuite__initiator__InitiatorCiphersuite__InitiatorCiphersuite(
+      bitstring, bitstring, bitstring, bitstring, bitstring): bitstring [data].
+fun libcrux_psq__handshake__ciphersuite__responder__ResponderCiphersuite__ResponderCiphersuite(
+      bitstring, bitstring, bitstring, bitstring): bitstring [data].
+
+(* ---- CiphersuiteBase::name — must project, not be an opaque [data] fun ---- *)
+(* `CiphersuiteBase::name(&self) -> CiphersuiteName` returns the public ciphersuite
+   identifier (an enum discriminant), i.e. `self.name` (field 0). The auto-declared
+   stub in missingdecl.pvl is `fun …__name(bitstring): bitstring [data].`, i.e. an
+   injective constructor — so ProVerif synthesises the projector `1-proj-…__name`
+   and the attacker inverts `name(cs)` back to the whole ciphersuite `cs`. The
+   initiator puts `name(self.ciphersuite)` on the wire (write_message), and its
+   `InitiatorCiphersuite` embeds the secret `Auth::DH(DHKeyPair(sk_I,_))` /
+   `Auth::Sig(SigningKeyPair(sk_I,_))` — so the public name field leaks the client's
+   private key, spuriously breaking InitiatorAuthClassical (DH) and InitiatorAuthPQ (sig). The
+   `name()` returns only the public enum label and is not invertible to the
+   struct. Model it faithfully as the field-0 projection (both ciphersuite structs
+   store the CiphersuiteName first); fall through to identity if it is already a
+   bare name. Strips the leak; the name still round-trips as a public constant. *)
+letfun libcrux_psq__handshake__ciphersuite__traits__CiphersuiteBase__name(cs: bitstring) =
+      let libcrux_psq__handshake__ciphersuite__initiator__InitiatorCiphersuite__InitiatorCiphersuite(
+            nm: bitstring, pkr: bitstring, pq: bitstring, auth: bitstring, aead: bitstring) = cs in nm
+      else let libcrux_psq__handshake__ciphersuite__responder__ResponderCiphersuite__ResponderCiphersuite(
+            nm: bitstring, kex: bitstring, pq: bitstring, aead: bitstring) = cs in nm
+      else cs.
+
+(* ---- Authenticator::from — fix a trait-resolution gap ------------------- *)
+(* The crate has two `From<_> for Authenticator` impls: `From<Auth>` (initiator
+   side, sign_tx1) and `From<&AuthMessage>` (responder side, verify_tx1). hax
+   collapsed both call sites onto the single extracted `types::Impl_2__from`,
+   which only handles the initiator `Auth` enum — so on the responder a wire
+   `AuthMessage` falls through to `bitstring_err()` and tx1 can never agree,
+   making every registration handshake unreachable. It also dropped the
+   `sig_auth.into()` (SigningKeyPair -> SignatureVerificationKey) conversion in
+   the `Auth::Sig` arm. We override `Impl_2__from` (stripped from lib.clean by
+   check-pv.sh) to handle both inputs and to perform the vk conversion, so the
+   initiator's `Authenticator` (built from its Auth) and the responder's (built
+   from the wire AuthMessage) coincide for the same identity:
+     DH : Auth::DH(kp)            and  AuthMessage::Dh(pk)        -> Authenticator::Dh(pk)
+     Sig: Auth::Sig(SKP(sk,vk))   and  AuthMessage::Sig(vk,_)     -> Authenticator::Sig(vk)
+   (the wire vk = vk_of(sk), set up by the role, so both sides match). *)
+fun libcrux_psq__handshake__ciphersuite__initiator__Auth__DH(bitstring): bitstring [data].
+fun libcrux_psq__handshake__ciphersuite__initiator__Auth__Sig(bitstring): bitstring [data].
+fun libcrux_psq__handshake__dhkem__DHKeyPair__DHKeyPair(bitstring, bitstring): bitstring [data].
+fun libcrux_psq__handshake__ciphersuite__types__Authenticator__Dh(bitstring): bitstring [data].
+fun libcrux_psq__handshake__ciphersuite__types__Authenticator__Sig(bitstring): bitstring [data].
+letfun libcrux_psq__handshake__ciphersuite__types__Impl_2__from(value: bitstring) =
+      let libcrux_psq__handshake__ciphersuite__initiator__Auth__DH(
+            libcrux_psq__handshake__dhkem__DHKeyPair__DHKeyPair(sk, pk)) = value in
+        libcrux_psq__handshake__ciphersuite__types__Authenticator__Dh(pk)
+      else let libcrux_psq__handshake__ciphersuite__initiator__Auth__Sig(
+            libcrux_psq__handshake__ciphersuite__initiator__SigningKeyPair__Ed25519(sk, vk)) = value in
+        libcrux_psq__handshake__ciphersuite__types__Authenticator__Sig(
+          libcrux_psq__handshake__ciphersuite__types__SignatureVerificationKey__Ed25519(vk))
+      else let libcrux_psq__handshake__ciphersuite__initiator__Auth__Sig(
+            libcrux_psq__handshake__ciphersuite__initiator__SigningKeyPair__MlDsa65(sk, vk)) = value in
+        libcrux_psq__handshake__ciphersuite__types__Authenticator__Sig(
+          libcrux_psq__handshake__ciphersuite__types__SignatureVerificationKey__MlDsa65(vk))
+      else let libcrux_psq__handshake__AuthMessage__Dh(pk) = value in
+        libcrux_psq__handshake__ciphersuite__types__Authenticator__Dh(pk)
+      (* responder side: the wire AuthMessage::Sig carries the raw SigningKeyPair
+         (hax dropped the .into()); project its vk so the responder's Authenticator
+         matches the initiator's (built from Auth::Sig above). *)
+      else let libcrux_psq__handshake__AuthMessage__Sig(
+            libcrux_psq__handshake__ciphersuite__initiator__SigningKeyPair__Ed25519(sk, vk), sig) = value in
+        libcrux_psq__handshake__ciphersuite__types__Authenticator__Sig(
+          libcrux_psq__handshake__ciphersuite__types__SignatureVerificationKey__Ed25519(vk))
+      else let libcrux_psq__handshake__AuthMessage__Sig(
+            libcrux_psq__handshake__ciphersuite__initiator__SigningKeyPair__MlDsa65(sk, vk), sig) = value in
+        libcrux_psq__handshake__ciphersuite__types__Authenticator__Sig(
+          libcrux_psq__handshake__ciphersuite__types__SignatureVerificationKey__MlDsa65(vk))
+      else let libcrux_psq__handshake__AuthMessage__Sig(vk, sig) = value in
+        libcrux_psq__handshake__ciphersuite__types__Authenticator__Sig(vk)
+      else bitstring_err().
+
+(* ---- Session key schedule ---------------------------------------------- *)
+(* session::session_key::derive_session_key(k2, tx2, aead) = KDF(K_2, tx2) — the
+   final session key K_S; one-way in K_2 (so K_S secrecy reduces to K_2's). *)
+letfun libcrux_psq__session__session_key__derive_session_key(
+        k2: bitstring, tx2: bitstring, aead_type: bitstring) =
+      extern__kdf(k2, tx2).
+(* session::derive_pk_binder(session_key, auth, ecdh_pk, pq_pk) — one-way; binds
+   the peer identities into the session. Not itself a queried secret. *)
+letfun libcrux_psq__session__derive_pk_binder(
+        session_key: bitstring, auth: bitstring, ecdh_pk: bitstring, pq_pk: bitstring) =
+      extern__kdf(session_key, auth).
+
+(* ---- Serialization carriers (transparent / injective) ------------------ *)
+(* The structured payloads are sealed/opened directly; the tls (de)serialization
+   is the identity in the term algebra (the term structure is the wire form, so
+   distinct terms give distinct encodings — injective, no re-partition attack).
+   `Impl_38__as_slice` (tls_codec 0.5.0 numbering) / `cursor::new` / `tls_(de)serialize` therefore pass their
+   argument through; the `pv_deserialize` bridge above already stripped the
+   `VLByteSlice` wrappers off the registration inner fields, so these see raw
+   terms. *)
+letfun tls_codec__quic_vec__Impl_38__as_slice(x: bitstring) = x.
+letfun std__io__cursor__Impl__new_kw(x: bitstring) = x.
+letfun tls_codec__Serialize__tls_serialize_detached(x: bitstring) = x.
+letfun tls_codec__Deserialize__tls_deserialize(x: bitstring) =
+      rust_primitives__hax__Tuple2__Tuple2(nat_0, x).

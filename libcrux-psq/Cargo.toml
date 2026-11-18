@@ -60,3 +60,5 @@ nonce-control = []
 name = "psq_v2"
 harness = false
 
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(hax)'] }
