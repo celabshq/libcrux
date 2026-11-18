@@ -8,8 +8,9 @@ fn test_private_key_validation() {
     let sk_bytes = black_box([0x42u8; 48]);
     classify(&sk_bytes);
 
-    let ok = PrivateKey::try_from(&sk_bytes[..]).is_ok();
-    declassify(&ok);
+    // black_box is needed so that the `is_ok` call doesn't lead
+    // to the construction of the value being optimized out
+    let ok = black_box(PrivateKey::try_from(&sk_bytes[..])).is_ok();
     println!("p384 private key valid: {ok}");
 }
 

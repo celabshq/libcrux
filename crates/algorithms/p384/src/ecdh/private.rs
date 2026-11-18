@@ -88,17 +88,16 @@ impl TryFrom<&[u8]> for PrivateKey {
     /// A valid SEC1 encoding of a P-384 private key is a 48 byte
     /// big-endian integer that is less than the P-384 curve order.
     fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
-        if value.len() != FP_NUM_BYTES {
-            return Err(Self::Error::InvalidPrivateKey);
-        }
-        // Copy directly into the key, so that an invalid key is wiped when
-        // `key` is dropped.
-        let mut key = Self([0u8; FP_NUM_BYTES]);
-        key.0.copy_from_slice(value);
-        if core::hint::black_box(be_bytes_nonzero(&key.0))
-            & core::hint::black_box(be_bytes_lt(&key.0, &NIST_P384_CURVE_ORDER_BE_BYTES))
-        {
-            Ok(key)
+        let value: [u8; FP_NUM_BYTES] = value
+            .try_into()
+            .map_err(|_| Self::Error::InvalidPrivateKey)?;
+
+        let valid = core::hint::black_box(be_bytes_nonzero(&value))
+            & core::hint::black_box(be_bytes_lt(&value, &NIST_P384_CURVE_ORDER_BE_BYTES));
+        // Whether the private key is valid is public. Declassify it for the valgrind CT test.
+        libcrux_secrets::mem_requests::ct_declassify(&valid);
+        if valid {
+            Ok(Self(value))
         } else {
             Err(Self::Error::InvalidPrivateKey)
         }
