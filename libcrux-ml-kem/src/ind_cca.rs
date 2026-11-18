@@ -1204,6 +1204,22 @@ pub(crate) mod unpacked {
 mod zeroize_tests {
     use core::mem::{size_of, ManuallyDrop};
 
+    use crate::{
+        constants::{COEFFICIENTS_IN_RING_ELEMENT, SHARED_SECRET_SIZE},
+        ind_cca::unpacked::MlKemPrivateKeyUnpacked,
+        mlkem768::{MlKem768PrivateKey, RANK, SECRET_KEY_SIZE},
+        vector::portable::PortableVector,
+    };
+
+    // `all_zero` reads every byte, so the keys must not contain padding
+    // (reading padding is undefined behaviour).
+    const _: () = assert!(size_of::<MlKem768PrivateKey>() == SECRET_KEY_SIZE);
+    const _: () = assert!(
+        size_of::<MlKemPrivateKeyUnpacked<RANK, PortableVector>>()
+            == RANK * COEFFICIENTS_IN_RING_ELEMENT * size_of::<i16>() // secret_as_ntt
+                + SHARED_SECRET_SIZE // implicit_rejection_value
+    );
+
     /// Read all bytes of `*ptr`, which must be valid for reads.
     unsafe fn all_zero<T>(ptr: *const T) -> bool {
         let bytes = ptr.cast::<u8>();

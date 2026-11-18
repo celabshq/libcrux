@@ -17,7 +17,7 @@ pub(crate) mod aes256_ctr;
 
 /// The ctr nonce length. This is different from the AES nonce length
 /// [`crate::NONCE_LEN`].
-const CTR_NONCE_LEN: usize = 16;
+pub(crate) const CTR_NONCE_LEN: usize = 16;
 
 pub(crate) const AES_GCM_CTR_LEN: usize = 4;
 pub(crate) const AES_CCM_CTR_LEN: usize = 3;

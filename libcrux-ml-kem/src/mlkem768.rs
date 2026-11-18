@@ -3,7 +3,7 @@
 use super::{constants::*, ind_cca::*, types::*, *};
 use libcrux_secrets::Zeroize;
 
-const RANK: usize = 3;
+pub(crate) const RANK: usize = 3;
 #[cfg(any(feature = "incremental", eurydice))]
 const RANKED_BYTES_PER_RING_ELEMENT: usize = RANK * BITS_PER_RING_ELEMENT / 8;
 const T_AS_NTT_ENCODED_SIZE: usize =
@@ -24,7 +24,7 @@ const CPA_PKE_SECRET_KEY_SIZE: usize =
 pub(crate) const CPA_PKE_PUBLIC_KEY_SIZE: usize = T_AS_NTT_ENCODED_SIZE + 32;
 // These two are used in the hybrid kem. This could probably be improved.
 const CPA_PKE_CIPHERTEXT_SIZE: usize = C1_SIZE + C2_SIZE;
-const SECRET_KEY_SIZE: usize =
+pub(crate) const SECRET_KEY_SIZE: usize =
     CPA_PKE_SECRET_KEY_SIZE + CPA_PKE_PUBLIC_KEY_SIZE + H_DIGEST_SIZE + SHARED_SECRET_SIZE;
 
 const ETA1: usize = 2;

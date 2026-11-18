@@ -145,10 +145,24 @@ pub(crate) use type_aliases;
 #[allow(unsafe_code)]
 mod zeroize_tests {
     use super::*;
-    use crate::{platform::portable, State as _};
+    use crate::{
+        ctr::{aes128_ctr::NUM_KEYS, CTR_NONCE_LEN},
+        platform::portable,
+        State as _,
+    };
     use core::mem::{size_of, ManuallyDrop};
 
-    type PortableState = State<portable::State, portable::FieldElement, 11>;
+    type PortableState = State<portable::State, portable::FieldElement, NUM_KEYS>;
+
+    // The test reads every byte of the state, so it must not contain padding
+    // (reading padding is undefined behaviour).
+    const _: () = assert!(
+        size_of::<PortableState>()
+            == size_of::<[portable::State; NUM_KEYS]>() // extended_key
+                + CTR_NONCE_LEN // ctr_nonce
+                + 2 * size_of::<portable::FieldElement>() // GHASH accumulator and key
+                + TAG_LEN // tag_mix
+    );
 
     #[test]
     fn state_is_wiped_on_drop() {
@@ -160,7 +174,8 @@ mod zeroize_tests {
         let ptr: *mut PortableState = &mut *st;
 
         // SAFETY: `ManuallyDrop` never drops `st` itself, so its memory stays
-        // valid after `drop_in_place`. All fields are integers without padding.
+        // valid after `drop_in_place`. All fields are integers, and the
+        // assertion above rules out padding.
         unsafe {
             let bytes = ptr.cast::<u8>();
             let all_zero =

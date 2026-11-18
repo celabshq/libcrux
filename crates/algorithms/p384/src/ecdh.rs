@@ -187,6 +187,11 @@ mod zeroize_tests {
     use super::*;
     use core::mem::{size_of, ManuallyDrop};
 
+    // `wiped_on_drop` reads every byte, so the types must not contain padding
+    // (reading padding is undefined behaviour).
+    const _: () = assert!(size_of::<PrivateKey>() == FP_NUM_BYTES);
+    const _: () = assert!(size_of::<SharedSecret>() == FP_NUM_BYTES);
+
     /// Drop `*ptr` in place and check that its memory is all zero afterwards.
     ///
     /// # Safety

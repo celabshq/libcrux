@@ -11,7 +11,7 @@ use crate::{
     NONCE_LEN,
 };
 
-pub(super) const NUM_KEYS: usize = 11;
+pub(crate) const NUM_KEYS: usize = 11;
 
 impl<T: AESState, const CTR_LEN: usize, const NONCE_START: usize>
     AesCtrContext<T, NUM_KEYS, CTR_LEN, NONCE_START>
