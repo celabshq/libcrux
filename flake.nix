@@ -13,10 +13,13 @@
     # eurydice transitively, so pinning eurydice pins all three.
     eurydice.url = "github:aeneasverif/eurydice/aaa9fa657fb6f09802edb890252040d94cd93982";
     eurydice.inputs.karamel.inputs.fstar.follows = "fstar-pinned";
-    # Pin hax 0.3.6, update if hax-lib is updated in Cargo.toml
-    hax.url = "github:cryspen/hax/87ba96831ecfeb7dbb54efcf97036fbc5f25bc71";
-    # Pin F* to the version CI uses for hax lax/prove (see .github/workflows/mlkem-hax.yml).
+    # Pin hax 0.4.1 (tag hax-lib-v0.4.1), update if hax-lib is updated in Cargo.toml
+    hax.url = "github:cryspen/hax/8d6a41802f32918fe7ebbaad0dfc86937ba3011d";
+    # F* used by karamel (and the C extraction). Newer F* releases fail to
+    # build karamel with conflicting OCaml packages.
     fstar-pinned.url = "github:FStarLang/FStar/v2025.10.06";
+    # Pin F* to the version CI uses for hax lax/prove (see .github/workflows/mlkem-hax.yml).
+    fstar-hax.url = "github:FStarLang/FStar/v2026.03.24";
     googletest = {
       url = "github:google/googletest/release-1.11.0";
       flake = false;
@@ -39,6 +42,7 @@
       rust-overlay,
       eurydice,
       fstar-pinned,
+      fstar-hax,
       hax,
       googletest,
       benchmark,
@@ -461,7 +465,8 @@
               rustToolchain
               cargoMiri
               hax.packages.${system}.default
-              fstar.packages.${system}.default
+              # On PATH, so the hax Makefiles use it instead of $FSTAR_HOME (karamel's F*).
+              fstar-hax.packages.${system}.default
               pkgs.qemu
               pkgs.llvmPackages_18.clang-tools
               clang-format-18-wrapper
@@ -478,9 +483,10 @@
             CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUNNER = "qemu-aarch64";
             CC_aarch64_unknown_linux_gnu = "${pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc";
             shellHook = ''
-              if [ ! -f Cargo.lock ] && [ -f Cargo.toml ]; then
+              root=$(git rev-parse --show-toplevel 2>/dev/null || echo .)
+              if [ ! -f "$root/Cargo.lock" ] && [ -f "$root/Cargo.toml" ]; then
                 echo "[flake] Cargo.lock missing — running 'cargo generate-lockfile'..."
-                cargo generate-lockfile
+                (cd "$root" && cargo generate-lockfile)
               fi
             '';
           }
