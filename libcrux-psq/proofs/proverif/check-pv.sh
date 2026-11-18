@@ -13,6 +13,8 @@ set -uo pipefail
 #                      proof-libs). cargo-hax 0.5.0, its hax-rust-engine and
 #                      the hax-engine must be first on PATH (or in the
 #                      hax-proverif opam switch). REQUIRED.
+#   HAX_LIB_VERSION  : hax-lib version added to libcrux-psq for the extraction
+#                      (default 0.5.0); must match the cargo-hax version.
 #   LIST=1           : list the analysis names and exit.
 #   ONLY=a,b         : run only these analyses (names or globs, e.g.
 #                      ONLY='reg-*-msg1' or ONLY=reg-dh-session).
@@ -76,7 +78,28 @@ if [ "${NO_EXTRACT:-0}" != 1 ]; then
   # skips rewriting an unchanged file, so remove the previous (gitignored)
   # outputs first and require them to reappear.
   rm -f "$EX/lib.pvl" "$EX/missingdecl.pvl"
+  # cargo-hax accepts only the hax-lib of its own version as a direct
+  # dependency of the extracted crate. The rest of the workspace is still on
+  # an older hax-lib, so libcrux-psq does not depend on hax-lib permanently
+  # (a second hax-lib in Cargo.lock breaks the other crates' hax jobs).
+  # Add it for the extraction only, and restore the manifest and lockfile
+  # afterwards.
+  HAX_LIB_VERSION="${HAX_LIB_VERSION:-0.5.0}"
+  BAK="$(mktemp -d)"
+  cp "$WS/libcrux-psq/Cargo.toml" "$BAK/"
+  # Cargo.lock is not committed; a fresh checkout has none.
+  [ -f "$WS/Cargo.lock" ] && cp "$WS/Cargo.lock" "$BAK/"
+  restore_manifest () {
+    cp "$BAK/Cargo.toml" "$WS/libcrux-psq/Cargo.toml"
+    if [ -f "$BAK/Cargo.lock" ]; then cp "$BAK/Cargo.lock" "$WS/Cargo.lock"
+    else rm -f "$WS/Cargo.lock"; fi
+    rm -rf "$BAK"
+  }
+  trap restore_manifest EXIT INT TERM
+  ( cd "$WS" && cargo add -q -p libcrux-psq --target 'cfg(hax)' "hax-lib@=$HAX_LIB_VERSION" ) \
+    || { echo "could not add hax-lib $HAX_LIB_VERSION to libcrux-psq"; exit 1; }
   ( cd "$WS" && cargo hax -C -p libcrux-psq ';' into -i "$INC" proverif )
+  restore_manifest; trap - EXIT INT TERM
   for f in lib.pvl missingdecl.pvl; do
     [ -s "$EX/$f" ] || { echo "EXTRACTION FAILED: $EX/$f was not written"; exit 1; }
   done
