@@ -1,4 +1,30 @@
 use alloc::vec::Vec;
+use core::ops::{Deref, DerefMut};
+
+use zeroize::ZeroizeOnDrop;
+
+#[derive(ZeroizeOnDrop)]
+pub(crate) struct SecretBytes(Vec<u8>);
+
+impl From<Vec<u8>> for SecretBytes {
+    fn from(bytes: Vec<u8>) -> Self {
+        Self(bytes)
+    }
+}
+
+impl Deref for SecretBytes {
+    type Target = [u8];
+
+    fn deref(&self) -> &[u8] {
+        &self.0
+    }
+}
+
+impl DerefMut for SecretBytes {
+    fn deref_mut(&mut self) -> &mut [u8] {
+        &mut self.0
+    }
+}
 
 #[inline]
 pub(crate) fn concat(values: &[&[u8]]) -> Vec<u8> {

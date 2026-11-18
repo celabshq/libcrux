@@ -8,7 +8,7 @@ use hpke_rs_crypto::{
     HpkeCrypto,
 };
 
-use crate::util::*;
+use crate::util::{concat, SecretBytes};
 use crate::{
     kdf::{labeled_expand, labeled_extract},
     kem::*,
@@ -23,12 +23,12 @@ fn dh_kdf(alg: KemAlgorithm) -> Result<TwoStageKdfAlgorithm, Error> {
 
 fn extract_and_expand<Crypto: HpkeCrypto>(
     alg: KemAlgorithm,
-    pk: PublicKey,
+    dh: &[u8],
     kem_context: &[u8],
     suite_id: &[u8],
-) -> Result<Vec<u8>, Error> {
+) -> Result<SecretBytes, Error> {
     let kdf = dh_kdf(alg)?;
-    let prk = labeled_extract::<Crypto>(kdf, &[], suite_id, "eae_prk", &pk)?;
+    let prk = labeled_extract::<Crypto>(kdf, &[], suite_id, "eae_prk", dh)?;
     labeled_expand::<Crypto>(
         kdf,
         &prk,
@@ -37,6 +37,7 @@ fn extract_and_expand<Crypto: HpkeCrypto>(
         kem_context,
         alg.shared_secret_len(),
     )
+    .map(SecretBytes::from)
 }
 
 /// Serialize public key.
@@ -101,9 +102,10 @@ pub(super) fn derive_key_pair<Crypto: HpkeCrypto>(
                     &ctr.to_be_bytes(),
                     alg.private_key_len(),
                 );
-                if let Ok(mut sk) = candidate {
-                    sk[0] &= bitmask;
-                    if let Ok(sk) = Crypto::dh_validate_sk(alg, &sk) {
+                if let Ok(sk) = candidate {
+                    let mut sk = PrivateKey(sk);
+                    sk.0[0] &= bitmask;
+                    if let Ok(sk) = Crypto::dh_validate_sk(alg, &sk.0) {
                         break PrivateKey(sk);
                     }
                 }
@@ -128,16 +130,16 @@ pub(super) fn encaps<Crypto: HpkeCrypto>(
     pk_r: &[u8],
     suite_id: &[u8],
     randomness: &[u8],
-) -> Result<(Vec<u8>, Vec<u8>), Error> {
+) -> Result<(SecretBytes, Vec<u8>), Error> {
     debug_assert_eq!(randomness.len(), alg.private_key_len());
     let (pk_e, sk_e) = derive_key_pair::<Crypto>(alg, suite_id, randomness)?;
-    let dh_pk = Crypto::dh(alg, pk_r, &sk_e.0)?;
+    let dh = SecretBytes::from(Crypto::dh(alg, pk_r, &sk_e.0)?);
     let enc = serialize(&pk_e);
 
     let pk_rm = serialize(pk_r);
     let kem_context = concat(&[&enc, &pk_rm]);
 
-    let zz = extract_and_expand::<Crypto>(alg, dh_pk, &kem_context, suite_id)?;
+    let zz = extract_and_expand::<Crypto>(alg, &dh, &kem_context, suite_id)?;
     Ok((zz, enc))
 }
 
@@ -146,14 +148,14 @@ pub(super) fn decaps<Crypto: HpkeCrypto>(
     enc: &[u8],
     sk_r: &[u8],
     suite_id: &[u8],
-) -> Result<Vec<u8>, Error> {
+) -> Result<SecretBytes, Error> {
     let pk_e = deserialize(enc);
-    let dh_pk = Crypto::dh(alg, &pk_e, sk_r)?;
+    let dh = SecretBytes::from(Crypto::dh(alg, &pk_e, sk_r)?);
 
     let pk_rm = serialize(&Crypto::secret_to_public(alg, sk_r)?);
     let kem_context = concat(&[enc, &pk_rm]);
 
-    extract_and_expand::<Crypto>(alg, dh_pk, &kem_context, suite_id)
+    extract_and_expand::<Crypto>(alg, &dh, &kem_context, suite_id)
 }
 
 pub(super) fn auth_encaps<Crypto: HpkeCrypto>(
@@ -162,13 +164,12 @@ pub(super) fn auth_encaps<Crypto: HpkeCrypto>(
     sk_s: &[u8],
     suite_id: &[u8],
     randomness: &[u8],
-) -> Result<(Vec<u8>, Vec<u8>), Error> {
+) -> Result<(SecretBytes, Vec<u8>), Error> {
     debug_assert_eq!(randomness.len(), alg.private_key_len());
     let (pk_e, sk_e) = derive_key_pair::<Crypto>(alg, suite_id, randomness)?;
-    let dh_pk = concat(&[
-        &Crypto::dh(alg, pk_r, &sk_e.0)?,
-        &Crypto::dh(alg, pk_r, sk_s)?,
-    ]);
+    let dh_e = SecretBytes::from(Crypto::dh(alg, pk_r, &sk_e.0)?);
+    let dh_s = SecretBytes::from(Crypto::dh(alg, pk_r, sk_s)?);
+    let dh = SecretBytes::from(concat(&[&dh_e, &dh_s]));
 
     let enc = serialize(&pk_e);
     let pk_rm = serialize(pk_r);
@@ -176,7 +177,7 @@ pub(super) fn auth_encaps<Crypto: HpkeCrypto>(
 
     let kem_context = concat(&[&enc, &pk_rm, &pk_sm]);
 
-    let zz = extract_and_expand::<Crypto>(alg, dh_pk, &kem_context, suite_id)?;
+    let zz = extract_and_expand::<Crypto>(alg, &dh, &kem_context, suite_id)?;
     Ok((zz, enc))
 }
 
@@ -186,16 +187,15 @@ pub(super) fn auth_decaps<Crypto: HpkeCrypto>(
     sk_r: &[u8],
     pk_s: &[u8],
     suite_id: &[u8],
-) -> Result<Vec<u8>, Error> {
+) -> Result<SecretBytes, Error> {
     let pk_e = deserialize(enc);
-    let dh_pk = concat(&[
-        &Crypto::dh(alg, &pk_e, sk_r)?,
-        &Crypto::dh(alg, pk_s, sk_r)?,
-    ]);
+    let dh_e = SecretBytes::from(Crypto::dh(alg, &pk_e, sk_r)?);
+    let dh_s = SecretBytes::from(Crypto::dh(alg, pk_s, sk_r)?);
+    let dh = SecretBytes::from(concat(&[&dh_e, &dh_s]));
 
     let pk_rm = serialize(&Crypto::secret_to_public(alg, sk_r)?);
     let pk_sm = serialize(pk_s);
     let kem_context = concat(&[enc, &pk_rm, &pk_sm]);
 
-    extract_and_expand::<Crypto>(alg, dh_pk, &kem_context, suite_id)
+    extract_and_expand::<Crypto>(alg, &dh, &kem_context, suite_id)
 }

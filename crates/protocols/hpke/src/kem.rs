@@ -3,7 +3,7 @@ use alloc::{vec, vec::Vec};
 use hpke_rs_crypto::{error::Error, types::KemAlgorithm, HpkeCrypto, TryRng};
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
-use crate::{dh_kem, util, Hpke};
+use crate::{dh_kem, util, util::SecretBytes, Hpke};
 
 /// A KEM private key wrapper.
 #[derive(Zeroize, ZeroizeOnDrop)]
@@ -18,7 +18,7 @@ fn ciphersuite(alg: KemAlgorithm) -> Vec<u8> {
 pub(crate) fn encaps<Crypto: HpkeCrypto>(
     hpke: &mut Hpke<Crypto>,
     pk_r: &[u8],
-) -> Result<(Vec<u8>, Vec<u8>), Error> {
+) -> Result<(SecretBytes, Vec<u8>), Error> {
     let alg = hpke.kem_id;
     match alg {
         KemAlgorithm::DhKemP256
@@ -48,13 +48,14 @@ pub(crate) fn encaps<Crypto: HpkeCrypto>(
                 .encaps_randomness_len()
                 .ok_or(Error::UnknownKemAlgorithm)?;
             let randomness = hpke.random(n).map_err(|_| Error::InsufficientRandomness)?;
-            match Crypto::kem_encaps_derand(alg, pk_r, &randomness) {
+            let (secret, enc) = match Crypto::kem_encaps_derand(alg, pk_r, &randomness) {
                 // Providers without derandomized encapsulation.
                 Err(Error::UnsupportedKemOperation) => {
                     Crypto::kem_encaps(alg, pk_r, &mut hpke.prng)
                 }
-                r => r,
-            }
+                result => result,
+            }?;
+            Ok((SecretBytes::from(secret), enc))
         }
     }
 }
@@ -63,7 +64,7 @@ pub(crate) fn decaps<Crypto: HpkeCrypto>(
     alg: KemAlgorithm,
     enc: &[u8],
     sk_r: &[u8],
-) -> Result<Vec<u8>, Error> {
+) -> Result<SecretBytes, Error> {
     match alg {
         KemAlgorithm::DhKemP256
         | KemAlgorithm::DhKemK256
@@ -78,7 +79,7 @@ pub(crate) fn decaps<Crypto: HpkeCrypto>(
         | KemAlgorithm::MlKem768
         | KemAlgorithm::MlKem1024
         | KemAlgorithm::MlKem768P256
-        | KemAlgorithm::MlKem1024P384 => Crypto::kem_decaps(alg, enc, sk_r),
+        | KemAlgorithm::MlKem1024P384 => Crypto::kem_decaps(alg, enc, sk_r).map(SecretBytes::from),
     }
 }
 
@@ -86,7 +87,7 @@ pub(crate) fn auth_encaps<Crypto: HpkeCrypto>(
     hpke: &mut Hpke<Crypto>,
     pk_r: &[u8],
     sk_s: &[u8],
-) -> Result<(Vec<u8>, Vec<u8>), Error> {
+) -> Result<(SecretBytes, Vec<u8>), Error> {
     let alg = hpke.kem_id;
     match alg {
         KemAlgorithm::DhKemP256
@@ -116,7 +117,7 @@ pub(crate) fn auth_decaps<Crypto: HpkeCrypto>(
     enc: &[u8],
     sk_r: &[u8],
     pk_s: &[u8],
-) -> Result<Vec<u8>, Error> {
+) -> Result<SecretBytes, Error> {
     match alg {
         KemAlgorithm::DhKemP256
         | KemAlgorithm::DhKemK256
@@ -158,7 +159,7 @@ pub(crate) fn key_gen<Crypto: HpkeCrypto>(
         | KemAlgorithm::MlKem1024
         | KemAlgorithm::MlKem768P256
         | KemAlgorithm::MlKem1024P384 => {
-            let mut seed = zeroize::Zeroizing::new(vec![0u8; alg.private_key_len()]);
+            let mut seed = SecretBytes::from(vec![0u8; alg.private_key_len()]);
             prng.try_fill_bytes(&mut seed)
                 .map_err(|_| Error::InsufficientRandomness)?;
             let (pk, sk) = derive_key_pair::<Crypto>(alg, &seed)?;
@@ -208,7 +209,7 @@ pub(crate) fn derive_key_pair<Crypto: HpkeCrypto>(
 /// the HPKE KDF), so it is computed directly with `libcrux_sha3` rather than via
 /// the crypto provider's KDF — that way it works for any provider whose
 /// ML-KEM/X-Wing KEMs route through here.
-fn pq_derive_keypair_seed(alg: KemAlgorithm, ikm: &[u8], len: usize) -> Result<Vec<u8>, Error> {
+fn pq_derive_keypair_seed(alg: KemAlgorithm, ikm: &[u8], len: usize) -> Result<SecretBytes, Error> {
     #[cfg(feature = "draft-connolly-cfrg-hpke-mlkem")]
     let _ = alg;
 
@@ -217,17 +218,18 @@ fn pq_derive_keypair_seed(alg: KemAlgorithm, ikm: &[u8], len: usize) -> Result<V
     // `SHAKE256.LabeledDerive(ikm, "DeriveKeyPair", "", len)` input:
     // `ikm ‖ "HPKE-v1" ‖ suite_id ‖ I2OSP(len(label),2) ‖ label ‖ I2OSP(L,2)`.
     #[cfg(not(feature = "draft-connolly-cfrg-hpke-mlkem"))]
-    let ikm = &util::concat(&[
+    let ikm = &SecretBytes::from(util::concat(&[
         ikm,
         crate::kdf::HPKE_VERSION,
         &ciphersuite(alg),
         &crate::kdf::length_prefixed(b"DeriveKeyPair"),
         &(len as u16).to_be_bytes(),
-    ]);
+    ]));
 
-    Ok(match len {
-        32 => libcrux_sha3::shake256::<32>(ikm).to_vec(),
-        64 => libcrux_sha3::shake256::<64>(ikm).to_vec(),
-        _ => return Err(Error::InsufficientRandomness),
-    })
+    if len != 32 && len != 64 {
+        return Err(Error::InsufficientRandomness);
+    }
+    let mut seed = SecretBytes::from(vec![0u8; len]);
+    libcrux_sha3::shake256_ema(&mut seed, ikm);
+    Ok(seed)
 }
