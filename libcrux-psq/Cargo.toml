@@ -41,6 +41,12 @@ tls_codec = { workspace = true }
 libcrux-ml-dsa = { workspace = true, default-features = true, features = ["codec"] }
 libcrux-aes.workspace = true
 
+# ProVerif extraction via the hax ProVerif backend. The `proverif::replace_body`
+# macros used for the symbolic-crypto boundary first shipped in hax-lib 0.5.0,
+# newer than the workspace-pinned hax-lib, so PSQ pins its own version.
+[target.'cfg(hax)'.dependencies]
+hax-lib = "0.5.0"
+
 [dev-dependencies]
 rand_core = { version = "0.10" }
 clap = { version = "4.5.30", features = ["derive"] }
@@ -60,3 +66,5 @@ nonce-control = []
 name = "psq_v2"
 harness = false
 
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(hax)'] }

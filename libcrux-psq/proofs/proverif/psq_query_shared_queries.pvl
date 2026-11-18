@@ -1,0 +1,70 @@
+(* ===========================================================================
+   PSQ query mode — properties shared verbatim across all query-mode analyses
+   ===========================================================================
+   Loaded via -lib (after the mode's own declarations of Principal, Bob,
+   query_secret/response_secret/public_response, and the QInitSend/QRespRecv/
+   CompromiseEndpoint events) by:
+     - models/psq_query.pv                        (the spec model)
+     - extracted-models/extraction/analysis.pv     (full-responder extraction)
+
+   This file holds exactly the queries whose statement does NOT depend on the
+   per-run responder ephemeral public key `er` (i.e. that mention only
+   QInitSend/QRespRecv or the payload names) and that both models can state
+   identically. The extraction models additionally thread `er` through
+   QRespSend/QInitRecv, so every query over those events stays declared
+   locally in each analysis file instead of here. ResponseForwardSecrecy is
+   also declared locally: the spec model states it against a responder
+   ephemeral leak (LeakEphemeral), which the extraction does not model.
+   The full property write-up (names, meaning, expected verdicts) lives in
+   psq_query.pv's header comment; extracted-models/extraction/analysis_auth.pv
+   has none of these (it verifies only the er-carrying ResponderAuth /
+   ResponseInjAgreement, against the auth-core responder).
+   =========================================================================== *)
+
+(* ===========================================================================
+   Sanity checks (reachability / non-vacuity). All expected to be FALSE:
+   ProVerif must find a trace, i.e. the event happens or the secret leaks.
+   =========================================================================== *)
+
+(* --- SanityQInitSendReachable. The initiator sends a query.
+   Expected: false. *)
+query p: Principal, ctx: bitstring, k: bitstring; event(QInitSend(p, ctx, k)).
+
+(* --- SanityQRespRecvReachable. The responder accepts a query.
+   Expected: false. *)
+query p: Principal, ctx: bitstring, k: bitstring; event(QRespRecv(p, ctx, k)).
+
+(* --- SanityK0Leaks. Non-vacuity of K0Secrecy: an honest initiator's K_0
+   does leak (after the phase-1 compromise). Expected: false. *)
+query p: Principal, ctx: bitstring, k0: bitstring;
+      event(QInitSend(p, ctx, k0)) && attacker(k0).
+
+(* ===========================================================================
+   Security properties
+   =========================================================================== *)
+
+(* --- NoInitiatorAuth. Deliberate non-goal: the responder cannot attribute a
+   query/K_0 to an honest initiator. Expected: false. *)
+query p: Principal, ctx: bitstring, k0: bitstring;
+      event(QRespRecv(p, ctx, k0)) ==> event(QInitSend(p, ctx, k0)).
+
+(* --- K0Secrecy. The query key K_0 of an honest initiator is secret unless
+   the responder endpoint is compromised. Expected: true. *)
+query p: Principal, ctx: bitstring, k0: bitstring;
+      event(QInitSend(p, ctx, k0)) && attacker(k0)
+          ==> event(CompromiseEndpoint(p)).
+
+(* --- QueryConfidentiality. The query payload leaks only if the responder
+   endpoint is compromised (secret against a network attacker).
+   Expected: true. *)
+query attacker(query_secret) ==> event(CompromiseEndpoint(Bob)).
+
+(* --- ResponseConfidentiality. The response payload leaks only if the
+   responder endpoint is compromised (secret against a network attacker).
+   Expected: true. *)
+query attacker(response_secret) ==> event(CompromiseEndpoint(Bob)).
+
+(* --- NoQueryForwardSecrecy. Non-goal: the query is NOT forward-secret; after
+   a phase-1 compromise of the responder long-term key, the query payload is
+   recoverable. Expected: false. *)
+query attacker(query_secret).

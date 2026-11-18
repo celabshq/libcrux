@@ -109,6 +109,10 @@ impl AEADKeyNonce {
         Ok(new_key)
     }
 
+    // ProVerif: HKDF-SHA256 key derivation. `extern__kdf(ikm, info)` is the
+    // derived AEAD key+nonce (K_n); one-way in `ikm`. The AEAD choice
+    // (`aead_type`) is irrelevant to the symbolic abstraction.
+    #[cfg_attr(hax, hax_lib::proverif::replace_body("extern__kdf(ikm, info)"))]
     pub(crate) fn new(
         ikm: &impl SerializeBytes,
         info: &impl SerializeBytes,
@@ -230,6 +234,18 @@ impl AEADKeyNonce {
         Ok((ciphertext, tag))
     }
 
+    // ProVerif: AEAD seal. Ciphertext and tag are produced from the key, the
+    // (structured) payload and the aad; both are needed to decrypt (see the
+    // reduc in psq_crypto.pvl). Bypasses tls serialization and the nonce
+    // bookkeeping — the single-use key already fixes the nonce.
+    #[cfg_attr(
+        hax,
+        hax_lib::proverif::replace_body(
+            "rust_primitives__hax__Tuple2__Tuple2(\
+               extern__aead_ct(self, payload, aad), \
+               extern__aead_tag(self, payload, aad))"
+        )
+    )]
     pub(crate) fn handshake_encrypt<T: Serialize>(
         &mut self,
         payload: &T,
@@ -349,6 +365,19 @@ impl AEADKeyNonce {
         T::tls_deserialize_exact(&payload_serialized_buf).map_err(AEADError::Deserialize)
     }
 
+    // ProVerif: AEAD open. The reduc in psq_crypto.pvl only fires for a genuine
+    // (ciphertext, tag) pair under the same key+aad, so decryption fails (the
+    // term has no value, blocking the branch) on any forgery — modelling AEAD
+    // integrity. `pv_deserialize` then models the tls deserialization the real
+    // `decrypt_deserialize` performs: the borrowed `…Out` payload the peer
+    // serialized and the owned payload this side parses share one wire encoding,
+    // so the round-trip maps one to the other (identity for payloads read raw).
+    #[cfg_attr(
+        hax,
+        hax_lib::proverif::replace_body(
+            "pv_deserialize(extern__aead_dec(self, ciphertext, tag, aad))"
+        )
+    )]
     pub(crate) fn handshake_decrypt<T: Deserialize>(
         &mut self,
         ciphertext: &[u8],

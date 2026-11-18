@@ -1,0 +1,83 @@
+(* PSQ query mode - full-responder analysis: reachability / non-vacuity sanity
+   checks, no initiator authentication (NoInitiatorAuth / NoInitiatorAuthK2),
+   key/payload secrecy and forward secrecy (K0Secrecy, K2ForwardSecrecy,
+   QueryConfidentiality, ResponseConfidentiality, ResponseForwardSecrecy,
+   NoQueryForwardSecrecy). Drives the real Responder::read_message_contents.
+   The responder-authentication correspondences ResponderAuth /
+   ResponseInjAgreement live in analysis_auth.pv (auth core), which the
+   DH-commutativity model makes intractable through the full
+   read_message_contents bookkeeping.
+   Shared setup/roles/aliases/nounif: -lib psq_query_lib.pvl. *)
+
+(* =========================================================================
+   Security queries - names and Expected verdicts from
+   psq-design/models/psq_query.pv
+
+   Every query that mentions only QInitSend/QRespRecv or the payload names
+   (SanityQInitSendReachable, SanityQRespRecvReachable, SanityK0Leaks,
+   NoInitiatorAuth, K0Secrecy, QueryConfidentiality, ResponseConfidentiality,
+   NoQueryForwardSecrecy) has the same statement as in
+   psq-design/models/psq_query.pv, so it is declared once, in
+   psq-design/models/psq_query_shared_queries.pvl, loaded via -lib before this
+   file. ResponseForwardSecrecy is declared locally, as in psq_query.pv. The queries over QRespSend/QInitRecv/QRespSecretSent carry the per-run
+   responder ephemeral public key `er` here (this extraction's events have an
+   extra `er` field vs. the spec model's), so they stay declared locally, as
+   do analysis_auth.pv's ResponderAuth / ResponseInjAgreement (also
+   `er`-carrying).
+   ========================================================================= *)
+
+(* =========================================================================
+   Sanity checks (reachability / non-vacuity). All expected to be FALSE.
+   ========================================================================= *)
+
+(* --- SanityQRespSendReachable. The responder sends a response.
+   Expected: false. *)
+query p: Principal, ctx: bitstring, er: bitstring, k: bitstring; event(QRespSend(p, ctx, er, k)).
+
+(* --- SanityQInitRecvReachable. The initiator accepts a response.
+   Expected: false. *)
+query p: Principal, ctx: bitstring, er: bitstring, k: bitstring; event(QInitRecv(p, ctx, er, k)).
+
+(* --- SanityK2Leaks. Non-vacuity of K2ForwardSecrecy: an honest initiator's
+   K_2 does leak (after the phase-1 compromise of priv_R and the responder
+   ephemeral). Expected: false. *)
+query p: Principal, ctx: bitstring, er: bitstring, k2: bitstring;
+      event(QInitRecv(p, ctx, er, k2)) && attacker(k2).
+
+(* --- SanitySecretResponseSent. The sensitive response payload is actually
+   sent out. Expected: false. *)
+query p: Principal, ctx: bitstring, er: bitstring, k2: bitstring;
+      event(QRespSecretSent(p, ctx, er, k2)).
+
+(* --- SanityResponseLeaks. Non-vacuity of ResponseConfidentiality /
+   ResponseForwardSecrecy: the response payload does leak once the attacker
+   has the compromised keys. Expected: false. *)
+query attacker(response_secret).
+
+(* =========================================================================
+   Security properties
+   ========================================================================= *)
+
+(* --- K2ForwardSecrecy. The response key K_2 an honest initiator derives is
+   secret unless both the responder endpoint and a responder ephemeral are
+   compromised. Expected: true. *)
+query p: Principal, ctx: bitstring, er: bitstring, k2: bitstring;
+      event(QInitRecv(p, ctx, er, k2)) && attacker(k2)
+          ==> event(CompromiseEndpoint(p)) && event(LeakEphemeral(p)).
+
+(* --- ResponseForwardSecrecy. The response payload leaks only if a responder
+   ephemeral leaks: a phase-1 compromise of the long-term key alone does not
+   suffice. Expected: true. *)
+query attacker(response_secret) ==> event(LeakEphemeral(Bob)).
+
+(* --- NoInitiatorAuthK2. No initiator authentication at the key level
+   (deliberate non-goal): the responder's K_2 is not uniformly secret.
+   Expected: false. *)
+query p: Principal, ctx: bitstring, er: bitstring, k2: bitstring;
+      event(QRespSend(p, ctx, er, k2)) && attacker(k2) ==> event(CompromiseEndpoint(p)).
+
+process
+    ( setup_responder(Bob)
+    | ( !query_initiator(Bob) )
+    | ( !query_responder(Bob) )
+    | ( phase 1; ( !compromise_endpoint(Bob) | !leak_ephemeral(Bob) ) ) )

@@ -1,0 +1,138 @@
+(* PSQ registration mode (DH auth) — RESPONSE / SESSION analysis, against the
+   EXTRACTED libcrux-psq model. Mirrors psq-design/models/psq_registration_dh_session.pv.
+   Shared setup/roles/aliases/nounif: -lib psq_reg_lib.pvl.
+
+   Drives the FULL two-message handshake on the real extracted code: the initiator
+   writes msg1, reads the response and into_session (InitSessDH); the responder
+   reads msg1 via the FULL read_message_contents path (rate-limit + coerce +
+   decrypt_outer/inner + state bookkeeping — unblocked by the CiphersuiteBase::name
+   fix), prepares the response and into_session (RespSessDH). The honest run is
+   sound: sanity_session_passive.pv reaches both events under a passive attacker.
+
+   THREAT MODEL (as the spec): active attacker; phase 1 (after the runs,
+   harvest-now-decrypt-later) is a quantum attacker breaking every classical
+   secret it can reach — the responder's priv_R, the client's priv_I and the
+   initiator ephemeral epriv_I (leak_ephemeral(Alice)) — plus the PQ-KEM key
+   pqdk_R. The responder ephemeral epriv_R is not leakable here: it is created
+   inside the extracted prepare_message_contents and never exposed (the spec
+   model also leaks it).
+   The responder ephemeral cannot leak, so the non-vacuity checks below can only
+   be satisfied through the initiator's ephemeral and the long-term keys.
+
+   SANITY CHECKS (mirror the spec), all expected FALSE:
+     SanityInitRegDHReachable, SanityRespRegDHReachable,
+     SanityInitSessDHReachable, SanityRespSessDHReachable
+                                 every protocol event is reachable
+     SanitySessionKeyLeaksInitiator, SanitySessionKeyLeaksResponder
+                                 K_S does leak, so SessionKeySecrecy* are not
+                                 vacuous
+     SanityResponseLeaks         the response payload does leak, so
+                                 ResponseHNDLSecrecy / ResponseForwardSecrecy
+                                 are not vacuous
+
+   PROPERTIES (mirror the spec):
+     SessionKeySecrecyInitiator / SessionKeySecrecyResponder
+                                 Key secrecy of K_S — requires the PQ-KEM
+                                 secret.                    Expected: true
+     ResponseHNDLSecrecy         HNDL of the response/session payload.
+                                                            Expected: true
+     ResponseForwardSecrecy      Forward secrecy of the session — leaks only if
+                                 a session ephemeral is broken. Expected: true
+
+   ResponderAuth / ResponderInjAgreement (responder authentication) DO NOT TERMINATE for DH mode (the DH
+   commutativity equation x the response's two DH shared secrets blows up
+   saturation) — exactly as in the spec, which machine-verifies them in the
+   signature mode and argues DH identically (the responder authenticates via the
+   PQ-KEM-derived K_1 in both). Kept commented. *)
+
+(* Trace reconstruction stays on: with it off, ProVerif reports a found attack as
+   "cannot be proved", which check-pv.sh counts as a failure. *)
+set reconstructTrace = true.
+
+(* =========================================================================
+   Sanity checks (reachability / non-vacuity), as in the specification model.
+   All expected to be FALSE. Under the active attacker; the passive sanity run
+   (sanity_session_passive.pv) additionally shows that the honest
+   run completes without attacker help.
+   ========================================================================= *)
+
+(* --- SanityInitRegDHReachable. The initiator sends message 1.
+   Expected: false (reachable). *)
+query i: Principal, r: Principal, ctx: bitstring, k: bitstring;
+      event(InitRegDH(i, r, ctx, k)).
+
+(* --- SanityRespRegDHReachable. The responder accepts message 1.
+   Expected: false (reachable). *)
+query i: Principal, r: Principal, ctx: bitstring, k: bitstring;
+      event(RespRegDH(i, r, ctx, k)).
+
+(* --- SanityInitSessDHReachable. The initiator establishes the session.
+   Expected: false (reachable). *)
+query i: Principal, r: Principal, ctx: bitstring, e: bitstring, k: bitstring;
+      event(InitSessDH(i, r, ctx, e, k)).
+
+(* --- SanityRespSessDHReachable. The responder establishes the session.
+   Expected: false (reachable). *)
+query i: Principal, r: Principal, ctx: bitstring, e: bitstring, k: bitstring;
+      event(RespSessDH(i, r, ctx, e, k)).
+
+(* --- SanitySessionKeyLeaksInitiator. Non-vacuity of
+   SessionKeySecrecyInitiator: the initiator's K_S does leak.
+   Expected: false. *)
+query i: Principal, r: Principal, ctx: bitstring, e: bitstring, k: bitstring;
+      event(InitSessDH(i, r, ctx, e, k)) && attacker(k).
+
+(* --- SanitySessionKeyLeaksResponder. Non-vacuity of
+   SessionKeySecrecyResponder: the responder's K_S does leak.
+   Expected: false. *)
+query i: Principal, r: Principal, ctx: bitstring, e: bitstring, k: bitstring;
+      event(RespSessDH(i, r, ctx, e, k)) && attacker(k).
+
+(* --- SanityResponseLeaks. Non-vacuity of ResponseHNDLSecrecy /
+   ResponseForwardSecrecy: the response payload does leak. Expected: false. *)
+query attacker(resp_secret).
+
+(* =========================================================================
+   Security properties
+   ========================================================================= *)
+
+(* --- SessionKeySecrecyInitiator. The initiator's K_S is secret unless the
+   PQ-KEM secret is compromised.                               Expected: true *)
+query i: Principal, r: Principal, ctx: bitstring, e: bitstring, k: bitstring;
+      event(InitSessDH(i, r, ctx, e, k)) && attacker(k)
+          ==> event(CompromiseEndpointPQ(r)).
+
+(* --- SessionKeySecrecyResponder. The responder's K_S is secret unless the
+   PQ-KEM secret is compromised.                               Expected: true *)
+query i: Principal, r: Principal, ctx: bitstring, e: bitstring, k: bitstring;
+      event(RespSessDH(i, r, ctx, e, k)) && attacker(k)
+          ==> event(CompromiseEndpointPQ(r)).
+
+(* --- ResponseHNDLSecrecy. HNDL of the response/session payload. Expected: true *)
+query attacker(resp_secret) ==> event(CompromiseEndpointPQ(Bob)).
+
+(* --- ResponseForwardSecrecy. Forward secrecy of the session — the session ephemeral x ephemeral DH
+   in K_2 protects resp_secret even under PQ + long-term compromise, unless a
+   session ephemeral is itself broken.                       Expected: true *)
+query attacker(resp_secret) ==> event(LeakEphemeral(Bob)) || event(LeakEphemeral(Alice)).
+
+(* ResponderAuth / ResponderInjAgreement — responder authentication; non-terminating for DH mode (see header).
+query i: Principal, r: Principal, ctx: bitstring, e: bitstring, k: bitstring;
+      event(InitSessDH(i, r, ctx, e, k))
+          ==> event(RespSessDH(i, r, ctx, e, k)) || (event(CompromiseEndpointPQ(r)) && event(CompromiseEndpointClassical(r))).
+query i: Principal, r: Principal, ctx: bitstring, e: bitstring, k: bitstring;
+      inj-event(InitSessDH(i, r, ctx, e, k))
+          ==> inj-event(RespSessDH(i, r, ctx, e, k)) || (event(CompromiseEndpointPQ(r)) && event(CompromiseEndpointClassical(r))).
+*)
+
+process
+    ( setup_responder(Bob)
+    | create_dh_client(Alice)
+    | ( !sess_dh_initiator(Alice, Bob) )
+    | ( !sess_dh_responder(Bob) )
+    | ( phase 1;
+        ( !compromise_endpoint_pq(Bob)
+        (* A quantum attacker breaks all classical secrets it can reach. *)
+        | !compromise_dh_client(Alice)
+        | !compromise_endpoint_classical(Bob)
+        | !leak_ephemeral(Alice) ) ) )
