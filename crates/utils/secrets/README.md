@@ -17,9 +17,8 @@ wiping secrets in libcrux. `Zeroize` is implemented for all machine integers,
 SIMD register types, secret integers, and arrays and slices of these.
 `Zeroizing<T>` wipes the wrapped value on drop.
 
-Values are overwritten with plain writes, followed by an optimization
-barrier on targets with stable inline `asm`. On those without, we use
-volatile writes.
+Values are overwritten with volatile writes which are guaranteed to not be
+removed by the compiler.
 
 Zeroization is explicit and does not cover copies made by the compiler yet
 (moves, by-value returns, register spills). Scrubbing the stack after secret

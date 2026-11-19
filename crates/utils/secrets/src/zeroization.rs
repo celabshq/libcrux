@@ -4,9 +4,8 @@
 //! secrets and intermediate values derived from them) goes through the
 //! [`Zeroize`] trait and the [`Zeroizing`] wrapper defined here.
 //!
-//! On platforms with stable inline `asm`, values are overwritten with plain writes,
-//! followed by an empty inline `asm` block, which keeps the compiler from removing
-//! the writes. On platforms without stable `asm`, volatile writes are used.
+//! We use volatile writes to zero the memory. These writes are guaranteed
+//! to not be removed by the compiler.
 //!
 //! # Scope and known gaps
 //!
@@ -40,8 +39,12 @@ use core::ops::{Deref, DerefMut};
 ///
 /// The write is not optimised away by the compiler, even if the value is
 /// never read again.
+#[cfg_attr(hax, hax_lib::attributes)]
 pub trait Zeroize {
     /// Overwrite `self` with zeros.
+    // Make the precondition visible to callers in F*. Without it, the
+    // instances are abstract and callers cannot prove `f_zeroize_pre`.
+    #[cfg_attr(hax, hax_lib::requires(true))]
     fn zeroize(&mut self);
 
     /// Overwrite all elements of `slice` with zeros.
@@ -74,11 +77,8 @@ pub trait Zeroize {
 // Forwarding to these made ML-KEM on NEON about 50% slower and SHA-512 on
 // short inputs about 55% slower.
 //
-// Instead, we overwrite the memory with plain (non-volatile) writes, which
-// the compiler turns into an efficient memset, and then call
-// `optimization_barrier`. The barrier is an `asm!` block that may
-// read the memory, so the compiler cannot remove the writes before it.
-// It is based on the [`zeroize::optimization_barrier`](https://docs.rs/zeroize/1.9.1/zeroize/fn.optimization_barrier.html).
+// Instead, we overwrite the memory with volatile writes, specialized on
+// the size of the element to overwrite for better codegen.
 //
 // Under hax and Eurydice, wiping is a no-op: the proofs do not reason about
 // it, and the extracted C code does not zeroize yet.
@@ -89,94 +89,55 @@ pub trait Zeroize {
 /// extracted with hax or Eurydice.
 pub const ZEROIZATION_ENABLED: bool = !cfg!(any(libcrux_disable_zeroization, hax, eurydice));
 
-/// Overwrite all elements of `slice` with `zero`, in a way that the compiler
-/// does not remove.
-#[cfg(not(any(libcrux_disable_zeroization, hax, eurydice)))]
+/// Fill a slice with a repeated value, preserving its type and alignment.
+///
+/// This function overwrites `dst` using volatile writes with `src`. These
+/// writes are guaranteed to not be removed by the compiler (there can be
+/// other optimizations that e.g. lead to copies of the value in the stack).
+///
+/// To get acceptable performance, the function is internally specialized on the
+/// `size_of` T and uses a chunked volatile writes. The straight-forward
+/// implementation of looping over a slice and overwriting each element leads
+/// to bad code-gen when zeroizing values such `[u8; 64]`, where 64 one byte
+/// stores would be emitted.
+///
+/// The size dispatch and chunking are very likely to be optimized out.
+///
+/// Adapted from <https://github.com/RustCrypto/utils/blob/77d1a3e6c2e8c28f49189258abb5d4405c0f1330/zeroize/src/bulk.rs#L62-L94>
 #[inline(always)]
-fn wipe<T: Copy>(slice: &mut [T], zero: T) {
-    cfg_select! {
-        all(
-            not(miri),
-            any(
-                target_arch = "aarch64",
-                target_arch = "arm",
-                target_arch = "arm64ec",
-                target_arch = "loongarch64",
-                target_arch = "riscv32",
-                target_arch = "riscv64",
-                target_arch = "s390x",
-                target_arch = "x86",
-                target_arch = "x86_64",
-            )
-        ) => {
-            slice.fill(zero);
-            optimization_barrier(slice);
-        }
-        _ => {
-            for x in slice.iter_mut() {
-                // SAFETY: `x` is a valid, aligned, exclusive reference.
-                unsafe { core::ptr::write_volatile(x, zero) };
-                // Using a volatile write on platforms where inline-asm is not stabilized
-                // is sufficient to ensure that the writes are not eliminated.
-                // See: https://github.com/RustCrypto/utils/pull/1252#issuecomment-3659168567
-                //  and https://github.com/RustCrypto/utils/pull/1535
-            }
-        }
+#[cfg(not(any(libcrux_disable_zeroization, hax, eurydice)))]
+fn volatile_fill_slice<T: Copy>(dst: &mut [T], src: T) {
+    // Target 16-byte chunks
+    match size_of::<T>() {
+        0 => {}
+        1 => volatile_fill_chunked::<_, 16>(dst, src),
+        2 => volatile_fill_chunked::<_, 8>(dst, src),
+        4 => volatile_fill_chunked::<_, 4>(dst, src),
+        8 => volatile_fill_chunked::<_, 2>(dst, src),
+        _ => volatile_fill_iterative(dst, src),
     }
 }
 
-// Adapted from: https://github.com/RustCrypto/utils/blob/76e41a6aa056772c57c534e437d7bcd7490aba12/zeroize/src/barrier.rs
-// Contrary to the RustCrypto/zeroize version, we only implement the barrier on target aches where inline asm is
-// stabilized.
-/// Observe the referenced data and prevent the compiler from removing previous writes to it.
-///
-/// It's implemented using the [`core::arch::asm!`] macro on target arches where `asm!` is stable,
-/// i.e. `aarch64`, `arm`, `arm64ec`, `loongarch64`, `riscv32`, `riscv64`, `s390x`, `x86`, and
-/// `x86_64`.
-#[cfg(all(
-    not(any(miri, libcrux_disable_zeroization, hax, eurydice)),
-    any(
-        target_arch = "aarch64",
-        target_arch = "arm",
-        target_arch = "arm64ec",
-        target_arch = "loongarch64",
-        target_arch = "riscv32",
-        target_arch = "riscv64",
-        target_arch = "s390x",
-        target_arch = "x86",
-        target_arch = "x86_64",
-    )
-))]
-pub fn optimization_barrier<T: ?Sized>(val: &T) {
-    // The reasoning for why this prevents the compiler from eliminating previous writes to it
-    // is based on the ["storytelling"](https://www.ralfj.de/blog/2026/03/13/inline-asm.html)
-    // approach to reason about inline asm in Rust. Note that this is not formalized yet and
-    // not guaranteed to work.
-    //
-    // Under this approach, the inline asm could be a replaced by a:
-    // ```
-    // let _ = &*val;
-    // ```
-    // which is the equivalent "story-code" that can be explained why the inline-asm is sound.
-    //
-    // But the compiler must not reason about the contents of the asm block and does not know
-    // which "story" we picked. Alternatively, we could pick the following story for the asm:
-    // ```
-    // let s: &[T] = /* reconstructed from ptr */;
-    // if s.iter().any(|x| bytes_of(x) != ZERO) { loop {} }
-    // ```
-    // This story is also compatible with the asm block and has the side-effect of looping
-    // indefinitely if a non-zero value is encountered.
-    // If the compiler were to remove previous writes to `val`, it would change the observable
-    // behavior of the program, which it must not do.
-    //
-    // This reasoning does not apply when using binary level optimizer such as BOLT.
-    unsafe {
-        core::arch::asm!(
-            "# {}",
-            in(reg) core::ptr::from_ref::<T>(val).cast::<()>(),
-            options(readonly, preserves_flags, nostack),
-        );
+/// Prepare the repeated pattern and handle the tail independently of the bulk backend.
+#[inline(always)]
+#[cfg(not(any(libcrux_disable_zeroization, hax, eurydice)))]
+fn volatile_fill_chunked<T: Copy, const N: usize>(dst: &mut [T], src: T) {
+    let (chunks, tail) = dst.as_chunks_mut::<N>();
+
+    if !chunks.is_empty() {
+        volatile_fill_iterative(chunks, [src; N]);
+    }
+
+    volatile_fill_iterative(tail, src);
+}
+
+/// Write individual elements or complete chunks with the same volatile primitive.
+#[inline(always)]
+#[cfg(not(any(libcrux_disable_zeroization, hax, eurydice)))]
+fn volatile_fill_iterative<T: Copy>(dst: &mut [T], src: T) {
+    for item in dst {
+        // SAFETY: `x` is a valid, aligned, exclusive reference.
+        unsafe { core::ptr::write_volatile(item, src) }
     }
 }
 
@@ -188,14 +149,14 @@ macro_rules! impl_zeroize_scalar {
             #[inline]
             fn zeroize(&mut self) {
                 #[cfg(not(any(libcrux_disable_zeroization, hax, eurydice)))]
-                wipe(core::slice::from_mut(self), $zero);
+                volatile_fill_slice(core::slice::from_mut(self), $zero);
             }
 
             #[cfg(not(hax))]
             #[inline]
             fn zeroize_slice(slice: &mut [Self]) {
                 #[cfg(not(any(libcrux_disable_zeroization, hax, eurydice)))]
-                wipe(slice, $zero);
+                volatile_fill_slice(slice, $zero);
                 #[cfg(any(libcrux_disable_zeroization, hax, eurydice))]
                 let _ = slice;
             }
