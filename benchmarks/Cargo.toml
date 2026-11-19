@@ -52,7 +52,7 @@ curve25519-dalek = "5.0.0"
 
 # helpers needed for key conversion
 der = "0.7"
-pkcs1 = "0.7.5"
+pkcs1 = "0.8.0"
 
 # We always link this on linux, even if it may not be built.
 # We check that in the build instead.
