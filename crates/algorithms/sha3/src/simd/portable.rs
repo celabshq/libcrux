@@ -6,6 +6,7 @@ use hax_lib::int::*;
 #[cfg(hax)]
 use crate::proof_utils::valid_rate;
 use crate::{generic_keccak::KeccakState, traits::*};
+use libcrux_secrets::Zeroize;
 
 #[inline(always)]
 #[cfg_attr(hax, hax_lib::requires(
@@ -79,6 +80,8 @@ pub(crate) fn load_block<const RATE: usize>(state: &mut [u64; 25], blocks: &[u8]
             *get_ij(state, i / 5, i % 5) ^ state_flat[i],
         );
     }
+    // Not wiped: a copy of the input, which the caller still holds. Wiping
+    // it here, once per block, costs up to 20% (see the README).
 }
 
 #[inline(always)]
@@ -102,6 +105,7 @@ pub(crate) fn load_last<const RATE: usize, const DELIMITER: u8>(
     buffer[RATE - 1] |= 0x80;
 
     load_block::<RATE>(state, &buffer, 0);
+    buffer.zeroize();
 }
 
 #[inline(always)]

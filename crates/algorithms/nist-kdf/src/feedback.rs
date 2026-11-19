@@ -3,6 +3,7 @@
 use core::cmp;
 
 use libcrux_hmac::HmacState;
+use libcrux_secrets::Zeroizing;
 
 use crate::KdfError;
 
@@ -26,7 +27,8 @@ use crate::KdfError;
 ///
 /// # Zeroization
 ///
-/// Zeroization, i.e. destruction of intermediate data, is currently not performed.
+/// All intermediate PRF outputs `K(i)` and the keyed HMAC states are zeroized
+/// before returning. The output `k_out` is the caller's responsibility.
 ///
 /// # Errors
 ///
@@ -64,42 +66,54 @@ pub fn kdf<const OUTLEN: usize, H: HmacState<OUTLEN>>(
     // Because k_out.len() * 8 = L and OUTLEN = h / 8, i.e. both are in bytes, we can compute
     // n as follow:
     let n = k_out.len().div_ceil(OUTLEN);
+
     // Equivalent to checking whether n > u32::MAX.
     let n = u32::try_from(n).map_err(|_| KdfError)?;
     let mut k_i_minus_one = iv;
-    // Extend the lifetime of k_i_block so that we can assign
-    // the slice to k_i_minus_one
-    let mut k_i_block;
+
+    // K(i), finalized in place so that no copies of it are left behind.
+    let mut k_i_block_out = Zeroizing::new([0u8; OUTLEN]);
+    // Copy of K(i) from which k_i_minus_one can borrow. Without this copy, we'd have
+    // conflicting borrows in the prf call.
+    let mut k_i_block_copy = Zeroizing::new([0u8; OUTLEN]);
 
     for i in 1_u32..=n {
         let i_encoded = &i.to_be_bytes();
-        k_i_block =
-            prf::<OUTLEN, H>(k_in, k_i_minus_one, i_encoded, fixed_info).map_err(|_| KdfError)?;
+        prf::<OUTLEN, H>(
+            &mut k_i_block_out,
+            k_in,
+            k_i_minus_one,
+            i_encoded,
+            fixed_info,
+        )
+        .map_err(|_| KdfError)?;
+        k_i_block_copy.copy_from_slice(&k_i_block_out[..]);
         let end = cmp::min(k_out.len(), OUTLEN);
         // Panic-safety:
         // end = min(k_out.len(), OUTLEN) <= k_out.len()
         // end = min(k_out.len(), OUTLEN) <= OUTLEN == k_i_block.len()
         // Therefore the indexes are always safe.
-        k_out[..end].copy_from_slice(&k_i_block[..end]);
+        k_out[..end].copy_from_slice(&k_i_block_copy[..end]);
         k_out = &mut k_out[end..];
-        k_i_minus_one = &k_i_block[..];
+        k_i_minus_one = &k_i_block_copy[..];
     }
     Ok(())
 }
 
+/// Absorb the inputs into the PRF state and derive the output to `k_out`.
 fn prf<const OUTLEN: usize, H: HmacState<OUTLEN>>(
+    k_out: &mut [u8; OUTLEN],
     k_in: &[u8],
     k_i_minus_one: &[u8],
     i_encoded: &[u8],
     fixed_info: &[&[u8]],
-) -> Result<[u8; OUTLEN], libcrux_hmac::Error> {
+) -> Result<(), libcrux_hmac::Error> {
     let mut hmac = H::new(k_in)?;
     hmac.update(k_i_minus_one)?;
     hmac.update(i_encoded)?;
     for info in fixed_info {
         hmac.update(info)?;
     }
-    let mut mac = [0; _];
-    hmac.finalize(&mut mac);
-    Ok(mac)
+    hmac.finalize(k_out);
+    Ok(())
 }

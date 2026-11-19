@@ -10,6 +10,31 @@ This crate supports `no_std` targets and is free of heap allocations.
 
 [pre-verification]: ../../../.assets/pre_verification-orange.svg
 
+## Zeroization
+
+The `Zeroize` trait and the `Zeroizing` wrapper are the entry points for
+wiping secrets in libcrux. `Zeroize` is implemented for all machine integers,
+SIMD register types, secret integers, and arrays and slices of these.
+`Zeroizing<T>` wipes the wrapped value on drop.
+
+Values are overwritten with volatile writes which are guaranteed to not be
+removed by the compiler.
+
+Zeroization is explicit and does not cover copies made by the compiler yet
+(moves, by-value returns, register spills). Scrubbing the stack after secret
+operations is planned in future.
+
+Code extracted to C (via Eurydice) does not zeroize yet: wiping is a no-op
+there, and there are no destructors that wipe on drop.
+
+`Zeroize` is libcrux's own trait, not the `zeroize` crate's `Zeroize`. Code
+that imports both needs qualified paths.
+
+Building with `--cfg libcrux_disable_zeroization` (e.g.
+`RUSTFLAGS="--cfg libcrux_disable_zeroization"`) turns all zeroization into a
+no-op. It is a `cfg` rather than a Cargo feature so that only the final build
+can set it, not any crate in the dependency graph.
+
 ## Valgrind Integration
 
 This crate integrates with valgrind when the `--cfg valgrind_ct_test` and the cargo

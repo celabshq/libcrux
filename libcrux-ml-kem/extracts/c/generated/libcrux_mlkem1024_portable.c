@@ -7,12 +7,13 @@
  * Charon: e656e17bff6ca5efac8ab6919b9b74cb9a8dd8ad
  * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
  * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
- * F*: 70671ffb81fa30aba09b9d6e2af275dfbccaa8f8
- * Libcrux: c864b0922b72c1854d17b81bdd842a26e14b3211
+ * F*: 7b347386330d0e5a331a220535b6f15288903234
+ * Libcrux: 5dafa0f040461439bda694bd5707ac0fc5951a48
  */
 
 #include "internal/libcrux_mlkem1024_portable.h"
 
+#include "internal/libcrux_core.h"
 #include "internal/libcrux_mlkem_portable.h"
 #include "libcrux_core.h"
 
@@ -87,7 +88,8 @@ static tuple_25 encapsulate_07(const Eurydice_arr_d1 *public_key,
 */
 tuple_25 libcrux_ml_kem_mlkem1024_portable_encapsulate(
     const Eurydice_arr_d1 *public_key, Eurydice_arr_ec randomness) {
-  return encapsulate_07(public_key, &randomness);
+  tuple_25 result = encapsulate_07(public_key, &randomness);
+  return result;
 }
 
 /**
@@ -115,7 +117,9 @@ static libcrux_ml_kem_mlkem1024_MlKem1024KeyPair generate_keypair_b3(
 libcrux_ml_kem_mlkem1024_MlKem1024KeyPair
 libcrux_ml_kem_mlkem1024_portable_generate_key_pair(
     Eurydice_arr_c7 randomness) {
-  return generate_keypair_b3(&randomness);
+  libcrux_ml_kem_mlkem1024_MlKem1024KeyPair result =
+      generate_keypair_b3(&randomness);
+  return result;
 }
 
 /**
@@ -281,7 +285,8 @@ static KRML_MUSTINLINE tuple_25 encapsulate_070(
 tuple_25 libcrux_ml_kem_mlkem1024_portable_unpacked_encapsulate(
     const libcrux_ml_kem_ind_cca_unpacked_MlKemPublicKeyUnpacked_94 *public_key,
     Eurydice_arr_ec randomness) {
-  return encapsulate_070(public_key, &randomness);
+  tuple_25 result = encapsulate_070(public_key, &randomness);
+  return result;
 }
 
 /**

@@ -1,4 +1,5 @@
 use core::array::from_fn;
+use libcrux_secrets::Zeroize;
 
 use crate::{
     constants::{
@@ -38,6 +39,15 @@ pub(crate) mod unpacked {
             Self {
                 secret_as_ntt: [PolynomialRingElement::<Vector>::ZERO(); K],
             }
+        }
+    }
+
+    #[cfg(not(eurydice))]
+    #[cfg_attr(hax, hax_lib::exclude)]
+    impl<const K: usize, Vector: Operations> Drop for IndCpaPrivateKeyUnpacked<K, Vector> {
+        fn drop(&mut self) {
+            use libcrux_secrets::Zeroize;
+            self.secret_as_ntt.zeroize();
         }
     }
 
@@ -285,7 +295,7 @@ fn sample_ring_element_cbd<
     hax_lib::fstar!(
         "sample_ring_element_cbd_helper_1 $K $prf_inputs $prf_input $_domain_separator_init"
     );
-    let prf_outputs: [[u8; ETA2_RANDOMNESS_SIZE]; K] = Hasher::PRFxN(&prf_inputs);
+    let mut prf_outputs: [[u8; ETA2_RANDOMNESS_SIZE]; K] = Hasher::PRFxN(&prf_inputs);
     for i in 0..K {
         #[cfg(hax)]
         hax_lib::loop_invariant!(|i: usize| {
@@ -305,6 +315,8 @@ fn sample_ring_element_cbd<
         $K $ETA2 $ETA2_RANDOMNESS_SIZE #$:Vector error_1_ $prf_input $_domain_separator_init"
     );
 
+    prf_inputs.zeroize();
+    prf_outputs.zeroize();
     domain_separator
 }
 
@@ -406,7 +418,7 @@ fn sample_vector_cbd_then_ntt<
     hax_lib::fstar!(
         "sample_vector_cbd_then_ntt_helper_1 $K $prf_inputs $prf_input $_domain_separator_init"
     );
-    let prf_outputs: [[u8; ETA_RANDOMNESS_SIZE]; K] = Hasher::PRFxN(&prf_inputs);
+    let mut prf_outputs: [[u8; ETA_RANDOMNESS_SIZE]; K] = Hasher::PRFxN(&prf_inputs);
     for i in 0..K {
         #[cfg(hax)]
         hax_lib::loop_invariant!(|i: usize| {
@@ -425,6 +437,8 @@ fn sample_vector_cbd_then_ntt<
         "sample_vector_cbd_then_ntt_helper_2
         $K $ETA $ETA_RANDOMNESS_SIZE #$:Vector re_as_ntt $prf_input $_domain_separator_init"
     );
+    prf_inputs.zeroize();
+    prf_outputs.zeroize();
     domain_separator
 }
 
@@ -500,7 +514,7 @@ pub(crate) fn generate_keypair_unpacked<
     public_key: &mut IndCpaPublicKeyUnpacked<K, Vector>,
 ) {
     // (ρ,σ) := G(d) for Kyber, (ρ,σ) := G(d || K) for ML-KEM
-    let hashed = Scheme::cpa_keygen_seed::<K, Hasher>(key_generation_seed);
+    let mut hashed = Scheme::cpa_keygen_seed::<K, Hasher>(key_generation_seed);
     let (seed_for_A, seed_for_secret_and_error) = hashed.split_at(32);
 
     #[cfg(hax)]
@@ -515,7 +529,7 @@ pub(crate) fn generate_keypair_unpacked<
         r#"let (matrix_A_as_ntt, valid) = Spec.MLKEM.sample_matrix_A_ntt #$K $seed_for_A in
         assert (valid ==> matrix_A_as_ntt == Libcrux_ml_kem.Polynomial.to_spec_matrix_t public_key.f_A)"#
     );
-    let prf_input: [u8; 33] = into_padded_array(seed_for_secret_and_error);
+    let mut prf_input: [u8; 33] = into_padded_array(seed_for_secret_and_error);
     #[cfg(hax)]
     hax_lib::fstar!("eq_intro $seed_for_secret_and_error (Seq.slice $prf_input 0 32)");
     let domain_separator =
@@ -561,6 +575,10 @@ pub(crate) fn generate_keypair_unpacked<
     // For encapsulation, we need to store A not Aˆ, and so we untranspose A
     // However, we pass A_transpose here and let the IND-CCA layer do the untranspose.
     // We could do it here, but then we would pay the performance cost (if any) for the packed API as well.
+
+    hashed.zeroize();
+    prf_input.zeroize();
+    error_as_ntt.zeroize();
 }
 
 #[allow(non_snake_case)]
@@ -774,7 +792,7 @@ pub(crate) fn encrypt_unpacked<
 ) -> [u8; CIPHERTEXT_SIZE] {
     let mut ciphertext = [0u8; CIPHERTEXT_SIZE];
 
-    let (r_as_ntt, error_2) = encrypt_c1::<
+    let (mut r_as_ntt, mut error_2) = encrypt_c1::<
         K,
         C1_LEN,
         U_COMPRESSION_FACTOR,
@@ -794,6 +812,9 @@ pub(crate) fn encrypt_unpacked<
         message,
         &mut ciphertext[C1_LEN..],
     );
+
+    r_as_ntt.zeroize();
+    error_2.zeroize();
 
     ciphertext
 }
@@ -856,14 +877,19 @@ pub(crate) fn encrypt_c1<
         "assert (Seq.equal $prf_input (Seq.append $randomness (Seq.create 1 $domain_separator)));
         assert ($prf_input == Seq.append $randomness (Seq.create 1 $domain_separator))"
     );
-    let prf_output: [u8; ETA2_RANDOMNESS_SIZE] = Hasher::PRF(&prf_input);
+    let mut prf_output: [u8; ETA2_RANDOMNESS_SIZE] = Hasher::PRF(&prf_input);
     let error_2 = sample_from_binomial_distribution::<ETA2, Vector>(&prf_output);
 
     // u := NTT^{-1}(AˆT ◦ rˆ) + e_1
-    let u = compute_vector_u(matrix, &r_as_ntt, &error_1);
+    let mut u = compute_vector_u(matrix, &r_as_ntt, &error_1);
 
     // c_1 := Encode_{du}(Compress_q(u,d_u))
     compress_then_serialize_u::<K, C1_LEN, U_COMPRESSION_FACTOR, BLOCK_LEN, Vector>(u, ciphertext);
+
+    prf_input.zeroize();
+    error_1.zeroize();
+    prf_output.zeroize();
+    u.zeroize();
 
     (r_as_ntt, error_2)
 }
@@ -882,8 +908,8 @@ pub(crate) fn encrypt_c2<
     ciphertext: &mut [u8],
 ) {
     // v := NTT^{−1}(tˆT ◦ rˆ) + e_2 + Decompress_q(Decode_1(m),1)
-    let message_as_ring_element = deserialize_then_decompress_message(message);
-    let v = compute_ring_element_v(t_as_ntt, r_as_ntt, error_2, &message_as_ring_element);
+    let mut message_as_ring_element = deserialize_then_decompress_message(message);
+    let mut v = compute_ring_element_v(t_as_ntt, r_as_ntt, error_2, &message_as_ring_element);
     #[cfg(hax)]
     hax_lib::fstar!("assert ($C2_LEN = Spec.MLKEM.v_C2_SIZE v_K)");
 
@@ -891,6 +917,9 @@ pub(crate) fn encrypt_c2<
     compress_then_serialize_ring_element_v::<K, V_COMPRESSION_FACTOR, C2_LEN, Vector>(
         v, ciphertext,
     );
+
+    message_as_ring_element.zeroize();
+    v.zeroize();
 }
 
 #[allow(non_snake_case)]
@@ -1178,8 +1207,10 @@ pub(crate) fn decrypt_unpacked<
     );
 
     // m := Encode_1(Compress_q(v − NTT^{−1}(sˆT ◦ NTT(u)) , 1))
-    let message = compute_message(&v, &secret_key.secret_as_ntt, &u_as_ntt);
-    compress_then_serialize_message(message)
+    let mut message = compute_message(&v, &secret_key.secret_as_ntt, &u_as_ntt);
+    let serialized = compress_then_serialize_message(message);
+    message.zeroize();
+    serialized
 }
 
 #[allow(non_snake_case)]

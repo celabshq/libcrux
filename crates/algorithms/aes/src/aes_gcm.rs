@@ -1,5 +1,7 @@
 //! Implementation of AES-GCM
 
+use libcrux_secrets::Zeroize;
+
 use crate::{
     aes::AES_BLOCK_LEN,
     ct_ops::ct_compare,
@@ -18,6 +20,12 @@ pub(crate) struct State<T: AESState, U: GF128FieldElement, const NUM_KEYS: usize
     pub(crate) tag_mix: [u8; TAG_LEN],
 }
 
+impl<T: AESState, U: GF128FieldElement, const NUM_KEYS: usize> Drop for State<T, U, NUM_KEYS> {
+    fn drop(&mut self) {
+        self.tag_mix.zeroize();
+    }
+}
+
 impl<T: AESState, U: GF128FieldElement, const NUM_KEYS: usize> super::State
     for State<T, U, NUM_KEYS>
 where
@@ -30,6 +38,7 @@ where
         let aes_state = AesCtrContext::gcm_init(key);
         aes_state.aes_ctr_key_block(0, &mut gcm_key);
         let gcm_state = GF128State::init(&gcm_key);
+        gcm_key.zeroize();
 
         Self {
             aes_state,
@@ -98,6 +107,8 @@ where
         // Whether the tag is valid is public. Declassify it for the valgrind CT test.
         libcrux_secrets::mem_requests::ct_declassify(&correct_tag);
 
+        computed_tag.zeroize();
+
         if correct_tag {
             self.aes_state.aes_ctr_update(2, ciphertext, plaintext);
             Ok(())
@@ -129,3 +140,49 @@ macro_rules! type_aliases {
 }
 
 pub(crate) use type_aliases;
+
+#[cfg(test)]
+#[allow(unsafe_code)]
+mod zeroize_tests {
+    use super::*;
+    use crate::{
+        ctr::{aes128_ctr::NUM_KEYS, CTR_NONCE_LEN},
+        platform::portable,
+        State as _,
+    };
+    use core::mem::{size_of, ManuallyDrop};
+
+    type PortableState = State<portable::State, portable::FieldElement, NUM_KEYS>;
+
+    // The test reads every byte of the state, so it must not contain padding
+    // (reading padding is undefined behaviour).
+    const _: () = assert!(
+        size_of::<PortableState>()
+            == size_of::<[portable::State; NUM_KEYS]>() // extended_key
+                + CTR_NONCE_LEN // ctr_nonce
+                + 2 * size_of::<portable::FieldElement>() // GHASH accumulator and key
+                + TAG_LEN // tag_mix
+    );
+
+    #[test]
+    fn state_is_wiped_on_drop() {
+        if !libcrux_secrets::ZEROIZATION_ENABLED {
+            return;
+        }
+        let mut st = ManuallyDrop::new(PortableState::init(&[0x42u8; 16]));
+        st.set_nonce(&[7u8; NONCE_LEN]);
+        let ptr: *mut PortableState = &mut *st;
+
+        // SAFETY: `ManuallyDrop` never drops `st` itself, so its memory stays
+        // valid after `drop_in_place`. All fields are integers, and the
+        // assertion above rules out padding.
+        unsafe {
+            let bytes = ptr.cast::<u8>();
+            let all_zero =
+                || (0..size_of::<PortableState>()).all(|i| bytes.add(i).read_volatile() == 0);
+            assert!(!all_zero());
+            core::ptr::drop_in_place(ptr);
+            assert!(all_zero());
+        }
+    }
+}

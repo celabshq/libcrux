@@ -10,6 +10,13 @@ use libcrux_intrinsics::avx2::{
 #[repr(transparent)]
 pub(crate) struct FieldElement(pub(super) u128);
 
+impl libcrux_secrets::Zeroize for FieldElement {
+    #[inline]
+    fn zeroize(&mut self) {
+        self.0.zeroize();
+    }
+}
+
 impl FieldElement {
     /// Transmute `u128` and `Vec128`.
     #[inline]

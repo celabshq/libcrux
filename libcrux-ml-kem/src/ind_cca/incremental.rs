@@ -16,6 +16,8 @@ use crate::{
     variant, vector, SHARED_SECRET_SIZE,
 };
 
+use libcrux_secrets::Zeroize;
+
 use super::{
     unpacked::{encaps_prepare, MlKemKeyPairUnpacked, MlKemPublicKeyUnpacked},
     MlKemSharedSecret, Operations, KEY_GENERATION_SEED_SIZE,
@@ -79,7 +81,7 @@ pub(crate) fn generate_keypair<
     Vector: Operations,
     Hasher: Hash<K>,
 >(
-    randomness: [u8; KEY_GENERATION_SEED_SIZE],
+    mut randomness: [u8; KEY_GENERATION_SEED_SIZE],
 ) -> MlKemKeyPairUnpacked<K, Vector> {
     // Generate unpacked key pair.
     let mut kp = MlKemKeyPairUnpacked::new();
@@ -94,6 +96,7 @@ pub(crate) fn generate_keypair<
         Hasher,
         variant::MlKem,
     >(randomness, &mut kp);
+    randomness.zeroize();
 
     kp
 }
@@ -117,7 +120,7 @@ pub(crate) fn generate_keypair_compressed<
     Vector: Operations,
     Hasher: Hash<K>,
 >(
-    randomness: [u8; KEY_GENERATION_SEED_SIZE],
+    mut randomness: [u8; KEY_GENERATION_SEED_SIZE],
     key_pair: &mut [u8; KEYPAIR_LEN],
 ) {
     // Generate unpacked key pair.
@@ -133,6 +136,7 @@ pub(crate) fn generate_keypair_compressed<
         Hasher,
         variant::MlKem,
     >(randomness, &mut kp);
+    randomness.zeroize();
 
     let kp = KeyPair::<K, PK2_LEN, Vector>::from(kp);
     kp.to_bytes_compressed::<KEYPAIR_LEN, CPA_PRIVATE_KEY_SIZE>(key_pair);
@@ -156,7 +160,7 @@ pub(crate) fn generate_keypair_serialized<
     Vector: Operations,
     Hasher: Hash<K>,
 >(
-    randomness: [u8; KEY_GENERATION_SEED_SIZE],
+    mut randomness: [u8; KEY_GENERATION_SEED_SIZE],
     key_pair: &mut [u8],
 ) -> Result<(), Error> {
     // Generate unpacked key pair.
@@ -172,6 +176,7 @@ pub(crate) fn generate_keypair_serialized<
         Hasher,
         variant::MlKem,
     >(randomness, &mut kp);
+    randomness.zeroize();
 
     let kp = KeyPair::<K, PK2_LEN, Vector>::from(kp);
     kp.to_bytes(key_pair)
@@ -192,9 +197,9 @@ pub(crate) fn encapsulate1<
     Hasher: Hash<K>,
 >(
     pk1: &PublicKey1,
-    randomness: [u8; SHARED_SECRET_SIZE],
+    mut randomness: [u8; SHARED_SECRET_SIZE],
 ) -> (Ciphertext1<C1_SIZE>, EncapsState<K, Vector>, [u8; 32]) {
-    let hashed = encaps_prepare::<K, Hasher>(&randomness, &pk1.hash);
+    let mut hashed = encaps_prepare::<K, Hasher>(&randomness, &pk1.hash);
     let (shared_secret, pseudorandomness) = hashed.split_at(SHARED_SECRET_SIZE);
 
     // Rebuild the matrix A from the seed
@@ -202,7 +207,7 @@ pub(crate) fn encapsulate1<
     sample_matrix_A::<K, Vector, Hasher>(&mut matrix, &into_padded_array(&pk1.seed), false);
 
     let mut ciphertext = [0u8; C1_SIZE];
-    let (r_as_ntt, error2) = ind_cpa::encrypt_c1::<
+    let (mut r_as_ntt, mut error2) = ind_cpa::encrypt_c1::<
         K,
         C1_SIZE,
         VECTOR_U_COMPRESSION_FACTOR,
@@ -220,11 +225,14 @@ pub(crate) fn encapsulate1<
         r_as_ntt,
         error2,
     };
-    (
-        Ciphertext1 { value: ciphertext },
-        state,
-        shared_secret.try_into().unwrap(),
-    )
+    let shared_secret: [u8; 32] = shared_secret.try_into().unwrap();
+
+    randomness.zeroize();
+    r_as_ntt.zeroize();
+    error2.zeroize();
+    hashed.zeroize();
+
+    (Ciphertext1 { value: ciphertext }, state, shared_secret)
 }
 
 #[inline(always)]
@@ -251,7 +259,7 @@ pub(crate) fn encapsulate1_serialized<
         return Err(Error::InvalidOutputLength);
     }
 
-    let (ct1, encaps_state, ss) = encapsulate1::<
+    let (ct1, encaps_state, mut ss) = encapsulate1::<
         K,
         CIPHERTEXT_SIZE,
         C1_SIZE,
@@ -266,8 +274,12 @@ pub(crate) fn encapsulate1_serialized<
     >(pk1, randomness);
 
     // Write out the state
-    encaps_state.to_bytes(state)?;
-    shared_secret[..SHARED_SECRET_SIZE].copy_from_slice(&ss);
+    let written = encaps_state.to_bytes(state);
+    if written.is_ok() {
+        shared_secret[..SHARED_SECRET_SIZE].copy_from_slice(&ss);
+    }
+    ss.zeroize();
+    written?;
 
     // Return the ciphertext
     Ok(ct1)

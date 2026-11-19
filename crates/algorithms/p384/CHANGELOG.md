@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.0.2] (2026-11-19)
 
+### Added
+
+- [#1667](https://github.com/celabshq/libcrux/pull/1667): Zeroize `PrivateKey` and `SharedSecret` on drop, and the intermediate values of scalar multiplication and field inversion.
+
 ### Changed
 
 - `PrivateKey::generate` follows SP 800-56A r3, Section 5.6.1.2.2 (Key Pair Generation by

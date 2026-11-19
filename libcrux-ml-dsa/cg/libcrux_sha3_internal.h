@@ -8,7 +8,7 @@
  * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
  * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
  * F*: 7b347386330d0e5a331a220535b6f15288903234
- * Libcrux: dirty
+ * Libcrux: e2275e2a65e92434ad5c45d47bd71d16c8a7052a
  */
 
 #ifndef libcrux_sha3_internal_H
@@ -2500,6 +2500,19 @@ static inline void libcrux_sha3_portable_incremental_squeeze_42(
     Eurydice_mut_borrow_slice_u8 out) {
   libcrux_sha3_generic_keccak_xof_squeeze_85_76(self, out);
 }
+
+/**
+This function found in impl {libcrux_secrets::zeroization::Zeroize for
+libcrux_sha3::generic_keccak::KeccakState<T, N>[TraitClause@0, TraitClause@1]}
+*/
+/**
+A monomorphic instance of libcrux_sha3.generic_keccak.zeroize_69
+with types uint64_t
+with const generics
+- N= 1
+*/
+static inline void libcrux_sha3_generic_keccak_zeroize_69_71(
+    Eurydice_arr_7c *self) {}
 
 /**
 A monomorphic instance of libcrux_sha3.simd.portable.load_block

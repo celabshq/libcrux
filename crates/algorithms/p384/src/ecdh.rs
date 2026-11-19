@@ -60,10 +60,19 @@ use crate::{
 
 pub(crate) mod private;
 
+use libcrux_secrets::Zeroize;
 use private::PrivateKey;
 
 /// A P-384 shared secret.
+///
+/// The shared secret is wiped when it is dropped.
 pub struct SharedSecret([u8; FP_NUM_BYTES]);
+
+impl Drop for SharedSecret {
+    fn drop(&mut self) {
+        self.0.zeroize();
+    }
+}
 
 impl AsRef<[u8; FP_NUM_BYTES]> for SharedSecret {
     fn as_ref(&self) -> &[u8; FP_NUM_BYTES] {
@@ -83,13 +92,22 @@ impl PublicKey {
         // This can never be the point at infinity, since the public
         // key is not the point at infinity and the private key is a
         // non-zero scalar less than the group order.
-        let ecdh_projective = pk_projective.scalar_mul(&private_key.0);
+        let mut ecdh_projective = pk_projective.scalar_mul(&private_key.0);
         let at_infinity = ecdh_projective.is_point_at_infinity();
         // The assertion never fails, so its outcome is public. Declassify it for the valgrind CT test.
         libcrux_secrets::mem_requests::ct_declassify(&at_infinity);
-        assert!(!at_infinity);
+        if at_infinity {
+            ecdh_projective.zeroize();
+            panic!("P-384 ECDH result is the point at infinity");
+        }
 
-        SharedSecret(ecdh_projective.to_affine_non_inf().x.to_be_bytes())
+        let mut ecdh_affine = ecdh_projective.to_affine_non_inf();
+        let shared_secret = SharedSecret(ecdh_affine.x.to_be_bytes());
+
+        ecdh_projective.zeroize();
+        ecdh_affine.zeroize();
+
+        shared_secret
     }
     /// Read the SEC1 compressed encoding of a public key from the input
     /// buffer.
@@ -160,5 +178,46 @@ impl From<&PrivateKey> for PublicKey {
         libcrux_secrets::mem_requests::ct_declassify(&at_infinity);
         assert!(!at_infinity);
         Self(pk_projective.to_affine_non_inf())
+    }
+}
+
+#[cfg(test)]
+#[allow(unsafe_code)]
+mod zeroize_tests {
+    use super::*;
+    use core::mem::{size_of, ManuallyDrop};
+
+    // `wiped_on_drop` reads every byte, so the types must not contain padding
+    // (reading padding is undefined behaviour).
+    const _: () = assert!(size_of::<PrivateKey>() == FP_NUM_BYTES);
+    const _: () = assert!(size_of::<SharedSecret>() == FP_NUM_BYTES);
+
+    /// Drop `*ptr` in place and check that its memory is all zero afterwards.
+    ///
+    /// # Safety
+    /// `ptr` must point to a valid value that is not dropped again.
+    unsafe fn wiped_on_drop<T>(ptr: *mut T) -> bool {
+        let bytes = ptr.cast::<u8>();
+        let all_zero = || (0..size_of::<T>()).all(|i| unsafe { bytes.add(i).read_volatile() } == 0);
+        assert!(!all_zero());
+        unsafe { core::ptr::drop_in_place(ptr) };
+        all_zero()
+    }
+
+    #[test]
+    fn keys_and_shared_secrets_are_wiped_on_drop() {
+        if !libcrux_secrets::ZEROIZATION_ENABLED {
+            return;
+        }
+        let sk = PrivateKey::try_from(&[0x42u8; FP_NUM_BYTES][..]).unwrap();
+        let pk = PublicKey::from(&sk);
+        let mut ss = ManuallyDrop::new(pk.ecdh(&sk));
+        let mut sk = ManuallyDrop::new(sk);
+
+        // SAFETY: `ManuallyDrop` never drops the values itself.
+        unsafe {
+            assert!(wiped_on_drop::<PrivateKey>(&mut *sk));
+            assert!(wiped_on_drop::<SharedSecret>(&mut *ss));
+        }
     }
 }

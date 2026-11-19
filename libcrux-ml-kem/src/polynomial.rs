@@ -64,6 +64,14 @@ pub(crate) struct PolynomialRingElement<Vector: Operations> {
     pub(crate) coefficients: [Vector; VECTORS_IN_RING_ELEMENT],
 }
 
+impl<Vector: Operations> libcrux_secrets::Zeroize for PolynomialRingElement<Vector> {
+    #[inline(always)]
+    fn zeroize(&mut self) {
+        #[cfg(not(eurydice))]
+        self.coefficients.zeroize();
+    }
+}
+
 #[allow(non_snake_case)]
 fn ZERO<Vector: Operations>() -> PolynomialRingElement<Vector> {
     PolynomialRingElement {

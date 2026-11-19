@@ -11,6 +11,13 @@ pub struct PortableVector {
     pub(crate) elements: [FieldElement; FIELD_ELEMENTS_IN_VECTOR],
 }
 
+impl Zeroize for PortableVector {
+    #[inline(always)]
+    fn zeroize(&mut self) {
+        self.elements.zeroize();
+    }
+}
+
 #[inline(always)]
 #[cfg_attr(hax, hax_lib::ensures(|result| fstar!(r#"${result}.f_elements == Seq.create 16 (mk_i16 0)"#)))]
 pub fn zero() -> PortableVector {

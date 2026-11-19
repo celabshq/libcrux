@@ -7,8 +7,8 @@
  * Charon: e656e17bff6ca5efac8ab6919b9b74cb9a8dd8ad
  * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
  * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
- * F*: 70671ffb81fa30aba09b9d6e2af275dfbccaa8f8
- * Libcrux: c864b0922b72c1854d17b81bdd842a26e14b3211
+ * F*: 7b347386330d0e5a331a220535b6f15288903234
+ * Libcrux: 5dafa0f040461439bda694bd5707ac0fc5951a48
  */
 
 #ifndef internal_libcrux_core_H
@@ -56,6 +56,11 @@ typedef struct core_ops_range_Range_87_s {
   size_t start;
   size_t end;
 } core_ops_range_Range_87;
+
+/**
+This function found in impl {libcrux_secrets::zeroization::Zeroize for u8}
+*/
+void libcrux_secrets_zeroization_zeroize_7d(uint8_t *self);
 
 #define LIBCRUX_ML_KEM_CONSTANTS_BYTES_PER_RING_ELEMENT \
   (LIBCRUX_ML_KEM_CONSTANTS_BITS_PER_RING_ELEMENT / (size_t)8U)
@@ -214,15 +219,15 @@ libcrux_ml_kem_mlkem1024_MlKem1024KeyPair libcrux_ml_kem_types_from_17_70(
     Eurydice_arr_a8 sk, Eurydice_arr_d1 pk);
 
 /**
-This function found in impl {core::convert::From<[u8; SIZE]> for
-libcrux_ml_kem::types::MlKemPrivateKey<SIZE>}
+This function found in impl {libcrux_secrets::zeroization::Zeroize for [T; N]}
 */
 /**
-A monomorphic instance of libcrux_ml_kem.types.from_b2
+A monomorphic instance of libcrux_secrets.zeroization.zeroize_63
+with types uint8_t
 with const generics
-- SIZE= 3168
+- N= 3168
 */
-Eurydice_arr_a8 libcrux_ml_kem_types_from_b2_0e(Eurydice_arr_a8 value);
+void libcrux_secrets_zeroization_zeroize_63_2a(Eurydice_arr_a8 *self);
 
 /**
 A monomorphic instance of Eurydice.arr
@@ -233,6 +238,28 @@ with const generics
 typedef struct Eurydice_arr_df_s {
   uint8_t data[1536U];
 } Eurydice_arr_df;
+
+/**
+This function found in impl {libcrux_secrets::zeroization::Zeroize for [T; N]}
+*/
+/**
+A monomorphic instance of libcrux_secrets.zeroization.zeroize_63
+with types uint8_t
+with const generics
+- N= 1536
+*/
+void libcrux_secrets_zeroization_zeroize_63_a9(Eurydice_arr_df *self);
+
+/**
+This function found in impl {core::convert::From<[u8; SIZE]> for
+libcrux_ml_kem::types::MlKemPrivateKey<SIZE>}
+*/
+/**
+A monomorphic instance of libcrux_ml_kem.types.from_b2
+with const generics
+- SIZE= 3168
+*/
+Eurydice_arr_a8 libcrux_ml_kem_types_from_b2_0e(Eurydice_arr_a8 value);
 
 /**
 A monomorphic instance of Eurydice.array_to_slice_shared
@@ -284,6 +311,38 @@ with const generics
 */
 const Eurydice_arr_d1 *libcrux_ml_kem_types_as_slice_e6_d9(
     const Eurydice_arr_d1 *self);
+
+/**
+This function found in impl {libcrux_secrets::zeroization::Zeroize for [T; N]}
+*/
+/**
+A monomorphic instance of libcrux_secrets.zeroization.zeroize_63
+with types uint8_t
+with const generics
+- N= 1568
+*/
+void libcrux_secrets_zeroization_zeroize_63_d9(Eurydice_arr_d1 *self);
+
+/**
+A monomorphic instance of Eurydice.arr
+with types uint8_t
+with const generics
+- $1600size_t
+*/
+typedef struct Eurydice_arr_14_s {
+  uint8_t data[1600U];
+} Eurydice_arr_14;
+
+/**
+This function found in impl {libcrux_secrets::zeroization::Zeroize for [T; N]}
+*/
+/**
+A monomorphic instance of libcrux_secrets.zeroization.zeroize_63
+with types uint8_t
+with const generics
+- N= 1600
+*/
+void libcrux_secrets_zeroization_zeroize_63_d30(Eurydice_arr_14 *self);
 
 /**
  A reference to the raw byte slice.
@@ -366,6 +425,17 @@ typedef struct Eurydice_arr_3b_s {
 } Eurydice_arr_3b;
 
 /**
+This function found in impl {libcrux_secrets::zeroization::Zeroize for [T; N]}
+*/
+/**
+A monomorphic instance of libcrux_secrets.zeroization.zeroize_63
+with types Eurydice_arr uint8_t[[$128size_t]]
+with const generics
+- N= 4
+*/
+void libcrux_secrets_zeroization_zeroize_63_130(Eurydice_arr_3b *self);
+
+/**
 A monomorphic instance of Eurydice.arr
 with types uint8_t
 with const generics
@@ -384,6 +454,17 @@ with const generics
 typedef struct Eurydice_arr_890_s {
   Eurydice_arr_fa data[4U];
 } Eurydice_arr_890;
+
+/**
+This function found in impl {libcrux_secrets::zeroization::Zeroize for [T; N]}
+*/
+/**
+A monomorphic instance of libcrux_secrets.zeroization.zeroize_63
+with types Eurydice_arr uint8_t[[$33size_t]]
+with const generics
+- N= 4
+*/
+void libcrux_secrets_zeroization_zeroize_63_060(Eurydice_arr_890 *self);
 
 /**
 A monomorphic instance of libcrux_ml_kem.utils.prf_input_inc
@@ -472,16 +553,6 @@ with const generics
 typedef struct Eurydice_arr_56_s {
   Eurydice_arr_31 data[4U];
 } Eurydice_arr_56;
-
-/**
-A monomorphic instance of Eurydice.arr
-with types uint8_t
-with const generics
-- $1600size_t
-*/
-typedef struct Eurydice_arr_14_s {
-  uint8_t data[1600U];
-} Eurydice_arr_14;
 
 /**
 A monomorphic instance of Eurydice.array_to_slice_shared
@@ -672,15 +743,15 @@ libcrux_ml_kem_mlkem768_MlKem768KeyPair libcrux_ml_kem_types_from_17_bc(
     Eurydice_arr_7d sk, Eurydice_arr_5f pk);
 
 /**
-This function found in impl {core::convert::From<[u8; SIZE]> for
-libcrux_ml_kem::types::MlKemPrivateKey<SIZE>}
+This function found in impl {libcrux_secrets::zeroization::Zeroize for [T; N]}
 */
 /**
-A monomorphic instance of libcrux_ml_kem.types.from_b2
+A monomorphic instance of libcrux_secrets.zeroization.zeroize_63
+with types uint8_t
 with const generics
-- SIZE= 2400
+- N= 2400
 */
-Eurydice_arr_7d libcrux_ml_kem_types_from_b2_79(Eurydice_arr_7d value);
+void libcrux_secrets_zeroization_zeroize_63_e4(Eurydice_arr_7d *self);
 
 /**
 A monomorphic instance of Eurydice.arr
@@ -691,6 +762,28 @@ with const generics
 typedef struct Eurydice_arr_0e_s {
   uint8_t data[1152U];
 } Eurydice_arr_0e;
+
+/**
+This function found in impl {libcrux_secrets::zeroization::Zeroize for [T; N]}
+*/
+/**
+A monomorphic instance of libcrux_secrets.zeroization.zeroize_63
+with types uint8_t
+with const generics
+- N= 1152
+*/
+void libcrux_secrets_zeroization_zeroize_63_a6(Eurydice_arr_0e *self);
+
+/**
+This function found in impl {core::convert::From<[u8; SIZE]> for
+libcrux_ml_kem::types::MlKemPrivateKey<SIZE>}
+*/
+/**
+A monomorphic instance of libcrux_ml_kem.types.from_b2
+with const generics
+- SIZE= 2400
+*/
+Eurydice_arr_7d libcrux_ml_kem_types_from_b2_79(Eurydice_arr_7d value);
 
 /**
 A monomorphic instance of Eurydice.array_to_slice_shared
@@ -855,6 +948,49 @@ Eurydice_borrow_slice_u8 Eurydice_array_to_slice_shared_ff(
     const Eurydice_arr_5f *a);
 
 /**
+This function found in impl {libcrux_secrets::zeroization::Zeroize for [T; N]}
+*/
+/**
+A monomorphic instance of libcrux_secrets.zeroization.zeroize_63
+with types uint8_t
+with const generics
+- N= 1088
+*/
+void libcrux_secrets_zeroization_zeroize_63_a7(Eurydice_arr_2b *self);
+
+/**
+A monomorphic instance of Eurydice.arr
+with types uint8_t
+with const generics
+- $1120size_t
+*/
+typedef struct Eurydice_arr_af_s {
+  uint8_t data[1120U];
+} Eurydice_arr_af;
+
+/**
+This function found in impl {libcrux_secrets::zeroization::Zeroize for [T; N]}
+*/
+/**
+A monomorphic instance of libcrux_secrets.zeroization.zeroize_63
+with types uint8_t
+with const generics
+- N= 1120
+*/
+void libcrux_secrets_zeroization_zeroize_63_00(Eurydice_arr_af *self);
+
+/**
+This function found in impl {libcrux_secrets::zeroization::Zeroize for [T; N]}
+*/
+/**
+A monomorphic instance of libcrux_secrets.zeroization.zeroize_63
+with types uint8_t
+with const generics
+- N= 32
+*/
+void libcrux_secrets_zeroization_zeroize_63_5c(Eurydice_arr_ec *self);
+
+/**
  A reference to the raw byte slice.
 */
 /**
@@ -905,6 +1041,28 @@ Eurydice_mut_borrow_slice_u8 Eurydice_array_to_subslice_mut_d410(
     Eurydice_arr_2b *a, core_ops_range_Range_87 r);
 
 /**
+This function found in impl {libcrux_secrets::zeroization::Zeroize for [T; N]}
+*/
+/**
+A monomorphic instance of libcrux_secrets.zeroization.zeroize_63
+with types uint8_t
+with const generics
+- N= 128
+*/
+void libcrux_secrets_zeroization_zeroize_63_07(Eurydice_arr_89 *self);
+
+/**
+This function found in impl {libcrux_secrets::zeroization::Zeroize for [T; N]}
+*/
+/**
+A monomorphic instance of libcrux_secrets.zeroization.zeroize_63
+with types uint8_t
+with const generics
+- N= 33
+*/
+void libcrux_secrets_zeroization_zeroize_63_b2(Eurydice_arr_fa *self);
+
+/**
 A monomorphic instance of Eurydice.array_to_slice_shared
 with types uint8_t
 with const generics
@@ -951,6 +1109,48 @@ Eurydice_borrow_slice_u8 Eurydice_array_to_slice_shared_56(
     const Eurydice_arr_b0 *a);
 
 /**
+A monomorphic instance of Eurydice.arr
+with types Eurydice_arr_89
+with const generics
+- $3size_t
+*/
+typedef struct Eurydice_arr_58_s {
+  Eurydice_arr_89 data[3U];
+} Eurydice_arr_58;
+
+/**
+This function found in impl {libcrux_secrets::zeroization::Zeroize for [T; N]}
+*/
+/**
+A monomorphic instance of libcrux_secrets.zeroization.zeroize_63
+with types Eurydice_arr uint8_t[[$128size_t]]
+with const generics
+- N= 3
+*/
+void libcrux_secrets_zeroization_zeroize_63_13(Eurydice_arr_58 *self);
+
+/**
+A monomorphic instance of Eurydice.arr
+with types Eurydice_arr_fa
+with const generics
+- $3size_t
+*/
+typedef struct Eurydice_arr_800_s {
+  Eurydice_arr_fa data[3U];
+} Eurydice_arr_800;
+
+/**
+This function found in impl {libcrux_secrets::zeroization::Zeroize for [T; N]}
+*/
+/**
+A monomorphic instance of libcrux_secrets.zeroization.zeroize_63
+with types Eurydice_arr uint8_t[[$33size_t]]
+with const generics
+- N= 3
+*/
+void libcrux_secrets_zeroization_zeroize_63_06(Eurydice_arr_800 *self);
+
+/**
 A monomorphic instance of Eurydice.array_to_slice_shared
 with types uint8_t
 with const generics
@@ -970,6 +1170,17 @@ typedef struct Eurydice_arr_04_s {
 } Eurydice_arr_04;
 
 /**
+This function found in impl {libcrux_secrets::zeroization::Zeroize for [T; N]}
+*/
+/**
+A monomorphic instance of libcrux_secrets.zeroization.zeroize_63
+with types int16_t
+with const generics
+- N= 256
+*/
+void libcrux_secrets_zeroization_zeroize_63_d3(Eurydice_arr_04 *self);
+
+/**
 A monomorphic instance of Eurydice.array_to_slice_shared
 with types int16_t
 with const generics
@@ -977,16 +1188,6 @@ with const generics
 */
 Eurydice_borrow_slice_i16 Eurydice_array_to_slice_shared_99(
     const Eurydice_arr_04 *a);
-
-/**
-A monomorphic instance of Eurydice.arr
-with types Eurydice_arr_89
-with const generics
-- $3size_t
-*/
-typedef struct Eurydice_arr_58_s {
-  Eurydice_arr_89 data[3U];
-} Eurydice_arr_58;
 
 /**
 A monomorphic instance of Eurydice.array_to_slice_shared
@@ -1004,16 +1205,6 @@ with const generics
 - N= 128
 */
 Eurydice_mut_borrow_slice_u8 Eurydice_array_to_slice_mut_78(Eurydice_arr_89 *a);
-
-/**
-A monomorphic instance of Eurydice.arr
-with types Eurydice_arr_fa
-with const generics
-- $3size_t
-*/
-typedef struct Eurydice_arr_800_s {
-  Eurydice_arr_fa data[3U];
-} Eurydice_arr_800;
 
 /**
 A monomorphic instance of libcrux_ml_kem.utils.prf_input_inc
@@ -1184,16 +1375,6 @@ Eurydice_borrow_slice_u8 Eurydice_slice_subslice_to_shared_72(
     Eurydice_borrow_slice_u8 s, size_t r);
 
 /**
-A monomorphic instance of Eurydice.arr
-with types uint8_t
-with const generics
-- $1120size_t
-*/
-typedef struct Eurydice_arr_af_s {
-  uint8_t data[1120U];
-} Eurydice_arr_af;
-
-/**
 A monomorphic instance of Eurydice.array_to_slice_shared
 with types uint8_t
 with const generics
@@ -1242,6 +1423,17 @@ with const generics
 */
 Eurydice_arr_af libcrux_ml_kem_utils_into_padded_array_66(
     Eurydice_borrow_slice_u8 slice);
+
+/**
+This function found in impl {libcrux_secrets::zeroization::Zeroize for [T; N]}
+*/
+/**
+A monomorphic instance of libcrux_secrets.zeroization.zeroize_63
+with types uint8_t
+with const generics
+- N= 64
+*/
+void libcrux_secrets_zeroization_zeroize_63_ad(Eurydice_arr_c7 *self);
 
 /**
 A monomorphic instance of Eurydice.array_to_slice_shared
@@ -1330,6 +1522,17 @@ with const generics
 */
 Eurydice_borrow_slice_u8_x4 libcrux_ml_kem_types_unpack_private_key_64(
     Eurydice_borrow_slice_u8 private_key);
+
+/**
+This function found in impl {libcrux_secrets::zeroization::Zeroize for [T; N]}
+*/
+/**
+A monomorphic instance of libcrux_secrets.zeroization.zeroize_63
+with types int16_t
+with const generics
+- N= 16
+*/
+void libcrux_secrets_zeroization_zeroize_63_44(Eurydice_arr_d6 *self);
 
 /**
 This function found in impl {libcrux_secrets::traits::Declassify<[T; N]> for [T;
@@ -1572,6 +1775,17 @@ typedef struct Eurydice_arr_c4_s {
 } Eurydice_arr_c4;
 
 /**
+This function found in impl {libcrux_secrets::zeroization::Zeroize for [T; N]}
+*/
+/**
+A monomorphic instance of libcrux_secrets.zeroization.zeroize_63
+with types uint8_t
+with const generics
+- N= 104
+*/
+void libcrux_secrets_zeroization_zeroize_63_89(Eurydice_arr_c4 *self);
+
+/**
 A monomorphic instance of Eurydice.array_to_slice_shared
 with types uint8_t
 with const generics
@@ -1600,6 +1814,17 @@ typedef struct Eurydice_arr_f4_s {
 } Eurydice_arr_f4;
 
 /**
+This function found in impl {libcrux_secrets::zeroization::Zeroize for [T; N]}
+*/
+/**
+A monomorphic instance of libcrux_secrets.zeroization.zeroize_63
+with types uint8_t
+with const generics
+- N= 144
+*/
+void libcrux_secrets_zeroization_zeroize_63_8f(Eurydice_arr_f4 *self);
+
+/**
 A monomorphic instance of Eurydice.array_to_slice_shared
 with types uint8_t
 with const generics
@@ -1618,6 +1843,17 @@ Eurydice_mut_borrow_slice_u8 Eurydice_array_to_subslice_mut_d42(
     Eurydice_arr_f4 *a, core_ops_range_Range_87 r);
 
 /**
+This function found in impl {libcrux_secrets::zeroization::Zeroize for [T; N]}
+*/
+/**
+A monomorphic instance of libcrux_secrets.zeroization.zeroize_63
+with types uint8_t
+with const generics
+- N= 168
+*/
+void libcrux_secrets_zeroization_zeroize_63_0b(Eurydice_arr_c5 *self);
+
+/**
 A monomorphic instance of Eurydice.array_to_slice_shared
 with types uint8_t
 with const generics
@@ -1634,6 +1870,17 @@ with const generics
 */
 Eurydice_mut_borrow_slice_u8 Eurydice_array_to_subslice_mut_d41(
     Eurydice_arr_c5 *a, core_ops_range_Range_87 r);
+
+/**
+This function found in impl {libcrux_secrets::zeroization::Zeroize for [T; N]}
+*/
+/**
+A monomorphic instance of libcrux_secrets.zeroization.zeroize_63
+with types uint8_t
+with const generics
+- N= 136
+*/
+void libcrux_secrets_zeroization_zeroize_63_16(Eurydice_arr_ff *self);
 
 /**
 A monomorphic instance of Eurydice.array_to_slice_shared
@@ -1688,6 +1935,17 @@ with const generics
 typedef struct Eurydice_arr_ab_s {
   uint8_t data[72U];
 } Eurydice_arr_ab;
+
+/**
+This function found in impl {libcrux_secrets::zeroization::Zeroize for [T; N]}
+*/
+/**
+A monomorphic instance of libcrux_secrets.zeroization.zeroize_63
+with types uint8_t
+with const generics
+- N= 72
+*/
+void libcrux_secrets_zeroization_zeroize_63_12(Eurydice_arr_ab *self);
 
 /**
 A monomorphic instance of Eurydice.array_to_slice_shared

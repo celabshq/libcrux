@@ -5,6 +5,8 @@
 //!
 //! This get's instantiated in [`aes128_ctr`] and [`aes256_ctr`].
 
+use libcrux_secrets::Zeroize;
+
 use crate::{aes::*, platform::AESState};
 
 #[cfg(test)]
@@ -15,7 +17,7 @@ pub(crate) mod aes256_ctr;
 
 /// The ctr nonce length. This is different from the AES nonce length
 /// [`crate::NONCE_LEN`].
-const CTR_NONCE_LEN: usize = 16;
+pub(crate) const CTR_NONCE_LEN: usize = 16;
 
 pub(crate) const AES_GCM_CTR_LEN: usize = 4;
 pub(crate) const AES_CCM_CTR_LEN: usize = 3;
@@ -35,6 +37,15 @@ pub(crate) struct AesCtrContext<
 > {
     pub(crate) extended_key: ExtendedKey<T, NUM_KEYS>,
     pub(crate) ctr_nonce: [u8; CTR_NONCE_LEN],
+}
+
+impl<T: AESState, const NUM_KEYS: usize, const CTR_LEN: usize, const NONCE_START: usize> Drop
+    for AesCtrContext<T, NUM_KEYS, CTR_LEN, NONCE_START>
+{
+    fn drop(&mut self) {
+        self.extended_key.zeroize();
+        self.ctr_nonce.zeroize();
+    }
 }
 
 impl<T: AESState, const NUM_KEYS: usize, const CTR_LEN: usize, const NONCE_START: usize>
@@ -60,6 +71,14 @@ impl<T: AESState, const NUM_KEYS: usize, const CTR_LEN: usize, const NONCE_START
         block_cipher(&mut st, &self.extended_key);
 
         st.store_block(out);
+        // Used to derive the GHASH key and the tag mask in AES-GCM, and for
+        // every keystream block in AES-CCM. Wiping costs no measurable time,
+        // even in AES-CCM. The caller's `out` is not wiped here.
+        //
+        // The per-block keystream in `aes_ctr_xor_block` is not wiped. With
+        // AES-NI and NEON it mostly lives in registers, but the portable
+        // implementation keeps it in memory.
+        st.zeroize();
     }
 
     #[inline]

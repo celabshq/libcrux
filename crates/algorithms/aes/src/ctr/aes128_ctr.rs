@@ -11,7 +11,7 @@ use crate::{
     NONCE_LEN,
 };
 
-pub(super) const NUM_KEYS: usize = 11;
+pub(crate) const NUM_KEYS: usize = 11;
 
 impl<T: AESState, const CTR_LEN: usize, const NONCE_START: usize>
     AesCtrContext<T, NUM_KEYS, CTR_LEN, NONCE_START>
@@ -63,6 +63,8 @@ pub(crate) fn key_expansion<T: AESState>(key: &[u8]) -> ExtendedKey<T, NUM_KEYS>
     macro_rules! expansion_step128 {
         ($i:expr,$rcon:expr) => {
             // For hax need to clone here.
+            // `prev` is not zeroized: it is a copy of a round key that is
+            // kept in the returned key schedule.
             let prev = keyex[$i - 1].clone();
             // let (prev, current) = keyex.split_at_mut($i);
             keyex[$i].aes_keygen_assist0::<$rcon>(&prev);

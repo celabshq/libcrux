@@ -51,7 +51,8 @@ macro_rules! impl_comp {
                             || randombytes(*payload_size),
                             |payload| {
                                 let mut digest = [0u8; digest_size($libcrux)];
-                                core::hint::black_box(neon::$rust_fun(&mut digest, payload));
+                                neon::$rust_fun(&mut digest, payload);
+                                core::hint::black_box(digest);
                             },
                             BatchSize::SmallInput,
                         )
@@ -86,7 +87,7 @@ fn shake256x4(c: &mut Criterion) {
                 let mut digest1 = [0u8; 128];
                 let mut digest2 = [0u8; 128];
                 let mut digest3 = [0u8; 128];
-                core::hint::black_box(avx2::x4::shake256(
+                avx2::x4::shake256(
                     payload0,
                     payload1,
                     payload2,
@@ -95,7 +96,8 @@ fn shake256x4(c: &mut Criterion) {
                     &mut digest1,
                     &mut digest2,
                     &mut digest3,
-                ));
+                );
+                core::hint::black_box((digest0, digest1, digest2, digest3));
             },
             BatchSize::SmallInput,
         )
@@ -116,10 +118,11 @@ fn shake256x4(c: &mut Criterion) {
                 let mut digest1 = [0u8; 128];
                 let mut digest2 = [0u8; 128];
                 let mut digest3 = [0u8; 128];
-                core::hint::black_box(portable::shake256(&mut digest0, payload0));
-                core::hint::black_box(portable::shake256(&mut digest1, payload1));
-                core::hint::black_box(portable::shake256(&mut digest2, payload2));
-                core::hint::black_box(portable::shake256(&mut digest3, payload3));
+                portable::shake256(&mut digest0, payload0);
+                portable::shake256(&mut digest1, payload1);
+                portable::shake256(&mut digest2, payload2);
+                portable::shake256(&mut digest3, payload3);
+                core::hint::black_box((digest0, digest1, digest2, digest3));
             },
             BatchSize::SmallInput,
         )
@@ -134,7 +137,8 @@ fn shake256(c: &mut Criterion) {
             || randombytes(33),
             |payload| {
                 let mut digest = [0u8; 128];
-                core::hint::black_box(portable::shake256(&mut digest, payload));
+                portable::shake256(&mut digest, payload);
+                core::hint::black_box(digest);
             },
             BatchSize::SmallInput,
         )
@@ -149,12 +153,11 @@ fn xof(c: &mut Criterion) {
             || randombytes(33),
             |payload| {
                 let mut digest = [0u8; 128];
-                core::hint::black_box({
-                    let mut shake = portable::incremental::Shake256Xof::new();
-                    shake.absorb(payload);
-                    shake.absorb_final(&[]);
-                    shake.squeeze(&mut digest);
-                });
+                let mut shake = portable::incremental::Shake256Xof::new();
+                shake.absorb(payload);
+                shake.absorb_final(&[]);
+                shake.squeeze(&mut digest);
+                core::hint::black_box(digest);
             },
             BatchSize::SmallInput,
         )

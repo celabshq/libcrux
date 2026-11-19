@@ -44,6 +44,7 @@ pub(crate) fn keccak4<const RATE: usize, const DELIM: u8>(
             s.squeeze4::<RATE>(out0, out1, out2, out3, last, outlen - last);
         }
     }
+    s.zeroize();
 }
 
 impl KeccakState<4, Vec256> {

@@ -8,7 +8,7 @@
  * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
  * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
  * F*: 7b347386330d0e5a331a220535b6f15288903234
- * Libcrux: dirty
+ * Libcrux: 5d7eb1af1df29e8013747187a8fc8ba4253e2049
  */
 
 
@@ -1200,6 +1200,17 @@ libcrux_sha3_simd_portable_squeeze_9b_60(
   size_t start,
   size_t len
 );
+
+/**
+This function found in impl {libcrux_secrets::zeroization::Zeroize for libcrux_sha3::generic_keccak::KeccakState<T, N>[TraitClause@0, TraitClause@1]}
+*/
+/**
+A monomorphic instance of libcrux_sha3.generic_keccak.zeroize_69
+with types uint64_t
+with const generics
+- N= 1
+*/
+void libcrux_sha3_generic_keccak_zeroize_69_71(Eurydice_arr_7c *self);
 
 /**
 A monomorphic instance of libcrux_sha3.generic_keccak.portable.keccak1
@@ -2533,6 +2544,11 @@ libcrux_sha3_portable_incremental_squeeze_26(
 This function found in impl {core::clone::Clone for libcrux_sha3::portable::KeccakState}
 */
 Eurydice_arr_7c libcrux_sha3_portable_clone_fe(const Eurydice_arr_7c *self);
+
+/**
+This function found in impl {libcrux_secrets::zeroization::Zeroize for libcrux_sha3::portable::KeccakState}
+*/
+void libcrux_sha3_portable_zeroize_01(Eurydice_arr_7c *self);
 
 /**
 This function found in impl {core::clone::Clone for libcrux_sha3::Algorithm}

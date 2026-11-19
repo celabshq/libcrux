@@ -7,8 +7,8 @@
  * Charon: e656e17bff6ca5efac8ab6919b9b74cb9a8dd8ad
  * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
  * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
- * F*: 70671ffb81fa30aba09b9d6e2af275dfbccaa8f8
- * Libcrux: c864b0922b72c1854d17b81bdd842a26e14b3211
+ * F*: 7b347386330d0e5a331a220535b6f15288903234
+ * Libcrux: 5dafa0f040461439bda694bd5707ac0fc5951a48
  */
 
 #ifndef libcrux_sha3_portable_H
@@ -1110,6 +1110,18 @@ with const generics
 void libcrux_sha3_simd_portable_squeeze_9b_c6(const Eurydice_arr_7c *self,
                                               Eurydice_mut_borrow_slice_u8 out,
                                               size_t start, size_t len);
+
+/**
+This function found in impl {libcrux_secrets::zeroization::Zeroize for
+libcrux_sha3::generic_keccak::KeccakState<T, N>[TraitClause@0, TraitClause@1]}
+*/
+/**
+A monomorphic instance of libcrux_sha3.generic_keccak.zeroize_69
+with types uint64_t
+with const generics
+- N= 1
+*/
+void libcrux_sha3_generic_keccak_zeroize_69_71(Eurydice_arr_7c *self);
 
 /**
 This function found in impl {libcrux_sha3::traits::Absorb<1usize> for

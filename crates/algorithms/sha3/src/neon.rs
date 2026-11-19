@@ -1,4 +1,8 @@
 use crate::generic_keccak::simd128::keccak2;
+use libcrux_secrets::Zeroize;
+
+// The single-input functions hash `data` in both lanes of `keccak2`. The second
+// lane's output, `dummy`, is a copy of the digest, so it is wiped.
 
 /// A SHA3 224 implementation.
 #[allow(unused_variables)]
@@ -6,6 +10,7 @@ use crate::generic_keccak::simd128::keccak2;
 pub fn sha224(digest: &mut [u8], data: &[u8]) {
     let mut dummy = [0u8; 28];
     keccak2::<144, 0x06u8>(&[data, data], digest, &mut dummy);
+    dummy.zeroize();
 }
 
 /// A SHA3 256 implementation.
@@ -14,6 +19,7 @@ pub fn sha224(digest: &mut [u8], data: &[u8]) {
 pub fn sha256(digest: &mut [u8], data: &[u8]) {
     let mut dummy = [0u8; 32];
     keccak2::<136, 0x06u8>(&[data, data], digest, &mut dummy);
+    dummy.zeroize();
 }
 
 /// A SHA3 384 implementation.
@@ -22,6 +28,7 @@ pub fn sha256(digest: &mut [u8], data: &[u8]) {
 pub fn sha384(digest: &mut [u8], data: &[u8]) {
     let mut dummy = [0u8; 48];
     keccak2::<104, 0x06u8>(&[data, data], digest, &mut dummy);
+    dummy.zeroize();
 }
 
 /// A SHA3 512 implementation.
@@ -30,6 +37,7 @@ pub fn sha384(digest: &mut [u8], data: &[u8]) {
 pub fn sha512(digest: &mut [u8], data: &[u8]) {
     let mut dummy = [0u8; 64];
     keccak2::<72, 0x06u8>(&[data, data], digest, &mut dummy);
+    dummy.zeroize();
 }
 
 /// A SHAKE128 implementation.
@@ -38,6 +46,7 @@ pub fn sha512(digest: &mut [u8], data: &[u8]) {
 pub fn shake128<const LEN: usize>(digest: &mut [u8; LEN], data: &[u8]) {
     let mut dummy = [0u8; LEN];
     keccak2::<168, 0x1fu8>(&[data, data], digest, &mut dummy);
+    dummy.zeroize();
 }
 
 /// A SHAKE256 implementation.
@@ -46,6 +55,7 @@ pub fn shake128<const LEN: usize>(digest: &mut [u8; LEN], data: &[u8]) {
 pub fn shake256<const LEN: usize>(digest: &mut [u8; LEN], data: &[u8]) {
     let mut dummy = [0u8; LEN];
     keccak2::<136, 0x1fu8>(&[data, data], digest, &mut dummy);
+    dummy.zeroize();
 }
 
 /// Performing 2 operations in parallel
@@ -68,6 +78,15 @@ pub mod x2 {
         /// The Keccak state for the incremental API.
         pub struct KeccakState {
             state: GenericState<2, crate::simd::arm64::uint64x2_t>,
+        }
+
+        #[cfg(not(eurydice))]
+        #[cfg_attr(hax, hax_lib::exclude)]
+        impl Drop for KeccakState {
+            fn drop(&mut self) {
+                use libcrux_secrets::Zeroize;
+                self.state.zeroize();
+            }
         }
 
         type KeccakState2Internal = GenericState<2, crate::simd::arm64::uint64x2_t>;

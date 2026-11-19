@@ -12,6 +12,7 @@ repository.workspace = true
 
 [dependencies]
 libcrux-hmac.workspace = true
+libcrux-secrets.workspace = true
 
 [dev-dependencies]
 hex = "0.4.3"

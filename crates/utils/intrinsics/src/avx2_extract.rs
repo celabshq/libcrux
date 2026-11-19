@@ -33,6 +33,17 @@ let get_lane128 (v: bit_vec 128) (i:nat{i < 8}) = Seq.index (vec128_as_i16x8 v) 
 )]
 pub struct Vec128(u8);
 
+// Zeroization is a no-op in extracted code, see `libcrux_secrets::Zeroize`.
+#[cfg(hax)]
+impl libcrux_secrets::Zeroize for Vec256 {
+    fn zeroize(&mut self) {}
+}
+
+#[cfg(hax)]
+impl libcrux_secrets::Zeroize for Vec128 {
+    fn zeroize(&mut self) {}
+}
+
 #[cfg(not(hax))]
 pub type Vec256 = u8;
 #[cfg(not(hax))]

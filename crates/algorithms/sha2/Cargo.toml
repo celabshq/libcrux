@@ -17,6 +17,7 @@ expose-hacl = []
 libcrux-hacl-rs.workspace = true
 libcrux-macros.workspace = true
 libcrux-traits.workspace = true
+libcrux-secrets.workspace = true
 
 [dev-dependencies]
 libcrux-traits = { workspace = true, features = ["generic-tests"] }

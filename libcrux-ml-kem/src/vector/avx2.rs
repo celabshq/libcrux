@@ -599,3 +599,13 @@ impl Operations for SIMD256Vector {
         sampling::rejection_sample(input, output)
     }
 }
+
+// Keep this impl last: hax numbers impls in source order and the F*
+// annotations above refer to the `Repr` impl as `impl`.
+impl libcrux_secrets::Zeroize for SIMD256Vector {
+    #[inline(always)]
+    fn zeroize(&mut self) {
+        #[cfg(not(eurydice))]
+        self.elements.zeroize();
+    }
+}

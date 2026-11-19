@@ -8,7 +8,7 @@
  * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
  * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
  * F*: 7b347386330d0e5a331a220535b6f15288903234
- * Libcrux: dirty
+ * Libcrux: 5d7eb1af1df29e8013747187a8fc8ba4253e2049
  */
 
 
@@ -589,6 +589,11 @@ libcrux_ml_kem_vector_portable_rej_sample_b8(
   Eurydice_borrow_slice_u8 a,
   Eurydice_mut_borrow_slice_i16 out
 );
+
+/**
+This function found in impl {libcrux_secrets::zeroization::Zeroize for libcrux_ml_kem::vector::portable::vector_type::PortableVector}
+*/
+void libcrux_ml_kem_vector_portable_vector_type_zeroize_90(Eurydice_arr_d6 *self);
 
 typedef int16_t libcrux_ml_kem_vector_portable_arithmetic_FieldElementTimesMontgomeryR;
 

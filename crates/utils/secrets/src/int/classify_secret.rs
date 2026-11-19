@@ -33,6 +33,13 @@ impl<T: Scalar> From<T> for Secret<T> {
 // Secrets are copyable if the underlying type is
 impl<T: Clone + Copy> Copy for Secret<T> {}
 
+impl<T: Scalar + crate::Zeroize> crate::Zeroize for Secret<T> {
+    #[inline]
+    fn zeroize(&mut self) {
+        self.0.zeroize();
+    }
+}
+
 // IMPORTANT NOTE: These impls must be kept in sync with those in `classify_public.rs`.
 // Not keeping these synchronized can lead to confusing method resolution errors and differences
 // when the check-secret-independence feature is enabled or not.

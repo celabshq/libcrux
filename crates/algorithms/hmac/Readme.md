@@ -6,6 +6,16 @@ This crate implements HMAC on SHA 2 (except for SHA 224) and SHA 3.
 
 This crate supports `no_std` targets.
 
+## Zeroization
+
+The padded key, `K ^ ipad`, `K ^ opad` and the intermediate hash states and
+inner hash values are wiped before returning (one-shot API) or when the
+streaming state is dropped. Tags written to caller buffers are the caller's to
+wipe.
+
+The zeroization calls in the HACL\*-derived code were added by hand and are
+not covered by the HACL\* proofs.
+
 ## Verification
 ![verified-hacl]
 

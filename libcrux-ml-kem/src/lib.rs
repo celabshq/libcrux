@@ -164,9 +164,12 @@ macro_rules! impl_kem_trait {
             ) -> Result<(), libcrux_traits::kem::owned::EncapsError> {
                 let public_key: $pk = ek.into();
 
-                let (ct_, ss_) = encapsulate(&public_key, *rand);
+                use libcrux_secrets::Zeroize;
+
+                let (ct_, mut ss_) = encapsulate(&public_key, *rand);
                 ct.copy_from_slice(ct_.as_slice());
                 ss.copy_from_slice(ss_.as_slice());
+                ss_.zeroize();
 
                 Ok(())
             }
@@ -179,9 +182,11 @@ macro_rules! impl_kem_trait {
                 let secret_key: $sk = dk.into();
                 let ciphertext: $ct = ct.into();
 
-                let ss_ = decapsulate(&secret_key, &ciphertext);
+                use libcrux_secrets::Zeroize;
 
+                let mut ss_ = decapsulate(&secret_key, &ciphertext);
                 ss.copy_from_slice(ss_.as_slice());
+                ss_.zeroize();
 
                 Ok(())
             }

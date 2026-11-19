@@ -7,8 +7,8 @@
  * Charon: e656e17bff6ca5efac8ab6919b9b74cb9a8dd8ad
  * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
  * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
- * F*: 70671ffb81fa30aba09b9d6e2af275dfbccaa8f8
- * Libcrux: c864b0922b72c1854d17b81bdd842a26e14b3211
+ * F*: 7b347386330d0e5a331a220535b6f15288903234
+ * Libcrux: 5dafa0f040461439bda694bd5707ac0fc5951a48
  */
 
 #ifndef libcrux_mlkem_portable_H
@@ -632,6 +632,13 @@ libcrux_ml_kem::vector::portable::vector_type::PortableVector}
 */
 size_t libcrux_ml_kem_vector_portable_rej_sample_b8(
     Eurydice_borrow_slice_u8 a, Eurydice_mut_borrow_slice_i16 out);
+
+/**
+This function found in impl {libcrux_secrets::zeroization::Zeroize for
+libcrux_ml_kem::vector::portable::vector_type::PortableVector}
+*/
+void libcrux_ml_kem_vector_portable_vector_type_zeroize_90(
+    Eurydice_arr_d6 *self);
 
 typedef int16_t
     libcrux_ml_kem_vector_portable_arithmetic_FieldElementTimesMontgomeryR;

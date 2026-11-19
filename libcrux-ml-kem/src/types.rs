@@ -139,6 +139,15 @@ impl_generic_struct!(MlKemCiphertext, "An ML-KEM Ciphertext");
 impl_generic_struct!(MlKemPrivateKey, "An ML-KEM Private key");
 impl_generic_struct!(MlKemPublicKey, "An ML-KEM Public key");
 
+#[cfg(not(eurydice))]
+#[cfg_attr(hax, hax_lib::exclude)]
+impl<const SIZE: usize> Drop for MlKemPrivateKey<SIZE> {
+    fn drop(&mut self) {
+        use libcrux_secrets::Zeroize;
+        self.value.zeroize();
+    }
+}
+
 // These traits are used only in `ind_cpa` for kyber cipher text.
 mod index_impls {
     use super::*;

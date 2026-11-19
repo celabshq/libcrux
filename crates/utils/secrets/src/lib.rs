@@ -54,5 +54,7 @@ mod traits;
 pub use traits::*;
 mod int;
 pub use int::*;
+mod zeroization;
+pub use zeroization::{Zeroize, Zeroizing, ZEROIZATION_ENABLED};
 
 pub mod mem_requests;
