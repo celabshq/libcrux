@@ -41,7 +41,7 @@ x25519-dalek-ng = "1.1"
 ring = "0.17"
 
 # For inputs to `ring` ed25519 verification
-rsa = { version = "0.9.7", features = ["sha2"] }
+rsa = { version = "0.10.0", features = ["sha2"] }
 untrusted = "0.9.0"
 
 # Benchmarking "Dalek X25519"
