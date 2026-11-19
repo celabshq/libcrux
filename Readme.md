@@ -67,7 +67,18 @@ In every case, please refer to the more detailed notes on verification in each s
 ## Side-Channel Resistance and Zeroization
 Executables compiled from the code in this repository are *not* verified to be side-channel resistant, although we try to enforce that the source code is secret-independent (also sometimes called “constant-time”).
 
-At this moment, we do also not give guarantees on the zeroization of secret values on the stack or heap. We are working on best-effort implementations of zeroization.
+At present, we perform best-effort zeroization in the following crates:
+
+- `libcrux-ml-kem`
+- `libcrux-sha2`, `libcrux-sha3`
+- `libcrux-hmac`, `libcrux-nist-kdf`, `libcrux-hmac-drbg`
+- `libcrux-aes`
+- `libcrux-p384`
+- `hpke-rs`
+
+Please refer to the individual crates for a more detailed description of what is and is not
+zeroized. Note that zeroization, where performed, is on a best-effort basis. We use volatile writes which are guaranteed to not be removed by the compiler. 
+However there are various compiler optimizations or usage of Rust moves that can result in copies of sensitive values being left on the stack. 
 
 ## Publications
 
