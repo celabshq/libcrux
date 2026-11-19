@@ -404,8 +404,8 @@ pub mod int_vec_interp {
     #[hax_lib::fstar::replace(
         r#"
         [@@ $SIMPLIFICATION_LEMMA ]
-        let lemma (t: Type) (i: Core.Convert.t_From t t) (x: t)
-            : Lemma (Core.Convert.f_from #t #t #i x == (norm [primops; iota; delta; zeta] i.f_from) x)
+        let lemma (t: Type) (i: Core_models.Convert.t_From t t) (x: t)
+            : Lemma (Core_models.Convert.f_from #t #t #i x == (norm [primops; iota; delta; zeta] i.f_from) x)
             = ()
     "#
     )]
