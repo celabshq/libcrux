@@ -1,0 +1,132 @@
+name: Downstream - SPQR hax
+
+# Runs the hax/F* extraction and type-checking of Signal's Sparse Post-Quantum
+# Ratchet (SPQR) against this libcrux checkout, to catch libcrux changes that
+# break downstream verification before a release does.
+#
+# SPQR's own CI (.github/workflows/hax.yml upstream) is mirrored here; the only
+# difference is that all libcrux crates are patched to this checkout.
+
+permissions: {}
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+    inputs:
+      spqr_ref:
+        description: "SPQR git ref to test against"
+        default: "main"
+  pull_request:
+    branches: ["main"]
+    types: [opened, synchronize, reopened, labeled]
+
+env:
+  CARGO_TERM_COLOR: always
+  SPQR_REPOSITORY: signalapp/SparsePostQuantumRatchet
+  SPQR_REF: ${{ inputs.spqr_ref || 'main' }}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fstar:
+    # On PRs, only run when explicitly requested: this is a full F* run.
+    if: >-
+      github.event_name != 'pull_request' ||
+      contains(github.event.pull_request.labels.*.name, 'downstream-hax')
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Extraction follows the host's cfg, so the target-specific GF16 code
+          # is only checked on a matching runner (as in SPQR's CI).
+          - name: x86_64
+            runner: ubuntu-latest
+            extract_args: ""
+          - name: aarch64-gf16
+            runner: ubuntu-24.04-arm
+            extract_args: "--encoding"
+    name: fstar (${{ matrix.name }})
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+      - name: ⤵ Check out libcrux
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: libcrux
+          persist-credentials: false
+
+      - name: ⤵ Check out SPQR
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: ${{ env.SPQR_REPOSITORY }}
+          ref: ${{ env.SPQR_REF }}
+          path: spqr
+          persist-credentials: false
+
+      # Tool versions are taken from SPQR's workflow so that we follow its
+      # upgrades (it pins hax and F* there, not in a versions file).
+      - name: Resolve tool versions
+        id: versions
+        working-directory: spqr
+        run: |
+          wf=.github/workflows/hax.yml
+          hax=$(sed -n 's/^ *HAX_VERSION: *//p' "$wf" | head -1)
+          fstar=$(sed -n 's/^ *fstar: *//p' "$wf" | head -1)
+          repo=$(sed -n 's/^ *hax_repository: *//p' "$wf" | head -1)
+          for v in hax fstar repo; do
+            [ -n "${!v}" ] || { echo "::error::could not read $v from SPQR's $wf"; exit 1; }
+          done
+          {
+            echo "hax=$hax"
+            echo "fstar=$fstar"
+            echo "repo=$repo"
+          } >> "$GITHUB_OUTPUT"
+          echo "SPQR @ $(git rev-parse HEAD): hax $hax ($repo), F* $fstar" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 🔧 Patch SPQR to use this libcrux checkout
+        run: |
+          pipx run libcrux/.github/scripts/patch-libcrux-deps.py \
+            --libcrux libcrux --downstream spqr
+          cd spqr
+          git diff --stat
+          cargo tree -e normal -i libcrux-ml-kem --depth 0
+
+      # SPQR's build.rs compiles its protobufs with prost-build, which needs protoc.
+      - run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
+
+      # Fail fast, before the slow hax install, if a libcrux API change breaks
+      # SPQR at the Rust level. Default features, as `cargo hax into` uses.
+      - name: 🔨 Build patched SPQR
+        working-directory: spqr
+        run: cargo check
+
+      # The nix hax install does not fit in the free disk of a stock runner.
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      - name: ⤵ Install and configure hax
+        uses: hacspec/hax-actions@1f01b89579f425ad7c1e66aebbd5df7e688cb576 # main @ 2026-01-21 (repo has no tags)
+        with:
+          fstar: ${{ steps.versions.outputs.fstar }}
+          hax_repository: ${{ steps.versions.outputs.repo }}
+          hax_reference: cargo-hax-v${{ steps.versions.outputs.hax }}
+
+      - name: 🏃 Extract F*
+        working-directory: spqr
+        env:
+          EXTRACT_ARGS: ${{ matrix.extract_args }}
+        run: |
+          rm -f proofs/fstar/extraction/*.fst*
+          ./hax.py extract ${EXTRACT_ARGS:+"$EXTRACT_ARGS"}
+
+      - name: 🏃 Type-check extracted F*
+        working-directory: spqr
+        run: |
+          set -o pipefail
+          ./hax.py prove 2>&1 | tee "$RUNNER_TEMP/prove.log"
+          if grep -a 'Query-stats.*failed' "$RUNNER_TEMP/prove.log"; then exit 1; fi

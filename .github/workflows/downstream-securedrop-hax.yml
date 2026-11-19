@@ -1,0 +1,153 @@
+name: Downstream - SecureDrop protocol hax
+
+# Runs the hax/F* extraction and verification of SecureDrop's
+# `securedrop-protocol/protocol-minimal` crate against this libcrux checkout.
+#
+# Compared to SecureDrop's own CI (.github/workflows/hax.yml upstream):
+#   * all libcrux crates (and hpke-rs) are patched to this checkout, and
+#   * the libcrux F* interfaces in `proofs/fstar/models` are regenerated from
+#     this checkout *before* verification, so that the proofs are checked
+#     against the libcrux interfaces of this commit, not of the last release.
+
+permissions: {}
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+    inputs:
+      securedrop_ref:
+        description: "securedrop-protocol git ref to test against"
+        default: "main"
+  pull_request:
+    branches: ["main"]
+    types: [opened, synchronize, reopened, labeled]
+
+env:
+  CARGO_TERM_COLOR: always
+  SECUREDROP_REPOSITORY: freedomofpress/securedrop-protocol
+  SECUREDROP_REF: ${{ inputs.securedrop_ref || 'main' }}
+  CRATE_DIR: securedrop/securedrop-protocol/protocol-minimal
+  # `make libcrux` in SecureDrop expects libcrux to be cloned here; we put this
+  # checkout there instead (the directory is git-ignored downstream).
+  LIBCRUX_DIR: securedrop/securedrop-protocol/protocol-minimal/proofs/fstar/models/libcrux
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    # On PRs, only run when explicitly requested: this is a full F* run.
+    if: >-
+      github.event_name != 'pull_request' ||
+      contains(github.event.pull_request.labels.*.name, 'downstream-hax')
+    name: verify (protocol-minimal)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⤵ Check out securedrop-protocol
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: ${{ env.SECUREDROP_REPOSITORY }}
+          ref: ${{ env.SECUREDROP_REF }}
+          path: securedrop
+          persist-credentials: false
+
+      - name: ⤵ Check out libcrux
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: ${{ env.LIBCRUX_DIR }}
+          persist-credentials: false
+
+      # SecureDrop's Makefiles run `cargo +nightly`; rustup is on the runner.
+      - name: Install Rust nightly
+        run: rustup toolchain install nightly --profile minimal
+
+      - name: 🔧 Patch securedrop-protocol to use this libcrux checkout
+        run: |
+          pipx run "$LIBCRUX_DIR/.github/scripts/patch-libcrux-deps.py" \
+            --libcrux "$LIBCRUX_DIR" --downstream securedrop/securedrop-protocol
+          cd securedrop
+          git diff --stat
+          cargo tree --manifest-path securedrop-protocol/Cargo.toml \
+            -p securedrop-protocol-minimal -e normal -i libcrux-ml-kem --depth 0
+
+      # Fail fast, before the slow hax install, if a libcrux API change breaks
+      # protocol-minimal at the Rust level. Default features, as `make extract`
+      # uses; must run before `make libcrux` rewrites the libcrux manifests.
+      - name: 🔨 Build patched protocol-minimal
+        working-directory: ${{ env.CRATE_DIR }}
+        run: cargo +nightly check -p securedrop-protocol-minimal
+
+      # Tool versions come from SecureDrop (versions.env + its hax-lib dep).
+      - name: Resolve tool versions
+        id: versions
+        working-directory: ${{ env.CRATE_DIR }}
+        run: |
+          . ./versions.env
+          hax=$(make --silent hax-lib-version)
+          [ -n "$FSTAR_VER" ] || { echo "::error::no FSTAR_VER in versions.env"; exit 1; }
+          [ -n "$hax" ] || { echo "::error::could not determine the hax-lib version"; exit 1; }
+          echo "fstar=$FSTAR_VER" >> "$GITHUB_OUTPUT"
+          echo "hax=$hax" >> "$GITHUB_OUTPUT"
+          echo "securedrop-protocol @ $(git rev-parse HEAD): hax $hax, F* $FSTAR_VER" >> "$GITHUB_STEP_SUMMARY"
+
+      # The nix hax install does not fit in the free disk of a stock runner.
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      - name: ⤵ Install and configure hax
+        uses: hacspec/hax-actions@1f01b89579f425ad7c1e66aebbd5df7e688cb576 # main @ 2026-01-21 (repo has no tags)
+        with:
+          fstar: v${{ steps.versions.outputs.fstar }}
+          hax_reference: cargo-hax-v${{ steps.versions.outputs.hax }}
+
+      - name: 🏃 Extract protocol-minimal
+        working-directory: ${{ env.CRATE_DIR }}
+        run: make clean extract
+
+      - name: Report drift of protocol-minimal extraction
+        working-directory: ${{ env.CRATE_DIR }}/proofs
+        run: |
+          # Intent-to-add, so that newly extracted modules show up in the diff.
+          git add --intent-to-add .
+          if ! git diff --exit-code --stat .; then
+            echo "::warning::protocol-minimal extraction differs from the F* committed downstream"
+          fi
+
+      # SecureDrop's `make libcrux` starts by cloning libcrux at the released
+      # tag. GNU make prefers GNUmakefile over Makefile (also for the recursive
+      # `$(MAKE) <target>` calls), so this shim keeps everything else of the
+      # downstream recipe but uses this checkout instead of the clone.
+      - name: 🏃 Regenerate libcrux interfaces from this checkout
+        working-directory: ${{ env.CRATE_DIR }}/proofs/fstar/models
+        run: |
+          [ ! -e GNUmakefile ] || { echo "::error::GNUmakefile exists downstream, update this shim"; exit 1; }
+          # The `$$(...)` is for make, not for this shell.
+          # shellcheck disable=SC2016
+          printf '%s\n' \
+            'include Makefile' \
+            'libcrux-clone:' \
+            '	@echo "Using libcrux checkout under test: $$(git -C libcrux rev-parse HEAD)"' \
+            > GNUmakefile
+          make libcrux
+
+      - name: Report drift of libcrux interfaces
+        if: ${{ always() }}
+        working-directory: ${{ env.CRATE_DIR }}/proofs/fstar/models
+        run: |
+          # Intent-to-add, so that new interfaces show up in the diff (the
+          # libcrux checkout itself is git-ignored and stays out of it).
+          git add --intent-to-add .
+          git diff -- '*.fsti' > "$RUNNER_TEMP/libcrux-interfaces.diff" || true
+          if [ -s "$RUNNER_TEMP/libcrux-interfaces.diff" ]; then
+            echo "::notice::libcrux interfaces used by SecureDrop changed, see the libcrux-interfaces-diff artifact"
+            git diff --stat -- '*.fsti'
+          fi
+
+      - name: 🏃 Type-check and verify
+        working-directory: ${{ env.CRATE_DIR }}
+        run: make verify
