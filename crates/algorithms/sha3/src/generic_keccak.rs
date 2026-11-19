@@ -40,7 +40,7 @@ pub(crate) struct KeccakState<const N: usize, T: KeccakItem<N>> {
 impl<const N: usize, T: KeccakItem<N>> Zeroize for KeccakState<N, T> {
     #[inline]
     fn zeroize(&mut self) {
-        #[cfg(not(hax))]
+        #[cfg(not(any(hax, eurydice)))]
         self.st.zeroize();
     }
 }

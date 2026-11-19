@@ -67,6 +67,7 @@ pub(crate) struct PolynomialRingElement<Vector: Operations> {
 impl<Vector: Operations> libcrux_secrets::Zeroize for PolynomialRingElement<Vector> {
     #[inline(always)]
     fn zeroize(&mut self) {
+        #[cfg(not(eurydice))]
         self.coefficients.zeroize();
     }
 }

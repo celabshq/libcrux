@@ -52,7 +52,7 @@ pub trait Zeroize {
     /// Types whose zeroization is a plain memory wipe override this to wipe
     /// the whole slice at once.
     // hax supports neither default methods nor this loop over `&mut`.
-    #[cfg(not(hax))]
+    #[cfg(not(any(hax, eurydice)))]
     #[doc(hidden)]
     fn zeroize_slice(slice: &mut [Self])
     where
@@ -152,12 +152,12 @@ macro_rules! impl_zeroize_scalar {
                 volatile_fill_slice(core::slice::from_mut(self), $zero);
             }
 
-            #[cfg(not(hax))]
+            #[cfg(not(any(hax, eurydice)))]
             #[inline]
             fn zeroize_slice(slice: &mut [Self]) {
-                #[cfg(not(any(libcrux_disable_zeroization, hax, eurydice)))]
+                #[cfg(not(libcrux_disable_zeroization))]
                 volatile_fill_slice(slice, $zero);
-                #[cfg(any(libcrux_disable_zeroization, hax, eurydice))]
+                #[cfg(libcrux_disable_zeroization)]
                 let _ = slice;
             }
         }
@@ -177,9 +177,13 @@ impl_zeroize_scalar!(u128 => 0, i128 => 0);
 /// intrinsics that construct one (`vdupq_n_s16(0)`, `_mm_setzero_si128()`, ...)
 /// can only be called safely from functions with the matching
 /// `#[target_feature]`.
+///
+/// Not implemented under Eurydice: wiping is a no-op there, and the C
+/// functions would need the intrinsics headers wherever they end up.
 #[allow(unused_macros)] // Unused on targets without SIMD registers.
 macro_rules! impl_zeroize_simd {
     ($($t:ty),* $(,)?) => {$(
+        #[cfg(not(eurydice))]
         impl_zeroize_scalar!($t => {
             // SAFETY: SIMD registers are plain bits, all zeros is a valid value.
             const ZERO: $t = unsafe { core::mem::zeroed() };
@@ -225,7 +229,7 @@ impl_zeroize_simd!(
 impl<T: Zeroize> Zeroize for [T] {
     #[inline]
     fn zeroize(&mut self) {
-        #[cfg(not(hax))]
+        #[cfg(not(any(hax, eurydice)))]
         T::zeroize_slice(self);
     }
 }
@@ -233,7 +237,7 @@ impl<T: Zeroize> Zeroize for [T] {
 impl<T: Zeroize, const N: usize> Zeroize for [T; N] {
     #[inline]
     fn zeroize(&mut self) {
-        #[cfg(not(hax))]
+        #[cfg(not(any(hax, eurydice)))]
         T::zeroize_slice(self);
     }
 }

@@ -605,6 +605,7 @@ impl Operations for SIMD256Vector {
 impl libcrux_secrets::Zeroize for SIMD256Vector {
     #[inline(always)]
     fn zeroize(&mut self) {
+        #[cfg(not(eurydice))]
         self.elements.zeroize();
     }
 }

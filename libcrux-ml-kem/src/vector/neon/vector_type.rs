@@ -13,8 +13,11 @@ pub struct SIMD128Vector {
 impl libcrux_secrets::Zeroize for SIMD128Vector {
     #[inline(always)]
     fn zeroize(&mut self) {
-        self.low.zeroize();
-        self.high.zeroize();
+        #[cfg(not(eurydice))]
+        {
+            self.low.zeroize();
+            self.high.zeroize();
+        }
     }
 }
 

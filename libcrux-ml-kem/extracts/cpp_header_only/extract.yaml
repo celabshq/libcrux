@@ -87,7 +87,9 @@ files:
     private:
       monomorphizations_of:
         - [core, "*"]
-        - [libcrux_secrets, "*"]
+        - [libcrux_secrets, traits, "*"]
+        - [libcrux_secrets, int, "*"]
+        - [libcrux_secrets, mem_requests, "*"]
         - [libcrux_ml_kem, types, "*"]
         - [libcrux_ml_kem, constant_time_ops, "*"]
         - [libcrux_ml_kem, utils, "*" ]
@@ -177,6 +179,7 @@ files:
     private:
       monomorphizations_of:
         - [Eurydice, "*" ]
+        - [libcrux_secrets, zeroization, "*"]
       patterns:
         - [Eurydice, "*" ]
 
