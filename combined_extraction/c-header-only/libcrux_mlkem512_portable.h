@@ -8,7 +8,7 @@
  * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
  * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
  * F*: 7b347386330d0e5a331a220535b6f15288903234
- * Libcrux: dirty
+ * Libcrux: 5d7eb1af1df29e8013747187a8fc8ba4253e2049
  */
 
 
@@ -52,7 +52,9 @@ libcrux_ml_kem_mlkem512_portable_encapsulate(
   Eurydice_arr_ec randomness
 )
 {
-  return libcrux_ml_kem_ind_cca_instantiations_portable_encapsulate_80(public_key, &randomness);
+  tuple_ab
+  result = libcrux_ml_kem_ind_cca_instantiations_portable_encapsulate_80(public_key, &randomness);
+  return result;
 }
 
 /**
@@ -61,7 +63,9 @@ libcrux_ml_kem_mlkem512_portable_encapsulate(
 static inline libcrux_ml_kem_types_MlKemKeyPair_0d
 libcrux_ml_kem_mlkem512_portable_generate_key_pair(Eurydice_arr_c7 randomness)
 {
-  return libcrux_ml_kem_ind_cca_instantiations_portable_generate_keypair_b8(&randomness);
+  libcrux_ml_kem_types_MlKemKeyPair_0d
+  result = libcrux_ml_kem_ind_cca_instantiations_portable_generate_keypair_b8(&randomness);
+  return result;
 }
 
 /**
@@ -137,9 +141,11 @@ libcrux_ml_kem_mlkem512_portable_unpacked_encapsulate(
   Eurydice_arr_ec randomness
 )
 {
-  return
+  tuple_ab
+  result =
     libcrux_ml_kem_ind_cca_instantiations_portable_unpacked_encapsulate_80(public_key,
       &randomness);
+  return result;
 }
 
 /**

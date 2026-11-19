@@ -8,7 +8,7 @@
  * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
  * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
  * F*: 7b347386330d0e5a331a220535b6f15288903234
- * Libcrux: dirty
+ * Libcrux: 5d7eb1af1df29e8013747187a8fc8ba4253e2049
  */
 
 
@@ -57,7 +57,8 @@ libcrux_ml_kem_constant_time_ops_compare(
     uint8_t nr = (uint32_t)r | ((uint32_t)lhs.ptr[i0] ^ (uint32_t)rhs.ptr[i0]);
     r = nr;
   }
-  return libcrux_ml_kem_constant_time_ops_is_non_zero(r);
+  uint8_t result = libcrux_ml_kem_constant_time_ops_is_non_zero(r);
+  return result;
 }
 
 static KRML_NOINLINE uint8_t
@@ -114,10 +115,12 @@ libcrux_ml_kem_constant_time_ops_compare_ciphertexts_select_shared_secret_in_con
 {
   uint8_t
   selector = libcrux_ml_kem_constant_time_ops_compare_ciphertexts_in_constant_time(lhs_c, rhs_c);
-  return
+  Eurydice_arr_ec
+  result =
     libcrux_ml_kem_constant_time_ops_select_shared_secret_in_constant_time(lhs_s,
       rhs_s,
       selector);
+  return result;
 }
 
 

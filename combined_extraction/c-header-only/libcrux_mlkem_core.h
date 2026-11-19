@@ -8,7 +8,7 @@
  * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
  * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
  * F*: 7b347386330d0e5a331a220535b6f15288903234
- * Libcrux: dirty
+ * Libcrux: 5d7eb1af1df29e8013747187a8fc8ba4253e2049
  */
 
 
@@ -20,6 +20,14 @@
 
 
 #include "combined_core.h"
+
+/**
+This function found in impl {libcrux_secrets::zeroization::Zeroize for u8}
+*/
+static inline void libcrux_secrets_zeroization_zeroize_7d(uint8_t *self)
+{
+
+}
 
 #define LIBCRUX_ML_KEM_CONSTANTS_SHARED_SECRET_SIZE ((size_t)32U)
 

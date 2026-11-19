@@ -8,7 +8,7 @@
  * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
  * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
  * F*: 7b347386330d0e5a331a220535b6f15288903234
- * Libcrux: dirty
+ * Libcrux: 5d7eb1af1df29e8013747187a8fc8ba4253e2049
  */
 
 
@@ -18,6 +18,7 @@
 #include "libcrux_mlkem_avx2.h"
 #include "combined_core.h"
 #include "internal/libcrux_mlkem_avx2.h"
+#include "internal/combined_core.h"
 
 /**
  Decapsulate ML-KEM 768
@@ -49,7 +50,9 @@ libcrux_ml_kem_mlkem768_avx2_encapsulate(
   Eurydice_arr_ec randomness
 )
 {
-  return libcrux_ml_kem_ind_cca_instantiations_avx2_encapsulate_26(public_key, &randomness);
+  tuple_f4
+  result = libcrux_ml_kem_ind_cca_instantiations_avx2_encapsulate_26(public_key, &randomness);
+  return result;
 }
 
 /**
@@ -59,7 +62,9 @@ KRML_ATTRIBUTE_TARGET("avx2")
 libcrux_ml_kem_mlkem768_MlKem768KeyPair
 libcrux_ml_kem_mlkem768_avx2_generate_key_pair(Eurydice_arr_c7 randomness)
 {
-  return libcrux_ml_kem_ind_cca_instantiations_avx2_generate_keypair_e9(&randomness);
+  libcrux_ml_kem_mlkem768_MlKem768KeyPair
+  result = libcrux_ml_kem_ind_cca_instantiations_avx2_generate_keypair_e9(&randomness);
+  return result;
 }
 
 /**
@@ -136,9 +141,11 @@ libcrux_ml_kem_mlkem768_avx2_unpacked_encapsulate(
   Eurydice_arr_ec randomness
 )
 {
-  return
+  tuple_f4
+  result =
     libcrux_ml_kem_ind_cca_instantiations_avx2_unpacked_encapsulate_26(public_key,
       &randomness);
+  return result;
 }
 
 /**
