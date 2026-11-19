@@ -8,7 +8,7 @@
  * Eurydice: aaa9fa657fb6f09802edb890252040d94cd93982
  * Karamel: 8c19d41458ce5cbfea029ebc03334ba96d149039
  * F*: 7b347386330d0e5a331a220535b6f15288903234
- * Libcrux: dirty
+ * Libcrux: e2275e2a65e92434ad5c45d47bd71d16c8a7052a
  */
 
 #ifndef libcrux_sha3_avx2_H
@@ -2520,6 +2520,20 @@ static inline void libcrux_sha3_simd_avx2_squeeze4_17_b2(
   libcrux_sha3_simd_avx2_store_block_b2(self, out0, out1, out2, out3, start,
                                         len);
 }
+
+/**
+This function found in impl {libcrux_secrets::zeroization::Zeroize for
+libcrux_sha3::generic_keccak::KeccakState<T, N>[TraitClause@0, TraitClause@1]}
+*/
+/**
+A monomorphic instance of libcrux_sha3.generic_keccak.zeroize_69
+with types core_core_arch_x86___m256i
+with const generics
+- N= 4
+*/
+KRML_ATTRIBUTE_TARGET("avx2")
+static inline void libcrux_sha3_generic_keccak_zeroize_69_5d(
+    Eurydice_arr_c4 *self) {}
 
 /**
 This function found in impl {libcrux_sha3::traits::Absorb<4usize> for
