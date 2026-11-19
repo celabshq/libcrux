@@ -8,7 +8,7 @@ license.workspace = true
 name = "libcrux-aes"
 readme = "README.md"
 repository.workspace = true
-version = "0.0.11-pre.1"
+version = "0.0.11"
 
 [lib]
 bench = false # so libtest doesn't eat the arguments to criterion
