@@ -55,6 +55,26 @@ Relative to the crate root, the structure we aim to use is:
 
 where `$name` identifies a C extraction in a particular configuration.
 
+### Changelog
+
+Every pull request with semver-relevant changes to a crate (to its public
+API, features or `rust-version`) or changes to its hax annotations needs an
+entry in that crate's `CHANGELOG.md` and in the top-level `CHANGELOG.md`.
+Entries for other changes, such as bug fixes that keep the API, are welcome
+but not required. Add entries under a section for the crate's next version:
+
+    ## [0.0.12] (Unreleased)
+
+    ### Fixed
+
+    - [#1234](https://github.com/celabshq/libcrux/pull/1234): Description of the change
+
+If the top section is the most recent release, start a new section with the next patch
+version (or the next minor version for a breaking change in a crate at `0.x.y`
+with `x > 0`). In the root `CHANGELOG.md`, prefix entries with the crate name,
+e.g. `(libcrux-ml-kem)`. Pull requests that don't need an entry can add
+`[skip changelog]` to their description.
+
 ## Coding style
 
 In order to help contributors adhere to the style guidelines of this project,

@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.12-pre.1] (2026-11-19)
+
+### Changed
+
+- [#1674](https://github.com/celabshq/libcrux/pull/1674): Add hax annotations for ProVerif extraction
+
 ## [0.0.11] (2026-10-07)
 
 ### Changed

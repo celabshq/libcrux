@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.12-pre.1] (2026-11-19)
+
+### Fixed
+
+- [#1665](https://github.com/celabshq/libcrux/pull/1665): Introduce optimization barrier for C extraction of `is_non_zero`. This issue was reported and its fix suggested by Basavesh Ammanaghatta Shivakumar (@basavesh) and Swarn Priya (@swarnpriya).
+
 ## [0.0.11] (2026-10-07)
 
 ### Changed
