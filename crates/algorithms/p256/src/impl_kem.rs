@@ -13,11 +13,15 @@ const RAND_KEYGEN_LEN: usize = SCALAR_LEN;
 const RAND_ENCAPS_LEN: usize = SCALAR_LEN;
 
 impl Kem<EK_LEN, DK_LEN, CT_LEN, SS_LEN, RAND_KEYGEN_LEN, RAND_ENCAPS_LEN> for super::P256 {
+    type KeyGenError = KeyGenError;
+    type EncapsError = EncapsError;
+    type DecapsError = DecapsError;
+
     fn keygen(
         ek: &mut [u8; EK_LEN],
         dk: &mut [U8; DK_LEN],
         rand: &[U8; RAND_KEYGEN_LEN],
-    ) -> Result<(), KeyGenError> {
+    ) -> Result<(), Self::KeyGenError> {
         if !super::p256::validate_private_key(rand.as_slice().declassify_ref()) {
             return Err(KeyGenError::InvalidRandomness);
         }
@@ -35,7 +39,7 @@ impl Kem<EK_LEN, DK_LEN, CT_LEN, SS_LEN, RAND_KEYGEN_LEN, RAND_ENCAPS_LEN> for s
         ss: &mut [U8; SS_LEN],
         ek: &[u8; EK_LEN],
         rand: &[U8; RAND_ENCAPS_LEN],
-    ) -> Result<(), EncapsError> {
+    ) -> Result<(), Self::EncapsError> {
         if !super::p256::validate_public_key(ek) {
             return Err(EncapsError::InvalidEncapsKey);
         }
@@ -59,7 +63,7 @@ impl Kem<EK_LEN, DK_LEN, CT_LEN, SS_LEN, RAND_KEYGEN_LEN, RAND_ENCAPS_LEN> for s
         ss: &mut [U8; SS_LEN],
         ct: &[u8; CT_LEN],
         dk: &[U8; DK_LEN],
-    ) -> Result<(), DecapsError> {
+    ) -> Result<(), Self::DecapsError> {
         if !super::p256::validate_public_key(ct) {
             return Err(DecapsError::InvalidCiphertext);
         }

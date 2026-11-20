@@ -14,6 +14,13 @@ pub trait Kem<
     const RAND_ENCAPS_LEN: usize,
 >
 {
+    /// Error type for key generation
+    type KeyGenError: core::fmt::Debug;
+    /// Error type for encapsulation
+    type EncapsError: core::fmt::Debug;
+    /// Error type for decapsulation
+    type DecapsError: core::fmt::Debug;
+
     /// Generate a pair of encapsulation and decapsulation keys.
     /// It is the responsibility of the caller to ensure  that the `rand` argument is actually
     /// random.
@@ -21,7 +28,7 @@ pub trait Kem<
         ek: &mut [u8; EK_LEN],
         dk: &mut [U8; DK_LEN],
         rand: &[U8; RAND_KEYGEN_LEN],
-    ) -> Result<(), KeyGenError>;
+    ) -> Result<(), Self::KeyGenError>;
 
     /// Encapsulate a shared secret towards a given encapsulation key.
     /// It is the responsibility of the caller to ensure  that the `rand` argument is actually
@@ -31,14 +38,14 @@ pub trait Kem<
         ss: &mut [U8; SS_LEN],
         ek: &[u8; EK_LEN],
         rand: &[U8; RAND_ENCAPS_LEN],
-    ) -> Result<(), EncapsError>;
+    ) -> Result<(), Self::EncapsError>;
 
     /// Decapsulate a shared secret.
     fn decaps(
         ss: &mut [U8; SS_LEN],
         ct: &[u8; CT_LEN],
         dk: &[U8; DK_LEN],
-    ) -> Result<(), DecapsError>;
+    ) -> Result<(), Self::DecapsError>;
 }
 
 /// Error generating key with provided randomness

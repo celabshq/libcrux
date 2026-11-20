@@ -36,11 +36,15 @@ trait Curve25519 {
 pub struct X25519;
 
 impl libcrux_traits::kem::arrayref::Kem<DK_LEN, EK_LEN, EK_LEN, SS_LEN, DK_LEN, DK_LEN> for X25519 {
+    type KeyGenError = libcrux_traits::kem::arrayref::KeyGenError;
+    type EncapsError = libcrux_traits::kem::arrayref::EncapsError;
+    type DecapsError = libcrux_traits::kem::arrayref::DecapsError;
+
     fn keygen(
         ek: &mut [u8; DK_LEN],
         dk: &mut [U8; EK_LEN],
         rand: &[U8; DK_LEN],
-    ) -> Result<(), libcrux_traits::kem::arrayref::KeyGenError> {
+    ) -> Result<(), Self::KeyGenError> {
         dk.copy_from_slice(rand);
         clamp(dk.declassify_ref_mut());
         secret_to_public(ek, dk.declassify_ref());
@@ -52,7 +56,7 @@ impl libcrux_traits::kem::arrayref::Kem<DK_LEN, EK_LEN, EK_LEN, SS_LEN, DK_LEN, 
         ss: &mut [U8; SS_LEN],
         ek: &[u8; EK_LEN],
         rand: &[U8; DK_LEN],
-    ) -> Result<(), libcrux_traits::kem::arrayref::EncapsError> {
+    ) -> Result<(), Self::EncapsError> {
         let mut eph_dk = *rand;
         clamp(eph_dk.declassify_ref_mut());
         secret_to_public(ct, eph_dk.declassify_ref());
@@ -65,7 +69,7 @@ impl libcrux_traits::kem::arrayref::Kem<DK_LEN, EK_LEN, EK_LEN, SS_LEN, DK_LEN, 
         ss: &mut [U8; SS_LEN],
         ct: &[u8; DK_LEN],
         dk: &[U8; EK_LEN],
-    ) -> Result<(), libcrux_traits::kem::arrayref::DecapsError> {
+    ) -> Result<(), Self::DecapsError> {
         ecdh(ss.declassify_ref_mut(), ct, dk.declassify_ref())
             .map_err(|_| libcrux_traits::kem::arrayref::DecapsError::Unknown)
     }
