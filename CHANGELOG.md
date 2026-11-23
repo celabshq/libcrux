@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- (libcrux-ml-dsa) [#XXXX](https://github.com/celabshq/libcrux/pull/XXXX): Add `sign_mu` and `verify_mu` (external mu) to the `ml_dsa_{44,65,87}` modules, behind the `acvp` feature (@HacksterAman)
+- (libcrux-ml-dsa) [#1685](https://github.com/celabshq/libcrux/pull/1685): Add `sign_mu` and `verify_mu` (external mu) to the `ml_dsa_{44,65,87}` modules, behind the `acvp` feature (@HacksterAman)
 
 ## [0.0.7] (2026-11-19)
 
