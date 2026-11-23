@@ -693,3 +693,83 @@ impl_key_gen_mut_tests!(
     key_gen_mut_87_simd128,
     key_gen_mut_87_simd256
 );
+
+#[cfg(feature = "acvp")]
+mod mu {
+    use super::*;
+
+    // `sign_mu` on the message representative of a message must return the
+    // signature that `sign` returns for that message, and `verify_mu` must accept
+    // it for this message representative only.
+    macro_rules! impl_mu_test {
+        ($name:ident, $($functions:ident)::+) => {
+            #[test]
+            fn $name() {
+                let key_pair = $($functions)::+::generate_key_pair(random_array());
+                let signing_randomness = random_array();
+                let message = random_array::<100>();
+                let context = b"external mu";
+
+                // mu = SHAKE256(tr || M', 64), with tr = SHAKE256(vk, 64) and
+                // M' = 0 || len(context) || context || message
+                let tr: [u8; 64] = libcrux_sha3::shake256(key_pair.verification_key.as_ref());
+                let mut mu_input = tr.to_vec();
+                mu_input.extend_from_slice(&[0, context.len() as u8]);
+                mu_input.extend_from_slice(context);
+                mu_input.extend_from_slice(&message);
+                let mut mu: [u8; 64] = libcrux_sha3::shake256(&mu_input);
+
+                let signature =
+                    $($functions)::+::sign(&key_pair.signing_key, &message, context, signing_randomness)
+                        .expect("Rejection sampling failure probability is < 2⁻¹²⁸");
+                let signature_mu =
+                    $($functions)::+::sign_mu(&key_pair.signing_key, &mu, signing_randomness)
+                        .expect("Rejection sampling failure probability is < 2⁻¹²⁸");
+                assert_eq!(signature.as_ref(), signature_mu.as_ref());
+
+                $($functions)::+::verify(&key_pair.verification_key, &message, context, &signature_mu)
+                    .expect("Verification should pass since the signature was honestly generated");
+                $($functions)::+::verify_mu(&key_pair.verification_key, &mu, &signature)
+                    .expect("Verification should pass since the signature was honestly generated");
+
+                mu[0] ^= 1;
+                assert!(
+                    $($functions)::+::verify_mu(&key_pair.verification_key, &mu, &signature).is_err()
+                );
+            }
+        };
+    }
+
+    macro_rules! impl_mu_tests {
+        ($module:ident, $multiplexed:ident, $portable:ident, $simd128:ident, $simd256:ident) => {
+            impl_mu_test!($multiplexed, $module);
+            impl_mu_test!($portable, $module::portable);
+            #[cfg(feature = "simd128")]
+            impl_mu_test!($simd128, $module::neon);
+            #[cfg(feature = "simd256")]
+            impl_mu_test!($simd256, $module::avx2);
+        };
+    }
+
+    impl_mu_tests!(
+        ml_dsa_44,
+        mu_44,
+        mu_44_portable,
+        mu_44_simd128,
+        mu_44_simd256
+    );
+    impl_mu_tests!(
+        ml_dsa_65,
+        mu_65,
+        mu_65_portable,
+        mu_65_simd128,
+        mu_65_simd256
+    );
+    impl_mu_tests!(
+        ml_dsa_87,
+        mu_87,
+        mu_87_portable,
+        mu_87_simd128,
+        mu_87_simd256
+    );
+}

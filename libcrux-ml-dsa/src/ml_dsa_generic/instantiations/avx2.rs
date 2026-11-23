@@ -139,6 +139,42 @@ macro_rules! parameter_set {
                 Ok(signature)
             }
 
+            /// Sign a message representative.
+            #[allow(unsafe_code)]
+            #[cfg(feature = "acvp")]
+            pub fn sign_mu(
+                signing_key: &[u8; SIGNING_KEY_SIZE],
+                mu: &[u8; MESSAGE_REPRESENTATIVE_SIZE],
+                randomness: [u8; SIGNING_RANDOMNESS_SIZE],
+            ) -> Result<MLDSASignature<SIGNATURE_SIZE>, SigningError> {
+                #[cfg_attr(not(hax), target_feature(enable = "avx2"))]
+                #[allow(unsafe_code)]
+                unsafe fn _inner(
+                    signing_key: &[u8; SIGNING_KEY_SIZE],
+                    mu: &[u8; MESSAGE_REPRESENTATIVE_SIZE],
+                    randomness: [u8; SIGNING_RANDOMNESS_SIZE],
+                    signature: &mut [u8; SIGNATURE_SIZE],
+                ) -> Result<(), SigningError> {
+                    crate::ml_dsa_generic::$parameter_module::sign_mu::<
+                        crate::simd::avx2::AVX2SIMDUnit,
+                        crate::samplex4::avx2::AVX2Sampler,
+                        crate::hash_functions::simd256::Shake128x4,
+                        crate::hash_functions::simd256::Shake256,
+                        // We use the portable version here.
+                        // It doesn' make sense to do these in parallel.
+                        crate::hash_functions::portable::Shake256Xof,
+                        crate::hash_functions::simd256::Shake256x4,
+                    >(signing_key, mu, randomness, signature)
+                }
+
+                let mut signature = MLDSASignature::zero();
+                unsafe {
+                    _inner(signing_key, mu, randomness, &mut signature.value)?;
+                }
+
+                Ok(signature)
+            }
+
             /// Sign (pre-hashed).
             #[allow(unsafe_code)]
             pub fn sign_pre_hashed_shake128(
@@ -230,6 +266,34 @@ macro_rules! parameter_set {
                     >(verification_key, message, None, signature)
                 }
                 unsafe { _inner(verification_key, message, signature) }
+            }
+
+            /// Verify a signature on a message representative.
+            #[cfg(feature = "acvp")]
+            #[allow(unsafe_code)]
+            pub fn verify_mu(
+                verification_key: &[u8; VERIFICATION_KEY_SIZE],
+                mu: &[u8; MESSAGE_REPRESENTATIVE_SIZE],
+                signature: &[u8; SIGNATURE_SIZE],
+            ) -> Result<(), VerificationError> {
+                #[cfg_attr(not(hax), target_feature(enable = "avx2"))]
+                #[allow(unsafe_code)]
+                unsafe fn _inner(
+                    verification_key: &[u8; VERIFICATION_KEY_SIZE],
+                    mu: &[u8; MESSAGE_REPRESENTATIVE_SIZE],
+                    signature: &[u8; SIGNATURE_SIZE],
+                ) -> Result<(), VerificationError> {
+                    crate::ml_dsa_generic::$parameter_module::verify_mu::<
+                        crate::simd::avx2::AVX2SIMDUnit,
+                        crate::samplex4::avx2::AVX2Sampler,
+                        crate::hash_functions::simd256::Shake128x4,
+                        crate::hash_functions::simd256::Shake256,
+                        // We use the portable version here.
+                        // It doesn' make sense to do these in parallel.
+                        crate::hash_functions::portable::Shake256Xof,
+                    >(verification_key, mu, signature)
+                }
+                unsafe { _inner(verification_key, mu, signature) }
             }
 
             /// Verify (pre-hashed with SHAKE-128).

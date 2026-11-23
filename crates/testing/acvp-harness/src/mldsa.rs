@@ -1,7 +1,7 @@
 //! ML-DSA (FIPS 204): keyGen, sigGen (including `FIPS204-tr1` seed keys) and sigVer.
 //!
-//! Supported are the internal interface without external mu, and the external interface with
-//! pure signatures and HashML-DSA with SHAKE-128. Other test cases are not implemented.
+//! Supported are the internal interface with and without external mu, and the external interface
+//! with pure signatures and HashML-DSA with SHAKE-128. Other test cases are not implemented.
 
 use libcrux_kats::acvp::{
     mldsa::{
@@ -31,9 +31,11 @@ type Verify = fn(&[u8], &[u8], &[u8], &[u8]) -> bool;
 struct MlDsa {
     keygen: KeyGen,
     sign_internal: SignInternal,
+    sign_mu: SignInternal,
     sign: Sign,
     sign_pre_hashed_shake128: Sign,
     verify_internal: VerifyInternal,
+    verify_mu: VerifyInternal,
     verify: Verify,
     verify_pre_hashed_shake128: Verify,
 }
@@ -55,6 +57,11 @@ macro_rules! ml_dsa {
                 let sig = $($functions)::+::sign_internal(&sk, m, rnd).ok()?;
                 Some(sig.as_slice().to_vec())
             },
+            sign_mu: |sk, mu, rnd| {
+                let sk = MLDSASigningKey::new(sk.try_into().ok()?);
+                let sig = $($functions)::+::sign_mu(&sk, mu.try_into().ok()?, rnd).ok()?;
+                Some(sig.as_slice().to_vec())
+            },
             sign: |sk, m, ctx, rnd| {
                 let sk = MLDSASigningKey::new(sk.try_into().ok()?);
                 let sig = $($functions)::+::sign(&sk, m, ctx, rnd).ok()?;
@@ -71,6 +78,14 @@ macro_rules! ml_dsa {
                 };
                 let (vk, sig) = (MLDSAVerificationKey::new(vk), MLDSASignature::new(sig));
                 $($functions)::+::verify_internal(&vk, m, &sig).is_ok()
+            },
+            verify_mu: |vk, mu, sig| {
+                let (Ok(vk), Ok(mu), Ok(sig)) = (vk.try_into(), mu.try_into(), sig.try_into())
+                else {
+                    return false;
+                };
+                let (vk, sig) = (MLDSAVerificationKey::new(vk), MLDSASignature::new(sig));
+                $($functions)::+::verify_mu(&vk, mu, &sig).is_ok()
             },
             verify: |vk, m, ctx, sig| {
                 let (Ok(vk), Ok(sig)) = (vk.try_into(), sig.try_into()) else {
@@ -132,9 +147,6 @@ pub(crate) fn siggen(prompt: Value, backend: Backend) -> Value {
 
     respond_implemented(&prompts, |g, t| {
         let ml_dsa = ml_dsa(&g.parameterSet, backend);
-        if g.externalMu {
-            return not_implemented("externalMu");
-        }
         let sk = match g.keyFormat.as_deref() {
             None | Some("expanded") => t.sk.clone(),
             Some("seed") => (ml_dsa.keygen)(t.seed.as_slice().try_into().unwrap()).1,
@@ -148,6 +160,7 @@ pub(crate) fn siggen(prompt: Value, backend: Backend) -> Value {
         // Deterministic signing uses an all-zero randomness.
         let rnd = t.rnd.as_ref().map_or([0u8; 32], |r| r.0);
         let signature = match (g.signatureInterface.as_str(), g.preHash.as_deref()) {
+            ("internal", _) if g.externalMu => (ml_dsa.sign_mu)(&sk, &t.mu, rnd),
             ("internal", _) => (ml_dsa.sign_internal)(&sk, &t.message, rnd),
             ("external", Some("pure")) => (ml_dsa.sign)(&sk, &t.message, &t.context, rnd),
             ("external", Some("preHash")) => match t.hashAlg.as_deref() {
@@ -171,10 +184,8 @@ pub(crate) fn sigver(prompt: Value, backend: Backend) -> Value {
 
     respond_implemented(&prompts, |g, t| {
         let ml_dsa = ml_dsa(&g.parameterSet, backend);
-        if g.externalMu {
-            return not_implemented("externalMu");
-        }
         let passed = match (g.signatureInterface.as_str(), g.preHash.as_deref()) {
+            ("internal", _) if g.externalMu => (ml_dsa.verify_mu)(&t.pk, &t.mu, &t.signature),
             ("internal", _) => (ml_dsa.verify_internal)(&t.pk, &t.message, &t.signature),
             ("external", Some("pure")) => {
                 (ml_dsa.verify)(&t.pk, &t.message, &t.context, &t.signature)

@@ -151,11 +151,51 @@ pub(crate) mod generic {
         randomness: [u8; SIGNING_RANDOMNESS_SIZE],
         signature: &mut [u8; SIGNATURE_SIZE],
     ) -> Result<(), SigningError> {
+        let (_seed_for_a, remaining_serialized) = signing_key.split_at(SEED_FOR_A_SIZE);
+        let (_seed_for_signing, remaining_serialized) =
+            remaining_serialized.split_at(SEED_FOR_SIGNING_SIZE);
+        let (verification_key_hash, _remaining_serialized) =
+            remaining_serialized.split_at(BYTES_FOR_VERIFICATION_KEY_HASH);
+
+        let mut message_representative = [0; MESSAGE_REPRESENTATIVE_SIZE];
+        derive_message_representative::<Shake256Xof>(
+            verification_key_hash,
+            &domain_separation_context,
+            message,
+            &mut message_representative,
+        );
+
+        sign_mu::<SIMDUnit, Sampler, Shake128X4, Shake256, Shake256Xof, Shake256X4>(
+            signing_key,
+            &message_representative,
+            randomness,
+            signature,
+        )
+    }
+
+    /// Sign the message representative `message_representative` (μ).
+    ///
+    /// This is algorithm 7 in FIPS 204 without the computation of μ in
+    /// line 6, see [`derive_message_representative`].
+    #[inline(always)]
+    pub(crate) fn sign_mu<
+        SIMDUnit: Operations,
+        Sampler: X4Sampler,
+        Shake128X4: shake128::XofX4,
+        Shake256: shake256::DsaXof,
+        Shake256Xof: shake256::Xof,
+        Shake256X4: shake256::XofX4,
+    >(
+        signing_key: &[u8],
+        message_representative: &[u8; MESSAGE_REPRESENTATIVE_SIZE],
+        randomness: [u8; SIGNING_RANDOMNESS_SIZE],
+        signature: &mut [u8; SIGNATURE_SIZE],
+    ) -> Result<(), SigningError> {
         // Split the signing key into its parts.
         let (seed_for_a, remaining_serialized) = signing_key.split_at(SEED_FOR_A_SIZE);
         let (seed_for_signing, remaining_serialized) =
             remaining_serialized.split_at(SEED_FOR_SIGNING_SIZE);
-        let (verification_key_hash, remaining_serialized) =
+        let (_verification_key_hash, remaining_serialized) =
             remaining_serialized.split_at(BYTES_FOR_VERIFICATION_KEY_HASH);
 
         let (s1_serialized, remaining_serialized) =
@@ -191,20 +231,12 @@ pub(crate) mod generic {
         let mut matrix = [PolynomialRingElement::<SIMDUnit>::zero(); ROW_X_COLUMN];
         Sampler::matrix_flat::<SIMDUnit>(COLUMNS_IN_A, seed_for_a, &mut matrix);
 
-        let mut message_representative = [0; MESSAGE_REPRESENTATIVE_SIZE];
-        derive_message_representative::<Shake256Xof>(
-            verification_key_hash,
-            &domain_separation_context,
-            message,
-            &mut message_representative,
-        );
-
         let mut mask_seed = [0; MASK_SEED_SIZE];
         {
             let mut shake = Shake256Xof::init();
             shake.absorb(seed_for_signing);
             shake.absorb(&randomness);
-            shake.absorb_final(&message_representative);
+            shake.absorb_final(message_representative);
 
             shake.squeeze(&mut mask_seed);
         }
@@ -271,7 +303,7 @@ pub(crate) mod generic {
                 );
 
                 let mut shake = Shake256Xof::init();
-                shake.absorb(&message_representative);
+                shake.absorb(message_representative);
                 shake.absorb_final(&commitment_serialized);
 
                 shake.squeeze(&mut commitment_hash_candidate);
@@ -431,6 +463,42 @@ pub(crate) mod generic {
         domain_separation_context: Option<DomainSeparationContext>,
         signature_serialized: &[u8; SIGNATURE_SIZE],
     ) -> Result<(), VerificationError> {
+        let mut verification_key_hash = [0; BYTES_FOR_VERIFICATION_KEY_HASH];
+        Shake256::shake256(verification_key, &mut verification_key_hash);
+
+        let mut message_representative = [0; MESSAGE_REPRESENTATIVE_SIZE];
+        derive_message_representative::<Shake256Xof>(
+            &verification_key_hash,
+            &domain_separation_context,
+            message,
+            &mut message_representative,
+        );
+
+        verify_mu::<SIMDUnit, Sampler, Shake128X4, Shake256, Shake256Xof>(
+            verification_key,
+            &message_representative,
+            signature_serialized,
+        )
+    }
+
+    /// Verify a signature on the message representative
+    /// `message_representative` (μ).
+    ///
+    /// This is algorithm 8 in FIPS 204 without the computation of tr and μ in
+    /// lines 6 and 7, see [`derive_message_representative`].
+    #[allow(non_snake_case)]
+    #[inline(always)]
+    pub(crate) fn verify_mu<
+        SIMDUnit: Operations,
+        Sampler: X4Sampler,
+        Shake128X4: shake128::XofX4,
+        Shake256: shake256::DsaXof,
+        Shake256Xof: shake256::Xof,
+    >(
+        verification_key: &[u8; VERIFICATION_KEY_SIZE],
+        message_representative: &[u8; MESSAGE_REPRESENTATIVE_SIZE],
+        signature_serialized: &[u8; SIGNATURE_SIZE],
+    ) -> Result<(), VerificationError> {
         let (seed_for_a, t1_serialized) = verification_key.split_at(SEED_FOR_A_SIZE);
         let mut t1 = [PolynomialRingElement::<SIMDUnit>::zero(); ROWS_IN_A];
         encoding::verification_key::deserialize::<SIMDUnit>(
@@ -471,17 +539,6 @@ pub(crate) mod generic {
         let mut matrix = [PolynomialRingElement::<SIMDUnit>::zero(); ROW_X_COLUMN];
         Sampler::matrix_flat::<SIMDUnit>(COLUMNS_IN_A, seed_for_a, &mut matrix);
 
-        let mut verification_key_hash = [0; BYTES_FOR_VERIFICATION_KEY_HASH];
-        Shake256::shake256(verification_key, &mut verification_key_hash);
-
-        let mut message_representative = [0; MESSAGE_REPRESENTATIVE_SIZE];
-        derive_message_representative::<Shake256Xof>(
-            &verification_key_hash,
-            &domain_separation_context,
-            message,
-            &mut message_representative,
-        );
-
         let mut verifier_challenge = PolynomialRingElement::zero();
         sample_challenge_ring_element::<SIMDUnit, Shake256>(
             &deserialized_commitment_hash,
@@ -515,7 +572,7 @@ pub(crate) mod generic {
             );
 
             let mut shake = Shake256Xof::init();
-            shake.absorb(&message_representative);
+            shake.absorb(message_representative);
             shake.absorb_final(&commitment_serialized);
 
             shake.squeeze(&mut recomputed_commitment_hash);
