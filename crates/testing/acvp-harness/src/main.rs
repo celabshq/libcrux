@@ -13,7 +13,7 @@
 //! AES, ML-KEM, ML-DSA). `default` uses the platform-multiplexed API. Algorithms with a single
 //! implementation ignore it.
 //!
-//! Test cases that libcrux does not implement, e.g. ML-DSA with external mu, are left out of the
+//! Test cases that libcrux does not implement, e.g. HashML-DSA with SHA2-256, are left out of the
 //! response and listed in `notImplemented.json` next to it, as `[{"tgId", "tcId", "reason"}]`.
 //!
 //! Exits with code 2 if the algorithm is not implemented for the backend, and with code 1 on any

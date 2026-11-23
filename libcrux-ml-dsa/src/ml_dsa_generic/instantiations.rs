@@ -97,6 +97,27 @@ macro_rules! instantiate {
                             Ok(signature)
                         }
 
+                        /// Sign a message representative.
+                        #[cfg(feature = "acvp")]
+                        pub fn sign_mu(
+                            signing_key: &[u8; SIGNING_KEY_SIZE],
+                            mu: &[u8; MESSAGE_REPRESENTATIVE_SIZE],
+                            randomness: [u8; SIGNING_RANDOMNESS_SIZE],
+                        ) -> Result<MLDSASignature<SIGNATURE_SIZE>, SigningError> {
+                            let mut signature = MLDSASignature::zero();
+
+                            crate::ml_dsa_generic::$parameter_module::sign_mu::<
+                                $simdunit,
+                                $sampler,
+                                $shake128x4,
+                                $shake256,
+                                $shake256xof,
+                                $shake256x4,
+                            >(signing_key, mu, randomness, &mut signature.value)?;
+
+                            Ok(signature)
+                        }
+
                         /// Sign (pre-hashed).
                         pub(crate) fn sign_pre_hashed_shake128(
                             signing_key: &[u8; SIGNING_KEY_SIZE],
@@ -147,6 +168,22 @@ macro_rules! instantiate {
                                 $shake256,
                                 $shake256xof,
                             >(verification_key, message, None, signature)
+                        }
+
+                        /// Verify a signature on a message representative.
+                        #[cfg(feature = "acvp")]
+                        pub(crate) fn verify_mu(
+                            verification_key: &[u8; VERIFICATION_KEY_SIZE],
+                            mu: &[u8; MESSAGE_REPRESENTATIVE_SIZE],
+                            signature: &[u8; SIGNATURE_SIZE],
+                        ) -> Result<(), VerificationError> {
+                            crate::ml_dsa_generic::$parameter_module::verify_mu::<
+                                $simdunit,
+                                $sampler,
+                                $shake128x4,
+                                $shake256,
+                                $shake256xof,
+                            >(verification_key, mu, signature)
                         }
 
                         /// Verify (pre-hashed with SHAKE-128).

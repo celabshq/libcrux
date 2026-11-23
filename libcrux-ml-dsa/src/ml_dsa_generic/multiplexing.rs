@@ -18,7 +18,8 @@ macro_rules! parameter_set {
 
             #[cfg(all(feature = "simd256", feature = "acvp", feature = $feature))]
             use instantiations::avx2::$parameter_module::{
-                sign_internal as sign_internal_avx2, verify_internal as verify_internal_avx2,
+                sign_internal as sign_internal_avx2, sign_mu as sign_mu_avx2,
+                verify_internal as verify_internal_avx2, verify_mu as verify_mu_avx2,
             };
 
             #[cfg(all(feature = "simd128", feature = $feature))]
@@ -30,7 +31,8 @@ macro_rules! parameter_set {
 
             #[cfg(all(feature = "simd128", feature = "acvp", feature = $feature))]
             use instantiations::neon::$parameter_module::{
-                sign_internal as sign_internal_neon, verify_internal as verify_internal_neon,
+                sign_internal as sign_internal_neon, sign_mu as sign_mu_neon,
+                verify_internal as verify_internal_neon, verify_mu as verify_mu_neon,
             };
 
             // For the case where we didn't compile with the simd128/simd256 features but
@@ -45,7 +47,8 @@ macro_rules! parameter_set {
 
             #[cfg(all(not(feature = "simd256"), feature = "acvp", feature = $feature))]
             use instantiations::portable::$parameter_module::{
-                sign_internal as sign_internal_avx2, verify_internal as verify_internal_avx2,
+                sign_internal as sign_internal_avx2, sign_mu as sign_mu_avx2,
+                verify_internal as verify_internal_avx2, verify_mu as verify_mu_avx2,
             };
 
             #[cfg(all(not(feature = "simd128"), feature = $feature))]
@@ -57,7 +60,8 @@ macro_rules! parameter_set {
 
             #[cfg(all(not(feature = "simd128"), feature = "acvp", feature = $feature))]
             use instantiations::portable::$parameter_module::{
-                sign_internal as sign_internal_neon, verify_internal as verify_internal_neon,
+                sign_internal as sign_internal_neon, sign_mu as sign_mu_neon,
+                verify_internal as verify_internal_neon, verify_mu as verify_mu_neon,
             };
 
             pub(crate) fn generate_key_pair(
@@ -92,6 +96,25 @@ macro_rules! parameter_set {
                     instantiations::portable::$parameter_module::sign_internal(
                         signing_key,
                         message,
+                        randomness,
+                    )
+                }
+            }
+
+            #[cfg(feature = "acvp")]
+            pub(crate) fn sign_mu(
+                signing_key: &[u8; SIGNING_KEY_SIZE],
+                mu: &[u8; MESSAGE_REPRESENTATIVE_SIZE],
+                randomness: [u8; SIGNING_RANDOMNESS_SIZE],
+            ) -> Result<MLDSASignature<SIGNATURE_SIZE>, SigningError> {
+                if libcrux_platform::simd256_support() {
+                    sign_mu_avx2(signing_key, mu, randomness)
+                } else if libcrux_platform::simd128_support() {
+                    sign_mu_neon(signing_key, mu, randomness)
+                } else {
+                    instantiations::portable::$parameter_module::sign_mu(
+                        signing_key,
+                        mu,
                         randomness,
                     )
                 }
@@ -165,6 +188,25 @@ macro_rules! parameter_set {
                     instantiations::portable::$parameter_module::verify_internal(
                         verification_key_serialized,
                         message,
+                        signature_serialized,
+                    )
+                }
+            }
+
+            #[cfg(feature = "acvp")]
+            pub(crate) fn verify_mu(
+                verification_key_serialized: &[u8; VERIFICATION_KEY_SIZE],
+                mu: &[u8; MESSAGE_REPRESENTATIVE_SIZE],
+                signature_serialized: &[u8; SIGNATURE_SIZE],
+            ) -> Result<(), VerificationError> {
+                if libcrux_platform::simd256_support() {
+                    verify_mu_avx2(verification_key_serialized, mu, signature_serialized)
+                } else if libcrux_platform::simd128_support() {
+                    verify_mu_neon(verification_key_serialized, mu, signature_serialized)
+                } else {
+                    instantiations::portable::$parameter_module::verify_mu(
+                        verification_key_serialized,
+                        mu,
                         signature_serialized,
                     )
                 }

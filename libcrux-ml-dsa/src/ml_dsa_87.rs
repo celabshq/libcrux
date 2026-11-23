@@ -115,6 +115,40 @@ macro_rules! instantiate {
                 )
             }
 
+            /// Generate an ML-DSA-87 Signature for a message representative
+            /// (Algorithm 7 in FIPS204, without line 6)
+            ///
+            /// `mu` is the 64-byte message representative of FIPS204, Algorithm 7 line 6.
+            #[cfg(feature = "acvp")]
+            pub fn sign_mu(
+                signing_key: &MLDSA87SigningKey,
+                mu: &[u8; MESSAGE_REPRESENTATIVE_SIZE],
+                randomness: [u8; SIGNING_RANDOMNESS_SIZE],
+            ) -> Result<MLDSA87Signature, SigningError> {
+                crate::ml_dsa_generic::instantiations::$modp::ml_dsa_87::sign_mu(
+                    signing_key.as_ref(),
+                    mu,
+                    randomness,
+                )
+            }
+
+            /// Verify an ML-DSA-87 Signature on a message representative
+            /// (Algorithm 8 in FIPS204, without lines 6 and 7)
+            ///
+            /// `mu` is the 64-byte message representative of FIPS204, Algorithm 8 line 7.
+            #[cfg(feature = "acvp")]
+            pub fn verify_mu(
+                verification_key: &MLDSA87VerificationKey,
+                mu: &[u8; MESSAGE_REPRESENTATIVE_SIZE],
+                signature: &MLDSA87Signature,
+            ) -> Result<(), VerificationError> {
+                crate::ml_dsa_generic::instantiations::$modp::ml_dsa_87::verify_mu(
+                    verification_key.as_ref(),
+                    mu,
+                    signature.as_ref(),
+                )
+            }
+
             /// Generate a HashML-DSA-87 Signature, with a SHAKE128 pre-hashing
             ///
             /// The parameter `context` is used for domain separation
@@ -263,6 +297,41 @@ pub fn verify_internal(
     crate::ml_dsa_generic::multiplexing::ml_dsa_87::verify_internal(
         verification_key.as_ref(),
         message,
+        signature.as_ref(),
+    )
+}
+
+/// Sign a message representative with ML-DSA 87 (Algorithm 7 in FIPS204, without line 6)
+///
+/// Sign the message representative `mu` with the ML-DSA `signing_key`.
+///
+/// `mu` is the 64-byte message representative of FIPS204, Algorithm 7 line 6.
+///
+/// This function returns an [`MLDSA87Signature`].
+#[cfg(all(not(eurydice), feature = "acvp"))]
+pub fn sign_mu(
+    signing_key: &MLDSA87SigningKey,
+    mu: &[u8; MESSAGE_REPRESENTATIVE_SIZE],
+    randomness: [u8; SIGNING_RANDOMNESS_SIZE],
+) -> Result<MLDSA87Signature, SigningError> {
+    crate::ml_dsa_generic::multiplexing::ml_dsa_87::sign_mu(signing_key.as_ref(), mu, randomness)
+}
+
+/// Verify an ML-DSA-87 Signature on a message representative (Algorithm 8 in FIPS204, without lines 6 and 7)
+///
+/// `mu` is the 64-byte message representative of FIPS204, Algorithm 8 line 7.
+///
+/// Returns `Ok` when the `signature` is valid for the message representative `mu` and
+/// `verification_key`, and a [`VerificationError`] otherwise.
+#[cfg(all(not(eurydice), feature = "acvp"))]
+pub fn verify_mu(
+    verification_key: &MLDSA87VerificationKey,
+    mu: &[u8; MESSAGE_REPRESENTATIVE_SIZE],
+    signature: &MLDSA87Signature,
+) -> Result<(), VerificationError> {
+    crate::ml_dsa_generic::multiplexing::ml_dsa_87::verify_mu(
+        verification_key.as_ref(),
+        mu,
         signature.as_ref(),
     )
 }
