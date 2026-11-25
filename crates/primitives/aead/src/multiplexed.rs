@@ -1,9 +1,8 @@
 use libcrux_secrets::U8;
-use libcrux_traits::aead::{slice::KeyGenError, typed_refs::KeyMut};
-#[cfg(any(feature = "chacha20poly1305", feature = "xchacha20poly1305"))]
-use libcrux_traits::{
-    aead,
-    aead::typed_refs::{DecryptError, EncryptError, Multiplexes},
+use libcrux_traits::aead::{
+    self,
+    slice::KeyGenError,
+    typed_refs::{DecryptError, EncryptError, KeyMut, Multiplexes},
 };
 
 /// A multiplexed AEAD, allowing algorithm selection at run time.
@@ -27,36 +26,12 @@ pub enum Aead {
 }
 
 /// A reference to a multiplexed AEAD key.
-#[cfg(any(
-    feature = "chacha20poly1305",
-    feature = "xchacha20poly1305",
-    feature = "aesgcm128",
-    feature = "aesgcm256"
-))]
 pub type KeyRef<'a> = aead::typed_refs::KeyRef<'a, Aead>;
 /// A reference to a multiplexed AEAD tag.
-#[cfg(any(
-    feature = "chacha20poly1305",
-    feature = "xchacha20poly1305",
-    feature = "aesgcm128",
-    feature = "aesgcm256"
-))]
 pub type TagRef<'a> = aead::typed_refs::TagRef<'a, Aead>;
 /// A mutable reference to a multiplexed AEAD tag.
-#[cfg(any(
-    feature = "chacha20poly1305",
-    feature = "xchacha20poly1305",
-    feature = "aesgcm128",
-    feature = "aesgcm256"
-))]
 pub type TagMut<'a> = aead::typed_refs::TagMut<'a, Aead>;
 /// A reference to a multiplexed AEAD nonce.
-#[cfg(any(
-    feature = "chacha20poly1305",
-    feature = "xchacha20poly1305",
-    feature = "aesgcm128",
-    feature = "aesgcm256"
-))]
 pub type NonceRef<'a> = aead::typed_refs::NonceRef<'a, Aead>;
 
 #[cfg(feature = "chacha20poly1305")]
@@ -100,12 +75,6 @@ impl Multiplexes<crate::aesgcm256::AesGcm256> for Aead {
     }
 }
 
-#[cfg(any(
-    feature = "chacha20poly1305",
-    feature = "xchacha20poly1305",
-    feature = "aesgcm128",
-    feature = "aesgcm256"
-))]
 impl aead::typed_refs::Aead for Aead {
     fn key_len(&self) -> usize {
         match *self {
@@ -271,12 +240,6 @@ impl aead::typed_refs::Aead for Aead {
     }
 }
 
-#[cfg(any(
-    feature = "chacha20poly1305",
-    feature = "xchacha20poly1305",
-    feature = "aesgcm128",
-    feature = "aesgcm256"
-))]
 #[cfg(test)]
 mod tests {
     use libcrux_traits::aead::typed_refs;
