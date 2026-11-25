@@ -25,7 +25,8 @@ tls_codec = { workspace = true, optional = true }
 [features]
 default = ["std"]
 std = ["rand/std", "tls_codec?/std"]
-codec = ["dep:tls_codec"]
+# The `tls_codec` derives use `std::io`.
+codec = ["dep:tls_codec", "tls_codec/std"]
 
 [dev-dependencies]
 libcrux-kats = { workspace = true, features = ["kas-ecc"] }
