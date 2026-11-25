@@ -1,0 +1,59 @@
+name: Feature Checks - libcrux-macros
+
+# Checks that `libcrux-macros` builds with different feature combinations, using
+# `cargo hack`.
+# The paths cover `libcrux-macros` and its workspace dependencies.
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "Cargo.toml"
+      - ".github/workflows/feature-checks-libcrux-macros.yml"
+      - "crates/utils/macros/**"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "Cargo.toml"
+      - ".github/workflows/feature-checks-libcrux-macros.yml"
+      - "crates/utils/macros/**"
+  # Weekly, to catch breakage from new releases of third-party dependencies,
+  # which the path filters can't detect (there is no committed Cargo.lock).
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+
+permissions: {}
+
+env:
+  CARGO_TERM_COLOR: always
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  x86_64:
+    name: libcrux-macros (x86_64)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Install cargo-hack
+        uses: taiki-e/install-action@4cef1412cce204788f482e778a0b9187f9626a29 # v2.87.21
+        with:
+          tool: cargo-hack
+
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          key: feature-check-libcrux-macros
+
+      # `--no-dev-deps` keeps dev-dependencies from enabling features that
+      # would otherwise hide missing feature dependencies.
+      - name: 🔨 Check feature combinations
+        run: >-
+          cargo hack check -p libcrux-macros
+          --feature-powerset --depth 2 --no-dev-deps --keep-going
