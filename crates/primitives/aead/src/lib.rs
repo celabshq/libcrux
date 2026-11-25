@@ -163,8 +163,20 @@
 
 #![no_std]
 
+#[cfg(any(
+    feature = "chacha20poly1305",
+    feature = "xchacha20poly1305",
+    feature = "aesgcm128",
+    feature = "aesgcm256"
+))]
 mod multiplexed;
 
+#[cfg(any(
+    feature = "chacha20poly1305",
+    feature = "xchacha20poly1305",
+    feature = "aesgcm128",
+    feature = "aesgcm256"
+))]
 pub use multiplexed::*;
 
 #[cfg(feature = "chacha20poly1305")]

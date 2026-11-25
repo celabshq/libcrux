@@ -32,8 +32,9 @@ default = ["std"]
 std = ["rand/std", "libcrux-ecdh/std", "libcrux-ml-kem/std"]
 tests = []                                                   # Expose functions for testing.
 pre-verification = []
-# Encoding and decoding with TLSCodec
-codec = ["dep:tls_codec", "libcrux-ml-kem/codec", "libcrux-ecdh/codec"]
+# Encoding and decoding with TLSCodec. Requires `std`, since the `tls_codec`
+# derives use `std::io`.
+codec = ["std", "dep:tls_codec", "libcrux-ml-kem/codec", "libcrux-ecdh/codec"]
 
 [dev-dependencies]
 libcrux-kem = { path = "./", features = ["tests"] }

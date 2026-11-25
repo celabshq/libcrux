@@ -2,6 +2,14 @@
 
 This crate provides a usable interface to `libcrux-chacha20poly1305` and `libcrux-aesgcm`.
 
+## Features
+
+The algorithms are enabled through the `chacha20poly1305`, `xchacha20poly1305`,
+`aesgcm128` and `aesgcm256` features, all of which are on by default.
+
+**NOTE:** The `check-secret-independence` feature is currently only
+supported with `chacha20poly1305` and `xchacha20poly1305`.
+
 ## Verification
 
 ### `libcrux-chacha20poly1305`
