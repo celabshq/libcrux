@@ -25,11 +25,11 @@ pub trait Aead<const KEY_LEN: usize, const TAG_LEN: usize, const NONCE_LEN: usiz
     /// Encrypt a plaintext message, producing a ciphertext and an authentication tag.
     #[cfg(feature = "alloc")]
     fn encrypt_to_vec(
-        key: &[u8; KEY_LEN],
-        nonce: &[u8; NONCE_LEN],
+        key: &[U8; KEY_LEN],
+        nonce: &[U8; NONCE_LEN],
         aad: &[u8],
-        plaintext: &[u8],
-    ) -> Result<(alloc::vec::Vec<u8>, [u8; TAG_LEN]), EncryptError>;
+        plaintext: &[U8],
+    ) -> Result<(alloc::vec::Vec<u8>, [U8; TAG_LEN]), EncryptError>;
 
     /// Decrypt a ciphertext, verifying its authenticity.
     fn decrypt<const MSG_LEN: usize>(
@@ -44,10 +44,10 @@ pub trait Aead<const KEY_LEN: usize, const TAG_LEN: usize, const NONCE_LEN: usiz
     #[cfg(feature = "alloc")]
     fn decrypt_to_vec(
         key: &[U8; KEY_LEN],
-        nonce: &[u8; NONCE_LEN],
+        nonce: &[U8; NONCE_LEN],
         aad: &[u8],
         ciphertext: &[u8],
-        tag: &[u8; TAG_LEN],
+        tag: &[U8; TAG_LEN],
     ) -> Result<alloc::vec::Vec<U8>, DecryptError>;
 }
 
@@ -80,12 +80,12 @@ impl<
     #[cfg(feature = "alloc")]
     fn encrypt_to_vec(
         key: &[U8; KEY_LEN],
-        nonce: &[u8; NONCE_LEN],
+        nonce: &[U8; NONCE_LEN],
         aad: &[u8],
         plaintext: &[U8],
-    ) -> Result<(alloc::vec::Vec<u8>, [u8; TAG_LEN]), EncryptError> {
+    ) -> Result<(alloc::vec::Vec<u8>, [U8; TAG_LEN]), EncryptError> {
         let mut ciphertext = alloc::vec![0u8; plaintext.len()];
-        let mut tag = [0u8; TAG_LEN];
+        let mut tag = [0u8.classify(); TAG_LEN];
 
         Self::encrypt(&mut ciphertext, &mut tag, key, nonce, aad, plaintext)
             .map(|()| (ciphertext, tag))
@@ -106,12 +106,12 @@ impl<
     #[cfg(feature = "alloc")]
     fn decrypt_to_vec(
         key: &[U8; KEY_LEN],
-        nonce: &[u8; NONCE_LEN],
+        nonce: &[U8; NONCE_LEN],
         aad: &[u8],
         ciphertext: &[u8],
-        tag: &[u8; TAG_LEN],
+        tag: &[U8; TAG_LEN],
     ) -> Result<alloc::vec::Vec<U8>, DecryptError> {
-        let mut plaintext = alloc::vec![0u8; ciphertext.len()];
+        let mut plaintext = alloc::vec![0u8.classify(); ciphertext.len()];
 
         Self::decrypt(&mut plaintext, key, nonce, aad, ciphertext, tag).map(|()| plaintext)
     }
