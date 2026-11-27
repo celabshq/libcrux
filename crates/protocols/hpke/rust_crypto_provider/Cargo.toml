@@ -38,6 +38,8 @@ aes-gcm = { version = "0.11", default-features = false, features = [
 # Post-quantum KEMs
 x-wing = { version = "0.1", default-features = false, optional = true }
 ml-kem = { version = "0.3", default-features = false, optional = true }
+sha3 = { version = "0.12", default-features = false, optional = true }
+shake = { version = "0.1", default-features = false, optional = true }
 # Randomness
 rand_core = { version = "0.10", default-features = false }
 rand = { version = "0.10", default-features = false, features = ["sys_rng"] }
@@ -50,7 +52,7 @@ rand = { version = "0.10" }
 
 [features]
 std = ["rand/std", "rand_chacha/std"]
-experimental = ["dep:x-wing", "dep:ml-kem"]
+experimental = ["dep:x-wing", "dep:ml-kem", "dep:sha3", "dep:shake", "ml-kem/hazmat"]
 
 [[bench]]
 name = "bench_hkdf"
