@@ -427,8 +427,9 @@ fn kats_libcrux() {
 
     // `test_vectors_hpke_pq.json` is vendored from
     // <https://github.com/hpkewg/hpke-pq/blob/main/test-vectors.json>
-    // (draft-ietf-hpke-pq). Only the libcrux provider implements these suites,
-    // and only under the `draft-ietf-hpke-pq` feature. Unsupported suites within
+    // (draft-ietf-hpke-pq). Only the libcrux provider runs these suites here,
+    // under the `draft-ietf-hpke-pq` feature. `test_hpke_pq_rust_crypto.rs`
+    // checks the RustCrypto hybrid KEMs against them. Unsupported suites within
     // the file (TurboSHAKE, X448, …) are skipped automatically. libcrux does not
     // implement secp256k1, so it is deliberately not handed `test_vectors_k256`.
     #[cfg(feature = "draft-ietf-hpke-pq")]

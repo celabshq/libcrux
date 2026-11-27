@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.1] (Unreleased)
+
+### Added
+
+- [#XXXX](https://github.com/celabshq/libcrux/pull/XXXX): The `experimental` feature now adds the MLKEM768-P256 and MLKEM1024-P384 hybrid KEMs of [draft-ietf-hpke-pq](https://datatracker.ietf.org/doc/html/draft-ietf-hpke-pq-05). This adds the `sha3` and `shake` dependencies and enables the `hazmat` feature of `ml-kem`.
+
 ## [0.8.0] (2026-10-07)
 
 ### Changed

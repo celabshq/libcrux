@@ -38,6 +38,8 @@ mod hkdf;
 // Gated behind the `experimental` feature: the PQ ciphersuites are still
 // draft-stage and subject to change.
 #[cfg(feature = "experimental")]
+mod hybrid_kem;
+#[cfg(feature = "experimental")]
 mod pq_kem;
 use crate::aead::*;
 use crate::hkdf::*;
@@ -149,7 +151,12 @@ impl HpkeCrypto for HpkeRustCrypto {
 
     fn kem_key_gen_derand(_alg: KemAlgorithm, _seed: &[u8]) -> Result<(Vec<u8>, Vec<u8>), Error> {
         #[cfg(feature = "experimental")]
-        return pq_kem::kem_key_gen_derand(_alg, _seed);
+        return match _alg {
+            KemAlgorithm::MlKem768P256 | KemAlgorithm::MlKem1024P384 => {
+                hybrid_kem::key_gen_derand(_alg, _seed)
+            }
+            _ => pq_kem::kem_key_gen_derand(_alg, _seed),
+        };
 
         #[cfg(not(feature = "experimental"))]
         Err(Error::UnsupportedKemOperation)
@@ -161,7 +168,12 @@ impl HpkeCrypto for HpkeRustCrypto {
         _prng: &mut Self::HpkePrng,
     ) -> Result<(Vec<u8>, Vec<u8>), Error> {
         #[cfg(feature = "experimental")]
-        return pq_kem::kem_encaps(_alg, _pk_r, _prng);
+        return match _alg {
+            KemAlgorithm::MlKem768P256 | KemAlgorithm::MlKem1024P384 => {
+                hybrid_kem::encaps(_alg, _pk_r, _prng)
+            }
+            _ => pq_kem::kem_encaps(_alg, _pk_r, _prng),
+        };
 
         #[cfg(not(feature = "experimental"))]
         Err(Error::UnsupportedKemOperation)
@@ -172,13 +184,28 @@ impl HpkeCrypto for HpkeRustCrypto {
         _pk_r: &[u8],
         _randomness: &[u8],
     ) -> Result<(Vec<u8>, Vec<u8>), Error> {
-        // Not implemented; `hpke-rs` falls back to `kem_encaps`.
+        // Only the hybrid KEMs implement this. For the others, `hpke-rs`
+        // falls back to `kem_encaps`.
+        #[cfg(feature = "experimental")]
+        return match _alg {
+            KemAlgorithm::MlKem768P256 | KemAlgorithm::MlKem1024P384 => {
+                hybrid_kem::encaps_derand(_alg, _pk_r, _randomness)
+            }
+            _ => Err(Error::UnsupportedKemOperation),
+        };
+
+        #[cfg(not(feature = "experimental"))]
         Err(Error::UnsupportedKemOperation)
     }
 
     fn kem_decaps(_alg: KemAlgorithm, _ct: &[u8], _sk_r: &[u8]) -> Result<Vec<u8>, Error> {
         #[cfg(feature = "experimental")]
-        return pq_kem::kem_decaps(_alg, _ct, _sk_r);
+        return match _alg {
+            KemAlgorithm::MlKem768P256 | KemAlgorithm::MlKem1024P384 => {
+                hybrid_kem::decaps(_alg, _ct, _sk_r)
+            }
+            _ => pq_kem::kem_decaps(_alg, _ct, _sk_r),
+        };
 
         #[cfg(not(feature = "experimental"))]
         Err(Error::UnsupportedKemOperation)
@@ -250,6 +277,10 @@ impl HpkeCrypto for HpkeRustCrypto {
             | KemAlgorithm::XWingDraft06Obsolete
             | KemAlgorithm::MlKem768
             | KemAlgorithm::MlKem1024 => pq_kem::kem_key_gen(alg, prng),
+            #[cfg(feature = "experimental")]
+            KemAlgorithm::MlKem768P256 | KemAlgorithm::MlKem1024P384 => {
+                hybrid_kem::key_gen(alg, prng)
+            }
             _ => Err(Error::UnknownKemAlgorithm),
         }
     }
@@ -323,7 +354,11 @@ impl HpkeCrypto for HpkeRustCrypto {
             | KemAlgorithm::DhKemK256
             | KemAlgorithm::DhKemP384 => Ok(()),
             #[cfg(feature = "experimental")]
-            KemAlgorithm::XWingDraft06 | KemAlgorithm::MlKem768 | KemAlgorithm::MlKem1024 => Ok(()),
+            KemAlgorithm::XWingDraft06
+            | KemAlgorithm::MlKem768
+            | KemAlgorithm::MlKem1024
+            | KemAlgorithm::MlKem768P256
+            | KemAlgorithm::MlKem1024P384 => Ok(()),
             _ => Err(Error::UnknownKemAlgorithm),
         }
     }
