@@ -40,7 +40,7 @@ jobs:
       with:
         persist-credentials: false
     - name: Run tests all features
-      run: cargo test --verbose --no-default-features -F "std,serialization,hazmat,rustcrypto,libcrux,experimental"
+      run: cargo test --verbose --no-default-features -F "std,serialization,hazmat,rustcrypto,libcrux,experimental,draft-ietf-hpke-pq"
       # Release
     - name: Build Release
       run: cargo build --release --verbose
