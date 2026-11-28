@@ -12,12 +12,17 @@ let logand_lemma_forall #t:
   FStar.Classical.forall_intro (fun a -> logand_lemma #t a a)
 
 let logand_mask_lemma_forall #t:
-  Lemma (forall a m.
-              m < bits t ==>
-              (pow2 m < maxint t /\
-               logand a (sub #t (mk_int #t (pow2 m)) (mk_int #t 1)) ==
-               mk_int (v a % pow2 m))) =
-  admit()
+  Lemma (forall (a: int_t t) (m: nat).
+              (m < bits t /\ pow2 m < maxint t) ==>
+              logand a (sub #t (mk_int #t (pow2 m)) (mk_int #t 1)) ==
+              mk_int (v a % pow2 m)) =
+  let aux (a: int_t t) (m: nat)
+    : Lemma ((m < bits t /\ pow2 m < maxint t) ==>
+             logand a (sub #t (mk_int #t (pow2 m)) (mk_int #t 1)) ==
+             mk_int (v a % pow2 m)) =
+    if m < bits t && pow2 m < maxint t then logand_mask_lemma a m
+  in
+  FStar.Classical.forall_intro_2 aux
 
 let logxor_lemma_forall #t:
   Lemma (forall a. 
